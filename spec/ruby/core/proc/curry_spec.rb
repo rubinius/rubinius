@@ -59,17 +59,17 @@ describe "Proc#curry" do
     l = lambda { |*a| }
     l.curry.arity.should == -1
   end
-  
+
   it "produces Procs that raise ArgumentError for #binding" do
     lambda do
       @proc_add.curry.binding
     end.should raise_error(ArgumentError)
   end
-  
+
   it "produces Procs that return [[:rest]] for #parameters" do
     @proc_add.curry.parameters.should == [[:rest]]
   end
-  
+
   it "produces Procs that return nil for #source_location" do
     @proc_add.curry.source_location.should == nil
   end
@@ -78,6 +78,16 @@ describe "Proc#curry" do
     curried = @proc_add.curry.call(1, 2)
 
     instance_exec(3, &curried).should == 6
+  end
+
+  it "combines arguments and calculates incoming arity accurately for successively currying" do
+    l = lambda{|a,b,c| a+b+c }
+    l1 = l.curry.call(1)
+    # the l1 currying seems unnecessary, but it triggered the original issue
+    l2 = l1.curry.call(2)
+
+    l2.curry.call(3).should == 6
+    l1.curry.call(2,3).should == 6
   end
 end
 
