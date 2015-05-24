@@ -55,10 +55,8 @@ describe :method_equal, :shared => true do
   end
 
   it "returns false if comparing a method defined via define_method and def" do
-    MethodSpecs::Methods.send :define_method, :defined_foo, lambda {}
-
-    defn = @m.method(:foo)
-    defined = @m.method(:defined_foo)
+    defn = @m.method(:zero)
+    defined = @m.method(:zero_defined_method)
 
     defn.send(@method, defined).should be_false
     defined.send(@method, defn).should be_false
