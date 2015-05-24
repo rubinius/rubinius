@@ -453,6 +453,7 @@ class Configure
 
     feature "execinfo", true
     feature "vendor-zlib", false
+    feature "vendor-libsodium", true
     feature "alloc-tracking", false
     feature "fibers", true
     feature "dtrace", false
@@ -1155,6 +1156,11 @@ int main() { return tgetnum(""); }
       @include_dirs << "#{@vendored_libdir}/zlib"
       @lib_dirs     << "#{@vendored_libdir}/zlib"
     end
+
+    if @features["vendor-libsodium"].value
+      @include_dirs << "#{@vendored_libdir}/libsodium/src/libsodium/include"
+      @lib_dirs     << "#{@vendored_libdir}/libsodium/src/libsodium/.libs/"
+    end
   end
 
   def detect_features
@@ -1262,6 +1268,12 @@ int main() { return tgetnum(""); }
     unless @features["vendor-zlib"].value
       unless has_header("zlib.h")
         failure "zlib.h is required"
+      end
+    end
+
+    unless @features["vendor-libsodium"].value
+      unless has_header("sodium.h")
+        failure "sodium.h is required"
       end
     end
 
@@ -1544,6 +1556,7 @@ int main() { return tgetnum(""); }
       :bsd                => @bsd,
       :linux              => @linux,
       :vendor_zlib        => @features["vendor-zlib"].value,
+      :vendor_libsodium   => @features["vendor-libsodium"].value,
       :vm_release_h       => @vm_release_h,
       :bootstrap_gems     => @bootstrap_gems,
       :runtime_gems       => @runtime_gems,

@@ -181,6 +181,22 @@ Daedalus.blueprint do |i|
     files << zlib
   end
 
+  if Rubinius::BUILD_CONFIG[:vendor_libsodium]
+    sodium = i.external_lib "vendor/libsodium" do |l|
+      l.cflags = ["-I#{src}/vendor/libsodium/src/libsodium/include"] + gcc.cflags
+      l.objects = [l.file("src/libsodium/.libs/libsodium.a")]
+      l.to_build do |x|
+        unless File.exist?("Makefile") and File.exist?("zconf.h")
+          x.command "sh -c ./configure"
+        end
+
+        x.command make
+      end
+    end
+    gcc.add_library sodium
+    files << sodium
+  end
+
   if Rubinius::BUILD_CONFIG[:windows]
     winp = i.external_lib "vendor/winpthreads" do |l|
       l.cflags = ["-I#{src}/vendor/winpthreads/include"] + gcc.cflags
