@@ -105,6 +105,7 @@ module Rubinius
         # when given a Proc.
         #
         # The methods are equal if the BEs are equal.
+        return false unless other.kind_of? AsMethod
 
         @block_env == other.block_env
       end
