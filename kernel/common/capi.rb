@@ -186,5 +186,9 @@ module Rubinius
         return 1
       end
     end
+
+    def self.rb_block_proc(env)
+      Rubinius::Mirror::Proc.from_block ::Proc, env
+    end
   end
 end

@@ -359,7 +359,7 @@ module Rubinius
 
     raise ArgumentError, "block required" unless env
 
-    prc = Proc.__from_block__(env)
+    prc = Rubinius::Mirror::Proc.from_block ::Proc, env
 
     # Make a proc lambda only when passed an actual block (ie, not using the
     # "&block" notation), otherwise don't modify it at all.
