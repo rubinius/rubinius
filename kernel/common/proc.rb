@@ -97,17 +97,12 @@ class Proc
     m = Rubinius::Mirror.reflect self
     f = m.curry self, [], arity
 
-    f.singleton_class.send(:define_method, :binding) {
+    f.singleton_class.send(:define_method, :binding) do
       raise ArgumentError, "cannot create binding from f proc"
-    }
+    end
 
-    f.singleton_class.send(:define_method, :parameters) {
-      [[:rest]]
-    }
-
-    f.singleton_class.send(:define_method, :source_location) {
-      nil
-    }
+    f.singleton_class.thunk_method :parameters, [[:rest]]
+    f.singleton_class.thunk_method :source_location, nil
 
     f
   end
