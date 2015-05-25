@@ -14,23 +14,6 @@ class Proc
     end
   end
 
-  def self.__make_curry_proc__(proc, passed, arity)
-    is_lambda = proc.lambda?
-    passed.freeze
-
-    __send__((is_lambda ? :lambda : :proc)) do |*argv, &passed_proc|
-      my_passed = passed + argv
-      if my_passed.length < arity
-        if !passed_proc.nil?
-          warn "#{caller[0]}: given block not used"
-        end
-        __make_curry_proc__(proc, my_passed, arity)
-      else
-        proc.call(*my_passed)
-      end
-    end
-  end
-
   def self.new(*args)
     env = nil
 
@@ -111,7 +94,8 @@ class Proc
 
     args = []
 
-    f = Proc.__make_curry_proc__(self, [], arity)
+    m = Rubinius::Mirror.reflect self
+    f = m.curry self, [], arity
 
     f.singleton_class.send(:define_method, :binding) {
       raise ArgumentError, "cannot create binding from f proc"
