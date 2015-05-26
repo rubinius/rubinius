@@ -320,5 +320,4 @@ module Rubinius
     cs = Rubinius::ConstantScope.of_sender
     return cs.absolute_active_path
   end
-
 end

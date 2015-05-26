@@ -4,6 +4,7 @@ autoload.rbc
 module.rbc
 binding.rbc
 proc.rbc
+proc_mirror.rbc
 enumerable.rbc
 enumerator.rbc
 argf.rbc

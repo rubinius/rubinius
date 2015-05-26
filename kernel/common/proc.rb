@@ -1,17 +1,7 @@
 class Proc
-
   def self.__from_block__(env)
-    Rubinius.primitive :proc_from_env
-
-    if Rubinius::Type.object_kind_of? env, Rubinius::BlockEnvironment
-      raise PrimitiveFailure, "Proc.__from_block__ primitive failed to create Proc from BlockEnvironment"
-    else
-      begin
-        env.to_proc
-      rescue Exception
-        raise ArgumentError, "Unable to convert #{env.inspect} to a Proc"
-      end
-    end
+    # The compiler must be fixed before this method can be removed.
+    Rubinius::Mirror::Proc.from_block self, env
   end
 
   def self.new(*args)
@@ -35,7 +25,7 @@ class Proc
       end
     end
 
-    block = __from_block__(env)
+    block = Rubinius::Mirror::Proc.from_block self, env
 
     if block.class != self
       block = block.dup

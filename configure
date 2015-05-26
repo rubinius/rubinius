@@ -450,6 +450,7 @@ class Configure
 
     feature "execinfo", true
     feature "vendor-zlib", false
+    feature "vendor-libsodium", true
     feature "alloc-tracking", false
     feature "fibers", true
     feature "dtrace", false
@@ -570,8 +571,12 @@ class Configure
       if which
         config = File.join(which, "llvm-config")
       elsif @darwin
-        out = `brew list llvm | grep '/llvm-config$'`
-        config = out.chomp if $?.success?
+        if macports?
+          config = macports_llvm_config
+        else
+          out = Bundler.with_clean_env { `brew list llvm | grep '/llvm-config$'` }
+          config = out.chomp if $?.success?
+        end
       end
     end
 
@@ -1151,6 +1156,11 @@ int main() { return tgetnum(""); }
       @include_dirs << "#{@vendored_libdir}/zlib"
       @lib_dirs     << "#{@vendored_libdir}/zlib"
     end
+
+    if @features["vendor-libsodium"].value
+      @include_dirs << "#{@vendored_libdir}/libsodium/src/libsodium/include"
+      @lib_dirs     << "#{@vendored_libdir}/libsodium/src/libsodium/.libs/"
+    end
   end
 
   def detect_features
@@ -1216,6 +1226,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_INOTIFY"
     end
 
+    if has_function("gettid", ["unistd.d", "sys/types.h"])
+      @defines << "HAVE_GETTID"
+    end
+
     # glibc has useless lchmod() so we don't try to use lchmod() on linux
     if !@linux and has_function("lchmod", ["sys/stat.h", "unistd.h"])
       @have_lchmod = true
@@ -1254,6 +1268,12 @@ int main() { return tgetnum(""); }
     unless @features["vendor-zlib"].value
       unless has_header("zlib.h")
         failure "zlib.h is required"
+      end
+    end
+
+    unless @features["vendor-libsodium"].value
+      unless has_header("sodium.h")
+        failure "sodium.h is required"
       end
     end
 
@@ -1535,6 +1555,7 @@ int main() { return tgetnum(""); }
       :bsd                => @bsd,
       :linux              => @linux,
       :vendor_zlib        => @features["vendor-zlib"].value,
+      :vendor_libsodium   => @features["vendor-libsodium"].value,
       :vm_release_h       => @vm_release_h,
       :bootstrap_gems     => @bootstrap_gems,
       :runtime_gems       => @runtime_gems,
