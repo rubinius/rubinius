@@ -1,0 +1,2 @@
+fails:returns the file descriptor of the dir
+fails:raises an error
