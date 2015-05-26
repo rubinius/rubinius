@@ -213,7 +213,7 @@ class ArgumentError < StandardError
   end
 end
 
-class UncaughtThrowError < StandardError
+class UncaughtThrowError < ArgumentError
 end
 
 class IndexError < StandardError
