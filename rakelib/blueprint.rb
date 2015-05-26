@@ -186,7 +186,7 @@ Daedalus.blueprint do |i|
       l.cflags = ["-I#{src}/vendor/libsodium/src/libsodium/include"] + gcc.cflags
       l.objects = [l.file("src/libsodium/.libs/libsodium.a")]
       l.to_build do |x|
-        unless File.exist?("Makefile") and File.exist?("zconf.h")
+        unless File.exist?("Makefile")
           x.command "sh -c ./configure"
         end
 
