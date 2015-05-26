@@ -1,0 +1,7 @@
+fails:returns a float the smallest possible step greater than the receiver
+fails:steps directly between MAX and INFINITY
+fails:steps directly between 1.0 and EPSILON + 1.0
+fails:steps directly between -1.0 and EPSILON/2 - 1.0
+fails:reverses the effect of prev_float
+fails:returns negative zero when stepping upward from just below zero
+fails:returns NAN if NAN was the receiver
