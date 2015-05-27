@@ -71,6 +71,12 @@ namespace rubinius {
     return cTrue;
   }
 
+  Object* Dir::fileno(STATE) {
+    int fd = dirfd(os_);
+
+    return Fixnum::from(fd);
+  }
+
   Object* Dir::close(STATE) {
     guard(state);
 
