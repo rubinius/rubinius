@@ -14,6 +14,7 @@
 #include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
+#include "builtin/code_db.hpp"
 #include "builtin/compact_lookup_table.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/channel.hpp"
@@ -368,6 +369,7 @@ namespace rubinius {
     FSEvent::init(state);
     Logger::init(state);
     JIT::init(state);
+    CodeDB::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

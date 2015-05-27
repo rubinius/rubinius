@@ -130,6 +130,7 @@ namespace rubinius {
     TypedRoot<Class*> logger;
     TypedRoot<JIT*> jit;
     TypedRoot<Module*> runtime;
+    TypedRoot<Class*> codedb;
 
     TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
@@ -264,6 +265,7 @@ namespace rubinius {
       logger(&roots),
       jit(&roots),
       runtime(&roots),
+      codedb(&roots),
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)
