@@ -185,6 +185,33 @@ module Enumerable
     end
   end
 
+  def slice_when(&block)
+    raise ArgumentError, "wrong number of arguments (0 for 1)" unless block_given?
+
+    Enumerator.new do |enum|
+      ary = nil
+      last_after = nil
+      each_cons(2) do |before, after|
+        last_after = after
+        match = block.call before, after
+
+        ary ||= []
+        if match
+          ary << before
+          enum.yield ary
+          ary = []
+        else
+          ary << before
+        end
+      end
+
+      unless ary.nil?
+        ary << last_after
+        enum.yield ary
+      end
+    end
+  end
+
   def to_a(*arg)
     ary = []
     each(*arg) do
@@ -443,8 +470,8 @@ module Enumerable
     unless block_given?
       return to_enum(:each_cons, num) do
         enum_size = enumerator_size
-        if enum_size.nil? 
-          nil 
+        if enum_size.nil?
+          nil
         elsif enum_size == 0
           0
         else
