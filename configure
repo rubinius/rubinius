@@ -1231,7 +1231,7 @@ int main() { return tgetnum(""); }
     end
 
     if has_function("birthtime", ["sys/stat.h"])
-       @defines << "HAVE_ST_BIRTHTIME"
+      @defines << "HAVE_ST_BIRTHTIME"
     end
 
     # glibc has useless lchmod() so we don't try to use lchmod() on linux
