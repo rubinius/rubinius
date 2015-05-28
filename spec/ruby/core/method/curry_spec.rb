@@ -25,7 +25,15 @@ describe "Method#curry" do
 
     it "raises ArgumentError when the method requires less arguments than the given arity" do
       lambda { @obj.method(:zero).curry(1) }.should raise_error(ArgumentError)
+
+      # a method with one optional param would be something like: lambda { |a,b=nil| a + (b||0) }
+      # which doesn't work on rubinius:
+      # irb(main):002:0> b = lambda { |a,b=nil| a + (b||0) }
+      #   Error validating bytecode: more arguments than local slots
+      #   Rubinius::Internal: invalid bytecode method
       lambda { @obj.method(:one_req_one_opt).curry(3) }.should raise_error(ArgumentError)
+
+      # same as above optional param in lambda/proc
       lambda { @obj.method(:two_req_one_opt_with_block).curry(4) }.should raise_error(ArgumentError)
     end
 
