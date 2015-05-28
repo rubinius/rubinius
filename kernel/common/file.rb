@@ -104,6 +104,28 @@ class File < IO
   end
 
   ##
+  # Returns the change time for the named file (the
+  # time at which directory information about the
+  # file was changed, not the file itself).
+  #
+  #  File.ctime("testfile")   #=> Wed Apr 09 08:53:13 CDT 2003
+  def self.ctime(path)
+    Stat.new(path).ctime
+  end
+
+  def self.birthtime(path)
+    Stat.new(path).birthtime
+  end
+
+  ##
+  # Returns the modification time for the named file as a Time object.
+  #
+  #  File.mtime("testfile")   #=> Tue Apr 08 12:58:04 CDT 2003
+  def self.mtime(path)
+    Stat.new(path).mtime
+  end
+
+  ##
   # Returns the last component of the filename given
   # in file_name, which must be formed using forward
   # slashes (``/’’) regardless of the separator used
@@ -302,16 +324,6 @@ class File < IO
     end
 
     paths.size
-  end
-
-  ##
-  # Returns the change time for the named file (the
-  # time at which directory information about the
-  # file was changed, not the file itself).
-  #
-  #  File.ctime("testfile")   #=> Wed Apr 09 08:53:13 CDT 2003
-  def self.ctime(path)
-    Stat.new(path).ctime
   end
 
   ##
@@ -816,14 +828,6 @@ class File < IO
     Stat.lstat path
   end
 
-  ##
-  # Returns the modification time for the named file as a Time object.
-  #
-  #  File.mtime("testfile")   #=> Tue Apr 08 12:58:04 CDT 2003
-  def self.mtime(path)
-    Stat.new(path).mtime
-  end
-
   def self.path(obj)
     return obj.to_path if obj.respond_to? :to_path
 
@@ -1226,16 +1230,24 @@ class File < IO
     Stat.new(@path).atime
   end
 
+  def ctime
+    Stat.new(@path).ctime
+  end
+
+  def birthtime
+    Stat.new(@path).birthtime
+  end
+
+  def mtime
+    Stat.new(@path).mtime
+  end
+
   def reopen(other, mode = 'r+')
     rewind unless closed?
     unless other.kind_of? IO
       other = Rubinius::Type.coerce_to_path(other)
     end
     super(other, mode)
-  end
-
-  def ctime
-    Stat.new(@path).ctime
   end
 
   def flock(const)
@@ -1249,10 +1261,6 @@ class File < IO
 
   def lstat
     Stat.lstat @path
-  end
-
-  def mtime
-    Stat.new(@path).mtime
   end
 
   def stat
