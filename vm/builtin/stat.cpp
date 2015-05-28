@@ -77,5 +77,13 @@ namespace rubinius {
     return Time::at(state, st_.st_ctime);
   }
 
+  Object* Stat::stat_birthtime(STATE) {
+    #ifdef HAVE_ST_BIRTHTIME
+      return Time::at(state, st_.st_birthtimespec);
+    #else
+      return Primitives::failure();
+    #endif
+  }
+
 }
 

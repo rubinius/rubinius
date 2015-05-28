@@ -1230,6 +1230,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_GETTID"
     end
 
+    if has_struct_member("stat", "st_birthtimespec", ["sys/stat.h"])
+      @defines << "HAVE_ST_BIRTHTIME"
+    end
+
     # glibc has useless lchmod() so we don't try to use lchmod() on linux
     if !@linux and has_function("lchmod", ["sys/stat.h", "unistd.h"])
       @have_lchmod = true

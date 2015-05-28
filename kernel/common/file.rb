@@ -104,6 +104,58 @@ class File < IO
   end
 
   ##
+  # Returns the change time for the named file (the
+  # time at which directory information about the
+  # file was changed, not the file itself).
+  #
+  #  File.ctime("testfile")   #=> Wed Apr 09 08:53:13 CDT 2003
+  def self.ctime(path)
+    Stat.new(path).ctime
+  end
+
+  ##
+  # Returns the birthtime for the named file
+  #
+  # Note this is not supported on all platforms.
+  # See stat(2) for more information.
+  def self.birthtime(path)
+    Stat.new(path).birthtime
+  end
+
+  ##
+  # Returns the modification time for the named file as a Time object.
+  #
+  #  File.mtime("testfile")   #=> Tue Apr 08 12:58:04 CDT 2003
+  def self.mtime(path)
+    Stat.new(path).mtime
+  end
+
+  ##
+  # Sets the access and modification times of each named
+  # file to the first two arguments. Returns the number
+  # of file names in the argument list.
+  #  #=> Integer
+  def self.utime(a_in, m_in, *paths)
+    a_in ||= Time.now
+    m_in ||= Time.now
+    FFI::MemoryPointer.new(POSIX::TimeVal, 2) do |ptr|
+      atime = POSIX::TimeVal.new ptr
+      mtime = POSIX::TimeVal.new ptr[1]
+      atime[:tv_sec] = a_in.to_i
+      atime[:tv_usec] = 0
+
+      mtime[:tv_sec] = m_in.to_i
+      mtime[:tv_usec] = 0
+
+      paths.each do |path|
+
+        n = POSIX.utimes(Rubinius::Type.coerce_to_path(path), ptr)
+        Errno.handle unless n == 0
+      end
+    end
+  end
+
+  ##
   # Returns the last component of the filename given
   # in file_name, which must be formed using forward
   # slashes (``/’’) regardless of the separator used
@@ -302,16 +354,6 @@ class File < IO
     end
 
     paths.size
-  end
-
-  ##
-  # Returns the change time for the named file (the
-  # time at which directory information about the
-  # file was changed, not the file itself).
-  #
-  #  File.ctime("testfile")   #=> Wed Apr 09 08:53:13 CDT 2003
-  def self.ctime(path)
-    Stat.new(path).ctime
   end
 
   ##
@@ -816,14 +858,6 @@ class File < IO
     Stat.lstat path
   end
 
-  ##
-  # Returns the modification time for the named file as a Time object.
-  #
-  #  File.mtime("testfile")   #=> Tue Apr 08 12:58:04 CDT 2003
-  def self.mtime(path)
-    Stat.new(path).mtime
-  end
-
   def self.path(obj)
     return obj.to_path if obj.respond_to? :to_path
 
@@ -1072,31 +1106,6 @@ class File < IO
     paths.size
   end
 
-  ##
-  # Sets the access and modification times of each named
-  # file to the first two arguments. Returns the number
-  # of file names in the argument list.
-  #  #=> Integer
-  def self.utime(a_in, m_in, *paths)
-    a_in ||= Time.now
-    m_in ||= Time.now
-    FFI::MemoryPointer.new(POSIX::TimeVal, 2) do |ptr|
-      atime = POSIX::TimeVal.new ptr
-      mtime = POSIX::TimeVal.new ptr[1]
-      atime[:tv_sec] = a_in.to_i
-      atime[:tv_usec] = 0
-
-      mtime[:tv_sec] = m_in.to_i
-      mtime[:tv_usec] = 0
-
-      paths.each do |path|
-
-        n = POSIX.utimes(Rubinius::Type.coerce_to_path(path), ptr)
-        Errno.handle unless n == 0
-      end
-    end
-  end
-
   def self.world_readable?(path)
     path = Rubinius::Type.coerce_to_path path
     return nil unless exist? path
@@ -1222,8 +1231,28 @@ class File < IO
 
   private :initialize
 
+  ##
+  # see File.atime
   def atime
     Stat.new(@path).atime
+  end
+
+  ##
+  # see File.ctime
+  def ctime
+    Stat.new(@path).ctime
+  end
+
+  ##
+  # see File.birthtime
+  def birthtime
+    Stat.new(@path).birthtime
+  end
+
+  ##
+  # see File.mtime
+  def mtime
+    Stat.new(@path).mtime
   end
 
   def reopen(other, mode = 'r+')
@@ -1232,10 +1261,6 @@ class File < IO
       other = Rubinius::Type.coerce_to_path(other)
     end
     super(other, mode)
-  end
-
-  def ctime
-    Stat.new(@path).ctime
   end
 
   def flock(const)
@@ -1249,10 +1274,6 @@ class File < IO
 
   def lstat
     Stat.lstat @path
-  end
-
-  def mtime
-    Stat.new(@path).mtime
   end
 
   def stat
