@@ -18,6 +18,7 @@ def kernel_clean
   rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
            "kernel/**/signature.rb",
+           "runtime/kernel",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
           ],
     :verbose => $verbose
@@ -59,6 +60,16 @@ end
 # Collection of all files in the kernel runtime. Modified by
 # various tasks below.
 runtime_files = FileList["runtime/platform.conf"]
+code_db_source = FileList[]
+code_db_files = FileList[
+  "runtime/kernel/contents",
+  "runtime/kernel/data",
+  "runtime/kernel/index",
+  "runtime/kernel/initialize"
+]
+code_db_scripts = []
+code_db_code = []
+code_db_data = []
 
 # Names of subdirectories of the language directories.
 dir_names = %w[
@@ -172,6 +183,8 @@ file signature => signature_file do |t|
 end
 runtime_files << signature
 
+code_db_source << "kernel/alpha.rb"
+
 # All the kernel files
 dir_names.each do |dir|
   directory(runtime_dir = "runtime/#{dir}")
@@ -193,8 +206,12 @@ dir_names.each do |dir|
     rbc = runtime_dir + name.chomp!
     rb  = kernel_dir + name.chop
     kernel_file_task runtime_files, signature_file, rb, rbc
+    code_db_source << rb
   end
 end
+
+code_db_source << "kernel/delta/converter_paths.rb"
+code_db_source << "kernel/loader.rb"
 
 [ signature_file,
   "kernel/alpha.rb",
@@ -238,12 +255,106 @@ namespace :compiler do
   task :generate => [signature_file]
 end
 
+directory "runtime/kernel"
+
+class CodeDBCompiler
+  def self.m_id
+    @m_id ||= 0
+    @m_id += 1
+  end
+
+  def self.compile(file, line, transforms)
+    compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_code
+
+    parser = compiler.parser
+    parser.root Rubinius::ToolSets::Build::AST::Script
+
+    if transforms.kind_of? Array
+      transforms.each { |t| parser.enable_category t }
+    else
+      parser.enable_category transforms
+    end
+
+    parser.input file, line
+
+    generator = compiler.generator
+    generator.processor Rubinius::ToolSets::Build::Generator
+
+    compiler.run
+  end
+
+  def self.marshal(code)
+    marshaler = Rubinius::ToolSets::Build::CompiledFile::Marshal.new
+    marshaler.marshal code
+  end
+end
+
+file "runtime/kernel/data" => ["runtime/kernel"] + runtime_files do |t|
+  puts "CodeDB: writing data..."
+
+  code_db_source.each do |file|
+    id = CodeDBCompiler.m_id
+
+    code_db_code << [id, CodeDBCompiler.compile(file, 1, [:default, :kernel])]
+
+    code_db_scripts << id
+  end
+
+  while x = code_db_code.shift
+    id, cc = x
+
+    cc.literals.each_with_index do |x, index|
+      if x.kind_of? Rubinius::CompiledCode
+        cc.literals[index] = i = CodeDBCompiler.m_id
+        code_db_code.unshift [i, x]
+      end
+    end
+
+    marshaled = CodeDBCompiler.marshal cc
+
+    code_db_data << [id, marshaled]
+  end
+
+  File.open t.name, "wb" do |f|
+    code_db_data.map! do |id, marshaled|
+      offset = f.pos
+      f.write marshaled
+
+      [id, offset, f.pos - offset]
+    end
+  end
+end
+
+file "runtime/kernel/index" => "runtime/kernel/data" do |t|
+  puts "CodeDB: writing index..."
+
+  File.open t.name, "wb" do |f|
+    code_db_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
+  end
+end
+
+file "runtime/kernel/contents" => "runtime/kernel/data" do |t|
+  puts "CodeDB: writing contents..."
+
+  File.open t.name, "wb" do |f|
+    code_db_source.each { |x| f.puts x }
+  end
+end
+
+file "runtime/kernel/initialize" => "runtime/kernel/data" do |t|
+  puts "CodeDB: writing initialize..."
+
+  File.open t.name, "wb" do |f|
+    code_db_scripts.each { |x| f.puts x }
+  end
+end
+
 desc "Build all kernel files (alias for kernel:build)"
 task :kernel => 'kernel:build'
 
 namespace :kernel do
   desc "Build all kernel files"
-  task :build => ['compiler:load'] + runtime_files
+  task :build => ['compiler:load'] + runtime_files + code_db_files
 
   desc "Delete all .rbc files"
   task :clean do
