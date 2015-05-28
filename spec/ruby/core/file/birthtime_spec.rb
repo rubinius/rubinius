@@ -9,17 +9,25 @@ describe "File.birthtime" do
     @file = nil
   end
 
-  it "returns the birth time for the named file as a Time object" do
-    File.birthtime(@file)
-    File.birthtime(@file).should be_kind_of(Time)
+  platform_is :darwin, :freebsd, :netbsd do
+    it "returns the birth time for the named file as a Time object" do
+      File.birthtime(@file)
+      File.birthtime(@file).should be_kind_of(Time)
+    end
+
+    it "accepts an object that has a #to_path method" do
+      File.birthtime(mock_to_path(@file))
+    end
+
+    it "raises an Errno::ENOENT exception if the file is not found" do
+      lambda { File.birthtime('bogus') }.should raise_error(Errno::ENOENT)
+    end
   end
 
-  it "accepts an object that has a #to_path method" do
-    File.birthtime(mock_to_path(@file))
-  end
-
-  it "raises an Errno::ENOENT exception if the file is not found" do
-    lambda { File.birthtime('bogus') }.should raise_error(Errno::ENOENT)
+  platform_is :windows, :linux do
+    it "raises an NotImplementedError" do
+      lambda { File.birthtime(@file) }.should raise_error(NotImplementedError)
+    end
   end
 end
 
@@ -33,8 +41,16 @@ describe "File#birthtime" do
     @file = nil
   end
 
-  it "returns the birth time for self" do
-    @file.birthtime
-    @file.birthtime.should be_kind_of(Time)
+  platform_is :darwin, :freebsd, :netbsd, :openbsd do
+    it "returns the birth time for self" do
+      @file.birthtime
+      @file.birthtime.should be_kind_of(Time)
+    end
+  end
+
+  platform_is :windows, :linux do
+    it "raises an NotImplementedError" do
+      lambda { @file.birthtime }.should raise_error(NotImplementedError)
+    end
   end
 end
