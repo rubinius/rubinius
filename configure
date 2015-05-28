@@ -1230,7 +1230,7 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_GETTID"
     end
 
-    if has_function("birthtime", ["sys/stat.h"])
+    if has_struct_member("stat", "st_birthtimespec", ["sys/stat.h"])
       @defines << "HAVE_ST_BIRTHTIME"
     end
 
