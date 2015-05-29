@@ -65,7 +65,8 @@ code_db_files = FileList[
   "runtime/kernel/contents",
   "runtime/kernel/data",
   "runtime/kernel/index",
-  "runtime/kernel/initialize"
+  "runtime/kernel/initialize",
+  "runtime/kernel/signature"
 ]
 code_db_scripts = []
 code_db_code = []
@@ -346,6 +347,14 @@ file "runtime/kernel/initialize" => "runtime/kernel/data" do |t|
 
   File.open t.name, "wb" do |f|
     code_db_scripts.each { |x| f.puts x }
+  end
+end
+
+file "runtime/kernel/signature" => signature_file do |t|
+  puts "CodeDB: writing signature..."
+
+  File.open t.name, "wb" do |f|
+    f.puts Rubinius::Signature
   end
 end
 

@@ -1,3 +1,5 @@
+#include "signature.h"
+
 #include "builtin/class.hpp"
 #include "builtin/code_db.hpp"
 #include "builtin/compiled_code.hpp"
@@ -29,6 +31,22 @@ namespace rubinius {
 
     std::string base_path(path->c_str(state));
 
+    std::string signature_path = base_path + "/signature";
+    std::ifstream signature(signature_path.c_str());
+    if(signature) {
+      uint64_t sig;
+      signature >> sig;
+
+      if(sig != RBX_SIGNATURE) {
+        Exception::runtime_error(state,
+            "the CodeDB signature is not valid for this version");
+      }
+
+      signature.close();
+    } else {
+      Exception::runtime_error(state, "unable to open CodeDB signature");
+    }
+
     std::string data_path = base_path + "/data";
     if((codedb->data_fd_ = ::open(data_path.c_str(), O_RDWR | O_APPEND, 0600)) < 0) {
       Exception::runtime_error(state, "unable to open CodeDB data");
@@ -43,8 +61,8 @@ namespace rubinius {
         MAP_PRIVATE, codedb->data_fd_, 0);
 
     std::string index_path = base_path + "/index";
-    std::ifstream stream(index_path.c_str());
-    if(!stream) {
+    std::ifstream data_stream(index_path.c_str());
+    if(!data_stream) {
       Exception::runtime_error(state, "unable to open CodeDB index");
     }
 
@@ -52,15 +70,16 @@ namespace rubinius {
       std::string m_id;
       size_t offset, length;
 
-      stream >> m_id;
-      stream >> offset;
-      stream >> length;
-      stream.get();
+      data_stream >> m_id;
+      data_stream >> offset;
+      data_stream >> length;
+      data_stream.get();
 
       if(m_id.empty()) break;
 
       codedb_index[m_id] = CodeDBIndex(codedb->data_, offset, length);
     }
+    data_stream.close();
 
     return codedb;
   }
