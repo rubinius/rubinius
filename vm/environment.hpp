@@ -106,6 +106,7 @@ namespace rubinius {
     void expand_config_value(std::string& cvar, const char* var, const char* value);
     void set_tmp_path();
     void set_username();
+    void set_codedb_paths();
     void set_pid();
     void set_console_path();
     void load_tool();

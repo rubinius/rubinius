@@ -3,6 +3,13 @@ require 'rubinius/configuration_variables'
 
 Rubinius::ConfigurationVariables.define do |c|
 
+  c.section "codedb" do |s|
+    s.vm_variable "kernel.path", "$RUNTIME/kernel",
+      "Path for the Rubinius kernel CodeDB"
+    s.vm_variable "cache.path", "$TMPDIR/$PROGRAM_NAME-$USER-codedb",
+      "Path for the compiled code cache CodeDB"
+  end
+
   c.section "gc" do |s|
     s.vm_variable "young_initial_bytes", 3145728,
       "The initial number of bytes the young generation of the GC should use"

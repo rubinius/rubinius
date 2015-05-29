@@ -359,6 +359,7 @@ namespace rubinius {
     set_username();
     set_pid();
     set_console_path();
+    set_codedb_paths();
   }
 
   void Environment::expand_config_value(std::string& cvar,
@@ -407,6 +408,23 @@ namespace rubinius {
     expand_config_value(path, "$USER", shared->username.c_str());
 
     config.system_console_path.value.assign(path);
+  }
+
+  void Environment::set_codedb_paths() {
+    std::string kernel_path(config.codedb_kernel_path.value);
+    std::string runtime_path(system_prefix() + RBX_RUNTIME_PATH);
+
+    expand_config_value(kernel_path, "$RUNTIME", runtime_path.c_str());
+
+    config.codedb_kernel_path.value.assign(kernel_path);
+
+    std::string cache_path(config.codedb_cache_path.value);
+
+    expand_config_value(cache_path, "$TMPDIR", config.system_tmp);
+    expand_config_value(cache_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+    expand_config_value(cache_path, "$USER", shared->username.c_str());
+
+    config.codedb_cache_path.value.assign(cache_path);
   }
 
   void Environment::load_argv(int argc, char** argv) {
