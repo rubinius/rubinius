@@ -3,8 +3,15 @@
 
 #include "builtin/object.hpp"
 
+#include "missing/unordered_map.hpp"
+
+#include <tuple>
+
 namespace rubinius {
   class CompiledCode;
+
+  typedef std::tuple<void*, size_t, size_t> CodeDBIndex;
+  typedef std_unordered_map<std::string, CodeDBIndex> CodeDBMap;
 
   class CodeDB : public Object {
   public:
@@ -13,12 +20,12 @@ namespace rubinius {
   private:
     String* path_;      // slot
     int data_fd_;
+    void* data_;
 
   public:
     attr_accessor(path, String);
 
     static void init(STATE);
-    static CodeDB* create(STATE, const char* path);
 
     // Rubinius.primitive :code_db_open
     static CodeDB* open(STATE, String* path);
