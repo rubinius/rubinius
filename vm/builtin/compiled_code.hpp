@@ -137,6 +137,8 @@ namespace rubinius {
 
     bool kernel_method(STATE);
 
+    Object* execute_script(STATE);
+
     class Info : public Executable::Info {
     public:
       BASIC_TYPEINFO(Executable::Info)

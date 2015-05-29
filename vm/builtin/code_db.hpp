@@ -32,6 +32,7 @@ namespace rubinius {
 
     // Rubinius.primitive :code_db_load
     static CompiledCode* load(STATE, String* m_id);
+    static CompiledCode* load(STATE, const char* m_id);
 
     // Rubinius.primitive :code_db_store
     Object* store(STATE, CompiledCode* code);
