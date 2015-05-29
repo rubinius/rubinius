@@ -298,7 +298,7 @@ file "runtime/kernel/data" => ["runtime/kernel"] + runtime_files do |t|
 
     code_db_code << [id, CodeDBCompiler.compile(file, 1, [:default, :kernel])]
 
-    code_db_scripts << id
+    code_db_scripts << [file, id]
   end
 
   while x = code_db_code.shift
@@ -338,7 +338,7 @@ file "runtime/kernel/contents" => "runtime/kernel/data" do |t|
   puts "CodeDB: writing contents..."
 
   File.open t.name, "wb" do |f|
-    code_db_source.each { |x| f.puts x }
+    code_db_scripts.each { |file, id| f.puts "#{file} #{id}" }
   end
 end
 
@@ -346,7 +346,7 @@ file "runtime/kernel/initialize" => "runtime/kernel/data" do |t|
   puts "CodeDB: writing initialize..."
 
   File.open t.name, "wb" do |f|
-    code_db_scripts.each { |x| f.puts x }
+    code_db_scripts.each { |_, id| f.puts id }
   end
 end
 
