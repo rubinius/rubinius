@@ -354,7 +354,7 @@ module Rubinius
 
     # Store Executable under name, with given visibility.
     #
-    def store(name, method_id, exec, visibility)
+    def store(name, method_id, exec, scope, serial, visibility)
       Rubinius.primitive :methodtable_store
       raise PrimitiveFailure, "MethodTable#store primitive failed"
     end
@@ -530,14 +530,14 @@ class Module
   #
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
-    @method_table.store name, nil, meth, :public
+    @method_table.store name, nil, meth, nil, 0, :public
     Rubinius::VM.reset_method_cache self, name
     nil
   end
 
   def attr_reader_specific(name, method_name)
     meth = Rubinius::AccessVariable.get_ivar name
-    @method_table.store method_name, nil, meth, :public
+    @method_table.store method_name, nil, meth, nil, 0, :public
     Rubinius::VM.reset_method_cache self, method_name
     nil
   end
@@ -551,7 +551,7 @@ class Module
   def attr_writer(name)
     meth = Rubinius::AccessVariable.set_ivar name
     writer_name = "#{name}=".to_sym
-    @method_table.store writer_name, nil, meth, :public
+    @method_table.store writer_name, nil, meth, nil, 0, :public
     Rubinius::VM.reset_method_cache self, writer_name
     nil
   end
@@ -622,7 +622,8 @@ class Module
     # If we're aliasing a method we contain, just reference it directly, no
     # need for the alias wrapper
     if entry = @method_table.lookup(current_name)
-      @method_table.store new_name, entry.method_id, entry.method, entry.visibility
+      @method_table.store new_name, entry.method_id, entry.method,
+        entry.scope, entry.serial, entry.visibility
     else
       mod = direct_superclass()
       while mod
@@ -652,7 +653,8 @@ class Module
   def module_function(name)
     if entry = @method_table.lookup(name)
       sc = class << self; self; end
-      sc.method_table.store name, entry.method_id, entry.method, :public
+      sc.method_table.store name, entry.method_id, entry.method,
+        entry.scope, entry.serial, :public
       Rubinius::VM.reset_method_cache self, name
       private name
     end
@@ -686,6 +688,8 @@ module Rubinius
     attr_accessor :visibility
     attr_accessor :method_id
     attr_accessor :method
+    attr_accessor :scope
+    attr_accessor :serial
 
     def get_method
       Rubinius.primitive :methodtable_bucket_get_method

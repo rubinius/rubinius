@@ -123,7 +123,8 @@ namespace rubinius {
     oc->primitive(state, prim);
     oc->resolve_primitive(state);
 
-    tbl->store(state, name, nil<String>(), oc, G(sym_public));
+    tbl->store(state, name, nil<String>(), oc, nil<ConstantScope>(),
+        Fixnum::from(0), G(sym_public));
   }
 
 /* Primitives */
@@ -1235,10 +1236,12 @@ namespace rubinius {
     if(cc) {
       cc->scope(state, scope);
       cc->serial(state, Fixnum::from(0));
-      mod->add_method(state, name, nil<String>(), cc);
+      mod->add_method(state, name, nil<String>(), cc, scope);
     } else {
-      mod->add_method(state, name, as<String>(method), cNil);
+      mod->add_method(state, name, as<String>(method), cNil, scope);
     }
+
+    vm_reset_method_cache(state, mod, name, calling_environment);
 
     if(!cc) return method;
 
@@ -1283,8 +1286,6 @@ namespace rubinius {
       }
     }
 
-    vm_reset_method_cache(state, mod, name, calling_environment);
-
     return cc;
   }
 
@@ -1298,9 +1299,9 @@ namespace rubinius {
     if(CompiledCode* cc = try_as<CompiledCode>(method)) {
       cc->scope(state, scope);
       cc->serial(state, Fixnum::from(0));
-      mod->add_method(state, name, nil<String>(), cc);
+      mod->add_method(state, name, nil<String>(), cc, scope);
     } else {
-      mod->add_method(state, name, as<String>(method), cNil);
+      mod->add_method(state, name, as<String>(method), cNil, scope);
     }
 
     vm_reset_method_cache(state, mod, name, calling_environment);

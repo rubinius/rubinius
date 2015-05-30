@@ -2,6 +2,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compact_lookup_table.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/constant_table.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/lookup_table.hpp"
@@ -168,10 +169,10 @@ namespace rubinius {
   }
 
   void Module::add_method(STATE, Symbol* name,
-      String* method_id, Object* exec, Symbol* vis)
+      String* method_id, Object* exec, ConstantScope* scope, Symbol* vis)
   {
     if(!vis) vis = G(sym_public);
-    method_table_->store(state, name, method_id, exec, vis);
+    method_table_->store(state, name, method_id, exec, scope, Fixnum::from(0), vis);
     state->vm()->global_cache()->clear(state, this, name);
     reset_method_cache(state, name);
   }

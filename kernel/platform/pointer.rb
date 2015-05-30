@@ -426,7 +426,7 @@ module FFI
       # Hook the created function into the method_table so that #call goes
       # straight to it.
       sc = Rubinius::Type.object_singleton_class(self)
-      sc.method_table.store :call, nil, @function, :public
+      sc.method_table.store :call, nil, @function, nil, 0, :public
     end
 
     attr_reader :function
@@ -441,11 +441,11 @@ module FFI
 
       # Make it available as a method callable directly..
       sc = Rubinius::Type.object_singleton_class(mod)
-      sc.method_table.store name, nil, @function, :public
+      sc.method_table.store name, nil, @function, nil, 0, :public
 
       # and expose it as a private method for people who
       # want to include this module.
-      mod.method_table.store name, nil, @function, :public
+      mod.method_table.store name, nil, @function, nil, 0, :public
     end
   end
 end

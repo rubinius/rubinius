@@ -26,10 +26,14 @@ namespace rubinius {
   }
 
   CodeDB* CodeDB::open(STATE, String* path) {
-    CodeDB* codedb = state->vm()->new_object<CodeDB>(G(codedb));
-    codedb->path(state, path->string_dup(state));
+    return open(state, path->c_str(state));
+  }
 
-    std::string base_path(path->c_str(state));
+  CodeDB* CodeDB::open(STATE, const char* path) {
+    CodeDB* codedb = state->vm()->new_object<CodeDB>(G(codedb));
+    codedb->path(state, String::create(state, path));
+
+    std::string base_path(path);
 
     // Check the CodeDB signature matches the VM.
     std::string signature_path = base_path + "/signature";

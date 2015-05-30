@@ -2,6 +2,7 @@
 #include "builtin/class.hpp"
 #include "builtin/code_db.hpp"
 #include "builtin/compiled_code.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/method_table.hpp"
@@ -63,8 +64,8 @@ namespace rubinius {
       MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
 
       while(entry) {
-        dup->store(state, entry->name(),
-            entry->method_id(), entry->method(), entry->visibility());
+        dup->store(state, entry->name(), entry->method_id(),
+            entry->method(), entry->scope(), entry->serial(), entry->visibility());
         entry = try_as<MethodTableBucket>(entry->next());
       }
     }
@@ -101,7 +102,7 @@ namespace rubinius {
   }
 
   Object* MethodTable::store(STATE, Symbol* name, Object* method_id,
-      Object* method, Symbol* visibility)
+      Object* method, Object* scope, Fixnum* serial, Symbol* visibility)
   {
     check_frozen(state);
 
@@ -135,6 +136,8 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method_id(state, method_id);
         entry->method(state, method);
+        entry->scope(state, scope);
+        entry->serial(state, serial);
         entry->visibility(state, visibility);
         return name;
       }
@@ -144,11 +147,11 @@ namespace rubinius {
     }
 
     if(last) {
-      last->next(state, MethodTableBucket::create(state,
-            name, method_id, method, visibility));
+      last->next(state, MethodTableBucket::create(
+            state, name, method_id, method, scope, serial, visibility));
     } else {
-      values_->put(state, bin,
-          MethodTableBucket::create(state, name, method_id, method, visibility));
+      values_->put(state, bin, MethodTableBucket::create(
+            state, name, method_id, method, scope, serial, visibility));
     }
 
     entries(state, Fixnum::from(num_entries + 1));
@@ -194,6 +197,8 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method_id(state, nil<String>());
         entry->method(state, method);
+        entry->scope(state, cNil);
+        entry->serial(state, Fixnum::from(0));
         entry->visibility(state, vis);
         return name;
       }
@@ -203,11 +208,11 @@ namespace rubinius {
     }
 
     if(last) {
-      last->next(state,
-          MethodTableBucket::create(state, name, nil<String>(), method, vis));
+      last->next(state, MethodTableBucket::create(
+            state, name, nil<String>(), method, cNil, Fixnum::from(0), vis));
     } else {
-      values_->put(state, bin,
-          MethodTableBucket::create(state, name, nil<String>(), method, vis));
+      values_->put(state, bin, MethodTableBucket::create(
+            state, name, nil<String>(), method, cNil, Fixnum::from(0), vis));
     }
 
     entries(state, Fixnum::from(num_entries + 1));
@@ -329,8 +334,8 @@ namespace rubinius {
     close_body(level);
   }
 
-  MethodTableBucket* MethodTableBucket::create(STATE, Symbol* name,
-      Object* method_id, Object* method, Symbol* vis)
+  MethodTableBucket* MethodTableBucket::create(STATE, Symbol* name, Object* method_id,
+      Object* method, Object* scope, Fixnum* serial, Symbol* vis)
   {
     MethodTableBucket *entry =
       state->new_object<MethodTableBucket>(G(methtblbucket));
@@ -338,6 +343,8 @@ namespace rubinius {
     entry->name(state, name);
     entry->method_id(state, method_id);
     entry->method(state, method);
+    entry->scope(state, scope);
+    entry->serial(state, serial);
     entry->visibility(state, vis);
 
     return entry;
@@ -346,7 +353,16 @@ namespace rubinius {
   Executable* MethodTableBucket::get_method(STATE) {
     if(!method()->nil_p()) return as<Executable>(method());
 
-    return as<Executable>(CodeDB::load(state, as<String>(method_id())));
+    CompiledCode* code = CodeDB::load(state, as<String>(method_id()));
+    if(ConstantScope* cs = try_as<ConstantScope>(scope())) {
+      code->scope(state, cs);
+    } else {
+      code->scope(state, nil<ConstantScope>());
+    }
+    code->serial(state, serial_);
+    method(state, code);
+
+    return as<Executable>(code);
   }
 
   Object* MethodTableBucket::append(STATE, MethodTableBucket* nxt) {

@@ -1327,7 +1327,7 @@ instruction create_block(literal) [ -- block ]
   CompiledCode* code = 0;
 
   if(!(code = try_as<CompiledCode>(_lit))) {
-    code = as<CodeDB>(G(codedb))->load(state, as<String>(_lit));
+    code = CodeDB::load(state, as<String>(_lit));
     call_frame->compiled_code->literals()->put(state, literal, code);
   }
 

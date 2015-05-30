@@ -29,6 +29,7 @@ namespace rubinius {
 
     // Rubinius.primitive :code_db_open
     static CodeDB* open(STATE, String* path);
+    static CodeDB* open(STATE, const char* path);
 
     // Rubinius.primitive :code_db_load
     static CompiledCode* load(STATE, String* m_id);

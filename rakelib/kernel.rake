@@ -261,7 +261,7 @@ directory "runtime/kernel"
 class CodeDBCompiler
   def self.m_id
     @m_id ||= 0
-    @m_id += 1
+    (@m_id += 1).to_s
   end
 
   def self.compile(file, line, transforms)

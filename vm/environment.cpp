@@ -11,6 +11,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/code_db.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/jit.hpp"
@@ -669,6 +670,9 @@ namespace rubinius {
    *             relative to this path.
    */
   void Environment::load_kernel(std::string root) {
+    CodeDB::open(state, config.codedb_kernel_path.value.c_str());
+    return;
+
     // Check that the index file exists; this tells us which sub-directories to
     // load, and the order in which to load them
     std::string index = root + "/index";
@@ -881,7 +885,7 @@ namespace rubinius {
 
     load_kernel(runtime);
 
-    run_file(runtime + "/loader.rbc");
+    // run_file(runtime + "/loader.rbc");
 
     state->vm()->thread_state()->clear();
 

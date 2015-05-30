@@ -13,11 +13,12 @@ class Module
       # The 'and entry.method' is there to force us to use the alias code
       # when the original method exists only to change the visibility of
       # a parent method.
-      if mod == self and entry.method
-        @method_table.store new_name, entry.method_id, entry.method, method_visibility
+      if mod == self and entry.get_method
+        @method_table.store new_name, entry.method_id, entry.method,
+          entry.scope, entry.serial, method_visibility
       else
         @method_table.alias new_name, method_visibility, current_name,
-                            entry.method, mod
+                            entry.get_method, mod
       end
 
       Rubinius::VM.reset_method_cache self, new_name
@@ -54,7 +55,8 @@ class Module
       args.each do |meth|
         method_name = Rubinius::Type.coerce_to_symbol meth
         mod, entry = lookup_method(method_name)
-        sc.method_table.store method_name, entry.method_id, entry.method, :public
+        sc.method_table.store method_name, entry.method_id, entry.method,
+          entry.scope, entry.serial, :public
         Rubinius::VM.reset_method_cache self, method_name
         set_visibility method_name, :private
       end

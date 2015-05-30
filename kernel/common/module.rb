@@ -168,7 +168,7 @@ class Module
       if mod == mod.origin && entry = mod.method_table.lookup(name)
         break if entry.visibility == :undef
 
-        if meth = entry.method
+        if meth = entry.get_method
           if meth.kind_of? Rubinius::Alias
             meth = meth.original_exec
           end
@@ -333,7 +333,7 @@ class Module
   def undef_method!(name)
     Rubinius.check_frozen
     name = Rubinius::Type.coerce_to_symbol(name)
-    @method_table.store name, nil, nil, :undef
+    @method_table.store name, nil, nil, nil, 0, :undef
     Rubinius::VM.reset_method_cache self, name
     if obj = Rubinius::Type.singleton_class_object(self)
       Rubinius.privately do
@@ -479,6 +479,8 @@ class Module
         meth = meth.dup
         meth.lambda_style!
       end
+
+      scope = meth.block.scope
     when Method
       Rubinius::Type.bindable_method? meth.defined_in, self.class
 
@@ -492,6 +494,8 @@ class Module
       else
         code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
       end
+
+      scope = exec.scope
     when UnboundMethod
       Rubinius::Type.bindable_method? meth.defined_in, self.class
 
@@ -502,11 +506,13 @@ class Module
       else
         code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
       end
+
+      scope = exec.scope
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
 
-    Rubinius.add_method name, code, self, :public
+    Rubinius.add_method name, code, self, scope, 0, :public
 
     name
   end
@@ -516,7 +522,7 @@ class Module
   def thunk_method(name, value)
     thunk = Rubinius::Thunk.new(value)
     name = Rubinius::Type.coerce_to_symbol name
-    Rubinius.add_method name, thunk, self, :public
+    Rubinius.add_method name, thunk, self, nil, 0, :public
 
     name
   end
@@ -559,7 +565,7 @@ class Module
     if entry = @method_table.lookup(name)
       entry.visibility = vis
     elsif lookup_method(name)
-      @method_table.store name, nil, nil, vis
+      @method_table.store name, nil, nil, nil, 0, vis
     else
       raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end
@@ -828,10 +834,10 @@ class Module
 
     code = g.package Rubinius::CompiledCode
 
-    code.scope =
-      Rubinius::ConstantScope.new(self, Rubinius::ConstantScope.new(Object))
+    scope = Rubinius::ConstantScope.new(self, Rubinius::ConstantScope.new(Object))
+    code.scope = scope
 
-    Rubinius.add_method name, code, self, :public
+    Rubinius.add_method name, code, self, scope, 0, :public
 
     return code
   end
@@ -844,7 +850,7 @@ class Module
 
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
-    @method_table.store name, nil, meth, :public
+    @method_table.store name, nil, meth, nil, 0, :public
     Rubinius::VM.reset_method_cache self, name
     ivar_name = "@#{name}".to_sym
     if @seen_ivars
@@ -861,7 +867,7 @@ class Module
   def attr_writer(name)
     meth = Rubinius::AccessVariable.set_ivar name
     writer_name = "#{name}=".to_sym
-    @method_table.store writer_name, nil, meth, :public
+    @method_table.store writer_name, nil, meth, nil, 0, :public
     Rubinius::VM.reset_method_cache self, writer_name
     ivar_name = "@#{name}".to_sym
     if @seen_ivars

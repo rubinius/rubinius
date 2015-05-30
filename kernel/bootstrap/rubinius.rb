@@ -70,11 +70,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.mri_backtrace primitive failed"
   end
 
-  def self.add_method(name, executable, mod, vis)
+  def self.add_method(name, executable, mod, serial, vis)
     if executable.kind_of? String
-      mod.method_table.store name, executable, nil, :public
+      mod.method_table.store name, executable, nil, serial, :public
     else
-      mod.method_table.store name, nil, executable, :public
+      mod.method_table.store name, nil, executable, serial, :public
     end
     Rubinius::VM.reset_method_cache mod, name
   end

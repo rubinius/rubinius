@@ -1,4 +1,4 @@
-code = Class.method_table.lookup(:new).method
+code = Class.method_table.lookup(:new).get_method
 code.serial = Rubinius::CompiledCode::KernelMethodSerial
 
 class Class

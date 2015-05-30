@@ -87,6 +87,8 @@ module Rubinius
   end
 
   def self.add_defn_method(name, executable, constant_scope, vis)
+    # TODO: puts serial on MethodTable entry
+    unless Type.object_kind_of? executable, String
     executable.serial = 1
     if executable.respond_to? :scope=
       # If we're adding a method inside ane eval, dup it so that
@@ -98,6 +100,7 @@ module Rubinius
         end
       end
       executable.scope = constant_scope
+    end
     end
 
     mod = constant_scope.for_method_definition
@@ -113,11 +116,11 @@ module Rubinius
       end
     end
 
-    add_method name, executable, mod, vis
+    add_method name, executable, mod, constant_scope, 1, vis
     name
   end
 
-  def self.add_method(name, executable, mod, vis)
+  def self.add_method(name, executable, mod, scope, serial, vis)
     vis ||= :public
 
     # Don't change the visibility for methods added to singleton
@@ -131,9 +134,9 @@ module Rubinius
     end
 
     if Type.object_kind_of? executable, String
-      mod.method_table.store name, executable, nil, visibility
+      mod.method_table.store name, executable, nil, scope, serial, visibility
     else
-      mod.method_table.store name, nil, executable, visibility
+      mod.method_table.store name, nil, executable, scope, serial, visibility
     end
     Rubinius::VM.reset_method_cache mod, name
 
@@ -184,6 +187,8 @@ module Rubinius
   # Must be AFTER add_method, because otherwise we'll run this attach_method to add
   # add_method itself and fail.
   def self.attach_method(name, executable, constant_scope, recv)
+    # TODO: puts serial on MethodTable entry
+    unless Type.object_kind_of? executable, String
     executable.serial = 1
     if executable.respond_to? :scope=
       # If we're adding a method inside ane eval, dup it so that
@@ -196,23 +201,24 @@ module Rubinius
       end
       executable.scope = constant_scope
     end
+    end
 
     mod = Rubinius::Type.object_singleton_class recv
 
-    add_method name, executable, mod, :public
+    add_method name, executable, mod, constant_scope, 1, :public
     name
   end
 
 
   def self.add_reader(name, mod, vis)
     normalized = Rubinius::Type.coerce_to_symbol(name)
-    add_method normalized, AccessVariable.get_ivar(normalized), mod, vis
+    add_method normalized, AccessVariable.get_ivar(normalized), mod, nil, 0, vis
   end
 
   def self.add_writer(name, mod, vis)
     normalized = Rubinius::Type.coerce_to_symbol(name)
     writer_name = "#{normalized}=".to_sym
-    add_method writer_name, AccessVariable.set_ivar(normalized), mod, vis
+    add_method writer_name, AccessVariable.set_ivar(normalized), mod, nil, 0, vis
   end
 
   def self.received_signal(sig)
