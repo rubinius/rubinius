@@ -736,7 +736,7 @@ extern "C" {
       break;
     }
 
-    module->add_method(state, method_name, method, visibility);
+    module->add_method(state, method_name, nil<String>(), method, visibility);
     System::vm_reset_method_cache(env->state(), module, method_name, env->current_call_frame());
   }
 

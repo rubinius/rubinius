@@ -48,6 +48,7 @@
 
 namespace rubinius {
   typedef std::map<int, LocalInfo> LocalMap;
+  class State;
   class SymbolTable;
   class CompiledCode;
   class GarbageCollector;
@@ -75,6 +76,7 @@ namespace rubinius {
     jit::RubiniusJITMemoryManager* memory_;
     llvm::JITEventListener* jit_event_listener_;
 
+    State* state_;
     Configuration& config_;
 
     TypedRoot<List*> compile_list_;
@@ -127,6 +129,10 @@ namespace rubinius {
 
     LLVMState(STATE);
     virtual ~LLVMState();
+
+    State* state() {
+      return state_;
+    }
 
     void add_internal_functions();
     void enable(STATE);

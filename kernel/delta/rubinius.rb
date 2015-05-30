@@ -130,7 +130,11 @@ module Rubinius
       visibility = vis
     end
 
-    mod.method_table.store name, executable, visibility
+    if Type.object_kind_of? executable, String
+      mod.method_table.store name, executable, nil, visibility
+    else
+      mod.method_table.store name, nil, executable, visibility
+    end
     Rubinius::VM.reset_method_cache mod, name
 
     Rubinius.privately do

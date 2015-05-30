@@ -14,7 +14,7 @@ class Module
       # when the original method exists only to change the visibility of
       # a parent method.
       if mod == self and entry.method
-        @method_table.store new_name, entry.method, method_visibility
+        @method_table.store new_name, entry.method_id, entry.method, method_visibility
       else
         @method_table.alias new_name, method_visibility, current_name,
                             entry.method, mod
@@ -53,8 +53,8 @@ class Module
       sc = Rubinius::Type.object_singleton_class(self)
       args.each do |meth|
         method_name = Rubinius::Type.coerce_to_symbol meth
-        mod, method = lookup_method(method_name)
-        sc.method_table.store method_name, method.method, :public
+        mod, entry = lookup_method(method_name)
+        sc.method_table.store method_name, entry.method_id, entry.method, :public
         Rubinius::VM.reset_method_cache self, method_name
         set_visibility method_name, :private
       end

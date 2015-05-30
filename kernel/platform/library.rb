@@ -201,11 +201,11 @@ module FFI
     def add_function(name, func)
       # Make it available as a method callable directly..
       sc = Rubinius::Type.object_singleton_class(self)
-      sc.method_table.store name, func, :public
+      sc.method_table.store name, nil, func, :public
 
       # and expose it as a private method for people who
       # want to include this module.
-      method_table.store name, func, :private
+      method_table.store name, nil, func, :private
     end
     private :add_function
 

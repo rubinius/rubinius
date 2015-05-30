@@ -90,6 +90,7 @@ namespace rubinius {
 
   LLVMState::LLVMState(STATE)
     : InternalThread(state, "rbx.jit", InternalThread::eXLarge)
+    , state_(0)
     , config_(state->shared().config)
     , compile_list_(state)
     , symbols_(state->shared().symbols)
@@ -214,6 +215,8 @@ namespace rubinius {
     GCTokenImpl gct;
     JITCompileRequest* compile_request = nil<JITCompileRequest>();
     OnStack<1> os(state, compile_request);
+
+    state_ = state;
 
     metrics().init(metrics::eJITMetrics);
 

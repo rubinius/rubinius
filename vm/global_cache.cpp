@@ -63,7 +63,7 @@ namespace rubinius {
             msg.module = alias->original_module();
           }
         } else {
-          msg.method = entry->method();
+          msg.method = entry->get_method(state);
           msg.module = module;
         }
         if(msg.method) return true;
@@ -112,7 +112,7 @@ namespace rubinius {
             msg.module = alias->original_module();
           }
         } else {
-          msg.method = entry->method();
+          msg.method = entry->get_method(state);
           msg.module = module;
         }
         if(msg.method) return true;

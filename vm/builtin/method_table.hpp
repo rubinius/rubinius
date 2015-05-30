@@ -7,6 +7,7 @@ namespace rubinius {
   class Tuple;
   class Array;
   class Executable;
+  class String;
   class Symbol;
 
   class MethodTableBucket : public Object {
@@ -16,19 +17,23 @@ namespace rubinius {
   private:
     Symbol* name_;   // slot
     Symbol* visibility_; // slot
-    Executable* method_; // slot
+    Object* method_id_; // slot
+    Object* method_; // slot
     MethodTableBucket* next_;  // slot
 
   public:
     attr_accessor(name, Symbol);
     attr_accessor(visibility, Symbol);
-    attr_accessor(method, Executable);
+    attr_accessor(method_id, Object);
+    attr_accessor(method, Object);
     attr_accessor(next, MethodTableBucket);
 
     static MethodTableBucket* create(STATE, Symbol* name,
-        Executable* method, Symbol* visibility);
+        Object* method_id, Object* method, Symbol* visibility);
 
     Object* append(STATE, MethodTableBucket *nxt);
+
+    Executable* get_method(STATE);
 
     bool private_p(STATE);
     bool public_p(STATE);
@@ -70,7 +75,7 @@ namespace rubinius {
     static MethodTable* allocate(STATE, Object* self);
 
     // Rubinius.primitive :methodtable_store
-    Object* store(STATE, Symbol* name, Object* meth, Symbol* vis);
+    Object* store(STATE, Symbol* name, Object* method_id, Object* method, Symbol* vis);
 
     // Rubinius.primitive :methodtable_alias
     Object* alias(STATE, Symbol* name, Symbol* vis, Symbol* orig_name, Object* orig_method, Module* orig_mod);
@@ -85,7 +90,7 @@ namespace rubinius {
     MethodTableBucket* lookup(STATE, Symbol* name);
 
     // Rubinius.primitive :methodtable_delete
-    Executable* remove(STATE, Symbol* name);
+    Object* remove(STATE, Symbol* name);
 
     // Rubinius.primitive+ :methodtable_has_name
     Object* has_name(STATE, Symbol* name);

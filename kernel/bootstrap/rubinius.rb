@@ -71,7 +71,11 @@ module Rubinius
   end
 
   def self.add_method(name, executable, mod, vis)
-    mod.method_table.store name, executable, :public
+    if executable.kind_of? String
+      mod.method_table.store name, executable, nil, :public
+    else
+      mod.method_table.store name, nil, executable, :public
+    end
     Rubinius::VM.reset_method_cache mod, name
   end
 

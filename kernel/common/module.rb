@@ -333,7 +333,7 @@ class Module
   def undef_method!(name)
     Rubinius.check_frozen
     name = Rubinius::Type.coerce_to_symbol(name)
-    @method_table.store name, nil, :undef
+    @method_table.store name, nil, nil, :undef
     Rubinius::VM.reset_method_cache self, name
     if obj = Rubinius::Type.singleton_class_object(self)
       Rubinius.privately do
@@ -559,7 +559,7 @@ class Module
     if entry = @method_table.lookup(name)
       entry.visibility = vis
     elsif lookup_method(name)
-      @method_table.store name, nil, vis
+      @method_table.store name, nil, nil, vis
     else
       raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end
@@ -844,7 +844,7 @@ class Module
 
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
-    @method_table.store name, meth, :public
+    @method_table.store name, nil, meth, :public
     Rubinius::VM.reset_method_cache self, name
     ivar_name = "@#{name}".to_sym
     if @seen_ivars
@@ -861,7 +861,7 @@ class Module
   def attr_writer(name)
     meth = Rubinius::AccessVariable.set_ivar name
     writer_name = "#{name}=".to_sym
-    @method_table.store writer_name, meth, :public
+    @method_table.store writer_name, nil, meth, :public
     Rubinius::VM.reset_method_cache self, writer_name
     ivar_name = "@#{name}".to_sym
     if @seen_ivars
