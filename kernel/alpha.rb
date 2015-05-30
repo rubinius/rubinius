@@ -469,9 +469,7 @@ class Module
   # Redefined in kernel/common/module.rb
   #
   def const_missing(name)
-    Rubinius::VM.write_error "Missing or uninitialized constant: \n"
-    Rubinius::VM.write_error name.to_s
-    Rubinius::VM.write_error "\n"
+    Rubinius::VM.write_error "Missing or uninitialized constant: #{name.to_s}"
   end
 
   # Set Module's direct superclass.
