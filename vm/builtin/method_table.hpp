@@ -33,6 +33,7 @@ namespace rubinius {
 
     Object* append(STATE, MethodTableBucket *nxt);
 
+    // Rubinius.primitive :methodtable_bucket_get_method
     Executable* get_method(STATE);
 
     bool private_p(STATE);

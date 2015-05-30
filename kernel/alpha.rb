@@ -664,6 +664,12 @@ class Module
     Rubinius.primitive :module_track_subclass
     raise PrimitiveFailure, "Module.track_subclass primitive failed"
   end
+
+  def custom_call_site(name)
+    if entry = @method_table.lookup(name)
+      entry.get_method.custom_call_site
+    end
+  end
 end
 
 
@@ -682,6 +688,11 @@ module Rubinius
     attr_accessor :visibility
     attr_accessor :method_id
     attr_accessor :method
+
+    def get_method
+      Rubinius.primitive :methodtable_bucket_get_method
+      raise PrimitiveFailure, "MethodTable::Bucket#get_method primitive failed"
+    end
 
     def public?
       @visibility == :public

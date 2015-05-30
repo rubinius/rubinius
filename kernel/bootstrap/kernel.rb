@@ -92,7 +92,9 @@ module Kernel
   # methods.
   def respond_to?(meth, include_private=false)
     respond_to_prim?(meth, include_private)
-  end.custom_call_site
+  end
+
+  custom_call_site :respond_to?
 
   def respond_to_missing?(meth, include_private)
     false
