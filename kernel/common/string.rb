@@ -1544,8 +1544,12 @@ class String
     other = StringValue(other)
 
     @shared = true
-    other.shared!
-    @data = other.__data__
+    if other.frozen?
+      @data = other.__data__.dup
+    else
+      other.shared!
+      @data = other.__data__
+    end
     self.num_bytes = other.num_bytes
     @hash_value = nil
     force_encoding(other.encoding)
