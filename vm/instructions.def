@@ -1876,6 +1876,10 @@ end
 #   push_ivar instructions into this.
 
 instruction store_my_field(index) [ value -- value ]
+  if(CBOOL(call_frame->self()->frozen_p(state))) {
+    Exception::frozen_error(state, call_frame, call_frame->self());
+    RUN_EXCEPTION();
+  }
   call_frame->self()->set_field(state, index, stack_top());
 end
 
