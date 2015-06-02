@@ -625,24 +625,27 @@ module Enumerable
     end
   end
 
-  def max_by
-    return to_enum(:max_by) { enumerator_size } unless block_given?
+  def max_by(n=undefined)
+    return to_enum(:max_by, n) { enumerator_size } unless block_given?
+    if undefined.equal? n
+      max_object = nil
+      max_result = undefined
 
-    max_object = nil
-    max_result = undefined
+      each do
+        object = Rubinius.single_block_arg
+        result = yield object
 
-    each do
-      object = Rubinius.single_block_arg
-      result = yield object
-
-      if undefined.equal?(max_result) or \
-           Rubinius::Type.coerce_to_comparison(max_result, result) < 0
-        max_object = object
-        max_result = result
+        if undefined.equal?(max_result) or \
+             Rubinius::Type.coerce_to_comparison(max_result, result) < 0
+          max_object = object
+          max_result = result
+        end
       end
-    end
 
-    max_object
+      max_object
+    else
+      sort_by { |object| yield object }.reverse.take n
+    end
   end
 
   def min_by(n=undefined)
