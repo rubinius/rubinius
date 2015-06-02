@@ -596,25 +596,33 @@ module Enumerable
     end
   end
 
-  def max
-    max = undefined
-    each do
-      o = Rubinius.single_block_arg
-      if undefined.equal? max
-        max = o
-      else
-        comp = block_given? ? yield(o, max) : o <=> max
-        unless comp
-          raise ArgumentError, "comparison of #{o.class} with #{max} failed"
-        end
-
-        if Comparable.compare_int(comp) > 0
+  def max(n=undefined)
+    if undefined.equal? n
+      max = undefined
+      each do
+        o = Rubinius.single_block_arg
+        if undefined.equal? max
           max = o
+        else
+          comp = block_given? ? yield(o, max) : o <=> max
+          unless comp
+            raise ArgumentError, "comparison of #{o.class} with #{max} failed"
+          end
+
+          if Comparable.compare_int(comp) > 0
+            max = o
+          end
         end
       end
-    end
 
-    undefined.equal?(max) ? nil : max
+      undefined.equal?(max) ? nil : max
+    else
+      if block_given?
+        sort { |a, b| yield a, b }.reverse.take n
+      else
+        sort.reverse.take n
+      end
+    end
   end
 
   def max_by
