@@ -567,25 +567,33 @@ module Enumerable
     nil
   end
 
-  def min
-    min = undefined
-    each do
-      o = Rubinius.single_block_arg
-      if undefined.equal? min
-        min = o
-      else
-        comp = block_given? ? yield(o, min) : o <=> min
-        unless comp
-          raise ArgumentError, "comparison of #{o.class} with #{min} failed"
-        end
-
-        if Comparable.compare_int(comp) < 0
+  def min(n=undefined)
+    if undefined.equal? n
+      min = undefined
+      each do
+        o = Rubinius.single_block_arg
+        if undefined.equal? min
           min = o
+        else
+          comp = block_given? ? yield(o, min) : o <=> min
+          unless comp
+            raise ArgumentError, "comparison of #{o.class} with #{min} failed"
+          end
+
+          if Comparable.compare_int(comp) < 0
+            min = o
+          end
         end
       end
-    end
 
-    undefined.equal?(min) ? nil : min
+      undefined.equal?(min) ? nil : min
+    else
+      if block_given?
+        sort { |a, b| yield a, b }.take n
+      else
+        sort.take n
+      end
+    end
   end
 
   def max
