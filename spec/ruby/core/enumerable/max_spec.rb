@@ -109,5 +109,11 @@ describe "Enumerable#max" do
         lambda { @e_ints.max(-1) }.should raise_error(ArgumentError)
       end
     end
+
+    context "that is nil" do
+      it "returns the maximum element" do
+        @e_ints.max(nil).should == 1010101010
+      end
+    end
   end
 end
