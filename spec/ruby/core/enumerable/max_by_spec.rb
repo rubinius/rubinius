@@ -70,6 +70,12 @@ describe "Enumerable#max_by" do
           lambda { @enum.max_by(-1) { |i| i.to_s } }.should raise_error(ArgumentError)
         end
       end
+
+      context "when n is nil" do
+        it "returns the maximum element" do
+          @enum.max_by(nil) { |i| i.to_s }.should == 60
+        end
+      end
     end
   end
 end

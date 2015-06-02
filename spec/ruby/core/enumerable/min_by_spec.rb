@@ -70,6 +70,12 @@ describe "Enumerable#min_by" do
           lambda { @enum.min_by(-1) { |i| i.to_s } }.should raise_error(ArgumentError)
         end
       end
+
+      context "when n is nil" do
+        it "returns the minimum element" do
+          @enum.min_by(nil) { |i| i.to_s }.should == 1
+        end
+      end
     end
   end
 end

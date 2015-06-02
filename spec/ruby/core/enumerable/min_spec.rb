@@ -113,5 +113,11 @@ describe "Enumerable#min" do
         lambda { @e_ints.min(-1) }.should raise_error(ArgumentError)
       end
     end
+
+    context "that is nil" do
+      it "returns the minimum element" do
+        @e_ints.min(nil).should == 22
+      end
+    end
   end
 end
