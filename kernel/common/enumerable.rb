@@ -567,8 +567,8 @@ module Enumerable
     nil
   end
 
-  def min(n=undefined)
-    if undefined.equal? n
+  def min(n=nil)
+    if n.nil?
       min = undefined
       each do
         o = Rubinius.single_block_arg
@@ -596,8 +596,8 @@ module Enumerable
     end
   end
 
-  def max(n=undefined)
-    if undefined.equal? n
+  def max(n=nil)
+    if n.nil?
       max = undefined
       each do
         o = Rubinius.single_block_arg
@@ -625,9 +625,10 @@ module Enumerable
     end
   end
 
-  def max_by(n=undefined)
+  def max_by(n=nil)
     return to_enum(:max_by, n) { enumerator_size } unless block_given?
-    if undefined.equal? n
+
+    if n.nil?
       max_object = nil
       max_result = undefined
 
@@ -648,10 +649,10 @@ module Enumerable
     end
   end
 
-  def min_by(n=undefined)
+  def min_by(n=nil)
     return to_enum(:min_by, n) { enumerator_size } unless block_given?
 
-    if undefined.equal? n
+    if n.nil?
       min_object = nil
       min_result = undefined
 
