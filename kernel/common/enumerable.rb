@@ -418,9 +418,9 @@ module Enumerable
     unless block_given?
       return to_enum(:each_cons, num) do
         enum_size = enumerator_size
-        if enum_size.nil? 
-          nil 
-        elsif enum_size == 0
+        if enum_size.nil?
+          nil
+        elsif enum_size == 0 || enum_size < n
           0
         else
           enum_size - n + 1
