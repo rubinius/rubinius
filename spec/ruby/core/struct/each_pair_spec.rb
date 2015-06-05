@@ -14,6 +14,12 @@ describe "Struct#each_pair" do
     end
   end
 
+  context "with a block variable" do
+    it "passes an array to the given block" do
+      @car.each_pair.map { |var| var }.should == StructClasses::Car.members.zip(@car.values)
+    end
+  end
+
   it "returns self if passed a block" do
     @car.each_pair {}.should equal(@car)
   end
