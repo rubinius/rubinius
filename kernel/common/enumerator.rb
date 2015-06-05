@@ -264,6 +264,8 @@ module Enumerable
           current_size
         end
 
+        return to_enum(:cycle, 0).lazy if n.zero?
+
         taken = 0
         Lazy.new(self, set_size) do |yielder, *args|
           if taken < n
