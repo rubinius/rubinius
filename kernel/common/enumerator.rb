@@ -149,7 +149,7 @@ module Enumerable
     end
 
     def size
-      @size.kind_of?(Proc) ? @size.call : @size
+      @size.respond_to?(:call) ? @size.call : @size
     end
 
     def with_index(offset=0)
