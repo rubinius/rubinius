@@ -269,6 +269,7 @@ module Enumerable
           if taken < n
             yielder.yield(*args)
             taken += 1
+            raise StopLazyError unless taken < n
           else
             raise StopLazyError
           end
