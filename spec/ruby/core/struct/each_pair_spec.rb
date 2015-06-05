@@ -15,7 +15,7 @@ describe "Struct#each_pair" do
   end
 
   it "returns self if passed a block" do
-    @car.each_pair {}.should == @car
+    @car.each_pair {}.should equal(@car)
   end
 
   it "returns an Enumerator if not passed a block" do
