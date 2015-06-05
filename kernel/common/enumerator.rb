@@ -258,7 +258,7 @@ module Enumerable
         raise ArgumentError, "attempt to take negative size" if n < 0
 
         current_size = enumerator_size
-        set_size = if current_size.kind_of?(Integer)
+        set_size = if current_size.kind_of?(Numeric)
           n < current_size ? n : current_size
         else
           current_size
