@@ -718,6 +718,11 @@ VM Options
       STDERR.flush unless STDERR.closed?
     end
 
+    def exit_with_exception(e)
+      @exit_code = 1
+      Rubinius::Logger.log_exception "An exception occurred #{@stage}", e
+    end
+
     # Cleanup and at_exit processing.
     def epilogue
       @stage = "running at_exit handlers"
@@ -737,8 +742,7 @@ VM Options
       flush_stdio
 
     rescue Object => e
-      Rubinius::Logger.log_exception "An exception occurred #{@stage}", e
-      @exit_code = 1
+      exit_with_exception e
     end
 
     # Exit.
@@ -790,6 +794,34 @@ VM Options
       Process.exit! @exit_code
     end
 
+    def handle_exception(e)
+      case e
+      when SystemExit
+        @exit_code = e.status
+      when SyntaxError
+        @exit_code = 1
+
+        show_syntax_error(e)
+
+        STDERR.puts "\nBacktrace:"
+        STDERR.puts
+        STDERR.puts e.awesome_backtrace.show
+      when Interrupt
+        exit_with_exception e
+      when SignalException
+        Signal.trap(e.signo, "SIG_DFL")
+        Process.kill e.signo, Process.pid
+      when nil
+        # what?
+      else
+        exit_with_exception e
+      end
+    rescue Object => e
+      exit_with_exception e
+    ensure
+      epilogue
+    end
+
     # Orchestrate everything.
     def main
       preamble
@@ -810,33 +842,8 @@ VM Options
       script
       repl
 
-    rescue SystemExit => e
-      @exit_code = e.status
-
-      epilogue
-    rescue SyntaxError => e
-      @exit_code = 1
-
-      show_syntax_error(e)
-
-      STDERR.puts "\nBacktrace:"
-      STDERR.puts
-      STDERR.puts e.awesome_backtrace.show
-      epilogue
-    rescue Interrupt => e
-      @exit_code = 1
-
-      Rubinius::Logger.log_exception "An exception occurred #{@stage}:", e
-      epilogue
-    rescue SignalException => e
-      Signal.trap(e.signo, "SIG_DFL")
-      Process.kill e.signo, Process.pid
-      epilogue
     rescue Object => e
-      @exit_code = 1
-
-      Rubinius::Logger.log_exception "An exception occurred #{@stage}:", e
-      epilogue
+      handle_exception e
     else
       # We do this, run epilogue both in the rescue blocks and also here,
       # so that at_exit{} hooks can read $!.

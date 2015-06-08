@@ -79,6 +79,7 @@ namespace rubinius {
     , signature_(0)
     , signal_thread_(NULL)
     , finalizer_thread_(NULL)
+    , loader_(NULL)
   {
 #ifdef ENABLE_LLVM
 #if RBX_LLVM_API_VER < 305
@@ -106,6 +107,8 @@ namespace rubinius {
     root_vm = shared->new_vm();
     root_vm->metrics().init(metrics::eRubyMetrics);
     state = new State(root_vm);
+
+    loader_ = new TypedRoot<Object*>(state);
 
     NativeMethod::init_thread(state);
 
@@ -196,12 +199,6 @@ namespace rubinius {
 
     llvm::llvm_shutdown();
 #endif
-  }
-
-  void Environment::start_signals(STATE) {
-    state->vm()->set_run_signals(true);
-    signal_thread_ = new SignalThread(state, config);
-    signal_thread_->start(state);
   }
 
   void Environment::stop_signals(STATE) {
@@ -597,7 +594,7 @@ namespace rubinius {
     }
 
     stop_jit(state);
-    stop_signals(state);
+    state->shared().signals()->stop(state);
 
     root_vm->set_call_frame(0);
 
@@ -846,7 +843,7 @@ namespace rubinius {
 
     load_argv(argc_, argv_);
 
-    start_signals(state);
+    state->shared().start_signals(state);
     state->vm()->initialize_config();
 
     load_tool();
@@ -870,23 +867,21 @@ namespace rubinius {
     state->shared().start_console(state);
     state->shared().start_metrics(state);
 
-    Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
-    if(loader->nil_p()) {
-      rubinius::bug("Unable to find loader");
+    Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
+    if(klass->nil_p()) {
+      rubinius::bug("unable to find class Rubinius::Loader");
     }
 
-    OnStack<1> os(state, loader);
+    Object* instance = klass->send(state, 0, state->symbol("new"));
+    if(instance) {
+      loader_->set(instance);
+    } else {
+      rubinius::bug("unable to instantiate Rubinius::Loader");
+    }
 
     // Enable the JIT after the core library has loaded
     G(jit)->enable(state);
 
-    Object* inst = loader->send(state, 0, state->symbol("new"));
-    if(inst) {
-      OnStack<1> os2(state, inst);
-
-      inst->send(state, 0, state->symbol("main"));
-    } else {
-      rubinius::bug("Unable to instantiate loader");
-    }
+    loader_->get()->send(state, 0, state->symbol("main"));
   }
 }

@@ -8,6 +8,8 @@
 #include "config_parser.hpp"
 #include "configuration.hpp"
 
+#include "gc/root.hpp"
+
 namespace rubinius {
 
   class ConfigParser;
@@ -61,6 +63,8 @@ namespace rubinius {
 
     utilities::thread::Mutex halt_lock_;
 
+    TypedRoot<Object*>* loader_;
+
   public:
     SharedState* shared;
     VM* root_vm;
@@ -79,6 +83,10 @@ namespace rubinius {
 
     char** argv() const {
       return argv_;
+    }
+
+    Object* loader() {
+      return loader_->get();
     }
 
     void set_root_vm(VM* vm) {

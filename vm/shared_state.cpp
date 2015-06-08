@@ -14,6 +14,7 @@
 
 #include "console.hpp"
 #include "metrics.hpp"
+#include "signal.hpp"
 #include "world_state.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
@@ -31,7 +32,7 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : internal_threads_(0)
-    , signal_thread_(0)
+    , signals_(0)
     , finalizer_thread_(0)
     , console_(0)
     , metrics_(0)
@@ -140,6 +141,15 @@ namespace rubinius {
       }
     }
     return threads;
+  }
+
+  SignalThread* SharedState::start_signals(STATE) {
+    SYNC(state);
+
+    signals_ = new SignalThread(state);
+    signals_->start(state);
+
+    return signals_;
   }
 
   console::Console* SharedState::start_console(STATE) {
