@@ -4,6 +4,8 @@ module Rubinius
       Rubinius.primitive :thunk_create
       raise PrimitiveFailure, "Thunk.new primitive failed"
     end
+
+    attr_accessor :value
   end
 
   class CallUnit
