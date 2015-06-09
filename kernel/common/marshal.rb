@@ -627,7 +627,8 @@ module Marshal
 
       obj = result * sign
 
-      store_unique_object obj
+      add_object obj
+      obj
     end
 
     def construct_data
