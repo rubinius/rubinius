@@ -170,16 +170,6 @@ describe "Marshal.dump" do
         [Marshal, -2361183241434822606847, "\004\bl-\n\377\377\377\377\377\377\377\377\177\000"],
       ].should be_computed_by(:dump)
     end
-
-    ruby_version_is "1.9" do
-      it "dumps a Bignum" do
-        [ [Marshal,  2**64, "\004\bl+\n\000\000\000\000\000\000\000\000\001\000"],
-          [Marshal,  2**90, "\004\bl+\v#{"\000" * 11}\004"],
-          [Marshal, -2**63, "\004\bl-\t\000\000\000\000\000\000\000\200"],
-          [Marshal, -2**64, "\004\bl-\n\000\000\000\000\000\000\000\000\001\000"],
-        ].should be_computed_by(:dump)
-      end
-    end
   end
 
   describe "with a String" do
