@@ -1987,6 +1987,24 @@ Available commands are:
       message.index("\n") != nil
     end
   end
+  # Returns true if the *port* command is in the PATH and identifies
+  # itself with "MacPorts" when run interactively.
+  def macports?
+    `echo quit | port 2>&-`.start_with? 'MacPorts'
+  end
+
+  # Query MacPorts for the path to the latest installed version of
+  # llvm-config that is within the range of supported LLVM versions.
+  def macports_llvm_config
+    supported_versions = (3.0 .. 3.5)
+    installed_ports    = `port installed | egrep -o 'llvm-[^ ]+'`.split
+    latest_usable_port = installed_ports.sort.select do |fname|
+      version = fname.match(/-\K.*/)[0].to_f
+      supported_versions.include? version
+    end.last
+    avail_binaries     = `port contents #{latest_usable_port} | fgrep llvm-config`.split
+    avail_binaries.reject { |fname| fname.include? 'libexec' }.last
+  end
 end
 
 STDOUT.sync = true
