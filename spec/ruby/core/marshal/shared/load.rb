@@ -561,6 +561,24 @@ describe :marshal_load, :shared => true do
     end
   end
 
+  describe "for a Bignum" do
+    platform_is :wordsize => 64 do
+      context "that is Bignum on 32-bit platforms but Fixnum on 64-bit" do
+        it "dumps a Fixnum" do
+          val = Marshal.load("\004\bl+\ab:wU")
+          val.should == 1433877090
+          val.class.should == Fixnum
+        end
+
+        it "dumps an array containing multiple references to the Bignum as an array of Fixnum" do
+          arr = Marshal.load("\004\b[\al+\a\223BwU@\006")
+          arr.should == [1433879187, 1433879187]
+          arr.each { |v| v.class.should == Fixnum }
+        end
+      end
+    end
+  end
+
   describe "for a Time" do
     it "loads" do
       Marshal.send(@method, Marshal.dump(Time.at(1))).should == Time.at(1)
