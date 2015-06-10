@@ -49,6 +49,21 @@ describe "C-API Hash function" do
     end
   end
 
+  describe "rb_hash_dup" do
+    it "returns a copy of the hash" do
+      hsh = {}
+      dup = @s.rb_hash_dup(hsh)
+      dup.should == hsh
+      dup.should_not equal(hsh)
+    end
+  end
+
+  describe "rb_hash_freeze" do
+    it "freezes the hash" do
+      @s.rb_hash_freeze({}).frozen?.should be_true
+    end
+  end
+
   describe "rb_hash_aref" do
     it "returns the value associated with the key" do
       hsh = {:chunky => 'bacon'}

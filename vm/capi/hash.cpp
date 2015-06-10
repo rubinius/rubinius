@@ -10,6 +10,14 @@ extern "C" {
     return capi_fast_call(rb_cHash, rb_intern("new"), 0);
   }
 
+  VALUE rb_hash_dup(VALUE self) {
+    return capi_fast_call(self, rb_intern("dup"), 0);
+  }
+
+  VALUE rb_hash_freeze(VALUE self) {
+    return capi_fast_call(self, rb_intern("freeze"), 0);
+  }
+
   VALUE rb_hash_aref(VALUE self, VALUE key) {
     return capi_fast_call(self, rb_intern("[]"), 1, key);
   }

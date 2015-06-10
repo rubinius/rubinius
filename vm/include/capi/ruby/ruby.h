@@ -988,7 +988,7 @@ struct RTypedData {
   VALUE   rb_ary_dup(VALUE self);
 
   /** Return object at index. Out-of-bounds access returns Qnil. */
-  VALUE   rb_ary_entry(VALUE self, int index);
+  VALUE   rb_ary_entry(VALUE self, long index);
 
   /** Return Qtrue if the array includes the item. */
   VALUE   rb_ary_includes(VALUE self, VALUE obj);
@@ -1433,6 +1433,12 @@ struct RTypedData {
 
   /** Create a new Hash object */
   VALUE   rb_hash_new();
+
+  /** Duplicate the Hash object */
+  VALUE   rb_hash_dup(VALUE self);
+
+  /** Freeze the Hash object */
+  VALUE   rb_hash_freeze(VALUE self);
 
   /** Return the value associated with the key, including default values. */
   VALUE   rb_hash_aref(VALUE self, VALUE key);
