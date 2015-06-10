@@ -988,7 +988,7 @@ struct RTypedData {
   VALUE   rb_ary_dup(VALUE self);
 
   /** Return object at index. Out-of-bounds access returns Qnil. */
-  VALUE   rb_ary_entry(VALUE self, int index);
+  VALUE   rb_ary_entry(VALUE self, long index);
 
   /** Return Qtrue if the array includes the item. */
   VALUE   rb_ary_includes(VALUE self, VALUE obj);
