@@ -8,7 +8,7 @@ before_install:
   - echo $LANG
   - echo $LC_ALL
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install -y llvm-3.4 llvm-3.4-dev; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm && brew link --force llvm; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm35 && brew link --force llvm35; fi
   - rvm use $RVM --install --binary --fuzzy
   - gem update --system
   - gem --version
@@ -16,7 +16,7 @@ before_install:
 before_script:
   - travis_retry bundle
   - if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config llvm-config-3.4; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure --llvm-config /usr/local/opt/llvm/bin/llvm-config; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
 
 script: rake ci
 
@@ -49,6 +49,4 @@ env:
 
 os:
   - linux
-  # - osx
-
-osx_image: xcode61
+  - osx
