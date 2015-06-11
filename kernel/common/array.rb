@@ -993,7 +993,7 @@ class Array
 
   def permutation(num=undefined, &block)
     unless block_given?
-      return to_enum(:permutation, num) do 
+      return to_enum(:permutation, num) do
         Rubinius::Mirror::Array.reflect(self).permutation_size(num)
       end
     end
@@ -1858,20 +1858,29 @@ class Array
 
   def zip(*others)
     out = Array.new(size) { [] }
-    others = others.map do |ary|
-      if ary.respond_to?(:to_ary)
-        ary.to_ary
+    others = others.map do |other|
+      if other.respond_to?(:to_ary)
+        other.to_ary
       else
-        elements = []
-        ary.each { |e| elements << e }
-        elements
+        other.to_enum :each
       end
     end
 
     size.times do |i|
       slot = out.at(i)
       slot << @tuple.at(@start + i)
-      others.each { |ary| slot << ary.at(i) }
+      others.each do |other|
+        slot << case other
+                when Array
+                  other.at i
+                else
+                  begin
+                    other.next
+                  rescue StopIteration
+                    nil
+                  end
+                end
+      end
     end
 
     if block_given?
