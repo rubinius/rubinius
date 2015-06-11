@@ -36,6 +36,11 @@ describe "Enumerator::Lazy#take" do
       @eventsmixed.take(1).force
       ScratchPad.recorded.should == [:before_yield]
     end
+
+    it "stops without iterations if the given argument is 0" do
+      @eventsmixed.take(0).force
+      ScratchPad.recorded.should == []
+    end
   end
 
   describe "on a nested Lazy" do
@@ -50,6 +55,11 @@ describe "Enumerator::Lazy#take" do
 
         @eventsmixed.take(10).take(1).force
         ScratchPad.recorded.should == [:before_yield]
+      end
+
+      it "stops without iterations if the given argument is 0" do
+        @eventsmixed.take(10).take(0).force
+        ScratchPad.recorded.should == []
       end
     end
   end
