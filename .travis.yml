@@ -7,7 +7,15 @@ compiler:
 before_install:
   - echo $LANG
   - echo $LC_ALL
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install -y llvm-3.4 llvm-3.4-dev; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then
+      yes | sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
+      yes | sudo add-apt-repository 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main' &&
+      wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add - &&
+      sudo apt-get update -qq &&
+      sudo apt-get install -qq llvm-3.5-dev libedit-dev;
+    fi
+  - if [ $CC == gcc ]; then sudo apt-get install -qq gcc-5 && export CC=gcc5; fi
+  - if [ $CXX == g++ ]; then sudo apt-get install -qq gcc-5 && export CXX=g++5; fi
   - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm && brew link --force llvm; fi
   - rvm use $RVM --install --binary --fuzzy
   - gem update --system
@@ -15,7 +23,7 @@ before_install:
 
 before_script:
   - travis_retry bundle
-  - if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config llvm-config-3.4; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config llvm-config-3.5; fi
   - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure --llvm-config /usr/local/opt/llvm/bin/llvm-config; fi
 
 script: rake ci
