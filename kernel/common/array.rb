@@ -1599,7 +1599,18 @@ class Array
     size.times do |i|
       slot = out.at(i)
       slot << @tuple.at(@start + i)
-      others.each { |ary| slot << ary.at(i) }
+      others.each do |other|
+        slot << case other
+                when Array
+                  other.at i
+                else
+                  begin
+                    other.next
+                  rescue StopIteration
+                    nil
+                  end
+                end
+      end
     end
 
     if block_given?

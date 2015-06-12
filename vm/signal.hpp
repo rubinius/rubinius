@@ -16,16 +16,18 @@ namespace rubinius {
   struct CallFrame;
 
   class SignalThread : public InternalThread, public Lockable {
+    const static int pending_signal_size_ = 256;
     SharedState& shared_;
-    VM* target_;
 
-    int pending_signals_[NSIG];
-    int queued_signals_;
+    int pending_signals_[pending_signal_size_];
+    int queue_index_;
+    int process_index_;
 
     std::list<int> watched_signals_;
+    utilities::thread::SpinLock watch_lock_;
 
-    utilities::thread::Condition worker_cond_;
-    utilities::thread::Mutex worker_lock_;
+    utilities::thread::Condition condition_;
+    utilities::thread::Mutex lock_;
 
   public:
     enum HandlerType {
@@ -34,28 +36,25 @@ namespace rubinius {
       eCustom
     };
 
-    SignalThread(STATE, Configuration& config);
+    SignalThread(STATE);
 
     SharedState& shared() {
       return shared_;
     }
 
+    static void signal_handler(int signal);
+
+    void install_default_handlers();
+
     void initialize(STATE);
-    void setup_default_handlers();
+    void run(STATE);
+    void wakeup(STATE);
+    void stop(STATE);
 
-    void add_signal(State*, int sig, HandlerType type = eCustom);
-    void handle_signal(int sig);
-    static void signal_handler(int sig);
-
-    bool deliver_signals(STATE, CallFrame* call_frame);
+    void queue_signal(int signal);
+    void add_signal_handler(State*, int signal, HandlerType type = eCustom);
 
     void print_backtraces();
-
-    void open_pipes();
-
-    void run(STATE);
-    void stop(STATE);
-    void wakeup(STATE);
 
     typedef void (*PrintFunction)(const char* message, ...);
 

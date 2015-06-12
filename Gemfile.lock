@@ -27,6 +27,3 @@ DEPENDENCIES
   redcard (~> 1.0)
   rubinius-bridge (~> 1.0)
   rubinius-build_tools (~> 1.0)
-
-BUNDLED WITH
-   1.10.3

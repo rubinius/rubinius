@@ -923,13 +923,15 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
-    SignalThread* st = state->shared().signal_handler();
+    SignalThread* st = state->shared().signals();
+
     if(st) {
       native_int i = sig->to_native();
       if(i < 0) {
-        st->add_signal(state, -i, SignalThread::eDefault);
+        st->add_signal_handler(state, -i, SignalThread::eDefault);
       } else if(i > 0) {
-        st->add_signal(state, i, CBOOL(ignored) ? SignalThread::eIgnore : SignalThread::eCustom);
+        st->add_signal_handler(state, i,
+            CBOOL(ignored) ? SignalThread::eIgnore : SignalThread::eCustom);
       }
 
       return cTrue;

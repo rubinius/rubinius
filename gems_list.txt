@@ -1,10 +1,10 @@
-bundler-1.10.3.gem
+bundler-1.9.9.gem
 ffi2-generators-0.1.1.gem
-json-1.8.3.gem
+json-1.8.2.gem
 minitest-4.7.5.gem
 racc-1.4.12.gem
 rake-10.4.2.gem
-rb-readline-0.5.3.gem
+rb-readline-0.5.2.gem
 rdoc-4.2.0.gem
 rubinius-ast-1.3.0.gem
 rubinius-build_tools-1.0.0.gem
@@ -18,7 +18,7 @@ rubinius-profiler-2.0.2.gem
 rubinius-toolset-2.3.1.gem
 rubysl-1.1.0.gem
 rubysl-abbrev-1.0.1.gem
-rubysl-base64-1.0.1.gem
+rubysl-base64-1.0.0.gem
 rubysl-benchmark-1.0.0.gem
 rubysl-bigdecimal-1.0.0.gem
 rubysl-cgi-1.0.0.gem
@@ -28,7 +28,7 @@ rubysl-csv-1.0.1.gem
 rubysl-curses-1.0.0.gem
 rubysl-date-1.0.1.gem
 rubysl-delegate-1.0.0.gem
-rubysl-digest-1.2.0.gem
+rubysl-digest-1.0.1.gem
 rubysl-drb-1.0.0.gem
 rubysl-e2mmap-1.0.0.gem
 rubysl-english-1.0.0.gem

@@ -35,6 +35,7 @@ namespace rubinius {
   public:
     FinalizeObject()
       : object(NULL)
+      , kind(eManaged)
       , status(eLive)
       , finalizer(0)
       , ruby_finalizer(0)

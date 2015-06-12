@@ -3,34 +3,30 @@
 #include "vm.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
+#include "on_stack.hpp"
 #include "signal.hpp"
-#include "configuration.hpp"
-
-#include "builtin/module.hpp"
-#include "builtin/array.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/constant_scope.hpp"
 #include "builtin/jit.hpp"
 #include "builtin/module.hpp"
-#include "builtin/module.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
-
-#include <string>
-#include <iostream>
-#include <fcntl.h>
 
 #include "util/logger.hpp"
 
 #include "dtrace/dtrace.h"
 
+#include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+
+#include <iostream>
+#include <string>
 
 #ifdef USE_EXECINFO
 #include <execinfo.h>
@@ -53,33 +49,62 @@ namespace rubinius {
   // crashing inside the crash handler.
   static struct utsname machine_info;
 
-  SignalThread::SignalThread(STATE, Configuration& config)
-    : InternalThread(state, "rbx.signal", InternalThread::eSmall)
+  SignalThread::SignalThread(STATE)
+    : InternalThread(state, "rbx.signals", InternalThread::eSmall)
     , shared_(state->shared())
-    , target_(state->vm())
-    , queued_signals_(0)
+    , queue_index_(0)
+    , process_index_(0)
   {
     signal_thread_ = this;
-    shared_.set_signal_handler(this);
+    install_default_handlers();
+  }
 
-    setup_default_handlers();
+  void SignalThread::signal_handler(int signal) {
+    signal_thread_->queue_signal(signal);
+  }
+
+  void SignalThread::queue_signal(int signal) {
+    if(thread_exit_) return;
+
+    metrics().system_metrics.os_signals_received++;
+
+    {
+      thread::Mutex::LockGuard guard(lock_);
+
+      pending_signals_[queue_index_] = signal;
+      /* GCC 4.8.2 can't tell that this code is equivalent.
+       *   queue_index_ = ++queue_index_ % pending_signal_size_;
+       */
+      ++queue_index_;
+      queue_index_ %= pending_signal_size_;
+
+      condition_.signal();
+    }
   }
 
   void SignalThread::initialize(STATE) {
     InternalThread::initialize(state);
 
-    for(int i = 0; i < NSIG; i++) {
+    Thread::create(state, vm());
+
+    for(int i = 0; i < pending_signal_size_; i++) {
       pending_signals_[i] = 0;
     }
 
-    worker_lock_.init();
-    worker_cond_.init();
+    queue_index_ = process_index_ = 0;
+
+    watch_lock_.init();
+    lock_.init();
+    condition_.init();
   }
 
   void SignalThread::wakeup(STATE) {
     InternalThread::wakeup(state);
 
-    worker_cond_.signal();
+    {
+      thread::Mutex::LockGuard guard(lock_);
+      condition_.signal();
+    }
   }
 
   void SignalThread::stop(STATE) {
@@ -92,10 +117,77 @@ namespace rubinius {
     InternalThread::stop(state);
   }
 
+  void SignalThread::run(STATE) {
+    GCTokenImpl gct;
+    state->gc_independent(gct, 0);
+
+#ifndef RBX_WINDOWS
+    sigset_t set;
+    sigfillset(&set);
+    pthread_sigmask(SIG_BLOCK, &set, NULL);
+#endif
+
+    metrics().init(metrics::eRubyMetrics);
+
+    while(!thread_exit_) {
+      int signal = pending_signals_[process_index_];
+      pending_signals_[process_index_] = 0;
+
+      /* GCC 4.8.2 can't tell that this code is equivalent.
+       *   process_index_ = ++process_index_ % pending_signal_size_;
+       */
+      ++process_index_;
+      process_index_ %= pending_signal_size_;
+
+      if(signal > 0) {
+        GCDependent guard(state, 0);
+        vm()->set_call_frame(0);
+
+        metrics().system_metrics.os_signals_processed++;
+
+        Array* args = 0;
+        OnStack<1> os(state, args);
+
+        args = Array::create(state, 1);
+        args->set(state, 0, Fixnum::from(signal));
+
+        if(!G(rubinius)->send(state, 0, state->symbol("received_signal"), args, cNil)) {
+          if(state->thread_state()->raise_reason() == cException ||
+              state->thread_state()->raise_reason() == cExit) {
+            Array* args = 0;
+            Exception* exc = 0;
+            OnStack<2> os(state, args, exc);
+
+            exc = state->thread_state()->current_exception();
+            state->thread_state()->clear_raise();
+
+            args = Array::create(state, 1);
+            args->set(state, 0, exc);
+
+            state->shared().env()->loader()->send(
+                state, 0, state->symbol("handle_exception"), args, cNil);
+
+            state->shared().env()->halt_and_exit(state);
+
+            break;
+          }
+        }
+
+        vm()->set_call_frame(0);
+      } else {
+        thread::Mutex::LockGuard guard(lock_);
+
+        if(queue_index_ != process_index_) continue;
+        condition_.wait(lock_);
+      }
+
+      vm()->set_call_frame(0);
+    }
+  }
+
   void SignalThread::print_machine_info(PrintFunction function) {
     function("node info: %s %s", machine_info.nodename, machine_info.version);
   }
-
 
 #define RBX_PROCESS_INFO_LEN    256
 
@@ -126,114 +218,28 @@ namespace rubinius {
     function("process info: %s", process_info);
   }
 
-  void SignalThread::run(STATE) {
-#ifndef RBX_WINDOWS
-    sigset_t set;
-    sigfillset(&set);
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
-#endif
-
-    GCTokenImpl gct;
-
-    metrics().init(metrics::eRubyMetrics);
-
-    while(!thread_exit_) {
-      {
-        utilities::thread::Mutex::LockGuard lg(worker_lock_);
-        if(thread_exit_) break;
-        state->gc_independent(gct, 0);
-        worker_cond_.wait(worker_lock_);
-        // If we should exit now, don't try to become
-        // dependent first but break and exit the thread
-        if(thread_exit_) break;
-      }
-      state->gc_dependent(gct, 0);
-      {
-        utilities::thread::Mutex::LockGuard lg(worker_lock_);
-        if(thread_exit_) break;
-      }
-
-      target_->wakeup(state, gct, 0);
-    }
-  }
-
-  void SignalThread::signal_handler(int sig) {
-    signal_thread_->handle_signal(sig);
-  }
-
-  void SignalThread::handle_signal(int sig) {
-    if(thread_exit_) return;
-
-    target_->metrics().system_metrics.os_signals_received++;
-
-    queued_signals_ = 1;
-    pending_signals_[sig] = 1;
-
-    target_->set_check_local_interrupts();
-
-    if(target_->should_interrupt_with_signal()) {
-      if(!pthread_equal(pthread_self(), target_->os_thread())) {
-#ifdef RBX_WINDOWS
-        // TODO: Windows
-#else
-        pthread_kill(target_->os_thread(), SIGVTALRM);
-#endif
-      }
-    }
-
-    worker_cond_.signal();
-  }
-
-  void SignalThread::add_signal(STATE, int sig, HandlerType type) {
-    SYNC(state);
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+  void SignalThread::add_signal_handler(STATE, int signal, HandlerType type) {
+    thread::SpinLock::LockGuard guard(watch_lock_);
 
 #ifndef RBX_WINDOWS
     struct sigaction action;
 
     if(type == eDefault) {
       action.sa_handler = SIG_DFL;
-      watched_signals_.remove(sig);
+      watched_signals_.remove(signal);
     } else if(type == eIgnore) {
       action.sa_handler = SIG_IGN;
-      watched_signals_.push_back(sig);
+      watched_signals_.push_back(signal);
     } else {
       action.sa_handler = signal_handler;
-      watched_signals_.push_back(sig);
+      watched_signals_.push_back(signal);
     }
 
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
 
-    sigaction(sig, &action, NULL);
+    sigaction(signal, &action, NULL);
 #endif
-  }
-
-  bool SignalThread::deliver_signals(STATE, CallFrame* call_frame) {
-    queued_signals_ = 0;
-
-    for(int i = 0; i < NSIG; i++) {
-      if(pending_signals_[i] > 0) {
-        pending_signals_[i] = 0;
-
-        target_->metrics().system_metrics.os_signals_processed++;
-
-        Array* args = Array::create(state, 1);
-        args->set(state, 0, Fixnum::from(i));
-
-        // Check whether the send raised an exception and
-        // stop running the handlers if that happens
-        if(!G(rubinius)->send(state, call_frame,
-               state->symbol("received_signal"), args, cNil)) {
-          if(state->thread_state()->raise_reason() == cException ||
-             state->thread_state()->raise_reason() == cExit) {
-            return false;
-          }
-        }
-      }
-    }
-
-    return true;
   }
 
   void SignalThread::print_backtraces() {
@@ -398,7 +404,7 @@ namespace rubinius {
   }
 #endif
 
-  void SignalThread::setup_default_handlers() {
+  void SignalThread::install_default_handlers() {
 #ifndef RBX_WINDOWS
     // Get the machine info.
     uname(&machine_info);

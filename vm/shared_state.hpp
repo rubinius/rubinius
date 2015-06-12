@@ -90,7 +90,7 @@ namespace rubinius {
   class SharedState : public Lockable {
   private:
     InternalThreads* internal_threads_;
-    SignalThread* signal_thread_;
+    SignalThread* signals_;
     FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
@@ -167,14 +167,6 @@ namespace rubinius {
       return internal_threads_;
     }
 
-    SignalThread* signal_handler() const {
-      return signal_thread_;
-    }
-
-    void set_signal_handler(SignalThread* thr) {
-      signal_thread_ = thr;
-    }
-
     FinalizerThread* finalizer_handler() const {
       return finalizer_thread_;
     }
@@ -234,6 +226,12 @@ namespace rubinius {
       kcode_table_ = tbl;
       kcode_page_ = page;
     }
+
+    SignalThread* signals() const {
+      return signals_;
+    }
+
+    SignalThread* start_signals(STATE);
 
     console::Console* console() const {
       return console_;

@@ -574,8 +574,8 @@ class Configure
         if macports?
           config = macports_llvm_config
         else
-          out = Bundler.with_clean_env { `brew list llvm | grep '/llvm-config$'` }
-          config = out.chomp if $?.success?
+          out = Bundler.with_clean_env { `brew --prefix llvm35` }.chomp
+          config = "#{out}/bin/llvm-config-3.5" if $?.success?
         end
       end
     end
