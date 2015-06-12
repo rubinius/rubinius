@@ -1,12 +1,12 @@
-bundler-1.9.8.gem
+bundler-1.10.3.gem
 daedalus-core-0.5.0.gem
 ffi2-generators-0.1.1.gem
-json-1.8.2.gem
+json-1.8.3.gem
 minitest-4.7.5.gem
 psych-2.0.10.gem
 racc-1.4.12.gem
 rake-10.4.2.gem
-rb-readline-0.5.2.gem
+rb-readline-0.5.3.gem
 rdoc-4.2.0.gem
 redcard-1.1.0.gem
 rubinius-ast-2.3.2.gem
