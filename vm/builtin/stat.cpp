@@ -79,7 +79,8 @@ namespace rubinius {
 
   Object* Stat::stat_birthtime(STATE) {
     #ifdef HAVE_ST_BIRTHTIME
-      return Time::at(state, st_.st_birthtimespec);
+      struct timespec ts = st_.st_birthtimespec;
+      return Time::at(state, ts.tv_sec, ts.tv_nsec);
     #else
       return Primitives::failure();
     #endif
