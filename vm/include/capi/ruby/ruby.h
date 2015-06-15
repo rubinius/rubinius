@@ -1436,9 +1436,11 @@ struct RTypedData {
 
   /** Duplicate the Hash object */
   VALUE   rb_hash_dup(VALUE self);
+#define HAVE_RB_HASH_DUP 1
 
   /** Freeze the Hash object */
   VALUE   rb_hash_freeze(VALUE self);
+#define HAVE_RB_HASH_FREEZE 1
 
   /** Return the value associated with the key, including default values. */
   VALUE   rb_hash_aref(VALUE self, VALUE key);
