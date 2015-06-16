@@ -12,8 +12,7 @@ namespace rubinius {
   using namespace utilities;
 
   InternalThread::InternalThread(STATE, std::string name, StackSize stack_size)
-    : vm_(state->shared().new_vm())
-    , name_(name)
+    : vm_(state->shared().new_vm(name.c_str()))
     , thread_running_(false)
     , stack_size_(stack_size)
     , metrics_(vm_->metrics())
@@ -29,14 +28,11 @@ namespace rubinius {
     SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
 
-    state->vm()->set_run_state(ManagedThread::eIndependent);
+    vm->set_current_thread();
+    vm->set_run_state(ManagedThread::eIndependent);
 
-    RBX_DTRACE_CHAR_P thread_name =
-      const_cast<RBX_DTRACE_CHAR_P>(thread->name_.c_str());
-    vm->set_name(thread_name);
-
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                          vm->thread_id(), 1);
+    RUBINIUS_THREAD_START(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
     NativeMethod::init_thread(state);
 
@@ -48,12 +44,10 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                         vm->thread_id(), 1);
+    RUBINIUS_THREAD_STOP(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
-    if(state->vm()->run_state() != ManagedThread::eIndependent) {
-      shared.gc_independent();
-    }
+    shared.gc_independent();
 
     return 0;
   }
@@ -75,7 +69,7 @@ namespace rubinius {
 
     if(int error = pthread_create(&vm_->os_thread(), &attrs,
           InternalThread::run, (void*)this)) {
-      logger::fatal("%s: %s: create thread failed", strerror(error), name_.c_str());
+      logger::fatal("%s: %s: create thread failed", strerror(error), vm_->name().c_str());
       ::abort();
     }
 

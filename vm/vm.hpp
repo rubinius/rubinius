@@ -342,14 +342,13 @@ namespace rubinius {
     static void init_stack_size();
 
     static VM* current();
-    static void set_current(VM* vm, std::string name);
 
     static void discard(STATE, VM*);
 
   public:
 
     /* Prototypes */
-    VM(uint32_t id, SharedState& shared);
+    VM(uint32_t id, SharedState& shared, const char* name = NULL);
     ~VM();
 
     void initialize_as_root();
@@ -358,6 +357,8 @@ namespace rubinius {
     void bootstrap_ontology(STATE);
     void bootstrap_symbol(STATE);
     void initialize_config();
+
+    void set_current_thread();
 
     void setup_errno(STATE, int num, const char* name, Class* sce, Module* ern);
     void bootstrap_exceptions(STATE);

@@ -51,6 +51,10 @@ namespace rubinius {
 
   class Mutex : public Lock, public utilities::thread::Mutex {
   public:
+    Mutex(bool recursive)
+      : utilities::thread::Mutex(recursive)
+    { }
+
     bool mutex_p() {
       return true;
     }
@@ -153,6 +157,10 @@ namespace rubinius {
     Mutex mutex_;
 
   public:
+    Lockable(bool recursive)
+      : mutex_(recursive)
+    { }
+
     Mutex& mutex() {
       return mutex_;
     }
@@ -225,8 +233,6 @@ namespace rubinius {
 
 
 #define SYNC(__state) LockableScopedLock __lsl_guard__(__state, this, __FILE__, __LINE__)
-#define SYNC_TL LockableScopedLock __lsl_guard__(ManagedThread::current(), this, __FILE__, __LINE__)
-
 #define UNSYNC __lsl_guard__.unlock()
 #define RESYNC __lsl_guard__.relock()
 }

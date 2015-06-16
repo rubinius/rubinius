@@ -25,8 +25,8 @@ public:
     config_parser = new ConfigParser;
     shared = new SharedState(0, config, *config_parser);
     VM* vm = shared->new_vm();
-    vm->metrics().init(metrics::eRubyMetrics);
     vm->initialize_as_root();
+    vm->metrics().init(metrics::eRubyMetrics);
     state = new State(vm);
   }
 
@@ -49,11 +49,6 @@ public:
   void tearDown() {
     destroy();
   }
-
-  VM* new_vm() {
-    return shared->new_vm();
-  }
-
 };
 
 #endif

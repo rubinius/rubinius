@@ -289,7 +289,7 @@ describe :marshal_load, :shared => true do
       it "loads a US-ASCII String" do
         str = "abc".force_encoding("us-ascii")
         data = "\x04\bI\"\babc\x06:\x06EF"
-        result = Marshal.load(data)
+        result = Marshal.send(@method, data)
         result.should == str
         result.encoding.should equal(Encoding::US_ASCII)
       end
@@ -297,7 +297,7 @@ describe :marshal_load, :shared => true do
       it "loads a UTF-8 String" do
         str = "\x6d\xc3\xb6\x68\x72\x65".force_encoding("utf-8")
         data = "\x04\bI\"\vm\xC3\xB6hre\x06:\x06ET"
-        result = Marshal.load(data)
+        result = Marshal.send(@method, data)
         result.should == str
         result.encoding.should equal(Encoding::UTF_8)
       end
@@ -305,7 +305,7 @@ describe :marshal_load, :shared => true do
       it "loads a String in another encoding" do
         str = "\x6d\x00\xf6\x00\x68\x00\x72\x00\x65\x00".force_encoding("utf-16le")
         data = "\x04\bI\"\x0Fm\x00\xF6\x00h\x00r\x00e\x00\x06:\rencoding\"\rUTF-16LE"
-        result = Marshal.load(data)
+        result = Marshal.send(@method, data)
         result.should == str
         result.encoding.should equal(Encoding::UTF_16LE)
       end
@@ -313,7 +313,7 @@ describe :marshal_load, :shared => true do
       it "loads a String as ASCII-8BIT if no encoding is specified at the end" do
         str = "\xC3\xB8"
         data = "\x04\b\"\a\xC3\xB8".force_encoding("UTF-8")
-        result = Marshal.load(data)
+        result = Marshal.send(@method, data)
         result.encoding.should == Encoding::ASCII_8BIT
         result.should == str
       end
@@ -583,13 +583,13 @@ describe :marshal_load, :shared => true do
     platform_is :wordsize => 64 do
       context "that is Bignum on 32-bit platforms but Fixnum on 64-bit" do
         it "dumps a Fixnum" do
-          val = Marshal.load("\004\bl+\ab:wU")
+          val = Marshal.send(@method, "\004\bl+\ab:wU")
           val.should == 1433877090
           val.class.should == Fixnum
         end
 
         it "dumps an array containing multiple references to the Bignum as an array of Fixnum" do
-          arr = Marshal.load("\004\b[\al+\a\223BwU@\006")
+          arr = Marshal.send(@method, "\004\b[\al+\a\223BwU@\006")
           arr.should == [1433879187, 1433879187]
           arr.each { |v| v.class.should == Fixnum }
         end
@@ -606,7 +606,21 @@ describe :marshal_load, :shared => true do
       t = Time.new
       t.instance_variable_set(:@foo, 'bar')
 
-      Marshal.load(Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
+      Marshal.send(@method, Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
+    end
+
+    it "loads Time objects stored as links" do
+      t = Time.new
+
+      t1, t2 = Marshal.send(@method, Marshal.dump([t, t]))
+      t1.should equal t2
+    end
+
+    it "loads the zone" do
+      with_timezone 'AST', 3 do
+        t = Time.local(2012, 1, 1)
+        Marshal.send(@method, Marshal.dump(t)).zone.should == t.zone
+      end
     end
   end
 

@@ -1,6 +1,8 @@
 #ifndef RBX_AUXILIARY_THREADS_H
 #define RBX_AUXILIARY_THREADS_H
 
+#include "lock.hpp"
+
 #include "util/thread.hpp"
 
 #include <string>
@@ -15,7 +17,6 @@ namespace rubinius {
 
   class InternalThread {
     VM* vm_;
-    std::string name_;
     bool thread_running_;
     uint32_t stack_size_;
 

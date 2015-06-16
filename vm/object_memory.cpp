@@ -54,7 +54,8 @@ namespace rubinius {
 
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(VM* state, Configuration& config)
-    : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
+    : Lockable(true)
+    , young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
     , immix_marker_(NULL)
@@ -452,15 +453,13 @@ step1:
     }
   }
 
+  // TODO: Fix API to support proper testing.
   void ObjectMemory::set_young_lifetime(size_t age) {
-    SYNC_TL;
-
     young_->set_lifetime(age);
   }
 
+  // TODO: Fix API to support proper testing.
   void ObjectMemory::debug_marksweep(bool val) {
-    SYNC_TL;
-
     if(val) {
       mark_sweep_->free_entries = false;
     } else {
@@ -825,7 +824,7 @@ step1:
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared_.type_info_lock());
 
     if(TypeInfo* current = type_info[ti->type]) {
       delete current;
@@ -1014,7 +1013,7 @@ step1:
   }
 
   void ObjectMemory::add_code_resource(CodeResource* cr) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared_.code_resource_lock());
 
     code_manager_.add_resource(cr, &collect_mature_now);
   }

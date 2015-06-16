@@ -269,17 +269,10 @@ namespace rubinius {
     SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
 
-    std::string thread_name;
+    vm->set_current_thread();
 
-    {
-      std::ostringstream tn;
-      tn << "rbx.ruby." << vm->thread_id();
-      VM::set_current(vm, tn.str());
-      thread_name = tn.str();
-    }
-
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name.c_str()),
-                          vm->thread_id(), 0);
+    RUBINIUS_THREAD_START(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
 
     if(cDebugThreading) {
       utilities::logger::debug("Thread: start thread: id: %d, pthread: %d",
@@ -341,8 +334,8 @@ namespace rubinius {
 
     vm->set_zombie();
 
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name.c_str()),
-                         vm->thread_id(), 0);
+    RUBINIUS_THREAD_STOP(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
 
     return 0;
   }
