@@ -1,4 +1,4 @@
-bundler-1.10.3.gem
+bundler-1.10.4.gem
 daedalus-core-0.5.0.gem
 ffi2-generators-0.1.1.gem
 json-1.8.3.gem
