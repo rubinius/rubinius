@@ -5,16 +5,28 @@
 #include "shared_state.hpp"
 #include "metrics.hpp"
 
+#include <sstream>
+
 namespace rubinius {
   utilities::thread::ThreadData<ManagedThread*> _current_thread;
 
-  ManagedThread::ManagedThread(uint32_t id, SharedState& ss, ManagedThread::Kind kind)
-    : shared_(ss)
-    , name_(kind == eRuby ? "<ruby>" : "<system>")
+  ManagedThread::ManagedThread(uint32_t id, SharedState& ss,
+      ManagedThread::Kind kind, const char* name)
+    : Lockable(true)
+    , shared_(ss)
     , run_state_(eIndependent)
     , kind_(kind)
+    , os_thread_(pthread_self())
     , id_(id)
   {
+    if(name) {
+      name_ = std::string(name);
+    } else {
+      std::ostringstream thread_name;
+      thread_name << "rbx.ruby." << id_;
+      name_ = thread_name.str();
+    }
+
     metrics_.init(metrics::eNone);
   }
 
@@ -28,9 +40,9 @@ namespace rubinius {
     return _current_thread.get();
   }
 
-  void ManagedThread::set_current(ManagedThread* th, std::string name) {
+  void ManagedThread::set_current_thread(ManagedThread* th) {
+    utilities::thread::Thread::set_os_name(th->name().c_str());
     th->os_thread_ = pthread_self();
-    th->set_name(name);
     _current_thread.set(th);
   }
 }

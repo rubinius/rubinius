@@ -123,6 +123,10 @@ namespace rubinius {
     utilities::thread::SpinLock capi_locks_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
     utilities::thread::SpinLock llvm_state_lock_;
+    utilities::thread::SpinLock vm_lock_;
+    utilities::thread::SpinLock wait_lock_;
+    utilities::thread::SpinLock type_info_lock_;
+    utilities::thread::SpinLock code_resource_lock_;
 
     CApiBlackList capi_black_list_;
     CApiLocks capi_locks_;
@@ -168,7 +172,7 @@ namespace rubinius {
       finalizer_thread_ = thr;
     }
 
-    VM* new_vm();
+    VM* new_vm(const char* name = NULL);
     void remove_vm(VM*);
 
     ThreadList* threads() {
@@ -293,6 +297,18 @@ namespace rubinius {
 
     utilities::thread::SpinLock& llvm_state_lock() {
       return llvm_state_lock_;
+    }
+
+    utilities::thread::SpinLock& wait_lock() {
+      return wait_lock_;
+    }
+
+    utilities::thread::SpinLock& type_info_lock() {
+      return type_info_lock_;
+    }
+
+    utilities::thread::SpinLock& code_resource_lock() {
+      return code_resource_lock_;
     }
 
     void scheduler_loop();

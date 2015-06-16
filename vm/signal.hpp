@@ -1,7 +1,6 @@
 #ifndef RBX_SIGNAL_HPP
 #define RBX_SIGNAL_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/root.hpp"
@@ -15,7 +14,7 @@ namespace rubinius {
   class Configuration;
   struct CallFrame;
 
-  class SignalThread : public InternalThread, public Lockable {
+  class SignalThread : public InternalThread {
     const static int pending_signal_size_ = 256;
     SharedState& shared_;
 

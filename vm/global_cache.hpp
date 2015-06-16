@@ -44,7 +44,9 @@ namespace rubinius {
     static bool resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
     bool resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
 
-    GlobalCache() {
+    GlobalCache()
+      : Lockable(true)
+    {
       reset();
     }
 

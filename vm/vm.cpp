@@ -66,8 +66,8 @@ namespace rubinius {
   static rlim_t cMaxStack = (1024 * 1024 * 128);
 #endif
 
-  VM::VM(uint32_t id, SharedState& shared)
-    : ManagedThread(id, shared, ManagedThread::eRuby)
+  VM::VM(uint32_t id, SharedState& shared, const char* name)
+    : ManagedThread(id, shared, ManagedThread::eRuby, name)
     , saved_call_frame_(0)
     , saved_call_site_information_(0)
     , fiber_stacks_(this, shared)
@@ -119,6 +119,7 @@ namespace rubinius {
   }
 
   void VM::initialize_as_root() {
+    set_current_thread();
 
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
@@ -144,8 +145,6 @@ namespace rubinius {
     Thread::create(&state, this);
     thread->alive(&state, cTrue);
     thread->sleep(&state, cFalse);
-
-    VM::set_current(this, "rbx.ruby.main");
   }
 
   void VM::initialize_config() {
@@ -187,8 +186,8 @@ namespace rubinius {
   /**
    * Sets this VM instance as the current VM on this pthread.
    */
-  void VM::set_current(VM* vm, std::string name) {
-    ManagedThread::set_current(vm, name);
+  void VM::set_current_thread() {
+    ManagedThread::set_current_thread(this);
   }
 
   Object* VM::new_object_typed_dirty(Class* cls, size_t size, object_type type) {
@@ -416,7 +415,8 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+
     vm_jit_.interrupt_with_signal_ = false;
     waiting_channel_.set(nil<Channel>());
     waiting_object_.set(cNil);
@@ -425,18 +425,21 @@ namespace rubinius {
   }
 
   void VM::wait_on_channel(Channel* chan) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+
     thread->sleep(this, cTrue);
     waiting_channel_.set(chan);
   }
 
   void VM::wait_on_inflated_lock(Object* wait) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+
     waiting_object_.set(wait);
   }
 
   void VM::wait_on_custom_function(void (*func)(void*), void* data) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
   }

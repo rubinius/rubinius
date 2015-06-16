@@ -1,7 +1,6 @@
 #ifndef RBX_GC_FINALIZE_HPP
 #define RBX_GC_FINALIZE_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/finalize.hpp"
@@ -59,7 +58,7 @@ namespace rubinius {
   typedef std::list<FinalizeObject> FinalizeObjects;
   typedef std::list<FinalizeObjects*> FinalizeObjectsList;
 
-  class FinalizerThread : public InternalThread, public Lockable {
+  class FinalizerThread : public InternalThread {
   public:
     class iterator {
       FinalizerThread* handler_;

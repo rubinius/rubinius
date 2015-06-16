@@ -1,7 +1,6 @@
 #ifndef RBX_METRICS_HPP
 #define RBX_METRICS_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/root.hpp"
@@ -375,7 +374,7 @@ namespace rubinius {
       void reinit();
     };
 
-    class Metrics : public InternalThread, public Lockable {
+    class Metrics : public InternalThread {
       bool enabled_;
 
       TypedRoot<Tuple*> values_;

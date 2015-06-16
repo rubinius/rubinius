@@ -31,7 +31,8 @@
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
-    : internal_threads_(0)
+    : Lockable(true)
+    , internal_threads_(0)
     , signals_(0)
     , finalizer_thread_(0)
     , console_(0)
@@ -48,6 +49,16 @@ namespace rubinius {
     , root_vm_(0)
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
+    , ruby_critical_lock_()
+    , fork_exec_lock_()
+    , capi_ds_lock_()
+    , capi_locks_lock_()
+    , capi_constant_lock_()
+    , llvm_state_lock_()
+    , vm_lock_()
+    , wait_lock_()
+    , type_info_lock_()
+    , code_resource_lock_()
     , use_capi_lock_(false)
     , om(0)
     , global_cache(new GlobalCache)
@@ -103,31 +114,32 @@ namespace rubinius {
     return atomic::fetch_and_add(&thread_ids_, 1);
   }
 
-  VM* SharedState::new_vm() {
-    uint32_t id = new_thread_id();
-
-    SYNC_TL;
+  VM* SharedState::new_vm(const char* name) {
+    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
 
     // TODO calculate the thread id by finding holes in the
     // field of ids, so we reuse ids.
+    uint32_t id = new_thread_id();
 
-    VM* vm = new VM(id, *this);
+    VM* vm = new VM(id, *this, name);
     threads_.push_back(vm);
 
     // If there is no root vm, then the first one created becomes it.
     if(!root_vm_) root_vm_ = vm;
+
     return vm;
   }
 
   void SharedState::remove_vm(VM* vm) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
+
     threads_.remove(vm);
 
     // Don't delete ourself here, it's too problematic.
   }
 
   Array* SharedState::vm_threads(STATE) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
 
     Array* threads = Array::create(state, 0);
     for(ThreadList::iterator i = threads_.begin();
@@ -140,12 +152,11 @@ namespace rubinius {
         }
       }
     }
+
     return threads;
   }
 
   SignalThread* SharedState::start_signals(STATE) {
-    SYNC(state);
-
     signals_ = new SignalThread(state);
     signals_->start(state);
 
@@ -153,8 +164,6 @@ namespace rubinius {
   }
 
   console::Console* SharedState::start_console(STATE) {
-    SYNC(state);
-
     if(!console_) {
       console_ = new console::Console(state);
       console_->start(state);
@@ -164,8 +173,6 @@ namespace rubinius {
   }
 
   metrics::Metrics* SharedState::start_metrics(STATE) {
-    SYNC(state);
-
     if(!metrics_) {
       metrics_ = new metrics::Metrics(state);
       metrics_->start(state);
@@ -227,6 +234,11 @@ namespace rubinius {
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
+    llvm_state_lock_.init();
+    vm_lock_.init();
+    wait_lock_.init();
+    type_info_lock_.init();
+    code_resource_lock_.init();
     internal_threads_->init();
 
     om->after_fork_child(state);
@@ -343,7 +355,7 @@ namespace rubinius {
       return 0;
     }
 
-    Mutex* lock = new Mutex();
+    Mutex* lock = new Mutex(true);
     capi_locks_.push_back(lock);
 
     // We use a 1 offset index, so 0 can indicate no lock used
