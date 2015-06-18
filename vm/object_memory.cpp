@@ -54,8 +54,7 @@ namespace rubinius {
 
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(VM* state, Configuration& config)
-    : Lockable(true)
-    , young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
+    : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
     , immix_marker_(NULL)
@@ -126,7 +125,6 @@ namespace rubinius {
   }
 
   void ObjectMemory::after_fork_child(STATE) {
-    lock_init(state->vm());
     contention_lock_.init();
     mature_gc_in_progress_ = false;
   }
@@ -520,9 +518,6 @@ step1:
       if(!collect_young_now && !collect_mature_now) return;
     }
 
-    // Ok, everyone in stopped! LET'S GC!
-    SYNC(state);
-
     state->shared().finalizer_handler()->start_collection(state);
 
     if(cDebugThreading) {
@@ -575,8 +570,6 @@ step1:
     }
 
     state->restart_world();
-
-    UNSYNC;
   }
 
   void ObjectMemory::collect_young(STATE, GCData* data, YoungCollectStats* stats) {
@@ -1042,7 +1035,8 @@ step1:
 
   void ObjectMemory::add_global_capi_handle_location(STATE, capi::Handle** loc,
                                                const char* file, int line) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(state->shared().global_capi_handle_lock());
+
     if(*loc && REFERENCE_P(*loc)) {
       if(!capi_handles_->validate(*loc)) {
         std::cerr << std::endl << "==================================== ERROR ====================================" << std::endl;
@@ -1092,7 +1086,7 @@ step1:
   }
 
   void ObjectMemory::del_global_capi_handle_location(STATE, capi::Handle** loc) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(state->shared().global_capi_handle_lock());
 
     for(std::list<capi::GlobalHandle*>::iterator i = global_capi_handle_locations_.begin();
         i != global_capi_handle_locations_.end(); ++i) {
@@ -1106,7 +1100,7 @@ step1:
   }
 
   void ObjectMemory::make_capi_handle_cached(STATE, capi::Handle* handle) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(state->shared().capi_handle_cache_lock());
     cached_capi_handles_.push_back(handle);
   }
 

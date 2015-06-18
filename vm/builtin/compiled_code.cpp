@@ -204,8 +204,6 @@ namespace rubinius {
   Object* CompiledCode::default_executor(STATE, CallFrame* call_frame,
                           Executable* exec, Module* mod, Arguments& args)
   {
-    LockableScopedLock lg(state, &state->shared(), __FILE__, __LINE__);
-
     CompiledCode* code = as<CompiledCode>(exec);
     if(code->execute == default_executor) {
       const char* reason = 0;
@@ -222,8 +220,6 @@ namespace rubinius {
         return 0;
       }
     }
-
-    lg.unlock();
 
     return code->execute(state, call_frame, exec, mod, args);
   }

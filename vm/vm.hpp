@@ -100,6 +100,8 @@ namespace rubinius {
     uintptr_t root_stack_start_;
     uintptr_t root_stack_size_;
 
+    utilities::thread::SpinLock interrupt_lock_;
+
     VMJIT vm_jit_;
 
     MethodMissingReason method_missing_reason_;
@@ -146,6 +148,10 @@ namespace rubinius {
 
     uint32_t thread_id() const {
       return id_;
+    }
+
+    utilities::thread::SpinLock& interrupt_lock() {
+      return interrupt_lock_;
     }
 
     void set_zombie();
@@ -245,6 +251,8 @@ namespace rubinius {
     void set_constant_missing_reason(ConstantMissingReason reason) {
       constant_missing_reason_ = reason;
     }
+
+    void after_fork_child(STATE);
 
     bool thread_step() const {
       return vm_jit_.thread_step_;

@@ -31,8 +31,7 @@
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
-    : Lockable(true)
-    , internal_threads_(0)
+    : internal_threads_(0)
     , signals_(0)
     , finalizer_thread_(0)
     , console_(0)
@@ -50,10 +49,13 @@ namespace rubinius {
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
     , ruby_critical_lock_()
+    , set_critical_lock_()
     , fork_exec_lock_()
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
+    , global_capi_handle_lock_()
+    , capi_handle_cache_lock_()
     , llvm_state_lock_()
     , vm_lock_()
     , wait_lock_()
@@ -188,6 +190,7 @@ namespace rubinius {
 
   void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
     VM* current = state->vm();
+    current->after_fork_child(state);
 
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
@@ -206,7 +209,6 @@ namespace rubinius {
           }
         }
 
-        vm->unlock();
         vm->reset_parked();
       }
     }
@@ -227,13 +229,15 @@ namespace rubinius {
     reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
-    lock_init(state->vm());
     global_cache->reset();
     ruby_critical_lock_.init();
+    set_critical_lock_.init();
     fork_exec_lock_.init();
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
+    global_capi_handle_lock_.init();
+    capi_handle_cache_lock_.init();
     llvm_state_lock_.init();
     vm_lock_.init();
     wait_lock_.init();
@@ -303,12 +307,11 @@ namespace rubinius {
   }
 
   void SharedState::set_critical(STATE, CallFrame* call_frame) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(set_critical_lock_);
 
     if(!ruby_critical_set_ ||
          !pthread_equal(ruby_critical_thread_, pthread_self())) {
 
-      UNSYNC;
       GCIndependent gc_guard(state, call_frame);
       ruby_critical_lock_.lock();
       ruby_critical_thread_ = pthread_self();
@@ -319,7 +322,7 @@ namespace rubinius {
   }
 
   void SharedState::clear_critical(STATE) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(set_critical_lock_);
 
     if(ruby_critical_set_ && pthread_equal(ruby_critical_thread_, pthread_self())) {
       ruby_critical_set_ = false;
@@ -330,7 +333,7 @@ namespace rubinius {
   void SharedState::enter_capi(STATE, const char* file, int line) {
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {
-      capi_locks_[lock_index - 1]->lock(state->vm(), file, line);
+      capi_locks_[lock_index - 1]->lock();
     }
   }
 
@@ -355,7 +358,7 @@ namespace rubinius {
       return 0;
     }
 
-    Mutex* lock = new Mutex(true);
+    utilities::thread::Mutex* lock = new utilities::thread::Mutex(true);
     capi_locks_.push_back(lock);
 
     // We use a 1 offset index, so 0 can indicate no lock used

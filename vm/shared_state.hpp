@@ -12,8 +12,6 @@
 
 #include "primitives.hpp"
 
-#include "lock.hpp"
-
 #include "util/thread.hpp"
 
 #include "capi/capi_constants.h"
@@ -66,7 +64,7 @@ namespace rubinius {
   struct CallFrame;
 
   typedef std_unordered_set<std::string> CApiBlackList;
-  typedef std::vector<Mutex*> CApiLocks;
+  typedef std::vector<utilities::thread::Mutex*> CApiLocks;
   typedef std_unordered_map<std::string, int> CApiLockMap;
 
   typedef std::vector<std::string> CApiConstantNameMap;
@@ -84,7 +82,7 @@ namespace rubinius {
    * single process.
    */
 
-  class SharedState : public Lockable {
+  class SharedState {
   private:
     InternalThreads* internal_threads_;
     SignalThread* signals_;
@@ -116,12 +114,15 @@ namespace rubinius {
     // the name would make it sound.
     utilities::thread::Mutex ruby_critical_lock_;
     pthread_t ruby_critical_thread_;
+    utilities::thread::SpinLock set_critical_lock_;
 
     utilities::thread::Mutex fork_exec_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
+    utilities::thread::SpinLock global_capi_handle_lock_;
+    utilities::thread::SpinLock capi_handle_cache_lock_;
     utilities::thread::SpinLock llvm_state_lock_;
     utilities::thread::SpinLock vm_lock_;
     utilities::thread::SpinLock wait_lock_;
@@ -291,6 +292,14 @@ namespace rubinius {
 
     utilities::thread::SpinLock& capi_constant_lock() {
       return capi_constant_lock_;
+    }
+
+    utilities::thread::SpinLock& global_capi_handle_lock() {
+      return global_capi_handle_lock_;
+    }
+
+    utilities::thread::SpinLock& capi_handle_cache_lock() {
+      return capi_handle_cache_lock_;
     }
 
     int capi_lock_index(std::string name);
