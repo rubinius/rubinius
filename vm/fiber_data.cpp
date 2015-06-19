@@ -142,6 +142,7 @@ namespace rubinius {
 
       if(heap_) free(heap_);
       heap_ = malloc(heap_capacity_);
+      if(!heap_) rubinius::abort();
     }
 
     memcpy(heap_, stack_bottom(), heap_size_);

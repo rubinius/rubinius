@@ -28,6 +28,8 @@ namespace rubinius {
   void FiberStack::allocate() {
     assert(!address_);
     address_ = malloc(size_);
+    if(!address_) rubinius::abort();
+
 #ifdef HAVE_VALGRIND_H
     valgrind_id_ = VALGRIND_STACK_REGISTER(address_, (char *)address_ + size_);
 #endif
@@ -150,6 +152,7 @@ namespace rubinius {
   void* FiberStacks::trampoline() {
     if(trampoline_ == 0) {
       trampoline_ = malloc(cTrampolineSize);
+      if(!trampoline_) rubinius::abort();
     }
 
     return trampoline_;

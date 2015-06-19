@@ -661,6 +661,10 @@ namespace rubinius {
 
     if(count > STACK_BUF_SZ) {
       malloc_buf = (char*)malloc(count);
+      if(!malloc_buf) {
+        Exception::memory_error(state);
+        return NULL;
+      }
       buf = malloc_buf;
     }
 

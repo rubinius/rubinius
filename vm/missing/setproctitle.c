@@ -118,6 +118,7 @@ ruby_init_setproctitle(int argc, char *argv[])
     size_t len = strlen(envp[i]) + 1;
 
     tmp = malloc(len);
+    if(!tmp) abort();
     memcpy(tmp, envp[i], len);
 
     environ[i] = tmp;
