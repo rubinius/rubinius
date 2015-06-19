@@ -585,6 +585,8 @@ namespace rubinius {
   void Environment::halt(STATE) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
+    utilities::logger::write("exiting: %s %d", shared->pid.c_str(), exit_code(state));
+
     state->shared().tool_broker()->shutdown(state);
 
     if(ObjectMemory* om = state->memory()) {
