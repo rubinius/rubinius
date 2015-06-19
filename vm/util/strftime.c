@@ -231,8 +231,9 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			if (savetz) {
 				strncpy(savetz, tz, i);
 			}
-		} else
+		} else {
 			strncpy(savetz, tz, i);
+    }
 		tzset();
 	}
 #endif	/* POSIX_SEMANTICS */

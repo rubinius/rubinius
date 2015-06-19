@@ -300,6 +300,11 @@ namespace rubinius {
       buf_size *= 2;
       char* malloc_str = (char*)malloc(buf_size);
 
+      if(!malloc_str) {
+        Exception::memory_error(state);
+        return NULL;
+      }
+
       chars = ::strftime_extended(malloc_str, buf_size,
                   format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                   off);

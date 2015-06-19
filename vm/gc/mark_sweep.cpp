@@ -41,7 +41,10 @@ namespace rubinius {
   }
 
   Object* MarkSweepGC::allocate(size_t bytes, bool *collect_now) {
-    Object* obj = reinterpret_cast<Object*>(malloc(bytes));
+    void* mem = malloc(bytes);
+    if(!mem) rubinius::abort();
+
+    Object* obj = reinterpret_cast<Object*>(mem);
 
     // If the allocation failed, we return a NULL pointer
     if(unlikely(!obj)) {

@@ -558,6 +558,11 @@ namespace rubinius {
     native_int out_size = out_chunk;
     uint8_t* output = (uint8_t*)malloc(out_size);
 
+    if(!output) {
+      Exception::memory_error(state);
+      return NULL;
+    }
+
     uint8_t* out_p = output;
     uint8_t* out_end = out_p + out_size;
 

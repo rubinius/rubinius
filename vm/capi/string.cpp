@@ -460,6 +460,10 @@ extern "C" {
     String* str = c_as<String>(env->get_object(self));
 
     char* data = (char*)malloc(sizeof(char) * str->size() + 1);
+    if(!data) {
+      rb_raise(rb_eSystemCallError, "unable to allocate memory");
+    }
+
     memcpy(data, str->c_str(env->state()), str->size());
     data[str->size()] = 0;
 

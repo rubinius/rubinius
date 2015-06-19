@@ -7,6 +7,7 @@ namespace rubinius {
 
     LocalBuffer(size_t size) {
       buffer = malloc(size);
+      if(!buffer) ::abort();
     }
 
     ~LocalBuffer() {
