@@ -133,10 +133,9 @@ namespace rubinius {
   }
 
   void cpp_exception_bug() {
-    std::cerr << "[BUG] Uncaught C++ internal exception\n";
-    std::cerr << "So sorry, it appears that you've encountered an internal\n";
-    std::cerr << "bug. Please report this on the rubinius issue tracker.\n";
-    std::cerr << "Include the following backtrace in the issue:\n\n";
+    utilities::logger::fatal("[BUG: Uncaught C++ exception]");
+    utilities::logger::fatal("Please report this with the following backtrace to " \
+        "https://github.com/rubinius/rubinius/issues");
 
     rubinius::abort();
   }
