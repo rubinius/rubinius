@@ -7,11 +7,14 @@
 #include <list>
 
 namespace rubinius {
+  class InternalThread;
   class VM;
 
   namespace metrics {
     struct MetricsData;
   }
+
+  typedef std::list<InternalThread*> InternalThreadList;
 
   class InternalThread {
     VM* vm_;
@@ -73,7 +76,7 @@ namespace rubinius {
     bool fork_exec_in_progress_;
     bool shutdown_in_progress_;
     utilities::thread::Mutex mutex_;
-    std::list<InternalThread*> threads_;
+    InternalThreadList threads_;
 
   public:
     InternalThreads()

@@ -130,7 +130,7 @@ namespace rubinius {
     if(exec_in_progress_) return;
     exec_in_progress_ = true;
 
-    for(std::list<InternalThread*>::reverse_iterator i = threads_.rbegin();
+    for(InternalThreadList::reverse_iterator i = threads_.rbegin();
         i != threads_.rend();
         ++i) {
       (*i)->before_exec(state);
@@ -142,7 +142,7 @@ namespace rubinius {
     // after execvp() call.
     state->shared().env()->after_exec(state);
 
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_exec(state);
@@ -157,7 +157,7 @@ namespace rubinius {
     if(fork_exec_in_progress_) return;
     fork_exec_in_progress_ = true;
 
-    for(std::list<InternalThread*>::reverse_iterator i = threads_.rbegin();
+    for(InternalThreadList::reverse_iterator i = threads_.rbegin();
         i != threads_.rend();
         ++i) {
       (*i)->before_fork_exec(state);
@@ -167,7 +167,7 @@ namespace rubinius {
   void InternalThreads::after_fork_exec_parent(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_exec_parent(state);
@@ -179,7 +179,7 @@ namespace rubinius {
   void InternalThreads::after_fork_exec_child(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after execvp() call.
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_exec_child(state);
@@ -195,7 +195,7 @@ namespace rubinius {
     if(fork_in_progress_) return;
     fork_in_progress_ = true;
 
-    for(std::list<InternalThread*>::reverse_iterator i = threads_.rbegin();
+    for(InternalThreadList::reverse_iterator i = threads_.rbegin();
         i != threads_.rend();
         ++i) {
       (*i)->before_fork(state);
@@ -205,7 +205,7 @@ namespace rubinius {
   void InternalThreads::after_fork_parent(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_parent(state);
@@ -219,7 +219,7 @@ namespace rubinius {
     // after fork() call.
     state->shared().env()->after_fork_child(state);
 
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_child(state);
