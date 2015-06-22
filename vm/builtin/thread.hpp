@@ -217,9 +217,6 @@ namespace rubinius {
     // Rubinius.primitive :thread_join
     Thread* join(STATE, GCToken gct, Object* timeout, CallFrame* calling_environment);
 
-    // Rubinius.primitive :thread_set_critical
-    static Object* set_critical(STATE, Object* obj, CallFrame* calling_environment);
-
     // Rubinius.primitive :thread_unlock_locks
     Object* unlock_locks(STATE, GCToken gct, CallFrame* calling_environment);
 

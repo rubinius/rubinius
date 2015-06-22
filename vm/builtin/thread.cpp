@@ -329,7 +329,6 @@ namespace rubinius {
       utilities::logger::debug("Thread: exit thread: id: %d", vm->thread_id());
     }
 
-    shared.clear_critical(state);
     shared.gc_independent();
 
     vm->set_zombie();
@@ -501,16 +500,5 @@ namespace rubinius {
     }
 
     return self;
-  }
-
-  Object* Thread::set_critical(STATE, Object* obj, CallFrame* calling_environment) {
-    state->set_call_frame(calling_environment);
-    if(CBOOL(obj)) {
-      state->shared().set_critical(state, calling_environment);
-      return cTrue;
-    } else {
-      state->shared().clear_critical(state);
-      return cFalse;
-    }
   }
 }

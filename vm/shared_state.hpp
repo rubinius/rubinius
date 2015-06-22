@@ -102,19 +102,12 @@ namespace rubinius {
     int thread_ids_;
 
     bool initialized_;
-    bool ruby_critical_set_;
     bool check_global_interrupts_;
     bool check_gc_;
 
     VM* root_vm_;
     Environment* env_;
     tooling::ToolBroker* tool_broker_;
-
-    // This lock is to implement Thread.critical. It is not critical as
-    // the name would make it sound.
-    utilities::thread::Mutex ruby_critical_lock_;
-    pthread_t ruby_critical_thread_;
-    utilities::thread::SpinLock set_critical_lock_;
 
     utilities::thread::Mutex fork_exec_lock_;
 
@@ -341,9 +334,6 @@ namespace rubinius {
     void gc_dependent(THREAD, utilities::thread::Condition* = NULL);
     void gc_independent(THREAD);
     void gc_independent();
-
-    void set_critical(STATE, CallFrame* call_frame);
-    void clear_critical(STATE);
 
     void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);

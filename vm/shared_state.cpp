@@ -42,14 +42,11 @@ namespace rubinius {
     , global_serial_(1)
     , thread_ids_(1)
     , initialized_(false)
-    , ruby_critical_set_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
     , root_vm_(0)
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
-    , ruby_critical_lock_()
-    , set_critical_lock_()
     , fork_exec_lock_()
     , capi_ds_lock_()
     , capi_locks_lock_()
@@ -230,8 +227,6 @@ namespace rubinius {
 
     // Reinit the locks for this object
     global_cache->reset();
-    ruby_critical_lock_.init();
-    set_critical_lock_.init();
     fork_exec_lock_.init();
     capi_ds_lock_.init();
     capi_locks_lock_.init();
@@ -304,30 +299,6 @@ namespace rubinius {
 
   const unsigned int* SharedState::object_memory_mark_address() const {
     return om->mark_address();
-  }
-
-  void SharedState::set_critical(STATE, CallFrame* call_frame) {
-    utilities::thread::SpinLock::LockGuard guard(set_critical_lock_);
-
-    if(!ruby_critical_set_ ||
-         !pthread_equal(ruby_critical_thread_, pthread_self())) {
-
-      GCIndependent gc_guard(state, call_frame);
-      ruby_critical_lock_.lock();
-      ruby_critical_thread_ = pthread_self();
-      ruby_critical_set_ = true;
-    }
-
-    return;
-  }
-
-  void SharedState::clear_critical(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(set_critical_lock_);
-
-    if(ruby_critical_set_ && pthread_equal(ruby_critical_thread_, pthread_self())) {
-      ruby_critical_set_ = false;
-      ruby_critical_lock_.unlock();
-    }
   }
 
   void SharedState::enter_capi(STATE, const char* file, int line) {
