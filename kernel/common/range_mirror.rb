@@ -17,6 +17,8 @@ module Rubinius
         else
           iterations = ((last - first) / step_size + err).floor + 1
         end
+
+        iterations
       end
 
       def step_iterations_size(first, last, step_size)
