@@ -12,8 +12,7 @@ namespace rubinius {
 
   ManagedThread::ManagedThread(uint32_t id, SharedState& ss,
       ManagedThread::Kind kind, const char* name)
-    : Lockable(true)
-    , shared_(ss)
+    : shared_(ss)
     , run_state_(eIndependent)
     , kind_(kind)
     , os_thread_(pthread_self())

@@ -5,7 +5,6 @@
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 #include "gc/root.hpp"
-#include "lock.hpp"
 #include "metrics.hpp"
 
 #include <algorithm>
@@ -19,7 +18,7 @@ namespace rubinius {
 
   typedef std::vector<ObjectHeader*> LockedObjects;
 
-  class ManagedThread : public Lockable {
+  class ManagedThread {
   public:
     // WorldState sets the run_state_ directly.
     friend class WorldState;

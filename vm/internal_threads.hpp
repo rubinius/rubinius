@@ -1,8 +1,6 @@
 #ifndef RBX_AUXILIARY_THREADS_H
 #define RBX_AUXILIARY_THREADS_H
 
-#include "lock.hpp"
-
 #include "util/thread.hpp"
 
 #include <string>

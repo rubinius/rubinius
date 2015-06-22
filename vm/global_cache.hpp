@@ -18,7 +18,7 @@ namespace rubinius {
 
   typedef std_unordered_set<native_int> SeenMethodSet;
 
-  class GlobalCache : public Lockable {
+  class GlobalCache {
   public:
     struct CacheEntry {
       Module* klass;
@@ -44,9 +44,7 @@ namespace rubinius {
     static bool resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
     bool resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
 
-    GlobalCache()
-      : Lockable(true)
-    {
+    GlobalCache() {
       reset();
     }
 

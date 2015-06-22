@@ -163,16 +163,6 @@ namespace rubinius {
       }
     }
 
-    void lock(GCToken gct, CallFrame* call_frame) {
-      gc_independent(gct, call_frame);
-      vm_->lock(vm_);
-      gc_dependent(gct, call_frame);
-    }
-
-    void unlock() {
-      vm_->unlock();
-    }
-
     Object* park(GCToken gct, CallFrame* call_frame);
 
     Object* park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts);

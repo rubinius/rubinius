@@ -13,7 +13,6 @@
 
 #include "util/immix.hpp"
 #include "util/thread.hpp"
-#include "lock.hpp"
 
 #include "shared_state.hpp"
 
@@ -84,7 +83,7 @@ namespace rubinius {
    *   mautre generations independently.
    */
 
-  class ObjectMemory : public gc::WriteBarrier, public Lockable {
+  class ObjectMemory : public gc::WriteBarrier {
 
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
