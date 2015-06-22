@@ -313,6 +313,7 @@ namespace rubinius {
 
     if(!ruby_critical_set_ ||
          !pthread_equal(ruby_critical_thread_, pthread_self())) {
+      set_critical_lock_.unlock();
 
       GCIndependent gc_guard(state, call_frame);
       ruby_critical_lock_.lock();
