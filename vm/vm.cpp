@@ -109,7 +109,7 @@ namespace rubinius {
     vm->saved_call_frame_ = 0;
     vm->shared.remove_vm(vm);
 
-    state->vm()->metrics().system_metrics.vm_threads--;
+    state->vm()->metrics().system_metrics.vm_threads_destroyed++;
 
     delete vm;
   }

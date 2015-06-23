@@ -227,56 +227,36 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "jit.methods.failed", metrics_collection_.jit_metrics.methods_failed));
       metrics_map_.push_back(new MetricsItem(
-            "jit.time.last.us", metrics_collection_.jit_metrics.time_last_us));
-      metrics_map_.push_back(new MetricsItem(
-            "jit.time.total.us", metrics_collection_.jit_metrics.time_total_us));
+            "jit.time.us", metrics_collection_.jit_metrics.time_us));
 
       // Object memory metrics
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.bytes.current",
+            "memory.young.bytes",
             metrics_collection_.ruby_metrics.memory_young_bytes));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.bytes.total",
-            metrics_collection_.ruby_metrics.memory_young_bytes_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.young.objects.current",
+            "memory.young.objects",
             metrics_collection_.ruby_metrics.memory_young_objects));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.objects.total",
-            metrics_collection_.ruby_metrics.memory_young_objects_total));
+            "memory.young.occupancy",
+            metrics_collection_.ruby_metrics.memory_young_occupancy));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.percent_used",
-            metrics_collection_.ruby_metrics.memory_young_percent_used));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.bytes.current",
+            "memory.immix.bytes",
             metrics_collection_.ruby_metrics.memory_immix_bytes));
       metrics_map_.push_back(new MetricsItem(
-            "memory.immix.bytes.total",
-            metrics_collection_.ruby_metrics.memory_immix_bytes_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.objects.current",
+            "memory.immix.objects",
             metrics_collection_.ruby_metrics.memory_immix_objects));
       metrics_map_.push_back(new MetricsItem(
-            "memory.immix.objects.total",
-            metrics_collection_.ruby_metrics.memory_immix_objects_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.chunks.current",
+            "memory.immix.chunks",
             metrics_collection_.ruby_metrics.memory_immix_chunks));
       metrics_map_.push_back(new MetricsItem(
-            "memory.immix.chunks.total",
-            metrics_collection_.ruby_metrics.memory_immix_chunks_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.large.bytes.current",
+            "memory.large.bytes",
             metrics_collection_.ruby_metrics.memory_large_bytes));
       metrics_map_.push_back(new MetricsItem(
-            "memory.large.bytes.total",
-            metrics_collection_.ruby_metrics.memory_large_bytes_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.large.objects.current",
+            "memory.large.objects",
             metrics_collection_.ruby_metrics.memory_large_objects));
       metrics_map_.push_back(new MetricsItem(
-            "memory.large.objects.total",
-            metrics_collection_.ruby_metrics.memory_large_objects_total));
+            "memory.symbols",
+            metrics_collection_.ruby_metrics.memory_symbols));
       metrics_map_.push_back(new MetricsItem(
             "memory.symbols.bytes",
             metrics_collection_.ruby_metrics.memory_symbols_bytes));
@@ -285,25 +265,22 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "memory.jit.bytes", metrics_collection_.ruby_metrics.memory_jit_bytes));
       metrics_map_.push_back(new MetricsItem(
-            "memory.promoted.bytes.total",
-            metrics_collection_.ruby_metrics.memory_promoted_bytes_total));
+            "memory.promoted.bytes",
+            metrics_collection_.ruby_metrics.memory_promoted_bytes));
       metrics_map_.push_back(new MetricsItem(
-            "memory.promoted.objects.total",
-            metrics_collection_.ruby_metrics.memory_promoted_objects_total));
+            "memory.promoted.objects",
+            metrics_collection_.ruby_metrics.memory_promoted_objects));
       metrics_map_.push_back(new MetricsItem(
-            "memory.slab.refills.total",
-            metrics_collection_.ruby_metrics.memory_slab_refills_total));
+            "memory.slab.refills",
+            metrics_collection_.ruby_metrics.memory_slab_refills));
       metrics_map_.push_back(new MetricsItem(
             "memory.slab.refills.fails",
             metrics_collection_.ruby_metrics.memory_slab_refills_fails));
       metrics_map_.push_back(new MetricsItem(
-            "memory.data_objects.total",
-            metrics_collection_.ruby_metrics.memory_data_objects_total));
+            "memory.data_objects",
+            metrics_collection_.ruby_metrics.memory_data_objects));
       metrics_map_.push_back(new MetricsItem(
-            "memory.capi_handles.total",
-            metrics_collection_.ruby_metrics.memory_capi_handles_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.capi_handles.current",
+            "memory.capi_handles",
             metrics_collection_.ruby_metrics.memory_capi_handles));
       metrics_map_.push_back(new MetricsItem(
             "memory.inflated_headers",
@@ -313,33 +290,22 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "gc.young.count", metrics_collection_.ruby_metrics.gc_young_count));
       metrics_map_.push_back(new MetricsItem(
-            "gc.young.last.ms", metrics_collection_.ruby_metrics.gc_young_last_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.young.total.ms", metrics_collection_.ruby_metrics.gc_young_total_ms));
+            "gc.young.ms", metrics_collection_.ruby_metrics.gc_young_ms));
       metrics_map_.push_back(new MetricsItem(
             "gc.young.lifetime", metrics_collection_.ruby_metrics.gc_young_lifetime));
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.count", metrics_collection_.ruby_metrics.gc_immix_count));
       metrics_map_.push_back(new MetricsItem(
-            "gc.immix.stop.last.ms",
-            metrics_collection_.ruby_metrics.gc_immix_stop_last_ms));
+            "gc.immix.stop.ms",
+            metrics_collection_.ruby_metrics.gc_immix_stop_ms));
       metrics_map_.push_back(new MetricsItem(
-            "gc.immix.stop.total.ms",
-            metrics_collection_.ruby_metrics.gc_immix_stop_total_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.immix.concurrent.last.ms",
-            metrics_collection_.ruby_metrics.gc_immix_conc_last_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.immix.concurrent.total.ms",
-            metrics_collection_.ruby_metrics.gc_immix_conc_total_ms));
+            "gc.immix.concurrent.ms",
+            metrics_collection_.ruby_metrics.gc_immix_concurrent_ms));
       metrics_map_.push_back(new MetricsItem(
             "gc.large.count", metrics_collection_.ruby_metrics.gc_large_count));
       metrics_map_.push_back(new MetricsItem(
-            "gc.large.sweep.last.ms",
-            metrics_collection_.ruby_metrics.gc_large_sweep_last_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.large.sweep.total.ms",
-            metrics_collection_.ruby_metrics.gc_large_sweep_total_ms));
+            "gc.large.sweep.ms",
+            metrics_collection_.ruby_metrics.gc_large_sweep_ms));
 
       // I/O metrics
       metrics_map_.push_back(new MetricsItem(
@@ -360,19 +326,16 @@ namespace rubinius {
             "vm.inline_cache.resets",
             metrics_collection_.system_metrics.vm_inline_cache_resets));
       metrics_map_.push_back(new MetricsItem(
-            "vm.threads.current",
-            metrics_collection_.system_metrics.vm_threads));
+            "vm.threads.created",
+            metrics_collection_.system_metrics.vm_threads_created));
       metrics_map_.push_back(new MetricsItem(
-            "vm.threads.total",
-            metrics_collection_.system_metrics.vm_threads_total));
+            "vm.threads.destroyed",
+            metrics_collection_.system_metrics.vm_threads_destroyed));
 
       // Lock metrics
       metrics_map_.push_back(new MetricsItem(
-            "locks.stop_the_world.last.ns",
-            metrics_collection_.system_metrics.locks_stop_the_world_last_ns));
-      metrics_map_.push_back(new MetricsItem(
-            "locks.stop_the_world.total.ns",
-            metrics_collection_.system_metrics.locks_stop_the_world_total_ns));
+            "locks.stop_the_world.ns",
+            metrics_collection_.system_metrics.locks_stop_the_world_ns));
     }
 
     void Metrics::init_ruby_metrics(STATE) {

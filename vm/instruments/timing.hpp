@@ -64,22 +64,19 @@ namespace timer {
 
   template <int factor=milliseconds>
   class StopWatch {
-    uint64_t& lap_;
     uint64_t& total_;
     uint64_t start_;
 
   public:
-    StopWatch(uint64_t& lap, uint64_t& total)
-      : lap_(lap)
-      , total_(total)
+    StopWatch(uint64_t& total)
+      : total_(total)
     {
       start_ = get_current_time();
     }
 
     ~StopWatch() {
       uint64_t now = get_current_time();
-      lap_ = (now - start_) / ((uint64_t)factor);
-      total_ += lap_;
+      total_ += (now - start_) / ((uint64_t)factor);
     }
   };
 
