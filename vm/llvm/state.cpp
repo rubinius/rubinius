@@ -293,8 +293,7 @@ namespace rubinius {
 
         {
           timer::StopWatch<timer::microseconds> timer(
-              metrics().m.jit_metrics.time_last_us,
-              metrics().m.jit_metrics.time_total_us);
+              metrics().m.jit_metrics.time_us);
 
           jit.compile(compile_request);
 

@@ -195,7 +195,7 @@ namespace rubinius {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) {
           vm->metrics().init(metrics::eRubyMetrics);
-          state->vm()->metrics().system_metrics.vm_threads++;
+          state->vm()->metrics().system_metrics.vm_threads_created++;
           continue;
         }
 

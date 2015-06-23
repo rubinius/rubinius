@@ -56,9 +56,6 @@ namespace rubinius {
     object_memory_->state()->metrics().m.ruby_metrics.memory_large_objects++;
     object_memory_->state()->metrics().m.ruby_metrics.memory_large_bytes += bytes;
 
-    object_memory_->state()->metrics().m.ruby_metrics.memory_large_objects_total++;
-    object_memory_->state()->metrics().m.ruby_metrics.memory_large_bytes_total += bytes;
-
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
       *collect_now = true;
@@ -126,8 +123,7 @@ namespace rubinius {
     metrics::MetricsData& metrics = object_memory_->state()->metrics();
 
     timer::StopWatch<timer::milliseconds> timer(
-        metrics.m.ruby_metrics.gc_large_sweep_last_ms,
-        metrics.m.ruby_metrics.gc_large_sweep_total_ms);
+        metrics.m.ruby_metrics.gc_large_sweep_ms);
 
     last_freed = 0;
 

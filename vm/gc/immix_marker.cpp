@@ -81,9 +81,7 @@ namespace rubinius {
       if(data_) {
         {
           timer::StopWatch<timer::milliseconds> timer(
-              state->vm()->metrics().m.ruby_metrics.gc_immix_conc_last_ms,
-              state->vm()->metrics().m.ruby_metrics.gc_immix_conc_total_ms
-            );
+              state->vm()->metrics().m.ruby_metrics.gc_immix_concurrent_ms);
 
           // Allow for a young stop the world GC to occur
           // every bunch of marks. 100 is a fairly arbitrary
@@ -100,9 +98,7 @@ namespace rubinius {
 
         {
           timer::StopWatch<timer::milliseconds> timer(
-              state->vm()->metrics().m.ruby_metrics.gc_immix_stop_last_ms,
-              state->vm()->metrics().m.ruby_metrics.gc_immix_stop_total_ms
-            );
+              state->vm()->metrics().m.ruby_metrics.gc_immix_stop_ms);
 
           // Finish and pause
           while(!state->stop_the_world()) {
