@@ -78,7 +78,7 @@ namespace rubinius {
       cleanup();
     }
 
-#define RBX_METRICS_FILE_BUFLEN   22
+#define RBX_METRICS_FILE_BUFLEN   256
 
     void FileEmitter::send_metrics() {
       char buf[RBX_METRICS_FILE_BUFLEN];
@@ -93,7 +93,10 @@ namespace rubinius {
           logger::error("%s: unable to write file metrics", strerror(errno));
         }
       }
-      write(fd_, "\n", 1);
+
+      if(write(fd_, "\n", 1)) {
+        logger::error("%s: unable to write file metrics", strerror(errno));
+      }
     }
 
     void FileEmitter::initialize() {
@@ -102,14 +105,22 @@ namespace rubinius {
       }
 
       if(lseek(fd_, 0, SEEK_END) == 0) {
+        char buf[RBX_METRICS_FILE_BUFLEN];
+
         for(MetricsMap::iterator i = metrics_map_.begin();
             i != metrics_map_.end();
             ++i)
         {
-          if(i != metrics_map_.begin()) write(fd_, ", ", 2);
-          write(fd_, (*i)->first.c_str(), (*i)->first.size());
+          snprintf(buf, RBX_METRICS_FILE_BUFLEN, "%s%s",
+              i == metrics_map_.begin() ? "" : ", ", (*i)->first.c_str());
+          if(write(fd_, buf, strlen(buf)) < 0) {
+            logger::error("%s: unable to write file metrics", strerror(errno));
+          }
         }
-        write(fd_, "\n", 1);
+
+        if(write(fd_, "\n", 1)) {
+          logger::error("%s: unable to write file metrics", strerror(errno));
+        }
       }
     }
 
