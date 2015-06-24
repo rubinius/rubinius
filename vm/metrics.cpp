@@ -196,7 +196,7 @@ namespace rubinius {
           i != metrics_map_.end();
           ++i)
       {
-        snprintf(buf, RBX_METRICS_STATSD_BUFLEN, "%s%s:%lld|c",
+        snprintf(buf, RBX_METRICS_STATSD_BUFLEN, "%s%s:%lld|g",
             prefix_.c_str(), (*i)->first.c_str(), (long long unsigned int)(*i)->second);
         if(send(socket_fd_, buf, strlen(buf), 0) < 0) {
           logger::error("%s: unable to send StatsD metrics", strerror(errno));
