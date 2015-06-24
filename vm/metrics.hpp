@@ -44,7 +44,6 @@ namespace rubinius {
       metric memory_symbols;
       metric memory_symbols_bytes;
       metric memory_code_bytes;
-      metric memory_jit_bytes;
       metric memory_promoted_bytes;
       metric memory_promoted_objects;
       metric memory_slab_refills;
@@ -56,7 +55,6 @@ namespace rubinius {
       // Garbage collector metrics
       metric gc_young_count;
       metric gc_young_ms;
-      metric gc_young_lifetime;
       metric gc_immix_count;
       metric gc_immix_stop_ms;
       metric gc_immix_concurrent_ms;
@@ -75,7 +73,6 @@ namespace rubinius {
         memory_symbols = 0;
         memory_symbols_bytes = 0;
         memory_code_bytes = 0;
-        memory_jit_bytes = 0;
         memory_promoted_bytes = 0;
         memory_promoted_objects = 0;
         memory_slab_refills = 0;
@@ -85,7 +82,6 @@ namespace rubinius {
         memory_inflated_headers = 0;
         gc_young_count = 0;
         gc_young_ms = 0;
-        gc_young_lifetime = 0;
         gc_immix_count = 0;
         gc_immix_stop_ms = 0;
         gc_immix_concurrent_ms = 0;
@@ -105,7 +101,6 @@ namespace rubinius {
         memory_symbols += data.memory_symbols;
         memory_symbols_bytes += data.memory_symbols_bytes;
         memory_code_bytes += data.memory_code_bytes;
-        memory_jit_bytes += data.memory_jit_bytes;
         memory_promoted_bytes += data.memory_promoted_bytes;
         memory_promoted_objects += data.memory_promoted_objects;
         memory_slab_refills += data.memory_slab_refills;
@@ -116,7 +111,6 @@ namespace rubinius {
         memory_inflated_headers += data.memory_inflated_headers;
         gc_young_count += data.gc_young_count;
         gc_young_ms += data.gc_young_ms;
-        gc_young_lifetime += data.gc_young_lifetime;
         gc_immix_count += data.gc_immix_count;
         gc_immix_stop_ms += data.gc_immix_stop_ms;
         gc_immix_concurrent_ms += data.gc_immix_concurrent_ms;
@@ -148,20 +142,35 @@ namespace rubinius {
       metric methods_queued;
       metric methods_compiled;
       metric methods_failed;
+      metric bytes;
       metric time_us;
+      metric uncommon_exits;
+      metric inlined_accessors;
+      metric inlined_methods;
+      metric inlined_blocks;
 
       void init() {
         methods_queued = 0;
         methods_compiled = 0;
         methods_failed = 0;
+        bytes = 0;
         time_us = 0;
+        uncommon_exits = 0;
+        inlined_accessors = 0;
+        inlined_methods = 0;
+        inlined_blocks = 0;
       }
 
       void add(JITMetrics& data) {
         methods_queued += data.methods_queued;
         methods_compiled += data.methods_compiled;
         methods_failed += data.methods_failed;
+        bytes += data.bytes;
         time_us += data.time_us;
+        uncommon_exits += data.uncommon_exits;
+        inlined_accessors += data.inlined_accessors;
+        inlined_methods += data.inlined_methods;
+        inlined_blocks += data.inlined_blocks;
       }
 
       void add(MetricsData& data);

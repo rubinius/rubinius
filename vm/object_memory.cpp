@@ -54,7 +54,7 @@ namespace rubinius {
 
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(VM* state, Configuration& config)
-    : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
+    : young_(new BakerGC(this, config))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
     , immix_marker_(NULL)
@@ -67,16 +67,12 @@ namespace rubinius {
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , shared_(state->shared)
-
     , collect_young_now(false)
     , collect_mature_now(false)
     , root_state_(state)
     , last_object_id(1)
     , last_snapshot_id(0)
     , large_object_threshold(config.gc_large_object)
-    , young_max_bytes(config.gc_young_max_bytes * 2)
-    , young_autotune_factor(config.gc_young_autotune_factor)
-    , young_autotune_size(config.gc_young_autotune_size)
   {
     // TODO Not sure where this code should be...
 #ifdef ENABLE_OBJECT_WATCH
@@ -85,10 +81,6 @@ namespace rubinius {
       std::cout << "Watching for " << object_watch << "\n";
     }
 #endif
-
-    young_->set_lifetime(config.gc_young_lifetime);
-
-    if(config.gc_young_autotune_lifetime) young_->set_autotune_lifetime();
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
@@ -452,11 +444,6 @@ step1:
   }
 
   // TODO: Fix API to support proper testing.
-  void ObjectMemory::set_young_lifetime(size_t age) {
-    young_->set_lifetime(age);
-  }
-
-  // TODO: Fix API to support proper testing.
   void ObjectMemory::debug_marksweep(bool val) {
     if(val) {
       mark_sweep_->free_entries = false;
@@ -528,26 +515,22 @@ step1:
 
     if(collect_young_now) {
       GCData gc_data(state->vm());
-      YoungCollectStats stats;
 
       RUBINIUS_GC_BEGIN(0);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCYoung);
-        collect_young(state, &gc_data, &stats);
+        collect_young(state, &gc_data);
       } else {
-        collect_young(state, &gc_data, &stats);
+        collect_young(state, &gc_data);
       }
 #else
-      collect_young(state, &gc_data, &stats);
+      collect_young(state, &gc_data);
 #endif
       RUBINIUS_GC_END(0);
 
       metrics::MetricsData& metrics = state->vm()->metrics();
-      metrics.m.ruby_metrics.memory_young_bytes +=
-        state->memory()->young_bytes_allocated();
-      metrics.m.ruby_metrics.memory_young_occupancy += stats.percentage_used;
-      metrics.m.ruby_metrics.gc_young_lifetime += stats.lifetime;
+      metrics.m.ruby_metrics.memory_young_occupancy += young_->percentage_used();
     }
 
     if(collect_mature_now) {
@@ -572,7 +555,7 @@ step1:
     state->restart_world();
   }
 
-  void ObjectMemory::collect_young(STATE, GCData* data, YoungCollectStats* stats) {
+  void ObjectMemory::collect_young(STATE, GCData* data) {
 #ifndef RBX_GC_STRESS_YOUNG
     collect_young_now = false;
 #endif
@@ -580,10 +563,7 @@ step1:
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().m.ruby_metrics.gc_young_ms);
 
-    young_gc_while_marking_++;
-    young_->reset_stats();
-
-    young_->collect(data, stats);
+    young_->collect(data);
 
     prune_handles(data->handles(), data->cached_handles(), young_);
 
@@ -627,7 +607,6 @@ step1:
 
     // If we're already collecting, ignore this request
     if(mature_gc_in_progress_) return;
-    young_gc_while_marking_ = 0;
 
     code_manager_.clear_marks();
     clear_fiber_marks(data->threads());
@@ -673,36 +652,12 @@ step1:
     metrics.m.ruby_metrics.memory_symbols += shared_.symbols.size();
     metrics.m.ruby_metrics.memory_symbols_bytes += shared_.symbols.bytes_used();
     metrics.m.ruby_metrics.memory_code_bytes += code_manager_.size();
-    metrics.m.ruby_metrics.memory_jit_bytes += data->jit_bytes_allocated();
 
     if(FinalizerThread* hdl = state->shared().finalizer_handler()) {
       hdl->finish_collection(state);
     }
 
     RUBINIUS_GC_END(1);
-    young_autotune();
-    young_gc_while_marking_ = 0;
-  }
-
-  void ObjectMemory::young_autotune() {
-    if(young_autotune_size) {
-      // We autotune the size if we do multiple young
-      // collections during a mature mark phase. This indicates
-      // that memory pressure is higher and we might want to grow
-      // if we haven't met the young size factor yet.
-      //
-      // If we don't see any young GC's we check if we should shrink it
-      if(young_gc_while_marking_ > 1) {
-        if(young_->bytes_size() < young_max_bytes &&
-           young_->bytes_size() < mature_bytes_allocated() / young_autotune_factor) {
-          young_->grow(young_->bytes_size() * 2);
-        }
-      } else if(young_gc_while_marking_ == 0) {
-        if(young_->bytes_size() > mature_bytes_allocated() / young_autotune_factor) {
-          young_->grow(young_->bytes_size() / 2);
-        }
-      }
-    }
   }
 
   immix::MarkStack& ObjectMemory::mature_mark_stack() {
@@ -783,35 +738,6 @@ step1:
         }
       }
     }
-  }
-
-  // TODO: delete after metrics
-  size_t ObjectMemory::young_bytes_allocated() const {
-    return young_->bytes_size();
-  }
-
-  // TODO: delete after metrics
-  size_t ObjectMemory::mature_bytes_allocated() const {
-    return immix_->bytes_allocated() + mark_sweep_->allocated_bytes;
-  }
-
-  // TODO: delete after metrics
-  size_t ObjectMemory::code_bytes_allocated() const {
-    return code_manager_.size();
-  }
-
-  // TODO: delete after metrics
-  size_t ObjectMemory::symbol_bytes_allocated() const {
-    return shared_.symbols.bytes_used();
-  }
-
-  // TODO: delete after metrics
-  size_t ObjectMemory::jit_bytes_allocated() const {
-#if ENABLE_LLVM
-    return shared_.llvm_state->code_bytes();
-#else
-    return 0;
-#endif
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
@@ -948,8 +874,8 @@ step1:
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     if(unlikely(!obj)) return NULL;
 
-    state()->metrics().m.ruby_metrics.memory_immix_objects++;
-    state()->metrics().m.ruby_metrics.memory_immix_bytes += bytes;
+    state()->metrics().m.ruby_metrics.memory_large_objects++;
+    state()->metrics().m.ruby_metrics.memory_large_bytes += bytes;
 
     obj->clear_fields(bytes);
     return obj;
@@ -1104,54 +1030,6 @@ step1:
 
   ObjectArray* ObjectMemory::weak_refs_set() {
     return immix_->weak_refs_set();
-  }
-
-  size_t& ObjectMemory::loe_usage() {
-    return mark_sweep_->allocated_bytes;
-  }
-
-  size_t& ObjectMemory::young_usage() {
-    return young_->bytes_size();
-  }
-
-  size_t& ObjectMemory::immix_usage() {
-    return immix_->bytes_allocated();
-  }
-
-  size_t& ObjectMemory::code_usage() {
-    return code_manager_.size();
-  }
-
-  void ObjectMemory::memstats() {
-    size_t total = 0;
-
-    size_t baker = young_usage();
-    total += baker;
-    size_t immix = immix_usage();
-    total += immix;
-    size_t large = loe_usage();
-    total += large;
-    size_t code = code_usage();
-    total += code;
-    size_t shared = root_state_->shared.size();
-    total += shared;
-
-    std::cout << "baker: " << baker << "\n";
-    std::cout << "immix: " << immix << "\n";
-    std::cout << "large: " << large << "\n"
-              << "        objects: " << mark_sweep_->allocated_objects << "\n"
-              << "        times: " << mark_sweep_->times_collected << "\n"
-              << "        last_freed: " << mark_sweep_->last_freed << "\n";
-    std::cout << " code: " << code << "\n";
-    std::cout << "shared: " << shared << "\n";
-
-    std::cout << "total: "
-              << ((double)total / (1024 * 1024))
-              << " M\n";
-
-    std::cout << "CodeManager:\n";
-    std::cout << "  total allocated: " << code_manager_.total_allocated() << "\n";
-    std::cout << "      total freed: " << code_manager_.total_freed() << "\n";
   }
 };
 

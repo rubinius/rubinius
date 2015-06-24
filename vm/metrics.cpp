@@ -302,7 +302,17 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "jit.methods.failed", metrics_collection_.jit_metrics.methods_failed));
       metrics_map_.push_back(new MetricsItem(
+            "jit.bytes", metrics_collection_.jit_metrics.bytes));
+      metrics_map_.push_back(new MetricsItem(
             "jit.time.us", metrics_collection_.jit_metrics.time_us));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.uncommon_exits", metrics_collection_.jit_metrics.uncommon_exits));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.inlined.accessors", metrics_collection_.jit_metrics.inlined_accessors));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.inlined.methods", metrics_collection_.jit_metrics.inlined_methods));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.inlined.blocks", metrics_collection_.jit_metrics.inlined_blocks));
 
       // Object memory metrics
       metrics_map_.push_back(new MetricsItem(
@@ -338,8 +348,6 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "memory.code.bytes", metrics_collection_.ruby_metrics.memory_code_bytes));
       metrics_map_.push_back(new MetricsItem(
-            "memory.jit.bytes", metrics_collection_.ruby_metrics.memory_jit_bytes));
-      metrics_map_.push_back(new MetricsItem(
             "memory.promoted.bytes",
             metrics_collection_.ruby_metrics.memory_promoted_bytes));
       metrics_map_.push_back(new MetricsItem(
@@ -366,8 +374,6 @@ namespace rubinius {
             "gc.young.count", metrics_collection_.ruby_metrics.gc_young_count));
       metrics_map_.push_back(new MetricsItem(
             "gc.young.ms", metrics_collection_.ruby_metrics.gc_young_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.young.lifetime", metrics_collection_.ruby_metrics.gc_young_lifetime));
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.count", metrics_collection_.ruby_metrics.gc_immix_count));
       metrics_map_.push_back(new MetricsItem(

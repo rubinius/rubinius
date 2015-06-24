@@ -428,7 +428,7 @@ remember:
     }
 
     ctx_->enter_inline();
-    ops_.llvm_state()->add_accessor_inlined();
+    ops_.llvm_state()->metrics().m.jit_metrics.inlined_accessors++;
 
     check_recv(klass, data);
 
@@ -514,7 +514,7 @@ remember:
     }
 
     ctx_->enter_inline();
-    ops_.llvm_state()->add_accessor_inlined();
+    ops_.llvm_state()->metrics().m.jit_metrics.inlined_accessors++;
 
     check_recv(klass, data);
 
