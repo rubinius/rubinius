@@ -8,6 +8,7 @@
 #include "builtin/variable_scope.hpp"
 #include "call_frame.hpp"
 #include "ontology.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
   void Location::init(STATE) {
@@ -82,11 +83,22 @@ namespace rubinius {
     return loc;
   }
 
-  Array* Location::from_call_stack(STATE, CallFrame* start_call_frame,
+  Array* Location::from_call_stack(STATE, CallFrame* call_frame,
                                    bool include_vars, bool on_ip)
   {
-    Array* bt = Array::create(state, 5);
-    CallFrame* call_frame = start_call_frame;
+    size_t count = 0;
+
+    CallFrame* c = call_frame;
+    while(c) {
+      if(c->compiled_code) count++;
+      c = c->previous;
+    }
+
+    Array* bt = 0;
+    Location* loc = 0;
+    OnStack<2> os(state, bt, loc);
+
+    bt = Array::create(state, count);
 
     // Initial edge.
     if(!call_frame) return bt;
@@ -98,7 +110,7 @@ namespace rubinius {
       if(!call_frame) return bt;
     }
 
-    Location* loc = Location::create(state, call_frame, include_vars);
+    loc = Location::create(state, call_frame, include_vars);
     if(on_ip) loc->set_ip_on_current(state);
 
     bt->append(state, loc);
@@ -110,7 +122,7 @@ namespace rubinius {
       if(call_frame->compiled_code) {
         bt->append(state, Location::create(state, call_frame, include_vars));
       } else if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
-        Location* loc = Location::create(state, nmf);
+        loc = Location::create(state, nmf);
         if(loc) bt->append(state, loc);
       }
 
@@ -121,6 +133,9 @@ namespace rubinius {
   }
 
   Array* Location::mri_backtrace(STATE, CallFrame* call_frame) {
+    Array* bt = 0;
+    OnStack<1> os(state, bt);
+
     size_t count = 0;
 
     CallFrame* c = call_frame;
@@ -129,7 +144,7 @@ namespace rubinius {
       c = c->previous;
     }
 
-    Array* bt = Array::create(state, count);
+    bt = Array::create(state, count);
 
     while(call_frame) {
       // Ignore synthetic frames
