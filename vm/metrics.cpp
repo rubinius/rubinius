@@ -155,7 +155,7 @@ namespace rubinius {
 
           for(size_t p = n.size(), i = p; i != 0; p = i - 1) {
             if((i = n.rfind('.', p)) == std::string::npos) {
-              parts << n.substr(0, p);
+              parts << n.substr(0, p + 1);
               break;
             } else {
               parts << n.substr(i + 1, p - i) << ".";
