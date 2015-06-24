@@ -319,6 +319,21 @@ namespace rubinius {
       virtual void reinit() = 0;
     };
 
+    class FileEmitter : public MetricsEmitter {
+      MetricsMap& metrics_map_;
+      std::string path_;
+      int fd_;
+
+    public:
+      FileEmitter(MetricsMap& map, std::string path);
+      virtual ~FileEmitter();
+
+      void send_metrics();
+      void initialize();
+      void cleanup();
+      void reinit();
+    };
+
     class StatsDEmitter : public MetricsEmitter {
       MetricsMap& metrics_map_;
       std::string host_;

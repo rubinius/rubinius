@@ -192,7 +192,7 @@ Rubinius::ConfigurationVariables.define do |c|
       "Number of milliseconds between aggregation of VM metrics"
 
     s.vm_variable "metrics.target", "none",
-      "Location to send metrics every interval: 'statsd', 'disk'"
+      "Location to send metrics every interval: 'statsd', path"
 
     s.vm_variable "metrics.statsd.server", "localhost:8125",
       "The [host:]port of the StatsD server"
