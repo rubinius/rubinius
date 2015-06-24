@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <netdb.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
@@ -62,6 +63,66 @@ namespace rubinius {
 
     void SystemMetrics::add(MetricsData& data) {
       add(data.system_metrics);
+    }
+
+    FileEmitter::FileEmitter(MetricsMap& map, std::string path)
+      : MetricsEmitter()
+      , metrics_map_(map)
+      , path_(path)
+      , fd_(-1)
+    {
+      initialize();
+    }
+
+    FileEmitter::~FileEmitter() {
+      cleanup();
+    }
+
+#define RBX_METRICS_FILE_BUFLEN   22
+
+    void FileEmitter::send_metrics() {
+      char buf[RBX_METRICS_FILE_BUFLEN];
+
+      for(MetricsMap::iterator i = metrics_map_.begin();
+          i != metrics_map_.end();
+          ++i)
+      {
+        snprintf(buf, RBX_METRICS_FILE_BUFLEN, "%s%lld",
+            i == metrics_map_.begin() ? "" : " ", (long long unsigned int)(*i)->second);
+        if(write(fd_, buf, strlen(buf)) < 0) {
+          logger::error("%s: unable to write file metrics", strerror(errno));
+        }
+      }
+      write(fd_, "\n", 1);
+    }
+
+    void FileEmitter::initialize() {
+      if(!(fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660))) {
+        logger::error("%s: unable to open metrics file", strerror(errno));
+      }
+
+      if(lseek(fd_, 0, SEEK_END) == 0) {
+        for(MetricsMap::iterator i = metrics_map_.begin();
+            i != metrics_map_.end();
+            ++i)
+        {
+          if(i != metrics_map_.begin()) write(fd_, ", ", 2);
+          write(fd_, (*i)->first.c_str(), (*i)->first.size());
+        }
+        write(fd_, "\n", 1);
+      }
+    }
+
+    void FileEmitter::cleanup() {
+      if(fd_ > 0) {
+        close(fd_);
+        fd_ = -1;
+      }
+    }
+
+    void FileEmitter::reinit() {
+      // Don't turn on FileEmitter in children by default.
+      cleanup();
     }
 
     StatsDEmitter::StatsDEmitter(MetricsMap& map, std::string server, std::string prefix)
@@ -203,6 +264,9 @@ namespace rubinius {
         emitter_ = new StatsDEmitter(metrics_map_,
             state->shared().config.system_metrics_statsd_server.value,
             state->shared().config.system_metrics_statsd_prefix.value);
+      } else if(state->shared().config.system_metrics_target.value.compare("none")) {
+        emitter_ = new FileEmitter(metrics_map_,
+            state->shared().config.system_metrics_target.value);
       }
     }
 
