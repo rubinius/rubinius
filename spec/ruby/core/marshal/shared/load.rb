@@ -308,6 +308,17 @@ describe :marshal_load, :shared => true do
       new_obj_metaclass_ancestors[@num_self_class+1].should == UserHashInitParams
     end
 
+    it "loads an extended hash object containing a user-marshaled object" do
+      obj = {:a => UserMarshal.new}.extend(Meths)
+
+      new_obj = Marshal.send(@method, "\004\be:\nMeths{\006:\006aU:\020UserMarshal\"\nstuff")
+
+      new_obj.should == obj
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class].should == Meths
+      new_obj_metaclass_ancestors[@num_self_class+1].should == Hash
+    end
+
     it "preserves hash ivars when hash contains a string having ivar" do
       s = 'string'
       s.instance_variable_set :@string_ivar, 'string ivar'
