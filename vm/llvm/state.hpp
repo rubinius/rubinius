@@ -79,14 +79,8 @@ namespace rubinius {
     TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
 
-    int jitted_methods_;
-    int accessors_inlined_;
-    int uncommons_taken_;
-
     SharedState& shared_;
     bool include_profiling_;
-
-    int code_bytes_;
 
     std::ostream* log_;
 
@@ -150,30 +144,6 @@ namespace rubinius {
 
     jit::RubiniusJITMemoryManager* memory() { return memory_; }
     llvm::JITEventListener* jit_event_listener() { return jit_event_listener_; }
-
-    int code_bytes() {
-      return code_bytes_;
-    }
-
-    void add_code_bytes(int bytes) {
-      code_bytes_ += bytes;
-    }
-
-    void add_accessor_inlined() {
-      accessors_inlined_++;
-    }
-
-    int accessors_inlined() {
-      return accessors_inlined_;
-    }
-
-    void add_uncommons_taken() {
-      uncommons_taken_++;
-    }
-
-    int uncommons_taken() {
-      return uncommons_taken_;
-    }
 
     SharedState& shared() { return shared_; }
 

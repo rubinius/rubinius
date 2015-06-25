@@ -7,6 +7,9 @@ class Symbol
   # Use equal? for ===
   alias_method :===, :equal?
 
+  # Use equal? for ==
+  alias_method :==, :equal?
+
   def inspect
     str = to_s
 

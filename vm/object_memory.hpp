@@ -45,22 +45,6 @@ namespace rubinius {
     class GlobalHandle;
   }
 
-  struct YoungCollectStats {
-    int bytes_copied;
-    double percentage_used;
-    int promoted_objects;
-    int lifetime;
-    int excess_objects;
-
-    YoungCollectStats()
-      : bytes_copied(0)
-      , percentage_used(0.0)
-      , promoted_objects(0)
-      , lifetime(0)
-      , excess_objects(0)
-    {}
-  };
-
   /**
    * ObjectMemory is the primary API that the rest of the VM uses to interact
    * with actions such as allocating objects, storing data in objects, and
@@ -115,7 +99,6 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
-    unsigned int young_gc_while_marking_;
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
     /// Flag set when concurrent mature mark is requested
@@ -123,7 +106,6 @@ namespace rubinius {
     /// Flag set when a mature GC is already in progress
     bool mature_gc_in_progress_;
     /// Flag set when requesting a young gen resize
-    bool young_gc_resize_;
 
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
@@ -153,9 +135,6 @@ namespace rubinius {
 
     /* Config variables */
     size_t large_object_threshold;
-    size_t young_max_bytes;
-    int young_autotune_factor;
-    bool young_autotune_size;
 
   public:
     VM* state() {
@@ -286,7 +265,6 @@ namespace rubinius {
     }
 
     TypeInfo* find_type_info(Object* obj);
-    void set_young_lifetime(size_t age);
     Object* promote_object(Object* obj);
 
     bool refill_slab(STATE, gc::Slab& slab);
@@ -346,13 +324,11 @@ namespace rubinius {
 
     immix::MarkStack& mature_mark_stack();
 
-    void young_autotune();
-
   private:
     Object* allocate_object(size_t bytes);
     Object* allocate_object_mature(size_t bytes);
 
-    void collect_young(STATE, GCData* data, YoungCollectStats* stats = 0);
+    void collect_young(STATE, GCData* data);
     void collect_mature(STATE, GCData* data);
 
   public:
