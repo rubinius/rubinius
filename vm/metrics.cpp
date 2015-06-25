@@ -78,7 +78,7 @@ namespace rubinius {
       cleanup();
     }
 
-#define RBX_METRICS_FILE_BUFLEN   22
+#define RBX_METRICS_FILE_BUFLEN   256
 
     void FileEmitter::send_metrics() {
       char buf[RBX_METRICS_FILE_BUFLEN];
@@ -93,7 +93,10 @@ namespace rubinius {
           logger::error("%s: unable to write file metrics", strerror(errno));
         }
       }
-      write(fd_, "\n", 1);
+
+      if(write(fd_, "\n", 1)) {
+        logger::error("%s: unable to write file metrics", strerror(errno));
+      }
     }
 
     void FileEmitter::initialize() {
@@ -102,14 +105,22 @@ namespace rubinius {
       }
 
       if(lseek(fd_, 0, SEEK_END) == 0) {
+        char buf[RBX_METRICS_FILE_BUFLEN];
+
         for(MetricsMap::iterator i = metrics_map_.begin();
             i != metrics_map_.end();
             ++i)
         {
-          if(i != metrics_map_.begin()) write(fd_, ", ", 2);
-          write(fd_, (*i)->first.c_str(), (*i)->first.size());
+          snprintf(buf, RBX_METRICS_FILE_BUFLEN, "%s%s",
+              i == metrics_map_.begin() ? "" : ", ", (*i)->first.c_str());
+          if(write(fd_, buf, strlen(buf)) < 0) {
+            logger::error("%s: unable to write file metrics", strerror(errno));
+          }
         }
-        write(fd_, "\n", 1);
+
+        if(write(fd_, "\n", 1)) {
+          logger::error("%s: unable to write file metrics", strerror(errno));
+        }
       }
     }
 
@@ -196,7 +207,7 @@ namespace rubinius {
           i != metrics_map_.end();
           ++i)
       {
-        snprintf(buf, RBX_METRICS_STATSD_BUFLEN, "%s%s:%lld|c",
+        snprintf(buf, RBX_METRICS_STATSD_BUFLEN, "%s%s:%lld|g",
             prefix_.c_str(), (*i)->first.c_str(), (long long unsigned int)(*i)->second);
         if(send(socket_fd_, buf, strlen(buf), 0) < 0) {
           logger::error("%s: unable to send StatsD metrics", strerror(errno));
