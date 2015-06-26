@@ -137,13 +137,19 @@ namespace rubinius {
 
     struct MachineMetrics {
       metric inline_cache_resets;
+      metric methods_invoked;
+      metric blocks_invoked;
 
       MachineMetrics() {
         inline_cache_resets = 0;
+        methods_invoked = 0;
+        blocks_invoked = 0;
       }
 
       void add(MachineMetrics& data) {
         inline_cache_resets += data.inline_cache_resets;
+        methods_invoked += data.methods_invoked;
+        blocks_invoked += data.blocks_invoked;
       }
     };
 
