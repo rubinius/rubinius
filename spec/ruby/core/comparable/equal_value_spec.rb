@@ -80,4 +80,20 @@ describe "Comparable#==" do
       @a.should_not == @b
     end
   end
+
+  context "when #<=> calls super" do
+    before :each do
+      @a = ComparableSpecs::CompareCallingSuper.new
+      @b = ComparableSpecs::CompareCallingSuper.new
+    end
+
+    it "returns true for identical objects" do
+      @a.should == @a
+    end
+
+    it "calls the defined #<=> only once for different objects" do
+      @a.should_not == @b
+      @a.calls.should == 1
+    end
+  end
 end

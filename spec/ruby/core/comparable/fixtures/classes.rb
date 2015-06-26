@@ -16,4 +16,19 @@ module ComparableSpecs
   class WithoutCompareDefined
     include Comparable
   end
+
+  class CompareCallingSuper
+    include Comparable
+
+    attr_reader :calls
+
+    def initialize
+      @calls = 0
+    end
+
+    def <=>(other)
+      @calls += 1
+      super(other)
+    end
+  end
 end
