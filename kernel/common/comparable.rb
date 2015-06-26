@@ -2,14 +2,16 @@ module Comparable
   def ==(other)
     return true if equal?(other)
 
-    begin
-      unless comp = (self <=> other)
-        return nil
-      end
+    return if Thread.detect_recursion(self, other) do
+      begin
+        unless comp = (self <=> other)
+          return
+        end
 
-      return Comparable.compare_int(comp) == 0
-    rescue StandardError, SystemStackError
-      return nil
+        return Comparable.compare_int(comp) == 0
+      rescue StandardError
+        return
+      end
     end
   end
 
