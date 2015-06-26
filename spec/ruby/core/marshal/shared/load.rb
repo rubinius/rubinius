@@ -294,6 +294,16 @@ describe :marshal_load, :shared => true do
       new_obj.instance_variable_get(:@mix).should equal new_obj[1]
       new_obj[1].instance_variable_get(:@foo).should == 10
     end
+
+    it "loads an extended Array object containing a user-marshaled object" do
+      obj = [UserMarshal.new, UserMarshal.new].extend(Meths)
+      new_obj = Marshal.send(@method, "\x04\be:\nMeths[\ao:\x10UserMarshal\x06:\n@dataI\"\nstuff\x06:\x06ETo;\x06\x06;\aI\"\nstuff\x06;\bT")
+
+      new_obj.should == obj
+      obj_ancestors = class << obj; ancestors[1..-1]; end
+      new_obj_ancestors = class << new_obj; ancestors[1..-1]; end
+      obj_ancestors.should == new_obj_ancestors
+    end
   end
 
   describe "for a Hash" do
