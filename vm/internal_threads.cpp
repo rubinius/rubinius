@@ -15,7 +15,6 @@ namespace rubinius {
     : vm_(state->shared().new_vm(name.c_str()))
     , thread_running_(false)
     , stack_size_(stack_size)
-    , metrics_(vm_->metrics())
     , thread_exit_(false)
   {
     state->shared().internal_threads()->register_thread(this);

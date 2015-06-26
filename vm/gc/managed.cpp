@@ -15,6 +15,7 @@ namespace rubinius {
     : shared_(ss)
     , run_state_(eIndependent)
     , kind_(kind)
+    , metrics_()
     , os_thread_(pthread_self())
     , id_(id)
   {
@@ -25,8 +26,6 @@ namespace rubinius {
       thread_name << "rbx.ruby." << id_;
       name_ = thread_name.str();
     }
-
-    metrics_.init(metrics::eNone);
   }
 
   ManagedThread::~ManagedThread() {

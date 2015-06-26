@@ -84,7 +84,6 @@ namespace rubinius {
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
     VM* vm = state->shared().new_vm();
-    vm->metrics().init(metrics::eRubyMetrics);
 
     Thread* thr = Thread::create(state, as<Class>(self), vm);
 
@@ -93,7 +92,7 @@ namespace rubinius {
     state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize,
         FinalizeObject::eUnmanaged);
 
-    state->vm()->metrics().system_metrics.vm_threads_created++;
+    state->vm()->metrics().system.threads_created++;
 
     return thr;
   }

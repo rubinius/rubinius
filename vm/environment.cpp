@@ -105,7 +105,6 @@ namespace rubinius {
     check_io_descriptors();
 
     root_vm = shared->new_vm("rbx.ruby.main");
-    root_vm->metrics().init(metrics::eRubyMetrics);
     state = new State(root_vm);
 
     loader_ = new TypedRoot<Object*>(state);

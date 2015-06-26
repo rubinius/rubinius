@@ -140,7 +140,7 @@ namespace rubinius {
       atomic::fetch_and_sub(&pending_threads_, 1);
 
       timer::StopWatch<timer::nanoseconds> timer(
-          state->metrics().system_metrics.locks_stop_the_world_ns);
+          state->metrics().lock.stop_the_world_ns);
 
       // We need a write barrier so we're sure we're seeing an up to
       // date version of pending_threads_ in each loop.

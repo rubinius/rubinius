@@ -212,8 +212,6 @@ namespace rubinius {
     JITCompileRequest* compile_request = nil<JITCompileRequest>();
     OnStack<1> os(state, compile_request);
 
-    metrics().init(metrics::eJITMetrics);
-
     state->gc_dependent(gct, 0);
 
     bool show_machine_code_ = jit_dump_code() & cMachineCode;
@@ -290,7 +288,7 @@ namespace rubinius {
 
         {
           timer::StopWatch<timer::microseconds> timer(
-              metrics().m.jit_metrics.time_us);
+              vm()->metrics().jit.compile_time_us);
 
           jit.compile(compile_request);
 
@@ -321,7 +319,7 @@ namespace rubinius {
       } catch(LLVMState::CompileError& e) {
         utilities::logger::warn("JIT: compile error: %s", e.error());
 
-        metrics().m.jit_metrics.methods_failed++;
+        vm()->metrics().jit.methods_failed++;
 
         // If someone was waiting on this, wake them up.
         if(cond) {
@@ -379,7 +377,7 @@ namespace rubinius {
       }
 
       current_compiler_ = 0;
-      metrics().m.jit_metrics.methods_compiled++;
+      vm()->metrics().jit.methods_compiled++;
     }
   }
 
@@ -417,7 +415,7 @@ namespace rubinius {
     if(!enabled_) return;
 
     G(jit)->compile_list()->append(state, req);
-    metrics().m.jit_metrics.methods_queued++;
+    vm()->metrics().jit.methods_queued++;
 
     compile_cond_.signal();
   }
@@ -429,7 +427,7 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
+      vm()->metrics().jit.methods_failed++;
 
       return;
     }
@@ -474,7 +472,7 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
+      vm()->metrics().jit.methods_failed++;
 
       return;
     }
@@ -531,7 +529,7 @@ namespace rubinius {
   }
 
   void LLVMState::remove(void* func) {
-    metrics().m.jit_metrics.methods_compiled--;
+    vm()->metrics().jit.methods_compiled--;
     if(memory_) memory_->deallocateFunctionBody(func);
   }
 
@@ -542,7 +540,7 @@ namespace rubinius {
   {
     // TODO: Fix compile policy checks
     if(!start->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
+      vm()->metrics().jit.methods_failed++;
 
       return;
     }

@@ -32,7 +32,7 @@ namespace jit {
        << "#"
        << ctx_->llvm_state()->symbol_debug_str(info_.method()->name())
        << "$block@"
-       << ++ctx_->llvm_state()->vm()->metrics().m.jit_metrics.methods_compiled;
+       << ++ctx_->llvm_state()->vm()->metrics().jit.methods_compiled;
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
                             ss.str(), ctx_->module());

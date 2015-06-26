@@ -66,7 +66,7 @@ namespace rubinius {
   void SignalThread::queue_signal(int signal) {
     if(thread_exit_) return;
 
-    metrics().system_metrics.os_signals_received++;
+    vm()->metrics().system.signals_received++;
 
     {
       thread::Mutex::LockGuard guard(lock_);
@@ -127,8 +127,6 @@ namespace rubinius {
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif
 
-    metrics().init(metrics::eRubyMetrics);
-
     while(!thread_exit_) {
       int signal = pending_signals_[process_index_];
       pending_signals_[process_index_] = 0;
@@ -143,7 +141,7 @@ namespace rubinius {
         GCDependent guard(state, 0);
         vm()->set_call_frame(0);
 
-        metrics().system_metrics.os_signals_processed++;
+        vm()->metrics().system.signals_processed++;
 
         Array* args = 0;
         OnStack<1> os(state, args);

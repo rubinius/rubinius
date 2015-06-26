@@ -10,18 +10,12 @@ namespace rubinius {
   class InternalThread;
   class VM;
 
-  namespace metrics {
-    struct MetricsData;
-  }
-
   typedef std::list<InternalThread*> InternalThreadList;
 
   class InternalThread {
     VM* vm_;
     bool thread_running_;
     uint32_t stack_size_;
-
-    metrics::MetricsData& metrics_;
 
   protected:
 
@@ -55,10 +49,6 @@ namespace rubinius {
     // Object interface
     VM* vm() {
       return vm_;
-    }
-
-    metrics::MetricsData& metrics() {
-      return metrics_;
     }
 
     virtual void initialize(STATE);

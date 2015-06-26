@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
   ConfigParser * config = new ConfigParser;
   shared->user_config = config;
   VM* state = shared->new_vm();
-  state->metrics()->init(metrics::eRubyMetrics);
 
   state->initialize(VM::default_bytes);
   state->boot();

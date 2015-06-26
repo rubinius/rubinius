@@ -8,7 +8,7 @@ module GC
     data = stat
     data[:"gc.young.ms"] +
       data[:"gc.immix.stop.ms"] +
-      data[:"gc.large.sweep.ms"]
+      data[:"gc.large.sweep.us"] * 1_000
   end
 
   def self.stat
