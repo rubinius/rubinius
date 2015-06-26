@@ -93,6 +93,8 @@ namespace rubinius {
       metric inlined_accessors;
       metric inlined_methods;
       metric inlined_blocks;
+      metric inlined_primitives;
+      metric inlined_ffi;
 
       JITMetrics() {
         methods_queued = 0;
@@ -103,6 +105,8 @@ namespace rubinius {
         inlined_accessors = 0;
         inlined_methods = 0;
         inlined_blocks = 0;
+        inlined_primitives = 0;
+        inlined_ffi = 0;
       }
 
       void add(JITMetrics& data) {
@@ -114,6 +118,8 @@ namespace rubinius {
         inlined_accessors += data.inlined_accessors;
         inlined_methods += data.inlined_methods;
         inlined_blocks += data.inlined_blocks;
+        inlined_primitives += data.inlined_primitives;
+        inlined_ffi += data.inlined_ffi;
       }
     };
 

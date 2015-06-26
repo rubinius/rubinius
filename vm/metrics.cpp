@@ -313,6 +313,10 @@ namespace rubinius {
             "jit.inlined.methods", metrics_data_.jit.inlined_methods));
       metrics_map_.push_back(new MetricsItem(
             "jit.inlined.blocks", metrics_data_.jit.inlined_blocks));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.inlined.primitives", metrics_data_.jit.inlined_primitives));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.inlined.ffi", metrics_data_.jit.inlined_ffi));
 
       // Lock metrics
       metrics_map_.push_back(new MetricsItem(
