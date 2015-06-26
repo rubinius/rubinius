@@ -19,7 +19,7 @@ namespace rubinius {
 #endif
 
     if(object_memory_) {
-      object_memory_->state()->metrics().m.ruby_metrics.memory_immix_chunks++;
+      object_memory_->state()->metrics().memory.immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
         gc_->reset_chunks_left();

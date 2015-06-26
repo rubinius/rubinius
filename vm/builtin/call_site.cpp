@@ -80,6 +80,8 @@ namespace rubinius {
       }
     }
 
+    state->vm()->metrics().machine.methods_invoked++;
+
     call_site->update(state, recv_class, dis);
 
     Executable* meth = dis.method;
@@ -111,6 +113,8 @@ namespace rubinius {
         return NULL;
       }
     }
+
+    state->vm()->metrics().machine.methods_invoked++;
 
     call_site->update(state, recv_class, dis);
 
@@ -145,6 +149,8 @@ namespace rubinius {
         return NULL;
       }
     }
+
+    state->vm()->metrics().machine.methods_invoked++;
 
     call_site->update(state, recv_class, dis);
 
@@ -200,6 +206,8 @@ namespace rubinius {
       state->vm()->set_method_missing_reason(dis.method_missing);
       state->vm()->global_cache()->add_seen(state, call_site->name());
     }
+
+    state->vm()->metrics().machine.methods_invoked++;
 
     call_site->update(state, recv_class, dis);
 

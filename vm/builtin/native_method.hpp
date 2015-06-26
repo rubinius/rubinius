@@ -41,6 +41,7 @@ namespace rubinius {
       , current_native_frame_(0)
       , current_ep_(0)
       , outgoing_block_(0)
+      , metrics_()
     {}
 
     /** Obtain the NativeMethodEnvironment for this thread. */

@@ -26,7 +26,6 @@ public:
     shared = new SharedState(0, config, *config_parser);
     VM* vm = shared->new_vm();
     vm->initialize_as_root();
-    vm->metrics().init(metrics::eRubyMetrics);
     state = new State(vm);
   }
 

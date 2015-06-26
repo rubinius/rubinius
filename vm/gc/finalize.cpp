@@ -124,8 +124,6 @@ namespace rubinius {
   void FinalizerThread::run(STATE) {
     GCTokenImpl gct;
 
-    metrics().init(metrics::eFinalizerMetrics);
-
     state->gc_dependent(gct, 0);
 
     while(!thread_exit_) {
@@ -260,7 +258,7 @@ namespace rubinius {
         process_list_ = NULL;
         process_item_kind_ = eRuby;
         lists_->pop_back();
-        metrics().m.finalizer_metrics.objects_finalized++;
+        vm()->metrics().gc.objects_finalized++;
         break;
       }
     }
@@ -321,7 +319,7 @@ namespace rubinius {
     // Makes a copy of fi.
     live_list_->push_front(fi);
 
-    metrics().m.finalizer_metrics.objects_queued++;
+    vm()->metrics().gc.objects_queued++;
   }
 
   void FinalizerThread::set_ruby_finalizer(Object* obj, Object* finalizer) {

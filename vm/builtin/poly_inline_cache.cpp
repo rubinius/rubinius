@@ -103,6 +103,7 @@ namespace rubinius {
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
       entry->hit();
+      state->vm()->metrics().machine.methods_invoked++;
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -126,6 +127,7 @@ namespace rubinius {
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
       entry->hit();
+      state->vm()->metrics().machine.methods_invoked++;
 
       return meth->execute(state, call_frame, meth, mod, args);
     }

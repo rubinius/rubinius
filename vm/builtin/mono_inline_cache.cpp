@@ -70,6 +70,7 @@ namespace rubinius {
 
     if(likely(cache->receiver_.raw == recv_data)) {
       cache->hits_++;
+      state->vm()->metrics().machine.methods_invoked++;
       return cache->method_->execute(state, call_frame, cache->method_, cache->stored_module_, args);
     }
 
@@ -86,6 +87,7 @@ namespace rubinius {
 
     if(likely(cache->receiver_.raw == recv_data)) {
       cache->hits_++;
+      state->vm()->metrics().machine.methods_invoked++;
       state->vm()->set_method_missing_reason(cache->method_missing_);
       args.unshift(state, call_site->name_);
       return cache->method_->execute(state, call_frame, cache->method_, cache->stored_module_, args);

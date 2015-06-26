@@ -805,7 +805,7 @@ namespace rubinius {
     state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics().system_metrics.vm_inline_cache_resets++;
+    state->vm()->metrics().machine.inline_cache_resets++;
 
     if(state->shared().config.ic_debug) {
       String* mod_name = mod->get_name(state);

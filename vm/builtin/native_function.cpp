@@ -338,7 +338,6 @@ namespace rubinius {
       // Apparently we're running in a new thread here, setup
       // everything we need here.
       vm = stub->shared->new_vm();
-      vm->metrics().init(metrics::eRubyMetrics);
 
       // Detect the stack size and set it up in the VM object
       size_t stack_size;

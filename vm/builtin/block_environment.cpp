@@ -83,6 +83,8 @@ namespace rubinius {
       }
     }
 
+    state->vm()->metrics().machine.blocks_invoked++;
+
 #ifdef ENABLE_LLVM
     if(executor ptr = mcode->unspecialized) {
       return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
