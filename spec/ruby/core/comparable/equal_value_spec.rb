@@ -65,4 +65,19 @@ describe "Comparable#==" do
       (@raise_sub_standard_error == @b).should be_false
     end
   end
+
+  context "when #<=> is not defined" do
+    before :each do
+      @a = ComparableSpecs::WithoutCompareDefined.new
+      @b = ComparableSpecs::WithoutCompareDefined.new
+    end
+
+    it "returns true for identical objects" do
+      @a.should == @a
+    end
+
+    it "returns false and does not recurse infinitely" do
+      @a.should_not == @b
+    end
+  end
 end

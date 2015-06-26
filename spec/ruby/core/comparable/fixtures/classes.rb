@@ -12,4 +12,8 @@ module ComparableSpecs
       self.value <=> other.value
     end
   end
+
+  class WithoutCompareDefined
+    include Comparable
+  end
 end
