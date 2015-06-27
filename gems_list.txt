@@ -1,4 +1,4 @@
-bundler-1.10.4.gem
+bundler-1.10.5.gem
 ffi2-generators-0.1.1.gem
 json-1.8.3.gem
 minitest-4.7.5.gem
