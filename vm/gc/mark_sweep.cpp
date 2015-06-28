@@ -21,13 +21,8 @@ namespace rubinius {
 
   MarkSweepGC::MarkSweepGC(ObjectMemory *om, Configuration& config)
     : GarbageCollector(om)
-    , allocated_bytes(0)
-    , allocated_objects(0)
     , collection_threshold(config.gc_marksweep_threshold)
     , next_collection_bytes(collection_threshold)
-    , free_entries(true)
-    , times_collected(0)
-    , last_freed(0)
   {}
 
   MarkSweepGC::~MarkSweepGC() { }
@@ -70,12 +65,6 @@ namespace rubinius {
   void MarkSweepGC::free_object(Object* obj, bool fast) {
     if(!fast) {
       delete_object(obj);
-
-      last_freed++;
-
-      object_memory_->state()->metrics().memory.large_objects--;
-      object_memory_->state()->metrics().memory.large_bytes -=
-        obj->size_in_bytes(object_memory_->state());
     }
 
     obj->set_zone(UnspecifiedZone);
@@ -123,8 +112,6 @@ namespace rubinius {
     metrics::MetricsData& metrics = object_memory_->state()->metrics();
 
     timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
-
-    last_freed = 0;
 
     // Cleanup all weakrefs seen
     clean_weakrefs();

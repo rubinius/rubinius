@@ -79,10 +79,10 @@ namespace rubinius {
       return symbols.size();
     };
 
-    Symbol* lookup(SharedState* shared, const std::string& str);
+    Symbol* lookup(STATE, SharedState* shared, const std::string& str);
     Symbol* lookup(STATE, const std::string& str);
     Symbol* lookup(STATE, const char* str, size_t length);
-    Symbol* lookup(const char* str, size_t length, int enc, uint32_t seed);
+    Symbol* lookup(STATE, const char* str, size_t length, int enc, uint32_t seed);
     Symbol* lookup(STATE, String* str);
     String* lookup_string(STATE, const Symbol* sym);
 
@@ -94,7 +94,7 @@ namespace rubinius {
 
     Kind kind(STATE, const Symbol* sym);
 
-    size_t add(std::string str, int enc);
+    size_t add(STATE, std::string str, int enc);
     Kind detect_kind(STATE, const Symbol* sym);
   };
 };

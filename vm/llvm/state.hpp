@@ -80,6 +80,8 @@ namespace rubinius {
     SymbolTable& symbols_;
 
     SharedState& shared_;
+    State* state_;
+
     bool include_profiling_;
 
     std::ostream* log_;
@@ -120,6 +122,10 @@ namespace rubinius {
 
     LLVMState(STATE);
     virtual ~LLVMState();
+
+    State* state() {
+      return state_;
+    }
 
     void add_internal_functions();
     void enable(STATE);

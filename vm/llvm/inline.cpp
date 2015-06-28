@@ -268,7 +268,8 @@ namespace rubinius {
         }
 
         policy->increase_size(mcode);
-        meth->add_inliner(ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
+        meth->add_inliner(ops_.llvm_state()->state(),
+            ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
 
         inline_generic_method(klass, data, defined_in, code, mcode, hits);
         return true;
@@ -312,7 +313,8 @@ namespace rubinius {
     }
 
 remember:
-    meth->add_inliner(ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
+    meth->add_inliner(ops_.llvm_state()->state(),
+        ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
 
     return true;
   }

@@ -277,10 +277,9 @@ namespace rubinius {
     bool inflate_for_contention(STATE, ObjectHeader* obj);
 
     bool valid_object_p(Object* obj);
-    void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
 
-    void add_code_resource(CodeResource* cr);
+    void add_code_resource(STATE, CodeResource* cr);
     void memstats();
 
     void validate_handles(capi::Handles* handles);

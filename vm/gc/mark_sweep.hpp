@@ -24,13 +24,8 @@ namespace rubinius {
   public:
     /* Data members */
     std::list<Object*> entries;
-    size_t allocated_bytes;
-    size_t allocated_objects;
     int    collection_threshold;
     int    next_collection_bytes;
-    bool   free_entries;
-    int    times_collected;
-    int    last_freed;
 
     /* Prototypes */
 

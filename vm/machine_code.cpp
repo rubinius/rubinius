@@ -102,7 +102,7 @@ namespace rubinius {
       specializations[i].jit_data = 0;
     }
 
-    state->shared().om->add_code_resource(this);
+    state->shared().om->add_code_resource(state, this);
   }
 
   MachineCode::~MachineCode() {

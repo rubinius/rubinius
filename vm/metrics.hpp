@@ -215,7 +215,6 @@ namespace rubinius {
         slab_refills_fails += data.slab_refills_fails;
         data_objects += data.data_objects;
         capi_handles += data.capi_handles;
-        capi_handles += data.capi_handles;
         inflated_headers += data.inflated_headers;
       }
     };

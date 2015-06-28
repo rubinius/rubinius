@@ -443,15 +443,6 @@ step1:
     }
   }
 
-  // TODO: Fix API to support proper testing.
-  void ObjectMemory::debug_marksweep(bool val) {
-    if(val) {
-      mark_sweep_->free_entries = false;
-    } else {
-      mark_sweep_->free_entries = true;
-    }
-  }
-
   bool ObjectMemory::valid_object_p(Object* obj) {
     if(obj->young_object_p()) {
       return young_->validate_object(obj) == cValid;
@@ -569,8 +560,6 @@ step1:
 
     metrics::MetricsData& metrics = state->vm()->metrics();
     metrics.gc.young_count++;
-    metrics.memory.capi_handles = capi_handles_->size();
-    metrics.memory.inflated_headers = inflated_headers_->size();
 
     data->global_cache()->prune_young();
 
@@ -647,11 +636,6 @@ step1:
     metrics::MetricsData& metrics = state->vm()->metrics();
     metrics.gc.immix_count++;
     metrics.gc.large_count++;
-    metrics.memory.immix_bytes += immix_->bytes_allocated();
-    metrics.memory.large_bytes += mark_sweep_->allocated_bytes;
-    metrics.memory.symbols += shared_.symbols.size();
-    metrics.memory.symbols_bytes += shared_.symbols.bytes_used();
-    metrics.memory.code_bytes += code_manager_.size();
 
     if(FinalizerThread* hdl = state->shared().finalizer_handler()) {
       hdl->finish_collection(state);
@@ -929,8 +913,10 @@ step1:
     return mark_sweep_->validate_object(obj);
   }
 
-  void ObjectMemory::add_code_resource(CodeResource* cr) {
+  void ObjectMemory::add_code_resource(STATE, CodeResource* cr) {
     utilities::thread::SpinLock::LockGuard guard(shared_.code_resource_lock());
+
+    state->vm()->metrics().memory.code_bytes += cr->size();
 
     code_manager_.add_resource(cr, &collect_mature_now);
   }
