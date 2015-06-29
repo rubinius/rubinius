@@ -312,6 +312,10 @@ file "vm/gen/instruction_effects.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_stack_effects, t.name
 end
 
+file "vm/gen/instructions.json" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_json, t.name
+end
+
 namespace :vm do
   desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
   task :test, :filter do |task, args|
