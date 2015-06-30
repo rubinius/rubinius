@@ -68,14 +68,13 @@ namespace rubinius {
       };
 
       class ConsoleLogger : public Logger {
-        std::string* identifier_;
+        std::string identifier_;
 
         void write_log(const char* level, const char* message, int size);
 
       public:
 
         ConsoleLogger(const char* identifier);
-        ~ConsoleLogger();
 
         void write(const char* message, int size);
         void fatal(const char* message, int size);
@@ -86,15 +85,18 @@ namespace rubinius {
       };
 
       class FileLogger : public Logger {
-        std::string* identifier_;
+        std::string path_;
+        std::string identifier_;
         int logger_fd_;
         int write_status_;
 
         void write_log(const char* level, const char* message, int size);
+        void rotate();
+        void cleanup();
 
       public:
 
-        FileLogger(const char* identifier);
+        FileLogger(const char* path);
         ~FileLogger();
 
         void write(const char* message, int size);
