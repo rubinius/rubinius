@@ -9,8 +9,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
+#include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/syslimits.h>
 
 #include <zlib.h>
 
@@ -322,22 +322,22 @@ namespace rubinius {
         void* buf = malloc(LOGGER_MAX_COPY_BUF);
         if(!buf) return;
 
-        char* from = (char*)malloc(PATH_MAX);
+        char* from = (char*)malloc(MAXPATHLEN);
         if(!from) return;
 
-        char* to = (char*)malloc(PATH_MAX);
+        char* to = (char*)malloc(MAXPATHLEN);
         if(!to) return;
 
         for(int i = archives_; i > 0; i--) {
           if(i > 1) {
-            snprintf(from, PATH_MAX, "%s.%d.Z", path_.c_str(), i - 1);
+            snprintf(from, MAXPATHLEN, "%s.%d.Z", path_.c_str(), i - 1);
           } else {
-            snprintf(from, PATH_MAX, "%s", path_.c_str());
+            snprintf(from, MAXPATHLEN, "%s", path_.c_str());
           }
 
           if(stat(from, &st) || !S_ISREG(st.st_mode)) continue;
 
-          snprintf(to, PATH_MAX, "%s.%d.Z", path_.c_str(), i);
+          snprintf(to, MAXPATHLEN, "%s.%d.Z", path_.c_str(), i);
 
           int from_fd = ::open(from, LOGGER_FROM_FLAGS, LOGGER_OPEN_PERMS);
           if(from_fd < 0) continue;
