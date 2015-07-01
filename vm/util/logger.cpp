@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include <syslog.h>
-#include <stdarg.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>

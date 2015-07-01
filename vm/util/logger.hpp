@@ -2,6 +2,7 @@
 #define RBX_UTIL_LOGGER_HPP
 
 #include <string>
+#include <stdarg.h>
 
 namespace rubinius {
   namespace utilities {
