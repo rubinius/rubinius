@@ -233,7 +233,9 @@ namespace rubinius {
       expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
 
       utilities::logger::open(utilities::logger::eFileLogger,
-          config.system_log.value.c_str(), level);
+          config.system_log.value.c_str(), level,
+          config.system_log_limit.value,
+          config.system_log_archives.value);
     }
   }
 

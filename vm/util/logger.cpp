@@ -23,8 +23,9 @@ namespace rubinius {
       static Logger* logger_ = 0;
       static logger_level loglevel_ = eWarn;
 
-      void open(logger_type type, const char* identifier, logger_level level) {
+      void open(logger_type type, const char* identifier, logger_level level, ...) {
         lock_.init();
+        va_list varargs;
 
         switch(type) {
         case eSyslog:
@@ -34,7 +35,9 @@ namespace rubinius {
           logger_ = new ConsoleLogger(identifier);
           break;
         case eFileLogger:
-          logger_ = new FileLogger(identifier);
+          va_start(varargs, level);
+          logger_ = new FileLogger(identifier, varargs);
+          va_end(varargs);
           break;
         }
 
@@ -281,14 +284,13 @@ namespace rubinius {
       }
 
 #define LOGGER_MAX_COPY_BUF 1048576
-#define LOGGER_MAX_FILE     10485760
 #define LOGGER_OPEN_FLAGS   (O_CREAT | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_REOPEN_FLAGS (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_FROM_FLAGS   (O_RDONLY | O_CLOEXEC)
 #define LOGGER_TO_FLAGS     (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_OPEN_PERMS   0600
 
-      FileLogger::FileLogger(const char* path)
+      FileLogger::FileLogger(const char* path, va_list varargs)
         : Logger()
         , path_(path)
       {
@@ -296,6 +298,9 @@ namespace rubinius {
         label << " [" << getpid() << "] ";
 
         identifier_ = label.str();
+
+        limit_ = va_arg(varargs, long);
+        archives_ = va_arg(varargs, long);
 
         logger_fd_ = ::open(path, LOGGER_OPEN_FLAGS, LOGGER_OPEN_PERMS);
       }
@@ -323,16 +328,16 @@ namespace rubinius {
         char* to = (char*)malloc(PATH_MAX);
         if(!to) return;
 
-        for(int i = 4; i >= 0; i--) {
-          if(i > 0) {
-            snprintf(from, PATH_MAX, "%s.%d.Z", path_.c_str(), i);
+        for(int i = archives_; i > 0; i--) {
+          if(i > 1) {
+            snprintf(from, PATH_MAX, "%s.%d.Z", path_.c_str(), i - 1);
           } else {
             snprintf(from, PATH_MAX, "%s", path_.c_str());
           }
 
           if(stat(from, &st) || !S_ISREG(st.st_mode)) continue;
 
-          snprintf(to, PATH_MAX, "%s.%d.Z", path_.c_str(), i + 1);
+          snprintf(to, PATH_MAX, "%s.%d.Z", path_.c_str(), i);
 
           int from_fd = ::open(from, LOGGER_FROM_FLAGS, LOGGER_OPEN_PERMS);
           if(from_fd < 0) continue;
@@ -385,7 +390,7 @@ namespace rubinius {
         }
         write_status_ = ::write(logger_fd_, message, size);
 
-        if(lseek(logger_fd_, 0, SEEK_END) > LOGGER_MAX_FILE) {
+        if(lseek(logger_fd_, 0, SEEK_END) > limit_) {
           rotate();
         }
       }

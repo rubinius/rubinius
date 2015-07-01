@@ -21,7 +21,7 @@ namespace rubinius {
       };
 
 
-      void open(logger_type type, const char* identifier, logger_level level=eWarn);
+      void open(logger_type type, const char* identifier, logger_level level=eWarn, ...);
       void close();
 
       void write(const char* message, ...);
@@ -88,6 +88,8 @@ namespace rubinius {
         std::string path_;
         std::string identifier_;
         int logger_fd_;
+        long limit_;
+        long archives_;
         int write_status_;
 
         void write_log(const char* level, const char* message, int size);
@@ -96,7 +98,7 @@ namespace rubinius {
 
       public:
 
-        FileLogger(const char* path);
+        FileLogger(const char* path, va_list varargs);
         ~FileLogger();
 
         void write(const char* message, int size);
