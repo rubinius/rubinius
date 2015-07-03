@@ -12,6 +12,10 @@
 
 namespace rubinius {
 
+  namespace diagnostics {
+    class SystemDiagnostics;
+  }
+
   class ConfigParser;
   class QueryAgent;
   class SignalThread;
@@ -65,6 +69,8 @@ namespace rubinius {
 
     TypedRoot<Object*>* loader_;
 
+    diagnostics::SystemDiagnostics* diagnostics_;
+
   public:
     SharedState* shared;
     VM* root_vm;
@@ -87,6 +93,10 @@ namespace rubinius {
 
     Object* loader() {
       return loader_->get();
+    }
+
+    diagnostics::SystemDiagnostics* diagnostics() {
+      return diagnostics_;
     }
 
     void set_root_vm(VM* vm) {
@@ -130,6 +140,7 @@ namespace rubinius {
     void atexit();
 
     void start_finalizer(STATE);
+    void start_diagnostics(STATE);
 
     void start_signals(STATE);
     void stop_signals(STATE);
@@ -140,7 +151,6 @@ namespace rubinius {
     void start_jit(STATE);
     void stop_jit(STATE);
   };
-
 }
 
 #endif

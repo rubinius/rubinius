@@ -23,7 +23,7 @@ namespace rubinius {
       : gc(gc)
     {}
 
-    VM* state();
+    VM* vm();
     bool mature_gc_in_progress();
 
     Object* call(Object*);

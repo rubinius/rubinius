@@ -18,6 +18,7 @@
 #include "builtin/compiled_code.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/data.hpp"
+#include "builtin/diagnostics.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/executable.hpp"
@@ -368,6 +369,7 @@ namespace rubinius {
     FSEvent::init(state);
     Logger::init(state);
     JIT::init(state);
+    Diagnostics::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

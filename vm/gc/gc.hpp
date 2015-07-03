@@ -159,7 +159,7 @@ namespace rubinius {
 
     void verify(GCData* data);
 
-    VM* state();
+    VM* vm();
     ObjectMemory* object_memory() {
       return object_memory_;
     }

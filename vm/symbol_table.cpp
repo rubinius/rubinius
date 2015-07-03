@@ -12,10 +12,20 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
+#include "util/logger.hpp"
+
 #include <iostream>
 #include <iomanip>
 
 namespace rubinius {
+  void SymbolTable::Diagnostics::log() {
+    if(!modified_p()) return;
+
+    diagnostics::Diagnostics::log();
+
+    utilities::logger::write("symbol table: diagnostics: symbols: %ld, bytes: %ld",
+        objects_, bytes_);
+  }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
     std::string str = strings[sym->index()];
@@ -85,6 +95,10 @@ namespace rubinius {
 
   size_t SymbolTable::add(STATE, std::string str, int enc) {
     size_t bytes = (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
+    diagnostics_.objects_++;
+    diagnostics_.bytes_ += bytes;
+    diagnostics_.modify();
+
     bytes_used_ += bytes;
 
     strings.push_back(str);

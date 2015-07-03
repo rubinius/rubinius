@@ -52,27 +52,41 @@ namespace rubinius {
 
   Object* object_watch = 0;
 
+  void ObjectMemory::Diagnostics::log() {
+    diagnostics::Diagnostics::log();
+
+    baker_->diagnostics().log();
+    immix_->diagnostics().log();
+    mark_sweep_->diagnostics().log();
+    headers_->diagnostics().log();
+    handles_->diagnostics().log();
+    code_->diagnostics().log();
+    symbols_->diagnostics().log();
+  }
+
   /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(VM* state, Configuration& config)
-    : young_(new BakerGC(this, config))
-    , mark_sweep_(new MarkSweepGC(this, config))
+  ObjectMemory::ObjectMemory(VM* vm, SharedState& shared)
+    : young_(new BakerGC(this, shared.config))
+    , mark_sweep_(new MarkSweepGC(this, shared.config))
     , immix_(new ImmixGC(this))
     , immix_marker_(NULL)
     , inflated_headers_(new InflatedHeaders)
     , capi_handles_(new capi::Handles)
-    , code_manager_(&state->shared)
+    , code_manager_(&vm->shared)
     , mark_(2)
     , allow_gc_(true)
-    , mature_mark_concurrent_(config.gc_immix_concurrent)
+    , mature_mark_concurrent_(shared.config.gc_immix_concurrent)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
-    , shared_(state->shared)
+    , shared_(vm->shared)
+    , diagnostics_(Diagnostics(young_, immix_, mark_sweep_,
+          inflated_headers_, capi_handles_, &code_manager_, &shared.symbols))
     , collect_young_now(false)
     , collect_mature_now(false)
-    , root_state_(state)
+    , vm_(vm)
     , last_object_id(1)
     , last_snapshot_id(0)
-    , large_object_threshold(config.gc_large_object)
+    , large_object_threshold(shared.config.gc_large_object)
   {
     // TODO Not sure where this code should be...
 #ifdef ENABLE_OBJECT_WATCH
@@ -88,7 +102,7 @@ namespace rubinius {
 
     TypeInfo::init(this);
 
-    gc_malloc_threshold = config.gc_malloc_threshold;
+    gc_malloc_threshold = shared.config.gc_malloc_threshold;
     bytes_until_collection = gc_malloc_threshold;
   }
 
@@ -112,6 +126,7 @@ namespace rubinius {
     global_capi_handle_locations_.clear();
 
     delete capi_handles_;
+
     // Must be last
     delete inflated_headers_;
   }
@@ -119,6 +134,7 @@ namespace rubinius {
   void ObjectMemory::after_fork_child(STATE) {
     contention_lock_.init();
     mature_gc_in_progress_ = false;
+    vm_ = state->vm();
   }
 
   void ObjectMemory::assign_object_id(STATE, Object* obj) {
@@ -457,12 +473,12 @@ step1:
 
   Object* ObjectMemory::promote_object(Object* obj) {
 
-    size_t sz = obj->size_in_bytes(root_state_);
+    size_t sz = obj->size_in_bytes(vm());
 
     Object* copy = immix_->move_object(obj, sz);
 
-    state()->metrics().memory.promoted_objects++;
-    state()->metrics().memory.promoted_bytes += sz;
+    vm()->metrics().memory.promoted_objects++;
+    vm()->metrics().memory.promoted_bytes += sz;
 
     if(unlikely(!copy)) {
       copy = mark_sweep_->move_object(obj, sz, &collect_mature_now);
@@ -741,8 +757,8 @@ step1:
       obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       if(unlikely(!obj)) return NULL;
 
-      state()->metrics().memory.immix_objects++;
-      state()->metrics().memory.immix_bytes += bytes;
+      vm()->metrics().memory.immix_objects++;
+      vm()->metrics().memory.immix_bytes += bytes;
 
       if(collect_mature_now) shared_.gc_soon();
 
@@ -758,13 +774,13 @@ step1:
           obj = mark_sweep_->allocate(bytes, &collect_mature_now);
         }
 
-        state()->metrics().memory.immix_objects++;
-        state()->metrics().memory.immix_bytes += bytes;
+        vm()->metrics().memory.immix_objects++;
+        vm()->metrics().memory.immix_bytes += bytes;
 
         if(collect_mature_now) shared_.gc_soon();
       } else {
-        state()->metrics().memory.young_objects++;
-        state()->metrics().memory.young_bytes += bytes;
+        vm()->metrics().memory.young_objects++;
+        vm()->metrics().memory.young_bytes += bytes;
       }
     }
 
@@ -791,8 +807,8 @@ step1:
         obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       }
 
-      state()->metrics().memory.immix_objects++;
-      state()->metrics().memory.immix_bytes += bytes;
+      vm()->metrics().memory.immix_objects++;
+      vm()->metrics().memory.immix_bytes += bytes;
     }
 
     if(collect_mature_now) shared_.gc_soon();
@@ -858,8 +874,8 @@ step1:
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     if(unlikely(!obj)) return NULL;
 
-    state()->metrics().memory.large_objects++;
-    state()->metrics().memory.large_bytes += bytes;
+    vm()->metrics().memory.large_objects++;
+    vm()->metrics().memory.large_bytes += bytes;
 
     obj->clear_fields(bytes);
     return obj;

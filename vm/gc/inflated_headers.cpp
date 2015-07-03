@@ -6,6 +6,8 @@
 #include <iostream>
 
 namespace rubinius {
+  void InflatedHeaders::Diagnostics::log() {
+  }
 
   InflatedHeader* InflatedHeaders::allocate(STATE, ObjectHeader* obj, uint32_t* index) {
     bool needs_gc = false;
