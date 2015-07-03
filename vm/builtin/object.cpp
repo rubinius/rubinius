@@ -872,24 +872,26 @@ namespace rubinius {
 
     if(dis.resolve(state, name, lookup)) {
       return cTrue;
-    } else if(instance_of<BasicObject>(self)) {
-      return cFalse;
     } else {
       LookupData lookup(self, self->lookup_begin(state), G(sym_private));
       Symbol* missing = G(sym_respond_to_missing);
       Dispatch dis(missing);
 
-      Object* buf[2];
-      buf[0] = name;
-      buf[1] = priv;
+      if(dis.resolve(state, missing, lookup)) {
+        Object* buf[2];
+        buf[0] = name;
+        buf[1] = priv;
 
-      Arguments args(missing, self, 2, buf);
-      OnStack<3> os(state, self, name, priv);
-      Object* responds = dis.send(state, 0, lookup, args);
+        Arguments args(missing, self, 2, buf);
+        OnStack<3> os(state, self, name, priv);
+        Object* responds = dis.send(state, 0, lookup, args);
 
-      if(!responds) return NULL;
+        if(!responds) return NULL;
 
-      return RBOOL(CBOOL(responds));
+        return RBOOL(CBOOL(responds));
+      } else {
+        return cFalse;
+      }
     }
   }
 
