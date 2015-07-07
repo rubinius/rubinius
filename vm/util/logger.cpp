@@ -287,7 +287,6 @@ namespace rubinius {
 #define LOGGER_REOPEN_FLAGS (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_FROM_FLAGS   (O_RDONLY | O_CLOEXEC)
 #define LOGGER_TO_FLAGS     (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
-#define LOGGER_OPEN_PERMS   0600
 
       FileLogger::FileLogger(const char* path, va_list varargs)
         : Logger()
@@ -300,8 +299,9 @@ namespace rubinius {
 
         limit_ = va_arg(varargs, long);
         archives_ = va_arg(varargs, long);
+        perms_ = va_arg(varargs, int);
 
-        logger_fd_ = ::open(path, LOGGER_OPEN_FLAGS, LOGGER_OPEN_PERMS);
+        logger_fd_ = ::open(path, LOGGER_OPEN_FLAGS, perms_);
       }
 
       FileLogger::~FileLogger() {
@@ -338,10 +338,10 @@ namespace rubinius {
 
           snprintf(to, MAXPATHLEN, "%s.%d.Z", path_.c_str(), i);
 
-          int from_fd = ::open(from, LOGGER_FROM_FLAGS, LOGGER_OPEN_PERMS);
+          int from_fd = ::open(from, LOGGER_FROM_FLAGS, perms_);
           if(from_fd < 0) continue;
 
-          int to_fd = ::open(to, LOGGER_TO_FLAGS, LOGGER_OPEN_PERMS);
+          int to_fd = ::open(to, LOGGER_TO_FLAGS, perms_);
           if(to_fd < 0) {
             ::close(from_fd);
             continue;
@@ -374,7 +374,7 @@ namespace rubinius {
         free(from);
         free(to);
 
-        logger_fd_ = ::open(path_.c_str(), LOGGER_REOPEN_FLAGS, LOGGER_OPEN_PERMS);
+        logger_fd_ = ::open(path_.c_str(), LOGGER_REOPEN_FLAGS, perms_);
       }
 
       void FileLogger::write_log(const char* level, const char* message, int size) {

@@ -91,6 +91,7 @@ namespace rubinius {
         int logger_fd_;
         long limit_;
         long archives_;
+        int perms_;
         int write_status_;
 
         void write_log(const char* level, const char* message, int size);

@@ -173,6 +173,9 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "log.archives", 5,
       "The number of prior logs that will be saved as '$(system.log).N.Z' zip files"
 
+    s.vm_variable "log.access", 0600,
+      "Permissions on the log file"
+
     s.vm_variable "log.level", "warn",
       "Logging level: fatal, error, warn, info, debug"
 
