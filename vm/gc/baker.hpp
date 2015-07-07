@@ -62,13 +62,13 @@ namespace rubinius {
     public:
       const static int cPercentTiles = 10;
 
-      double occupancy_histo_[cPercentTiles];
+      int64_t occupancy_histo_[cPercentTiles];
 
       Diagnostics()
         : diagnostics::Diagnostics()
       {
         for(int i = 0; i < cPercentTiles; i++) {
-          occupancy_histo_[i] = 0.0;
+          occupancy_histo_[i] = 0;
         }
       }
 
@@ -76,6 +76,7 @@ namespace rubinius {
         if(percentage < 0.0 || percentage > 100.0) return;
 
         occupancy_histo_[int(percentage / cPercentTiles)]++;
+        modify();
       }
 
       void log();

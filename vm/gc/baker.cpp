@@ -60,8 +60,8 @@ namespace rubinius {
     diagnostics::Diagnostics::log();
 
     utilities::logger::write("baker: diagnostics: " \
-        "10%: %ld, 20%: %ld, 30%: %ld, 40%: %ld, 50%: %ld, " \
-        "60%: %ld, 70%: %ld, 80%: %ld, 90%: %ld",
+        "10%%: %ld, 20%%: %ld, 30%%: %ld, 40%%: %ld, 50%%: %ld, " \
+        "60%%: %ld, 70%%: %ld, 80%%: %ld, 90%%: %ld",
         occupancy_histo_[0], occupancy_histo_[1], occupancy_histo_[2],
         occupancy_histo_[3], occupancy_histo_[4], occupancy_histo_[5],
         occupancy_histo_[6], occupancy_histo_[7], occupancy_histo_[8]);
