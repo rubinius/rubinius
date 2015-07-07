@@ -7,10 +7,20 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
+#include "util/logger.hpp"
+
 #include <iostream>
 #include <iomanip>
 
 namespace rubinius {
+  void SymbolTable::Diagnostics::log() {
+    if(!modified_p()) return;
+
+    diagnostics::Diagnostics::log();
+
+    utilities::logger::write("symbol table: diagnostics: symbols: %ld, bytes: %ld",
+        objects_, bytes_);
+  }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
     std::string str = strings[sym->index()];
@@ -64,16 +74,26 @@ namespace rubinius {
     return k;
   }
 
-  size_t SymbolTable::add(std::string str) {
-    bytes_used_ += (str.size() + sizeof(std::string) + sizeof(Kind));
+  size_t SymbolTable::add(STATE, std::string str) {
+    size_t bytes = (str.size() + sizeof(std::string) + sizeof(Kind));
+
+    diagnostics_.objects_++;
+    diagnostics_.bytes_ += bytes;
+    diagnostics_.modify();
+
+    bytes_used_ += bytes;
 
     strings.push_back(str);
     kinds.push_back(eUnknown);
+
+    state->vm()->metrics().memory.symbols++;
+    state->vm()->metrics().memory.symbols_bytes += bytes;
+
     return strings.size() - 1;
   }
 
   Symbol* SymbolTable::lookup(STATE, const char* str, size_t length) {
-    return lookup(str, length, state->hash_seed());
+    return lookup(state, str, length, state->hash_seed());
   }
 
   struct SpecialOperator {
@@ -107,15 +127,15 @@ namespace rubinius {
     return 0;
   }
 
-  Symbol* SymbolTable::lookup(SharedState* shared, const std::string& str) {
-    return lookup(str.data(), str.size(), shared->hash_seed);
+  Symbol* SymbolTable::lookup(STATE, SharedState* shared, const std::string& str) {
+    return lookup(state, str.data(), str.size(), shared->hash_seed);
   }
 
   Symbol* SymbolTable::lookup(STATE, const std::string& str) {
-    return lookup(str.data(), str.size(), state->hash_seed());
+    return lookup(state, str.data(), str.size(), state->hash_seed());
   }
 
-  Symbol* SymbolTable::lookup(const char* str, size_t length, uint32_t seed) {
+  Symbol* SymbolTable::lookup(STATE, const char* str, size_t length, uint32_t seed) {
     size_t sym;
 
     if(const char* op = find_special(str, length)) {
@@ -131,7 +151,7 @@ namespace rubinius {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       SymbolMap::iterator entry = symbols.find(hash);
       if(entry == symbols.end()) {
-        sym = add(std::string(str, length));
+        sym = add(state, std::string(str, length));
         SymbolIds v(1, sym);
         symbols[hash] = v;
       } else {
@@ -141,7 +161,7 @@ namespace rubinius {
 
           if(!strncmp(s.data(), str, length)) return Symbol::from_index(*i);
         }
-        sym = add(std::string(str, length));
+        sym = add(state, std::string(str, length));
         v.push_back(sym);
       }
     }
@@ -171,7 +191,7 @@ namespace rubinius {
       return NULL;
     }
 
-    return lookup(bytes, size, state->hash_seed());
+    return lookup(state, bytes, size, state->hash_seed());
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {

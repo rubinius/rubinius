@@ -3,10 +3,10 @@
 
 #include "prelude.hpp"
 #include "type_info.hpp"
-
 #include "object_position.hpp"
-
 #include "oop.hpp"
+#include "diagnostics.hpp"
+
 #include "gc/code_manager.hpp"
 #include "gc/finalize.hpp"
 #include "gc/write_barrier.hpp"
@@ -68,7 +68,33 @@ namespace rubinius {
    */
 
   class ObjectMemory : public gc::WriteBarrier {
+  public:
+    class Diagnostics : public diagnostics::Diagnostics {
+      BakerGC* baker_;
+      ImmixGC* immix_;
+      MarkSweepGC* mark_sweep_;
+      InflatedHeaders* headers_;
+      capi::Handles* handles_;
+      CodeManager* code_;
+      SymbolTable* symbols_;
 
+    public:
+      Diagnostics(BakerGC* baker, ImmixGC* immix, MarkSweepGC* mark_sweep,
+          InflatedHeaders* inflated_headers, capi::Handles* capi_handles,
+          CodeManager* code_manager, SymbolTable* symbols)
+        : baker_(baker)
+        , immix_(immix)
+        , mark_sweep_(mark_sweep)
+        , headers_(inflated_headers)
+        , handles_(capi_handles)
+        , code_(code_manager)
+        , symbols_(symbols)
+      { }
+
+      void log();
+    };
+
+  private:
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
 
@@ -119,6 +145,8 @@ namespace rubinius {
 
     SharedState& shared_;
 
+    Diagnostics diagnostics_;
+
   public:
     /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;
@@ -126,7 +154,7 @@ namespace rubinius {
     /// Flag indicating whether a full collection should be performed soon
     bool collect_mature_now;
 
-    VM* root_state_;
+    VM* vm_;
     /// Counter used for issuing object ids when #object_id is called on a
     /// Ruby object.
     size_t last_object_id;
@@ -137,8 +165,12 @@ namespace rubinius {
     size_t large_object_threshold;
 
   public:
-    VM* state() {
-      return root_state_;
+    void set_vm(VM* vm) {
+      vm_ = vm;
+    }
+
+    VM* vm() {
+      return vm_;
     }
 
     unsigned int mark() const {
@@ -202,7 +234,7 @@ namespace rubinius {
     ObjectArray* weak_refs_set();
 
   public:
-    ObjectMemory(VM* state, Configuration& config);
+    ObjectMemory(VM* state, SharedState& shared);
     ~ObjectMemory();
 
     void after_fork_child(STATE);
@@ -277,10 +309,9 @@ namespace rubinius {
     bool inflate_for_contention(STATE, ObjectHeader* obj);
 
     bool valid_object_p(Object* obj);
-    void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
 
-    void add_code_resource(CodeResource* cr);
+    void add_code_resource(STATE, CodeResource* cr);
     void memstats();
 
     void validate_handles(capi::Handles* handles);
@@ -289,22 +320,11 @@ namespace rubinius {
 
     ObjectPosition validate_object(Object* obj);
 
-    size_t young_bytes_allocated() const;
-    size_t mature_bytes_allocated() const;
-    size_t code_bytes_allocated() const;
-    size_t symbol_bytes_allocated() const;
-    size_t jit_bytes_allocated() const;
-
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 
     void needs_finalization(Object* obj, FinalizerFunction func,
         FinalizeObject::FinalizeKind kind = FinalizeObject::eManaged);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
-
-    size_t& loe_usage();
-    size_t& young_usage();
-    size_t& immix_usage();
-    size_t& code_usage();
 
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
@@ -320,6 +340,10 @@ namespace rubinius {
 
     void clear_mature_mark_in_progress() {
       mature_gc_in_progress_ = false;
+    }
+
+    Diagnostics& diagnostics() {
+      return diagnostics_;
     }
 
     immix::MarkStack& mature_mark_stack();

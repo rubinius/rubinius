@@ -1,7 +1,10 @@
 #ifndef RBX_GC_CODE_MANAGER
 #define RBX_GC_CODE_MANAGER
 
+#include "diagnostics.hpp"
 #include "util/thread.hpp"
+
+#include <stdint.h>
 
 namespace rubinius {
   class CodeResource;
@@ -24,6 +27,20 @@ namespace rubinius {
    */
 
   class CodeManager {
+  public:
+    class Diagnostics : public diagnostics::MemoryDiagnostics {
+    public:
+      int64_t chunks_;
+
+      Diagnostics()
+        : diagnostics::MemoryDiagnostics()
+        , chunks_(0)
+      { }
+
+      void log();
+    };
+
+  private:
     const static int cDefaultChunkSize = 64;
     const static int cGCTriggerThreshold = 64 * 1024 * 1024;
 
@@ -60,6 +77,8 @@ namespace rubinius {
 
     size_t bytes_used_;
 
+    Diagnostics diagnostics_;
+
   public:
     int freed_resources() const {
       return freed_resources_;
@@ -83,6 +102,10 @@ namespace rubinius {
 
     size_t size() const {
       return bytes_used_;
+    }
+
+    Diagnostics& diagnostics() {
+      return diagnostics_;
     }
 
   public:

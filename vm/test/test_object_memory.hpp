@@ -304,8 +304,6 @@ public:
     ObjectMemory& om = *state->memory();
     Object* mature;
 
-    om.debug_marksweep(true);
-
     om.large_object_threshold = 10;
 
     mature = util_new_object(om,20);

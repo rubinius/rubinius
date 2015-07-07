@@ -6,8 +6,8 @@
 #include "vm.hpp"
 
 namespace rubinius {
-  VM* ObjectMark::state() {
-    return gc->state();
+  VM* ObjectMark::vm() {
+    return gc->vm();
   }
 
   bool ObjectMark::mature_gc_in_progress() {

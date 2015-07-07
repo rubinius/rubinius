@@ -122,7 +122,7 @@ namespace rubinius {
   void VM::initialize_as_root() {
     set_current_thread();
 
-    om = new ObjectMemory(this, shared.config);
+    om = new ObjectMemory(this, shared);
     shared.om = om;
 
     allocation_tracking_ = shared.config.allocation_tracking;

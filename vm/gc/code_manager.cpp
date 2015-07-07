@@ -5,6 +5,16 @@
 #include "gc/code_resource.hpp"
 
 namespace rubinius {
+  void CodeManager::Diagnostics::log() {
+    if(!modified_p()) return;
+
+    diagnostics::Diagnostics::log();
+
+    utilities::logger::write("code manager: diagnostics: " \
+        "chunks: %ld, objects: %ld, bytes: %ld",
+        chunks_, objects_, bytes_);
+  }
+
   CodeManager::Chunk::Chunk(int size)
     : next(0)
   {
@@ -28,6 +38,7 @@ namespace rubinius {
     , total_freed_(0)
     , gc_triggered_(0)
     , bytes_used_(0)
+    , diagnostics_(Diagnostics())
   {
     first_chunk_ = new Chunk(chunk_size_);
     last_chunk_ = first_chunk_;
@@ -57,6 +68,7 @@ namespace rubinius {
     last_chunk_->next = c;
     last_chunk_ = c;
     current_chunk_ = c;
+    diagnostics_.chunks_++;
   }
 
   void CodeManager::add_resource(CodeResource* cr, bool* collect_now) {
@@ -110,6 +122,9 @@ namespace rubinius {
           } else {
             chunk_used = true;
             cr->clear_mark();
+
+            diagnostics_.objects_++;
+            diagnostics_.bytes_ += cr->size();
           }
         }
       }
@@ -133,10 +148,13 @@ namespace rubinius {
         }
         delete chunk;
         chunk = prev->next;
+        diagnostics_.chunks_--;
       } else {
         prev = chunk;
         chunk = chunk->next;
       }
+
+      diagnostics_.modify();
     }
   }
 

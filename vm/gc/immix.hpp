@@ -19,6 +19,28 @@ namespace rubinius {
    */
 
   class ImmixGC : public GarbageCollector {
+  public:
+    class Diagnostics : public diagnostics::MemoryDiagnostics {
+    public:
+      int64_t total_bytes_;
+      int64_t chunks_;
+      int64_t blocks_;
+      int64_t holes_;
+      double percentage_;
+
+      Diagnostics()
+        : diagnostics::MemoryDiagnostics()
+        , total_bytes_(0)
+        , chunks_(0)
+        , blocks_(0)
+        , holes_(0)
+        , percentage_(0.0)
+      { }
+
+      void log();
+    };
+
+  private:
 
     /**
      * Class used as an interface to the Rubinius specific object memory layout
@@ -120,6 +142,7 @@ namespace rubinius {
     int marked_objects_;
     int chunks_left_;
     int chunks_before_collection_;
+    Diagnostics diagnostics_;
 
   public:
     ImmixGC(ObjectMemory* om);
@@ -165,6 +188,10 @@ namespace rubinius {
 
     void reset_chunks_left() {
       chunks_left_ = chunks_before_collection_;
+    }
+
+    Diagnostics& diagnostics() {
+      return diagnostics_;
     }
 
     void start_marker(STATE);

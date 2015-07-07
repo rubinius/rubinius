@@ -2,6 +2,7 @@
 #define RBX_UTIL_LOGGER_HPP
 
 #include <string>
+#include <stdarg.h>
 
 namespace rubinius {
   namespace utilities {
@@ -21,7 +22,7 @@ namespace rubinius {
       };
 
 
-      void open(logger_type type, const char* identifier, logger_level level=eWarn);
+      void open(logger_type type, const char* identifier, logger_level level=eWarn, ...);
       void close();
 
       void write(const char* message, ...);
@@ -68,14 +69,13 @@ namespace rubinius {
       };
 
       class ConsoleLogger : public Logger {
-        std::string* identifier_;
+        std::string identifier_;
 
         void write_log(const char* level, const char* message, int size);
 
       public:
 
         ConsoleLogger(const char* identifier);
-        ~ConsoleLogger();
 
         void write(const char* message, int size);
         void fatal(const char* message, int size);
@@ -86,15 +86,21 @@ namespace rubinius {
       };
 
       class FileLogger : public Logger {
-        std::string* identifier_;
+        std::string path_;
+        std::string identifier_;
         int logger_fd_;
+        long limit_;
+        long archives_;
+        int perms_;
         int write_status_;
 
         void write_log(const char* level, const char* message, int size);
+        void rotate();
+        void cleanup();
 
       public:
 
-        FileLogger(const char* identifier);
+        FileLogger(const char* path, va_list varargs);
         ~FileLogger();
 
         void write(const char* message, int size);

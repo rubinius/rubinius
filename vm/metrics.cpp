@@ -1,10 +1,12 @@
 #include "vm.hpp"
 #include "metrics.hpp"
 
+#include "environment.hpp"
 #include "object_utils.hpp"
 #include "shared_state.hpp"
 #include "configuration.hpp"
 #include "ontology.hpp"
+#include "system_diagnostics.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
@@ -292,6 +294,8 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.concurrent.ms", metrics_data_.gc.immix_concurrent_ms));
       metrics_map_.push_back(new MetricsItem(
+            "gc.immix.diagnostics.us", metrics_data_.gc.immix_diagnostics_us));
+      metrics_map_.push_back(new MetricsItem(
             "gc.large.count", metrics_data_.gc.large_count));
       metrics_map_.push_back(new MetricsItem(
             "gc.large.sweep.us", metrics_data_.gc.large_sweep_us));
@@ -459,6 +463,10 @@ namespace rubinius {
       }
     }
 
+    void Metrics::log_diagnostics(STATE) {
+      state->shared().env()->diagnostics()->log();
+    }
+
     void Metrics::run(STATE) {
       timer_->set(interval_);
 
@@ -469,6 +477,8 @@ namespace rubinius {
         }
 
         if(thread_exit_) break;
+
+        log_diagnostics(state);
 
         metrics_data_ = MetricsData();
         ThreadList* threads = state->shared().threads();

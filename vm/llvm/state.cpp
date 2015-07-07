@@ -207,6 +207,8 @@ namespace rubinius {
   }
 
   void LLVMState::run(STATE) {
+    state_ = state;
+
     GCTokenImpl gct;
     JITCompileRequest* compile_request = nil<JITCompileRequest>();
     OnStack<1> os(state, compile_request);
@@ -391,7 +393,7 @@ namespace rubinius {
   }
 
   Symbol* LLVMState::symbol(const std::string& sym) {
-    return symbols_.lookup(&shared_, sym);
+    return symbols_.lookup(state(), &shared_, sym);
   }
 
   std::string LLVMState::symbol_debug_str(const Symbol* sym) {

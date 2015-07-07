@@ -6,8 +6,8 @@
 #include "config_parser.hpp"
 #include "compiled_file.hpp"
 #include "object_memory.hpp"
-
 #include "exception.hpp"
+#include "system_diagnostics.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -207,6 +207,11 @@ namespace rubinius {
     finalizer_thread_->start(state);
   }
 
+  void Environment::start_diagnostics(STATE) {
+    diagnostics_ = new diagnostics::SystemDiagnostics(
+        state->shared().memory()->diagnostics());
+  }
+
   void Environment::start_logging(STATE) {
     utilities::logger::logger_level level = utilities::logger::eWarn;
 
@@ -232,7 +237,10 @@ namespace rubinius {
       expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
 
       utilities::logger::open(utilities::logger::eFileLogger,
-          config.system_log.value.c_str(), level);
+          config.system_log.value.c_str(), level,
+          config.system_log_limit.value,
+          config.system_log_archives.value,
+          config.system_log_access.value);
     }
   }
 
@@ -833,6 +841,7 @@ namespace rubinius {
     load_platform_conf(runtime);
     boot_vm();
 
+    start_diagnostics(state);
     start_finalizer(state);
 
     load_argv(argc_, argv_);

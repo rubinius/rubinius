@@ -42,6 +42,7 @@ namespace rubinius {
     , current(heap_a)
     , next(heap_b)
     , lifetime_(config.gc_young_lifetime)
+    , diagnostics_(Diagnostics())
   {
     reset();
   }
@@ -51,6 +52,19 @@ namespace rubinius {
     delete heap_b;
     delete eden;
     delete full;
+  }
+
+  void BakerGC::Diagnostics::log() {
+    if(!modified_p()) return;
+
+    diagnostics::Diagnostics::log();
+
+    utilities::logger::write("baker: diagnostics: " \
+        "10%: %ld, 20%: %ld, 30%: %ld, 40%: %ld, 50%: %ld, " \
+        "60%: %ld, 70%: %ld, 80%: %ld, 90%: %ld",
+        occupancy_histo_[0], occupancy_histo_[1], occupancy_histo_[2],
+        occupancy_histo_[3], occupancy_histo_[4], occupancy_histo_[5],
+        occupancy_histo_[6], occupancy_histo_[7], occupancy_histo_[8]);
   }
 
   /**
@@ -86,8 +100,8 @@ namespace rubinius {
 
       promoted_push(copy);
     } else if(likely(next->enough_space_p(
-                obj->size_in_bytes(object_memory_->state())))) {
-      copy = next->move_object(object_memory_->state(), obj);
+                obj->size_in_bytes(object_memory_->vm())))) {
+      copy = next->move_object(object_memory_->vm(), obj);
     } else {
       copy = object_memory_->promote_object(obj);
       promoted_push(copy);
@@ -106,11 +120,11 @@ namespace rubinius {
    * Scans the remaining unscanned portion of the Next heap.
    */
   void BakerGC::copy_unscanned() {
-    Object* iobj = next->next_unscanned(object_memory_->state());
+    Object* iobj = next->next_unscanned(object_memory_->vm());
 
     while(iobj) {
       if(!iobj->forwarded_p()) scan_object(iobj);
-      iobj = next->next_unscanned(object_memory_->state());
+      iobj = next->next_unscanned(object_memory_->vm());
     }
   }
 
@@ -269,6 +283,8 @@ namespace rubinius {
     Heap* x = next;
     next = current;
     current = x;
+
+    diagnostics_.record_occupancy(current->percentage_used());
   }
 
   void BakerGC::reset() {

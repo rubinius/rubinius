@@ -9,6 +9,7 @@
 #include "gc/gc.hpp"
 #include "gc/root.hpp"
 #include "object_position.hpp"
+#include "diagnostics.hpp"
 
 #include "builtin/object.hpp"
 
@@ -56,6 +57,32 @@ namespace rubinius {
    */
 
   class BakerGC : public GarbageCollector {
+  public:
+    class Diagnostics : public diagnostics::Diagnostics {
+    public:
+      const static int cPercentTiles = 10;
+
+      double occupancy_histo_[cPercentTiles];
+
+      Diagnostics()
+        : diagnostics::Diagnostics()
+      {
+        for(int i = 0; i < cPercentTiles; i++) {
+          occupancy_histo_[i] = 0.0;
+        }
+      }
+
+      void record_occupancy(double percentage) {
+        if(percentage < 0.0 || percentage > 100.0) return;
+
+        occupancy_histo_[int(percentage / cPercentTiles)]++;
+      }
+
+      void log();
+    };
+
+  private:
+
     unsigned int bytes_;
 
     /// The total memory heap allocated to the BakerGC
@@ -174,6 +201,8 @@ namespace rubinius {
     /// The current lifetime objects have to survive before being promoted
     unsigned int lifetime_;
 
+    Diagnostics diagnostics_;
+
     /**
      * Adds the specified object to the promoted objects stack.
      * Objects on the promoted_objects_ stack must be scanned after the
@@ -205,6 +234,10 @@ namespace rubinius {
     }
 
     void reset();
+
+    Diagnostics& diagnostics() {
+      return diagnostics_;
+    }
 
   public:
     /* Prototypes */

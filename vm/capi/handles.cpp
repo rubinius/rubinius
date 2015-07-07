@@ -3,9 +3,19 @@
 #include "gc/baker.hpp"
 #include "capi/capi.hpp"
 #include "capi/handles.hpp"
+#include "util/logger.hpp"
 
 namespace rubinius {
   namespace capi {
+    void Handles::Diagnostics::log() {
+      if(!modified_p()) return;
+
+      diagnostics::Diagnostics::log();
+
+      utilities::logger::write("C-API handles: diagnostics: " \
+          "objects: %ld, bytes: %ld, collections: %ld\n",
+          objects_, bytes_, collections_);
+    }
 
     Handle* Handles::allocate(STATE, Object* obj) {
       bool needs_gc = false;
@@ -13,8 +23,10 @@ namespace rubinius {
       handle->set_object(obj);
       handle->validate();
       if(needs_gc) {
+        diagnostics_.collections_++;
         state->memory()->collect_mature_now = true;
       }
+      diagnostics_.objects_++;
       atomic::memory_barrier();
       return handle;
     }
@@ -29,8 +41,10 @@ namespace rubinius {
       handle->set_object(obj);
       handle->validate();
       if(needs_gc) {
+        diagnostics_.collections_++;
         state->memory()->collect_mature_now = true;
       }
+      diagnostics_.objects_++;
       atomic::memory_barrier();
 
       if(handle_index > UINT32_MAX) {
@@ -58,7 +72,9 @@ namespace rubinius {
       delete allocator_;
     }
 
-    void Handles::deallocate_handles(std::list<Handle*>* cached, unsigned int mark, BakerGC* young) {
+    void Handles::deallocate_handles(std::list<Handle*>* cached,
+        unsigned int mark, BakerGC* young)
+    {
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
       for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
@@ -94,6 +110,7 @@ namespace rubinius {
               // A weakref pointing to a dead young object
               } else {
                 handle->clear();
+                diagnostics_.objects_--;
               }
             } else {
               // Not a young object, so won't be GC'd so mark
@@ -104,6 +121,7 @@ namespace rubinius {
           // A weakref pointing to a dead mature object
           } else if(!obj->marked_p(mark)) {
             handle->clear();
+            diagnostics_.objects_--;
           } else {
             chunk_marks[i] = true;
           }
@@ -122,6 +140,9 @@ namespace rubinius {
       }
 
       allocator_->rebuild_freelist(&chunk_marks);
+
+      diagnostics_.bytes_ = allocator_->in_use_;
+      diagnostics_.modify();
     }
   }
 }

@@ -22,6 +22,13 @@ public:
     destroy();
   }
 
+  void test_detect_kind_with_constant() {
+    Symbol* sym = symbols->lookup(state, "Pettson");
+    SymbolTable::Kind kind = symbols->detect_kind(state, sym);
+
+    TS_ASSERT_EQUALS(kind, SymbolTable::eConstant);
+  }
+
   void test_lookup_with_c_str() {
     Object* sym = symbols->lookup(state, std::string("unique"));
     TS_ASSERT(sym->symbol_p());

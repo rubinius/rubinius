@@ -54,6 +54,7 @@ namespace rubinius {
       metric immix_count;
       metric immix_stop_ms;
       metric immix_concurrent_ms;
+      metric immix_diagnostics_us;
       metric large_count;
       metric large_sweep_us;
       metric objects_queued;
@@ -65,6 +66,7 @@ namespace rubinius {
         immix_count = 0;
         immix_stop_ms = 0;
         immix_concurrent_ms = 0;
+        immix_diagnostics_us = 0;
         large_count = 0;
         large_sweep_us = 0;
         objects_queued = 0;
@@ -77,6 +79,7 @@ namespace rubinius {
         immix_count += data.immix_count;
         immix_stop_ms += data.immix_stop_ms;
         immix_concurrent_ms += data.immix_concurrent_ms;
+        immix_diagnostics_us += data.immix_diagnostics_us;
         large_count += data.large_count;
         large_sweep_us += data.large_sweep_us;
         objects_queued += data.objects_queued;
@@ -215,7 +218,6 @@ namespace rubinius {
         slab_refills_fails += data.slab_refills_fails;
         data_objects += data.data_objects;
         capi_handles += data.capi_handles;
-        capi_handles += data.capi_handles;
         inflated_headers += data.inflated_headers;
       }
     };
@@ -352,6 +354,8 @@ namespace rubinius {
 
       void init_ruby_metrics(STATE);
       void update_ruby_values(STATE);
+
+      void log_diagnostics(STATE);
 
       void disable(STATE) {
         enabled_ = false;

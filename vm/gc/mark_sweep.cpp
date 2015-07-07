@@ -14,6 +14,8 @@
 
 #include "instruments/timing.hpp"
 
+#include "util/logger.hpp"
+
 #include <iostream>
 #include <algorithm>
 
@@ -21,16 +23,21 @@ namespace rubinius {
 
   MarkSweepGC::MarkSweepGC(ObjectMemory *om, Configuration& config)
     : GarbageCollector(om)
-    , allocated_bytes(0)
-    , allocated_objects(0)
+    , diagnostics_(Diagnostics())
     , collection_threshold(config.gc_marksweep_threshold)
     , next_collection_bytes(collection_threshold)
-    , free_entries(true)
-    , times_collected(0)
-    , last_freed(0)
   {}
 
   MarkSweepGC::~MarkSweepGC() { }
+
+  void MarkSweepGC::Diagnostics::log() {
+    if(!modified_p()) return;
+
+    diagnostics::Diagnostics::log();
+
+    utilities::logger::write("mark_sweep: diagnostics: objects: %ld, bytes: %ld",
+        objects_, bytes_);
+  }
 
   void MarkSweepGC::free_objects() {
     std::list<Object*>::iterator i;
@@ -51,10 +58,13 @@ namespace rubinius {
         return NULL;
     }
 
-    entries.push_back(obj);
+    diagnostics_.objects_++;
+    diagnostics_.bytes_ += bytes;
 
-    object_memory_->state()->metrics().memory.large_objects++;
-    object_memory_->state()->metrics().memory.large_bytes += bytes;
+    object_memory_->vm()->metrics().memory.large_objects++;
+    object_memory_->vm()->metrics().memory.large_bytes += bytes;
+
+    entries.push_back(obj);
 
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
@@ -68,14 +78,11 @@ namespace rubinius {
   }
 
   void MarkSweepGC::free_object(Object* obj, bool fast) {
+    diagnostics_.objects_--;
+    diagnostics_.bytes_ -= obj->size_in_bytes(object_memory_->vm());
+
     if(!fast) {
       delete_object(obj);
-
-      last_freed++;
-
-      object_memory_->state()->metrics().memory.large_objects--;
-      object_memory_->state()->metrics().memory.large_bytes -=
-        obj->size_in_bytes(object_memory_->state());
     }
 
     obj->set_zone(UnspecifiedZone);
@@ -99,9 +106,9 @@ namespace rubinius {
 
   Object* MarkSweepGC::copy_object(Object* orig) {
     bool collect;
-    Object* obj = allocate(orig->size_in_bytes(object_memory_->state()), &collect);
+    Object* obj = allocate(orig->size_in_bytes(object_memory_->vm()), &collect);
 
-    obj->initialize_full_state(object_memory_->state(), orig, 0);
+    obj->initialize_full_state(object_memory_->vm(), orig, 0);
 
     return obj;
   }
@@ -120,11 +127,9 @@ namespace rubinius {
   }
 
   void MarkSweepGC::after_marked() {
-    metrics::MetricsData& metrics = object_memory_->state()->metrics();
+    metrics::MetricsData& metrics = object_memory_->vm()->metrics();
 
     timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
-
-    last_freed = 0;
 
     // Cleanup all weakrefs seen
     clean_weakrefs();
@@ -145,60 +150,8 @@ namespace rubinius {
         i = entries.erase(i);
       }
     }
-  }
 
-  /*
-  static bool sort_by_size(Object* a, Object* b) {
-    STATE = rubinius::VM::current_state();
-    size_t a_size = a->size_in_bytes(state);
-    size_t b_size = b->size_in_bytes(state);
-
-    return b_size < a_size;
-  }
-  */
-
-  struct PerClass {
-    int objects;
-    int bytes;
-
-    PerClass()
-      : objects(0)
-      , bytes(0)
-    {}
-  };
-
-  void MarkSweepGC::profile(STATE) {
-
-    std::map<Class*, PerClass> stats;
-
-    for(std::list<Object*>::iterator i = entries.begin();
-        i != entries.end();
-        ++i) {
-      Object* obj = *i;
-      Class* cls = obj->class_object(state);
-
-      std::map<Class*,PerClass>::iterator j = stats.find(cls);
-      if(j == stats.end()) {
-        PerClass pc;
-        pc.objects++;
-        pc.bytes += obj->size_in_bytes(object_memory_->state());
-
-        stats[cls] = pc;
-      } else {
-        j->second.objects++;
-        j->second.bytes += obj->size_in_bytes(object_memory_->state());
-      }
-    }
-
-    std::cout << stats.size() << " classes:\n";
-
-    for(std::map<Class*,PerClass>::iterator i = stats.begin();
-        i != stats.end();
-        ++i) {
-      std::cout << i->first->debug_str(state) << "\n"
-                << "  objects: " << i->second.objects << "\n"
-                << "    bytes: " << i->second.bytes << "\n";
-    }
+    diagnostics_.modify();
   }
 
   ObjectPosition MarkSweepGC::validate_object(Object* obj) {

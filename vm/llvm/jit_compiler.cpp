@@ -146,7 +146,8 @@ namespace jit {
                                    mci_->address(), mci_->size());
 
       // info.method()->set_jit_data(ctx.runtime_data_holder());
-      ctx_->llvm_state()->shared().om->add_code_resource(ctx_->runtime_data_holder());
+      ctx_->llvm_state()->shared().om->add_code_resource(
+          ctx_->llvm_state()->state(), ctx_->runtime_data_holder());
     }
 
     return mci_->address();

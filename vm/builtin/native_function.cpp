@@ -264,7 +264,7 @@ namespace rubinius {
       rubinius::bug("ffi_prep_cif failed");
     }
 
-    state->shared().om->add_code_resource(data);
+    state->shared().om->add_code_resource(state, data);
     this->ffi_data = data;
   }
 

@@ -49,8 +49,8 @@ namespace rubinius {
     , weak_refs_(NULL)
   { }
 
-  VM* GarbageCollector::state() {
-    return object_memory_->state();
+  VM* GarbageCollector::vm() {
+    return object_memory_->vm();
   }
 
   /**

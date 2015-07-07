@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <list>
+#include "diagnostics.hpp"
 #include "prelude.hpp"
 #include "util/allocator.hpp"
 
@@ -9,12 +10,23 @@ namespace rubinius {
   class VM;
 
   class InflatedHeaders {
+  public:
+    class Diagnostics : public diagnostics::Diagnostics {
+    public:
+      Diagnostics() { }
+
+      void log();
+    };
+
   private:
     Allocator<InflatedHeader>* allocator_;
+
+    Diagnostics diagnostics_;
 
   public:
     InflatedHeaders()
       : allocator_(new Allocator<InflatedHeader>())
+      , diagnostics_(Diagnostics())
     {}
 
     ~InflatedHeaders() {
@@ -31,6 +43,10 @@ namespace rubinius {
 
     int size() const {
       return allocator_->in_use_;
+    }
+
+    Diagnostics& diagnostics() {
+      return diagnostics_;
     }
   };
 }
