@@ -139,7 +139,6 @@ namespace rubinius {
 
         if(obj->marked_p(object_memory_->mark())) return false;
         obj->mark(object_memory_, object_memory_->mark());
-        gc_->inc_marked_objects();
 
         if(push) ms.push_back(addr);
         // If this is a young object, let the GC know not to try and mark
@@ -151,7 +150,6 @@ namespace rubinius {
     immix::GC<ObjectDescriber> gc_;
     immix::ExpandingAllocator allocator_;
     ImmixMarker* marker_;
-    int marked_objects_;
     int chunks_left_;
     int chunks_before_collection_;
     Diagnostics diagnostics_;
@@ -178,20 +176,6 @@ namespace rubinius {
   public: // Inline
     size_t& bytes_allocated() {
       return gc_.bytes_allocated();
-    }
-
-    void inc_marked_objects() {
-      marked_objects_++;
-    }
-
-    int marked_objects() {
-      return marked_objects_;
-    }
-
-    int clear_marked_objects() {
-      int m = marked_objects_;
-      marked_objects_ = 0;
-      return m;
     }
 
     int dec_chunks_left() {

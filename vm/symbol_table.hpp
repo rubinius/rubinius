@@ -73,24 +73,18 @@ namespace rubinius {
     SymbolEncodings encodings;
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
-    size_t bytes_used_;
     Diagnostics diagnostics_;
 
   public:
 
     SymbolTable()
-      : bytes_used_(0)
-      , diagnostics_(Diagnostics())
+      : diagnostics_(Diagnostics())
     {
       lock_.init();
     }
 
     Diagnostics& diagnostics() {
       return diagnostics_;
-    }
-
-    size_t& bytes_used() {
-      return bytes_used_;
     }
 
     size_t size() {

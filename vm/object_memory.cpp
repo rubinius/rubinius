@@ -535,9 +535,6 @@ step1:
       collect_young(state, &gc_data);
 #endif
       RUBINIUS_GC_END(0);
-
-      metrics::MetricsData& metrics = state->vm()->metrics();
-      metrics.memory.young_occupancy += young_->percentage_used();
     }
 
     if(collect_mature_now) {

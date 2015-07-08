@@ -29,6 +29,5 @@ public:
     Array* symbols = Symbol::all_symbols(state);
 
     TS_ASSERT(kind_of<Array>(symbols));
-    TS_ASSERT(state->shared().symbols.bytes_used() > 0);
   }
 };

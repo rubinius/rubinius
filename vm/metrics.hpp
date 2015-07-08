@@ -159,7 +159,6 @@ namespace rubinius {
     struct MemoryMetrics {
       metric young_bytes;
       metric young_objects;
-      metric young_occupancy;
       metric immix_bytes;
       metric immix_objects;
       metric immix_chunks;
@@ -180,7 +179,6 @@ namespace rubinius {
       MemoryMetrics() {
         young_bytes = 0;
         young_objects = 0;
-        young_occupancy = 0;
         immix_bytes = 0;
         immix_objects = 0;
         immix_chunks = 0;
@@ -202,7 +200,6 @@ namespace rubinius {
       void add(MemoryMetrics& data) {
         young_bytes += data.young_bytes;
         young_objects += data.young_objects;
-        young_occupancy += data.young_occupancy;
         immix_bytes += data.immix_bytes;
         immix_objects += data.immix_objects;
         immix_chunks += data.immix_chunks;

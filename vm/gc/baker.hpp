@@ -302,10 +302,6 @@ namespace rubinius {
 
     /// Returns true if the specified object is in the Current space.
     bool in_current_p(Object* obj);
-
-    double percentage_used() {
-      return current->percentage_used();
-    }
   };
 };
 
