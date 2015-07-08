@@ -31,18 +31,25 @@ namespace rubinius {
     class Diagnostics : public diagnostics::MemoryDiagnostics {
     public:
       int64_t chunks_;
+      int64_t collections_;
 
       Diagnostics()
         : diagnostics::MemoryDiagnostics()
         , chunks_(0)
+        , collections_(0)
+      { }
+
+      Diagnostics(int64_t collections)
+        : diagnostics::MemoryDiagnostics()
+        , chunks_(0)
+        , collections_(collections)
       { }
 
       void log();
     };
 
   private:
-    const static int cDefaultChunkSize = 64;
-    const static int cGCTriggerThreshold = 64 * 1024 * 1024;
+    const static int cDefaultChunkSize = 1024 * 1024;
 
     /**
      * A chunk of memory used to store an array of references to CodeResource
@@ -70,38 +77,11 @@ namespace rubinius {
     Chunk* current_chunk_;
     int current_index_;
 
-    int freed_resources_;
-    int total_allocated_;
-    int total_freed_;
-    int gc_triggered_;
-
-    size_t bytes_used_;
-
     Diagnostics diagnostics_;
 
   public:
-    int freed_resources() const {
-      return freed_resources_;
-    }
-
-    int total_allocated() const {
-      return total_allocated_;
-    }
-
-    int total_freed() const {
-      return total_freed_;
-    }
-
     SharedState* shared() const {
       return shared_;
-    }
-
-    size_t& size() {
-      return bytes_used_;
-    }
-
-    size_t size() const {
-      return bytes_used_;
     }
 
     Diagnostics& diagnostics() {

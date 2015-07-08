@@ -11,8 +11,8 @@ namespace rubinius {
     diagnostics::Diagnostics::log();
 
     utilities::logger::write("code manager: diagnostics: " \
-        "chunks: %ld, objects: %ld, bytes: %ld",
-        chunks_, objects_, bytes_);
+        "collections: %ld, chunks: %ld, objects: %ld, bytes: %ld",
+        collections_, chunks_, objects_, bytes_);
   }
 
   CodeManager::Chunk::Chunk(int size)
@@ -33,11 +33,6 @@ namespace rubinius {
     , last_chunk_(0)
     , current_chunk_(0)
     , current_index_(0)
-    , freed_resources_(0)
-    , total_allocated_(0)
-    , total_freed_(0)
-    , gc_triggered_(0)
-    , bytes_used_(0)
     , diagnostics_(Diagnostics())
   {
     first_chunk_ = new Chunk(chunk_size_);
@@ -68,19 +63,10 @@ namespace rubinius {
     last_chunk_->next = c;
     last_chunk_ = c;
     current_chunk_ = c;
-    diagnostics_.chunks_++;
   }
 
   void CodeManager::add_resource(CodeResource* cr, bool* collect_now) {
     utilities::thread::Mutex::LockGuard guard(mutex_);
-
-    total_allocated_ += cr->size();
-    bytes_used_ += cr->size();
-
-    if(total_allocated_ - gc_triggered_ > cGCTriggerThreshold) {
-      gc_triggered_ = total_allocated_;
-      *collect_now = true;
-    }
 
     for(;;) {
       while(current_index_ < chunk_size_) {
@@ -95,7 +81,11 @@ namespace rubinius {
       // Move on to the next one or add a new one
       current_index_ = 0;
       current_chunk_ = current_chunk_->next;
-      if(!current_chunk_) add_chunk();
+      if(!current_chunk_) {
+        add_chunk();
+        *collect_now = true;
+        diagnostics_.collections_++;
+      }
     }
   }
 
@@ -103,7 +93,7 @@ namespace rubinius {
     Chunk* chunk = first_chunk_;
     Chunk* prev  = NULL;
 
-    freed_resources_ = 0;
+    diagnostics_ = Diagnostics(diagnostics_.collections_);
 
     State state(shared_->root_vm());
 
@@ -112,10 +102,6 @@ namespace rubinius {
       for(int i = 0; i < chunk_size_; i++) {
         if(CodeResource* cr = chunk->resources[i]) {
           if(!cr->marked()) {
-            total_freed_ += cr->size();
-            bytes_used_ -= cr->size();
-
-            freed_resources_++;
             cr->cleanup(&state, this);
             delete cr;
             chunk->resources[i] = 0;
@@ -148,14 +134,14 @@ namespace rubinius {
         }
         delete chunk;
         chunk = prev->next;
-        diagnostics_.chunks_--;
       } else {
         prev = chunk;
         chunk = chunk->next;
+        diagnostics_.chunks_++;
       }
-
-      diagnostics_.modify();
     }
+
+    diagnostics_.modify();
   }
 
   void CodeManager::clear_marks() {
