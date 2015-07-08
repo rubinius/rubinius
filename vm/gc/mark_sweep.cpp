@@ -35,7 +35,7 @@ namespace rubinius {
 
     diagnostics::Diagnostics::log();
 
-    utilities::logger::write("mark_sweep: diagnostics: objects: %ld, bytes: %ld",
+    utilities::logger::write("large objects: diagnostics: objects: %ld, bytes: %ld",
         objects_, bytes_);
   }
 

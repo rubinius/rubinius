@@ -23,6 +23,7 @@ namespace rubinius {
     diagnostics::Diagnostics::log();
 
     utilities::logger::write("immix: diagnostics: " \
+        "collections: %ld, " \
         "objects: %ld, " \
         "bytes: %ld, " \
         "total_bytes: %ld, " \
@@ -30,7 +31,8 @@ namespace rubinius {
         "blocks: %ld, " \
         "holes: %ld, " \
         "percentage: %f",
-        objects_, bytes_, total_bytes_, chunks_, blocks_, holes_, percentage_);
+        collections_, objects_, bytes_, total_bytes_,
+        chunks_, blocks_, holes_, percentage_);
   }
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
@@ -309,7 +311,7 @@ namespace rubinius {
       timer::StopWatch<timer::microseconds> timer(
           vm()->metrics().gc.immix_diagnostics_us);
 
-      diagnostics_ = Diagnostics();
+      diagnostics_ = Diagnostics(diagnostics_.collections_);
 
       // Now, calculate how much space we're still using.
       immix::Chunks& chunks = gc_.block_allocator().chunks();
@@ -328,6 +330,7 @@ namespace rubinius {
       diagnostics_.percentage_ =
         (double)diagnostics_.bytes_ / (double)diagnostics_.total_bytes_;
 
+      diagnostics_.collections_++;
       diagnostics_.modify();
     }
 
