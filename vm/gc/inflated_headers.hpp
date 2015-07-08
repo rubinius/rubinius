@@ -1,3 +1,6 @@
+#ifndef RBX_GC_INFLATED_HEADERS_HPP
+#define RBX_GC_INFLATED_HEADERS_HPP
+
 #include <stddef.h>
 #include <list>
 #include "diagnostics.hpp"
@@ -55,3 +58,5 @@ namespace rubinius {
     }
   };
 }
+
+#endif

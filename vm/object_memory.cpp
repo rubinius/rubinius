@@ -6,12 +6,16 @@
 #include "config.h"
 #include "vm.hpp"
 #include "object_memory.hpp"
+
 #include "capi/tag.hpp"
+
 #include "gc/mark_sweep.hpp"
 #include "gc/baker.hpp"
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"
 #include "gc/walker.hpp"
+
+#include "system_diagnostics.hpp"
 
 #if ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -54,27 +58,6 @@ namespace rubinius {
 
   Object* object_watch = 0;
 
-  void ObjectMemory::Diagnostics::log() {
-    diagnostics::Diagnostics::log();
-
-    baker_->diagnostics().log();
-    immix_->diagnostics().log();
-    mark_sweep_->diagnostics().log();
-    headers_->diagnostics().log();
-    handles_->diagnostics().log();
-    code_->diagnostics().log();
-    symbols_->diagnostics().log();
-
-    utilities::logger::write("object memory: diagnostics: total memory: %ld",
-        baker_->diagnostics().bytes_ +
-        immix_->diagnostics().bytes_ +
-        mark_sweep_->diagnostics().bytes_ +
-        headers_->diagnostics().bytes_ +
-        handles_->diagnostics().bytes_ +
-        code_->diagnostics().bytes_ +
-        symbols_->diagnostics().bytes_);
-  }
-
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(VM* vm, SharedState& shared)
     : young_(new BakerGC(this, shared.config))
@@ -90,8 +73,10 @@ namespace rubinius {
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , shared_(vm->shared)
-    , diagnostics_(Diagnostics(young_, immix_, mark_sweep_,
-          inflated_headers_, capi_handles_, &code_manager_, &shared.symbols))
+    , diagnostics_(new diagnostics::ObjectDiagnostics(young_->diagnostics(),
+          immix_->diagnostics(), mark_sweep_->diagnostics(),
+          inflated_headers_->diagnostics(), capi_handles_->diagnostics(),
+          code_manager_.diagnostics(), shared.symbols.diagnostics()))
     , collect_young_now(false)
     , collect_mature_now(false)
     , vm_(vm)
