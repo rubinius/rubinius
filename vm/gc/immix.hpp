@@ -22,6 +22,7 @@ namespace rubinius {
   public:
     class Diagnostics : public diagnostics::MemoryDiagnostics {
     public:
+      int64_t collections_;
       int64_t total_bytes_;
       int64_t chunks_;
       int64_t blocks_;
@@ -30,6 +31,17 @@ namespace rubinius {
 
       Diagnostics()
         : diagnostics::MemoryDiagnostics()
+        , collections_(0)
+        , total_bytes_(0)
+        , chunks_(0)
+        , blocks_(0)
+        , holes_(0)
+        , percentage_(0.0)
+      { }
+
+      Diagnostics(int64_t collections)
+        : diagnostics::MemoryDiagnostics()
+        , collections_(collections)
         , total_bytes_(0)
         , chunks_(0)
         , blocks_(0)
