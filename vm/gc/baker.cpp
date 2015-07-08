@@ -60,7 +60,7 @@ namespace rubinius {
     diagnostics::Diagnostics::log();
 
     utilities::logger::write("baker: diagnostics: " \
-        "collections: %ld, bytes: %ld" \
+        "collections: %ld, bytes: %ld, " \
         "10%%: %ld, 20%%: %ld, 30%%: %ld, 40%%: %ld, 50%%: %ld, " \
         "60%%: %ld, 70%%: %ld, 80%%: %ld, 90%%: %ld",
         collections_, bytes_,

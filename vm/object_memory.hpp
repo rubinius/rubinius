@@ -35,6 +35,10 @@ namespace rubinius {
   class FinalizerThread;
   class ImmixMarker;
 
+  namespace diagnostics {
+    class ObjectDiagnostics;
+  }
+
   namespace gc {
     class Slab;
   }
@@ -68,32 +72,6 @@ namespace rubinius {
    */
 
   class ObjectMemory : public gc::WriteBarrier {
-  public:
-    class Diagnostics : public diagnostics::Diagnostics {
-      BakerGC* baker_;
-      ImmixGC* immix_;
-      MarkSweepGC* mark_sweep_;
-      InflatedHeaders* headers_;
-      capi::Handles* handles_;
-      CodeManager* code_;
-      SymbolTable* symbols_;
-
-    public:
-      Diagnostics(BakerGC* baker, ImmixGC* immix, MarkSweepGC* mark_sweep,
-          InflatedHeaders* inflated_headers, capi::Handles* capi_handles,
-          CodeManager* code_manager, SymbolTable* symbols)
-        : baker_(baker)
-        , immix_(immix)
-        , mark_sweep_(mark_sweep)
-        , headers_(inflated_headers)
-        , handles_(capi_handles)
-        , code_(code_manager)
-        , symbols_(symbols)
-      { }
-
-      void log();
-    };
-
   private:
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
@@ -145,7 +123,7 @@ namespace rubinius {
 
     SharedState& shared_;
 
-    Diagnostics diagnostics_;
+    diagnostics::ObjectDiagnostics* diagnostics_;
 
   public:
     /// Flag indicating whether a young collection should be performed soon
@@ -342,7 +320,7 @@ namespace rubinius {
       mature_gc_in_progress_ = false;
     }
 
-    Diagnostics& diagnostics() {
+    diagnostics::ObjectDiagnostics* diagnostics() {
       return diagnostics_;
     }
 

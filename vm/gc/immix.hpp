@@ -1,5 +1,5 @@
-#ifndef RBX_GC_IMMIX
-#define RBX_GC_IMMIX
+#ifndef RBX_GC_IMMIX_HPP
+#define RBX_GC_IMMIX_HPP
 
 #include "util/address.hpp"
 #include "util/immix.hpp"
