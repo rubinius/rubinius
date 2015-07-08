@@ -340,8 +340,6 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "memory.young.objects", metrics_data_.memory.young_objects));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.occupancy", metrics_data_.memory.young_occupancy));
-      metrics_map_.push_back(new MetricsItem(
             "memory.immix.bytes", metrics_data_.memory.immix_bytes));
       metrics_map_.push_back(new MetricsItem(
             "memory.immix.objects", metrics_data_.memory.immix_objects));

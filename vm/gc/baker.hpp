@@ -62,11 +62,13 @@ namespace rubinius {
     public:
       const static int cPercentTiles = 10;
 
+      int64_t bytes_;
       int64_t collections_;
       int64_t occupancy_histo_[cPercentTiles];
 
-      Diagnostics()
+      Diagnostics(unsigned int bytes)
         : diagnostics::Diagnostics()
+        , bytes_(bytes)
         , collections_(0)
       {
         for(int i = 0; i < cPercentTiles; i++) {
@@ -302,10 +304,6 @@ namespace rubinius {
 
     /// Returns true if the specified object is in the Current space.
     bool in_current_p(Object* obj);
-
-    double percentage_used() {
-      return current->percentage_used();
-    }
   };
 };
 

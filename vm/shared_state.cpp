@@ -108,12 +108,6 @@ namespace rubinius {
     delete internal_threads_;
   }
 
-  int SharedState::size() {
-    return sizeof(SharedState) +
-      sizeof(WorldState) +
-      symbols.bytes_used();
-  }
-
   uint32_t SharedState::new_thread_id() {
     return atomic::fetch_and_add(&thread_ids_, 1);
   }

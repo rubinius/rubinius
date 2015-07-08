@@ -81,8 +81,6 @@ namespace rubinius {
     diagnostics_.bytes_ += bytes;
     diagnostics_.modify();
 
-    bytes_used_ += bytes;
-
     strings.push_back(str);
     kinds.push_back(eUnknown);
 

@@ -64,7 +64,6 @@ namespace rubinius {
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
     , marker_(NULL)
-    , marked_objects_(0)
     , chunks_left_(0)
     , chunks_before_collection_(10)
     , diagnostics_(Diagnostics())

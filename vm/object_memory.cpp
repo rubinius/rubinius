@@ -44,6 +44,8 @@
 #include "instruments/tooling.hpp"
 #include "dtrace/dtrace.h"
 
+#include "util/logger.hpp"
+
 // Used by XMALLOC at the bottom
 static long gc_malloc_threshold = 0;
 static long bytes_until_collection = 0;
@@ -62,6 +64,15 @@ namespace rubinius {
     handles_->diagnostics().log();
     code_->diagnostics().log();
     symbols_->diagnostics().log();
+
+    utilities::logger::write("object memory: diagnostics: total memory: %ld",
+        baker_->diagnostics().bytes_ +
+        immix_->diagnostics().bytes_ +
+        mark_sweep_->diagnostics().bytes_ +
+        headers_->diagnostics().bytes_ +
+        handles_->diagnostics().bytes_ +
+        code_->diagnostics().bytes_ +
+        symbols_->diagnostics().bytes_);
   }
 
   /* ObjectMemory methods */
@@ -535,9 +546,6 @@ step1:
       collect_young(state, &gc_data);
 #endif
       RUBINIUS_GC_END(0);
-
-      metrics::MetricsData& metrics = state->vm()->metrics();
-      metrics.memory.young_occupancy += young_->percentage_used();
     }
 
     if(collect_mature_now) {
