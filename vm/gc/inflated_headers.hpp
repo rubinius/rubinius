@@ -11,9 +11,14 @@ namespace rubinius {
 
   class InflatedHeaders {
   public:
-    class Diagnostics : public diagnostics::Diagnostics {
+    class Diagnostics : public diagnostics::MemoryDiagnostics {
     public:
-      Diagnostics() { }
+      int64_t collections_;
+
+      Diagnostics()
+        : diagnostics::MemoryDiagnostics()
+        , collections_(0)
+      { }
 
       void log();
     };
