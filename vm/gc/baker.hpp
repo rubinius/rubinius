@@ -62,11 +62,13 @@ namespace rubinius {
     public:
       const static int cPercentTiles = 10;
 
+      int64_t bytes_;
       int64_t collections_;
       int64_t occupancy_histo_[cPercentTiles];
 
-      Diagnostics()
+      Diagnostics(unsigned int bytes)
         : diagnostics::Diagnostics()
+        , bytes_(bytes)
         , collections_(0)
       {
         for(int i = 0; i < cPercentTiles; i++) {
