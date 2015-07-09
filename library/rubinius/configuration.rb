@@ -4,7 +4,7 @@ require 'rubinius/configuration_variables'
 Rubinius::ConfigurationVariables.define do |c|
 
   c.section "gc" do |s|
-    s.vm_variable "young_bytes", (40 * 1024 * 1024),
+    s.vm_variable "young_bytes", (30 * 1024 * 1024),
       "The number of bytes the young generation of the GC should use"
 
     s.vm_variable "young_lifetime", 2,
