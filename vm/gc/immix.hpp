@@ -25,7 +25,6 @@ namespace rubinius {
       int64_t collections_;
       int64_t total_bytes_;
       int64_t chunks_;
-      int64_t blocks_;
       int64_t holes_;
       double percentage_;
 
@@ -34,7 +33,6 @@ namespace rubinius {
         , collections_(0)
         , total_bytes_(0)
         , chunks_(0)
-        , blocks_(0)
         , holes_(0)
         , percentage_(0.0)
       { }
@@ -44,7 +42,6 @@ namespace rubinius {
         , collections_(collections)
         , total_bytes_(0)
         , chunks_(0)
-        , blocks_(0)
         , holes_(0)
         , percentage_(0.0)
       { }
