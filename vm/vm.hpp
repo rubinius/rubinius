@@ -154,7 +154,7 @@ namespace rubinius {
       return interrupt_lock_;
     }
 
-    void set_zombie();
+    void set_zombie(STATE);
 
     bool zombie_p() {
       return zombie_;

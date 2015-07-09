@@ -329,7 +329,7 @@ namespace rubinius {
 
     shared.gc_independent();
 
-    vm->set_zombie();
+    vm->set_zombie(state);
 
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);

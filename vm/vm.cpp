@@ -107,14 +107,14 @@ namespace rubinius {
 
   void VM::discard(STATE, VM* vm) {
     vm->saved_call_frame_ = 0;
-    vm->shared.remove_vm(vm);
 
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
   }
 
-  void VM::set_zombie() {
+  void VM::set_zombie(STATE) {
+    state->shared().remove_vm(this);
     thread.set(nil<Thread>());
     zombie_ = true;
   }
