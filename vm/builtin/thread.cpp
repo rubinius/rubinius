@@ -4,20 +4,27 @@
 #include "builtin/fiber.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/native_method.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/symbol.hpp"
+
 #include "call_frame.hpp"
-#include "dtrace/dtrace.h"
 #include "environment.hpp"
-#include "instruments/tooling.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
-#include "on_stack.hpp"
 #include "metrics.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "ontology.hpp"
+#include "signal.hpp"
+
+#include "dtrace/dtrace.h"
+
+#include "instruments/tooling.hpp"
+
 #include "util/logger.hpp"
 
 #include "missing/gettid.h"
@@ -82,9 +89,15 @@ namespace rubinius {
     return thr;
   }
 
-  Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
-    VM* vm = state->shared().new_vm();
+  Thread* Thread::create(STATE, VM* vm, ThreadFunction function) {
+    return Thread::create(state, G(thread), vm, function);
+  }
 
+  Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
+    return Thread::create(state, self, state->shared().new_vm(), function);
+  }
+
+  Thread* Thread::create(STATE, Object* self, VM* vm, ThreadFunction function) {
     Thread* thr = Thread::create(state, as<Class>(self), vm);
 
     thr->function_ = function;
@@ -235,28 +248,88 @@ namespace rubinius {
     return cFalse;
   }
 
-  int Thread::start_thread(STATE, const pthread_attr_t &attrs) {
+  int Thread::start_thread(STATE, void* (*function)(void*)) {
     Thread* self = this;
     OnStack<1> os(state, self);
 
     self->init_lock_.lock();
 
-    if(int error = pthread_create(&self->vm_->os_thread(),
-          &attrs, Thread::run, (void*)self->vm_)) {
+    pthread_attr_t attrs;
+    pthread_attr_init(&attrs);
+    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
+    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
+
+    int error;
+
+    error = pthread_create(&self->vm_->os_thread(), &attrs,
+        function, (void*)self->vm_);
+
+    pthread_attr_destroy(&attrs);
+
+    if(error) {
       return error;
+    } else {
+      // We can't return from here until the new thread completes a minimal
+      // initialization. After the initialization, it unlocks init_lock_.
+      // So, wait here until we can lock init_lock_ after that.
+      self->init_lock_.lock();
+
+      // We locked init_lock_. And we are sure that the new thread completed
+      // the initialization.
+      // Locking init_lock_ isn't needed anymore, so unlock it.
+      self->init_lock_.unlock();
+
+      return 0;
+    }
+  }
+
+  Object* Thread::main_thread(STATE) {
+    GCTokenImpl gct;
+
+    state->vm()->thread->hard_unlock(state, gct, 0);
+
+    std::string& runtime = state->shared().env()->runtime_path();
+
+    G(rubinius)->set_const(state, "Signature",
+        Integer::from(state, state->shared().env()->signature()));
+
+    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
+                           runtime.c_str(), runtime.size()));
+
+    state->vm()->thread->pid(state, Fixnum::from(gettid()));
+
+    state->shared().env()->load_kernel(state, runtime);
+    state->shared().env()->run_file(state, runtime + "/loader.rbc");
+
+    state->vm()->thread->alive(state, cTrue);
+    state->vm()->thread_state()->clear();
+
+    state->shared().start_console(state);
+    state->shared().start_metrics(state);
+
+    Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
+    if(klass->nil_p()) {
+      rubinius::bug("unable to find class Rubinius::Loader");
     }
 
-    // We can't return from here until the new thread completes a minimal
-    // initialization. After the initialization, it unlocks init_lock_.
-    // So, wait here until we can lock init_lock_ after that.
-    self->init_lock_.lock();
+    Object* instance = 0;
+    OnStack<1> os(state, instance);
 
-    // We locked init_lock_. And we are sure that the new thread completed
-    // the initialization.
-    // Locking init_lock_ isn't needed anymore, so unlock it.
-    self->init_lock_.unlock();
+    instance = klass->send(state, 0, state->symbol("new"));
+    if(instance) {
+      state->shared().env()->set_loader(instance);
+    } else {
+      rubinius::bug("unable to instantiate Rubinius::Loader");
+    }
 
-    return 0;
+    // Enable the JIT after the core library has loaded
+    G(jit)->enable(state);
+
+    Object* exit = instance->send(state, 0, state->symbol("main"));
+
+    state->shared().signals()->system_exit(state->vm()->thread_state()->raise_value());
+
+    return exit;
   }
 
   void* Thread::run(void* ptr) {
@@ -277,8 +350,8 @@ namespace rubinius {
           vm->thread_id(), (unsigned int)thread_debug_self());
     }
 
-    int calculate_stack = 0;
-    vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), THREAD_STACK_SIZE);
+    int stack_address = 0;
+    vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), THREAD_STACK_SIZE);
 
     NativeMethod::init_thread(state);
 
@@ -305,13 +378,7 @@ namespace rubinius {
     vm->thread->join_lock_.lock();
     vm->thread->stopped();
 
-    if(!ret) {
-      if(vm->thread_state()->raise_reason() == cExit) {
-        vm->shared.env()->halt_and_exit(state);
-      }
-    }
-
-    LockedObjects& los = vm->locked_objects();
+    LockedObjects& los = state->vm()->locked_objects();
     for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
@@ -329,7 +396,11 @@ namespace rubinius {
 
     shared.gc_independent();
 
-    vm->set_zombie(state);
+    if(vm->main_thread_p() || (!ret && vm->thread_state()->raise_reason() == cExit)) {
+      state->shared().signals()->system_exit(vm->thread_state()->raise_value());
+    } else {
+      vm->set_zombie(state);
+    }
 
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
@@ -344,18 +415,11 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    pthread_attr_t attrs;
-    pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
-    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
-
-    if(int error = start_thread(state, attrs)) {
+    if(int error = start_thread(state, Thread::run)) {
       char buf[RBX_STRERROR_BUFSIZE];
       char* err = RBX_STRERROR(error, buf, RBX_STRERROR_BUFSIZE);
       Exception::thread_error(state, err);
     }
-
-    pthread_attr_destroy(&attrs);
 
     return cNil;
   }

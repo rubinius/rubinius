@@ -14,10 +14,11 @@
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/jit.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/native_method.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/thread.hpp"
 
 #include "util/logger.hpp"
 
@@ -77,7 +78,6 @@ namespace rubinius {
     : argc_(argc)
     , argv_(0)
     , signature_(0)
-    , signal_thread_(NULL)
     , finalizer_thread_(NULL)
     , loader_(NULL)
   {
@@ -105,6 +105,12 @@ namespace rubinius {
     check_io_descriptors();
 
     root_vm = shared->new_vm("rbx.ruby.main");
+    root_vm->set_main_thread();
+
+    int stack_address = 0;
+    root_vm->set_root_stack(
+        reinterpret_cast<uintptr_t>(&stack_address), VM::cStackDepthMax);
+
     state = new State(root_vm);
 
     loader_ = new TypedRoot<Object*>(state);
@@ -118,7 +124,6 @@ namespace rubinius {
   Environment::~Environment() {
     stop_logging(state);
 
-    delete signal_thread_;
     delete finalizer_thread_;
 
     VM::discard(state, root_vm);
@@ -197,10 +202,6 @@ namespace rubinius {
 
     llvm::llvm_shutdown();
 #endif
-  }
-
-  void Environment::stop_signals(STATE) {
-    signal_thread_->stop(state);
   }
 
   void Environment::start_finalizer(STATE) {
@@ -469,7 +470,7 @@ namespace rubinius {
     state->shared().set_use_capi_lock(config.capi_lock);
   }
 
-  void Environment::load_directory(std::string dir) {
+  void Environment::load_directory(STATE, std::string dir) {
     // Read the version-specific load order file.
     std::string path = dir + "/load_order.txt";
     std::ifstream stream(path.c_str());
@@ -486,7 +487,7 @@ namespace rubinius {
       // skip empty lines
       if(line.empty()) continue;
 
-      run_file(dir + "/" + line);
+      run_file(state, dir + "/" + line);
     }
   }
 
@@ -515,11 +516,7 @@ namespace rubinius {
     config_parser.import_many(str);
   }
 
-  void Environment::boot_vm() {
-    state->vm()->initialize_as_root();
-  }
-
-  void Environment::run_file(std::string file) {
+  void Environment::run_file(STATE, std::string file) {
     std::ifstream stream(file.c_str());
     if(!stream) {
       std::string msg = std::string("Unable to open file to run: ");
@@ -583,15 +580,10 @@ namespace rubinius {
     halt_lock_.init();
   }
 
-  void Environment::halt_and_exit(STATE) {
-    halt(state);
-    exit(exit_code(state));
-  }
-
-  void Environment::halt(STATE) {
+  void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-    utilities::logger::write("exiting: %s %d", shared->pid.c_str(), exit_code(state));
+    utilities::logger::write("exiting: %s %d", shared->pid.c_str(), exit_code);
 
     state->shared().tool_broker()->shutdown(state);
 
@@ -602,7 +594,6 @@ namespace rubinius {
     }
 
     stop_jit(state);
-    state->shared().signals()->stop(state);
 
     root_vm->set_call_frame(0);
 
@@ -628,21 +619,10 @@ namespace rubinius {
     }
 
     NativeMethod::cleanup_thread(state);
-  }
 
-  /**
-   * Returns the exit code to use when exiting the rbx process.
-   */
-  int Environment::exit_code(STATE) {
-    if(state->vm()->thread_state()->raise_reason() == cExit) {
-      if(Fixnum* fix = try_as<Fixnum>(state->vm()->thread_state()->raise_value())) {
-        return fix->to_native();
-      } else {
-        return -1;
-      }
-    }
+    state->shared().signals()->stop(state);
 
-    return 0;
+    exit(exit_code);
   }
 
   /**
@@ -655,7 +635,7 @@ namespace rubinius {
    * @param root The path to the /runtime directory. All kernel loading is
    *             relative to this path.
    */
-  void Environment::load_kernel(std::string root) {
+  void Environment::load_kernel(STATE, std::string root) {
     // Check that the index file exists; this tells us which sub-directories to
     // load, and the order in which to load them
     std::string index = root + "/index";
@@ -666,7 +646,7 @@ namespace rubinius {
     }
 
     // Load alpha
-    run_file(root + "/alpha.rbc");
+    run_file(state, root + "/alpha.rbc");
 
     while(!stream.eof()) {
       std::string line;
@@ -677,7 +657,7 @@ namespace rubinius {
       // skip empty lines
       if(line.empty()) continue;
 
-      load_directory(root + "/" + line);
+      load_directory(state, root + "/" + line);
     }
   }
 
@@ -833,64 +813,47 @@ namespace rubinius {
     throw MissingRuntime("FATAL ERROR: unable to find Rubinius runtime directories.");
   }
 
-  /**
-   * Runs rbx from the filesystem. Searches for the Rubinius runtime files
-   * according to the algorithm in find_runtime().
-   */
-  void Environment::run_from_filesystem() {
-    int i = 0;
-    state->vm()->set_root_stack(reinterpret_cast<uintptr_t>(&i),
-                                VM::cStackDepthMax);
+  void Environment::boot() {
+    runtime_path_ = system_prefix() + RBX_RUNTIME_PATH;
+    load_platform_conf(runtime_path_);
 
-    std::string runtime = system_prefix() + RBX_RUNTIME_PATH;
+    // TODO: Fix this to only record main thread.
+    state->vm()->set_current_thread();
 
-    load_platform_conf(runtime);
-    boot_vm();
+    shared->om = new ObjectMemory(state->vm(), *shared);
+    state->vm()->set_memory(shared->om);
+    state->vm()->set_memory(shared->om);
+
+    shared->set_initialized();
+
+    shared->gc_dependent(state->vm());
+
+    TypeInfo::auto_learn_fields(state);
+
+    state->vm()->bootstrap_ontology(state);
 
     start_diagnostics(state);
     start_finalizer(state);
 
     load_argv(argc_, argv_);
 
-    state->shared().start_signals(state);
     state->vm()->initialize_config();
 
     load_tool();
 
     start_jit(state);
 
-    signal_thread_->print_machine_info(utilities::logger::write);
-    signal_thread_->print_process_info(utilities::logger::write);
+    // Start the main Ruby thread.
+    Thread* main = 0;
+    OnStack<1> os(state, main);
 
-    G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
+    main = Thread::create(state, state->vm(), Thread::main_thread);
+    main->start_thread(state, Thread::run);
 
-    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
-                           runtime.c_str(), runtime.size()));
+    // Start signal handling. We don't return until the process is exiting.
+    VM* vm = SignalThread::new_vm(state);
+    State main_state(vm);
 
-    load_kernel(runtime);
-
-    run_file(runtime + "/loader.rbc");
-
-    state->vm()->thread_state()->clear();
-
-    state->shared().start_console(state);
-    state->shared().start_metrics(state);
-
-    Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
-    if(klass->nil_p()) {
-      rubinius::bug("unable to find class Rubinius::Loader");
-    }
-
-    Object* instance = klass->send(state, 0, state->symbol("new"));
-    if(instance) {
-      loader_->set(instance);
-    } else {
-      rubinius::bug("unable to instantiate Rubinius::Loader");
-    }
-
-    // Enable the JIT after the core library has loaded
-    G(jit)->enable(state);
-
-    loader_->get()->send(state, 0, state->symbol("main"));
+    state->shared().start_signals(&main_state);
   }
 }

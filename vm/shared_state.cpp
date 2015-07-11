@@ -150,7 +150,7 @@ namespace rubinius {
   }
 
   SignalThread* SharedState::start_signals(STATE) {
-    signals_ = new SignalThread(state);
+    signals_ = new SignalThread(state, state->vm());
     signals_->start(state);
 
     return signals_;
@@ -181,7 +181,6 @@ namespace rubinius {
 
   void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
     VM* current = state->vm();
-    current->after_fork_child(state);
 
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
@@ -212,7 +211,7 @@ namespace rubinius {
 
     config.jit_inline_debug.set("no");
 
-    env_->set_root_vm(state->vm());
+    state->vm()->after_fork_child(state);
 
     disable_metrics(state);
 
@@ -234,6 +233,7 @@ namespace rubinius {
     internal_threads_->init();
 
     om->after_fork_child(state);
+    signals_->after_fork_child(state);
     console_->after_fork_child(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);

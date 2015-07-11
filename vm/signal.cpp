@@ -9,9 +9,11 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/constant_scope.hpp"
+#include "builtin/fixnum.hpp"
 #include "builtin/jit.hpp"
 #include "builtin/module.hpp"
 #include "builtin/native_method.hpp"
+#include "builtin/object.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
@@ -49,14 +51,32 @@ namespace rubinius {
   // crashing inside the crash handler.
   static struct utsname machine_info;
 
-  SignalThread::SignalThread(STATE)
-    : InternalThread(state, "rbx.signals", InternalThread::eSmall)
-    , shared_(state->shared())
+  SignalThread::SignalThread(STATE, VM* vm)
+    : shared_(state->shared())
+    , vm_(vm)
+    , system_exit_(false)
+    , exit_code_(0)
     , queue_index_(0)
     , process_index_(0)
   {
+    state->set_vm(vm_);
+
     signal_thread_ = this;
     install_default_handlers();
+
+    NativeMethod::init_thread(state);
+  }
+
+  VM* SignalThread::new_vm(STATE) {
+    return state->shared().new_vm("rbx.system");
+  }
+
+  void SignalThread::set_exit_code(Object* exit_code) {
+    if(Fixnum* fix = try_as<Fixnum>(exit_code)) {
+      exit_code_ = fix->to_native();
+    } else {
+      exit_code_ = -1;
+    }
   }
 
   void SignalThread::signal_handler(int signal) {
@@ -64,7 +84,7 @@ namespace rubinius {
   }
 
   void SignalThread::queue_signal(int signal) {
-    if(thread_exit_) return;
+    if(system_exit_) return;
 
     vm()->metrics().system.signals_received++;
 
@@ -83,8 +103,6 @@ namespace rubinius {
   }
 
   void SignalThread::initialize(STATE) {
-    InternalThread::initialize(state);
-
     Thread::create(state, vm());
 
     for(int i = 0; i < pending_signal_size_; i++) {
@@ -98,13 +116,37 @@ namespace rubinius {
     condition_.init();
   }
 
-  void SignalThread::wakeup(STATE) {
-    InternalThread::wakeup(state);
+  void SignalThread::start(STATE) {
+    initialize(state);
 
+    state->shared().signals()->print_machine_info(utilities::logger::write);
+    state->shared().signals()->print_process_info(utilities::logger::write);
+
+    run(state);
+  }
+
+  void SignalThread::restart(STATE) {
+    vm_ = SignalThread::new_vm(state);
+
+    initialize(state);
+
+    pthread_attr_t attrs;
+    pthread_attr_init(&attrs);
+    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
+    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
+
+    if(int error = pthread_create(&vm_->os_thread(), &attrs,
+          SignalThread::run, (void*)this))
     {
-      thread::Mutex::LockGuard guard(lock_);
-      condition_.signal();
+      logger::fatal("%s: %s: create thread failed", strerror(error), vm_->name().c_str());
+      ::abort();
     }
+
+    pthread_attr_destroy(&attrs);
+  }
+
+  void SignalThread::after_fork_child(STATE) {
+    restart(state);
   }
 
   void SignalThread::stop(STATE) {
@@ -113,8 +155,32 @@ namespace rubinius {
         ++i) {
       signal(*i, SIG_DFL);
     }
+  }
 
-    InternalThread::stop(state);
+  void* SignalThread::run(void* ptr) {
+    SignalThread* thread = reinterpret_cast<SignalThread*>(ptr);
+    VM* vm = thread->vm();
+
+    State state_obj(vm), *state = &state_obj;
+
+    vm->set_current_thread();
+    vm->set_run_state(ManagedThread::eIndependent);
+
+    RUBINIUS_THREAD_START(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
+
+    int stack_address = 0;
+    vm->set_root_stack(
+        reinterpret_cast<uintptr_t>(&stack_address), SignalThread::stack_size);
+
+    NativeMethod::init_thread(state);
+
+    thread->run(state);
+
+    // The system is halted and exit(3) has been called so the following code
+    // does not run. It is here to make the compiler happy.
+
+    return 0;
   }
 
   void SignalThread::run(STATE) {
@@ -127,7 +193,7 @@ namespace rubinius {
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif
 
-    while(!thread_exit_) {
+    while(!system_exit_) {
       int signal = pending_signals_[process_index_];
       pending_signals_[process_index_] = 0;
 
@@ -137,6 +203,7 @@ namespace rubinius {
       ++process_index_;
       process_index_ %= pending_signal_size_;
 
+      // TODO: block fork(), exec() on signal handler thread
       if(signal > 0) {
         GCDependent guard(state, 0);
         vm()->set_call_frame(0);
@@ -165,7 +232,7 @@ namespace rubinius {
             state->shared().env()->loader()->send(
                 state, 0, state->symbol("handle_exception"), args, cNil);
 
-            state->shared().env()->halt_and_exit(state);
+            system_exit_ = true;
 
             break;
           }
@@ -181,6 +248,8 @@ namespace rubinius {
 
       vm()->set_call_frame(0);
     }
+
+    state->shared().env()->halt(state, exit_code_);
   }
 
   void SignalThread::print_machine_info(PrintFunction function) {

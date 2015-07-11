@@ -108,9 +108,9 @@ namespace rubinius {
     ConstantMissingReason constant_missing_reason_;
 
     bool zombie_;
-    bool run_signals_;
     bool tooling_;
     bool allocation_tracking_;
+    bool main_thread_;
 
   public:
     /* Data members */
@@ -160,16 +160,20 @@ namespace rubinius {
       return zombie_;
     }
 
-    bool run_signals_p() const {
-      return run_signals_;
+    void set_main_thread() {
+      main_thread_ = true;
     }
 
-    void set_run_signals(bool val) {
-      run_signals_ = val;
+    bool main_thread_p() {
+      return main_thread_;
     }
 
     VMThreadState* thread_state() {
       return &thread_state_;
+    }
+
+    void set_memory(ObjectMemory* memory) {
+      om = memory;
     }
 
     CallFrame** call_frame_location() {
@@ -358,8 +362,6 @@ namespace rubinius {
     /* Prototypes */
     VM(uint32_t id, SharedState& shared, const char* name = NULL);
     ~VM();
-
-    void initialize_as_root();
 
     void bootstrap_class(STATE);
     void bootstrap_ontology(STATE);

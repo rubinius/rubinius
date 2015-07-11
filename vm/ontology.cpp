@@ -426,6 +426,8 @@ namespace rubinius {
     GO(external_ivars).set(LookupTable::create(state));
 
     initialize_platform_data(state);
+
+    MachineCode::init(state);
   }
 
   void VM::initialize_fundamental_constants(STATE) {

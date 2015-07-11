@@ -333,7 +333,7 @@ namespace rubinius {
     GCTokenImpl gct;
     VM* vm = 0;
 
-    int calculate_stack = 0;
+    int stack_address = 0;
     if(!env) {
       // Apparently we're running in a new thread here, setup
       // everything we need here.
@@ -345,7 +345,7 @@ namespace rubinius {
       pthread_attr_init(&attrs);
       pthread_attr_getstacksize (&attrs, &stack_size);
       pthread_attr_destroy(&attrs);
-      vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), stack_size);
+      vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), stack_size);
 
       // Setup nativemethod handles into thread local
       State state(vm);

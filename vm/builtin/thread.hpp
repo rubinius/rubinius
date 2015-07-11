@@ -277,14 +277,18 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, Object* self, ThreadFunction function);
     static Thread* create(STATE, VM* vm);
+    static Thread* create(STATE, VM* vm, ThreadFunction function);
+    static Thread* create(STATE, Object* self, ThreadFunction function);
+    static Thread* create(STATE, Object* self, VM* vm, ThreadFunction function);
     static Thread* create(STATE, Class* klass, VM* vm);
 
     static void finalize(STATE, Thread* thread);
 
-    int start_thread(STATE, const pthread_attr_t &attrs);
+    int start_thread(STATE, void* (*function)(void*));
     static void* run(void*);
+
+    static Object* main_thread(STATE);
 
   public:   /* TypeInfo */
 
