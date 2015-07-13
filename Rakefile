@@ -79,7 +79,7 @@ $CC = ENV['CC']
 class SpecRunner
 
   @at_exit_handler_set = false
-  @at_exit_status = 0
+  @at_exit_status = 1
   @flags = nil
 
   def self.at_exit_status
@@ -94,7 +94,7 @@ class SpecRunner
   end
 
   def self.set_at_exit_status(status)
-    @at_exit_status = status
+    @at_exit_status = status || 1
   end
 
   def self.flags
