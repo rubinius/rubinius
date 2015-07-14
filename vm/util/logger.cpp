@@ -302,6 +302,11 @@ namespace rubinius {
         perms_ = va_arg(varargs, int);
 
         logger_fd_ = ::open(path, LOGGER_OPEN_FLAGS, perms_);
+
+        // The umask setting will override our permissions for open().
+        if(chmod(path, perms_) < 0) {
+          logger::warn("%s: logger: unable to set mode: %s", strerror(errno), path);
+        }
       }
 
       FileLogger::~FileLogger() {
