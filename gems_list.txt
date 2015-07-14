@@ -74,7 +74,7 @@ rubysl-parsedate-1.0.1.gem
 rubysl-pathname-1.0.0.gem
 rubysl-prettyprint-1.0.1.gem
 rubysl-profile-1.0.0.gem
-rubysl-profiler-1.0.0.gem
+rubysl-profiler-1.0.1.gem
 rubysl-pstore-1.0.0.gem
 rubysl-pty-1.0.0.gem
 rubysl-rational-1.0.0.gem
