@@ -33,12 +33,16 @@ namespace rubinius {
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
+    int stack_address = 0;
+    vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), thread->stack_size_);
+
     NativeMethod::init_thread(state);
 
     thread->thread_running_ = true;
 
     thread->run(state);
 
+    vm->set_call_frame(0);
     thread->thread_running_ = false;
 
     NativeMethod::cleanup_thread(state);
@@ -47,6 +51,8 @@ namespace rubinius {
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
     shared.gc_independent();
+
+    vm->set_zombie(state);
 
     return 0;
   }

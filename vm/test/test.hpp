@@ -9,6 +9,7 @@
 #include "metrics.hpp"
 #include "vm/detection.hpp"
 #include "vm/gc/immix_marker.hpp"
+#include "builtin/thread.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -21,11 +22,36 @@ public:
   ConfigParser* config_parser;
   Configuration config;
 
+  // TODO: Fix this
+  void initialize_as_root(VM* vm) {
+    vm->set_current_thread();
+
+    ObjectMemory* om = new ObjectMemory(vm, vm->shared);
+    vm->shared.om = om;
+    vm->set_memory(om);
+
+    vm->shared.set_initialized();
+
+    vm->shared.gc_dependent(vm);
+
+    State state(vm);
+
+    TypeInfo::auto_learn_fields(&state);
+
+    vm->bootstrap_ontology(&state);
+
+    // Setup the main Thread, which is wrapper of the main native thread
+    // when the VM boots.
+    Thread::create(&state, vm);
+    vm->thread->alive(&state, cTrue);
+    vm->thread->sleep(&state, cFalse);
+  }
+
   void create() {
     config_parser = new ConfigParser;
     shared = new SharedState(0, config, *config_parser);
     VM* vm = shared->new_vm();
-    vm->initialize_as_root();
+    initialize_as_root(vm);
     state = new State(vm);
   }
 

@@ -53,11 +53,12 @@ describe :process_exit!, :shared => true do
       status.exitstatus.should == 1
     end
 
-    it "exits immediately when called from a thread" do
+    it "exits when called from a thread" do
       pid = Process.fork do
-        Thread.new { @object.exit!(1) }
-        sleep 1
-        Process.exit!(2)
+        Thread.new { @object.exit!(1) }.join
+
+        # Do not let the main thread complete
+        sleep
       end
       pid, status = Process.waitpid2(pid)
       status.exitstatus.should == 1

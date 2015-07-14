@@ -125,6 +125,7 @@ namespace rubinius {
 
     void initialize(STATE);
     void run(STATE);
+    void stop(STATE);
     void wakeup(STATE);
   };
 }

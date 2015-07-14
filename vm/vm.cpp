@@ -1,6 +1,7 @@
 #include "vm.hpp"
 #include "object_memory.hpp"
 #include "global_cache.hpp"
+#include "environment.hpp"
 #include "gc/gc.hpp"
 
 #include "object_utils.hpp"
@@ -77,7 +78,7 @@ namespace rubinius {
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
     , zombie_(false)
-    , run_signals_(false)
+    , main_thread_(false)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -107,45 +108,16 @@ namespace rubinius {
 
   void VM::discard(STATE, VM* vm) {
     vm->saved_call_frame_ = 0;
-    vm->shared.remove_vm(vm);
 
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
   }
 
-  void VM::set_zombie() {
+  void VM::set_zombie(STATE) {
+    state->shared().remove_vm(this);
     thread.set(nil<Thread>());
     zombie_ = true;
-  }
-
-  void VM::initialize_as_root() {
-    set_current_thread();
-
-    om = new ObjectMemory(this, shared);
-    shared.om = om;
-
-    allocation_tracking_ = shared.config.allocation_tracking;
-
-    local_slab_.refill(0, 0);
-
-    shared.set_initialized();
-
-    shared.gc_dependent(this);
-
-    State state(this);
-
-    TypeInfo::auto_learn_fields(&state);
-
-    bootstrap_ontology(&state);
-
-    MachineCode::init(&state);
-
-    // Setup the main Thread, which is wrapper of the main native thread
-    // when the VM boots.
-    Thread::create(&state, this);
-    thread->alive(&state, cTrue);
-    thread->sleep(&state, cFalse);
   }
 
   void VM::initialize_config() {
@@ -325,6 +297,10 @@ namespace rubinius {
 
   void VM::after_fork_child(STATE) {
     interrupt_lock_.init();
+    set_main_thread();
+
+    // TODO: Remove need for root_vm.
+    state->shared().env()->set_root_vm(state->vm());
   }
 
   void VM::set_const(const char* name, Object* val) {

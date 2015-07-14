@@ -28,11 +28,10 @@ namespace rubinius {
         "bytes: %ld, " \
         "total_bytes: %ld, " \
         "chunks: %ld, " \
-        "blocks: %ld, " \
         "holes: %ld, " \
         "percentage: %f",
         collections_, objects_, bytes_, total_bytes_,
-        chunks_, blocks_, holes_, percentage_);
+        chunks_, holes_, percentage_);
   }
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
@@ -319,7 +318,6 @@ namespace rubinius {
       diagnostics_.chunks_ = chunks.size();
 
       while(immix::Block* block = iter.next()) {
-        diagnostics_.blocks_++;
         diagnostics_.holes_ += block->holes();
         diagnostics_.objects_ += block->objects();
         diagnostics_.bytes_ += block->object_bytes();
