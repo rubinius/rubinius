@@ -50,13 +50,13 @@ describe "Kernel#frozen?" do
 
   describe "on true" do
     it "returns true" do
-      nil.frozen?.should be_true
+      true.frozen?.should be_true
     end
   end
 
   describe "on false" do
     it "returns true" do
-      nil.frozen?.should be_true
+      false.frozen?.should be_true
     end
   end
 end
