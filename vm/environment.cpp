@@ -609,14 +609,14 @@ namespace rubinius {
       root_vm->set_call_frame(0);
     }
 
-    shared->finalizer_handler()->finish(state, gct);
-
     root_vm->set_call_frame(0);
 
     // Hold everyone.
     while(!state->stop_the_world()) {
       state->checkpoint(gct, 0);
     }
+
+    shared->finalizer_handler()->finish(state, gct);
 
     NativeMethod::cleanup_thread(state);
 
