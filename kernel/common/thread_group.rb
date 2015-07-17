@@ -17,7 +17,7 @@ class ThreadGroup
     tm = Rubinius::Mirror.reflect thread
     tm.group = self
 
-    @threads << thread
+    Rubinius.synchronize(@threads) { @threads << thread }
 
     self
   end

@@ -5,9 +5,8 @@ module Rubinius
 
       def remove(thread)
         ary = Rubinius.invoke_primitive :object_get_ivar, @object, :@threads
-        ary.delete thread
+        Rubinius.synchronize(ary) { ary.delete thread }
       end
-
     end
   end
 end
