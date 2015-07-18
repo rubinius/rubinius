@@ -129,8 +129,8 @@ namespace rubinius {
     // Rubinius.primitive :float_to_packed
     String* to_packed(STATE, Object* want_double);
 
-    // Rubinius.primitive :float_negative
-    Object* negative(STATE);
+    // Rubinius.primitive :float_signbit_p
+    Object* signbit_p(STATE);
 
     static int radix()      { return FLT_RADIX; }
     static int rounds()     { return FLT_ROUNDS; }
