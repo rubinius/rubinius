@@ -750,8 +750,8 @@ step1:
       obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       if(unlikely(!obj)) return NULL;
 
-      vm()->metrics().memory.immix_objects++;
-      vm()->metrics().memory.immix_bytes += bytes;
+      vm()->metrics().memory.large_objects++;
+      vm()->metrics().memory.large_bytes += bytes;
 
       if(collect_mature_now) shared_.gc_soon();
 
