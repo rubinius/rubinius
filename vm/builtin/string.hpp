@@ -184,11 +184,11 @@ namespace rubinius {
     // Rubinius.primitive :string_dup
     String* string_dup(STATE) {
       if(likely(klass_ == G(string) && ivars_->nil_p())) {
-        // Optimal case, we have a plain string with no
-        // metaclass or ivars. In that case we don't need
-        // a write barrier and we can copy the raw string
-        // object directly.
-        String* so = state->vm()->new_young_string_dirty();
+        /* We have a plain string with no metaclass or ivars, so if we can
+         * allocate a new object in the young space, we can copy it directly
+         * without needing a write barrier.
+         */
+        String* so = state->vm()->new_young_string_dirty(state);
         if(likely(so)) {
           so->copy_body(state->vm(), this);
           so->shared(state, cTrue);

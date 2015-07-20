@@ -751,21 +751,21 @@ namespace rubinius {
     Module* mod = klass_;
     Class*  cls = try_as_instance<Class>(mod);
 
-    if(!cls) {
-      while(!cls) {
-        mod = mod->superclass();
+    while(!cls) {
+      mod = mod->superclass();
 
-        if(mod->nil_p()) rubinius::bug("Object::class_object() failed to find a class");
+      if(mod->nil_p()) rubinius::bug("Object::class_object() failed to find a class");
 
-        cls = try_as_instance<Class>(mod);
-      }
+      cls = try_as_instance<Class>(mod);
     }
 
-    String* so = state->new_object_dirty<String>(cls);
+    String* so = state->memory()->new_string_certain(state, cls);
+    if(!so) return NULL;
 
     so->copy_object(state, this);
     so->shared(state, cTrue);
     shared(state, cTrue);
+    infect(state, so);
 
     return so;
   }

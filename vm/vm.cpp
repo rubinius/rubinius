@@ -197,13 +197,12 @@ namespace rubinius {
     return obj;
   }
 
-  String* VM::new_young_string_dirty() {
-    State state(this);
+  String* VM::new_young_string_dirty(STATE) {
     String* str = local_slab().allocate(sizeof(String)).as<String>();
 
     if(unlikely(!str)) {
 
-      if(shared.om->refill_slab(&state, local_slab())) {
+      if(shared.om->refill_slab(state, local_slab())) {
         str = local_slab().allocate(sizeof(String)).as<String>();
       }
 
@@ -212,7 +211,7 @@ namespace rubinius {
 
     str->init_header(G(string), YoungObjectZone, String::type);
 #ifdef RBX_GC_STRESS
-    state.shared().gc_soon();
+    state->shared().gc_soon();
 #endif
     return str;
   }

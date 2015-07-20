@@ -312,6 +312,9 @@ namespace rubinius {
     Object* allocate_object_raw(size_t bytes);
     void collect_mature_finish(STATE, GCData* data);
 
+    // TODO: generalize when fixing safe points.
+    String* new_string_certain(STATE, Class* klass);
+
     bool mature_gc_in_progress() {
       return mature_gc_in_progress_;
     }

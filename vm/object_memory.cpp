@@ -742,40 +742,68 @@ step1:
     type_info[ti->type] = ti;
   }
 
-  Object* ObjectMemory::allocate_object(size_t bytes) {
-
+  // TODO: This method is temporary pending refactoring GC safepoints.
+  String* ObjectMemory::new_string_certain(STATE, Class* klass) {
+    size_t bytes = sizeof(String);
+    bool collect_now;
     Object* obj;
 
     if(unlikely(bytes > large_object_threshold)) {
-      obj = mark_sweep_->allocate(bytes, &collect_mature_now);
-      if(unlikely(!obj)) return NULL;
-
+      if(likely(obj = mark_sweep_->allocate(bytes, &collect_now))) {
+        vm()->metrics().memory.large_objects++;
+        vm()->metrics().memory.large_bytes += bytes;
+      } else {
+        return NULL;
+      }
+    } else if(likely(obj = young_->allocate(bytes, &collect_now))) {
+      vm()->metrics().memory.young_objects++;
+      vm()->metrics().memory.young_bytes += bytes;
+    } else if(likely(obj = immix_->allocate(bytes))) {
+      vm()->metrics().memory.immix_objects++;
+      vm()->metrics().memory.immix_bytes += bytes;
+    } else if(likely(obj = mark_sweep_->allocate(bytes, &collect_now))) {
       vm()->metrics().memory.large_objects++;
       vm()->metrics().memory.large_bytes += bytes;
-
-      if(collect_mature_now) shared_.gc_soon();
-
     } else {
-      obj = young_->allocate(bytes, &collect_young_now);
-      if(unlikely(obj == NULL)) {
-        collect_young_now = true;
-        shared_.gc_soon();
-
-        obj = immix_->allocate(bytes);
-
-        if(unlikely(!obj)) {
-          obj = mark_sweep_->allocate(bytes, &collect_mature_now);
-        }
-
-        vm()->metrics().memory.immix_objects++;
-        vm()->metrics().memory.immix_bytes += bytes;
-
-        if(collect_mature_now) shared_.gc_soon();
-      } else {
-        vm()->metrics().memory.young_objects++;
-        vm()->metrics().memory.young_bytes += bytes;
-      }
+      return NULL;
     }
+
+#ifdef ENABLE_OBJECT_WATCH
+    if(watched_p(obj)) {
+      std::cout << "detected " << obj << " during allocation\n";
+    }
+#endif
+
+    obj->set_obj_type(String::type);
+
+    return force_as<String>(obj);
+  }
+
+  Object* ObjectMemory::allocate_object(size_t bytes) {
+    Object* obj;
+
+    collect_young_now = false;
+    collect_mature_now = false;
+
+    if(unlikely(bytes > large_object_threshold)) {
+      if(likely(obj = mark_sweep_->allocate(bytes, &collect_mature_now))) {
+        vm()->metrics().memory.large_objects++;
+        vm()->metrics().memory.large_bytes += bytes;
+      }
+    } else if(likely(obj = young_->allocate(bytes, &collect_young_now))) {
+      vm()->metrics().memory.young_objects++;
+      vm()->metrics().memory.young_bytes += bytes;
+    } else if(likely(obj = immix_->allocate(bytes))) {
+      vm()->metrics().memory.immix_objects++;
+      vm()->metrics().memory.immix_bytes += bytes;
+    } else if(likely(obj = mark_sweep_->allocate(bytes, &collect_mature_now))) {
+      vm()->metrics().memory.large_objects++;
+      vm()->metrics().memory.large_bytes += bytes;
+    }
+
+    if(collect_young_now || collect_mature_now) shared_.gc_soon();
+
+    if(!obj) return NULL;
 
 #ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {

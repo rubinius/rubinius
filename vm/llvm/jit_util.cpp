@@ -223,7 +223,15 @@ extern "C" {
   Object* rbx_string_dup(STATE, CallFrame* call_frame, Object* obj) {
     CPP_TRY
 
-    return as<String>(obj)->string_dup(state);
+    String* str = as<String>(obj)->string_dup(state);
+
+    if(!str) {
+      state->raise_exception(
+          Exception::make_exception(state, Exception::get_runtime_error(state),
+              "unable to allocate String from string_dup"));
+    }
+
+    return str;
 
     CPP_CATCH
   }

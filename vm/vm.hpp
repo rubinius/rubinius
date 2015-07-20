@@ -412,7 +412,7 @@ namespace rubinius {
       }
 
     /// Create a String in the young GC space, return NULL if not possible.
-    String* new_young_string_dirty();
+    String* new_young_string_dirty(STATE);
 
     /// Create a Tuple in the young GC space, return NULL if not possible.
     Tuple* new_young_tuple_dirty(size_t fields);

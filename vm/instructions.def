@@ -1723,12 +1723,20 @@ instruction string_dup() [ string -- string ]
   flush_ip();
   String *s1 = as<String>(stack_pop());
   String *dup = s1->string_dup(state);
+
+  if(!dup) {
+    state->raise_exception(
+        Exception::make_exception(state, Exception::get_runtime_error(state),
+            "unable to allocate String from string_dup"));
+  }
+
+  CHECK_AND_PUSH(dup);
+
 #ifdef RBX_ALLOC_TRACKING
   if(unlikely(state->vm()->allocation_tracking())) {
     dup->setup_allocation_site(state, call_frame);
   }
 #endif
-  stack_push(dup);
 end
 
 section "Manipulate scope"
