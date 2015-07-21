@@ -73,7 +73,7 @@ module UnboundMethodSpecs
     def baz(a, b)
       return [__FILE__, self.class]
     end
-    def overriden; end
+    def overridden; end
   end
 
   class B < A

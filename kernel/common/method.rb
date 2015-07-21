@@ -158,6 +158,20 @@ class Method
     UnboundMethod.new(@defined_in, @executable, @receiver.class, @name)
   end
 
+  def super_method
+    superclass = @defined_in.direct_superclass
+
+    if superclass
+      mod, entry = superclass.lookup_method(@name)
+
+      if entry && entry.visibility != :undef
+        return Method.new(@receiver, superclass, entry.method, @name)
+      end
+    end
+
+    return nil
+  end
+
 end
 
 ##
@@ -287,5 +301,19 @@ class UnboundMethod
     else
       @defined_in
     end
+  end
+
+  def super_method
+    superclass = @defined_in.direct_superclass
+
+    if superclass
+      mod, entry = superclass.lookup_method(@name)
+
+      if entry && entry.visibility != :undef
+        return UnboundMethod.new(superclass, entry.method, @defined_in, @name)
+      end
+    end
+
+    return nil
   end
 end
