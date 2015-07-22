@@ -22,4 +22,18 @@ describe "Method#super_method" do
     sss_meth.receiver.should == obj
     sss_meth.name.should == :overridden
   end
+
+  it "returns nil when there's no super method in the parent" do
+    method = Object.new.method(:method)
+    method.super_method.should == nil
+  end
+
+  it "returns nil when the parent's method is removed" do
+    object = MethodSpecs::B.new
+    method = object.method(:overridden)
+
+    MethodSpecs::A.class_eval { undef :overridden }
+
+    method.super_method.should == nil
+  end
 end
