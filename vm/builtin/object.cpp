@@ -168,9 +168,9 @@ namespace rubinius {
   Object* Object::frozen_p(STATE) {
     if(reference_p()) {
       return RBOOL(is_frozen_p());
-    } else if(try_as<Symbol>(this)) {
+    } else if(try_as<Symbol>(this) || try_as<Fixnum>(this)) {
       return cTrue;
-    } else if(try_as<Fixnum>(this)) {
+    } else if(this->nil_p() || this->true_p() || this->false_p()) {
       return cTrue;
     } else {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
