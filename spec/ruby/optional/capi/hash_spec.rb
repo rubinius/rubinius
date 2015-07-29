@@ -91,6 +91,14 @@ describe "C-API Hash function" do
     end
   end
 
+  describe "rb_hash_clear" do
+    it "returns self that cleared keys and values" do
+      hsh = { :key => 'value' }
+      @s.rb_hash_clear(hsh).should equal(hsh)
+      hsh.should == {}
+    end
+  end
+
   describe "rb_hash_delete" do
     it "removes the key and returns the value" do
       hsh = {:chunky => 'bacon'}
