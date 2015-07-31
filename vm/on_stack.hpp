@@ -31,7 +31,7 @@ namespace rubinius {
       // what we do is validate the type of o1, as expanded by the template,
       // is an Object* or subclass.
       //
-      // Thats what the static_cast<> here does. It will only compiled iff the
+      // Thats what the static_cast<> here does. It will only compiled if the
       // type of o1 is Object* or a subclass.
       //
       // When compiled though, because it's completely unused, it disappears, thus
