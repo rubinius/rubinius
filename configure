@@ -578,7 +578,7 @@ class Configure
           config = macports_llvm_config
         else
           out = Bundler.with_clean_env { `brew --prefix llvm35` }.chomp
-          config = "#{out}/bin/llvm-config-3.5" if $?.success?
+          config = "#{out}/bin/llvm-config-3.6" if $?.success?
         end
       end
     end
@@ -598,8 +598,8 @@ class Configure
       unless failed
         parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
         api_version = ("%d%02d" % parts[0..1]).to_i
-        if api_version < 300 or api_version > 305
-          @log.write "only LLVM 3.0-3.5 is supported"
+        if api_version < 300 or api_version > 306
+          @log.write "only LLVM 3.0-3.6 is supported"
         else
           @log.write "found! (version #{version} - api: #{api_version})"
           @llvm = :config
@@ -660,7 +660,7 @@ int main() { LLVMContext &Context = getGlobalContext(); }
   def check_llvm_flags
     flags = '--ldflags'
 
-    if @llvm_api_version >= 305
+    if @llvm_api_version >= 306
       @llvm_cxxflags << " -std=c++11"
 
       # Starting with LLVM 3.5 the --system-libs option is required in order to
@@ -1999,7 +1999,7 @@ Available commands are:
   # Query MacPorts for the path to the latest installed version of
   # llvm-config that is within the range of supported LLVM versions.
   def macports_llvm_config
-    supported_versions = (3.0 .. 3.5)
+    supported_versions = (3.0 .. 3.6)
     installed_ports    = `port installed | egrep -o 'llvm-[^ ]+'`.split
     latest_usable_port = installed_ports.sort.select do |fname|
                            version = fname.match(/-\K.*/)[0].to_f
