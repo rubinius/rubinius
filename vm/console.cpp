@@ -1,10 +1,12 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "console.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "on_stack.hpp"
 #include "object_utils.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/channel.hpp"
@@ -297,7 +299,7 @@ namespace rubinius {
         if(thread_exit_) break;
 
         if(request) {
-          GCDependent guard(state, 0);
+          ManagedPhase managed(state);
 
           pending_requests++;
 
@@ -317,7 +319,7 @@ namespace rubinius {
         }
 
         {
-          GCIndependent gc_guard(state, 0);
+          UnmanagedPhase unmanaged(state);
           utilities::thread::Mutex::LockGuard guard(response_lock_);
 
           if(thread_exit_) break;

@@ -1,5 +1,5 @@
 #include "vm/test/test.hpp"
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "builtin/native_function.hpp"
 #include "builtin/ffi_pointer.hpp"
 

@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "fiber_stack.hpp"
 #include "fiber_data.hpp"
 

@@ -1,6 +1,6 @@
 #include "vm/test/test.hpp"
 
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "ffi_util.hpp"
 
 #include "builtin/ffi_pointer.hpp"

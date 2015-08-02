@@ -15,6 +15,7 @@
 #include "on_stack.hpp"
 #include "ontology.hpp"
 #include "util/spinlock.hpp"
+#include "thread_phase.hpp"
 #include "windows_compat.h"
 
 #include <sstream>
@@ -105,7 +106,7 @@ namespace rubinius {
     OnStack<1> os(state, p);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       fd = open_with_cloexec(state, path, mode, permissions);
     }
 
@@ -281,7 +282,7 @@ namespace rubinius {
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       events = ::select((highest + 1), maybe_read_set,
                                                   maybe_write_set,
                                                   maybe_error_set,
@@ -354,7 +355,7 @@ namespace rubinius {
     OnStack<2> os(state, self, p);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       other_fd = open_with_cloexec(state, path, mode, 0666);
     }
 
@@ -676,7 +677,7 @@ namespace rubinius {
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       bytes_read = ::read(fd, buf, count);
     }
 
@@ -772,7 +773,7 @@ namespace rubinius {
     bool error = false;
 
     {
-      GCIndependent guard(state, call_frame);
+      UnmanagedPhase unmanaged(state);
       uint8_t* cur = bytes;
       while(left > 0) {
         ssize_t cnt = ::write(fd, cur, left);
@@ -961,7 +962,7 @@ namespace rubinius {
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       bytes_read = recvfrom(descriptor()->to_native(),
                             (char*)buffer->byte_address(), size,
                             flags->to_native(),
@@ -1242,7 +1243,7 @@ failed: /* try next '*' position */
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       new_fd = ::accept(fd, (struct sockaddr*)&socka, &sock_len);
     }
 
@@ -1354,7 +1355,7 @@ failed: /* try next '*' position */
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 
@@ -1454,7 +1455,7 @@ failed: /* try next '*' position */
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       bytes_read = ::read(fd, temp_buffer, count);
     }
 

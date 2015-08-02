@@ -6,6 +6,7 @@
 
 #include "object_memory.hpp"
 #include "vm.hpp"
+#include "state.hpp"
 
 #include "builtin/access_variable.hpp"
 #include "builtin/array.hpp"

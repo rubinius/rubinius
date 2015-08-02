@@ -26,6 +26,7 @@
 #include "field_offset.hpp"
 #include "object_memory.hpp"
 #include "on_stack.hpp"
+#include "thread_phase.hpp"
 
 #include "call_frame.hpp"
 #include "configuration.hpp"
@@ -210,11 +211,10 @@ namespace rubinius {
   void LLVMState::run(STATE) {
     state_ = state;
 
-    GCTokenImpl gct;
     JITCompileRequest* compile_request = nil<JITCompileRequest>();
     OnStack<1> os(state, compile_request);
 
-    state->gc_dependent(gct, 0);
+    state->vm()->become_managed();
 
     bool show_machine_code_ = jit_dump_code() & cMachineCode;
 
@@ -223,7 +223,7 @@ namespace rubinius {
       current_compiler_ = 0;
 
       {
-        GCIndependent guard(state, 0);
+        UnmanagedPhase unmanaged(state);
 
         {
           utilities::thread::Mutex::LockGuard lg(compile_lock_);
@@ -447,16 +447,16 @@ namespace rubinius {
 
     add(state, req);
 
-    state->set_call_frame(call_frame);
+    state->vm()->set_call_frame(call_frame);
 
     {
-      GCIndependent guard(state, call_frame);
+      UnmanagedPhase unmanaged(state);
 
       wait_cond.wait(wait_mutex);
     }
 
     wait_mutex.unlock();
-    state->set_call_frame(0);
+    state->vm()->set_call_frame(0);
 
     if(state->shared().config.jit_show_compiling) {
       llvm::outs() << "[[[ JIT compiled "
@@ -501,16 +501,16 @@ namespace rubinius {
       add(state, req);
       bool req_block = req->is_block();
 
-      state->set_call_frame(call_frame);
+      state->vm()->set_call_frame(call_frame);
 
       {
-        GCIndependent guard(state, call_frame);
+        UnmanagedPhase unmanaged(state);
 
         wait_cond.wait(wait_mutex);
       }
 
       wait_mutex.unlock();
-      state->set_call_frame(0);
+      state->vm()->set_call_frame(0);
 
       if(state->shared().config.jit_show_compiling) {
         llvm::outs() << "[[[ JIT compiled "

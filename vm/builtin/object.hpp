@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "oop.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"

@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "metrics.hpp"
 
 #include "environment.hpp"
@@ -7,6 +8,7 @@
 #include "configuration.hpp"
 #include "ontology.hpp"
 #include "system_diagnostics.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
@@ -411,8 +413,6 @@ namespace rubinius {
     }
 
     void Metrics::update_ruby_values(STATE) {
-      GCDependent guard(state, 0);
-
       Tuple* values = values_.get();
       int index = 0;
 
@@ -466,6 +466,8 @@ namespace rubinius {
     }
 
     void Metrics::run(STATE) {
+      state->vm()->become_unmanaged();
+
       timer_->set(interval_);
 
       while(!thread_exit_) {
@@ -476,10 +478,8 @@ namespace rubinius {
 
         if(thread_exit_) break;
 
-        log_diagnostics(state);
-
         metrics_data_ = MetricsData();
-        ThreadList* threads = state->shared().threads();
+        ThreadList* threads = state->shared().thread_nexus()->threads();
 
         for(ThreadList::iterator i = threads->begin();
             i != threads->end();
@@ -501,7 +501,12 @@ namespace rubinius {
           metrics_data_.add(metrics_history_);
         }
 
-        update_ruby_values(state);
+        {
+          ManagedPhase managed(state);
+
+          update_ruby_values(state);
+          log_diagnostics(state);
+        }
 
         if(emitter_) emitter_->send_metrics();
       }

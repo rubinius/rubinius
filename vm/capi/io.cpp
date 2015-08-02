@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
@@ -7,6 +8,7 @@
 #include "builtin/thread.hpp"
 #include "object_memory.hpp"
 #include "primitives.hpp"
+#include "thread_phase.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
@@ -176,7 +178,7 @@ extern "C" {
     State* state = env->state();
     LEAVE_CAPI(state);
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(state);
       state->vm()->interrupt_with_signal();
       state->vm()->thread->sleep(state, cTrue);
 
@@ -222,7 +224,7 @@ extern "C" {
     State* state = env->state();
     LEAVE_CAPI(state);
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(state);
       state->vm()->interrupt_with_signal();
       state->vm()->thread->sleep(state, cTrue);
 
@@ -273,7 +275,7 @@ extern "C" {
     State* state = env->state();
     LEAVE_CAPI(state);
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(state);
       state->vm()->interrupt_with_signal();
       state->vm()->thread->sleep(state, cTrue);
 
@@ -304,7 +306,7 @@ extern "C" {
     State* state = env->state();
     LEAVE_CAPI(state);
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(state);
       state->vm()->interrupt_with_signal();
       state->vm()->thread->sleep(state, cTrue);
 
@@ -333,7 +335,7 @@ extern "C" {
     State* state = env->state();
     LEAVE_CAPI(state);
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(state);
       state->vm()->interrupt_with_signal();
       state->vm()->thread->sleep(state, cTrue);
 

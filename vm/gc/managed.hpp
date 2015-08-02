@@ -14,25 +14,14 @@
 namespace rubinius {
   class SharedState;
   class VM;
-  class WorldState;
 
   typedef std::vector<ObjectHeader*> LockedObjects;
 
   class ManagedThread {
   public:
-    // WorldState sets the run_state_ directly.
-    friend class WorldState;
-
     enum Kind {
       eRuby,
       eSystem
-    };
-
-    enum RunState {
-      eRunning,     //< Normal state. Running accessing GC memory.
-      eSuspended,   //< Waiting to be told to restart
-      eIndependent, //< Off running code that doesn't access GC memory.
-      eAlone        //< Suspended all other threads, alone to run.
     };
 
   private:
@@ -42,7 +31,6 @@ namespace rubinius {
     VariableRootBuffers variable_root_buffers_;
     RootBuffers root_buffers_;
     LockedObjects locked_objects_;
-    RunState run_state_;
     Kind kind_;
     metrics::MetricsData metrics_;
 
@@ -116,14 +104,6 @@ namespace rubinius {
 
     pthread_t& os_thread() {
       return os_thread_;
-    }
-
-    void set_run_state(RunState s) {
-      run_state_ = s;
-    }
-
-    RunState run_state() const {
-      return run_state_;
     }
 
     metrics::MetricsData& metrics() {

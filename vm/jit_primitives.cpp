@@ -1,7 +1,8 @@
 #ifdef ENABLE_LLVM
 
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "vm.hpp"
+#include "state.hpp"
 #include "primitives.hpp"
 #include "gen/includes.hpp"
 #include "arguments.hpp"

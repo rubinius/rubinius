@@ -1,7 +1,7 @@
 #ifndef RBX_COMPILED_FILE_HPP
 #define RBX_COMPILED_FILE_HPP
 
-#include "prelude.hpp"
+#include "defines.hpp"
 
 #include <string>
 #include <istream>

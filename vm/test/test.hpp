@@ -2,6 +2,7 @@
 #define RBX_TEST_TEST_HPP
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "config_parser.hpp"
 #include "vm/object_utils.hpp"
 #include "object_memory.hpp"
@@ -32,7 +33,7 @@ public:
 
     vm->shared.set_initialized();
 
-    vm->shared.gc_dependent(vm);
+    vm->become_managed();
 
     State state(vm);
 
@@ -50,7 +51,7 @@ public:
   void create() {
     config_parser = new ConfigParser;
     shared = new SharedState(0, config, *config_parser);
-    VM* vm = shared->new_vm();
+    VM* vm = shared->thread_nexus()->new_vm(shared);
     initialize_as_root(vm);
     state = new State(vm);
   }

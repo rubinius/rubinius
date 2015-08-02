@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "prelude.hpp"
+#include "defines.hpp"
 
 namespace rubinius {
 

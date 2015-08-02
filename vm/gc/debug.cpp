@@ -1,4 +1,4 @@
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "gc/gc.hpp"
 #include "gc/debug.hpp"
 #include "object_memory.hpp"

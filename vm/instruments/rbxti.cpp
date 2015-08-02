@@ -3,6 +3,7 @@
 #include "rbxti-internal.hpp"
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "machine_code.hpp"
 #include "configuration.hpp"
 #include "config_parser.hpp"

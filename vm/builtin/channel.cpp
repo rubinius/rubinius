@@ -9,6 +9,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
+#include "thread_phase.hpp"
 
 #include <sys/time.h>
 
@@ -39,7 +40,7 @@ namespace rubinius {
 
     OnStack<2> os(state, val, self);
 
-    GCLockGuard lg(state, gct, calling_environment, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     if(val->nil_p()) {
       self->semaphore_count_++;
@@ -65,7 +66,7 @@ namespace rubinius {
     Channel* self = this;
     OnStack<1> os(state, self);
 
-    GCLockGuard lg(state, gct, calling_environment, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
@@ -94,7 +95,7 @@ namespace rubinius {
     Channel* self = this;
     OnStack<2> os(state, self, duration);
 
-    GCLockGuard lg(state, gct, call_frame, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
@@ -145,7 +146,7 @@ namespace rubinius {
 
     for(;;) {
       {
-        GCIndependent gc_guard(state, call_frame);
+        UnmanagedPhase unmanaged(state);
 
         if(use_timed_wait) {
           if(self->condition_.wait_until(self->mutex_, &ts) == utilities::thread::cTimedOut) break;

@@ -1,7 +1,9 @@
 #include "vm.hpp"
-#include "prelude.hpp"
+#include "state.hpp"
+#include "defines.hpp"
 #include "environment.hpp"
 #include "internal_threads.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/native_method.hpp"
 
@@ -12,7 +14,7 @@ namespace rubinius {
   using namespace utilities;
 
   InternalThread::InternalThread(STATE, std::string name, StackSize stack_size)
-    : vm_(state->shared().new_vm(name.c_str()))
+    : vm_(state->shared().thread_nexus()->new_vm(&state->shared(), name.c_str()))
     , thread_running_(false)
     , stack_size_(stack_size)
     , thread_exit_(false)
@@ -22,13 +24,11 @@ namespace rubinius {
 
   void* InternalThread::run(void* ptr) {
     InternalThread* thread = reinterpret_cast<InternalThread*>(ptr);
-    VM* vm = thread->vm();
 
-    SharedState& shared = vm->shared;
+    VM* vm = thread->vm();
     State state_obj(vm), *state = &state_obj;
 
     vm->set_current_thread();
-    vm->set_run_state(ManagedThread::eIndependent);
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
@@ -50,7 +50,7 @@ namespace rubinius {
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
-    shared.gc_independent();
+    vm->become_unmanaged();
 
     vm->set_zombie(state);
 
@@ -87,7 +87,7 @@ namespace rubinius {
   }
 
   void InternalThread::stop_thread(STATE) {
-    GCIndependent guard(state, 0);
+    UnmanagedPhase unmanaged(state);
 
     wakeup(state);
 
@@ -104,7 +104,7 @@ namespace rubinius {
   }
 
   void InternalThread::after_fork_child(STATE) {
-    vm_ = state->shared().new_vm();
+    vm_ = state->shared().thread_nexus()->new_vm(&state->shared());
     start(state);
   }
 

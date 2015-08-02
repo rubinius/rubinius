@@ -1,13 +1,14 @@
 #include "config.h"
 #include "signature.h"
 #include "paths.h"
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
 #include "compiled_file.hpp"
 #include "object_memory.hpp"
 #include "exception.hpp"
 #include "system_diagnostics.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -104,8 +105,9 @@ namespace rubinius {
 
     check_io_descriptors();
 
-    root_vm = shared->new_vm("rbx.ruby.main");
+    root_vm = shared->thread_nexus()->new_vm(shared, "rbx.ruby.main");
     root_vm->set_main_thread();
+    shared->set_root_vm(root_vm);
 
     int stack_address = 0;
     root_vm->set_root_stack(
@@ -595,27 +597,19 @@ namespace rubinius {
 
     stop_jit(state);
 
-    root_vm->set_call_frame(0);
-
-    // Handle an edge case where another thread is waiting to stop the world.
-    GCTokenImpl gct;
-    if(state->shared().should_stop()) {
-      state->checkpoint(gct, 0);
-    }
+    state->vm()->set_call_frame(0);
+    state->vm()->checkpoint(state);
 
     {
-      GCIndependent guard(state, 0);
+      UnmanagedPhase unmanaged(state);
       shared->internal_threads()->shutdown(state);
-      root_vm->set_call_frame(0);
     }
 
-    root_vm->set_call_frame(0);
+    state->vm()->set_call_frame(0);
 
-    // Hold everyone.
-    while(!state->stop_the_world()) {
-      state->checkpoint(gct, 0);
-    }
+    shared->thread_nexus()->lock_or_wait(state->vm());
 
+    GCTokenImpl gct;
     shared->finalizer_handler()->finish(state, gct);
 
     NativeMethod::cleanup_thread(state);
@@ -826,7 +820,7 @@ namespace rubinius {
 
     shared->set_initialized();
 
-    shared->gc_dependent(state->vm());
+    state->vm()->become_managed();
 
     TypeInfo::auto_learn_fields(state);
 

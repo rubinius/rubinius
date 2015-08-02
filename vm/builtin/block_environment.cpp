@@ -445,6 +445,8 @@ namespace rubinius {
     frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
+    state->vm()->set_call_frame(frame);
+
     if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
       if(state->vm()->thread_state()->raise_reason() == cNone) {
         Exception* exc =
@@ -474,7 +476,7 @@ namespace rubinius {
 
       if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
-      state->checkpoint(gct, frame);
+      state->vm()->checkpoint(state);
 
       tooling::BlockEntry method(state, env, mod);
       return (*mcode->run)(state, mcode, frame);
@@ -486,7 +488,7 @@ namespace rubinius {
 
       if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
-      state->checkpoint(gct, frame);
+      state->vm()->checkpoint(state);
       return (*mcode->run)(state, mcode, frame);
     }
 #else
@@ -497,7 +499,7 @@ namespace rubinius {
 
     if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
-    state->checkpoint(gct, frame);
+    state->vm()->checkpoint(state);
     return (*mcode->run)(state, mcode, frame);
 #endif
   }

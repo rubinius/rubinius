@@ -1,4 +1,4 @@
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "object_utils.hpp"
 #include "machine_code.hpp"
 #include "jit.hpp"
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   SharedState * shared = manager->create_shared_state();
   ConfigParser * config = new ConfigParser;
   shared->user_config = config;
-  VM* state = shared->new_vm();
+  VM* state = shared->thread_nexus()->new_vm();
 
   state->initialize(VM::default_bytes);
   state->boot();

@@ -11,8 +11,8 @@
 
 #include "object_memory.hpp"
 #include "configuration.hpp"
-
 #include "on_stack.hpp"
+#include "thread_phase.hpp"
 
 #include <assert.h>
 #include <sys/time.h>
@@ -822,7 +822,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, gct, call_frame, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -848,7 +848,7 @@ step2:
     bool timeout = false;
 
     {
-      GCIndependent gc_guard(state, call_frame);
+      UnmanagedPhase unmanaged(state);
 
       if(cDebugThreading) {
         std::cerr << "[LOCK " << state->vm()->thread_id() << " locking native mutex: " << this << "]\n";
@@ -910,7 +910,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, gct, call_frame, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -952,7 +952,7 @@ step2:
     // Gain exclusive access to the insides of the InflatedHeader.
     OnStack<1> os(state, obj);
 
-    GCLockGuard lg(state, gct, call_frame, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     return owner_id_ != 0;
   }
@@ -961,7 +961,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, gct, call_frame, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     // Sanity check.
     if(owner_id_ != state->vm()->thread_id()) {
@@ -998,7 +998,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, gct, call_frame, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
 
@@ -1027,7 +1027,7 @@ step2:
 
   void InflatedHeader::wakeup(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
     OnStack<1> os(state, obj);
-    GCLockGuard lg(state, gct, call_frame, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, mutex_);
     condition_.signal();
 
     if(cDebugThreading) {

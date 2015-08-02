@@ -3,6 +3,7 @@
 
 #include "diagnostics.hpp"
 #include "vm.hpp"
+#include "state.hpp"
 #include "gc/root.hpp"
 #include "util/allocator.hpp"
 #include "capi/handle.hpp"

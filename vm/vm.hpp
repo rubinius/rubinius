@@ -8,6 +8,7 @@
 #include "gc/object_mark.hpp"
 #include "gc/managed.hpp"
 #include "vm_thread_state.hpp"
+#include "thread_nexus.hpp"
 
 #include "util/thread.hpp"
 
@@ -91,6 +92,7 @@ namespace rubinius {
   private:
     UnwindInfoSet unwinds_;
 
+    ThreadNexus* thread_nexus_;
     CallFrame* saved_call_frame_;
     CallSiteInformation* saved_call_site_information_;
     FiberStacks fiber_stacks_;
@@ -111,6 +113,8 @@ namespace rubinius {
     bool tooling_;
     bool allocation_tracking_;
     bool main_thread_;
+
+    ThreadNexus::Phase thread_phase_;
 
   public:
     /* Data members */
@@ -148,6 +152,14 @@ namespace rubinius {
 
     uint32_t thread_id() const {
       return id_;
+    }
+
+    ThreadNexus::Phase thread_phase() {
+      return thread_phase_;
+    }
+
+    void set_thread_phase(ThreadNexus::Phase thread_phase) {
+      thread_phase_ = thread_phase;
     }
 
     utilities::thread::SpinLock& interrupt_lock() {
@@ -368,6 +380,13 @@ namespace rubinius {
     void bootstrap_symbol(STATE);
     void initialize_config();
 
+    void checkpoint(STATE);
+
+    void become_managed();
+    void become_unmanaged() {
+      thread_phase_ = ThreadNexus::Phase::cUnmanaged;
+    }
+
     void set_current_thread();
 
     void setup_errno(STATE, int num, const char* name, Class* sce, Module* ern);
@@ -469,94 +488,6 @@ namespace rubinius {
     void gc_fiber_scan(GarbageCollector* gc, bool only_marked = true);
     void gc_verify(GarbageCollector* gc);
   };
-
 }
-
-#include "state.hpp"
-
-namespace rubinius {
-
-
-  /**
-   * Instantiation of an instance of this class causes Ruby execution on all
-   * threads to be suspended. Upon destruction of the instance, Ruby execution
-   * is resumed.
-   */
-
-  class StopTheWorld {
-    State* state_;
-
-  public:
-    StopTheWorld(STATE, GCToken gct, CallFrame* cf) :
-      state_(state)
-    {
-      while(!state->stop_the_world()) {
-        state->checkpoint(gct, cf);
-      }
-    }
-
-    ~StopTheWorld() {
-      state_->restart_world();
-    }
-  };
-
-  class NativeMethodEnvironment;
-
-  class GCDependent {
-    State* state_;
-
-  public:
-    GCDependent(STATE, CallFrame* call_frame)
-      : state_(state)
-    {
-      GCTokenImpl gct;
-      state_->gc_dependent(gct, call_frame);
-    }
-
-    ~GCDependent() {
-      GCTokenImpl gct;
-      state_->gc_independent(gct, state_->vm()->saved_call_frame());
-    }
-  };
-
-  class GCIndependent {
-    State* state_;
-
-  public:
-    GCIndependent(STATE, CallFrame* call_frame)
-      : state_(state)
-    {
-      GCTokenImpl gct;
-      state_->gc_independent(gct, call_frame);
-    }
-
-    GCIndependent(NativeMethodEnvironment* env);
-
-    ~GCIndependent() {
-      GCTokenImpl gct;
-      state_->gc_dependent(gct, state_->vm()->saved_call_frame());
-    }
-  };
-
-  template <class T>
-  class GCIndependentLockGuard : public utilities::thread::LockGuardTemplate<T> {
-    State* state_;
-  public:
-    GCIndependentLockGuard(STATE, GCToken gct, CallFrame* call_frame, T& in_lock)
-      : utilities::thread::LockGuardTemplate<T>(in_lock, false)
-      , state_(state)
-    {
-      state_->shared().gc_independent(state_, call_frame);
-      this->lock();
-      state->shared().gc_dependent(state_, call_frame);
-    }
-
-    ~GCIndependentLockGuard() {
-      this->unlock();
-    }
-  };
-
-   typedef GCIndependentLockGuard<utilities::thread::Mutex> GCLockGuard;
-};
 
 #endif

@@ -20,7 +20,7 @@ public:
   }
 
   void test_create() {
-    Thread* thr = Thread::create(state, shared->new_vm());
+    Thread* thr = Thread::create(state, shared->thread_nexus()->new_vm(shared));
 
     TS_ASSERT_DIFFERS(thr, Thread::current(state));
   }

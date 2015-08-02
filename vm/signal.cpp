@@ -1,10 +1,12 @@
 #include "config.h"
 #include "release.h"
 #include "vm.hpp"
+#include "state.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -68,7 +70,7 @@ namespace rubinius {
   }
 
   VM* SignalThread::new_vm(STATE) {
-    return state->shared().new_vm("rbx.system");
+    return state->shared().thread_nexus()->new_vm(&state->shared(), "rbx.system");
   }
 
   void SignalThread::set_exit_code(Object* exit_code) {
@@ -164,7 +166,6 @@ namespace rubinius {
     State state_obj(vm), *state = &state_obj;
 
     vm->set_current_thread();
-    vm->set_run_state(ManagedThread::eIndependent);
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
@@ -184,8 +185,7 @@ namespace rubinius {
   }
 
   void SignalThread::run(STATE) {
-    GCTokenImpl gct;
-    state->gc_independent(gct, 0);
+    state->vm()->become_unmanaged();
 
 #ifndef RBX_WINDOWS
     sigset_t set;
@@ -205,7 +205,7 @@ namespace rubinius {
 
       // TODO: block fork(), exec() on signal handler thread
       if(signal > 0) {
-        GCDependent guard(state, 0);
+        ManagedPhase managed(state);
         vm()->set_call_frame(0);
 
         vm()->metrics().system.signals_processed++;
@@ -237,8 +237,6 @@ namespace rubinius {
             break;
           }
         }
-
-        vm()->set_call_frame(0);
       } else {
         thread::Mutex::LockGuard guard(lock_);
 
@@ -311,7 +309,7 @@ namespace rubinius {
 
   void SignalThread::print_backtraces() {
     STATE = shared_.env()->state;
-    ThreadList* threads = shared_.threads();
+    ThreadList* threads = shared_.thread_nexus()->threads();
 
     for(ThreadList::iterator i = threads->begin(); i != threads->end(); ++i) {
       VM* vm = (*i)->as_vm();

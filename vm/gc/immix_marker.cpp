@@ -1,5 +1,6 @@
 #include "config.h"
 #include "vm.hpp"
+#include "state.hpp"
 #include "immix_marker.hpp"
 
 #include "builtin/class.hpp"
@@ -9,6 +10,7 @@
 #include "gc/immix.hpp"
 #include "ontology.hpp"
 #include "metrics.hpp"
+#include "thread_phase.hpp"
 
 #include "dtrace/dtrace.h"
 #include "instruments/timing.hpp"
@@ -71,9 +73,7 @@ namespace rubinius {
   }
 
   void ImmixMarker::run(STATE) {
-    GCTokenImpl gct;
-
-    state->gc_dependent(gct, 0);
+    state->vm()->become_managed();
 
     while(!thread_exit_) {
       if(data_) {
@@ -87,29 +87,23 @@ namespace rubinius {
           // big increases in young gc times because of long
           // stop the world wait times.
           while(immix_->process_mark_stack(100)) {
-            state->gc_independent(gct, 0);
-            state->gc_dependent(gct, 0);
+            if(state->shared().thread_nexus()->stop_p()) {
+              state->shared().thread_nexus()->yielding(state->vm());
+            }
           }
         }
 
         if(thread_exit_) break;
 
         {
+          LockPhase locked(state);
+
           timer::StopWatch<timer::milliseconds> timer(
               state->vm()->metrics().gc.immix_stop_ms);
 
-          // Finish and pause
-          while(!state->stop_the_world()) {
-            if(thread_exit_) {
-              state->restart_world();
-              break;
-            }
-            state->checkpoint(gct, 0);
-          }
           state->memory()->clear_mature_mark_in_progress();
           state->memory()->collect_mature_finish(state, data_);
         }
-        state->restart_world();
       }
 
       {
@@ -119,7 +113,7 @@ namespace rubinius {
         if(thread_exit_) break;
 
         {
-          GCIndependent guard(state, 0);
+          UnmanagedPhase unmanaged(state);
           run_cond_.wait(run_lock_);
         }
       }

@@ -4,6 +4,7 @@
 #include "builtin/string.hpp"
 
 #include "ontology.hpp"
+#include "thread_phase.hpp"
 
 #include "util/logger.hpp"
 
@@ -58,7 +59,7 @@ namespace rubinius {
     int status = 0;
 
     {
-      GCIndependent guard(state, 0);
+      UnmanagedPhase unmanaged(state);
 
       status = kevent(kq_, &filter_, 1, &event, 1, NULL);
     }

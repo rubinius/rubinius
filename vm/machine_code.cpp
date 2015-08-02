@@ -3,7 +3,7 @@
 #include "dispatch.hpp"
 #include "call_frame.hpp"
 #include "object_memory.hpp"
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "machine_code.hpp"
 
 #include "object_utils.hpp"
@@ -761,6 +761,8 @@ namespace rubinius {
       frame->scope = scope;
       frame->arguments = &args;
 
+      state->vm()->set_call_frame(frame);
+
       GCTokenImpl gct;
 
 #ifdef ENABLE_LLVM
@@ -784,7 +786,7 @@ namespace rubinius {
         OnStack<2> os(state, exec, code);
         if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
-        state->checkpoint(gct, frame);
+        state->vm()->checkpoint(state);
 
         tooling::MethodEntry method(state, exec, scope->module(), args, code);
 
@@ -795,7 +797,7 @@ namespace rubinius {
       } else {
         if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
-        state->checkpoint(gct, frame);
+        state->vm()->checkpoint(state);
         RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
         Object* result = (*mcode->run)(state, mcode, frame);
         RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
@@ -804,7 +806,7 @@ namespace rubinius {
 #else
       if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
-      state->checkpoint(gct, frame);
+      state->vm()->checkpoint(state);
 
       RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
       Object* result = (*mcode->run)(state, mcode, frame);
@@ -846,6 +848,8 @@ namespace rubinius {
     frame->scope = scope;
     frame->arguments = &args;
 
+    state->vm()->set_call_frame(frame);
+
     // Do NOT check if we should JIT this. We NEVER want to jit a script.
 
     // Check the stack and interrupts here rather than in the interpreter
@@ -855,7 +859,7 @@ namespace rubinius {
 
     if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
-    state->checkpoint(gct, frame);
+    state->vm()->checkpoint(state);
 
     // Don't generate profiling info here, it's expected
     // to be done by the caller.

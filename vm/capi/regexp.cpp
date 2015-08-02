@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"

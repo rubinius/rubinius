@@ -1,7 +1,7 @@
 #ifndef RBX_LLVM_TYPES_HPP
 #define RBX_LLVM_TYPES_HPP
 
-#include "prelude.hpp"
+#include "defines.hpp"
 
 namespace llvm {
   class Instruction;

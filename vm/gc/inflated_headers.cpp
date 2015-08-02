@@ -1,5 +1,6 @@
 #include "oop.hpp"
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
 #include "gc/inflated_headers.hpp"
 

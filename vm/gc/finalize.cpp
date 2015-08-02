@@ -1,5 +1,6 @@
 #include "config.h"
 #include "vm.hpp"
+#include "state.hpp"
 #include "on_stack.hpp"
 #include "object_memory.hpp"
 #include "call_frame.hpp"
@@ -128,9 +129,7 @@ namespace rubinius {
   }
 
   void FinalizerThread::run(STATE) {
-    GCTokenImpl gct;
-
-    state->gc_dependent(gct, 0);
+    state->vm()->become_managed();
 
     while(!thread_exit_) {
       state->vm()->set_call_frame(0);
@@ -144,13 +143,13 @@ namespace rubinius {
           // exit_ might have been set after we grabbed the worker_lock
           if(thread_exit_) break;
 
-          state->gc_independent(gct, 0);
+          state->vm()->become_unmanaged();
           worker_wait();
 
           if(thread_exit_) break;
         }
 
-        state->gc_dependent(gct, 0);
+        state->vm()->become_managed();
 
         {
           utilities::thread::Mutex::LockGuard lg(worker_lock_);
@@ -214,7 +213,7 @@ namespace rubinius {
           env->set_current_native_frame(&nmf);
 
           // Register the CallFrame, because we might GC below this.
-          state->set_call_frame(call_frame);
+          state->vm()->set_call_frame(call_frame);
 
           nmf.setup(Qnil, Qnil, Qnil, Qnil);
 
@@ -226,7 +225,7 @@ namespace rubinius {
             (*process_item_->finalizer)(state, process_item_->object);
           }
 
-          state->set_call_frame(0);
+          state->vm()->set_call_frame(0);
           env->set_current_call_frame(0);
           env->set_current_native_frame(0);
         }

@@ -3,6 +3,7 @@
 #include "capi/ruby/encoding.h"
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
 
 #include "builtin/byte_array.hpp"

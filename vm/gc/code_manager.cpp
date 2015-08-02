@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "gc/code_manager.hpp"
 #include "gc/code_resource.hpp"
 

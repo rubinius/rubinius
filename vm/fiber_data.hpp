@@ -3,7 +3,7 @@
 
 #include "config.h"
 #include "bug.hpp"
-#include "prelude.hpp"
+#include "defines.hpp"
 
 #include "gc/variable_buffer.hpp"
 

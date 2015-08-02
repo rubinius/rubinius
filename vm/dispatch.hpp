@@ -2,6 +2,7 @@
 #define RBX_DISPATCH_HPP
 
 #include "vm.hpp"
+#include "state.hpp"
 
 namespace rubinius {
   class Symbol;

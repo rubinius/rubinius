@@ -1,7 +1,7 @@
 #ifndef RBX_OBJECTMEMORY_H
 #define RBX_OBJECTMEMORY_H
 
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "type_info.hpp"
 #include "object_position.hpp"
 #include "oop.hpp"
@@ -298,7 +298,7 @@ namespace rubinius {
 
     ObjectPosition validate_object(Object* obj);
 
-    void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
+    void collect_maybe(STATE);
 
     void needs_finalization(Object* obj, FinalizerFunction func,
         FinalizeObject::FinalizeKind kind = FinalizeObject::eManaged);

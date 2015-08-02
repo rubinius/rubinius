@@ -4,6 +4,7 @@
 #include "llvm/method_info.hpp"
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
 #include "call_frame.hpp"
 #include "on_stack.hpp"
@@ -948,29 +949,28 @@ extern "C" {
 
     if(!state->check_interrupts(gct, call_frame, &state)) return NULL;
 
-    state->checkpoint(gct, call_frame);
+    state->vm()->set_call_frame(call_frame);
+    state->vm()->checkpoint(state);
 
     return cTrue;
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
-    GCTokenImpl gct;
-
     if(!state->check_async(call_frame)) return NULL;
 
-    state->checkpoint(gct, call_frame);
+    state->vm()->set_call_frame(call_frame);
+    state->vm()->checkpoint(state);
+
     return cTrue;
   }
 
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
-    GCTokenImpl gct;
-    state->gc_independent(gct, call_frame);
+    state->vm()->become_unmanaged();
     return 0;
   }
 
   int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
-    GCTokenImpl gct;
-    state->gc_dependent(gct, call_frame);
+    state->vm()->become_managed();
     return 0;
   }
 

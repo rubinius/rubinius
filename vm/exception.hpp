@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "object_types.hpp"
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "builtin/object.hpp"
 
 #include "bug.hpp"

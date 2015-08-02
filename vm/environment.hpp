@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "config_parser.hpp"
 #include "configuration.hpp"
 

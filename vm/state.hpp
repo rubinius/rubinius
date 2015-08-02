@@ -1,14 +1,25 @@
 #ifndef RBX_STATE_HPP
 #define RBX_STATE_HPP
 
+#include "type_info.hpp"
+
 #include <string.h>
+#include <string>
 
 namespace rubinius {
+  struct CallFrame;
+
+  class Class;
+  class Exception;
+  class ManagedThread;
+  class Object;
+  class ObjectMemory;
+  class SharedState;
+  class String;
+  class Symbol;
   class VM;
   class VMJIT;
-  class ManagedThread;
   class VMThreadState;
-  class SharedState;
 
   class State {
     VM* vm_;
@@ -37,10 +48,6 @@ namespace rubinius {
 
     void set_vm(VM* vm) {
       vm_ = vm;
-    }
-
-    void set_call_frame(CallFrame* cf) {
-      vm_->set_call_frame(cf);
     }
 
     void set_call_site_information(CallSiteInformation* info) {
@@ -110,7 +117,7 @@ namespace rubinius {
     }
 
     bool check_async(CallFrame* call_frame) {
-      set_call_frame(call_frame);
+      vm_->set_call_frame(call_frame);
       if(vm_->check_local_interrupts()) {
         return process_async(call_frame);
       }
@@ -133,34 +140,6 @@ namespace rubinius {
 
     gc::Slab& local_slab() {
       return vm_->local_slab();
-    }
-
-    bool stop_the_world() WARN_UNUSED {
-      return shared_.stop_the_world(vm_);
-    };
-
-    void restart_world() {
-      shared_.restart_world(vm_);
-    }
-
-    void gc_independent(GCToken gct, CallFrame* call_frame) {
-      shared_.gc_independent(this, call_frame);
-    }
-
-    void gc_dependent(GCToken gct, CallFrame* call_frame) {
-      shared_.gc_dependent(this, call_frame);
-    }
-
-    void checkpoint(GCToken gct, CallFrame* call_frame) {
-      set_call_frame(call_frame);
-      gc_checkpoint(gct, call_frame);
-      shared_.checkpoint(vm_);
-    }
-
-    void gc_checkpoint(GCToken gct, CallFrame* frame) {
-      if(unlikely(shared_.check_gc_p())) {
-        vm_->collect_maybe(gct, frame);
-      }
     }
 
     Object* park(GCToken gct, CallFrame* call_frame);

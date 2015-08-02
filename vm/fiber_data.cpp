@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "fiber_data.hpp"
 #include "builtin/fiber.hpp"
 

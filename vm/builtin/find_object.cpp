@@ -15,6 +15,7 @@
 #include "object_memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "thread_phase.hpp"
 
 namespace rubinius {
   class QueryCondition {
@@ -300,12 +301,12 @@ namespace rubinius {
 
     OnStack<2> os(state, ary, args);
 
-    state->set_call_frame(calling_environment);
+    state->vm()->set_call_frame(calling_environment);
     ObjectWalker walker(state->memory());
     GCData gc_data(state->vm());
 
     {
-      StopTheWorld stw(state, gct, calling_environment);
+      LockPhase locked(state);
       // Seed it with the root objects.
       walker.seed(gc_data);
     }

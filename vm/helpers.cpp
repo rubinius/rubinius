@@ -1,4 +1,3 @@
-
 #include "builtin/object.hpp"
 #include "call_frame.hpp"
 #include "builtin/autoload.hpp"
@@ -19,6 +18,7 @@
 #include "builtin/exception.hpp"
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_utils.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
@@ -304,7 +304,7 @@ namespace rubinius {
       // without being explicitly requested.
       state->vm()->clear_thread_step();
 
-      state->set_call_frame(call_frame);
+      state->vm()->set_call_frame(call_frame);
 
       Channel* my_control = cur->control_channel();
 

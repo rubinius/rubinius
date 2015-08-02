@@ -33,6 +33,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"
+#include "thread_phase.hpp"
 #include "windows_compat.h"
 #include "util/sha1.h"
 #include "util/timing.h"
@@ -391,17 +392,17 @@ namespace rubinius {
 
     int pid;
 
-    state->gc_dependent(gct, call_frame);
+    state->vm()->become_managed();
 
     {
-      StopTheWorld stw(state, gct, call_frame);
+      LockPhase locked(state);
 
       pid = ::fork();
 
-      if(pid == 0) state->shared().reinit_world();
+      if(pid == 0) state->vm()->after_fork_child(state);
     }
 
-    state->gc_independent(gct, call_frame);
+    state->vm()->become_unmanaged();
 
     if(pid > 0) {
       state->shared().internal_threads()->after_fork_exec_parent(state);
@@ -430,7 +431,7 @@ namespace rubinius {
     int pid;
 
     {
-      GCIndependent guard(state, 0);
+      UnmanagedPhase unmanaged(state);
 
       pid = fork_exec(state, gct, calling_environment, errors[1]);
     }
@@ -546,7 +547,7 @@ namespace rubinius {
     int pid;
 
     {
-      GCIndependent guard(state, 0);
+      UnmanagedPhase unmanaged(state);
 
       pid = fork_exec(state, gct, calling_environment, errors[1]);
     }
@@ -634,7 +635,7 @@ namespace rubinius {
       ssize_t bytes = 0;
       char raw_buf[1024];
       {
-        GCIndependent guard(state, calling_environment);
+        UnmanagedPhase unmanaged(state);
         bytes = read(output[0], raw_buf, 1023);
       }
 
@@ -755,7 +756,7 @@ namespace rubinius {
     int_func  = signal(SIGINT, SIG_IGN);
 
     {
-      GCIndependent guard(state, calling_environment);
+      UnmanagedPhase unmanaged(state);
       pid = waitpid(input_pid, &status, options);
     }
 
@@ -813,11 +814,11 @@ namespace rubinius {
       state->shared().internal_threads()->before_fork(state);
 
       {
-        StopTheWorld stw(state, gct, calling_environment);
+        LockPhase locked(state);
 
         pid = ::fork();
 
-        if(pid == 0) state->shared().reinit_world();
+        if(pid == 0) state->vm()->after_fork_child(state);
       }
 
       if(pid > 0) {
@@ -853,9 +854,12 @@ namespace rubinius {
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
     if(CBOOL(force) || state->shared().config.gc_honor_start) {
+      // TODO: fix this
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
-      state->vm()->collect_maybe(gct, call_frame);
+      state->shared().thread_nexus()->set_stop();
+      state->vm()->checkpoint(state);
+      // TODO: end this
     }
     return cNil;
   }
@@ -1638,7 +1642,7 @@ retry:
                                  CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
-    state->set_call_frame(call_frame);
+    state->vm()->set_call_frame(call_frame);
 
 retry:
     switch(obj->lock(state, gct, call_frame, false)) {
@@ -1659,7 +1663,7 @@ retry:
                                        CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
-    state->set_call_frame(call_frame);
+    state->vm()->set_call_frame(call_frame);
 
     switch(obj->lock(state, gct, call_frame, time->to_native())) {
     case eLocked:

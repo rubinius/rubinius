@@ -13,6 +13,7 @@
 #endif
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
 
 #include "builtin/array.hpp"

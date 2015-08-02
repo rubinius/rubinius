@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 
 #include "util/thread.hpp"
 #include "gc/managed.hpp"
@@ -13,7 +14,6 @@ namespace rubinius {
   ManagedThread::ManagedThread(uint32_t id, SharedState& ss,
       ManagedThread::Kind kind, const char* name)
     : shared_(ss)
-    , run_state_(eIndependent)
     , kind_(kind)
     , metrics_()
     , os_thread_(pthread_self())

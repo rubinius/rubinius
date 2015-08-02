@@ -9,6 +9,7 @@
 #include "internal_threads.hpp"
 #include "globals.hpp"
 #include "symbol_table.hpp"
+#include "thread_nexus.hpp"
 
 #include "primitives.hpp"
 
@@ -19,7 +20,6 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
-#include <list>
 
 #include "missing/unordered_map.hpp"
 #include "missing/unordered_set.hpp"
@@ -56,7 +56,6 @@ namespace rubinius {
   class VM;
   class Configuration;
   class LLVMState;
-  class WorldState;
   class ManagedThread;
   class QueryAgent;
   class Environment;
@@ -70,8 +69,6 @@ namespace rubinius {
   typedef std::vector<std::string> CApiConstantNameMap;
   typedef std_unordered_map<int, capi::Handle*> CApiConstantHandleMap;
 
-  typedef std::list<ManagedThread*> ThreadList;
-
   /**
    * SharedState represents the global shared state that needs to be shared
    * across all VM instances.
@@ -84,6 +81,7 @@ namespace rubinius {
 
   class SharedState {
   private:
+    ThreadNexus* thread_nexus_;
     InternalThreads* internal_threads_;
     SignalThread* signals_;
     FinalizerThread* finalizer_thread_;
@@ -93,13 +91,9 @@ namespace rubinius {
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
 
-    WorldState* world_;
-    ThreadList threads_;
-
     uint64_t method_count_;
     unsigned int class_count_;
     int global_serial_;
-    int thread_ids_;
 
     bool initialized_;
     bool check_global_interrupts_;
@@ -129,8 +123,6 @@ namespace rubinius {
     bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
 
-    void reset_threads(STATE, GCToken gct, CallFrame* call_frame);
-
   public:
     Globals globals;
     ObjectMemory* om;
@@ -154,6 +146,10 @@ namespace rubinius {
       initialized_ = true;
     }
 
+    ThreadNexus* thread_nexus() {
+      return thread_nexus_;
+    }
+
     InternalThreads* internal_threads() const {
       return internal_threads_;
     }
@@ -164,13 +160,6 @@ namespace rubinius {
 
     void set_finalizer_handler(FinalizerThread* thr) {
       finalizer_thread_ = thr;
-    }
-
-    VM* new_vm(const char* name = NULL);
-    void remove_vm(VM*);
-
-    ThreadList* threads() {
-      return &threads_;
     }
 
     Array* vm_threads(STATE);
@@ -226,6 +215,10 @@ namespace rubinius {
 
     Environment* env() const {
       return env_;
+    }
+
+    void set_root_vm(VM* vm) {
+      root_vm_ = vm;
     }
 
     VM* root_vm() const {
@@ -316,24 +309,6 @@ namespace rubinius {
     void scheduler_loop();
 
     void after_fork_child(STATE, GCToken gct, CallFrame* call_frame);
-
-    bool should_stop() const;
-
-    void reinit_world();
-
-    bool stop_the_world(THREAD) WARN_UNUSED;
-    void restart_world(THREAD);
-
-    void stop_threads_externally();
-    void restart_threads_externally();
-
-    bool checkpoint(THREAD);
-    void gc_dependent(STATE, CallFrame* call_frame);
-    void gc_independent(STATE, CallFrame* call_frame);
-
-    void gc_dependent(THREAD, utilities::thread::Condition* = NULL);
-    void gc_independent(THREAD);
-    void gc_independent();
 
     void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);

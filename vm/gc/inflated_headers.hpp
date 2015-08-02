@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <list>
 #include "diagnostics.hpp"
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "util/allocator.hpp"
 
 namespace rubinius {

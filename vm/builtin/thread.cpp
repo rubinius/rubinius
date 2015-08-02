@@ -20,6 +20,7 @@
 #include "on_stack.hpp"
 #include "ontology.hpp"
 #include "signal.hpp"
+#include "thread_phase.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -94,7 +95,8 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
-    return Thread::create(state, self, state->shared().new_vm(), function);
+    return Thread::create(state, self,
+        state->shared().thread_nexus()->new_vm(&state->shared()), function);
   }
 
   Thread* Thread::create(STATE, Object* self, VM* vm, ThreadFunction function) {
@@ -336,8 +338,6 @@ namespace rubinius {
     GCTokenImpl gct;
 
     VM* vm = reinterpret_cast<VM*>(ptr);
-
-    SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
 
     vm->set_current_thread();
@@ -361,10 +361,11 @@ namespace rubinius {
     vm->thread->alive(state, cTrue);
     vm->thread->init_lock_.unlock();
 
+    // TODO: remove use of init_lock
     // Become GC-dependent after unlocking init_lock_ to avoid deadlocks.
     // gc_dependent may lock when it detects GC is happening. Also the parent
     // thread is locked until init_lock_ is unlocked by this child thread.
-    state->gc_dependent(gct, 0);
+    state->vm()->become_managed();
     vm->thread->hard_lock(state, gct, 0);
 
     vm->shared.tool_broker()->thread_start(state);
@@ -394,7 +395,7 @@ namespace rubinius {
       utilities::logger::debug("Thread: exit thread: id: %d", vm->thread_id());
     }
 
-    shared.gc_independent();
+    vm->become_unmanaged();
 
     if(vm->main_thread_p() || (!ret && vm->thread_state()->raise_reason() == cExit)) {
       state->shared().signals()->system_exit(vm->thread_state()->raise_value());
@@ -516,7 +517,7 @@ namespace rubinius {
 
     VM* vm = vm_;
     if(!vm) return nil<Array>();
-    StopTheWorld stop(state, gct, calling_environment);
+    LockPhase locked(state);
 
     CallFrame* cf = vm->saved_call_frame();
 
@@ -537,15 +538,15 @@ namespace rubinius {
     Thread* self = this;
     OnStack<2> os(state, self, timeout);
 
-    state->gc_independent(gct, calling_environment);
+    state->vm()->become_unmanaged();
 
     {
       utilities::thread::Mutex::LockGuard guard(self->join_lock_);
-      state->gc_dependent(gct, calling_environment);
+      state->vm()->become_managed();
       atomic::memory_barrier();
 
       if(self->alive()->true_p()) {
-        GCIndependent gc_guard(state, calling_environment);
+        UnmanagedPhase unmanaged(state);
 
         if(timeout->nil_p()) {
           self->join_cond_.wait(self->join_lock_);

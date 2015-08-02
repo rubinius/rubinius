@@ -2,7 +2,7 @@
 #define RBX_SYMBOLTABLE_HPP
 
 #include "oop.hpp"
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "diagnostics.hpp"
 
 #include "util/thread.hpp"

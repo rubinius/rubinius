@@ -67,7 +67,7 @@ namespace jit {
     if(!mci_) {
       if(!function_) return NULL;
 
-      if(indy) ctx_->llvm_state()->shared().gc_independent(ctx_->llvm_state()->vm());
+      if(indy) ctx_->llvm_state()->vm()->become_unmanaged();
       if(ctx_->llvm_state()->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR: " << function_->getName() << " ]]]\n";
         llvm::outs() << *function_ << "\n";
@@ -112,7 +112,7 @@ namespace jit {
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
         llvm::outs() << *function_ << "\n";
         function_ = NULL;
-        if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state()->vm());
+        if(indy) ctx_->llvm_state()->vm()->become_managed();
         return NULL;
       }
 
@@ -133,7 +133,7 @@ namespace jit {
         function_->dropAllReferences();
       }
 
-      if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state()->vm());
+      if(indy) ctx_->llvm_state()->vm()->become_managed();
 
       ctx_->llvm_state()->vm()->metrics().memory.jit_bytes += mci_->size();
 

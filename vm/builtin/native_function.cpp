@@ -67,7 +67,7 @@ namespace rubinius {
                                   Arguments& args) {
     NativeFunction* nfunc = as<NativeFunction>(exec);
 
-    state->set_call_frame(call_frame);
+    state->vm()->set_call_frame(call_frame);
 
     try {
       OnStack<2> os(state, exec, mod);
@@ -327,17 +327,18 @@ namespace rubinius {
   static void invoke_callback(ffi_cif* cif, void* retval,
                               void** parameters, void* user_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    FFIData* stub =
-      reinterpret_cast<FFIData*>(user_data);
+    FFIData* stub = reinterpret_cast<FFIData*>(user_data);
 
-    GCTokenImpl gct;
-    VM* vm = 0;
-
+    bool destroy_vm = false;
     int stack_address = 0;
+
     if(!env) {
+      // TODO: fix this, the threads should *always* be set up correctly
       // Apparently we're running in a new thread here, setup
       // everything we need here.
-      vm = stub->shared->new_vm();
+      destroy_vm = true;
+
+      VM* vm = stub->shared->thread_nexus()->new_vm(stub->shared, "ruby.ffi");
 
       // Detect the stack size and set it up in the VM object
       size_t stack_size;
@@ -355,7 +356,7 @@ namespace rubinius {
 
     State* state = env->state();
 
-    state->gc_dependent(gct, state->vm()->saved_call_frame());
+    state->vm()->become_managed();
 
     Array* args = Array::create(state, stub->arg_count);
     OnStack<1> os(state, args);
@@ -577,11 +578,12 @@ namespace rubinius {
       break;
     }
 
-    state->gc_independent(gct, env->current_call_frame());
-    if(vm) {
+    state->vm()->become_unmanaged();
+
+    if(destroy_vm) {
       NativeMethod::cleanup_thread(state);
-      vm->set_call_frame(0);
-      VM::discard(state, vm);
+      state->vm()->set_call_frame(0);
+      VM::discard(state, state->vm());
     }
   }
 
@@ -666,7 +668,6 @@ namespace rubinius {
   {
     Object* ret;
     Object* obj;
-    GCTokenImpl gct;
 
     bool use_cb_block = false;
 
@@ -1023,104 +1024,104 @@ namespace rubinius {
     env->set_current_call_frame(call_frame);
 
     state->vm()->interrupt_with_signal();
-    state->gc_independent(gct, call_frame);
+    state->vm()->become_unmanaged();
 
     switch(ffi_data_local->ret_info.type) {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_BOOL: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = RBOOL(result);
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Integer::from(state, (native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Integer::from(state, (unsigned int)result);
       break;
     }
     case RBX_FFI_TYPE_LONG: {
       long result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG: {
       unsigned long result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_FLOAT: {
       float result = 0.0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Float::create(state, (double)result);
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
       double result = 0.0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Float::create(state, result);
       break;
     }
     case RBX_FFI_TYPE_LONG_LONG: {
       long long result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG_LONG: {
       unsigned long long result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_PTR: {
       void* result = NULL;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       if(result == NULL) {
         ret = cNil;
       } else {
@@ -1131,7 +1132,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_ENUM: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, Integer::from(state, (native_int)result));
       ret = ffi_data->ret_info.enum_obj->send(state, call_frame, state->symbol("symbol"), ary);
@@ -1140,7 +1141,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_CALLBACK: {
       void* result = NULL;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       if(result == NULL) {
         ret = cNil;
       } else {
@@ -1157,7 +1158,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_STRING: {
       char* result = NULL;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       if(result == NULL) {
         ret = cNil;
       } else {
@@ -1172,7 +1173,7 @@ namespace rubinius {
       Object* p = cNil;
 
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
 
       if(result) {
         s = String::create(state, result);
@@ -1190,7 +1191,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_VOID: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent(gct, call_frame);
+      state->vm()->become_managed();
       ret = cNil;
       break;
     }

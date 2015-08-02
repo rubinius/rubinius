@@ -1,5 +1,9 @@
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "park.hpp"
+#include "vm.hpp"
+#include "state.hpp"
+#include "thread_phase.hpp"
+
 #include "builtin/thread.hpp"
 
 namespace rubinius {
@@ -15,7 +19,7 @@ namespace rubinius {
     Object* result = cNil;
     while(!wake_) {
       {
-        GCIndependent gc_guard(state, call_frame);
+        UnmanagedPhase unmanaged(state);
 
         cond_.wait(mutex_);
       }
@@ -45,7 +49,7 @@ namespace rubinius {
 
     while(!wake_) {
       {
-        GCIndependent gc_guard(state, call_frame);
+        UnmanagedPhase unmanaged(state);
 
         utilities::thread::Code status = cond_.wait_until(mutex_, ts);
         if(status == utilities::thread::cTimedOut) {

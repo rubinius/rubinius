@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
 #include "builtin/array.hpp"
@@ -21,7 +22,7 @@ namespace rubinius {
   bool State::process_async(CallFrame* call_frame) {
     utilities::thread::SpinLock::LockGuard guard(vm_->interrupt_lock());
 
-    set_call_frame(call_frame);
+    vm_->set_call_frame(call_frame);
     vm_->clear_check_local_interrupts();
 
     Exception* exc = vm_->interrupted_exception_.get();

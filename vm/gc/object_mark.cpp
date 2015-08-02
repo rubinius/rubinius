@@ -4,6 +4,7 @@
 #include "object_memory.hpp"
 
 #include "vm.hpp"
+#include "state.hpp"
 
 namespace rubinius {
   VM* ObjectMark::vm() {

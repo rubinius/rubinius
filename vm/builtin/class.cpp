@@ -59,11 +59,13 @@ namespace rubinius {
     Object* collect_and_allocate(STATE, GCToken gct, Class* self,
                                  CallFrame* calling_environment)
     {
-      state->shared().om->collect_young_now = true;
-
       OnStack<1> os(state, self);
 
-      state->vm()->collect_maybe(gct, calling_environment);
+      // TODO: fix this
+      state->shared().om->collect_young_now = true;
+      state->shared().thread_nexus()->set_stop();
+      state->vm()->checkpoint(state);
+      // TODO: end this
 
       // Don't use 'this' after here! it's been moved! use 'self'!
 

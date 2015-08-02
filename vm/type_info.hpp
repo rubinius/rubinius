@@ -7,7 +7,7 @@
 #include <string>
 
 #include "object_types.hpp"
-#include "prelude.hpp"
+#include "defines.hpp"
 #include "executor.hpp"
 
 namespace rubinius {

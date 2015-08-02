@@ -10,6 +10,7 @@
 #endif
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "gc/root.hpp"
 
 #include "capi/value.hpp"

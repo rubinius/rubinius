@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "global_cache.hpp"
 #include "object_position.hpp"
 #include "object_memory.hpp"

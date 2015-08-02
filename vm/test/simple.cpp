@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 
 int main() {
   rubinius::VM vm;

@@ -10,6 +10,8 @@
 #include "on_stack.hpp"
 #include "call_frame.hpp"
 #include "exception_point.hpp"
+#include "thread_phase.hpp"
+
 #include "builtin/exception.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/native_method.hpp"
@@ -57,7 +59,7 @@ extern "C" {
     for(;;) {
       LEAVE_CAPI(env->state());
       {
-        GCIndependent guard(env);
+        UnmanagedPhase unmanaged(env->state());
         ret = select(max, read, write, except, tvp);
       }
 
@@ -146,7 +148,7 @@ extern "C" {
     }
     LEAVE_CAPI(env->state());
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(env->state());
       ret = (*func)(data);
     }
     ENTER_CAPI(env->state());
@@ -175,7 +177,7 @@ extern "C" {
     }
     LEAVE_CAPI(env->state());
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(env->state());
       ret = (*func)(data1);
     }
     ENTER_CAPI(env->state());
@@ -207,7 +209,7 @@ extern "C" {
     }
     LEAVE_CAPI(env->state());
     {
-      GCIndependent guard(env);
+      UnmanagedPhase unmanaged(env->state());
       ret = (*func)(data1);
     }
     ENTER_CAPI(env->state());
@@ -222,14 +224,13 @@ extern "C" {
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    GCTokenImpl gct;
     State* state = env->state();
     ENTER_CAPI(state);
-    state->gc_dependent(gct, state->vm()->saved_call_frame());
+    state->vm()->become_managed();
 
     void* ret = (*func)(data);
 
-    env->state()->gc_independent(gct, env->current_call_frame());
+    env->state()->vm()->become_unmanaged();
     LEAVE_CAPI(env->state());
 
     return ret;

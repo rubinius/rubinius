@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "shared_state.hpp"
 #include "call_frame.hpp"
 #include "config_parser.hpp"
@@ -15,7 +16,6 @@
 #include "console.hpp"
 #include "metrics.hpp"
 #include "signal.hpp"
-#include "world_state.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
@@ -31,16 +31,15 @@
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
-    : internal_threads_(0)
+    : thread_nexus_(new ThreadNexus())
+    , internal_threads_(0)
     , signals_(0)
     , finalizer_thread_(0)
     , console_(0)
     , metrics_(0)
-    , world_(new WorldState(&check_global_interrupts_))
     , method_count_(1)
     , class_count_(1)
     , global_serial_(1)
-    , thread_ids_(1)
     , initialized_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
@@ -98,45 +97,16 @@ namespace rubinius {
 
     delete tool_broker_;
     delete global_cache;
-    delete world_;
     delete om;
     delete internal_threads_;
-  }
-
-  uint32_t SharedState::new_thread_id() {
-    return atomic::fetch_and_add(&thread_ids_, 1);
-  }
-
-  VM* SharedState::new_vm(const char* name) {
-    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
-
-    // TODO calculate the thread id by finding holes in the
-    // field of ids, so we reuse ids.
-    uint32_t id = new_thread_id();
-
-    VM* vm = new VM(id, *this, name);
-    threads_.push_back(vm);
-
-    // If there is no root vm, then the first one created becomes it.
-    if(!root_vm_) root_vm_ = vm;
-
-    return vm;
-  }
-
-  void SharedState::remove_vm(VM* vm) {
-    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
-
-    threads_.remove(vm);
-
-    // Don't delete ourself here, it's too problematic.
   }
 
   Array* SharedState::vm_threads(STATE) {
     utilities::thread::SpinLock::LockGuard guard(vm_lock_);
 
     Array* threads = Array::create(state, 0);
-    for(ThreadList::iterator i = threads_.begin();
-        i != threads_.end();
+    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
+        i != thread_nexus_->threads()->end();
         ++i) {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread.get();
@@ -179,43 +149,12 @@ namespace rubinius {
     if(metrics_) metrics_->disable(state);
   }
 
-  void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
-    VM* current = state->vm();
-
-    for(ThreadList::iterator i = threads_.begin();
-           i != threads_.end();
-           ++i) {
-      if(VM* vm = (*i)->as_vm()) {
-        if(vm == current) {
-          state->vm()->metrics().system.threads_created++;
-          continue;
-        }
-
-        if(Thread* thread = vm->thread.get()) {
-          if(!thread->nil_p()) {
-            thread->unlock_after_fork(state, gct);
-            thread->stopped();
-          }
-        }
-
-        vm->reset_parked();
-      }
-    }
-    threads_.clear();
-    threads_.push_back(current);
-  }
-
   void SharedState::after_fork_child(STATE, GCToken gct, CallFrame* call_frame) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
-
     config.jit_inline_debug.set("no");
 
-    state->vm()->after_fork_child(state);
-
     disable_metrics(state);
-
-    reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
     global_cache->reset();
@@ -235,59 +174,6 @@ namespace rubinius {
     om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
-
-    state->vm()->set_run_state(ManagedThread::eIndependent);
-    gc_dependent(state, 0);
-  }
-
-  bool SharedState::should_stop() const {
-    return world_->should_stop();
-  }
-
-  bool SharedState::stop_the_world(THREAD) {
-    return world_->wait_till_alone(state);
-  }
-
-  void SharedState::stop_threads_externally() {
-    world_->stop_threads_externally();
-  }
-
-  void SharedState::reinit_world() {
-    world_->reinit();
-  }
-
-  void SharedState::restart_world(THREAD) {
-    world_->wake_all_waiters(state);
-  }
-
-  void SharedState::restart_threads_externally() {
-    world_->restart_threads_externally();
-  }
-
-  bool SharedState::checkpoint(THREAD) {
-    return world_->checkpoint(state);
-  }
-
-  void SharedState::gc_dependent(STATE, CallFrame* call_frame) {
-    state->set_call_frame(call_frame);
-    world_->become_dependent(state->vm());
-  }
-
-  void SharedState::gc_independent(STATE, CallFrame* call_frame) {
-    state->set_call_frame(call_frame);
-    world_->become_independent(state->vm());
-  }
-
-  void SharedState::gc_dependent(THREAD, utilities::thread::Condition* cond) {
-    world_->become_dependent(state, cond);
-  }
-
-  void SharedState::gc_independent(THREAD) {
-    world_->become_independent(state);
-  }
-
-  void SharedState::gc_independent() {
-    world_->become_independent();
   }
 
   const unsigned int* SharedState::object_memory_mark_address() const {

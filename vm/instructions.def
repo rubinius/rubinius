@@ -1789,7 +1789,7 @@ instruction check_interrupts() [ -- ]
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 
-  state->checkpoint(gct, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]

@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
 #include "global_cache.hpp"
 #include "environment.hpp"
@@ -69,6 +70,7 @@ namespace rubinius {
 
   VM::VM(uint32_t id, SharedState& shared, const char* name)
     : ManagedThread(id, shared, ManagedThread::eRuby, name)
+    , thread_nexus_(shared.thread_nexus())
     , saved_call_frame_(0)
     , saved_call_site_information_(0)
     , fiber_stacks_(this, shared)
@@ -79,6 +81,7 @@ namespace rubinius {
     , constant_missing_reason_(vFound)
     , zombie_(false)
     , main_thread_(false)
+    , thread_phase_(ThreadNexus::Phase::cManaged)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -114,8 +117,21 @@ namespace rubinius {
     delete vm;
   }
 
+  void VM::checkpoint(STATE) {
+    if(thread_nexus_->stop_p()) {
+      if(thread_nexus_->lock_or_yield(this)) {
+        om->collect_maybe(state);
+        thread_nexus_->unlock();
+      }
+    }
+  }
+
+  void VM::become_managed() {
+    thread_nexus_->become_managed(this);
+  }
+
   void VM::set_zombie(STATE) {
-    state->shared().remove_vm(this);
+    state->shared().thread_nexus()->delete_vm(this);
     thread.set(nil<Thread>());
     zombie_ = true;
   }
@@ -286,17 +302,15 @@ namespace rubinius {
     om->collect_young_now = true;
     om->collect_mature_now = true;
     shared.gc_soon();
-  }
-
-  void VM::collect_maybe(GCToken gct, CallFrame* call_frame) {
-    State state(this);
-    this->set_call_frame(call_frame);
-    om->collect_maybe(&state, gct, call_frame);
+    thread_nexus_->set_stop();
   }
 
   void VM::after_fork_child(STATE) {
+    thread_nexus_->after_fork_child(state);
+
     interrupt_lock_.init();
     set_main_thread();
+    become_managed();
 
     // TODO: Remove need for root_vm.
     state->shared().env()->set_root_vm(state->vm());
@@ -492,12 +506,4 @@ namespace rubinius {
       info->executable->validate();
     }
   }
-
-  GCIndependent::GCIndependent(NativeMethodEnvironment* env)
-    : state_(env->state())
-  {
-    GCTokenImpl gct;
-    state_->gc_independent(gct, env->current_call_frame());
-  };
-
 };

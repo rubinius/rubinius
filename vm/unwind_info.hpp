@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <vector>
 
-#include "prelude.hpp"
+#include "defines.hpp"
 
 namespace rubinius {
   const int kMaxUnwindInfos = 4;

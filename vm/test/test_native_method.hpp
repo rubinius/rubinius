@@ -2,6 +2,7 @@
 
 #include "builtin/native_method.hpp"
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
 
 using namespace rubinius;

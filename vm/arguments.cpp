@@ -1,3 +1,5 @@
+#include "vm.hpp"
+#include "state.hpp"
 #include "arguments.hpp"
 
 namespace rubinius {

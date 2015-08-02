@@ -1,5 +1,6 @@
 #include "gc/root.hpp"
 #include "vm.hpp"
+#include "state.hpp"
 
 namespace rubinius {
 

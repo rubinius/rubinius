@@ -11,7 +11,7 @@ class BasicPrimitive
 
   def output_header(str)
     str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {\n"
-    str << "  state->set_call_frame(call_frame);\n"
+    str << "  state->vm()->set_call_frame(call_frame);\n"
     str << "  Object* ret;\n"
     return str if @raw
     str << "  Object* self;\n" if @pass_self
@@ -196,7 +196,7 @@ class CPPPrimitive < BasicPrimitive
     end
 
     unless @safe
-      str << "  state->set_call_frame(call_frame);\n"
+      str << "  state->vm()->set_call_frame(call_frame);\n"
     end
 
     args.unshift "gct" if @pass_gctoken

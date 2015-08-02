@@ -27,8 +27,8 @@
 #include "instruments/tooling.hpp"
 
 #include "arguments.hpp"
-
 #include "object_watch.hpp"
+#include "thread_nexus.hpp"
 
 namespace rubinius {
 
@@ -37,7 +37,7 @@ namespace rubinius {
     , handles_(state->om->capi_handles())
     , cached_handles_(state->om->cached_capi_handles())
     , global_cache_(state->shared.global_cache)
-    , threads_(state->shared.threads())
+    , threads_(state->shared.thread_nexus()->threads())
     , global_handle_locations_(state->om->global_capi_handle_locations())
 #ifdef ENABLE_LLVM
     , llvm_state_(state->shared.llvm_state)

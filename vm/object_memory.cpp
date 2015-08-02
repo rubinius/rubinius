@@ -5,7 +5,9 @@
 
 #include "config.h"
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
+#include "thread_phase.hpp"
 
 #include "capi/tag.hpp"
 
@@ -179,7 +181,7 @@ namespace rubinius {
     OnStack<1> os(state, obj);
 
     {
-      GCLockGuard lg(state, gct, call_frame, contention_lock_);
+      MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
 
       // We want to lock obj, but someone else has it locked.
       //
@@ -237,7 +239,7 @@ step1:
       }
 
       while(!obj->inflated_header_p()) {
-        GCIndependent gc_guard(state, call_frame);
+        UnmanagedPhase unmanaged(state);
 
         state->vm()->set_sleeping();
         if(timed) {
@@ -299,7 +301,7 @@ step1:
   }
 
   void ObjectMemory::release_contention(STATE, GCToken gct, CallFrame* call_frame) {
-    GCLockGuard lg(state, gct, call_frame, contention_lock_);
+    MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
     contention_var_.broadcast();
   }
 
@@ -459,10 +461,14 @@ step1:
     if(obj->young_object_p()) {
       return young_->validate_object(obj) == cValid;
     } else if(obj->mature_object_p()) {
-      return immix_->validate_object(obj) == cInImmix;
-    } else {
-      return false;
+      if(immix_->validate_object(obj) == cInImmix) {
+        return true;
+      } else if(mark_sweep_->validate_object(obj) == cMatureObject) {
+        return true;
+      }
     }
+
+    return false;
   }
 
   /* Garbage collection */
@@ -490,23 +496,11 @@ step1:
     return copy;
   }
 
-  void ObjectMemory::collect_maybe(STATE, GCToken gct, CallFrame* call_frame) {
+  void ObjectMemory::collect_maybe(STATE) {
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
-    /* A pending GC is less common than not, so don't checkpoint the entire
-     * process to check for the condition.
-     *
-     * This is a race, but that is handled by the stop_the_world code below.
-     */
     if(!collect_young_now && !collect_mature_now) return;
-
-    while(!state->stop_the_world()) {
-      state->checkpoint(gct, call_frame);
-
-      // Someone else got to the GC before we did! No problem, all done!
-      if(!collect_young_now && !collect_mature_now) return;
-    }
 
     state->shared().finalizer_handler()->start_collection(state);
 
@@ -514,7 +508,6 @@ step1:
       std::cerr << std::endl << "[" << state
                 << " WORLD beginning GC.]" << std::endl;
     }
-
 
     if(collect_young_now) {
       GCData gc_data(state->vm());
@@ -551,8 +544,6 @@ step1:
         delete gc_data;
       }
     }
-
-    state->restart_world();
   }
 
   void ObjectMemory::collect_young(STATE, GCData* data) {

@@ -1,6 +1,7 @@
 #include "vm/test/test.hpp"
 
 #include "vm.hpp"
+#include "state.hpp"
 #include "object_memory.hpp"
 #include "gc/debug.hpp"
 
