@@ -136,15 +136,15 @@ namespace rubinius {
     }
 
     bool process_async(CallFrame* call_frame);
-    bool check_interrupts(GCToken gct, CallFrame* call_frame, void* end);
+    bool check_interrupts(CallFrame* call_frame, void* end);
 
     gc::Slab& local_slab() {
       return vm_->local_slab();
     }
 
-    Object* park(GCToken gct, CallFrame* call_frame);
+    Object* park(CallFrame* call_frame);
 
-    Object* park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts);
+    Object* park_timed(CallFrame* call_frame, struct timespec* ts);
   };
 }
 

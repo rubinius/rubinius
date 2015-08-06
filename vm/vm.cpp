@@ -363,7 +363,7 @@ namespace rubinius {
     vm_jit_.interrupt_with_signal_ = true;
   }
 
-  bool VM::wakeup(STATE, GCToken gct, CallFrame* call_frame) {
+  bool VM::wakeup(STATE, CallFrame* call_frame) {
     utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
 
     set_check_local_interrupts();
@@ -380,26 +380,26 @@ namespace rubinius {
 #endif
       interrupt_lock_.unlock();
       // Wakeup any locks hanging around with contention
-      om->release_contention(state, gct, call_frame);
+      om->release_contention(state, call_frame);
       return true;
     } else if(!wait->nil_p()) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
       // other threads can grab them and deadlock.
       InflatedHeader* ih = wait->inflated_header(state);
       interrupt_lock_.unlock();
-      ih->wakeup(state, gct, call_frame, wait);
+      ih->wakeup(state, call_frame, wait);
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
-        om->release_contention(state, gct, call_frame);
-        chan->send(state, gct, cNil, call_frame);
+        om->release_contention(state, call_frame);
+        chan->send(state, cNil, call_frame);
         return true;
       } else if(custom_wakeup_) {
         interrupt_lock_.unlock();
-        om->release_contention(state, gct, call_frame);
+        om->release_contention(state, call_frame);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }

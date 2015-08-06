@@ -35,7 +35,7 @@ namespace rubinius {
     return chan;
   }
 
-  Object* Channel::send(STATE, GCToken gct, Object* val, CallFrame* calling_environment) {
+  Object* Channel::send(STATE, Object* val, CallFrame* calling_environment) {
     Channel* self = this;
 
     OnStack<2> os(state, val, self);
@@ -62,7 +62,7 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* Channel::try_receive(STATE, GCToken gct, CallFrame* calling_environment) {
+  Object* Channel::try_receive(STATE, CallFrame* calling_environment) {
     Channel* self = this;
     OnStack<1> os(state, self);
 
@@ -77,12 +77,12 @@ namespace rubinius {
     return self->value_->shift(state);
   }
 
-  Object* Channel::receive(STATE, GCToken gct, CallFrame* call_frame) {
-    return receive_timeout(state, gct, cNil, call_frame);
+  Object* Channel::receive(STATE, CallFrame* call_frame) {
+    return receive_timeout(state, cNil, call_frame);
   }
 
 #define NANOSECONDS 1000000000
-  Object* Channel::receive_timeout(STATE, GCToken gct, Object* duration, CallFrame* call_frame) {
+  Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
     // Passing control away means that the GC might run. So we need
     // to stash this into a root, and read it back out again after
     // control is returned.

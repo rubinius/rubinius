@@ -422,7 +422,7 @@ namespace rubinius {
     compile_cond_.signal();
   }
 
-  void LLVMState::compile(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+  void LLVMState::compile(STATE, CompiledCode* code, CallFrame* call_frame,
       Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
     if(!enabled_) return;
@@ -436,7 +436,7 @@ namespace rubinius {
 
     // In case the method hasn't been internalized yet
     if(!code->machine_code()) {
-      code->internalize(state, gct, call_frame);
+      code->internalize(state, call_frame);
     }
 
     JITCompileRequest* req = JITCompileRequest::create(state, code, receiver_class,
@@ -465,7 +465,7 @@ namespace rubinius {
     }
   }
 
-  void LLVMState::compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+  void LLVMState::compile_soon(STATE, CompiledCode* code, CallFrame* call_frame,
                                Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
     bool wait = config().jit_sync;
@@ -537,7 +537,7 @@ namespace rubinius {
 
   const static size_t eMaxInlineSendCount = 10;
 
-  void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start,
+  void LLVMState::compile_callframe(STATE, CompiledCode* start,
       CallFrame* call_frame, int primitive)
   {
     // TODO: Fix compile policy checks
@@ -586,14 +586,14 @@ namespace rubinius {
     }
 
     if(candidate->block_p()) {
-      compile_soon(state, gct, candidate->compiled_code, call_frame,
+      compile_soon(state, candidate->compiled_code, call_frame,
                    candidate->self()->direct_class(state), candidate->block_env(), true);
     } else {
       if(candidate->compiled_code->can_specialize_p()) {
-        compile_soon(state, gct, candidate->compiled_code, call_frame,
+        compile_soon(state, candidate->compiled_code, call_frame,
                      candidate->self()->direct_class(state));
       } else {
-        compile_soon(state, gct, candidate->compiled_code, call_frame, NULL);
+        compile_soon(state, candidate->compiled_code, call_frame, NULL);
       }
     }
   }

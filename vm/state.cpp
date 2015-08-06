@@ -51,7 +51,7 @@ namespace rubinius {
     return true;
   }
 
-  bool State::check_interrupts(GCToken gct, CallFrame* call_frame, void* end) {
+  bool State::check_interrupts(CallFrame* call_frame, void* end) {
     // First, we might be here because someone reset the stack_limit_ so that
     // we'd fall into here to check interrupts even if the stack is fine,
     //
@@ -68,18 +68,18 @@ namespace rubinius {
     // If the current thread is trying to step, debugger wise, then assist!
     if(vm_->thread_step()) {
       vm_->clear_thread_step();
-      if(!Helpers::yield_debugger(this, gct, call_frame, cNil)) return false;
+      if(!Helpers::yield_debugger(this, call_frame, cNil)) return false;
     }
 
     return true;
   }
 
 
-  Object* State::park(GCToken gct, CallFrame* call_frame) {
+  Object* State::park(CallFrame* call_frame) {
     return vm_->park_->park(this, call_frame);
   }
 
-  Object* State::park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts) {
+  Object* State::park_timed(CallFrame* call_frame, struct timespec* ts) {
     return vm_->park_->park_timed(this, call_frame, ts);
   }
 }

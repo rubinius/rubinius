@@ -440,9 +440,6 @@ namespace rubinius {
 
     static void init_ffi(STATE);
 
-    /// Check the GC flags in ObjectMemory and collect if we need to.
-    void collect_maybe(GCToken gct, CallFrame* call_frame);
-
     void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);
     Exception* new_exception(Class* cls, const char* msg);
@@ -468,7 +465,7 @@ namespace rubinius {
     void wait_on_inflated_lock(Object* wait);
     void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
-    bool wakeup(STATE, GCToken gct, CallFrame* call_frame);
+    bool wakeup(STATE, CallFrame* call_frame);
 
     void reset_parked();
 

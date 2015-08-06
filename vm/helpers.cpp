@@ -170,7 +170,7 @@ namespace rubinius {
       return under->send(state, call_frame, G(sym_const_missing), args);
     }
 
-    Class* open_class(STATE, GCToken gct, CallFrame* call_frame, Object* super, Symbol* name, bool* created) {
+    Class* open_class(STATE, CallFrame* call_frame, Object* super, Symbol* name, bool* created) {
       Module* under;
 
       call_frame = call_frame->top_ruby_frame();
@@ -181,7 +181,7 @@ namespace rubinius {
         under = call_frame->constant_scope()->module();
       }
 
-      return open_class(state, gct, call_frame, under, super, name, created);
+      return open_class(state, call_frame, under, super, name, created);
     }
 
     static Class* add_class(STATE, Module* under, Object* super, Symbol* name) {
@@ -212,7 +212,7 @@ namespace rubinius {
       return cls;
     }
 
-    Class* open_class(STATE, GCToken gct, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created) {
+    Class* open_class(STATE, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created) {
       ConstantMissingReason reason;
 
       *created = false;
@@ -223,7 +223,7 @@ namespace rubinius {
         OnStack<4> os(state, under, super, name, obj);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, gct, call_frame, under, true);
+          obj = autoload->resolve(state, call_frame, under, true);
 
           // Check if an exception occurred
           if(!obj) return NULL;
@@ -240,7 +240,7 @@ namespace rubinius {
       return add_class(state, under, super, name);
     }
 
-    Module* open_module(STATE, GCToken gct, CallFrame* call_frame, Symbol* name) {
+    Module* open_module(STATE, CallFrame* call_frame, Symbol* name) {
       Module* under = G(object);
 
       call_frame = call_frame->top_ruby_frame();
@@ -249,10 +249,10 @@ namespace rubinius {
         under = call_frame->constant_scope()->module();
       }
 
-      return open_module(state, gct, call_frame, under, name);
+      return open_module(state, call_frame, under, name);
     }
 
-    Module* open_module(STATE, GCToken gct, CallFrame* call_frame, Module* under, Symbol* name) {
+    Module* open_module(STATE, CallFrame* call_frame, Module* under, Symbol* name) {
       Module* module;
       ConstantMissingReason reason;
 
@@ -262,7 +262,7 @@ namespace rubinius {
         OnStack<3> os(state, under, name, obj);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, gct, call_frame, under, true);
+          obj = autoload->resolve(state, call_frame, under, true);
         }
 
         // Check if an exception occurred
@@ -283,7 +283,7 @@ namespace rubinius {
       return module;
     }
 
-    bool yield_debugger(STATE, GCToken gct, CallFrame* call_frame, Object* bp) {
+    bool yield_debugger(STATE, CallFrame* call_frame, Object* bp) {
       Thread* cur = Thread::current(state);
       Thread* debugger = cur->debugger_thread();
 
@@ -318,11 +318,11 @@ namespace rubinius {
 
       OnStack<1> os(state, my_control);
 
-      debugger_chan->send(state, gct,
+      debugger_chan->send(state,
           Tuple::from(state, 4, bp, cur, my_control, locs), call_frame);
 
       // Block until the debugger wakes us back up.
-      Object* ret = my_control->receive(state, gct, call_frame);
+      Object* ret = my_control->receive(state, call_frame);
 
       // Do not access any locals other than ret beyond here unless you add OnStack<>
       // to them! The GC has probably run and moved things.

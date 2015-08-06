@@ -231,10 +231,9 @@ extern "C" {
     // before we possibly make a longjmp. Making a longjmp doesn't give
     // any guarantees about destructors being run
     {
-      GCTokenImpl gct;
       OnStack<2> os(env->state(), parent, constant);
 
-      module = rubinius::Helpers::open_module(env->state(), gct,
+      module = rubinius::Helpers::open_module(env->state(),
           env->current_call_frame(), parent, constant);
     }
 

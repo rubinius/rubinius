@@ -171,7 +171,7 @@ namespace rubinius {
     return true;
   }
 
-  LockStatus ObjectMemory::contend_for_lock(STATE, GCToken gct, CallFrame* call_frame,
+  LockStatus ObjectMemory::contend_for_lock(STATE, CallFrame* call_frame,
                                             ObjectHeader* obj, size_t us, bool interrupt)
   {
     bool timed = false;
@@ -294,13 +294,13 @@ step1:
     InflatedHeader* ih = obj->inflated_header(state);
 
     if(timed) {
-      return ih->lock_mutex_timed(state, gct, call_frame, obj, &ts, interrupt);
+      return ih->lock_mutex_timed(state, call_frame, obj, &ts, interrupt);
     } else {
-      return ih->lock_mutex(state, gct, call_frame, obj, 0, interrupt);
+      return ih->lock_mutex(state, call_frame, obj, 0, interrupt);
     }
   }
 
-  void ObjectMemory::release_contention(STATE, GCToken gct, CallFrame* call_frame) {
+  void ObjectMemory::release_contention(STATE, CallFrame* call_frame) {
     MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
     contention_var_.broadcast();
   }

@@ -208,8 +208,7 @@ namespace rubinius {
     void Response::wakeup(STATE) {
       InternalThread::wakeup(state);
 
-      GCTokenImpl gct;
-      inbox_.get()->send(state, gct, String::create(state, ""), 0);
+      inbox_.get()->send(state, String::create(state, ""), 0);
 
       response_cond_.signal();
     }
@@ -276,7 +275,6 @@ namespace rubinius {
     }
 
     void Response::run(STATE) {
-      GCTokenImpl gct;
       size_t pending_requests = 0;
       char* request = NULL;
 
@@ -303,13 +301,13 @@ namespace rubinius {
 
           pending_requests++;
 
-          inbox->send(state, gct, String::create(state, request), 0);
+          inbox->send(state, String::create(state, request), 0);
 
           request = NULL;
         }
 
         if(pending_requests > 0) {
-          if((response = try_as<String>(outbox->try_receive(state, gct, 0)))) {
+          if((response = try_as<String>(outbox->try_receive(state, 0)))) {
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
                 response->byte_size());

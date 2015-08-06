@@ -19,8 +19,7 @@ namespace rubinius {
   }
 
   void VariableScope::bootstrap_methods(STATE) {
-    GCTokenImpl gct;
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(variable_scope), false,
                              state->symbol("method_visibility"),
                              state->symbol("variable_scope_method_visibility"));

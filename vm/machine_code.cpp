@@ -763,8 +763,6 @@ namespace rubinius {
 
       state->vm()->set_call_frame(frame);
 
-      GCTokenImpl gct;
-
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
       // for this method.
@@ -784,7 +782,7 @@ namespace rubinius {
         // Check the stack and interrupts here rather than in the interpreter
         // loop itself.
         OnStack<2> os(state, exec, code);
-        if(!state->check_interrupts(gct, frame, frame)) return NULL;
+        if(!state->check_interrupts(frame, frame)) return NULL;
 
         state->vm()->checkpoint(state);
 
@@ -795,7 +793,7 @@ namespace rubinius {
         RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
         return result;
       } else {
-        if(!state->check_interrupts(gct, frame, frame)) return NULL;
+        if(!state->check_interrupts(frame, frame)) return NULL;
 
         state->vm()->checkpoint(state);
         RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
@@ -804,7 +802,7 @@ namespace rubinius {
         return result;
       }
 #else
-      if(!state->check_interrupts(gct, frame, frame)) return NULL;
+      if(!state->check_interrupts(frame, frame)) return NULL;
 
       state->vm()->checkpoint(state);
 
@@ -855,9 +853,7 @@ namespace rubinius {
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
 
-    GCTokenImpl gct;
-
-    if(!state->check_interrupts(gct, frame, frame)) return NULL;
+    if(!state->check_interrupts(frame, frame)) return NULL;
 
     state->vm()->checkpoint(state);
 

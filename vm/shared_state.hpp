@@ -308,7 +308,7 @@ namespace rubinius {
 
     void scheduler_loop();
 
-    void after_fork_child(STATE, GCToken gct, CallFrame* call_frame);
+    void after_fork_child(STATE, CallFrame* call_frame);
 
     void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);

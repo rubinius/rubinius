@@ -56,7 +56,7 @@ namespace rubinius {
   }
 
   namespace {
-    Object* collect_and_allocate(STATE, GCToken gct, Class* self,
+    Object* collect_and_allocate(STATE, Class* self,
                                  CallFrame* calling_environment)
     {
       OnStack<1> os(state, self);
@@ -91,7 +91,7 @@ namespace rubinius {
       return obj;
     }
 
-    Object* allocate_packed(STATE, GCToken gct, Class* self,
+    Object* allocate_packed(STATE, Class* self,
                             CallFrame* calling_environment)
     {
       uint32_t size = self->packed_size();
@@ -113,7 +113,7 @@ namespace rubinius {
                 state->memory()->new_object_typed(state, self, size, PackedObject::type));
           }
         } else {
-          return collect_and_allocate(state, gct, self, calling_environment);
+          return collect_and_allocate(state, self, calling_environment);
         }
       }
 
@@ -128,11 +128,11 @@ namespace rubinius {
     }
   }
 
-  Object* Class::allocate(STATE, GCToken gct, CallFrame* calling_environment) {
+  Object* Class::allocate(STATE, CallFrame* calling_environment) {
     object_type obj_type = type_info_->type;
 
     if(obj_type == PackedObject::type) {
-      Object* new_obj = allocate_packed(state, gct, this, calling_environment);
+      Object* new_obj = allocate_packed(state, this, calling_environment);
 #ifdef RBX_ALLOC_TRACKING
       if(unlikely(state->vm()->allocation_tracking())) {
         new_obj->setup_allocation_site(state, calling_environment);
@@ -157,8 +157,8 @@ namespace rubinius {
       Class* self = this;
       OnStack<1> os(state, self);
 
-      auto_pack(state, gct, calling_environment);
-      Object* new_obj = allocate_packed(state, gct, self, calling_environment);
+      auto_pack(state, calling_environment);
+      Object* new_obj = allocate_packed(state, self, calling_environment);
 #ifdef RBX_ALLOC_TRACKING
       if(unlikely(state->vm()->allocation_tracking())) {
         new_obj->setup_allocation_site(state, calling_environment);
@@ -236,16 +236,16 @@ namespace rubinius {
    *
    * This locks the class so that construction is serialized.
    */
-  void Class::auto_pack(STATE, GCToken gct, CallFrame* call_frame) {
+  void Class::auto_pack(STATE, CallFrame* call_frame) {
     Class* self = this;
     OnStack<1> os(state, self);
 
-    hard_lock(state, gct, call_frame);
+    hard_lock(state, call_frame);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
     if(self->type_info_->type == PackedObject::type) {
-      self->hard_unlock(state, gct, call_frame);
+      self->hard_unlock(state, call_frame);
       return;
     }
 
@@ -295,7 +295,7 @@ namespace rubinius {
     atomic::memory_barrier();
     self->set_object_type(state, PackedObject::type);
 
-    self->hard_unlock(state, gct, call_frame);
+    self->hard_unlock(state, call_frame);
   }
 
   Class* Class::real_class(STATE, Class* klass) {

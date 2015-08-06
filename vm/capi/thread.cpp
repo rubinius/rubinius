@@ -247,8 +247,6 @@ extern "C" {
     self->locals_remove(state, state->symbol("function"));
     self->locals_remove(state, state->symbol("argument"));
 
-    GCTokenImpl gct;
-
     NativeMethodFrame nmf(env, 0, nm);
     CallFrame cf;
     cf.previous = 0;
@@ -273,7 +271,7 @@ extern "C" {
 
     {
       OnStack<3> os(state, self, nm, ptr);
-      self->hard_unlock(state, gct, &cf);
+      self->hard_unlock(state, &cf);
     }
 
     ENTER_CAPI(state);
@@ -292,11 +290,11 @@ extern "C" {
 
       {
         OnStack<1> os(state, self);
-        self->hard_lock(state, gct, call_frame, false);
+        self->hard_lock(state, call_frame, false);
         Exception* exc = capi::c_as<Exception>(self->current_exception(state));
         self->exception(state, exc);
         self->alive(state, cFalse);
-        self->hard_unlock(state, gct, call_frame);
+        self->hard_unlock(state, call_frame);
       }
       return NULL;
     } else {
@@ -313,9 +311,9 @@ extern "C" {
 
     OnStack<1> os(state, self);
 
-    self->hard_lock(state, gct, &cf, false);
+    self->hard_lock(state, &cf, false);
     self->alive(state, cFalse);
-    self->hard_unlock(state, gct, &cf);
+    self->hard_unlock(state, &cf);
 
     return ret;
   }
@@ -338,14 +336,12 @@ extern "C" {
 
     VALUE thr_handle = env->get_handle(thr);
     thr->fork(state);
-    GCTokenImpl gct;
     // We do a lock and unlock here so we wait until the started
     // thread is actually ready. This is to prevent we GC stuff on
     // the stack in the C-API caller that might be stuffed in the void* argument
-    thr->hard_lock(state, gct, env->current_call_frame());
-    thr->hard_unlock(state, gct, env->current_call_frame());
+    thr->hard_lock(state, env->current_call_frame());
+    thr->hard_unlock(state, env->current_call_frame());
 
     return thr_handle;
   }
-
 }

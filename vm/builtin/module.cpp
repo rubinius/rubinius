@@ -23,8 +23,7 @@
 namespace rubinius {
 
   void Module::bootstrap_methods(STATE) {
-    GCTokenImpl gct;
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(module), false,
                              state->symbol("const_set"),
                              state->symbol("module_const_set"));

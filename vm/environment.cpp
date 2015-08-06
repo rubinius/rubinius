@@ -609,8 +609,7 @@ namespace rubinius {
 
     shared->thread_nexus()->lock_or_wait(state->vm());
 
-    GCTokenImpl gct;
-    shared->finalizer_handler()->finish(state, gct);
+    shared->finalizer_handler()->finish(state);
 
     NativeMethod::cleanup_thread(state);
 

@@ -189,10 +189,9 @@ extern "C" {
     // Run in a block so OnStack is properly deallocated before we
     // might do a longjmp because of an exception.
     {
-      GCTokenImpl gct;
       OnStack<3> os(env->state(), module, superclass, constant);
 
-      opened_class = rubinius::Helpers::open_class(env->state(), gct,
+      opened_class = rubinius::Helpers::open_class(env->state(),
           env->current_call_frame(), module, superclass, constant, &created);
     }
 

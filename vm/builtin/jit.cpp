@@ -29,12 +29,11 @@ namespace rubinius {
 #else
     if(!CBOOL(enabled())) return cFalse;
 
-    GCTokenImpl gct;
     BlockEnvironment* block_env = try_as<BlockEnvironment>(block_environment);
     if(!block_env) block_env = nil<BlockEnvironment>();
 
     LLVMState* ls = state->shared().llvm_state;
-    ls->compile(state, gct, code, call_frame, object->direct_class(state),
+    ls->compile(state, code, call_frame, object->direct_class(state),
         block_env, !block_env->nil_p());
 
     return cTrue;
@@ -71,10 +70,8 @@ namespace rubinius {
     if(!CBOOL(enabled())) return cFalse;
 
 #ifdef ENABLE_LLVM
-    GCTokenImpl gct;
-
     LLVMState* ls = state->shared().llvm_state;
-    ls->compile_soon(state, gct, code, call_frame, receiver_class, block_env, is_block);
+    ls->compile_soon(state, code, call_frame, receiver_class, block_env, is_block);
 #endif
 
     return cTrue;
@@ -86,10 +83,8 @@ namespace rubinius {
     if(!CBOOL(enabled())) return cFalse;
 
 #ifdef ENABLE_LLVM
-    GCTokenImpl gct;
-
     LLVMState* ls = state->shared().llvm_state;
-    ls->compile_callframe(state, gct, code, call_frame, primitive);
+    ls->compile_callframe(state, code, call_frame, primitive);
 #endif
 
     return cTrue;

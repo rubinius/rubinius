@@ -149,7 +149,7 @@ namespace rubinius {
     if(metrics_) metrics_->disable(state);
   }
 
-  void SharedState::after_fork_child(STATE, GCToken gct, CallFrame* call_frame) {
+  void SharedState::after_fork_child(STATE, CallFrame* call_frame) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
     config.jit_inline_debug.set("no");

@@ -70,46 +70,44 @@
 namespace rubinius {
 
   void System::bootstrap_methods(STATE) {
-    GCTokenImpl gct;
-
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(rubinius), true,
                              state->symbol("open_class"),
                              state->symbol("vm_open_class"));
 
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(rubinius), true,
                              state->symbol("open_class_under"),
                              state->symbol("vm_open_class_under"));
 
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(rubinius), true,
                              state->symbol("open_module"),
                              state->symbol("vm_open_module"));
 
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(rubinius), true,
                              state->symbol("open_module_under"),
                              state->symbol("vm_open_module_under"));
 
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(rubinius), true,
                              state->symbol("add_defn_method"),
                              state->symbol("vm_add_method"));
 
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(rubinius), true,
                              state->symbol("attach_method"),
                              state->symbol("vm_attach_method"));
 
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              as<Module>(G(rubinius)->get_const(state, "Type")), true,
                              state->symbol("object_singleton_class"),
                              state->symbol("vm_object_singleton_class"));
 
   }
 
-  void System::attach_primitive(STATE, GCToken gct, Module* mod, bool meta,
+  void System::attach_primitive(STATE, Module* mod, bool meta,
                                 Symbol* name, Symbol* prim)
   {
     MethodTable* tbl;
@@ -382,7 +380,7 @@ namespace rubinius {
     return cNil;
   }
 
-  static int fork_exec(STATE, GCToken gct, CallFrame* call_frame, int errors_fd) {
+  static int fork_exec(STATE, CallFrame* call_frame, int errors_fd) {
     utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
 
     state->shared().internal_threads()->before_fork_exec(state);
@@ -411,7 +409,7 @@ namespace rubinius {
     return pid;
   }
 
-  Object* System::vm_spawn(STATE, GCToken gct, Object* spawn_state, String* path,
+  Object* System::vm_spawn(STATE, Object* spawn_state, String* path,
                            Array* args, CallFrame* calling_environment)
   {
     OnStack<1> os(state, spawn_state);
@@ -433,7 +431,7 @@ namespace rubinius {
     {
       UnmanagedPhase unmanaged(state);
 
-      pid = fork_exec(state, gct, calling_environment, errors[1]);
+      pid = fork_exec(state, calling_environment, errors[1]);
     }
 
     // error
@@ -520,7 +518,7 @@ namespace rubinius {
     return Fixnum::from(pid);
   }
 
-  Object* System::vm_backtick(STATE, GCToken gct, String* str,
+  Object* System::vm_backtick(STATE, String* str,
                               CallFrame* calling_environment)
   {
 #ifdef RBX_WINDOWS
@@ -549,7 +547,7 @@ namespace rubinius {
     {
       UnmanagedPhase unmanaged(state);
 
-      pid = fork_exec(state, gct, calling_environment, errors[1]);
+      pid = fork_exec(state, calling_environment, errors[1]);
     }
 
     // error
@@ -800,7 +798,7 @@ namespace rubinius {
     return NULL;
   }
 
-  Fixnum* System::vm_fork(STATE, GCToken gct, CallFrame* calling_environment)
+  Fixnum* System::vm_fork(STATE, CallFrame* calling_environment)
   {
 #ifdef RBX_WINDOWS
     // TODO: Windows
@@ -832,7 +830,7 @@ namespace rubinius {
       /*  @todo any other re-initialisation needed? */
 
       state->vm()->thread->init_lock();
-      state->shared().after_fork_child(state, gct, calling_environment);
+      state->shared().after_fork_child(state, calling_environment);
       state->shared().internal_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
@@ -848,7 +846,7 @@ namespace rubinius {
 #endif
   }
 
-  Object* System::vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* call_frame) {
+  Object* System::vm_gc_start(STATE, Object* force, CallFrame* call_frame) {
     // force is set if this is being called by the kernel (for instance
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
@@ -1051,7 +1049,7 @@ namespace rubinius {
   }
 
 #define NANOSECONDS 1000000000
-  Object* System::vm_sleep(STATE, GCToken gct, Object* duration,
+  Object* System::vm_sleep(STATE, Object* duration,
                            CallFrame* calling_environment)
   {
     struct timespec ts = {0,0};
@@ -1085,9 +1083,9 @@ namespace rubinius {
       ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
       ts.tv_nsec  = nano % NANOSECONDS;
 
-      if(!state->park_timed(gct, calling_environment, &ts)) return NULL;
+      if(!state->park_timed(calling_environment, &ts)) return NULL;
     } else {
-      if(!state->park(gct, calling_environment)) return NULL;
+      if(!state->park(calling_environment)) return NULL;
     }
 
     if(!state->check_async(calling_environment)) return NULL;
@@ -1236,7 +1234,7 @@ namespace rubinius {
     return find_method(state, recv->lookup_begin(state), name, G(sym_public));
   }
 
-  Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
+  Object* System::vm_add_method(STATE, Symbol* name,
                                 CompiledCode* method,
                                 ConstantScope* scope, Object* vis,
                                 CallFrame* calling_environment)
@@ -1251,7 +1249,7 @@ namespace rubinius {
     if(Class* cls = try_as<Class>(mod)) {
       OnStack<5> o2(state, mod, method, scope, vis, cls);
 
-      if(!method->internalize(state, gct, calling_environment)) {
+      if(!method->internalize(state, calling_environment)) {
         Exception::argument_error(state, "invalid bytecode method");
         return 0;
       }
@@ -1294,7 +1292,7 @@ namespace rubinius {
     return method;
   }
 
-  Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name,
+  Object* System::vm_attach_method(STATE, Symbol* name,
                                    CompiledCode* method,
                                    ConstantScope* scope, Object* recv,
                                    CallFrame* calling_environment)
@@ -1612,12 +1610,12 @@ retry:
     return cTrue;
   }
 
-  Object* System::vm_object_lock(STATE, GCToken gct, Object* obj,
+  Object* System::vm_object_lock(STATE, Object* obj,
                                  CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
 
-    switch(obj->lock(state, gct, call_frame)) {
+    switch(obj->lock(state, call_frame)) {
     case eLocked:
       return cTrue;
     case eLockTimeout:
@@ -1638,14 +1636,14 @@ retry:
     return cNil;
   }
 
-  Object* System::vm_object_uninterrupted_lock(STATE, GCToken gct, Object* obj,
+  Object* System::vm_object_uninterrupted_lock(STATE, Object* obj,
                                  CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->vm()->set_call_frame(call_frame);
 
 retry:
-    switch(obj->lock(state, gct, call_frame, false)) {
+    switch(obj->lock(state, call_frame, false)) {
     case eLocked:
       return cTrue;
     case eLockInterrupted:
@@ -1659,13 +1657,13 @@ retry:
     return cNil;
   }
 
-  Object* System::vm_object_lock_timed(STATE, GCToken gct, Object* obj, Integer* time,
+  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time,
                                        CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->vm()->set_call_frame(call_frame);
 
-    switch(obj->lock(state, gct, call_frame, time->to_native())) {
+    switch(obj->lock(state, call_frame, time->to_native())) {
     case eLocked:
       return cTrue;
     case eLockTimeout:
@@ -1688,25 +1686,25 @@ retry:
     return cNil;
   }
 
-  Object* System::vm_object_trylock(STATE, GCToken gct, Object* obj,
+  Object* System::vm_object_trylock(STATE, Object* obj,
                                     CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
-    return RBOOL(obj->try_lock(state, gct, call_frame) == eLocked);
+    return RBOOL(obj->try_lock(state, call_frame) == eLocked);
   }
 
-  Object* System::vm_object_locked_p(STATE, GCToken gct, Object* obj,
+  Object* System::vm_object_locked_p(STATE, Object* obj,
                                      CallFrame* call_frame) {
     if(!obj->reference_p()) return cFalse;
-    return RBOOL(obj->locked_p(state, gct, call_frame));
+    return RBOOL(obj->locked_p(state, call_frame));
   }
 
-  Object* System::vm_object_unlock(STATE, GCToken gct, Object* obj,
+  Object* System::vm_object_unlock(STATE, Object* obj,
                                    CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
 
-    if(obj->unlock(state, gct, call_frame) == eUnlocked) return cNil;
+    if(obj->unlock(state, call_frame) == eUnlocked) return cNil;
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->vm()->thread_id() << " unlock failed]" << std::endl;
     }
@@ -1814,14 +1812,14 @@ retry:
     return tuple;
   }
 
-  Object* System::vm_run_script(STATE, GCToken gct, CompiledCode* code,
+  Object* System::vm_run_script(STATE, CompiledCode* code,
                                 CallFrame* calling_environment)
   {
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     OnStack<1> os(state, code);
 
-    code->internalize(state, gct, calling_environment, 0, 0);
+    code->internalize(state, calling_environment, 0, 0);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {

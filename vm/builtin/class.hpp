@@ -96,12 +96,12 @@ namespace rubinius {
     static Class* s_allocate(STATE);
 
     // Rubinius.primitive+ :class_allocate
-    Object* allocate(STATE, GCToken gct, CallFrame* calling_environment);
+    Object* allocate(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :class_set_superclass
     Object* set_superclass(STATE, Object* sup);
 
-    void auto_pack(STATE, GCToken gct, CallFrame* call_frame);
+    void auto_pack(STATE, CallFrame* call_frame);
 
     class Info : public Module::Info {
     public:

@@ -46,7 +46,6 @@ namespace rubinius {
     wait_condition_.init();
 
     VM* current = state->vm();
-    GCTokenImpl gct;
 
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
@@ -56,7 +55,7 @@ namespace rubinius {
 
         if(Thread* thread = vm->thread.get()) {
           if(!thread->nil_p()) {
-            thread->unlock_after_fork(state, gct);
+            thread->unlock_after_fork(state);
             thread->stopped();
           }
         }

@@ -261,8 +261,7 @@ extern "C" {
     CompiledCode* code = as<CompiledCode>(_lit);
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
-    GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, code, mcode, call_frame);
+    return BlockEnvironment::under_call_frame(state, code, mcode, call_frame);
 
     CPP_CATCH
   }
@@ -291,8 +290,7 @@ extern "C" {
 
     assert(closest);
     MachineCode* mcode = closest->compiled_code->machine_code();
-    GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, code, mcode, closest);
+    return BlockEnvironment::under_call_frame(state, code, mcode, closest);
   }
 
   Object* rbx_promote_variables(STATE, CallFrame* call_frame) {
@@ -622,7 +620,6 @@ extern "C" {
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
     CPP_TRY
 
-    GCTokenImpl gct;
     ConstantMissingReason reason;
     Module* under = as<Module>(top);
     Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
@@ -631,7 +628,7 @@ extern "C" {
     if(reason != vFound) {
       res = Helpers::const_missing_under(state, under, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, gct, call_frame, under);
+      res = autoload->resolve(state, call_frame, under);
     }
 
     return res;
@@ -652,10 +649,9 @@ extern "C" {
       res = Helpers::const_get_under(state, under, cache->name(), &reason);
 
       if(reason == vFound) {
-        GCTokenImpl gct;
         OnStack<2> os(state, cache, res);
         if(Autoload* autoload = try_as<Autoload>(res)) {
-          res = autoload->resolve(state, gct, call_frame, under);
+          res = autoload->resolve(state, call_frame, under);
         }
 
         if(res) {
@@ -781,14 +777,13 @@ extern "C" {
   }
 
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
-    GCTokenImpl gct;
     ConstantMissingReason reason;
     Object* res = Helpers::const_get(state, call_frame, sym, &reason);
 
     if(reason != vFound) {
       res = Helpers::const_missing(state, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, gct, call_frame);
+      res = autoload->resolve(state, call_frame);
     }
 
     return res;
@@ -804,10 +799,9 @@ extern "C" {
       res = Helpers::const_get(state, call_frame, cache->name(), &reason);
 
       if(reason == vFound) {
-        GCTokenImpl gct;
         OnStack<2> os(state, cache, res);
         if(Autoload* autoload = try_as<Autoload>(res)) {
-          res = autoload->resolve(state, gct, call_frame);
+          res = autoload->resolve(state, call_frame);
         }
 
         if(res) {
@@ -945,9 +939,7 @@ extern "C" {
   }
 
   Object* rbx_prologue_check(STATE, CallFrame* call_frame) {
-    GCTokenImpl gct;
-
-    if(!state->check_interrupts(gct, call_frame, &state)) return NULL;
+    if(!state->check_interrupts(call_frame, &state)) return NULL;
 
     state->vm()->set_call_frame(call_frame);
     state->vm()->checkpoint(state);
@@ -1482,8 +1474,7 @@ extern "C" {
   Object* rbx_create_instance(STATE, CallFrame* call_frame, Class* cls) {
     CPP_TRY
 
-    GCTokenImpl gct;
-    return cls->allocate(state, gct, call_frame);
+    return cls->allocate(state, call_frame);
 
     CPP_CATCH
   }

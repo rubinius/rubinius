@@ -37,8 +37,7 @@ namespace rubinius {
   }
 
   void BlockEnvironment::bootstrap_methods(STATE) {
-    GCTokenImpl gct;
-    System::attach_primitive(state, gct,
+    System::attach_primitive(state,
                              G(blokenv), false,
                              state->symbol("call_under"),
                              state->symbol("block_call_under"));
@@ -58,8 +57,8 @@ namespace rubinius {
     return env;
   }
 
-  MachineCode* BlockEnvironment::machine_code(STATE, GCToken gct, CallFrame* call_frame) {
-    return compiled_code_->internalize(state, gct, call_frame);
+  MachineCode* BlockEnvironment::machine_code(STATE, CallFrame* call_frame) {
+    return compiled_code_->internalize(state, call_frame);
   }
 
   Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
@@ -73,9 +72,8 @@ namespace rubinius {
       OnStack<3> iv(state, invocation.self, invocation.constant_scope, invocation.module);
       VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                              &args.arguments_location(), args.total());
-      GCTokenImpl gct;
 
-      mcode = env->machine_code(state, gct, previous);
+      mcode = env->machine_code(state, previous);
 
       if(!mcode) {
         Exception::internal_error(state, previous, "invalid bytecode method");
@@ -471,10 +469,7 @@ namespace rubinius {
 
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
-
-      GCTokenImpl gct;
-
-      if(!state->check_interrupts(gct, frame, frame)) return NULL;
+      if(!state->check_interrupts(frame, frame)) return NULL;
 
       state->vm()->checkpoint(state);
 
@@ -483,10 +478,7 @@ namespace rubinius {
     } else {
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
-
-      GCTokenImpl gct;
-
-      if(!state->check_interrupts(gct, frame, frame)) return NULL;
+      if(!state->check_interrupts(frame, frame)) return NULL;
 
       state->vm()->checkpoint(state);
       return (*mcode->run)(state, mcode, frame);
@@ -494,10 +486,7 @@ namespace rubinius {
 #else
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
-
-    GCTokenImpl gct;
-
-    if(!state->check_interrupts(gct, frame, frame)) return NULL;
+    if(!state->check_interrupts(frame, frame)) return NULL;
 
     state->vm()->checkpoint(state);
     return (*mcode->run)(state, mcode, frame);
@@ -559,7 +548,7 @@ namespace rubinius {
   }
 
 
-  BlockEnvironment* BlockEnvironment::under_call_frame(STATE, GCToken gct,
+  BlockEnvironment* BlockEnvironment::under_call_frame(STATE,
       CompiledCode* ccode, MachineCode* caller,
       CallFrame* call_frame)
   {
@@ -567,7 +556,7 @@ namespace rubinius {
     MachineCode* mcode = ccode->machine_code();
     if(!mcode) {
       OnStack<1> os(state, ccode);
-      mcode = ccode->internalize(state, gct, call_frame);
+      mcode = ccode->internalize(state, call_frame);
       if(!mcode) {
         Exception::internal_error(state, call_frame, "invalid bytecode method");
         return 0;

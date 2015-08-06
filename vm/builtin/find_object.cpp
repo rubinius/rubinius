@@ -253,7 +253,7 @@ namespace rubinius {
     return 0;
   }
 
-  Object* System::vm_find_object(STATE, GCToken gct,
+  Object* System::vm_find_object(STATE,
                                  Array* arg, Object* callable,
                                  CallFrame* calling_environment)
   {

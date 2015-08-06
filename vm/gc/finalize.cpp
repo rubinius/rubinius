@@ -275,7 +275,7 @@ namespace rubinius {
     }
   }
 
-  void FinalizerThread::finish(STATE, GCToken gct) {
+  void FinalizerThread::finish(STATE) {
     finishing_ = true;
     if(process_list_ || !lists_->empty() || !live_list_->empty()) {
       while(true) {

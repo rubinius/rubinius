@@ -336,7 +336,7 @@ retry:
     }
   }
 
-  LockStatus ObjectHeader::lock(STATE, GCToken gct, CallFrame* call_frame, size_t us, bool interrupt) {
+  LockStatus ObjectHeader::lock(STATE, CallFrame* call_frame, size_t us, bool interrupt) {
     // #1 Attempt to lock an unlocked object using CAS.
 
     ObjectHeader* self = this;
@@ -421,7 +421,7 @@ step2:
         // We weren't able to contend for it, probably because the header changed.
         // Do it all over again.
         OnStack<1> os(state, self);
-        LockStatus ret = state->memory()->contend_for_lock(state, gct, call_frame, self, us, interrupt);
+        LockStatus ret = state->memory()->contend_for_lock(state, call_frame, self, us, interrupt);
         if(ret == eLockError) goto step1;
         return ret;
       }
@@ -442,7 +442,7 @@ step2:
       // The header is inflated, use the full lock.
       OnStack<1> os(state, self);
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-      return ih->lock_mutex(state, gct, call_frame, self, us, interrupt);
+      return ih->lock_mutex(state, call_frame, self, us, interrupt);
     }
     }
 
@@ -450,14 +450,14 @@ step2:
     return eLockError;
   }
 
-  void ObjectHeader::hard_lock(STATE, GCToken gct, CallFrame* call_frame, size_t us) {
+  void ObjectHeader::hard_lock(STATE, CallFrame* call_frame, size_t us) {
 retry:
-    LockStatus status = lock(state, gct, call_frame, us);
+    LockStatus status = lock(state, call_frame, us);
     if(status == eLockInterrupted) goto retry;
     if(status != eLocked) rubinius::bug("Unable to lock object");
   }
 
-  LockStatus ObjectHeader::try_lock(STATE, GCToken gct, CallFrame* call_frame) {
+  LockStatus ObjectHeader::try_lock(STATE, CallFrame* call_frame) {
 
     ObjectHeader* self = this;
     // #1 Attempt to lock an unlocked object using CAS.
@@ -546,7 +546,7 @@ step2:
       // The header is inflated, use the full lock.
       OnStack<1> os(state, self);
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-      return ih->try_lock_mutex(state, gct, call_frame, self);
+      return ih->try_lock_mutex(state, call_frame, self);
     }
     }
 
@@ -554,7 +554,7 @@ step2:
     return eLockError;
   }
 
-  bool ObjectHeader::locked_p(STATE, GCToken gct, CallFrame* call_frame) {
+  bool ObjectHeader::locked_p(STATE, CallFrame* call_frame) {
     HeaderWord orig = header;
 
     switch(orig.f.meaning) {
@@ -566,14 +566,14 @@ step2:
       return false;
     case eAuxWordInflated:
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-      return ih->locked_mutex_p(state, gct, call_frame, this);
+      return ih->locked_mutex_p(state, call_frame, this);
     }
 
     rubinius::bug("Invalid header meaning");
     return false;
   }
 
-  void ObjectHeader::unlock_object_after_fork(STATE, GCToken gct) {
+  void ObjectHeader::unlock_object_after_fork(STATE) {
     switch(header.f.meaning) {
     case eAuxWordEmpty:
     case eAuxWordObjID:
@@ -595,7 +595,7 @@ step2:
     }
   }
 
-  LockStatus ObjectHeader::unlock(STATE, GCToken gct, CallFrame* call_frame) {
+  LockStatus ObjectHeader::unlock(STATE, CallFrame* call_frame) {
     // This case is slightly easier than locking.
 
     for(;;) {
@@ -634,7 +634,7 @@ step2:
             if(!state->memory()->inflate_for_contention(state, this)) continue;
 
             state->vm()->del_locked_object(this);
-            state->memory()->release_contention(state, gct, call_frame);
+            state->memory()->release_contention(state, call_frame);
 
             return eUnlocked;
           }
@@ -670,7 +670,7 @@ step2:
       }
       case eAuxWordInflated:
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-        return ih->unlock_mutex(state, gct, call_frame, this);
+        return ih->unlock_mutex(state, call_frame, this);
       }
     }
 
@@ -678,11 +678,11 @@ step2:
     return eLockError;
   }
 
-  void ObjectHeader::hard_unlock(STATE, GCToken gct, CallFrame* call_frame) {
-    if(unlock(state, gct, call_frame) != eUnlocked) rubinius::bug("Unable to unlock object");
+  void ObjectHeader::hard_unlock(STATE, CallFrame* call_frame) {
+    if(unlock(state, call_frame) != eUnlocked) rubinius::bug("Unable to unlock object");
   }
 
-  void ObjectHeader::unlock_for_terminate(STATE, GCToken gct, CallFrame* call_frame) {
+  void ObjectHeader::unlock_for_terminate(STATE, CallFrame* call_frame) {
     // This case is slightly easier than locking.
 
     for(;;) {
@@ -716,13 +716,13 @@ step2:
         if(new_val.f.LockContended == 1) {
           // If we couldn't inflate for contention, redo.
           if(!state->memory()->inflate_for_contention(state, this)) continue;
-          state->memory()->release_contention(state, gct, call_frame);
+          state->memory()->release_contention(state, call_frame);
         }
         return;
       }
       case eAuxWordInflated:
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-        ih->unlock_mutex_for_terminate(state, gct, call_frame, this);
+        ih->unlock_mutex_for_terminate(state, call_frame, this);
         return;
       }
     }
@@ -799,8 +799,8 @@ step2:
     rec_lock_count_ = count;
   }
 
-  LockStatus InflatedHeader::lock_mutex(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj, size_t us, bool interrupt) {
-    if(us == 0) return lock_mutex_timed(state, gct, call_frame, obj, 0, interrupt);
+  LockStatus InflatedHeader::lock_mutex(STATE, CallFrame* call_frame, ObjectHeader* obj, size_t us, bool interrupt) {
+    if(us == 0) return lock_mutex_timed(state, call_frame, obj, 0, interrupt);
 
     struct timeval tv;
     struct timespec ts;
@@ -810,10 +810,10 @@ step2:
     ts.tv_sec = tv.tv_sec + (us / 1000000);
     ts.tv_nsec = (us % 10000000) * 1000;
 
-    return lock_mutex_timed(state, gct, call_frame, obj, &ts, interrupt);
+    return lock_mutex_timed(state, call_frame, obj, &ts, interrupt);
   }
 
-  LockStatus InflatedHeader::lock_mutex_timed(STATE, GCToken gct,
+  LockStatus InflatedHeader::lock_mutex_timed(STATE,
                                               CallFrame* call_frame,
                                               ObjectHeader* obj,
                                               const struct timespec* ts,
@@ -906,7 +906,7 @@ step2:
     return eLocked;
   }
 
-  LockStatus InflatedHeader::try_lock_mutex(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
+  LockStatus InflatedHeader::try_lock_mutex(STATE, CallFrame* call_frame, ObjectHeader* obj) {
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
@@ -948,7 +948,7 @@ step2:
     return locked ? eLocked : eUnlocked;
   }
 
-  bool InflatedHeader::locked_mutex_p(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
+  bool InflatedHeader::locked_mutex_p(STATE, CallFrame* call_frame, ObjectHeader* obj) {
     // Gain exclusive access to the insides of the InflatedHeader.
     OnStack<1> os(state, obj);
 
@@ -957,7 +957,7 @@ step2:
     return owner_id_ != 0;
   }
 
-  LockStatus InflatedHeader::unlock_mutex(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
+  LockStatus InflatedHeader::unlock_mutex(STATE, CallFrame* call_frame, ObjectHeader* obj) {
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
@@ -994,7 +994,7 @@ step2:
     return eUnlocked;
   }
 
-  void InflatedHeader::unlock_mutex_for_terminate(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
+  void InflatedHeader::unlock_mutex_for_terminate(STATE, CallFrame* call_frame, ObjectHeader* obj) {
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
@@ -1025,7 +1025,7 @@ step2:
     }
   }
 
-  void InflatedHeader::wakeup(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
+  void InflatedHeader::wakeup(STATE, CallFrame* call_frame, ObjectHeader* obj) {
     OnStack<1> os(state, obj);
     MutexLockUnmanaged lock_unmanaged(state, mutex_);
     condition_.signal();

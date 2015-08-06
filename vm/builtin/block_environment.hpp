@@ -42,7 +42,7 @@ namespace rubinius {
     ConstantScope* constant_scope_; // slot
     Module* module_;                // slot
 
-    MachineCode* machine_code(STATE, GCToken gct, CallFrame* call_frame);
+    MachineCode* machine_code(STATE, CallFrame* call_frame);
 
   public:
     /* accessors */
@@ -64,7 +64,7 @@ namespace rubinius {
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation);
 
-    static BlockEnvironment* under_call_frame(STATE, GCToken gct, CompiledCode* cm,
+    static BlockEnvironment* under_call_frame(STATE, CompiledCode* cm,
       MachineCode* caller, CallFrame* call_frame);
 
     static Object* execute_interpreter(STATE, CallFrame* previous,

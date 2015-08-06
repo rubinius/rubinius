@@ -174,7 +174,7 @@ namespace rubinius {
      *  Process an exception raised for this Thread.
      */
     // Rubinius.primitive :thread_raise
-    Object* raise(STATE, GCToken gct, Exception* exc, CallFrame* calling_environment);
+    Object* raise(STATE, Exception* exc, CallFrame* calling_environment);
 
     /**
      *  Returns current exception
@@ -186,7 +186,7 @@ namespace rubinius {
      *  Kill this Thread.
      */
     // Rubinius.primitive :thread_kill
-    Object* kill(STATE, GCToken gct, CallFrame* calling_environment);
+    Object* kill(STATE, CallFrame* calling_environment);
 
     /**
      *  Set the priority for this Thread.
@@ -206,23 +206,23 @@ namespace rubinius {
      *  is queued to be run, although not necessarily immediately.
      */
     // Rubinius.primitive :thread_wakeup
-    Thread* wakeup(STATE, GCToken gct, CallFrame* calling_environment);
+    Thread* wakeup(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_context
     Tuple* context(STATE);
 
     // Rubinius.primitive :thread_mri_backtrace
-    Array* mri_backtrace(STATE, GCToken gct, CallFrame* calling_environment);
+    Array* mri_backtrace(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_join
-    Thread* join(STATE, GCToken gct, Object* timeout, CallFrame* calling_environment);
+    Thread* join(STATE, Object* timeout, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_unlock_locks
-    Object* unlock_locks(STATE, GCToken gct, CallFrame* calling_environment);
+    Object* unlock_locks(STATE, CallFrame* calling_environment);
 
     // This method must only be called after fork() with only one active
     // thread.
-    void unlock_after_fork(STATE, GCToken gct);
+    void unlock_after_fork(STATE);
 
     /**
      * Retrieve a value store in the thread locals.

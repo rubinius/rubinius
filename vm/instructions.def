@@ -885,7 +885,7 @@ instruction push_const(literal) [ -- constant ]
     res = Helpers::const_missing(state, sym, call_frame);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
-    res = autoload->resolve(state, gct, call_frame);
+    res = autoload->resolve(state, call_frame);
   }
 
   CHECK_AND_PUSH(res);
@@ -940,7 +940,7 @@ instruction find_const(literal) [ module -- constant ]
     res = Helpers::const_missing_under(state, under, sym, call_frame);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
-    res = autoload->resolve(state, gct, call_frame, under);
+    res = autoload->resolve(state, call_frame, under);
   }
 
   CHECK_AND_PUSH(res);
@@ -980,7 +980,7 @@ instruction push_const_fast(literal) [ -- constant ]
       OnStack<2> os(state, cache, res);
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();
-        res = autoload->resolve(state, gct, call_frame);
+        res = autoload->resolve(state, call_frame);
       }
 
       if(res) {
@@ -1025,7 +1025,7 @@ instruction find_const_fast(literal) [ module -- constant ]
       OnStack<3> os(state, cache, under, res);
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();
-        res = autoload->resolve(state, gct, call_frame, under);
+        res = autoload->resolve(state, call_frame, under);
       }
 
       if(res) {
@@ -1326,7 +1326,7 @@ instruction create_block(literal) [ -- block ]
   Object* _lit = call_frame->compiled_code->literals()->at(state, literal);
   CompiledCode* code = as<CompiledCode>(_lit);
 
-  Object* be = BlockEnvironment::under_call_frame(state, gct, code, mcode, call_frame);
+  Object* be = BlockEnvironment::under_call_frame(state, code, mcode, call_frame);
 
   CHECK_AND_PUSH(be);
 end
@@ -1800,7 +1800,7 @@ end
 
 instruction yield_debugger() [ -- ]
   flush_ip();
-  Helpers::yield_debugger(state, gct, call_frame, cNil);
+  Helpers::yield_debugger(state, call_frame, cNil);
 end
 
 # [Description]

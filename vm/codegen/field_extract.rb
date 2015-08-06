@@ -4,7 +4,6 @@ class BasicPrimitive
   attr_accessor :pass_call_frame
   attr_accessor :pass_message
   attr_accessor :pass_arguments
-  attr_accessor :pass_gctoken
   attr_accessor :raw
   attr_accessor :safe
   attr_accessor :can_fail
@@ -15,7 +14,6 @@ class BasicPrimitive
     str << "  Object* ret;\n"
     return str if @raw
     str << "  Object* self;\n" if @pass_self
-    str << "  GCTokenImpl gct;\n" if @pass_gctoken
   end
 
   def output_args(str, arg_types)
@@ -39,7 +37,6 @@ class BasicPrimitive
         args << "a#{i}"
       end
     end
-    args.unshift "gct" if @pass_gctoken
     args.unshift "self" if @pass_self
     args.unshift "state" if @pass_state
 
@@ -167,7 +164,6 @@ class CPPPrimitive < BasicPrimitive
     end
 
     str << "  Object* ret;\n"
-    str << "  GCTokenImpl gct;\n" if @pass_gctoken
 
     emit_fail = false
 
@@ -199,7 +195,6 @@ class CPPPrimitive < BasicPrimitive
       str << "  state->vm()->set_call_frame(call_frame);\n"
     end
 
-    args.unshift "gct" if @pass_gctoken
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
     args.push "call_frame" if @pass_call_frame
@@ -250,7 +245,6 @@ class CPPPrimitive < BasicPrimitive
     str << "extern \"C\" Object* invoke_#{@name}(STATE, CallFrame* call_frame, Object** args, int arg_count) {\n"
 
     str << "  Object* ret;\n"
-    str << "  GCTokenImpl gct;\n" if @pass_gctoken
 
     i = 0
     arg_types.each do |t|
@@ -285,7 +279,6 @@ class CPPPrimitive < BasicPrimitive
       i += 1
     end
 
-    args.unshift "gct" if @pass_gctoken
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
     args.push "call_frame" if @pass_call_frame
@@ -359,7 +352,6 @@ class CPPStaticPrimitive < CPPPrimitive
     end
 
     str << "  Object* ret;\n"
-    str << "  GCTokenImpl gct;\n" if @pass_gctoken
 
     i = 0
     arg_types.each do |t|
@@ -379,7 +371,6 @@ class CPPStaticPrimitive < CPPPrimitive
       i += 1
     end
 
-    args.unshift "gct" if @pass_gctoken
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
     args.push "call_frame" if @pass_call_frame
@@ -430,7 +421,6 @@ class CPPStaticPrimitive < CPPPrimitive
     str << "extern \"C\" Object* invoke_#{@name}(STATE, CallFrame* call_frame, Object** args, int arg_count) {\n"
 
     str << "  Object* ret;\n"
-    str << "  GCTokenImpl gct;\n" if @pass_gctoken
 
     i = 0
     arg_types.each do |t|
@@ -451,7 +441,6 @@ class CPPStaticPrimitive < CPPPrimitive
       i += 1
     end
 
-    args.unshift "gct" if @pass_gctoken
     args.unshift "args[arg_count-1]" if @pass_self
     args.unshift "state" if @pass_state
     args.push "call_frame" if @pass_call_frame
@@ -943,7 +932,6 @@ class CPPParser
           pass_call_frame = false
           pass_message = false
           pass_arguments = false
-          pass_gctoken = false
 
           m = prototype_pattern.match(prototype)
           unless m
@@ -953,12 +941,6 @@ class CPPParser
           # If the first argument is the +STATE+ macro, handle it in +output_args+
           if args.first == "STATE"
             args.shift and pass_state = true
-
-            if args.first =~ /GCToken .*/
-              args.shift
-              pass_gctoken = true
-            end
-
 
             # If the second argument is +Object* self+, we will automatically pass
             # in the receiver of the primitive message in +output_call+
@@ -1006,7 +988,6 @@ class CPPParser
           obj.pass_call_frame = pass_call_frame
           obj.pass_message = pass_message
           obj.pass_arguments = pass_arguments
-          obj.pass_gctoken = pass_gctoken
         elsif object_size_pattern.match(l)
           cpp.class_has_object_size
         end

@@ -29,7 +29,7 @@ namespace rubinius {
   public:   /* Primitives */
 
     static void bootstrap_methods(STATE);
-    static void attach_primitive(STATE, GCToken gct, Module* mod, bool meta, Symbol* name, Symbol* prim);
+    static void attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim);
 
     /** Load a compiled file. */
     // Rubinius.primitive :compiledfile_load
@@ -62,10 +62,10 @@ namespace rubinius {
     static Object*  vm_spawn_setup(STATE, Object* spawn_state);
 
     // Rubinius.primitive :vm_spawn
-    static Object*  vm_spawn(STATE, GCToken gct, Object* spawn_state, String* path, Array* args, CallFrame* calling_environment);
+    static Object*  vm_spawn(STATE, Object* spawn_state, String* path, Array* args, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_backtick
-    static Object*  vm_backtick(STATE, GCToken gct, String* str, CallFrame* calling_environment);
+    static Object*  vm_backtick(STATE, String* str, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_wait_pid
     static Object*  vm_wait_pid(STATE, Fixnum* pid, Object* no_hang, CallFrame* calling_environment);
@@ -77,14 +77,14 @@ namespace rubinius {
      *  System fork()
      */
     // Rubinius.primitive :vm_fork
-    static Fixnum*  vm_fork(STATE, GCToken gct, CallFrame* calling_environment);
+    static Fixnum*  vm_fork(STATE, CallFrame* calling_environment);
 
     /**
      *  Force garbage collection as soon as possible.
      *
      */
     // Rubinius.primitive :vm_gc_start
-    static Object*  vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* calling_environment);
+    static Object*  vm_gc_start(STATE, Object* force, CallFrame* calling_environment);
 
     /**
      *  Retrieve a value from VM configuration.
@@ -165,7 +165,7 @@ namespace rubinius {
     static Object*  vm_time(STATE);
 
     // Rubinius.primitive :vm_sleep
-    static Object*  vm_sleep(STATE, GCToken gct, Object* duration, CallFrame* calling_environment);
+    static Object*  vm_sleep(STATE, Object* duration, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_check_interrupts
     static Object*  vm_check_interrupts(STATE, CallFrame* calling_environment);
@@ -192,10 +192,10 @@ namespace rubinius {
     static Tuple* vm_find_public_method(STATE, Object* recv, Symbol* name);
 
     // Rubinius.primitive :vm_add_method
-    static Object* vm_add_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* vis, CallFrame* calling_environment);
+    static Object* vm_add_method(STATE, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* vis, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_attach_method
-    static Object* vm_attach_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* recv, CallFrame* calling_environment);
+    static Object* vm_attach_method(STATE, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* recv, CallFrame* calling_environment);
 
     // A robust way to get the class of an object, since Object#class can be redefined.
     // Rubinius.primitive+ :vm_object_class
@@ -264,7 +264,7 @@ namespace rubinius {
     static Object* vm_extended_modules(STATE, Object* obj);
 
     // Rubinius.primitive :vm_find_object
-    static Object* vm_find_object(STATE, GCToken gct, Array* arg, Object* callable, CallFrame* calling_environment);
+    static Object* vm_find_object(STATE, Array* arg, Object* callable, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_const_defined
     static Object* vm_const_defined(STATE, Symbol* sym, CallFrame* calling_environment);
@@ -288,22 +288,22 @@ namespace rubinius {
     static Object* vm_set_finalizer(STATE, Object* obj, Object* fin);
 
     // Rubinius.primitive :vm_object_lock
-    static Object* vm_object_lock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
+    static Object* vm_object_lock(STATE, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_object_uninterrupted_lock
-    static Object* vm_object_uninterrupted_lock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
+    static Object* vm_object_uninterrupted_lock(STATE, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_object_lock_timed
-    static Object* vm_object_lock_timed(STATE, GCToken gct, Object* obj, Integer* time, CallFrame* calling_environment);
+    static Object* vm_object_lock_timed(STATE, Object* obj, Integer* time, CallFrame* calling_environment);
 
     // Rubinius.primitive+ :vm_object_trylock
-    static Object* vm_object_trylock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
+    static Object* vm_object_trylock(STATE, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive+ :vm_object_locked_p
-    static Object* vm_object_locked_p(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
+    static Object* vm_object_locked_p(STATE, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_object_unlock
-    static Object* vm_object_unlock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
+    static Object* vm_object_unlock(STATE, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive+ :vm_memory_barrier
     static Object* vm_memory_barrier(STATE);
@@ -327,7 +327,7 @@ namespace rubinius {
     static Tuple* vm_thread_state(STATE);
 
     // Rubinius.primitive :vm_run_script
-    static Object* vm_run_script(STATE, GCToken gct, CompiledCode* code, CallFrame* calling_environment);
+    static Object* vm_run_script(STATE, CompiledCode* code, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_hash_trie_item_index
     static Fixnum* vm_hash_trie_item_index(STATE, Fixnum* hash, Fixnum* level, Integer* map);

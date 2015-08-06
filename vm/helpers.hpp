@@ -19,12 +19,12 @@ namespace rubinius {
     void const_set(State*, CallFrame* call_frame, Symbol* name, Object* val);
     void const_set(State*, Module* mod, Symbol* name, Object* val);
 
-    Class*    open_class(State*, GCToken gct, CallFrame* call_frame, Object* super, Symbol* name, bool* created);
-    Class*    open_class(State*, GCToken gct, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created);
-    Module*   open_module(State*, GCToken gct, CallFrame* call_frame, Symbol* name);
-    Module*   open_module(State*, GCToken gct, CallFrame* call_frame, Module* under, Symbol* name);
+    Class*    open_class(State*, CallFrame* call_frame, Object* super, Symbol* name, bool* created);
+    Class*    open_class(State*, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created);
+    Module*   open_module(State*, CallFrame* call_frame, Symbol* name);
+    Module*   open_module(State*, CallFrame* call_frame, Module* under, Symbol* name);
 
-    bool yield_debugger(State*, GCToken gct, CallFrame* call_frame, Object* bp);
+    bool yield_debugger(State*, CallFrame* call_frame, Object* bp);
   };
 }
 

@@ -84,7 +84,6 @@ Object* MachineCode::interpreter(STATE,
 #include "gen/instruction_locations.hpp"
 
   InterpreterState is;
-  GCTokenImpl gct;
 
   opcode* ip_ptr = mcode->opcodes;
   Object** stack_ptr = call_frame->stk - 1;
@@ -234,7 +233,6 @@ Object* MachineCode::uncommon_interpreter(STATE,
 
   opcode* stream = mcode->opcodes;
   InterpreterState is;
-  GCTokenImpl gct;
 
   Object** stack_ptr = call_frame->stk + sp;
 
@@ -368,7 +366,6 @@ Object* MachineCode::debugger_interpreter(STATE,
 
   opcode* stream = mcode->opcodes;
   InterpreterState is;
-  GCTokenImpl gct;
 
   UnwindInfoSet unwinds;
 
@@ -386,7 +383,7 @@ continue_to_run:
 #undef DISPATCH
 #define DISPATCH \
     if(Object* bp = call_frame->find_breakpoint(state)) { \
-      if(!Helpers::yield_debugger(state, gct, call_frame, bp)) goto exception; \
+      if(!Helpers::yield_debugger(state, call_frame, bp)) goto exception; \
     } \
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
@@ -507,7 +504,6 @@ Object* MachineCode::debugger_interpreter_continue(STATE,
 
 #include "gen/instruction_locations.hpp"
 
-  GCTokenImpl gct;
   opcode* stream = mcode->opcodes;
 
   Object** stack_ptr = call_frame->stk + sp;
@@ -519,7 +515,7 @@ continue_to_run:
 #undef DISPATCH
 #define DISPATCH \
     if(Object* bp = call_frame->find_breakpoint(state)) { \
-      if(!Helpers::yield_debugger(state, gct, call_frame, bp)) goto exception; \
+      if(!Helpers::yield_debugger(state, call_frame, bp)) goto exception; \
     } \
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
@@ -640,7 +636,6 @@ Object* MachineCode::tooling_interpreter(STATE,
 
   opcode* stream = mcode->opcodes;
   InterpreterState is;
-  GCTokenImpl gct;
 
   UnwindInfoSet unwinds;
 
