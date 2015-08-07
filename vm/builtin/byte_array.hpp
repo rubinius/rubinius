@@ -16,16 +16,20 @@ namespace rubinius {
     uint8_t bytes[0];
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
+
     static ByteArray* create(STATE, native_int bytes);
     static ByteArray* create_pinned(STATE, native_int bytes);
-    static ByteArray* create_dirty(STATE, native_int bytes);
 
     template <typename Any>
       static ByteArray* from_body(Any obj) {
         uintptr_t ptr = reinterpret_cast<uintptr_t>(obj);
         return reinterpret_cast<ByteArray*>(ptr - bytes_offset);
       }
+
+    void set_full_size(native_int size) {
+      full_size_ = size;
+    }
 
     // Rubinius.primitive :bytearray_allocate
     static ByteArray* allocate(STATE, Fixnum* bytes);

@@ -2,6 +2,9 @@
 #define RBX_LLVM_JIT_OPERATIONS
 
 #include "config.h"
+
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"

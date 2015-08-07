@@ -62,7 +62,11 @@ namespace rubinius {
   public:   /* Interface */
 
     /**  Register class with the VM. */
-    static void   init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Data* obj) {
+      obj->internal_ = NULL;
+      obj->freed_ = false;
+    }
 
     /** New Data instance. */
     static Data*  create(STATE, void* data, MarkFunctor mark, FreeFunctor free);

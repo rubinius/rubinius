@@ -1,23 +1,23 @@
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compact_lookup_table.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/symbol.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void CompactLookupTable::init(STATE) {
-    GO(compactlookuptable).set(ontology::new_class(state, "CompactLookupTable",
-          G(tuple), G(rubinius)));
-    G(compactlookuptable)->set_object_type(state, CompactLookupTableType);
+  void CompactLookupTable::bootstrap(STATE) {
+    GO(compactlookuptable).set(state->memory()->new_class<Class, CompactLookupTable>(
+          state, G(tuple), G(rubinius), "CompactLookupTable"));
   }
 
   CompactLookupTable* CompactLookupTable::create(STATE) {
-    size_t bytes = 0;
-    CompactLookupTable* tbl = state->vm()->new_object_variable<CompactLookupTable>
-      (G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE, bytes);
-    tbl->full_size_ = bytes;
+    CompactLookupTable* tbl = state->memory()->new_fields<CompactLookupTable>(
+        state, G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE);
+    CompactLookupTable::initialize(state, tbl);
+
     return tbl;
   }
 
@@ -125,8 +125,7 @@ namespace rubinius {
     std::cout << ": " << size << std::endl;
     indent(++level);
     for(size_t i = 0; i < size; i++) {
-      std::cout << ":" << as<Symbol>(keys->get(state, i))->debug_str(state);
-      if(i < size - 1) std::cout << ", ";
+      std::cout << ":" << as<Symbol>(keys->get(state, i))->debug_str(state) << ", ";
     }
     std::cout << std::endl;
     close_body(level);

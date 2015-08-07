@@ -1,10 +1,11 @@
+#include "alloc.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
 
 #include <stdarg.h>
 #include <sstream>
@@ -13,12 +14,15 @@ namespace rubinius {
 
   uintptr_t Tuple::fields_offset;
 
-  void Tuple::init(STATE) {
-    GO(tuple).set(ontology::new_basic_class(state, G(object)));
-    G(tuple)->set_object_type(state, TupleType);
+  void Tuple::bootstrap(STATE) {
+    GO(tuple).set(Class::bootstrap_class(state, G(object), TupleType));
 
     Tuple* tup = ALLOCA(Tuple);
     fields_offset = (uintptr_t)&(tup->field) - (uintptr_t)tup;
+  }
+
+  void Tuple::write_barrier(STATE, Tuple* tuple, Object* val) {
+    state->memory()->write_barrier(tuple, val);
   }
 
   Tuple* Tuple::bounds_exceeded_error(STATE, const char* method, int index) {
@@ -51,7 +55,7 @@ namespace rubinius {
     }
 
     field[idx] = val;
-    write_barrier(state, val);
+    state->memory()->write_barrier(this, val);
     return val;
   }
 
@@ -62,49 +66,12 @@ namespace rubinius {
 
   Tuple* Tuple::create(STATE, native_int fields) {
     if(fields < 0) {
-      rubinius::bug("Invalid tuple size");
+      Exception::argument_error(state, "negative tuple size");
     }
 
-    // Fast path using GC optimized tuple creation
-    Tuple* tup = state->vm()->new_young_tuple_dirty(fields);
+    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), fields);
+    Tuple::initialize(state, tup);
 
-    if(likely(tup)) {
-      for(native_int i = 0; i < fields; i++) {
-        tup->field[i] = cNil;
-      }
-
-      return tup;
-    }
-
-    // Slow path.
-
-    size_t bytes = 0;
-
-    tup = state->vm()->new_object_variable<Tuple>(G(tuple), fields, bytes);
-    if(unlikely(!tup)) {
-      Exception::memory_error(state);
-    } else {
-      tup->full_size_ = bytes;
-    }
-    return tup;
-  }
-
-  Tuple* Tuple::create_dirty(STATE, native_int fields) {
-    // Fast path using GC optimized tuple creation
-    Tuple* tup = state->vm()->new_young_tuple_dirty(fields);
-
-    if(likely(tup)) return tup;
-
-    // Slow path.
-
-    size_t bytes = 0;
-
-    tup = state->vm()->new_object_variable<Tuple>(G(tuple), fields, bytes);
-    if(unlikely(!tup)) {
-      Exception::memory_error(state);
-    } else {
-      tup->full_size_ = bytes;
-    }
     return tup;
   }
 
@@ -122,14 +89,14 @@ namespace rubinius {
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {
     va_list ar;
-    Tuple* tup = create_dirty(state, fields);
+    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), fields);
 
     va_start(ar, fields);
     for(native_int i = 0; i < fields; i++) {
       Object *obj = va_arg(ar, Object*);
       // fields equals size so bounds checking is unecessary
       tup->field[i] = obj;
-      tup->write_barrier(state, obj);
+      state->memory()->write_barrier(tup, obj);
     }
     va_end(ar);
 
@@ -197,7 +164,7 @@ namespace rubinius {
         Object *obj = other->field[src];
         // but this is necessary to keep the GC happy
         field[dst] = obj;
-        write_barrier(state, obj);
+        state->memory()->write_barrier(this, obj);
       }
     }
 
@@ -307,51 +274,39 @@ namespace rubinius {
       Exception::argument_error(state, "negative tuple size");
     }
 
-    Tuple* tuple = Tuple::create_dirty(state, cnt);
+    Tuple* tuple = state->memory()->new_fields<Tuple>(state, G(tuple), cnt);
 
     for(native_int i = 0; i < cnt; i++) {
-      // bounds checking is covered because we instantiated the tuple
-      // in this method
       tuple->field[i] = val;
     }
 
-    // val is referend size times, we only need to hit the write
-    // barrier once
-    tuple->write_barrier(state, val);
+    if(!tuple->young_object_p()) {
+      state->memory()->write_barrier(tuple, val);
+    }
+
     return tuple;
   }
 
   Tuple* Tuple::tuple_dup(STATE) {
     native_int fields = num_fields();
 
-    Tuple* tup = state->vm()->new_young_tuple_dirty(fields);
+    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), fields);
 
-    if(likely(tup)) {
+    if(likely(tup->young_object_p())) {
+      // We have a young object so stores don't need the write barrier
       for(native_int i = 0; i < fields; i++) {
-        Object *obj = field[i];
-
-        // fields equals size so bounds checking is unecessary
-        tup->field[i] = obj;
-
-        // Because tup is promised to be a young object,
-        // we can elide the write barrier usage. We also
-        // know this object is new, so it can't be scanned
-        // yet.
+        tup->field[i] = field[i];
       }
 
       return tup;
     }
 
-    // Otherwise, use slower creation path that might create
-    // a mature object.
-    tup = create(state, fields);
-
+    // Otherwise, we have a mature object
     for(native_int i = 0; i < fields; i++) {
       Object *obj = field[i];
 
-      // fields equals size so bounds checking is unecessary
       tup->field[i] = obj;
-      tup->write_barrier(state, obj);
+      state->memory()->write_barrier(tup, obj);
     }
 
     return tup;

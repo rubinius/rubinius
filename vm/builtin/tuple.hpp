@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_TUPLE_HPP
 #define RBX_BUILTIN_TUPLE_HPP
 
+#include "object_memory.hpp"
+
 #include "builtin/object.hpp"
 
 namespace rubinius {
@@ -19,10 +21,24 @@ namespace rubinius {
       return (full_size_ - fields_offset) / sizeof(Object*);
     }
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+
+    /* Not normally used when allocating a new Tuple instance to avoid double
+     * initialization but available for use (eg CompactLookupTable).
+     */
+    static void initialize(STATE, Tuple* obj) {
+      for(native_int i = 0; i < obj->num_fields(); i++) {
+        obj->field[i] = cNil;
+      }
+    }
+
     static Tuple* create(STATE, native_int fields);
     static Tuple* create_dirty(STATE, native_int fields);
     static Tuple* from(STATE, native_int fields, ...);
+
+    void set_full_size(native_int size) {
+      full_size_ = size;
+    }
 
     /** Shift all elements leftward, clear old slots. */
     Tuple* lshift_inplace(STATE, Fixnum* shift);
@@ -30,6 +46,7 @@ namespace rubinius {
 
   /** Primitives */
   public:
+    static void write_barrier(STATE, Tuple* tuple, Object* val);
 
     // Rubinius.primitive :tuple_allocate
     static Tuple* allocate(STATE, Object* self, Fixnum* fields);
@@ -43,7 +60,9 @@ namespace rubinius {
 
     Object* put(STATE, native_int idx, Object* val) {
       field[idx] = val;
-      write_barrier(state, val);
+      if(mature_object_p()) {
+        Tuple::write_barrier(state, this, val);
+      }
       return val;
     }
 

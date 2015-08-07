@@ -1,7 +1,10 @@
 #ifndef RBX_BUILTIN_THREAD_STATE_HPP
 #define RBX_BUILTIN_THREAD_STATE_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/object.hpp"
+#include "builtin/variable_scope.hpp"
 
 namespace rubinius {
 
@@ -27,7 +30,14 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, ThreadState* obj) {
+      obj->current_exception_ = nil<Exception>();
+      obj->raise_value_ = nil<Object>();
+      obj->throw_dest_ = nil<Object>();
+      obj->raise_reason_ = nil<Fixnum>();
+      obj->destination_scope_ = nil<VariableScope>();
+    }
 
     static ThreadState* create(STATE);
 

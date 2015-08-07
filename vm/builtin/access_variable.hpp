@@ -25,7 +25,14 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, AccessVariable* av) {
+      Executable::initialize(state, av, AccessVariable::access_execute);
+
+      av->name_ = nil<Symbol>();
+      av->write_ = nil<Object>();
+    }
+
     // Rubinius.primitive :accessvariable_allocate
     static AccessVariable* allocate(STATE);
     static Object* access_execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);

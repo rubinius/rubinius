@@ -19,6 +19,12 @@ namespace rubinius {
   public:
     attr_accessor(value, Object);
 
+    static void initialize(STATE, Thunk* obj) {
+      Executable::initialize(state, obj);
+
+      obj->value_ = nil<Object>();
+    }
+
     // Rubinius.primitive :thunk_create
     static Thunk* create(STATE, Object* self, Object* value);
 

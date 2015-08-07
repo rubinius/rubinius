@@ -1,10 +1,13 @@
 #ifndef RBX_CHANNEL_HPP
 #define RBX_CHANNEL_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/list.hpp"
 #include "builtin/object.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
-  class List;
   class IO;
   class IOBuffer;
   class Executable;
@@ -14,7 +17,7 @@ namespace rubinius {
   public:
 
     /** Register class. */
-    static void  init(STATE);
+    static void  bootstrap(STATE);
 
     const static object_type type = ChannelType;
 
@@ -32,6 +35,13 @@ namespace rubinius {
     attr_accessor(value, List);
 
     /* interface */
+    static void initialize(STATE, Channel* obj) {
+      obj->value_ = nil<List>();
+      obj->condition_.init();
+      obj->mutex_.init();
+      obj->waiters_ = 0;
+      obj->semaphore_count_ = 0;
+    }
 
     // Rubinius.primitive :channel_new
     static Channel* create(STATE);
@@ -54,7 +64,6 @@ namespace rubinius {
     };
 
   };
-
 }
 
 #endif

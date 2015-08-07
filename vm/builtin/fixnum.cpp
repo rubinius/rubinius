@@ -7,13 +7,12 @@
 #include "builtin/string.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void Fixnum::init(STATE) {
-    GO(fixnum_class).set(ontology::new_class(state, "Fixnum", G(integer)));
-    G(fixnum_class)->set_object_type(state, FixnumType);
+  void Fixnum::bootstrap(STATE) {
+    GO(fixnum_class).set(state->memory()->new_class<Class, Fixnum>(
+          state, G(integer), "Fixnum"));
 
     G(fixnum_class)->set_const(state, "MIN", Fixnum::from(FIXNUM_MIN));
     G(fixnum_class)->set_const(state, "MAX", Fixnum::from(FIXNUM_MAX));

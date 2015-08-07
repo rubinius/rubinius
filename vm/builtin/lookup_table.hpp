@@ -1,10 +1,11 @@
 #ifndef RBX_BUILTIN_LOOKUPTABLE_HPP
 #define RBX_BUILTIN_LOOKUPTABLE_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/object.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/integer.hpp"
-#include "object_utils.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
 
@@ -25,6 +26,12 @@ namespace rubinius {
     attr_accessor(value, Object);
     attr_accessor(next, LookupTableBucket);
 
+    static void initialize(STATE, LookupTableBucket* obj) {
+      obj->key_ = nil<Object>();
+      obj->value_ = nil<Object>();
+      obj->next_ = nil<LookupTableBucket>();
+    }
+
     static LookupTableBucket* create(STATE, Object* key, Object* value);
 
     Object* append(STATE, LookupTableBucket *nxt);
@@ -42,17 +49,23 @@ namespace rubinius {
 
   private:
     Tuple* values_;   // slot
-    Integer* bins_;    // slot
-    Integer* entries_; // slot
+    Fixnum* bins_;    // slot
+    Fixnum* entries_; // slot
 
   public:
     /* accessors */
 
     attr_accessor(values, Tuple);
-    attr_accessor(bins, Integer);
-    attr_accessor(entries, Integer);
+    attr_accessor(bins, Fixnum);
+    attr_accessor(entries, Fixnum);
 
     /* interface */
+    static void bootstrap(STATE);
+    static void initialize(STATE, LookupTable* obj) {
+      obj->values_ = nil<Tuple>();
+      obj->bins_ = Fixnum::from(0);
+      obj->entries_ = Fixnum::from(0);
+    }
 
     static LookupTable* create(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE);
     void setup(STATE, size_t sz);

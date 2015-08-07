@@ -91,10 +91,9 @@ namespace rubinius {
     , waiting_object_(this, cNil)
     , custom_wakeup_(0)
     , custom_wakeup_data_(0)
-    , om(shared.om)
     , thread_state_(this)
   {
-    if(shared.om) {
+    if(memory()) {
       local_slab_.refill(0, 0);
     }
 
@@ -120,7 +119,7 @@ namespace rubinius {
   void VM::checkpoint(STATE) {
     if(thread_nexus_->stop_p()) {
       if(thread_nexus_->lock_or_yield(this)) {
-        om->collect_maybe(state);
+        memory()->collect_maybe(state);
         thread_nexus_->unlock();
       }
     }
@@ -179,94 +178,6 @@ namespace rubinius {
     ManagedThread::set_current_thread(this);
   }
 
-  Object* VM::new_object_typed_dirty(Class* cls, size_t size, object_type type) {
-    State state(this);
-
-    if(unlikely(size > om->large_object_threshold)) {
-      return om->new_object_typed_enduring_dirty(&state, cls, size, type);
-    }
-
-    Object* obj = local_slab().allocate(size).as<Object>();
-
-    if(unlikely(!obj)) {
-      if(shared.om->refill_slab(&state, local_slab())) {
-        obj = local_slab().allocate(size).as<Object>();
-      }
-
-      // If refill_slab fails, obj will still be NULL.
-
-      if(!obj) {
-        return om->new_object_typed_dirty(&state, cls, size, type);
-      }
-    }
-
-    obj->init_header(cls, YoungObjectZone, type);
-#ifdef RBX_GC_STRESS
-    state.shared().gc_soon();
-#endif
-    return obj;
-  }
-
-  Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
-    Object* obj = new_object_typed_dirty(cls, size, type);
-    if(obj) obj->clear_fields(size);
-    return obj;
-  }
-
-  String* VM::new_young_string_dirty(STATE) {
-    String* str = local_slab().allocate(sizeof(String)).as<String>();
-
-    if(unlikely(!str)) {
-
-      if(shared.om->refill_slab(state, local_slab())) {
-        str = local_slab().allocate(sizeof(String)).as<String>();
-      }
-
-      if(!str) return 0;
-    }
-
-    str->init_header(G(string), YoungObjectZone, String::type);
-#ifdef RBX_GC_STRESS
-    state->shared().gc_soon();
-#endif
-    return str;
-  }
-
-  Tuple* VM::new_young_tuple_dirty(size_t fields) {
-    State state(this);
-    size_t bytes = Tuple::fields_offset + (sizeof(Object*) * fields);
-
-    if(unlikely(bytes > om->large_object_threshold)) {
-      return 0;
-    }
-
-    Tuple* tup = local_slab().allocate(bytes).as<Tuple>();
-
-    if(unlikely(!tup)) {
-
-      if(shared.om->refill_slab(&state, local_slab())) {
-        tup = local_slab().allocate(bytes).as<Tuple>();
-      }
-
-      if(!tup) return 0;
-    }
-
-    tup->init_header(G(tuple), YoungObjectZone, Tuple::type);
-    tup->full_size_ = bytes;
-#ifdef RBX_GC_STRESS
-    state.shared().gc_soon();
-#endif
-    return tup;
-  }
-
-  Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
-    State state(this);
-#ifdef RBX_GC_STRESS
-    state.shared().gc_soon();
-#endif
-    return om->new_object_typed_mature(&state, cls, bytes, type);
-  }
-
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
     if((obj->reference_p() && obj->type_id() != type)
         || (type == FixnumType && !obj->fixnum_p())) {
@@ -295,12 +206,12 @@ namespace rubinius {
   }
 
   TypeInfo* VM::find_type(int type) {
-    return om->type_info[type];
+    return memory()->type_info[type];
   }
 
   void VM::run_gc_soon() {
-    om->collect_young_now = true;
-    om->collect_mature_now = true;
+    memory()->collect_young_now = true;
+    memory()->collect_mature_now = true;
     shared.gc_soon();
     thread_nexus_->set_stop();
   }
@@ -380,7 +291,7 @@ namespace rubinius {
 #endif
       interrupt_lock_.unlock();
       // Wakeup any locks hanging around with contention
-      om->release_contention(state, call_frame);
+      memory()->release_contention(state, call_frame);
       return true;
     } else if(!wait->nil_p()) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
@@ -394,12 +305,12 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
-        om->release_contention(state, call_frame);
+        memory()->release_contention(state, call_frame);
         chan->send(state, cNil, call_frame);
         return true;
       } else if(custom_wakeup_) {
         interrupt_lock_.unlock();
-        om->release_contention(state, call_frame);
+        memory()->release_contention(state, call_frame);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }

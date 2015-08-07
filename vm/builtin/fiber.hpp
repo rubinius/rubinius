@@ -1,8 +1,13 @@
 #ifndef RBX_BUILTIN_FIBER
 #define RBX_BUILTIN_FIBER
 
-#include "builtin/object.hpp"
 #include "fiber_data.hpp"
+#include "object_utils.hpp"
+
+#include "builtin/array.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/lookup_table.hpp"
+#include "builtin/object.hpp"
 
 namespace rubinius {
   class LookupTable;
@@ -12,7 +17,7 @@ namespace rubinius {
     const static object_type type = FiberType;
 
     enum Status {
-      eSleeping, eRunning, eDead
+      eNotStarted, eSleeping, eRunning, eDead
     };
 
   private:
@@ -85,7 +90,18 @@ namespace rubinius {
     }
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Fiber* obj) {
+      obj->starter_ = nil<Object>();
+      obj->value_ = nil<Array>();
+      obj->prev_ = nil<Fiber>();
+      obj->exception_ = nil<Exception>();
+      obj->locals_ = nil<LookupTable>();
+      obj->dead_ = nil<Object>();
+      obj->status_ = eNotStarted;
+      obj->root_ = false;
+      obj->data_ = NULL;
+    }
 
     // Rubinius.primitive :fiber_new
     static Fiber* create(STATE, Object* self, Object* callable);

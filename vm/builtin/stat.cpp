@@ -1,14 +1,19 @@
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/object.hpp"
 #include "builtin/stat.hpp"
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void Stat::init(STATE) {
-    GO(stat_class).set(ontology::new_class(state, "Stat", G(object), G(rubinius)));
-    G(stat_class)->set_object_type(state, StatType);
+  void Stat::bootstrap(STATE) {
+    GO(stat_class).set(state->memory()->new_class<Class, Stat>(
+          state, G(rubinius), "Stat"));
+  }
+
+  Stat* Stat::allocate(STATE, Object* self) {
+    return state->memory()->new_object<Stat>(state, as<Class>(self));
   }
 
   Fixnum* Stat::stat(STATE, String* p) {

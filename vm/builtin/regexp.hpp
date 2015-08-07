@@ -1,7 +1,12 @@
 #ifndef RBX_REGEXP_HPP
 #define RBX_REGEXP_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
+#include "builtin/string.hpp"
+#include "builtin/tuple.hpp"
 
 // HACK gross.
 // Forward declare ONLY if we haven't already included oniguruma.h
@@ -48,6 +53,12 @@ namespace rubinius {
     String* nth_capture(STATE, native_int which);
 
     /* interface */
+    static void initialize(STATE, MatchData* obj) {
+      obj->source_ = nil<String>();
+      obj->regexp_ = nil<Regexp>();
+      obj->full_ = nil<Tuple>();
+      obj->region_ = nil<Tuple>();
+    }
 
     class Info : public TypeInfo {
     public:
@@ -75,7 +86,20 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Regexp* obj) {
+      obj->source_ = nil<String>();
+      obj->names_ = nil<LookupTable>();
+
+      for(int i = 0; i < cCachedOnigDatas; ++i) {
+        obj->onig_data[i] = NULL;
+      }
+
+      obj->lock_.init();
+      obj->fixed_encoding_ = false;
+      obj->no_encoding_ = false;
+    }
+
     static Regexp* create(STATE);
     static char*  version(STATE);
 

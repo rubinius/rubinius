@@ -1,7 +1,15 @@
 #ifndef RBX_BUILTIN_COMPILEDCODE_HPP
 #define RBX_BUILTIN_COMPILEDCODE_HPP
 
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
+#include "builtin/constant_scope.hpp"
 #include "builtin/executable.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/lookup_table.hpp"
+#include "builtin/symbol.hpp"
 
 namespace rubinius {
 
@@ -86,10 +94,39 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, CompiledCode* obj) {
+      Executable::initialize(state, obj, CompiledCode::default_executor);
+
+      obj-> metadata_ = nil<Object>();
+      obj-> name_ = nil<Symbol>();
+      obj-> iseq_ = nil<InstructionSequence>();
+      obj-> stack_size_ = nil<Fixnum>();
+      obj-> local_count_ = Fixnum::from(0);
+      obj-> required_args_ = nil<Fixnum>();
+      obj-> post_args_ = nil<Fixnum>();
+      obj-> total_args_ = nil<Fixnum>();
+      obj-> splat_ = nil<Fixnum>();
+      obj-> lines_ = nil<Tuple>();
+      obj-> local_names_ = nil<Tuple>();
+      obj-> file_ = nil<Symbol>();
+      obj-> scope_ = nil<ConstantScope>();
+      obj-> keywords_ = nil<Tuple>();
+      obj-> arity_ = nil<Fixnum>();
+      obj-> breakpoints_ = nil<LookupTable>();
+      obj-> machine_code_ = NULL;
+
+#ifdef ENABLE_LLVM
+      obj->jit_data_ = NULL;
+#endif
+
+      obj->literals_ = nil<Tuple>();
+    }
+
+    static CompiledCode* create(STATE);
 
     // Rubinius.primitive :compiledcode_allocate
-    static CompiledCode* create(STATE);
+    static CompiledCode* allocate(STATE, Object* self);
 
     static Object* primitive_failed(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 

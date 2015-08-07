@@ -11,6 +11,7 @@
 #include "builtin/compiled_code.hpp"
 #include "builtin/module.hpp"
 
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {
@@ -75,18 +76,17 @@ namespace jit {
       jit::RuntimeData* rd = *i;
 
       if(rd->method()) {
-        obj->write_barrier(om, rd->method());
+        om->write_barrier(obj, rd->method());
       }
 
       if(rd->name()) {
-        obj->write_barrier(om, rd->name());
+        om->write_barrier(obj, rd->name());
       }
 
       if(rd->module()) {
-        obj->write_barrier(om, rd->module());
+        om->write_barrier(obj, rd->module());
       }
     }
-
   }
 }}
 #endif

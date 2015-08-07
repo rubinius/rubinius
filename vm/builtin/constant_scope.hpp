@@ -1,6 +1,10 @@
 #ifndef RBX_BUILTIN_STATICSCOPE_HPP
 #define RBX_BUILTIN_STATICSCOPE_HPP
 
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
+#include "builtin/module.hpp"
 #include "builtin/object.hpp"
 
 namespace rubinius {
@@ -30,8 +34,14 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
+    static void initialize(STATE, ConstantScope* obj) {
+      obj->module_ = nil<Module>();
+      obj->current_module_ = nil<Module>();
+      obj->parent_ = nil<ConstantScope>();
+    }
+
     static ConstantScope* create(STATE);
 
     // Rubinius.primitive+ :constant_scope_of_sender
@@ -41,7 +51,13 @@ namespace rubinius {
     Object* const_set(STATE, Symbol* name, Object* value);
 
     // The module to use when adding and removing methods
-    Module* for_method_definition();
+    Module* for_method_definition() {
+      if(current_module_->nil_p()) {
+        return module_;
+      }
+
+      return current_module_;
+    }
 
     // Rubinius.primitive :constant_scope_cvar_defined
     Object* cvar_defined(STATE, Symbol* name);
@@ -62,6 +78,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+      virtual void show(STATE, Object* self, int level);
     };
 
   };

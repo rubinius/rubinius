@@ -1,14 +1,19 @@
 #ifndef RBX_BUILTIN_CLASS_HPP
 #define RBX_BUILTIN_CLASS_HPP
 
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/object.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/module.hpp"
 #include "builtin/weakref.hpp"
+
 #include "type_info.hpp"
 
 namespace rubinius {
   class LookupTable;
+  class Symbol;
 
   struct ClassFlags {
     uint32_t class_id;
@@ -80,8 +85,22 @@ namespace rubinius {
     }
 
     /* interface */
+    static void bootstrap(STATE);
+    static Class* bootstrap_class(STATE, Class* super, object_type type);
+    static void bootstrap_initialize(STATE, Class* klass, Class* super, object_type type);
 
-    void init(STATE);
+    static void initialize_data(STATE, Class* klass);
+    static void initialize_type(STATE, Class* klass, Class* super);
+
+    static void initialize(STATE, Class* klass);
+    static void initialize(STATE, Class* klass, Class* super);
+    static void initialize(STATE, Class* klass, Class* super, const char* name);
+    static void initialize(STATE, Class* klass, Class* super,
+        Module* under, const char* name);
+    static void initialize(STATE, Class* klass, Class* super,
+        Module* under, Symbol* name);
+    static void initialize(STATE, Class* klass, Class* super,
+        Module* under, Symbol* name, object_type type);
 
     /** Returns actual superclass, skipping over IncludedModules */
     Class* true_superclass(STATE);
@@ -91,6 +110,7 @@ namespace rubinius {
     void set_object_type(STATE, size_t type);
 
     static Class* create(STATE, Class* super);
+    static Class* create(STATE, Class* super, Module* under, Symbol* name);
 
     // Rubinius.primitive :class_s_allocate
     static Class* s_allocate(STATE);
@@ -125,9 +145,10 @@ namespace rubinius {
     attr_accessor(object_reference, WeakRef);
 
     /* interface */
+    static void initialize(STATE, SingletonClass* obj);
 
     static SingletonClass* create(STATE, Object* obj);
-    static SingletonClass* attach(STATE, Object* obj, Class* sup = NULL);
+    static SingletonClass* attach(STATE, Object* obj, Class* sup);
 
     Object* singleton() {
       return object_reference_->object();

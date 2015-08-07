@@ -1,7 +1,12 @@
 #ifndef RBX_BUILTIN_DIR_HPP
 #define RBX_BUILTIN_DIR_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/encoding.hpp"
 #include "builtin/object.hpp"
+#include "builtin/string.hpp"
+
 #include <dirent.h>
 
 namespace rubinius {
@@ -13,8 +18,8 @@ namespace rubinius {
     const static object_type type = DirType;
 
   private:
-    DIR *os_;
-    String *path_; // slot
+    DIR* os_;
+    String* path_; // slot
     Encoding* encoding_; // slot
 
   public:
@@ -24,7 +29,12 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Dir* obj) {
+      obj->os_ = NULL;
+      obj->path_ = nil<String>();
+      obj->encoding_ = nil<Encoding>();
+    }
 
     static Dir* create(STATE);
 

@@ -6,6 +6,7 @@
 #include "primitives.hpp"
 #include "type_info.hpp"
 #include "unwind_info.hpp"
+#include "object_memory.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
@@ -94,7 +95,7 @@ namespace rubinius {
   private:
     uint32_t flags; // Used to store bit flags
   public: // Methods
-    static void init(STATE);
+    static void bootstrap(STATE);
 
     MachineCode(STATE, CompiledCode* meth);
     virtual ~MachineCode();

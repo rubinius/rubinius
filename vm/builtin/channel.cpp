@@ -1,3 +1,8 @@
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "object_memory.hpp"
+#include "thread_phase.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/fixnum.hpp"
@@ -6,23 +11,18 @@
 #include "builtin/list.hpp"
 #include "builtin/object.hpp"
 #include "builtin/thread.hpp"
-#include "object_utils.hpp"
-#include "on_stack.hpp"
-#include "ontology.hpp"
-#include "thread_phase.hpp"
 
 #include <sys/time.h>
 
 namespace rubinius {
 
-  void Channel::init(STATE) {
-    GO(channel).set(ontology::new_class(state, "Channel",
-                      G(object), G(rubinius)));
-    G(channel)->set_object_type(state, Channel::type);
+  void Channel::bootstrap(STATE) {
+    GO(channel).set(state->memory()->new_class<Class, Channel>(
+          state, G(rubinius), "Channel"));
   }
 
   Channel* Channel::create(STATE) {
-    Channel* chan = state->vm()->new_object_mature<Channel>(G(channel));
+    Channel* chan = state->memory()->new_object<Channel>(state, G(channel));
     chan->waiters_ = 0;
     chan->semaphore_count_ = 0;
 

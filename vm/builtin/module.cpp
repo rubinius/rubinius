@@ -1,3 +1,9 @@
+#include "configuration.hpp"
+#include "global_cache.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
@@ -12,15 +18,29 @@
 #include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/weakref.hpp"
-#include "configuration.hpp"
-#include "global_cache.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "on_stack.hpp"
 
 #include <string>
 
 namespace rubinius {
+  void Module::bootstrap(STATE) {
+    GO(module).set(Class::bootstrap_class(state, G(object), ModuleType));
+
+    // Fixup Class's superclass to be Module
+    G(klass)->superclass(state, G(module));
+  }
+
+  void Module::bootstrap(STATE, Module* mod, Module* under, const char* name) {
+    mod->constant_table(state, ConstantTable::create(state));
+    mod->method_table(state, MethodTable::create(state));
+
+    if(!mod->superclass()->nil_p()) {
+      mod->superclass()->track_subclass(state, mod);
+    }
+
+    Symbol* sym = state->symbol(name);
+    mod->set_name(state, sym, under);
+    under->set_const(state, sym, mod);
+  }
 
   void Module::bootstrap_methods(STATE) {
     System::attach_primitive(state,
@@ -30,40 +50,47 @@ namespace rubinius {
   }
 
   Module* Module::create(STATE) {
-    Module* mod = state->memory()->new_object_enduring<Module>(state, G(module));
-
-    mod->module_name(state, nil<Symbol>());
-    mod->superclass(state, nil<Module>());
-    mod->hierarchy_subclasses(state, nil<Array>());
-
-    mod->setup(state);
-
-    return mod;
+    return Module::allocate(state, G(module));
   }
 
   Module* Module::allocate(STATE, Object* self) {
-    Module* module = Module::create(state);
-
-    module->klass(state, as<Class>(self));
-
-    return module;
+    return state->memory()->new_module<Module>(state, as<Class>(self));
   }
 
-  void Module::setup(STATE) {
-    constant_table(state, ConstantTable::create(state));
-    method_table(state, MethodTable::create(state));
-    origin(state, this);
-    if(!superclass()->nil_p()) {
-      superclass()->track_subclass(state, this);
-    }
+  void Module::bootstrap_initialize(STATE, Module* mod, Class* super) {
+    mod->method_table_ = nil<MethodTable>();
+    mod->module_name_ = nil<Symbol>();
+    mod->constant_table_ = nil<ConstantTable>();
+    mod->superclass_ = super;
+    mod->origin_ = mod;
+    mod->seen_ivars_ = nil<Array>();
+    mod->mirror_ = nil<Class>();
+    mod->hierarchy_subclasses_ = nil<Array>();
   }
 
-  void Module::setup(STATE, std::string name, Module* under) {
-    setup(state);
+  void Module::initialize(STATE, Module* mod) {
+    mod->method_table(state, MethodTable::create(state));
+    mod->module_name_ = nil<Symbol>();
+    mod->constant_table(state, ConstantTable::create(state));
+    mod->superclass_ = nil<Module>();
+    mod->origin_ = mod;
+    mod->seen_ivars_ = nil<Array>();
+    mod->mirror_ = nil<Class>();
+    mod->hierarchy_subclasses_ = nil<Array>();
+  }
 
-    if(!under) under = G(object);
-    under->set_const(state, name, this);
-    set_name(state, name, under);
+  void Module::initialize(STATE, Module* mod, const char* name) {
+    Module::initialize(state, mod, G(object), name);
+  }
+
+  void Module::initialize(STATE, Module* mod, Module* under, const char* name) {
+    Module::initialize(state, mod, under, state->symbol(name));
+  }
+
+  void Module::initialize(STATE, Module* mod, Module* under, Symbol* name) {
+    Module::initialize(state, mod);
+    under->set_const(state, name, mod);
+    mod->set_name(state, name, under);
   }
 
   void Module::set_name(STATE, Symbol* name, Module* under) {
@@ -93,6 +120,10 @@ namespace rubinius {
   }
 
   void Module::set_name(STATE, std::string name, Module* under) {
+    set_name(state, state->symbol(name), under);
+  }
+
+  void Module::set_name(STATE, const char* name, Module* under) {
     set_name(state, state->symbol(name), under);
   }
 
@@ -505,23 +536,15 @@ namespace rubinius {
   }
 
   IncludedModule* IncludedModule::create(STATE) {
-    IncludedModule* imod;
-    imod = state->memory()->new_object_enduring<IncludedModule>(state, G(included_module));
-
-    imod->module_name(state, state->symbol("<included module>"));
-    imod->superclass(state, nil<Module>());
-    imod->origin(state, imod);
-
-    return imod;
+    return state->memory()->new_module<IncludedModule>(
+        state, G(rubinius), "<included module>");
   }
 
   IncludedModule* IncludedModule::allocate(STATE, Object* self) {
     IncludedModule* imod = IncludedModule::create(state);
 
     imod->klass(state, as<Class>(self));
-    imod->origin(state, imod);
 
     return imod;
   }
-
 }

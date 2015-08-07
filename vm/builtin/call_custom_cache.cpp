@@ -1,19 +1,20 @@
+#include "object_memory.hpp"
+
 #include "builtin/call_custom_cache.hpp"
 #include "builtin/call_unit.hpp"
 #include "builtin/class.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void CallCustomCache::init(STATE) {
-    GO(call_custom_cache).set(
-        ontology::new_class(state, "CallCustomCache",
-          G(call_site), G(rubinius)));
-    G(call_custom_cache)->set_object_type(state, CallCustomCacheType);
+  void CallCustomCache::bootstrap(STATE) {
+    GO(call_custom_cache).set(state->memory()->new_class<Class, CallCustomCache>(
+          state, G(call_site), G(rubinius), "CallCustomCache"));
   }
 
   CallCustomCache* CallCustomCache::create(STATE, CallSite* call_site, CallUnit* call_unit) {
-    CallCustomCache* cache = state->new_object_dirty<CallCustomCache>(G(call_custom_cache));
+    CallCustomCache* cache =
+      state->memory()->new_object<CallCustomCache>(state, G(call_custom_cache));
+
     cache->name_      = call_site->name();
     cache->executable(state, call_site->executable());
     cache->ip_        = call_site->ip();
@@ -22,6 +23,7 @@ namespace rubinius {
     cache->updater_   = NULL;
     cache->call_unit(state, call_unit);
     cache->hits_      = 0;
+
     return cache;
   }
 

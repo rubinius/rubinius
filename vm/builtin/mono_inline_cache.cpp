@@ -1,18 +1,17 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/poly_inline_cache.hpp"
 #include "builtin/executable.hpp"
-#include "call_frame.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void MonoInlineCache::init(STATE) {
-    GO(mono_inline_cache).set(
-        ontology::new_class(state, "MonoInlineCache",
-          G(call_site), G(rubinius)));
-    G(mono_inline_cache)->set_object_type(state, MonoInlineCacheType);
+  void MonoInlineCache::bootstrap(STATE) {
+    GO(mono_inline_cache).set(state->memory()->new_class<Class, MonoInlineCache>(
+          state, G(call_site), G(rubinius), "MonoInlineCache"));
   }
 
   Integer* MonoInlineCache::hits_prim(STATE) {
@@ -38,7 +37,9 @@ namespace rubinius {
   }
 
   MonoInlineCache* MonoInlineCache::create(STATE, CallSite* call_site, Class* klass, Dispatch& dis) {
-    MonoInlineCache* cache = state->new_object_dirty<MonoInlineCache>(G(mono_inline_cache));
+    MonoInlineCache* cache =
+      state->memory()->new_object<MonoInlineCache>(state, G(mono_inline_cache));
+
     cache->name_     = call_site->name();
     cache->executable(state, call_site->executable());
     cache->ip_       = call_site->ip();

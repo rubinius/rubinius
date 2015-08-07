@@ -1,16 +1,18 @@
 #ifndef RBX_BUILTIN_THREAD_HPP
 #define RBX_BUILTIN_THREAD_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/channel.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
+#include "builtin/randomizer.hpp"
 
 #define THREAD_STACK_SIZE 4194304
 
 namespace rubinius {
-
-  class Channel;
-  class Exception;
-  class LookupTable;
-  class Randomizer;
   class Array;
 
   /**
@@ -21,32 +23,21 @@ namespace rubinius {
    *  Thread execution.
    */
   class Thread : public Object {
-    /** Thread is created and valid and not yet done? */
-    Object* alive_;        // slot
-
-    /** Thread is currently sleeping and not running? */
-    Object* sleep_;        // slot
-
-    Channel* control_channel_; // slot
-
-    /** LookupTable of objects that contain themselves. */
+    Object* alive_;                   // slot
+    Object* sleep_;                   // slot
+    Channel* control_channel_;        // slot
     LookupTable* recursive_objects_;  // slot
-
-    Thread* debugger_thread_; // slot
-
-    Fixnum* thread_id_; // slot
-
-    Randomizer* randomizer_; // slot
-
-    LookupTable* locals_; // slot
-
-    Object* group_; // slot
-    Object* result_; // slot
-    Exception* exception_; // slot
-    Object* critical_; // slot
-    Object* killed_; // slot
-    Fixnum* priority_; // slot
-    Fixnum* pid_; // slot
+    Thread* debugger_thread_;         // slot
+    Fixnum* thread_id_;               // slot
+    Randomizer* randomizer_;          // slot
+    LookupTable* locals_;             // slot
+    Object* group_;                   // slot
+    Object* result_;                  // slot
+    Exception* exception_;            // slot
+    Object* critical_;                // slot
+    Object* killed_;                  // slot
+    Fixnum* priority_;                // slot
+    Fixnum* pid_;                     // slot
 
     utilities::thread::SpinLock init_lock_;
     utilities::thread::Mutex join_lock_;
@@ -62,25 +53,38 @@ namespace rubinius {
   public:
     const static object_type type = ThreadType;
 
-    static void   init(State* state);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Thread* obj) {
+      obj->alive_ = nil<Object>();
+      obj->sleep_ = cFalse;
+      obj->control_channel_ = nil<Channel>();
+      obj->recursive_objects_ = LookupTable::create(state);
+      obj->debugger_thread_ = nil<Thread>();
+      obj->thread_id_ = nil<Fixnum>();
+      obj->randomizer_ = nil<Randomizer>();
+      obj->locals_ = LookupTable::create(state);
+      obj->group_ = nil<Object>();
+      obj->result_ = cFalse;
+      obj->exception_ = nil<Exception>();
+      obj->critical_ = cFalse;
+      obj->killed_ = cFalse;
+      obj->priority_ = Fixnum::from(0);
+      obj->pid_ = Fixnum::from(0);
+      obj->init_lock_.init();
+      obj->join_lock_.init();
+      obj->join_cond_.init();
+      obj->vm_ = 0;
+    }
 
   public:
     attr_accessor(alive, Object);
-
     attr_accessor(sleep, Object);
-
     attr_accessor(control_channel, Channel);
-
     attr_accessor(recursive_objects, LookupTable);
-
     attr_accessor(debugger_thread, Thread);
-
     attr_accessor(thread_id, Fixnum);
-
     attr_accessor(randomizer, Randomizer);
-
     attr_accessor(locals, LookupTable);
-
     attr_accessor(group, Object);
     attr_accessor(result, Object);
     attr_accessor(exception, Exception);

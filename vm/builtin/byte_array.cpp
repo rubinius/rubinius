@@ -1,21 +1,21 @@
+#include "alloc.hpp"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
   uintptr_t ByteArray::bytes_offset;
 
-  void ByteArray::init(STATE) {
-    GO(bytearray).set(ontology::new_class_under(state,
-                        "ByteArray", G(rubinius)));
-    G(bytearray)->set_object_type(state, ByteArrayType);
+  void ByteArray::bootstrap(STATE) {
+    GO(bytearray).set(state->memory()->new_class<Class, ByteArray>(
+          state, G(rubinius), "ByteArray"));
 
     ByteArray* ba = ALLOCA(ByteArray);
     bytes_offset = (uintptr_t)&(ba->bytes) - (uintptr_t)ba;
@@ -23,75 +23,34 @@ namespace rubinius {
 
   ByteArray* ByteArray::create(STATE, native_int bytes) {
     if(bytes < 0) {
-      rubinius::bug("Invalid byte array size");
+      Exception::argument_error(state, "negative byte array size");
+    } else if(bytes == 0) {
+      bytes = 1;
     }
-    if(bytes == 0) bytes = 1;
 
-    size_t body = bytes;
-    ByteArray* ba = state->vm()->new_object_bytes_dirty<ByteArray>(G(bytearray), body);
+    ByteArray* ba =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), bytes);
+    memset(ba->bytes, 0, ba->full_size_ - bytes_offset);
 
-    if(unlikely(!ba)) {
-      Exception::memory_error(state);
-    } else {
-      ba->full_size_ = body;
-      memset(ba->bytes, 0, body - bytes_offset);
-    }
     return ba;
   }
 
   ByteArray* ByteArray::create_pinned(STATE, native_int bytes) {
     if(bytes < 0) {
-      rubinius::bug("Invalid byte array size");
-    }
-    if(bytes == 0) bytes = 1;
-
-    size_t body = bytes;
-    ByteArray* ba = state->memory()->new_object_bytes_mature_dirty<ByteArray>(state, G(bytearray), body);
-    if(unlikely(!ba)) {
-      Exception::memory_error(state);
-      return NULL;
+      Exception::argument_error(state, "negative byte array size");
+    } else if(bytes == 0) {
+      bytes = 1;
     }
 
-    if(!ba->pin()) {
-      rubinius::bug("unable to allocate pinned ByteArray");
-    } else {
-      ba->full_size_ = body;
-      memset(ba->bytes, 0, body - bytes_offset);
-    }
-    return ba;
-  }
+    ByteArray* ba =
+      state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), bytes);
+    memset(ba->bytes, 0, ba->full_size_ - bytes_offset);
 
-  ByteArray* ByteArray::create_dirty(STATE, native_int bytes) {
-    if(bytes < 0) {
-      rubinius::bug("Invalid byte array size");
-    }
-    if(bytes == 0) bytes = 1;
-
-    size_t body = bytes;
-    ByteArray* ba = state->vm()->new_object_bytes_dirty<ByteArray>(G(bytearray), body);
-
-    if(unlikely(!ba)) {
-      Exception::memory_error(state);
-    } else {
-      ba->full_size_ = body;
-      // Ensure to zero the last bytes that might be more
-      // because we always pad the size to a machine word.
-      // The caller is responsible to fill either the
-      // requested bytes or clear it all if it needs to
-      if(bytes > 0) {
-        size_t last = bytes_to_fields(body);
-        ba->pointer_to_body()[last - 1] = 0;
-      }
-    }
     return ba;
   }
 
   ByteArray* ByteArray::allocate(STATE, Fixnum* bytes) {
-    native_int size = bytes->to_native();
-    if(size < 0) {
-      Exception::argument_error(state, "negative byte array size");
-    }
-    return ByteArray::create(state, size);
+    return ByteArray::create(state, bytes->to_native());
   }
 
   Fixnum* ByteArray::size(STATE) {
@@ -153,7 +112,8 @@ namespace rubinius {
       Exception::object_bounds_exceeded_error(state, "fetch is more than available bytes");
     }
 
-    ByteArray* ba = ByteArray::create_dirty(state, cnt + 1);
+    ByteArray* ba =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), cnt + 1);
     memcpy(ba->bytes, this->bytes + src, cnt);
     ba->bytes[cnt] = 0;
 

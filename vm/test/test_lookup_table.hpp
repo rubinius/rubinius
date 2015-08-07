@@ -1,7 +1,5 @@
 #include "vm/test/test.hpp"
 
-#include "ontology.hpp"
-
 class TestLookupTable : public CxxTest::TestSuite, public VMTest {
 public:
 

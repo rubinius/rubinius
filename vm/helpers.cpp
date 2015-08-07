@@ -1,5 +1,15 @@
-#include "builtin/object.hpp"
+#include "arguments.hpp"
+#include "object_memory.hpp"
 #include "call_frame.hpp"
+#include "global_cache.hpp"
+#include "helpers.hpp"
+#include "lookup_data.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "state.hpp"
+#include "vm.hpp"
+
+#include "builtin/object.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
@@ -7,8 +17,6 @@
 #include "builtin/class.hpp"
 #include "builtin/constant_scope.hpp"
 #include "builtin/lookup_table.hpp"
-#include "global_cache.hpp"
-#include "object_memory.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/system.hpp"
 #include "builtin/thread.hpp"
@@ -16,17 +24,6 @@
 #include "builtin/method_table.hpp"
 #include "builtin/location.hpp"
 #include "builtin/exception.hpp"
-
-#include "vm.hpp"
-#include "state.hpp"
-#include "object_utils.hpp"
-#include "arguments.hpp"
-#include "call_frame.hpp"
-#include "lookup_data.hpp"
-
-#include "on_stack.hpp"
-
-#include "helpers.hpp"
 
 namespace rubinius {
   namespace Helpers {

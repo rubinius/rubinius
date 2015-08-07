@@ -1,28 +1,26 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/poly_inline_cache.hpp"
 #include "builtin/symbol.hpp"
-#include "call_frame.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void PolyInlineCache::init(STATE) {
-    GO(poly_inline_cache).set(
-        ontology::new_class(state, "PolyInlineCache",
-          G(call_site), G(rubinius)));
-    G(poly_inline_cache)->set_object_type(state, PolyInlineCacheType);
+  void PolyInlineCache::bootstrap(STATE) {
+    GO(poly_inline_cache).set(state->memory()->new_class<Class, PolyInlineCache>(
+          state, G(call_site), G(rubinius), "PolyInlineCache"));
 
-    GO(inline_cache_entry).set(
-        ontology::new_class(state, "InlineCacheEntry",
-          G(call_site), G(rubinius)));
-    G(inline_cache_entry)->set_object_type(state, InlineCacheEntryType);
+    GO(inline_cache_entry).set(state->memory()->new_class<Class, InlineCacheEntry>(
+          state, G(call_site), G(rubinius), "InlineCacheEntry"));
   }
 
   InlineCacheEntry* InlineCacheEntry::create(STATE, ClassData data, Class* klass, Dispatch& dis, int hits) {
-    InlineCacheEntry* cache = state->new_object_dirty<InlineCacheEntry>(G(inline_cache_entry));
+    InlineCacheEntry* cache =
+      state->memory()->new_object_pinned<InlineCacheEntry>(state, G(inline_cache_entry));
 
     cache->receiver_ = data;
     cache->receiver_class(state, klass);
@@ -58,7 +56,7 @@ namespace rubinius {
 
   PolyInlineCache* PolyInlineCache::create(STATE, MonoInlineCache* mono) {
     PolyInlineCache* cache =
-      state->vm()->new_object_mature<PolyInlineCache>(G(poly_inline_cache));
+      state->memory()->new_object_pinned<PolyInlineCache>(state, G(poly_inline_cache));
     cache->name_     = mono->name();
     cache->executable(state, mono->executable());
     cache->ip_       = mono->ip();

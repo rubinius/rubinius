@@ -29,7 +29,6 @@ public:
 
     ObjectMemory* om = new ObjectMemory(vm, vm->shared);
     vm->shared.om = om;
-    vm->set_memory(om);
 
     vm->shared.set_initialized();
 

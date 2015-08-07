@@ -1,10 +1,13 @@
 #ifndef RBX_UTIL_CONFIGURATION_HPP
 #define RBX_UTIL_CONFIGURATION_HPP
 
-#include <list>
-#include <string.h>
 #include <inttypes.h>
 #include <stdlib.h>
+
+#include <list>
+#include <string.h>
+#include <vector>
+#include <iostream>
 
 namespace config {
   class ConfigItem;

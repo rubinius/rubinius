@@ -1,8 +1,9 @@
 #include "defines.hpp"
+#include "object_memory.hpp"
 #include "park.hpp"
-#include "vm.hpp"
 #include "state.hpp"
 #include "thread_phase.hpp"
+#include "vm.hpp"
 
 #include "builtin/thread.hpp"
 

@@ -23,7 +23,15 @@ namespace rubinius {
   public:
     attr_accessor(path, String);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+
+    static void initialize(STATE, Stat* obj) {
+      obj->path_ = nil<String>();
+      obj->st_ = { 0, };
+    }
+
+    // Rubinius.primitive :stat_allocate
+    static Stat* allocate(STATE, Object* self);
 
     // Rubinius.primitive+ :stat_stat
     Fixnum* stat(STATE, String* path);

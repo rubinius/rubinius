@@ -1,6 +1,9 @@
 #ifndef RBX_VM_FIBER_STACK_HPP
 #define RBX_VM_FIBER_STACK_HPP
 
+#include "defines.hpp"
+#include "shared_state.hpp"
+
 #include "missing/unordered_set.hpp"
 #include "util/thread.hpp"
 

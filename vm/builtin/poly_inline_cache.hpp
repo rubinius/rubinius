@@ -90,7 +90,7 @@ namespace rubinius {
     int seen_classes_overflow_;
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
     static PolyInlineCache* create(STATE, MonoInlineCache* mono);
 
     static CacheExecuteFunc check_cache;
@@ -127,7 +127,7 @@ namespace rubinius {
     }
 
     void set_cache(STATE, InlineCacheEntry* ice) {
-      write_barrier(state, ice);
+      state->memory()->write_barrier(this, ice);
       if(ice->method_missing() != eNone) {
         executor_ = check_cache_mm;
       }

@@ -2,14 +2,21 @@
 #define RBX_VARIABLE_SCOPE_HPP
 
 #include "call_frame.hpp"
+#include "object_utils.hpp"
+
+#include "builtin/compiled_code.hpp"
+#include "builtin/fiber.hpp"
+#include "builtin/lookup_table.hpp"
+#include "builtin/module.hpp"
 #include "builtin/object.hpp"
+#include "builtin/variable_scope.hpp"
+
 #include "util/thread.hpp"
 
 namespace rubinius {
 
   class CompiledCode;
   class Module;
-  class Fiber;
   class Tuple;
 
   /**
@@ -57,8 +64,25 @@ namespace rubinius {
     attr_accessor(dynamic_locals, LookupTable);
     attr_accessor(fiber, Fiber);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
+    static void initialize(STATE, VariableScope* obj) {
+      obj->block_ = nil<Object>();
+      obj->method_ = nil<CompiledCode>();
+      obj->module_ = nil<Module>();
+      obj->parent_ = nil<VariableScope>();
+      obj->heap_locals_ = nil<Tuple>();
+      obj->dynamic_locals_ = nil<LookupTable>();
+      obj->last_match_ = nil<Object>();
+      obj->fiber_ = nil<Fiber>();
+      obj->self_ = nil<Object>();
+
+      obj->locals_ = 0;
+      obj->number_of_locals_ = 0;
+      obj->isolated_ = 1;
+      obj->flags_ = 0;
+      obj->lock_.init();;
+    }
 
     bool isolated() const {
       return isolated_ == 1;

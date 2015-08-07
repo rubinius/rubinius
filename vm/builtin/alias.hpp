@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_ALIAS_HPP
 #define RBX_BUILTIN_ALIAS_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/executable.hpp"
 
 namespace rubinius {
@@ -18,7 +20,18 @@ namespace rubinius {
     attr_accessor(original_module, Module);
     attr_accessor(original_exec, Executable);
 
-    static void init(STATE);
+    static Object* executor(STATE, CallFrame* call_frame,
+        Executable* exe, Module* mod, Arguments& args);
+
+    static void bootstrap(STATE);
+    static void initialize(STATE, Alias* alias) {
+      Executable::initialize(state, alias, Alias::executor);
+
+      alias->original_name_ = nil<Symbol>();
+      alias->original_module_ = nil<Module>();
+      alias->original_exec_ = nil<Executable>();
+    }
+
     static Alias* create(STATE, Symbol* name, Module* mod, Executable* exec);
 
     class Info : public Executable::Info {

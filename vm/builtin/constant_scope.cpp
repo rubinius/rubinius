@@ -1,14 +1,14 @@
+#include "object_memory.hpp"
+#include "call_frame.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/constant_scope.hpp"
 #include "builtin/system.hpp"
-#include "call_frame.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void ConstantScope::init(STATE) {
-    GO(constantscope).set(ontology::new_class(state,
-          "ConstantScope", G(object), G(rubinius)));
-    G(constantscope)->set_object_type(state, ConstantScopeType);
+  void ConstantScope::bootstrap(STATE) {
+    GO(constantscope).set(state->memory()->new_class<Class, ConstantScope>(
+          state, G(rubinius), "ConstantScope"));
   }
 
   void ConstantScope::bootstrap_methods(STATE) {
@@ -19,15 +19,7 @@ namespace rubinius {
   }
 
   ConstantScope* ConstantScope::create(STATE) {
-    return state->new_object<ConstantScope>(G(constantscope));
-  }
-
-  Module* ConstantScope::for_method_definition() {
-    if(current_module_->nil_p()) {
-      return module_;
-    }
-
-    return current_module_;
+    return state->memory()->new_object<ConstantScope>(state, G(constantscope));
   }
 
   ConstantScope* ConstantScope::of_sender(STATE, CallFrame* calling_environment) {
@@ -64,5 +56,15 @@ namespace rubinius {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
     return module_->cvar_get_or_set(state, name, value);
+  }
+
+  void ConstantScope::Info::show(STATE, Object* self, int level) {
+    ConstantScope* scope = as<ConstantScope>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "module"); scope->module()->show(state, level);
+    indent_attribute(level, "current_module"); scope->current_module()->show(state, level);
+    indent_attribute(level, "parent"); scope->parent()->show(state, level);
+    close_body(level);
   }
 }

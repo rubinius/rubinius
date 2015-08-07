@@ -1,9 +1,15 @@
 #ifndef RBX_BUILTIN_CONSTANT_CACHE_HPP
 #define RBX_BUILTIN_CONSTANT_CACHE_HPP
 
-#include "builtin/object.hpp"
 #include "machine_code.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
+
+#include "builtin/constant_scope.hpp"
+#include "builtin/executable.hpp"
+#include "builtin/module.hpp"
+#include "builtin/object.hpp"
+#include "builtin/symbol.hpp"
 
 namespace rubinius {
   class ConstantScope;
@@ -38,7 +44,17 @@ namespace rubinius {
     // Rubinius.primitive+ :constant_cache_serial
     Integer* serial_prim(STATE);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, ConstantCache* obj) {
+      obj->name_ = nil<Symbol>();
+      obj->value_ = nil<Object>();
+      obj->under_ = nil<Module>();
+      obj->scope_ = nil<ConstantScope>();
+      obj->executable_ = nil<Executable>();
+      obj->ip_ = 0;
+      obj->serial_ = 0;
+    }
+
     static ConstantCache* create(STATE, ConstantCache* cache, Object* value, ConstantScope* scope);
     static ConstantCache* create(STATE, ConstantCache* cache, Object* value, Module* under, ConstantScope* scope);
     static ConstantCache* empty(STATE, Symbol* name, Executable* executable, int ip);

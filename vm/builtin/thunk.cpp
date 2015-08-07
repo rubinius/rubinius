@@ -1,19 +1,20 @@
 #include "arguments.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
 #include "builtin/system.hpp"
 #include "builtin/thunk.hpp"
-#include "object_utils.hpp"
 
 namespace rubinius {
   Thunk* Thunk::create(STATE, Object* self, Object* value) {
-    Thunk* pe = state->new_object<Thunk>(as<Class>(self));
+    Thunk* pe = state->memory()->new_object<Thunk>(state, as<Class>(self));
+
     pe->value(state, value);
-    pe->inliners_ = 0;
-    pe->prim_index_ = -1;
-    pe->custom_call_site_ = false;
     pe->execute = thunk_executor;
+
     return pe;
   }
 

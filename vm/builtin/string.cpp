@@ -2,6 +2,10 @@
 #include "transcoder.h"
 #include "regenc.h"
 
+#include "configuration.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
@@ -16,15 +20,14 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
+
 #include "capi/handle.hpp"
-#include "configuration.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
+
 #include "util/murmur_hash3.hpp"
 #include "util/siphash.h"
 #include "util/spinlock.hpp"
 #include "util/random.h"
+
 #include "missing/string.h"
 
 #include <unistd.h>
@@ -53,36 +56,24 @@ namespace rubinius {
     siphash_key = (s1 | (s2 << 32)) ^ (s3 | (s4 << 32));
   }
 
-  void String::init(STATE) {
-    GO(string).set(ontology::new_class(state, "String", G(object)));
-    G(string)->set_object_type(state, StringType);
+  void String::bootstrap(STATE) {
+    GO(string).set(state->memory()->new_class<Class, String>(state, "String"));
   }
 
   String* String::allocate(STATE, Object* self) {
-    String* str = state->new_object<String>(G(string));
-    str->klass(state, as<Class>(self));
-    return str;
+    return state->memory()->new_object<String>(state, as<Class>(self));
   }
 
   /* Creates a String instance with +num_bytes+ == +size+ and
    * having a ByteArray with at least (size + 1) bytes.
    */
   String* String::create(STATE, Fixnum* size) {
-    String *so;
+    String *so = state->memory()->new_object<String>(state, G(string));
 
-    so = state->new_object_dirty<String>(G(string));
-
-    so->num_bytes_      = size;
-    so->num_chars_      = nil<Fixnum>();
-    so->hash_value_     = nil<Fixnum>();
-    so->shared_         = cFalse;
-    so->encoding_       = nil<Encoding>();
-    so->ascii_only_     = cNil;
-    so->valid_encoding_ = cNil;
+    so->num_bytes_ = size;
 
     native_int bytes = size->to_native() + 1;
-    ByteArray* ba = ByteArray::create(state, bytes);
-    so->data(state, ba);
+    so->data(state, ByteArray::create(state, bytes));
 
     return so;
   }
@@ -93,13 +84,9 @@ namespace rubinius {
    * to an external function (like ::read)
    */
   String* String::create_pinned(STATE, Fixnum* size) {
-    String *so;
-
-    so = state->new_object<String>(G(string));
+    String *so = state->memory()->new_object<String>(state, G(string));
 
     so->num_bytes(state, size);
-    so->hash_value(state, nil<Fixnum>());
-    so->shared(state, cFalse);
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create_pinned(state, bytes);
@@ -121,18 +108,12 @@ namespace rubinius {
    * +bytes+ is the number of 'real' characters in the string
    */
   String* String::create(STATE, const char* str, native_int bytes) {
+    String* so = state->memory()->new_object<String>(state, G(string));
 
-    String* so = state->new_object_dirty<String>(G(string));
+    so->num_bytes_ = Fixnum::from(bytes);
 
-    so->num_bytes_      = Fixnum::from(bytes);
-    so->num_chars_      = nil<Fixnum>();
-    so->hash_value_     = nil<Fixnum>();
-    so->shared_         = cFalse;
-    so->encoding_       = nil<Encoding>();
-    so->ascii_only_     = cNil;
-    so->valid_encoding_ = cNil;
-
-    ByteArray* ba = ByteArray::create_dirty(state, bytes + 1);
+    ByteArray* ba =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), bytes + 1);
 
     if(str) {
       memcpy(ba->raw_bytes(), str, bytes);
@@ -146,16 +127,9 @@ namespace rubinius {
   }
 
   String* String::from_bytearray(STATE, ByteArray* ba, native_int size) {
-    String* s = state->new_object_dirty<String>(G(string));
+    String* s = state->memory()->new_object<String>(state, G(string));
 
-    s->num_bytes_      = Fixnum::from(size);
-    s->num_chars_      = nil<Fixnum>();
-    s->hash_value_     = nil<Fixnum>();
-    s->shared_         = cFalse;
-    s->encoding_       = nil<Encoding>();
-    s->ascii_only_     = cNil;
-    s->valid_encoding_ = cNil;
-
+    s->num_bytes_ = Fixnum::from(size);
     s->data(state, ba);
 
     return s;
@@ -164,11 +138,9 @@ namespace rubinius {
   String* String::from_bytearray(STATE, ByteArray* ba, Fixnum* start,
                                  Fixnum* count)
   {
-    String* s = state->new_object<String>(G(string));
+    String* s = state->memory()->new_object<String>(state, G(string));
 
     s->num_bytes(state, count);
-    s->hash_value(state, nil<Fixnum>());
-    s->shared(state, cFalse);
 
     // fetch_bytes NULL terminates
     s->data(state, ba->fetch_bytes(state, start, count));
@@ -678,7 +650,8 @@ namespace rubinius {
      * put the VM in a state with corrupted memory.
      */
     if(current_size >= as<ByteArray>(data_)->size()) {
-      ByteArray* ba = ByteArray::create_dirty(state, current_size + 1);
+      ByteArray* ba =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), current_size + 1);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
       if(CBOOL(shared_)) shared(state, cFalse);
@@ -759,12 +732,11 @@ namespace rubinius {
       cls = try_as_instance<Class>(mod);
     }
 
-    String* so = state->memory()->new_string_certain(state, cls);
-    if(!so) return NULL;
+    String* so = state->memory()->new_object<String>(state, cls);
 
     so->copy_object(state, this);
-    so->shared(state, cTrue);
-    shared(state, cTrue);
+    so->shared_ = cTrue;
+    shared_ = cTrue;
     infect(state, so);
 
     return so;
@@ -863,7 +835,8 @@ namespace rubinius {
       // just to throw it away.
       if(CBOOL(shared_)) shared(state, cFalse);
 
-      ByteArray* ba = ByteArray::create_dirty(state, capacity);
+      ByteArray* ba =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), capacity);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       memset(ba->raw_bytes() + new_size, 0, capacity - new_size);
       data(state, ba);
@@ -890,7 +863,8 @@ namespace rubinius {
       Exception::argument_error(state, "negative byte array size");
     }
 
-    ByteArray* ba = ByteArray::create_dirty(state, sz + 1);
+    ByteArray* ba =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), sz + 1);
     native_int copy_size = sz;
     native_int data_size = as<ByteArray>(data_)->size();
 
@@ -1221,18 +1195,15 @@ namespace rubinius {
 
     native_int cnt = size->to_native();
 
-    String* s = state->new_object_dirty<String>(as<Class>(self));
+    String* s = state->memory()->new_object<String>(state, as<Class>(self));
 
     s->num_bytes(state, size);
-    s->num_chars(state, nil<Fixnum>());
-    s->hash_value(state, nil<Fixnum>());
-    s->shared(state, cFalse);
 
-    ByteArray* ba = ByteArray::create_dirty(state, cnt + 1);
+    ByteArray* ba =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), cnt + 1);
 
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
       memset(ba->raw_bytes(), (int)chr->to_native(), cnt);
-      s->ascii_only(state, cNil);
       s->valid_encoding(state, cTrue);
       s->encoding(state, Encoding::ascii8bit_encoding(state));
     } else if(String* pat = try_as<String>(pattern)) {
@@ -1269,7 +1240,7 @@ namespace rubinius {
   }
 
   String* String::from_codepoint(STATE, Object* self, Integer* code, Encoding* enc) {
-    String* s = state->new_object_dirty<String>(G(string));
+    String* s = state->memory()->new_object<String>(state, G(string));
 
     unsigned int c = code->to_uint();
     int n = ONIGENC_CODE_TO_MBCLEN(enc->get_encoding(), c);
@@ -1277,14 +1248,10 @@ namespace rubinius {
     if(n <= 0) invalid_codepoint_error(state, c);
 
     s->num_bytes(state, Fixnum::from(n));
-    s->num_chars(state, nil<Fixnum>());
-    s->hash_value(state, nil<Fixnum>());
-    s->shared(state, cFalse);
-    s->ascii_only(state, cNil);
-    s->valid_encoding(state, cNil);
     s->encoding(state, enc);
 
-    ByteArray* ba = ByteArray::create_dirty(state, n + 1);
+    ByteArray* ba =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), n + 1);
 
     n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c, (UChar*)ba->raw_bytes());
     if(Encoding::precise_mbclen(ba->raw_bytes(), ba->raw_bytes() + n, enc->get_encoding()) != n) {

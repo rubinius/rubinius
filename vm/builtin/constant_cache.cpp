@@ -1,20 +1,21 @@
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/constant_cache.hpp"
 #include "builtin/class.hpp"
 #include "builtin/constant_scope.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void ConstantCache::init(STATE) {
-    GO(constant_cache).set(
-        ontology::new_class(state, "ConstantCache",
-          G(object), G(rubinius)));
-
+  void ConstantCache::bootstrap(STATE) {
+    GO(constant_cache).set(state->memory()->new_class<Class, ConstantCache>(
+          state, G(object), G(rubinius), "ConstantCache"));
   }
 
-  ConstantCache* ConstantCache::create(STATE, ConstantCache* existing, Object* value, Module* under,
-                                             ConstantScope* scope) {
-    ConstantCache* cache = state->new_object_dirty<ConstantCache>(G(constant_cache));
+  ConstantCache* ConstantCache::create(STATE, ConstantCache* existing,
+      Object* value, Module* under, ConstantScope* scope)
+  {
+    ConstantCache* cache =
+      state->memory()->new_object<ConstantCache>(state, G(constant_cache));
 
     cache->name(state, existing->name());
     cache->executable(state, existing->executable());
@@ -23,6 +24,7 @@ namespace rubinius {
     cache->under(state, under);
     cache->scope(state, scope);
     cache->serial_ = state->shared().global_serial();
+
     return cache;
   }
 
@@ -32,7 +34,8 @@ namespace rubinius {
   }
 
   ConstantCache* ConstantCache::empty(STATE, Symbol* name, Executable* executable, int ip) {
-    ConstantCache* cache = state->new_object_dirty<ConstantCache>(G(constant_cache));
+    ConstantCache* cache =
+      state->memory()->new_object<ConstantCache>(state, G(constant_cache));
 
     cache->name(state, name);
     cache->executable(state, executable);
@@ -41,6 +44,7 @@ namespace rubinius {
     cache->under(state, nil<Module>());
     cache->scope(state, nil<ConstantScope>());
     cache->serial_ = -1;
+
     return cache;
   }
 

@@ -3,20 +3,17 @@
 
 #include "object_utils.hpp"
 
+#include "builtin/array.hpp"
+#include "builtin/block_environment.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/class.hpp"
+#include "builtin/list.hpp"
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"
 
 #include "util/thread.hpp"
 
 namespace rubinius {
-  class Array;
-  class BlockEnvironment;
-  class CompiledCode;
-  class Class;
-  class List;
-
   class JITCompileRequest : public Object {
   public:
     const static object_type type = JITCompileRequestType;
@@ -38,6 +35,15 @@ namespace rubinius {
     attr_accessor(block_env, BlockEnvironment);
 
   public:
+
+    static void initialize(STATE, JITCompileRequest* obj) {
+      obj->method_ = nil<CompiledCode>();
+      obj->receiver_class_ = nil<Class>();
+      obj->block_env_ = nil<BlockEnvironment>();
+      obj->waiter_ = NULL;
+      obj->hits_ = 0;
+      obj->is_block_ = false;
+    }
 
     static JITCompileRequest* create(STATE, CompiledCode* code, Class* receiver_class,
         int hits, BlockEnvironment* block_env = NULL, bool is_block = false);
@@ -111,7 +117,16 @@ namespace rubinius {
     attr_accessor(properties, Array);
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, JIT* obj) {
+      obj->compile_class_ = nil<Class>();
+      obj->compile_list_ = nil<List>();
+      obj->available_ = nil<Object>();
+      obj->enabled_ = nil<Object>();
+      obj->properties_ = nil<Array>();
+    }
+
+    static void initialize(STATE, JIT* obj, Module* under, const char* name);
 
     Object* enable(STATE);
 

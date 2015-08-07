@@ -1,8 +1,15 @@
 #ifndef RBX_BUILTIN_BLOCK_ENVIRONMENT_HPP
 #define RBX_BUILTIN_BLOCK_ENVIRONMENT_HPP
 
-#include "builtin/object.hpp"
 #include "executor.hpp"
+#include "object_utils.hpp"
+
+#include "builtin/compiled_code.hpp"
+#include "builtin/constant_scope.hpp"
+#include "builtin/module.hpp"
+#include "builtin/object.hpp"
+#include "builtin/string.hpp"
+#include "builtin/variable_scope.hpp"
 
 namespace rubinius {
   class CompiledCode;
@@ -54,8 +61,16 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
+
+    static void initialize(STATE, BlockEnvironment* obj) {
+      obj->scope_ = nil<VariableScope>();
+      obj->top_scope_ = nil<VariableScope>();
+      obj->compiled_code_ = nil<CompiledCode>();
+      obj->constant_scope_ = nil<ConstantScope>();
+      obj->module_ = nil<Module>();
+    }
 
     // Rubinius.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);

@@ -1,6 +1,9 @@
 #ifndef RBX_BUILTIN_BLOCK_AS_METHOD_HPP
 #define RBX_BUILTIN_BLOCK_AS_METHOD_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/block_environment.hpp"
 #include "builtin/executable.hpp"
 
 namespace rubinius {
@@ -18,6 +21,12 @@ namespace rubinius {
 
   public:
     attr_accessor(block_env, BlockEnvironment);
+
+    static void initialize(STATE, BlockAsMethod* obj) {
+      Executable::initialize(state, obj);
+
+      obj->block_env_ = nil<BlockEnvironment>();
+    }
 
     // Rubinius.primitive :block_as_method_create
     static BlockAsMethod* create(STATE, Object* self, BlockEnvironment* be);

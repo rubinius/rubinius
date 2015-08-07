@@ -1,4 +1,12 @@
+#include "alloc.hpp"
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "ffi_util.hpp"
+#include "metrics.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
@@ -13,22 +21,16 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
-#include "call_frame.hpp"
+
 #include "dtrace/dtrace.h"
-#include "ffi_util.hpp"
+
 #include "instruments/tooling.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "on_stack.hpp"
-#include "ontology.hpp"
-#include "metrics.hpp"
 
 namespace rubinius {
 
-  void NativeFunction::init(STATE) {
-    GO(native_function).set(ontology::new_class(state,
-          "NativeFunction", G(executable), G(rubinius)));
-    G(native_function)->set_object_type(state, NativeFunctionType);
+  void NativeFunction::bootstrap(STATE) {
+    GO(native_function).set(state->memory()->new_class<Class, NativeFunction>(
+          state, G(executable), G(rubinius), "NativeFunction"));
   }
 
   FFIData* FFIData::create(STATE, NativeFunction* func, int count, FFIArgInfo* args,
@@ -148,19 +150,15 @@ namespace rubinius {
   }
 
   NativeFunction* NativeFunction::create(STATE, Symbol* name, int args) {
-    NativeFunction* nf = state->new_object<NativeFunction>(G(native_function));
+    NativeFunction* nf =
+      state->memory()->new_object<NativeFunction>(state, G(native_function));
+
     nf->primitive(state, state->symbol("nativefunction_call"));
-    nf->required(state, Fixnum::from(args));
-    nf->varargs(state, cFalse);
-    nf->serial(state, Fixnum::from(0));
     nf->name(state, name);
     nf->file(state, state->symbol("<system>"));
+    nf->required(state, Fixnum::from(args));
 
     nf->set_executor(NativeFunction::execute);
-    nf->inliners_ = 0;
-    nf->prim_index_ = -1;
-    nf->custom_call_site_ = false;
-    nf->ffi_data = 0;
 
     return nf;
   }

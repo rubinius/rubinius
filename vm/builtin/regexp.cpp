@@ -2,6 +2,11 @@
 #include "transcoder.h"
 
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/block_environment.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"
@@ -15,11 +20,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
-#include "call_frame.hpp"
-#include "configuration.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
 
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED           ONIG_OPTION_EXTEND
@@ -40,13 +40,11 @@
 
 namespace rubinius {
 
-  void Regexp::init(STATE) {
+  void Regexp::bootstrap(STATE) {
     onig_init();
-    GO(regexp).set(ontology::new_class(state, "Regexp", G(object), 0));
-    G(regexp)->set_object_type(state, RegexpType);
+    GO(regexp).set(state->memory()->new_class<Class, Regexp>(state, "Regexp"));
 
-    GO(matchdata).set(ontology::new_class(state, "MatchData", G(object), 0));
-    G(matchdata)->set_object_type(state, MatchDataType);
+    GO(matchdata).set(state->memory()->new_class<Class, MatchData>(state, "MatchData"));
   }
 
   char *Regexp::version(STATE) {
@@ -85,16 +83,7 @@ namespace rubinius {
    * regular expression via Regexp#initialize_copy
    */
   Regexp* Regexp::create(STATE) {
-    Regexp* o_reg = state->new_object<Regexp>(G(regexp));
-
-    for(int i = 0; i < cCachedOnigDatas; ++i) {
-      o_reg->onig_data[i] = NULL;
-    }
-    o_reg->lock_.init();
-    o_reg->fixed_encoding_ = false;
-    o_reg->no_encoding_ = false;
-
-    return o_reg;
+    return Regexp::allocate(state, G(regexp));
   }
 
   regex_t* Regexp::onig_source_data(STATE) {
@@ -112,63 +101,69 @@ namespace rubinius {
 
     assert(reg->chain == 0);
 
-    ByteArray* reg_ba = ByteArray::create_dirty(state, sizeof(regex_t));
+    ByteArray* reg_ba =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), sizeof(regex_t));
     memcpy(reg_ba->raw_bytes(), reg, sizeof(regex_t));
 
     reg = reinterpret_cast<regex_t*>(reg_ba->raw_bytes());
 
     if(reg->p) {
-      ByteArray* pattern = ByteArray::create_dirty(state, reg->alloc);
+      ByteArray* pattern =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), reg->alloc);
       memcpy(pattern->raw_bytes(), reg->p, reg->alloc);
 
       reg->p = reinterpret_cast<unsigned char*>(pattern->raw_bytes());
 
-      obj->write_barrier(state, pattern);
+      state->memory()->write_barrier(obj, pattern);
     }
 
     if(reg->exact) {
       int exact_size = reg->exact_end - reg->exact;
-      ByteArray* exact = ByteArray::create_dirty(state, exact_size);
+      ByteArray* exact =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), exact_size);
       memcpy(exact->raw_bytes(), reg->exact, exact_size);
 
       reg->exact = reinterpret_cast<unsigned char*>(exact->raw_bytes());
       reg->exact_end = reg->exact + exact_size;
 
-      obj->write_barrier(state, exact);
+      state->memory()->write_barrier(obj, exact);
     }
 
     int int_map_size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
 
     if(reg->int_map) {
-      ByteArray* intmap = ByteArray::create_dirty(state, int_map_size);
+      ByteArray* intmap =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), int_map_size);
       memcpy(intmap->raw_bytes(), reg->int_map, int_map_size);
 
       reg->int_map = reinterpret_cast<int*>(intmap->raw_bytes());
 
-      obj->write_barrier(state, intmap);
+      state->memory()->write_barrier(obj, intmap);
     }
 
     if(reg->int_map_backward) {
-      ByteArray* intmap_back = ByteArray::create_dirty(state, int_map_size);
+      ByteArray* intmap_back =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), int_map_size);
       memcpy(intmap_back->raw_bytes(), reg->int_map_backward, int_map_size);
 
       reg->int_map_backward = reinterpret_cast<int*>(intmap_back->raw_bytes());
 
-      obj->write_barrier(state, intmap_back);
+      state->memory()->write_barrier(obj, intmap_back);
     }
 
     if(reg->repeat_range) {
       int rrange_size = sizeof(OnigRepeatRange) * reg->repeat_range_alloc;
-      ByteArray* rrange = ByteArray::create_dirty(state, rrange_size);
+      ByteArray* rrange =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), rrange_size);
       memcpy(rrange->raw_bytes(), reg->repeat_range, rrange_size);
 
       reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->raw_bytes());
 
-      obj->write_barrier(state, rrange);
+      state->memory()->write_barrier(obj, rrange);
     }
 
     obj->onig_data[enc->cache_index()] = reg;
-    obj->write_barrier(state, reg_ba);
+    state->memory()->write_barrier(obj, reg_ba);
 
     onig_free(orig);
     return reg;
@@ -319,9 +314,7 @@ namespace rubinius {
 
   // 'self' is passed in automatically by the primitive glue
   Regexp* Regexp::allocate(STATE, Object* self) {
-    Regexp* re = Regexp::create(state);
-    re->klass(state, as<Class>(self));
-    return re;
+    return state->memory()->new_object<Regexp>(state, as<Class>(self));
   }
 
   Fixnum* Regexp::options(STATE) {
@@ -347,7 +340,9 @@ namespace rubinius {
   }
 
   static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int pos) {
-    Tuple* tup = Tuple::create_dirty(state, region->num_regs - 1);
+    Tuple* tup =
+      state->memory()->new_fields<Tuple>(state, G(tuple), region->num_regs - 1);
+
     for(int i = 1; i < region->num_regs; i++) {
       int beg = region->beg[i];
 
@@ -368,11 +363,12 @@ namespace rubinius {
       }
       tup->put(state, i - 1, sub);
     }
+
     return tup;
   }
 
   static MatchData* get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int pos) {
-    MatchData* md = state->new_object<MatchData>(G(matchdata));
+    MatchData* md = state->memory()->new_object<MatchData>(state, G(matchdata));
     md->source(state, string->string_dup(state));
     md->regexp(state, regexp);
     // Unsure if the first region (the full match) can be less than 0 (meaning
@@ -458,7 +454,8 @@ namespace rubinius {
     // for it to appear here.
     if(data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
-      ByteArray* ba = ByteArray::create_dirty(state, size);
+      ByteArray* ba =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
 
       // Dispose of the old one.
@@ -466,7 +463,7 @@ namespace rubinius {
 
       data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
-      write_barrier(state, ba);
+      state->memory()->write_barrier(this, ba);
     }
 
     lock_.unlock();
@@ -532,7 +529,8 @@ namespace rubinius {
     // for it to appear here.
     if(data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
-      ByteArray* ba = ByteArray::create_dirty(state, size);
+      ByteArray* ba =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
 
       // Dispose of the old one.
@@ -540,7 +538,7 @@ namespace rubinius {
 
       data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
-      write_barrier(state, ba);
+      state->memory()->write_barrier(this, ba);
     }
 
     lock_.unlock();
@@ -604,7 +602,8 @@ namespace rubinius {
     // for it to appear here.
     if(data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
-      ByteArray* ba = ByteArray::create_dirty(state, size);
+      ByteArray* ba =
+        state->memory()->new_bytes<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
 
       // Dispose of the old one.
@@ -612,7 +611,7 @@ namespace rubinius {
 
       data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
-      write_barrier(state, ba);
+      state->memory()->write_barrier(this, ba);
     }
 
     lock_.unlock();

@@ -1,3 +1,6 @@
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
@@ -6,7 +9,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/thread.hpp"
-#include "object_utils.hpp"
 
 #define CONSTANT_TABLE_MAX_DENSITY 0.75
 #define CONSTANT_TABLE_MIN_DENSITY 0.3
@@ -18,26 +20,27 @@
 
 
 namespace rubinius {
+  void ConstantTable::bootstrap(STATE) {
+    GO(constant_table).set(
+        Class::bootstrap_class(state, G(object), ConstantTableType));
+    GO(constant_table_bucket).set(
+        Class::bootstrap_class(state, G(object), ConstantTableBucketType));
+  }
+
   ConstantTable* ConstantTable::create(STATE, native_int size) {
     ConstantTable *tbl;
 
-    tbl = state->new_object<ConstantTable>(G(constant_table));
+    tbl = state->memory()->new_object<ConstantTable>(state, G(constant_table));
     tbl->setup(state, size);
-    tbl->lock_.init();
 
     return tbl;
   }
 
   void ConstantTable::setup(STATE, native_int size) {
-    if(size == 0) {
-      values(state, nil<Tuple>());
-      bins(state, Fixnum::from(0));
-    } else {
+    if(size > 0) {
       values(state, Tuple::create(state, size));
       bins(state, Fixnum::from(size));
     }
-
-    entries(state, Fixnum::from(0));
   }
 
   /* The ConstantTable.allocate primitive. */
@@ -264,13 +267,12 @@ namespace rubinius {
 
       while(entry) {
        if(Symbol* sym = try_as<Symbol>(entry->name())) {
-          std::cout << ":" << sym->debug_str(state);
+          std::cout << ":" << sym->debug_str(state) << ", ";
         } else if(Fixnum* fix = try_as<Fixnum>(entry->name())) {
-          std::cout << fix->to_native();
+          std::cout << fix->to_native() << ", ";
         }
         entry = try_as<ConstantTableBucket>(entry->next());
       }
-      if(i < size - 1) std::cout << ", ";
     }
     std::cout << std::endl;
     close_body(level);
@@ -280,11 +282,12 @@ namespace rubinius {
       Object* constant, Symbol* vis)
   {
     ConstantTableBucket *entry =
-      state->new_object<ConstantTableBucket>(G(constant_table_bucket));
+      state->memory()->new_object<ConstantTableBucket>(state, G(constant_table_bucket));
 
     entry->name(state, name);
     entry->constant(state, constant);
     entry->visibility(state, vis);
+
     return entry;
   }
 

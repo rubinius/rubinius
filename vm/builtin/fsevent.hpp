@@ -44,12 +44,12 @@ namespace rubinius {
 #endif
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
 
     static void finalize(STATE, FSEvent* fsevent);
     static FSEvent* create(STATE);
 
-    // Rubinius.primitive+ :fsevent_allocate
+    // Rubinius.primitive :fsevent_allocate
     static FSEvent* allocate(STATE, Object* self);
 
     // Rubinius.primitive :fsevent_watch_file

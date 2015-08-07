@@ -1,9 +1,11 @@
 #ifndef RBX_BUILTIN_CALL_SITE_HPP
 #define RBX_BUILTIN_CALL_SITE_HPP
 
-#include "builtin/object.hpp"
 #include "machine_code.hpp"
 #include "object_utils.hpp"
+
+#include "builtin/executable.hpp"
+#include "builtin/object.hpp"
 
 namespace rubinius {
 
@@ -44,7 +46,15 @@ namespace rubinius {
     attr_accessor(name, Symbol);
     attr_accessor(executable, Executable);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, CallSite* obj) {
+      obj->name_ = nil<Symbol>();
+      obj->executor_ = empty_cache;
+      obj->fallback_ = empty_cache;
+      obj->updater_ = empty_cache_updater;
+      obj->executable_ = nil<Executable>();
+      obj->ip_ = 0;
+    }
 
     int ip() const {
       return ip_;

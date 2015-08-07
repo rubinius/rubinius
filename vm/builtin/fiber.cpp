@@ -1,20 +1,21 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
-#include "call_frame.hpp"
+
 #include "gc/gc.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void Fiber::init(STATE) {
-    GO(fiber).set(ontology::new_class(state, "Fiber", G(object), G(rubinius)));
-    G(fiber)->set_object_type(state, FiberType);
+  void Fiber::bootstrap(STATE) {
+    GO(fiber).set(state->memory()->new_class<Class, Fiber>(
+          state, G(rubinius), "Fiber"));
 
 #ifdef RBX_FIBER_ENABLED
     G(fiber)->set_const(state, "ENABLED", cTrue);
@@ -29,9 +30,7 @@ namespace rubinius {
 
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
-      fib = state->new_object<Fiber>(G(fiber));
-      fib->prev(state, nil<Fiber>());
-      fib->locals(state, nil<LookupTable>());
+      fib = state->memory()->new_object<Fiber>(state, G(fiber));
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
 
@@ -102,14 +101,9 @@ namespace rubinius {
 
   Fiber* Fiber::create(STATE, Object* self, Object* callable) {
 #ifdef RBX_FIBER_ENABLED
-    Fiber* fib = state->new_object<Fiber>(as<Class>(self));
+    Fiber* fib = state->memory()->new_object<Fiber>(state, as<Class>(self));
     fib->starter(state, callable);
-    fib->prev(state, nil<Fiber>());
-    fib->locals(state, nil<LookupTable>());
-    fib->root_ = false;
     fib->status_ = Fiber::eSleeping;
-
-    fib->data_ = 0;
 
     state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize,
         FinalizeObject::eUnmanaged);

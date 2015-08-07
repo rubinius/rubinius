@@ -10,7 +10,7 @@ namespace rubinius {
     /** Class type identifier. */
     static const object_type type = BasicObjectType;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
 
   public:   /* accessors */
 

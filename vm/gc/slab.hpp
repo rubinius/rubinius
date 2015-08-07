@@ -44,6 +44,10 @@ namespace gc {
       return current_ - start_;
     }
 
+    bool empty_p() const {
+      return (end_ - current_) < 40;
+    }
+
     /**
      * Refills the slab, by pointing it to a new memory region.
      * Slabs are refilled when they are full, or when a young generation

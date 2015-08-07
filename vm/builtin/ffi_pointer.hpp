@@ -16,7 +16,12 @@ namespace rubinius {
     bool autorelease;
     bool set_finalizer;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Pointer* obj) {
+      obj->pointer = NULL;
+      obj->autorelease = false;
+      obj->set_finalizer = false;
+    }
 
     static Pointer* create(STATE, void* ptr);
 

@@ -1,7 +1,10 @@
 #ifndef RBX_BUILTIN_NATIVEMETHOD_HPP
 #define RBX_BUILTIN_NATIVEMETHOD_HPP
 
+#include "defines.hpp"
 #include "executor.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 
@@ -13,10 +16,13 @@
 
 namespace rubinius {
   class ExceptionPoint;
-  class NativeMethodFrame;
+  class Fixnum;
+  class Module;
   class NativeMethod;
+  class NativeMethodFrame;
   class Pointer;
   class StackVariables;
+  class String;
 
   /**
    * Thread-local info about native method calls. @see NativeMethodFrame.
@@ -324,14 +330,15 @@ namespace rubinius {
     const static object_type type = NativeMethodType;
 
     /** Set class up in the VM. @see vm/ontology.cpp. */
-    static void init(State* state);
+    static void bootstrap(STATE);
+    static void initialize(STATE, NativeMethod* obj);
 
     // Called when starting a new native thread, initializes any thread
     // local data.
-    static void init_thread(State* state);
+    static void init_thread(STATE);
 
     // Called when a thread is exiting, to cleanup the thread local data.
-    static void cleanup_thread(State* state);
+    static void cleanup_thread(STATE);
 
 
   public:   /* Ctors */
@@ -342,7 +349,7 @@ namespace rubinius {
      *  Takes a function to call in the form of a void*. +arity+ is used
      *  to figure out how to call the function properly.
      */
-    static NativeMethod* create(State* state, String* file_name,
+    static NativeMethod* create(STATE, String* file_name,
                                 Module* module, Symbol* method_name,
                                 void* func, Fixnum* arity,
                                 int capi_lock_index);

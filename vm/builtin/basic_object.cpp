@@ -1,9 +1,11 @@
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/basic_object.hpp"
 #include "builtin/class.hpp"
 
 namespace rubinius {
-  void BasicObject::init(STATE) {
-    Class* basic_object = G(basicobject);
-    basic_object->set_const(state, state->symbol("BasicObject"), basic_object);
+  void BasicObject::bootstrap(STATE) {
+    GO(basicobject).set(Class::bootstrap_class(state, nil<Class>(), ObjectType));
   }
 }

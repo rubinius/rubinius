@@ -1,4 +1,7 @@
-#include <sstream>
+#include "configuration.hpp"
+#include "missing/math.h"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -8,10 +11,8 @@
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
 #include "builtin/byte_array.hpp"
-#include "configuration.hpp"
-#include "missing/math.h"
-#include "object_utils.hpp"
-#include "ontology.hpp"
+
+#include <sstream>
 
 #define NEW_STRUCT(obj, str) \
   obj = Bignum::create(state); \
@@ -136,15 +137,17 @@ namespace rubinius {
     mp_clear(&b);
   }
 
-  void Bignum::init(STATE) {
-    GO(bignum).set(ontology::new_class(state, "Bignum", G(integer)));
-    G(bignum)->set_object_type(state, BignumType);
+  void Bignum::bootstrap(STATE) {
+    GO(bignum).set(state->memory()->new_class<Class, Bignum>(
+          state, G(integer), "Bignum"));
   }
 
   namespace {
-    // Cripped and modified from bn_mp_init.c
+    // Cribbed and modified from bn_mp_init.c
     void mp_init_managed(STATE, mp_int* a) {
-      ByteArray* storage = ByteArray::create_dirty(state, sizeof (mp_digit) * MP_PREC);
+      ByteArray* storage =
+        state->memory()->new_bytes<ByteArray>(
+            state, G(bytearray), sizeof (mp_digit) * MP_PREC);
       a->managed = reinterpret_cast<void*>(storage);
 
       /* allocate memory required and clear it */
@@ -163,11 +166,13 @@ namespace rubinius {
     }
   }
 
+  void Bignum::initialize(STATE, Bignum* obj) {
+    mp_init_managed(state, obj->mp_val());
+    obj->set_frozen();
+  }
+
   Bignum* Bignum::create(STATE) {
-    Bignum* o = state->new_object_dirty<Bignum>(G(bignum));
-    mp_init_managed(state, o->mp_val());
-    o->set_frozen();
-    return o;
+    return state->memory()->new_object<Bignum>(state, G(bignum));
   }
 
   Bignum* Bignum::initialize_copy(STATE, Bignum* other) {
@@ -1161,7 +1166,8 @@ namespace rubinius {
     assert(s);
     State* state = reinterpret_cast<State*>(s);
 
-    ByteArray* storage = ByteArray::create_dirty(state, bytes);
+    ByteArray* storage =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), bytes);
     a->managed = reinterpret_cast<void*>(storage);
 
     // Be sure to use the smaller value!

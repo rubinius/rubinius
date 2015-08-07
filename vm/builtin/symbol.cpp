@@ -8,7 +8,6 @@
 #include "builtin/tuple.hpp"
 #include "object_utils.hpp"
 #include "object_memory.hpp"
-#include "ontology.hpp"
 
 #include <sstream>
 
@@ -16,9 +15,8 @@
 #define Increments 32
 
 namespace rubinius {
-  void Symbol::init(STATE) {
-    GO(symbol).set(ontology::new_class(state, "Symbol"));
-    G(symbol)->set_object_type(state, Symbol::type);
+  void Symbol::bootstrap(STATE) {
+    GO(symbol).set(state->memory()->new_class<Class, Symbol>(state, "Symbol"));
   }
 
   native_int Symbol::index() const {

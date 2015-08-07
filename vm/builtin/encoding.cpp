@@ -2,6 +2,12 @@
 #include "transcoder.h"
 #include "regenc.h"
 
+#include "alloc.hpp"
+#include "configuration.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"
@@ -14,11 +20,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "configuration.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "on_stack.hpp"
-#include "ontology.hpp"
+
 #include "util/utf8.h"
 
 #include <ctype.h>
@@ -42,13 +44,11 @@
 #define TRANS_DECLARE(from, to, lib)  declare(state, from, to, lib);
 
 namespace rubinius {
-  void Encoding::init(STATE) {
+  void Encoding::bootstrap(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
 
-    GO(encoding).set(ontology::new_class(state, "Encoding"));
+    GO(encoding).set(state->memory()->new_class<Class, Encoding>(state, "Encoding"));
     G(rubinius)->set_const(state, "EncodingClass", G(encoding));
-
-    G(encoding)->set_object_type(state, EncodingType);
 
     GO(encoding_list).set(Array::create(state, 3));
     G(encoding)->set_const(state, "EncodingMap", LookupTable::create(state));
@@ -91,8 +91,17 @@ namespace rubinius {
     create_internal(state, "filesystem", index);
     create_internal(state, "internal", -1);
 
-    Transcoding::init(state);
-    Converter::init(state);
+    Transcoding::bootstrap(state);
+    Converter::bootstrap(state);
+  }
+
+  void Encoding::initialize(STATE, Encoding* obj) {
+    obj->name_ = nil<String>();
+    obj->dummy_ = nil<Object>();
+    obj->encoding_ = NULL;;
+    obj->index_ = 0;
+    obj->cache_index_ = 0;
+    obj->managed_ = false;
   }
 
   static Symbol* encoding_symbol(STATE, const char* name) {
@@ -111,7 +120,8 @@ namespace rubinius {
   }
 
   static Tuple* encoding_reference(STATE, int index, const char* alias_name = 0) {
-    Tuple* pair = Tuple::create_dirty(state, 2);
+    Tuple* pair = state->memory()->new_fields<Tuple>(state, G(tuple), 2);
+
     if(!alias_name) {
       pair->put(state, 0, cNil);
     } else {
@@ -128,7 +138,7 @@ namespace rubinius {
   }
 
   Encoding* Encoding::create(STATE, OnigEncodingType* enc, Object* dummy) {
-    Encoding* e = state->new_object<Encoding>(G(encoding));
+    Encoding* e = state->memory()->new_object<Encoding>(state, G(encoding));
 
     e->dummy(state, dummy);
     e->encoding_ = enc;
@@ -464,7 +474,7 @@ namespace rubinius {
     memcpy(enc_ba->raw_bytes(), enc, sizeof(OnigEncodingType));
 
     encoding_ = reinterpret_cast<OnigEncodingType*>(enc_ba->raw_bytes());
-    write_barrier(state, enc_ba);
+    state->memory()->write_barrier(this, enc_ba);
 
     int size = strlen(name);
     if(size >= ENCODING_NAMELEN_MAX) size = ENCODING_NAMELEN_MAX-1;
@@ -473,7 +483,7 @@ namespace rubinius {
     memcpy(name_ba->raw_bytes(), name, size);
     name_ba->raw_bytes()[size] = 0;
     encoding_->name = reinterpret_cast<const char*>(name_ba->raw_bytes());
-    write_barrier(state, name_ba);
+    state->memory()->write_barrier(this, name_ba);
 
     managed_ = true;
   }
@@ -623,17 +633,23 @@ namespace rubinius {
     close_body(level);
   }
 
-  void Transcoding::init(STATE) {
-    ontology::new_class_under(state, "Transcoding", G(encoding));
+  void Transcoding::bootstrap(STATE) {
+    state->memory()->new_class<Class, Transcoding>(state, G(encoding), "Transcoding");
 
     G(encoding)->set_const(state, "TranscodingMap", LookupTable::create(state));
 
 #include "gen/transcoder_database.cpp"
   }
 
+  void Transcoding::initialize(STATE, Transcoding* obj) {
+    obj->source_ = nil<String>();
+    obj->target_ = nil<String>();
+    obj->transcoder_ = NULL;
+  }
+
   Transcoding* Transcoding::create(STATE, OnigTranscodingType* tr) {
     Class* cls = Encoding::transcoding_class(state);
-    Transcoding* t = state->new_object<Transcoding>(cls);
+    Transcoding* t = state->memory()->new_object<Transcoding>(state, cls);
 
     t->source(state, String::create(state, tr->src_encoding));
     t->target(state, String::create(state, tr->dst_encoding));
@@ -673,8 +689,9 @@ namespace rubinius {
     table->store(state, encoding_symbol(state, tr->dst_encoding), t);
   }
 
-  void Converter::init(STATE) {
-    Class* cls = ontology::new_class_under(state, "Converter", G(encoding));
+  void Converter::bootstrap(STATE) {
+    Class* cls = state->memory()->new_class<Class, Converter>(
+        state, G(encoding), "Converter");
 
     cls->set_const(state, "INVALID_MASK", Fixnum::from(ECONV_INVALID_MASK));
     cls->set_const(state, "INVALID_REPLACE", Fixnum::from(ECONV_INVALID_REPLACE));
@@ -697,9 +714,19 @@ namespace rubinius {
                    Fixnum::from(ECONV_XML_ATTR_QUOTE_DECORATOR));
   }
 
+  void Converter::initialize(STATE, Converter* obj) {
+    obj->source_encoding_ = nil<Encoding>();
+    obj->destination_encoding_ = nil<Encoding>();
+    obj->replacement_ = nil<String>();
+    obj->convpath_ = nil<Array>();
+    obj->converters_ = nil<Array>();
+    obj->replacement_converters_ = nil<Array>();
+    obj->converter_ = NULL;
+  }
+
   Converter* Converter::allocate(STATE, Object* self) {
     Class* cls = Encoding::converter_class(state);
-    Converter* c = state->new_object<Converter>(cls);
+    Converter* c = state->memory()->new_object<Converter>(state, cls);
 
     c->klass(state, as<Class>(self));
 

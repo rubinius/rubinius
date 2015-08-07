@@ -57,6 +57,9 @@ static long gc_malloc_threshold = 0;
 static long bytes_until_collection = 0;
 
 namespace rubinius {
+  void ObjectMemory::memory_error(STATE) {
+    Exception::memory_error(state);
+  }
 
   Object* object_watch = 0;
 
@@ -733,195 +736,25 @@ step1:
     type_info[ti->type] = ti;
   }
 
-  // TODO: This method is temporary pending refactoring GC safepoints.
-  String* ObjectMemory::new_string_certain(STATE, Class* klass) {
-    size_t bytes = sizeof(String);
-    bool collect_now;
-    Object* obj;
+  Object* ObjectMemory::new_object(STATE, native_int bytes) {
+    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
-    if(unlikely(bytes > large_object_threshold)) {
-      if(likely(obj = mark_sweep_->allocate(bytes, &collect_now))) {
-        vm()->metrics().memory.large_objects++;
-        vm()->metrics().memory.large_bytes += bytes;
-      } else {
-        return NULL;
-      }
-    } else if(likely(obj = young_->allocate(bytes, &collect_now))) {
-      vm()->metrics().memory.young_objects++;
-      vm()->metrics().memory.young_bytes += bytes;
-    } else if(likely(obj = immix_->allocate(bytes))) {
-      vm()->metrics().memory.immix_objects++;
-      vm()->metrics().memory.immix_bytes += bytes;
-    } else if(likely(obj = mark_sweep_->allocate(bytes, &collect_now))) {
-      vm()->metrics().memory.large_objects++;
-      vm()->metrics().memory.large_bytes += bytes;
-    } else {
-      return NULL;
-    }
+    Object* obj = 0;
 
-#ifdef ENABLE_OBJECT_WATCH
-    if(watched_p(obj)) {
-      std::cout << "detected " << obj << " during allocation\n";
-    }
-#endif
-
-    obj->set_obj_type(String::type);
-
-    return force_as<String>(obj);
-  }
-
-  Object* ObjectMemory::allocate_object(size_t bytes) {
-    Object* obj;
-
-    collect_young_now = false;
-    collect_mature_now = false;
-
-    if(unlikely(bytes > large_object_threshold)) {
-      if(likely(obj = mark_sweep_->allocate(bytes, &collect_mature_now))) {
-        vm()->metrics().memory.large_objects++;
-        vm()->metrics().memory.large_bytes += bytes;
-      }
-    } else if(likely(obj = young_->allocate(bytes, &collect_young_now))) {
-      vm()->metrics().memory.young_objects++;
-      vm()->metrics().memory.young_bytes += bytes;
-    } else if(likely(obj = immix_->allocate(bytes))) {
+    // TODO: check if immix_ needs to trigger GC
+    if(likely(obj = immix_->allocate(bytes))) {
       vm()->metrics().memory.immix_objects++;
       vm()->metrics().memory.immix_bytes += bytes;
     } else if(likely(obj = mark_sweep_->allocate(bytes, &collect_mature_now))) {
       vm()->metrics().memory.large_objects++;
       vm()->metrics().memory.large_bytes += bytes;
-    }
-
-    if(collect_young_now || collect_mature_now) shared_.gc_soon();
-
-    if(!obj) return NULL;
-
-#ifdef ENABLE_OBJECT_WATCH
-    if(watched_p(obj)) {
-      std::cout << "detected " << obj << " during allocation\n";
-    }
-#endif
-
-    return obj;
-  }
-
-  Object* ObjectMemory::allocate_object_mature(size_t bytes) {
-
-    Object* obj;
-
-    if(bytes > large_object_threshold) {
-      obj = mark_sweep_->allocate(bytes, &collect_mature_now);
-      if(unlikely(!obj)) return NULL;
     } else {
-      obj = immix_->allocate(bytes);
-
-      if(unlikely(!obj)) {
-        obj = mark_sweep_->allocate(bytes, &collect_mature_now);
-      }
-
-      vm()->metrics().memory.immix_objects++;
-      vm()->metrics().memory.immix_bytes += bytes;
+      Exception::memory_error(state);
+      return NULL;
     }
 
-    if(collect_mature_now) shared_.gc_soon();
+    if(collect_mature_now) state->shared().gc_soon();
 
-#ifdef ENABLE_OBJECT_WATCH
-    if(watched_p(obj)) {
-      std::cout << "detected " << obj << " during mature allocation\n";
-    }
-#endif
-
-    return obj;
-  }
-
-  Object* ObjectMemory::new_object_typed_dirty(STATE, Class* cls, size_t bytes, object_type type) {
-    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
-
-    Object* obj;
-
-    obj = allocate_object(bytes);
-    if(unlikely(!obj)) return NULL;
-
-    obj->set_obj_type(type);
-    obj->klass(this, cls);
-    obj->ivars(this, cNil);
-
-    return obj;
-  }
-
-  Object* ObjectMemory::new_object_typed(STATE, Class* cls, size_t bytes, object_type type) {
-    Object* obj = new_object_typed_dirty(state, cls, bytes, type);
-    if(unlikely(!obj)) return NULL;
-
-    obj->clear_fields(bytes);
-    return obj;
-  }
-
-  Object* ObjectMemory::new_object_typed_mature_dirty(STATE, Class* cls, size_t bytes, object_type type) {
-    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
-
-    Object* obj;
-
-    obj = allocate_object_mature(bytes);
-    if(unlikely(!obj)) return NULL;
-
-    obj->set_obj_type(type);
-    obj->klass(this, cls);
-    obj->ivars(this, cNil);
-
-    return obj;
-  }
-
-  Object* ObjectMemory::new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type) {
-    Object* obj = new_object_typed_mature_dirty(state, cls, bytes, type);
-    if(unlikely(!obj)) return NULL;
-
-    obj->clear_fields(bytes);
-    return obj;
-  }
-
-  /* ONLY use to create Class, the first object. */
-  Object* ObjectMemory::allocate_object_raw(size_t bytes) {
-
-    Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
-    if(unlikely(!obj)) return NULL;
-
-    vm()->metrics().memory.large_objects++;
-    vm()->metrics().memory.large_bytes += bytes;
-
-    obj->clear_fields(bytes);
-    return obj;
-  }
-
-  Object* ObjectMemory::new_object_typed_enduring_dirty(STATE, Class* cls, size_t bytes, object_type type) {
-    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
-
-    Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
-    if(unlikely(!obj)) return NULL;
-
-    state->vm()->metrics().memory.immix_objects++;
-    state->vm()->metrics().memory.immix_bytes += bytes;
-
-    if(collect_mature_now) shared_.gc_soon();
-
-#ifdef ENABLE_OBJECT_WATCH
-    if(watched_p(obj)) {
-      std::cout << "detected " << obj << " during enduring allocation\n";
-    }
-#endif
-
-    obj->set_obj_type(type);
-    obj->klass(this, cls);
-    obj->ivars(this, cNil);
-
-    return obj;
-  }
-
-  Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
-    Object* obj = new_object_typed_enduring_dirty(state, cls, bytes, type);
-    if(unlikely(!obj)) return NULL;
-
-    obj->clear_fields(bytes);
     return obj;
   }
 

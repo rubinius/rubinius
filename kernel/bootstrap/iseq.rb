@@ -1,5 +1,10 @@
 module Rubinius
   class InstructionSequence
+    def self.allocate
+      Rubinius.primitive :instruction_sequence_allocate
+      raise PrimitiveFailure, "Rubinius::InstructionSequence.allocate primitive failed"
+    end
+
     def initialize(size)
       if size.kind_of? Tuple
         @opcodes = size

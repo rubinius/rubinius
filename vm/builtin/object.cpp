@@ -1,4 +1,13 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "dispatch.hpp"
+#include "global_cache.hpp"
+#include "lookup_data.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/basic_object.hpp"
 #include "builtin/bignum.hpp"
@@ -19,20 +28,25 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-#include "call_frame.hpp"
-#include "configuration.hpp"
-#include "dispatch.hpp"
-#include "global_cache.hpp"
-#include "lookup_data.hpp"
-#include "object_memory.hpp"
-#include "object_utils.hpp"
-#include "on_stack.hpp"
 
 #include "util/logger.hpp"
 
 #include <sstream>
 
 namespace rubinius {
+  void Object::bootstrap(STATE) {
+    GO(object).set(Class::bootstrap_class(state, G(basicobject), ObjectType));
+  }
+
+  void Object::klass(STATE, Class* obj) {
+    klass_ = obj;
+    state->memory()->write_barrier(this, obj);
+  }
+
+  void Object::klass(ObjectMemory* memory, Class* obj) {
+    klass_ = obj;
+    memory->write_barrier(this, obj);
+  }
 
   Class* Object::class_object(STATE) const {
     if(reference_p()) {
@@ -53,8 +67,9 @@ namespace rubinius {
   Object* Object::duplicate(STATE) {
     if(!reference_p()) return this;
 
-    Object* other = state->vm()->new_object_typed_dirty(
-        class_object(state), this->size_in_bytes(state->vm()), type_id());
+    Object* other = state->memory()->new_object(
+        state, class_object(state), this->size_in_bytes(state->vm()), type_id());
+
     return other->copy_object(state, this);
   }
 
@@ -97,8 +112,8 @@ namespace rubinius {
   Object* Object::copy_object(STATE, Object* other) {
     initialize_copy(state->memory(), other, age());
 
-    write_barrier(state, klass());
-    write_barrier(state, ivars());
+    state->memory()->write_barrier(this, klass());
+    state->memory()->write_barrier(this, ivars());
 
     // Don't inherit the object_id from the original.
     reset_id(state);
@@ -467,7 +482,7 @@ namespace rubinius {
      */
     if(SingletonClass* sc_klass = try_as<SingletonClass>(sc->klass())) {
       if(sc != sc_klass->singleton()) {
-        SingletonClass::attach(state, sc);
+        SingletonClass::attach(state, sc, sc->klass());
       }
     }
 
@@ -484,7 +499,7 @@ namespace rubinius {
        * class, we need to only return a SingletonClass that is for this!
        */
       if(!sc || sc->singleton() != this) {
-        sc = SingletonClass::attach(state, this);
+        sc = SingletonClass::attach(state, this, klass());
       }
 
       infect(state, sc);
@@ -636,7 +651,7 @@ namespace rubinius {
 
         Object** baa = reinterpret_cast<Object**>(pointer_to_body());
         baa[which->to_native()] = val;
-        write_barrier(state, val);
+        state->memory()->write_barrier(this, val);
         return val;
       }
     default:
@@ -778,8 +793,15 @@ namespace rubinius {
   }
 
   Object* Object::show(STATE, int level) {
-    if(reference_p() && !state->memory()->valid_object_p(this)) rubinius::warn("bad object in show");
+    if(reference_p() && !state->memory()->valid_object_p(this)) {
+      std::ostringstream msg;
+      msg << "bad object in show(): " << this;
+
+      rubinius::warn(msg.str().c_str());
+    }
+
     type_info(state)->show(state, this, level);
+
     return cNil;
   }
 
@@ -896,10 +918,6 @@ namespace rubinius {
         return cFalse;
       }
     }
-  }
-
-  void Object::write_barrier(ObjectMemory* om, void* obj) {
-    om->write_barrier(this, reinterpret_cast<Object*>(obj));
   }
 
   void Object::setup_allocation_site(STATE, CallFrame* call_frame) {

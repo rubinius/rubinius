@@ -1,3 +1,10 @@
+#include "configuration.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "thread_phase.hpp"
+#include "windows_compat.h"
+
 #include "builtin/atomic.hpp"
 #include "builtin/array.hpp"
 #include "builtin/byte_array.hpp"
@@ -8,15 +15,10 @@
 #include "builtin/io.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
+
 #include "capi/handle.hpp"
-#include "configuration.hpp"
-#include "object_memory.hpp"
-#include "object_utils.hpp"
-#include "on_stack.hpp"
-#include "ontology.hpp"
+
 #include "util/spinlock.hpp"
-#include "thread_phase.hpp"
-#include "windows_compat.h"
 
 #include <sstream>
 #include <unistd.h>
@@ -40,17 +42,15 @@
 namespace rubinius {
   int IO::max_descriptors_ = 2;
 
-  void IO::init(STATE) {
-    GO(io).set(ontology::new_class(state, "IO", G(object)));
-    G(io)->set_object_type(state, IOType);
+  void IO::bootstrap(STATE) {
+    GO(io).set(state->memory()->new_class<Class, IO>(state, G(object), "IO"));
 
-    GO(iobuffer).set(ontology::new_class(state, "InternalBuffer",
-          G(object), G(io)));
-    G(iobuffer)->set_object_type(state, IOBufferType);
+    GO(iobuffer).set(state->memory()->new_class<Class, IOBuffer>(
+          state, G(object), G(io), "InternalBuffer"));
   }
 
   IO* IO::create(STATE, int fd) {
-    IO* io = state->new_object<IO>(G(io));
+    IO* io = state->memory()->new_object<IO>(state, G(io));
     io->descriptor(state, Fixnum::from(fd));
 
 #ifdef RBX_WINDOWS
@@ -82,15 +82,8 @@ namespace rubinius {
   }
 
   IO* IO::allocate(STATE, Object* self) {
-    IO* io = state->new_object<IO>(G(io));
-    io->descriptor(state, nil<Fixnum>());
-    io->mode(state, nil<Fixnum>());
+    IO* io = state->memory()->new_object<IO>(state, as<Class>(self));
     io->ibuffer(state, IOBuffer::create(state));
-    io->eof(state, cFalse);
-    io->lineno(state, Fixnum::from(0));
-
-    // Ensure the instance's class is set (i.e. for subclasses of IO)
-    io->klass(state, as<Class>(self));
 
     state->memory()->needs_finalization(io, (FinalizerFunction)&IO::finalize);
 
@@ -1402,7 +1395,8 @@ failed: /* try next '*' position */
 
 /* IOBuffer methods */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
-    IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
+    IOBuffer* buf = state->memory()->new_object<IOBuffer>(state, G(iobuffer));
+
     buf->storage(state, ByteArray::create(state, bytes));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));

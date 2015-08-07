@@ -1,20 +1,22 @@
+#include "object_memory.hpp"
+#include "call_frame.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/location.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/variable_scope.hpp"
-#include "call_frame.hpp"
-#include "ontology.hpp"
-#include "on_stack.hpp"
 
 namespace rubinius {
-  void Location::init(STATE) {
-    GO(location).set(ontology::new_class(state, "Location",
-          G(object), G(rubinius)));
-    G(location)->set_object_type(state, LocationType);
+  void Location::bootstrap(STATE) {
+    GO(location).set(state->memory()->new_class<Class, Location>(
+          state, G(rubinius), "Location"));
+  }
+
+  Location* Location::allocate(STATE, Object* self) {
+    return state->memory()->new_object<Location>(state, as<Class>(self));
   }
 
   Location* Location::create(STATE, CallFrame* call_frame,
@@ -24,7 +26,8 @@ namespace rubinius {
       return create(state, nmf);
     }
 
-    Location* loc = state->new_object_dirty<Location>(G(location));
+    Location* loc = allocate(state, G(location));
+
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
     loc->method(state, call_frame->compiled_code);
@@ -68,7 +71,7 @@ namespace rubinius {
     NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
     if(!nm) return 0;
 
-    Location* loc = state->new_object<Location>(G(location));
+    Location* loc = state->memory()->new_object<Location>(state, G(location));
     if(Module* mod = try_as<Module>(nmf->get_object(nmf->module()))) {
       loc->method_module(state, mod);
     }

@@ -1,4 +1,10 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "global_cache.hpp"
+#include "lookup_data.hpp"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/call_custom_cache.hpp"
 #include "builtin/call_site.hpp"
@@ -8,30 +14,23 @@
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/object.hpp"
 #include "builtin/poly_inline_cache.hpp"
-#include "call_frame.hpp"
-#include "global_cache.hpp"
-#include "lookup_data.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
 
 #include <sstream>
 
 namespace rubinius {
 
-  void CallSite::init(STATE) {
-    GO(call_site).set(ontology::new_class(state, "CallSite", G(object), G(rubinius)));
-    G(call_site)->set_object_type(state, CallSiteType);
+  void CallSite::bootstrap(STATE) {
+    GO(call_site).set(state->memory()->new_class<Class, CallSite>(
+          state, G(rubinius), "CallSite"));
   }
 
   CallSite* CallSite::empty(STATE, Symbol* name, Executable* executable, int ip) {
-    CallSite* cache =
-      state->new_object_dirty<CallSite>(G(call_site));
+    CallSite* cache = state->memory()->new_object<CallSite>(state, G(call_site));
+
     cache->name_ = name;
-    cache->executor_ = empty_cache;
-    cache->fallback_ = empty_cache;
-    cache->updater_  = empty_cache_updater;
     cache->executable(state, executable);
     cache->ip_ = ip;
+
     return cache;
   }
 

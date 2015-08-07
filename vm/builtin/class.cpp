@@ -1,5 +1,11 @@
+#include "configuration.hpp"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/constant_table.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookup_table.hpp"
@@ -7,90 +13,118 @@
 #include "builtin/module.hpp"
 #include "builtin/packed_object.hpp"
 #include "builtin/symbol.hpp"
-#include "configuration.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "on_stack.hpp"
 
 namespace rubinius {
+  void Class::bootstrap(STATE) {
+    GO(klass).set(Class::bootstrap_class(state, nil<Class>(), ClassType));
+    G(klass)->klass_ = G(klass);
+  }
 
-  Class* Class::create(STATE, Class* super) {
-    Class* cls = state->memory()->new_object_enduring<Class>(state, G(klass));
+  Class* Class::bootstrap_class(STATE, Class* super, object_type type) {
+    Class* klass = static_cast<Class*>(state->memory()->new_object(state, sizeof(Class)));
+    Class::bootstrap_initialize(state, klass, super, type);
 
-    cls->init(state);
+    return klass;
+  }
 
-    cls->module_name(state, nil<Symbol>());
-    cls->instance_type(state, super->instance_type());
+  void Class::bootstrap_initialize(STATE, Class* klass, Class* super, object_type type) {
+    Module::bootstrap_initialize(state, klass, super);
 
-    if(super->type_info()->type == PackedObject::type) {
-      cls->set_type_info(state->memory()->type_info[ObjectType]);
+    klass->klass_ = G(klass);
+    klass->ivars_ = cNil;
+
+    // The type of object that this class is (ie Class).
+    klass->set_obj_type(ClassType);
+
+    // The type of object this class makes (eg Tuple).
+    klass->instance_type_ = Fixnum::from(type);
+    klass->type_info_ = state->memory()->type_info[type];
+
+    klass->superclass(state, super);
+
+    Class::initialize_data(state, klass);
+  }
+
+  void Class::initialize_data(STATE, Class* klass) {
+    uint32_t id = state->shared().inc_class_count(state);
+    klass->data_.f.class_id = id;
+    klass->data_.f.serial_id = 1;
+    klass->set_packed_size(0);
+
+    klass->packed_ivar_info_ = nil<LookupTable>();
+  }
+
+  void Class::initialize_type(STATE, Class* klass, Class* super) {
+    klass->superclass(state, super);
+    klass->instance_type(state, super->instance_type());
+
+    if(super->type_info()->type == PackedObjectType) {
+      klass->set_type_info(state->memory()->type_info[ObjectType]);
     } else {
-      cls->set_type_info(super->type_info());
+      klass->set_type_info(super->type_info());
     }
 
-    cls->superclass(state, super);
+    SingletonClass::attach(state, klass, super->singleton_class(state));
+  }
 
-    cls->setup(state);
+  void Class::initialize(STATE, Class* klass) {
+    Module::initialize(state, klass);
+    Class::initialize_data(state, klass);
 
-    SingletonClass::attach(state, cls, super->singleton_class(state)); // HACK test
+    klass->instance_type_ = nil<Fixnum>();
+  }
 
-    return cls;
+  void Class::initialize(STATE, Class* klass, Class* super) {
+    Module::initialize(state, klass);
+    Class::initialize_data(state, klass);
+    Class::initialize_type(state, klass, super);
+  }
+
+  void Class::initialize(STATE, Class* klass, Class* super, const char* name) {
+    Class::initialize(state, klass, super, G(object), name);
+  }
+
+  void Class::initialize(STATE, Class* klass, Class *super,
+      Module* under, const char* name)
+  {
+    Class::initialize(state, klass, super, under, state->symbol(name));
+  }
+
+  void Class::initialize(STATE, Class* klass, Class *super, Module* under, Symbol* name) {
+    Module::initialize(state, klass, under, name);
+    Class::initialize_data(state, klass);
+    Class::initialize_type(state, klass, super);
+  }
+
+  void Class::initialize(STATE, Class* klass, Class* super,
+      Module* under, Symbol* name, object_type type)
+  {
+    Module::initialize(state, klass, under, name);
+    Class::initialize_data(state, klass);
+
+    klass->superclass(state, super);
+    klass->instance_type_ = Fixnum::from(type);
+    klass->type_info_ = state->memory()->type_info[type];
+
+    SingletonClass::attach(state, klass, super->singleton_class(state));
+  }
+
+  Class* Class::create(STATE, Class* super) {
+    return state->memory()->new_class<Class>(state, super);
+  }
+
+  Class* Class::create(STATE, Class* super, Module* under, Symbol* name) {
+    return state->memory()->new_class<Class>(state, super, under, name);
   }
 
   Class* Class::s_allocate(STATE) {
-    Class* cls = as<Class>(state->memory()->new_object_enduring<Class>(state, G(klass)));
+    Class* klass = as<Class>(state->memory()->new_object<Class>(state, G(klass)));
+    klass->set_type_info(state->memory()->type_info[ObjectType]);
 
-    cls->init(state);
-    cls->setup(state);
-
-    cls->set_type_info(state->memory()->type_info[ObjectType]);
-    return cls;
-  }
-
-  void Class::init(STATE) {
-    uint32_t id = state->shared().inc_class_count(state);
-    origin(state, this);
-    data_.f.class_id = id;
-    data_.f.serial_id = 1;
-    set_packed_size(0);
+    return klass;
   }
 
   namespace {
-    Object* collect_and_allocate(STATE, Class* self,
-                                 CallFrame* calling_environment)
-    {
-      OnStack<1> os(state, self);
-
-      // TODO: fix this
-      state->shared().om->collect_young_now = true;
-      state->shared().thread_nexus()->set_stop();
-      state->vm()->checkpoint(state);
-      // TODO: end this
-
-      // Don't use 'this' after here! it's been moved! use 'self'!
-
-      uint32_t size = self->packed_size();
-      PackedObject* obj = state->local_slab().allocate(size).as<PackedObject>();
-
-      if(likely(obj)) {
-        obj->init_header(self, YoungObjectZone, PackedObject::type);
-      } else {
-        obj = static_cast<PackedObject*>(
-            state->memory()->new_object_typed(state, self, size, PackedObject::type));
-      }
-
-      // Don't use 'this' !!! The above code might have GC'd
-
-      uintptr_t body = reinterpret_cast<uintptr_t>(obj->body_as_array());
-      for(size_t i = 0; i < size - sizeof(ObjectHeader);
-          i += sizeof(Object*)) {
-        Object** pos = reinterpret_cast<Object**>(body + i);
-        *pos = cUndef;
-      }
-
-      return obj;
-    }
-
     Object* allocate_packed(STATE, Class* self,
                             CallFrame* calling_environment)
     {
@@ -98,24 +132,7 @@ namespace rubinius {
 
       assert(size > 0);
 
-      PackedObject* obj = state->local_slab().allocate(size).as<PackedObject>();
-
-      if(likely(obj)) {
-        obj->init_header(self, YoungObjectZone, PackedObject::type);
-      } else {
-        if(state->shared().om->refill_slab(state, state->local_slab())) {
-          obj = state->local_slab().allocate(size).as<PackedObject>();
-
-          if(likely(obj)) {
-            obj->init_header(self, YoungObjectZone, PackedObject::type);
-          } else {
-            obj = reinterpret_cast<PackedObject*>(
-                state->memory()->new_object_typed(state, self, size, PackedObject::type));
-          }
-        } else {
-          return collect_and_allocate(state, self, calling_environment);
-        }
-      }
+      PackedObject* obj = state->memory()->new_object<PackedObject>(state, self, size);
 
       uintptr_t body = reinterpret_cast<uintptr_t>(obj->body_as_array());
       for(size_t i = 0; i < size - sizeof(ObjectHeader);
@@ -129,19 +146,11 @@ namespace rubinius {
   }
 
   Object* Class::allocate(STATE, CallFrame* calling_environment) {
+    Object* obj = cNil;
     object_type obj_type = type_info_->type;
 
     if(obj_type == PackedObject::type) {
-      Object* new_obj = allocate_packed(state, this, calling_environment);
-#ifdef RBX_ALLOC_TRACKING
-      if(unlikely(state->vm()->allocation_tracking())) {
-        new_obj->setup_allocation_site(state, calling_environment);
-      }
-#endif
-#ifdef RBX_GC_STRESS
-      state->shared().gc_soon();
-#endif
-      return new_obj;
+      obj = allocate_packed(state, this, calling_environment);
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       std::ostringstream msg;
       msg << "direct allocation disabled for ";
@@ -151,38 +160,27 @@ namespace rubinius {
          msg << module_name()->debug_str(state);
       }
       Exception::type_error(state, msg.str().c_str());
-      return cNil;
     } else if(obj_type == Object::type) {
-      // transition all normal object classes to PackedObject
-      Class* self = this;
-      OnStack<1> os(state, self);
-
       auto_pack(state, calling_environment);
-      Object* new_obj = allocate_packed(state, self, calling_environment);
-#ifdef RBX_ALLOC_TRACKING
-      if(unlikely(state->vm()->allocation_tracking())) {
-        new_obj->setup_allocation_site(state, calling_environment);
-      }
-#endif
-#ifdef RBX_GC_STRESS
-      state->shared().gc_soon();
-#endif
-      return new_obj;
+      obj = allocate_packed(state, this, calling_environment);
     } else {
       // type_info_->type is neither PackedObject nor Object, so use the
       // generic path.
-      Object* new_obj = state->vm()->new_object_typed(this,
-          type_info_->instance_size, obj_type);
-#ifdef RBX_ALLOC_TRACKING
-      if(unlikely(state->vm()->allocation_tracking())) {
-        new_obj->setup_allocation_site(state, calling_environment);
-      }
-#endif
-#ifdef RBX_GC_STRESS
-      state->shared().gc_soon();
-#endif
-      return new_obj;
+      obj = state->memory()->new_object<Object>(
+          state, this, type_info_->instance_size, obj_type);
     }
+
+#ifdef RBX_ALLOC_TRACKING
+    if(unlikely(state->vm()->allocation_tracking())) {
+      new_obj->setup_allocation_site(state, calling_environment);
+    }
+#endif
+
+#ifdef RBX_GC_STRESS
+    state->shared().gc_soon();
+#endif
+
+    return obj;
   }
 
   Class* Class::true_superclass(STATE) {
@@ -306,15 +304,17 @@ namespace rubinius {
     }
   }
 
+  void SingletonClass::initialize(STATE, SingletonClass* klass) {
+    Module::initialize(state, klass);
+    Class::initialize_data(state, klass);
+
+    klass->superclass(state, G(klass));
+    klass->set_object_type(state, SingletonClassType);
+  }
+
   SingletonClass* SingletonClass::create(STATE, Object* obj) {
-    SingletonClass *sc;
-    sc = state->memory()->new_object_enduring<SingletonClass>(state, G(klass));
-    sc->init(state);
-
-    WeakRef* weakref = WeakRef::create(state, obj);
-    sc->object_reference(state, weakref);
-
-    sc->setup(state);
+    SingletonClass* sc = state->memory()->new_object<SingletonClass>(state, G(klass));
+    sc->object_reference(state, WeakRef::create(state, obj));
 
     return sc;
   }
@@ -323,7 +323,7 @@ namespace rubinius {
     SingletonClass* sc = create(state, obj);
 
     if(kind_of<PackedObject>(obj)) {
-      sc->set_type_info(state->memory()->type_info[Object::type]);
+      sc->set_type_info(state->memory()->type_info[ObjectType]);
     } else {
       sc->set_type_info(obj->klass()->type_info());
     }
@@ -352,7 +352,6 @@ namespace rubinius {
        * diverge.  If no superclass argument was provided, we use the klass we
        * are replacing.
        */
-      if(!sup) { sup = obj->klass(); }
       /* Tell the new SingletonClass about the attachee's existing hierarchy */
       Class* super_klass = Class::real_class(state, sup)->klass();
       sc->klass(state, super_klass);

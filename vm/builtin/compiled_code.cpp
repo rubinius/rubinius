@@ -1,4 +1,12 @@
 #include "arguments.hpp"
+#include "bytecode_verification.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "instruments/timing.hpp"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
@@ -9,13 +17,6 @@
 #include "builtin/lookup_table.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "bytecode_verification.hpp"
-#include "call_frame.hpp"
-#include "configuration.hpp"
-#include "instruments/timing.hpp"
-#include "object_utils.hpp"
-#include "on_stack.hpp"
-#include "ontology.hpp"
 
 #include "util/logger.hpp"
 
@@ -29,37 +30,25 @@
 
 namespace rubinius {
 
-  void CompiledCode::init(STATE) {
-    GO(compiled_code).set(ontology::new_class(state,
-                      "CompiledCode", G(executable), G(rubinius)));
-    G(compiled_code)->set_object_type(state, CompiledCodeType);
+  void CompiledCode::bootstrap(STATE) {
+    GO(compiled_code).set(state->memory()->new_class<Class, CompiledCode>(
+          state, G(executable), G(rubinius), "CompiledCode"));
   }
 
   CompiledCode* CompiledCode::create(STATE) {
-    CompiledCode* code = state->new_object<CompiledCode>(G(compiled_code));
-    code->local_count(state, Fixnum::from(0));
-    code->inliners_ = 0;
-    code->prim_index_ = -1;
-    code->custom_call_site_ = false;
+    return CompiledCode::allocate(state, G(compiled_code));
+  }
 
-    code->set_executor(CompiledCode::default_executor);
-    code->machine_code_ = NULL;
-#ifdef ENABLE_LLVM
-    code->jit_data_ = NULL;
-#endif
-
-    return code;
+  CompiledCode* CompiledCode::allocate(STATE, Object* self) {
+    return state->memory()->new_object<CompiledCode>(state, as<Class>(self));
   }
 
   CompiledCode* CompiledCode::dup(STATE) {
-    CompiledCode* code = state->new_object_dirty<CompiledCode>(G(compiled_code));
-    code->copy_object(state, this);
+    CompiledCode* code =
+      state->memory()->new_object<CompiledCode>(state, G(compiled_code));
 
+    code->copy_object(state, this);
     code->set_executor(CompiledCode::default_executor);
-    code->machine_code_ = NULL;
-#ifdef ENABLE_LLVM
-    code->jit_data_ = NULL;
-#endif
 
     return code;
   }

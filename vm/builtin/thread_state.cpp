@@ -1,15 +1,16 @@
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/thread_state.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void ThreadState::init(STATE) {
-    GO(thread_state).set(ontology::new_class(state, "ThreadState", G(object), G(rubinius)));
-    G(thread_state)->set_object_type(state, ThreadStateType);
+  void ThreadState::bootstrap(STATE) {
+    GO(thread_state).set(state->memory()->new_class<Class, ThreadState>(
+          state, G(rubinius), "ThreadState"));
   }
 
   ThreadState* ThreadState::create(STATE) {
-    return state->new_object<ThreadState>(G(thread_state));
+    return state->memory()->new_object<ThreadState>(state, G(thread_state));
   }
 }

@@ -6,7 +6,6 @@
 #include "object_utils.hpp"
 #include "shared_state.hpp"
 #include "configuration.hpp"
-#include "ontology.hpp"
 #include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 

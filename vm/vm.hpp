@@ -138,7 +138,7 @@ namespace rubinius {
     void (*custom_wakeup_)(void*);
     void* custom_wakeup_data_;
 
-    ObjectMemory* om;
+    ObjectMemory* memory_;
 
     VMThreadState thread_state_;
 
@@ -184,8 +184,8 @@ namespace rubinius {
       return &thread_state_;
     }
 
-    void set_memory(ObjectMemory* memory) {
-      om = memory;
+    ObjectMemory* memory() {
+      return shared.memory();
     }
 
     CallFrame** call_frame_location() {
@@ -397,44 +397,6 @@ namespace rubinius {
     Object* ruby_lib_version();
 
     void set_current_fiber(Fiber* fib);
-
-    Object* new_object_typed_dirty(Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed(Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
-
-    template <class T>
-      T* new_object(Class *cls) {
-        return static_cast<T*>(new_object_typed(cls, sizeof(T), T::type));
-      }
-
-    template <class T>
-      T* new_object_mature(Class *cls) {
-        return static_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
-      }
-
-    template <class T>
-      T* new_object_bytes_dirty(Class* cls, size_t& bytes) {
-        bytes = ObjectHeader::align(sizeof(T) + bytes);
-        return static_cast<T*>(new_object_typed_dirty(cls, bytes, T::type));
-      }
-
-    template <class T>
-      T* new_object_bytes(Class* cls, size_t& bytes) {
-        bytes = ObjectHeader::align(sizeof(T) + bytes);
-        return static_cast<T*>(new_object_typed(cls, bytes, T::type));
-      }
-
-    template <class T>
-      T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
-        bytes = T::fields_offset + (fields * sizeof(Object*));
-        return static_cast<T*>(new_object_typed(cls, bytes, T::type));
-      }
-
-    /// Create a String in the young GC space, return NULL if not possible.
-    String* new_young_string_dirty(STATE);
-
-    /// Create a Tuple in the young GC space, return NULL if not possible.
-    Tuple* new_young_tuple_dirty(size_t fields);
 
     TypeInfo* find_type(int type);
 

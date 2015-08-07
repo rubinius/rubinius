@@ -1,24 +1,27 @@
+#include "configuration.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/block_environment.hpp"
 #include "builtin/jit.hpp"
 #include "builtin/list.hpp"
-#include "configuration.hpp"
-
-#include "ontology.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
 #endif
 
 namespace rubinius {
-  void JIT::init(STATE) {
-    Module* jit = state->new_object<JIT>(G(module));
-    jit->setup(state, "JIT", G(rubinius));
+  void JIT::bootstrap(STATE) {
+    Module* jit = state->memory()->new_module<JIT>(state, G(rubinius), "JIT");
     GO(jit).set(jit);
 
-    Class* cls = ontology::new_class_under(state, "CompileRequest", G(jit));
+    Class* cls = state->memory()->new_class<Class>(state, G(jit), "CompileRequest");
     G(jit)->compile_class(state, cls);
 
     G(jit)->compile_list(state, List::create(state));
+  }
+
+  void JIT::initialize(STATE, JIT* obj, Module* under, const char* name) {
+    Module::initialize(state, obj, under, name);
   }
 
   Object* JIT::compile(STATE, Object* object, CompiledCode* code,
@@ -115,8 +118,9 @@ namespace rubinius {
   JITCompileRequest* JITCompileRequest::create(STATE, CompiledCode* code,
       Class* receiver_class, int hits, BlockEnvironment* block_env, bool is_block)
   {
-    JITCompileRequest* request = state->new_object<JITCompileRequest>(
-        G(jit)->compile_class());
+    JITCompileRequest* request =
+      state->memory()->new_object<JITCompileRequest>(state, G(jit)->compile_class());
+
     request->method(state, code);
     request->receiver_class(state, receiver_class);
     request->block_env(state, block_env);

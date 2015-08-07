@@ -1,26 +1,26 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/respond_to_cache.hpp"
 #include "builtin/symbol.hpp"
-#include "call_frame.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void RespondToCache::init(STATE) {
-    GO(respond_to_cache).set(
-        ontology::new_class(state, "RespondToCache",
-          G(call_site), G(rubinius)));
-    G(respond_to_cache)->set_object_type(state, RespondToCacheType);
+  void RespondToCache::bootstrap(STATE) {
+    GO(respond_to_cache).set(state->memory()->new_class<Class, RespondToCache>(
+          state, G(call_site), G(rubinius), "RespondToCache"));
   }
 
   RespondToCache* RespondToCache::create(STATE, CallSite* fallback,
                     Object* recv, Symbol* msg, Object* priv, Object* res, int hits) {
 
     RespondToCache* cache =
-      state->vm()->new_object<RespondToCache>(G(respond_to_cache));
+      state->memory()->new_object<RespondToCache>(state, G(respond_to_cache));
 
     Class* recv_class = recv->direct_class(state);
+
     cache->fallback_call_site(state, fallback);
     cache->executable(state, fallback->executable());
     cache->name(state, fallback->name());
@@ -28,13 +28,14 @@ namespace rubinius {
     cache->visibility(state, priv);
     cache->message(state, msg);
     cache->responds(state, res);
-    cache->ip_              = fallback->ip();
-    cache->executor_        = check_cache;
-    cache->fallback_        = check_cache;
-    cache->updater_         = NULL;
-    cache->hits_            = hits;
-    uint64_t recv_data = recv_class->data_raw();
-    cache->set_receiver_data(recv_data);
+
+    cache->ip_ = fallback->ip();
+    cache->executor_ = check_cache;
+    cache->fallback_ = check_cache;
+    cache->updater_ = NULL;
+    cache->hits_ = hits;
+    cache->set_receiver_data(recv_class->data_raw());
+
     return cache;
   }
 

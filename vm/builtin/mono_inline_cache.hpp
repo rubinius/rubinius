@@ -30,7 +30,18 @@ namespace rubinius {
     attr_accessor(stored_module, Module);
     attr_accessor(method, Executable);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, MonoInlineCache* obj) {
+      CallSite::initialize(state, obj);
+
+      obj->receiver_.raw = 0;
+      obj->receiver_class_ = nil<Class>();
+      obj->stored_module_ = nil<Module>();
+      obj->method_ = nil<Executable>();
+      obj->method_missing_ = eNone;
+      obj->hits_ = 0;
+    }
+
     static MonoInlineCache* create(STATE, CallSite* call_site, Class* klass, Dispatch& dis);
 
     ClassData receiver_data() {

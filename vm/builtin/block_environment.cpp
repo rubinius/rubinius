@@ -1,4 +1,11 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "instruments/tooling.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
@@ -13,12 +20,6 @@
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
-#include "call_frame.hpp"
-#include "configuration.hpp"
-#include "instruments/tooling.hpp"
-#include "object_utils.hpp"
-#include "on_stack.hpp"
-#include "ontology.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -28,12 +29,9 @@
 
 namespace rubinius {
 
-  void BlockEnvironment::init(STATE) {
-    GO(blokenv).set(ontology::new_class(state, "BlockEnvironment", G(object),
-                                     G(rubinius)));
-    G(blokenv)->set_object_type(state, BlockEnvironmentType);
-
-
+  void BlockEnvironment::bootstrap(STATE) {
+    GO(blokenv).set(state->memory()->new_class<Class, BlockEnvironment>(
+          state, G(rubinius), "BlockEnvironment"));
   }
 
   void BlockEnvironment::bootstrap_methods(STATE) {
@@ -53,8 +51,7 @@ namespace rubinius {
   }
 
   BlockEnvironment* BlockEnvironment::allocate(STATE) {
-    BlockEnvironment* env = state->new_object<BlockEnvironment>(G(blokenv));
-    return env;
+    return state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
   }
 
   MachineCode* BlockEnvironment::machine_code(STATE, CallFrame* call_frame) {
@@ -563,23 +560,28 @@ namespace rubinius {
       }
     }
 
-    BlockEnvironment* be = state->new_object_dirty<BlockEnvironment>(G(blokenv));
+    BlockEnvironment* be =
+      state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
+
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->compiled_code(state, ccode);
     be->constant_scope(state, call_frame->constant_scope());
     be->module(state, call_frame->module());
+
     return be;
   }
 
   BlockEnvironment* BlockEnvironment::dup(STATE) {
-    BlockEnvironment* be = state->new_object_dirty<BlockEnvironment>(G(blokenv));
+    BlockEnvironment* be =
+      state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
 
     be->scope(state, scope_);
     be->top_scope(state, top_scope_);
     be->compiled_code(state, compiled_code_);
     be->constant_scope(state, constant_scope_);
     be->module(state, nil<Module>());
+
     return be;
   }
 

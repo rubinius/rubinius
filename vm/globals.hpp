@@ -49,12 +49,13 @@ namespace rubinius {
 
     /* classes for the core 'types' */
     TypedRoot<Class*> compiled_code, tuple, module, basicobject, object, array;
-    TypedRoot<Class*> klass, methtbl, bytearray;
+    TypedRoot<Class*> klass, method_table, bytearray;
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, character, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     TypedRoot<Class*> floatpoint, nmc, list, list_node;
-    TypedRoot<Class*> channel, thread, thread_state, constantscope, constant_table, lookuptable;
+    TypedRoot<Class*> channel, thread, thread_state, constantscope;
+    TypedRoot<Class*> constant_table, lookup_table;
     TypedRoot<Class*> iseq, executable, native_function, iobuffer;
     TypedRoot<Class*> included_module;
 
@@ -83,9 +84,9 @@ namespace rubinius {
     TypedRoot<Object*> main, undefined;
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
-    TypedRoot<Class*> lookuptablebucket;
+    TypedRoot<Class*> lookup_table_bucket;
     TypedRoot<Class*> constant_table_bucket;
-    TypedRoot<Class*> methtblbucket;
+    TypedRoot<Class*> method_table_bucket;
     TypedRoot<Class*> access_variable;
     TypedRoot<Module*> rubinius;
     TypedRoot<Class*> time_class;
@@ -146,7 +147,7 @@ namespace rubinius {
       object(&roots),
       array(&roots),
       klass(&roots),
-      methtbl(&roots),
+      method_table(&roots),
       bytearray(&roots),
       blokenv(&roots),
       bignum(&roots),
@@ -170,7 +171,7 @@ namespace rubinius {
       thread_state(&roots),
       constantscope(&roots),
       constant_table(&roots),
-      lookuptable(&roots),
+      lookup_table(&roots),
       iseq(&roots),
       executable(&roots),
       native_function(&roots),
@@ -219,9 +220,9 @@ namespace rubinius {
       undefined(&roots),
       dir(&roots),
       compactlookuptable(&roots),
-      lookuptablebucket(&roots),
+      lookup_table_bucket(&roots),
       constant_table_bucket(&roots),
-      methtblbucket(&roots),
+      method_table_bucket(&roots),
       access_variable(&roots),
       rubinius(&roots),
       time_class(&roots),

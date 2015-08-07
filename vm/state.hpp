@@ -78,24 +78,6 @@ namespace rubinius {
       return shared_.hash_seed;
     }
 
-    template <class T>
-      T* new_object(Class* cls) {
-        return static_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));
-      }
-
-    template <class T>
-      T* new_object_dirty(Class* cls) {
-        return static_cast<T*>(vm_->new_object_typed_dirty(cls, sizeof(T), T::type));
-      }
-
-    template <class T>
-      T* new_object_pinned(Class* cls) {
-        T* obj = static_cast<T*>(vm_->new_object_typed_mature(cls, sizeof(T), T::type));
-        obj->pin();
-
-        return obj;
-      }
-
     VMThreadState* thread_state() {
       return vm_->thread_state();
     }
@@ -138,12 +120,7 @@ namespace rubinius {
     bool process_async(CallFrame* call_frame);
     bool check_interrupts(CallFrame* call_frame, void* end);
 
-    gc::Slab& local_slab() {
-      return vm_->local_slab();
-    }
-
     Object* park(CallFrame* call_frame);
-
     Object* park_timed(CallFrame* call_frame, struct timespec* ts);
   };
 }

@@ -1,7 +1,13 @@
 #ifndef RBX_BUILTIN_IO_HPP
 #define RBX_BUILTIN_IO_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/byte_array.hpp"
+#include "builtin/encoding.hpp"
+#include "builtin/fixnum.hpp"
 #include "builtin/object.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
   class ByteArray;
@@ -20,7 +26,7 @@ namespace rubinius {
     Object* ibuffer_;    // slot
     Fixnum* mode_;       // slot
     Object* eof_;        // slot
-    Integer* lineno_;    // slot
+    Fixnum* lineno_;     // slot
     Object* sync_;       // slot
     Encoding* external_; // slot
     Encoding* internal_; // slot
@@ -34,7 +40,7 @@ namespace rubinius {
     attr_accessor(ibuffer, Object);
     attr_accessor(mode, Fixnum);
     attr_accessor(eof, Object);
-    attr_accessor(lineno, Integer);
+    attr_accessor(lineno, Fixnum);
     attr_accessor(sync, Object);
     attr_accessor(external, Encoding);
     attr_accessor(internal, Encoding);
@@ -42,7 +48,20 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, IO* obj) {
+      obj->descriptor_ = nil<Fixnum>();
+      obj->path_ = nil<String>();
+      obj->ibuffer_ = nil<Object>();
+      obj->mode_ = nil<Fixnum>();
+      obj->eof_ = cFalse;
+      obj->lineno_ = Fixnum::from(0);
+      obj->sync_ = nil<Object>();
+      obj->external_ = nil<Encoding>();
+      obj->internal_ = nil<Encoding>();
+      obj->autoclose_ = nil<Object>();
+    }
+
     static IO* create(STATE, int fd);
 
     static int max_descriptors() {
@@ -167,9 +186,9 @@ namespace rubinius {
 
   private:
     ByteArray* storage_;   // slot
-    Integer* total_;       // slot
-    Integer* used_;        // slot
-    Integer* start_;       // slot
+    Fixnum* total_;        // slot
+    Fixnum* used_;         // slot
+    Fixnum* start_;        // slot
     Object* eof_;          // slot
     Object* write_synced_; // slot
 
@@ -177,13 +196,21 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(storage, ByteArray);
-    attr_accessor(total, Integer);
-    attr_accessor(used, Integer);
-    attr_accessor(start, Integer);
+    attr_accessor(total, Fixnum);
+    attr_accessor(used, Fixnum);
+    attr_accessor(start, Fixnum);
     attr_accessor(eof, Object);
     attr_accessor(write_synced, Object);
 
     /* interface */
+    static void initialize(STATE, IOBuffer* obj) {
+      obj->storage_ = nil<ByteArray>();
+      obj->total_ = Fixnum::from(0);
+      obj->used_ = Fixnum::from(0);
+      obj->start_ = Fixnum::from(0);
+      obj->eof_ = cFalse;
+      obj->write_synced_ = cTrue;
+    }
 
     static IOBuffer* create(STATE, size_t bytes = IOBUFFER_SIZE);
     // Rubinius.primitive :iobuffer_allocate

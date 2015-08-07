@@ -1,4 +1,12 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "exception.hpp"
+#include "exception_point.hpp"
+#include "instruments/tooling.hpp"
+#include "object_memory.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/data.hpp"
 #include "builtin/exception.hpp"
@@ -8,17 +16,11 @@
 #include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-#include "call_frame.hpp"
+
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
-#include "configuration.hpp"
+
 #include "dtrace/dtrace.h"
-#include "exception.hpp"
-#include "exception_point.hpp"
-#include "instruments/tooling.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
-#include "on_stack.hpp"
 
 namespace rubinius {
   /** Thread-local NativeMethodEnvironment instance. */
@@ -180,12 +182,22 @@ namespace rubinius {
     return cur->scope;
   }
 
-  void NativeMethod::init(STATE) {
-    GO(nmethod).set(ontology::new_class(state, "NativeMethod",
-          G(executable), G(rubinius)));
-    G(nmethod)->set_object_type(state, NativeMethodType);
+  void NativeMethod::bootstrap(STATE) {
+    GO(nmethod).set(state->memory()->new_class<Class, NativeMethod>(
+          state, G(executable), G(rubinius), "NativeMethod"));
 
     init_thread(state);
+  }
+
+  void NativeMethod::initialize(STATE, NativeMethod* obj) {
+    Executable::initialize(state, obj);
+
+    obj->arity_ = nil<Fixnum>();
+    obj->file_ = nil<String>();
+    obj->name_ = nil<Symbol>();
+    obj->module_ = nil<Module>();
+    obj->func_ = NULL;
+    obj->capi_lock_index_ = 0;
   }
 
   void NativeMethod::init_thread(STATE) {
@@ -760,12 +772,11 @@ namespace rubinius {
                                 capi_lock_index);
   }
 
-  NativeMethod* NativeMethod::create(State* state, String* file_name,
-                                     Module* module, Symbol* method_name,
-                                     void* func, Fixnum* arity,
-                                     int capi_lock_index)
+  NativeMethod* NativeMethod::create(State* state, String* file_name, Module* module,
+      Symbol* method_name, void* func, Fixnum* arity, int capi_lock_index)
   {
-    NativeMethod* nmethod = state->new_object<NativeMethod>(G(nmethod));
+    NativeMethod* nmethod =
+      state->memory()->new_object<NativeMethod>(state, G(nmethod));
 
     nmethod->arity(state, arity);
     nmethod->file(state, file_name);
@@ -797,10 +808,6 @@ namespace rubinius {
     }
 
     nmethod->primitive(state, state->symbol("nativemethod_call"));
-    nmethod->serial(state, Fixnum::from(0));
-    nmethod->inliners_ = 0;
-    nmethod->prim_index_ = -1;
-    nmethod->custom_call_site_ = false;
     nmethod->capi_lock_index_ = capi_lock_index;
 
     return nmethod;

@@ -1,7 +1,11 @@
 #ifndef RBX_ARRAY_HPP
 #define RBX_ARRAY_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/fixnum.hpp"
 #include "builtin/object.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
   class Tuple;
@@ -28,6 +32,14 @@ namespace rubinius {
     native_int size();
     native_int offset();
     void set_size(native_int size);
+
+    static void bootstrap(STATE);
+    static void initialize(STATE, Array* array) {
+      array->total_ = Fixnum::from(0);
+      array->tuple_ = nil<Tuple>();
+      array->start_ = Fixnum::from(0);
+    }
+
     static Array* create(STATE, native_int size);
     static Array* create_dirty(STATE, native_int size);
     static Array* from_tuple(STATE, Tuple* tup);

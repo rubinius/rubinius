@@ -3,6 +3,9 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "fiber_data.hpp"
+#include "object_memory.hpp"
+
+#include "builtin/class.hpp"
 #include "builtin/fiber.hpp"
 
 namespace rubinius {

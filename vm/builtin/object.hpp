@@ -8,7 +8,6 @@
 #include "oop.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"
-#include "object_memory.hpp"
 
 namespace rubinius {
 
@@ -23,7 +22,7 @@ namespace rubinius {
   template <class T> \
   void name(T state, type* obj) { \
     name ## _ = obj; \
-    this->write_barrier(state, obj); \
+    state->memory()->write_barrier(this, obj); \
   }
 
 /**
@@ -84,23 +83,18 @@ namespace rubinius {
   class Object : public ObjectHeader {
   public:   /* Slots and bookkeeping */
 
+    static void bootstrap(STATE);
+    static void initialize(STATE, Object* obj) { }
+    static void initialize(STATE, Object* obj, native_int bytes, object_type type) {
+      obj->initialize_fields(bytes);
+    }
+
     /** Class type identifier. */
     static const object_type type = ObjectType;
 
     static void bootstrap_methods(STATE);
 
   public:   /* GC support, bookkeeping &c. */
-
-    /** Provides access to the GC write barrier from any object. */
-    void        write_barrier(STATE, void* obj);
-    void        write_barrier(VM*, void* obj);
-
-    /** Special-case write_barrier() for Fixnums. */
-    void        write_barrier(STATE, Fixnum* obj);
-    /** Special-case write_barrier() for Symbols. */
-    void        write_barrier(STATE, Symbol* obj);
-
-    void        write_barrier(ObjectMemory* om, void* obj);
 
     void        setup_allocation_site(STATE, CallFrame* call_frame = NULL);
 
@@ -395,11 +389,19 @@ namespace rubinius {
   public:   /* accessors */
 
     /* klass_ from ObjectHeader. */
-    attr_accessor(klass, Class);
+    Class* klass() const {
+      return klass_;
+    }
+
+    /* attr_accessor can't be used because it requires knowing more about
+     * Class than we can know at this point (ie Class < Object, but when
+     * defining Object, we need to know Class).
+     */
+    void klass(STATE, Class* obj);
+    void klass(ObjectMemory* memory, Class* obj);
 
     /* ivars_ from ObjectHeader. */
     attr_accessor(ivars, Object);
-
 
   public:   /* TypeInfo */
 
@@ -437,24 +439,6 @@ namespace rubinius {
 
   inline bool Object::symbol_p() const {
     return __SYMBOL_P__(this);
-  }
-
-  inline void Object::write_barrier(STATE, Fixnum* obj) {
-    /* No-op */
-  }
-
-  inline void Object::write_barrier(STATE, Symbol* obj) {
-    /* No-op */
-  }
-
-  inline void Object::write_barrier(STATE, void* ptr) {
-    Object* obj = reinterpret_cast<Object*>(ptr);
-    state->memory()->write_barrier(this, obj);
-  }
-
-  inline void Object::write_barrier(VM* vm, void* ptr) {
-    Object* obj = reinterpret_cast<Object*>(ptr);
-    vm->om->write_barrier(this, obj);
   }
 
   // Used in filtering APIs

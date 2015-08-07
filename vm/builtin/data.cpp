@@ -1,23 +1,23 @@
-#include "builtin/data.hpp"
-#include "builtin/class.hpp"
-#include "capi/capi.hpp"
 #include "object_memory.hpp"
 #include "object_utils.hpp"
-#include "ontology.hpp"
+#include "object_memory.hpp"
 #include "on_stack.hpp"
+
+#include "builtin/data.hpp"
+#include "builtin/class.hpp"
+
+#include "capi/capi.hpp"
 
 namespace rubinius {
 
-  void Data::init(STATE) {
-    GO(data).set(ontology::new_class(state, "Data", G(object)));
-    G(data)->set_object_type(state, DataType);
+  void Data::bootstrap(STATE) {
+    GO(data).set(state->memory()->new_class<Class, Data>(state, G(object), "Data"));
   }
 
   Data* Data::create(STATE, void* data_ptr, Data::MarkFunctor mark, Data::FreeFunctor free) {
     Data* data;
 
-    data = state->new_object<Data>(G(data));
-    data->freed_ = false;
+    data = state->memory()->new_object<Data>(state, G(data));
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.
@@ -50,8 +50,7 @@ namespace rubinius {
   Data* Data::create_typed(STATE, void* data_ptr, const struct rb_data_type_struct_shadow* type) {
     Data* data;
 
-    data = state->new_object<Data>(G(data));
-    data->freed_ = false;
+    data = state->memory()->new_object<Data>(state, G(data));
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.

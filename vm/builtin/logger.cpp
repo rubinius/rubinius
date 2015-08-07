@@ -1,28 +1,25 @@
+#include "object_memory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/logger.hpp"
 #include "builtin/string.hpp"
 
 #include "util/logger.hpp"
 
-#include "ontology.hpp"
-
 namespace rubinius {
   using namespace utilities;
 
-  void Logger::init(STATE) {
-    GO(logger).set(ontology::new_class_under(state, "Logger", G(rubinius)));
-    G(logger)->set_object_type(state, LoggerType);
+  void Logger::bootstrap(STATE) {
+    GO(logger).set(state->memory()->new_class<Class, Logger>(
+          state, G(rubinius), "Logger"));
   }
 
   Logger* Logger::create(STATE) {
-    Logger* logger = state->new_object<Logger>(G(logger));
-    return logger;
+    return Logger::allocate(state, G(logger));
   }
 
   Logger* Logger::allocate(STATE, Object* self) {
-    Logger* logger = create(state);
-    logger->klass(state, as<Class>(self));
-    return logger;
+    return state->memory()->new_object<Logger>(state, as<Class>(self));
   }
 
   Object* Logger::write(STATE, String* message) {

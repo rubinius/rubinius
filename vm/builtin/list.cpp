@@ -1,8 +1,9 @@
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/list.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
@@ -17,22 +18,16 @@ namespace rubinius {
   }
 
   /* Register the List and List::Node classes as globals */
-  void List::init(STATE) {
-    Class* cls;
-    cls = ontology::new_class_under(state, "List", G(rubinius));
+  void List::bootstrap(STATE) {
+    GO(list).set(state->memory()->new_class<Class, List>(state, G(rubinius), "List"));
 
-    GO(list).set(cls);
-    cls->set_object_type(state, ListType);
-
-    GO(list_node).set(ontology::new_class_under(state,
-          "Node", cls));
-
-    G(list_node)->set_object_type(state, ListNodeType);
+    GO(list_node).set(state->memory()->new_class<Class, ListNode>(
+          state, G(object), G(list), "Node"));
   }
 
   /* Create a new List object, containing no elements. */
   List* List::create(STATE) {
-    List* list = state->new_object<List>(G(list));
+    List* list = state->memory()->new_object<List>(state, G(list));
     list->count(state, Fixnum::from(0));
 
     return list;
@@ -48,7 +43,7 @@ namespace rubinius {
 
   /* Append +obj+ to the current List. */
   void List::append(STATE, Object* obj) {
-    ListNode* node = state->new_object<ListNode>(G(list_node));
+    ListNode* node = state->memory()->new_object<ListNode>(state, G(list_node));
     node->object(state, obj);
     ListNode* cur_last = last_;
 
@@ -62,7 +57,7 @@ namespace rubinius {
       first(state, node);
     }
 
-    count(state, Integer::from(state, count_->to_native() + 1));
+    count(state, Fixnum::from(count_->to_native() + 1));
   }
 
   /* Return the +index+ numbered element from the beginning. */
@@ -85,7 +80,7 @@ namespace rubinius {
   Object* List::shift(STATE) {
     if(empty_p()) return cNil;
 
-    count(state, Integer::from(state, count_->to_native() - 1));
+    count(state, Fixnum::from(count_->to_native() - 1));
     ListNode* n = first_;
     first(state, first_->next());
 
@@ -132,7 +127,7 @@ namespace rubinius {
       node = nxt;
     }
 
-    count(state, Integer::from(state, counted));
+    count(state, Fixnum::from(counted));
 
     return deleted;
   }

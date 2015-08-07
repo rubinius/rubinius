@@ -1,3 +1,12 @@
+#include "object_memory.hpp"
+#include "call_frame.hpp"
+#include "environment.hpp"
+#include "metrics.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "signal.hpp"
+#include "thread_phase.hpp"
+
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
@@ -12,15 +21,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
-
-#include "call_frame.hpp"
-#include "environment.hpp"
-#include "metrics.hpp"
-#include "object_utils.hpp"
-#include "on_stack.hpp"
-#include "ontology.hpp"
-#include "signal.hpp"
-#include "thread_phase.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -53,9 +53,8 @@ static intptr_t thread_debug_id(pthread_t thr) {
 
 namespace rubinius {
 
-  void Thread::init(STATE) {
-    GO(thread).set(ontology::new_class(state, "Thread", G(object)));
-    G(thread)->set_object_type(state, Thread::type);
+  void Thread::bootstrap(STATE) {
+    GO(thread).set(state->memory()->new_class<Class, Thread>(state, "Thread"));
   }
 
   Thread* Thread::create(STATE, VM* vm) {
@@ -63,27 +62,10 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, Class* klass, VM* vm) {
-    Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
-
-    thr->pin();
-    thr->init_lock_.init();
-    thr->join_lock_.init();
-    thr->join_cond_.init();
+    Thread* thr = state->memory()->new_object_pinned<Thread>(state, klass);
 
     thr->vm_ = vm;
     thr->thread_id(state, Fixnum::from(vm->thread_id()));
-    thr->sleep(state, cFalse);
-    thr->control_channel(state, nil<Channel>());
-    thr->locals(state, LookupTable::create(state));
-    thr->recursive_objects(state, LookupTable::create(state));
-    thr->group(state, cNil);
-    thr->result(state, cFalse);
-    thr->exception(state, nil<Exception>());
-    thr->critical(state, cFalse);
-    thr->killed(state, cFalse);
-    thr->priority(state, Fixnum::from(0));
-    thr->pid(state, Fixnum::from(0));
-    thr->klass(state, klass);
 
     vm->thread.set(thr);
 

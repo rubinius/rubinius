@@ -26,6 +26,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/fsevent.hpp"
+#include "builtin/immediates.hpp"
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/jit.hpp"
@@ -38,6 +39,7 @@
 #include "builtin/native_method.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/constant_scope.hpp"
+#include "builtin/constant_table.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -75,49 +77,6 @@
 #define SPECIAL_CLASS_SIZE 32
 
 namespace rubinius {
-  namespace ontology {
-    Class* new_basic_class(STATE, Class* sup) {
-      Class *cls = state->memory()->new_object_enduring<Class>(state, G(klass));
-      cls->init(state);
-
-      if(sup->nil_p()) {
-        cls->instance_type(state, Fixnum::from(ObjectType));
-        cls->set_type_info(state->vm()->find_type(ObjectType));
-      } else {
-        cls->instance_type(state, sup->instance_type());
-        cls->set_type_info(sup->type_info());
-      }
-      cls->superclass(state, sup);
-
-      return cls;
-    }
-
-    Class* new_class(STATE, const char* name) {
-      return new_class(state, name, G(object), G(object));
-    }
-
-    Class* new_class(STATE, const char* name, Class* sup, Module* under) {
-      if(!under) under = G(object);
-
-      Class* cls = new_basic_class(state, sup);
-      cls->setup(state, name, under);
-
-      // HACK test that we've got the MOP setup properly
-      SingletonClass::attach(state, cls, sup->singleton_class(state));
-      return cls;
-    }
-
-    Class* new_class_under(STATE, const char* name, Module* under) {
-      return new_class(state, name, G(object), under);
-    }
-
-    Module* new_module(STATE, const char* name, Module* under) {
-      Module *mod = state->new_object<Module>(G(module));
-      mod->setup(state, name, under);
-      return mod;
-    }
-  }
-
   // Reset macros since we're inside state
 #undef G
 #undef GO
@@ -125,178 +84,117 @@ namespace rubinius {
 #define GO(whatever) globals().whatever
 
   void VM::bootstrap_class(STATE) {
-    /* Class is created first by hand, and twiddle to setup the internal
-       recursion. */
-    Class* cls = reinterpret_cast<Class*>(om->allocate_object_raw(sizeof(Class)));
-
-    /* We create these 8 classes in a particular way and in a particular
-     * order. We need all 8 to create fully initialized Classes and
-     * Modules, so we just create them all uninitialized, then initialize
-     * them all at once */
-
-    // Class's klass is Class
-    cls->set_obj_type(ClassType);
-    cls->klass(state, cls);
-    cls->ivars(state, cNil);
-
-    cls->set_object_type(state, ClassType);
-    cls->init(state);
-    cls->set_packed_size(0);
-
-    // Set Class into the globals
-    GO(klass).set(cls);
-
-    // Now do Object
-    Class* basicobject = 0;
-    Class* object;
-    basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
-    GO(basicobject).set(basicobject);
-    basicobject->set_object_type(state, BasicObjectType);
-
-    object = ontology::new_basic_class(state, basicobject);
-
-    GO(object).set(object);
-    object->set_object_type(state, ObjectType);
-
-    // Now Module
-    GO(module).set(ontology::new_basic_class(state, object));
-    G(module)->set_object_type(state, ModuleType);
-
-    // Fixup Class's superclass to be Module
-    cls->superclass(state, G(module));
-
-    // Create Tuple
-    Tuple::init(state);
-
-    // Create Array
-    GO(array).set(ontology::new_basic_class(state, object));
-    G(array)->set_object_type(state, ArrayType);
-
-    // Create WeakRef
-    GO(cls_weakref).set(ontology::new_basic_class(state, basicobject));
-    G(cls_weakref)->set_object_type(state, WeakRefType);
-
-    // Create LookupTable
-    GO(lookuptable).set(ontology::new_basic_class(state, object));
-    G(lookuptable)->set_object_type(state, LookupTableType);
-
-    // Create LookupTableBucket
-    GO(lookuptablebucket).set(ontology::new_basic_class(state, object));
-    G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
-
-    // Create ConstantTable
-    GO(constant_table).set(ontology::new_basic_class(state, object));
-    G(constant_table)->set_object_type(state, ConstantTableType);
-
-    // Create ConstantTableBucket
-    GO(constant_table_bucket).set(ontology::new_basic_class(state, object));
-    G(constant_table_bucket)->set_object_type(state, ConstantTableBucketType);
-
-    // Create MethodTable
-    GO(methtbl).set(ontology::new_basic_class(state, object));
-    G(methtbl)->set_object_type(state, MethodTableType);
-
-    // Create MethodTableBucket
-    GO(methtblbucket).set(ontology::new_basic_class(state, object));
-    G(methtblbucket)->set_object_type(state, MethodTableBucketType);
-
-    /* Now, we have:
-     *  Class
-     *  Module
-     *  Object
-     *  Tuple
-     *  Array
-     *  LookupTable
-     *  LookupTableBucket
-     *  ConstantTable
-     *  ConstantTableBucket
-     *  MethodTable
-     *  MethodTableBucket
+    /* BasicObject, Object, Module, Class all have .class == Class.
+     * The superclass chain is Class < Module < Object < BasicObject < nil.
      *
-     *  With these 8 in place, we can now create fully initialized classes
-     *  and modules.
-     *
-     *  Next we need to finish up the SingletonClass protocol (a.k.a. MOP).
-     *  The SingletonClass of a subclass points to the SingletonClass of the
-     *  superclass.
+     * We have to build this in pieces because there are obviously
+     * cross-dependencies. Additionally, creating a new normal class requires
+     * a few more kinds of objects, like ConstantTable and MethodTable.
      */
+    Class::bootstrap(state);
+    BasicObject::bootstrap(state);
+    Object::bootstrap(state);
+    Module::bootstrap(state);
 
-    // BasicObject's SingletonClass instance has Class for a superclass
-    SingletonClass::attach(state, basicobject, cls);
+    assert(G(basicobject)->klass() == G(klass));
+    assert(G(basicobject)->get_type() == ClassType);
 
-    // Object's SingletonClass instance has BasicObject's SingletonClass instance for a superclass
-    Class* sc = SingletonClass::attach(state, object, basicobject->klass());
+    assert(G(object)->klass() == G(klass));
+    assert(G(object)->get_type() == ClassType);
 
-    // Module's metaclass's superclass is Object's metaclass
+    assert(G(module)->klass() == G(klass));
+    assert(G(module)->get_type() == ClassType);
+
+    assert(G(klass)->klass() == G(klass));
+    assert(G(klass)->get_type() == ClassType);
+
+    Tuple::bootstrap(state);
+    Array::bootstrap(state);
+    WeakRef::bootstrap(state);
+    LookupTable::bootstrap(state);
+    ConstantTable::bootstrap(state);
+    MethodTable::bootstrap(state);
+
+    Module::bootstrap(state, G(object), G(object), "Object");
+    Module::bootstrap(state, G(basicobject), G(object), "BasicObject");
+    Module::bootstrap(state, G(klass), G(object), "Class");
+    Module::bootstrap(state, G(module), G(object), "Module");
+    Module::bootstrap(state, G(array), G(object), "Array");
+    Module::bootstrap(state, G(cls_weakref), G(object), "WeakRef");
+
+    // Create the namespace for various implementation classes
+    GO(rubinius).set(state->memory()->new_module<Module>(state, "Rubinius"));
+    GO(runtime).set(state->memory()->new_module<Module>(state, G(rubinius), "Runtime"));
+
+    Module::bootstrap(state, G(tuple), G(rubinius), "Tuple");
+    Module::bootstrap(state, G(constant_table), G(rubinius), "ConstantTable");
+    Module::bootstrap(state, G(constant_table_bucket), G(constant_table), "Bucket");
+    Module::bootstrap(state, G(lookup_table), G(rubinius), "LookupTable");
+    Module::bootstrap(state, G(lookup_table_bucket), G(lookup_table), "Bucket");
+    Module::bootstrap(state, G(method_table), G(rubinius), "MethodTable");
+    Module::bootstrap(state, G(method_table_bucket), G(method_table), "Bucket");
+
+    // Set up singleton classes.
+    SingletonClass::attach(state, G(basicobject), G(klass));
+    Class* sc = SingletonClass::attach(state, G(object), G(basicobject)->klass());
     sc = SingletonClass::attach(state, G(module), sc);
-    // Class's metaclass likewise has Module's metaclass above it
-    SingletonClass::attach(state, cls, sc);
+    SingletonClass::attach(state, G(klass), sc);
 
-    // See?
-    assert(basicobject->superclass()->nil_p());
-    assert(object->superclass() == basicobject);
+    /* Verify the basic class hierarchy. We do this here because if you mess
+     * this up, good luck even booting the machine.
+     */
+    assert(G(basicobject)->klass()->klass() == G(klass));
+    assert(G(object)->klass()->klass() == G(klass));
+    assert(G(module)->klass()->klass() == G(klass));
+    assert(G(klass)->klass()->klass() == G(klass));
 
-    assert(G(module)->superclass() == object);
-    assert(G(module)->klass()->superclass() == object->klass());
+    assert(G(object)->superclass()->klass()->get_type() == SingletonClassType);
+    assert(G(module)->superclass()->klass()->get_type() == SingletonClassType);
+    assert(G(klass)->superclass()->klass()->get_type() == SingletonClassType);
 
-    assert(cls->superclass() == G(module));
-    assert(cls->klass()->superclass() == G(module)->klass());
+    assert(G(object)->superclass()->klass() == G(basicobject)->klass());
+    assert(G(module)->superclass()->klass() == G(object)->klass());
+    assert(G(klass)->superclass()->klass() == G(module)->klass());
+
+    assert(G(basicobject)->klass()->superclass() == G(klass));
+    assert(G(object)->klass()->superclass() == G(basicobject)->klass());
+    assert(G(module)->klass()->superclass() == G(object)->klass());
+    assert(G(klass)->klass()->superclass() == G(module)->klass());
+
+    assert(G(basicobject)->klass()->superclass()->klass() == G(klass)->klass());
+    assert(G(object)->klass()->superclass()->klass() == G(klass));
+    assert(G(module)->klass()->superclass()->klass() == G(klass));
+    assert(G(klass)->klass()->superclass()->klass() == G(klass));
+
+    assert(G(basicobject)->superclass()->nil_p());
+    assert(G(object)->superclass() == G(basicobject));
+    assert(G(module)->superclass() == G(object));
+    assert(G(klass)->superclass() == G(module));
 
     // The other builtin classes get SingletonClasses wired to Object's singleton class
     sc = G(object)->singleton_class(state);
     SingletonClass::attach(state, G(tuple), sc);
     SingletonClass::attach(state, G(array), sc);
     SingletonClass::attach(state, G(cls_weakref), sc);
-    SingletonClass::attach(state, G(lookuptable), sc);
-    SingletonClass::attach(state, G(lookuptablebucket), sc);
+    SingletonClass::attach(state, G(lookup_table), sc);
+    SingletonClass::attach(state, G(lookup_table_bucket), sc);
     SingletonClass::attach(state, G(constant_table), sc);
     SingletonClass::attach(state, G(constant_table_bucket), sc);
-    SingletonClass::attach(state, G(methtbl), sc);
-    SingletonClass::attach(state, G(methtblbucket), sc);
-
-    // Now, finish initializing the basic Class/Module
-    G(object)->setup(state, "Object");
-    G(basicobject)->setup(state, "BasicObject", G(object));
-    G(klass)->setup(state, "Class");
-    G(module)->setup(state, "Module");
-
-    // Create the namespace for various implementation classes
-    GO(rubinius).set(ontology::new_module(state, "Rubinius"));
-    GO(runtime).set(ontology::new_module(state, "Runtime", G(rubinius)));
-
-    // Finish initializing the rest of the special 8
-    G(tuple)->setup(state, "Tuple", G(rubinius));
-    G(array)->setup(state, "Array");
-    G(cls_weakref)->setup(state, "WeakRef");
-
-    G(lookuptable)->setup(state, "LookupTable", G(rubinius));
-    G(lookuptablebucket)->setup(state, "Bucket", G(lookuptable));
-
-    G(constant_table)->setup(state, "ConstantTable", G(rubinius));
-    G(constant_table_bucket)->setup(state, "Bucket", G(constant_table));
-
-    G(methtbl)->setup(state, "MethodTable", G(rubinius));
-    G(methtblbucket)->setup(state, "Bucket", G(methtbl));
+    SingletonClass::attach(state, G(method_table), sc);
+    SingletonClass::attach(state, G(method_table_bucket), sc);
   }
 
   void VM::initialize_builtin_classes(STATE) {
     // Create the immediate classes.
-    GO(nil_class).set(ontology::new_class(state, "NilClass"));
-    G(nil_class)->set_object_type(state, NilType);
-    GO(nil_class)->type_info()->allow_user_allocate = false;
+    GO(nil_class).set(state->memory()->new_class<Class, NilClass>(state, "NilClass"));
+    GO(true_class).set(state->memory()->new_class<Class, TrueClass>(state, "TrueClass"));
+    GO(false_class).set(state->memory()->new_class<Class, FalseClass>(
+          state, "FalseClass"));
 
-    GO(true_class).set(ontology::new_class(state, "TrueClass"));
-    G(true_class)->set_object_type(state, TrueType);
-    GO(true_class)->type_info()->allow_user_allocate = false;
-
-    GO(false_class).set(ontology::new_class(state, "FalseClass"));
-    G(false_class)->set_object_type(state, FalseType);
-    GO(false_class)->type_info()->allow_user_allocate = false;
-
-    Numeric::init(state);
-    Integer::init(state);
-    Fixnum::init(state);
-    Symbol::init(state);
+    Numeric::bootstrap(state);
+    Integer::bootstrap(state);
+    Fixnum::bootstrap(state);
+    Symbol::bootstrap(state);
 
     // Setup the special_class lookup table. We use this to resolve
     // the classes for Fixnum's, nil, true and false.
@@ -315,62 +213,60 @@ namespace rubinius {
     globals().special_classes[(uintptr_t)cTrue ] = GO(true_class);
 
     /* Create IncludedModule */
-    GO(included_module).set(ontology::new_class(state,
-          "IncludedModule", G(module), G(rubinius)));
-    G(included_module)->set_object_type(state, IncludedModuleType);
+    GO(included_module).set(state->memory()->new_class<Class, IncludedModule>(
+          state, G(module), G(rubinius), "IncludedModule"));
 
     // Let all the builtin classes initialize themselves. this
     // typically means creating a Ruby class.
-    BasicObject::init(state);
-    CompactLookupTable::init(state);
-    ByteArray::init(state);
-    String::init(state);
-    Character::init(state);
-    Executable::init(state);
-    CompiledCode::init(state);
-    AtomicReference::init(state);
-    IO::init(state);
-    BlockEnvironment::init(state);
-    ConstantScope::init(state);
-    Dir::init(state);
-    Time::init(state);
-    Stat::init(state);
-    Regexp::init(state);
-    Bignum::init(state);
-    Float::init(state);
-    InstructionSequence::init(state);
-    List::init(state);
+    CompactLookupTable::bootstrap(state);
+    ByteArray::bootstrap(state);
+    String::bootstrap(state);
+    Character::bootstrap(state);
+    Executable::bootstrap(state);
+    CompiledCode::bootstrap(state);
+    AtomicReference::bootstrap(state);
+    IO::bootstrap(state);
+    BlockEnvironment::bootstrap(state);
+    ConstantScope::bootstrap(state);
+    Dir::bootstrap(state);
+    Time::bootstrap(state);
+    Stat::bootstrap(state);
+    Regexp::bootstrap(state);
+    Bignum::bootstrap(state);
+    Float::bootstrap(state);
+    InstructionSequence::bootstrap(state);
+    List::bootstrap(state);
     init_ffi(state);
-    Thread::init(state);
-    ThreadState::init(state);
-    AccessVariable::init(state);
-    Pointer::init(state);
-    NativeFunction::init(state);
-    Exception::init(state);
-    Data::init(state);
-    Autoload::init(state);
-    Proc::init(state);
-    VariableScope::init(state);
-    Location::init(state);
+    Thread::bootstrap(state);
+    ThreadState::bootstrap(state);
+    AccessVariable::bootstrap(state);
+    Pointer::bootstrap(state);
+    NativeFunction::bootstrap(state);
+    Exception::bootstrap(state);
+    Data::bootstrap(state);
+    Autoload::bootstrap(state);
+    Proc::bootstrap(state);
+    VariableScope::bootstrap(state);
+    Location::bootstrap(state);
 
-    Channel::init(state);
+    Channel::bootstrap(state);
 
-    NativeMethod::init(state);
+    NativeMethod::bootstrap(state);
 
-    CallSite::init(state);
-    MonoInlineCache::init(state);
-    PolyInlineCache::init(state);
-    CallCustomCache::init(state);
-    ConstantCache::init(state);
-    RespondToCache::init(state);
-    Fiber::init(state);
-    Alias::init(state);
-    Randomizer::init(state);
-    Encoding::init(state);
-    FSEvent::init(state);
-    Logger::init(state);
-    JIT::init(state);
-    Diagnostics::init(state);
+    CallSite::bootstrap(state);
+    MonoInlineCache::bootstrap(state);
+    PolyInlineCache::bootstrap(state);
+    CallCustomCache::bootstrap(state);
+    ConstantCache::bootstrap(state);
+    RespondToCache::bootstrap(state);
+    Fiber::bootstrap(state);
+    Alias::bootstrap(state);
+    Randomizer::bootstrap(state);
+    Encoding::bootstrap(state);
+    FSEvent::bootstrap(state);
+    Logger::bootstrap(state);
+    JIT::bootstrap(state);
+    Diagnostics::bootstrap(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -389,7 +285,7 @@ namespace rubinius {
      * classes.
      */
 
-    Object* undef = new_object<Object>(G(object));
+    Object* undef = state->memory()->new_object<Object>(state, G(object));
     GO(undefined).set(undef);
 
     /*
@@ -405,14 +301,14 @@ namespace rubinius {
      * Create any 'stock' objects
      */
 
-    Object* main = new_object<Object>(G(object));
+    Object* main = state->memory()->new_object<Object>(state, G(object));
     GO(main).set(main);
     G(object)->set_const(state, "MAIN", main); // HACK test hooking up MAIN
 
-    GO(vm_class).set(ontology::new_class_under(state, "VM", G(rubinius)));
+    GO(vm_class).set(state->memory()->new_class<Class>(state, G(rubinius), "VM"));
 
-    GO(type).set(ontology::new_module(state, "Type", G(rubinius)));
-    GO(mirror).set(ontology::new_class(state, "Mirror", G(object), G(rubinius)));
+    GO(type).set(state->memory()->new_module<Module>(state, G(rubinius), "Type"));
+    GO(mirror).set(state->memory()->new_class<Class>(state, G(rubinius), "Mirror"));
 
     System::bootstrap_methods(state);
     Module::bootstrap_methods(state);
@@ -428,7 +324,7 @@ namespace rubinius {
 
     initialize_platform_data(state);
 
-    MachineCode::init(state);
+    MachineCode::bootstrap(state);
   }
 
   void VM::initialize_fundamental_constants(STATE) {
@@ -581,7 +477,7 @@ namespace rubinius {
     if(found) {
       ern->set_const(state, state->symbol(name), current);
     } else {
-      Class* cls = ontology::new_class(state, name, sce, ern);
+      Class* cls = state->memory()->new_class<Class>(state, sce, ern, name);
 
       // new_class has simply name setting logic that doesn't take into account
       // being not under Object. So we set it again using the smart method.
@@ -600,7 +496,7 @@ namespace rubinius {
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sce, *type, *lje, *vme;
     Class *rng, *rte;
 
-#define dexc(name, sup) ontology::new_class(state, #name, sup)
+#define dexc(name, sup) state->memory()->new_class<Class>(state, sup, G(object), #name)
 
     exc = G(exception);
     scp = dexc(ScriptError, exc);
@@ -623,16 +519,16 @@ namespace rubinius {
 
     GO(jump_error).set(lje);
 
-    GO(exc_vm_internal).set(ontology::new_class(state,
-          "Internal", exc, G(rubinius)));
-    GO(exc_vm_bad_bytecode).set(
-        ontology::new_class(state, "InvalidBytecode",
-          G(exc_vm_internal), G(rubinius)));
+    GO(exc_vm_internal).set(state->memory()->new_class<Class>(
+          state, exc, G(rubinius), "Internal"));
+    GO(exc_vm_bad_bytecode).set(state->memory()->new_class<Class>(
+          state, G(exc_vm_internal), G(rubinius), "InvalidBytecode"));
 
     // Some special exceptions scoped under the Rubinius module
-    vme = ontology::new_class(state, "VMException", exc, G(rubinius));
-    ontology::new_class(state, "AssertionError", vme, G(rubinius));
-    ontology::new_class(state, "ObjectBoundsExceededError", vme, G(rubinius));
+    vme = state->memory()->new_class<Class>(state, exc, G(rubinius), "VMException");
+    state->memory()->new_class<Class>(state, vme, G(rubinius), "AssertionError");
+    state->memory()->new_class<Class>(
+        state, vme, G(rubinius), "ObjectBoundsExceededError");
 
     // The stack_error mechanisms assume that there will be enough
     // space left over to allocate the actual exception.
@@ -648,7 +544,7 @@ namespace rubinius {
 
     GO(exc_segfault).set(dexc(MemorySegmentionError, exc));
 
-    Module* ern = ontology::new_module(state, "Errno");
+    Module* ern = state->memory()->new_module<Module>(state, "Errno");
 
     GO(errno_mapping).set(LookupTable::create(state));
 

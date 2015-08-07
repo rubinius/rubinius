@@ -6,8 +6,6 @@
 
 #include "ffi_util.hpp"
 
-#include "ontology.hpp"
-
 class TestArray : public CxxTest::TestSuite, public VMTest {
   public:
 

@@ -1,34 +1,28 @@
 #include "arguments.hpp"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/access_variable.hpp"
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/packed_object.hpp"
 #include "builtin/symbol.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
 
-  void AccessVariable::init(STATE) {
-    // HACK test superclass of AccessVariable
-    GO(access_variable).set(ontology::new_class(state,
-          "AccessVariable", G(executable), G(rubinius)));
-    G(access_variable)->set_object_type(state, AccessVariableType);
+  void AccessVariable::bootstrap(STATE) {
+    GO(access_variable).set(state->memory()->new_class<Class, AccessVariable>(
+        state, G(executable), G(rubinius), "AccessVariable"));
   }
 
   AccessVariable* AccessVariable::allocate(STATE) {
-    AccessVariable* av = state->new_object<AccessVariable>(G(access_variable));
-    av->inliners_ = 0;
-    av->prim_index_ = -1;
-    av->custom_call_site_ = false;
-    av->set_executor(AccessVariable::access_execute);
-    return av;
+    return state->memory()->new_object<AccessVariable>(state, G(access_variable));
   }
 
-  Object* AccessVariable::access_read_regular_ivar(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                                         Arguments& args) {
+  Object* AccessVariable::access_read_regular_ivar(STATE, CallFrame* call_frame,
+      Executable* exec, Module* mod, Arguments& args)
+  {
     AccessVariable* access = as<AccessVariable>(exec);
     if(unlikely(args.total() != 0)) {
       Exception::argument_error(state, 0, args.total());

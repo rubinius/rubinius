@@ -28,12 +28,10 @@
 #include "ffi_util.hpp"
 #include "arguments.hpp"
 
-#include "ontology.hpp"
-
 namespace rubinius {
 
   void VM::init_ffi(STATE) {
-    GO(ffi).set(ontology::new_module(state, "FFI", G(rubinius)));
+    GO(ffi).set(state->memory()->new_module<Module>(state, G(rubinius), "FFI"));
     Module* mod = G(ffi);
     mod->set_const(state, "TYPE_CHAR",       Fixnum::from(RBX_FFI_TYPE_CHAR));
     mod->set_const(state, "TYPE_UCHAR",      Fixnum::from(RBX_FFI_TYPE_UCHAR));

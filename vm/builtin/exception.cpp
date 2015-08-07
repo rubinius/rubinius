@@ -1,3 +1,8 @@
+#include "object_memory.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
@@ -6,24 +11,26 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
-#include "call_frame.hpp"
-#include "configuration.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
 
 #include <sstream>
 
 namespace rubinius {
-  void Exception::init(STATE) {
-    GO(exception).set(ontology::new_class(state, "Exception", G(object)));
-    G(exception)->set_object_type(state, ExceptionType);
+  void Exception::bootstrap(STATE) {
+    GO(exception).set(state->memory()->new_class<Class, Exception>(
+          state, G(object), "Exception"));
+  }
+
+  Exception* Exception::allocate(STATE, Object* self) {
+    return state->memory()->new_object<Exception>(state, as<Class>(self));
   }
 
   Exception* Exception::create(STATE) {
-    return state->new_object<Exception>(G(exception));
+    return state->memory()->new_object<Exception>(state, G(exception));
   }
 
   void Exception::print_locations(STATE) {
+    if(locations_->nil_p()) return;
+
     for(native_int i = 0; i < locations_->size(); i++) {
       if(Location* loc = try_as<Location>(locations_->get(state, i))) {
         if(CompiledCode* meth = try_as<CompiledCode>(loc->method())) {
@@ -52,7 +59,7 @@ namespace rubinius {
   }
 
   Exception* Exception::make_exception(STATE, Class* exc_class, const char* message) {
-    Exception* exc = state->new_object<Exception>(exc_class);
+    Exception* exc = state->memory()->new_object<Exception>(state, exc_class);
 
     exc->reason_message(state, String::create(state, message));
 
@@ -60,7 +67,7 @@ namespace rubinius {
   }
 
   Exception* Exception::make_argument_error(STATE, int expected, int given, Symbol* meth) {
-    Exception* exc = state->new_object<Exception>(G(exc_arg));
+    Exception* exc = state->memory()->new_object<Exception>(state, G(exc_arg));
     exc->set_ivar(state, state->symbol("@given"), Fixnum::from(given));
     exc->set_ivar(state, state->symbol("@expected"), Fixnum::from(expected));
     if(meth) {
@@ -251,7 +258,7 @@ namespace rubinius {
   }
 
   Exception* Exception::make_errno_exception(STATE, Class* exc_class, Object* reason, Object* loc) {
-    Exception* exc = state->new_object<Exception>(exc_class);
+    Exception* exc = state->memory()->new_object<Exception>(state, exc_class);
 
     String* message = force_as<String>(reason);
     if(String* str = try_as<String>(exc_class->get_const(state, "Strerror"))) {

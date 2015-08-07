@@ -8,7 +8,7 @@ namespace rubinius {
   public:
     const static object_type type = CharacterType;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
 
     // Rubinius.primitive :character_allocate
     static Character* allocate(STATE, Object* self);

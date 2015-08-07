@@ -1,5 +1,10 @@
 module Rubinius
+  # TODO: This class should not be under Rubinius.
   class Stat
+    def self.allocate
+      Rubinius.primitive :stat_allocate
+      raise PrimitiveFailure, "Stat.allocate primitive failed"
+    end
 
     def setup(path)
       Rubinius.primitive :stat_stat

@@ -1,10 +1,13 @@
 #ifndef RBX_BUILTIN_TIME_HPP
 #define RBX_BUILTIN_TIME_HPP
 
-#include "util/time64.h"
+#include "object_utils.hpp"
 
+#include "builtin/array.hpp"
 #include "builtin/object.hpp"
 #include "builtin/integer.hpp"
+
+#include "util/time64.h"
 
 namespace rubinius {
   class Array;
@@ -35,7 +38,15 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Time* obj) {
+      obj->seconds_ = 0;
+      obj->nanoseconds_ = 0;
+      obj->decomposed_ = nil<Array>();
+      obj->is_gmt_ = cFalse;
+      obj->offset_ = nil<Object>();
+      obj->zone_ = nil<Object>();
+    }
 
     static Time* at(STATE, time64_t seconds, long nanoseconds = 0);
 

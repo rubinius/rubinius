@@ -13,7 +13,7 @@ namespace rubinius {
   public:
     const static object_type type = FixnumType;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
 
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX or less than FIXNUM_MIN. */

@@ -1,11 +1,10 @@
-#include "vm.hpp"
-#include "state.hpp"
+#include "bug.hpp"
+#include "configuration.hpp"
 #include "fiber_stack.hpp"
 #include "fiber_data.hpp"
-
-#include "configuration.hpp"
-
-#include "bug.hpp"
+#include "object_memory.hpp"
+#include "state.hpp"
+#include "vm.hpp"
 
 #include "gc/gc.hpp"
 

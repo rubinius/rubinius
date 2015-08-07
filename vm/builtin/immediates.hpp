@@ -10,7 +10,12 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
+      Info(object_type type)
+        : TypeInfo(type)
+      {
+        allow_user_allocate = false;
+      }
+
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
@@ -24,7 +29,12 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
+      Info(object_type type)
+        : TypeInfo(type)
+      {
+        allow_user_allocate = false;
+      }
+
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
@@ -37,7 +47,12 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
+      Info(object_type type)
+        : TypeInfo(type)
+      {
+        allow_user_allocate = false;
+      }
+
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}

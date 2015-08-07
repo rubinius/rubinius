@@ -3,9 +3,11 @@
 
 #include <list>
 
+#include "object_memory.hpp"
 #include "oop.hpp"
-#include "builtin/object.hpp"
 #include "shared_state.hpp"
+
+#include "builtin/object.hpp"
 
 namespace rubinius {
 

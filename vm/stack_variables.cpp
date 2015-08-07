@@ -1,9 +1,12 @@
-#include "stack_variables.hpp"
-#include "builtin/variable_scope.hpp"
-#include "builtin/lookup_table.hpp"
-#include "machine_code.hpp"
 #include "call_frame.hpp"
+#include "machine_code.hpp"
+#include "object_memory.hpp"
 #include "on_stack.hpp"
+#include "stack_variables.hpp"
+
+#include "builtin/fiber.hpp"
+#include "builtin/lookup_table.hpp"
+#include "builtin/variable_scope.hpp"
 
 namespace rubinius {
 
@@ -13,7 +16,8 @@ namespace rubinius {
     if(on_heap_) return on_heap_;
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
-    VariableScope* scope = state->new_object_dirty<VariableScope>(G(variable_scope));
+    VariableScope* scope =
+      state->memory()->new_object<VariableScope>(state, G(variable_scope));
 
     if(parent_) {
       scope->parent(state, parent_);

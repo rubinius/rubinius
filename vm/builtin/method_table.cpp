@@ -1,3 +1,6 @@
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/alias.hpp"
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
@@ -5,8 +8,6 @@
 #include "builtin/method_table.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
 
 #define METHODTABLE_MAX_DENSITY 0.75
 #define METHODTABLE_MIN_DENSITY 0.3
@@ -18,12 +19,18 @@
 
 
 namespace rubinius {
+  void MethodTable::bootstrap(STATE) {
+    GO(method_table).set(
+        Class::bootstrap_class(state, G(object), MethodTableType));
+    GO(method_table_bucket).set(
+        Class::bootstrap_class(state, G(object), MethodTableBucketType));
+  }
+
   MethodTable* MethodTable::create(STATE, size_t size) {
     MethodTable *tbl;
 
-    tbl = state->new_object<MethodTable>(G(methtbl));
+    tbl = state->memory()->new_object<MethodTable>(state, G(method_table));
     tbl->setup(state, size);
-    tbl->lock_.init();
 
     return tbl;
   }
@@ -313,13 +320,12 @@ namespace rubinius {
 
       while(entry) {
        if(Symbol* sym = try_as<Symbol>(entry->name())) {
-          std::cout << ":" << sym->debug_str(state);
+          std::cout << ":" << sym->debug_str(state) << ", ";
         } else if(Fixnum* fix = try_as<Fixnum>(entry->name())) {
-          std::cout << fix->to_native();
+          std::cout << fix->to_native() << ", ";
         }
         entry = try_as<MethodTableBucket>(entry->next());
       }
-      if(i < size - 1) std::cout << ", ";
     }
     std::cout << std::endl;
     close_body(level);
@@ -329,11 +335,12 @@ namespace rubinius {
       Executable* method, Symbol* vis)
   {
     MethodTableBucket *entry =
-      state->new_object<MethodTableBucket>(G(methtblbucket));
+      state->memory()->new_object<MethodTableBucket>(state, G(method_table_bucket));
 
     entry->name(state, name);
     entry->method(state, method);
     entry->visibility(state, vis);
+
     return entry;
   }
 

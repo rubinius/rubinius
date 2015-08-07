@@ -2,8 +2,6 @@
 
 #include "builtin/regexp.hpp"
 
-#include "ontology.hpp"
-
 class TestRegexp : public CxxTest::TestSuite, public VMTest {
 public:
 

@@ -1,3 +1,7 @@
+#include "object_memory.hpp"
+#include "call_frame.hpp"
+#include "fiber_data.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fiber.hpp"
@@ -5,17 +9,13 @@
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
-#include "call_frame.hpp"
-#include "fiber_data.hpp"
+
 #include "gc/gc.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void VariableScope::init(STATE) {
-    GO(variable_scope).set(ontology::new_class(state,
-          "VariableScope", G(object), G(rubinius)));
-    G(variable_scope)->set_object_type(state, VariableScopeType);
+  void VariableScope::bootstrap(STATE) {
+    GO(variable_scope).set(state->memory()->new_class<Class, VariableScope>(
+          state, G(rubinius), "VariableScope"));
   }
 
   void VariableScope::bootstrap_methods(STATE) {
@@ -37,25 +37,15 @@ namespace rubinius {
     return call_frame->promote_scope(state);
   }
 
-  VariableScope* VariableScope::allocate(STATE)
-  {
-    VariableScope* scope = state->new_object<VariableScope>(G(variable_scope));
-
-    scope->number_of_locals_ = 0;
-    scope->isolated_ = 1;
-    scope->locals_ = 0;
-    scope->flags_ = 0;
-    scope->lock_.init();
-
-    return scope;
+  VariableScope* VariableScope::allocate(STATE) {
+    return state->memory()->new_object<VariableScope>(state, G(variable_scope));
   }
 
   VariableScope* VariableScope::synthesize(STATE, CompiledCode* method,
-                                           Module* module, Object* parent,
-                                           Object* self, Object* block,
-                                           Tuple* locals)
+      Module* module, Object* parent, Object* self, Object* block, Tuple* locals)
   {
-    VariableScope* scope = state->new_object<VariableScope>(G(variable_scope));
+    VariableScope* scope =
+      state->memory()->new_object<VariableScope>(state, G(variable_scope));
 
     scope->block(state, block);
     scope->module(state, module);
@@ -68,22 +58,24 @@ namespace rubinius {
     }
 
     scope->heap_locals(state, locals);
-    scope->last_match(state, cNil);
 
     scope->self(state, self);
     scope->number_of_locals_ = locals->num_fields();
-    scope->isolated_ = 1;
-    scope->locals_ = 0;
-    scope->flags_ = 0;
-    scope->lock_.init();
 
     return scope;
   }
 
   Tuple* VariableScope::locals(STATE) {
-    Tuple* tup = Tuple::create_dirty(state, number_of_locals_);
-    for(int i = 0; i < number_of_locals_; i++) {
-      tup->put(state, i, get_local(state, i));
+    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals_);
+
+    if(tup->young_object_p()) {
+      for(int i = 0; i < number_of_locals_; i++) {
+        tup->field[i] = get_local(state, i);
+      }
+    } else {
+      for(int i = 0; i < number_of_locals_; i++) {
+        tup->put(state, i, get_local(state, i));
+      }
     }
 
     return tup;
@@ -196,10 +188,20 @@ namespace rubinius {
 
   void VariableScope::flush_to_heap_internal(STATE) {
     if(isolated_) return;
-     Tuple* new_locals = Tuple::create_dirty(state, number_of_locals_);
+
+   Tuple* new_locals =
+     state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals_);
+
+   if(new_locals->young_object_p()) {
+     for(int i = 0; i < number_of_locals_; i++) {
+       new_locals->field[i] = locals_[i];
+     }
+   } else {
      for(int i = 0; i < number_of_locals_; i++) {
        new_locals->put(state, i, locals_[i]);
      }
+   }
+
     heap_locals(state, new_locals);
     isolated_ = 1;
   }

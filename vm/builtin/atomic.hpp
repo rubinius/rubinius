@@ -1,7 +1,10 @@
 #ifndef RBX_BUILTIN_ATOMIC_HPP
 #define RBX_BUILTIN_ATOMIC_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/object.hpp"
+
 #include "util/atomic.hpp"
 
 namespace rubinius {
@@ -17,7 +20,10 @@ namespace rubinius {
     attr_accessor(value, Object);
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, AtomicReference* ref) {
+      ref->value_ = nil<Object>();
+    }
 
     static AtomicReference* allocate(STATE);
     static AtomicReference* create(STATE, Object* val);

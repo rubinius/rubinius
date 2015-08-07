@@ -1,7 +1,12 @@
 #ifndef RBX_BUILTIN_AUTOLOAD_HPP
 #define RBX_BUILTIN_AUTOLOAD_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/module.hpp"
 #include "builtin/object.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/thread.hpp"
 
 namespace rubinius {
   struct CallFrame;
@@ -28,7 +33,15 @@ namespace rubinius {
     attr_accessor(loaded, Object);
 
     /**  Register class with the VM. */
-    static void   init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Autoload* obj) {
+      obj->name_ = nil<Symbol>();
+      obj->scope_ = nil<Module>();
+      obj->path_ = nil<Object>();
+      obj->constant_ = nil<Object>();
+      obj->thread_ = nil<Thread>();
+      obj->loaded_ = nil<Object>();
+    }
 
     // Rubinius.primitive :autoload_allocate
     static Autoload* create(STATE);

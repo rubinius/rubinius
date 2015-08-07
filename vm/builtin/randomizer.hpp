@@ -1,8 +1,13 @@
 #ifndef RBX_BUILTIN_RANDOMIZER_HPP
 #define RBX_BUILTIN_RANDOMIZER_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/byte_array.hpp"
 #include "builtin/object.hpp"
+
 #include "util/random.h"
+#include "util/thread.hpp"
 
 namespace rubinius {
   class ByteArray;
@@ -14,13 +19,13 @@ namespace rubinius {
     const static object_type type = RandomizerType;
 
   private:
-    int lock_;
+    utilities::thread::SpinLock lock_;
     ByteArray *rng_data_; // slot
 
     struct random_state* rng_state();
 
     void init_by_single(uint32_t s);
-    void init_by_array(uint32_t init_key[], int key_length);
+    void init_by_array(uint32_t bootstrap_key[], int key_length);
     uint32_t rb_genrand_int32();
     double rb_genrand_real();
     native_uint limited_rand(native_uint limit);
@@ -31,8 +36,8 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
-
+    static void bootstrap(STATE);
+    static void initialize(STATE, Randomizer* obj);
 
     static Randomizer* create(STATE);
 

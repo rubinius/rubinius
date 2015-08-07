@@ -34,11 +34,11 @@ namespace rubinius {
 
   GCData::GCData(VM* state)
     : roots_(state->globals().roots)
-    , handles_(state->om->capi_handles())
-    , cached_handles_(state->om->cached_capi_handles())
+    , handles_(state->memory()->capi_handles())
+    , cached_handles_(state->memory()->cached_capi_handles())
     , global_cache_(state->shared.global_cache)
     , threads_(state->shared.thread_nexus()->threads())
-    , global_handle_locations_(state->om->global_capi_handle_locations())
+    , global_handle_locations_(state->memory()->global_capi_handle_locations())
 #ifdef ENABLE_LLVM
     , llvm_state_(state->shared.llvm_state)
 #endif

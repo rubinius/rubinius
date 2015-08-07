@@ -1,29 +1,25 @@
 #include "arguments.hpp"
-#include "builtin/class.hpp"
-#include "builtin/executable.hpp"
-#include "builtin/symbol.hpp"
 #include "call_frame.hpp"
 #include "dispatch.hpp"
 #include "object_memory.hpp"
 #include "object_utils.hpp"
-#include "ontology.hpp"
+
+#include "builtin/class.hpp"
+#include "builtin/executable.hpp"
+#include "builtin/symbol.hpp"
 
 namespace rubinius {
 
-  void Executable::init(STATE) {
-    GO(executable).set(ontology::new_class(state, "Executable", G(object), G(rubinius)));
-    G(executable)->set_object_type(state, ExecutableType);
+  void Executable::bootstrap(STATE) {
+    GO(executable).set(state->memory()->new_class<Class, Executable>(
+          state, G(rubinius), "Executable"));
   }
 
   Executable* Executable::allocate(STATE, Object* self) {
-    Executable* executable = state->new_object<Executable>(G(executable));
-    executable->primitive(state, nil<Symbol>());
-    executable->serial(state, Fixnum::from(0));
-    executable->inliners_ = 0;
-    executable->prim_index_ = -1;
-    executable->custom_call_site_ = false;
+    Executable* executable =
+      state->memory()->new_object<Executable>(state, G(executable));
 
-    executable->set_executor(Executable::default_executor);
+    Executable::initialize(state, executable, Executable::default_executor);
 
     if(Class* cls = try_as<Class>(self)) {
       executable->klass(state, cls);

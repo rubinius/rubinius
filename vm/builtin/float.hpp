@@ -22,7 +22,12 @@ namespace rubinius {
 
     double val;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Float* obj) {
+      obj->val = 0.0;
+      obj->set_frozen();
+    }
+
     static Float* create(STATE, double val);
     static Float* create(STATE, float val);
     static Float* create(STATE, native_int val);

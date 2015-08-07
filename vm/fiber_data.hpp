@@ -37,6 +37,7 @@ namespace rubinius {
   };
 #endif
 
+  struct CallFrame;
   class FiberStack;
   class FiberStacks;
 

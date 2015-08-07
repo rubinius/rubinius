@@ -1,3 +1,6 @@
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
@@ -5,7 +8,6 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "object_utils.hpp"
 
 #define LOOKUPTABLE_MAX_DENSITY 0.75
 #define LOOKUPTABLE_MIN_DENSITY 0.3
@@ -21,10 +23,17 @@
 
 
 namespace rubinius {
+  void LookupTable::bootstrap(STATE) {
+    GO(lookup_table).set(
+        Class::bootstrap_class(state, G(object), LookupTableType));
+    GO(lookup_table_bucket).set(
+        Class::bootstrap_class(state, G(object), LookupTableBucketType));
+  }
+
   LookupTable* LookupTable::create(STATE, size_t size) {
     LookupTable *tbl;
 
-    tbl = state->new_object<LookupTable>(G(lookuptable));
+    tbl = state->memory()->new_object<LookupTable>(state, G(lookup_table));
     tbl->setup(state, size);
 
     return tbl;
@@ -337,11 +346,10 @@ namespace rubinius {
     indent(++level);
     for(size_t i = 0; i < size; i++) {
       if(Symbol* sym = try_as<Symbol>(keys->get(state, i))) {
-        std::cout << ":" << sym->debug_str(state);
+        std::cout << ":" << sym->debug_str(state) << ", ";
       } else if(Fixnum* fix = try_as<Fixnum>(keys->get(state, i))) {
-        std::cout << fix->to_native();
+        std::cout << fix->to_native() << ", ";
       }
-      if(i < size - 1) std::cout << ", ";
     }
     std::cout << std::endl;
     close_body(level);
@@ -349,10 +357,11 @@ namespace rubinius {
 
   LookupTableBucket* LookupTableBucket::create(STATE, Object *key, Object *value) {
     LookupTableBucket *entry =
-      state->new_object<LookupTableBucket>(G(lookuptablebucket));
+      state->memory()->new_object<LookupTableBucket>(state, G(lookup_table_bucket));
 
     entry->key(state, key);
     entry->value(state, value);
+
     return entry;
   }
 

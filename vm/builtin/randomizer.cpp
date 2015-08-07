@@ -1,12 +1,12 @@
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/byte_array.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/randomizer.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
-#include "util/spinlock.hpp"
 
 template <typename T>
 static T make_mask(T x) {
@@ -21,26 +21,24 @@ namespace rubinius {
   }
 
   void Randomizer::init_by_single(uint32_t s) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+
     struct random_state* rng = rng_state();
-    rbx_spinlock_lock(&lock_);
     random_init_single(rng, s);
-    rbx_spinlock_unlock(&lock_);
   }
 
   void Randomizer::init_by_array(uint32_t init_key[], int key_length) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+
     struct random_state* rng = rng_state();
-    rbx_spinlock_lock(&lock_);
     random_init_array(rng, init_key, key_length);
-    rbx_spinlock_unlock(&lock_);
   }
 
   /* generates a random number on [0,0xffffffff]-interval */
   uint32_t Randomizer::rb_genrand_int32() {
-    uint32_t y;
-    rbx_spinlock_lock(&lock_);
-    y = random_gen_uint32(rng_state());
-    rbx_spinlock_unlock(&lock_);
-    return y;
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+
+    return random_gen_uint32(rng_state());
   }
 
   native_uint Randomizer::limited_rand(native_uint limit) {
@@ -59,35 +57,28 @@ namespace rubinius {
   }
 
   double Randomizer::rb_genrand_real() {
-    double y;
-    rbx_spinlock_lock(&lock_);
-    y = random_gen_double(rng_state());
-    rbx_spinlock_unlock(&lock_);
-    return y;
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+
+    return random_gen_double(rng_state());
   }
 
-  void Randomizer::init(STATE) {
-    GO(randomizer).set(ontology::new_class(state,
-          "Randomizer", G(object), G(rubinius)));
-    G(randomizer)->set_object_type(state, RandomizerType);
+  void Randomizer::bootstrap(STATE) {
+    GO(randomizer).set(state->memory()->new_class<Class, Randomizer>(
+          state, G(rubinius), "Randomizer"));
+  }
+
+  void Randomizer::initialize(STATE, Randomizer* obj) {
+    obj->lock_.init();
+    obj->rng_data(state, ByteArray::create(state, sizeof(struct random_state)));
+    random_init_single(obj->rng_state(), 5489UL);
   }
 
   Randomizer* Randomizer::create(STATE) {
-    Randomizer* r = state->new_object<Randomizer>(G(randomizer));
-    r->lock_ = RBX_SPINLOCK_INIT;
-    r->rng_data(state, ByteArray::create(state, sizeof(struct random_state)));
-    random_init_single(r->rng_state(), 5489UL);
-    return r;
+    return Randomizer::allocate(state, G(randomizer));
   }
 
   Randomizer* Randomizer::allocate(STATE, Object* self) {
-    Randomizer* randomizer = create(state);
-
-    if(Class* cls = try_as<Class>(self)) {
-      randomizer->klass(state, cls);
-    }
-
-    return randomizer;
+    return state->memory()->new_object<Randomizer>(state, as<Class>(self));
   }
 
   Integer* Randomizer::gen_seed(STATE) {

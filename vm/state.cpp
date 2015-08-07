@@ -1,20 +1,20 @@
-#include "vm.hpp"
+#include "call_frame.hpp"
+#include "helpers.hpp"
+#include "object_memory.hpp"
+#include "park.hpp"
+#include "signal.hpp"
 #include "state.hpp"
+#include "vm.hpp"
+
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
 #include "builtin/array.hpp"
 #include "builtin/fiber.hpp"
 
-#include "signal.hpp"
-#include "call_frame.hpp"
-#include "helpers.hpp"
-
-#include "park.hpp"
-
 namespace rubinius {
   void State::raise_stack_error(CallFrame* call_frame) {
     Class* stack_error = globals().stack_error.get();
-    Exception* exc = new_object<Exception>(stack_error);
+    Exception* exc = memory()->new_object<Exception>(this, stack_error);
     exc->locations(this, Location::from_call_stack(this, call_frame));
     vm_->thread_state()->raise_exception(exc);
   }

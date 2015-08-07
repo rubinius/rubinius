@@ -1,3 +1,8 @@
+#include "configuration.hpp"
+#include "missing/math.h"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
@@ -6,10 +11,7 @@
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-#include "configuration.hpp"
-#include "missing/math.h"
-#include "object_utils.hpp"
-#include "ontology.hpp"
+
 #include "util/local_buffer.hpp"
 #include "missing/string.h"
 
@@ -22,9 +24,9 @@
 #include <sstream>
 namespace rubinius {
 
-  void Float::init(STATE) {
-    GO(floatpoint).set(ontology::new_class(state, "Float", G(numeric)));
-    G(floatpoint)->set_object_type(state, FloatType);
+  void Float::bootstrap(STATE) {
+    GO(floatpoint).set(state->memory()->new_class<Class, Float>(
+          state, G(numeric), "Float"));
 
     G(floatpoint)->set_const(state, "RADIX",      Fixnum::from(FLT_RADIX));
     G(floatpoint)->set_const(state, "ROUNDS",     Fixnum::from(FLT_ROUNDS));
@@ -40,9 +42,8 @@ namespace rubinius {
   }
 
   Float* Float::create(STATE, double val) {
-    Float* flt = state->new_object_dirty<Float>(G(floatpoint));
+    Float* flt = state->memory()->new_object<Float>(state, G(floatpoint));
     flt->val = val;
-    flt->set_frozen();
     return flt;
   }
 
@@ -430,7 +431,8 @@ namespace rubinius {
     char buf[FLOAT_TO_S_STRLEN];
 
     int length = double_to_ascii(buf, FLOAT_TO_S_STRLEN, val, &sign, &decpt);
-    Tuple* result = Tuple::create_dirty(state, 4);
+    Tuple* result = state->memory()->new_fields<Tuple>(state, G(tuple), 4);
+
     result->put(state, 0, String::create(state, buf, length));
     result->put(state, 1, Fixnum::from(decpt));
     result->put(state, 2, Fixnum::from(sign));

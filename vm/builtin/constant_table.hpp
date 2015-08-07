@@ -27,6 +27,13 @@ namespace rubinius {
     attr_accessor(visibility, Symbol);
     attr_accessor(next, ConstantTableBucket);
 
+    static void initialize(STATE, ConstantTableBucket* obj) {
+      obj->name_ = nil<Symbol>();
+      obj->constant_ = nil<Object>();
+      obj->visibility_ = nil<Symbol>();
+      obj->next_ = nil<ConstantTableBucket>();
+    }
+
     static ConstantTableBucket* create(STATE, Symbol* name,
         Object* constant, Symbol* visibility);
 
@@ -58,12 +65,18 @@ namespace rubinius {
 
   public:
     /* accessors */
-
     attr_accessor(values, Tuple);
     attr_accessor(bins, Integer);
     attr_accessor(entries, Integer);
 
     /* interface */
+    static void bootstrap(STATE);
+    static void initialize(STATE, ConstantTable* obj) {
+      obj->values_ = nil<Tuple>();
+      obj->bins_ = Fixnum::from(0);
+      obj->entries_ = Fixnum::from(0);
+      obj->lock_.init();
+    }
 
     static ConstantTable* create(STATE, native_int size = 0);
     void setup(STATE, native_int size);

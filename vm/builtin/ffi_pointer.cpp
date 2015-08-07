@@ -1,3 +1,8 @@
+#include "ffi_util.hpp"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+#include "windows_compat.h"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
@@ -7,11 +12,6 @@
 #include "builtin/native_function.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "ffi_util.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
-#include "windows_compat.h"
 
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
@@ -22,9 +22,9 @@
 
 namespace rubinius {
 
-  void Pointer::init(STATE) {
-    GO(ffi_pointer).set(ontology::new_class_under(state, "Pointer", G(ffi)));
-    G(ffi_pointer)->set_object_type(state, PointerType);
+  void Pointer::bootstrap(STATE) {
+    GO(ffi_pointer).set(state->memory()->new_class<Class, Pointer>(
+          state, G(ffi), "Pointer"));
 
     G(ffi_pointer)->set_const(state, "CURRENT_PROCESS",
       Pointer::create(state, dlopen(NULL, RTLD_NOW | RTLD_GLOBAL)));
@@ -70,30 +70,26 @@ namespace rubinius {
   }
 
   Pointer* Pointer::create(STATE, void* ptr) {
-    Pointer* obj = state->new_object<Pointer>(G(ffi_pointer));
+    Pointer* obj = state->memory()->new_object<Pointer>(state, G(ffi_pointer));
+
     obj->pointer = ptr;
-    obj->autorelease = false;
-    obj->set_finalizer = false;
+
     return obj;
   }
 
   Pointer* Pointer::allocate(STATE, Object* self) {
-    Pointer* obj = state->new_object<Pointer>(as<Class>(self));
-    obj->pointer = 0;
-    obj->autorelease = false;
-    obj->set_finalizer = false;
-    return obj;
+    return state->memory()->new_object<Pointer>(state, as<Class>(self));
   }
 
   Pointer* Pointer::allocate_memory(STATE, Object* self, Fixnum* size) {
-    Pointer* obj = state->vm()->new_object<Pointer>(as<Class>(self));
+    Pointer* obj = Pointer::allocate(state, self);
+
     obj->pointer = malloc(size->to_native());;
     if(!obj->pointer) {
       Exception::memory_error(state);
       return NULL;
     }
-    obj->autorelease = false;
-    obj->set_finalizer = false;
+
     return obj;
   }
 

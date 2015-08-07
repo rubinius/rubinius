@@ -46,7 +46,7 @@
  */
 namespace rubinius {
 
-  void MachineCode::init(STATE) {
+  void MachineCode::bootstrap(STATE) {
   }
 
   /*
@@ -301,31 +301,37 @@ namespace rubinius {
   }
 
   Tuple* MachineCode::call_sites(STATE) {
-    Tuple* sites = Tuple::create_dirty(state, number_of_call_sites_);
+    Tuple* sites =
+      state->memory()->new_fields<Tuple>(state, G(tuple), number_of_call_sites_);
+
     for(size_t i = 0; i < number_of_call_sites_; ++i) {
       sites->put(state, i, call_site(state, call_site_offsets_[i]));
     }
+
     return sites;
   }
 
   Tuple* MachineCode::constant_caches(STATE) {
-    Tuple* caches = Tuple::create_dirty(state, number_of_constant_caches_);
+    Tuple* caches =
+      state->memory()->new_fields<Tuple>(state, G(tuple), number_of_constant_caches_);
+
     for(size_t i = 0; i < number_of_constant_caches_; ++i) {
       caches->put(state, i, constant_cache(state, constant_cache_offsets_[i]));
     }
+
     return caches;
   }
 
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
     atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
-    code->write_barrier(state, call_site);
+    state->memory()->write_barrier(code, call_site);
   }
 
   void MachineCode::store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache) {
     atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
-    code->write_barrier(state, constant_cache);
+    state->memory()->write_barrier(code, constant_cache);
   }
 
   // Argument handler implementations

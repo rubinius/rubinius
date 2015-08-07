@@ -1,16 +1,17 @@
 #include "config.h"
-#include "vm.hpp"
-#include "state.hpp"
+#include "configuration.hpp"
 #include "immix_marker.hpp"
+#include "metrics.hpp"
+#include "object_memory.hpp"
+#include "state.hpp"
+#include "thread_phase.hpp"
+#include "vm.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
-#include "configuration.hpp"
+
 #include "gc/gc.hpp"
 #include "gc/immix.hpp"
-#include "ontology.hpp"
-#include "metrics.hpp"
-#include "thread_phase.hpp"
 
 #include "dtrace/dtrace.h"
 #include "instruments/timing.hpp"

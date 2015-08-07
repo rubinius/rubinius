@@ -1,7 +1,10 @@
 #ifndef RBX_BUILTIN_LOGGER_HPP
 #define RBX_BUILTIN_LOGGER_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/object.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
   class String;
@@ -21,7 +24,12 @@ namespace rubinius {
     attr_accessor(format, String);
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Logger* obj) {
+      obj->name_ = nil<String>();
+      obj->format_ = nil<String>();
+    }
+
     static Logger* create(STATE);
 
     // Rubinius.primitive+ :logger_allocate

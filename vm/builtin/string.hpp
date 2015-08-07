@@ -5,8 +5,10 @@
 #include "builtin/byte_array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/encoding.hpp"
+
 #include "configuration.hpp"
 #include "object_utils.hpp"
+#include "object_memory.hpp"
 
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
@@ -70,7 +72,7 @@ namespace rubinius {
     template <class T>
       void data(T state, ByteArray* obj) {
         data_ = obj;
-        this->write_barrier(state, obj);
+        state->memory()->write_barrier(this, obj);
 
         update_handle(state);
       }
@@ -88,7 +90,7 @@ namespace rubinius {
           valid_encoding_ = cTrue;
         }
         encoding_ = obj;
-        this->write_barrier(state, obj);
+        state->memory()->write_barrier(this, obj);
       }
 
     attr_accessor(num_chars, Fixnum);
@@ -100,7 +102,17 @@ namespace rubinius {
     /* interface */
 
     static void init_hash();
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, String* string) {
+      string-> num_bytes_ = nil<Fixnum>();
+      string-> num_chars_ = nil<Fixnum>();
+      string-> data_ = nil<ByteArray>();
+      string-> hash_value_ = nil<Fixnum>();
+      string-> shared_ = cFalse;
+      string-> encoding_ = nil<Encoding>();
+      string-> ascii_only_ = nil<Object>();
+      string-> valid_encoding_ = nil<Object>();
+    }
 
     // Rubinius.primitive+ :string_allocate
     static String* allocate(STATE, Object* self);
@@ -188,8 +200,8 @@ namespace rubinius {
          * allocate a new object in the young space, we can copy it directly
          * without needing a write barrier.
          */
-        String* so = state->vm()->new_young_string_dirty(state);
-        if(likely(so)) {
+        String* so = state->memory()->new_object<String>(state, G(string));
+        if(likely(so->young_object_p())) {
           so->copy_body(state->vm(), this);
           so->shared(state, cTrue);
           shared(state, cTrue);
@@ -202,7 +214,7 @@ namespace rubinius {
 
     void encoding_from(STATE, String* other) {
       encoding_ = other->encoding();
-      this->write_barrier(state, encoding_);
+      state->memory()->write_barrier(this, encoding_);
 
       if(other->ascii_only()->true_p()) {
         ascii_only_ = cTrue;

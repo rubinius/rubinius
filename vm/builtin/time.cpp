@@ -1,23 +1,23 @@
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
-#include "object_memory.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
+
 #include "util/time64.h"
 #include "util/strftime.h"
 
 namespace rubinius {
-  void Time::init(STATE) {
-    GO(time_class).set(ontology::new_class(state, "Time", G(object)));
-    G(time_class)->set_object_type(state, TimeType);
+  void Time::bootstrap(STATE) {
+    GO(time_class).set(state->memory()->new_class<Class, Time>(state, "Time"));
   }
 
   Time* Time::now(STATE, Object* self) {
-    Time* tm = state->new_object_dirty<Time>(as<Class>(self));
+    Time* tm = state->memory()->new_object<Time>(state, as<Class>(self));
 
 #ifdef HAVE_CLOCK_GETTIME
     struct timespec ts;
@@ -38,22 +38,15 @@ namespace rubinius {
     tm->nanoseconds_ = tv.tv_usec * 1000;
 #endif
 
-    tm->decomposed(state, nil<Array>());
-    tm->is_gmt(state, cFalse);
-    tm->offset(state, nil<Fixnum>());
-    tm->zone(state, nil<String>());
-
     return tm;
   }
 
   Time* Time::at(STATE, time64_t seconds, long nanoseconds) {
-    Time* tm = state->new_object_dirty<Time>(G(time_class));
+    Time* tm = state->memory()->new_object<Time>(state, G(time_class));
+
     tm->seconds_ = seconds;
     tm->nanoseconds_ = nanoseconds;
-    tm->decomposed(state, nil<Array>());
-    tm->is_gmt(state, cFalse);
-    tm->offset(state, nil<Fixnum>());
-    tm->zone(state, nil<String>());
+
     return tm;
   }
 
@@ -62,9 +55,9 @@ namespace rubinius {
 #define NMOD(x,y) ((y)-(-((x)+1)%(y))-1)
 
   Time* Time::specific(STATE, Object* self, Integer* sec, Integer* nsec,
-                       Object* gmt, Object* offset)
+      Object* gmt, Object* offset)
   {
-    Time* tm = state->new_object_dirty<Time>(as<Class>(self));
+    Time* tm = state->memory()->new_object<Time>(state, as<Class>(self));
 
     tm->seconds_ = sec->to_long_long();
     tm->nanoseconds_ = nsec->to_native();
@@ -80,19 +73,16 @@ namespace rubinius {
       tm->nanoseconds_ = NMOD(tm->nanoseconds_, 1000000000);
     }
 
-    tm->decomposed(state, nil<Array>());
     tm->is_gmt(state, RBOOL(CBOOL(gmt)));
     tm->offset(state, offset);
-    tm->zone(state, nil<String>());
 
     return tm;
   }
 
-  Time* Time::from_array(STATE, Object* self,
-                         Fixnum* sec, Fixnum* min, Fixnum* hour,
-                         Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec,
-                         Fixnum* isdst, Object* from_gmt, Object* offset,
-                         Fixnum* offset_sec, Fixnum* offset_nsec) {
+  Time* Time::from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour,
+      Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec, Fixnum* isdst,
+      Object* from_gmt, Object* offset, Fixnum* offset_sec, Fixnum* offset_nsec)
+  {
     struct tm64 tm;
 
     tm.tm_sec = sec->to_native();
@@ -136,7 +126,7 @@ namespace rubinius {
       seconds = ::timelocal64(&tm);
     }
 
-    Time* obj = state->new_object_dirty<Time>(as<Class>(self));
+    Time* obj = state->memory()->new_object<Time>(state, as<Class>(self));
     obj->seconds_ = seconds;
     obj->nanoseconds_ = nsec->to_native();
     obj->is_gmt(state, RBOOL(CBOOL(from_gmt)));
@@ -152,18 +142,14 @@ namespace rubinius {
       }
 
       obj->offset(state, offset);
-    } else {
-      obj->offset(state, nil<Fixnum>());
     }
-
-    obj->decomposed(state, nil<Array>());
-    obj->zone(state, nil<String>());
 
     return obj;
   }
 
   Time* Time::dup(STATE, Object* self, Time* other) {
-    Time* tm = state->new_object_dirty<Time>(as<Class>(self));
+    Time* tm = state->memory()->new_object<Time>(state, as<Class>(self));
+
     tm->seconds_ = other->seconds_;
     tm->nanoseconds_ = other->nanoseconds_;
     tm->decomposed(state, other->decomposed_);

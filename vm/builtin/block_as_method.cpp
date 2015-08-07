@@ -1,16 +1,18 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/block_as_method.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
-#include "call_frame.hpp"
-#include "configuration.hpp"
-#include "object_utils.hpp"
 
 namespace rubinius {
   BlockAsMethod* BlockAsMethod::create(STATE, Object* self, BlockEnvironment* be) {
-    BlockAsMethod* pe = state->new_object<BlockAsMethod>(as<Class>(self));
+    BlockAsMethod* pe = state->memory()->new_object<BlockAsMethod>(state, as<Class>(self));
     pe->block_env(state, be);
     pe->inliners_ = 0;
     pe->prim_index_ = -1;

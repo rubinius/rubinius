@@ -1,6 +1,9 @@
 #ifndef RBX_BUILTIN_EXCEPTION_HPP
 #define RBX_BUILTIN_EXCEPTION_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/array.hpp"
 #include "builtin/object.hpp"
 
 namespace rubinius {
@@ -30,8 +33,19 @@ namespace rubinius {
 
     /* interface */
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Exception* obj) {
+      obj->reason_message_ = nil<Object>();
+      obj->locations_ = nil<Array>();
+      obj->parent_ = nil<Exception>();
+      obj->backtrace_ = nil<Object>();
+      obj->custom_backtrace_ = nil<Object>();
+    }
+
     static Exception* create(STATE);
+
+    // Rubinius.primitive :exception_allocate
+    static Exception* allocate(STATE, Object* self);
 
     void print_locations(STATE);
 

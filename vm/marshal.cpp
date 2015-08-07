@@ -185,10 +185,16 @@ namespace rubinius {
     size_t count;
     stream >> count;
 
-    Tuple* tup = Tuple::create_dirty(state, count);
+    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), count);
 
-    for(size_t i = 0; i < count; i++) {
-      tup->put(state, i, unmarshal());
+    if(tup->young_object_p()) {
+      for(size_t i = 0; i < count; i++) {
+        tup->field[i] = unmarshal();
+      }
+    } else {
+      for(size_t i = 0; i < count; i++) {
+        tup->put(state, i, unmarshal());
+      }
     }
 
     return tup;

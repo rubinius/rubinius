@@ -1,7 +1,12 @@
 #ifndef RBX_BUILTIN_NATIVEFUNCTION_HPP
 #define RBX_BUILTIN_NATIVEFUNCTION_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/executable.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/symbol.hpp"
+
 #include "gc/code_resource.hpp"
 
 #include <ffi.h>
@@ -37,7 +42,16 @@ namespace rubinius {
     // Rubinius.primitive :nativefunction_type_size
     static Fixnum* type_size_prim(STATE, Fixnum* type);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, NativeFunction* obj) {
+      Executable::initialize(state, obj);
+
+      obj->name_ = nil<Symbol>();
+      obj->file_ = nil<Symbol>();
+      obj->required_ = Fixnum::from(0);
+      obj->varargs_ = cFalse;
+      obj->ffi_data = NULL;
+    }
 
     static NativeFunction* create(STATE, Symbol* name, int args);
     static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);

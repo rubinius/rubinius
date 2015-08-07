@@ -1,4 +1,11 @@
 #include "arguments.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
+#include "dispatch.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
@@ -7,23 +14,15 @@
 #include "builtin/native_method.hpp"
 #include "builtin/native_function.hpp"
 #include "builtin/proc.hpp"
-#include "call_frame.hpp"
-#include "configuration.hpp"
-#include "dispatch.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
-#include "on_stack.hpp"
 
 namespace rubinius {
 
-  void Proc::init(STATE) {
-    GO(proc).set(ontology::new_class(state, "Proc", G(object)));
-    G(proc)->set_object_type(state, ProcType);
+  void Proc::bootstrap(STATE) {
+    GO(proc).set(state->memory()->new_class<Class, Proc>(state, "Proc"));
   }
 
   Proc* Proc::create(STATE, Object* self) {
-    return state->new_object<Proc>(as<Class>(self));
+    return state->memory()->new_object<Proc>(state, as<Class>(self));
   }
 
   Proc* Proc::from_env(STATE, Object* self, Object* env) {

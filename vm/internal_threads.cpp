@@ -220,6 +220,8 @@ namespace rubinius {
   }
 
   void InternalThreads::after_fork_child(STATE) {
+    mutex_.init();
+
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
     state->shared().env()->after_fork_child(state);
@@ -231,9 +233,5 @@ namespace rubinius {
     }
 
     fork_in_progress_ = false;
-  }
-
-  void InternalThreads::init() {
-    mutex_.init();
   }
 }

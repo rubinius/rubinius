@@ -9,7 +9,7 @@ namespace rubinius {
   public:
     static const object_type type = NumericType;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
 
     class Info : public TypeInfo {
     public:
@@ -24,7 +24,7 @@ namespace rubinius {
   public:
     static const object_type type = IntegerType;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
 
     static Integer* from(STATE, int i);
     static Integer* from(STATE, unsigned int i);

@@ -1,6 +1,9 @@
 #ifndef RBX_BUILTIN_BLOCK_WRAPPER_HPP
 #define RBX_BUILTIN_BLOCK_WRAPPER_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/block_environment.hpp"
 #include "builtin/object.hpp"
 
 namespace rubinius {
@@ -22,7 +25,13 @@ namespace rubinius {
     attr_accessor(bound_method, Object);
     attr_accessor(ruby_method, Object);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Proc* obj) {
+      obj->block_ = nil<BlockEnvironment>();
+      obj->lambda_ = nil<Object>();
+      obj->bound_method_ = nil<Object>();
+      obj->ruby_method_ = nil<Object>();
+    }
 
     // Rubinius.primitive :proc_allocate
     static Proc* create(STATE, Object* self);

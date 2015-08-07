@@ -15,7 +15,10 @@ namespace rubinius {
   public:
     const static object_type type = CompactLookupTableType;
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, CompactLookupTable* obj) {
+      Tuple::initialize(state, obj);
+    }
 
     // Rubinius.primitive :compactlookuptable_allocate
     static CompactLookupTable* create(STATE);

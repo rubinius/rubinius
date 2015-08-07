@@ -392,7 +392,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void initialize_full_state(VM* vm, Object* other, unsigned int age);
 
     /* Clear the body of the object, by setting each field to cNil */
-    void clear_fields(size_t bytes);
+    void initialize_fields(native_int bytes) {
+      void** fields = __body__;
+      native_int field_count = bytes_to_fields(bytes);
+
+      for(native_int i = 0; i < field_count; i++) {
+        fields[i] = cNil;
+      }
+    }
 
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created.
@@ -511,6 +518,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool pin();
     void unpin();
+
+    // Only used on object initialization.
+    void set_pinned() {
+      header.f.Pinned = 1;
+    }
 
     bool in_immix_p() const {
       return flags().InImmix == 1;

@@ -1,7 +1,12 @@
 #ifndef RBX_BUILTIN_CALL_UNIT_HPP
 #define RBX_BUILTIN_CALL_UNIT_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/executable.hpp"
+#include "builtin/module.hpp"
 #include "builtin/object.hpp"
+#include "builtin/symbol.hpp"
 
 namespace rubinius {
   class CallUnit : public Object {
@@ -9,6 +14,7 @@ namespace rubinius {
     const static object_type type = CallUnitType;
 
     enum Kind {
+      eUnset,
       eConstantValue,
       eForMethod,
       eTest,
@@ -44,6 +50,17 @@ namespace rubinius {
     attr_accessor(test_condition, CallUnit);
     attr_accessor(test_then, CallUnit);
     attr_accessor(test_else, CallUnit);
+
+    static void initialize(STATE, CallUnit* obj) {
+      obj-> kind_ = eUnset;
+      obj->value_ = nil<Object>();
+      obj->module_ = nil<Module>();
+      obj->executable_ = nil<Executable>();
+      obj->name_ = nil<Symbol>();
+      obj->test_condition_ = nil<CallUnit>();
+      obj->test_then_ = nil<CallUnit>();
+      obj->test_else_ = nil<CallUnit>();
+    }
 
     // Rubinius.primitive :callunit_constant_value
     static CallUnit* create_constant_value(STATE, Object* self, Object* val);

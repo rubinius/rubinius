@@ -2,28 +2,27 @@
 #include "regenc.h"
 #include "transcoder.h"
 
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/object.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void Character::init(STATE) {
-    GO(character).set(ontology::new_class(state, "Character", G(string), G(rubinius)));
-    G(character)->set_object_type(state, CharacterType);
+  void Character::bootstrap(STATE) {
+    GO(character).set(state->memory()->new_class<Class, Character>(
+          state, G(string), G(rubinius), "Character"));
   }
 
   Character* Character::allocate(STATE, Object* self) {
-    Character* chr = state->new_object<Character>(G(character));
-    chr->klass(state, as<Class>(self));
-    return chr;
+    return state->memory()->new_object<Character>(state, as<Class>(self));
   }
 
   Character* Character::create(STATE, native_int size) {
-    Character* chr = state->new_object_dirty<Character>(G(character));
+    Character* chr = Character::allocate(state, G(character));
 
     chr->num_bytes(state, Fixnum::from(size));
     chr->num_chars(state, nil<Fixnum>());

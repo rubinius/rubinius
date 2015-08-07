@@ -76,13 +76,14 @@ namespace rubinius {
       , exec_in_progress_(false)
       , fork_exec_in_progress_(false)
       , shutdown_in_progress_(false)
+      , mutex_()
+      , threads_()
     {
     }
 
     void register_thread(InternalThread* thread);
     void unregister_thread(InternalThread* thread);
 
-    void init();
     void shutdown(STATE);
     void before_exec(STATE);
     void after_exec(STATE);

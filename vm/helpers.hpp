@@ -1,6 +1,9 @@
 #ifndef RBX_HELPERS_HPP
 #define RBX_HELPERS_HPP
 
+#include "vm.hpp"
+#include "state.hpp"
+
 namespace rubinius {
   struct CallFrame;
   class Module;

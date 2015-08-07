@@ -1,8 +1,13 @@
 #ifndef RBX_BUILTIN_EXECUTABLE_HPP
 #define RBX_BUILTIN_EXECUTABLE_HPP
 
-#include "builtin/object.hpp"
 #include "executor.hpp"
+#include "object_utils.hpp"
+
+#include "builtin/fixnum.hpp"
+#include "builtin/object.hpp"
+#include "builtin/symbol.hpp"
+
 #include "gc/code_resource.hpp"
 
 #include <vector>
@@ -50,6 +55,21 @@ namespace rubinius {
     attr_accessor(primitive, Symbol);
     attr_accessor(serial, Fixnum);
 
+    static void initialize(STATE, Executable* exc) {
+      exc->primitive_ = nil<Symbol>();
+      exc->serial_ = Fixnum::from(0);
+      exc->execute = Executable::default_executor;
+      exc->inliners_ = 0;
+      exc->prim_index_ = -1;
+      exc->custom_call_site_ = false;
+    }
+
+    static void initialize(STATE, Executable* exc, executor exec) {
+      Executable::initialize(state, exc);
+
+      exc->execute = exec;
+    }
+
     void set_executor(rubinius::executor exc) {
       execute = exc;
     }
@@ -67,7 +87,7 @@ namespace rubinius {
     // Rubinius.primitive :executable_allocate
     static Executable* allocate(STATE, Object* self);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
     static Object* default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :executable_invoke

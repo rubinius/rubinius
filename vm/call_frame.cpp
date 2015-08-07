@@ -1,3 +1,7 @@
+#include "object_memory.hpp"
+#include "call_frame.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/constant_scope.hpp"
@@ -7,8 +11,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
-#include "call_frame.hpp"
-#include "object_utils.hpp"
 
 #include <iostream>
 

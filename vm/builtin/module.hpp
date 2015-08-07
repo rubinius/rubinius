@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_MODULE_HPP
 #define RBX_BUILTIN_MODULE_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/object.hpp"
 
 namespace rubinius {
@@ -34,6 +36,15 @@ namespace rubinius {
     attr_accessor(hierarchy_subclasses, Array);
 
     /* interface */
+    static void bootstrap(STATE);
+    static void bootstrap(STATE, Module* mod, Module* under, const char* name);
+    static void bootstrap_initialize(STATE, Module* mod, Class* super);
+
+    static void initialize(STATE, Module* mod);
+    static void initialize(STATE, Module* mod, const char* name);
+    static void initialize(STATE, Module* mod, Module* under, const char* name);
+    static void initialize(STATE, Module* mod, Module* under, Symbol* name);
+
     static Module* create(STATE);
 
     static void bootstrap_methods(STATE);
@@ -42,6 +53,7 @@ namespace rubinius {
     static Module* allocate(STATE, Object* self);
 
     void set_name(STATE, Symbol* name, Module* under);
+    void set_name(STATE, const char* name, Module* under);
     void set_name(STATE, std::string name, Module* under);
 
     String* get_name(STATE);
@@ -73,8 +85,6 @@ namespace rubinius {
     // Rubinius.primitive :module_track_subclass
     Object* track_subclass(STATE, Module* mod);
 
-    void setup(STATE);
-    void setup(STATE, std::string name, Module* under = NULL);
     void set_const(STATE, Symbol* sym, Object* val);
     void set_const(STATE, std::string name, Object* val);
     Object* get_const(STATE, Symbol* sym);
@@ -108,10 +118,15 @@ namespace rubinius {
 
   public:
     /* accessors */
-
     attr_accessor(module, Module);
 
     /* interface */
+    static void initialize(STATE, IncludedModule* obj, Module* under, const char* name) {
+      Module::initialize(state, obj, under, name);
+
+      obj->module_ = nil<Module>();
+    }
+
     static IncludedModule* create(STATE);
 
     // Rubinius.primitive :included_module_allocate

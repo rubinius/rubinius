@@ -1,18 +1,18 @@
 #include "util/atomic.hpp"
 
-#include "oop.hpp"
 #include "bug.hpp"
+#include "configuration.hpp"
+#include "object_memory.hpp"
+#include "on_stack.hpp"
+#include "oop.hpp"
+#include "thread_phase.hpp"
+
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 
 #include "capi/handles.hpp"
 #include "gc/inflated_headers.hpp"
-
-#include "object_memory.hpp"
-#include "configuration.hpp"
-#include "on_stack.hpp"
-#include "thread_phase.hpp"
 
 #include <assert.h>
 #include <sys/time.h>
@@ -729,7 +729,7 @@ step2:
   }
 
   size_t ObjectHeader::slow_size_in_bytes(VM* vm) const {
-    return vm->om->type_info[type_id()]->object_size(this);
+    return vm->memory()->type_info[type_id()]->object_size(this);
   }
 
   void ObjectHeader::initialize_copy(ObjectMemory* om, Object* other, unsigned int new_age) {
@@ -763,8 +763,8 @@ step2:
 
     copy_body(state, other);
 
-    reinterpret_cast<Object*>(this)->write_barrier(state, ivars_);
-    reinterpret_cast<Object*>(this)->write_barrier(state, klass_);
+    state->memory()->write_barrier(this, klass_);
+    state->memory()->write_barrier(this, ivars_);
 
     // This method is only used by the GC to move an object, so must retain
     // the settings flags.
@@ -777,21 +777,6 @@ step2:
     void* dst = this->__body__;
 
     memcpy(dst, src, other->body_in_bytes(state));
-  }
-
-  /* Clear the body of the object, by setting each field to cNil */
-  void ObjectHeader::clear_fields(size_t bytes) {
-    ivars_ = cNil;
-
-    /* HACK: this case seems like a reasonable exception
-     * to using accessor functions
-     */
-    void** dst = this->__body__;
-    size_t field_count = bytes_to_fields(bytes);
-
-    for(size_t counter = 0; counter < field_count; ++counter) {
-      dst[counter] = cNil;
-    }
   }
 
   void InflatedHeader::initialize_mutex(int thread_id, int count) {

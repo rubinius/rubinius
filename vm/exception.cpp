@@ -1,10 +1,10 @@
-#include "builtin/exception.hpp"
-
 #include "vm.hpp"
 #include "state.hpp"
 #include "exception.hpp"
 #include "detection.hpp"
+#include "object_memory.hpp"
 
+#include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
@@ -137,7 +137,6 @@ namespace rubinius {
   void warn(const char* message) {
     utilities::logger::warn("[WARNING: %s]", message);
     std::cerr << "[WARNING: " << message << "]\n";
-    print_backtrace();
   }
 
   void print_backtrace(size_t max) {

@@ -30,7 +30,7 @@ namespace rubinius {
     // Rubinius.primitive+ :symbol_index
     Integer* index(STATE);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
     static Symbol* from_index(STATE, size_t index);
 
     // Rubinius.primitive :symbol_to_s

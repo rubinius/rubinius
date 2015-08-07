@@ -1,3 +1,6 @@
+#include "object_utils.hpp"
+#include "object_memory.hpp"
+
 #include "builtin/dir.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -5,18 +8,14 @@
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
-#include "object_utils.hpp"
-#include "object_memory.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void Dir::init(STATE) {
-    GO(dir).set(ontology::new_class(state, "Dir", G(object)));
-    G(dir)->set_object_type(state, DirType);
+  void Dir::bootstrap(STATE) {
+    GO(dir).set(state->memory()->new_class<Class, Dir>(state, G(object), "Dir"));
   }
 
   Dir* Dir::create(STATE) {
-    Dir* d = state->new_object<Dir>(G(dir));
+    Dir* d = Dir::allocate(state, G(dir));
     d->os_ = 0;
 
     state->memory()->needs_finalization(d, (FinalizerFunction)&Dir::finalize,
@@ -26,13 +25,7 @@ namespace rubinius {
   }
 
   Dir* Dir::allocate(STATE, Object* self) {
-    Dir* dir = create(state);
-
-    if(Class* cls = try_as<Class>(self)) {
-      dir->klass(state, cls);
-    }
-
-    return dir;
+    return state->memory()->new_object<Dir>(state, as<Class>(self));
   }
 
   void Dir::finalize(STATE, Dir* dir) {

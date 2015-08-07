@@ -1,17 +1,16 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "gc/baker.hpp"
-#include "object_memory.hpp"
 #include "object_utils.hpp"
+#include "object_memory.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
 
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
 #include "builtin/io.hpp"
 
-#include "call_frame.hpp"
-#include "configuration.hpp"
-
+#include "gc/baker.hpp"
 #include "gc/gc.hpp"
 
 #include "capi/handles.hpp"

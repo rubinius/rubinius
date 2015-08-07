@@ -1,8 +1,11 @@
 #ifndef RBX_RESPOND_TO_CACHE_HPP
 #define RBX_RESPOND_TO_CACHE_HPP
 
-#include "builtin/class.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/call_site.hpp"
+#include "builtin/class.hpp"
+#include "builtin/object.hpp"
 
 namespace rubinius {
   struct CallFrame;
@@ -65,7 +68,19 @@ namespace rubinius {
     Integer* hits_prim(STATE);
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, RespondToCache* obj) {
+      CallSite::initialize(state, obj);
+
+      obj->receiver_.raw = 0;
+      obj->receiver_class_ = nil<Class>();
+      obj->message_ = nil<Object>();
+      obj->visibility_ = nil<Object>();
+      obj->responds_ = nil<Object>();
+      obj->fallback_call_site_ = nil<CallSite>();
+      obj->hits_ = 0;
+    }
+
     static RespondToCache* create(STATE, CallSite* fallback, Object* recv,
                                   Symbol* msg, Object* priv, Object* res, int hits);
 

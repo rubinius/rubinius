@@ -814,8 +814,6 @@ namespace rubinius {
     state->vm()->set_current_thread();
 
     shared->om = new ObjectMemory(state->vm(), *shared);
-    state->vm()->set_memory(shared->om);
-    state->vm()->set_memory(shared->om);
 
     shared->set_initialized();
 

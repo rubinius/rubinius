@@ -1,11 +1,12 @@
+#include "configuration.hpp"
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
-#include "configuration.hpp"
 
 #include <tommath.h>
 
@@ -13,17 +14,16 @@
 
 namespace rubinius {
 
-  void Numeric::init(STATE) {
-    GO(numeric).set(ontology::new_class(state, "Numeric"));
-    // We inherit from this type in for example Rational
-    // and that class shouldn't have NumericType set since
-    // that can cause problems.
-    G(numeric)->set_object_type(state, ObjectType);
+  void Numeric::bootstrap(STATE) {
+    /* We inherit from Object type in for example Rational and that class
+     * shouldn't have NumericType set since that can cause problems.
+     */
+    GO(numeric).set(state->memory()->new_class<Class, Object>(state, "Numeric"));
   }
 
-  void Integer::init(STATE) {
-    GO(integer).set(ontology::new_class(state, "Integer", G(numeric)));
-    G(integer)->set_object_type(state, IntegerType);
+  void Integer::bootstrap(STATE) {
+    GO(integer).set(state->memory()->new_class<Class, Integer>(
+          state, G(numeric), "Integer"));
   }
 
   native_int Integer::bignum_to_native() {

@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_CALL_UNIT_ADAPTER_HPP
 #define RBX_BUILTIN_CALL_UNIT_ADAPTER_HPP
 
+#include "object_utils.hpp"
+
 #include "builtin/executable.hpp"
 
 namespace rubinius {
@@ -17,6 +19,12 @@ namespace rubinius {
 
   public:
     attr_accessor(unit, CallUnit);
+
+    static void initialize(STATE, CallUnitAdapter* obj) {
+      Executable::initialize(state, obj);
+
+      obj->unit_ = nil<CallUnit>();
+    }
 
     // Rubinius.primitive :callunitadapter_create
     static CallUnitAdapter* create(STATE, Object* self, CallUnit* unit);

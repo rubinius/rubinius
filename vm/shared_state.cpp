@@ -169,7 +169,6 @@ namespace rubinius {
     wait_lock_.init();
     type_info_lock_.init();
     code_resource_lock_.init();
-    internal_threads_->init();
 
     om->after_fork_child(state);
     signals_->after_fork_child(state);

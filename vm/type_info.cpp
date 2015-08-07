@@ -104,7 +104,7 @@ namespace rubinius {
       rubinius::State state(rubinius::VM::current());
 
       if(obj->reference_p()) {
-        ObjectPosition pos = rubinius::VM::current()->om->validate_object(obj);
+        ObjectPosition pos = rubinius::VM::current()->memory()->validate_object(obj);
         if(pos == cUnknown) {
           std::cout << "<ERROR! Unknown object reference!>\n";
         } else if(pos == cInWrongYoungHalf) {
@@ -122,7 +122,7 @@ namespace rubinius {
       rubinius::State state(rubinius::VM::current());
 
       if(obj->reference_p()) {
-        ObjectPosition pos = rubinius::VM::current()->om->validate_object(obj);
+        ObjectPosition pos = rubinius::VM::current()->memory()->validate_object(obj);
         if(pos == cUnknown) {
           std::cout << "<ERROR! Unknown object reference!>\n";
         } else if(pos == cInWrongYoungHalf) {

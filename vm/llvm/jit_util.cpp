@@ -71,7 +71,7 @@ extern "C" {
   }
 
   Object* rbx_write_barrier(STATE, Object* obj, Object* val) {
-    obj->write_barrier(state, val);
+    state->memory()->write_barrier(obj, val);
     return val;
   }
 
@@ -193,9 +193,16 @@ extern "C" {
       }
     }
 
-    Tuple* tup = Tuple::create_dirty(state, arg_count);
-    for(int i = 0; i < v->total_args; i++) {
-      tup->put(state, i, scope->get_local(state, i));
+    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), arg_count);
+
+    if(tup->young_object_p()) {
+      for(int i = 0; i < v->total_args; i++) {
+        tup->field[i] = scope->get_local(state, i);
+      }
+    } else {
+      for(int i = 0; i < v->total_args; i++) {
+        tup->put(state, i, scope->get_local(state, i));
+      }
     }
 
     if(splat) {
@@ -1441,7 +1448,7 @@ extern "C" {
   }
 
   Float* rbx_float_allocate(STATE) {
-    return state->new_object_dirty<Float>(G(floatpoint));
+    return state->memory()->new_object<Float>(state, G(floatpoint));
   }
 
   Class* rbx_class_of(STATE, Object* obj) {

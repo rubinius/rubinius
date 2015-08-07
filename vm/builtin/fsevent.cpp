@@ -1,25 +1,23 @@
+#include "object_memory.hpp"
+#include "thread_phase.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/fsevent.hpp"
 #include "builtin/string.hpp"
-
-#include "ontology.hpp"
-#include "thread_phase.hpp"
 
 #include "util/logger.hpp"
 
 namespace rubinius {
   using namespace utilities;
 
-  void FSEvent::init(STATE) {
-    GO(fsevent).set(ontology::new_class_under(state, "FSEvent", G(rubinius)));
-    G(fsevent)->set_object_type(state, FSEventType);
+  void FSEvent::bootstrap(STATE) {
+    GO(fsevent).set(state->memory()->new_class<Class, FSEvent>(
+          state, G(rubinius), "FSEvent"));
   }
 
   FSEvent* FSEvent::allocate(STATE, Object* self) {
-    FSEvent* fsevent = create(state);
-    fsevent->klass(state, as<Class>(self));
-    return fsevent;
+    return state->memory()->new_object_pinned<FSEvent>(state, as<Class>(self));
   }
 
 #ifdef HAVE_KQUEUE
@@ -29,7 +27,8 @@ namespace rubinius {
   }
 
   FSEvent* FSEvent::create(STATE) {
-    FSEvent* fsevent = state->new_object_pinned<FSEvent>(G(fsevent));
+    FSEvent* fsevent = FSEvent::allocate(state, G(fsevent));
+
     if((fsevent->kq_ = kqueue()) < 0) {
       logger::error("%s: unable to create kqueue", strerror(errno));
     } else {
@@ -76,7 +75,7 @@ namespace rubinius {
   }
 
   FSEvent* FSEvent::create(STATE) {
-    FSEvent* fsevent = state->new_object_pinned<FSEvent>(G(fsevent));
+    FSEvent* fsevent = state->memory()->new_object_pinned<FSEvent>(state, G(fsevent));
     fsevent->watch_set_ = false;
     if((fsevent->in_ = inotify_init()) < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));

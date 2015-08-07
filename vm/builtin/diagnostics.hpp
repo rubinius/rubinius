@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_DIAGNOSTICS_HPP
 
 #include "builtin/class.hpp"
-#include "builtin/module.hpp"
 #include "builtin/object.hpp"
 
 #include "object_utils.hpp"
@@ -11,7 +10,7 @@
 namespace rubinius {
   class LookupTable;
 
-  class Diagnostics : public Module {
+  class Diagnostics : public Class {
   public:
     const static object_type type = DiagnosticsType;
 
@@ -22,12 +21,12 @@ namespace rubinius {
     attr_accessor(map, LookupTable);
 
   public:
-    static void init(STATE);
+    static void bootstrap(STATE);
 
 
-    class Info : public Module::Info {
+    class Info : public Class::Info {
     public:
-      BASIC_TYPEINFO(Module::Info)
+      BASIC_TYPEINFO(Class::Info)
     };
   };
 }

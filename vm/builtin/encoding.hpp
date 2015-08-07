@@ -1,7 +1,11 @@
 #ifndef RBX_ENCODING_HPP
 #define RBX_ENCODING_HPP
 
+#include "object_utils.hpp"
+
+#include "builtin/array.hpp"
 #include "builtin/object.hpp"
+
 #include "util/utf8.h"
 
 // See comment in regexp.hpp
@@ -49,7 +53,8 @@ namespace rubinius {
       return cache_index_;
     }
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Encoding* obj);
 
     static Class* transcoding_class(STATE);
     static Class* converter_class(STATE);
@@ -188,7 +193,9 @@ namespace rubinius {
       return converter_;
     }
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Converter* obj);
+
     static void finalize(STATE, Converter* converter);
 
     // Rubinius.primitive :encoding_converter_allocate
@@ -229,7 +236,8 @@ namespace rubinius {
     attr_accessor(source, String);
     attr_accessor(target, String);
 
-    static void init(STATE);
+    static void bootstrap(STATE);
+    static void initialize(STATE, Transcoding* obj);
 
     static Transcoding* create(STATE, OnigTranscodingType* tr);
     static void declare(STATE, const char* from, const char* to, const char* lib);

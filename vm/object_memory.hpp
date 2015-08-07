@@ -7,6 +7,10 @@
 #include "oop.hpp"
 #include "diagnostics.hpp"
 
+#include "builtin/class.hpp"
+#include "builtin/module.hpp"
+#include "builtin/object.hpp"
+
 #include "gc/code_manager.hpp"
 #include "gc/finalize.hpp"
 #include "gc/write_barrier.hpp"
@@ -20,20 +24,17 @@ class TestObjectMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
 
 namespace rubinius {
-
-  class Object;
-  class Integer;
-
   struct CallFrame;
-  class GCData;
-  class Configuration;
   class BakerGC;
-  class MarkSweepGC;
-  class ImmixGC;
-  class InflatedHeaders;
-  class Thread;
+  class Configuration;
   class FinalizerThread;
+  class GCData;
+  class ImmixGC;
   class ImmixMarker;
+  class InflatedHeaders;
+  class Integer;
+  class MarkSweepGC;
+  class Thread;
 
   namespace diagnostics {
     class ObjectDiagnostics;
@@ -143,12 +144,18 @@ namespace rubinius {
     size_t large_object_threshold;
 
   public:
+    static void memory_error(STATE);
+
     void set_vm(VM* vm) {
       vm_ = vm;
     }
 
     VM* vm() {
       return vm_;
+    }
+
+    ObjectMemory* memory() {
+      return this;
     }
 
     unsigned int mark() const {
@@ -217,62 +224,265 @@ namespace rubinius {
 
     void after_fork_child(STATE);
 
-    Object* new_object_typed_dirty(STATE, Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);
+    inline void write_barrier(ObjectHeader* target, Fixnum* val) {
+      /* No-op */
+    }
 
-    Object* new_object_typed_mature_dirty(STATE, Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type);
+    inline void write_barrier(ObjectHeader* target, Symbol* val) {
+      /* No-op */
+    }
 
-    Object* new_object_typed_enduring_dirty(STATE, Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type);
-
-    template <class T>
-      T* new_object_bytes_dirty(STATE, Class* cls, size_t& bytes) {
-        bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = static_cast<T*>(new_object_typed_dirty(state, cls, bytes, T::type));
-
-        return obj;
-      }
-
-    template <class T>
-      T* new_object_bytes(STATE, Class* cls, size_t& bytes) {
-        bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = static_cast<T*>(new_object_typed(state, cls, bytes, T::type));
-
-        return obj;
-      }
-
-    template <class T>
-      T* new_object_bytes_mature_dirty(STATE, Class* cls, size_t& bytes) {
-        bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = static_cast<T*>(new_object_typed_mature_dirty(state, cls, bytes, T::type));
-
-        return obj;
-      }
-
-    template <class T>
-      T* new_object_bytes_mature(STATE, Class* cls, size_t& bytes) {
-        bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = static_cast<T*>(new_object_typed_mature(state, cls, bytes, T::type));
-
-        return obj;
-      }
-
-    template <class T>
-      T* new_object_variable(STATE, Class* cls, size_t fields, size_t& bytes) {
-        bytes = sizeof(T) + (fields * sizeof(Object*));
-        return static_cast<T*>(new_object_typed(state, cls, bytes, T::type));
-      }
-
-    template <class T>
-      T* new_object_enduring(STATE, Class* cls) {
-        return static_cast<T*>(
-            new_object_typed_enduring(state, cls, sizeof(T), T::type));
-      }
-
-    void inline write_barrier(ObjectHeader* target, ObjectHeader* val) {
+    inline void write_barrier(ObjectHeader* target, ObjectHeader* val) {
       gc::WriteBarrier::write_barrier(target, val, mark_);
     }
+
+    inline void write_barrier(ObjectHeader* target, Class* val) {
+      gc::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
+    }
+
+    // Object must be created in Immix or large object space.
+    Object* new_object(STATE, native_int bytes);
+
+    /* Allocate a new object in any space that will accommodate it based on
+     * the following priority:
+     *  1. SLAB (state-local allocation buffer, no locking needed)
+     *  2. immix space (mature generation, lock needed)
+     *  3. LOS (large object space, lock needed)
+     *
+     * The resulting object is UNINITIALIZED. The caller is responsible for
+     * initializing all reference fields other than klass_ and ivars_.
+     */
+    Object* new_object(STATE, Class* klass, native_int bytes, object_type type) {
+    allocate:
+      Object* obj = state->vm()->local_slab().allocate(bytes).as<Object>();
+
+      if(likely(obj)) {
+        state->vm()->metrics().memory.young_objects++;
+        state->vm()->metrics().memory.young_bytes += bytes;
+
+        obj->init_header(YoungObjectZone, type);
+
+        goto set_klass;
+      }
+
+      if(state->vm()->local_slab().empty_p()) {
+        if(refill_slab(state, state->vm()->local_slab())) {
+          goto allocate;
+        } else {
+          // TODO: set young collection
+        }
+      }
+
+      if(likely(obj = new_object(state, bytes))) goto set_type;
+
+      ObjectMemory::memory_error(state);
+      return NULL;
+
+    set_type:
+      obj->set_obj_type(type);
+
+    set_klass:
+      obj->klass_ = klass;
+      obj->ivars_ = cNil;
+
+      if(obj->mature_object_p()) {
+        write_barrier(obj, klass);
+      }
+
+#ifdef RBX_GC_STRESS
+      state.shared().gc_soon();
+#endif
+
+      return obj;
+    }
+
+    /* Allocate a new, pinned, object in any space that will accommodate it
+     * based on the following priority:
+     *  1. immix space (mature generation, lock needed)
+     *  2. LOS (large object space, lock needed)
+     *
+     * The resulting object is UNINITIALIZED. The caller is responsible for
+     * initializing all reference fields other than klass_ and ivars_.
+     */
+    Object* new_object_pinned(STATE, Class* klass, native_int bytes, object_type type) {
+      Object* obj = new_object(state, bytes);
+
+      if(unlikely(!obj)) {
+        ObjectMemory::memory_error(state);
+        return NULL;
+      }
+
+      obj->set_pinned();
+      obj->set_obj_type(type);
+
+      obj->klass_ = klass;
+      obj->ivars_ = cNil;
+
+      write_barrier(obj, klass);
+
+#ifdef RBX_GC_STRESS
+      state.shared().gc_soon();
+#endif
+
+      return obj;
+    }
+
+    template <class T>
+      T* new_object(STATE, Class* klass, native_int bytes, object_type type) {
+        T* obj = new_object(state, klass, bytes, type);
+        T::initialize(state, obj, bytes, type);
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object(STATE, Class *klass) {
+        T* obj = static_cast<T*>(new_object(state, klass, sizeof(T), T::type));
+        T::initialize(state, obj);
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object(STATE, Class *klass, native_int bytes) {
+        return static_cast<T*>(new_object(state, klass, bytes, T::type));
+      }
+
+    template <class T>
+      T* new_bytes(STATE, Class* klass, native_int bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
+        T* obj = static_cast<T*>(new_object(state, klass, bytes, T::type));
+
+        obj->set_full_size(bytes);
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_fields(STATE, Class* klass, native_int fields) {
+        native_int bytes = sizeof(T) + (fields * sizeof(Object*));
+        T* obj = static_cast<T*>(new_object(state, klass, bytes, T::type));
+
+        obj->set_full_size(bytes);
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object_pinned(STATE, Class *klass) {
+        T* obj = static_cast<T*>(new_object_pinned(state, klass, sizeof(T), T::type));
+        T::initialize(state, obj);
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_bytes_pinned(STATE, Class* klass, native_int bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
+        T* obj = static_cast<T*>(new_object_pinned(state, klass, bytes, T::type));
+
+        obj->set_full_size(bytes);
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_fields_pinned(STATE, Class* klass, native_int fields) {
+        native_int bytes = sizeof(T) + (fields * sizeof(Object*));
+        T* obj = static_cast<T*>(new_object_pinned(state, klass, bytes, T::type));
+
+        obj->set_full_size(bytes);
+
+        return obj;
+      }
+
+    // New classes.
+    template <class T>
+      Class* new_class(STATE, Class* super) {
+        T* klass =
+          static_cast<T*>(new_object(state, G(klass), sizeof(T), T::type));
+        T::initialize(state, klass, super);
+
+        return klass;
+      }
+
+    template <class T>
+      Class* new_class(STATE, Module* under, const char* name) {
+        return new_class<T>(state, G(object), under, name);
+      }
+
+    template <class T>
+      T* new_class(STATE, Class* super, Module* under, const char* name) {
+        return new_class<T>(state, super, under, state->symbol(name));
+      }
+
+    template <class T>
+      T* new_class(STATE, Class* super, Module* under, Symbol* name) {
+        T* klass =
+          static_cast<T*>(new_object(state, G(klass), sizeof(T), T::type));
+        T::initialize(state, klass, super, under, name);
+
+        return klass;
+      }
+
+    template <class S, class R>
+      Class* new_class(STATE, Module* under, const char* name) {
+        return new_class<S, R>(state, G(object), under, name);
+      }
+
+    template <class S, class R>
+      Class* new_class(STATE, Class* super, const char* name) {
+        return new_class<S, R>(state, super, G(object), name);
+      }
+
+    template <class S, class R>
+      Class* new_class(STATE, const char* name) {
+        return new_class<S, R>(state, G(object), G(object), name);
+      }
+
+    template <class S, class R>
+      S* new_class(STATE, Class* super, Module* under, const char* name) {
+        return new_class<S, R>(state, super, under, state->symbol(name));
+      }
+
+    template <class S, class R>
+      S* new_class(STATE, Class* super, Module* under, Symbol* name) {
+        S* klass =
+          static_cast<S*>(new_object(state, G(klass), sizeof(S), S::type));
+        S::initialize(state, klass, super, under, name, R::type);
+
+        return klass;
+      }
+
+    // New modules.
+    template <class T>
+      T* new_module(STATE) {
+        return new_module<T>(state, G(module));
+      }
+
+    template <class T>
+      T* new_module(STATE, Class* super) {
+        return state->memory()->new_object<T>(state, super);
+      }
+
+    template <class T>
+      T* new_module(STATE, Module* under, const char* name) {
+        return new_module<T>(state, G(module), under, name);
+      }
+
+    template <class T>
+      T* new_module(STATE, Class* super, Module* under, const char* name) {
+        T *mod = static_cast<T*>(state->memory()->new_object(
+              state, super, sizeof(T), T::type));
+        T::initialize(state, mod, under, name);
+
+        return mod;
+      }
+
+    template <class T>
+      T* new_module(STATE, const char* name) {
+        return new_module<T>(state, G(module), G(object), name);
+      }
 
     TypeInfo* find_type_info(Object* obj);
     Object* promote_object(Object* obj);
@@ -365,22 +575,6 @@ namespace rubinius {
       }
     };
   };
-
-#define FREE(obj) free(obj)
-#define ALLOC_N(type, size) ((type*)calloc((size), sizeof(type)))
-#define ALLOC(t) (t*)XMALLOC(sizeof(t))
-#define REALLOC_N(v,t,n) (v)=(t*)realloc((void*)(v), sizeof(t)*n)
-
-#define ALLOCA_N(type, size) ((type*)alloca(sizeof(type) * (size)))
-#define ALLOCA(type) ((type*)alloca(sizeof(type)))
 };
-
-
-extern "C" {
-  void* XMALLOC(size_t bytes);
-  void  XFREE(void* ptr);
-  void* XREALLOC(void* ptr, size_t bytes);
-  void* XCALLOC(size_t items, size_t bytes);
-}
 
 #endif

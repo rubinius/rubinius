@@ -25,6 +25,11 @@ module FFI
   class Pointer
     include PointerAccessors
 
+    def self.allocate
+      Rubinius.primitive :pointer_allocate
+      raise PrimitiveFailure, "FFI::Pointer.allocate primitive failed"
+    end
+
     def initialize(a1, a2=undefined)
       if undefined.equal? a2
         self.address = a1

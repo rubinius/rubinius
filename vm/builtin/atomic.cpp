@@ -1,17 +1,16 @@
+#include "object_memory.hpp"
+
 #include "builtin/atomic.hpp"
 #include "builtin/class.hpp"
-#include "ontology.hpp"
 
 namespace rubinius {
-  void AtomicReference::init(STATE) {
-    GO(atomic_ref).set(ontology::new_class(state,
-          "AtomicReference", G(object), G(rubinius)));
-
-    G(atomic_ref)->set_object_type(state, AtomicReferenceType);
+  void AtomicReference::bootstrap(STATE) {
+    GO(atomic_ref).set(state->memory()->new_class<Class, AtomicReference>(
+          state, G(object), G(rubinius), "AtomicReference"));
   }
 
   AtomicReference* AtomicReference::allocate(STATE) {
-    return state->new_object<AtomicReference>(G(atomic_ref));
+    return state->memory()->new_object<AtomicReference>(state, G(atomic_ref));
   }
 
   AtomicReference* AtomicReference::create(STATE, Object* obj) {
@@ -24,7 +23,7 @@ namespace rubinius {
     Object** pp = &value_;
 
     if(atomic::compare_and_swap((void**)pp, old, new_)) {
-      this->write_barrier(state, new_);
+      state->memory()->write_barrier(this, new_);
       return cTrue;
     } else {
       return cFalse;

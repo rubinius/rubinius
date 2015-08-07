@@ -1176,14 +1176,9 @@ namespace rubinius {
       return cls;
     }
 
-    // Create the class.
     if(super->nil_p()) super = G(object);
-    Class* cls = Class::create(state, as<Class>(super));
 
-    cls->set_name(state, name, under);
-    under->set_const(state, name, cls);
-
-    return cls;
+    return Class::create(state, as<Class>(super), under, name);
   }
 
   Module* System::vm_open_module(STATE, Symbol* name, ConstantScope* scope) {
@@ -1584,7 +1579,8 @@ namespace rubinius {
     if(len < 0) len = GETPW_R_SIZE;
 
 retry:
-    ByteArray* buf = ByteArray::create_dirty(state, len);
+    ByteArray* buf =
+      state->memory()->new_bytes<ByteArray>(state, G(bytearray), len);
 
     int err = getpwnam_r(name->c_str_null_safe(state), &pw,
                          reinterpret_cast<char*>(buf->raw_bytes()), len, &pwd);
@@ -1774,7 +1770,7 @@ retry:
 
   Tuple* System::vm_thread_state(STATE) {
     VMThreadState* ts = state->vm()->thread_state();
-    Tuple* tuple = Tuple::create_dirty(state, 5);
+    Tuple* tuple = state->memory()->new_fields<Tuple>(state, G(tuple), 5);
 
     Symbol* reason = 0;
     switch(ts->raise_reason()) {

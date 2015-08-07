@@ -1,17 +1,17 @@
-#include "builtin/autoload.hpp"
-#include "builtin/class.hpp"
 #include "helpers.hpp"
-#include "ontology.hpp"
+#include "object_memory.hpp"
 #include "on_stack.hpp"
 
+#include "builtin/autoload.hpp"
+#include "builtin/class.hpp"
+
 namespace rubinius {
-  Autoload* Autoload::create(STATE) {
-    return state->new_object<Autoload>(G(autoload));
+  void Autoload::bootstrap(STATE) {
+    GO(autoload).set(state->memory()->new_class<Class, Autoload>(state, "Autoload"));
   }
 
-  void Autoload::init(STATE) {
-    GO(autoload).set(ontology::new_class(state, "Autoload"));
-    G(autoload)->set_object_type(state, AutoloadType);
+  Autoload* Autoload::create(STATE) {
+    return state->memory()->new_object<Autoload>(state, G(autoload));
   }
 
   Object* Autoload::resolve(STATE, CallFrame* call_frame, Module* under, bool honor_require) {

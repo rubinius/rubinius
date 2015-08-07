@@ -1,3 +1,5 @@
+#include "object_memory.hpp"
+
 #include "builtin/exception.hpp"
 
 #include "capi/capi.hpp"
