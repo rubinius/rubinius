@@ -905,15 +905,21 @@ namespace rubinius {
 
     if(state->shared().config.ic_debug) {
       String* mod_name = mod->get_name(state);
-      if(mod_name->nil_p()) {
-        mod_name = String::create(state, "");
-      }
-      std::cout << "[IC Increase serial for " << mod_name->c_str(state) << "]" << std::endl;
 
-      std::cout << "[IC Reset method cache for " << mod_name->c_str(state)
-                << "#" << name->debug_str(state).c_str() << "]" << std::endl;
+      if(mod_name->nil_p()) {
+        mod_name = String::create(state, "<unknown>");
+      }
+
+      std::cerr << std::endl
+                << "reset global/method cache for "
+                << mod_name->c_str(state)
+                << "#"
+                << name->debug_str(state).c_str()
+                << std::endl;
+
       CallFrame* call_frame = calling_environment->previous;
-      call_frame->print_backtrace(state, 6, true);
+
+      call_frame->print_backtrace(state, std::cerr, 6, true);
     }
 
     return cTrue;
@@ -1338,9 +1344,14 @@ namespace rubinius {
 
   Object* System::vm_inc_global_serial(STATE, CallFrame* calling_environment) {
     if(state->shared().config.serial_debug) {
-      std::cout << "[Global serial increased from " << state->shared().global_serial() << "]" << std::endl;
-      calling_environment->print_backtrace(state, 6, true);
+      std::cerr << std::endl
+                << "global serial increased from "
+                << state->shared().global_serial()
+                << std::endl;
+
+      calling_environment->print_backtrace(state, std::cerr, 6, true);
     }
+
     return Fixnum::from(state->shared().inc_global_serial(state));
   }
 
