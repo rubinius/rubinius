@@ -72,7 +72,7 @@ namespace rubinius {
 
   bool ThreadNexus::locking(VM* vm) {
     int iterations = 0;
-    struct timespec ts = {0, 10};
+    struct timespec ts = {0, 1000};
 
     while(true) {
       bool stopped = true;

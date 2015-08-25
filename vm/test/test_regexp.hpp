@@ -35,7 +35,7 @@ public:
   }
 
   void test_allocate() {
-    Class* sub = ontology::new_class(state, "RegexpSub", G(regexp), 0);
+    Class* sub = state->memory()->new_class<Class>(state, G(regexp));
     Regexp* re = Regexp::allocate(state, sub);
 
     TS_ASSERT_EQUALS(re->klass(), sub);
@@ -47,7 +47,7 @@ public:
     re->initialize(state, pat, Fixnum::from(0));
 
     TS_ASSERT_EQUALS(re->source()->c_str(state), pat->c_str(state));
-    TS_ASSERT(re->names()->kind_of_p(state, G(lookuptable)));
+    TS_ASSERT(re->names()->kind_of_p(state, G(lookup_table)));
   }
 
   void test_create_with_bad_pattern() {

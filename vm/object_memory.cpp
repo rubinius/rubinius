@@ -505,7 +505,9 @@ step1:
 
     if(!collect_young_now && !collect_mature_now) return;
 
-    state->shared().finalizer_handler()->start_collection(state);
+    if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
+      finalizer->start_collection(state);
+    }
 
     if(cDebugThreading) {
       std::cerr << std::endl << "[" << state
@@ -584,8 +586,8 @@ step1:
 #ifdef RBX_GC_DEBUG
     young_->verify(data);
 #endif
-    if(FinalizerThread* hdl = state->shared().finalizer_handler()) {
-      hdl->finish_collection(state);
+    if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
+      finalizer->finish_collection(state);
     }
   }
 
@@ -640,8 +642,8 @@ step1:
     metrics.gc.immix_count++;
     metrics.gc.large_count++;
 
-    if(FinalizerThread* hdl = state->shared().finalizer_handler()) {
-      hdl->finish_collection(state);
+    if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
+      finalizer->finish_collection(state);
     }
 
     RUBINIUS_GC_END(1);
@@ -785,8 +787,8 @@ step1:
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func,
       FinalizeObject::FinalizeKind kind)
   {
-    if(FinalizerThread* fh = shared_.finalizer_handler()) {
-      fh->record(obj, func, kind);
+    if(FinalizerThread* finalizer = shared_.finalizer_handler()) {
+      finalizer->record(obj, func, kind);
     }
   }
 

@@ -22,7 +22,7 @@ namespace rubinius {
   }
 
   Channel* Channel::create(STATE) {
-    Channel* chan = state->memory()->new_object<Channel>(state, G(channel));
+    Channel* chan = state->memory()->new_object_pinned<Channel>(state, G(channel));
     chan->waiters_ = 0;
     chan->semaphore_count_ = 0;
 

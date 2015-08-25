@@ -20,7 +20,7 @@ public:
   }
 
   void test_allocate() {
-    Class* sub = ontology::new_class(state, "LookupTableSub", G(lookuptable), 0);
+    Class* sub = state->memory()->new_class<Class>(state, G(lookup_table));
     LookupTable* tbl = LookupTable::allocate(state, sub);
 
     TS_ASSERT_EQUALS(tbl->klass(), sub);

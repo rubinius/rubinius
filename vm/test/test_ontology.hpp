@@ -60,27 +60,27 @@ public:
     TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "Tuple"), G(tuple));
   }
 
-  void test_lookuptable() {
+  void test_lookup_table() {
     Class *lt;
 
-    lt = G(lookuptable);
+    lt = G(lookup_table);
 
     TS_ASSERT_EQUALS(lt->class_object(state), G(klass));
     TS_ASSERT_EQUALS(lt->superclass(), G(object));
     TS_ASSERT_EQUALS(lt->instance_type(), Fixnum::from(LookupTableType));
-    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "LookupTable"), G(lookuptable));
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "LookupTable"), G(lookup_table));
   }
 
-  void test_methtbl() {
+  void test_method_table() {
     Class *cls;
 
-    cls = G(methtbl);
+    cls = G(method_table);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(object));
 
     TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), MethodTableType);
-    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "MethodTable"), G(methtbl));
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "MethodTable"), G(method_table));
   }
 
   void test_symbol() {

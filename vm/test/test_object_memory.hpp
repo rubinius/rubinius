@@ -32,6 +32,8 @@ public:
   }
 
   void tearDown() {
+    state->shared().thread_nexus()->unlock();
+
     if(gc_data) {
       delete gc_data;
     }
@@ -58,6 +60,8 @@ public:
     Object* obj;
     Object* obj2;
 
+    om.collect_young(state, gc_data);
+
     obj  = util_new_object(om);
     obj2 = util_new_object(om);
     TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
@@ -65,6 +69,8 @@ public:
     size_t start = om.remember_set()->size();
 
     obj->set_zone(MatureObjectZone);
+    TS_ASSERT(obj2->young_object_p());
+
     om.write_barrier(obj, obj2);
 
     TS_ASSERT_EQUALS(om.remember_set()->size(), start + 1);
@@ -116,13 +122,16 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *obj, *obj2, *obj3;
 
+    om.collect_young(state, gc_data);
+
     obj =  as<Tuple>(util_new_object(om));
     obj2 = as<Tuple>(util_new_object(om));
 
     obj->field[0] = obj2;
     obj2->field[0] = cTrue;
 
-    om.write_barrier(obj, obj2);
+    TS_ASSERT(obj->young_object_p());
+    TS_ASSERT(obj2->young_object_p());
 
     Root r(roots, obj);
 
@@ -142,38 +151,16 @@ public:
     TS_ASSERT_EQUALS(obj2->field[0], cTrue);
   }
 
-  /* Could crash on failure */
-  void test_collect_young_skips_byte_storage() {
-    ObjectMemory& om = *state->memory();
-
-    //ByteArray *obj, *obj2;
-
-    //obj =  om.new_object_bytes<ByteArray>(G(object), sizeof(Object*));
-    //obj2 = om.new_object_bytes<ByteArray>(G(object), sizeof(Object*));
-
-    /* Force obj2 to appear in the body, but it should be seen as
-     * just a generic series of bytes, not a reference. */
-    //Tuple* tup = reinterpret_cast<Tuple*>(obj);
-    //tup->field[0] = obj2;
-
-    //Root r(&roots, obj);
-
-    om.collect_young(state, gc_data);
-
-    //tup = reinterpret_cast<Tuple*>(roots->front()->get());
-    //TS_ASSERT_EQUALS(tup->field[0], obj2);
-  }
+#define LARGE_OBJECT_BYTE_SIZE   30 * 1024 * 1024
 
   void test_new_large_object() {
     ObjectMemory& om = *state->memory();
     Tuple* obj;
 
-    om.large_object_threshold = 10;
-
     size_t start = om.young_->bytes_used();
 
-    obj = util_new_object(om,20);
-    TS_ASSERT_EQUALS(obj->num_fields(), 20);
+    obj = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
+    TS_ASSERT_EQUALS(obj->num_fields(), LARGE_OBJECT_BYTE_SIZE);
     TS_ASSERT_EQUALS(obj->zone(), MatureObjectZone);
 
     TS_ASSERT_EQUALS(om.young_->bytes_used(), start);
@@ -183,9 +170,7 @@ public:
     ObjectMemory& om = *state->memory();
     Object* obj;
 
-    om.large_object_threshold = 10;
-
-    obj = util_new_object(om,20);
+    obj = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
 
     Root r(roots, obj);
 
@@ -198,11 +183,10 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
-    om.large_object_threshold = sizeof(void *) * 50 * 8 / 32;
-
     young =  as<Tuple>(util_new_object(om));
     TS_ASSERT_EQUALS(young->zone(), YoungObjectZone);
-    mature = as<Tuple>(util_new_object(om,20));
+
+    mature = as<Tuple>(util_new_object(om, LARGE_OBJECT_BYTE_SIZE));
     TS_ASSERT_EQUALS(mature->zone(), MatureObjectZone);
 
     young->field[0] = cTrue;
@@ -239,10 +223,8 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
-    om.large_object_threshold = sizeof(void *) * 50 * 8 / 32;
-
     young =  as<Tuple>(util_new_object(om));
-    mature = as<Tuple>(util_new_object(om,20));
+    mature = as<Tuple>(util_new_object(om, LARGE_OBJECT_BYTE_SIZE));
 
     TS_ASSERT(mature->mature_object_p());
     TS_ASSERT(young->young_object_p());
@@ -306,7 +288,7 @@ public:
 
     om.large_object_threshold = 10;
 
-    mature = util_new_object(om,20);
+    mature = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
 
     TS_ASSERT(mature->mature_object_p());
     unsigned int mark = om.mark();
@@ -325,10 +307,8 @@ public:
     Tuple* young;
     Object* mature;
 
-    om.large_object_threshold = sizeof(void *) * 50 * 8 / 32;
-
     young =  util_new_object(om);
-    mature = util_new_object(om,20);
+    mature = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
 
     young->field[0] = mature; // dangerous, but ok in tests
 
@@ -350,7 +330,7 @@ public:
     om.large_object_threshold = 50;
 
     young =  as<Tuple>(util_new_object(om));
-    mature = as<Tuple>(util_new_object(om,20));
+    mature = as<Tuple>(util_new_object(om, LARGE_OBJECT_BYTE_SIZE));
 
     young->field[0] = mature;
     mature->field[0] = young;

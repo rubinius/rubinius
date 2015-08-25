@@ -21,7 +21,7 @@ public:
     Fixnum* fix = Fixnum::from(13);
     Bignum* big = Bignum::from(state, (native_int)14);
     Float*  flt = Float::create(state, 15.0);
-    Object* obj = state->new_object<Object>(G(object));
+    Object* obj = state->memory()->new_object<Object>(state, G(object));
 
     TS_ASSERT(kind_of<Numeric>(fix));
     TS_ASSERT(kind_of<Numeric>(big));

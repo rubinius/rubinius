@@ -18,7 +18,7 @@ class TestArray : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_allocate() {
-    Class* sub = ontology::new_class(state, "ArraySub", G(array), 0);
+    Class* sub = state->memory()->new_class<Class>(state, G(array));
     Array* ary = Array::allocate(state, sub);
 
     TS_ASSERT_EQUALS(ary->klass(), sub);

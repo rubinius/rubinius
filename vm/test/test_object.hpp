@@ -377,7 +377,7 @@ public:
   void test_object_class_with_superclass_chain() {
     Module* mod = Module::create(state);
     Class* cls = Class::create(state, G(object));
-    Object* obj = state->new_object<Object>(cls);
+    Object* obj = state->memory()->new_object<Object>(state, cls);
 
     /* This should be functionally correct but not actually the
      * way a superclass chain is implemented. However, it doesn't
@@ -440,6 +440,6 @@ public:
   }
 
   Object* util_new_object() {
-    return state->new_object<Object>(G(object));
+    return state->memory()->new_object<Object>(state, G(object));
   }
 };
