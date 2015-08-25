@@ -6,6 +6,10 @@ describe "Module#prepend" do
     Module.should have_public_instance_method(:prepend, true)
   end
 
+  it "does not affect the superclass" do
+    Class.new { prepend Module.new }.superclass.should == Object
+  end
+
   it "calls #prepend_features(self) in reversed order on each module" do
     ScratchPad.record []
 
