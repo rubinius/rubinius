@@ -244,6 +244,7 @@ namespace rubinius {
     void gc_soon() {
       check_global_interrupts_ = true;
       check_gc_ = true;
+      thread_nexus_->set_stop();
     }
 
     bool check_global_interrupts() const {

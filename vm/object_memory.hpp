@@ -270,6 +270,8 @@ namespace rubinius {
           goto allocate;
         } else {
           // TODO: set young collection
+          collect_young_now = true;
+          state->shared().gc_soon();
         }
       }
 
