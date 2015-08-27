@@ -634,7 +634,8 @@ namespace rubinius {
   }
 
   void Transcoding::bootstrap(STATE) {
-    state->memory()->new_class<Class, Transcoding>(state, G(encoding), "Transcoding");
+    state->memory()->new_class<Class, Transcoding>(
+        state, G(object), G(encoding), "Transcoding");
 
     G(encoding)->set_const(state, "TranscodingMap", LookupTable::create(state));
 
@@ -691,7 +692,7 @@ namespace rubinius {
 
   void Converter::bootstrap(STATE) {
     Class* cls = state->memory()->new_class<Class, Converter>(
-        state, G(encoding), "Converter");
+        state, G(object), G(encoding), "Converter");
 
     cls->set_const(state, "INVALID_MASK", Fixnum::from(ECONV_INVALID_MASK));
     cls->set_const(state, "INVALID_REPLACE", Fixnum::from(ECONV_INVALID_REPLACE));

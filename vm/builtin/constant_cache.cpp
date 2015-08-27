@@ -8,7 +8,7 @@
 namespace rubinius {
   void ConstantCache::bootstrap(STATE) {
     GO(constant_cache).set(state->memory()->new_class<Class, ConstantCache>(
-          state, G(object), G(rubinius), "ConstantCache"));
+          state, G(rubinius), "ConstantCache"));
   }
 
   ConstantCache* ConstantCache::create(STATE, ConstantCache* existing,

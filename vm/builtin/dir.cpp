@@ -11,7 +11,7 @@
 
 namespace rubinius {
   void Dir::bootstrap(STATE) {
-    GO(dir).set(state->memory()->new_class<Class, Dir>(state, G(object), "Dir"));
+    GO(dir).set(state->memory()->new_class<Class, Dir>(state, "Dir"));
   }
 
   Dir* Dir::create(STATE) {

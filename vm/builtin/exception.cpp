@@ -16,8 +16,7 @@
 
 namespace rubinius {
   void Exception::bootstrap(STATE) {
-    GO(exception).set(state->memory()->new_class<Class, Exception>(
-          state, G(object), "Exception"));
+    GO(exception).set(state->memory()->new_class<Class, Exception>(state, "Exception"));
   }
 
   Exception* Exception::allocate(STATE, Object* self) {

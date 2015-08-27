@@ -11,7 +11,7 @@
 namespace rubinius {
 
   void Data::bootstrap(STATE) {
-    GO(data).set(state->memory()->new_class<Class, Data>(state, G(object), "Data"));
+    GO(data).set(state->memory()->new_class<Class, Data>(state, "Data"));
   }
 
   Data* Data::create(STATE, void* data_ptr, Data::MarkFunctor mark, Data::FreeFunctor free) {

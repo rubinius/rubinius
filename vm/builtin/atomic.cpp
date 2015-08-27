@@ -6,7 +6,7 @@
 namespace rubinius {
   void AtomicReference::bootstrap(STATE) {
     GO(atomic_ref).set(state->memory()->new_class<Class, AtomicReference>(
-          state, G(object), G(rubinius), "AtomicReference"));
+          state, G(rubinius), "AtomicReference"));
   }
 
   AtomicReference* AtomicReference::allocate(STATE) {
