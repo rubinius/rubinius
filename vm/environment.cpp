@@ -105,7 +105,7 @@ namespace rubinius {
 
     check_io_descriptors();
 
-    root_vm = shared->thread_nexus()->new_vm(shared, "rbx.ruby.main");
+    root_vm = shared->thread_nexus()->new_vm(shared, "ruby.main");
     root_vm->set_main_thread();
     shared->set_root_vm(root_vm);
 

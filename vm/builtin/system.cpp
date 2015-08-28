@@ -467,7 +467,12 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
-      utilities::logger::write("spawn: %s", exe.command());
+      CallFrame* call_frame = calling_environment->get(3);
+
+      utilities::logger::write("spawn: %s, %s, %s:%d", exe.command(),
+          state->vm()->name().c_str(),
+          call_frame->file(state)->cpp_str(state).c_str(),
+          call_frame->line(state));
 
       if(exe.argc()) {
         (void)::execvp(exe.command(), exe.argv());
@@ -586,7 +591,12 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
-      utilities::logger::write("backtick: %s", exe.command());
+      CallFrame* call_frame = calling_environment->get(1);
+
+      utilities::logger::write("backtick: %s, %s, %s:%d", exe.command(),
+          state->vm()->name().c_str(),
+          call_frame->file(state)->cpp_str(state).c_str(),
+          call_frame->line(state));
 
       exec_sh_fallback(state, exe.command(), exe.command_size());
 
@@ -696,7 +706,12 @@ namespace rubinius {
       old_handlers[i] = (void*)old_action.sa_handler;
     }
 
-    utilities::logger::write("exec: %s", exe.command());
+    CallFrame* call_frame = calling_environment->get(3);
+
+    utilities::logger::write("exec: %s, %s, %s:%d", exe.command(),
+        state->vm()->name().c_str(),
+        call_frame->file(state)->cpp_str(state).c_str(),
+        call_frame->line(state));
 
     if(exe.argc()) {
       (void)::execvp(exe.command(), exe.argv());
@@ -821,7 +836,13 @@ namespace rubinius {
 
       if(pid > 0) {
         state->shared().internal_threads()->after_fork_parent(state);
-        utilities::logger::write("fork: child: %d", pid);
+
+        CallFrame* call_frame = calling_environment->get(2);
+
+        utilities::logger::write("fork: child: %d, %s, %s:%d", pid,
+            state->vm()->name().c_str(),
+            call_frame->file(state)->cpp_str(state).c_str(),
+            call_frame->line(state));
       }
     }
 

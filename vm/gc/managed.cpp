@@ -23,7 +23,7 @@ namespace rubinius {
       name_ = std::string(name);
     } else {
       std::ostringstream thread_name;
-      thread_name << "rbx.ruby." << id_;
+      thread_name << "ruby." << id_;
       name_ = thread_name.str();
     }
   }

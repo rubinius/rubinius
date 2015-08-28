@@ -61,6 +61,19 @@ namespace rubinius {
     Object* stk[0];
 
     // ACCESS
+    CallFrame* get(int frame) {
+      CallFrame* call_frame = this;
+
+      for(int i = 0; i < frame; i++) {
+        if(CallFrame* cf = call_frame->previous) {
+          call_frame = cf;
+        } else {
+          break;
+        }
+      }
+
+      return call_frame;
+    }
 
     int ip() const {
       return ip_;

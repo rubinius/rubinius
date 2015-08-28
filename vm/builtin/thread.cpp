@@ -104,8 +104,17 @@ namespace rubinius {
     return state->vm()->thread.get()->send(state, NULL, state->symbol("__run__"));
   }
 
-  Thread* Thread::allocate(STATE, Object* self) {
-    return Thread::create(state, self, send_run);
+  Thread* Thread::allocate(STATE, Object* self, CallFrame* calling_environment) {
+    Thread* thread = Thread::create(state, self, send_run);
+
+    CallFrame* call_frame = calling_environment->get(1);
+
+    utilities::logger::write("create thread: %s, %s:%d",
+        thread->vm()->name().c_str(),
+        call_frame->file(state)->cpp_str(state).c_str(),
+        call_frame->line(state));
+
+    return thread;
   }
 
   Thread* Thread::current(STATE) {
@@ -323,17 +332,16 @@ namespace rubinius {
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
 
-    if(cDebugThreading) {
-      utilities::logger::debug("Thread: start thread: id: %d, pthread: %d",
-          vm->thread_id(), (unsigned int)thread_debug_self());
-    }
+    vm->thread->pid(state, Fixnum::from(gettid()));
+
+    utilities::logger::write("start thread: %s, %d, %#x",
+        vm->name().c_str(), vm->thread->pid()->to_native(),
+        (unsigned int)thread_debug_self());
 
     int stack_address = 0;
     vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), THREAD_STACK_SIZE);
 
     NativeMethod::init_thread(state);
-
-    vm->thread->pid(state, Fixnum::from(gettid()));
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
     vm->thread->alive(state, cTrue);
@@ -369,17 +377,15 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    if(cDebugThreading) {
-      utilities::logger::debug("Thread: exit thread: id: %d", vm->thread_id());
-    }
+    utilities::logger::write("exit thread: %s", vm->name().c_str());
 
     vm->become_unmanaged();
 
     if(vm->main_thread_p() || (!ret && vm->thread_state()->raise_reason() == cExit)) {
       state->shared().signals()->system_exit(vm->thread_state()->raise_value());
-    } else {
-      vm->set_zombie(state);
     }
+
+    vm->set_zombie(state);
 
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);

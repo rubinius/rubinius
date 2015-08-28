@@ -118,7 +118,7 @@ namespace rubinius {
      *  @see  kernel/bootstrap/thread.rb
      */
     // Rubinius.primitive :thread_allocate
-    static Thread* allocate(STATE, Object* self);
+    static Thread* allocate(STATE, Object* self, CallFrame* calling_environment);
 
     /**
      *  Returns the Thread object for the state.
