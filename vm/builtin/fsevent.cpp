@@ -136,7 +136,11 @@ namespace rubinius {
       watch_set_ = false;
     }
 
-    status = read(in_, &fsevent, RBX_FSEVENT_BUF_LEN);
+    {
+      UnmanagedPhase unmanaged(state);
+
+      status = read(in_, &fsevent, RBX_FSEVENT_BUF_LEN);
+    }
 
     if(status < 0) return cNil;
 
