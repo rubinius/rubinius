@@ -81,6 +81,7 @@ namespace rubinius {
     , constant_missing_reason_(vFound)
     , zombie_(false)
     , main_thread_(false)
+    , tracked_(false)
     , thread_phase_(ThreadNexus::Phase::cManaged)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())

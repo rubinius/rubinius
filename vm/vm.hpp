@@ -113,6 +113,7 @@ namespace rubinius {
     bool tooling_;
     bool allocation_tracking_;
     bool main_thread_;
+    bool tracked_;
 
     ThreadNexus::Phase thread_phase_;
 
@@ -156,6 +157,14 @@ namespace rubinius {
 
     ThreadNexus::Phase thread_phase() {
       return thread_phase_;
+    }
+
+    void set_tracked(bool tracked = true) {
+      tracked_ = tracked;
+    }
+
+    bool tracked_p() {
+      return tracked_;
     }
 
     void set_thread_phase(ThreadNexus::Phase thread_phase) {

@@ -15,21 +15,34 @@ namespace rubinius {
     return (vm->thread_phase() & cYielding) == cYielding;
   }
 
-  VM* ThreadNexus::new_vm(SharedState* shared, const char* name) {
+  VM* ThreadNexus::new_vm_solo(SharedState* shared, const char* name) {
     utilities::thread::SpinLock::LockGuard guard(threads_lock_);
 
     uint32_t max_id = thread_ids_;
-    uint32_t id = atomic::fetch_and_add(&thread_ids_,
-        static_cast<uint32_t>(1));
+    uint32_t id = ++thread_ids_;
 
     if(id < max_id) {
       rubinius::bug("exceeded maximum number of threads");
     }
 
-    VM* vm = new VM(id, *shared, name);
-    threads_.push_back(vm);
+    return new VM(id, *shared, name);
+  }
+
+  VM* ThreadNexus::new_vm(SharedState* shared, const char* name) {
+    VM* vm = new_vm_solo(shared, name);
+
+    add_vm(vm);
 
     return vm;
+  }
+
+  void ThreadNexus::add_vm(VM* vm) {
+    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+
+    if(vm->tracked_p()) return;
+
+    vm->set_tracked();
+    threads_.push_back(vm);
   }
 
   void ThreadNexus::delete_vm(VM* vm) {
