@@ -1,5 +1,4 @@
 #include "configuration.hpp"
-#include "missing/math.h"
 #include "object_utils.hpp"
 #include "object_memory.hpp"
 
@@ -13,6 +12,8 @@
 #include "builtin/byte_array.hpp"
 
 #include <sstream>
+
+#include "missing/math.h"
 
 #define NEW_STRUCT(obj, str) \
   obj = Bignum::create(state); \

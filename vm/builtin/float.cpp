@@ -1,5 +1,4 @@
 #include "configuration.hpp"
-#include "missing/math.h"
 #include "object_memory.hpp"
 #include "object_utils.hpp"
 
@@ -13,7 +12,6 @@
 #include "builtin/tuple.hpp"
 
 #include "util/local_buffer.hpp"
-#include "missing/string.h"
 
 #include <double-conversion.h>
 #include <ieee.h>
@@ -22,6 +20,10 @@
 #include <string.h>
 #include <math.h>
 #include <sstream>
+
+#include "missing/string.h"
+#include "missing/math.h"
+
 namespace rubinius {
 
   void Float::bootstrap(STATE) {

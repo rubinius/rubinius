@@ -3,6 +3,7 @@
 
 #include "builtin/object.hpp"
 
+#include <string.h>
 #include <sys/stat.h>
 
 namespace rubinius {
@@ -27,7 +28,7 @@ namespace rubinius {
 
     static void initialize(STATE, Stat* obj) {
       obj->path_ = nil<String>();
-      obj->st_ = { 0, };
+      memset(&obj->st_, 0, sizeof(struct stat));
     }
 
     // Rubinius.primitive :stat_allocate

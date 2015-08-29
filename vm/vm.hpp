@@ -393,7 +393,7 @@ namespace rubinius {
 
     void become_managed();
     void become_unmanaged() {
-      thread_phase_ = ThreadNexus::Phase::cUnmanaged;
+      thread_phase_ = ThreadNexus::cUnmanaged;
     }
 
     void set_current_thread();

@@ -82,7 +82,7 @@ namespace rubinius {
     , zombie_(false)
     , main_thread_(false)
     , tracked_(false)
-    , thread_phase_(ThreadNexus::Phase::cManaged)
+    , thread_phase_(ThreadNexus::cManaged)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
