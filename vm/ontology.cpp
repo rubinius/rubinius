@@ -122,6 +122,8 @@ namespace rubinius {
     Module::bootstrap(state, G(array), G(object), "Array");
     Module::bootstrap(state, G(cls_weakref), G(object), "WeakRef");
 
+    G(basicobject)->set_const(state, "BasicObject", G(basicobject));
+
     // Create the namespace for various implementation classes
     GO(rubinius).set(state->memory()->new_module<Module>(state, "Rubinius"));
     GO(runtime).set(state->memory()->new_module<Module>(state, G(rubinius), "Runtime"));
