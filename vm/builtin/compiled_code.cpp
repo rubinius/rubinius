@@ -49,6 +49,7 @@ namespace rubinius {
 
     code->copy_object(state, this);
     code->set_executor(CompiledCode::default_executor);
+    code->machine_code_ = NULL;
 
     return code;
   }

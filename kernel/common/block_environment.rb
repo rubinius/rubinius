@@ -114,5 +114,10 @@ module Rubinius
         @block_env.parameters
       end
     end
+
+    def initialize_dup(other)
+      @compiled_code = other.compiled_code.dup
+    end
+    private :initialize_dup
   end
 end
