@@ -3,6 +3,7 @@
 #include "dispatch.hpp"
 #include "object_utils.hpp"
 #include "object_memory.hpp"
+#include "on_stack.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -150,12 +151,11 @@ namespace rubinius {
         Exception::type_error(state, "to_ary should return an Array", call_frame);
         return 0;
       }
-
-      // NOTE: On >= 1.9, if res is nil just fall through and return [value]
     }
 
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, value);
+
     return ary;
   }
 

@@ -49,13 +49,15 @@ namespace rubinius {
     return execute(state, call_frame, this, mod, args);
   }
 
-  Object* Executable::default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                                       Arguments& args) {
+  Object* Executable::default_executor(STATE, CallFrame* call_frame,
+      Executable* exec, Module* mod, Arguments& args)
+  {
     args.unshift2(state, args.recv(), args.name());
     args.set_recv(exec);
 
-    Dispatch dis(G(sym_call));
-    return dis.send(state, call_frame, args);
+    Dispatch dispatch(G(sym_call));
+
+    return dispatch.send(state, call_frame, args);
   }
 
   void Executable::add_inliner(STATE, ObjectMemory* om, CompiledCode* code) {

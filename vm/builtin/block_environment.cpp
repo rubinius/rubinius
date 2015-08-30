@@ -220,8 +220,15 @@ namespace rubinius {
 
           if(!(ary = try_as<Array>(obj))) {
             if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-              if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
-                return false;
+              {
+                /* The references in args are not visible to the GC and
+                 * there's not a simple mechanism to manage that now.
+                 */
+                ObjectMemory::GCInhibit inhibitor(state);
+
+                if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
+                  return false;
+                }
               }
 
               if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
@@ -264,15 +271,23 @@ namespace rubinius {
       if(mcode->keywords && N > M) {
         Object* obj = args.get_argument(args.total() - 1);
 
-        OnStack<1> os(state, obj);
         Object* arguments[2];
 
         arguments[0] = obj;
         arguments[1] = RBOOL(O > 0 || RP);
         Arguments args(G(sym_keyword_object), G(runtime), 2, arguments);
-        Dispatch dis(G(sym_keyword_object));
+        Dispatch dispatch(G(sym_keyword_object));
 
-        Object* kw_result = dis.send(state, call_frame, args);
+        Object* kw_result;
+
+        {
+          /* The references in args are not visible to the GC and
+           * there's not a simple mechanism to manage that now.
+           */
+          ObjectMemory::GCInhibit inhibitor(state);
+
+          kw_result = dispatch.send(state, call_frame, args);
+        }
 
         if(kw_result) {
           if(Array* ary = try_as<Array>(kw_result)) {

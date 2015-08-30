@@ -784,9 +784,9 @@ instruction cast_array() [ value -- array ]
   } else if(!kind_of<Array>(t1)) {
     Object* recv = G(type);
     Arguments args(G(sym_coerce_to_array), recv, 1, &t1);
-    Dispatch dis(G(sym_coerce_to_array));
+    Dispatch dispatch(G(sym_coerce_to_array));
 
-    Object* res = dis.send(state, call_frame, args);
+    Object* res = dispatch.send(state, call_frame, args);
 
     // If the send still doesn't produce an array, wrap
     // the value in one.
@@ -1505,8 +1505,8 @@ instruction yield_stack(count) [ +count -- value ] => yield
     state->raise_exception(Exception::make_lje(state, call_frame));
     ret = NULL;
   } else {
-    Dispatch dis(G(sym_call));
-    ret = dis.send(state, call_frame, args);
+    Dispatch dispatch(G(sym_call));
+    ret = dispatch.send(state, call_frame, args);
   }
 
   stack_clear(count);
@@ -1550,8 +1550,8 @@ instruction yield_splat(count) [ array +count -- value ] => yield
     state->raise_exception(Exception::make_lje(state, call_frame));
     ret = NULL;
   } else {
-    Dispatch dis(G(sym_call));
-    ret = dis.send(state, call_frame, args);
+    Dispatch dispatch(G(sym_call));
+    ret = dispatch.send(state, call_frame, args);
   }
 
   stack_clear(count);

@@ -74,7 +74,15 @@ namespace rubinius {
 
             if(!(ary = try_as<Array>(obj))) {
               if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-                obj = obj->send(state, call_frame, G(sym_to_ary));
+                {
+                  /* The references in args are not visible to the GC and
+                   * there's not a simple mechanism to manage that now.
+                   */
+                  ObjectMemory::GCInhibit inhibitor(state);
+
+                  obj = obj->send(state, call_frame, G(sym_to_ary));
+                }
+
                 if(!(ary = try_as<Array>(obj))) {
                   Exception::type_error(state, "to_ary must return an Array", call_frame);
                   return 0;
@@ -112,8 +120,8 @@ namespace rubinius {
 
     if(self->bound_method_->nil_p()) {
       if(self->block_->nil_p()) {
-        Dispatch dis(state->symbol("__yield__"));
-        return dis.send(state, call_frame, args);
+        Dispatch dispatch(state->symbol("__yield__"));
+        return dispatch.send(state, call_frame, args);
       } else {
         return self->block_->call(state, call_frame, args, flags);
       }

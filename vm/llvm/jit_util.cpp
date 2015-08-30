@@ -315,9 +315,9 @@ extern "C" {
 
         Symbol* name = state->symbol("to_hash");
         Arguments args(name, obj, 0, 0);
-        Dispatch dis(name);
+        Dispatch dispatch(name);
 
-        obj = dis.send(state, call_frame, args);
+        obj = dispatch.send(state, call_frame, args);
         if(obj) {
           if(obj->kind_of_p(state, cls)) {
             return obj;
@@ -365,9 +365,9 @@ extern "C" {
     // coerce
     Object* recv = G(type);
     Arguments args(G(sym_coerce_to_array), recv, 1, &top);
-    Dispatch dis(G(sym_coerce_to_array));
+    Dispatch dispatch(G(sym_coerce_to_array));
 
-    return dis.send(state, call_frame, args);
+    return dispatch.send(state, call_frame, args);
   }
 
   int rbx_destructure_args(STATE, CallFrame* call_frame, Arguments& args) {
@@ -376,8 +376,15 @@ extern "C" {
 
     if(!(ary = try_as<Array>(obj))) {
       if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-        if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
-          return -1;
+        {
+          /* The references in args are not visible to the GC and
+           * there's not a simple mechanism to manage that now.
+           */
+          ObjectMemory::GCInhibit inhibitor(state);
+
+          if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
+            return -1;
+          }
         }
 
         if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
@@ -745,9 +752,9 @@ extern "C" {
       return NULL;
     }
 
-    Dispatch dis(G(sym_call));
+    Dispatch dispatch(G(sym_call));
 
-    return dis.send(state, call_frame, out_args);
+    return dispatch.send(state, call_frame, out_args);
   }
 
   Object* rbx_yield_splat(STATE, CallFrame* call_frame, Object* block,
@@ -770,8 +777,8 @@ extern "C" {
       return NULL;
     }
 
-    Dispatch dis(G(sym_call));
-    return dis.send(state, call_frame, args);
+    Dispatch dispatch(G(sym_call));
+    return dispatch.send(state, call_frame, args);
   }
 
   Object* rbx_passed_arg(STATE, Arguments& args, int index) {

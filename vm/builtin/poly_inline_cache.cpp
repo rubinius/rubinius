@@ -66,13 +66,14 @@ namespace rubinius {
     cache->seen_classes_overflow_ = 0;
     cache->clear();
 
-    Dispatch dis(mono->name());
-    dis.module = mono->stored_module();
-    dis.method = mono->method();
-    dis.method_missing = mono->method_missing();
-    InlineCacheEntry* entry = InlineCacheEntry::create(state, mono->receiver_data(),
-                                                       mono->receiver_class(), dis, mono->hits());
+    Dispatch dispatch(mono->name());
+    dispatch.module = mono->stored_module();
+    dispatch.method = mono->method();
+    dispatch.method_missing = mono->method_missing();
+    InlineCacheEntry* entry = InlineCacheEntry::create(
+        state, mono->receiver_data(), mono->receiver_class(), dispatch, mono->hits());
     cache->set_cache(state, entry);
+
     return cache;
   }
 

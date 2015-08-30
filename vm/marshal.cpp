@@ -103,9 +103,9 @@ namespace rubinius {
 
     Symbol* name = state->symbol("unmarshal_rational");
     Arguments args(name, G(runtime), 2, objs);
-    Dispatch dis(name);
+    Dispatch dispatch(name);
 
-    if(Object* r = dis.send(state, NULL, args)) {
+    if(Object* r = dispatch.send(state, NULL, args)) {
       return r;
     } else {
       return cNil;
@@ -120,9 +120,9 @@ namespace rubinius {
 
     Symbol* name = state->symbol("unmarshal_complex");
     Arguments args(name, G(runtime), 2, objs);
-    Dispatch dis(name);
+    Dispatch dispatch(name);
 
-    if(Object* c = dis.send(state, NULL, args)) {
+    if(Object* c = dispatch.send(state, NULL, args)) {
       return c;
     } else {
       return cNil;

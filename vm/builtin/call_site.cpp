@@ -38,12 +38,12 @@ namespace rubinius {
     return Integer::from(state, ip_);
   }
 
-  Object* CallSite::empty_cache_custom(STATE, CallSite* call_site, CallFrame* call_frame,
-                                          Arguments& args)
+  Object* CallSite::empty_cache_custom(STATE, CallSite* call_site,
+      CallFrame* call_frame, Arguments& args)
   {
     Object* const recv = args.recv();
 
-    Array*  ary = Array::create(state, args.total() + 2);
+    Array* ary = Array::create(state, args.total() + 2);
     ary->set(state, 0, recv);
     ary->set(state, 1, call_site->name_);
 
@@ -51,7 +51,16 @@ namespace rubinius {
       ary->set(state, i + 2, args.get_argument(i));
     }
 
-    Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"), ary);
+    Object* ret;
+
+    {
+      /* The references in args are not visible to the GC and
+       * there's not a simple mechanism to manage that now.
+       */
+      ObjectMemory::GCInhibit inhibitor(state);
+
+      ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"), ary);
+    }
 
     if(CallUnit* cu = try_as<CallUnit>(ret)) {
       CallCustomCache* cache = CallCustomCache::create(state, call_site, cu);
@@ -63,28 +72,28 @@ namespace rubinius {
     }
   }
 
-  Object* CallSite::empty_cache(STATE, CallSite* call_site, CallFrame* call_frame,
-                                   Arguments& args)
+  Object* CallSite::empty_cache(STATE, CallSite* call_site,
+      CallFrame* call_frame, Arguments& args)
   {
     Object* const recv = args.recv();
     Class*  const recv_class  = recv->direct_class(state);
 
     LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_public));
-    Dispatch dis(call_site->name());
+    Dispatch dispatch(call_site->name());
 
-    if(!dis.resolve(state, call_site->name(), lookup)) {
+    if(!dispatch.resolve(state, call_site->name(), lookup)) {
       if(!lookup_method_missing(state, call_frame, args,
-          dis, call_frame->self(), recv->lookup_begin(state))) {
+          dispatch, call_frame->self(), recv->lookup_begin(state))) {
         return NULL;
       }
     }
 
     state->vm()->metrics().machine.methods_invoked++;
 
-    call_site->update(state, recv_class, dis);
+    call_site->update(state, recv_class, dispatch);
 
-    Executable* meth = dis.method;
-    Module* mod = dis.module;
+    Executable* meth = dispatch.method;
+    Module* mod = dispatch.module;
 
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
@@ -104,21 +113,21 @@ namespace rubinius {
     Class* const recv_class = recv->direct_class(state);
 
     LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
-    Dispatch dis(call_site->name());
+    Dispatch dispatch(call_site->name());
 
-    if(!dis.resolve(state, dis.name, lookup)) {
+    if(!dispatch.resolve(state, dispatch.name, lookup)) {
       if(!lookup_method_missing(state, call_frame, args,
-          dis, call_frame->self(), recv->lookup_begin(state))) {
+          dispatch, call_frame->self(), recv->lookup_begin(state))) {
         return NULL;
       }
     }
 
     state->vm()->metrics().machine.methods_invoked++;
 
-    call_site->update(state, recv_class, dis);
+    call_site->update(state, recv_class, dispatch);
 
-    Executable* meth = dis.method;
-    Module* mod = dis.module;
+    Executable* meth = dispatch.method;
+    Module* mod = dispatch.module;
 
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
@@ -139,22 +148,22 @@ namespace rubinius {
     Class* const recv_class = recv->direct_class(state);
 
     LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
-    Dispatch dis(call_site->name());
+    Dispatch dispatch(call_site->name());
 
-    if(!dis.resolve(state, call_site->name(), lookup)) {
-      dis.method_missing = eVCall;
+    if(!dispatch.resolve(state, call_site->name(), lookup)) {
+      dispatch.method_missing = eVCall;
       if(!lookup_method_missing(state, call_frame, args,
-          dis, call_frame->self(), recv->lookup_begin(state))) {
+          dispatch, call_frame->self(), recv->lookup_begin(state))) {
         return NULL;
       }
     }
 
     state->vm()->metrics().machine.methods_invoked++;
 
-    call_site->update(state, recv_class, dis);
+    call_site->update(state, recv_class, dispatch);
 
-    Executable* meth = dis.method;
-    Module* mod = dis.module;
+    Executable* meth = dispatch.method;
+    Module* mod = dispatch.module;
 
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
@@ -181,14 +190,15 @@ namespace rubinius {
     Module* const start = call_frame->module()->superclass();
 
     LookupData lookup(call_frame->self(), start, G(sym_private));
-    Dispatch dis(call_site->name());
+    Dispatch dispatch(call_site->name());
 
-    if(start->nil_p() || !dis.resolve(state, call_site->name(), lookup)) {
+    if(start->nil_p() || !dispatch.resolve(state, call_site->name(), lookup)) {
 
-      LookupData missing_lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
-      Dispatch missing_dis(G(sym_method_missing));
+      LookupData missing_lookup(call_frame->self(),
+          recv->lookup_begin(state), G(sym_private));
+      Dispatch missing_dispatch(G(sym_method_missing));
 
-      if(!missing_dis.resolve(state, G(sym_method_missing), missing_lookup)) {
+      if(!missing_dispatch.resolve(state, G(sym_method_missing), missing_lookup)) {
         std::ostringstream msg;
         msg << "no method_missing for ";
         msg << recv_class->to_string(state);
@@ -199,19 +209,19 @@ namespace rubinius {
       }
 
       args.unshift(state, call_site->name());
-      dis.method = missing_dis.method;
-      dis.module = missing_dis.module;
-      dis.method_missing = eSuper;
-      state->vm()->set_method_missing_reason(dis.method_missing);
+      dispatch.method = missing_dispatch.method;
+      dispatch.module = missing_dispatch.module;
+      dispatch.method_missing = eSuper;
+      state->vm()->set_method_missing_reason(dispatch.method_missing);
       state->vm()->global_cache()->add_seen(state, call_site->name());
     }
 
     state->vm()->metrics().machine.methods_invoked++;
 
-    call_site->update(state, recv_class, dis);
+    call_site->update(state, recv_class, dispatch);
 
-    Executable* meth = dis.method;
-    Module* mod = dis.module;
+    Executable* meth = dispatch.method;
+    Module* mod = dispatch.module;
 
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
@@ -245,34 +255,37 @@ namespace rubinius {
     }
 
     LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_public));
-    Dispatch dis(name_);
+    Dispatch dispatch(name_);
 
-    if(dis.resolve(state, name_, lookup)) {
-      update(state, recv_class, dis);
-      return dis.method->serial()->to_native() == serial;
+    if(dispatch.resolve(state, name_, lookup)) {
+      update(state, recv_class, dispatch);
+      return dispatch.method->serial()->to_native() == serial;
     }
     return false;
   }
 
-  bool CallSite::lookup_method_missing(STATE, CallFrame* call_frame, Arguments& args, Dispatch& dis, Object* self, Module* begin) {
+  bool CallSite::lookup_method_missing(STATE, CallFrame* call_frame,
+      Arguments& args, Dispatch& dispatch, Object* self, Module* begin)
+  {
     LookupData missing_lookup(self, begin, G(sym_private));
-    Dispatch missing_dis(G(sym_method_missing));
+    Dispatch missing_dispatch(G(sym_method_missing));
 
-    if(!missing_dis.resolve(state, G(sym_method_missing), missing_lookup)) {
+    if(!missing_dispatch.resolve(state, G(sym_method_missing), missing_lookup)) {
       std::ostringstream msg;
       msg << "no method_missing for ";
       msg << begin->to_string(state);
-      msg << "#" << dis.name->to_string(state);
+      msg << "#" << dispatch.name->to_string(state);
 
       Exception::internal_error(state, call_frame, msg.str().c_str());
       return false;
     }
 
-    args.unshift(state, dis.name);
-    dis.method = missing_dis.method;
-    dis.module = missing_dis.module;
-    state->vm()->set_method_missing_reason(dis.method_missing);
-    state->vm()->global_cache()->add_seen(state, dis.name);
+    args.unshift(state, dispatch.name);
+    dispatch.method = missing_dispatch.method;
+    dispatch.module = missing_dispatch.module;
+    state->vm()->set_method_missing_reason(dispatch.method_missing);
+    state->vm()->global_cache()->add_seen(state, dispatch.name);
+
     return true;
   }
 

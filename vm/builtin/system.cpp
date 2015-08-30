@@ -1232,13 +1232,13 @@ namespace rubinius {
     // and work as expected.
     LookupData lookup(cUndef, lookup_begin, min_visibility);
 
-    Dispatch dis(name);
+    Dispatch dispatch(name);
 
-    if(!dis.resolve(state, name, lookup)) {
+    if(!dispatch.resolve(state, name, lookup)) {
       return nil<Tuple>();
     }
 
-    return Tuple::from(state, 2, dis.method, dis.module);
+    return Tuple::from(state, 2, dispatch.method, dispatch.module);
   }
 
   Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
@@ -1442,12 +1442,12 @@ namespace rubinius {
                            CallFrame* call_frame)
   {
     LookupData lookup(obj, obj->lookup_begin(state), G(sym_protected));
-    Dispatch dis(G(sym_call));
+    Dispatch dispatch(G(sym_call));
     Arguments args(G(sym_call), 1, &dest);
     args.set_recv(obj);
 
     OnStack<1> os(state, dest);
-    Object* ret = dis.send(state, call_frame, lookup, args);
+    Object* ret = dispatch.send(state, call_frame, lookup, args);
 
     if(!ret && state->vm()->thread_state()->raise_reason() == cCatchThrow) {
       if(state->vm()->thread_state()->throw_dest() == dest) {
@@ -1558,19 +1558,19 @@ namespace rubinius {
                                     Object* self, CallFrame* calling_environment)
   {
     LookupData lookup(self, obj->lookup_begin(state), G(sym_public));
-    Dispatch dis(sym);
+    Dispatch dispatch(sym);
 
-    Object* responds = RBOOL(dis.resolve(state, sym, lookup));
+    Object* responds = RBOOL(dispatch.resolve(state, sym, lookup));
     if(!CBOOL(responds)) {
       LookupData lookup(obj, obj->lookup_begin(state), G(sym_private));
       Symbol* name = G(sym_respond_to_missing);
-      Dispatch dis(name);
+      Dispatch dispatch(name);
 
       Object* buf[2];
       buf[0] = name;
       buf[1] = G(sym_public);
       Arguments args(name, obj, 2, buf);
-      responds = RBOOL(CBOOL(dis.send(state, calling_environment, lookup, args)));
+      responds = RBOOL(CBOOL(dispatch.send(state, calling_environment, lookup, args)));
     }
     return responds;
   }
@@ -1581,9 +1581,9 @@ namespace rubinius {
     Symbol* sym = call_frame->original_name();
 
     LookupData lookup(call_frame->self(), start, G(sym_private));
-    Dispatch dis(sym);
+    Dispatch dispatch(sym);
 
-    return RBOOL(dis.resolve(state, sym, lookup));
+    return RBOOL(dispatch.resolve(state, sym, lookup));
   }
 
 #define GETPW_R_SIZE 2048

@@ -323,7 +323,8 @@ namespace rubinius {
   }
 
   static void invoke_callback(ffi_cif* cif, void* retval,
-                              void** parameters, void* user_data) {
+      void** parameters, void* user_data)
+  {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     FFIData* stub = reinterpret_cast<FFIData*>(user_data);
 
@@ -403,12 +404,16 @@ namespace rubinius {
       case RBX_FFI_TYPE_ENUM:{
         Array* ary = Array::create(state, 1);
         ary->set(state, 0, Fixnum::from(*(int*)parameters[i]));
-        Object* result = stub->args_info[i].enum_obj->send(state, env->current_call_frame(), state->symbol("symbol"), ary);
+
+        Object* result = stub->args_info[i].enum_obj->send(
+            state, env->current_call_frame(), state->symbol("symbol"), ary);
+
         if(!result) {
-          std::cerr << "[WARNING] Exception raised by callback, ignoring.\n";
+          utilities::logger::error("Exception raised by callback, ignoring");
           state->vm()->thread_state()->clear();
           result = cNil;
         }
+
         args->set(state, i, result);
         break;
       }
@@ -416,8 +421,10 @@ namespace rubinius {
         void* ptr = *(void**)parameters[i];
         if(ptr) {
           NativeFunction* orig = stub->args_info[i].callback;
-          NativeFunction* func = NativeFunction::create(state, state->symbol("ffi_tramp"), orig->ffi_data->arg_count);
-          func->prep(state, orig->ffi_data->arg_count, orig->ffi_data->args_info, &orig->ffi_data->ret_info);
+          NativeFunction* func = NativeFunction::create(
+              state, state->symbol("ffi_tramp"), orig->ffi_data->arg_count);
+          func->prep(state, orig->ffi_data->arg_count,
+              orig->ffi_data->args_info, &orig->ffi_data->ret_info);
           func->ffi_data->ep = ptr;
           Proc* prc = Proc::create(state, state->vm()->shared.globals.proc.get());
           prc->bound_method(state, func);
@@ -474,13 +481,13 @@ namespace rubinius {
       }
     }
 
-    Object* obj = stub->callable->send(state, env->current_call_frame(),
-                                       G(sym_call), args);
+    Object* obj = stub->callable->send(
+        state, env->current_call_frame(), G(sym_call), args);
 
     // Ug. An exception is being raised...
     if(!obj) {
-      // For now, print out a warning to stderr and just eat it.
-      std::cerr << "[WARNING] Exception raised by callback, ignoring.\n";
+      // For now, log the error and return nil.
+      utilities::logger::error("Exception raised by callback, ignoring");
       state->vm()->thread_state()->clear();
       obj = cNil;
     }
@@ -551,13 +558,17 @@ namespace rubinius {
     case RBX_FFI_TYPE_ENUM: {
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, obj);
-      Object* value = stub->ret_info.enum_obj->send(state, env->current_call_frame(), state->symbol("[]"), ary);
+
+      Object* value = stub->ret_info.enum_obj->send(
+          state, env->current_call_frame(), state->symbol("[]"), ary);
+
       if(!value) {
-        // For now, print out a warning to stderr and just eat it.
-        std::cerr << "[WARNING] Exception raised by callback, ignoring.\n";
+        // For now, log the error and return nil.
+        utilities::logger::error("Exception raised by callback, ignoring");
         state->vm()->thread_state()->clear();
         value = cNil;
       }
+
       if(value->nil_p()) {
         *((Object**)retval) = value;
       } else {
@@ -662,8 +673,7 @@ namespace rubinius {
     return Pointer::create(state, func->ffi_data->ep);
   }
 
-  Object* NativeFunction::call(STATE, Arguments& args, CallFrame* call_frame)
-  {
+  Object* NativeFunction::call(STATE, Arguments& args, CallFrame* call_frame) {
     Object* ret;
     Object* obj;
 
@@ -691,8 +701,8 @@ namespace rubinius {
 
     if(CBOOL(varargs())) {
       if((given_args - req_count) & 1) {
-        Exception* exc =
-           Exception::make_exception(state, G(exc_arg), "Unbalanced type / value tuples for varargs");
+        Exception* exc = Exception::make_exception(state, G(exc_arg),
+               "Unbalanced type / value tuples for varargs");
         exc->locations(state, Location::from_call_stack(state, call_frame));
         state->raise_exception(exc);
         return NULL;
@@ -945,7 +955,10 @@ namespace rubinius {
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, obj);
-          Object* val = arg_info->enum_obj->send(state, call_frame, state->symbol("[]"), ary);
+
+          Object* val = arg_info->enum_obj->send(
+              state, call_frame, state->symbol("[]"), ary);
+
           if(!val) {
             for(size_t i = 0; i < arg_count; i++) {
               if(heap_allocations[i]) {
@@ -954,6 +967,7 @@ namespace rubinius {
             }
             return 0;
           }
+
           if(val->nil_p()) {
             *tmp = 0;
           } else {
@@ -1011,7 +1025,9 @@ namespace rubinius {
     if(CBOOL(varargs())) {
       // We need to call ffi_prep_cif_var for each call, since we need
       // to provide the actual number of arguments for each call.
-      int status = ffi_prep_cif_var(cif, FFI_DEFAULT_ABI, req_count, arg_count, rtype, types);
+      int status = ffi_prep_cif_var(
+          cif, FFI_DEFAULT_ABI, req_count, arg_count, rtype, types);
+
       if(status != FFI_OK) {
         rubinius::bug("ffi_prep_cif failed");
       }
@@ -1130,10 +1146,14 @@ namespace rubinius {
     case RBX_FFI_TYPE_ENUM: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
+
       state->vm()->become_managed();
+
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, Integer::from(state, (native_int)result));
-      ret = ffi_data->ret_info.enum_obj->send(state, call_frame, state->symbol("symbol"), ary);
+
+      ret = ffi_data->ret_info.enum_obj->send(
+          state, call_frame, state->symbol("symbol"), ary);
       break;
     }
     case RBX_FFI_TYPE_CALLBACK: {
@@ -1144,8 +1164,10 @@ namespace rubinius {
         ret = cNil;
       } else {
         NativeFunction* orig = ffi_data_local->ret_info.callback;
-        NativeFunction* func = NativeFunction::create(state, state->symbol("ffi_tramp"), orig->ffi_data->arg_count);
-        func->prep(state, orig->ffi_data->arg_count, orig->ffi_data->args_info, &orig->ffi_data->ret_info);
+        NativeFunction* func = NativeFunction::create(
+            state, state->symbol("ffi_tramp"), orig->ffi_data->arg_count);
+        func->prep(state, orig->ffi_data->arg_count,
+            orig->ffi_data->args_info, &orig->ffi_data->ret_info);
         func->ffi_data->ep = result;
         Proc* prc = Proc::create(state, state->vm()->shared.globals.proc.get());
         prc->bound_method(state, func);
@@ -1257,5 +1279,4 @@ namespace rubinius {
       func->ffi_data->function = func;
     }
   }
-
 }

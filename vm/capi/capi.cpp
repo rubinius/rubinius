@@ -137,10 +137,9 @@ namespace rubinius {
         }
         LookupData lookup(recv, recv->lookup_begin(env->state()), min_visibility);
         Arguments args_o(method, recv, block, arg_count, args);
-        Dispatch dis(method);
+        Dispatch dispatch(method);
 
-        ret = dis.send(env->state(), env->current_call_frame(),
-                      lookup, args_o);
+        ret = dispatch.send(env->state(), env->current_call_frame(), lookup, args_o);
       }
 
       // We need to get the handle for the return value before getting
@@ -185,10 +184,9 @@ namespace rubinius {
       {
         LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
         Arguments args_o(method, recv, cNil, arg_count, args);
-        Dispatch dis(method);
+        Dispatch dispatch(method);
 
-        ret = dis.send(env->state(), env->current_call_frame(),
-                       lookup, args_o);
+        ret = dispatch.send(env->state(), env->current_call_frame(), lookup, args_o);
       }
 
       // We need to get the handle for the return value before getting
@@ -237,8 +235,8 @@ namespace rubinius {
           state->raise_exception(Exception::make_lje(state, call_frame));
           ret = NULL;
         } else {
-          Dispatch dis(G(sym_call));
-          ret = dis.send(state, call_frame, args);
+          Dispatch dispatch(G(sym_call));
+          ret = dispatch.send(state, call_frame, args);
         }
       }
 
@@ -283,10 +281,9 @@ namespace rubinius {
       {
         LookupData lookup(recv, mod->superclass(), env->state()->globals().sym_private.get());
         Arguments args_o(name, recv, arg_count, args);
-        Dispatch dis(name);
+        Dispatch dispatch(name);
 
-        ret = dis.send(env->state(), env->current_call_frame(),
-                       lookup, args_o);
+        ret = dispatch.send(env->state(), env->current_call_frame(), lookup, args_o);
       }
 
       // We need to get the handle for the return value before getting

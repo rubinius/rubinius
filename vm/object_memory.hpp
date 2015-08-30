@@ -572,6 +572,12 @@ namespace rubinius {
         om->inhibit_gc();
       }
 
+      GCInhibit(STATE)
+        : om_(state->memory())
+      {
+        om_->inhibit_gc();
+      }
+
       ~GCInhibit() {
         om_->allow_gc();
       }

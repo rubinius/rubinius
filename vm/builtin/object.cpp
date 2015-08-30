@@ -512,30 +512,34 @@ namespace rubinius {
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* ary,
-      Object* block, bool allow_private) {
-    LookupData lookup(this, this->lookup_begin(state), allow_private ? G(sym_private) : G(sym_protected));
-    Dispatch dis(name);
+      Object* block, bool allow_private)
+  {
+    LookupData lookup(this, this->lookup_begin(state),
+        allow_private ? G(sym_private) : G(sym_protected));
+    Dispatch dispatch(name);
 
     Arguments args(name, ary);
     args.set_block(block);
     args.set_recv(this);
 
-    return dis.send(state, caller, lookup, args);
+    return dispatch.send(state, caller, lookup, args);
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
-    LookupData lookup(this, this->lookup_begin(state), allow_private ? G(sym_private) : G(sym_protected));
-    Dispatch dis(name);
+    LookupData lookup(this, this->lookup_begin(state),
+        allow_private ? G(sym_private) : G(sym_protected));
+    Dispatch dispatch(name);
 
     Arguments args(name);
     args.set_block(cNil);
     args.set_recv(this);
 
-    return dis.send(state, caller, lookup, args);
+    return dispatch.send(state, caller, lookup, args);
   }
 
-  Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                            Arguments& args, Symbol* min_visibility) {
+  Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec,
+      Module* mod, Arguments& args, Symbol* min_visibility)
+  {
     if(args.total() < 1) return Primitives::failure();
 
     // Don't shift the argument because we might fail and we need Arguments
@@ -565,21 +569,25 @@ namespace rubinius {
     // We have to send it with self from the current frame as the
     // source, not this object to have correct visibility checks
     // for protected.
-    Dispatch dis(sym);
+    Dispatch dispatch(sym);
     Object* scope = this;
     if(!call_frame->native_method_p()) {
       scope = call_frame->self();
     }
-    LookupData lookup(scope, this->lookup_begin(state), min_visibility);
+    LookupData lookup(scope, lookup_begin(state), min_visibility);
 
-    return dis.send(state, call_frame, lookup, args);
+    return dispatch.send(state, call_frame, lookup, args);
   }
 
-  Object* Object::private_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+  Object* Object::private_send_prim(STATE, CallFrame* call_frame,
+      Executable* exec, Module* mod, Arguments& args)
+  {
     return send_prim(state, call_frame, exec, mod, args, G(sym_private));
   }
 
-  Object* Object::public_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+  Object* Object::public_send_prim(STATE, CallFrame* call_frame,
+      Executable* exec, Module* mod, Arguments& args)
+  {
     return send_prim(state, call_frame, exec, mod, args, G(sym_public));
   }
 
@@ -887,33 +895,30 @@ namespace rubinius {
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
-    Object* self = this;
-    OnStack<1> os(state, self);
-
     LookupData lookup(cUndef, lookup_begin(state),
         CBOOL(priv) ? G(sym_private) : G(sym_public));
 
-    Dispatch dis(name);
+    Dispatch dispatch(name);
 
-    if(dis.resolve(state, name, lookup)) {
+    if(dispatch.resolve(state, name, lookup)) {
       return cTrue;
     } else {
-      LookupData lookup(self, self->lookup_begin(state), G(sym_private));
+      LookupData lookup(this, lookup_begin(state), G(sym_private));
       Symbol* missing = G(sym_respond_to_missing);
-      Dispatch dis(missing);
+      Dispatch dispatch(missing);
 
-      if(dis.resolve(state, missing, lookup)) {
+      if(dispatch.resolve(state, missing, lookup)) {
         Object* buf[2];
         buf[0] = name;
         buf[1] = priv;
 
-        Arguments args(missing, self, 2, buf);
-        OnStack<3> os(state, self, name, priv);
-        Object* responds = dis.send(state, 0, lookup, args);
+        Arguments args(missing, this, 2, buf);
 
-        if(!responds) return NULL;
+        if(Object* responds = dispatch.send(state, 0, lookup, args)) {
+          return RBOOL(CBOOL(responds));
+        }
 
-        return RBOOL(CBOOL(responds));
+        return NULL;
       } else {
         return cFalse;
       }

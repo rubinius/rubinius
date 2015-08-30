@@ -210,23 +210,17 @@ namespace rubinius {
 
         vm()->metrics().system.signals_processed++;
 
-        Array* args = 0;
-        OnStack<1> os(state, args);
-
-        args = Array::create(state, 1);
+        Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(signal));
 
         if(!G(rubinius)->send(state, 0, state->symbol("received_signal"), args, cNil)) {
           if(state->thread_state()->raise_reason() == cException ||
-              state->thread_state()->raise_reason() == cExit) {
-            Array* args = 0;
-            Exception* exc = 0;
-            OnStack<2> os(state, args, exc);
-
-            exc = state->thread_state()->current_exception();
+              state->thread_state()->raise_reason() == cExit)
+          {
+            Exception* exc = state->thread_state()->current_exception();
             state->thread_state()->clear_raise();
 
-            args = Array::create(state, 1);
+            Array* args = Array::create(state, 1);
             args->set(state, 0, exc);
 
             state->shared().env()->loader()->send(
