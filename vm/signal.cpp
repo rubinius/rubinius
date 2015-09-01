@@ -309,11 +309,11 @@ namespace rubinius {
       VM* vm = (*i)->as_vm();
       if(!vm) continue;
 
-      if(vm->saved_call_frame()) {
+      if(vm->last_frame()) {
         utilities::logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
       }
 
-      for(CallFrame* frame = vm->saved_call_frame(); frame; frame = frame->previous) {
+      for(CallFrame* frame = vm->last_frame(); frame; frame = frame->previous) {
         std::ostringstream stream;
 
         if(NativeMethodFrame* nmf = frame->native_method_frame()) {

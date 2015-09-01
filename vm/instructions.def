@@ -1081,6 +1081,8 @@ instruction send_method(literal) [ receiver -- value ] => send
   (void)stack_pop();
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state, call_frame);
 end
 
 # [Description]
@@ -1120,6 +1122,8 @@ instruction send_stack(literal count) [ receiver +count -- value ] => send
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state, call_frame);
 end
 
 # [Description]
@@ -1161,6 +1165,8 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state, call_frame);
 end
 
 # [Description]
@@ -1214,6 +1220,8 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state, call_frame);
 end
 
 # [Description]
@@ -1512,6 +1520,8 @@ instruction yield_stack(count) [ +count -- value ] => yield
   stack_clear(count);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state, call_frame);
 end
 
 # [Description]
@@ -1557,6 +1567,8 @@ instruction yield_splat(count) [ array +count -- value ] => yield
   stack_clear(count);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state, call_frame);
 end
 
 section "Manipulate strings"
@@ -1789,7 +1801,7 @@ instruction check_interrupts() [ -- ]
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 
-  state->vm()->checkpoint(state);
+  state->vm()->checkpoint(state, call_frame);
 end
 
 # [Description]
@@ -2420,6 +2432,8 @@ instruction call_custom(literal count) [ receiver +count -- value ] => send
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state, call_frame);
 end
 
 # [Description]

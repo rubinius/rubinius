@@ -231,10 +231,10 @@ namespace rubinius {
         nt->field[i] = cNil;
       }
 
-      if(!young_object_p()) {
-        tuple(state, nt);
-      } else {
+      if(young_object_p()) {
         tuple_ = nt;
+      } else {
+        tuple(state, nt);
       }
 
       start_ = Fixnum::from(0);

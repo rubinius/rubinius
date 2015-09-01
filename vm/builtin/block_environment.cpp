@@ -483,8 +483,6 @@ namespace rubinius {
       // loop itself.
       if(!state->check_interrupts(frame, frame)) return NULL;
 
-      state->vm()->checkpoint(state);
-
       tooling::BlockEntry method(state, env, mod);
       return (*mcode->run)(state, mcode, frame);
     } else {
@@ -492,7 +490,6 @@ namespace rubinius {
       // loop itself.
       if(!state->check_interrupts(frame, frame)) return NULL;
 
-      state->vm()->checkpoint(state);
       return (*mcode->run)(state, mcode, frame);
     }
 #else
@@ -500,7 +497,6 @@ namespace rubinius {
     // loop itself.
     if(!state->check_interrupts(frame, frame)) return NULL;
 
-    state->vm()->checkpoint(state);
     return (*mcode->run)(state, mcode, frame);
 #endif
   }

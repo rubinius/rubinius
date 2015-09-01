@@ -52,17 +52,17 @@ namespace rubinius {
   /*
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
-  MachineCode::MachineCode(STATE, CompiledCode* meth)
+  MachineCode::MachineCode(STATE, CompiledCode* code)
     : run(MachineCode::interpreter)
-    , total(meth->iseq()->opcodes()->num_fields())
+    , total(code->iseq()->opcodes()->num_fields())
     , type(NULL)
-    , keywords(!meth->keywords()->nil_p())
-    , total_args(meth->total_args()->to_native())
-    , required_args(meth->required_args()->to_native())
-    , post_args(meth->post_args()->to_native())
+    , keywords(!code->keywords()->nil_p())
+    , total_args(code->total_args()->to_native())
+    , required_args(code->required_args()->to_native())
+    , post_args(code->post_args()->to_native())
     , splat_position(-1)
-    , stack_size(meth->stack_size()->to_native())
-    , number_of_locals(meth->number_of_locals())
+    , stack_size(code->stack_size()->to_native())
+    , number_of_locals(code->number_of_locals())
     , call_count(0)
     , loop_count(0)
     , uncommon_count(0)
@@ -73,7 +73,7 @@ namespace rubinius {
     , unspecialized(NULL)
     , fallback(NULL)
     , execute_status_(eInterpret)
-    , name_(meth->name())
+    , name_(code->name())
     , method_id_(state->shared().inc_method_count(state))
     , debugging(false)
     , flags(0)
@@ -84,9 +84,9 @@ namespace rubinius {
 
     opcodes = new opcode[total];
 
-    fill_opcodes(state, meth);
+    fill_opcodes(state, code);
 
-    if(Fixnum* pos = try_as<Fixnum>(meth->splat())) {
+    if(Fixnum* pos = try_as<Fixnum>(code->splat())) {
       splat_position = pos->to_native();
     }
 
@@ -799,8 +799,6 @@ namespace rubinius {
         OnStack<2> os(state, exec, code);
         if(!state->check_interrupts(frame, frame)) return NULL;
 
-        state->vm()->checkpoint(state);
-
         tooling::MethodEntry method(state, exec, scope->module(), args, code);
 
         RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
@@ -810,7 +808,6 @@ namespace rubinius {
       } else {
         if(!state->check_interrupts(frame, frame)) return NULL;
 
-        state->vm()->checkpoint(state);
         RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
         Object* result = (*mcode->run)(state, mcode, frame);
         RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
@@ -818,8 +815,6 @@ namespace rubinius {
       }
 #else
       if(!state->check_interrupts(frame, frame)) return NULL;
-
-      state->vm()->checkpoint(state);
 
       RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
       Object* result = (*mcode->run)(state, mcode, frame);
@@ -870,7 +865,7 @@ namespace rubinius {
 
     if(!state->check_interrupts(frame, frame)) return NULL;
 
-    state->vm()->checkpoint(state);
+    state->vm()->checkpoint(state, frame);
 
     // Don't generate profiling info here, it's expected
     // to be done by the caller.

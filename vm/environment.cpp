@@ -585,7 +585,7 @@ namespace rubinius {
   void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-    utilities::logger::write("exiting: %s %d", shared->pid.c_str(), exit_code);
+    utilities::logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
 
     state->shared().tool_broker()->shutdown(state);
 
@@ -597,8 +597,7 @@ namespace rubinius {
 
     stop_jit(state);
 
-    state->vm()->set_call_frame(0);
-    state->vm()->checkpoint(state);
+    state->vm()->checkpoint(state, 0);
 
     {
       UnmanagedPhase unmanaged(state);

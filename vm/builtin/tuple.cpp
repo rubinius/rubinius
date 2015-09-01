@@ -95,8 +95,7 @@ namespace rubinius {
     for(native_int i = 0; i < fields; i++) {
       Object *obj = va_arg(ar, Object*);
       // fields equals size so bounds checking is unecessary
-      tup->field[i] = obj;
-      state->memory()->write_barrier(tup, obj);
+      tup->put(state, i, obj);
     }
     va_end(ar);
 
@@ -303,10 +302,7 @@ namespace rubinius {
 
     // Otherwise, we have a mature object
     for(native_int i = 0; i < fields; i++) {
-      Object *obj = field[i];
-
-      tup->field[i] = obj;
-      state->memory()->write_barrier(tup, obj);
+      tup->put(state, i, field[i]);
     }
 
     return tup;

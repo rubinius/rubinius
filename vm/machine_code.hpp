@@ -97,7 +97,7 @@ namespace rubinius {
   public: // Methods
     static void bootstrap(STATE);
 
-    MachineCode(STATE, CompiledCode* meth);
+    MachineCode(STATE, CompiledCode* code);
     virtual ~MachineCode();
     virtual void cleanup(STATE, CodeManager* code) {}
     virtual int size();

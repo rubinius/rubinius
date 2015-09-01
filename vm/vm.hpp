@@ -93,7 +93,7 @@ namespace rubinius {
     UnwindInfoSet unwinds_;
 
     ThreadNexus* thread_nexus_;
-    CallFrame* saved_call_frame_;
+    CallFrame* last_frame_;
     CallSiteInformation* saved_call_site_information_;
     FiberStacks fiber_stacks_;
     Park* park_;
@@ -197,16 +197,12 @@ namespace rubinius {
       return shared.memory();
     }
 
-    CallFrame** call_frame_location() {
-      return &saved_call_frame_;
-    }
-
     void set_call_frame(CallFrame* frame) {
-      saved_call_frame_ = frame;
+      last_frame_ = frame;
     }
 
-    CallFrame* saved_call_frame() const {
-      return saved_call_frame_;
+    CallFrame* last_frame() const {
+      return last_frame_;
     }
 
     void set_call_site_information(CallSiteInformation* info) {
@@ -389,7 +385,18 @@ namespace rubinius {
     void bootstrap_symbol(STATE);
     void initialize_config();
 
-    void checkpoint(STATE);
+    void collect_maybe(STATE);
+
+    void checkpoint(STATE, CallFrame* call_frame) {
+      if(thread_nexus_->stop_p()) {
+        set_call_frame(call_frame);
+
+        if(thread_nexus_->lock_or_yield(this)) {
+          collect_maybe(state);
+          thread_nexus_->unlock();
+        }
+      }
+    }
 
     void become_managed();
     void become_unmanaged() {

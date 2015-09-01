@@ -956,7 +956,8 @@ extern "C" {
     if(!state->check_interrupts(call_frame, &state)) return NULL;
 
     state->vm()->set_call_frame(call_frame);
-    state->vm()->checkpoint(state);
+    // TODO: ensure no stack references exist at this point
+    // state->vm()->checkpoint(state);
 
     return cTrue;
   }
@@ -965,7 +966,8 @@ extern "C" {
     if(!state->check_async(call_frame)) return NULL;
 
     state->vm()->set_call_frame(call_frame);
-    state->vm()->checkpoint(state);
+    // TODO: ensure no stack references exist at this point
+    // state->vm()->checkpoint(state);
 
     return cTrue;
   }

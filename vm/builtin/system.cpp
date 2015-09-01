@@ -877,7 +877,7 @@ namespace rubinius {
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
       state->shared().thread_nexus()->set_stop();
-      state->vm()->checkpoint(state);
+      state->vm()->checkpoint(state, call_frame);
       // TODO: end this
     }
     return cNil;

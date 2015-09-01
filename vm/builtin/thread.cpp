@@ -490,7 +490,7 @@ namespace rubinius {
     VM* vm = vm_;
     if(!vm) return nil<Tuple>();
 
-    CallFrame* cf = vm->saved_call_frame()->top_ruby_frame();
+    CallFrame* cf = vm->last_frame()->top_ruby_frame();
 
     VariableScope* scope = cf->promote_scope(state);
 
@@ -504,9 +504,7 @@ namespace rubinius {
     if(!vm) return nil<Array>();
     LockPhase locked(state);
 
-    CallFrame* cf = vm->saved_call_frame();
-
-    return Location::mri_backtrace(state, cf);
+    return Location::mri_backtrace(state, vm->last_frame());
   }
 
   void Thread::stopped() {

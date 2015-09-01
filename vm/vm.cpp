@@ -71,7 +71,7 @@ namespace rubinius {
   VM::VM(uint32_t id, SharedState& shared, const char* name)
     : ManagedThread(id, shared, ManagedThread::eRuby, name)
     , thread_nexus_(shared.thread_nexus())
-    , saved_call_frame_(0)
+    , last_frame_(0)
     , saved_call_site_information_(0)
     , fiber_stacks_(this, shared)
     , park_(new Park)
@@ -110,20 +110,15 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    vm->saved_call_frame_ = 0;
+    vm->last_frame_ = 0;
 
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
   }
 
-  void VM::checkpoint(STATE) {
-    if(thread_nexus_->stop_p()) {
-      if(thread_nexus_->lock_or_yield(this)) {
-        memory()->collect_maybe(state);
-        thread_nexus_->unlock();
-      }
-    }
+  void VM::collect_maybe(STATE) {
+    memory()->collect_maybe(state);
   }
 
   void VM::become_managed() {
@@ -388,7 +383,7 @@ namespace rubinius {
   }
 
   void VM::gc_scan(GarbageCollector* gc) {
-    if(CallFrame* cf = saved_call_frame()) {
+    if(CallFrame* cf = last_frame()) {
       gc->walk_call_frame(cf);
     }
 
@@ -410,7 +405,7 @@ namespace rubinius {
   }
 
   void VM::gc_verify(GarbageCollector* gc) {
-    if(CallFrame* cf = saved_call_frame()) {
+    if(CallFrame* cf = last_frame()) {
       gc->verify_call_frame(cf);
     }
 
