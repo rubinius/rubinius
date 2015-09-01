@@ -83,35 +83,77 @@ namespace rubinius {
     state->shared().set_root_vm(current);
   }
 
-  bool ThreadNexus::locking(VM* vm) {
-    int iterations = 0;
-    struct timespec ts = {0, 1000};
+  static const char* phase_name(VM* vm) {
+    switch(vm->thread_phase()) {
+      case ThreadNexus::cStop:
+        return "cStop";
+      case ThreadNexus::cManaged:
+        return "cManaged";
+      case ThreadNexus::cUnmanaged:
+        return "cUnmanaged";
+      case ThreadNexus::cWaiting:
+        return "cWaiting";
+      case ThreadNexus::cYielding:
+        return "cYielding";
+    }
+  }
 
-    while(true) {
-      bool stopped = true;
+  static void abort_deadlock(ThreadList& threads, VM* vm) {
+    utilities::logger::fatal("thread nexus: thread will not yield: %s, %s",
+        vm->name().c_str(), phase_name(vm));
 
-      if(++iterations > 10000) {
-        rubinius::bug("unable to halt all threads, possible deadlock");
+    for(ThreadList::iterator i = threads.begin();
+           i != threads.end();
+           ++i)
+    {
+      if(VM* other_vm = (*i)->as_vm()) {
+        utilities::logger::fatal("thread %d: %s, %s",
+            other_vm->thread_id(), other_vm->name().c_str(), phase_name(other_vm));
       }
-
-      atomic::memory_barrier();
-
-      for(ThreadList::iterator i = threads_.begin();
-             i != threads_.end();
-             ++i) {
-        if(VM* other_vm = (*i)->as_vm()) {
-          if(vm != other_vm && !yielding_p(other_vm)) {
-            stopped = false;
-          }
-        }
-      }
-
-      if(stopped) return true;
-
-      nanosleep(&ts, NULL);
     }
 
-    return false;
+    rubinius::abort();
+  }
+
+#define RBX_MAX_STOP_ITERATIONS 10000
+
+  bool ThreadNexus::locking(VM* vm) {
+    for(ThreadList::iterator i = threads_.begin();
+           i != threads_.end();
+           ++i)
+    {
+      if(VM* other_vm = (*i)->as_vm()) {
+        while(true) {
+          if(vm == other_vm || yielding_p(other_vm)) break;
+
+          bool yielding = false;
+
+          for(int j = 0; j < RBX_MAX_STOP_ITERATIONS; j++) {
+            if(yielding_p(other_vm)) {
+              yielding = true;
+              break;
+            }
+
+            static int delay[] = { 1, 21, 270, 482, 268, 169, 224, 481,
+                                   262, 79, 133, 448, 227, 249, 22 };
+            static int modulo = sizeof(delay) / sizeof(int);
+            static struct timespec ts = {0, 0};
+
+            atomic::memory_barrier();
+
+            ts.tv_nsec = delay[j % modulo];
+            nanosleep(&ts, NULL);
+          }
+
+          if(yielding) break;
+
+          // This thread never yielded; we could be deadlocked.
+          if(vm->memory()->can_gc()) abort_deadlock(threads_, other_vm);
+        }
+      }
+    }
+
+    return true;
   }
 
   void ThreadNexus::yielding(VM* vm) {
