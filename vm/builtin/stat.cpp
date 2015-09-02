@@ -1,4 +1,5 @@
 #include "object_memory.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/object.hpp"
@@ -17,15 +18,21 @@ namespace rubinius {
   }
 
   Fixnum* Stat::stat(STATE, String* p) {
+    UnmanagedPhase unmanaged(state);
+
     path(state, p);
     return Fixnum::from(::stat(p->c_str_null_safe(state), &st_));
   }
 
   Fixnum* Stat::fstat(STATE, Integer* fd) {
+    UnmanagedPhase unmanaged(state);
+
     return Fixnum::from(::fstat(fd->to_native(), &st_));
   }
 
   Fixnum* Stat::lstat(STATE, String* p) {
+    UnmanagedPhase unmanaged(state);
+
     path(state, p);
     return Fixnum::from(::lstat(p->c_str_null_safe(state), &st_));
   }
@@ -81,6 +88,4 @@ namespace rubinius {
   Time* Stat::stat_ctime(STATE) {
     return Time::at(state, st_.st_ctime);
   }
-
 }
-
