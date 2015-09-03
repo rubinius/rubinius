@@ -299,7 +299,7 @@ namespace rubinius {
       int fd_;
 
     public:
-      FileEmitter(MetricsMap& map, std::string path);
+      FileEmitter(STATE, MetricsMap& map, std::string path);
       virtual ~FileEmitter();
 
       void send_metrics();

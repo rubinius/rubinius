@@ -40,12 +40,16 @@ namespace rubinius {
   using namespace utilities;
 
   namespace metrics {
-    FileEmitter::FileEmitter(MetricsMap& map, std::string path)
+    FileEmitter::FileEmitter(STATE, MetricsMap& map, std::string path)
       : MetricsEmitter()
       , metrics_map_(map)
       , path_(path)
       , fd_(-1)
     {
+      // TODO: Make this a proper feature of the config facility.
+      state->shared().env()->expand_config_value(
+          path_, "$PID", state->shared().pid.c_str());
+
       initialize();
     }
 
@@ -255,7 +259,7 @@ namespace rubinius {
             state->shared().config.system_metrics_statsd_server.value,
             state->shared().config.system_metrics_statsd_prefix.value);
       } else if(state->shared().config.system_metrics_target.value.compare("none")) {
-        emitter_ = new FileEmitter(metrics_map_,
+        emitter_ = new FileEmitter(state, metrics_map_,
             state->shared().config.system_metrics_target.value);
       }
     }
