@@ -148,17 +148,23 @@ namespace rubinius {
     };
 
     struct MachineMetrics {
+      metric checkpoints;
+      metric stops;
       metric inline_cache_resets;
       metric methods_invoked;
       metric blocks_invoked;
 
       MachineMetrics() {
+        checkpoints = 0;
+        stops = 0;
         inline_cache_resets = 0;
         methods_invoked = 0;
         blocks_invoked = 0;
       }
 
       void add(MachineMetrics& data) {
+        checkpoints += data.checkpoints;
+        stops += data.stops;
         inline_cache_resets += data.inline_cache_resets;
         methods_invoked += data.methods_invoked;
         blocks_invoked += data.blocks_invoked;

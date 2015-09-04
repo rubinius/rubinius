@@ -9,6 +9,7 @@
 #include "gc/managed.hpp"
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
+#include "metrics.hpp"
 
 #include "util/thread.hpp"
 
@@ -388,7 +389,11 @@ namespace rubinius {
     void collect_maybe(STATE);
 
     void checkpoint(STATE, CallFrame* call_frame) {
+      metrics().machine.checkpoints++;
+
       if(thread_nexus_->stop_p()) {
+        metrics().machine.stops++;
+
         set_call_frame(call_frame);
 
         if(thread_nexus_->lock_or_yield(this)) {

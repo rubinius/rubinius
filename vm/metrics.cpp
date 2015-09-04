@@ -339,6 +339,8 @@ namespace rubinius {
 
       // Machine metrics
       metrics_map_.push_back(new MetricsItem(
+            "machine.checkpoints", metrics_data_.machine.checkpoints));
+      metrics_map_.push_back(new MetricsItem(
             "machine.inline_cache.resets", metrics_data_.machine.inline_cache_resets));
       metrics_map_.push_back(new MetricsItem(
             "machine.methods.invoked", metrics_data_.machine.methods_invoked));
