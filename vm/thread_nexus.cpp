@@ -8,6 +8,8 @@
 
 #include "util/atomic.hpp"
 
+#include "instruments/timing.hpp"
+
 #include <time.h>
 
 namespace rubinius {
@@ -118,6 +120,9 @@ namespace rubinius {
 #define RBX_MAX_STOP_ITERATIONS 10000
 
   bool ThreadNexus::locking(VM* vm) {
+    timer::StopWatch<timer::nanoseconds> timer(
+        vm->metrics().lock.stop_the_world_ns);
+
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
            ++i)
