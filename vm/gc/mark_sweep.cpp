@@ -47,7 +47,7 @@ namespace rubinius {
     }
   }
 
-  Object* MarkSweepGC::allocate(size_t bytes, bool *collect_now) {
+  Object* MarkSweepGC::allocate(size_t bytes, bool& collect_now) {
     void* mem = malloc(bytes);
     if(!mem) rubinius::abort();
 
@@ -68,7 +68,8 @@ namespace rubinius {
 
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
-      *collect_now = true;
+      object_memory_->vm()->metrics().gc.large_set++;
+      collect_now = true;
       next_collection_bytes = collection_threshold;
     }
 
@@ -91,7 +92,7 @@ namespace rubinius {
   }
 
   Object* MarkSweepGC::move_object(Object* orig, size_t bytes,
-                                   bool* collect_now)
+                                   bool& collect_now)
   {
     Object* obj = allocate(bytes, collect_now);
     memcpy(obj, orig, bytes);
@@ -104,9 +105,8 @@ namespace rubinius {
     return obj;
   }
 
-  Object* MarkSweepGC::copy_object(Object* orig) {
-    bool collect;
-    Object* obj = allocate(orig->size_in_bytes(object_memory_->vm()), &collect);
+  Object* MarkSweepGC::copy_object(Object* orig, bool& collect_now) {
+    Object* obj = allocate(orig->size_in_bytes(object_memory_->vm()), collect_now);
 
     obj->initialize_full_state(object_memory_->vm(), orig, 0);
 

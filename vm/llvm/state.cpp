@@ -100,6 +100,11 @@ namespace rubinius {
     , enabled_(false)
     , current_compiler_(0)
   {
+    /* The JIT is not necessarily activated when it is created so we have to
+     * be in an unmanaged phase to prevent blocking GC checkpointing.
+     */
+    vm()->become_unmanaged();
+
     if(state->shared().config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
     } else {

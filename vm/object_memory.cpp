@@ -477,16 +477,15 @@ step1:
   /* Garbage collection */
 
   Object* ObjectMemory::promote_object(Object* obj) {
-
     size_t sz = obj->size_in_bytes(vm());
 
-    Object* copy = immix_->move_object(obj, sz);
+    Object* copy = immix_->move_object(obj, sz, collect_mature_now);
 
     vm()->metrics().memory.promoted_objects++;
     vm()->metrics().memory.promoted_bytes += sz;
 
     if(unlikely(!copy)) {
-      copy = mark_sweep_->move_object(obj, sz, &collect_mature_now);
+      copy = mark_sweep_->move_object(obj, sz, collect_mature_now);
     }
 
 #ifdef ENABLE_OBJECT_WATCH
@@ -742,22 +741,35 @@ step1:
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = 0;
+    collect_mature_now = false;
 
     // TODO: check if immix_ needs to trigger GC
-    if(likely(obj = immix_->allocate(bytes))) {
+    if(likely(obj = immix_->allocate(bytes, collect_mature_now))) {
       vm()->metrics().memory.immix_objects++;
       vm()->metrics().memory.immix_bytes += bytes;
-    } else if(likely(obj = mark_sweep_->allocate(bytes, &collect_mature_now))) {
-      vm()->metrics().memory.large_objects++;
-      vm()->metrics().memory.large_bytes += bytes;
-    } else {
-      Exception::memory_error(state);
-      return NULL;
+
+      return obj;
     }
 
-    if(collect_mature_now) state->shared().gc_soon();
+    if(collect_mature_now) {
+      vm()->metrics().gc.immix_set++;
+      state->shared().gc_soon();
+    }
 
-    return obj;
+    if(likely(obj = mark_sweep_->allocate(bytes, collect_mature_now))) {
+      vm()->metrics().memory.large_objects++;
+      vm()->metrics().memory.large_bytes += bytes;
+
+      if(collect_mature_now) {
+        vm()->metrics().gc.large_set++;
+        state->shared().gc_soon();
+      }
+
+      return obj;
+    }
+
+    Exception::memory_error(state);
+    return NULL;
   }
 
   TypeInfo* ObjectMemory::find_type_info(Object* obj) {

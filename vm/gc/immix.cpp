@@ -82,7 +82,8 @@ namespace rubinius {
     Object* orig = original.as<Object>();
 
     memory::Address copy_addr = alloc.allocate(
-        orig->size_in_bytes(object_memory_->vm()));
+        orig->size_in_bytes(object_memory_->vm()),
+        object_memory_->collect_mature_now);
 
     Object* copy = copy_addr.as<Object>();
 
@@ -98,20 +99,20 @@ namespace rubinius {
     return addr.as<Object>()->size_in_bytes(object_memory_->vm());
   }
 
-  Object* ImmixGC::allocate(uint32_t bytes) {
+  Object* ImmixGC::allocate(uint32_t bytes, bool& collect_now) {
     if(bytes > immix::cMaxObjectSize) return 0;
 
-    Object* obj = allocator_.allocate(bytes).as<Object>();
+    Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
     obj->init_header(MatureObjectZone, InvalidType);
     obj->set_in_immix();
 
     return obj;
   }
 
-  Object* ImmixGC::move_object(Object* orig, uint32_t bytes) {
+  Object* ImmixGC::move_object(Object* orig, uint32_t bytes, bool& collect_now) {
     if(bytes > immix::cMaxObjectSize) return 0;
 
-    Object* obj = allocator_.allocate(bytes).as<Object>();
+    Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
 
     memcpy(obj, orig, bytes);
 

@@ -49,24 +49,30 @@ namespace rubinius {
     };
 
     struct GCMetrics {
+      metric young_set;
       metric young_count;
       metric young_ms;
+      metric immix_set;
       metric immix_count;
       metric immix_stop_ms;
       metric immix_concurrent_ms;
       metric immix_diagnostics_us;
+      metric large_set;
       metric large_count;
       metric large_sweep_us;
       metric objects_queued;
       metric objects_finalized;
 
       GCMetrics() {
+        young_set = 0;
         young_count = 0;
         young_ms = 0;
+        immix_set = 0;
         immix_count = 0;
         immix_stop_ms = 0;
         immix_concurrent_ms = 0;
         immix_diagnostics_us = 0;
+        large_set = 0;
         large_count = 0;
         large_sweep_us = 0;
         objects_queued = 0;
@@ -74,12 +80,15 @@ namespace rubinius {
       }
 
       void add(GCMetrics& data) {
+        young_set += data.young_set;
         young_count += data.young_count;
         young_ms += data.young_ms;
+        immix_set += data.immix_set;
         immix_count += data.immix_count;
         immix_stop_ms += data.immix_stop_ms;
         immix_concurrent_ms += data.immix_concurrent_ms;
         immix_diagnostics_us += data.immix_diagnostics_us;
+        large_set += data.large_set;
         large_count += data.large_count;
         large_sweep_us += data.large_sweep_us;
         objects_queued += data.objects_queued;

@@ -289,9 +289,13 @@ namespace rubinius {
 
       // GC metrics
       metrics_map_.push_back(new MetricsItem(
+            "gc.young.set", metrics_data_.gc.young_set));
+      metrics_map_.push_back(new MetricsItem(
             "gc.young.count", metrics_data_.gc.young_count));
       metrics_map_.push_back(new MetricsItem(
             "gc.young.ms", metrics_data_.gc.young_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.set", metrics_data_.gc.immix_set));
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.count", metrics_data_.gc.immix_count));
       metrics_map_.push_back(new MetricsItem(
@@ -300,6 +304,8 @@ namespace rubinius {
             "gc.immix.concurrent.ms", metrics_data_.gc.immix_concurrent_ms));
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.diagnostics.us", metrics_data_.gc.immix_diagnostics_us));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.large.set", metrics_data_.gc.large_set));
       metrics_map_.push_back(new MetricsItem(
             "gc.large.count", metrics_data_.gc.large_count));
       metrics_map_.push_back(new MetricsItem(

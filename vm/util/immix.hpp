@@ -840,7 +840,7 @@ namespace immix {
   class Allocator {
   public:
     virtual ~Allocator() {}
-    virtual Address allocate(uint32_t bytes) = 0;
+    virtual Address allocate(uint32_t bytes, bool& collect_now) = 0;
   };
 
 
@@ -866,9 +866,10 @@ namespace immix {
      * @returns the Address allocated, or a null address if no space is
      * available.
      */
-    Address allocate(uint32_t size) {
+    Address allocate(uint32_t size, bool& collect_now) {
       while(cursor_ + size > limit_) {
         if(!find_hole()) {
+          collect_now = true;
           return Address::null();
         }
       }
@@ -931,9 +932,10 @@ namespace immix {
      * If unsuccessful at finding space in the current Block memory, a new
      * Block is obtained from the BlockAllocator.
      */
-    Address allocate(uint32_t size) {
+    Address allocate(uint32_t size, bool& collect_now) {
       while(cursor_ + size > limit_) {
         if(!find_hole()) {
+          collect_now = true;
           get_new_block(size >= cMediumObjectLimit);
         }
       }
