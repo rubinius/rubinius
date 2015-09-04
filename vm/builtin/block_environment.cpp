@@ -483,6 +483,8 @@ namespace rubinius {
       // loop itself.
       if(!state->check_interrupts(frame, frame)) return NULL;
 
+      state->vm()->checkpoint(state, frame);
+
       tooling::BlockEntry method(state, env, mod);
       return (*mcode->run)(state, mcode, frame);
     } else {
@@ -490,12 +492,16 @@ namespace rubinius {
       // loop itself.
       if(!state->check_interrupts(frame, frame)) return NULL;
 
+      state->vm()->checkpoint(state, frame);
+
       return (*mcode->run)(state, mcode, frame);
     }
 #else
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
     if(!state->check_interrupts(frame, frame)) return NULL;
+
+    state->vm()->checkpoint(state, frame);
 
     return (*mcode->run)(state, mcode, frame);
 #endif
