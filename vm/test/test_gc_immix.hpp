@@ -30,7 +30,9 @@ public:
   }
 
   memory::Address copy(memory::Address original, immix::Allocator& alloc) {
-    memory::Address copy_addr = alloc.allocate(sizeof(SimpleObject));
+    bool collect;
+
+    memory::Address copy_addr = alloc.allocate(sizeof(SimpleObject), collect);
     SimpleObject* copy = copy_addr.as<SimpleObject>();
     SimpleObject* orig = original.as<SimpleObject>();
 
@@ -110,13 +112,15 @@ public:
   }
 
   void test_SingleBlockAllocator_allocate() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(24);
+    memory::Address addr = alloc.allocate(24, collect);
     memory::Address top  = block.first_address();
     TS_ASSERT_EQUALS(addr, top);
 
-    memory::Address another = alloc.allocate(24);
+    memory::Address another = alloc.allocate(24, collect);
     TS_ASSERT_EQUALS(another, top + 24);
   }
 
@@ -124,12 +128,14 @@ public:
     immix::Block& block = gc->get_block();
     memory::Address top  = block.first_address();
 
+    bool collect;
+
     block.mark_line(2);
     block.copy_marks();
     immix::SingleBlockAllocator alloc(block);
-    alloc.allocate(96);
+    alloc.allocate(96, collect);
 
-    memory::Address addr = alloc.allocate(64);
+    memory::Address addr = alloc.allocate(64, collect);
     TS_ASSERT_EQUALS(addr, top + (immix::cLineSize * 2));
   }
 
@@ -137,16 +143,18 @@ public:
     immix::Block& block = gc->get_block();
     memory::Address top = block.first_address();
 
+    bool collect;
+
     immix::SingleBlockAllocator alloc(block);
     int size = immix::cLineSize - sizeof(immix::BlockHeader) - 4;
-    alloc.allocate(size);
+    alloc.allocate(size, collect);
     TS_ASSERT(sizeof(SimpleObject) > 4);
-    memory::Address addr = alloc.allocate(sizeof(SimpleObject));
+    memory::Address addr = alloc.allocate(sizeof(SimpleObject), collect);
 
     TS_ASSERT_EQUALS(addr, top + size);
 
-    memory::Address addr2 = alloc.allocate(immix::cLineSize + 4);
-    memory::Address addr3 = alloc.allocate(4);
+    memory::Address addr2 = alloc.allocate(immix::cLineSize + 4, collect);
+    memory::Address addr3 = alloc.allocate(4, collect);
     TS_ASSERT_EQUALS(addr2, addr + sizeof(SimpleObject));
     TS_ASSERT_EQUALS(addr3, addr2 + (immix::cLineSize + 4));
   }
@@ -155,13 +163,15 @@ public:
     immix::Block& block = gc->get_block();
     memory::Address top = block.first_address();
 
+    bool collect;
+
     immix::SingleBlockAllocator alloc(block);
-    alloc.allocate(24);
+    alloc.allocate(24, collect);
     int size = (immix::cLineSize * 2) + 32;
-    memory::Address big = alloc.allocate(size);
+    memory::Address big = alloc.allocate(size, collect);
     TS_ASSERT_EQUALS(big, top + 24);
 
-    memory::Address addr2 = alloc.allocate(24);
+    memory::Address addr2 = alloc.allocate(24, collect);
     TS_ASSERT_EQUALS(addr2, big + size);
   }
 
@@ -175,17 +185,19 @@ public:
     block.mark_line(7);
     block.copy_marks();
 
+    bool collect;
+
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(24);
+    memory::Address addr = alloc.allocate(24, collect);
     TS_ASSERT_EQUALS(addr, top + immix::cLineSize);
 
-    memory::Address addr2 = alloc.allocate(24);
+    memory::Address addr2 = alloc.allocate(24, collect);
     TS_ASSERT_EQUALS(addr2, addr + 24);
 
-    memory::Address addr3 = alloc.allocate(128);
+    memory::Address addr3 = alloc.allocate(128, collect);
     TS_ASSERT_EQUALS(addr3, top + (immix::cLineSize * 3));
 
-    memory::Address addr4 = alloc.allocate(156);
+    memory::Address addr4 = alloc.allocate(156, collect);
     TS_ASSERT_EQUALS(addr4, top + (immix::cLineSize * 8));
   }
 
@@ -196,13 +208,15 @@ public:
       block.mark_line(i);
     }
 
+    bool collect;
+
     block.free_line(1);
     block.copy_marks();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address small = alloc.allocate(24);
+    memory::Address small = alloc.allocate(24, collect);
     TS_ASSERT(!small.is_null());
 
-    memory::Address addr = alloc.allocate(156);
+    memory::Address addr = alloc.allocate(156, collect);
     TS_ASSERT(addr.is_null());
   }
 
@@ -280,9 +294,11 @@ public:
   }
 
   void test_mark_address_updates_block() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(24);
+    memory::Address addr = alloc.allocate(24, collect);
 
     TS_ASSERT(block.is_line_free(1));
     gc->mark_address(addr, alloc);
@@ -291,9 +307,11 @@ public:
   }
 
   void test_mark_address_ignores_already_marked_objects() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(24);
+    memory::Address addr = alloc.allocate(24, collect);
 
     addr.as<SimpleObject>()->marked = true;
 
@@ -304,16 +322,18 @@ public:
   }
 
   void test_mark_address_returns_forwarding_pointer() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(24);
+    memory::Address addr = alloc.allocate(24, collect);
 
     // Clear out fwd to be sure it's not set
     addr.as<SimpleObject>()->fwd = 0;
 
     immix::Block& block2 = gc->get_block();
     immix::SingleBlockAllocator alloc2(block2);
-    memory::Address addr2 = alloc2.allocate(24);
+    memory::Address addr2 = alloc2.allocate(24, collect);
 
     gc->describer().set_forwarding_pointer(addr, addr2);
 
@@ -324,9 +344,11 @@ public:
   }
 
   void test_mark_address_can_move_objects() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(sizeof(SimpleObject));
+    memory::Address addr = alloc.allocate(sizeof(SimpleObject), collect);
 
     addr.as<SimpleObject>()->magic = 0xdecafbad;
 
@@ -345,12 +367,14 @@ public:
   }
 
   void test_mark_address_calls_describer() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(sizeof(SimpleObject));
+    memory::Address addr = alloc.allocate(sizeof(SimpleObject), collect);
 
     SimpleObject* obj = addr.as<SimpleObject>();
-    memory::Address addr2 = alloc.allocate(sizeof(SimpleObject));
+    memory::Address addr2 = alloc.allocate(sizeof(SimpleObject), collect);
     obj->sub = addr2.as<SimpleObject>();
 
     obj->marked = false;
@@ -363,12 +387,14 @@ public:
   }
 
   void test_mark_address_marks_all_lines_for_object() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
     int size = immix::cLineSize - sizeof(immix::BlockHeader) - 4;
-    alloc.allocate(size);
+    alloc.allocate(size, collect);
     TS_ASSERT(sizeof(SimpleObject) > 4);
-    memory::Address addr = alloc.allocate(sizeof(SimpleObject));
+    memory::Address addr = alloc.allocate(sizeof(SimpleObject), collect);
 
     gc->mark_address(addr, alloc);
     block.copy_marks();
@@ -376,7 +402,7 @@ public:
     TS_ASSERT(!block.is_line_free(1));
 
     int big_size = immix::cLineSize * 3;
-    memory::Address addr2 = alloc.allocate(big_size);
+    memory::Address addr2 = alloc.allocate(big_size, collect);
     addr2.as<SimpleObject>()->size = big_size;
 
     gc->mark_address(addr2, alloc);
@@ -388,10 +414,12 @@ public:
   }
 
   void test_process_mark_stack_enabled() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(sizeof(SimpleObject));
-    memory::Address addr2 = alloc.allocate(sizeof(SimpleObject));
+    memory::Address addr = alloc.allocate(sizeof(SimpleObject), collect);
+    memory::Address addr2 = alloc.allocate(sizeof(SimpleObject), collect);
 
     SimpleObject* obj = addr.as<SimpleObject>();
     SimpleObject* sub = addr2.as<SimpleObject>();
@@ -414,10 +442,12 @@ public:
   }
 
   void test_process_mark_stack_disabled() {
+    bool collect;
+
     immix::Block& block = gc->get_block();
     immix::SingleBlockAllocator alloc(block);
-    memory::Address addr = alloc.allocate(sizeof(SimpleObject));
-    memory::Address addr2 = alloc.allocate(sizeof(SimpleObject));
+    memory::Address addr = alloc.allocate(sizeof(SimpleObject), collect);
+    memory::Address addr2 = alloc.allocate(sizeof(SimpleObject), collect);
 
     SimpleObject* obj = addr.as<SimpleObject>();
     SimpleObject* sub = addr2.as<SimpleObject>();
@@ -510,10 +540,12 @@ public:
 
     ea.resync_position();
 
-    memory::Address small = ea.allocate(24);
+    bool collect;
+
+    memory::Address small = ea.allocate(24, collect);
     TS_ASSERT(!small.is_null());
 
-    memory::Address addr = ea.allocate(156);
+    memory::Address addr = ea.allocate(156, collect);
     TS_ASSERT(!addr.is_null());
 
     immix::Block& block2 = ea.current_block();
@@ -529,10 +561,12 @@ public:
 
     ea.resync_position();
 
-    memory::Address small = ea.allocate(24);
+    bool collect;
+
+    memory::Address small = ea.allocate(24, collect);
     TS_ASSERT(!small.is_null());
 
-    memory::Address addr = ea.allocate(156);
+    memory::Address addr = ea.allocate(156, collect);
     TS_ASSERT(!addr.is_null());
 
     immix::Block& block2 = ea.current_block();
