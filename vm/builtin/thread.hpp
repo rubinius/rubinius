@@ -58,11 +58,11 @@ namespace rubinius {
       obj->alive_ = nil<Object>();
       obj->sleep_ = cFalse;
       obj->control_channel_ = nil<Channel>();
-      obj->recursive_objects_ = LookupTable::create(state);
+      obj->recursive_objects(state, LookupTable::create(state));
       obj->debugger_thread_ = nil<Thread>();
       obj->thread_id_ = nil<Fixnum>();
       obj->randomizer_ = nil<Randomizer>();
-      obj->locals_ = LookupTable::create(state);
+      obj->locals(state, LookupTable::create(state));
       obj->group_ = nil<Object>();
       obj->result_ = cFalse;
       obj->exception_ = nil<Exception>();
