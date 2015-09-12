@@ -146,6 +146,7 @@ namespace rubinius {
 
     immix::GC<ObjectDescriber> gc_;
     immix::ExpandingAllocator allocator_;
+    ObjectMemory* memory_;
     ImmixMarker* marker_;
     int chunks_left_;
     int chunks_before_collection_;
@@ -171,6 +172,10 @@ namespace rubinius {
     ObjectPosition validate_object(Object*);
 
   public: // Inline
+    ObjectMemory* memory() {
+      return memory_;
+    }
+
     size_t& bytes_allocated() {
       return gc_.bytes_allocated();
     }
@@ -188,7 +193,7 @@ namespace rubinius {
     }
 
     void start_marker(STATE);
-    bool process_mark_stack(int count = 0);
+    bool process_mark_stack(bool& exit);
     immix::MarkStack& mark_stack();
 
   private:

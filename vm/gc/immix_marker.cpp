@@ -87,7 +87,7 @@ namespace rubinius {
           // number, based mostly on the fact it didn't cause
           // big increases in young gc times because of long
           // stop the world wait times.
-          while(immix_->process_mark_stack(100)) {
+          while(immix_->process_mark_stack(immix_->memory()->collect_mature_now)) {
             if(state->shared().thread_nexus()->stop_p()) {
               state->shared().thread_nexus()->yielding(state->vm());
             }

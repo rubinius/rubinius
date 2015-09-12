@@ -62,6 +62,7 @@ namespace rubinius {
   ImmixGC::ImmixGC(ObjectMemory* om)
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
+    , memory_(om)
     , marker_(NULL)
     , chunks_left_(0)
     , chunks_before_collection_(10)
@@ -172,7 +173,7 @@ namespace rubinius {
   void ImmixGC::collect(GCData* data) {
     gc_.clear_marks();
     collect_scan(data);
-    process_mark_stack();
+    process_mark_stack(memory_->collect_mature_now);
     collect_finish(data);
   }
 
@@ -256,7 +257,10 @@ namespace rubinius {
     // We do this in a loop because the scanning might generate new entries
     // on the mark stack.
     do {
-      for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator()); i.more(); i.advance()) {
+      for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator());
+          i.more();
+          i.advance())
+      {
         capi::Handle* hdl = i.current();
         if(!hdl->in_use_p()) continue;
         if(hdl->is_rdata()) {
@@ -266,7 +270,7 @@ namespace rubinius {
           }
         }
       }
-    } while(process_mark_stack());
+    } while(process_mark_stack(memory_->collect_mature_now));
 
     // We've now finished marking the entire object graph.
     // Clean weakrefs before keeping additional objects alive
@@ -279,13 +283,14 @@ namespace rubinius {
     do {
       walk_finalizers();
       scan_fibers(data, true);
-    } while(process_mark_stack());
+    } while(process_mark_stack(memory_->collect_mature_now));
 
     // Remove unreachable locked objects still in the list
     if(data->threads()) {
       for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
-          ++i) {
+          ++i)
+      {
         clean_locked_objects(*i, false);
       }
     }
@@ -343,8 +348,8 @@ namespace rubinius {
     }
   }
 
-  bool ImmixGC::process_mark_stack(int count) {
-    return gc_.process_mark_stack(allocator_, count);
+  bool ImmixGC::process_mark_stack(bool& exit) {
+    return gc_.process_mark_stack(allocator_, exit);
   }
 
   immix::MarkStack& ImmixGC::mark_stack() {
