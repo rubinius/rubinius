@@ -31,7 +31,7 @@ configuration options used (e.g. compiler options).
 
 We can *not* help you with any issues that might be caused by a Ruby version
 manager. In the event of any issues please try building from source instead to
-see of the issue is caused by Rubinius itself or your version manager of choice.
+see if the issue is caused by Rubinius itself or your version manager of choice.
 
 Issues involving version managers will be closed if they can either not be
 reproduced when building from source, or when the original report makes no
