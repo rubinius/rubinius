@@ -34,7 +34,7 @@ namespace jit {
        << ctx_->llvm_state()->enclosure_name(info_.method())
        << "#"
        << ctx_->llvm_state()->symbol_debug_str(info_.method()->name())
-       << "k@" << ++ctx_->llvm_state()->vm()->metrics().m.jit_metrics.methods_compiled;
+       << "k@" << ++ctx_->llvm_state()->vm()->metrics().jit.methods_compiled;
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
                             ss.str(), ctx_->module());
@@ -523,15 +523,12 @@ namespace jit {
 
   void MethodBuilder::return_value(Value* ret, BasicBlock* cont) {
     if(ctx_->llvm_state()->include_profiling()) {
-      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
       BasicBlock* end_profiling = info_.new_block("end_profiling");
       if(!cont) {
         cont = info_.new_block("continue");
       }
 
-      b().CreateCondBr(test, end_profiling, cont);
-
-      b().SetInsertPoint(end_profiling);
+      ctx_->profiling(b(), end_profiling, cont);
 
       Signature sig(ctx_, ctx_->VoidTy);
       sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
@@ -640,14 +637,10 @@ namespace jit {
         get_field(call_frame, offset::CallFrame::jit_data));
 
     if(ctx_->llvm_state()->include_profiling()) {
-      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
-
       BasicBlock* setup_profiling = info_.new_block("setup_profiling");
       BasicBlock* cont = info_.new_block("continue");
 
-      b().CreateCondBr(test, setup_profiling, cont);
-
-      b().SetInsertPoint(setup_profiling);
+      ctx_->profiling(b(), setup_profiling, cont);
 
       Signature sig(ctx_, ctx_->VoidTy);
       sig << "State";

@@ -766,4 +766,27 @@ describe "C-API String function" do
       @s.rb_sprintf2(s, "string", "content").should == "Awesome string is here with content"
     end
   end
+
+  describe "rb_vsprintf" do
+    it "returns a formatted String from a variable number of arguments" do
+      s = @s.rb_vsprintf("%s, %d, %.2f", "abc", 42, 2.7);
+      s.should == "abc, 42, 2.70"
+    end
+  end
+
+  describe "rb_alloc_tmp_buffer" do
+    it "creates a String and returns an address" do
+      s = @s.rb_alloc_tmp_buffer(5)
+      s.should be_an_instance_of(String)
+      s.size.should == 5
+    end
+  end
+
+  describe "rb_free_tmp_buffer" do
+    it "clears a String" do
+      s = "abc"
+      @s.rb_free_tmp_buffer(s)
+      s.size.should == 0
+    end
+  end
 end

@@ -18,6 +18,7 @@
 #include "builtin/compiled_code.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/data.hpp"
+#include "builtin/diagnostics.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/executable.hpp"
@@ -369,6 +370,7 @@ namespace rubinius {
     FDSet::init(state);
     Logger::init(state);
     JIT::init(state);
+    Diagnostics::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -425,6 +427,8 @@ namespace rubinius {
     GO(external_ivars).set(LookupTable::create(state));
 
     initialize_platform_data(state);
+
+    MachineCode::init(state);
   }
 
   void VM::initialize_fundamental_constants(STATE) {

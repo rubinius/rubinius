@@ -1,13 +1,16 @@
 #include "vm.hpp"
 #include "console.hpp"
 
+#include "arguments.hpp"
+#include "dispatch.hpp"
 #include "on_stack.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/io.hpp"
+#include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fsevent.hpp"
+#include "builtin/io.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
@@ -23,11 +26,14 @@
 #include <sys/types.h>
 
 #include <stdio.h>
+#include <libgen.h>
 
 // read
 #include <unistd.h>
 #include <sys/uio.h>
 #include <sys/types.h>
+
+#include <ostream>
 
 namespace rubinius {
   using namespace utilities;
@@ -50,34 +56,31 @@ namespace rubinius {
       return fd;
     }
 
-    Request::Request(STATE, Console* console)
-      : InternalThread(state, "rbx.console.request")
+    Request::Request(STATE, Console* console, Response* response)
+      : InternalThread(state, "rbx.console.request", InternalThread::eSmall)
       , console_(console)
-      , response_(console->response())
+      , response_(response)
+      , enabled_(false)
       , fd_(-1)
       , fsevent_(state)
     {
     }
 
     void Request::initialize(STATE) {
-      path_ = state->shared().fsapi_path + "/console-request";
-      console_->server_class(state)->set_const(state, state->symbol("RequestPath"),
-          String::create(state, path_.c_str()));
-    }
-
-    void Request::setup_request(STATE) {
-      if((fd_ = open_file(state, path_)) < 0) {
+      if((fd_ = open_file(state, console_->request_path())) < 0) {
         logger::error("%s: console request: unable to open file", strerror(errno));
         return;
       }
 
       FSEvent* fsevent = FSEvent::create(state);
-      fsevent->watch_file(state, fd_, path_.c_str());
+      fsevent->watch_file(state, fd_, console_->request_path().c_str());
       fsevent_.set(fsevent);
+
+      enabled_ = true;
     }
 
     void Request::start_thread(STATE) {
-      setup_request(state);
+      if(!enabled_) return;
 
       InternalThread::start_thread(state);
     }
@@ -85,12 +88,12 @@ namespace rubinius {
     void Request::wakeup(STATE) {
       InternalThread::wakeup(state);
 
-      if(write(fd_, "x", 1) < 0) {
+      if(write(fd_, "\0", 1) < 0) {
         logger::error("%s: console: unable to wake request thread", strerror(errno));
       }
     }
 
-    void Request::close_request(STATE) {
+    void Request::close_request() {
       if(fd_ > 0) {
         close(fd_);
         fd_ = -1;
@@ -100,22 +103,11 @@ namespace rubinius {
     void Request::stop_thread(STATE) {
       InternalThread::stop_thread(state);
 
-      close_request(state);
-      unlink(path_.c_str());
-    }
-
-    void Request::before_exec(STATE) {
-      stop_thread(state);
-    }
-
-    void Request::after_exec(STATE) {
-      start(state);
+      close_request();
     }
 
     void Request::after_fork_child(STATE) {
-      close_request(state);
-
-      InternalThread::after_fork_child(state);
+      close_request();
     }
 
     char* Request::read_request(STATE) {
@@ -136,7 +128,7 @@ namespace rubinius {
         req = new char[bytes+1];
         memcpy(req, buf, bytes);
         req[bytes] = 0;
-        metrics().m.console_metrics.requests_received++;
+        vm()->metrics().console.requests_received++;
       } else if(bytes < 0) {
         logger::error("%s: console: unable to read request", strerror(errno));
       }
@@ -152,14 +144,16 @@ namespace rubinius {
     }
 
     void Request::run(STATE) {
+      if(!enabled_) return;
+
       while(!thread_exit_) {
         Object* status = fsevent_.get()->wait_for_event(state);
 
         if(thread_exit_) break;
 
         if(status->nil_p()) {
-          close_request(state);
-          setup_request(state);
+          utilities::logger::error("%s: console: request: wait for event failed",
+              strerror(errno));
           continue;
         }
 
@@ -172,11 +166,17 @@ namespace rubinius {
     }
 
     Response::Response(STATE, Console* console)
-      : InternalThread(state, "rbx.console.response")
+      : InternalThread(state, "rbx.console.response", InternalThread::eSmall)
       , console_(console)
+      , inbox_(state)
+      , outbox_(state)
       , fd_(-1)
       , request_list_(NULL)
     {
+      inbox_.set(as<Channel>(
+          console_->ruby_console()->get_ivar(state, state->symbol("@inbox"))));
+      outbox_.set(as<Channel>(
+          console_->ruby_console()->get_ivar(state, state->symbol("@outbox"))));
     }
 
     Response::~Response() {
@@ -185,15 +185,11 @@ namespace rubinius {
     }
 
     void Response::initialize(STATE) {
-      path_ = state->shared().fsapi_path + "/console-response";
-      console_->server_class(state)->set_const(state, state->symbol("ResponsePath"),
-          String::create(state, path_.c_str()));
-
       Thread::create(state, vm());
     }
 
     void Response::start_thread(STATE) {
-      if((fd_ = open_file(state, path_)) < 0) {
+      if((fd_ = open_file(state, console_->response_path())) < 0) {
         logger::error("%s: console response: unable to open file", strerror(errno));
         return;
       }
@@ -210,17 +206,20 @@ namespace rubinius {
     void Response::wakeup(STATE) {
       InternalThread::wakeup(state);
 
+      GCTokenImpl gct;
+      inbox_.get()->send(state, gct, String::create(state, ""), 0);
+
       response_cond_.signal();
     }
 
-    void Response::close_response(STATE) {
+    void Response::close_response() {
       if(fd_ > 0) {
         close(fd_);
         fd_ = -1;
       }
     }
 
-    void Response::clear_requests(STATE) {
+    void Response::clear_requests() {
       if(request_list_) {
         for(RequestList::const_iterator i = request_list_->begin();
             i != request_list_->end();
@@ -236,25 +235,11 @@ namespace rubinius {
     void Response::stop_thread(STATE) {
       InternalThread::stop_thread(state);
 
-      clear_requests(state);
-
-      close_response(state);
-      unlink(path_.c_str());
-    }
-
-    void Response::before_exec(STATE) {
-      stop_thread(state);
-    }
-
-    void Response::after_exec(STATE) {
-      start(state);
+      close_response();
     }
 
     void Response::after_fork_child(STATE) {
-      close_response(state);
-      clear_requests(state);
-
-      InternalThread::after_fork_child(state);
+      close_response();
     }
 
     void Response::send_request(STATE, const char* request) {
@@ -285,11 +270,19 @@ namespace rubinius {
         logger::error("%s: console: unable to write response", strerror(errno));
       }
 
-      metrics().m.console_metrics.responses_sent++;
+      vm()->metrics().console.responses_sent++;
     }
 
     void Response::run(STATE) {
+      GCTokenImpl gct;
+      size_t pending_requests = 0;
       char* request = NULL;
+
+      Channel* inbox = inbox_.get();
+      Channel* outbox = outbox_.get();
+
+      String* response = 0;
+      OnStack<3> os(state, inbox, outbox, response);
 
       while(!thread_exit_) {
         {
@@ -304,31 +297,27 @@ namespace rubinius {
         if(thread_exit_) break;
 
         if(request) {
-          Object* result;
-          String* response;
+          GCDependent guard(state, 0);
 
-          OnStack<2> os(state, result, response);
+          pending_requests++;
 
-          {
-            GCDependent guard(state, 0);
+          inbox->send(state, gct, String::create(state, request), 0);
 
-            result = console_->evaluate(state, request);
-          }
+          request = NULL;
+        }
 
-          if(!result) {
-            if(Exception* exception = try_as<Exception>(
-                  state->thread_state()->current_exception())) {
-              String* msg = as<String>(exception->reason_message());
-              logger::error("console: response: exception: %s", msg->c_str(state));
-            }
-          } else if(String* response = try_as<String>(result)) {
+        if(pending_requests > 0) {
+          if((response = try_as<String>(outbox->try_receive(state, gct, 0)))) {
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
                 response->byte_size());
+            pending_requests--;
+            continue;
           }
+        }
 
-          request = NULL;
-        } else {
+        {
+          GCIndependent gc_guard(state, 0);
           utilities::thread::Mutex::LockGuard guard(response_lock_);
 
           if(thread_exit_) break;
@@ -338,35 +327,140 @@ namespace rubinius {
       }
     }
 
+    Listener::Listener(STATE, Console* console)
+      : InternalThread(state, "rbx.console.listener", InternalThread::eSmall)
+      , console_(console)
+      , fsevent_(state)
+      , fd_(-1)
+    {
+    }
+
+    Listener::~Listener() {
+      close(fd_);
+    }
+
+    void Listener::initialize(STATE) {
+      fd_ = ::open(console_->console_path().c_str(),
+          O_CREAT | O_TRUNC | O_RDWR | O_CLOEXEC,
+          state->shared().config.system_console_access.value);
+
+      if(fd_ < 0) {
+        utilities::logger::error("%s: unable to open Console connection file",
+            strerror(errno));
+      }
+
+      // The umask setting will override our permissions for open().
+      if(chmod(console_->console_path().c_str(),
+            state->shared().config.system_console_access.value) < 0) {
+        utilities::logger::error("%s: unable to set mode for Console connection file",
+            strerror(errno));
+      }
+
+      FSEvent* fsevent = FSEvent::create(state);
+      fsevent->watch_file(state, fd_, console_->console_path().c_str());
+      fsevent_.set(fsevent);
+    }
+
+    void Listener::start_thread(STATE) {
+      InternalThread::start_thread(state);
+    }
+
+    void Listener::wakeup(STATE) {
+      InternalThread::wakeup(state);
+
+      if(write(fd_, "\0", 1) < 0) {
+        logger::error("%s: console: unable to wake listener thread", strerror(errno));
+      }
+    }
+
+    bool Listener::connection_initiated() {
+      struct stat st;
+
+      bool req = stat(console_->request_path().c_str(), &st) == 0 && S_ISREG(st.st_mode);
+      bool res = stat(console_->response_path().c_str(), &st) == 0 && S_ISREG(st.st_mode);
+
+      return req && res;
+    }
+
+    void Listener::run(STATE) {
+      while(!thread_exit_) {
+        Object* status = fsevent_.get()->wait_for_event(state);
+
+        if(thread_exit_) break;
+
+        if(status->nil_p()) {
+          utilities::logger::error("%s: console: listener: wait for event failed",
+              strerror(errno));
+          continue;
+        }
+
+        if(console_->connected_p()) continue;
+
+        if(connection_initiated()) {
+          console_->accept(state);
+        }
+      }
+    }
+
     Console::Console(STATE)
-      : path_(std::string(state->shared().fsapi_path + "/console"))
-      , response_(new Response(state, this))
-      , request_(new Request(state, this))
+      : listener_(0)
+      , response_(0)
+      , request_(0)
       , ruby_console_(state)
     {
-      ruby_console_.set(server_class(state)->send(state, 0, state->symbol("new")));
+      console_path_ = state->shared().config.system_console_path.value;
+
+      std::ostringstream basename;
+      basename << state->shared().config.system_console_path.value << "-"
+               << state->shared().pid;
+
+      request_path_ = basename.str() + "-request";
+      response_path_ = basename.str() + "-response";
+
+      listener_ = new Listener(state, this);
     }
 
     Console::~Console() {
-      delete request_;
-      delete response_;
+      if(listener_) delete listener_;
+      reset();
+    }
+
+    bool Console::connected_p() {
+      return request_ && request_->enabled_p();
     }
 
     void Console::start(STATE) {
-      request_->start(state);
-      response_->start(state);
+      listener_->start(state);
+    }
+
+    void Console::accept(STATE) {
+      ruby_console_.set(server_class(state)->send(state, 0, state->symbol("new")));
+
+      response_ = new Response(state, this);
+      request_ = new Request(state, this, response_);
+    }
+
+    void Console::reset() {
+      if(request_) {
+        delete request_;
+        request_ = 0;
+      }
+
+      if(response_) {
+        delete response_;
+        response_ = 0;
+      }
+
+      ruby_console_.set(cNil);
+    }
+
+    void Console::after_fork_child(STATE) {
+      reset();
     }
 
     Class* Console::server_class(STATE) {
       Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
       return as<Class>(mod->get_const(state, "Server"));
-    }
-
-    Object* Console::evaluate(STATE, char* request) {
-      Array* args = Array::create(state, 1);
-      args->aset(state, 0, String::create(state, request));
-
-      return ruby_console_.get()->send(state, 0, state->symbol("evaluate"), args, cNil);
     }
   }
 }

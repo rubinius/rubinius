@@ -19,14 +19,10 @@ namespace rubinius {
   }
 
   bool State::process_async(CallFrame* call_frame) {
+    utilities::thread::SpinLock::LockGuard guard(vm_->interrupt_lock());
+
     set_call_frame(call_frame);
     vm_->clear_check_local_interrupts();
-
-    if(vm_->run_signals_) {
-      if(!vm_->shared.signal_handler()->deliver_signals(this, call_frame)) {
-        return false;
-      }
-    }
 
     Exception* exc = vm_->interrupted_exception_.get();
     if(!exc->nil_p()) {

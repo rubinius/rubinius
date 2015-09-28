@@ -512,13 +512,10 @@ namespace rubinius {
 
     void visit_ret() {
       if(llvm_state()->include_profiling() && method_entry_) {
-        Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
         BasicBlock* end_profiling = new_block("end_profiling");
         BasicBlock* cont = new_block("continue");
 
-        b().CreateCondBr(test, end_profiling, cont);
-
-        set_block(end_profiling);
+        ctx_->profiling(b(), end_profiling, cont);
 
         Signature sig(ctx_, ctx_->VoidTy);
         sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);

@@ -32,7 +32,7 @@ namespace jit {
        << "#"
        << ctx_->llvm_state()->symbol_debug_str(info_.method()->name())
        << "$block@"
-       << ++ctx_->llvm_state()->vm()->metrics().m.jit_metrics.methods_compiled;
+       << ++ctx_->llvm_state()->vm()->metrics().jit.methods_compiled;
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
                             ss.str(), ctx_->module());
@@ -69,14 +69,11 @@ namespace jit {
     import_args_ = b().GetInsertBlock();
 
     if(ctx_->llvm_state()->include_profiling()) {
-      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
-
-      BasicBlock* setup_profiling = BasicBlock::Create(ctx_->llvm_context(), "setup_profiling", func);
+      BasicBlock* setup_profiling = BasicBlock::Create(ctx_->llvm_context(),
+          "setup_profiling", func);
       BasicBlock* cont = BasicBlock::Create(ctx_->llvm_context(), "continue", func);
 
-      b().CreateCondBr(test, setup_profiling, cont);
-
-      b().SetInsertPoint(setup_profiling);
+      ctx_->profiling(b(), setup_profiling, cont);
 
       Signature sig(ctx_, ctx_->VoidTy);
       sig << "State";

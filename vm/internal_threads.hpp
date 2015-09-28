@@ -7,18 +7,15 @@
 #include <list>
 
 namespace rubinius {
+  class InternalThread;
   class VM;
 
-  namespace metrics {
-    struct MetricsData;
-  }
+  typedef std::list<InternalThread*> InternalThreadList;
 
   class InternalThread {
     VM* vm_;
-    std::string name_;
     bool thread_running_;
-
-    metrics::MetricsData& metrics_;
+    uint32_t stack_size_;
 
   protected:
 
@@ -26,7 +23,13 @@ namespace rubinius {
 
   public:
 
-    InternalThread(STATE, std::string name);
+    enum StackSize {
+      eSmall  = 0x1000,
+      eLarge  = 0x10000,
+      eXLarge = 0x100000,
+    };
+
+    InternalThread(STATE, std::string name, StackSize stack_size=eLarge);
     virtual ~InternalThread() { };
 
     // OS thread trampoline
@@ -48,10 +51,6 @@ namespace rubinius {
       return vm_;
     }
 
-    metrics::MetricsData& metrics() {
-      return metrics_;
-    }
-
     virtual void initialize(STATE);
     virtual void start(STATE);
     virtual void start_thread(STATE);
@@ -67,7 +66,7 @@ namespace rubinius {
     bool fork_exec_in_progress_;
     bool shutdown_in_progress_;
     utilities::thread::Mutex mutex_;
-    std::list<InternalThread*> threads_;
+    InternalThreadList threads_;
 
   public:
     InternalThreads()

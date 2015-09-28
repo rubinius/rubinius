@@ -27,6 +27,9 @@ namespace rubinius {
     // Rubinius.primitive+ :logger_allocate
     static Logger* allocate(STATE, Object* self);
 
+    // Rubinius.primitive :logger_write
+    Object* write(STATE, String* message);
+
     // Rubinius.primitive :logger_fatal
     Object* fatal(STATE, String* message);
 

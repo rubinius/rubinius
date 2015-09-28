@@ -49,6 +49,21 @@ describe "C-API Hash function" do
     end
   end
 
+  describe "rb_hash_dup" do
+    it "returns a copy of the hash" do
+      hsh = {}
+      dup = @s.rb_hash_dup(hsh)
+      dup.should == hsh
+      dup.should_not equal(hsh)
+    end
+  end
+
+  describe "rb_hash_freeze" do
+    it "freezes the hash" do
+      @s.rb_hash_freeze({}).frozen?.should be_true
+    end
+  end
+
   describe "rb_hash_aref" do
     it "returns the value associated with the key" do
       hsh = {:chunky => 'bacon'}
@@ -73,6 +88,14 @@ describe "C-API Hash function" do
       hsh = {}
       @s.rb_hash_aset(hsh, :chunky, 'bacon').should == 'bacon'
       hsh.should == {:chunky => 'bacon'}
+    end
+  end
+
+  describe "rb_hash_clear" do
+    it "returns self that cleared keys and values" do
+      hsh = { :key => 'value' }
+      @s.rb_hash_clear(hsh).should equal(hsh)
+      hsh.should == {}
     end
   end
 
@@ -152,6 +175,30 @@ describe "C-API Hash function" do
         @s.rb_hash_lookup(hsh, :chunky).should be_nil
         @s.rb_hash_lookup_nil(hsh, :chunky).should be_true
       end
+    end
+
+    describe "rb_hash_lookup2" do
+      it "returns the value associated with the key" do
+        hash = {:chunky => 'bacon'}
+
+        @s.rb_hash_lookup2(hash, :chunky, nil).should == 'bacon'
+      end
+
+      it "returns the default value if the key does not exist" do
+        hash = {}
+
+        @s.rb_hash_lookup2(hash, :chunky, 10).should == 10
+      end
+    end
+  end
+
+  describe "rb_hash_set_ifnone" do
+    it "sets the default value of non existing keys" do
+      hash = {}
+
+      @s.rb_hash_set_ifnone(hash, 10)
+
+      hash[:chunky].should == 10
     end
   end
 end

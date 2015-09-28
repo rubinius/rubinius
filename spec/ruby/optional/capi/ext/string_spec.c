@@ -11,6 +11,23 @@
 extern "C" {
 #endif
 
+#ifdef HAVE_RB_ALLOC_TMP_BUFFER
+VALUE string_spec_rb_alloc_tmp_buffer(VALUE self, VALUE len) {
+  VALUE str;
+
+  char* s = (char*)rb_alloc_tmp_buffer(&str, FIX2INT(len));
+
+  return str;
+}
+#endif
+
+#ifdef HAVE_RB_FREE_TMP_BUFFER
+VALUE string_spec_rb_free_tmp_buffer(VALUE self, VALUE str) {
+  rb_free_tmp_buffer(&str);
+  return str == 0 ? Qnil : Qfalse;
+}
+#endif
+
 #ifdef HAVE_RB_CSTR2INUM
 VALUE string_spec_rb_cstr2inum(VALUE self, VALUE str, VALUE inum) {
   int num = FIX2INT(inum);
@@ -571,6 +588,23 @@ static VALUE string_spec_rb_sprintf2(VALUE self, VALUE str, VALUE repl1, VALUE r
 }
 #endif
 
+#ifdef HAVE_RB_VSPRINTF
+static VALUE string_spec_rb_vsprintf_worker(char* fmt, ...) {
+  va_list varargs;
+
+  va_start(varargs, fmt);
+  VALUE str = rb_vsprintf(fmt, varargs);
+  va_end(varargs);
+
+  return str;
+}
+
+static VALUE string_spec_rb_vsprintf(VALUE self, VALUE fmt, VALUE str, VALUE i, VALUE f) {
+  return string_spec_rb_vsprintf_worker(RSTRING_PTR(fmt), RSTRING_PTR(str),
+      FIX2INT(i), RFLOAT_VALUE(f));
+}
+#endif
+
 #ifdef HAVE_RB_STR_EQUAL
 VALUE string_spec_rb_str_equal(VALUE self, VALUE str1, VALUE str2) {
   return rb_str_equal(str1, str2);
@@ -592,6 +626,14 @@ static VALUE string_spec_rb_usascii_str_new_cstr(VALUE self, VALUE str) {
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
+
+#ifdef HAVE_RB_ALLOC_TMP_BUFFER
+  rb_define_method(cls, "rb_alloc_tmp_buffer", string_spec_rb_alloc_tmp_buffer, 1);
+#endif
+
+#ifdef HAVE_RB_FREE_TMP_BUFFER
+  rb_define_method(cls, "rb_free_tmp_buffer", string_spec_rb_free_tmp_buffer, 1);
+#endif
 
 #ifdef HAVE_RB_CSTR2INUM
   rb_define_method(cls, "rb_cstr2inum", string_spec_rb_cstr2inum, 2);
@@ -825,6 +867,10 @@ void Init_string_spec() {
 #ifdef HAVE_RB_SPRINTF
   rb_define_method(cls, "rb_sprintf1", string_spec_rb_sprintf1, 2);
   rb_define_method(cls, "rb_sprintf2", string_spec_rb_sprintf2, 3);
+#endif
+
+#ifdef HAVE_RB_VSPRINTF
+  rb_define_method(cls, "rb_vsprintf", string_spec_rb_vsprintf, 4);
 #endif
 
 #ifdef HAVE_RB_STR_EQUAL

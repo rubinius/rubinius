@@ -38,6 +38,19 @@ namespace rubinius {
     return call_frame->promote_scope(state);
   }
 
+  VariableScope* VariableScope::allocate(STATE)
+  {
+    VariableScope* scope = state->new_object<VariableScope>(G(variable_scope));
+
+    scope->number_of_locals_ = 0;
+    scope->isolated_ = 1;
+    scope->locals_ = 0;
+    scope->flags_ = 0;
+    scope->lock_.init();
+
+    return scope;
+  }
+
   VariableScope* VariableScope::synthesize(STATE, CompiledCode* method,
                                            Module* module, Object* parent,
                                            Object* self, Object* block,

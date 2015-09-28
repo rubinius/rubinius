@@ -94,7 +94,7 @@ class SpecRunner
   end
 
   def self.set_at_exit_status(status)
-    @at_exit_status = status
+    @at_exit_status = status || 1
   end
 
   def self.flags

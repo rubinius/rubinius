@@ -264,7 +264,7 @@ namespace rubinius {
       rubinius::bug("ffi_prep_cif failed");
     }
 
-    state->shared().om->add_code_resource(data);
+    state->shared().om->add_code_resource(state, data);
     this->ffi_data = data;
   }
 
@@ -333,19 +333,19 @@ namespace rubinius {
     GCTokenImpl gct;
     VM* vm = 0;
 
-    int calculate_stack = 0;
+    int stack_address = 0;
     if(!env) {
       // Apparently we're running in a new thread here, setup
       // everything we need here.
       vm = stub->shared->new_vm();
-      vm->metrics().init(metrics::eRubyMetrics);
 
       // Detect the stack size and set it up in the VM object
       size_t stack_size;
-      pthread_attr_t attr;
-      pthread_attr_init(&attr);
-      pthread_attr_getstacksize (&attr, &stack_size);
-      vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), stack_size);
+      pthread_attr_t attrs;
+      pthread_attr_init(&attrs);
+      pthread_attr_getstacksize (&attrs, &stack_size);
+      pthread_attr_destroy(&attrs);
+      vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), stack_size);
 
       // Setup nativemethod handles into thread local
       State state(vm);

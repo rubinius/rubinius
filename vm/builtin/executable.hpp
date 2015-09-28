@@ -18,7 +18,7 @@ namespace rubinius {
     std::vector<CompiledCode*> inliners_;
 
   public:
-    Inliners(ObjectMemory* om);
+    Inliners(STATE, ObjectMemory* om);
 
     std::vector<CompiledCode*>& inliners() {
       return inliners_;
@@ -81,7 +81,7 @@ namespace rubinius {
 
     bool resolve_primitive(STATE);
 
-    void add_inliner(ObjectMemory* om, CompiledCode* code);
+    void add_inliner(STATE, ObjectMemory* om, CompiledCode* code);
     void clear_inliners(STATE);
 
     class Info : public TypeInfo {

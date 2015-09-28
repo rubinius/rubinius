@@ -15,6 +15,7 @@
 #include "util/vsnprintf.h"
 
 #include <string.h>
+#include <sys/mman.h>
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -164,6 +165,27 @@ extern "C" {
     Handle* handle = Handle::from(string);
 
     return handle->as_rstring(env, cache_level);
+  }
+
+  void* rb_alloc_tmp_buffer(VALUE* store, long len) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE s =  env->get_handle(String::create_pinned(env->state(), Fixnum::from(len)));
+    *store = s;
+
+    return RSTRING_PTR(s);
+  }
+
+  void rb_free_tmp_buffer(VALUE* store)
+  {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE s = *store;
+    *store = 0;
+
+    String* str = c_as<String>(env->get_object(s));
+    str->num_bytes(env->state(), 0);
+    str->data(env->state(), ByteArray::create(env->state(), 1));
   }
 
   void rb_str_modify(VALUE self) {
@@ -439,6 +461,10 @@ extern "C" {
     String* str = c_as<String>(env->get_object(self));
 
     char* data = (char*)malloc(sizeof(char) * str->byte_size() + 1);
+    if(!data) {
+      rb_raise(rb_eSystemCallError, "unable to allocate memory");
+    }
+
     memcpy(data, str->c_str(env->state()), str->byte_size());
     data[str->byte_size()] = 0;
 
@@ -640,5 +666,26 @@ extern "C" {
 
     rb_str_set_len(result, err);
     return result;
+  }
+
+#define RBX_RB_VSPRINTF_LEN 0x10000
+
+  VALUE rb_vsprintf(const char *format, va_list varargs) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    void* buffer = mmap(NULL, RBX_RB_VSPRINTF_LEN,
+        PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+
+    if(buffer == MAP_FAILED) {
+      return env->get_handle(String::create(env->state(),
+            "rb_vsprintf failed to allocate space for result"));
+    }
+
+    native_int length = vsnprintf((char*)buffer, RBX_RB_VSPRINTF_LEN, format, varargs);
+    String* str = String::create(env->state(), (const char*)buffer, length);
+
+    munmap(buffer, RBX_RB_VSPRINTF_LEN);
+
+    return env->get_handle(str);
   }
 }

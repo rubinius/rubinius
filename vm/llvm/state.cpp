@@ -89,15 +89,12 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : InternalThread(state, "rbx.jit")
+    : InternalThread(state, "rbx.jit", InternalThread::eXLarge)
     , config_(state->shared().config)
     , compile_list_(state)
     , symbols_(state->shared().symbols)
-    , accessors_inlined_(0)
-    , uncommons_taken_(0)
     , shared_(state->shared())
     , include_profiling_(state->shared().config.jit_profile)
-    , code_bytes_(0)
     , log_(NULL)
     , enabled_(false)
     , current_compiler_(0)
@@ -211,11 +208,11 @@ namespace rubinius {
   }
 
   void LLVMState::run(STATE) {
+    state_ = state;
+
     GCTokenImpl gct;
     JITCompileRequest* compile_request = nil<JITCompileRequest>();
     OnStack<1> os(state, compile_request);
-
-    metrics().init(metrics::eJITMetrics);
 
     state->gc_dependent(gct, 0);
 
@@ -248,6 +245,11 @@ namespace rubinius {
         if(!compile_request || compile_request->nil_p()) continue;
       }
 
+      utilities::thread::Condition* cond = compile_request->waiter();
+
+      // Don't proceed until requester has reached the wait_cond
+      if(cond) wait_mutex.lock();
+
       Context ctx(this);
       jit::Compiler jit(&ctx);
 
@@ -272,7 +274,8 @@ namespace rubinius {
             }
 
             // If someone was waiting on this, wake them up.
-            if(utilities::thread::Condition* cond = compile_request->waiter()) {
+            if(cond) {
+              wait_mutex.unlock();
               cond->signal();
             }
 
@@ -287,8 +290,7 @@ namespace rubinius {
 
         {
           timer::StopWatch<timer::microseconds> timer(
-              metrics().m.jit_metrics.time_last_us,
-              metrics().m.jit_metrics.time_total_us);
+              vm()->metrics().jit.compile_time_us);
 
           jit.compile(compile_request);
 
@@ -307,7 +309,8 @@ namespace rubinius {
                       << " ]]]\n";
           }
           // If someone was waiting on this, wake them up.
-          if(utilities::thread::Condition* cond = compile_request->waiter()) {
+          if(cond) {
+            wait_mutex.unlock();
             cond->signal();
           }
 
@@ -316,12 +319,13 @@ namespace rubinius {
           continue;
         }
       } catch(LLVMState::CompileError& e) {
-        utilities::logger::warn("JIT: compile error: %s", e.error());
+        utilities::logger::info("JIT: compile error: %s", e.error());
 
-        metrics().m.jit_metrics.methods_failed++;
+        vm()->metrics().jit.methods_failed++;
 
         // If someone was waiting on this, wake them up.
-        if(utilities::thread::Condition* cond = compile_request->waiter()) {
+        if(cond) {
+          wait_mutex.unlock();
           cond->signal();
         }
         current_compiler_ = 0;
@@ -369,12 +373,13 @@ namespace rubinius {
       }
 
       // If someone was waiting on this, wake them up.
-      if(utilities::thread::Condition* cond = compile_request->waiter()) {
+      if(cond) {
+        wait_mutex.unlock();
         cond->signal();
       }
 
       current_compiler_ = 0;
-      metrics().m.jit_metrics.methods_compiled++;
+      vm()->metrics().jit.methods_compiled++;
     }
   }
 
@@ -382,11 +387,14 @@ namespace rubinius {
     if(current_compiler_) {
       jit::RuntimeDataHolder* rd = current_compiler_->context()->runtime_data_holder();
       rd->set_mark();
+
+      ObjectMark mark(gc);
+      rd->mark_all(0, mark);
     }
   }
 
   Symbol* LLVMState::symbol(const std::string& sym) {
-    return symbols_.lookup(&shared_, sym);
+    return symbols_.lookup(state(), &shared_, sym);
   }
 
   std::string LLVMState::symbol_debug_str(const Symbol* sym) {
@@ -409,7 +417,7 @@ namespace rubinius {
     if(!enabled_) return;
 
     G(jit)->compile_list()->append(state, req);
-    metrics().m.jit_metrics.methods_queued++;
+    vm()->metrics().jit.methods_queued++;
 
     compile_cond_.signal();
   }
@@ -421,7 +429,7 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
+      vm()->metrics().jit.methods_failed++;
 
       return;
     }
@@ -442,7 +450,7 @@ namespace rubinius {
     state->set_call_frame(call_frame);
 
     {
-      GCIndependent guard(state, 0);
+      GCIndependent guard(state, call_frame);
 
       wait_cond.wait(wait_mutex);
     }
@@ -466,7 +474,7 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
+      vm()->metrics().jit.methods_failed++;
 
       return;
     }
@@ -495,7 +503,11 @@ namespace rubinius {
 
       state->set_call_frame(call_frame);
 
-      wait_cond.wait(wait_mutex);
+      {
+        GCIndependent guard(state, call_frame);
+
+        wait_cond.wait(wait_mutex);
+      }
 
       wait_mutex.unlock();
       state->set_call_frame(0);
@@ -519,7 +531,7 @@ namespace rubinius {
   }
 
   void LLVMState::remove(void* func) {
-    metrics().m.jit_metrics.methods_compiled--;
+    vm()->metrics().jit.methods_compiled--;
     if(memory_) memory_->deallocateFunctionBody(func);
   }
 
@@ -530,7 +542,7 @@ namespace rubinius {
   {
     // TODO: Fix compile policy checks
     if(!start->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
+      vm()->metrics().jit.methods_failed++;
 
       return;
     }

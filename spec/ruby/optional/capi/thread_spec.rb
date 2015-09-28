@@ -20,31 +20,6 @@ describe "C-API Thread function" do
     Thread.capi_thread_specs = @t
   end
 
-  describe "rb_thread_select" do
-    it "returns true if an fd is ready to read" do
-      read, write = IO.pipe
-
-      @t.rb_thread_select_fd(read.to_i, 0).should == false
-      write << "1"
-      @t.rb_thread_select_fd(read.to_i, 0).should == true
-    end
-
-    it "does not block all threads" do
-      t = Thread.new do
-        sleep 0.25
-        ScratchPad.record :inner
-      end
-      Thread.pass while t.status and t.status != "sleep"
-
-      @t.rb_thread_select(500_000)
-
-      t.alive?.should be_false
-      ScratchPad.recorded.should == :inner
-
-      t.join
-    end
-  end
-
   describe "rb_thread_wait_for" do
     it "sleeps the current thread for the give ammount of time" do
       start = Time.now
@@ -110,46 +85,4 @@ describe "C-API Thread function" do
       lambda { thr.join }.should raise_error(NotImplementedError)
     end
   end
-
 end
-
-describe :rb_thread_blocking_region, :shared => true do
-  before :each do
-    @t = CApiThreadSpecs.new
-    ScratchPad.clear
-  end
-
-  it "runs a C function with the global lock unlocked" do
-    thr = Thread.new do
-      @t.send(@method)
-    end
-
-    # Wait until it's blocking...
-    sleep 1
-
-    # Wake it up, causing the unblock function to be run.
-    thr.wakeup
-
-    # Make sure it stopped
-    thr.join(1).should_not be_nil
-
-    # And we got a proper value
-    thr.value.should be_true
-  end
-end
-
-describe "C-API Thread function" do
-  describe "rb_thread_blocking_region" do
-    extended_on :rubinius do
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
-    end
-
-    it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
-    it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
-
-    it_behaves_like :rb_thread_blocking_region, :rb_thread_call_without_gvl
-    it_behaves_like :rb_thread_blocking_region, :rb_thread_call_without_gvl2
-  end
-end
-

@@ -30,19 +30,19 @@ module Rubinius
     alias_method :store, :[]=
 
     def each_key
-      return to_enum(:each_key) unless block_given?
+      return to_enum(:each_key) { size } unless block_given?
 
       each { |k, v| yield k }
     end
 
     def each_value
-      return to_enum(:each_value) unless block_given?
+      return to_enum(:each_value) { size } unless block_given?
 
       each { |k, v| yield v }
     end
 
     def each
-      return to_enum(:each) unless block_given?
+      return to_enum(:each) { size } unless block_given?
 
       env = environ()
       ptr_size = FFI.type_size FFI.find_type(:pointer)
@@ -81,7 +81,7 @@ module Rubinius
     end
 
     def delete_if(&block)
-      return to_enum(:delete_if) unless block_given?
+      return to_enum(:delete_if) { size } unless block_given?
       reject!(&block)
       self
     end
@@ -127,7 +127,7 @@ module Rubinius
     end
 
     def reject!
-      return to_enum(:reject!) unless block_given?
+      return to_enum(:reject!) { size } unless block_given?
 
       # Avoid deleting from environ while iterating because the
       # OS can handle that in a million different bad ways.
@@ -211,7 +211,7 @@ module Rubinius
     end
 
     def select(&blk)
-      return to_enum unless block_given?
+      return to_enum { size } unless block_given?
       to_hash.select(&blk)
     end
 
@@ -262,13 +262,13 @@ module Rubinius
     end
 
     def keep_if(&block)
-      return to_enum(:keep_if) unless block_given?
+      return to_enum(:keep_if) { size } unless block_given?
       select!(&block)
       self
     end
 
     def select!
-      return to_enum(:select!) unless block_given?
+      return to_enum(:select!) { size } unless block_given?
       reject! { |k, v| !yield(k, v) }
     end
 

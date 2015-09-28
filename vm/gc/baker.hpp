@@ -9,6 +9,7 @@
 #include "gc/gc.hpp"
 #include "gc/root.hpp"
 #include "object_position.hpp"
+#include "diagnostics.hpp"
 
 #include "builtin/object.hpp"
 
@@ -23,7 +24,6 @@
 namespace rubinius {
 
   class GCData;
-  struct YoungCollectStats;
 
   /**
    * The BakerGC garbage collector is used for managing memory in the young
@@ -57,6 +57,40 @@ namespace rubinius {
    */
 
   class BakerGC : public GarbageCollector {
+  public:
+    class Diagnostics : public diagnostics::Diagnostics {
+    public:
+      const static int cPercentTiles = 10;
+
+      int64_t bytes_;
+      int64_t collections_;
+      int64_t occupancy_histo_[cPercentTiles];
+
+      Diagnostics(unsigned int bytes)
+        : diagnostics::Diagnostics()
+        , bytes_(bytes)
+        , collections_(0)
+      {
+        for(int i = 0; i < cPercentTiles; i++) {
+          occupancy_histo_[i] = 0;
+        }
+      }
+
+      void record_occupancy(double percentage) {
+        modify();
+        collections_++;
+
+        if(percentage < 0.0 || percentage > 100.0) return;
+
+        occupancy_histo_[int(percentage / cPercentTiles)]++;
+      }
+
+      void log();
+    };
+
+  private:
+
+    unsigned int bytes_;
 
     /// The total memory heap allocated to the BakerGC
     Heap* full;
@@ -71,20 +105,6 @@ namespace rubinius {
     Heap* heap_b;
 
 
-    /// The new heap if we request a resize. We need to set
-    /// this up at the start of a young GC cycle and clean
-    /// up at the end
-    Heap* full_new;
-
-    /// The new Eden space heap when resizing
-    Heap* eden_new;
-
-    /// The new A heap when resizing
-    Heap* heap_a_new;
-
-    /// The new B heap when resizing
-    Heap* heap_b_new;
-
     /// Pointer to the Current space heap (i.e. Heap A or B)
     Heap* current;
 
@@ -92,11 +112,6 @@ namespace rubinius {
     Heap* next;
 
   public:
-    /// Total number of objects currently allocated in the young generation
-    /// Note: This does not include objects allocated in the Eden space in
-    /// thread-local slabs.
-    size_t total_objects;
-
     /**
      * Allocates a slab of memory from the Eden space for use as a thread-local
      * allocation area that can be used without locking.
@@ -134,7 +149,6 @@ namespace rubinius {
       if(!eden->enough_space_p(bytes)) {
         return NULL;
       } else {
-        total_objects++;
         obj = eden->allocate(bytes).as<Object>();
 
         if(eden->over_limit_p(obj)) {
@@ -167,7 +181,6 @@ namespace rubinius {
       if(!eden->enough_space_p(bytes)) {
         return NULL;
       } else {
-        total_objects++;
         obj = eden->allocate(bytes).as<Object>();
 
         if(eden->over_limit_p(obj)) {
@@ -192,35 +205,10 @@ namespace rubinius {
     /// not yet scanned
     ObjectArray promoted_stack_;
 
-    /// Current size of the young gen, number of bytes in Eden
-    size_t current_byte_size_;
-
-    /// Request size of new young space for resizing
-    size_t requested_byte_size_;
-
-    /// The original configured lifetime objects had to survive before being
-    /// promoted to the mature generation
-    unsigned int original_lifetime_;
-
     /// The current lifetime objects have to survive before being promoted
     unsigned int lifetime_;
 
-    /// Count of the number of objects that were promoted to the mature
-    /// generation on the current collection due to lack of space in the Next
-    /// space.
-    int copy_spills_;
-
-    /// Count of the number of objects promoted on the current collection
-    int promoted_objects_;
-
-    /// Count of the successive number of times a collection has gone over
-    /// the cOverFullThreshhold (positive value) or under the
-    /// cUnderFullThreshhold (negative value). Used to auto-tune the age
-    /// at which objects are promoted to the mature generation.
-    int tune_threshold_;
-
-    /// True if the young to mature promotion threshhold should be auto-tuned
-    bool autotune_lifetime_;
+    Diagnostics diagnostics_;
 
     /**
      * Adds the specified object to the promoted objects stack.
@@ -230,19 +218,8 @@ namespace rubinius {
      * remember set.
      */
     void promoted_push(Object* obj) {
-      promoted_objects_++;
       promoted_stack_.push_back(obj);
     }
-
-    /**
-     * Reset the list of promoted objects.
-     */
-    void reset_promoted() {
-      promoted_objects_ = 0;
-    }
-
-    void check_growth_start();
-    void check_growth_finish();
 
   public:
 
@@ -251,37 +228,6 @@ namespace rubinius {
      */
     size_t bytes_used() {
       return eden->used();
-    }
-
-    /**
-     * Returns the number of bytes used in the Eden space.
-     */
-    size_t& bytes_size() {
-      return current_byte_size_;
-    }
-
-    /**
-     * Sets the age at which objects will be promoted from the young generation
-     * to the mature generation.
-     */
-    void set_lifetime(int val) {
-      lifetime_ = original_lifetime_ = val;
-    }
-
-    /**
-     * Controls whether the BakerGC is self-tuning.
-     *
-     * This involves tweaking the lifetime threshhold at which objects are
-     * promoted to the mature generation, based on how full the Next space is
-     * following a collecion.
-     */
-    void set_autotune_lifetime(bool val = true) {
-      autotune_lifetime_ = val;
-    }
-
-    /// Returns true if the BakerGC is auto-tuning
-    bool autotune_lifetime() {
-      return autotune_lifetime_;
     }
 
     /// Returns the start address of the young generation
@@ -296,13 +242,13 @@ namespace rubinius {
 
     void reset();
 
-    void grow(size_t bytes) {
-      requested_byte_size_ = bytes;
+    Diagnostics& diagnostics() {
+      return diagnostics_;
     }
 
   public:
     /* Prototypes */
-    BakerGC(ObjectMemory *om, size_t size);
+    BakerGC(ObjectMemory *om, Configuration& config);
     virtual ~BakerGC();
 
     /// Called for each object "seen" during the collection of the young
@@ -323,7 +269,7 @@ namespace rubinius {
     bool    fully_scanned_p();
 
     /// Performs a collection of the young generation.
-    void    collect(GCData* data, YoungCollectStats* stats = 0);
+    void    collect(GCData* data);
 
     /// Gathers statistics on the age of objects at the time of their death.
     void    find_lost_souls();
@@ -358,9 +304,7 @@ namespace rubinius {
 
     /// Returns true if the specified object is in the Current space.
     bool in_current_p(Object* obj);
-
   };
-
 };
 
 #endif

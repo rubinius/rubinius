@@ -744,7 +744,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
     if(target->#{name}()->reference_p()) {
       Object* old = target->#{name}();
       Object* cur = mark.call(old);
-      if(cur && cur != old) target->#{name}(mark.state(), force_as<#{type}>(cur));
+      if(cur && cur != old) target->#{name}(mark.vm(), force_as<#{type}>(cur));
     }
   }
 

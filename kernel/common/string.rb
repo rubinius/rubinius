@@ -297,7 +297,7 @@ class String
   end
 
   def each_char
-    return to_enum :each_char unless block_given?
+    return to_enum(:each_char) { size } unless block_given?
 
     bytes = 0
     while bytes < @num_bytes
@@ -310,7 +310,7 @@ class String
   end
 
   def each_byte
-    return to_enum :each_byte unless block_given?
+    return to_enum(:each_byte) { bytesize } unless block_given?
     i = 0
     while i < @num_bytes do
       yield @data.get_byte(i)
@@ -831,7 +831,7 @@ class String
   end
 
   def each_codepoint
-    return to_enum :each_codepoint unless block_given?
+    return to_enum(:each_codepoint) { size } unless block_given?
 
     each_char { |c| yield c.ord }
     self
@@ -1169,7 +1169,7 @@ class String
 
     if undefined.equal? replacement
       unless block_given?
-        return to_enum(:sub, pattern, replacement)
+        raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
       use_yield = true
       tainted = false
@@ -1236,7 +1236,7 @@ class String
 
     if undefined.equal? replacement
       unless block_given?
-        return to_enum(:sub, pattern, replacement)
+        raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
       Rubinius.check_frozen
       use_yield = true

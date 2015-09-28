@@ -1,7 +1,6 @@
 #ifndef RBX_METRICS_HPP
 #define RBX_METRICS_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/root.hpp"
@@ -22,192 +21,23 @@ namespace rubinius {
   namespace metrics {
     typedef uint64_t metric;
 
-    struct MetricsData;
+    struct CodeDBMetrics {
+      metric load_us;
 
-    enum MetricsType {
-      eNone,
-      eRubyMetrics,
-      eFinalizerMetrics,
-      eJITMetrics,
-      eConsoleMetrics,
-    };
-
-    struct RubyMetrics {
-      // Object memory metrics
-      metric memory_young_bytes;
-      metric memory_young_bytes_total;
-      metric memory_young_objects;
-      metric memory_young_objects_total;
-      metric memory_young_percent_used;
-      metric memory_immix_bytes;
-      metric memory_immix_bytes_total;
-      metric memory_immix_objects;
-      metric memory_immix_objects_total;
-      metric memory_immix_chunks;
-      metric memory_immix_chunks_total;
-      metric memory_large_bytes;
-      metric memory_large_bytes_total;
-      metric memory_large_objects;
-      metric memory_large_objects_total;
-      metric memory_symbols_bytes;
-      metric memory_code_bytes;
-      metric memory_jit_bytes;
-      metric memory_promoted_bytes_total;
-      metric memory_promoted_objects_total;
-      metric memory_slab_refills_total;
-      metric memory_slab_refills_fails;
-      metric memory_data_objects_total;
-      metric memory_capi_handles;
-      metric memory_capi_handles_total;
-      metric memory_inflated_headers;
-
-      // Garbage collector metrics
-      metric gc_young_count;
-      metric gc_young_last_ms;
-      metric gc_young_total_ms;
-      metric gc_young_lifetime;
-      metric gc_immix_count;
-      metric gc_immix_stop_last_ms;
-      metric gc_immix_stop_total_ms;
-      metric gc_immix_conc_last_ms;
-      metric gc_immix_conc_total_ms;
-      metric gc_large_count;
-      metric gc_large_sweep_last_ms;
-      metric gc_large_sweep_total_ms;
-
-      void init() {
-        memory_young_bytes = 0;
-        memory_young_bytes_total = 0;
-        memory_young_objects = 0;
-        memory_young_objects_total = 0;
-        memory_young_percent_used = 0;
-        memory_immix_bytes = 0;
-        memory_immix_bytes_total = 0;
-        memory_immix_objects = 0;
-        memory_immix_objects_total = 0;
-        memory_immix_chunks = 0;
-        memory_immix_chunks_total = 0;
-        memory_large_bytes = 0;
-        memory_large_bytes_total = 0;
-        memory_large_objects = 0;
-        memory_large_objects_total = 0;
-        memory_symbols_bytes = 0;
-        memory_code_bytes = 0;
-        memory_jit_bytes = 0;
-        memory_promoted_bytes_total = 0;
-        memory_promoted_objects_total = 0;
-        memory_slab_refills_total = 0;
-        memory_slab_refills_fails = 0;
-        memory_data_objects_total = 0;
-        memory_capi_handles = 0;
-        memory_capi_handles_total = 0;
-        memory_inflated_headers = 0;
-        gc_young_count = 0;
-        gc_young_last_ms = 0;
-        gc_young_total_ms = 0;
-        gc_young_lifetime = 0;
-        gc_immix_count = 0;
-        gc_immix_stop_last_ms = 0;
-        gc_immix_stop_total_ms = 0;
-        gc_immix_conc_last_ms = 0;
-        gc_immix_conc_total_ms = 0;
-        gc_large_count = 0;
-        gc_large_sweep_last_ms = 0;
-        gc_large_sweep_total_ms = 0;
+      CodeDBMetrics() {
+        load_us = 0;
       }
 
-      void add(RubyMetrics& data) {
-        memory_young_bytes += data.memory_young_bytes;
-        memory_young_bytes_total += data.memory_young_bytes_total;
-        memory_young_objects += data.memory_young_objects;
-        memory_young_objects_total += data.memory_young_objects_total;
-        memory_young_percent_used += data.memory_young_percent_used;
-        memory_immix_bytes += data.memory_immix_bytes;
-        memory_immix_bytes_total += data.memory_immix_bytes_total;
-        memory_immix_objects += data.memory_immix_objects;
-        memory_immix_objects_total += data.memory_immix_objects_total;
-        memory_immix_chunks += data.memory_immix_chunks;
-        memory_immix_chunks_total += data.memory_immix_chunks_total;
-        memory_large_bytes += data.memory_large_bytes;
-        memory_large_bytes_total += data.memory_large_bytes_total;
-        memory_large_objects += data.memory_large_objects;
-        memory_large_objects_total += data.memory_large_objects_total;
-        memory_symbols_bytes += data.memory_symbols_bytes;
-        memory_code_bytes += data.memory_code_bytes;
-        memory_jit_bytes += data.memory_jit_bytes;
-        memory_promoted_bytes_total += data.memory_promoted_bytes_total;
-        memory_promoted_objects_total += data.memory_promoted_objects_total;
-        memory_slab_refills_total += data.memory_slab_refills_total;
-        memory_slab_refills_fails += data.memory_slab_refills_fails;
-        memory_data_objects_total += data.memory_data_objects_total;
-        memory_capi_handles += data.memory_capi_handles;
-        memory_capi_handles_total += data.memory_capi_handles_total;
-        memory_inflated_headers += data.memory_inflated_headers;
-        gc_young_count += data.gc_young_count;
-        gc_young_last_ms += data.gc_young_last_ms;
-        gc_young_total_ms += data.gc_young_total_ms;
-        gc_young_lifetime += data.gc_young_lifetime;
-        gc_immix_count += data.gc_immix_count;
-        gc_immix_stop_last_ms += data.gc_immix_stop_last_ms;
-        gc_immix_stop_total_ms += data.gc_immix_stop_total_ms;
-        gc_immix_conc_last_ms += data.gc_immix_conc_last_ms;
-        gc_immix_conc_total_ms += data.gc_immix_conc_total_ms;
-        gc_large_count += data.gc_large_count;
-        gc_large_sweep_last_ms += data.gc_large_sweep_last_ms;
-        gc_large_sweep_total_ms += data.gc_large_sweep_total_ms;
+      void add(CodeDBMetrics& data) {
+        load_us += data.load_us;
       }
-
-      void add(MetricsData& data);
-    };
-
-    struct FinalizerMetrics {
-      metric objects_queued;
-      metric objects_finalized;
-
-      void init() {
-        objects_queued = 0;
-        objects_finalized = 0;
-      }
-
-      void add(FinalizerMetrics& data) {
-        objects_queued += data.objects_queued;
-        objects_finalized += data.objects_finalized;
-      }
-
-      void add(MetricsData& data);
-    };
-
-    struct JITMetrics {
-      metric methods_queued;
-      metric methods_compiled;
-      metric methods_failed;
-      metric time_last_us;
-      metric time_total_us;
-
-      void init() {
-        methods_queued = 0;
-        methods_compiled = 0;
-        methods_failed = 0;
-        time_last_us = 0;
-        time_total_us = 0;
-      }
-
-      void add(JITMetrics& data) {
-        methods_queued += data.methods_queued;
-        methods_compiled += data.methods_compiled;
-        methods_failed += data.methods_failed;
-        time_last_us += data.time_last_us;
-        time_total_us += data.time_total_us;
-      }
-
-      void add(MetricsData& data);
     };
 
     struct ConsoleMetrics {
       metric requests_received;
       metric responses_sent;
 
-      void init() {
+      ConsoleMetrics() {
         requests_received = 0;
         responses_sent = 0;
       }
@@ -216,131 +46,236 @@ namespace rubinius {
         requests_received += data.requests_received;
         responses_sent += data.responses_sent;
       }
+    };
 
-      void add(MetricsData& data);
+    struct GCMetrics {
+      metric young_count;
+      metric young_ms;
+      metric immix_count;
+      metric immix_stop_ms;
+      metric immix_concurrent_ms;
+      metric immix_diagnostics_us;
+      metric large_count;
+      metric large_sweep_us;
+      metric objects_queued;
+      metric objects_finalized;
+
+      GCMetrics() {
+        young_count = 0;
+        young_ms = 0;
+        immix_count = 0;
+        immix_stop_ms = 0;
+        immix_concurrent_ms = 0;
+        immix_diagnostics_us = 0;
+        large_count = 0;
+        large_sweep_us = 0;
+        objects_queued = 0;
+        objects_finalized = 0;
+      }
+
+      void add(GCMetrics& data) {
+        young_count += data.young_count;
+        young_ms += data.young_ms;
+        immix_count += data.immix_count;
+        immix_stop_ms += data.immix_stop_ms;
+        immix_concurrent_ms += data.immix_concurrent_ms;
+        immix_diagnostics_us += data.immix_diagnostics_us;
+        large_count += data.large_count;
+        large_sweep_us += data.large_sweep_us;
+        objects_queued += data.objects_queued;
+        objects_finalized += data.objects_finalized;
+      }
+    };
+
+    struct JITMetrics {
+      metric methods_queued;
+      metric methods_compiled;
+      metric methods_failed;
+      metric compile_time_us;
+      metric uncommon_exits;
+      metric inlined_accessors;
+      metric inlined_methods;
+      metric inlined_blocks;
+      metric inlined_primitives;
+      metric inlined_ffi;
+
+      JITMetrics() {
+        methods_queued = 0;
+        methods_compiled = 0;
+        methods_failed = 0;
+        compile_time_us = 0;
+        uncommon_exits = 0;
+        inlined_accessors = 0;
+        inlined_methods = 0;
+        inlined_blocks = 0;
+        inlined_primitives = 0;
+        inlined_ffi = 0;
+      }
+
+      void add(JITMetrics& data) {
+        methods_queued += data.methods_queued;
+        methods_compiled += data.methods_compiled;
+        methods_failed += data.methods_failed;
+        compile_time_us += data.compile_time_us;
+        uncommon_exits += data.uncommon_exits;
+        inlined_accessors += data.inlined_accessors;
+        inlined_methods += data.inlined_methods;
+        inlined_blocks += data.inlined_blocks;
+        inlined_primitives += data.inlined_primitives;
+        inlined_ffi += data.inlined_ffi;
+      }
+    };
+
+    struct LockMetrics {
+      metric stop_the_world_ns;
+
+      LockMetrics() {
+        stop_the_world_ns = 0;
+      }
+
+      void add(LockMetrics& data) {
+        stop_the_world_ns += data.stop_the_world_ns;
+      }
+    };
+
+    struct MachineMetrics {
+      metric inline_cache_resets;
+      metric methods_invoked;
+      metric blocks_invoked;
+
+      MachineMetrics() {
+        inline_cache_resets = 0;
+        methods_invoked = 0;
+        blocks_invoked = 0;
+      }
+
+      void add(MachineMetrics& data) {
+        inline_cache_resets += data.inline_cache_resets;
+        methods_invoked += data.methods_invoked;
+        blocks_invoked += data.blocks_invoked;
+      }
+    };
+
+    struct MemoryMetrics {
+      metric young_bytes;
+      metric young_objects;
+      metric immix_bytes;
+      metric immix_objects;
+      metric immix_chunks;
+      metric large_bytes;
+      metric large_objects;
+      metric symbols;
+      metric symbols_bytes;
+      metric code_bytes;
+      metric jit_bytes;
+      metric promoted_bytes;
+      metric promoted_objects;
+      metric slab_refills;
+      metric slab_refills_fails;
+      metric data_objects;
+      metric capi_handles;
+      metric inflated_headers;
+
+      MemoryMetrics() {
+        young_bytes = 0;
+        young_objects = 0;
+        immix_bytes = 0;
+        immix_objects = 0;
+        immix_chunks = 0;
+        large_bytes = 0;
+        large_objects = 0;
+        symbols = 0;
+        symbols_bytes = 0;
+        code_bytes = 0;
+        jit_bytes = 0;
+        promoted_bytes = 0;
+        promoted_objects = 0;
+        slab_refills = 0;
+        slab_refills_fails = 0;
+        data_objects = 0;
+        capi_handles = 0;
+        inflated_headers = 0;
+      }
+
+      void add(MemoryMetrics& data) {
+        young_bytes += data.young_bytes;
+        young_objects += data.young_objects;
+        immix_bytes += data.immix_bytes;
+        immix_objects += data.immix_objects;
+        immix_chunks += data.immix_chunks;
+        large_bytes += data.large_bytes;
+        large_objects += data.large_objects;
+        symbols += data.symbols;
+        symbols_bytes += data.symbols_bytes;
+        code_bytes += data.code_bytes;
+        jit_bytes += data.jit_bytes;
+        promoted_bytes += data.promoted_bytes;
+        promoted_objects += data.promoted_objects;
+        slab_refills += data.slab_refills;
+        slab_refills_fails += data.slab_refills_fails;
+        data_objects += data.data_objects;
+        capi_handles += data.capi_handles;
+        inflated_headers += data.inflated_headers;
+      }
     };
 
     struct SystemMetrics {
-      // I/O metrics
-      metric io_read_bytes;
-      metric io_write_bytes;
+      metric read_bytes;
+      metric write_bytes;
+      metric signals_received;
+      metric signals_processed;
+      metric threads_created;
+      metric threads_destroyed;
 
-      // OS activity metrics
-      metric os_signals_received;
-      metric os_signals_processed;
-
-      // VM metrics
-      metric vm_inline_cache_resets;
-      metric vm_threads;
-      metric vm_threads_total;
-
-      // Lock metrics
-      metric locks_stop_the_world_last_ns;
-      metric locks_stop_the_world_total_ns;
-
-      void init() {
-        io_read_bytes = 0;
-        io_write_bytes = 0;
-        os_signals_received = 0;
-        os_signals_processed = 0;
-        vm_inline_cache_resets = 0;
-        vm_threads = 0;
-        vm_threads_total = 0;
-        locks_stop_the_world_last_ns = 0;
-        locks_stop_the_world_total_ns = 0;
+      SystemMetrics() {
+        read_bytes = 0;
+        write_bytes = 0;
+        signals_received = 0;
+        signals_processed = 0;
+        threads_created = 0;
+        threads_destroyed = 0;
       }
 
       void add(SystemMetrics& data) {
-        io_read_bytes += data.io_read_bytes;
-        io_write_bytes += data.io_write_bytes;
-        os_signals_received += data.os_signals_received;
-        os_signals_processed += data.os_signals_processed;
-        vm_inline_cache_resets += data.vm_inline_cache_resets;
-        vm_threads += data.vm_threads;
-        vm_threads_total += data.vm_threads_total;
-        locks_stop_the_world_last_ns += data.locks_stop_the_world_last_ns;
-        locks_stop_the_world_total_ns += data.locks_stop_the_world_total_ns;
+        read_bytes += data.read_bytes;
+        write_bytes += data.write_bytes;
+        signals_received += data.signals_received;
+        signals_processed += data.signals_processed;
+        threads_created += data.threads_created;
+        threads_destroyed += data.threads_destroyed;
       }
-
-      void add(MetricsData& data);
     };
 
     struct MetricsData {
-      MetricsType type;
-      union Metrics {
-        RubyMetrics ruby_metrics;
-        FinalizerMetrics finalizer_metrics;
-        JITMetrics jit_metrics;
-        ConsoleMetrics console_metrics;
-      } m;
-      SystemMetrics system_metrics;
+      CodeDBMetrics codedb;
+      ConsoleMetrics console;
+      GCMetrics gc;
+      JITMetrics jit;
+      LockMetrics lock;
+      MachineMetrics machine;
+      MemoryMetrics memory;
+      SystemMetrics system;
 
-      void init(MetricsType mtype) {
-        type = mtype;
-
-        switch(type) {
-        case eNone:
-          break;
-        case eRubyMetrics:
-          m.ruby_metrics.init();
-          break;
-        case eFinalizerMetrics:
-          m.finalizer_metrics.init();
-          break;
-        case eJITMetrics:
-          m.jit_metrics.init();
-          break;
-        case eConsoleMetrics:
-          m.console_metrics.init();
-          break;
-        }
-
-        system_metrics.init();
-      }
-    };
-
-    struct MetricsCollection {
-      RubyMetrics ruby_metrics;
-      FinalizerMetrics finalizer_metrics;
-      JITMetrics jit_metrics;
-      ConsoleMetrics console_metrics;
-      SystemMetrics system_metrics;
-
-      void init() {
-        ruby_metrics.init();
-        finalizer_metrics.init();
-        jit_metrics.init();
-        console_metrics.init();
-        system_metrics.init();
-      }
+      MetricsData()
+        : codedb()
+        , console()
+        , gc()
+        , jit()
+        , lock()
+        , machine()
+        , memory()
+        , system()
+      { }
 
       void add(MetricsData& data) {
-        switch(data.type) {
-        case eNone:
-          break;
-        case eRubyMetrics:
-          ruby_metrics.add(data);
-          break;
-        case eFinalizerMetrics:
-          finalizer_metrics.add(data);
-          break;
-        case eJITMetrics:
-          jit_metrics.add(data);
-          break;
-        case eConsoleMetrics:
-          console_metrics.add(data);
-          break;
-        }
-
-        system_metrics.add(data);
-      }
-
-      void add(MetricsCollection& data) {
-        ruby_metrics.add(data.ruby_metrics);
-        finalizer_metrics.add(data.finalizer_metrics);
-        jit_metrics.add(data.jit_metrics);
-        console_metrics.add(data.console_metrics);
-        system_metrics.add(data.system_metrics);
+        codedb.add(data.codedb);
+        console.add(data.console);
+        gc.add(data.gc);
+        jit.add(data.jit);
+        lock.add(data.lock);
+        machine.add(data.machine);
+        memory.add(data.memory);
+        system.add(data.system);
       }
     };
 
@@ -356,6 +291,21 @@ namespace rubinius {
       virtual void initialize() = 0;
       virtual void cleanup() = 0;
       virtual void reinit() = 0;
+    };
+
+    class FileEmitter : public MetricsEmitter {
+      MetricsMap& metrics_map_;
+      std::string path_;
+      int fd_;
+
+    public:
+      FileEmitter(STATE, MetricsMap& map, std::string path);
+      virtual ~FileEmitter();
+
+      void send_metrics();
+      void initialize();
+      void cleanup();
+      void reinit();
     };
 
     class StatsDEmitter : public MetricsEmitter {
@@ -375,7 +325,7 @@ namespace rubinius {
       void reinit();
     };
 
-    class Metrics : public InternalThread, public Lockable {
+    class Metrics : public InternalThread {
       bool enabled_;
 
       TypedRoot<Tuple*> values_;
@@ -384,8 +334,8 @@ namespace rubinius {
       utilities::timer::Timer* timer_;
       utilities::thread::Mutex metrics_lock_;
 
-      MetricsCollection metrics_collection_;
-      MetricsCollection metrics_history_;
+      MetricsData metrics_data_;
+      MetricsData metrics_history_;
 
       MetricsMap metrics_map_;
 
@@ -401,6 +351,8 @@ namespace rubinius {
 
       void init_ruby_metrics(STATE);
       void update_ruby_values(STATE);
+
+      void log_diagnostics(STATE);
 
       void disable(STATE) {
         enabled_ = false;

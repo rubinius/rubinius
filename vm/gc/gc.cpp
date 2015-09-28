@@ -42,17 +42,15 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     , llvm_state_(state->shared.llvm_state)
 #endif
-    , young_bytes_allocated_(state->om->young_bytes_allocated())
-    , mature_bytes_allocated_(state->om->mature_bytes_allocated())
-    , code_bytes_allocated_(state->om->code_bytes_allocated())
-    , symbol_bytes_allocated_(state->om->symbol_bytes_allocated())
-  {}
+  { }
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)
-                   :object_memory_(om), weak_refs_(NULL) { }
+    : object_memory_(om)
+    , weak_refs_(NULL)
+  { }
 
-  VM* GarbageCollector::state() {
-    return object_memory_->state();
+  VM* GarbageCollector::vm() {
+    return object_memory_->vm();
   }
 
   /**
@@ -461,14 +459,5 @@ namespace rubinius {
         }
       }
     }
-  }
-
-  size_t GCData::jit_bytes_allocated() const {
-#ifdef ENABLE_LLVM
-    if(llvm_state_) {
-      return llvm_state_->code_bytes();
-    }
-#endif
-    return 0;
   }
 }

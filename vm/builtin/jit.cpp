@@ -1,6 +1,7 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/jit.hpp"
 #include "builtin/list.hpp"
+#include "configuration.hpp"
 
 #include "ontology.hpp"
 

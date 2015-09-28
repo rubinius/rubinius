@@ -457,7 +457,7 @@ namespace rubinius {
     return String::create(state, str, sz);
   }
 
-  Object* Float::negative(STATE) {
+  Object* Float::signbit_p(STATE) {
     return signbit(this->val) ? cTrue : cFalse;
   }
 

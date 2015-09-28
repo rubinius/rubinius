@@ -121,10 +121,14 @@ namespace rubinius {
     worker_signal();
   }
 
+  void FinalizerThread::stop(STATE) {
+    state->shared().internal_threads()->unregister_thread(this);
+
+    stop_thread(state);
+  }
+
   void FinalizerThread::run(STATE) {
     GCTokenImpl gct;
-
-    metrics().init(metrics::eFinalizerMetrics);
 
     state->gc_dependent(gct, 0);
 
@@ -173,7 +177,13 @@ namespace rubinius {
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, process_item_->object->id(state));
-          process_item_->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
+          if(!process_item_->ruby_finalizer->send(state, call_frame, G(sym_call), ary)) {
+            if(state->vm()->thread_state()->raise_reason() == cException) {
+              utilities::logger::warn(
+                  "finalizer: an exception occurred running a Ruby finalizer: %s",
+                  state->vm()->thread_state()->current_exception()->message_c_str(state));
+            }
+          }
         }
       }
 
@@ -182,41 +192,44 @@ namespace rubinius {
     }
     case eNative:
       if(process_item_->finalizer) {
-
-        NativeMethodEnvironment* env = state->vm()->native_method_environment;
-        NativeMethodFrame nmf(env, 0, 0);
-        ExceptionPoint ep(env);
-        CallFrame* call_frame = ALLOCA_CALLFRAME(0);
-
-        call_frame->previous = 0;
-        call_frame->constant_scope_ = 0;
-        call_frame->dispatch_data = (void*)&nmf;
-        call_frame->compiled_code = 0;
-        call_frame->flags = CallFrame::cNativeMethod;
-        call_frame->optional_jit_data = 0;
-        call_frame->top_scope_ = 0;
-        call_frame->scope = 0;
-        call_frame->arguments = 0;
-
-        env->set_current_call_frame(0);
-        env->set_current_native_frame(&nmf);
-
-        // Register the CallFrame, because we might GC below this.
-        state->set_call_frame(call_frame);
-
-        nmf.setup(Qnil, Qnil, Qnil, Qnil);
-
-        PLACE_EXCEPTION_POINT(ep);
-
-        if(unlikely(ep.jumped_to())) {
-          // TODO: log this?
-        } else {
+        if(process_item_->kind == FinalizeObject::eUnmanaged) {
           (*process_item_->finalizer)(state, process_item_->object);
-        }
+        } else {
+          NativeMethodEnvironment* env = state->vm()->native_method_environment;
+          NativeMethodFrame nmf(env, 0, 0);
+          ExceptionPoint ep(env);
+          CallFrame* call_frame = ALLOCA_CALLFRAME(0);
 
-        state->set_call_frame(0);
-        env->set_current_call_frame(0);
-        env->set_current_native_frame(0);
+          call_frame->previous = 0;
+          call_frame->constant_scope_ = 0;
+          call_frame->dispatch_data = (void*)&nmf;
+          call_frame->compiled_code = 0;
+          call_frame->flags = CallFrame::cNativeMethod;
+          call_frame->optional_jit_data = 0;
+          call_frame->top_scope_ = 0;
+          call_frame->scope = 0;
+          call_frame->arguments = 0;
+
+          env->set_current_call_frame(0);
+          env->set_current_native_frame(&nmf);
+
+          // Register the CallFrame, because we might GC below this.
+          state->set_call_frame(call_frame);
+
+          nmf.setup(Qnil, Qnil, Qnil, Qnil);
+
+          PLACE_EXCEPTION_POINT(ep);
+
+          if(unlikely(ep.jumped_to())) {
+            // TODO: log this?
+          } else {
+            (*process_item_->finalizer)(state, process_item_->object);
+          }
+
+          state->set_call_frame(0);
+          env->set_current_call_frame(0);
+          env->set_current_native_frame(0);
+        }
       }
       process_item_->status = FinalizeObject::eNativeFinalized;
       break;
@@ -257,7 +270,7 @@ namespace rubinius {
         process_list_ = NULL;
         process_item_kind_ = eRuby;
         lists_->pop_back();
-        metrics().m.finalizer_metrics.objects_finalized++;
+        vm()->metrics().gc.objects_finalized++;
         break;
       }
     }
@@ -265,9 +278,6 @@ namespace rubinius {
 
   void FinalizerThread::finish(STATE, GCToken gct) {
     finishing_ = true;
-
-    stop_thread(state);
-
     if(process_list_ || !lists_->empty() || !live_list_->empty()) {
       while(true) {
         if(!process_list_) {
@@ -283,7 +293,7 @@ namespace rubinius {
               i->queued();
             }
 
-            queue_objects();
+            queue_objects(state);
           }
 
           first_process_item();
@@ -300,22 +310,27 @@ namespace rubinius {
     if(!lists_->empty() || !live_list_->empty() || process_list_ != NULL) {
       utilities::logger::warn("FinalizerThread exiting with pending finalizers");
     }
+
+    VM::discard(state, vm());
   }
 
-  void FinalizerThread::record(Object* obj, FinalizerFunction func) {
+  void FinalizerThread::record(Object* obj, FinalizerFunction func,
+      FinalizeObject::FinalizeKind kind)
+  {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
 
     if(finishing_) return;
 
     FinalizeObject fi;
     fi.object = obj;
+    fi.kind = kind;
     fi.status = FinalizeObject::eLive;
     fi.finalizer = func;
 
     // Makes a copy of fi.
     live_list_->push_front(fi);
 
-    metrics().m.finalizer_metrics.objects_queued++;
+    vm()->metrics().gc.objects_queued++;
   }
 
   void FinalizerThread::set_ruby_finalizer(Object* obj, Object* finalizer) {
@@ -364,7 +379,9 @@ namespace rubinius {
     live_list_->push_front(fi);
   }
 
-  void FinalizerThread::queue_objects() {
+  void FinalizerThread::queue_objects(STATE) {
+    if(live_list_->empty()) return;
+
     FinalizeObjects* dead_list = new FinalizeObjects();
 
     for(FinalizeObjects::iterator i = live_list_->begin();
@@ -372,7 +389,12 @@ namespace rubinius {
         /* advance is handled in the loop */)
     {
       if(i->queued_p()) {
-        dead_list->push_front(*i);
+        if(i->kind == FinalizeObject::eUnmanaged && !i->ruby_finalizer) {
+          i->finalizer(state, i->object);
+        } else {
+          dead_list->push_front(*i);
+        }
+
         i = live_list_->erase(i);
       } else {
         ++i;
@@ -396,7 +418,7 @@ namespace rubinius {
   }
 
   void FinalizerThread::finish_collection(STATE) {
-    queue_objects();
+    queue_objects(state);
 
     if(iterator_) {
       delete iterator_;

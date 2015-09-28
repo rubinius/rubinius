@@ -38,10 +38,6 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     LLVMState* llvm_state_;
 #endif
-    size_t young_bytes_allocated_;
-    size_t mature_bytes_allocated_;
-    size_t code_bytes_allocated_;
-    size_t symbol_bytes_allocated_;
 
   public:
     GCData(VM*);
@@ -75,24 +71,6 @@ namespace rubinius {
       return llvm_state_;
     }
 #endif
-
-    size_t young_bytes_allocated() const {
-      return young_bytes_allocated_;
-    }
-
-    size_t mature_bytes_allocated() const {
-      return mature_bytes_allocated_;
-    }
-
-    size_t code_bytes_allocated() const {
-      return code_bytes_allocated_;
-    }
-
-    size_t symbol_bytes_allocated() const {
-      return symbol_bytes_allocated_;
-    }
-
-    size_t jit_bytes_allocated() const;
   };
 
   class AddressDisplacement {
@@ -181,7 +159,7 @@ namespace rubinius {
 
     void verify(GCData* data);
 
-    VM* state();
+    VM* vm();
     ObjectMemory* object_memory() {
       return object_memory_;
     }

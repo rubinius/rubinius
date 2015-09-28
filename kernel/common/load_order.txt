@@ -5,6 +5,8 @@ autoload.rbc
 module.rbc
 binding.rbc
 proc.rbc
+proc_mirror.rbc
+enumerable_helper.rbc
 enumerable.rbc
 enumerator.rbc
 argf.rbc
@@ -21,6 +23,7 @@ loaded_features.rbc
 global.rbc
 backtrace.rbc
 comparable.rbc
+numeric_mirror.rbc
 numeric.rbc
 ctype.rbc
 integer.rbc
@@ -64,6 +67,7 @@ native_method.rbc
 nil.rbc
 object_space.rbc
 string.rbc
+range_mirror.rbc
 range.rbc
 struct.rbc
 process.rbc
@@ -77,6 +81,7 @@ symbol.rbc
 mutex.rbc
 thread.rbc
 thread_group.rbc
+thread_group_mirror.rbc
 throw_catch.rbc
 time.rbc
 true.rbc

@@ -1,3 +1,5 @@
+require File.expand_path('../enumerable_enumeratorized', __FILE__)
+
 describe :enumerable_find, :shared => true do
   # #detect and #find are aliases, so we only need one function
   before :each do
@@ -67,8 +69,5 @@ describe :enumerable_find, :shared => true do
     multi.send(@method) {|e| e == [1, 2] }.should == [1, 2]
   end
 
-  it "returns the nil as size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(*@elements)
-    enum.send(@method).size.should == nil
-  end
+  it_should_behave_like :enumerable_enumeratorized_with_unknown_size
 end

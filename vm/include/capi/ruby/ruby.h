@@ -30,6 +30,7 @@ extern "C" {
 
 // A number of extensions expect these to be already included
 #include <sys/time.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -118,6 +119,79 @@ extern "C" {
 #else
 # error ---->> ruby requires sizeof(void*) == sizeof(long) to be compiled. <<----
 #endif
+
+#ifndef PRI_INT_PREFIX
+#define PRI_INT_PREFIX ""
+#endif
+#ifndef PRI_LONG_PREFIX
+#define PRI_LONG_PREFIX "l"
+#endif
+
+#if SIZEOF_LONG == 8
+#define PRI_64_PREFIX PRI_LONG_PREFIX
+#elif SIZEOF_LONG_LONG == 8
+#define PRI_64_PREFIX PRI_LL_PREFIX
+#endif
+
+#define RUBY_PRI_VALUE_MARK "\v"
+#if defined PRIdPTR && !defined PRI_VALUE_PREFIX
+#define PRIdVALUE PRIdPTR
+#define PRIoVALUE PRIoPTR
+#define PRIuVALUE PRIuPTR
+#define PRIxVALUE PRIxPTR
+#define PRIXVALUE PRIXPTR
+#define PRIsVALUE PRIiPTR"" RUBY_PRI_VALUE_MARK
+#else
+#define PRIdVALUE PRI_VALUE_PREFIX"d"
+#define PRIoVALUE PRI_VALUE_PREFIX"o"
+#define PRIuVALUE PRI_VALUE_PREFIX"u"
+#define PRIxVALUE PRI_VALUE_PREFIX"x"
+#define PRIXVALUE PRI_VALUE_PREFIX"X"
+#define PRIsVALUE PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
+#endif
+#ifndef PRI_VALUE_PREFIX
+# define PRI_VALUE_PREFIX ""
+#endif
+
+#ifndef PRI_TIMET_PREFIX
+# if SIZEOF_TIME_T == SIZEOF_INT
+#  define PRI_TIMET_PREFIX
+# elif SIZEOF_TIME_T == SIZEOF_LONG
+#  define PRI_TIMET_PREFIX "l"
+# elif SIZEOF_TIME_T == SIZEOF_LONG_LONG
+#  define PRI_TIMET_PREFIX PRI_LL_PREFIX
+# endif
+#endif
+
+#if defined PRI_PTRDIFF_PREFIX
+#elif SIZEOF_PTRDIFF_T == SIZEOF_INT
+# define PRI_PTRDIFF_PREFIX ""
+#elif SIZEOF_PTRDIFF_T == SIZEOF_LONG
+# define PRI_PTRDIFF_PREFIX "l"
+#elif SIZEOF_PTRDIFF_T == SIZEOF_LONG_LONG
+# define PRI_PTRDIFF_PREFIX PRI_LL_PREFIX
+#endif
+#define PRIdPTRDIFF PRI_PTRDIFF_PREFIX"d"
+#define PRIiPTRDIFF PRI_PTRDIFF_PREFIX"i"
+#define PRIoPTRDIFF PRI_PTRDIFF_PREFIX"o"
+#define PRIuPTRDIFF PRI_PTRDIFF_PREFIX"u"
+#define PRIxPTRDIFF PRI_PTRDIFF_PREFIX"x"
+#define PRIXPTRDIFF PRI_PTRDIFF_PREFIX"X"
+
+#if defined PRI_SIZE_PREFIX
+#elif SIZEOF_SIZE_T == SIZEOF_INT
+# define PRI_SIZE_PREFIX ""
+#elif SIZEOF_SIZE_T == SIZEOF_LONG
+# define PRI_SIZE_PREFIX "l"
+#elif SIZEOF_SIZE_T == SIZEOF_LONG_LONG
+# define PRI_SIZE_PREFIX PRI_LL_PREFIX
+#endif
+#define PRIdSIZE PRI_SIZE_PREFIX"d"
+#define PRIiSIZE PRI_SIZE_PREFIX"i"
+#define PRIoSIZE PRI_SIZE_PREFIX"o"
+#define PRIuSIZE PRI_SIZE_PREFIX"u"
+#define PRIxSIZE PRI_SIZE_PREFIX"x"
+#define PRIXSIZE PRI_SIZE_PREFIX"X"
 
 #ifdef __GNUC__
 #define RB_UNUSED_VAR(x) x __attribute__ ((unused))
@@ -313,6 +387,9 @@ struct RString {
 #define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE)
 #endif
 
+#define RSTRING_GETMEM(rb_str, c_str, c_str_len) \
+  ((c_str) = RSTRING_PTR(rb_str), (c_str_len) = RSTRING_LEN(rb_str))
+
 struct RArray {
   ssize_t len;
   struct {
@@ -344,6 +421,8 @@ struct RFloat {
 // Do not define these messages as strings. We want a syntax error.
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })
 #define RHASH_TBL(obj)  ({ C_API_RHASH_TBL_is_not_supported_in_Rubinius })
+
+#define RHASH_SET_IFNONE(hash, def) rb_hash_set_ifnone(hash, def)
 
 typedef struct rb_io_t {
   VALUE handle;
@@ -483,6 +562,13 @@ struct RFile {
 
 /** Reallocate memory allocated with ALLOC or ALLOC_N. */
 #define REALLOC_N(ptr, type, n) (ptr)=(type*)realloc(ptr, sizeof(type) * (n));
+
+#define ZALLOC_N(type,n) ((type*)xcalloc((n),sizeof(type)))
+#define ZALLOC(type) (ZALLOC_N(type,1))
+
+#define ALLOCV(v, n) rb_alloc_tmp_buffer(&(v), (n))
+#define ALLOCV_N(type, v, n) ((type*)ALLOCV((v), sizeof(type)*(n)))
+#define ALLOCV_END(v) rb_free_tmp_buffer(&(v))
 
 /** Interrupt checking (no-op). */
 #define CHECK_INTS             /* No-op */
@@ -902,7 +988,7 @@ struct RTypedData {
   VALUE   rb_ary_dup(VALUE self);
 
   /** Return object at index. Out-of-bounds access returns Qnil. */
-  VALUE   rb_ary_entry(VALUE self, int index);
+  VALUE   rb_ary_entry(VALUE self, long index);
 
   /** Return Qtrue if the array includes the item. */
   VALUE   rb_ary_includes(VALUE self, VALUE obj);
@@ -997,6 +1083,8 @@ struct RTypedData {
   VALUE   rb_each(VALUE);
 
   VALUE   rb_iterate(VALUE (*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS), VALUE cb_data);
+
+  size_t  rb_absint_size(VALUE value, int* nlz_bits);
 
   VALUE   rb_big2str(VALUE self, int base);
 
@@ -1314,6 +1402,8 @@ struct RTypedData {
   VALUE   rb_funcall2(VALUE receiver, ID method_name,
                       int arg_count, const VALUE* args);
 
+#define rb_funcallv rb_funcall2
+
   /** Call the method with args provided in a C array and block.
    *  Calls private methods. */
   VALUE   rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
@@ -1344,14 +1434,27 @@ struct RTypedData {
   /** Create a new Hash object */
   VALUE   rb_hash_new();
 
+  /** Duplicate the Hash object */
+  VALUE   rb_hash_dup(VALUE self);
+#define HAVE_RB_HASH_DUP 1
+
+  /** Freeze the Hash object */
+  VALUE   rb_hash_freeze(VALUE self);
+#define HAVE_RB_HASH_FREEZE 1
+
   /** Return the value associated with the key, including default values. */
   VALUE   rb_hash_aref(VALUE self, VALUE key);
 
   /** Return the value associated with the key, excluding default values. */
   VALUE   rb_hash_lookup(VALUE self, VALUE key);
 
+  VALUE   rb_hash_lookup2(VALUE hash, VALUE key, VALUE def);
+
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
+
+  /** Clear the Hash object */
+  VALUE   rb_hash_clear(VALUE self);
 
   /** Remove the key and return the associated value. */
   VALUE   rb_hash_delete(VALUE self, VALUE key);
@@ -1370,6 +1473,8 @@ struct RTypedData {
   void rb_hash_foreach(VALUE self,
                        int (*func)(ANYARGS),
                        VALUE farg);
+
+  VALUE rb_hash_set_ifnone(VALUE hash, VALUE def);
 
   void    rb_eof_error();
 
@@ -1498,6 +1603,8 @@ struct RTypedData {
   ID      rb_intern_const(const char *string);
   ID      rb_intern_str(VALUE string);
 #define HAVE_RB_INTERN_STR 1
+
+  VALUE rb_sym2str(VALUE sym);
 
   /** Coerce x and y and perform 'x func y' */
   VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
@@ -1753,11 +1860,16 @@ struct RTypedData {
   /** Sets the value of the key. */
   VALUE rb_struct_aset(VALUE s, VALUE key, VALUE value);
 
+  VALUE rb_struct_s_members(VALUE obj);
+
   /** Returns a String in locale encoding. */
   VALUE rb_locale_str_new_cstr(const char* string);
 
   /** Returns a String in locale encoding. */
   VALUE rb_locale_str_new(const char* string, long len);
+
+  void* rb_alloc_tmp_buffer(VALUE* s, long len);
+  void rb_free_tmp_buffer(VALUE* s);
 
   VALUE rb_str_export(VALUE);
   VALUE rb_str_export_locale(VALUE);
@@ -1923,6 +2035,7 @@ struct RTypedData {
   void    rb_str_free(VALUE str);
 
   VALUE rb_sprintf(const char* format, ...);
+  VALUE rb_vsprintf(const char *format, va_list varargs);
 
   VALUE   rb_str_equal(VALUE self, VALUE other);
 

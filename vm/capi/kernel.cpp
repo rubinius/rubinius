@@ -250,7 +250,8 @@ extern "C" {
 
   VALUE rb_block_proc() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return rb_funcall(rb_cProc, rb_intern("__from_block__"), 1, env->get_handle(env->block()));
+    return rb_funcall(rb_mCAPI, rb_intern("rb_block_proc"), 1,
+        env->get_handle(env->block()));
   }
 
   // Hoisted from 1.8.7

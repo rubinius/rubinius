@@ -392,7 +392,12 @@ class Array
 
   def combination(num)
     num = Rubinius::Type.coerce_to_collection_index num
-    return to_enum(:combination, num) unless block_given?
+
+    unless block_given?
+      return to_enum(:combination, num) do
+        Rubinius::Mirror::Array.reflect(self).combination_size(num)
+      end
+    end
 
     if num == 0
       yield []
@@ -470,7 +475,12 @@ class Array
   end
 
   def cycle(n=nil)
-    return to_enum(:cycle, n) unless block_given?
+    unless block_given?
+      return to_enum(:cycle, n) do
+        Rubinius::EnumerableHelper.cycle_size(size, n)
+      end
+    end
+
     return nil if empty?
 
     # Don't use nil? because, historically, lame code has overridden that method
@@ -546,7 +556,7 @@ class Array
   end
 
   def delete_if
-    return to_enum(:delete_if) unless block_given?
+    return to_enum(:delete_if) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -574,7 +584,7 @@ class Array
   end
 
   def each_index
-    return to_enum(:each_index) unless block_given?
+    return to_enum(:each_index) { size } unless block_given?
 
     i = 0
     total = @total
@@ -938,7 +948,7 @@ class Array
   end
 
   def keep_if(&block)
-    return to_enum :keep_if unless block_given?
+    return to_enum(:keep_if) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -982,7 +992,11 @@ class Array
   end
 
   def permutation(num=undefined, &block)
-    return to_enum(:permutation, num) unless block_given?
+    unless block_given?
+      return to_enum(:permutation, num) do
+        Rubinius::Mirror::Array.reflect(self).permutation_size(num)
+      end
+    end
 
     if undefined.equal? num
       num = @total
@@ -1134,12 +1148,12 @@ class Array
   end
 
   def reject(&block)
-    return to_enum(:reject) unless block_given?
+    return to_enum(:reject) { size } unless block_given?
     Array.new(self).delete_if(&block)
   end
 
   def reject!(&block)
-    return to_enum(:reject!) unless block_given?
+    return to_enum(:reject!) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -1153,7 +1167,9 @@ class Array
   def repeated_combination(combination_size, &block)
     combination_size = combination_size.to_i
     unless block_given?
-      return Enumerator.new(self, :repeated_combination, combination_size)
+      return to_enum(:repeated_combination, combination_size) do
+        Rubinius::Mirror::Array.reflect(self).repeated_combination_size(combination_size)
+      end
     end
 
     if combination_size < 0
@@ -1183,7 +1199,9 @@ class Array
   def repeated_permutation(combination_size, &block)
     combination_size = combination_size.to_i
     unless block_given?
-      return Enumerator.new(self, :repeated_permutation, combination_size)
+      return to_enum(:repeated_permutation, combination_size) do
+        Rubinius::Mirror::Array.reflect(self).repeated_permutation_size(combination_size)
+      end
     end
 
     if combination_size < 0
@@ -1227,7 +1245,7 @@ class Array
   end
 
   def reverse_each
-    return to_enum(:reverse_each) unless block_given?
+    return to_enum(:reverse_each) { size } unless block_given?
 
     stop = @start - 1
     i = stop + @total
@@ -1287,6 +1305,20 @@ class Array
     replace ary
   end
 
+  class SampleRandom
+    def initialize(rng)
+      @rng = rng
+    end
+
+    def rand(size)
+      random = Rubinius::Type.coerce_to_collection_index @rng.rand(size)
+      raise RangeError, "random value must be >= 0" if random < 0
+      raise RangeError, "random value must be less than Array size" unless random < size
+
+      random
+    end
+  end
+
   def sample(count=undefined, options=undefined)
     return at Kernel.rand(size) if undefined.equal? count
 
@@ -1308,33 +1340,84 @@ class Array
     end
 
     rng = options[:random] if options
-    rng = Kernel unless rng and rng.respond_to? :rand
-
-    unless count
-      random = Rubinius::Type.coerce_to_collection_index rng.rand(size)
-      raise RangeError, "random value must be >= 0" if random < 0
-      raise RangeError, "random value must be less than Array size" unless random < size
-
-      return at random
+    if rng and rng.respond_to? :rand
+      rng = SampleRandom.new rng
+    else
+      rng = Kernel
     end
+
+    return at rng.rand(size) unless count
 
     count = size if count > size
-    result = Array.new self
-    tuple = Rubinius::Mirror::Array.reflect(result).tuple
 
-    count.times do |i|
-      random = Rubinius::Type.coerce_to_collection_index rng.rand(size)
-      raise RangeError, "random value must be >= 0" if random < 0
-      raise RangeError, "random value must be less than Array size" unless random < size
+    case count
+    when 0
+      return []
+    when 1
+      return [at(rng.rand(size))]
+    when 2
+      i = rng.rand(size)
+      j = rng.rand(size)
+      if i == j
+        j = i == 0 ? i + 1 : i - 1
+      end
+      return [at(i), at(j)]
+    else
+      if size / count > 3
+        abandon = false
+        spin = 0
 
-      tuple.swap i, random
+        result = Array.new count
+        i = 1
+
+        result[0] = rng.rand(size)
+        while i < count
+          k = rng.rand(size)
+          j = 0
+
+          while j < i
+            while k == result[j]
+              spin += 1
+              if spin > 100
+                abandon = true
+                break
+              end
+              k = rng.rand(size)
+            end
+            break if abandon
+
+            j += 1
+          end
+
+          break if abandon
+
+          result[i] = k
+
+          i += 1
+        end
+
+        unless abandon
+          i = 0
+          while i < count
+            result[i] = at result[i]
+            i += 1
+          end
+
+          return result
+        end
+      end
+
+      result = Array.new self
+      tuple = Rubinius::Mirror::Array.reflect(result).tuple
+
+      count.times { |i| tuple.swap i, rng.rand(size) }
+
+      return count == size ? result : result[0, count]
     end
-
-    return count == size ? result : result[0, count]
   end
 
   def select!(&block)
-    return to_enum :select! unless block_given?
+    return to_enum(:select!) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -1620,7 +1703,7 @@ class Array
   def sort_by!(&block)
     Rubinius.check_frozen
 
-    return to_enum :sort_by! unless block_given?
+    return to_enum(:sort_by!) { size } unless block_given?
 
     replace sort_by(&block)
   end
@@ -1775,20 +1858,29 @@ class Array
 
   def zip(*others)
     out = Array.new(size) { [] }
-    others = others.map do |ary|
-      if ary.respond_to?(:to_ary)
-        ary.to_ary
+    others = others.map do |other|
+      if other.respond_to?(:to_ary)
+        other.to_ary
       else
-        elements = []
-        ary.each { |e| elements << e }
-        elements
+        other.to_enum :each
       end
     end
 
     size.times do |i|
       slot = out.at(i)
       slot << @tuple.at(@start + i)
-      others.each { |ary| slot << ary.at(i) }
+      others.each do |other|
+        slot << case other
+                when Array
+                  other.at i
+                else
+                  begin
+                    other.next
+                  rescue StopIteration
+                    nil
+                  end
+                end
+      end
     end
 
     if block_given?
@@ -1860,9 +1952,20 @@ class Array
       while i < total
         o = tuple.at i
 
-        if ary = Rubinius::Type.check_convert_type(o, Array, :to_ary)
+        if Rubinius::Type.object_kind_of? o, Array
           modified = true
-          recursively_flatten(ary, out, max_levels)
+          recursively_flatten o, out, max_levels
+        elsif Rubinius::Type.object_respond_to? o, :to_ary
+          ary = o.__send__ :to_ary
+          if nil.equal? ary
+            out << o
+          else
+            modified = true
+            recursively_flatten ary, out, max_levels
+          end
+        elsif ary = Rubinius::Type.execute_check_convert_type(o, Array, :to_ary)
+          modified = true
+          recursively_flatten ary, out, max_levels
         else
           out << o
         end

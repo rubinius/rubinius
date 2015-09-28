@@ -37,7 +37,9 @@ namespace tooling {
   void ToolBroker::enable(STATE) {
     if(!enable_func_) return;
 
-    state->shared().config.jit_disabled.set("true");
+    if(!state->shared().config.jit_profile.value) {
+      state->shared().config.jit_disabled.set("true");
+    }
     System::vm_deoptimize_all(state, cTrue);
 
     enable_func_(state->vm()->tooling_env());

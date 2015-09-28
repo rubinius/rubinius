@@ -49,10 +49,12 @@ class Autoload
   end
 
   def resolve
-    unless @loaded && @thread == Thread.current
-      @loaded = true
-      @thread = Thread.current
-      Rubinius::CodeLoader.require @path
+    Rubinius.synchronize(self) do
+      unless @loaded && @thread == Thread.current
+        @loaded = true
+        @thread = Thread.current
+        Rubinius::CodeLoader.require @path
+      end
     end
   end
 

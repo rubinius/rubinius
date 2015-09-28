@@ -88,6 +88,10 @@ namespace rubinius {
   Pointer* Pointer::allocate_memory(STATE, Object* self, Fixnum* size) {
     Pointer* obj = state->vm()->new_object<Pointer>(as<Class>(self));
     obj->pointer = malloc(size->to_native());;
+    if(!obj->pointer) {
+      Exception::memory_error(state);
+      return NULL;
+    }
     obj->autorelease = false;
     obj->set_finalizer = false;
     return obj;
@@ -116,7 +120,7 @@ namespace rubinius {
     if(autorelease) {
       if(!set_finalizer) {
         state->memory()->needs_finalization(this,
-            (FinalizerFunction)&Pointer::finalize);
+            (FinalizerFunction)&Pointer::finalize, FinalizeObject::eUnmanaged);
         set_finalizer = true;
       }
     } else {

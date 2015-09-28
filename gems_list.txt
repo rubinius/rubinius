@@ -1,15 +1,15 @@
-bundler-1.7.12.gem
-daedalus-core-0.2.0.gem
+bundler-1.10.5.gem
+daedalus-core-0.5.0.gem
 ffi2-generators-0.1.1.gem
-json-1.8.2.gem
+json-1.8.3.gem
 minitest-4.7.5.gem
 psych-2.0.10.gem
 racc-1.4.12.gem
 rake-10.4.2.gem
-rb-readline-0.5.2.gem
+rb-readline-0.5.3.gem
 rdoc-4.2.0.gem
 redcard-1.1.0.gem
-rubinius-ast-2.3.1.gem
+rubinius-ast-2.3.2.gem
 rubinius-build_tools-2.0.0.gem
 rubinius-compiler-2.3.1.gem
 rubinius-coverage-2.0.3.gem
@@ -17,7 +17,7 @@ rubinius-debugger-2.2.1.gem
 rubinius-developer_tools-2.0.0.gem
 rubinius-melbourne-2.3.1.0.gem
 rubinius-processor-2.3.0.gem
-rubinius-profiler-2.0.1.gem
+rubinius-profiler-2.0.2.gem
 rubinius-toolset-2.3.1.gem
 rubysl-2.1.0.gem
 rubysl-abbrev-2.0.4.gem
@@ -34,7 +34,7 @@ rubysl-csv-2.0.2.gem
 rubysl-curses-2.0.1.gem
 rubysl-date-2.0.9.gem
 rubysl-delegate-2.0.1.gem
-rubysl-digest-2.0.3.gem
+rubysl-digest-2.0.8.gem
 rubysl-drb-2.0.1.gem
 rubysl-e2mmap-2.0.0.gem
 rubysl-english-2.0.0.gem
@@ -71,7 +71,7 @@ rubysl-nkf-2.0.1.gem
 rubysl-observer-2.0.0.gem
 rubysl-open-uri-2.0.0.gem
 rubysl-open3-2.0.0.gem
-rubysl-openssl-2.2.1.gem
+rubysl-openssl-2.3.0.gem
 rubysl-optparse-2.0.1.gem
 rubysl-ostruct-2.0.4.gem
 rubysl-pathname-2.1.0.gem

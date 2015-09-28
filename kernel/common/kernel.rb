@@ -481,7 +481,7 @@ module Kernel
 
     raise ArgumentError, "block required" unless env
 
-    prc = Proc.__from_block__(env)
+    prc = Rubinius::Mirror::Proc.from_block ::Proc, env
 
     # Make a proc lambda only when passed an actual block (ie, not using the
     # "&block" notation), otherwise don't modify it at all.
@@ -504,7 +504,7 @@ module Kernel
   module_function :load
 
   def loop
-    return to_enum(:loop) unless block_given?
+    return to_enum(:loop) { Float::INFINITY } unless block_given?
 
     begin
       while true
@@ -524,7 +524,7 @@ module Kernel
     elsif respond_to_missing?(name, true)
       Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
     else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+      raise NameError, "undefined method `#{name}' for class #{self.class}"
     end
   end
 

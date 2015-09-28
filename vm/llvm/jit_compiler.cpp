@@ -135,7 +135,8 @@ namespace jit {
 
       if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state()->vm());
 
-      ctx_->llvm_state()->add_code_bytes(mci_->size());
+      ctx_->llvm_state()->vm()->metrics().memory.jit_bytes += mci_->size();
+
       // Inject the RuntimeData objects used into the original CompiledCode
       // Do this way after we've validated the IR so things are consistent.
 
@@ -145,7 +146,8 @@ namespace jit {
                                    mci_->address(), mci_->size());
 
       // info.method()->set_jit_data(ctx.runtime_data_holder());
-      ctx_->llvm_state()->shared().om->add_code_resource(ctx_->runtime_data_holder());
+      ctx_->llvm_state()->shared().om->add_code_resource(
+          ctx_->llvm_state()->state(), ctx_->runtime_data_holder());
     }
 
     return mci_->address();

@@ -318,14 +318,19 @@
 
 /* Hash */
 #define HAVE_RB_HASH                       1
+#define HAVE_RB_HASH_DUP                   1
+#define HAVE_RB_HASH_FREEZE                1
 #define HAVE_RB_HASH_AREF                  1
 #define HAVE_RB_HASH_ASET                  1
+#define HAVE_RB_HASH_CLEAR                 1
 #define HAVE_RB_HASH_DELETE                1
 #define HAVE_RB_HASH_DELETE_IF             1
 #define HAVE_RB_HASH_FOREACH               1
 #define HAVE_RB_HASH_LOOKUP                1
+#define HAVE_RB_HASH_LOOKUP2               1
 #define HAVE_RB_HASH_NEW                   1
 #define HAVE_RB_HASH_SIZE                  1
+#define HAVE_RB_HASH_SET_IFNONE            1
 
 /* Integer */
 #ifdef RUBY_VERSION_IS_2_1
@@ -536,6 +541,8 @@
 #define HAVE_RB_SECURE                     1
 
 /* String */
+#define HAVE_RB_ALLOC_TMP_BUFFER           1
+#define HAVE_RB_FREE_TMP_BUFFER            1
 #define HAVE_RB_CSTR2INUM                  1
 #define HAVE_RB_CSTR_TO_INUM               1
 #define HAVE_RB_STR2CSTR                   1
@@ -586,6 +593,7 @@
 #define HAVE_RB_STR_LENGTH                 1
 #define HAVE_RB_STR_EQUAL                  1
 #define HAVE_RB_STR_SUBSEQ                 1
+#define HAVE_RB_VSPRINTF                   1
 #endif
 
 /* Struct */
@@ -594,6 +602,7 @@
 #define HAVE_RB_STRUCT_DEFINE              1
 #define HAVE_RB_STRUCT_NEW                 1
 #define HAVE_RB_STRUCT_GETMEMBER           1
+#define HAVE_RB_STRUCT_S_MEMBERS           1
 
 /* Symbol */
 #define HAVE_RB_ID2NAME                    1
@@ -605,10 +614,10 @@
 #define HAVE_RB_IS_CLASS_ID                1
 #define HAVE_RB_IS_CONST_ID                1
 #define HAVE_RB_IS_INSTANCE_ID             1
+#define HAVE_RB_SYM2STR                    1
 
 /* Thread */
 #define HAVE_RB_THREAD_ALONE               1
-#define HAVE_RB_THREAD_BLOCKING_REGION     1
 #ifdef RUBY_VERSION_IS_2_0
 #define HAVE_RB_THREAD_CALL_WITHOUT_GVL    1
 #define HAVE_RB_THREAD_CALL_WITHOUT_GVL2   1
@@ -616,7 +625,6 @@
 #define HAVE_RB_THREAD_CURRENT             1
 #define HAVE_RB_THREAD_LOCAL_AREF          1
 #define HAVE_RB_THREAD_LOCAL_ASET          1
-#define HAVE_RB_THREAD_SELECT              1
 #define HAVE_RB_THREAD_WAIT_FOR            1
 #define HAVE_RB_THREAD_WAKEUP              1
 #define HAVE_RB_THREAD_CREATE              1

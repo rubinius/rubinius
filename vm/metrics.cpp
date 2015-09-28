@@ -1,10 +1,12 @@
 #include "vm.hpp"
 #include "metrics.hpp"
 
+#include "environment.hpp"
 #include "object_utils.hpp"
 #include "shared_state.hpp"
 #include "configuration.hpp"
 #include "ontology.hpp"
+#include "system_diagnostics.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
@@ -26,6 +28,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <netdb.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
@@ -36,32 +39,79 @@ namespace rubinius {
   using namespace utilities;
 
   namespace metrics {
-    void RubyMetrics::add(MetricsData& data) {
-      if(data.type != eRubyMetrics) return;
+    FileEmitter::FileEmitter(STATE, MetricsMap& map, std::string path)
+      : MetricsEmitter()
+      , metrics_map_(map)
+      , path_(path)
+      , fd_(-1)
+    {
+      // TODO: Make this a proper feature of the config facility.
+      state->shared().env()->expand_config_value(
+          path_, "$PID", state->shared().pid.c_str());
 
-      add(data.m.ruby_metrics);
+      initialize();
     }
 
-    void FinalizerMetrics::add(MetricsData& data) {
-      if(data.type != eFinalizerMetrics) return;
-
-      add(data.m.finalizer_metrics);
+    FileEmitter::~FileEmitter() {
+      cleanup();
     }
 
-    void JITMetrics::add(MetricsData& data) {
-      if(data.type != eJITMetrics) return;
+#define RBX_METRICS_FILE_BUFLEN   256
 
-      add(data.m.jit_metrics);
+    void FileEmitter::send_metrics() {
+      char buf[RBX_METRICS_FILE_BUFLEN];
+
+      for(MetricsMap::iterator i = metrics_map_.begin();
+          i != metrics_map_.end();
+          ++i)
+      {
+        snprintf(buf, RBX_METRICS_FILE_BUFLEN, "%s%lld",
+            i == metrics_map_.begin() ? "" : " ", (long long unsigned int)(*i)->second);
+        if(write(fd_, buf, strlen(buf)) < 0) {
+          logger::error("%s: unable to write file metrics", strerror(errno));
+        }
+      }
+
+      if(write(fd_, "\n", 1)) {
+        logger::error("%s: unable to write file metrics", strerror(errno));
+      }
     }
 
-    void ConsoleMetrics::add(MetricsData& data) {
-      if(data.type != eConsoleMetrics) return;
+    void FileEmitter::initialize() {
+      if(!(fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660))) {
+        logger::error("%s: unable to open metrics file", strerror(errno));
+      }
 
-      add(data.m.console_metrics);
+      if(lseek(fd_, 0, SEEK_END) == 0) {
+        char buf[RBX_METRICS_FILE_BUFLEN];
+
+        for(MetricsMap::iterator i = metrics_map_.begin();
+            i != metrics_map_.end();
+            ++i)
+        {
+          snprintf(buf, RBX_METRICS_FILE_BUFLEN, "%s%s",
+              i == metrics_map_.begin() ? "" : ", ", (*i)->first.c_str());
+          if(write(fd_, buf, strlen(buf)) < 0) {
+            logger::error("%s: unable to write file metrics", strerror(errno));
+          }
+        }
+
+        if(write(fd_, "\n", 1)) {
+          logger::error("%s: unable to write file metrics", strerror(errno));
+        }
+      }
     }
 
-    void SystemMetrics::add(MetricsData& data) {
-      add(data.system_metrics);
+    void FileEmitter::cleanup() {
+      if(fd_ > 0) {
+        close(fd_);
+        fd_ = -1;
+      }
+    }
+
+    void FileEmitter::reinit() {
+      // Don't turn on FileEmitter in children by default.
+      cleanup();
     }
 
     StatsDEmitter::StatsDEmitter(MetricsMap& map, std::string server, std::string prefix)
@@ -94,7 +144,7 @@ namespace rubinius {
 
           for(size_t p = n.size(), i = p; i != 0; p = i - 1) {
             if((i = n.rfind('.', p)) == std::string::npos) {
-              parts << n.substr(0, p);
+              parts << n.substr(0, p + 1);
               break;
             } else {
               parts << n.substr(i + 1, p - i) << ".";
@@ -190,20 +240,26 @@ namespace rubinius {
     }
 
     Metrics::Metrics(STATE)
-      : InternalThread(state, "rbx.metrics")
+      : InternalThread(state, "rbx.metrics", InternalThread::eSmall)
       , enabled_(true)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
       , timer_(NULL)
+      , metrics_lock_()
+      , metrics_data_()
+      , metrics_history_()
+      , metrics_map_()
       , emitter_(NULL)
     {
-      metrics_lock_.init();
       map_metrics();
 
       if(!state->shared().config.system_metrics_target.value.compare("statsd")) {
         emitter_ = new StatsDEmitter(metrics_map_,
             state->shared().config.system_metrics_statsd_server.value,
             state->shared().config.system_metrics_statsd_prefix.value);
+      } else if(state->shared().config.system_metrics_target.value.compare("none")) {
+        emitter_ = new FileEmitter(state, metrics_map_,
+            state->shared().config.system_metrics_target.value);
       }
     }
 
@@ -220,160 +276,120 @@ namespace rubinius {
     }
 
     void Metrics::map_metrics() {
+      // CodeDB metrics
+      metrics_map_.push_back(new MetricsItem(
+            "codedb.load.us", metrics_data_.codedb.load_us));
+
+      // Console metrics
+      metrics_map_.push_back(new MetricsItem(
+            "console.requests.received", metrics_data_.console.requests_received));
+      metrics_map_.push_back(new MetricsItem(
+            "console.responses.sent", metrics_data_.console.responses_sent));
+
+      // GC metrics
+      metrics_map_.push_back(new MetricsItem(
+            "gc.young.count", metrics_data_.gc.young_count));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.young.ms", metrics_data_.gc.young_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.count", metrics_data_.gc.immix_count));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.stop.ms", metrics_data_.gc.immix_stop_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.concurrent.ms", metrics_data_.gc.immix_concurrent_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.diagnostics.us", metrics_data_.gc.immix_diagnostics_us));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.large.count", metrics_data_.gc.large_count));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.large.sweep.us", metrics_data_.gc.large_sweep_us));
+
       // JIT metrics
       metrics_map_.push_back(new MetricsItem(
-            "jit.methods.queued", metrics_collection_.jit_metrics.methods_queued));
+            "jit.methods.queued", metrics_data_.jit.methods_queued));
       metrics_map_.push_back(new MetricsItem(
-            "jit.methods.compiled", metrics_collection_.jit_metrics.methods_compiled));
+            "jit.methods.compiled", metrics_data_.jit.methods_compiled));
       metrics_map_.push_back(new MetricsItem(
-            "jit.methods.failed", metrics_collection_.jit_metrics.methods_failed));
+            "jit.methods.failed", metrics_data_.jit.methods_failed));
       metrics_map_.push_back(new MetricsItem(
-            "jit.time.last.us", metrics_collection_.jit_metrics.time_last_us));
+            "jit.compile_time.us", metrics_data_.jit.compile_time_us));
       metrics_map_.push_back(new MetricsItem(
-            "jit.time.total.us", metrics_collection_.jit_metrics.time_total_us));
-
-      // Object memory metrics
+            "jit.uncommon_exits", metrics_data_.jit.uncommon_exits));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.bytes.current",
-            metrics_collection_.ruby_metrics.memory_young_bytes));
+            "jit.inlined.accessors", metrics_data_.jit.inlined_accessors));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.bytes.total",
-            metrics_collection_.ruby_metrics.memory_young_bytes_total));
+            "jit.inlined.methods", metrics_data_.jit.inlined_methods));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.objects.current",
-            metrics_collection_.ruby_metrics.memory_young_objects));
+            "jit.inlined.blocks", metrics_data_.jit.inlined_blocks));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.objects.total",
-            metrics_collection_.ruby_metrics.memory_young_objects_total));
+            "jit.inlined.primitives", metrics_data_.jit.inlined_primitives));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.percent_used",
-            metrics_collection_.ruby_metrics.memory_young_percent_used));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.bytes.current",
-            metrics_collection_.ruby_metrics.memory_immix_bytes));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.bytes.total",
-            metrics_collection_.ruby_metrics.memory_immix_bytes_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.objects.current",
-            metrics_collection_.ruby_metrics.memory_immix_objects));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.objects.total",
-            metrics_collection_.ruby_metrics.memory_immix_objects_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.chunks.current",
-            metrics_collection_.ruby_metrics.memory_immix_chunks));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.immix.chunks.total",
-            metrics_collection_.ruby_metrics.memory_immix_chunks_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.large.bytes.current",
-            metrics_collection_.ruby_metrics.memory_large_bytes));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.large.bytes.total",
-            metrics_collection_.ruby_metrics.memory_large_bytes_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.large.objects.current",
-            metrics_collection_.ruby_metrics.memory_large_objects));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.large.objects.total",
-            metrics_collection_.ruby_metrics.memory_large_objects_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.symbols.bytes",
-            metrics_collection_.ruby_metrics.memory_symbols_bytes));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.code.bytes", metrics_collection_.ruby_metrics.memory_code_bytes));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.jit.bytes", metrics_collection_.ruby_metrics.memory_jit_bytes));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.promoted.bytes.total",
-            metrics_collection_.ruby_metrics.memory_promoted_bytes_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.promoted.objects.total",
-            metrics_collection_.ruby_metrics.memory_promoted_objects_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.slab.refills.total",
-            metrics_collection_.ruby_metrics.memory_slab_refills_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.slab.refills.fails",
-            metrics_collection_.ruby_metrics.memory_slab_refills_fails));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.data_objects.total",
-            metrics_collection_.ruby_metrics.memory_data_objects_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.capi_handles.total",
-            metrics_collection_.ruby_metrics.memory_capi_handles_total));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.capi_handles.current",
-            metrics_collection_.ruby_metrics.memory_capi_handles));
-      metrics_map_.push_back(new MetricsItem(
-            "memory.inflated_headers",
-            metrics_collection_.ruby_metrics.memory_inflated_headers));
-
-      // Garbage collector metrics
-      metrics_map_.push_back(new MetricsItem(
-            "gc.young.count", metrics_collection_.ruby_metrics.gc_young_count));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.young.last.ms", metrics_collection_.ruby_metrics.gc_young_last_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.young.total.ms", metrics_collection_.ruby_metrics.gc_young_total_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.young.lifetime", metrics_collection_.ruby_metrics.gc_young_lifetime));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.immix.count", metrics_collection_.ruby_metrics.gc_immix_count));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.immix.stop.last.ms",
-            metrics_collection_.ruby_metrics.gc_immix_stop_last_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.immix.stop.total.ms",
-            metrics_collection_.ruby_metrics.gc_immix_stop_total_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.immix.concurrent.last.ms",
-            metrics_collection_.ruby_metrics.gc_immix_conc_last_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.immix.concurrent.total.ms",
-            metrics_collection_.ruby_metrics.gc_immix_conc_total_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.large.count", metrics_collection_.ruby_metrics.gc_large_count));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.large.sweep.last.ms",
-            metrics_collection_.ruby_metrics.gc_large_sweep_last_ms));
-      metrics_map_.push_back(new MetricsItem(
-            "gc.large.sweep.total.ms",
-            metrics_collection_.ruby_metrics.gc_large_sweep_total_ms));
-
-      // I/O metrics
-      metrics_map_.push_back(new MetricsItem(
-            "io.read.bytes", metrics_collection_.system_metrics.io_read_bytes));
-      metrics_map_.push_back(new MetricsItem(
-            "io.write.bytes", metrics_collection_.system_metrics.io_write_bytes));
-
-      // OS activity metrics
-      metrics_map_.push_back(new MetricsItem(
-            "os.signals.received",
-            metrics_collection_.system_metrics.os_signals_received));
-      metrics_map_.push_back(new MetricsItem(
-            "os.signals.processed",
-            metrics_collection_.system_metrics.os_signals_processed));
-
-      // VM metrics
-      metrics_map_.push_back(new MetricsItem(
-            "vm.inline_cache.resets",
-            metrics_collection_.system_metrics.vm_inline_cache_resets));
-      metrics_map_.push_back(new MetricsItem(
-            "vm.threads.current",
-            metrics_collection_.system_metrics.vm_threads));
-      metrics_map_.push_back(new MetricsItem(
-            "vm.threads.total",
-            metrics_collection_.system_metrics.vm_threads_total));
+            "jit.inlined.ffi", metrics_data_.jit.inlined_ffi));
 
       // Lock metrics
       metrics_map_.push_back(new MetricsItem(
-            "locks.stop_the_world.last.ns",
-            metrics_collection_.system_metrics.locks_stop_the_world_last_ns));
+            "lock.stop_the_world.ns", metrics_data_.lock.stop_the_world_ns));
+
+      // Machine metrics
       metrics_map_.push_back(new MetricsItem(
-            "locks.stop_the_world.total.ns",
-            metrics_collection_.system_metrics.locks_stop_the_world_total_ns));
+            "machine.inline_cache.resets", metrics_data_.machine.inline_cache_resets));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.methods.invoked", metrics_data_.machine.methods_invoked));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.blocks.invoked", metrics_data_.machine.blocks_invoked));
+
+      // Memory metrics
+      metrics_map_.push_back(new MetricsItem(
+            "memory.young.bytes", metrics_data_.memory.young_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.young.objects", metrics_data_.memory.young_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.bytes", metrics_data_.memory.immix_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.objects", metrics_data_.memory.immix_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.chunks", metrics_data_.memory.immix_chunks));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.large.bytes", metrics_data_.memory.large_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.large.objects", metrics_data_.memory.large_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.symbols", metrics_data_.memory.symbols));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.symbols.bytes", metrics_data_.memory.symbols_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.code.bytes", metrics_data_.memory.code_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.jit.bytes", metrics_data_.memory.jit_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.promoted.bytes", metrics_data_.memory.promoted_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.promoted.objects", metrics_data_.memory.promoted_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.slab.refills", metrics_data_.memory.slab_refills));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.slab.refills.fails", metrics_data_.memory.slab_refills_fails));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.data_objects", metrics_data_.memory.data_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.capi_handles", metrics_data_.memory.capi_handles));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.inflated_headers", metrics_data_.memory.inflated_headers));
+
+      // System metrics
+      metrics_map_.push_back(new MetricsItem(
+            "system.read.bytes", metrics_data_.system.read_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "system.write.bytes", metrics_data_.system.write_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "system.signals.received", metrics_data_.system.signals_received));
+      metrics_map_.push_back(new MetricsItem(
+            "system.signals.processed", metrics_data_.system.signals_processed));
+      metrics_map_.push_back(new MetricsItem(
+            "system.threads.created", metrics_data_.system.threads_created));
+      metrics_map_.push_back(new MetricsItem(
+            "system.threads.destroyed", metrics_data_.system.threads_destroyed));
+
     }
 
     void Metrics::init_ruby_metrics(STATE) {
@@ -419,8 +435,9 @@ namespace rubinius {
 
       timer_ = new timer::Timer;
 
-      metrics_collection_.init();
-      metrics_history_.init();
+      metrics_lock_.init();
+      metrics_data_ = MetricsData();
+      metrics_history_ = MetricsData();
     }
 
     void Metrics::wakeup(STATE) {
@@ -448,6 +465,10 @@ namespace rubinius {
       }
     }
 
+    void Metrics::log_diagnostics(STATE) {
+      state->shared().env()->diagnostics()->log();
+    }
+
     void Metrics::run(STATE) {
       timer_->set(interval_);
 
@@ -459,30 +480,32 @@ namespace rubinius {
 
         if(thread_exit_) break;
 
+        log_diagnostics(state);
+
+        metrics_data_ = MetricsData();
+        ThreadList* threads = state->shared().threads();
+
+        for(ThreadList::iterator i = threads->begin();
+            i != threads->end();
+            ++i) {
+          if(VM* vm = (*i)->as_vm()) {
+            metrics_data_.add(vm->metrics());
+          }
+        }
+
+#ifdef ENABLE_LLVM
+        if(LLVMState* llvm_state = state->shared().llvm_state) {
+          metrics_data_.add(llvm_state->vm()->metrics());
+        }
+#endif
+
         {
           utilities::thread::Mutex::LockGuard guard(metrics_lock_);
 
-          metrics_collection_.init();
-          ThreadList* threads = state->shared().threads();
-
-          for(ThreadList::iterator i = threads->begin();
-              i != threads->end();
-              ++i) {
-            if(VM* vm = (*i)->as_vm()) {
-              metrics_collection_.add(vm->metrics());
-            }
-          }
-
-#ifdef ENABLE_LLVM
-          if(LLVMState* llvm_state = state->shared().llvm_state) {
-            metrics_collection_.add(llvm_state->metrics());
-          }
-#endif
-
-          metrics_collection_.add(metrics_history_);
-
-          update_ruby_values(state);
+          metrics_data_.add(metrics_history_);
         }
+
+        update_ruby_values(state);
 
         if(emitter_) emitter_->send_metrics();
       }

@@ -83,7 +83,7 @@ module Enumerable
     private :each_with_block
 
     def each_with_index
-      return to_enum(:each_with_index) unless block_given?
+      return to_enum(:each_with_index) { size } unless block_given?
 
       idx = 0
 
@@ -149,7 +149,7 @@ module Enumerable
     end
 
     def size
-      @size.kind_of?(Proc) ? @size.call : @size
+      @size.respond_to?(:call) ? @size.call : @size
     end
 
     def with_index(offset=0)
@@ -159,7 +159,7 @@ module Enumerable
         offset = 0
       end
 
-      return to_enum(:with_index, offset) unless block_given?
+      return to_enum(:with_index, offset) { size } unless block_given?
 
       each do
         o = Rubinius.single_block_arg
@@ -258,17 +258,20 @@ module Enumerable
         raise ArgumentError, "attempt to take negative size" if n < 0
 
         current_size = enumerator_size
-        set_size = if current_size.kind_of?(Integer)
+        set_size = if current_size.kind_of?(Numeric)
           n < current_size ? n : current_size
         else
           current_size
         end
+
+        return to_enum(:cycle, 0).lazy if n.zero?
 
         taken = 0
         Lazy.new(self, set_size) do |yielder, *args|
           if taken < n
             yielder.yield(*args)
             taken += 1
+            raise StopLazyError unless taken < n
           else
             raise StopLazyError
           end

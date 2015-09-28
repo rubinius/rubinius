@@ -47,3 +47,13 @@ zlib/minigzip
 zlib/minigzipsh
 zlib/zconf.h
 zlib/zlib.pc
+
+# libsodium
+libsodium/config.log
+libsodium/config.status
+libsodium/libsodium-uninstalled.pc
+libsodium/libsodium.pc
+libsodium/libtool
+libsodium/src/libsodium/include/sodium/version.h
+libsodium/**/Makefile
+libsodium/**/.dirstamp

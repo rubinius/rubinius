@@ -1,5 +1,6 @@
 #include "arguments.hpp"
 #include "builtin/array.hpp"
+#include "builtin/basic_object.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
@@ -136,7 +137,10 @@ namespace rubinius {
       } else if(CompactLookupTable* clt = try_as<CompactLookupTable>(other->ivars())) {
         ivars(state, clt->duplicate(state));
       } else {
-        utilities::logger::warn("Object::copy_object: invalid ivars_ reference");
+        utilities::logger::warn(
+          "Object::copy_object: invalid ivars_ reference for %s",
+          other->class_object(state)->to_string(state, true).c_str()
+        );
       };
     }
 
@@ -832,25 +836,15 @@ namespace rubinius {
     return this;
   }
 
-  Object* Object::respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment) {
-    Object* responds = respond_to(state, name, priv);
+  Object* Object::respond_to(STATE, Symbol* name, Object* priv,
+      CallFrame* calling_environment)
+  {
     Object* self = this;
+    OnStack<1> os(state, self);
 
-    if(!CBOOL(responds)) {
-      LookupData lookup(self, self->lookup_begin(state), G(sym_private));
-      Symbol* missing = G(sym_respond_to_missing);
-      Dispatch dis(missing);
+    Object* responds = respond_to(state, name, priv);
 
-      Object* buf[2];
-      buf[0] = name;
-      buf[1] = priv;
-
-      Arguments args(missing, self, 2, buf);
-      OnStack<3> os(state, self, name, priv);
-      responds = dis.send(state, calling_environment, lookup, args);
-      if(!responds) return NULL;
-      responds = RBOOL(CBOOL(responds));
-    }
+    if(!responds) return NULL;
 
     CompiledCode* code = NULL;
     CallSiteInformation* info = state->vm()->saved_call_site_information();
@@ -868,15 +862,40 @@ namespace rubinius {
     }
 
     return responds;
-
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
-    LookupData lookup(cUndef, lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_public));
+    Object* self = this;
+    OnStack<1> os(state, self);
+
+    LookupData lookup(cUndef, lookup_begin(state),
+        CBOOL(priv) ? G(sym_private) : G(sym_public));
 
     Dispatch dis(name);
 
-    return RBOOL(dis.resolve(state, name, lookup));
+    if(dis.resolve(state, name, lookup)) {
+      return cTrue;
+    } else {
+      LookupData lookup(self, self->lookup_begin(state), G(sym_private));
+      Symbol* missing = G(sym_respond_to_missing);
+      Dispatch dis(missing);
+
+      if(dis.resolve(state, missing, lookup)) {
+        Object* buf[2];
+        buf[0] = name;
+        buf[1] = priv;
+
+        Arguments args(missing, self, 2, buf);
+        OnStack<3> os(state, self, name, priv);
+        Object* responds = dis.send(state, 0, lookup, args);
+
+        if(!responds) return NULL;
+
+        return RBOOL(CBOOL(responds));
+      } else {
+        return cFalse;
+      }
+    }
   }
 
   void Object::write_barrier(ObjectMemory* om, void* obj) {

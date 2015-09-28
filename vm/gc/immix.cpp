@@ -8,18 +8,35 @@
 
 #include "configuration.hpp"
 
+#include "instruments/timing.hpp"
+
+#include "util/logger.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
 #endif
 
 namespace rubinius {
-  void ImmixGC::ObjectDescriber::added_chunk(int count) {
-#ifdef IMMIX_DEBUG
-    std::cout << "[GC IMMIX: Added a chunk: " << count << "]\n";
-#endif
+  void ImmixGC::Diagnostics::log() {
+    if(!modified_p()) return;
 
+    diagnostics::Diagnostics::log();
+
+    utilities::logger::write("immix: diagnostics: " \
+        "collections: %ld, " \
+        "objects: %ld, " \
+        "bytes: %ld, " \
+        "total_bytes: %ld, " \
+        "chunks: %ld, " \
+        "holes: %ld, " \
+        "percentage: %f",
+        collections_, objects_, bytes_, total_bytes_,
+        chunks_, holes_, percentage_);
+  }
+
+  void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(object_memory_) {
-      object_memory_->state()->metrics().m.ruby_metrics.memory_immix_chunks_total++;
+      object_memory_->vm()->metrics().memory.immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
         gc_->reset_chunks_left();
@@ -46,9 +63,9 @@ namespace rubinius {
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
     , marker_(NULL)
-    , marked_objects_(0)
     , chunks_left_(0)
     , chunks_before_collection_(10)
+    , diagnostics_(Diagnostics())
   {
     gc_.describer().set_object_memory(om, this);
     reset_chunks_left();
@@ -65,11 +82,11 @@ namespace rubinius {
     Object* orig = original.as<Object>();
 
     memory::Address copy_addr = alloc.allocate(
-        orig->size_in_bytes(object_memory_->state()));
+        orig->size_in_bytes(object_memory_->vm()));
 
     Object* copy = copy_addr.as<Object>();
 
-    copy->initialize_full_state(object_memory_->state(), orig, 0);
+    copy->initialize_full_state(object_memory_->vm(), orig, 0);
 
     copy->set_zone(MatureObjectZone);
     copy->set_in_immix();
@@ -78,7 +95,7 @@ namespace rubinius {
   }
 
   int ImmixGC::ObjectDescriber::size(memory::Address addr) {
-    return addr.as<Object>()->size_in_bytes(object_memory_->state());
+    return addr.as<Object>()->size_in_bytes(object_memory_->vm());
   }
 
   Object* ImmixGC::allocate(uint32_t bytes) {
@@ -288,87 +305,35 @@ namespace rubinius {
     // properly.
     allocator_.get_new_block();
 
-    // Now, calculate how much space we're still using.
-    immix::Chunks& chunks = gc_.block_allocator().chunks();
-    immix::AllBlockIterator iter(chunks);
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          vm()->metrics().gc.immix_diagnostics_us);
 
-    int live_bytes = 0;
-    int total_bytes = 0;
+      diagnostics_ = Diagnostics(diagnostics_.collections_);
 
-    while(immix::Block* block = iter.next()) {
-      total_bytes += immix::cBlockSize;
-      live_bytes += block->bytes_from_lines();
-    }
+      // Now, calculate how much space we're still using.
+      immix::Chunks& chunks = gc_.block_allocator().chunks();
+      immix::AllBlockIterator iter(chunks);
 
-    double percentage_live = (double)live_bytes / (double)total_bytes;
+      diagnostics_.chunks_ = chunks.size();
 
-    if(object_memory_->state()->shared.config.gc_immix_debug) {
-      std::cerr << "[GC IMMIX: " << clear_marked_objects() << " marked"
-                << ", "
-                << (int)(percentage_live * 100) << "% live"
-                << ", " << live_bytes << "/" << total_bytes
-                << "]\n";
-    }
-
-    if(percentage_live >= 0.90) {
-      if(object_memory_->state()->shared.config.gc_immix_debug) {
-        std::cerr << "[GC IMMIX: expanding. "
-                   << (int)(percentage_live * 100)
-                   << "%]\n";
+      while(immix::Block* block = iter.next()) {
+        diagnostics_.holes_ += block->holes();
+        diagnostics_.objects_ += block->objects();
+        diagnostics_.bytes_ += block->object_bytes();
+        diagnostics_.total_bytes_ += immix::cBlockSize;
       }
+
+      diagnostics_.percentage_ =
+        (double)diagnostics_.bytes_ / (double)diagnostics_.total_bytes_;
+
+      diagnostics_.collections_++;
+      diagnostics_.modify();
+    }
+
+    if(diagnostics_.percentage_ >= 0.90) {
       gc_.block_allocator().add_chunk();
     }
-
-#ifdef IMMIX_DEBUG
-    immix::Chunks& dbg_chunks = gc_.block_allocator().chunks();
-    std::cout << "chunks=" << dbg_chunks.size() << "\n";
-
-    immix::AllBlockIterator dbg_iter(dbg_chunks);
-
-    int blocks_seen = 0;
-    int total_objects = 0;
-    int total_object_bytes = 0;
-
-    while(immix::Block* block = dbg_iter.next()) {
-      blocks_seen++;
-      std::cout << "block " << block << ", holes=" << block->holes() << " "
-                << "objects=" << block->objects() << " "
-                << "object_bytes=" << block->object_bytes() << " "
-                << "frag=" << block->fragmentation_ratio()
-                << "\n";
-
-      total_objects += block->objects();
-      total_object_bytes += block->object_bytes();
-    }
-
-    std::cout << blocks_seen << " blocks\n";
-    std::cout << gc_.bytes_allocated() << " bytes allocated\n";
-    std::cout << total_object_bytes << " object bytes / " << total_objects << " objects\n";
-
-    int* holes = new int[10];
-    for(int i = 0; i < 10; i++) {
-      holes[i] = 0;
-    }
-
-    immix::AllBlockIterator dbg_iter2(dbg_chunks);
-
-    while(immix::Block* block = dbg_iter2.next()) {
-      int h = block->holes();
-      if(h > 9) h = 9;
-
-      holes[h]++;
-    }
-
-    std::cout << "== hole stats ==\n";
-    for(int i = 0; i < 10; i++) {
-      if(holes[i] > 0) {
-        std::cout << i << ": " << holes[i] << "\n";
-      }
-    }
-
-    delete[] holes;
-    holes = NULL;
-#endif
   }
 
   void ImmixGC::start_marker(STATE) {

@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/enumerable_enumeratorized', __FILE__)
 
 describe "Enumerable#take_while" do
   before :each do
@@ -46,8 +47,5 @@ describe "Enumerable#take_while" do
     yields.should == [1, [2], 3, 5, [8, 9], nil, []]
   end
 
-  it "returns nil as size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
-    enum.take_while.size.should == nil
-  end
+  it_behaves_like :enumerable_enumeratorized_with_unknown_size, :take_while
 end

@@ -216,7 +216,7 @@ extern "C" {
   }
 
   /* @todo Check 64-bit? */
-  VALUE rb_ary_entry(VALUE self, int index) {
+  VALUE rb_ary_entry(VALUE self, long index) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = capi_get_array(env, self);

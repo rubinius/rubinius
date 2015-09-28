@@ -931,6 +931,10 @@ extern "C" {
     return scope->get_local(state, index);
   }
 
+  int rbx_check_tooling(STATE) {
+    return state->vm()->tooling();
+  }
+
   Object* rbx_prologue_check(STATE, CallFrame* call_frame) {
     GCTokenImpl gct;
 
@@ -1251,7 +1255,7 @@ extern "C" {
                                 int32_t unwind_count,
                                 bool force_deoptimization) {
 
-    state->shared().llvm_state->add_uncommons_taken();
+    state->vm()->metrics().jit.uncommon_exits++;
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 

@@ -32,7 +32,8 @@ namespace rubinius {
     if((fsevent->kq_ = kqueue()) < 0) {
       logger::error("%s: unable to create kqueue", strerror(errno));
     } else {
-      state->memory()->needs_finalization(fsevent, (FinalizerFunction)&FSEvent::finalize);
+      state->memory()->needs_finalization(fsevent, (FinalizerFunction)&FSEvent::finalize,
+          FinalizeObject::eUnmanaged);
     }
 
     return fsevent;
@@ -62,9 +63,7 @@ namespace rubinius {
       status = kevent(kq_, &filter_, 1, &event, 1, NULL);
     }
 
-    if(status < 0 || !(event.fflags & NOTE_WRITE)) {
-      return cNil;
-    }
+    if(status < 0) return cNil;
 
     return cTrue;
   }
@@ -81,7 +80,8 @@ namespace rubinius {
     if((fsevent->in_ = inotify_init()) < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));
     } else {
-      state->memory()->needs_finalization(fsevent, (FinalizerFunction)&FSEvent::finalize);
+      state->memory()->needs_finalization(fsevent, (FinalizerFunction)&FSEvent::finalize,
+          FinalizeObject::eUnmanaged);
     }
 
     return fsevent;
@@ -138,9 +138,7 @@ namespace rubinius {
 
     status = read(in_, &fsevent, RBX_FSEVENT_BUF_LEN);
 
-    if(status <= 0 || !(fsevent.u.event.mask & IN_MODIFY)) {
-      return cNil;
-    }
+    if(status < 0) return cNil;
 
     return cTrue;
   }

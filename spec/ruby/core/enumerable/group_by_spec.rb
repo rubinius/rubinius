@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/enumerable_enumeratorized', __FILE__)
 
 describe "Enumerable#group_by" do
   it "returns a hash with values grouped according to the block" do
@@ -40,8 +41,5 @@ describe "Enumerable#group_by" do
     EnumerableSpecs::Empty.new.untrust.group_by {}.untrusted?.should be_true
   end
 
-  it "returns the correct size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
-    enum.group_by.size.should == 6
-  end
+  it_behaves_like :enumerable_enumeratorized_with_origin_size, :group_by
 end

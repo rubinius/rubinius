@@ -322,7 +322,7 @@ module Rubinius
             changed = true
           end
 
-          constants_changed ||= mod.constants.any?
+          constants_changed ||= mod.constant_table.size > 0
         end
 
         mod = mod.direct_superclass

@@ -6,18 +6,19 @@
 #include "config_parser.hpp"
 #include "compiled_file.hpp"
 #include "object_memory.hpp"
-
 #include "exception.hpp"
+#include "system_diagnostics.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/jit.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/native_method.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/thread.hpp"
 
 #include "util/logger.hpp"
 
@@ -59,6 +60,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <dirent.h>
 
 #include "missing/setproctitle.h"
 
@@ -76,8 +78,8 @@ namespace rubinius {
     : argc_(argc)
     , argv_(0)
     , signature_(0)
-    , signal_thread_(NULL)
     , finalizer_thread_(NULL)
+    , loader_(NULL)
   {
 #ifdef ENABLE_LLVM
 #if RBX_LLVM_API_VER < 305
@@ -86,6 +88,8 @@ namespace rubinius {
     }
 #endif
 #endif
+
+    halt_lock_.init();
 
     String::init_hash();
 
@@ -98,23 +102,32 @@ namespace rubinius {
 
     load_vm_options(argc_, argv_);
 
-    root_vm = shared->new_vm();
-    root_vm->metrics().init(metrics::eRubyMetrics);
+    check_io_descriptors();
+
+    root_vm = shared->new_vm("rbx.ruby.main");
+    root_vm->set_main_thread();
+
+    int stack_address = 0;
+    root_vm->set_root_stack(
+        reinterpret_cast<uintptr_t>(&stack_address), VM::cStackDepthMax);
+
     state = new State(root_vm);
+
+    loader_ = new TypedRoot<Object*>(state);
 
     NativeMethod::init_thread(state);
 
     start_logging(state);
+    log_argv();
   }
 
   Environment::~Environment() {
     stop_logging(state);
 
-    delete signal_thread_;
     delete finalizer_thread_;
 
     VM::discard(state, root_vm);
-    SharedState::discard(shared);
+    delete shared;
     delete state;
 
     for(int i = 0; i < argc_; i++) {
@@ -124,10 +137,9 @@ namespace rubinius {
   }
 
   void cpp_exception_bug() {
-    std::cerr << "[BUG] Uncaught C++ internal exception\n";
-    std::cerr << "So sorry, it appears that you've encountered an internal\n";
-    std::cerr << "bug. Please report this on the rubinius issue tracker.\n";
-    std::cerr << "Include the following backtrace in the issue:\n\n";
+    utilities::logger::fatal("[BUG: Uncaught C++ exception]");
+    utilities::logger::fatal("Please report this with the following backtrace to " \
+        "https://github.com/rubinius/rubinius/issues");
 
     rubinius::abort();
   }
@@ -136,6 +148,30 @@ namespace rubinius {
     // Install a better terminate function to tell the user
     // there was a rubinius bug.
     std::set_terminate(cpp_exception_bug);
+  }
+
+  static void assign_io_descriptor(std::string dir, int std_fd, const char* desc) {
+    std::string path = dir + desc;
+
+    int fd = open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0600);
+    dup2(fd, std_fd);
+    unlink(path.c_str());
+  }
+
+  void Environment::check_io_descriptors() {
+    std::string dir = config.system_tmp.value;
+
+    if(fcntl(STDIN_FILENO, F_GETFD) < 0 && errno == EBADF) {
+      assign_io_descriptor(dir, STDIN_FILENO, "stdin");
+    }
+
+    if(fcntl(STDOUT_FILENO, F_GETFD) < 0 && errno == EBADF) {
+      assign_io_descriptor(dir, STDOUT_FILENO, "stdout");
+    }
+
+    if(fcntl(STDERR_FILENO, F_GETFD) < 0 && errno == EBADF) {
+      assign_io_descriptor(dir, STDERR_FILENO, "stderr");
+    }
   }
 
   void Environment::start_jit(STATE) {
@@ -163,22 +199,19 @@ namespace rubinius {
     if(state->shared().llvm_state) {
       state->shared().llvm_state->stop(state);
     }
+
+    llvm::llvm_shutdown();
 #endif
-  }
-
-  void Environment::start_signals(STATE) {
-    state->vm()->set_run_signals(true);
-    signal_thread_ = new SignalThread(state, config);
-    signal_thread_->start(state);
-  }
-
-  void Environment::stop_signals(STATE) {
-    signal_thread_->stop(state);
   }
 
   void Environment::start_finalizer(STATE) {
     finalizer_thread_ = new FinalizerThread(state);
     finalizer_thread_->start(state);
+  }
+
+  void Environment::start_diagnostics(STATE) {
+    diagnostics_ = new diagnostics::SystemDiagnostics(
+        state->shared().memory()->diagnostics());
   }
 
   void Environment::start_logging(STATE) {
@@ -201,38 +234,15 @@ namespace rubinius {
     } else if(!config.system_log.value.compare("console")) {
       utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
-      const char* place_holder = "$PROGRAM_NAME";
-      size_t index = config.system_log.value.find(place_holder);
-
-      if(index != std::string::npos) {
-        config.system_log.value.replace(index, strlen(place_holder), RBX_PROGRAM_NAME);
-      }
-
-      int fd;
-
-      if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
-        close(fd);
-      } else if(errno == EACCES) {
-        std::ostringstream path;
-
-        if(const char* s = strrchr(config.system_log.value.c_str(), '/')) {
-          path << (s + 1);
-        } else {
-          path << config.system_log.value.c_str();
-        }
-
-        config.system_log.value.assign(config.system_tmp.value + path.str());
-
-        if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
-          close(fd);
-        } else {
-          std::cerr << RBX_PROGRAM_NAME << ": unable to open log: "
-                    << config.system_log.value.c_str() << std::endl;
-        }
-      }
+      expand_config_value(config.system_log.value, "$TMPDIR", config.system_tmp);
+      expand_config_value(config.system_log.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+      expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
 
       utilities::logger::open(utilities::logger::eFileLogger,
-          config.system_log.value.c_str(), level);
+          config.system_log.value.c_str(), level,
+          config.system_log_limit.value,
+          config.system_log_archives.value,
+          config.system_log_access.value);
     }
   }
 
@@ -247,30 +257,59 @@ namespace rubinius {
     }
   }
 
+  void Environment::log_argv() {
+    std::ostringstream args;
+
+    for(int i = 0; argv_[i]; i++) {
+      if(i > 0) args << " ";
+      args << argv_[i];
+    }
+
+    utilities::logger::write("command line: %s", args.str().c_str());
+  }
+
+  static void read_config_file(FILE* fp, ConfigParser& config_parser) {
+#define RBX_CONFIG_FILE_LINE_MAX    256
+
+    char buf[RBX_CONFIG_FILE_LINE_MAX];
+    while(fgets(buf, RBX_CONFIG_FILE_LINE_MAX, fp)) {
+      int size = strlen(buf);
+      if(buf[size-1] == '\n') buf[size-1] = '\0';
+      if(strncmp(buf, "-X", 2) == 0) {
+        config_parser.import_line(buf + 2);
+      }
+    }
+  }
+
   void Environment::load_vm_options(int argc, char**argv) {
     /* We parse -X options from three sources in the following order:
      *
-     *  1. The file .rbxrc in the current working directory.
-     *  2. The RBXOPT environment variable.
-     *  3. The command line options.
+     *  1. The file $HOME/.rbxconfig if $HOME is defined.
+     *  2. The file .rbxconfig in the current working directory.
+     *  3. The RBXOPT environment variable.
+     *  4. The command line options.
      *
      * This order permits environment and command line options to override
      * "application" configuration. Likewise, command line options can override
      * environment configuration.
      */
 
-#define RBX_CONFIG_FILE_LINE_MAX    256
+    char* home = getenv("HOME");
+    if(home) {
+      std::string config_path(home);
+      config_path += "/.rbxconfig";
+
+      if(FILE* fp = fopen(config_path.c_str(), "r")) {
+        read_config_file(fp, config_parser);
+      }
+    }
 
     // Configuration file.
-    if(FILE* fp = fopen(".rbxrc", "r")) {
-      char buf[RBX_CONFIG_FILE_LINE_MAX];
-      while(fgets(buf, RBX_CONFIG_FILE_LINE_MAX, fp)) {
-        int size = strlen(buf);
-        if(buf[size-1] == '\n') buf[size-1] = '\0';
-        if(strncmp(buf, "-X", 2) == 0) {
-          config_parser.import_line(buf + 2);
-        }
-      }
+    if(FILE* fp = fopen(".rbxconfig", "r")) {
+      read_config_file(fp, config_parser);
+    } else if(FILE* fp = fopen(".rbxrc", "r")) {
+      std::cerr << "Use of config file .rbxrc is deprecated, use .rbxconfig." << std::endl;
+      read_config_file(fp, config_parser);
     }
 
     // Environment.
@@ -321,7 +360,19 @@ namespace rubinius {
     config_parser.update_configuration(config);
 
     set_tmp_path();
-    set_fsapi_path();
+    set_username();
+    set_pid();
+    set_console_path();
+  }
+
+  void Environment::expand_config_value(std::string& cvar,
+      const char* var, const char* value)
+  {
+    size_t index = cvar.find(var);
+
+    if(index != std::string::npos) {
+      cvar.replace(index, strlen(var), value);
+    }
   }
 
   void Environment::set_tmp_path() {
@@ -340,24 +391,26 @@ namespace rubinius {
     }
   }
 
-  void Environment::set_fsapi_path() {
-    std::ostringstream path;
+  void Environment::set_username() {
     struct passwd *user_passwd = getpwuid(getuid());
 
-    if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
-      path << config.system_tmp.value;
-    } else {
-      std::string cpath = config.system_fsapi_path.value;
+    shared->username.assign(user_passwd->pw_name);
+  }
 
-      path << cpath;
-      if(cpath[cpath.size() - 1] != '/') path << "/";
-    }
+  void Environment::set_pid() {
+    std::ostringstream pid;
+    pid << getpid();
+    shared->pid.assign(pid.str());
+  }
 
-    path << "rbx-" << user_passwd->pw_name << "-" << getpid();
+  void Environment::set_console_path() {
+    std::string path(config.system_console_path.value);
 
-    shared->fsapi_path.assign(path.str());
+    expand_config_value(path, "$TMPDIR", config.system_tmp);
+    expand_config_value(path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+    expand_config_value(path, "$USER", shared->username.c_str());
 
-    create_fsapi(state);
+    config.system_console_path.value.assign(path);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -417,7 +470,7 @@ namespace rubinius {
     state->shared().set_use_capi_lock(config.capi_lock);
   }
 
-  void Environment::load_directory(std::string dir) {
+  void Environment::load_directory(STATE, std::string dir) {
     // Read the version-specific load order file.
     std::string path = dir + "/load_order.txt";
     std::ifstream stream(path.c_str());
@@ -434,7 +487,7 @@ namespace rubinius {
       // skip empty lines
       if(line.empty()) continue;
 
-      run_file(dir + "/" + line);
+      run_file(state, dir + "/" + line);
     }
   }
 
@@ -463,11 +516,7 @@ namespace rubinius {
     config_parser.import_many(str);
   }
 
-  void Environment::boot_vm() {
-    state->vm()->initialize_as_root();
-  }
-
-  void Environment::run_file(std::string file) {
+  void Environment::run_file(STATE, std::string file) {
     std::ifstream stream(file.c_str());
     if(!stream) {
       std::string msg = std::string("Unable to open file to run: ");
@@ -514,49 +563,37 @@ namespace rubinius {
     delete cf;
   }
 
-  void Environment::before_exec(STATE) {
-    remove_fsapi(state);
-  }
-
   void Environment::after_exec(STATE) {
-    create_fsapi(state);
+    halt_lock_.init();
   }
 
-  void Environment::create_fsapi(STATE) {
-    if(mkdir(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
-      utilities::logger::error("%s: unable to create FSAPI path", strerror(errno));
-    }
+  void Environment::after_fork_child(STATE) {
+    halt_lock_.init();
 
-    // The umask setting will override our permissions for mkdir().
-    if(chmod(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
-      utilities::logger::error("%s: unable to set mode for FSAPI path", strerror(errno));
-    }
+    set_pid();
+
+    stop_logging(state);
+    start_logging(state);
   }
 
-  void Environment::remove_fsapi(STATE) {
-    if(rmdir(shared->fsapi_path.c_str()) < 0) {
-      utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
-    }
+  void Environment::after_fork_exec_child(STATE) {
+    halt_lock_.init();
   }
 
-  void Environment::halt_and_exit(STATE) {
-    halt(state);
-    int code = exit_code(state);
-#ifdef ENABLE_LLVM
-    llvm::llvm_shutdown();
-#endif
-    exit(code);
-  }
+  void Environment::halt(STATE, int exit_code) {
+    utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-  void Environment::halt(STATE) {
+    utilities::logger::write("exiting: %s %d", shared->pid.c_str(), exit_code);
+
     state->shared().tool_broker()->shutdown(state);
 
-    if(ImmixMarker* im = state->memory()->immix_marker()) {
-      im->stop(state);
+    if(ObjectMemory* om = state->memory()) {
+      if(ImmixMarker* im = om->immix_marker()) {
+        im->stop(state);
+      }
     }
 
     stop_jit(state);
-    stop_signals(state);
 
     root_vm->set_call_frame(0);
 
@@ -572,8 +609,6 @@ namespace rubinius {
       root_vm->set_call_frame(0);
     }
 
-    shared->finalizer_handler()->finish(state, gct);
-
     root_vm->set_call_frame(0);
 
     // Hold everyone.
@@ -581,24 +616,13 @@ namespace rubinius {
       state->checkpoint(gct, 0);
     }
 
+    shared->finalizer_handler()->finish(state, gct);
+
     NativeMethod::cleanup_thread(state);
 
-    remove_fsapi(state);
-  }
+    state->shared().signals()->stop(state);
 
-  /**
-   * Returns the exit code to use when exiting the rbx process.
-   */
-  int Environment::exit_code(STATE) {
-    if(state->vm()->thread_state()->raise_reason() == cExit) {
-      if(Fixnum* fix = try_as<Fixnum>(state->vm()->thread_state()->raise_value())) {
-        return fix->to_native();
-      } else {
-        return -1;
-      }
-    }
-
-    return 0;
+    exit(exit_code);
   }
 
   /**
@@ -611,7 +635,7 @@ namespace rubinius {
    * @param root The path to the /runtime directory. All kernel loading is
    *             relative to this path.
    */
-  void Environment::load_kernel(std::string root) {
+  void Environment::load_kernel(STATE, std::string root) {
     // Check that the index file exists; this tells us which sub-directories to
     // load, and the order in which to load them
     std::string index = root + "/index";
@@ -622,7 +646,7 @@ namespace rubinius {
     }
 
     // Load alpha
-    run_file(root + "/alpha.rbc");
+    run_file(state, root + "/alpha.rbc");
 
     while(!stream.eof()) {
       std::string line;
@@ -633,7 +657,7 @@ namespace rubinius {
       // skip empty lines
       if(line.empty()) continue;
 
-      load_directory(root + "/" + line);
+      load_directory(state, root + "/" + line);
     }
   }
 
@@ -789,61 +813,47 @@ namespace rubinius {
     throw MissingRuntime("FATAL ERROR: unable to find Rubinius runtime directories.");
   }
 
-  /**
-   * Runs rbx from the filesystem. Searches for the Rubinius runtime files
-   * according to the algorithm in find_runtime().
-   */
-  void Environment::run_from_filesystem() {
-    int i = 0;
-    state->vm()->set_root_stack(reinterpret_cast<uintptr_t>(&i),
-                                VM::cStackDepthMax);
+  void Environment::boot() {
+    runtime_path_ = system_prefix() + RBX_RUNTIME_PATH;
+    load_platform_conf(runtime_path_);
 
-    std::string runtime = system_prefix() + RBX_RUNTIME_PATH;
+    // TODO: Fix this to only record main thread.
+    state->vm()->set_current_thread();
 
-    load_platform_conf(runtime);
-    boot_vm();
+    shared->om = new ObjectMemory(state->vm(), *shared);
+    state->vm()->set_memory(shared->om);
+    state->vm()->set_memory(shared->om);
+
+    shared->set_initialized();
+
+    shared->gc_dependent(state->vm());
+
+    TypeInfo::auto_learn_fields(state);
+
+    state->vm()->bootstrap_ontology(state);
+
+    start_diagnostics(state);
     start_finalizer(state);
 
     load_argv(argc_, argv_);
 
-    start_signals(state);
     state->vm()->initialize_config();
 
     load_tool();
 
     start_jit(state);
 
-    G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
+    // Start the main Ruby thread.
+    Thread* main = 0;
+    OnStack<1> os(state, main);
 
-    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
-                           runtime.c_str(), runtime.size()));
+    main = Thread::create(state, state->vm(), Thread::main_thread);
+    main->start_thread(state, Thread::run);
 
-    load_kernel(runtime);
+    // Start signal handling. We don't return until the process is exiting.
+    VM* vm = SignalThread::new_vm(state);
+    State main_state(vm);
 
-    run_file(runtime + "/loader.rbc");
-
-    state->vm()->thread_state()->clear();
-
-    state->shared().start_console(state);
-    state->shared().start_metrics(state);
-
-    Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
-    if(loader->nil_p()) {
-      rubinius::bug("Unable to find loader");
-    }
-
-    OnStack<1> os(state, loader);
-
-    // Enable the JIT after the core library has loaded
-    G(jit)->enable(state);
-
-    Object* inst = loader->send(state, 0, state->symbol("new"));
-    if(inst) {
-      OnStack<1> os2(state, inst);
-
-      inst->send(state, 0, state->symbol("main"));
-    } else {
-      rubinius::bug("Unable to instantiate loader");
-    }
+    state->shared().start_signals(&main_state);
   }
 }

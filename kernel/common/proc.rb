@@ -1,17 +1,7 @@
 class Proc
-
   def self.__from_block__(env)
-    Rubinius.primitive :proc_from_env
-
-    if Rubinius::Type.object_kind_of? env, Rubinius::BlockEnvironment
-      raise PrimitiveFailure, "Proc.__from_block__ primitive failed to create Proc from BlockEnvironment"
-    else
-      begin
-        env.to_proc
-      rescue Exception
-        raise ArgumentError, "Unable to convert #{env.inspect} to a Proc"
-      end
-    end
+    # The compiler must be fixed before this method can be removed.
+    Rubinius::Mirror::Proc.from_block self, env
   end
 
   def self.new(*args)
@@ -35,7 +25,7 @@ class Proc
       end
     end
 
-    block = __from_block__(env)
+    block = Rubinius::Mirror::Proc.from_block self, env
 
     if block.class != self
       block = block.dup
@@ -77,7 +67,7 @@ class Proc
 
   def curry(curried_arity = nil)
     if lambda? && curried_arity
-      if arity > 0 && curried_arity != arity
+      if arity >= 0 && curried_arity != arity
         raise ArgumentError, "Wrong number of arguments (%i for %i)" % [
           curried_arity,
           arity
@@ -94,48 +84,22 @@ class Proc
 
     args = []
 
-    my_self = self
-    m = lambda? ? :lambda : :proc
-    f = __send__(m) {|*x|
-      call_args = args + x
-      if call_args.length >= my_self.arity
-        my_self[*call_args]
-      else
-        args = call_args
-        f
-      end
-    }
+    m = Rubinius::Mirror.reflect self
+    f = m.curry self, [], arity
 
-    f.singleton_class.send(:define_method, :binding) {
+    f.singleton_class.send(:define_method, :binding) do
       raise ArgumentError, "cannot create binding from f proc"
-    }
+    end
 
-    f.singleton_class.send(:define_method, :parameters) {
-      [[:rest]]
-    }
-
-    f.singleton_class.send(:define_method, :source_location) {
-      nil
-    }
+    f.singleton_class.thunk_method :parameters, [[:rest]]
+    f.singleton_class.thunk_method :source_location, nil
 
     f
   end
 
   def source_location
     if @ruby_method
-      code = @ruby_method.executable
-      if code.respond_to? :file
-        file = code.file
-        if code.lines
-          line = code.first_line
-        else
-          line = -1
-        end
-      else
-        file = "(unknown)"
-        line = -1
-      end
-      [file.to_s, line]
+      @ruby_method.source_location
     elsif @bound_method
       if @bound_method.respond_to?(:source_location)
         @bound_method.source_location

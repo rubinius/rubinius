@@ -62,8 +62,10 @@ namespace rubinius {
     return dis.send(state, call_frame, args);
   }
 
-  void Executable::add_inliner(ObjectMemory* om, CompiledCode* code) {
-    if(!inliners_ || inliners_ == (Inliners*)cNil) inliners_ = new Inliners(om);
+  void Executable::add_inliner(STATE, ObjectMemory* om, CompiledCode* code) {
+    if(!inliners_ || inliners_ == (Inliners*)cNil) {
+      inliners_ = new Inliners(state, om);
+    }
     inliners_->inliners().push_back(code);
 
     om->write_barrier(this, code);
@@ -106,8 +108,8 @@ namespace rubinius {
     }
   }
 
-  Inliners::Inliners(ObjectMemory* om) {
-    om->add_code_resource(this);
+  Inliners::Inliners(STATE, ObjectMemory* om) {
+    om->add_code_resource(state, this);
   }
 
   void Inliners::cleanup(STATE, CodeManager* cm) {

@@ -3,21 +3,31 @@
 #include "builtin/exception.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/native_method.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/symbol.hpp"
+
 #include "call_frame.hpp"
-#include "dtrace/dtrace.h"
 #include "environment.hpp"
-#include "instruments/tooling.hpp"
-#include "object_utils.hpp"
-#include "ontology.hpp"
-#include "on_stack.hpp"
 #include "metrics.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "ontology.hpp"
+#include "signal.hpp"
+
+#include "dtrace/dtrace.h"
+
+#include "instruments/tooling.hpp"
+
 #include "util/logger.hpp"
+
+#include "missing/gettid.h"
 
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
@@ -56,6 +66,8 @@ namespace rubinius {
 
     thr->pin();
     thr->init_lock_.init();
+    thr->join_lock_.init();
+    thr->join_cond_.init();
 
     thr->vm_ = vm;
     thr->thread_id(state, Fixnum::from(vm->thread_id()));
@@ -67,10 +79,9 @@ namespace rubinius {
     thr->result(state, cFalse);
     thr->exception(state, nil<Exception>());
     thr->critical(state, cFalse);
-    thr->dying(state, cFalse);
-    thr->joins(state, Array::create(state, 1));
     thr->killed(state, cFalse);
     thr->priority(state, Fixnum::from(0));
+    thr->pid(state, Fixnum::from(0));
     thr->klass(state, klass);
 
     vm->thread.set(thr);
@@ -78,18 +89,23 @@ namespace rubinius {
     return thr;
   }
 
-  Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
-    VM* vm = state->shared().new_vm();
-    vm->metrics().init(metrics::eRubyMetrics);
+  Thread* Thread::create(STATE, VM* vm, ThreadFunction function) {
+    return Thread::create(state, G(thread), vm, function);
+  }
 
+  Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
+    return Thread::create(state, self, state->shared().new_vm(), function);
+  }
+
+  Thread* Thread::create(STATE, Object* self, VM* vm, ThreadFunction function) {
     Thread* thr = Thread::create(state, as<Class>(self), vm);
 
     thr->function_ = function;
 
-    state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize);
+    state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize,
+        FinalizeObject::eUnmanaged);
 
-    state->vm()->metrics().system_metrics.vm_threads++;
-    state->vm()->metrics().system_metrics.vm_threads_total++;
+    state->vm()->metrics().system.threads_created++;
 
     return thr;
   }
@@ -232,28 +248,88 @@ namespace rubinius {
     return cFalse;
   }
 
-  int Thread::start_thread(STATE, const pthread_attr_t &attrs) {
+  int Thread::start_thread(STATE, void* (*function)(void*)) {
     Thread* self = this;
     OnStack<1> os(state, self);
 
     self->init_lock_.lock();
 
-    if(int error = pthread_create(&self->vm_->os_thread(),
-          &attrs, Thread::run, (void*)self->vm_)) {
+    pthread_attr_t attrs;
+    pthread_attr_init(&attrs);
+    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
+    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
+
+    int error;
+
+    error = pthread_create(&self->vm_->os_thread(), &attrs,
+        function, (void*)self->vm_);
+
+    pthread_attr_destroy(&attrs);
+
+    if(error) {
       return error;
+    } else {
+      // We can't return from here until the new thread completes a minimal
+      // initialization. After the initialization, it unlocks init_lock_.
+      // So, wait here until we can lock init_lock_ after that.
+      self->init_lock_.lock();
+
+      // We locked init_lock_. And we are sure that the new thread completed
+      // the initialization.
+      // Locking init_lock_ isn't needed anymore, so unlock it.
+      self->init_lock_.unlock();
+
+      return 0;
+    }
+  }
+
+  Object* Thread::main_thread(STATE) {
+    GCTokenImpl gct;
+
+    state->vm()->thread->hard_unlock(state, gct, 0);
+
+    std::string& runtime = state->shared().env()->runtime_path();
+
+    G(rubinius)->set_const(state, "Signature",
+        Integer::from(state, state->shared().env()->signature()));
+
+    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
+                           runtime.c_str(), runtime.size()));
+
+    state->vm()->thread->pid(state, Fixnum::from(gettid()));
+
+    state->shared().env()->load_kernel(state, runtime);
+    state->shared().env()->run_file(state, runtime + "/loader.rbc");
+
+    state->vm()->thread->alive(state, cTrue);
+    state->vm()->thread_state()->clear();
+
+    state->shared().start_console(state);
+    state->shared().start_metrics(state);
+
+    Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
+    if(klass->nil_p()) {
+      rubinius::bug("unable to find class Rubinius::Loader");
     }
 
-    // We can't return from here until the new thread completes a minimal
-    // initialization. After the initialization, it unlocks init_lock_.
-    // So, wait here until we can lock init_lock_ after that.
-    self->init_lock_.lock();
+    Object* instance = 0;
+    OnStack<1> os(state, instance);
 
-    // We locked init_lock_. And we are sure that the new thread completed
-    // the initialization.
-    // Locking init_lock_ isn't needed anymore, so unlock it.
-    self->init_lock_.unlock();
+    instance = klass->send(state, 0, state->symbol("new"));
+    if(instance) {
+      state->shared().env()->set_loader(instance);
+    } else {
+      rubinius::bug("unable to instantiate Rubinius::Loader");
+    }
 
-    return 0;
+    // Enable the JIT after the core library has loaded
+    G(jit)->enable(state);
+
+    Object* exit = instance->send(state, 0, state->symbol("main"));
+
+    state->shared().signals()->system_exit(state->vm()->thread_state()->raise_value());
+
+    return exit;
   }
 
   void* Thread::run(void* ptr) {
@@ -264,27 +340,22 @@ namespace rubinius {
     SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
 
-    std::string thread_name;
+    vm->set_current_thread();
 
-    {
-      std::ostringstream tn;
-      tn << "rbx.ruby." << vm->thread_id();
-      VM::set_current(vm, tn.str());
-      thread_name = tn.str();
-    }
-
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name.c_str()),
-                          vm->thread_id(), 0);
+    RUBINIUS_THREAD_START(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
 
     if(cDebugThreading) {
       utilities::logger::debug("Thread: start thread: id: %d, pthread: %d",
           vm->thread_id(), (unsigned int)thread_debug_self());
     }
 
-    int calculate_stack = 0;
-    vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), THREAD_STACK_SIZE);
+    int stack_address = 0;
+    vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), THREAD_STACK_SIZE);
 
     NativeMethod::init_thread(state);
+
+    vm->thread->pid(state, Fixnum::from(gettid()));
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
     vm->thread->alive(state, cTrue);
@@ -300,24 +371,22 @@ namespace rubinius {
     Object* ret = vm->thread->function_(state);
     vm->shared.tool_broker()->thread_stop(state);
 
-    if(!ret) {
-      if(vm->thread_state()->raise_reason() == cExit) {
-        vm->shared.env()->halt_and_exit(state);
-      }
-    }
-
     // Clear the call_frame, so that if we wait for GC going independent,
     // the GC doesn't see pointers into now-unallocated CallFrames
     vm->set_call_frame(0);
 
-    LockedObjects& los = vm->locked_objects();
+    vm->thread->join_lock_.lock();
+    vm->thread->stopped();
+
+    LockedObjects& los = state->vm()->locked_objects();
     for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
       (*i)->unlock_for_terminate(state, gct, 0);
     }
 
-    vm->thread->stopped();
+    vm->thread->join_cond_.broadcast();
+    vm->thread->join_lock_.unlock();
 
     NativeMethod::cleanup_thread(state);
 
@@ -325,13 +394,16 @@ namespace rubinius {
       utilities::logger::debug("Thread: exit thread: id: %d", vm->thread_id());
     }
 
-    shared.clear_critical(state);
     shared.gc_independent();
 
-    vm->set_zombie();
+    if(vm->main_thread_p() || (!ret && vm->thread_state()->raise_reason() == cExit)) {
+      state->shared().signals()->system_exit(vm->thread_state()->raise_value());
+    } else {
+      vm->set_zombie(state);
+    }
 
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name.c_str()),
-                         vm->thread_id(), 0);
+    RUBINIUS_THREAD_STOP(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
 
     return 0;
   }
@@ -343,12 +415,7 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    pthread_attr_t attrs;
-    pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
-    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
-
-    if(int error = start_thread(state, attrs)) {
+    if(int error = start_thread(state, Thread::run)) {
       char buf[RBX_STRERROR_BUFSIZE];
       char* err = RBX_STRERROR(error, buf, RBX_STRERROR_BUFSIZE);
       Exception::thread_error(state, err);
@@ -456,14 +523,6 @@ namespace rubinius {
     return Location::mri_backtrace(state, cf);
   }
 
-  void Thread::release_joins(STATE, GCToken gct, CallFrame* calling_environment) {
-    for(native_int i = 0; i < joins_->size(); ++i) {
-      if(Channel* chn = try_as<Channel>(joins_->get(state, i))) {
-        chn->send(state, gct, this, calling_environment);
-      }
-    }
-  }
-
   void Thread::stopped() {
     alive_ = cFalse;
   }
@@ -472,57 +531,36 @@ namespace rubinius {
     init_lock_.init();
   }
 
-  Object* Thread::join(STATE, GCToken gct, CallFrame* calling_environment) {
-    state->set_call_frame(calling_environment);
-
-    init_lock_.lock();
-
-    VM* vm = vm_;
-
-    if(!vm) {
-      init_lock_.unlock();
-      return cTrue;
-    }
-
-    pthread_t id = vm->os_thread();
-
-    if(cDebugThreading) {
-      std::cerr << "[THREAD joining " << thread_debug_id(id) << "]\n";
-    }
-
-    init_lock_.unlock();
+  Thread* Thread::join(STATE, GCToken gct, Object* timeout,
+      CallFrame* calling_environment)
+  {
+    Thread* self = this;
+    OnStack<2> os(state, self, timeout);
 
     state->gc_independent(gct, calling_environment);
-    void* val;
-    int err = pthread_join(id, &val);
-    state->gc_dependent(gct, calling_environment);
 
-    switch(err) {
-    case 0:
-      break;
-    case EDEADLK:
-      std::cerr << "Join deadlock: " << thread_debug_id(id) << "/" << thread_debug_self() << "\n";
-      break;
-    case EINVAL:
-      std::cerr << "Invalid thread id: " << thread_debug_id(id) << "\n";
-      break;
-    case ESRCH:
-      // This means that the thread finished execution and detached
-      // itself. We treat this as having joined it.
-      break;
+    {
+      utilities::thread::Mutex::LockGuard guard(self->join_lock_);
+      state->gc_dependent(gct, calling_environment);
+      atomic::memory_barrier();
+
+      if(self->alive()->true_p()) {
+        GCIndependent gc_guard(state, calling_environment);
+
+        if(timeout->nil_p()) {
+          self->join_cond_.wait(self->join_lock_);
+        } else {
+          struct timespec ts = {0,0};
+          self->join_cond_.offset(&ts, as<Float>(timeout)->val);
+
+          if(self->join_cond_.wait_until(self->join_lock_, &ts)
+                == utilities::thread::cTimedOut) {
+            return nil<Thread>();
+          }
+        }
+      }
     }
 
-    return cTrue;
-  }
-
-  Object* Thread::set_critical(STATE, Object* obj, CallFrame* calling_environment) {
-    state->set_call_frame(calling_environment);
-    if(CBOOL(obj)) {
-      state->shared().set_critical(state, calling_environment);
-      return cTrue;
-    } else {
-      state->shared().clear_critical(state);
-      return cFalse;
-    }
+    return self;
   }
 }

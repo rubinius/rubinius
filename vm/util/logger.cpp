@@ -4,11 +4,14 @@
 
 #include <stdio.h>
 #include <syslog.h>
-#include <stdarg.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+
+#include <zlib.h>
 
 #include <ostream>
 
@@ -19,8 +22,9 @@ namespace rubinius {
       static Logger* logger_ = 0;
       static logger_level loglevel_ = eWarn;
 
-      void open(logger_type type, const char* identifier, logger_level level) {
+      void open(logger_type type, const char* identifier, logger_level level, ...) {
         lock_.init();
+        va_list varargs;
 
         switch(type) {
         case eSyslog:
@@ -30,7 +34,9 @@ namespace rubinius {
           logger_ = new ConsoleLogger(identifier);
           break;
         case eFileLogger:
-          logger_ = new FileLogger(identifier);
+          va_start(varargs, level);
+          logger_ = new FileLogger(identifier, varargs);
+          va_end(varargs);
           break;
         }
 
@@ -61,6 +67,22 @@ namespace rubinius {
 
       void set_loglevel(logger_level level) {
         loglevel_ = level;
+      }
+
+      void write(const char* message, ...) {
+        thread::SpinLock::LockGuard guard(lock_);
+
+        if(logger_) {
+          char buf[LOGGER_MSG_SIZE];
+
+          va_list args;
+
+          va_start(args, message);
+          (void) vsnprintf(buf, LOGGER_MSG_SIZE, message, args);
+          va_end(args);
+
+          logger_->write(buf, append_newline(buf));
+        }
       }
 
       void fatal(const char* message, ...) {
@@ -190,6 +212,12 @@ namespace rubinius {
         closelog();
       }
 
+      // Syslog doesn't give us the ability to write a message to the log
+      // independent of a priority. Bummer.
+      void Syslog::write(const char* message, int size) {
+        syslog(LOG_INFO, "%s", message);
+      }
+
       void Syslog::fatal(const char* message, int size) {
         syslog(LOG_ERR, "%s", message);
         fprintf(stderr, "%s", message);
@@ -217,15 +245,11 @@ namespace rubinius {
         std::ostringstream str;
         str << identifier << "[" << getpid() << "]";
 
-        identifier_ = new std::string(str.str());
-      }
-
-      ConsoleLogger::~ConsoleLogger() {
-        delete identifier_;
+        identifier_ = std::string(str.str());
       }
 
       void ConsoleLogger::write_log(const char* level, const char* message, int size) {
-        fprintf(stderr, "%s %s %s %s", timestamp(), identifier_->c_str(), level, message);
+        fprintf(stderr, "%s %s %s %s", timestamp(), identifier_.c_str(), level, message);
       }
 
 #define LOGGER_LEVEL_FATAL  "<Fatal>"
@@ -233,6 +257,10 @@ namespace rubinius {
 #define LOGGER_LEVEL_WARN   "<Warn>"
 #define LOGGER_LEVEL_INFO   "<Info>"
 #define LOGGER_LEVEL_DEBUG  "<Debug>"
+
+      void ConsoleLogger::write(const char* message, int size) {
+        fprintf(stderr, "%s %s %s", timestamp(), identifier_.c_str(), message);
+      }
 
       void ConsoleLogger::fatal(const char* message, int size) {
         write_log(LOGGER_LEVEL_FATAL, message, size);
@@ -254,40 +282,125 @@ namespace rubinius {
         write_log(LOGGER_LEVEL_DEBUG, message, size);
       }
 
-#define LOGGER_MAX_FILE     5242880
+#define LOGGER_MAX_COPY_BUF 1048576
 #define LOGGER_OPEN_FLAGS   (O_CREAT | O_APPEND | O_WRONLY | O_CLOEXEC)
-#define LOGGER_OPEN_PERMS   0644
+#define LOGGER_REOPEN_FLAGS (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
+#define LOGGER_FROM_FLAGS   (O_RDONLY | O_CLOEXEC)
+#define LOGGER_TO_FLAGS     (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 
-      FileLogger::FileLogger(const char* identifier)
+      FileLogger::FileLogger(const char* path, va_list varargs)
         : Logger()
+        , path_(path)
       {
-        std::ostringstream str;
-        str << " [" << getpid() << "] ";
+        std::ostringstream label;
+        label << " [" << getpid() << "] ";
 
-        identifier_ = new std::string(str.str());
+        identifier_ = label.str();
 
-        logger_fd_ = ::open(identifier, LOGGER_OPEN_FLAGS, LOGGER_OPEN_PERMS);
+        limit_ = va_arg(varargs, long);
+        archives_ = va_arg(varargs, long);
+        perms_ = va_arg(varargs, int);
 
-        // Round robin if log file exceeds the limit
-        if(lseek(logger_fd_, 0, SEEK_END) > LOGGER_MAX_FILE) {
-          lseek(logger_fd_, 0, SEEK_SET);
+        logger_fd_ = ::open(path, LOGGER_OPEN_FLAGS, perms_);
+
+        // The umask setting will override our permissions for open().
+        if(chmod(path, perms_) < 0) {
+          logger::warn("%s: logger: unable to set mode: %s", strerror(errno), path);
         }
       }
 
       FileLogger::~FileLogger() {
-        delete identifier_;
+        cleanup();
+      }
+
+      void FileLogger::cleanup() {
         ::close(logger_fd_);
+        logger_fd_ = -1;
+      }
+
+      void FileLogger::rotate() {
+        struct stat st;
+
+        cleanup();
+
+        void* buf = malloc(LOGGER_MAX_COPY_BUF);
+        if(!buf) return;
+
+        char* from = (char*)malloc(MAXPATHLEN);
+        if(!from) return;
+
+        char* to = (char*)malloc(MAXPATHLEN);
+        if(!to) return;
+
+        for(int i = archives_; i > 0; i--) {
+          if(i > 1) {
+            snprintf(from, MAXPATHLEN, "%s.%d.Z", path_.c_str(), i - 1);
+          } else {
+            snprintf(from, MAXPATHLEN, "%s", path_.c_str());
+          }
+
+          if(stat(from, &st) || !S_ISREG(st.st_mode)) continue;
+
+          snprintf(to, MAXPATHLEN, "%s.%d.Z", path_.c_str(), i);
+
+          int from_fd = ::open(from, LOGGER_FROM_FLAGS, perms_);
+          if(from_fd < 0) continue;
+
+          int to_fd = ::open(to, LOGGER_TO_FLAGS, perms_);
+          if(to_fd < 0) {
+            ::close(from_fd);
+            continue;
+          }
+
+          int bytes;
+
+          if(i > 0) {
+            while((bytes = ::read(from_fd, buf, LOGGER_MAX_COPY_BUF)) > 0) {
+              if(::write(to_fd, buf, bytes) < 0) break;
+            }
+          } else {
+            gzFile gzf;
+
+            gzf = gzdopen(to_fd, "a");
+            if(gzf == Z_NULL) continue;
+
+            while((bytes = ::read(from_fd, buf, LOGGER_MAX_COPY_BUF)) > 0) {
+              if(gzwrite(gzf, buf, bytes) <= 0) break;
+            }
+
+            gzclose(gzf);
+          }
+
+          ::close(from_fd);
+          ::close(to_fd);
+        }
+
+        free(buf);
+        free(from);
+        free(to);
+
+        logger_fd_ = ::open(path_.c_str(), LOGGER_REOPEN_FLAGS, perms_);
       }
 
       void FileLogger::write_log(const char* level, const char* message, int size) {
         utilities::file::LockGuard guard(logger_fd_, LOCK_EX);
 
         const char* time = timestamp();
-        write_status_ = write(logger_fd_, time, strlen(time));
-        write_status_ = write(logger_fd_, identifier_->c_str(), identifier_->size());
-        write_status_ = write(logger_fd_, level, strlen(level));
-        write_status_ = write(logger_fd_, " ", 1);
-        write_status_ = write(logger_fd_, message, size);
+        write_status_ = ::write(logger_fd_, time, strlen(time));
+        write_status_ = ::write(logger_fd_, identifier_.c_str(), identifier_.size());
+        if(level) {
+          write_status_ = ::write(logger_fd_, level, strlen(level));
+          write_status_ = ::write(logger_fd_, " ", 1);
+        }
+        write_status_ = ::write(logger_fd_, message, size);
+
+        if(lseek(logger_fd_, 0, SEEK_END) > limit_) {
+          rotate();
+        }
+      }
+
+      void FileLogger::write(const char* message, int size) {
+        write_log(NULL, message, size);
       }
 
       void FileLogger::fatal(const char* message, int size) {

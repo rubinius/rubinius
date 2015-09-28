@@ -4,8 +4,9 @@
 
 namespace rubinius {
   Object* Park::park(STATE, CallFrame* call_frame) {
-    utilities::thread::Mutex::LockGuard lg(mutex_);
     if(!state->check_async(call_frame)) return NULL;
+
+    utilities::thread::Mutex::LockGuard lg(mutex_);
 
     wake_ = false;
     sleeping_ = true;

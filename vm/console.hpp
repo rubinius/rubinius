@@ -1,7 +1,6 @@
 #ifndef RBX_CONSOLE_HPP
 #define RBX_CONSOLE_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/root.hpp"
@@ -19,12 +18,16 @@ namespace rubinius {
   class String;
 
   namespace console {
+    class Listener;
     class Request;
     class Response;
 
     class Console {
-      std::string path_;
+      std::string console_path_;
+      std::string request_path_;
+      std::string response_path_;
 
+      Listener* listener_;
       Response* response_;
       Request* request_;
 
@@ -34,27 +37,62 @@ namespace rubinius {
       Console(STATE);
       virtual ~Console();
 
-      Request* request() {
-        return request_;
+      Object* ruby_console() {
+        return ruby_console_.get();
       }
 
-      Response* response() {
-        return response_;
+      std::string& console_path() {
+        return console_path_;
       }
+
+      std::string& request_path() {
+        return request_path_;
+      }
+
+      std::string& response_path() {
+        return response_path_;
+      }
+
+      bool connected_p();
+
+      void reset();
 
       void start(STATE);
       void stop(STATE);
+      void after_fork_child(STATE);
 
+      void accept(STATE);
       Class* server_class(STATE);
-      Object* evaluate(STATE, char* request);
+    };
+
+    class Listener : public InternalThread {
+      Console* console_;
+
+      TypedRoot<FSEvent*> fsevent_;
+
+      int fd_;
+
+    public:
+
+      Listener(STATE, Console* console);
+      virtual ~Listener();
+
+      bool connection_initiated();
+
+      void start_thread(STATE);
+      void initialize(STATE);
+      void run(STATE);
+      void wakeup(STATE);
     };
 
     typedef std::list<char*> RequestList;
 
-    class Response : public InternalThread, public Lockable {
+    class Response : public InternalThread {
       Console* console_;
 
-      std::string path_;
+      TypedRoot<Channel*> inbox_;
+      TypedRoot<Channel*> outbox_;
+
       int fd_;
 
       RequestList* request_list_;
@@ -73,42 +111,42 @@ namespace rubinius {
       void start_thread(STATE);
       void run(STATE);
       void wakeup(STATE);
-      void close_response(STATE);
-      void clear_requests(STATE);
       void stop_thread(STATE);
-
-      void before_exec(STATE);
-      void after_exec(STATE);
       void after_fork_child(STATE);
+
+      void close_response();
+      void clear_requests();
 
       void send_request(STATE, const char* request);
       void write_response(STATE, const char* response, native_int size);
     };
 
-    class Request : public InternalThread, public Lockable {
+    class Request : public InternalThread {
       Console* console_;
       Response* response_;
 
-      std::string path_;
+      bool enabled_;
+
       int fd_;
 
       TypedRoot<FSEvent*> fsevent_;
 
     public:
 
-      Request(STATE, Console* console);
+      Request(STATE, Console* console, Response* response);
+
+      bool enabled_p() {
+        return enabled_;
+      }
 
       void initialize(STATE);
       void start_thread(STATE);
       void run(STATE);
       void wakeup(STATE);
-      void setup_request(STATE);
-      void close_request(STATE);
       void stop_thread(STATE);
-
-      void before_exec(STATE);
-      void after_exec(STATE);
       void after_fork_child(STATE);
+
+      void close_request();
 
       char* read_request(STATE);
     };

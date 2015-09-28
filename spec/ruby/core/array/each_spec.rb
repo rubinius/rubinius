@@ -1,6 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/enumeratorize', __FILE__)
+require File.expand_path('../../enumerable/shared/enumeratorized', __FILE__)
 
 # Modifying a collection while the contents are being iterated
 # gives undefined behavior. See
@@ -26,9 +27,6 @@ describe "Array#each" do
     b.should == [2, nil, 4]
   end
 
-  it "returns the correct size when no block is given" do
-    [1, 2, 3].each.size.should == 3
-  end
-
   it_behaves_like :enumeratorize, :each
+  it_behaves_like :enumeratorized_with_origin_size, :each, [1,2,3]
 end

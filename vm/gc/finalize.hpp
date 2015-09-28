@@ -1,7 +1,6 @@
 #ifndef RBX_GC_FINALIZE_HPP
 #define RBX_GC_FINALIZE_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/finalize.hpp"
@@ -19,6 +18,11 @@ namespace rubinius {
 
   struct FinalizeObject {
   public:
+    enum FinalizeKind {
+      eManaged,
+      eUnmanaged
+    };
+
     enum FinalizationStatus {
       eLive,
       eQueued,
@@ -30,12 +34,14 @@ namespace rubinius {
   public:
     FinalizeObject()
       : object(NULL)
+      , kind(eManaged)
       , status(eLive)
       , finalizer(0)
       , ruby_finalizer(0)
     {}
 
     Object* object;
+    FinalizeKind kind;
     FinalizationStatus status;
     FinalizerFunction finalizer;
     Object* ruby_finalizer;
@@ -52,7 +58,7 @@ namespace rubinius {
   typedef std::list<FinalizeObject> FinalizeObjects;
   typedef std::list<FinalizeObjects*> FinalizeObjectsList;
 
-  class FinalizerThread : public InternalThread, public Lockable {
+  class FinalizerThread : public InternalThread {
   public:
     class iterator {
       FinalizerThread* handler_;
@@ -102,10 +108,10 @@ namespace rubinius {
     void next_process_item();
     void finish(STATE, GCToken gct);
 
-    void record(Object* obj, FinalizerFunction func);
+    void record(Object* obj, FinalizerFunction func, FinalizeObject::FinalizeKind kind);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
-    void queue_objects();
+    void queue_objects(STATE);
 
     void start_collection(STATE);
     void finish_collection(STATE);
@@ -119,6 +125,7 @@ namespace rubinius {
 
     void initialize(STATE);
     void run(STATE);
+    void stop(STATE);
     void wakeup(STATE);
   };
 }

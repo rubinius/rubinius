@@ -468,6 +468,8 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
+      utilities::logger::write("spawn: %s", exe.command());
+
       if(exe.argc()) {
         (void)::execvp(exe.command(), exe.argv());
       } else {
@@ -585,6 +587,8 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
+      utilities::logger::write("backtick: %s", exe.command());
+
       exec_sh_fallback(state, exe.command(), exe.command_size());
 
       /* execvp() returning means it failed. */
@@ -692,6 +696,8 @@ namespace rubinius {
       sigaction(i, &action, &old_action);
       old_handlers[i] = (void*)old_action.sa_handler;
     }
+
+    utilities::logger::write("exec: %s", exe.command());
 
     if(exe.argc()) {
       (void)::execvp(exe.command(), exe.argv());
@@ -816,6 +822,7 @@ namespace rubinius {
 
       if(pid > 0) {
         state->shared().internal_threads()->after_fork_parent(state);
+        utilities::logger::write("fork: child: %d", pid);
       }
     }
 
@@ -894,19 +901,25 @@ namespace rubinius {
     state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics().system_metrics.vm_inline_cache_resets++;
+    state->vm()->metrics().machine.inline_cache_resets++;
 
     if(state->shared().config.ic_debug) {
       String* mod_name = mod->get_name(state);
-      if(mod_name->nil_p()) {
-        mod_name = String::create(state, "");
-      }
-      std::cout << "[IC Increase serial for " << mod_name->c_str(state) << "]" << std::endl;
 
-      std::cout << "[IC Reset method cache for " << mod_name->c_str(state)
-                << "#" << name->debug_str(state).c_str() << "]" << std::endl;
+      if(mod_name->nil_p()) {
+        mod_name = String::create(state, "<unknown>");
+      }
+
+      std::cerr << std::endl
+                << "reset global/method cache for "
+                << mod_name->c_str(state)
+                << "#"
+                << name->debug_str(state).c_str()
+                << std::endl;
+
       CallFrame* call_frame = calling_environment->previous;
-      call_frame->print_backtrace(state, 6, true);
+
+      call_frame->print_backtrace(state, std::cerr, 6, true);
     }
 
     return cTrue;
@@ -1012,13 +1025,15 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
-    SignalThread* st = state->shared().signal_handler();
+    SignalThread* st = state->shared().signals();
+
     if(st) {
       native_int i = sig->to_native();
       if(i < 0) {
-        st->add_signal(state, -i, SignalThread::eDefault);
+        st->add_signal_handler(state, -i, SignalThread::eDefault);
       } else if(i > 0) {
-        st->add_signal(state, i, CBOOL(ignored) ? SignalThread::eIgnore : SignalThread::eCustom);
+        st->add_signal_handler(state, i,
+            CBOOL(ignored) ? SignalThread::eIgnore : SignalThread::eCustom);
       }
 
       return cTrue;
@@ -1323,11 +1338,20 @@ namespace rubinius {
     return RBOOL(obj->kind_of_p(state, mod));
   }
 
+  Object* System::vm_global_serial(STATE, CallFrame* calling_environment) {
+    return Fixnum::from(state->shared().global_serial());
+  }
+
   Object* System::vm_inc_global_serial(STATE, CallFrame* calling_environment) {
     if(state->shared().config.serial_debug) {
-      std::cout << "[Global serial increased from " << state->shared().global_serial() << "]" << std::endl;
-      calling_environment->print_backtrace(state, 6, true);
+      std::cerr << std::endl
+                << "global serial increased from "
+                << state->shared().global_serial()
+                << std::endl;
+
+      calling_environment->print_backtrace(state, std::cerr, 6, true);
     }
+
     return Fixnum::from(state->shared().inc_global_serial(state));
   }
 

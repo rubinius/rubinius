@@ -42,7 +42,6 @@
 #include "gc/managed.hpp"
 #include "internal_threads.hpp"
 #include "configuration.hpp"
-#include "lock.hpp"
 #include "metrics.hpp"
 #include "util/thread.hpp"
 
@@ -71,7 +70,7 @@ namespace rubinius {
     cMachineCode = 4
   };
 
-  class LLVMState : public InternalThread, public Lockable {
+  class LLVMState : public InternalThread {
     jit::RubiniusJITMemoryManager* memory_;
     llvm::JITEventListener* jit_event_listener_;
 
@@ -80,14 +79,10 @@ namespace rubinius {
     TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
 
-    int jitted_methods_;
-    int accessors_inlined_;
-    int uncommons_taken_;
-
     SharedState& shared_;
-    bool include_profiling_;
+    State* state_;
 
-    int code_bytes_;
+    bool include_profiling_;
 
     std::ostream* log_;
 
@@ -128,6 +123,10 @@ namespace rubinius {
     LLVMState(STATE);
     virtual ~LLVMState();
 
+    State* state() {
+      return state_;
+    }
+
     void add_internal_functions();
     void enable(STATE);
 
@@ -151,30 +150,6 @@ namespace rubinius {
 
     jit::RubiniusJITMemoryManager* memory() { return memory_; }
     llvm::JITEventListener* jit_event_listener() { return jit_event_listener_; }
-
-    int code_bytes() {
-      return code_bytes_;
-    }
-
-    void add_code_bytes(int bytes) {
-      code_bytes_ += bytes;
-    }
-
-    void add_accessor_inlined() {
-      accessors_inlined_++;
-    }
-
-    int accessors_inlined() {
-      return accessors_inlined_;
-    }
-
-    void add_uncommons_taken() {
-      uncommons_taken_++;
-    }
-
-    int uncommons_taken() {
-      return uncommons_taken_;
-    }
 
     SharedState& shared() { return shared_; }
 

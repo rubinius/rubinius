@@ -82,11 +82,6 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#__context__ primitive failed"
   end
 
-  def native_join
-    Rubinius.primitive :thread_join
-    Kernel.raise PrimitiveFailure, "Thread#native_join primitive failed"
-  end
-
   def mri_backtrace
     Rubinius.primitive :thread_mri_backtrace
     Kernel.raise PrimitiveFailure, "Thread#mri_backtrace primitive failed"
@@ -181,7 +176,7 @@ class Thread
   end
 
   def stop?
-    !alive? || @sleep
+    !alive? || sleeping?
   end
 
   def sleeping?
@@ -194,8 +189,6 @@ class Thread
     if @alive
       if @sleep
         "sleep"
-      elsif @dying
-        "aborting"
       else
         "run"
       end
@@ -206,62 +199,25 @@ class Thread
     end
   end
 
-  def join(timeout = undefined)
-    join_inner(timeout) { @alive ? nil : self }
+  def join(timeout=undefined)
+    if undefined.equal? timeout or nil.equal? timeout
+      timeout = nil
+    else
+      timeout = Rubinius::Type.coerce_to_float timeout
+    end
+
+    value = Rubinius.invoke_primitive :thread_join, self, timeout
+
+    if @exception
+      Kernel.raise @exception
+    else
+      value
+    end
   end
 
   def group
     @group
   end
-
-  def add_to_group(group)
-    @group = group
-  end
-
-  def join_inner(timeout = undefined)
-    if undefined.equal?(timeout) || nil.equal?(timeout)
-      timeout = nil
-    else
-      timeout = Rubinius::Type.coerce_to_float(timeout)
-    end
-    result = nil
-    Rubinius.lock(self)
-    begin
-      if @alive
-        jc = Rubinius::Channel.new
-        @joins << jc
-        Rubinius.unlock(self)
-        begin
-          if !timeout
-            while true
-              res = jc.receive
-              # receive returns false if it was a spurious wakeup
-              break if res != false
-            end
-          else
-            duration = timeout
-            while true
-              start = Time.now.to_f
-              res = jc.receive_timeout duration
-              # receive returns false if it was a spurious wakeup
-              break if res != false
-              elapsed = Time.now.to_f - start
-              duration -= elapsed
-              break if duration < 0
-            end
-          end
-        ensure
-          Rubinius.lock(self)
-        end
-      end
-      Kernel.raise @exception if @exception
-      result = yield
-    ensure
-      Rubinius.unlock(self)
-    end
-    result
-  end
-  private :join_inner
 
   def raise(exc=undefined, msg=nil, trace=nil)
     Rubinius.lock(self)
@@ -417,13 +373,10 @@ class Thread
           Rubinius.check_interrupts
         ensure
           unlock_locks
-          @joins.each { |join| join.send self }
         end
       end
     rescue Exception => e
-      # I don't really get this, but this is MRI's behavior. If we're dying
-      # by request, ignore any raised exception.
-      exception = e # unless @dying
+      exception = e
     ensure
       unless exception && (abort_on_exception || Thread.abort_on_exception)
         @exception = exception
@@ -431,6 +384,8 @@ class Thread
           STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
         end
       end
+
+      Rubinius::Mirror.reflect(@group).remove self
 
       if Rubinius.thread_state[0] == :thread_kill
         @killed = true
@@ -445,7 +400,6 @@ class Thread
   end
 
   def kill
-    @dying = true
     @sleep = false
     Rubinius.synchronize(self) do
       kill_prim
@@ -457,9 +411,8 @@ class Thread
   alias_method :terminate, :kill
 
   def value
-    join_inner do
-      @killed ? nil : @result
-    end
+    join
+    @killed ? nil : @result
   end
 
   def active_exception

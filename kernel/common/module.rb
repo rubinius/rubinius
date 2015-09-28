@@ -130,6 +130,7 @@ class Module
   end
 
   def private_constant(*names)
+    names = names.map(&:to_sym)
     unknown_constants = names - @constant_table.keys
     if unknown_constants.size > 0
       raise NameError, "#{unknown_constants.size > 1 ? 'Constants' : 'Constant'} #{unknown_constants.map{|e| "#{name}::#{e}"}.join(', ')} undefined"
@@ -141,6 +142,7 @@ class Module
   end
 
   def public_constant(*names)
+    names = names.map(&:to_sym)
     unknown_constants = names - @constant_table.keys
     if unknown_constants.size > 0
       raise NameError, "#{unknown_constants.size > 1 ? 'Constants' : 'Constant'} #{unknown_constants.map{|e| "#{name}::#{e}"}.join(', ')} undefined"
@@ -165,7 +167,7 @@ class Module
 
     mod = self
     while mod
-      if entry = mod.method_table.lookup(name)
+      if mod == mod.origin && entry = mod.method_table.lookup(name)
         break if entry.visibility == :undef
 
         if meth = entry.method
@@ -190,7 +192,7 @@ class Module
 
     mod = self
     while mod
-      if entry = mod.method_table.lookup(name)
+      if mod == mod.origin && entry = mod.method_table.lookup(name)
         vis = entry.visibility
         break if vis == :undef
 
@@ -293,7 +295,7 @@ class Module
     mod = self
 
     while mod
-      if entry = mod.method_table.lookup(sym.to_sym)
+      if mod == mod.origin && entry = mod.method_table.lookup(sym.to_sym)
         mod = mod.module if trim_im and mod.kind_of? Rubinius::IncludedModule
         return [mod, entry]
       end
