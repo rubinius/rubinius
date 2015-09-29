@@ -459,6 +459,11 @@ class IO
       ensure_open
       FFI::Platform::POSIX.isatty(@descriptor) == 1
     end
+    
+    def inspect
+      stat = Stat.fstat(@descriptor)
+      "fd [#{descriptor}], mode [#{@mode}], total_size [#{@total_size}], offset [#{@offset}], eof [#{@eof}], stat.size [#{stat.size}], written? [#{@written}]"
+    end
   end # class FileDescriptor
 
   class BufferedFileDescriptor < FileDescriptor
@@ -700,6 +705,7 @@ class IO
 
   attr_accessor :external
   attr_accessor :internal
+  attr_accessor :fd # FIXME: just for debugging
   
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
@@ -1718,7 +1724,7 @@ class IO
       buffer = "".force_encoding(Encoding::ASCII_8BIT)
       separator_size = @separator.bytesize
 
-      until buffer.size == 0 && @io.eof?
+      begin
         if buffer.size == 0
           buffer = @io.read(READ_SIZE)
         end
@@ -1754,7 +1760,7 @@ class IO
           str << buffer
           buffer.clear
         end
-      end
+      end until buffer.size == 0 && @io.eof?
 
       str << buffer
 
@@ -1804,7 +1810,7 @@ class IO
       #TODO: implement ignoring encoding with negative limit
       wanted = limit = @limit.abs
 
-      until buffer.size == 0 && @io.eof?
+      begin
         if buffer.size == 0
           buffer = @io.read(READ_SIZE)
         end
@@ -1853,7 +1859,7 @@ class IO
             buffer.clear
           end
         end
-      end
+      end until buffer.size == 0 && @io.eof?
 
       unless str.empty?
         str = IO.read_encode(@io, str)
@@ -1867,9 +1873,9 @@ class IO
     def read_all
       str = ""
 
-      until @io.eof?
+      begin
         str << @io.read
-      end
+      end until @io.eof?
 
       unless str.empty?
         str = IO.read_encode(@io, str)
@@ -1884,7 +1890,7 @@ class IO
       str = ""
       wanted = limit = @limit.abs
 
-      until @io.eof?
+      begin
         str << @io.read(wanted)
 
         str = try_to_force_encoding(@io, str)
@@ -1894,7 +1900,7 @@ class IO
         yield str
 
         str = ""
-      end
+      end until @io.eof?
 
       unless str.empty?
         str = IO.read_encode(@io, str)
@@ -2175,7 +2181,7 @@ class IO
     return if eof?
 
     char = ""
-    until eof?
+    begin
       char.force_encoding Encoding::ASCII_8BIT
       char << read(1)
 
@@ -2183,7 +2189,7 @@ class IO
       if char.chr_at(0)
         return IO.read_encode self, char
       end
-    end
+    end until eof?
 
     return nil
   end
@@ -2409,11 +2415,11 @@ class IO
   # If the buffer is already exhausted, returns +""+.
   def read_all
     str = ""
-    until eof?
+    begin
       buffer = ""
       @fd.read(nil, buffer)
       str << buffer
-    end
+    end until eof?
 
     str
   end
