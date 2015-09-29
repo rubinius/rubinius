@@ -1533,19 +1533,18 @@ failed: /* try next '*' position */
 
   FDSet* FDSet::create(STATE) {
     FDSet* fdset = state->new_object<FDSet>(G(fdset));
-    fdset->actual_set = (fd_set*)malloc(sizeof(fd_set));
     return fdset;
   }
   
   Object* FDSet::zero(STATE) {
-    FD_ZERO(actual_set);
+    FD_ZERO((fd_set*)descriptor_set);
     return cTrue;
   }
   
   Object* FDSet::set(STATE, Fixnum* descriptor) {
     native_int fd = descriptor->to_native();
     
-    FD_SET((int_fd_t)fd, actual_set);
+    FD_SET((int_fd_t)fd, (fd_set*)descriptor_set);
     
     return cTrue;
   }
@@ -1553,7 +1552,7 @@ failed: /* try next '*' position */
   Object* FDSet::is_set(STATE, Fixnum* descriptor) {
     native_int fd = descriptor->to_native();
     
-    if (FD_ISSET(fd, actual_set)) {
+    if (FD_ISSET(fd, (fd_set*)descriptor_set)) {
       return cTrue;
     }
     else {

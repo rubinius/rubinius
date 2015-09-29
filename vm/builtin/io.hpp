@@ -213,7 +213,7 @@ namespace rubinius {
     const static object_type type = FDSetType;
     
   private:
-    fd_set* actual_set;
+    uint8_t descriptor_set[sizeof(fd_set)];
     
   public:
   
@@ -235,7 +235,11 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      Info(object_type type) : TypeInfo(type) { }
+      void auto_mark(Object* obj, ObjectMark& mark) { }
+      void set_field(STATE, Object* target, size_t index, Object* val) { }
+      Object* get_field(STATE, Object* target, size_t index) { return cNil; }
+      void populate_slot_locations() { }
     };
   };
   
