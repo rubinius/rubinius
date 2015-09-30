@@ -159,6 +159,14 @@ module FFI
         @fields.each { |field| io.puts field.to_config(@name) }
       end
 
+      def write_class(io)
+        layout = generate_layout.gsub(/\n/, '').squeeze(' ')
+        struct_name = @struct_name.split(' ').last.capitalize + "_t"
+        struct_class = "class #{struct_name} < FFI::Struct; #{layout}; end"
+
+        io.puts "rbx.platform.#{@name}.class = #{struct_class}"
+      end
+
       def generate_layout
         buf = ""
 
