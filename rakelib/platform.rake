@@ -241,6 +241,22 @@ file 'runtime/platform.conf' => deps do |task|
       io_constants.each { |c| cg.const c }
     end.write_constants(f)
 
+    # Not available on all platforms. Try to load these constants anyway.
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.advise' do |cg|
+      cg.include 'fcntl.h'
+      
+      advise_constants = %w[
+        POSIX_FADV_NORMAL
+        POSIX_FADV_SEQUENTIAL
+        POSIX_FADV_RANDOM
+        POSIX_FADV_WILLNEED
+        POSIX_FADV_DONTNEED
+        POSIX_FADV_NOREUSE
+      ]
+      
+      advise_constants.each { |c| cg.const c }
+    end.write_constants(f)
+
     # Only constants needed by core are added here
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.fcntl' do |cg|
       cg.include 'fcntl.h'
