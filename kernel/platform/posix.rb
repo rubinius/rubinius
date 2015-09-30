@@ -60,6 +60,7 @@ module FFI::Platform::POSIX
   attach_function :munmap,      [:pointer, :size_t], :int
   attach_function :getpagesize, [], :int
   attach_function :shutdown,    [:int, :int], :int
+  attach_function :posix_fadvise, [:int, :off_t, :off_t, :int], :int
 
   #   inspecting
   attach_function :isatty,   [:int], :int

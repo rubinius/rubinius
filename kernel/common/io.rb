@@ -30,6 +30,15 @@ class IO
   F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
   FD_CLOEXEC = Rubinius::Config['rbx.platform.fcntl.FD_CLOEXEC']
   O_CLOEXEC = Rubinius::Config['rbx.platform.file.O_CLOEXEC']
+  
+  # Not available on all platforms, so these constants may be nil
+  POSIX_FADV_NORMAL     = Rubinius::Config['rbx.platform.advise.POSIX_FADV_NORMAL']
+  POSIX_FADV_SEQUENTIAL = Rubinius::Config['rbx.platform.advise.POSIX_FADV_SEQUENTIAL']
+  POSIX_FADV_RANDOM     = Rubinius::Config['rbx.platform.advise.POSIX_FADV_RANDOM']
+  POSIX_FADV_WILLNEED   = Rubinius::Config['rbx.platform.advise.POSIX_FADV_WILLNEED']
+  POSIX_FADV_DONTNEED   = Rubinius::Config['rbx.platform.advise.POSIX_FADV_DONTNEED']
+  POSIX_FADV_NOREUSE    = Rubinius::Config['rbx.platform.advise.POSIX_FADV_NOREUSE']
+  
 
   Stat = Rubinius::Stat
 
@@ -1549,11 +1558,23 @@ class IO
     unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
       raise NotImplementedError, "Unsupported advice: #{advice}"
     end
+    
+    advice = case advice
+    when :normal; POSIX_FADV_NORMAL
+    when :sequential; POSIX_FADV_SEQUENTIAL
+    when :random; POSIX_FADV_RANDOM
+    when :willneed; POSIX_FADV_WILLNEED
+    when :dontneed; POSIX_FADV_DONTNEED
+    when :noreuse; POSIX_FADV_NOREUSE
+    end
 
     offset = Rubinius::Type.coerce_to offset, Integer, :to_int
     len = Rubinius::Type.coerce_to len, Integer, :to_int
 
-    Rubinius.primitive :io_advise
+    if FFI.call_failed?(FFI::Platform::POSIX.posix_fadvise(descriptor, offset, len, advice))
+      Errno.handle("posix_fadvise(2) failed")
+    end
+    
     nil
   end
 
