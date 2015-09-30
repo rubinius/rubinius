@@ -655,8 +655,9 @@ class IO
       highest = -1
       fd_set = FDSet.new
       fd_set.zero
-      
+            
       array.each do |io|
+        io = io[1] if io.is_a?(Array)
         descriptor = io.descriptor
         
         if descriptor >= MAX_FD
@@ -682,10 +683,10 @@ class IO
     end
     
     def self.select(readables, writables, errorables, timeout)
-      read_set, highest_read_fd = fd_set_from_array(readables)
-      write_set, highest_write_fd = fd_set_from_array(writables)
-      error_set, highest_err_fd = fd_set_from_array(errorables)
-      max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].max
+      read_set, highest_read_fd = readables.nil? ? [nil, nil] : fd_set_from_array(readables)
+      write_set, highest_write_fd = writables.nil? ? [nil, nil] : fd_set_from_array(writables)
+      error_set, highest_err_fd = errorables.nil? ? [nil, nil] : fd_set_from_array(errorables)
+      max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].compact.max
       
       time_limit, now = make_timeval_timeout(timeout)
       
@@ -1338,13 +1339,13 @@ class IO
 
     if readables
       readables =
-      Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
+      readables.to_ary.map do |obj|
         if obj.kind_of? IO
           raise IOError, "closed stream" if obj.closed?
           return [[obj],[],[]] unless obj.buffer_empty? # FIXME: eliminated buffer_empty? so what do we check here?
           obj
         else
-          io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+          io = obj.to_io
           raise IOError, "closed stream" if io.closed?
           [obj, io]
         end
@@ -1353,12 +1354,12 @@ class IO
 
     if writables
       writables =
-      Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
+      writables.to_ary.map do |obj|
         if obj.kind_of? IO
           raise IOError, "closed stream" if obj.closed?
           obj
         else
-          io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+          io = obj.to_io
           raise IOError, "closed stream" if io.closed?
           [obj, io]
         end
@@ -1367,12 +1368,12 @@ class IO
 
     if errorables
       errorables =
-      Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
+      errorables.to_ary.map do |obj|
         if obj.kind_of? IO
           raise IOError, "closed stream" if obj.closed?
           obj
         else
-          io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+          io = obj.to_io
           raise IOError, "closed stream" if io.closed?
           [obj, io]
         end
