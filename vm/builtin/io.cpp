@@ -1560,20 +1560,11 @@ failed: /* try next '*' position */
       return cFalse;
     }
   }
-  
-#define READ(type, ptr) (*((type*)(ptr)))
 
   Object* FDSet::to_set(STATE) {
-	Object* ret;
+	void *ptr = (void*)&descriptor_set;
 
-	void *lptr = READ(void*, descriptor_set);
-	if(!lptr) {
-	  ret = cNil;
-	} else {
-	  ret = Pointer::create(state, lptr);
-	}
-
-	return ret;
+	return Pointer::create(state, ptr);
   }
   
 }; // ends namespace rubinius
