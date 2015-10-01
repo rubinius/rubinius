@@ -650,9 +650,9 @@ class IO
         raise PrimitiveFailure, "FDSet.to_set failed"
       end
     end
-    
-    MAX_FD = 1024
-    
+
+    FD_SETSIZE = Rubinius::Config['rbx.platform.select.FD_SETSIZE']
+
     def self.fd_set_from_array(array)
       highest = -1
       fd_set = FDSet.new
@@ -662,13 +662,16 @@ class IO
         io = io[1] if io.is_a?(Array)
         descriptor = io.descriptor
         
-        if descriptor >= MAX_FD
+        if descriptor >= FD_SETSIZE
           raise IOError
-        elsif descriptor >= 0
+        end
+
+        if descriptor >= 0
+          highest = descriptor > highest ? descriptor : highest
           fd_set.set(descriptor)
         end
       end
-      
+
       return [fd_set, highest]
     end
 
@@ -738,13 +741,18 @@ class IO
       end
 
       time_limit, future = make_timeval_timeout(timeout)
+      read_set = read_set ? read_set.to_set : nil
+      write_set = write_set ? write_set.to_set : nil
+      error_set = error_set ? error_set.to_set : nil
+      #p FFI::Pointer.new(read_set).get_bytes(0, 128)
+      #read_set = FFI::MemoryPointer.new(:uint8, 128)
 
       loop do
-        if FFI.called_failed?(events = FFI::Platform::POSIX.select(max_fd, 
-                                                                    read_set ? read_set.to_set : nil, 
-                                                                    write_set ? write_set.to_set : nil, 
-                                                                    error_set ? error_set.to_set : nil, 
-                                                                    time_limit))
+        if FFI.call_failed?(events = FFI::Platform::POSIX.select(max_fd + 1,
+                                                                    read_set,
+                                                                    nil,
+                                                                    nil,
+                                                                    nil))
 
           if Errno::EAGAIN::Errno == Errno.errno || Errno::EINTR::Errno == Errno.errno
             # return nil if async_interruption?
@@ -758,6 +766,9 @@ class IO
       
       return nil if events.zero?
       
+      # this will blow up because read/write/error_set were all reset to fd_sets instead
+      # of being an FDSet instance. Fix after debugging why #select is SEGVing.
+
       output_fds = []
       output_fds << collect_set_fds(readables, read_set)
       output_fds << collect_set_fds(writables, write_set)
