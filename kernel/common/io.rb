@@ -622,6 +622,8 @@ class IO
   
   # Encapsulates all of the logic necessary for handling #select.
   class Select
+    #eval(Rubinius::Config['rbx.platform.timeval.class'])
+
     class FDSet
       def self.new
         Rubinius.primitive :fdset_allocate
@@ -669,33 +671,84 @@ class IO
       
       return [fd_set, highest]
     end
-    
+
     def self.collect_set_fds(array, fd_set)
+      return [] unless fd_set
       array.select { |io| fd_set.set?(io.descriptor) || io.descriptor < 0 }
     end
-    
-    def self.make_timeout(time)
-      
+
+    def self.timer_add(time1, time2, result)
+      result[:tv_sec] = time1[:tv_sec] + time2[:tv_sec]
+      result[:tv_usec] = time1[:tv_usec] + time2[:tv_usec]
+
+      if result[:tv_usec] >= 1_000_000
+        result[:tv_sec] += 1
+        result[:tv_usec] -= 1_000_000
+      end
     end
-    
-    def self.reset_timeout(limit, now)
-      
+
+    def self.timer_sub(time1, time2, result)
+      result[:tv_sec] = time1[:tv_sec] - time2[:tv_sec]
+      result[:tv_usec] = time1[:tv_usec] - time2[:tv_usec]
+
+      if result[:tv_usec] < 0
+        result[:tv_sec] -= 1
+        result[:tv_usec] += 1_000_000
+      end
     end
-    
+
+    def self.make_timeval_timeout(timeout)
+      limit = Timeval_t.new
+      future = Timeval_t.new
+
+      if timeout
+        limit[:tv_sec] = (timeout / 1_000_000.0).to_i
+        limit[:tv_usec] = (timeout % 1_000_000.0)
+
+        # Get current time to be used if select is interrupted and we have to recalculate the sleep time
+        if FFI.call_failed?(FFI::Platform::POSIX.gettimeofday(future, nil))
+          Errno.handle("gettimeofday(2) failed")
+        end
+
+        timer_add(future, limit, future)
+      end
+
+      [limit, future]
+    end
+
+    def self.reset_timeval_timeout(time_limit, future)
+      now = Timeval_t.new
+
+      if FFI.call_failed?(FFI::Platform::POSIX.gettimeofday(now, nil))
+        Errno.handle("gettimeofday(2) failed")
+      end
+
+      timer_sub(future, now, time_limit)
+    end
+
     def self.select(readables, writables, errorables, timeout)
       read_set, highest_read_fd = readables.nil? ? [nil, nil] : fd_set_from_array(readables)
       write_set, highest_write_fd = writables.nil? ? [nil, nil] : fd_set_from_array(writables)
       error_set, highest_err_fd = errorables.nil? ? [nil, nil] : fd_set_from_array(errorables)
       max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].compact.max
       
-      time_limit, now = make_timeval_timeout(timeout)
-      
+      unless const_defined?(:Timeval_t)
+        # This is a complete hack.
+        IO.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
+      end
+
+      time_limit, future = make_timeval_timeout(timeout)
+
       loop do
-        if FFI.called_failed?(events = FFI::Platform::POSIX.select(max_fd, read_set, write_set, error_set, time_limit))
+        if FFI.called_failed?(events = FFI::Platform::POSIX.select(max_fd, 
+                                                                    read_set ? read_set.to_set : nil, 
+                                                                    write_set ? write_set.to_set : nil, 
+                                                                    error_set ? error_set.to_set : nil, 
+                                                                    time_limit))
 
           if Errno::EAGAIN::Errno == Errno.errno || Errno::EINTR::Errno == Errno.errno
             # return nil if async_interruption?
-            time_limit, now = reset_timeval_timeout(time_limit, now)
+            time_limit = reset_timeval_timeout(time_limit, future)
             continue
           end
           
