@@ -4,6 +4,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/ffi_pointer.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
 #include "builtin/string.hpp"
@@ -1560,8 +1561,19 @@ failed: /* try next '*' position */
     }
   }
   
+#define READ(type, ptr) (*((type*)(ptr)))
+
   Object* FDSet::to_set(STATE) {
-	  return ((Object*)descriptor_set);
+	Object* ret;
+
+	void *lptr = READ(void*, descriptor_set);
+	if(!lptr) {
+	  ret = cNil;
+	} else {
+	  ret = Pointer::create(state, lptr);
+	}
+
+	return ret;
   }
   
 }; // ends namespace rubinius
