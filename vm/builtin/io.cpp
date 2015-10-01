@@ -1561,7 +1561,7 @@ failed: /* try next '*' position */
   }
   
   Object* FDSet::to_set(STATE) {
-	  return ((Object*)&descriptor_set);
+	  return ((Object*)descriptor_set);
   }
   
 }; // ends namespace rubinius
