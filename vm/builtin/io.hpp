@@ -232,6 +232,9 @@ namespace rubinius {
     
     // Rubinius.primitive :fdset_set
     Object* set(STATE, Fixnum* descriptor);
+	
+	// Rubinius.primitive :fdset_to_set
+	Object* to_set(STATE);
 
     class Info : public TypeInfo {
     public:
