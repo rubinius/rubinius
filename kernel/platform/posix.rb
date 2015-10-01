@@ -52,7 +52,7 @@ module FFI::Platform::POSIX
   attach_function :ftruncate,   [:int, :off_t], :int
   attach_function :truncate,    [:string, :off_t], :int
   attach_function :write,       [:int, :pointer, :size_t], :ssize_t
-  attach_function :select,      [:int, :ulong_long, :ulong_long, :ulong_long, :pointer], :int
+  attach_function :select,      [:int, :pointer, :pointer, :pointer, :pointer], :int
   
   # Other I/O
   attach_function :pipe,        [:pointer], :int
