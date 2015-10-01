@@ -240,6 +240,16 @@ file 'runtime/platform.conf' => deps do |task|
 
       io_constants.each { |c| cg.const c }
     end.write_constants(f)
+    
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.select' do |cg|
+      cg.include 'sys/select.h'
+      
+      select_constants = %w[
+        FD_SETSIZE
+      ]
+      
+      select_constants.each { |c| cg.const c }
+    end.write_constants(f)
 
     # Not available on all platforms. Try to load these constants anyway.
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.advise' do |cg|
