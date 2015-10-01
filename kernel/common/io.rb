@@ -741,18 +741,21 @@ class IO
       end
 
       time_limit, future = make_timeval_timeout(timeout)
-      read_set = read_set ? read_set.to_set : nil
-      write_set = write_set ? write_set.to_set : nil
-      error_set = error_set ? error_set.to_set : nil
-      #p FFI::Pointer.new(read_set).get_bytes(0, 128)
-      #read_set = FFI::MemoryPointer.new(:uint8, 128)
+      # debugging only...
+      File.open("/tmp/select", 'w+') { |file| 
+        set = read_set.to_set
+        file.puts set.class
+        file.puts set.inspect
+        file.puts set.address
+        #file.puts(set.read_array_of_char(128)) 
+      }
 
       loop do
         if FFI.call_failed?(events = FFI::Platform::POSIX.select(max_fd + 1,
-                                                                    read_set,
-                                                                    nil,
-                                                                    nil,
-                                                                    nil))
+                                                                    read_set ? read_set.to_set : nil,
+                                                                    write_set ? write_set.to_set : nil,
+                                                                    error_set ? error_set.to_set : nil,
+                                                                    time_limit))
 
           if Errno::EAGAIN::Errno == Errno.errno || Errno::EINTR::Errno == Errno.errno
             # return nil if async_interruption?
