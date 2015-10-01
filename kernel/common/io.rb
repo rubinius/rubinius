@@ -677,7 +677,19 @@ class IO
 
     def self.collect_set_fds(array, fd_set)
       return [] unless fd_set
-      array.select { |io| fd_set.set?(io.descriptor) || io.descriptor < 0 }
+      array.map do |io|
+        key, io = if io.is_a?(Array)
+          [io[0], io[1]]
+        else
+          [io, io]
+        end
+
+        if fd_set.set?(io.descriptor) || io.descriptor < 0
+          key
+        else
+          nil
+        end
+      end.compact
     end
 
     def self.timer_add(time1, time2, result)
@@ -742,14 +754,14 @@ class IO
 
       time_limit, future = make_timeval_timeout(timeout)
       # debugging only...
-      File.open("/tmp/select", 'w+') { |file| 
-        set = read_set.to_set
-        file.puts set.class
-        file.puts set.inspect
-        file.puts set.address
-        #file.puts(set.read_array_of_char(128)) 
-      }
+#      file = File.open("/tmp/select", 'w+')
+#        set = read_set.to_set
+#        file.puts set.class
+#        file.puts set.inspect
+#        file.puts(sprintf("0x%x", set.address))
+#        set.read_array_of_char(10).each { |char| file.puts(sprintf("%b ", char)) }
 
+      events = 0
       loop do
         if FFI.call_failed?(events = FFI::Platform::POSIX.select(max_fd + 1,
                                                                     read_set ? read_set.to_set : nil,
@@ -765,12 +777,11 @@ class IO
           
           Errno.handle("select(2) failed")
         end
+
+        break
       end
       
       return nil if events.zero?
-      
-      # this will blow up because read/write/error_set were all reset to fd_sets instead
-      # of being an FDSet instance. Fix after debugging why #select is SEGVing.
 
       output_fds = []
       output_fds << collect_set_fds(readables, read_set)
