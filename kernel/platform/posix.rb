@@ -121,5 +121,8 @@ module FFI::Platform::POSIX
   # related to stat()
   attach_function :major, 'ffi_major', [:dev_t], :dev_t
   attach_function :minor, 'ffi_minor', [:dev_t], :dev_t
+  
+  # time
+  attach_function :gettimeofday, [:pointer, :pointer], :int
 end
 end
