@@ -21,12 +21,14 @@ describe "IO#reopen" do
   it "calls #to_io to convert an object" do
     obj = mock("io")
     obj.should_receive(:to_io).and_return(@other_io)
+    obj.stub!(:pos).and_return(0)
     @io.reopen obj
   end
 
   it "changes the class of the instance to the class of the object returned by #to_io" do
     obj = mock("io")
     obj.should_receive(:to_io).and_return(@other_io)
+    obj.stub!(:pos).and_return(0)
     @io.reopen(obj).should be_an_instance_of(File)
   end
 
