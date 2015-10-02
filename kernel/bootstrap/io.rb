@@ -70,10 +70,10 @@ class IO
 #    raise PrimitiveFailure, "IO#read_if_available primitive failed"
 #  end
 
-  def raw_write(str)
-    Rubinius.primitive :io_write_nonblock
-    raise PrimitiveFailure, "IO#write_nonblock primitive failed"
-  end
+#  def raw_write(str)
+#    Rubinius.primitive :io_write_nonblock
+#    raise PrimitiveFailure, "IO#write_nonblock primitive failed"
+#  end
 
   def reopen_io(other)
     Rubinius.primitive :io_reopen
