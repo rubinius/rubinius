@@ -24,4 +24,17 @@ module Errno
   def self.eql?(code)
     FFI.errno == code
   end
+
+  def self.raise_waitreadable(message=nil)
+    raise IO::EAGAINWaitReadable, message
+  end
+
+  def self.raise_eagain(message=nil)
+    raise_errno(message, Errno::EAGAIN::Errno)
+  end
+
+  def self.raise_errno(message, errno)
+    raise SystemCallError.new(message, errno)
+  end
+  private :raise_errno
 end
