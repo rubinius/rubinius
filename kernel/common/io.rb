@@ -384,11 +384,10 @@ class IO
 
       if FFI.call_failed?(FFI::Platform::POSIX.dup2(other_fd, current_fd))
         Errno.handle("reopen")
-        return nil
       end
 
-      #set_mode
-      #reset_positioning
+      set_mode
+      reset_positioning
 
       return true
     end
@@ -411,8 +410,8 @@ class IO
         FFI::Platform::POSIX.close(other_fd)
       end
 
-      #set_mode
-      #reset_positioning
+      set_mode
+      reset_positioning
       
       return true
     end
@@ -433,7 +432,7 @@ class IO
 
     def set_mode
       if IO::F_GETFL
-        if FFI.called_failed?(acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0))
+        if FFI.call_failed?(acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0))
           Errno.handle("failed")
         end
       else
@@ -2815,6 +2814,8 @@ class IO
       if io.respond_to?(:path)
         @path = io.path
       end
+      
+      seek(other.pos, SEEK_SET)
     else
       flush unless closed?
 
