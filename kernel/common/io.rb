@@ -526,6 +526,29 @@ class IO
       determine_eof
       return output_string
     end
+
+    def read_only_buffer(length)
+      unless @unget_buffer.empty?
+        if length >= @unget_buffer.size
+          @offset += @unget_buffer.size
+          length -= @unget_buffer.size
+
+          str = @unget_buffer.inject("".force_encoding(Encoding::ASCII_8BIT)) { |sum, val| val.chr + sum }
+          buffer_reset
+          [str, length]
+        else
+          @offset += @unget_buffer.size
+          str = "".force_encoding(Encoding::ASCII_8BIT)
+
+          length.times do
+            str << @unget_buffer.pop
+          end
+          [str, 0]
+        end
+      else
+        [nil, length]
+      end
+    end
     
     def seek(bytes, whence)
       # @offset may not match actual file pointer if there were calls to #unget.
@@ -739,6 +762,21 @@ class IO
       end
 
       timer_sub(future, now, time_limit)
+    end
+
+    def self.readable_events(read_fd)
+      fd_set = FDSet.new
+      fd_set.zero
+      fd_set.set(read_fd)
+
+      unless const_defined?(:Timeval_t)
+        # This is a complete hack.
+        Select.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
+      end
+
+      timer = Timeval_t.new # sets fields to zero by default
+
+      FFI::Platform::POSIX.select(read_fd + 1, fd_set.to_set, nil, nil, timer)
     end
 
     def self.select(readables, writables, errorables, timeout)
@@ -2501,6 +2539,36 @@ class IO
 
   private :read_all
 
+  def read_if_available(bytes)
+    return "" if bytes.zero?
+    buffer, bytes = @fd.read_only_buffer(bytes)
+
+    events = IO::Select.readable_events(descriptor)
+    if events == 0 && !buffer
+      Errno.raise_waitreadable("no data ready")
+      return ""
+    elsif events < 0 && !buffer
+      Errno.handle("read(2) failed")
+      return ""
+    elsif events == 0 && buffer
+      # we were able to read from the buffer but no more data is waiting
+      return buffer
+    end
+
+    # if we get here then we have data to read from the descriptor
+    str = ""
+    bytes_read = @fd.read(bytes, str)
+
+    if bytes_read.nil?
+      # there's a chance the read could fail even when we have data read from the buffer
+      # to return to caller
+      return (nil || buffer)
+    else
+      # combine what we read from the buffer with what we read from the descriptor
+      buffer = buffer.to_s + str
+      return buffer
+    end
+  end
   # defined in bootstrap, used here.
   private :read_if_available
 
@@ -2524,7 +2592,6 @@ class IO
 
     buffer = StringValue buffer if buffer
 
-    ##
     if str = read_if_available(size)
       buffer.replace(str) if buffer
       return str
@@ -2636,11 +2703,16 @@ class IO
 
       return buffer if size == 0
 
-      #      if @ibuffer.size > 0
-      #        data = @ibuffer.shift(size)
-      #      else
-      data = sysread(size)
-      #      end
+      data = nil
+      begin
+        data = read_nonblock(size)
+      rescue IO::WaitReadable
+        IO.select([self])
+        retry
+      rescue IO::WaitWritable
+        IO.select(nil, [self])
+        retry
+      end
 
       buffer.replace(data)
 
@@ -2648,11 +2720,18 @@ class IO
     else
       return "" if size == 0
 
-      #      if #@ibuffer.size > 0
-      #        return ##@ibuffer.shift(size)
-      #      end
+      data = nil
+      begin
+        data = read_nonblock(size)
+      rescue IO::WaitReadable
+        IO.select([self])
+        retry
+      rescue IO::WaitWritable
+        IO.select(nil, [self])
+        retry
+      end
 
-      return sysread(size)
+      return data
     end
   end
 

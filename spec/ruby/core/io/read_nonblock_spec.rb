@@ -39,6 +39,12 @@ describe "IO#read_nonblock" do
     @read.read_nonblock(1).should == "1"
   end
 
+  it "returns any buffered data in addition to reading new data" do
+    @write << "hello"
+    @read.ungetc("a")
+    @read.read_nonblock(10).should == "ahello"
+  end
+
   not_compliant_on :rubinius, :jruby do
     # TODO: Fix this.
     #
