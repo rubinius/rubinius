@@ -713,12 +713,12 @@ class IO
     end
 
     def self.make_timeval_timeout(timeout)
-      limit = Timeval_t.new
-      future = Timeval_t.new
-
       if timeout
+        limit = Timeval_t.new
+        future = Timeval_t.new
+
         limit[:tv_sec] = (timeout / 1_000_000.0).to_i
-        limit[:tv_usec] = (timeout % 1_000_000.0)
+        limit[:tv_usec] = (timeout % 1_000_000.0).to_i
 
         # Get current time to be used if select is interrupted and we have to recalculate the sleep time
         if FFI.call_failed?(FFI::Platform::POSIX.gettimeofday(future, nil))
@@ -745,7 +745,7 @@ class IO
       read_set, highest_read_fd = readables.nil? ? [nil, nil] : fd_set_from_array(readables)
       write_set, highest_write_fd = writables.nil? ? [nil, nil] : fd_set_from_array(writables)
       error_set, highest_err_fd = errorables.nil? ? [nil, nil] : fd_set_from_array(errorables)
-      max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].compact.max
+      max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].compact.max || -1
       
       unless const_defined?(:Timeval_t)
         # This is a complete hack.
@@ -753,13 +753,6 @@ class IO
       end
 
       time_limit, future = make_timeval_timeout(timeout)
-      # debugging only...
-#      file = File.open("/tmp/select", 'w+')
-#        set = read_set.to_set
-#        file.puts set.class
-#        file.puts set.inspect
-#        file.puts(sprintf("0x%x", set.address))
-#        set.read_array_of_char(10).each { |char| file.puts(sprintf("%b ", char)) }
 
       events = 0
       loop do
@@ -780,7 +773,7 @@ class IO
 
         break
       end
-      
+
       return nil if events.zero?
 
       output_fds = []
@@ -788,6 +781,27 @@ class IO
       output_fds << collect_set_fds(writables, write_set)
       output_fds << collect_set_fds(errorables, error_set)
       return output_fds
+    end
+
+    def self.validate_and_convert_argument(objects)
+      if objects
+        raise TypeError, "Argument must be an Array" unless objects.respond_to?(:to_ary)
+        objects =
+          objects.to_ary.map do |obj|
+          if obj.kind_of? IO
+            raise IOError, "closed stream" if obj.closed?
+            obj
+          else
+            raise TypeError unless obj.respond_to?(:to_io)
+            io = obj.to_io
+            raise TypeError unless io
+            raise IOError, "closed stream" if io.closed?
+            [obj, io]
+          end
+        end
+      end
+
+      objects
     end
   end # class Select
 
@@ -1415,48 +1429,9 @@ class IO
       timeout = Integer(timeout * 1_000_000)
     end
 
-    if readables
-      readables =
-      readables.to_ary.map do |obj|
-        if obj.kind_of? IO
-          raise IOError, "closed stream" if obj.closed?
-          return [[obj],[],[]] unless obj.buffer_empty? # FIXME: eliminated buffer_empty? so what do we check here?
-          obj
-        else
-          io = obj.to_io
-          raise IOError, "closed stream" if io.closed?
-          [obj, io]
-        end
-      end
-    end
-
-    if writables
-      writables =
-      writables.to_ary.map do |obj|
-        if obj.kind_of? IO
-          raise IOError, "closed stream" if obj.closed?
-          obj
-        else
-          io = obj.to_io
-          raise IOError, "closed stream" if io.closed?
-          [obj, io]
-        end
-      end
-    end
-
-    if errorables
-      errorables =
-      errorables.to_ary.map do |obj|
-        if obj.kind_of? IO
-          raise IOError, "closed stream" if obj.closed?
-          obj
-        else
-          io = obj.to_io
-          raise IOError, "closed stream" if io.closed?
-          [obj, io]
-        end
-      end
-    end
+    readables = IO::Select.validate_and_convert_argument(readables)
+    writables = IO::Select.validate_and_convert_argument(writables)
+    errorables = IO::Select.validate_and_convert_argument(errorables)
 
     IO::Select.select(readables, writables, errorables, timeout)
   end
