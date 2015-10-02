@@ -30,6 +30,7 @@ class IO
   F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
   FD_CLOEXEC = Rubinius::Config['rbx.platform.fcntl.FD_CLOEXEC']
   O_CLOEXEC = Rubinius::Config['rbx.platform.file.O_CLOEXEC']
+  O_NONBLOCK = Rubinius::Config['rbx.platform.file.O_NONBLOCK']
   
   # Not available on all platforms, so these constants may be nil
   POSIX_FADV_NORMAL     = Rubinius::Config['rbx.platform.advise.POSIX_FADV_NORMAL']
@@ -432,13 +433,31 @@ class IO
 
     def set_mode
       if IO::F_GETFL
-        acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0)
-        Errno.handle("failed") if acc_mode < 0
+        if FFI.called_failed?(acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0))
+          Errno.handle("failed")
+        end
       else
         acc_mode = 0
       end
 
       @mode = acc_mode
+    end
+    
+    def set_nonblock
+      if IO::F_GETFL
+        if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0))
+          Errno.handle("fcntl(2) failed")
+        end
+      else
+        flags = 0
+      end
+      
+      if (flags & O_NONBLOCK) == 0
+        flags |= O_NONBLOCK
+        if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_SETFL, flags))
+          Errno.handle("fcntl(2) failed")
+        end
+      end
     end
 
     def ftruncate(offset)
@@ -586,6 +605,30 @@ class IO
     def reset_positioning(*args)
       @unget_buffer = []
       super
+    end
+    
+    def write_nonblock(str)
+      buffer_reset
+      set_nonblock
+      
+      buf_size = str.bytesize
+      left = buf_size
+
+      buffer = FFI::MemoryPointer.new(left)
+      buffer.write_string(str)
+      error = false
+
+      if left > 0
+        if FFI.call_failed?(bytes_written = FFI::Platform::POSIX.write(@descriptor, buffer, left))
+          Errno.handle("write_nonblock")
+        end
+
+        left -= bytes_written
+        buffer += bytes_written
+        @offset += bytes_written
+      end
+
+      return(buf_size - left)
     end
 
     def unget(byte)
@@ -3153,9 +3196,7 @@ class IO
     data = String data
     return 0 if data.bytesize == 0
 
-    #    @ibuffer.unseek!(self) unless @sync
-
-    raw_write(data)
+    @fd.write_nonblock(data)
   end
 
   def close
