@@ -33,15 +33,15 @@ class IO
   #    raise PrimitiveFailure, "IO.open_with_mode primitive failed"
   #  end
 
-  def self.connect_pipe(lhs, rhs)
-    Rubinius.primitive :io_connect_pipe
-    raise PrimitiveFailure, "IO.connect_pipe primitive failed"
-  end
-
-  def self.select_primitive(readables, writables, errorables, timeout)
-    Rubinius.primitive :io_select
-    raise IOError, "Unable to select on IO set (descriptor too big?)"
-  end
+#  def self.connect_pipe(lhs, rhs)
+#    Rubinius.primitive :io_connect_pipe
+#    raise PrimitiveFailure, "IO.connect_pipe primitive failed"
+#  end
+#
+#  def self.select_primitive(readables, writables, errorables, timeout)
+#    Rubinius.primitive :io_select
+#    raise IOError, "Unable to select on IO set (descriptor too big?)"
+#  end
 
   def self.fnmatch(pattern, path, flags)
     Rubinius.primitive :io_fnmatch
@@ -60,10 +60,10 @@ class IO
   #    raise PrimitiveFailure, "IO::sysread primitive failed"
   #  end
 
-  def write2(str)
-    Rubinius.primitive :io_write
-    raise PrimitiveFailure, "IO#write primitive failed"
-  end
+#  def write2(str)
+#    Rubinius.primitive :io_write
+#    raise PrimitiveFailure, "IO#write primitive failed"
+#  end
 
 #  def read_if_available(size)
 #    Rubinius.primitive :io_read_if_available
@@ -75,44 +75,44 @@ class IO
 #    raise PrimitiveFailure, "IO#write_nonblock primitive failed"
 #  end
 
-  def reopen_io(other)
-    Rubinius.primitive :io_reopen
-    raise ArgumentError, "IO#prim_reopen only accepts an IO object"
-  end
-
-  def reopen_path(string, mode)
-    Rubinius.primitive :io_reopen_path
-
-    if mode.kind_of? Bignum
-      raise ArgumentError, "Bignum too big for mode"
-    end
-
-    reopen_path StringValue(string), Integer(mode)
-  end
+#  def reopen_io(other)
+#    Rubinius.primitive :io_reopen
+#    raise ArgumentError, "IO#prim_reopen only accepts an IO object"
+#  end
+#
+#  def reopen_path(string, mode)
+#    Rubinius.primitive :io_reopen_path
+#
+#    if mode.kind_of? Bignum
+#      raise ArgumentError, "Bignum too big for mode"
+#    end
+#
+#    reopen_path StringValue(string), Integer(mode)
+#  end
 
   #  def prim_seek(amount, whence)
   #    Rubinius.primitive :io_seek
   #    raise RangeError, "#{amount} is too big"
   #  end
 
-  def self.prim_truncate(name, offset)
-    Rubinius.primitive :io_truncate
-    raise RangeError, "#{offset} is too big"
-  end
-
-  def prim_ftruncate(offset)
-    Rubinius.primitive :io_ftruncate
-    raise RangeError, "#{amount} is too big"
-  end
+#  def self.prim_truncate(name, offset)
+#    Rubinius.primitive :io_truncate
+#    raise RangeError, "#{offset} is too big"
+#  end
+#
+#  def prim_ftruncate(offset)
+#    Rubinius.primitive :io_ftruncate
+#    raise RangeError, "#{amount} is too big"
+#  end
 
   def query(which)
     Rubinius.primitive :io_query
     raise PrimitiveFailure, "IO#query primitive failed"
   end
 
-  def reopen(other)
-    reopen_io other
-  end
+#  def reopen(other)
+#    reopen_io other
+#  end
 
   def tty?
     query :tty?
@@ -122,10 +122,10 @@ class IO
     query :ttyname
   end
 
-  def close
-    Rubinius.primitive :io_close
-    raise PrimitiveFailure, "IO#close primitive failed"
-  end
+#  def close
+#    Rubinius.primitive :io_close
+#    raise PrimitiveFailure, "IO#close primitive failed"
+#  end
 
   #
   # Close read and/or write stream of a full-duplex descriptor.
