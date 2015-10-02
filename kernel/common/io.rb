@@ -63,7 +63,7 @@ class IO
       when "socket"
         raise "cannot make socket yet"
       when "directory"
-        raise "cannot make a directory"
+        DirectoryFileDescriptor.new(fd, stat)
       when "blockSpecial"
         raise "cannot make block special"
       when "link"
@@ -108,6 +108,14 @@ class IO
 
     def self.pagesize
       @pagesize ||= FFI::Platform::POSIX.getpagesize
+    end
+
+    def self.truncate(name, offset)
+      raise RangeError, "bignum too big to convert into `long'" if offset.kind_of?(Bignum)
+
+      status = FFI::Platform::POSIX.truncate(name, offset)
+      Errno.handle("truncate(2) failed") if FFI.call_failed?(status)
+      return status
     end
 
     def self.update_max_fd(new_fd)
@@ -272,6 +280,11 @@ class IO
         left -= bytes_written
         buffer += bytes_written
         @offset += bytes_written
+
+        if @offset > @total_size
+          @total_size = @offset
+          @eof = false # only a failed read can set EOF!
+        end
       end
       
       Errno.handle("write failed") if error
@@ -466,14 +479,6 @@ class IO
 
       status = FFI::Platform::POSIX.ftruncate(descriptor, offset)
       Errno.handle("ftruncate(2) failed") if FFI.call_failed?(status)
-      return status
-    end
-
-    def truncate(name, offset)
-      # FIXME: fail if +offset+ is too large, see C++ code
-
-      status = FFI::Platform::POSIX.truncate(name, offset)
-      Errno.handle("truncate(2) failed") if FFI.call_failed?(status)
       return status
     end
 
@@ -685,6 +690,9 @@ class IO
     end
   end # class FIFOFileDescriptor
   
+  class DirectoryFileDescriptor < FileDescriptor
+  end # class DirectoryFileDescriptor
+
   # Encapsulates all of the logic necessary for handling #select.
   class Select
     #eval(Rubinius::Config['rbx.platform.timeval.class'])
