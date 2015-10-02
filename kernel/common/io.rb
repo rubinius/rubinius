@@ -749,7 +749,7 @@ class IO
       
       unless const_defined?(:Timeval_t)
         # This is a complete hack.
-        IO.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
+        Select.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
       end
 
       time_limit, future = make_timeval_timeout(timeout)
