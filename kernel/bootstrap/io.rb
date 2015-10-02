@@ -65,10 +65,10 @@ class IO
     raise PrimitiveFailure, "IO#write primitive failed"
   end
 
-  def read_if_available(size)
-    Rubinius.primitive :io_read_if_available
-    raise PrimitiveFailure, "IO#read_if_available primitive failed"
-  end
+#  def read_if_available(size)
+#    Rubinius.primitive :io_read_if_available
+#    raise PrimitiveFailure, "IO#read_if_available primitive failed"
+#  end
 
   def raw_write(str)
     Rubinius.primitive :io_write_nonblock
