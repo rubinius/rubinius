@@ -1059,8 +1059,6 @@ class IO
       options = Rubinius::Type.coerce_to options, Hash, :to_hash
     end
 
-    saved_line = $_
-
     if name[0] == ?|
       io = IO.popen(name[1..-1], "r")
       return nil unless io
@@ -1074,7 +1072,7 @@ class IO
         yield line
       end
     ensure
-      $_ = saved_line
+      $_ = nil
       io.close
     end
 
@@ -1083,8 +1081,10 @@ class IO
 
   def self.readlines(name, separator=undefined, limit=undefined, options=undefined)
     lines = []
+    saved_line = $_
     foreach(name, separator, limit, options) { |l| lines << l }
 
+    $_ = saved_line
     lines
   end
 
