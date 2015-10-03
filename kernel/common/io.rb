@@ -1985,10 +1985,12 @@ class IO
           # the pattern/separator which may be >1. therefore, add the separator size.
           count += separator_size
           bytes = count < wanted ? count : wanted
-          substring = buffer.slice!(0, bytes)
-          str << substring
+          str << buffer.slice!(0, bytes)
 
-          str = IO.read_encode(@io, str)
+          # Always read to char boundary because the +limit+ may have cut a multi-byte
+          # character in the middle. Returning such a string would have an invalid encoding.
+          buffer += (@io.read(PEEK_AHEAD_LIMIT) || '') if buffer.size < PEEK_AHEAD_LIMIT
+          str, bytes_read = read_to_char_boundary(@io, str, buffer)
           str.taint
 
           $. = @io.increment_lineno
@@ -2004,7 +2006,7 @@ class IO
             str << buffer.slice!(0, wanted)
 
             # replenish the buffer if we don't have enough bytes to satisfy the peek ahead
-            buffer += @io.read(PEEK_AHEAD_LIMIT) if buffer.size < PEEK_AHEAD_LIMIT
+            buffer += (@io.read(PEEK_AHEAD_LIMIT) || '') if buffer.size < PEEK_AHEAD_LIMIT
             str, bytes_read = read_to_char_boundary(@io, str, buffer)
             str.taint
 
@@ -2056,8 +2058,10 @@ class IO
       begin
         str << @io.read(wanted)
 
-        str = try_to_force_encoding(@io, str)
+        buffer = (@io.read(PEEK_AHEAD_LIMIT) || '')
+        str, bytes_read = read_to_char_boundary(@io, str, buffer)
         str.taint
+        @io.ungetc(buffer)
 
         $. = @io.increment_lineno
         yield str
