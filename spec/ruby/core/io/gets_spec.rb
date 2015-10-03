@@ -228,11 +228,11 @@ describe "IO#gets" do
   end
 
   it "reads limit bytes and extra bytes when limit is reached not at character boundary" do
-    [@io.gets(1), @io.gets(1)].should == ["朝", "日"]
+    [@io.gets(nil, 1), @io.gets(nil, 1)].should == ["朝", "日"]
   end
 
   it "read limit bytes and extra bytes with maximum of 16" do
-    @io.gets(7).should == "朝日\xE3" + "\x81\xE3" * 8
+    @io.gets(nil, 7).should == "朝日\xE3" + "\x81\xE3" * 8
   end
 
   after :each do
