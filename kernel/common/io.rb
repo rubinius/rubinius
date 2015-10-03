@@ -1851,7 +1851,7 @@ class IO
       if @separator
         if @separator.empty?
           @separator = "\n\n"
-          @skip = 10
+          @skip = "\n"
         end
 
         if @limit
@@ -1868,21 +1868,43 @@ class IO
       end
     end
 
-    def do_skip(buffer)
-      return 0 unless @skip
+    def read_and_yield_count_chars(str, buffer, byte_count, &block)
+      str << buffer.slice!(0, byte_count)
 
-      skip_count = 0
-      skip_count += 1 while buffer[skip_count].ord == @skip
-      if skip_count > 0
-        slice = buffer.slice!(0, skip_count)
-        slice.bytesize
+      if @limit
+        # Always read to char boundary because the +limit+ may have cut a multi-byte
+        # character in the middle. Returning such a string would have an invalid encoding.
+        buffer += (@io.read(PEEK_AHEAD_LIMIT) || '') if buffer.size < PEEK_AHEAD_LIMIT
+        str, bytes_read = read_to_char_boundary(@io, str, buffer)
       else
-        0
+        # We are confident that our +str+ ends on a char boundary
+        str = IO.read_encode(@io, str)
       end
+
+      str.taint
+      $. = @io.increment_lineno
+      skip_contiguous_chars(buffer)
+
+      # Unused bytes/chars should be saved for the next read. Since the block that we yield to
+      # may +return+ we don't want to drop the bytes that are stored in +buffer+. To save,
+      # unget them so the next read will fetch them again. This might be expensive and could
+      # potentially use a little tuning. Maybe use an +unread(bytes)+ method which just moves
+      # a pointer around. Think about this for the mmap stuff.
+      @io.ungetc(buffer)
+      buffer.clear
+
+      yield str
+    end
+
+    def read_and_yield_entire_string(str, &block)
+      str = IO.read_encode(@io, str)
+      str.taint
+      $. = @io.increment_lineno
+      yield str
     end
 
     # method A, D
-    def read_to_separator
+    def read_to_separator(&block)
       str = "".force_encoding(Encoding::ASCII_8BIT)
       buffer = "".force_encoding(Encoding::ASCII_8BIT)
       separator_size = @separator.bytesize
@@ -1899,25 +1921,7 @@ class IO
           # the pattern/separator which may be >1. therefore, add the separator size.
           count += separator_size
 
-          substring = buffer.slice!(0, count)
-          str << substring
-
-          str = IO.read_encode(@io, str)
-          str.taint
-
-          $. = @io.increment_lineno
-
-          do_skip(buffer)
-
-          # Unused bytes/chars should be saved for the next read. Since the block that we yield to
-          # may +return+ we don't want to drop the bytes that are stored in +buffer+. To save, 
-          # unget them so the next read will fetch them again. This might be expensive and could
-          # potentially use a little tuning. Maybe use an +unread(bytes)+ method which just moves
-          # a pointer around. Think about this for the mmap stuff.
-          @io.ungetc(buffer)
-          buffer.clear
-          yield str
-
+          read_and_yield_count_chars(str, buffer, count, &block)
           str = "".force_encoding(Encoding::ASCII_8BIT)
         else
           str << buffer
@@ -1928,14 +1932,82 @@ class IO
       str << buffer
 
       unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
+        read_and_yield_entire_string(str, &block)
       end
     end
 
     # method B, E
+
+    def read_to_separator_with_limit(&block)
+      str = "".force_encoding(Encoding::ASCII_8BIT)
+      buffer = "".force_encoding(Encoding::ASCII_8BIT)
+      separator_size = @separator.bytesize
+
+      #TODO: implement ignoring encoding with negative limit
+      wanted = limit = @limit.abs
+
+      begin
+        if buffer.size == 0
+          buffer = @io.read(READ_SIZE)
+        end
+
+        break unless buffer && buffer.size > 0
+
+        if count = buffer.index(@separator)
+          # #index returns a 0-based location but we want a length (so +1) and it should include
+          # the pattern/separator which may be >1. therefore, add the separator size.
+          count += separator_size
+          count = count < wanted ? count : wanted
+          read_and_yield_count_chars(str, buffer, count, &block)
+
+          str = "".force_encoding(Encoding::ASCII_8BIT)
+        else
+          if wanted < buffer.size
+            read_and_yield_count_chars(str, buffer, wanted, &block)
+            str = "".force_encoding(Encoding::ASCII_8BIT)
+          else
+            str << buffer
+            wanted -= buffer.size
+            buffer.clear
+          end
+        end
+      end until buffer.size == 0 && @io.eof?
+
+      unless str.empty?
+        read_and_yield_entire_string(str, &block)
+      end
+    end
+
+    # Method G
+    def read_all(&block)
+      str = "".force_encoding(Encoding::ASCII_8BIT)
+
+      begin
+        str << @io.read
+      end until @io.eof?
+
+      unless str.empty?
+        read_and_yield_entire_string(str, &block)
+      end
+    end
+
+    # Method H
+    def read_to_limit(&block)
+      str = "".force_encoding(Encoding::ASCII_8BIT)
+      wanted = limit = @limit.abs
+
+      begin
+        str << @io.read(wanted)
+        read_and_yield_count_chars(str, '', str.bytesize, &block)
+        str = "".force_encoding(Encoding::ASCII_8BIT)
+      end until @io.eof?
+
+      unless str.empty?
+        read_and_yield_entire_string(str, &block)
+      end
+    end
+
+    # Utility methods
 
     def try_to_force_encoding(io, str)
       str.force_encoding(io.external_encoding || Encoding.default_external)
@@ -1965,115 +2037,21 @@ class IO
       [IO.read_encode(io, str), peek_ahead]
     end
 
-    def read_to_separator_with_limit
-      str = "".force_encoding(Encoding::ASCII_8BIT)
-      buffer = "".force_encoding(Encoding::ASCII_8BIT)
-      separator_size = @separator.bytesize
+    # Advances the buffer index past any number of contiguous
+    # characters == +skip+ and throws away that data. For
+    # example, if +skip+ is ?\n and the buffer contents are
+    # "\n\n\nAbc...", the buffer will discard all chars
+    # up to 'A'.
+    def skip_contiguous_chars(buffer)
+      return 0 unless @skip
 
-      #TODO: implement ignoring encoding with negative limit
-      wanted = limit = @limit.abs
-
-      begin
-        if buffer.size == 0
-          buffer = @io.read(READ_SIZE)
-        end
-
-        break unless buffer && buffer.size > 0
-
-        if count = buffer.index(@separator)
-          # #index returns a 0-based location but we want a length (so +1) and it should include
-          # the pattern/separator which may be >1. therefore, add the separator size.
-          count += separator_size
-          bytes = count < wanted ? count : wanted
-          str << buffer.slice!(0, bytes)
-
-          # Always read to char boundary because the +limit+ may have cut a multi-byte
-          # character in the middle. Returning such a string would have an invalid encoding.
-          buffer += (@io.read(PEEK_AHEAD_LIMIT) || '') if buffer.size < PEEK_AHEAD_LIMIT
-          str, bytes_read = read_to_char_boundary(@io, str, buffer)
-          str.taint
-
-          $. = @io.increment_lineno
-          do_skip(buffer)
-          @io.ungetc(buffer)
-          buffer.clear
-
-          yield str
-
-          str = "".force_encoding(Encoding::ASCII_8BIT)
-        else
-          if wanted < buffer.size
-            str << buffer.slice!(0, wanted)
-
-            # replenish the buffer if we don't have enough bytes to satisfy the peek ahead
-            buffer += (@io.read(PEEK_AHEAD_LIMIT) || '') if buffer.size < PEEK_AHEAD_LIMIT
-            str, bytes_read = read_to_char_boundary(@io, str, buffer)
-            str.taint
-
-            $. = @io.increment_lineno
-            do_skip(buffer)
-            @io.ungetc(buffer)
-            buffer.clear
-
-            yield str
-
-            str = "".force_encoding(Encoding::ASCII_8BIT)
-          else
-            str << buffer
-            wanted -= buffer.size
-            buffer.clear
-          end
-        end
-      end until buffer.size == 0 && @io.eof?
-
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
-    end
-
-    # Method G
-    def read_all
-      str = ""
-
-      begin
-        str << @io.read
-      end until @io.eof?
-
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
-    end
-
-    # Method H
-    def read_to_limit
-      str = ""
-      wanted = limit = @limit.abs
-
-      begin
-        str << @io.read(wanted)
-
-        buffer = (@io.read(PEEK_AHEAD_LIMIT) || '')
-        str, bytes_read = read_to_char_boundary(@io, str, buffer)
-        str.taint
-        @io.ungetc(buffer)
-
-        $. = @io.increment_lineno
-        yield str
-
-        str = ""
-      end until @io.eof?
-
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
+      skip_count = 0
+      skip_count += 1 while buffer[skip_count] == @skip
+      if skip_count > 0
+        slice = buffer.slice!(0, skip_count)
+        slice.bytesize
+      else
+        0
       end
     end
   end
