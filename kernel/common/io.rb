@@ -2804,8 +2804,8 @@ class IO
       if io.respond_to?(:path)
         @path = io.path
       end
-      
-      seek(other.pos, SEEK_SET)
+
+      seek(other.pos, SEEK_SET) rescue Errno::ESPIPE
     else
       flush unless closed?
 
@@ -2823,7 +2823,10 @@ class IO
 
       reopen_path Rubinius::Type.coerce_to_path(other), mode
       @fd = FileDescriptor.choose_type(descriptor)
-      seek 0, SEEK_SET unless closed?
+
+      unless closed?
+        seek(0, SEEK_SET) rescue Errno::ESPIPE
+      end
     end
 
     self
