@@ -20,8 +20,6 @@ describe "IO#write on a file" do
     rm_r @filename
   end
 
-  # TODO: impl detail? discuss this with matz. This spec is useless. - rdavis
-  # I agree. I've marked it not compliant on macruby, as we don't buffer input. -pthomson
   not_compliant_on :macruby, :rubinius do
     it "writes all of the string's bytes but buffers them" do
       written = @file.write("abcde")

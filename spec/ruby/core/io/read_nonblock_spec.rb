@@ -45,14 +45,6 @@ describe "IO#read_nonblock" do
     @read.read_nonblock(10).should == "ahello"
   end
 
-  not_compliant_on :rubinius, :jruby do
-    # TODO: Fix this.
-    #
-    # This feature was changed in 1.9
-    # see also: [ruby-dev:25101] http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-dev/25101
-    #   and #2469 http://redmine.ruby-lang.org/issues/show/2469
-  end
-
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_io.read_nonblock(5) }.should raise_error(IOError)
   end

@@ -544,7 +544,6 @@ end
 
 describe "IO#read with large data" do
   before :each do
-    # TODO: what is the significance of this mystery math?
     @data_size = 8096 * 2 + 1024
     @data = "*" * @data_size
 

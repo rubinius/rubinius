@@ -328,13 +328,7 @@ class IO
       @eof
     end
 
-    #  /**
-    #   *  This is NOT the same as close().
-    #   *
-    #   *  @todo   Need to build the infrastructure to be able to only
-    #   *          remove read or write waiters if a partial shutdown
-    #   *          is requested. --rue
-    #   */
+    # This is NOT the same as close().
     def shutdown(how)
       ensure_open
       fd = descriptor
@@ -3054,8 +3048,6 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.sysread(16)   #=> "This is line one"
-  #
-  #  @todo  Improve reading into provided buffer.
   #
   def sysread(number_of_bytes, buffer=undefined)
     str = @fd.sysread number_of_bytes
