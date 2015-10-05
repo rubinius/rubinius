@@ -1562,9 +1562,9 @@ failed: /* try next '*' position */
   }
 
   Object* FDSet::to_set(STATE) {
-	void *ptr = (void*)&descriptor_set;
+    void *ptr = (void*)&descriptor_set;
 
-	return Pointer::create(state, ptr);
+    return Pointer::create(state, ptr);
   }
   
 }; // ends namespace rubinius
