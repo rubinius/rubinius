@@ -48,11 +48,11 @@ class MSpecScript
   end
   
   if IO.const_defined?(:POSIX_FADVISE_NORMAL) && IO.const_defined?(:POSIX_FADVISE_DONTNEED)
-  	# Next, check to make sure both those values aren't zero; if they are, then this OS doesn't
-	# support it. This is a hack and should probably be improved as platform and feature 
-	# detection changes in the build process
-	unless IO::POSIX_FADVISE_NORMAL.zero? && IO::POSIX_FADVISE_DONTNEED.zero?
-		MSpec.enable_feature :posix_fadvise
-	end
+    # Next, check to make sure both those values aren't zero; if they are, then this OS doesn't
+    # support it. This is a hack and should probably be improved as platform and feature 
+    # detection changes in the build process
+    unless IO::POSIX_FADVISE_NORMAL.zero? && IO::POSIX_FADVISE_DONTNEED.zero?
+      MSpec.enable_feature :posix_fadvise
+    end
   end
 end
