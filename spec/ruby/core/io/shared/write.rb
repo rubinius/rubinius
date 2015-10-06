@@ -69,4 +69,13 @@ describe :io_write, :shared => true do
     lambda { IOSpecs.closed_io.send(@method, "hello") }.should raise_error(IOError)
   end
 
+  it "does not block when descriptor is set to nonblocking mode" do
+    r, w = IO.pipe
+    flags = Rubinius::FFI::Platform::POSIX.fcntl(w.fileno, IO::F_GETFL, 0)
+    Rubinius::FFI::Platform::POSIX.fcntl(w.fileno, IO::F_SETFL, flags | IO::O_NONBLOCK)
+
+    written = w.send(@method, 'a' * 1_000_000) # pick a number that will exceed buffer
+    written.should > 0
+  end
+
 end
