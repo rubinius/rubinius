@@ -99,7 +99,7 @@ class IO
       if new_fd > 2
         flags = FFI::Platform::POSIX.fcntl(new_fd, F_GETFD, 0)
         Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
-        flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, FFI::Platform::POSIX.fcntl(new_fd, F_GETFL, 0) | FD_CLOEXEC)
+        flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, get_flags(new_fd) | FD_CLOEXEC)
         Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
       end
 
@@ -122,10 +122,41 @@ class IO
       @@max_descriptors.get_and_set(new_fd)
     end
 
+    def self.get_flags(fd)
+      if IO::F_GETFL
+        if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(fd, IO::F_GETFL, 0))
+          Errno.handle("fcntl(2) failed")
+        end
+      else
+        flags = 0
+      end
+      flags
+    end
+
+    def self.clear_flag(flag, fd)
+      flags = get_flags(fd)
+      if (flags & flag) == 0
+        flags &= ~flag
+        if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(fd, IO::F_SETFL, flags))
+          Errno.handle("fcntl(2) failed")
+        end
+      end
+    end
+
+    def self.set_flag(flag, fd)
+      flags = get_flags(fd)
+      if (flags & flag) == 0
+        flags |= flag
+        if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(fd, IO::F_SETFL, flags))
+          Errno.handle("fcntl(2) failed")
+        end
+      end
+    end
+
 
     def initialize(fd, stat)
       @descriptor, @stat = fd, stat
-      acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, F_GETFL, 0)
+      acc_mode = FileDescriptor.get_flags(@descriptor)
 
       if acc_mode < 0
         # Assume it's closed.
@@ -264,7 +295,12 @@ class IO
           errno = Errno.errno
           if errno == Errno::EINTR::Errno || errno == Errno::EAGAIN::Errno
             # do a #select and wait for descriptor to become writable
-            continue
+            if blocking?
+              Select.wait_for_writable(@descriptor)
+              next
+            else
+              break
+            end
           elsif errno == Errno::EPIPE::Errno
             if @descriptor == 1 || @descriptor == 2
               return(buf_size)
@@ -438,32 +474,21 @@ class IO
     private :seek_positioning
 
     def set_mode
-      if IO::F_GETFL
-        if FFI.call_failed?(acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0))
-          Errno.handle("failed")
-        end
-      else
-        acc_mode = 0
-      end
+      @mode = FileDescriptor.get_flags(@descriptor)
+    end
 
-      @mode = acc_mode
+    def blocking?
+      (FileDescriptor.get_flags(@descriptor) & O_NONBLOCK) == 0
+    end
+
+    def set_blocking
+      flags = FileDescriptor.get_flags(@descriptor)
+      FileDescriptor.clear_flag(O_NONBLOCK, @descriptor)
     end
     
     def set_nonblock
-      if IO::F_GETFL
-        if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0))
-          Errno.handle("fcntl(2) failed")
-        end
-      else
-        flags = 0
-      end
-      
-      if (flags & O_NONBLOCK) == 0
-        flags |= O_NONBLOCK
-        if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_SETFL, flags))
-          Errno.handle("fcntl(2) failed")
-        end
-      end
+      flags = FileDescriptor.get_flags(@descriptor)
+      FileDescriptor.set_flag(O_NONBLOCK, @descriptor)
     end
 
     def ftruncate(offset)
@@ -612,12 +637,12 @@ class IO
       buf_size = str.bytesize
       left = buf_size
 
-      buffer = FFI::MemoryPointer.new(left)
-      buffer.write_string(str)
-      error = false
-
       if left > 0
+        buffer = FFI::MemoryPointer.new(left)
+        buffer.write_string(str)
+
         if FFI.call_failed?(bytes_written = FFI::Platform::POSIX.write(@descriptor, buffer, left))
+          set_block
           Errno.handle("write_nonblock")
         end
 
@@ -821,6 +846,14 @@ class IO
       timer = Timeval_t.new # sets fields to zero by default
 
       FFI::Platform::POSIX.select(read_fd + 1, fd_set.to_set, nil, nil, timer)
+    end
+
+    def self.wait_for_writable(fd)
+      fd_set = FDSet.new
+      fd_set.zero
+      fd_set.set(fd)
+
+      FFI::Platform::POSIX.select(fd + 1, nil, fd_set.to_set, nil, nil)
     end
 
     def self.select(readables, writables, errorables, timeout)
@@ -1538,7 +1571,7 @@ class IO
   # The +sync+ attribute will also be set.
   #
   def self.setup(io, fd, mode=nil, sync=false)
-    cur_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL, 0)
+    cur_mode = FileDescriptor.get_flags(fd)
     Errno.handle if cur_mode < 0
 
     cur_mode &= ACCMODE
