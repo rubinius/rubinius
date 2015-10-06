@@ -99,7 +99,7 @@ class IO
       if new_fd > 2
         flags = FFI::Platform::POSIX.fcntl(new_fd, F_GETFD, 0)
         Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
-        flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, get_flags(new_fd) | FD_CLOEXEC)
+        flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, flags | FD_CLOEXEC)
         Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
       end
 
