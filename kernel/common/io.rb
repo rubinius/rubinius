@@ -1733,7 +1733,7 @@ class IO
     end
 
     unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
-      raise NotImplementedError, "Unsupported advice: #{advice}"
+      raise NotImplementedError, advice.inspect
     end
     
     advice = case advice
