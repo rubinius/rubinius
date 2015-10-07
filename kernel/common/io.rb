@@ -1814,7 +1814,7 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
-    return if descriptor == -1
+    return if invalid_descriptor?
 
     if @fd.write_only? || @fd.read_write?
       raise IOError, 'closing non-duplex IO for reading'
@@ -1837,7 +1837,7 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
-    return if descriptor == -1
+    return if invalid_descriptor?
 
     if @fd.read_only? || @fd.read_write?
       raise IOError, 'closing non-duplex IO for writing'
@@ -1859,7 +1859,7 @@ class IO
   #  f.close_read    #=> nil
   #  f.closed?       #=> true
   def closed?
-    descriptor == -1
+    invalid_descriptor?
   end
 
   def dup
@@ -3270,6 +3270,11 @@ class IO
     ensure_open
     raise IOError, "not opened for writing" if @fd.read_only?
   end
+
+  def invalid_descriptor?
+    descriptor == -1 || descriptor.nil?
+  end
+  private :invalid_descriptor?
 end
 
 ##
