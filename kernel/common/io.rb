@@ -270,6 +270,9 @@ class IO
         end
       end
 
+      # before returning verify file hasn't been closed in another thread
+      ensure_open
+
       return bytes_read
     end
     private :read_into_storage
