@@ -2147,7 +2147,28 @@ class IO
     self
   end
 
-  alias_method :each_line, :each
+  def each_line(sep_or_limit=$/, limit=nil, &block)
+    if limit
+      limit = Rubinius::Type.coerce_to limit, Integer, :to_int
+      sep = sep_or_limit ? StringValue(sep_or_limit) : nil
+      raise ArgumentError, "invalid limit: 0 for each_line" if limit.zero?
+    else
+      case sep_or_limit
+      when String
+        sep = sep_or_limit
+      when nil
+        sep = nil
+      else
+        unless sep = Rubinius::Type.check_convert_type(sep_or_limit, String, :to_str)
+          sep = $/
+          limit = Rubinius::Type.coerce_to sep_or_limit, Integer, :to_int
+          raise ArgumentError, "invalid limit: 0 for each_line" if limit.zero?
+        end
+      end
+    end
+
+    each(sep_or_limit, limit, &block)
+  end
 
   def each_byte
     return to_enum(:each_byte) unless block_given?
