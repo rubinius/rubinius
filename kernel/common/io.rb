@@ -230,15 +230,7 @@ class IO
         raise IOError, "read(2) failed to malloc a buffer for read length #{length}" if storage.null?
         bytes_read = read_into_storage(length, storage)
 
-        if FFI.call_failed?(bytes_read)
-          if Errno.eql?(Errno::EAGAIN::Errno) || Errno.eql?(Errno::EINTR::Errno)
-            redo
-          else
-            Errno.handle "read(2) failed"
-          end
-
-          return nil
-        elsif bytes_read == 0
+        if bytes_read == 0
           @eof = true if length > 0
           return nil
         else
