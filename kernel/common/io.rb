@@ -260,7 +260,9 @@ class IO
 
     def read_into_storage(count, storage)
       while true
+        Thread.current.instance_variable_set(:@sleep, true)
         bytes_read = FFI::Platform::POSIX.read(descriptor, storage, count)
+        Thread.current.instance_variable_set(:@sleep, false)
 
         if FFI.call_failed?(bytes_read)
           errno = Errno.errno
@@ -642,7 +644,7 @@ class IO
         buffer.write_string(str)
 
         if FFI.call_failed?(bytes_written = FFI::Platform::POSIX.write(@descriptor, buffer, left))
-          set_block
+          clear_nonblocking
           Errno.handle("write_nonblock")
         end
 
@@ -871,11 +873,17 @@ class IO
 
       events = 0
       loop do
-        if FFI.call_failed?(events = FFI::Platform::POSIX.select(max_fd + 1,
-                                                                    read_set ? read_set.to_set : nil,
-                                                                    write_set ? write_set.to_set : nil,
-                                                                    error_set ? error_set.to_set : nil,
-                                                                    time_limit))
+        Thread.current.instance_variable_set(:@sleep, true)
+
+        events = FFI::Platform::POSIX.select(max_fd + 1,
+        (read_set ? read_set.to_set : nil),
+        (write_set ? write_set.to_set : nil),
+        (error_set ? error_set.to_set : nil),
+        time_limit)
+
+        Thread.current.instance_variable_set(:@sleep, false)
+
+        if FFI.call_failed?(events)
 
           if Errno::EAGAIN::Errno == Errno.errno || Errno::EINTR::Errno == Errno.errno
             # return nil if async_interruption?
