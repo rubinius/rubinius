@@ -1814,10 +1814,13 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
+    return if descriptor == -1
+
     if @fd.write_only? || @fd.read_write?
       raise IOError, 'closing non-duplex IO for reading'
     end
-    close
+
+    @fd.close unless closed?
   end
 
   ##
@@ -1834,10 +1837,13 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
+    return if descriptor == -1
+
     if @fd.read_only? || @fd.read_write?
       raise IOError, 'closing non-duplex IO for writing'
     end
-    close
+
+    @fd.close unless closed?
   end
 
   ##
@@ -1853,7 +1859,7 @@ class IO
   #  f.close_read    #=> nil
   #  f.closed?       #=> true
   def closed?
-    @fd.descriptor == -1 if @fd
+    descriptor == -1
   end
 
   def dup
@@ -2102,7 +2108,7 @@ class IO
       if @fd.descriptor != -1
         "#<#{self.class}:fd #{@fd.descriptor}>"
       else
-        "#<#{self.class}:(closed)"
+        "#<#{self.class}:(closed)>"
       end
     else
       "#<#{self.class}:fd nil>"
@@ -3298,13 +3304,11 @@ class IO::BidirectionalPipe < IO
   end
 
   def close_read
-    raise IOError, 'closed stream' if closed?
-
-    close
+    super
   end
 
   def close_write
-    raise IOError, 'closed stream' if @write.closed?
+    return if @write.closed?
 
     @write.close
   end
