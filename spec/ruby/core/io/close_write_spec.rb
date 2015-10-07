@@ -18,10 +18,8 @@ describe "IO#close_write" do
     lambda { @io.write "attempt to write" }.should raise_error(IOError)
   end
 
-  it "raises an IOError on subsequent invocations" do
-    @io.close_write
-
-    lambda { @io.close_write }.should raise_error(IOError)
+  it "does nothing on subsequent invocations" do
+    @io.close_write.should be_nil
   end
 
   it "allows subsequent invocation of close" do
@@ -56,9 +54,7 @@ describe "IO#close_write" do
     @io.read.should == "12345\n"
   end
 
-  it "raises IOError on closed stream" do
-    @io.close
-
-    lambda { @io.close_write }.should raise_error(IOError)
+  it "does nothing on closed stream" do
+    @io.close.should be_nil
   end
 end
