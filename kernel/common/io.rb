@@ -481,7 +481,7 @@ class IO
       (FileDescriptor.get_flags(@descriptor) & O_NONBLOCK) == 0
     end
 
-    def set_blocking
+    def clear_nonblock
       flags = FileDescriptor.get_flags(@descriptor)
       FileDescriptor.clear_flag(O_NONBLOCK, @descriptor)
     end
