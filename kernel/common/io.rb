@@ -1701,27 +1701,27 @@ class IO
   #  alias_method :prim_read, :read
 
   def descriptor
-    @fd.descriptor
+    @fd.descriptor if @fd
   end
 
   def descriptor=(value)
-    @fd.descriptor = value
+    @fd.descriptor = value if @fd
   end
 
   def mode
-    @fd.mode
+    @fd.mode if @fd
   end
 
   def mode=(value)
-    @fd.mode = value
+    @fd.mode = value if @fd
   end
 
   def sync
-    @fd.sync
+    @fd.sync if @fd
   end
 
   def sync=(value)
-    @fd.sync = value
+    @fd.sync = value if @fd
   end
 
   def advise(advice, offset = 0, len = 0)
@@ -1853,7 +1853,7 @@ class IO
   #  f.close_read    #=> nil
   #  f.closed?       #=> true
   def closed?
-    @fd.descriptor == -1
+    @fd.descriptor == -1 if @fd
   end
 
   def dup
@@ -2098,10 +2098,14 @@ class IO
   ##
   # Return a string describing this IO object.
   def inspect
-    if @fd.descriptor != -1
-      "#<#{self.class}:fd #{@fd.descriptor}>"
+    if @fd
+      if @fd.descriptor != -1
+        "#<#{self.class}:fd #{@fd.descriptor}>"
+      else
+        "#<#{self.class}:(closed)"
+      end
     else
-      "#<#{self.class}:(closed)"
+      "#<#{self.class}:fd nil>"
     end
   end
 
