@@ -3231,6 +3231,7 @@ class IO
   end
 
   def close
+    raise IOError, "uninitialized stream" unless @fd
     return if closed?
     begin
       flush
