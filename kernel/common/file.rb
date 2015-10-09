@@ -137,15 +137,26 @@ class File < IO
   #  #=> Integer
   def self.utime(a_in, m_in, *paths)
     a_in ||= Time.now
+    a_in_usec = if a_in.is_a?(Time) || a_in.is_a?(Float) || a_in.is_a?(Rational)
+                  Time.at(a_in).usec
+                else
+                  0
+                end
     m_in ||= Time.now
+    m_in_usec = if m_in.is_a?(Time) || m_in.is_a?(Float) || m_in.is_a?(Rational)
+                  Time.at(m_in).usec
+                else
+                  0
+                end
+
     FFI::MemoryPointer.new(POSIX::TimeVal, 2) do |ptr|
       atime = POSIX::TimeVal.new ptr
       mtime = POSIX::TimeVal.new ptr[1]
       atime[:tv_sec] = a_in.to_i
-      atime[:tv_usec] = 0
+      atime[:tv_usec] = a_in_usec
 
       mtime[:tv_sec] = m_in.to_i
-      mtime[:tv_usec] = 0
+      mtime[:tv_usec] = m_in_usec
 
       paths.each do |path|
 
