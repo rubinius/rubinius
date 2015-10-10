@@ -26,6 +26,10 @@ extern "C" {
     return capi_fast_call(self, rb_intern("[]="), 2, key, value);
   }
 
+  VALUE rb_hash_clear(VALUE self) {
+    return capi_fast_call(self, rb_intern("clear"), 0);
+  }
+
   VALUE rb_hash_delete(VALUE self, VALUE key) {
     return capi_fast_call(self, rb_intern("delete"), 1, key);
   }

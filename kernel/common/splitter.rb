@@ -32,7 +32,9 @@ module Rubinius
           return [string.dup] if limit == 1
           limited = true
         else
-          tail_empty = true
+          if limit < 0
+            tail_empty = true
+          end
           limited = false
         end
       end

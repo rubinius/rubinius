@@ -1453,6 +1453,9 @@ struct RTypedData {
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
 
+  /** Clear the Hash object */
+  VALUE   rb_hash_clear(VALUE self);
+
   /** Remove the key and return the associated value. */
   VALUE   rb_hash_delete(VALUE self, VALUE key);
 

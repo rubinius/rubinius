@@ -137,7 +137,10 @@ namespace rubinius {
       } else if(CompactLookupTable* clt = try_as<CompactLookupTable>(other->ivars())) {
         ivars(state, clt->duplicate(state));
       } else {
-        utilities::logger::warn("Object::copy_object: invalid ivars_ reference");
+        utilities::logger::warn(
+          "Object::copy_object: invalid ivars_ reference for %s",
+          other->class_object(state)->to_string(state, true).c_str()
+        );
       };
     }
 

@@ -752,7 +752,7 @@ file 'runtime/platform.conf' => deps do |task|
 
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.signal' do |cg|
       cg.include 'signal.h'
-      unless BUILD_CONFIG[:windows]
+      unless BUILD_CONFIG[:windows] or RUBY_PLATFORM.match(/linux-musl$/)
         cg.include 'sys/signal.h'
       end
 
