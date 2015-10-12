@@ -183,9 +183,16 @@ namespace rubinius {
   }
 
   void Object::check_frozen(STATE) {
-    if(CBOOL(frozen_p(state))) {
+    if(CBOOL(frozen_p(state)) && CBOOL(frozen_mod_disallowed(state))) {
       Exception::frozen_error(state, this);
     }
+  }
+  
+  Object* Object::frozen_mod_disallowed(STATE) {
+	  if(this->nil_p() || this->true_p() || this->false_p()) {
+	    return cFalse;
+	  }
+	  return cTrue;
   }
 
   Object* Object::get_field(STATE, size_t index) {
