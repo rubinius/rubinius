@@ -61,7 +61,7 @@ class IO
       when "fifo", "characterSpecial"
         FIFOFileDescriptor.new(fd, stat)
       when "socket"
-        raise "cannot make socket yet"
+        SocketFileDescriptor.new(fd, stat)
       when "directory"
         DirectoryFileDescriptor.new(fd, stat)
       when "blockSpecial"
@@ -708,6 +708,20 @@ class IO
   
   class DirectoryFileDescriptor < FileDescriptor
   end # class DirectoryFileDescriptor
+
+  class SocketFileDescriptor < FIFOFileDescriptor
+    def initialize(fd, stat)
+      super
+
+      @mode &= O_ACCMODE
+      @sync = true
+    end
+
+    def force_read_write
+      @mode &= ~(O_RDONLY | O_WRONLY)
+      @mode |= O_RDWR
+    end
+  end # class SocketFileDescriptor
 
   # Encapsulates all of the logic necessary for handling #select.
   class Select
