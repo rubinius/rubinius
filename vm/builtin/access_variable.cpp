@@ -49,7 +49,7 @@ namespace rubinius {
 
     Object* recv = args.recv();
 
-    if(CBOOL(recv->frozen_p(state))) {
+    if(CBOOL(recv->frozen_p(state)) && CBOOL(recv->frozen_mod_disallowed(state))) {
       Exception::frozen_error(state, call_frame, recv);
       return 0;
     }
@@ -66,7 +66,7 @@ namespace rubinius {
 
     /* The writer case. */
     if(access->write()->true_p()) {
-      if(CBOOL(self->frozen_p(state))) {
+      if(CBOOL(self->frozen_p(state)) && CBOOL(self->frozen_mod_disallowed(state))) {
         Exception::frozen_error(state, call_frame, self);
         return 0;
       }
