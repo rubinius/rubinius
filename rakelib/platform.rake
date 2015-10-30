@@ -258,145 +258,75 @@ file 'runtime/platform.conf' => deps do |task|
 
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.socket' do |cg|
       cg.include 'sys/types.h'
+
       if BUILD_CONFIG[:windows]
         cg.include "winsock2.h"
       else
         cg.include 'sys/socket.h'
         cg.include 'netdb.h'
+        cg.include 'netinet/in_systm.h'
         cg.include 'netinet/tcp.h'
+        cg.include 'netinet/udp.h'
         cg.include 'netinet/in.h'
+        cg.include 'net/if.h'
       end
 
       socket_constants = %w[
         AF_APPLETALK
-        AF_ATM
         AF_AX25
-        AF_CCITT
-        AF_CHAOS
-        AF_CNT
-        AF_COIP
-        AF_DATAKIT
-        AF_DEC
-        AF_DLI
-        AF_E164
-        AF_ECMA
-        AF_HYLINK
-        AF_IMPLINK
         AF_INET
         AF_INET6
         AF_IPX
         AF_ISDN
-        AF_ISO
-        AF_LAT
-        AF_LINK
         AF_LOCAL
         AF_MAX
-        AF_NATM
-        AF_NDRV
-        AF_NETBIOS
-        AF_NETGRAPH
-        AF_NS
-        AF_OSI
         AF_PACKET
-        AF_PPP
-        AF_PUP
         AF_ROUTE
-        AF_SIP
         AF_SNA
-        AF_SYSTEM
         AF_UNIX
         AF_UNSPEC
-
         AI_ADDRCONFIG
         AI_ALL
         AI_CANONNAME
-        AI_DEFAULT
-        AI_MASK
         AI_NUMERICHOST
         AI_NUMERICSERV
         AI_PASSIVE
         AI_V4MAPPED
-        AI_V4MAPPED_CFG
-
         EAI_ADDRFAMILY
         EAI_AGAIN
         EAI_BADFLAGS
-        EAI_BADHINTS
         EAI_FAIL
         EAI_FAMILY
-        EAI_MAX
         EAI_MEMORY
         EAI_NODATA
         EAI_NONAME
         EAI_OVERFLOW
-        EAI_PROTOCOL
         EAI_SERVICE
         EAI_SOCKTYPE
         EAI_SYSTEM
-
-        IF_NAMESIZE
-
-        IFF_802_1Q_VLAN
+        FNM_CASEFOLD
+        FNM_DOTMATCH
+        FNM_EXTGLOB
+        FNM_NOESCAPE
+        FNM_PATHNAME
+        FNM_SYSCASE
         IFF_ALLMULTI
-        IFF_ALTPHYS
         IFF_AUTOMEDIA
-        IFF_BONDING
-        IFF_BRIDGE_PORT
         IFF_BROADCAST
-        IFF_CANTCHANGE
-        IFF_CANTCONFIG
         IFF_DEBUG
-        IFF_DISABLE_NETPOLL
-        IFF_DONT_BRIDGE
-        IFF_DORMANT
-        IFF_DRV_OACTIVE
-        IFF_DRV_RUNNING
-        IFF_DYING
         IFF_DYNAMIC
-        IFF_EBRIDGE
-        IFF_ECHO
-        IFF_ISATAP
-        IFF_LINK0
-        IFF_LINK1
-        IFF_LINK2
-        IFF_LIVE_ADDR_CHANGE
         IFF_LOOPBACK
-        IFF_LOWER_UP
-        IFF_MACVLAN_PORT
         IFF_MASTER
-        IFF_MASTER_8023AD
-        IFF_MASTER_ALB
-        IFF_MASTER_ARPMON
-        IFF_MONITOR
         IFF_MULTICAST
         IFF_NOARP
         IFF_NOTRAILERS
-        IFF_OACTIVE
-        IFF_OVS_DATAPATH
         IFF_POINTOPOINT
         IFF_PORTSEL
-        IFF_PPROMISC
         IFF_PROMISC
-        IFF_RENAMING
-        IFF_ROUTE
         IFF_RUNNING
-        IFF_SIMPLEX
         IFF_SLAVE
-        IFF_SLAVE_INACTIVE
-        IFF_SLAVE_NEEDARP
-        IFF_SMART
-        IFF_STATICARP
-        IFF_SUPP_NOFCS
-        IFF_TEAM_PORT
-        IFF_TX_SKB_SHARING
-        IFF_UNICAST_FLT
         IFF_UP
-        IFF_VOLATILE
-        IFF_WAN_HDLC
-        IFF_XMIT_DST_RELEASE
-
-        IFNAMSIZ
-
+        IF_NAMESIZE
         INADDR_ALLHOSTS_GROUP
         INADDR_ANY
         INADDR_BROADCAST
@@ -404,66 +334,15 @@ file 'runtime/platform.conf' => deps do |task|
         INADDR_MAX_LOCAL_GROUP
         INADDR_NONE
         INADDR_UNSPEC_GROUP
-
         INET6_ADDRSTRLEN
         INET_ADDRSTRLEN
-
-        IP_ADD_MEMBERSHIP
-        IP_ADD_SOURCE_MEMBERSHIP
-        IP_BLOCK_SOURCE
-        IP_DEFAULT_MULTICAST_LOOP
-        IP_DEFAULT_MULTICAST_TTL
-        IP_DONTFRAG
-        IP_DROP_MEMBERSHIP
-        IP_DROP_SOURCE_MEMBERSHIP
-        IP_FREEBIND
-        IP_HDRINCL
-        IP_IPSEC_POLICY
-        IP_MAX_MEMBERSHIPS
-        IP_MINTTL
-        IP_MSFILTER
-        IP_MTU
-        IP_MTU_DISCOVER
-        IP_MULTICAST_IF
-        IP_MULTICAST_LOOP
-        IP_MULTICAST_TTL
-        IP_ONESBCAST
-        IP_OPTIONS
-        IP_PASSSEC
-        IP_PKTINFO
-        IP_PKTOPTIONS
-        IP_PMTUDISC_DO
-        IP_PMTUDISC_DONT
-        IP_PMTUDISC_WANT
-        IP_PORTRANGE
-        IP_RECVDSTADDR
-        IP_RECVERR
-        IP_RECVIF
-        IP_RECVOPTS
-        IP_RECVRETOPTS
-        IP_RECVSLLA
-        IP_RECVTOS
-        IP_RECVTTL
-        IP_RETOPTS
-        IP_ROUTER_ALERT
-        IP_SENDSRCADDR
-        IP_TOS
-        IP_TTL
-        IP_UNBLOCK_SOURCE
-        IP_XFRM_POLICY
-
         IPPORT_RESERVED
         IPPORT_USERRESERVED
-
         IPPROTO_AH
-        IPPROTO_BIP
         IPPROTO_DSTOPTS
         IPPROTO_EGP
-        IPPROTO_EON
         IPPROTO_ESP
         IPPROTO_FRAGMENT
-        IPPROTO_GGP
-        IPPROTO_HELLO
         IPPROTO_HOPOPTS
         IPPROTO_ICMP
         IPPROTO_ICMPV6
@@ -471,8 +350,6 @@ file 'runtime/platform.conf' => deps do |task|
         IPPROTO_IGMP
         IPPROTO_IP
         IPPROTO_IPV6
-        IPPROTO_MAX
-        IPPROTO_ND
         IPPROTO_NONE
         IPPROTO_PUP
         IPPROTO_RAW
@@ -480,8 +357,6 @@ file 'runtime/platform.conf' => deps do |task|
         IPPROTO_TCP
         IPPROTO_TP
         IPPROTO_UDP
-        IPPROTO_XTP
-
         IPV6_CHECKSUM
         IPV6_DONTFRAG
         IPV6_DSTOPTS
@@ -503,19 +378,52 @@ file 'runtime/platform.conf' => deps do |task|
         IPV6_RECVRTHDR
         IPV6_RECVTCLASS
         IPV6_RTHDR
-        IPV6_RTHDR_TYPE_0
         IPV6_RTHDRDSTOPTS
+        IPV6_RTHDR_TYPE_0
         IPV6_TCLASS
         IPV6_UNICAST_HOPS
-        IPV6_USE_MIN_MTU
         IPV6_V6ONLY
-
-        IPX_TYPE
-
-        LOCAL_CONNWAIT
-        LOCAL_CREDS
-        LOCAL_PEERCRED
-
+        IP_ADD_MEMBERSHIP
+        IP_ADD_SOURCE_MEMBERSHIP
+        IP_BLOCK_SOURCE
+        IP_DEFAULT_MULTICAST_LOOP
+        IP_DEFAULT_MULTICAST_TTL
+        IP_DROP_MEMBERSHIP
+        IP_DROP_SOURCE_MEMBERSHIP
+        IP_FREEBIND
+        IP_HDRINCL
+        IP_IPSEC_POLICY
+        IP_MAX_MEMBERSHIPS
+        IP_MINTTL
+        IP_MSFILTER
+        IP_MTU
+        IP_MTU_DISCOVER
+        IP_MULTICAST_IF
+        IP_MULTICAST_LOOP
+        IP_MULTICAST_TTL
+        IP_OPTIONS
+        IP_PASSSEC
+        IP_PKTINFO
+        IP_PKTOPTIONS
+        IP_PMTUDISC_DO
+        IP_PMTUDISC_DONT
+        IP_PMTUDISC_WANT
+        IP_RECVERR
+        IP_RECVOPTS
+        IP_RECVRETOPTS
+        IP_RECVTOS
+        IP_RECVTTL
+        IP_RETOPTS
+        IP_ROUTER_ALERT
+        IP_TOS
+        IP_TRANSPARENT
+        IP_TTL
+        IP_UNBLOCK_SOURCE
+        IP_XFRM_POLICY
+        LOCK_EX
+        LOCK_NB
+        LOCK_SH
+        LOCK_UN
         MCAST_BLOCK_SOURCE
         MCAST_EXCLUDE
         MCAST_INCLUDE
@@ -525,32 +433,23 @@ file 'runtime/platform.conf' => deps do |task|
         MCAST_LEAVE_SOURCE_GROUP
         MCAST_MSFILTER
         MCAST_UNBLOCK_SOURCE
-
-        MSG_COMPAT
         MSG_CONFIRM
         MSG_CTRUNC
         MSG_DONTROUTE
         MSG_DONTWAIT
-        MSG_EOF
         MSG_EOR
         MSG_ERRQUEUE
         MSG_FASTOPEN
         MSG_FIN
-        MSG_FLUSH
-        MSG_HAVEMORE
-        MSG_HOLD
         MSG_MORE
         MSG_NOSIGNAL
         MSG_OOB
         MSG_PEEK
         MSG_PROXY
-        MSG_RCVMORE
         MSG_RST
-        MSG_SEND
         MSG_SYN
         MSG_TRUNC
         MSG_WAITALL
-
         NI_DGRAM
         NI_MAXHOST
         NI_MAXSERV
@@ -558,125 +457,94 @@ file 'runtime/platform.conf' => deps do |task|
         NI_NOFQDN
         NI_NUMERICHOST
         NI_NUMERICSERV
-
         PF_APPLETALK
-        PF_ATM
         PF_AX25
-        PF_CCITT
-        PF_CHAOS
-        PF_CNT
-        PF_COIP
-        PF_DATAKIT
-        PF_DEC
-        PF_DLI
-        PF_ECMA
-        PF_HYLINK
-        PF_IMPLINK
         PF_INET
         PF_INET6
         PF_IPX
         PF_ISDN
-        PF_ISO
         PF_KEY
-        PF_LAT
-        PF_LINK
         PF_LOCAL
         PF_MAX
-        PF_NATM
-        PF_NDRV
-        PF_NETBIOS
-        PF_NETGRAPH
-        PF_NS
-        PF_OSI
         PF_PACKET
-        PF_PIP
-        PF_PPP
-        PF_PUP
         PF_ROUTE
-        PF_RTIP
-        PF_SIP
         PF_SNA
-        PF_SYSTEM
         PF_UNIX
         PF_UNSPEC
-        PF_XTP
-
-        SCM_BINTIME
         SCM_CREDENTIALS
-        SCM_CREDS
         SCM_RIGHTS
         SCM_TIMESTAMP
+        SCM_TIMESTAMPING
         SCM_TIMESTAMPNS
-        SCM_UCRED
-
+        SCM_WIFI_STATUS
+        SEEK_CUR
+        SEEK_DATA
+        SEEK_END
+        SEEK_HOLE
+        SEEK_SET
         SHUT_RD
         SHUT_RDWR
         SHUT_WR
-
-        SO_ACCEPTCONN
-        SO_ACCEPTFILTER
-        SO_ALLZONES
-        SO_ATTACH_FILTER
-        SO_BINDTODEVICE
-        SO_BINTIME
-        SO_BROADCAST
-        SO_DEBUG
-        SO_DETACH_FILTER
-        SO_DONTROUTE
-        SO_DONTTRUNC
-        SO_ERROR
-        SO_KEEPALIVE
-        SO_LINGER
-        SO_MAC_EXEMPT
-        SO_NKE
-        SO_NO_CHECK
-        SO_NOSIGPIPE
-        SO_NREAD
-        SO_OOBINLINE
-        SO_PASSCRED
-        SO_PEERCRED
-        SO_PEERNAME
-        SO_PRIORITY
-        SO_RCVBUF
-        SO_RCVLOWAT
-        SO_RCVTIMEO
-        SO_RECVUCRED
-        SO_REUSEADDR
-        SO_REUSEPORT
-        SO_SECURITY_AUTHENTICATION
-        SO_SECURITY_ENCRYPTION_NETWORK
-        SO_SECURITY_ENCRYPTION_TRANSPORT
-        SO_SNDBUF
-        SO_SNDLOWAT
-        SO_SNDTIMEO
-        SO_TIMESTAMP
-        SO_TIMESTAMPNS
-        SO_TYPE
-        SO_USELOOPBACK
-        SO_WANTMORE
-        SO_WANTOOBFLAG
-
         SOCK_DGRAM
         SOCK_PACKET
         SOCK_RAW
         SOCK_RDM
         SOCK_SEQPACKET
         SOCK_STREAM
-
-        SOL_ATALK
-        SOL_AX25
         SOL_IP
-        SOL_IPX
         SOL_SOCKET
         SOL_TCP
         SOL_UDP
-
-        SOMAXCONN
-
-        SOPRI_BACKGROUND
-        SOPRI_INTERACTIVE
-        SOPRI_NORMAL
-
+        SO_ACCEPTCONN
+        SO_ATTACH_FILTER
+        SO_BINDTODEVICE
+        SO_BPF_EXTENSIONS
+        SO_BROADCAST
+        SO_BUSY_POLL
+        SO_DEBUG
+        SO_DETACH_FILTER
+        SO_DOMAIN
+        SO_DONTROUTE
+        SO_ERROR
+        SO_GET_FILTER
+        SO_KEEPALIVE
+        SO_LINGER
+        SO_LOCK_FILTER
+        SO_MARK
+        SO_MAX_PACING_RATE
+        SO_NOFCS
+        SO_NO_CHECK
+        SO_OOBINLINE
+        SO_PASSCRED
+        SO_PASSSEC
+        SO_PEEK_OFF
+        SO_PEERCRED
+        SO_PEERNAME
+        SO_PEERSEC
+        SO_PRIORITY
+        SO_PROTOCOL
+        SO_RCVBUF
+        SO_RCVBUFFORCE
+        SO_RCVLOWAT
+        SO_RCVTIMEO
+        SO_REUSEADDR
+        SO_REUSEPORT
+        SO_RXQ_OVFL
+        SO_SECURITY_AUTHENTICATION
+        SO_SECURITY_ENCRYPTION_NETWORK
+        SO_SECURITY_ENCRYPTION_TRANSPORT
+        SO_SELECT_ERR_QUEUE
+        SO_SNDBUF
+        SO_SNDBUFFORCE
+        SO_SNDLOWAT
+        SO_SNDTIMEO
+        SO_TIMESTAMP
+        SO_TIMESTAMPING
+        SO_TIMESTAMPNS
+        SO_TYPE
+        SO_WIFI_STATUS
+        TCP_CONGESTION
+        TCP_COOKIE_TRANSACTIONS
         TCP_CORK
         TCP_DEFER_ACCEPT
         TCP_FASTOPEN
@@ -688,12 +556,17 @@ file 'runtime/platform.conf' => deps do |task|
         TCP_MAXSEG
         TCP_MD5SIG
         TCP_NODELAY
-        TCP_NOOPT
-        TCP_NOPUSH
+        TCP_QUEUE_SEQ
         TCP_QUICKACK
+        TCP_REPAIR
+        TCP_REPAIR_OPTIONS
+        TCP_REPAIR_QUEUE
         TCP_SYNCNT
+        TCP_THIN_DUPACK
+        TCP_THIN_LINEAR_TIMEOUTS
+        TCP_TIMESTAMP
+        TCP_USER_TIMEOUT
         TCP_WINDOW_CLAMP
-
         UDP_CORK
       ]
 
