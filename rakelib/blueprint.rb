@@ -179,6 +179,8 @@ Daedalus.blueprint do |i|
     end
     gcc.add_library zlib
     files << zlib
+  else
+    gcc.ldflags << "-lz"
   end
 
   if Rubinius::BUILD_CONFIG[:vendor_libsodium]
