@@ -119,6 +119,27 @@ file 'runtime/platform.conf' => deps do |task|
         s.field :l_linger
     end.write_config(f)
 
+    Rubinius::FFI::Generators::Structures.new 'iovec' do |s|
+      s.include 'sys/socket.h'
+      s.name 'struct iovec'
+
+      s.field :iov_base, :pointer
+      s.field :iov_len, :size_t
+    end.write_config(f)
+
+    Rubinius::FFI::Generators::Structures.new 'msghdr' do |s|
+      s.include 'sys/socket.h'
+      s.name 'struct msghdr'
+
+      s.field :msg_name, :pointer
+      s.field :msg_namelen, :int
+      s.field :msg_iov, :pointer
+      s.field :msg_iovlen, :size_t
+      s.field :msg_control, :pointer
+      s.field :msg_controllen, :size_t
+      s.field :msg_flags, :int
+    end.write_config(f)
+
     Rubinius::FFI::Generators::Structures.new 'servent' do |s|
       if BUILD_CONFIG[:windows]
         s.include "winsock2.h"
