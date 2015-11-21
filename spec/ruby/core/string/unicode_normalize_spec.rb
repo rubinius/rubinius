@@ -1,5 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
+# Examples taken from http://www.unicode.org/reports/tr15/#Norm_Forms
+
 describe "String#unicode_normalize" do
   before :each do
     @accented_f = "\u1e9b\u0323"
