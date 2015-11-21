@@ -3,7 +3,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 # Examples taken from http://www.unicode.org/reports/tr15/#Norm_Forms
 
 describe "String#unicode_normalize" do
-  before :each do
+  before do
     @accented_f = "\u1e9b\u0323"
     @angstrom = "\u212b"
     @ohm = "\u2126"
@@ -32,7 +32,7 @@ describe "String#unicode_normalize" do
 end
 
 describe "String#unicode_normalize!" do
-  before :each do
+  before do
     @ohm = "\u2126"
   end
 
@@ -53,7 +53,7 @@ describe "String#unicode_normalize!" do
 end
 
 describe "String#unicode_normalized?" do
-  before :each do
+  before do
     @nfc_normalized_str = "\u1e9b\u0323"
     @nfd_normalized_str = "\u017f\u0323\u0307"
     @nfkc_normalized_str = "\u1e69"
