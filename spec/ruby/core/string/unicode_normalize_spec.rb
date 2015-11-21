@@ -24,3 +24,12 @@ describe "String#unicode_normalize" do
     lambda { @angstrom.force_encoding("ISO-8859-1").unicode_normalize }.should raise_error(Encoding::CompatibilityError)
   end
 end
+
+describe "String#unicode_normalize!" do
+  it "normalizes code points and modifies the receiving string" do
+    angstrom = "\u212b"
+    angstrom.unicode_normalize!
+    angstrom.should == "\u00c5"
+    angstrom.should_not == "\u212b"
+  end
+end
