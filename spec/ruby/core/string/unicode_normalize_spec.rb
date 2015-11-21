@@ -23,13 +23,30 @@ describe "String#unicode_normalize" do
   it "raises an Encoding::CompatibilityError if the string is not in an unicode encoding" do
     lambda { @angstrom.force_encoding("ISO-8859-1").unicode_normalize }.should raise_error(Encoding::CompatibilityError)
   end
+
+  it "raises an ArgumentError if the specified form is invalid" do
+    lambda { @angstrom.unicode_normalize(:invalid_form) }.should raise_error(ArgumentError)
+  end
 end
 
 describe "String#unicode_normalize!" do
+  before :each do
+    @ohm = "\u2126"
+  end
+
   it "normalizes code points and modifies the receiving string" do
     angstrom = "\u212b"
     angstrom.unicode_normalize!
     angstrom.should == "\u00c5"
     angstrom.should_not == "\u212b"
   end
+
+  it "raises an Encoding::CompatibilityError if the string is not in an unicode encoding" do
+    lambda { @ohm.force_encoding("ISO-8859-1").unicode_normalize! }.should raise_error(Encoding::CompatibilityError)
+  end
+
+  it "raises an ArgumentError if the specified form is invalid" do
+    lambda { @ohm.unicode_normalize!(:invalid_form) }.should raise_error(ArgumentError)
+  end
+end
 end
