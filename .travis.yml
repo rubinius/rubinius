@@ -1,52 +1,47 @@
 language: cpp
-
 compiler:
-  - gcc
-  - clang
-
+- gcc
+- clang
 before_install:
-  - echo $LANG
-  - echo $LC_ALL
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install -y llvm-3.4 llvm-3.4-dev; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm35 && brew link --force llvm35; fi
-  - rvm use $RVM --install --binary --fuzzy
-  - gem update --system
-  - gem --version
-
+- echo $LANG
+- echo $LC_ALL
+- if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install -y llvm-3.4 llvm-3.4-dev; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm35 && brew link --force llvm35; fi
+- rvm use $RVM --install --binary --fuzzy
+- gem update --system
+- gem --version
 before_script:
-  - travis_retry bundle
-  - if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config llvm-config-3.4; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
-
+- travis_retry bundle
+- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config llvm-config-3.4; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
 script: rake ci
-
 after_success:
-  - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then rake deploy; fi
-
+- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then rake deploy; fi
 branches:
   only:
-    - master
-    - 1.8.7
-    - 2.2
-    - /^v\d+\./
-
+  - master
+  - 1.8.7
+  - 2.2
+  - "/^v\\d+\\./"
 notifications:
   email: false
   irc:
     channels:
-      - "chat.freenode.net#rubinius"
+    - chat.freenode.net#rubinius
     template:
-      - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
+    - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/9502afd22ca6c8e85fb3
+    - https://webhooks.gitter.im/e/9502afd22ca6c8e85fb3
     on_success: change
     on_failure: always
     on_start: always
-
 env:
+  matrix:
   - RVM=2.2.0 LANG="en_US.UTF-8"
-
+  global:
+  - secure: olbok/GN6rOYvPnHBYWGz7giCoCdLFpT/7WSBHukYO3E0uNeqAUOOgW2BFOwCVWdSEJ/iTvJXZQ4qVZHX+6jRfvILZeGv+D2P93VdD8UFQRoTOfFC7esAo525s9fuKm9ehUGWZxlzGOBHHckky1jn6pEf8mlXAVM5e76dlH0fck=
+  - secure: aqG9eB/PrzQ7XJQN6YX/00sNVvwSB77saxXQzguL2WFjAXB74h6168Hzq+awHtNX/vfOb6ta7fpWLHrA0D+gmZnvTR29VlP6nd0vs1tkdX1/jWbiBHjamRffp+NWVdKbJKYn5iLOGXcuUMOzY/opLKOdvxKZfkxGMxR2tTNLZUE=
 os:
-  - linux
-  - osx
+- linux
+- osx
