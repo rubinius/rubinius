@@ -128,9 +128,9 @@ namespace rubinius {
            ++i)
     {
       if(VM* other_vm = (*i)->as_vm()) {
-        while(true) {
-          if(vm == other_vm || yielding_p(other_vm)) break;
+        if(vm == other_vm || yielding_p(other_vm)) continue;
 
+        while(true) {
           bool yielding = false;
 
           for(int j = 0; j < RBX_MAX_STOP_ITERATIONS; j++) {
