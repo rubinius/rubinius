@@ -9,7 +9,7 @@ require 'rbconfig'
 require 'thread'
 
 module Gem
-  VERSION = '2.4.8'
+  VERSION = '2.5.0'
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -26,12 +26,12 @@ require 'rubygems/errors'
 # For user documentation, see:
 #
 # * <tt>gem help</tt> and <tt>gem help [command]</tt>
-# * {RubyGems User Guide}[http://docs.rubygems.org/read/book/1]
-# * {Frequently Asked Questions}[http://docs.rubygems.org/read/book/3]
+# * {RubyGems User Guide}[http://guides.rubygems.org/]
+# * {Frequently Asked Questions}[http://guides.rubygems.org/faqs]
 #
 # For gem developer documentation see:
 #
-# * {Creating Gems}[http://docs.rubygems.org/read/chapter/5]
+# * {Creating Gems}[http://guides.rubygems.org/make-your-own-gem]
 # * Gem::Specification
 # * Gem::Version for version dependency notes
 #
@@ -156,6 +156,7 @@ module Gem
   @@win_platform = nil
 
   @configuration = nil
+  @gemdeps = nil
   @loaded_specs = {}
   LOADED_SPECS_MUTEX = Mutex.new
   @path_to_default_spec_map = {}
@@ -184,13 +185,9 @@ module Gem
     # or if it was ambiguous (and thus unresolved) the code in our custom
     # require will try to activate the more specific version.
 
-    spec = Gem::Specification.find_inactive_by_path path
-
-    unless spec
-      spec = Gem::Specification.find_by_path path
-      return true if spec && spec.activated?
-      return false
-    end
+    spec = Gem::Specification.find_by_path path
+    return false unless spec
+    return true if spec.activated?
 
     begin
       spec.activate
@@ -433,7 +430,7 @@ module Gem
 
     files = find_files_from_load_path glob if check_load_path
 
-    files.concat Gem::Specification.map { |spec|
+    files.concat Gem::Specification.stubs.map { |spec|
       spec.matches_for_glob("#{glob}#{Gem.suffix_pattern}")
     }.flatten
 
@@ -580,6 +577,10 @@ module Gem
   # gem's paths are inserted before site lib directory by default.
 
   def self.load_path_insert_index
+    $LOAD_PATH.each_with_index do |path, i|
+      return i if path.instance_variable_defined?(:@gem_prelude_index)
+    end
+
     index = $LOAD_PATH.index RbConfig::CONFIG['sitelibdir']
 
     index
@@ -595,6 +596,9 @@ module Gem
     return unless defined?(gem)
 
     test_syck = ENV['TEST_SYCK']
+
+    # Only Ruby 1.8 and 1.9 have syck
+    test_syck = false unless /^1\./ =~ RUBY_VERSION
 
     unless test_syck
       begin
@@ -776,6 +780,14 @@ module Gem
   rescue Errno::EACCES
     open path, 'rb' do |f|
       f.read
+    end
+  rescue Errno::ENOLCK # NFS
+    if Thread.main != Thread.current
+      raise
+    else
+      open path, 'rb' do |f|
+        f.read
+      end
     end
   end
 
@@ -1052,7 +1064,7 @@ module Gem
     end
 
     rs = Gem::RequestSet.new
-    rs.load_gemdeps path
+    @gemdeps = rs.load_gemdeps path
 
     rs.resolve_current.map do |s|
       sp = s.full_spec
@@ -1081,6 +1093,12 @@ module Gem
     # Hash of loaded Gem::Specification keyed by name
 
     attr_reader :loaded_specs
+
+    ##
+    # GemDependencyAPI object, which is set when .use_gemdeps is called.
+    # This contains all the information from the Gemfile.
+
+    attr_reader :gemdeps
 
     ##
     # Register a Gem::Specification for default gem.
@@ -1196,6 +1214,7 @@ module Gem
   autoload :DependencyList,     'rubygems/dependency_list'
   autoload :DependencyResolver, 'rubygems/resolver'
   autoload :Installer,          'rubygems/installer'
+  autoload :Licenses,           'rubygems/util/licenses'
   autoload :PathSupport,        'rubygems/path_support'
   autoload :Platform,           'rubygems/platform'
   autoload :RequestSet,         'rubygems/request_set'
@@ -1242,4 +1261,3 @@ require 'rubygems/core_ext/kernel_gem'
 require 'rubygems/core_ext/kernel_require'
 
 Gem.use_gemdeps
-

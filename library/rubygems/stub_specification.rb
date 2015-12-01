@@ -15,35 +15,34 @@ class Gem::StubSpecification < Gem::BasicSpecification
     end
 
   class StubLine # :nodoc: all
-    attr_reader :parts
+    attr_reader :name, :version, :platform, :require_paths
 
     def initialize(data)
-      @parts = data[PREFIX.length..-1].split(" ")
-    end
-
-    def name
-      @parts[0]
-    end
-
-    def version
-      Gem::Version.new @parts[1]
-    end
-
-    def platform
-      Gem::Platform.new @parts[2]
-    end
-
-    def require_paths
-      @parts[3..-1].join(" ").split("\0")
+      parts          = data[PREFIX.length..-1].split(" ")
+      @name          = parts[0].freeze
+      @version       = Gem::Version.new parts[1]
+      @platform      = Gem::Platform.new parts[2]
+      @require_paths = parts.drop(3).join(" ").split("\0")
     end
   end
 
-  def initialize(filename)
+  def self.default_gemspec_stub filename
+    new filename, true
+  end
+
+  def self.gemspec_stub filename
+    new filename, false
+  end
+
+  def initialize filename, default_gem
+    filename.untaint
+
     self.loaded_from = filename
     @data            = nil
     @extensions      = nil
     @name            = nil
     @spec            = nil
+    @default_gem     = default_gem
   end
 
   ##
@@ -55,6 +54,10 @@ class Gem::StubSpecification < Gem::BasicSpecification
       loaded = Gem.loaded_specs[name]
       loaded && loaded.version == version
     end
+  end
+
+  def default_gem?
+    @default_gem
   end
 
   def build_extensions # :nodoc:
@@ -72,18 +75,23 @@ class Gem::StubSpecification < Gem::BasicSpecification
     unless @data
       @extensions = []
 
-      open loaded_from, OPEN_MODE do |file|
-        begin
-          file.readline # discard encoding line
-          stubline = file.readline.chomp
-          if stubline.start_with?(PREFIX) then
-            @data = StubLine.new stubline
+      begin
+        saved_lineno = $.
+        open loaded_from, OPEN_MODE do |file|
+          begin
+            file.readline # discard encoding line
+            stubline = file.readline.chomp
+            if stubline.start_with?(PREFIX) then
+              @data = StubLine.new stubline
 
-            @extensions = $'.split "\0" if
-              /\A#{PREFIX}/ =~ file.readline.chomp
+              @extensions = $'.split "\0" if
+                /\A#{PREFIX}/ =~ file.readline.chomp
+            end
+          rescue EOFError
           end
-        rescue EOFError
         end
+      ensure
+        $. = saved_lineno
       end
     end
 
@@ -135,14 +143,14 @@ class Gem::StubSpecification < Gem::BasicSpecification
   # Name of the gem
 
   def name
-    @name ||= data.name
+    data.name
   end
 
   ##
   # Platform of the gem
 
   def platform
-    @platform ||= data.platform
+    data.platform
   end
 
   ##
