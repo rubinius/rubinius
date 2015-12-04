@@ -108,6 +108,17 @@ file 'runtime/platform.conf' => deps do |task|
       sockaddr_un.write_config f if sockaddr_un.found?
     end
 
+    Rubinius::FFI::Generators::Structures.new 'hostent' do |s|
+      s.include 'netdb.h'
+      s.name 'struct hostent'
+
+      s.field :h_name, :string
+      s.field :h_aliases, :pointer
+      s.field :h_addrtype, :int
+      s.field :h_length, :int
+      s.field :h_addr_list, :pointer
+    end.write_config(f)
+
     Rubinius::FFI::Generators::Structures.new 'linger' do |s|
       if BUILD_CONFIG[:windows]
         s.include "winsock2.h"
