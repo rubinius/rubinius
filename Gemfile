@@ -7,3 +7,5 @@ gem "daedalus-core", "~> 0.1"
 gem "rubinius-bridge", "~> 1.0"
 
 gem "rubinius-build_tools", "~> 2.0"
+
+gem 'aws-sdk'
