@@ -39,13 +39,9 @@ notifications:
 matrix:
   exclude:
   - compiler: gcc
-    os: linux
   - compiler: clang
-    os: linux
-  - compiler: gcc
-    os: osx
-  - compiler: clang
-    os: osx
+  - os: linux
+  - os: osx
   include:
   - env: RVM=rbx-2
     os: osx
