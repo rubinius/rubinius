@@ -37,6 +37,15 @@ notifications:
     on_failure: always
     on_start: always
 matrix:
+  exclude:
+  - compiler: gcc
+    os: linux
+  - compiler: clang
+    os: linux
+  - compiler: gcc
+    os: osx
+  - compiler: clang
+    os: osx
   include:
   - env: RVM=rbx-2
     os: osx
