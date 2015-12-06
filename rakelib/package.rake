@@ -14,6 +14,7 @@ namespace :package do
 
     write_md5_digest_file archive
     write_sha1_digest_file archive
+    write_sha512_digest_file archive
   end
 
   task :binary_builder do
