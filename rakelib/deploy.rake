@@ -49,7 +49,7 @@ task :deploy do
 
     file_exts.each do |ext|
       name = basename + ext
-      key = prefix + name
+      key = path_prefix + name
       s3.put_object bucket: bucket, key: key, body: File.read(name)
 
       path = url_prefix + key
