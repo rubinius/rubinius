@@ -131,6 +131,7 @@ class RubiniusPackager
     create_archive package_name
     write_md5_digest_file package_name
     write_sha1_digest_file package_name
+    write_sha512_digest_file package_name
   rescue Object => e
     # Some rake versions swallow the backtrace, so we do it explicitly.
     STDERR.puts e.message, e.backtrace
