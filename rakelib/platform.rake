@@ -600,6 +600,7 @@ file 'runtime/platform.conf' => deps do |task|
         TCP_USER_TIMEOUT
         TCP_WINDOW_CLAMP
         UDP_CORK
+        SOMAXCONN
       ]
 
       socket_constants.each { |c| cg.const c }
