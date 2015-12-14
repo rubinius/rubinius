@@ -10,7 +10,7 @@ function rbx_s3_upload {
   date=$(date +"%a, %d %b %Y %T %z")
 
   acl="x-amz-acl:public-read"
-  content_type="application/octet-stream"
+  content_type=$(file --mime-type -b $file)
 
   data="PUT\n\n$content_type\n$date\n$acl\n/$bucket$path$file"
   signature=$(echo -en "${data}" |
