@@ -46,7 +46,7 @@ function rbx_upload_files {
 }
 
 # Build and upload the release tarball to S3.
-if [[ $TRAVIS_OS_NAME == linux && $CC == clang && $RVM == "rbx-2" ]]; then
+if [[ $TRAVIS_OS_NAME == osx && $CC == gcc && $RVM == "rbx-2" ]]; then
   echo "Deploying release tarball ${release_name}..."
 
   rake release || fail "unable to build release tarball"
