@@ -65,9 +65,9 @@ if [[ $RVM == "rbx-2" ]]; then
   bucket="rubinius-binaries-rubinius-com"
 
   if [[ $TRAVIS_OS_NAME == linux ]]; then
-    path="ubuntu/12.04/x86_64/"
+    path="/ubuntu/12.04/x86_64/"
   else
-    path="osx/10.9/x86_64/"
+    path="/osx/10.9/x86_64/"
   fi
 
   rbx_upload_files "$bucket" "$release_name" "$path"
