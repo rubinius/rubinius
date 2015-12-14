@@ -8,6 +8,8 @@ namespace :package do
   desc "Create a release tarball from the source"
   task :tar do
     archive = "rubinius-#{rbx_version}.tar.bz2"
+    sh "rm -rf #{archive}"
+
     files = "{ git ls-files; ls .revision; ls vendor/cache/*.gem; }"
     prefix = "-s '|^|rubinius-#{rbx_version}/|'"
     sh "#{files} | sort | uniq | tar -c #{prefix} -T - -f - | bzip2 > #{archive}"
