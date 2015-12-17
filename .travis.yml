@@ -5,14 +5,14 @@ compiler:
 before_install:
 - echo $LANG
 - echo $LC_ALL
-- if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install -y llvm-3.4 llvm-3.4-dev; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then LLVM_TAR=llvm-3.4.2-x86_64-unknown-linux-gnu-4.7.tar.bz2 curl -o $LLVM_TAR https://s3.amazonaws.com/asset.rubini.us/prebuilt/$LLVM_TAR && mkdir vendor/llvm && cd vendor/llvm && tar -xjf $LLVM_TAR; fi
 - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm35 && brew link --force llvm35; fi
 - rvm use $RVM --install --binary --fuzzy
 - gem update --system
 - gem --version
 before_script:
 - travis_retry bundle
-- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config llvm-config-3.4; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config ./vendor/llvm/Release/bin/llvm-config; fi
 - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
 script: rake ci
 after_success:
@@ -60,3 +60,4 @@ env:
 os:
 - linux
 - osx
+sudo: false
