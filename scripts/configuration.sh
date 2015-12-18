@@ -47,3 +47,9 @@ function rbx_revision_date {
 function rbx_revision_hash {
   rbx_get_revision | cut -d ' ' -f 3
 }
+
+function rbx_write_revision_file {
+  if [[ -d $(rbx_git_directory) ]]; then
+    rbx_get_revision > "$(rbx_revision_file)"
+  fi
+}

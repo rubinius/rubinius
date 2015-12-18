@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source "scripts/io.sh"
-source "scripts/aws.sh"
 source "scripts/configuration.sh"
+source "scripts/aws.sh"
+source "scripts/io.sh"
 
 function rbx_url_prefix {
   local bucket=$1
@@ -49,10 +49,10 @@ function rbx_upload_files {
 if [[ $TRAVIS_OS_NAME == osx && $CC == gcc && $RVM == "rbx-2" ]]; then
   echo "Deploying release tarball $(rbx_revision_version)..."
 
-  rake release || fail "unable to build release tarball"
+  ./scripts/release || fail "unable to build release tarball"
 
   bucket="rubinius-releases-rubinius-com"
-  release_name="rubinius-$(rbx_revision_version).tar.bz2"
+  release_name="$(rbx_release_name)"
 
   rbx_upload_files "$bucket" "$release_name" "$release_name"
 fi
@@ -64,8 +64,6 @@ if [[ $RVM == "rbx-2" ]]; then
   rake package:binary || fail "unable to build binary"
 
   bucket="rubinius-binaries-rubinius-com"
-  revision_version=$(rbx_revision_version)
-  release_name="rubinius-$revision_version.tar.bz2"
 
   declare -a paths os_releases versions
 
@@ -81,7 +79,7 @@ if [[ $RVM == "rbx-2" ]]; then
     done
   fi
 
-  IFS="." read -r -a array <<< "$revision_version"
+  IFS="." read -r -a array <<< "$(rbx_revision_version)"
 
   let i=0
   version=""
@@ -95,7 +93,7 @@ if [[ $RVM == "rbx-2" ]]; then
 
   for path in "${paths[@]}"; do
     for version in "${versions[@]}"; do
-      rbx_upload_files "$bucket" "rubinius$version.tar.bz2" "$release_name" "$path"
+      rbx_upload_files "$bucket" "rubinius$version.tar.bz2" "$(rbx_release_name)" "$path"
     done
   done
 fi
