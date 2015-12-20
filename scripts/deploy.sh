@@ -73,41 +73,39 @@ if [[ $TRAVIS_OS_NAME == osx ]]; then
 fi
 
 # Build and upload a binary to S3.
-if [[ $RVM == "rbx-2" ]]; then
-  echo "Deploying Travis binary $(rbx_revision_version) for ${TRAVIS_OS_NAME}..."
+echo "Deploying Travis binary $(rbx_release_name) for ${TRAVIS_OS_NAME}..."
 
-  "$(rbx_scripts)/package.sh" binary || fail "unable to build binary"
+"$(rbx_scripts)/package.sh" binary || fail "unable to build binary"
 
-  declare -a paths os_releases versions
+declare -a paths os_releases versions
 
-  if [[ $TRAVIS_OS_NAME == linux ]]; then
-    os_releases=("12.04" "14.04" "15.10")
-    for (( i=0; i < ${#os_releases[@]}; i++ )); do
-      paths[i]="/ubuntu/${os_releases[i]}/x86_64/"
-    done
-  else
-    os_releases=("10.9" "10.10" "10.11")
-    for (( i=0; i < ${#os_releases[@]}; i++ )); do
-      paths[i]="/osx/${os_releases[i]}/x86_64/"
-    done
-  fi
-
-  IFS="." read -r -a array <<< "$(rbx_revision_version)"
-
-  let i=0
-  version=""
-  versions[i]=""
-
-  for v in "${array[@]}"; do
-    let i=i+1
-    versions[i]="-$version$v"
-    version="$v."
+if [[ $TRAVIS_OS_NAME == linux ]]; then
+  os_releases=("12.04" "14.04" "15.10")
+  for (( i=0; i < ${#os_releases[@]}; i++ )); do
+    paths[i]="/ubuntu/${os_releases[i]}/x86_64/"
   done
-
-  for path in "${paths[@]}"; do
-    for version in "${versions[@]}"; do
-      rbx_upload_files "$(rbx_binary_bucket)" "rubinius$version.tar.bz2" \
-        "$(rbx_release_name)" "$path"
-    done
+else
+  os_releases=("10.9" "10.10" "10.11")
+  for (( i=0; i < ${#os_releases[@]}; i++ )); do
+    paths[i]="/osx/${os_releases[i]}/x86_64/"
   done
 fi
+
+IFS="." read -r -a array <<< "$(rbx_revision_version)"
+
+let i=0
+version=""
+versions[i]=""
+
+for v in "${array[@]}"; do
+  let i=i+1
+  versions[i]="-$version$v"
+  version="$v."
+done
+
+for path in "${paths[@]}"; do
+  for version in "${versions[@]}"; do
+    rbx_upload_files "$(rbx_binary_bucket)" "rubinius$version.tar.bz2" \
+      "$(rbx_release_name)" "$path"
+  done
+done
