@@ -75,7 +75,7 @@ fi
 # Build and upload a binary to S3.
 echo "Deploying Travis binary $(rbx_release_name) for ${TRAVIS_OS_NAME}..."
 
-"$(rbx_scripts)/package.sh" binary || fail "unable to build binary"
+"$(rbx_script_path)/package.sh" binary || fail "unable to build binary"
 
 declare -a paths os_releases versions
 
