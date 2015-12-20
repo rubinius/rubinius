@@ -7,6 +7,13 @@ puts "Pre-installing gems for #{RUBY_VERSION}..."
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 gems = BUILD_CONFIG[:gem_files]
 install_dir = "#{BUILD_CONFIG[:build_prefix]}#{BUILD_CONFIG[:gemsdir]}"
+unless BUILD_CONFIG[:darwin] and
+         `which brew`.chomp.size > 0 and
+         $?.success? and
+         (openssl = `brew --prefix openssl`.chomp).size > 0
+  openssl = false
+end
+
 options = {
   :bin_dir              => nil,
   :build_args           => [],
@@ -33,6 +40,13 @@ end
 
 gems.each do |gem|
   next if gem =~ /readline/
+
+  if gem =~ /openssl/ and openssl
+    options[:build_args] =
+      ["--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"]
+  else
+    options[:build_args] = []
+  end
 
   install gem, install_dir, options
 end

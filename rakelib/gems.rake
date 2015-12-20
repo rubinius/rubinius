@@ -1,8 +1,8 @@
-def bootstrap_rubinius(cmd)
+def bootstrap_rubinius(cmd, options=nil)
   gems_path = File.expand_path "../", BUILD_CONFIG[:bootstrap_gems_dir]
   ENV["RBX_GEMS_PATH"] = gems_path
   ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:build_prefix]
-  sh "#{BUILD_CONFIG[:build_exe]} #{cmd}"
+  sh "#{BUILD_CONFIG[:build_exe]} #{cmd} #{options}"
 ensure
   ENV.delete "RBX_GEMS_PATH"
   ENV.delete "RBX_PREFIX_PATH"
@@ -75,6 +75,13 @@ namespace :gems do
       %r[.*/rubysl-(etc|fcntl)-.*]
     )
 
+    unless BUILD_CONFIG[:darwin] and
+             `which brew`.chomp.size > 0 and
+             $?.success? and
+             (openssl = `brew --prefix openssl`.chomp).size > 0
+      openssl = false
+    end
+
     re = %r[(.*)/(ext|lib)/[^/]+/(.*extconf.rb)]
     names.each do |name|
       next unless m = re.match(name)
@@ -86,7 +93,13 @@ namespace :gems do
       Dir.chdir File.dirname(name) do
         puts "Building #{m[1]}..."
 
-        bootstrap_rubinius build_gem_extconf unless File.exist? "Makefile"
+        if m[1] =~ /openssl/ and openssl
+          options = "--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"
+        else
+          options = nil
+        end
+
+        bootstrap_rubinius build_gem_extconf, options unless File.exist? "Makefile"
         sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
 
         if File.exist? ext_name
