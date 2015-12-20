@@ -1,5 +1,9 @@
 #!/bin/bash
 
+__dir__="$(cd $(dirname "$0") && pwd)"
+
+source "$__dir__/configuration.sh"
+
 function rbx_digest_file {
   local name digest
 

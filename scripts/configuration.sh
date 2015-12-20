@@ -1,16 +1,11 @@
-function rbx_script_path {
-  local dir
-  dir=$(dirname "$0")
-
-  cd "$dir" && pwd
-}
+__dir__="$(cd $(dirname "$0") && pwd)"
 
 function rbx_git_directory {
-  echo "$(rbx_script_path)/../.git"
+  echo "$__dir__/../.git"
 }
 
 function rbx_revision_file {
-  echo "$(rbx_script_path)/../.revision"
+  echo "$__dir__/../.revision"
 }
 
 function rbx_get_revision {

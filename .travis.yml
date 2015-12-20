@@ -15,7 +15,7 @@ before_script:
 - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
 script: rake ci
 after_success:
-- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then rake deploy; fi
+- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./script/deploy.sh; fi
 branches:
   only:
   - master

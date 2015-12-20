@@ -1,8 +1,10 @@
 #!/bin/bash
 
-source "scripts/configuration.sh"
-source "scripts/aws.sh"
-source "scripts/io.sh"
+__dir__="$(cd $(dirname "$0") && pwd)"
+
+source "$__dir__/configuration.sh"
+source "$__dir__/aws.sh"
+source "$__dir__/io.sh"
 
 function rbx_release_bucket {
   echo "rubinius-releases-rubinius-com"
@@ -57,7 +59,7 @@ function rbx_upload_files {
 if [[ $TRAVIS_OS_NAME == osx ]]; then
   echo "Deploying release tarball $(rbx_release_name)..."
 
-  "$(rbx_script_path)/release.sh" || fail "unable to build release tarball"
+  "$__dir__/release.sh" || fail "unable to build release tarball"
 
   rbx_upload_files "$(rbx_release_bucket)" "$(rbx_release_name)" "$(rbx_release_name)"
 fi
@@ -66,7 +68,7 @@ fi
 if [[ $TRAVIS_OS_NAME == osx ]]; then
   echo "Deploying Homebrew binary $(rbx_release_name)..."
 
-  "$(rbx_script_path)/package.sh" homebrew || fail "unable to build Homebrew binary"
+  "$__dir__/package.sh" homebrew || fail "unable to build Homebrew binary"
 
   rbx_upload_files "$(rbx_binary_bucket)" "$(rbx_release_name)" \
     "$(rbx_release_name)" "/homebrew/"
@@ -75,7 +77,7 @@ fi
 # Build and upload a binary to S3.
 echo "Deploying Travis binary $(rbx_release_name) for ${TRAVIS_OS_NAME}..."
 
-"$(rbx_script_path)/package.sh" binary || fail "unable to build binary"
+"$__dir__/package.sh" binary || fail "unable to build binary"
 
 declare -a paths os_releases versions
 

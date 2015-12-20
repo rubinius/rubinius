@@ -1,7 +1,8 @@
 #!/bin/bash
 
-source "scripts/configuration.sh"
+__dir__="$(cd $(dirname "$0") && pwd)"
+
+source "$__dir__/configuration.sh"
 
 rbx_write_revision_file
-
-"$(rbx_script_path)/package.sh" tar
+"$__dir__/package.sh" tar
