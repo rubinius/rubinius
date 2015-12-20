@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function rbx_digest_file {
   local name digest
 
@@ -8,7 +10,7 @@ function rbx_digest_file {
 }
 
 function rbx_package_tar {
-  local archive files prefix
+  local archive files
 
   archive="$(rbx_release_name)"
   rm -rf "$archive"
@@ -20,3 +22,30 @@ function rbx_package_tar {
 
   rbx_digest_file "$archive" "sha512"
 }
+
+function rbx_package_binary {
+  rake package:binary
+}
+
+function rbx_package_homebrew {
+  echo "Packaging for Homebrew..."
+  rake package:homebrew
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  case "$1" in
+    "tar")
+      rbx_package_tar
+      ;;
+    "binary")
+      rbx_package_binary
+      ;;
+    "homebrew")
+      rbx_package_homebrew
+      ;;
+    *)
+      echo "Usage: ${0##*/} package_type"
+      exit 1
+      ;;
+  esac
+fi

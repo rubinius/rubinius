@@ -4,6 +4,14 @@ source "scripts/configuration.sh"
 source "scripts/aws.sh"
 source "scripts/io.sh"
 
+function rbx_release_bucket {
+  echo "rubinius-releases-rubinius-com"
+}
+
+function rbx_binary_bucket {
+  echo "rubinius-binaries-rubinius-com"
+}
+
 function rbx_url_prefix {
   local bucket=$1
   echo "https://${bucket}.s3-us-west-2.amazonaws.com"
@@ -17,7 +25,7 @@ function rbx_upload_files {
   src=$3
   path=${4:-}
   url=$(rbx_url_prefix "$bucket")
-  file_exts=("" ".md5" ".sha1" ".sha512")
+  file_exts=("" ".sha512")
   index="index.txt"
 
   rbx_s3_download "$url" "$index"
@@ -46,24 +54,29 @@ function rbx_upload_files {
 }
 
 # Build and upload the release tarball to S3.
-if [[ $TRAVIS_OS_NAME == osx && $CC == gcc && $RVM == "rbx-2" ]]; then
-  echo "Deploying release tarball $(rbx_revision_version)..."
+if [[ $TRAVIS_OS_NAME == osx ]]; then
+  echo "Deploying release tarball $(rbx_release_name)..."
 
-  ./scripts/release || fail "unable to build release tarball"
+  "$(rbx_script_path)/release.sh" || fail "unable to build release tarball"
 
-  bucket="rubinius-releases-rubinius-com"
-  release_name="$(rbx_release_name)"
+  rbx_upload_files "$(rbx_release_bucket)" "$(rbx_release_name)" "$(rbx_release_name)"
+fi
 
-  rbx_upload_files "$bucket" "$release_name" "$release_name"
+# Build and upload a Homebrew binary to S3.
+if [[ $TRAVIS_OS_NAME == osx ]]; then
+  echo "Deploying Homebrew binary $(rbx_release_name)..."
+
+  "$(rbx_script_path)/package.sh" homebrew || fail "unable to build Homebrew binary"
+
+  rbx_upload_files "$(rbx_binary_bucket)" "$(rbx_release_name)" \
+    "$(rbx_release_name)" "/homebrew/"
 fi
 
 # Build and upload a binary to S3.
 if [[ $RVM == "rbx-2" ]]; then
   echo "Deploying Travis binary $(rbx_revision_version) for ${TRAVIS_OS_NAME}..."
 
-  rake package:binary || fail "unable to build binary"
-
-  bucket="rubinius-binaries-rubinius-com"
+  "$(rbx_scripts)/package.sh" binary || fail "unable to build binary"
 
   declare -a paths os_releases versions
 
@@ -93,7 +106,8 @@ if [[ $RVM == "rbx-2" ]]; then
 
   for path in "${paths[@]}"; do
     for version in "${versions[@]}"; do
-      rbx_upload_files "$bucket" "rubinius$version.tar.bz2" "$(rbx_release_name)" "$path"
+      rbx_upload_files "$(rbx_binary_bucket)" "rubinius$version.tar.bz2" \
+        "$(rbx_release_name)" "$path"
     done
   done
 fi

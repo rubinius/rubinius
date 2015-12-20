@@ -53,3 +53,7 @@ function rbx_write_revision_file {
     rbx_get_revision > "$(rbx_revision_file)"
   fi
 }
+
+function rbx_release_name {
+  echo "rubinius-$(rbx_revision_version).tar.bz2"
+}
