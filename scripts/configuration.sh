@@ -19,8 +19,8 @@ function rbx_get_revision {
       commit_count=".c$count"
     fi
 
-    version=$(echo "$describe" | egrep -o '^v\d+\.\d+' | cut -c 2-)
-    commit_date=$(git show --format="%ci" HEAD | egrep -o '\d+-\d+-\d+')
+    version=$(echo "$describe" | egrep -o '^v[[:digit:]]+\.[[:digit:]]+' | cut -c 2-)
+    commit_date=$(git show --format="%ci" HEAD | egrep -o '[[:digit:]]+-[[:digit:]]+-[[:digit:]]+')
     commit_hash=$(echo "$describe" | egrep -o '[[:xdigit:]]{8,}$')
 
     echo "$version$commit_count $commit_date $commit_hash"
