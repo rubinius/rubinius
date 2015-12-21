@@ -80,6 +80,12 @@ fi
 # Build and upload a binary to S3.
 echo "Deploying Travis binary $(rbx_release_name) for ${TRAVIS_OS_NAME}..."
 
+# TODO: Remove this hack when LLVM 3.6/7 support lands.
+vendor_llvm="./vendor/llvm/Release/bin/llvm-config"
+if [[ -f "$vendor_llvm" ]]; then
+  export RBX_BINARY_CONFIG="--llvm-config=$vendor_llvm"
+fi
+
 "$__dir__/package.sh" binary || fail "unable to build binary"
 
 declare -a paths os_releases versions
