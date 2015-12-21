@@ -14,8 +14,6 @@ namespace :package do
     prefix = "-s '|^|rubinius-#{rbx_version}/|'"
     sh "#{files} | sort | uniq | tar -c #{prefix} -T - -f - | bzip2 > #{archive}"
 
-    write_md5_digest_file archive
-    write_sha1_digest_file archive
     write_sha512_digest_file archive
   end
 
