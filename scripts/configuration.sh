@@ -1,4 +1,4 @@
-__dir__="$(cd $(dirname "$0") && pwd)"
+__dir__="$(cd "$(dirname "$0")" && pwd)"
 
 function rbx_git_directory {
   echo "$__dir__/../.git"

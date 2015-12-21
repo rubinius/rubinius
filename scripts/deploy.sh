@@ -1,9 +1,12 @@
 #!/bin/bash
 
-__dir__="$(cd $(dirname "$0") && pwd)"
+__dir__="$(cd "$(dirname "$0")" && pwd)"
 
+# shellcheck source=scripts/configuration.sh
 source "$__dir__/configuration.sh"
+# shellcheck source=scripts/aws.sh
 source "$__dir__/aws.sh"
+# shellcheck source=scripts/io.sh
 source "$__dir__/io.sh"
 
 function rbx_release_bucket {
