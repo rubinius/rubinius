@@ -25,14 +25,15 @@ function rbx_url_prefix {
 }
 
 function rbx_upload_files {
-  local bucket dest src path url name file_exts index
+  local bucket dest src path url name index
+  local -a file_exts
 
   bucket=$1
   dest=$2
   src=$3
   path=${4:-}
   url=$(rbx_url_prefix "$bucket")
-  file_exts=("" ".sha512")
+  file_exts=("" ".sha1" ".sha512")
   index="index.txt"
 
   rbx_s3_download "$url" "$index"

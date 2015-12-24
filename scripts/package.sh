@@ -34,7 +34,10 @@ function rbx_package_binary {
 
 function rbx_package_homebrew {
   echo "Packaging for Homebrew..."
+
   rake package:homebrew
+
+  rbx_digest_file "$(rbx_release_name)" "sha1"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
