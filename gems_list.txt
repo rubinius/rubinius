@@ -7,9 +7,10 @@ psych-2.0.10.gem
 racc-1.4.14.gem
 rake-10.4.2.gem
 rb-readline-0.5.3.gem
-rdoc-4.2.0.gem
+rdoc-4.2.1.gem
 redcard-1.1.0.gem
 rubinius-ast-2.3.2.gem
+rubinius-bridge-1.1.0.gem
 rubinius-build_tools-2.0.0.gem
 rubinius-compiler-2.3.1.gem
 rubinius-coverage-2.0.3.gem
