@@ -4,15 +4,8 @@ __dir__="$(cd "$(dirname "$0")" && pwd)"
 
 # shellcheck source=scripts/configuration.sh
 source "$__dir__/configuration.sh"
-
-function rbx_digest_file {
-  local name digest
-
-  name=$1
-  digest=${2:-"sha512"}
-
-  openssl dgst -"$digest" -hex "$name" | cut -d ' ' -f 2 > "$name.$digest"
-}
+# shellcheck source=scripts/digest.sh
+source "$__dir__/digest.sh"
 
 function rbx_package_tar {
   local archive files

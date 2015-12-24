@@ -1,5 +1,8 @@
 __dir__="$(cd "$(dirname "$0")" && pwd)"
 
+# shellcheck source=scripts/digest.sh
+source "$__dir__/digest.sh"
+
 function rbx_github_release_url {
   echo "https://api.github.com/repos/rubinius/rubinius/releases"
 }
@@ -49,4 +52,22 @@ function rbx_github_release_assets {
       -H "Content-Type: $(file --mime-type -b "$src")" \
       "$upload_url?name=$src&access_token=$GITHUB_OAUTH_TOKEN"
   done
+}
+
+function rbx_github_update_file {
+  local file sha message url content request
+
+  file=$1
+  sha=$2
+  message=$3
+  url=$4
+  content=$(rbx_base64 "$file")
+
+  request=$(printf '{
+    "message": "%s",
+    "content": "%s",
+    "sha": "%s"
+  }' "$message" "$content" "$sha")
+
+  curl -X PUT --data "$request" "$url?access_token=$GITHUB_OAUTH_TOKEN"
 }

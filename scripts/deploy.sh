@@ -4,6 +4,8 @@ __dir__="$(cd "$(dirname "$0")" && pwd)"
 
 # shellcheck source=scripts/configuration.sh
 source "$__dir__/configuration.sh"
+# shellcheck source=scripts/digest.sh
+source "$__dir__/digest.sh"
 # shellcheck source=scripts/github.sh
 source "$__dir__/github.sh"
 # shellcheck source=scripts/aws.sh
@@ -151,12 +153,30 @@ function rbx_deploy_github_release {
 }
 
 function rbx_deploy_website_release {
-  local os_name
+  local os_name releases updates version url response
 
   os_name=$1
+  releases="releases.yml"
+  updates="updated_$releases"
+  version=$(rbx_revision_version)
+  url="https://api.github.com/repos/rubinius/rubinius.github.io/contents/_data/releases.yml"
 
   if [[ $os_name == osx ]]; then
-    echo rbx_deploy_website_release
+    response=$(curl "$url")
+
+    sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+      egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+
+    cat > "$updates" <<EOF
+- version: $version
+  date: $(rbx_revision_date)
+EOF
+
+    cat "$releases" >> "$updates"
+
+    let i=${#sha}
+
+    rbx_github_update_file "$updates" "${sha:1:$i-2}" "Version $version" "$url"
   fi
 }
 
