@@ -713,6 +713,8 @@ VALUE rb_uint2big(unsigned long number);
 /** Compares n objects of type. */
 #define MEMCMP(p1,p2,type,n) memcmp((p1), (p2), sizeof(type)*(n))
 
+#define RARRAY_AREF(a, i)   rb_ary_entry(a, i)
+
 /** The length of the array. */
 #define RARRAY_LEN(ary)   rb_ary_size(ary)
 #define RARRAY_LENINT(str) rb_ary_size(str)
