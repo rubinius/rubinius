@@ -22,6 +22,14 @@ class IO
     include WaitWritable
   end
 
+  class EINPROGRESSWaitReadable < Errno::EINPROGRESS
+    include WaitReadable
+  end
+
+  class EINPROGRESSWaitWritable < Errno::EINPROGRESS
+    include WaitWritable
+  end
+
   # Import platform constants
 
   SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
