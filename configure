@@ -136,6 +136,7 @@ class Configure
       "rubysl-etc",
       "rubysl-fcntl",
       "rubysl-fileutils",
+      "rubysl-io-nonblock",
       "rubysl-monitor",
       "rubysl-openssl",
       "rubysl-optparse",
