@@ -3,15 +3,13 @@ __dir__="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=scripts/digest.sh
 source "$__dir__/digest.sh"
 
-function rbx_github_release_url {
-  echo "https://api.github.com/repos/rubinius/rubinius/releases"
-}
-
 function rbx_github_release {
-  local version date request response upload_url
+  local version date request response release_url upload_url
 
   version=$1
   date=$2
+
+  release_url="https://api.github.com/repos/rubinius/rubinius/releases"
 
   request=$(printf '{
     "tag_name": "v%s",
@@ -23,7 +21,7 @@ function rbx_github_release {
   }' "$version" "$version" "$version" "$date")
 
   response=$(curl --data "$request" \
-    "$(rbx_github_release_url)?access_token=$GITHUB_OAUTH_TOKEN")
+    "$release_url?access_token=$GITHUB_OAUTH_TOKEN")
 
   if [ $? -ne 0 ]; then
     return

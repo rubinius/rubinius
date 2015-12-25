@@ -83,6 +83,8 @@ function rbx_deploy_homebrew_binary {
 
     rbx_upload_files "$(rbx_binary_bucket)" "$(rbx_release_name)" \
       "$(rbx_release_name)" "/homebrew/"
+
+    rbx_deploy_homebrew_release
   fi
 }
 
@@ -153,7 +155,7 @@ function rbx_deploy_github_release {
 }
 
 function rbx_deploy_website_release {
-  local os_name releases updates version url response
+  local os_name releases updates version url response sha
 
   os_name=$1
   releases="releases.yml"
@@ -178,6 +180,52 @@ EOF
 
     rbx_github_update_file "$updates" "${sha:1:$i-2}" "Version $version" "$url"
   fi
+}
+
+function rbx_deploy_homebrew_release {
+  local release file url response sha
+
+  release=$(rbx_release_name)
+  file="rubinius.rb"
+  url="https://api.github.com/repos/rubinius/homebrew-apps/contents/$file"
+  response=$(curl $url)
+
+  cat > "$file" <<EOF
+require 'formula'
+
+class Rubinius < Formula
+  homepage 'http://rubinius.com/'
+  url 'https://rubinius-binaries-rubinius-com.s3.amazonaws.com/homebrew/$release'
+  sha1 '$(cat "$release.sha1")'
+
+  depends_on 'libyaml'
+
+  depends_on :arch => :x86_64
+  depends_on MinimumMacOSRequirement => :mountain_lion
+
+  keg_only "Conflicts with MRI (Matz's Ruby Implementation)."
+
+  def install
+    bin.install Dir["bin/*"]
+    lib.install Dir["lib/*"]
+    include.install Dir["include/*"]
+    man1.install Dir["man/man1/*"]
+  end
+
+  test do
+    assert_equal 'rbx', \`"#{bin}/rbx" -e "puts RUBY_ENGINE"\`.chomp
+  end
+end
+EOF
+
+  sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+    egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+
+  let i=${#sha}
+
+  rbx_github_update_file "$file" "${sha:1:$i-2}" "Version $(rbx_revision_version)" "$url"
+
+  rm "$file"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
