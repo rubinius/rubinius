@@ -6,7 +6,7 @@ function rbx_update_gems_list {
   gems_list=gems_list.txt
   build_list=build_gems_list.txt
 
-  rm "$build_list"
+  rm -f "$build_list"
 
   for gemfile in Gemfile Gemfile.installed; do
     export BUNDLE_GEMFILE=$gemfile
@@ -20,7 +20,7 @@ function rbx_update_gems_list {
     sed 's/^.*\*[[:space:]]*\(.*\)[[:space:]](\(.*\))$/\1-\2.gem/' | \
     egrep '\.gem$' > "$gems_list"
 
-  rm "$build_list"
+  rm -f "$build_list"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
