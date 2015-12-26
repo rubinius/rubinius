@@ -35,15 +35,17 @@ function rbx_upload_files {
   src=$3
   path=${4:-}
   url=$(rbx_url_prefix "$bucket")
-  file_exts=("" ".sha1" ".sha512")
+  file_exts=("" ".sha512")
   index="index.txt"
 
   rbx_s3_download "$url" "$index"
 
   # Upload all the files first.
   for ext in "${file_exts[@]}"; do
-    rbx_s3_upload "$url" "$bucket" "$dest$ext" "$src$ext" "$path" ||
-      fail "unable to upload file"
+    if [[ -f $src$ext ]]; then
+      rbx_s3_upload "$url" "$bucket" "$dest$ext" "$src$ext" "$path" ||
+        fail "unable to upload file"
+    fi
   done
 
   # Update the index and upload it.
@@ -54,7 +56,7 @@ function rbx_upload_files {
       name="$dest$ext"
     fi
 
-    grep "$name" "$index"
+    grep "^$name\$" "$index"
     if [ $? -ne 0 ]; then
       echo "$name" >> "$index"
     fi
