@@ -4,21 +4,33 @@ __dir__="$(cd "$(dirname "$0")" && pwd)"
 source "$__dir__/digest.sh"
 
 function rbx_github_release {
-  local version date request response release_url upload_url
+  local version date previous log request response release_url upload_url
 
   version=$1
   date=$2
 
   release_url="https://api.github.com/repos/rubinius/rubinius/releases"
 
+  IFS="." read -r -a array <<< "$version"
+  let minor=${array[1]}-1
+
+  if (( minor < 0 )); then
+    previous=$version
+  else
+    previous="${array[0]}.$minor"
+  fi
+
+  log=$(git log --max-parents=1 --reverse --pretty='format:* %s (%an)%+b' \
+    "v$previous..v$version" | sed 's/\[ci skip\]//' | sed '/^$/N;/^\n$/D')
+
   request=$(printf '{
     "tag_name": "v%s",
     "target_commitish": "master",
     "name": "Release %s",
-    "body": "Version %s (%s)",
+    "body": "Version %s (%s)\n\n%s",
     "draft": false,
     "prerelease": false
-  }' "$version" "$version" "$version" "$date")
+  }' "$version" "$version" "$version" "$date" "$log")
 
   response=$(curl --data "$request" \
     "$release_url?access_token=$GITHUB_OAUTH_TOKEN")
