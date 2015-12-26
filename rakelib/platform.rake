@@ -37,6 +37,8 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :ifa_flags, :int
       s.field :ifa_addr, :pointer
       s.field :ifa_netmask, :pointer
+      s.field :ifa_broadaddr, :pointer
+      s.field :ifa_dstaddr, :pointer
     end.write_config(f)
 
     Rubinius::FFI::Generators::Structures.new 'sockaddr' do |s|
