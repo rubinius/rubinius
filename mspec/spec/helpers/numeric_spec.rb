@@ -14,7 +14,7 @@ end
 
 describe Object, "#nan_value" do
   it "returns NaN" do
-    nan_value.nan?.should be_true
+    nan_value.nan?.should be_truthy
   end
 end
 

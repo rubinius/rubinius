@@ -9,12 +9,12 @@ end
 describe HaveConstantMatcher do
   it "matches when mod has the constant" do
     matcher = HaveConstantMatcher.new :X
-    matcher.matches?(HCMSpecs).should be_true
+    matcher.matches?(HCMSpecs).should be_truthy
   end
 
   it "does not match when mod does not have the constant" do
     matcher = HaveConstantMatcher.new :A
-    matcher.matches?(HCMSpecs).should be_false
+    matcher.matches?(HCMSpecs).should be_falsey
   end
 
   it "provides a failure message for #should" do

@@ -19,18 +19,18 @@ describe HaveInstanceMethodMatcher do
 
   it "matches when mod has the instance method" do
     matcher = HaveInstanceMethodMatcher.new :instance_method
-    matcher.matches?(HIMMSpecs).should be_true
-    matcher.matches?(HIMMSpecs::Subclass).should be_true
+    matcher.matches?(HIMMSpecs).should be_truthy
+    matcher.matches?(HIMMSpecs::Subclass).should be_truthy
   end
 
   it "does not match when mod does not have the instance method" do
     matcher = HaveInstanceMethodMatcher.new :another_method
-    matcher.matches?(HIMMSpecs).should be_false
+    matcher.matches?(HIMMSpecs).should be_falsey
   end
 
   it "does not match if the method is in a superclass and include_super is false" do
     matcher = HaveInstanceMethodMatcher.new :instance_method, false
-    matcher.matches?(HIMMSpecs::Subclass).should be_false
+    matcher.matches?(HIMMSpecs::Subclass).should be_falsey
   end
 
   it "provides a failure message for #should" do

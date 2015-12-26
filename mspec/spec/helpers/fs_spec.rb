@@ -35,12 +35,12 @@ describe Object, "#touch" do
 
   it "creates a file" do
     touch @name
-    File.exist?(@name).should be_true
+    File.exist?(@name).should be_truthy
   end
 
   it "accepts an optional mode argument" do
     touch @name, "wb"
-    File.exist?(@name).should be_true
+    File.exist?(@name).should be_truthy
   end
 
   it "overwrites an existing file" do
@@ -68,7 +68,7 @@ describe Object, "#touch" do
 
   it "creates all the directories in the path to the file" do
     touch @name
-    File.exist?(@name).should be_true
+    File.exist?(@name).should be_truthy
   end
 end
 
@@ -86,7 +86,7 @@ describe Object, "#mkdir_p" do
 
   it "creates all the directories in a path" do
     mkdir_p @dir2
-    File.directory?(@dir2).should be_true
+    File.directory?(@dir2).should be_truthy
   end
 
   it "raises an ArgumentError if a path component is a file" do
@@ -129,20 +129,20 @@ describe Object, "#rm_r" do
 
   it "removes a single file" do
     rm_r @subfile
-    File.exist?(@subfile).should be_false
+    File.exist?(@subfile).should be_falsey
   end
 
   it "removes multiple files" do
     rm_r @topfile, @subfile
-    File.exist?(@topfile).should be_false
-    File.exist?(@subfile).should be_false
+    File.exist?(@topfile).should be_falsey
+    File.exist?(@subfile).should be_falsey
   end
 
   platform_is_not :windows do
     it "removes a symlink to a file" do
       File.symlink @topfile, @link
       rm_r @link
-      File.exist?(@link).should be_false
+      File.exist?(@link).should be_falsey
     end
 
     it "removes a symlink to a directory" do
@@ -151,7 +151,7 @@ describe Object, "#rm_r" do
       lambda do
         File.lstat(@link)
       end.should raise_error(Errno::ENOENT)
-      File.exist?(@subdir1).should be_true
+      File.exist?(@subdir1).should be_truthy
     end
 
     it "removes a dangling symlink" do
@@ -166,17 +166,17 @@ describe Object, "#rm_r" do
       require 'socket'
       UNIXServer.new(@socket).close
       rm_r @socket
-      File.exist?(@socket).should be_false
+      File.exist?(@socket).should be_falsey
     end
   end
 
   it "removes a single directory" do
     rm_r @subdir2
-    File.directory?(@subdir2).should be_false
+    File.directory?(@subdir2).should be_falsey
   end
 
   it "recursively removes a directory tree" do
     rm_r @topdir
-    File.directory?(@topdir).should be_false
+    File.directory?(@topdir).should be_falsey
   end
 end

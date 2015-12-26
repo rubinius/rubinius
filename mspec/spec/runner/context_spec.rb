@@ -39,11 +39,11 @@ end
 
 describe ContextState, "#shared?" do
   it "returns false when the ContextState is not shared" do
-    ContextState.new("").shared?.should be_false
+    ContextState.new("").shared?.should be_falsey
   end
 
   it "returns true when the ContextState is shared" do
-    ContextState.new("", {:shared => true}).shared?.should be_true
+    ContextState.new("", {:shared => true}).shared?.should be_truthy
   end
 end
 
@@ -104,8 +104,8 @@ describe ContextState, "#it" do
   it "calls registered :add actions" do
     ExampleState.should_receive(:new).with(@state, "it", @proc).and_return(@ex)
 
-    add_action = mock("add")
-    add_action.should_receive(:add).with(@ex).and_return { ScratchPad.record :add }
+    add_action = double("add")
+    add_action.should_receive(:add) { ScratchPad.record :add }.with(@ex)
     MSpec.register :add, add_action
 
     @state.it("it", &@proc)
@@ -224,7 +224,7 @@ describe ContextState, "#protect" do
 
   it "returns true and does execute any blocks if check and MSpec.mode?(:pretend) are true" do
     MSpec.should_receive(:mode?).with(:pretend).and_return(true)
-    ContextState.new("").protect("message", [@a, @b]).should be_true
+    ContextState.new("").protect("message", [@a, @b]).should be_truthy
     ScratchPad.recorded.should == []
   end
 
@@ -240,20 +240,20 @@ describe ContextState, "#protect" do
   end
 
   it "returns true if none of the blocks raise an exception" do
-    ContextState.new("").protect("message", [@a, @b]).should be_true
+    ContextState.new("").protect("message", [@a, @b]).should be_truthy
   end
 
   it "returns false if any of the blocks raise an exception" do
-    ContextState.new("").protect("message", [@a, @c, @b]).should be_false
+    ContextState.new("").protect("message", [@a, @c, @b]).should be_falsey
   end
 end
 
 describe ContextState, "#parent=" do
   before :each do
     @state = ContextState.new ""
-    @parent = mock("describe")
-    @parent.stub!(:parent).and_return(nil)
-    @parent.stub!(:child)
+    @parent = double("describe")
+    @parent.stub(:parent).and_return(nil)
+    @parent.stub(:child)
   end
 
   it "does not set self as a child of parent if shared" do
@@ -282,9 +282,9 @@ end
 describe ContextState, "#parent" do
   before :each do
     @state = ContextState.new ""
-    @parent = mock("describe")
-    @parent.stub!(:parent).and_return(nil)
-    @parent.stub!(:child)
+    @parent = double("describe")
+    @parent.stub(:parent).and_return(nil)
+    @parent.stub(:child)
   end
 
   it "returns nil if parent has not been set" do
@@ -301,9 +301,9 @@ describe ContextState, "#parents" do
   before :each do
     @first = ContextState.new ""
     @second = ContextState.new ""
-    @parent = mock("describe")
-    @parent.stub!(:parent).and_return(nil)
-    @parent.stub!(:child)
+    @parent = double("describe")
+    @parent.stub(:parent).and_return(nil)
+    @parent.stub(:child)
   end
 
   it "returns a list of all enclosing ContextState instances" do
@@ -317,9 +317,9 @@ describe ContextState, "#child" do
   before :each do
     @first = ContextState.new ""
     @second = ContextState.new ""
-    @parent = mock("describe")
-    @parent.stub!(:parent).and_return(nil)
-    @parent.stub!(:child)
+    @parent = double("describe")
+    @parent.stub(:parent).and_return(nil)
+    @parent.stub(:child)
   end
 
   it "adds the ContextState to the list of contained ContextStates" do
@@ -369,7 +369,7 @@ describe ContextState, "#process" do
   before :each do
     MSpec.store :before, []
     MSpec.store :after, []
-    MSpec.stub!(:register_current)
+    MSpec.stub(:register_current)
 
     @state = ContextState.new ""
     @state.describe { }
@@ -405,7 +405,7 @@ describe ContextState, "#process" do
   it "does not call the #it block if #filtered? returns true" do
     @state.it("one", &@a)
     @state.it("two", &@b)
-    @state.examples.first.stub!(:filtered?).and_return(true)
+    @state.examples.first.stub(:filtered?).and_return(true)
     @state.process
     ScratchPad.recorded.should == [:b]
   end
@@ -460,7 +460,7 @@ describe ContextState, "#process" do
     MSpec.should_receive(:clear_expectations)
     @state.it("it") { ScratchPad.record MSpec.expectation? }
     @state.process
-    ScratchPad.recorded.should be_false
+    ScratchPad.recorded.should be_falsey
   end
 
   it "shuffles the spec list if MSpec.randomize? is true" do
@@ -510,7 +510,7 @@ describe ContextState, "#process" do
     @state = ContextState.new ""
     @state.describe { }
 
-    action = mock("action")
+    action = double("action")
     def action.exception(exc)
       ScratchPad.record :exception if exc.exception.is_a? SpecExpectationNotFoundError
     end
@@ -550,7 +550,7 @@ describe ContextState, "#process" do
     @state = ContextState.new ""
     @state.describe { }
 
-    example = mock("example")
+    example = double("example")
     def example.example(state, spec)
       ScratchPad << state << spec
     end
@@ -594,8 +594,8 @@ describe ContextState, "#process" do
   end
 
   it "calls registered :before actions with the current ExampleState instance" do
-    before = mock("before")
-    before.should_receive(:before).and_return {
+    before = double("before")
+    before.should_receive(:before) {
       ScratchPad.record :before
       @spec_state = @state.state
     }
@@ -606,8 +606,8 @@ describe ContextState, "#process" do
   end
 
   it "calls registered :after actions with the current ExampleState instance" do
-    after = mock("after")
-    after.should_receive(:after).and_return {
+    after = double("after")
+    after.should_receive(:after) {
       ScratchPad.record :after
       @spec_state = @state.state
     }
@@ -634,16 +634,16 @@ describe ContextState, "#process" do
   end
 
   it "calls registered :enter actions with the current #describe string" do
-    enter = mock("enter")
-    enter.should_receive(:enter).with("C#m").and_return { ScratchPad.record :enter }
+    enter = double("enter")
+    enter.should_receive(:enter) { ScratchPad.record :enter }.with("C#m")
     MSpec.register :enter, enter
     @state.process
     ScratchPad.recorded.should == :enter
   end
 
   it "calls registered :leave actions" do
-    leave = mock("leave")
-    leave.should_receive(:leave).and_return { ScratchPad.record :leave }
+    leave = double("leave")
+    leave.should_receive(:leave) { ScratchPad.record :leave }
     MSpec.register :leave, leave
     @state.process
     ScratchPad.recorded.should == :leave
@@ -775,8 +775,8 @@ describe ContextState, "#process in pretend mode" do
   end
 
   it "calls registered :before actions with the current ExampleState instance" do
-    before = mock("before")
-    before.should_receive(:before).and_return {
+    before = double("before")
+    before.should_receive(:before) {
       ScratchPad.record :before
       @spec_state = @state.state
     }
@@ -787,8 +787,8 @@ describe ContextState, "#process in pretend mode" do
   end
 
   it "calls registered :after actions with the current ExampleState instance" do
-    after = mock("after")
-    after.should_receive(:after).and_return {
+    after = double("after")
+    after.should_receive(:after) {
       ScratchPad.record :after
       @spec_state = @state.state
     }
@@ -898,16 +898,16 @@ describe ContextState, "#process in pretend mode" do
   end
 
   it "calls registered :enter actions with the current #describe string" do
-    enter = mock("enter")
-    enter.should_receive(:enter).and_return { ScratchPad.record :enter }
+    enter = double("enter")
+    enter.should_receive(:enter) { ScratchPad.record :enter }
     MSpec.register :enter, enter
     @state.process
     ScratchPad.recorded.should == :enter
   end
 
   it "calls registered :leave actions" do
-    leave = mock("leave")
-    leave.should_receive(:leave).and_return { ScratchPad.record :leave }
+    leave = double("leave")
+    leave.should_receive(:leave) { ScratchPad.record :leave }
     MSpec.register :leave, leave
     @state.process
     ScratchPad.recorded.should == :leave
@@ -918,7 +918,7 @@ describe ContextState, "#it_should_behave_like" do
   before :each do
     @shared_desc = :shared_context
     @shared = ContextState.new(@shared_desc, :shared => true)
-    MSpec.stub!(:retrieve_shared).and_return(@shared)
+    MSpec.stub(:retrieve_shared).and_return(@shared)
 
     @state = ContextState.new "Top level"
     @a = lambda {|*| }
@@ -938,7 +938,7 @@ describe ContextState, "#it_should_behave_like" do
       @shared.children << @nested
 
       @nested_dup = @nested.dup
-      @nested.stub!(:dup).and_return(@nested_dup)
+      @nested.stub(:dup).and_return(@nested_dup)
     end
 
     it "duplicates the nested ContextState" do
@@ -972,7 +972,7 @@ describe ContextState, "#it_should_behave_like" do
   it "adds duped examples from the shared ContextState" do
     @shared.it "some method", &@a
     ex_dup = @shared.examples.first.dup
-    @shared.examples.first.stub!(:dup).and_return(ex_dup)
+    @shared.examples.first.stub(:dup).and_return(ex_dup)
 
     @state.it_should_behave_like @shared_desc
     @state.examples.should == [ex_dup]
@@ -1022,20 +1022,20 @@ describe ContextState, "#filter_examples" do
   end
 
   it "removes examples that are filtered" do
-    @state.examples.first.stub!(:filtered?).and_return(true)
+    @state.examples.first.stub(:filtered?).and_return(true)
     @state.examples.size.should == 2
     @state.filter_examples
     @state.examples.size.should == 1
   end
 
   it "returns true if there are remaining examples to evaluate" do
-    @state.examples.first.stub!(:filtered?).and_return(true)
-    @state.filter_examples.should be_true
+    @state.examples.first.stub(:filtered?).and_return(true)
+    @state.filter_examples.should be_truthy
   end
 
   it "returns false if there are no remaining examples to evaluate" do
-    @state.examples.first.stub!(:filtered?).and_return(true)
-    @state.examples.last.stub!(:filtered?).and_return(true)
-    @state.filter_examples.should be_false
+    @state.examples.first.stub(:filtered?).and_return(true)
+    @state.examples.last.stub(:filtered?).and_return(true)
+    @state.filter_examples.should be_falsey
   end
 end

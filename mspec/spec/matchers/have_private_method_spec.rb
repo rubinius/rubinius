@@ -16,12 +16,12 @@ describe HavePrivateMethodMatcher do
 
   it "matches when mod has the private method" do
     matcher = HavePrivateMethodMatcher.new :private_method
-    matcher.matches?(HPMMSpecs).should be_true
+    matcher.matches?(HPMMSpecs).should be_truthy
   end
 
   it "does not match when mod does not have the private method" do
     matcher = HavePrivateMethodMatcher.new :another_method
-    matcher.matches?(HPMMSpecs).should be_false
+    matcher.matches?(HPMMSpecs).should be_falsey
   end
 
   it "provides a failure message for #should" do
