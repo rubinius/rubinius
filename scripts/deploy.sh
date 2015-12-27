@@ -157,16 +157,21 @@ function rbx_deploy_github_release {
 }
 
 function rbx_deploy_website_release {
-  local os_name releases updates version url response sha
+  local os_name releases updates version url response sha download_url
 
   os_name=$1
-  releases="releases.yml"
-  updates="updated_$releases"
-  version=$(rbx_revision_version)
-  url="https://api.github.com/repos/rubinius/rubinius.github.io/contents/_data/releases.yml"
 
   if [[ $os_name == osx ]]; then
+    releases="releases.yml"
+    updates="updated_$releases"
+    version=$(rbx_revision_version)
+    url="https://api.github.com/repos/rubinius/rubinius.github.io/contents/_data/releases.yml"
+
     response=$(curl "$url")
+
+    download_url=$(echo "$response" | "$__dir__/json.sh" -b | \
+      egrep '\["download_url"\][[:space:]]\"[^"]+\"' | egrep -o '\"[^\"]+\"')
+    curl -o "$releases" "$download_url"
 
     sha=$(echo "$response" | "$__dir__/json.sh" -b | \
       egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
