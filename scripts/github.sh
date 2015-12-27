@@ -4,7 +4,7 @@ __dir__="$(cd "$(dirname "$0")" && pwd)"
 source "$__dir__/digest.sh"
 
 function rbx_github_release {
-  local version date previous log request response release_url upload_url
+  local version date previous log body request response release_url upload_url
 
   version=$1
   date=$2
@@ -20,22 +20,28 @@ function rbx_github_release {
     previous="${array[0]}.$minor"
   fi
 
-  log=$(git log --max-parents=1 --reverse --pretty='format:* %s (%an)%+b' \
+  log=$(git log --color=never --max-parents=1 --reverse --pretty='format:* %s (%an)%+b' \
     "v$previous..v$version" | sed 's/\[ci skip\]//' | sed '/^$/N;/^\n$/D')
+
+  unset GEM_HOME GEM_PATH GEM_ROOT
+
+  body=$(printf 'Version %s (%s)\n\n%s' "$version" "$date" "$log" \
+    | bin/rbx -r json -e "puts STDIN.read.to_json")
 
   request=$(printf '{
     "tag_name": "v%s",
     "target_commitish": "master",
     "name": "Release %s",
-    "body": "Version %s (%s)\n\n%s",
+    "body": %s,
     "draft": false,
     "prerelease": false
-  }' "$version" "$version" "$version" "$date" "$log")
+  }' "$version" "$version" "$body")
 
   response=$(curl --data "$request" \
     "$release_url?access_token=$GITHUB_OAUTH_TOKEN")
 
   if [ $? -ne 0 ]; then
+    echo "Creating GitHub release failed"
     return
   fi
 
