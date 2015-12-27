@@ -170,22 +170,25 @@ function rbx_deploy_website_release {
     response=$(curl "$url")
 
     download_url=$(echo "$response" | "$__dir__/json.sh" -b | \
-      egrep '\["download_url"\][[:space:]]\"[^"]+\"' | egrep -o '\"[^\"]+\"')
-    curl -o "$releases" "$download_url"
+      egrep '\["download_url"\][[:space:]]\"[^"]+\"' | egrep -o '\"[^\"]+\"$')
+    curl -o "$releases" "${download_url:1:${#download_url}-2}"
+
+    grep "^- version: \"$version\"\$" "$releases"
+    if [ $? -eq 0 ]; then
+      return
+    fi
 
     sha=$(echo "$response" | "$__dir__/json.sh" -b | \
       egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
 
     cat > "$updates" <<EOF
-- version: $version
+- version: "$version"
   date: $(rbx_revision_date)
 EOF
 
     cat "$releases" >> "$updates"
 
-    let i=${#sha}
-
-    rbx_github_update_file "$updates" "${sha:1:$i-2}" "Version $version" "$url"
+    rbx_github_update_file "$updates" "${sha:1:${#sha}-2}" "Version $version." "$url"
   fi
 }
 
