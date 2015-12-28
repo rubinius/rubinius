@@ -57,7 +57,7 @@ namespace :gems do
     unless BUILD_CONFIG[:darwin] and
              `which brew`.chomp.size > 0 and
              $?.success? and
-             (openssl = `brew --prefix openssl`.chomp).size > 0
+             (openssl = `brew --prefix #{ENV["RBX_OPENSSL"] || "openssl"}`.chomp).size > 0
       openssl = false
     end
 
