@@ -8,6 +8,7 @@ BUILD_CONFIG = Rubinius::BUILD_CONFIG
 gems = BUILD_CONFIG[:gem_files]
 install_dir = "#{BUILD_CONFIG[:build_prefix]}#{BUILD_CONFIG[:gemsdir]}"
 unless BUILD_CONFIG[:darwin] and
+         ENV["TRAVIS_OS_NAME"] != "osx" and
          `which brew`.chomp.size > 0 and
          $?.success? and
          (openssl = `brew --prefix #{ENV["RBX_OPENSSL"] || "openssl"}`.chomp).size > 0

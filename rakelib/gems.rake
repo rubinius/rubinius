@@ -55,6 +55,7 @@ namespace :gems do
     )
 
     unless BUILD_CONFIG[:darwin] and
+             ENV["TRAVIS_OS_NAME"] != "osx" and
              `which brew`.chomp.size > 0 and
              $?.success? and
              (openssl = `brew --prefix #{ENV["RBX_OPENSSL"] || "openssl"}`.chomp).size > 0
