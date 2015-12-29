@@ -19,13 +19,23 @@
 #include "windows_compat.h"
 #include "ffi_util.hpp"
 
+#ifdef __APPLE__
+#include <crt_externs.h>
+#endif
+
 extern "C" {
 
 extern char** environ;
 
 int ffi_errno() { return errno; }
 
-char** ffi_environ() { return environ; }
+char** ffi_environ() {
+#ifdef __APPLE__
+  return *_NSGetEnviron();
+#else
+  return environ;
+#endif
+}
 
 void ffi_set_errno(int n) {
   errno = n;
