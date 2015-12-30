@@ -721,7 +721,7 @@ namespace rubinius {
     int res = ::select(fd+1, &set, 0, 0, &tv);
 
     if(res == 0) {
-      Exception::errno_eagain_error(state, "no data ready");
+      Exception::errno_wait_readable(state, EAGAIN);
       return 0;
     } else if(res <= 0) {
       Exception::errno_error(state, "read(2) failed");
@@ -828,7 +828,7 @@ namespace rubinius {
 
     // We can use byte_address() here since we use an explicit size
     int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
-    if(n == -1) Exception::errno_error(state, "write_nonblock");
+    if(n == -1) Exception::errno_wait_writable(state, errno);
 
     state->vm()->metrics().system.write_bytes += n;
 

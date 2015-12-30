@@ -14,15 +14,15 @@ describe HaveSingletonMethodMatcher do
 
   it "matches when the class has a singleton method" do
     matcher = HaveSingletonMethodMatcher.new :singleton_method
-    matcher.matches?(HSMMSpecs).should be_true
+    matcher.matches?(HSMMSpecs).should be_truthy
   end
 
   it "matches when the object has a singleton method" do
-    obj = mock("HSMMSpecs")
+    obj = double("HSMMSpecs")
     def obj.singleton_method; end
 
     matcher = HaveSingletonMethodMatcher.new :singleton_method
-    matcher.matches?(obj).should be_true
+    matcher.matches?(obj).should be_truthy
   end
 
   it "provides a failure message for #should" do

@@ -40,6 +40,28 @@ describe "Module#prepend_features" do
     other.untrusted?.should be_true
   end
 
+  it "clears caches of the given module" do
+    parent = Class.new do
+      def bar; :bar; end
+    end
+
+    child = Class.new(parent) do
+      def foo; :foo; end
+      def bar; super; end
+    end
+
+    mod = Module.new do
+      def foo; :fooo; end
+    end
+
+    child.new.foo
+    child.new.bar
+
+    child.prepend(mod)
+
+    child.new.bar.should == :bar
+  end
+
   describe "on Class" do
     ruby_bug "GH-376", "2.0.0.312" do
       it "is undefined" do

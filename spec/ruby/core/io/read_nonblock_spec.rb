@@ -11,12 +11,8 @@ describe "IO#read_nonblock" do
     @write.close rescue nil
   end
 
-  it "raises EAGAIN when there is no data" do
-    lambda { @read.read_nonblock(5) }.should raise_error(Errno::EAGAIN)
-  end
-
-  it "raises IO::WaitReadable when there is no data" do
-    lambda { @read.read_nonblock(5) }.should raise_error(IO::WaitReadable)
+  it "raises IO::EAGAINWaitReadable when there is no data" do
+    lambda { @read.read_nonblock(5) }.should raise_error(IO::EAGAINWaitReadable)
   end
 
   it "returns at most the number of bytes requested" do

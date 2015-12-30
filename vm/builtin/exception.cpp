@@ -319,15 +319,46 @@ namespace rubinius {
     RubyException::raise(exc);
   }
 
-  void Exception::errno_eagain_error(STATE, const char* reason) {
+  void Exception::errno_wait_readable(STATE, int error) {
     Exception* exc;
-    Class* exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitReadable"));
+    Class* exc_class;
 
-    String* message = nil<String>();
-
-    if(reason) {
-      message = String::create(state, reason);
+    if(error == EAGAIN) {
+      exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitReadable"));
     }
+#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+    else if(error == EWOULDBLOCK) {
+      exc_class = as<Class>(G(io)->get_const(state, "EWOULDBLOCKWaitReadable"));
+    }
+#endif
+    else {
+      exc_class = get_errno_error(state, Fixnum::from(error));
+    }
+
+    String* message = String::create(state, "read would block");
+
+    exc = make_errno_exception(state, exc_class, message, cNil);
+
+    RubyException::raise(exc);
+  }
+
+  void Exception::errno_wait_writable(STATE, int error) {
+    Exception* exc;
+    Class* exc_class;
+
+    if(error == EAGAIN) {
+      exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitWritable"));
+    }
+#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+    else if(error == EWOULDBLOCK) {
+      exc_class = as<Class>(G(io)->get_const(state, "EWOULDBLOCKWaitWritable"));
+    }
+#endif
+    else {
+      exc_class = get_errno_error(state, Fixnum::from(error));
+    }
+
+    String* message = String::create(state, "write would block");
 
     exc = make_errno_exception(state, exc_class, message, cNil);
 

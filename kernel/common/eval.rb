@@ -31,6 +31,9 @@ class BasicObject
       if string
         raise ::ArgumentError, 'cannot pass both a block and a string to evaluate'
       end
+
+      return prc.ruby_method.call(self) if prc.ruby_method
+
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
 

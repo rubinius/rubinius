@@ -27,6 +27,27 @@ Gist:
 These two files contain the output of the compilation process and the various
 configuration options used (e.g. compiler options).
 
+### Version Managers
+
+We can *not* help you with any issues that might be caused by a Ruby version
+manager. In the event of any issues please try building from source instead to
+see if the issue is caused by Rubinius itself or your version manager of choice.
+
+Issues involving version managers will be closed if they can either not be
+reproduced when building from source, or when the original report makes no
+mention about the author having tried building from source.
+
+Note that this only applies to the installation procedure. Problems with the
+runtime can of course still be reported, even when using a version manager.
+
+### Rubinius Versions
+
+Rubinius releases quite often, at least more often than most other
+implementations. As such we ask users to try out the latest version prior to
+reporting an issue. This ensures we don't have to start digging through the
+code, only to find out the problem has already been resolved in a more recent
+release.
+
 ### Running Specs
 
 MSpec provides several different scripts to run the specs under different

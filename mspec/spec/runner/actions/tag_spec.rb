@@ -6,7 +6,7 @@ require 'mspec/runner/tag'
 
 describe TagAction, ".new" do
   it "creates an MatchFilter with its tag and desc arguments" do
-    filter = mock('action filter').as_null_object
+    filter = double('action filter').as_null_object
     MatchFilter.should_receive(:new).with(nil, "some", "thing").and_return(filter)
     TagAction.new :add, :all, nil, nil, ["tag", "key"], ["some", "thing"]
   end
@@ -14,7 +14,7 @@ end
 
 describe TagAction, "#===" do
   before :each do
-    MSpec.stub!(:read_tags).and_return(["match"])
+    MSpec.stub(:read_tags).and_return(["match"])
     @action = TagAction.new :add, :fail, nil, nil, nil, ["catch", "if you"]
   end
 
@@ -40,18 +40,18 @@ describe TagAction, "#exception?" do
   end
 
   it "returns false if no exception has been raised while evaluating an example" do
-    @action.exception?.should be_false
+    @action.exception?.should be_falsey
   end
 
   it "returns true if an exception was raised while evaluating an example" do
     @action.exception ExceptionState.new nil, nil, Exception.new("failed")
-    @action.exception?.should be_true
+    @action.exception?.should be_truthy
   end
 end
 
 describe TagAction, "#outcome?" do
   before :each do
-    MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub(:read_tags).and_return([])
     @exception = ExceptionState.new nil, nil, Exception.new("failed")
   end
 
@@ -87,30 +87,30 @@ end
 describe TagAction, "#before" do
   it "resets the #exception? flag to false" do
     action = TagAction.new :add, :fail, nil, nil, nil, nil
-    action.exception?.should be_false
+    action.exception?.should be_falsey
     action.exception ExceptionState.new(nil, nil, Exception.new("Fail!"))
-    action.exception?.should be_true
+    action.exception?.should be_truthy
     action.before(ExampleState.new(ContextState.new("describe"), "it"))
-    action.exception?.should be_false
+    action.exception?.should be_falsey
   end
 end
 
 describe TagAction, "#exception" do
   it "sets the #exception? flag" do
     action = TagAction.new :add, :fail, nil, nil, nil, nil
-    action.exception?.should be_false
+    action.exception?.should be_falsey
     action.exception ExceptionState.new(nil, nil, Exception.new("Fail!"))
-    action.exception?.should be_true
+    action.exception?.should be_truthy
   end
 end
 
 describe TagAction, "#after when action is :add" do
   before :each do
-    MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub(:read_tags).and_return([])
     context = ContextState.new "Catch#me"
     @state = ExampleState.new context, "if you can"
     @tag = SpecTag.new "tag(comment):Catch#me if you can"
-    SpecTag.stub!(:new).and_return(@tag)
+    SpecTag.stub(:new).and_return(@tag)
     @exception = ExceptionState.new nil, nil, Exception.new("failed")
   end
 
@@ -155,11 +155,11 @@ end
 
 describe TagAction, "#after when action is :del" do
   before :each do
-    MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub(:read_tags).and_return([])
     context = ContextState.new "Catch#me"
     @state = ExampleState.new context, "if you can"
     @tag = SpecTag.new "tag(comment):Catch#me if you can"
-    SpecTag.stub!(:new).and_return(@tag)
+    SpecTag.stub(:new).and_return(@tag)
     @exception = ExceptionState.new nil, nil, Exception.new("failed")
   end
 
@@ -207,8 +207,8 @@ describe TagAction, "#finish" do
     $stdout = @out = IOStub.new
     context = ContextState.new "Catch#me"
     @state = ExampleState.new context, "if you can"
-    MSpec.stub!(:write_tag).and_return(true)
-    MSpec.stub!(:delete_tag).and_return(true)
+    MSpec.stub(:write_tag).and_return(true)
+    MSpec.stub(:delete_tag).and_return(true)
   end
 
   after :each do
@@ -217,7 +217,7 @@ describe TagAction, "#finish" do
 
   it "reports no specs tagged if none where tagged" do
     action = TagAction.new :add, :fail, "tag", "comment", nil, "can"
-    action.stub!(:outcome?).and_return(false)
+    action.stub(:outcome?).and_return(false)
     action.after @state
     action.finish
     @out.should == "\nTagAction: no specs were tagged with 'tag'\n"
@@ -225,7 +225,7 @@ describe TagAction, "#finish" do
 
   it "reports no specs tagged if none where tagged" do
     action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
-    action.stub!(:outcome?).and_return(false)
+    action.stub(:outcome?).and_return(false)
     action.after @state
     action.finish
     @out.should == "\nTagAction: no tags 'tag' were deleted\n"
@@ -233,7 +233,7 @@ describe TagAction, "#finish" do
 
   it "reports the spec descriptions that were tagged" do
     action = TagAction.new :add, :fail, "tag", "comment", nil, "can"
-    action.stub!(:outcome?).and_return(true)
+    action.stub(:outcome?).and_return(true)
     action.after @state
     action.finish
     @out.should ==
@@ -246,7 +246,7 @@ Catch#me if you can
 
   it "reports the spec descriptions for the tags that were deleted" do
     action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
-    action.stub!(:outcome?).and_return(true)
+    action.stub(:outcome?).and_return(true)
     action.after @state
     action.finish
     @out.should ==
@@ -260,8 +260,8 @@ end
 
 describe TagAction, "#register" do
   before :each do
-    MSpec.stub!(:register)
-    MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub(:register)
+    MSpec.stub(:read_tags).and_return([])
     @action = TagAction.new :add, :all, nil, nil, nil, nil
   end
 
@@ -288,8 +288,8 @@ end
 
 describe TagAction, "#unregister" do
   before :each do
-    MSpec.stub!(:unregister)
-    MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub(:unregister)
+    MSpec.stub(:read_tags).and_return([])
     @action = TagAction.new :add, :all, nil, nil, nil, nil
   end
 

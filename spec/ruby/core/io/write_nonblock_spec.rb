@@ -34,6 +34,22 @@ describe "IO#write_nonblock on a file" do
   end
 end
 
+describe 'IO#write_nonblock' do
+  before do
+    @read, @write = IO.pipe
+  end
+
+  after do
+    @read.close
+    @write.close
+  end
+
+  it 'raises IO::EAGAINWaitWritable when the operation would block' do
+    proc { loop { @write.write_nonblock('a' * 10_000) } }
+      .should raise_error(IO::EAGAINWaitWritable)
+  end
+end
+
 describe "IO#write_nonblock" do
   it_behaves_like :io_write, :write_nonblock
 end
