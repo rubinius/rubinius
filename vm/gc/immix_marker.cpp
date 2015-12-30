@@ -82,11 +82,8 @@ namespace rubinius {
           timer::StopWatch<timer::milliseconds> timer(
               state->vm()->metrics().gc.immix_concurrent_ms);
 
-          // Allow for a young stop the world GC to occur
-          // every bunch of marks. 100 is a fairly arbitrary
-          // number, based mostly on the fact it didn't cause
-          // big increases in young gc times because of long
-          // stop the world wait times.
+          // TODO: Set status of this thread so STW won't consider it a
+          // possible deadlock when the thread doesn't yield soon enough.
           while(immix_->process_mark_stack(immix_->memory()->collect_mature_now)) {
             if(state->shared().thread_nexus()->stop_p()) {
               state->shared().thread_nexus()->yielding(state->vm());

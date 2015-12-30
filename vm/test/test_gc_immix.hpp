@@ -435,7 +435,8 @@ public:
     gc->mark_address(addr, alloc);
     TS_ASSERT_EQUALS(obj->marked, true);
 
-    gc->process_mark_stack(alloc);
+    bool exit = false;
+    gc->process_mark_stack(alloc, exit);
     TS_ASSERT_EQUALS(obj->body_checked, true);
     TS_ASSERT_EQUALS(sub->marked, true);
     TS_ASSERT_EQUALS(sub->body_checked, true);
@@ -463,7 +464,8 @@ public:
     gc->mark_address(addr, alloc, false);
     TS_ASSERT_EQUALS(obj->marked, true);
 
-    gc->process_mark_stack(alloc);
+    bool exit = false;
+    gc->process_mark_stack(alloc, exit);
     TS_ASSERT_EQUALS(obj->body_checked, false);
     TS_ASSERT_EQUALS(sub->marked, false);
     TS_ASSERT_EQUALS(sub->body_checked, false);
