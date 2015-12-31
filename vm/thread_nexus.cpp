@@ -104,6 +104,8 @@ namespace rubinius {
       case ThreadNexus::cBlocking:
         return "cBlocking";
     }
+
+    return "cUnknown";
   }
 
   static void abort_deadlock(ThreadList& threads, VM* vm) {
