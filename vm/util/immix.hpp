@@ -1097,7 +1097,7 @@ namespace immix {
         desc.walk_pointers(addr, mark);
       }
 
-      return true;
+      return !exit;
     }
 
     /**

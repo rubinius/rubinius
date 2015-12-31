@@ -32,6 +32,7 @@ namespace rubinius {
     enum Phase {
       cStop       = 0x01,
       cManaged    = 0x02,
+      cBlocking   = 0x04,
       cUnmanaged  = 0x81,
       cWaiting    = 0x82,
       cYielding   = 0x80
@@ -70,6 +71,8 @@ namespace rubinius {
       lock_.unlock();
     }
 
+    bool blocking_p(VM* vm);
+    void blocking(VM* vm);
     bool yielding_p(VM* vm);
     void yielding(VM* vm);
     bool locking(VM* vm);

@@ -13,6 +13,10 @@
 #include <time.h>
 
 namespace rubinius {
+  bool ThreadNexus::blocking_p(VM* vm) {
+    return (vm->thread_phase() & cBlocking) == cBlocking;
+  }
+
   bool ThreadNexus::yielding_p(VM* vm) {
     return (vm->thread_phase() & cYielding) == cYielding;
   }
@@ -97,6 +101,8 @@ namespace rubinius {
         return "cWaiting";
       case ThreadNexus::cYielding:
         return "cYielding";
+      case ThreadNexus::cBlocking:
+        return "cBlocking";
     }
   }
 
@@ -115,6 +121,10 @@ namespace rubinius {
     }
 
     rubinius::abort();
+  }
+
+  void ThreadNexus::blocking(VM* vm) {
+    vm->set_thread_phase(cBlocking);
   }
 
 #define RBX_MAX_STOP_ITERATIONS 10000
@@ -137,6 +147,8 @@ namespace rubinius {
             if(yielding_p(other_vm)) {
               yielding = true;
               break;
+            } else if(blocking_p(other_vm)) {
+              return false;
             }
 
             static int delay[] = { 1, 21, 270, 482, 268, 169, 224, 481,

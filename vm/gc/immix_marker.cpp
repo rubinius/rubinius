@@ -82,14 +82,17 @@ namespace rubinius {
           timer::StopWatch<timer::milliseconds> timer(
               state->vm()->metrics().gc.immix_concurrent_ms);
 
-          // TODO: Set status of this thread so STW won't consider it a
-          // possible deadlock when the thread doesn't yield soon enough.
+          state->shared().thread_nexus()->blocking(state->vm());
+
           while(immix_->process_mark_stack(immix_->memory()->collect_mature_now)) {
             if(state->shared().thread_nexus()->stop_p()) {
               state->shared().thread_nexus()->yielding(state->vm());
             }
+            state->shared().thread_nexus()->blocking(state->vm());
           }
         }
+
+        state->vm()->become_managed();
 
         if(thread_exit_) break;
 
