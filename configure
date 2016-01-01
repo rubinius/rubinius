@@ -711,6 +711,14 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
 
+    unless @cc == "clang" and @cxx == "clang++"
+      @log.deprecated <<-EOM
+Support for compilers other than clang/clang++ is deprecated and will be
+removed soon. If your platform does not have support for clang/clang++,
+please notify us.
+      EOM
+    end
+
     @make ||= ENV['MAKE'] || 'make'
     @rake ||= ENV['RAKE'] || 'rake'
     @tar ||= ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
@@ -1971,6 +1979,21 @@ Available commands are:
     def error(message)
       log message, true
       STDERR.puts message
+    end
+
+    DEPRECATION_HEADER =
+      "------------------------------ Deprecation notice ------------------------------"
+    DEPRECATION_FOOTER =
+      "--------------------------------------------------------------------------------"
+
+    def deprecated(message)
+      log DEPRECATION_HEADER, true
+      log message, true
+      log DEPRECATION_FOOTER, true
+
+      STDERR.puts DEPRECATION_HEADER
+      STDERR.puts message
+      STDERR.puts DEPRECATION_FOOTER
     end
 
     # Yields an IO for writing log messages.
