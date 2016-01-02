@@ -54,4 +54,16 @@ class Binding
 
     Kernel.eval(expr, self, filename, lineno)
   end
+
+  def local_variable_defined?(symbol)
+    variables.local_defined?(symbol)
+  end
+
+  def local_variable_get(symbol)
+    variables.get_eval_local(symbol)
+  end
+
+  def local_variable_set(symbol, obj)
+    variables.set_eval_local(symbol, obj)
+  end
 end
