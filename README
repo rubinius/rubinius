@@ -35,7 +35,7 @@ The following Ruby features are not supported on Rubinius:
 
 3. License
 
-Rubinius uses the BSD license. See LICENSE for details.
+Rubinius uses the MPL-2.0 license. See LICENSE for details.
 
 
 4. Installing Rubinius from Source
@@ -51,8 +51,8 @@ To install Rubinius, use the following steps:
 
 When the install process finishes, follow the directions printed to the
 terminal to add the Rubinius executable (bin) directory to your PATH. For more
-information see http://rubini.us/doc/en/getting-started/requirements/
-and http://rubini.us/doc/en/getting-started/building/.
+information see http://rubinius.com/doc/en/getting-started/requirements/
+and http://rubinius.com/doc/en/getting-started/building/.
 
 
 5. Using RubyGems
@@ -66,7 +66,7 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
 The Rubinius documentation is available at the Rubinius website:
 
-  http://rubini.us
+  http://rubinius.com
 
 
 7. Issues & Support
