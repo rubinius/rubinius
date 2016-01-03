@@ -35,8 +35,9 @@ The following Ruby features are not supported on Rubinius:
 
 3. License
 
-Rubinius uses the MPL-2.0 license. See LICENSE for details.
-
+Rubinius uses the MPL-2.0 license. See LICENSE for details. Contributions made
+prior to January 3rd, 2016 are licensed under the old BSD 3-clause license. A
+copy of this license can be found in the file "BSD_LICENSE".
 
 4. Installing Rubinius from Source
 
