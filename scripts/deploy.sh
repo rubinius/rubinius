@@ -191,6 +191,12 @@ EOF
 }
 
 function rbx_deploy_homebrew_release {
+  local os_name=$1
+
+  if [[ $os_name != osx ]]; then
+    return
+  fi
+
   echo "Deploying Homebrew release $(rbx_revision_version)..."
 
   local release file url response sha
@@ -238,9 +244,50 @@ EOF
   rm "$file"
 }
 
+function rbx_deploy_docker_release {
+  local os_name=$1
+
+  if [[ $os_name != osx ]]; then
+    return
+  fi
+
+  echo "Deploying Docker release $(rbx_revision_version)..."
+
+  local version release file url response sha
+  local -a paths=("15.10" "14.04")
+
+  version=$(rbx_revision_version)
+  release=$(rbx_release_name)
+  file="Dockerfile"
+
+  for path in "${paths[@]}"; do
+    url="https://api.github.com/repos/rubinius/rubinius/contents/dockerfiles/ubuntu/$path/$file"
+    response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
+
+    cat > "$file" <<EOF
+FROM ubuntu:$path
+
+ADD https://rubinius-binaries-rubinius-com.s3-us-west-2.amazonaws.com/ubuntu/$path/x86_64/$release /tmp/rubinius.tar.bz2
+RUN apt-get -y install bzip2 && cd /opt && tar xvjf /tmp/rubinius.tar.bz2
+
+ENV PATH /opt/rubinius/$version/bin:/opt/rubinius/$version/gems/bin:\$PATH
+
+CMD ["bash"]
+EOF
+
+    sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+      egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+
+    rbx_github_update_file "$file" "${sha:1:${#sha}-2}" \
+      "Updated Dockerfile for $path to $version.\n\n[ci skip]" "$url"
+
+    rm "$file"
+  done
+}
+
 function rbx_deploy_usage {
   cat >&2 <<-EOM
-Usage: ${0##*/} [all release github travis homebrew-binary homebrew-release website]
+Usage: ${0##*/} [all release github travis docker homebrew-binary homebrew-release website]
 EOM
   exit 1
 }
@@ -253,7 +300,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   for cmd in "${@}"; do
     case "$cmd" in
       "all")
-        "$0" release github travis homebrew-binary homebrew-release website
+        "$0" release github travis docker homebrew-binary homebrew-release website
         ;;
       "release")
         rbx_deploy_release_tarball "$TRAVIS_OS_NAME"
@@ -268,10 +315,13 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         rbx_deploy_homebrew_binary "$TRAVIS_OS_NAME"
         ;;
       "homebrew-release")
-        rbx_deploy_homebrew_release
+        rbx_deploy_homebrew_release "$TRAVIS_OS_NAME"
         ;;
       "website")
         rbx_deploy_website_release "$TRAVIS_OS_NAME"
+        ;;
+      "docker")
+        rbx_deploy_docker_release "$TRAVIS_OS_NAME"
         ;;
       "-h"|"--help"|*)
         rbx_deploy_usage
