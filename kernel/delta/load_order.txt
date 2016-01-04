@@ -20,3 +20,4 @@ ffi.rbc
 ruby_constants.rbc
 pack.rbc
 metrics.rbc
+deprecations.rbc

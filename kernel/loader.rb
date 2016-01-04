@@ -21,6 +21,7 @@ module Rubinius
       @load_profiler = false
       @enable_gems = true
       @load_gemfile = false
+      @deprecations = false
 
       version = RUBY_VERSION.split(".").first(2).join(".")
       @gem_bins = ["#{version}/bin", "bin"].map do |dir|
@@ -394,6 +395,10 @@ module Rubinius
         end
       end
 
+      options.on "--deprecated", "Display any deprecations" do
+        @deprecations = true
+      end
+
       options.on "--version", "Display the version" do
         @repl = false
         puts Rubinius.version
@@ -528,6 +533,27 @@ VM Options
           # doesn't and it breaks some code if we do.
           $LOAD_PATH.unshift(path)
         end
+      end
+    end
+
+    def deprecations
+      @stage = "showing deprecations"
+
+      return unless @deprecations
+
+      if Rubinius::DEPRECATIONS.size > 0
+        Rubinius::DEPRECATIONS.each do |desc, alt|
+          STDERR.puts <<-EOM
+Deprecation: #{desc}
+Alternative: #{alt}
+
+          EOM
+        end
+
+        exit 1
+      else
+        STDERR.puts "Rubinius #{Rubinius::VERSION} has no deprecation notices"
+        exit 0
       end
     end
 
@@ -833,6 +859,7 @@ VM Options
       detect_alias
       options
       load_paths
+      deprecations
       rubygems
       gemfile
       debugger
