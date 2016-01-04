@@ -66,15 +66,48 @@ namespace rubinius {
   }
 
   Time* Stat::stat_atime(STATE) {
-    return Time::at(state, st_.st_atime);
+    #ifdef HAVE_STRUCT_STAT_ST_ATIM
+      return Time::at(state, st_.st_atim.tv_sec, st_.st_atim.tv_nsec);
+    #elif HAVE_STRUCT_STAT_ST_ATIMESPEC
+      return Time::at(state, st_.st_atimespec.tv_sec, st_.st_atimespec.tv_nsec);
+    #elif HAVE_STRUCT_STAT_ST_ATIMENSEC
+      return Time::at(state, st_.st_atime, static_cast<long>(st_.st_atimensec));
+    #else
+      return Time::at(state, st_.st_atime);
+    #endif
   }
 
   Time* Stat::stat_mtime(STATE) {
-    return Time::at(state, st_.st_mtime);
+    #ifdef HAVE_STRUCT_STAT_ST_MTIM
+      return Time::at(state, st_.st_mtim.tv_sec, st_.st_mtim.tv_nsec);
+    #elif HAVE_STRUCT_STAT_ST_MTIMESPEC
+      return Time::at(state, st_.st_mtimespec.tv_sec, st_.st_mtimespec.tv_nsec);
+    #elif HAVE_STRUCT_STAT_ST_MTIMENSEC
+      return Time::at(state, st_.st_mtime, static_cast<long>(st_.st_mtimensec));
+    #else
+      return Time::at(state, st_.st_mtime);
+    #endif
   }
 
   Time* Stat::stat_ctime(STATE) {
-    return Time::at(state, st_.st_ctime);
+    #ifdef HAVE_STRUCT_STAT_ST_CTIM
+      return Time::at(state, st_.st_ctim.tv_sec, st_.st_ctim.tv_nsec);
+    #elif HAVE_STRUCT_STAT_ST_CTIMESPEC
+      return Time::at(state, st_.st_ctimespec.tv_sec, st_.st_ctimespec.tv_nsec);
+    #elif HAVE_STRUCT_STAT_ST_CTIMENSEC
+      return Time::at(state, st_.st_ctime, static_cast<long>(st_.st_ctimensec));
+    #else
+      return Time::at(state, st_.st_ctime);
+    #endif
+  }
+
+  Object* Stat::stat_birthtime(STATE) {
+    #ifdef HAVE_ST_BIRTHTIME
+      struct timespec ts = st_.st_birthtimespec;
+      return Time::at(state, ts.tv_sec, ts.tv_nsec);
+    #else
+      return Primitives::failure();
+    #endif
   }
 
 }

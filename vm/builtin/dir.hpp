@@ -36,6 +36,9 @@ namespace rubinius {
     // Rubinius.primitive :dir_open
     Object* open(STATE, String *path, Object* enc);
 
+    // Rubinius.primitive :dir_fileno
+    Object* fileno(STATE);
+
     // Rubinius.primitive :dir_close
     Object* close(STATE);
 

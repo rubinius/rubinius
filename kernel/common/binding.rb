@@ -3,8 +3,8 @@ class Binding
   attr_accessor :compiled_code
   attr_accessor :constant_scope
   attr_accessor :proc_environment
-  attr_accessor :self
   attr_accessor :location
+  attr_accessor :receiver
 
   def from_proc?
     @proc_environment
@@ -29,7 +29,7 @@ class Binding
   def self.setup(variables, code, constant_scope, recv=nil, location=nil)
     bind = allocate()
 
-    bind.self = self_context(recv, variables)
+    bind.receiver = self_context(recv, variables)
     bind.variables = variables
     bind.compiled_code = code
     bind.constant_scope = constant_scope
@@ -53,5 +53,9 @@ class Binding
     lineno ||= filename ? 1 : line_number
 
     Kernel.eval(expr, self, filename, lineno)
+  end
+
+  def local_variables
+    variables.local_variables
   end
 end

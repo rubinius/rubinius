@@ -1239,6 +1239,46 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_GETTID"
     end
 
+    if has_struct_member("stat", "st_atim", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_ATIM"
+    end
+
+    if has_struct_member("stat", "st_atimespec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_ATIMESPEC"
+    end
+
+    if has_struct_member("stat", "st_atimensec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_ATIMENSEC"
+    end
+
+    if has_struct_member("stat", "st_mtim", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_MTIM"
+    end
+
+    if has_struct_member("stat", "st_mtimespec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_MTIMESPEC"
+    end
+
+    if has_struct_member("stat", "st_mtimensec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_MTIMENSEC"
+    end
+
+    if has_struct_member("stat", "st_ctim", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_CTIM"
+    end
+
+    if has_struct_member("stat", "st_ctimespec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_CTIMESPEC"
+    end
+
+    if has_struct_member("stat", "st_ctimensec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_CTIMENSEC"
+    end
+
+    if has_struct_member("stat", "st_birthtimespec", ["sys/stat.h"])
+      @defines << "HAVE_ST_BIRTHTIME"
+    end
+
     # glibc has useless lchmod() so we don't try to use lchmod() on linux
     if !@linux and has_function("lchmod", ["sys/stat.h", "unistd.h"])
       @have_lchmod = true

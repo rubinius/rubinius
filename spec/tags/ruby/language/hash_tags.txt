@@ -1,0 +1,4 @@
+fails:Hash literal accepts mixed 'key: value', 'key => value' and '"key"': value' syntax
+fails:Hash literal calls #to_hash to convert an '**obj' element
+fails:Hash literal expands an '**obj' element into the containing Hash and keeps the latter keys if there are duplicates
+fails:Hash literal merges multiple nested '**obj' in Hash literals
