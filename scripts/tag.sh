@@ -23,6 +23,14 @@ function rbx_untag_release {
 
   version=$1
 
+  if [[ -z $version ]]; then
+    cat >&2 <<EOM
+untag VERSION is required
+
+EOM
+    rbx_tag_usage
+  fi
+
   IFS="." read -r -a array <<< "$(rbx_revision_version)"
 
   let major=${array[0]}
@@ -30,18 +38,23 @@ function rbx_untag_release {
 
   untag_version="${major}.${minor}"
 
-  git describe "$untag_version" > /dev/null
+  git describe "v$untag_version"
 
   if [[ $? -eq 0 && "$version" == "$untag_version" ]]; then
     echo Untagging "v$version"
-    # git tag -d "v$version" && git push origin ":refs/tags/v$version"
+    git tag -d "v$version" && git push origin ":refs/tags/v$version"
   else
     echo NOT untagging "v$version", does not match "v$untag_version"
   fi
 }
 
 function rbx_tag_usage {
-  echo "Usage: ${0##*/} [tag untag]"
+  cat >&2 <<-EOM
+Usage: ${0##*/} option
+  where option is
+    tag              Tags a release at the current release + 1
+    untag VERSION    Untags VERSION if it is the current release
+EOM
   exit 1
 }
 
