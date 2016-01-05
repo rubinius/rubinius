@@ -3,7 +3,7 @@ daedalus-core-0.5.0.gem
 ffi2-generators-0.1.1.gem
 json-1.8.3.gem
 minitest-4.7.5.gem
-psych-2.0.10.gem
+psych-2.0.17.gem
 racc-1.4.14.gem
 rake-10.4.2.gem
 rb-readline-0.5.3.gem
