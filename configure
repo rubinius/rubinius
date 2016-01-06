@@ -1177,7 +1177,7 @@ int main() { return tgetnum(""); }
 
   def detect_features
     # Default on *BSD is no execinfo
-    if RUBY_PLATFORM =~ /bsd/i and @features["execinfo"].configured.nil?
+    if @bsd and @features["execinfo"].configured.nil?
       @features["execinfo"].configured = false
     end
 
@@ -1409,7 +1409,6 @@ int main() { return tgetnum(""); }
   end
 
   def process
-    set_host
     set_system_commands
 
     enable_features
@@ -1862,6 +1861,7 @@ int main() { return tgetnum(""); }
     end
 
     options
+    set_host
     parse ARGV
     detect_homebrew_openssl_lib
     create_directories
@@ -2087,8 +2087,7 @@ Available commands are:
   # Check if latest version of openssl is installed; if so, add to include
   # and libs
   def detect_homebrew_openssl_lib
-    if RUBY_PLATFORM =~ /darwin/i && homebrew? &&
-        (`brew list`.split("\n").include? 'openssl')
+    if @darwin && homebrew? && (`brew list`.split("\n").include? 'openssl')
       add_opt_dir(`brew --prefix openssl`.chomp)
     end
   end
