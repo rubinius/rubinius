@@ -11,22 +11,22 @@ shared_examples_for "have_class_variable, on all Ruby versions" do
 
   it "matches when mod has the class variable, given as string" do
     matcher = HaveClassVariableMatcher.new('@foo')
-    matcher.matches?(IVarModMock).should be_true
+    matcher.matches?(IVarModMock).should be_truthy
   end
 
   it "matches when mod has the class variable, given as symbol" do
     matcher = HaveClassVariableMatcher.new(:@foo)
-    matcher.matches?(IVarModMock).should be_true
+    matcher.matches?(IVarModMock).should be_truthy
   end
 
   it "does not match when mod hasn't got the class variable, given as string" do
     matcher = HaveClassVariableMatcher.new('@bar')
-    matcher.matches?(IVarModMock).should be_false
+    matcher.matches?(IVarModMock).should be_falsey
   end
 
   it "does not match when mod hasn't got the class variable, given as symbol" do
     matcher = HaveClassVariableMatcher.new(:@bar)
-    matcher.matches?(IVarModMock).should be_false
+    matcher.matches?(IVarModMock).should be_falsey
   end
 
   it "provides a failure message for #should" do

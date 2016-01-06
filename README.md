@@ -33,8 +33,9 @@ The following Ruby features are not supported on Rubinius:
 
 ### License
 
-Rubinius uses the BSD license. See LICENSE for details.
-
+Rubinius uses the MPL-2.0 license. See LICENSE for details. Contributions made
+prior to January 3rd, 2016 are licensed under the old BSD 3-clause license. A
+copy of this license can be found in the file "BSD_LICENSE".
 
 ### Installing Rubinius from Source
 
@@ -47,7 +48,7 @@ To install Rubinius, use the following steps:
 1. ./configure --prefix=/path/to/install/dir
 1. rake
 
-When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH. For more information see the documentation for [Build Requirements](http://rubini.us/doc/en/getting-started/requirements/) and [Building Rubinius](http://rubini.us/doc/en/getting-started/building/).
+When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH. For more information see the documentation for [Build Requirements](http://rubinius.com/doc/en/getting-started/requirements/) and [Building Rubinius](http://rubinius.com/doc/en/getting-started/building/).
 
 
 ### Using RubyGems
@@ -59,7 +60,7 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
 ### Documentation
 
-The Rubinius documentation is available at the [Rubinius website](http://rubini.us).
+The Rubinius documentation is available at the [Rubinius website](http://rubinius.com).
 
 
 ### Issues & Support
@@ -72,4 +73,4 @@ For additional help, visit the [Rubinius Gitter chat room](https://gitter.im/rub
 ### Contributing
 
 The Rubinius team welcomes contributions. For more information, read the
-[CONTRIBUTING](https://github.com/rubinius/rubinius/blob/master/CONTRIBUTING.md) file and see the documentation [about contributing](http://rubini.us/doc/en/contributing/).
+[CONTRIBUTING](https://github.com/rubinius/rubinius/blob/master/CONTRIBUTING.md) file and see the documentation [about contributing](http://rubinius.com/doc/en/contributing/).

@@ -15,8 +15,8 @@ module Enumerable
         duplicated_initial_state = initial_state.dup
         Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
       end
-      each do |val|
-        key = block.yield(val)
+      each do |element|
+        key = block.yield(element)
         if key.nil? || (key.is_a?(Symbol) && key.to_s[0, 1] == "_")
           yielder.yield [previous, accumulate] unless accumulate.empty?
           accumulate = []
@@ -24,16 +24,16 @@ module Enumerable
           case key
           when nil, :_separator
           when :_alone
-            yielder.yield [key, [val]]
+            yielder.yield [key, [element]]
           else
             raise RuntimeError, "symbols beginning with an underscore are reserved"
           end
         else
           if previous.nil? || previous == key
-            accumulate << val
+            accumulate << element
           else
             yielder.yield [previous, accumulate] unless accumulate.empty?
-            accumulate = [val]
+            accumulate = [element]
           end
           previous = key
         end
@@ -45,8 +45,8 @@ module Enumerable
   def collect
     if block_given?
       ary = []
-      each do |*o|
-        ary << yield(*o)
+      each do |*element|
+        ary << yield(*element)
       end
       ary
     else
@@ -59,9 +59,9 @@ module Enumerable
   def count(item = undefined)
     seq = 0
     if !undefined.equal?(item)
-      each { |o| seq += 1 if item == o }
+      each { |element| seq += 1 if item == element }
     elsif block_given?
-      each { |o| seq += 1 if yield(o) }
+      each { |element| seq += 1 if yield(element) }
     else
       each { seq += 1 }
     end
@@ -70,8 +70,8 @@ module Enumerable
 
   def each_entry(*pass)
     return to_enum(:each_entry, *pass) { enumerator_size } unless block_given?
-    each(*pass) do |*args|
-      yield args.size == 1 ? args[0] : args
+    each(*pass) do |*element|
+      yield element.size == 1 ? element[0] : element
     end
     self
   end
@@ -79,8 +79,8 @@ module Enumerable
   def each_with_object(memo)
     return to_enum(:each_with_object, memo) { enumerator_size } unless block_given?
     each do
-      obj = Rubinius.single_block_arg
-      yield obj, memo
+      element = Rubinius.single_block_arg
+      yield element, memo
     end
     memo
   end
@@ -91,8 +91,8 @@ module Enumerable
     return to_enum(:flat_map) { enumerator_size } unless block_given?
 
     array = []
-    each do |*args|
-      result = yield(*args)
+    each do |*element|
+      result = yield(*element)
 
       value = Rubinius::Type.try_convert(result, Array, :to_ary) || result
 
@@ -124,12 +124,12 @@ module Enumerable
 
     h = {}
     each do
-      o = Rubinius.single_block_arg
-      key = yield(o)
+      element = Rubinius.single_block_arg
+      key = yield(element)
       if h.key?(key)
-        h[key] << o
+        h[key] << element
       else
-        h[key] = [o]
+        h[key] = [element]
       end
     end
     Rubinius::Type.infect h, self
@@ -146,25 +146,77 @@ module Enumerable
     Enumerator.new do |yielder|
       init = arg.dup if has_init
       accumulator = nil
-      each do |elem|
-        start_new = has_init ? block.yield(elem, init) : block.yield(elem)
+      each do |element|
+        start_new = has_init ? block.yield(element, init) : block.yield(element)
         if start_new
           yielder.yield accumulator if accumulator
-          accumulator = [elem]
+          accumulator = [element]
         else
           accumulator ||= []
-          accumulator << elem
+          accumulator << element
         end
       end
       yielder.yield accumulator if accumulator
     end
   end
 
+  def slice_after(pattern = undefined, &block)
+    pattern_given = !undefined.equal?(pattern)
+
+    raise ArgumentError, "cannot pass both pattern and block" if pattern_given && block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 1)" if !pattern_given && !block_given?
+
+    block = Proc.new { |elem| pattern === elem } if pattern_given
+
+    Enumerator.new do |yielder|
+      accumulator = nil
+      each do |element|
+        end_chunk = block.yield(element)
+        accumulator ||= []
+        if end_chunk
+          accumulator << element
+          yielder.yield accumulator
+          accumulator = nil
+        else
+          accumulator << element
+        end
+      end
+      yielder.yield accumulator if accumulator
+    end
+  end
+
+  def slice_when(&block)
+    raise ArgumentError, "wrong number of arguments (0 for 1)" unless block_given?
+
+    Enumerator.new do |enum|
+      ary = nil
+      last_after = nil
+      each_cons(2) do |before, after|
+        last_after = after
+        match = block.call before, after
+
+        ary ||= []
+        if match
+          ary << before
+          enum.yield ary
+          ary = []
+        else
+          ary << before
+        end
+      end
+
+      unless ary.nil?
+        ary << last_after
+        enum.yield ary
+      end
+    end
+  end
+
   def to_a(*arg)
     ary = []
     each(*arg) do
-      o = Rubinius.single_block_arg
-      ary << o
+      element = Rubinius.single_block_arg
+      ary << element
       nil
     end
     Rubinius::Type.infect ary, self
@@ -174,12 +226,12 @@ module Enumerable
 
   def to_h(*arg)
     h = {}
-    each_with_index(*arg) do |elem, i|
-      unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
+    each_with_index(*arg) do |element, i|
+      unless element.respond_to?(:to_ary)
+        raise TypeError, "wrong element type #{element.class} at #{i} (expected array)"
       end
 
-      ary = elem.to_ary
+      ary = element.to_ary
       if ary.size != 2
         raise ArgumentError, "wrong array length at #{i} (expected 2, was #{ary.size})"
       end
@@ -201,8 +253,8 @@ module Enumerable
     results = []
     i = 0
     each do
-      o = Rubinius.single_block_arg
-      entry = args.inject([o]) do |ary, a|
+      element = Rubinius.single_block_arg
+      entry = args.inject([element]) do |ary, a|
         ary << case a
                when Array
                  a[i]
@@ -230,8 +282,8 @@ module Enumerable
 
     idx = 0
     each(*args) do
-      o = Rubinius.single_block_arg
-      yield o, idx
+      element = Rubinius.single_block_arg
+      yield element, idx
       idx += 1
     end
 
@@ -243,18 +295,18 @@ module Enumerable
 
     if block_given?
       each do
-        o = Rubinius.single_block_arg
-        if pattern === o
+        element = Rubinius.single_block_arg
+        if pattern === element
           Regexp.set_block_last_match
-          ary << yield(o)
+          ary << yield(element)
         end
       end
     else
       each do
-        o = Rubinius.single_block_arg
-        if pattern === o
+        element = Rubinius.single_block_arg
+        if pattern === element
           Regexp.set_block_last_match
-          ary << o
+          ary << element
         end
       end
     end
@@ -285,8 +337,8 @@ module Enumerable
 
     # Transform each value to a tuple with the value and it's sort by value
     sort_values = map do
-      x = Rubinius.single_block_arg
-      SortedElement.new(x, yield(x))
+      element = Rubinius.single_block_arg
+      SortedElement.new(element, yield(element))
     end
 
     # Now sort the tuple according to the sort by value
@@ -308,22 +360,22 @@ module Enumerable
       sym = sym.to_sym
 
       each do
-        o = Rubinius.single_block_arg
+        element = Rubinius.single_block_arg
         if undefined.equal? initial
-          initial = o
+          initial = element
         else
-          initial = initial.__send__(sym, o)
+          initial = initial.__send__(sym, element)
         end
       end
 
       # Block version
     else
       each do
-        o = Rubinius.single_block_arg
+        element = Rubinius.single_block_arg
         if undefined.equal? initial
-          initial = o
+          initial = element
         else
-          initial = yield(initial, o)
+          initial = yield(initial, element)
         end
       end
     end
@@ -334,7 +386,7 @@ module Enumerable
 
   def all?
     if block_given?
-      each { |*e| return false unless yield(*e) }
+      each { |*element| return false unless yield(*element) }
     else
       each { return false unless Rubinius.single_block_arg }
     end
@@ -343,7 +395,7 @@ module Enumerable
 
   def any?
     if block_given?
-      each { |*o| return true if yield(*o) }
+      each { |*element| return true if yield(*element) }
     else
       each { return true if Rubinius.single_block_arg }
     end
@@ -366,9 +418,9 @@ module Enumerable
 
     cache = []
     each do
-      elem = Rubinius.single_block_arg
-      cache << elem
-      yield elem
+      element = Rubinius.single_block_arg
+      cache << element
+      yield element
     end
 
     return nil if cache.empty?
@@ -377,12 +429,12 @@ module Enumerable
       i = 0
       many -= 1
       while i < many
-        cache.each { |o| yield o }
+        cache.each { |element| yield element }
         i += 1
       end
     else
       while true
-        cache.each { |o| yield o }
+        cache.each { |element| yield element }
       end
     end
 
@@ -404,8 +456,8 @@ module Enumerable
     ary = []
     dropping = true
     each do
-      obj = Rubinius.single_block_arg
-      ary << obj unless dropping &&= yield(obj)
+      element = Rubinius.single_block_arg
+      ary << element unless dropping &&= yield(element)
     end
 
     ary
@@ -467,8 +519,8 @@ module Enumerable
     return to_enum(:find, ifnone) unless block_given?
 
     each do
-      o = Rubinius.single_block_arg
-      return o if yield(o)
+      element = Rubinius.single_block_arg
+      return element if yield(element)
     end
 
     ifnone.call if ifnone
@@ -481,8 +533,8 @@ module Enumerable
 
     ary = []
     each do
-      o = Rubinius.single_block_arg
-      ary << o if yield(o)
+      element = Rubinius.single_block_arg
+      ary << element if yield(element)
     end
     ary
   end
@@ -511,90 +563,114 @@ module Enumerable
 
   def first(n=undefined)
     return __take__(n) unless undefined.equal?(n)
-    each { |obj| return obj }
+    each { |element| return element }
     nil
   end
 
-  def min
-    min = undefined
-    each do
-      o = Rubinius.single_block_arg
-      if undefined.equal? min
-        min = o
+  def min(n=nil)
+    if n.nil?
+      min = undefined
+      each do
+        element = Rubinius.single_block_arg
+        if undefined.equal? min
+          min = element
+        else
+          comp = block_given? ? yield(element, min) : element <=> min
+          unless comp
+            raise ArgumentError, "comparison of #{element.class} with #{min} failed"
+          end
+
+          if Comparable.compare_int(comp) < 0
+            min = element
+          end
+        end
+      end
+
+      undefined.equal?(min) ? nil : min
+    else
+      if block_given?
+        sort { |a, b| yield a, b }.take n
       else
-        comp = block_given? ? yield(o, min) : o <=> min
-        unless comp
-          raise ArgumentError, "comparison of #{o.class} with #{min} failed"
-        end
-
-        if Comparable.compare_int(comp) < 0
-          min = o
-        end
+        sort.take n
       end
     end
-
-    undefined.equal?(min) ? nil : min
   end
 
-  def max
-    max = undefined
-    each do
-      o = Rubinius.single_block_arg
-      if undefined.equal? max
-        max = o
+  def max(n=nil)
+    if n.nil?
+      max = undefined
+      each do
+        element = Rubinius.single_block_arg
+        if undefined.equal? max
+          max = element
+        else
+          comp = block_given? ? yield(element, max) : element <=> max
+          unless comp
+            raise ArgumentError, "comparison of #{element.class} with #{max} failed"
+          end
+
+          if Comparable.compare_int(comp) > 0
+            max = element
+          end
+        end
+      end
+
+      undefined.equal?(max) ? nil : max
+    else
+      if block_given?
+        sort { |a, b| yield a, b }.reverse.take n
       else
-        comp = block_given? ? yield(o, max) : o <=> max
-        unless comp
-          raise ArgumentError, "comparison of #{o.class} with #{max} failed"
-        end
-
-        if Comparable.compare_int(comp) > 0
-          max = o
-        end
+        sort.reverse.take n
       end
     end
-
-    undefined.equal?(max) ? nil : max
   end
 
-  def max_by
-    return to_enum(:max_by) { enumerator_size } unless block_given?
+  def max_by(n=nil)
+    return to_enum(:max_by, n) { enumerator_size } unless block_given?
 
-    max_object = nil
-    max_result = undefined
+    if n.nil?
+      max_element = nil
+      max_result = undefined
 
-    each do
-      object = Rubinius.single_block_arg
-      result = yield object
+      each do
+        element = Rubinius.single_block_arg
+        result = yield element
 
-      if undefined.equal?(max_result) or \
-           Rubinius::Type.coerce_to_comparison(max_result, result) < 0
-        max_object = object
-        max_result = result
+        if undefined.equal?(max_result) or \
+             Rubinius::Type.coerce_to_comparison(max_result, result) < 0
+          max_element = element
+          max_result = result
+        end
       end
-    end
 
-    max_object
+      max_element
+    else
+      sort_by { |element| yield element }.reverse.take n
+    end
   end
 
-  def min_by
-    return to_enum(:min_by) { enumerator_size } unless block_given?
+  def min_by(n=nil)
+    return to_enum(:min_by, n) { enumerator_size } unless block_given?
 
-    min_object = nil
-    min_result = undefined
+    if n.nil?
+      min_element = nil
+      min_result = undefined
 
-    each do
-      object = Rubinius.single_block_arg
-      result = yield object
+      each do
+        element = Rubinius.single_block_arg
+        result = yield element
 
-      if undefined.equal?(min_result) or \
-           Rubinius::Type.coerce_to_comparison(min_result, result) > 0
-        min_object = object
-        min_result = result
+        if undefined.equal?(min_result) or \
+             Rubinius::Type.coerce_to_comparison(min_result, result) > 0
+          min_element = element
+          min_result = result
+        end
       end
-    end
 
-    min_object
+      min_element
+    else
+      sort_by { |element| yield element }.take n
+    end
   end
 
   def self.sort_proc
@@ -612,21 +688,21 @@ module Enumerable
     min, max = nil
 
     each do
-      object = Rubinius.single_block_arg
+      element = Rubinius.single_block_arg
       if first_time
-        min = max = object
+        min = max = element
         first_time = false
       else
-        unless min_cmp = block.call(min, object)
+        unless min_cmp = block.call(min, element)
           raise ArgumentError, "comparison failed"
         end
-        min = object if min_cmp > 0
+        min = element if min_cmp > 0
 
-        unless max_cmp = block.call(max, object)
+        unless max_cmp = block.call(max, element)
           raise ArgumentError, "comparison failed"
         end
 
-        max = object if max_cmp < 0
+        max = element if max_cmp < 0
       end
     end
     [min, max]
@@ -635,35 +711,35 @@ module Enumerable
   def minmax_by(&block)
     return to_enum(:minmax_by) { enumerator_size } unless block_given?
 
-    min_object = nil
+    min_element = nil
     min_result = undefined
 
-    max_object = nil
+    max_element = nil
     max_result = undefined
 
     each do
-      object = Rubinius.single_block_arg
-      result = yield object
+      element = Rubinius.single_block_arg
+      result = yield element
 
       if undefined.equal?(min_result) or \
            Rubinius::Type.coerce_to_comparison(min_result, result) > 0
-        min_object = object
+        min_element = element
         min_result = result
       end
 
       if undefined.equal?(max_result) or \
            Rubinius::Type.coerce_to_comparison(max_result, result) < 0
-        max_object = object
+        max_element = element
         max_result = result
       end
     end
 
-    [min_object, max_object]
+    [min_element, max_element]
   end
 
   def none?
     if block_given?
-      each { |*o| return false if yield(*o) }
+      each { |*element| return false if yield(*element) }
     else
       each { return false if Rubinius.single_block_arg }
     end
@@ -675,8 +751,8 @@ module Enumerable
     found_one = false
 
     if block_given?
-      each do |*o|
-        if yield(*o)
+      each do |*element|
+        if yield(*element)
           return false if found_one
           found_one = true
         end
@@ -699,8 +775,8 @@ module Enumerable
     left = []
     right = []
     each do
-      o = Rubinius.single_block_arg
-      yield(o) ? left.push(o) : right.push(o)
+      element = Rubinius.single_block_arg
+      yield(element) ? left.push(element) : right.push(element)
     end
 
     return [left, right]
@@ -711,8 +787,8 @@ module Enumerable
 
     ary = []
     each do
-      o = Rubinius.single_block_arg
-      ary << o unless yield(o)
+      element = Rubinius.single_block_arg
+      ary << element unless yield(element)
     end
 
     ary
@@ -734,8 +810,8 @@ module Enumerable
 
     unless n <= 0
       each do
-        elem = Rubinius.single_block_arg
-        array << elem
+        element = Rubinius.single_block_arg
+        array << element
         break if array.size >= n
       end
     end
@@ -749,9 +825,9 @@ module Enumerable
     return to_enum(:take_while) unless block_given?
 
     array = []
-    each do |elem|
-      return array unless yield(elem)
-      array << elem
+    each do |element|
+      return array unless yield(element)
+      array << element
     end
 
     array

@@ -200,6 +200,9 @@ class Module
       im.superclass = klass.direct_superclass
       klass.superclass = im
       klass.origin = im
+      klass.method_table.each do |meth, obj, vis|
+        Rubinius::VM.reset_method_cache klass, meth
+      end
     end
     Rubinius::Type.include_modules_from(self, klass)
     Rubinius::Type.infect(klass, self)

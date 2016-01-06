@@ -1,0 +1,14 @@
+fails:String#unicode_normalize normalizes code points in the string according to the form that is specified
+fails:String#unicode_normalize defaults to the nfc normalization form if no forms are specified
+fails:String#unicode_normalize raises an Encoding::CompatibilityError if the string is not in an unicode encoding
+fails:String#unicode_normalize raises an ArgumentError if the specified form is invalid
+fails:String#unicode_normalize! normalizes code points and modifies the receiving string
+fails:String#unicode_normalize! raises an Encoding::CompatibilityError if the string is not in an unicode encoding
+fails:String#unicode_normalize! raises an ArgumentError if the specified form is invalid
+fails:String#unicode_normalized? returns true if string is in the specified normalization form
+fails:String#unicode_normalized? returns false if string is not in the supplied normalization form
+fails:String#unicode_normalized? defaults to the nfc normalization form if no forms are specified
+fails:String#unicode_normalized? returns true if string is empty
+fails:String#unicode_normalized? returns true if string does not contain any unicode codepoints
+fails:String#unicode_normalized? raises an Encoding::CompatibilityError if the string is not in an unicode encoding
+fails:String#unicode_normalized? raises an ArgumentError if the specified form is invalid

@@ -8,7 +8,7 @@ describe SpecdocFormatter do
   end
 
   it "responds to #register by registering itself with MSpec for appropriate actions" do
-    MSpec.stub!(:register)
+    MSpec.stub(:register)
     MSpec.should_receive(:register).with(:enter, @formatter)
     @formatter.register
   end
@@ -49,9 +49,9 @@ describe SpecdocFormatter, "#before" do
   it "resets the #exception? flag" do
     exc = ExceptionState.new @state, nil, SpecExpectationNotMetError.new("disappointing")
     @formatter.exception exc
-    @formatter.exception?.should be_true
+    @formatter.exception?.should be_truthy
     @formatter.before @state
-    @formatter.exception?.should be_false
+    @formatter.exception?.should be_falsey
   end
 end
 

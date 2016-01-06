@@ -125,7 +125,6 @@ class MSpecScript
     ProfileFilter.new(:exclude, *config[:xprofiles]).register unless config[:xprofiles].empty?
 
     DebugAction.new(config[:atags], config[:astrings]).register if config[:debugger]
-    GdbAction.new(config[:atags], config[:astrings]).register   if config[:gdb]
 
     custom_register
   end

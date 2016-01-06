@@ -72,17 +72,17 @@ describe ExceptionState, "#failure?" do
 
   it "returns true if the exception is an SpecExpectationNotMetError" do
     exc = ExceptionState.new @state, "", SpecExpectationNotMetError.new("Fail!")
-    exc.failure?.should be_true
+    exc.failure?.should be_truthy
   end
 
   it "returns true if the exception is an SpecExpectationNotFoundError" do
     exc = ExceptionState.new @state, "", SpecExpectationNotFoundError.new("Fail!")
-    exc.failure?.should be_true
+    exc.failure?.should be_truthy
   end
 
   it "returns false if the exception is not an SpecExpectationNotMetError or an SpecExpectationNotFoundError" do
     exc = ExceptionState.new @state, "", Exception.new("Fail!")
-    exc.failure?.should be_false
+    exc.failure?.should be_falsey
   end
 end
 

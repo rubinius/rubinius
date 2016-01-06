@@ -31,6 +31,9 @@ class BasicObject
       if string
         raise ::ArgumentError, 'cannot pass both a block and a string to evaluate'
       end
+
+      return prc.ruby_method.call(self) if prc.ruby_method
+
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
 
@@ -107,28 +110,8 @@ module Kernel
   # Names of local variables at point of call (including evaled)
   #
   def local_variables
-    locals = []
-
     scope = Rubinius::VariableScope.of_sender
-
-    # Ascend up through all applicable blocks to get all vars.
-    while scope
-      if scope.method.local_names
-        scope.method.local_names.each do |name|
-          locals << name
-        end
-      end
-
-      if dyn = scope.dynamic_locals
-        dyn.keys.each do |name|
-          locals << name unless locals.include?(name)
-        end
-      end
-
-      scope = scope.parent
-    end
-
-    locals
+    scope.local_variables
   end
   module_function :local_variables
 
@@ -173,7 +156,7 @@ module Kernel
     c = Rubinius::ToolSets::Runtime::Compiler
     be = c.construct_block string, binding, filename, lineno
 
-    result = be.call_on_instance(binding.self)
+    result = be.call_on_instance(binding.receiver)
     binding.constant_scope = existing_scope
     result
   end

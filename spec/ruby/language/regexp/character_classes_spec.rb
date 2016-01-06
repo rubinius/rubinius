@@ -142,7 +142,6 @@ describe "Regexp with character classes" do
   end
 
   it "matches Unicode space characters with [[:blank:]]" do
-    "\u{180E}".match(/[[:blank:]]/).to_a.should == ["\u{180E}"]
     "\u{1680}".match(/[[:blank:]]/).to_a.should == ["\u{1680}"]
   end
 

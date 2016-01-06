@@ -87,6 +87,11 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::Stat#ctime primitive failed"
     end
 
+    def birthtime
+      Rubinius.primitive :stat_birthtime
+      raise NotImplementedError, "birthtime() function is unimplemented on this machine"
+    end
+
     def inspect
       "#<#{self.class.name} dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, " \
       "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \

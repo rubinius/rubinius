@@ -9,22 +9,22 @@ shared_examples_for "have_instance_variable, on all Ruby versions" do
 
   it "matches when object has the instance variable, given as string" do
     matcher = HaveInstanceVariableMatcher.new('@foo')
-    matcher.matches?(@object).should be_true
+    matcher.matches?(@object).should be_truthy
   end
 
   it "matches when object has the instance variable, given as symbol" do
     matcher = HaveInstanceVariableMatcher.new(:@foo)
-    matcher.matches?(@object).should be_true
+    matcher.matches?(@object).should be_truthy
   end
 
   it "does not match when object hasn't got the instance variable, given as string" do
     matcher = HaveInstanceVariableMatcher.new('@bar')
-    matcher.matches?(@object).should be_false
+    matcher.matches?(@object).should be_falsey
   end
 
   it "does not match when object hasn't got the instance variable, given as symbol" do
     matcher = HaveInstanceVariableMatcher.new(:@bar)
-    matcher.matches?(@object).should be_false
+    matcher.matches?(@object).should be_falsey
   end
 
   it "provides a failure message for #should" do

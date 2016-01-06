@@ -5,11 +5,11 @@ class TimerAction
   end
 
   def start
-    @start = Time.now
+    @start = current_time
   end
 
   def finish
-    @stop = Time.now
+    @stop = current_time
   end
 
   def elapsed
@@ -18,5 +18,9 @@ class TimerAction
 
   def format
     "Finished in %f seconds" % elapsed
+  end
+
+  def current_time
+    Time.now
   end
 end
