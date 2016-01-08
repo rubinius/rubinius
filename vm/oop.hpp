@@ -93,7 +93,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
 // Indicates the mask to use to check if a value is ruby false.
 // This mask matches both false and nil ONLY.
-#define FALSE_MASK 0xf
+#define FALSE_MASK  0xf
+
+// The bits that identify any nil value.
+#define NIL_MASK    0x1f
 
 #define CBOOL(v)                    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
 #define RBOOL(v)                    ((v) ? cTrue : cFalse)
@@ -586,7 +589,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void wait(STATE);
 
     bool nil_p() const {
-      return this == reinterpret_cast<ObjectHeader*>(cNil);
+      return (reinterpret_cast<intptr_t>(this) & NIL_MASK) == reinterpret_cast<intptr_t>(cNil);
     }
 
     bool true_p() const {
