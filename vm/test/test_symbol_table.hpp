@@ -30,7 +30,7 @@ public:
   }
 
   void test_detect_kind_with_unicode_constant() {
-    Symbol* sym = symbols->lookup("Pettsonλ", 9, Encoding::eUtf8, 0);
+    Symbol* sym = symbols->lookup(state, "Pettsonλ", 9, Encoding::eUtf8, 0);
     SymbolTable::Kind kind = symbols->detect_kind(state, sym);
 
     TS_ASSERT_EQUALS(kind, SymbolTable::eConstant);

@@ -3,9 +3,19 @@
 #include "gc/baker.hpp"
 #include "capi/capi.hpp"
 #include "capi/handles.hpp"
+#include "util/logger.hpp"
 
 namespace rubinius {
   namespace capi {
+    void Handles::Diagnostics::log() {
+      if(!modified_p()) return;
+
+      diagnostics::Diagnostics::log();
+
+      utilities::logger::write("C-API handles: diagnostics: " \
+          "objects: %ld, bytes: %ld, collections: %ld\n",
+          objects_, bytes_, collections_);
+    }
 
     Handle* Handles::allocate(STATE, Object* obj) {
       bool needs_gc = false;
@@ -13,6 +23,7 @@ namespace rubinius {
       handle->set_object(obj);
       handle->validate();
       if(needs_gc) {
+        diagnostics_.collections_++;
         state->memory()->collect_mature_now = true;
       }
       atomic::memory_barrier();
@@ -29,6 +40,7 @@ namespace rubinius {
       handle->set_object(obj);
       handle->validate();
       if(needs_gc) {
+        diagnostics_.collections_++;
         state->memory()->collect_mature_now = true;
       }
       atomic::memory_barrier();
@@ -58,8 +70,12 @@ namespace rubinius {
       delete allocator_;
     }
 
-    void Handles::deallocate_handles(std::list<Handle*>* cached, unsigned int mark, BakerGC* young) {
+    void Handles::deallocate_handles(std::list<Handle*>* cached,
+        unsigned int mark, BakerGC* young)
+    {
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
+
+      diagnostics_.objects_ = 0;
 
       for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
         Handle* chunk = allocator_->chunks_[i];
@@ -76,6 +92,7 @@ namespace rubinius {
           // Strong references will already have been updated.
           if(!handle->weak_p()) {
             chunk_marks[i] = true;
+            diagnostics_.objects_++;
             continue;
           }
 
@@ -87,10 +104,12 @@ namespace rubinius {
               // a collection. In this state, valid objects are only in current.
               if(young->in_current_p(obj)) {
                 chunk_marks[i] = true;
+                diagnostics_.objects_++;
               // A weakref pointing to a forwarded young object
               } else if(obj->forwarded_p()) {
                 handle->set_object(obj->forward());
                 chunk_marks[i] = true;
+                diagnostics_.objects_++;
               // A weakref pointing to a dead young object
               } else {
                 handle->clear();
@@ -99,6 +118,7 @@ namespace rubinius {
               // Not a young object, so won't be GC'd so mark
               // chunk as still active
               chunk_marks[i] = true;
+              diagnostics_.objects_++;
             }
 
           // A weakref pointing to a dead mature object
@@ -106,6 +126,7 @@ namespace rubinius {
             handle->clear();
           } else {
             chunk_marks[i] = true;
+            diagnostics_.objects_++;
           }
         }
       }
@@ -122,6 +143,9 @@ namespace rubinius {
       }
 
       allocator_->rebuild_freelist(&chunk_marks);
+
+      diagnostics_.bytes_ = allocator_->in_use_ * sizeof(Handle);
+      diagnostics_.modify();
     }
   }
 }

@@ -100,15 +100,17 @@ namespace rubinius {
     uintptr_t root_stack_start_;
     uintptr_t root_stack_size_;
 
+    utilities::thread::SpinLock interrupt_lock_;
+
     VMJIT vm_jit_;
 
     MethodMissingReason method_missing_reason_;
     ConstantMissingReason constant_missing_reason_;
 
     bool zombie_;
-    bool run_signals_;
     bool tooling_;
     bool allocation_tracking_;
+    bool main_thread_;
 
   public:
     /* Data members */
@@ -148,22 +150,30 @@ namespace rubinius {
       return id_;
     }
 
-    void set_zombie();
+    utilities::thread::SpinLock& interrupt_lock() {
+      return interrupt_lock_;
+    }
+
+    void set_zombie(STATE);
 
     bool zombie_p() {
       return zombie_;
     }
 
-    bool run_signals_p() const {
-      return run_signals_;
+    void set_main_thread() {
+      main_thread_ = true;
     }
 
-    void set_run_signals(bool val) {
-      run_signals_ = val;
+    bool main_thread_p() {
+      return main_thread_;
     }
 
     VMThreadState* thread_state() {
       return &thread_state_;
+    }
+
+    void set_memory(ObjectMemory* memory) {
+      om = memory;
     }
 
     CallFrame** call_frame_location() {
@@ -245,6 +255,8 @@ namespace rubinius {
     void set_constant_missing_reason(ConstantMissingReason reason) {
       constant_missing_reason_ = reason;
     }
+
+    void after_fork_child(STATE);
 
     bool thread_step() const {
       return vm_jit_.thread_step_;
@@ -342,22 +354,21 @@ namespace rubinius {
     static void init_stack_size();
 
     static VM* current();
-    static void set_current(VM* vm, std::string name);
 
     static void discard(STATE, VM*);
 
   public:
 
     /* Prototypes */
-    VM(uint32_t id, SharedState& shared);
+    VM(uint32_t id, SharedState& shared, const char* name = NULL);
     ~VM();
-
-    void initialize_as_root();
 
     void bootstrap_class(STATE);
     void bootstrap_ontology(STATE);
     void bootstrap_symbol(STATE);
     void initialize_config();
+
+    void set_current_thread();
 
     void setup_errno(STATE, int num, const char* name, Class* sce, Module* ern);
     void bootstrap_exceptions(STATE);

@@ -225,11 +225,11 @@ public:
 
     Root r(roots, young);
 
-    om.set_young_lifetime(1);
-
     TS_ASSERT_EQUALS(young->age(), 0U);
     om.collect_young(state, gc_data);
     TS_ASSERT_EQUALS(roots->front()->get()->age(), 1U);
+    om.collect_young(state, gc_data);
+    TS_ASSERT_EQUALS(roots->front()->get()->age(), 2U);
     om.collect_young(state, gc_data);
 
     TS_ASSERT(roots->front()->get()->mature_object_p());
@@ -250,13 +250,13 @@ public:
     mature->field[0] = young;
     om.write_barrier(mature, young);
 
-    om.set_young_lifetime(1);
-
     TS_ASSERT_EQUALS(mature->remembered_p(), 1U);
 
     TS_ASSERT_EQUALS(young->age(), 0U);
     om.collect_young(state, gc_data);
     TS_ASSERT_EQUALS(mature->field[0]->age(), 1U);
+    om.collect_young(state, gc_data);
+    TS_ASSERT_EQUALS(mature->field[0]->age(), 2U);
     om.collect_young(state, gc_data);
   }
 
@@ -303,8 +303,6 @@ public:
   void test_collect_mature() {
     ObjectMemory& om = *state->memory();
     Object* mature;
-
-    om.debug_marksweep(true);
 
     om.large_object_threshold = 10;
 

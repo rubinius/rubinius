@@ -1,7 +1,6 @@
 #ifndef RBX_CONSOLE_HPP
 #define RBX_CONSOLE_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/root.hpp"
@@ -66,7 +65,7 @@ namespace rubinius {
       Class* server_class(STATE);
     };
 
-    class Listener : public InternalThread, public Lockable {
+    class Listener : public InternalThread {
       Console* console_;
 
       TypedRoot<FSEvent*> fsevent_;
@@ -88,7 +87,7 @@ namespace rubinius {
 
     typedef std::list<char*> RequestList;
 
-    class Response : public InternalThread, public Lockable {
+    class Response : public InternalThread {
       Console* console_;
 
       TypedRoot<Channel*> inbox_;
@@ -122,7 +121,7 @@ namespace rubinius {
       void write_response(STATE, const char* response, native_int size);
     };
 
-    class Request : public InternalThread, public Lockable {
+    class Request : public InternalThread {
       Console* console_;
       Response* response_;
 

@@ -713,6 +713,8 @@ VALUE rb_uint2big(unsigned long number);
 /** Compares n objects of type. */
 #define MEMCMP(p1,p2,type,n) memcmp((p1), (p2), sizeof(type)*(n))
 
+#define RARRAY_AREF(a, i)   rb_ary_entry(a, i)
+
 /** The length of the array. */
 #define RARRAY_LEN(ary)   rb_ary_size(ary)
 #define RARRAY_LENINT(str) rb_ary_size(str)
@@ -988,7 +990,7 @@ struct RTypedData {
   VALUE   rb_ary_dup(VALUE self);
 
   /** Return object at index. Out-of-bounds access returns Qnil. */
-  VALUE   rb_ary_entry(VALUE self, int index);
+  VALUE   rb_ary_entry(VALUE self, long index);
 
   /** Return Qtrue if the array includes the item. */
   VALUE   rb_ary_includes(VALUE self, VALUE obj);
@@ -1434,6 +1436,14 @@ struct RTypedData {
   /** Create a new Hash object */
   VALUE   rb_hash_new();
 
+  /** Duplicate the Hash object */
+  VALUE   rb_hash_dup(VALUE self);
+#define HAVE_RB_HASH_DUP 1
+
+  /** Freeze the Hash object */
+  VALUE   rb_hash_freeze(VALUE self);
+#define HAVE_RB_HASH_FREEZE 1
+
   /** Return the value associated with the key, including default values. */
   VALUE   rb_hash_aref(VALUE self, VALUE key);
 
@@ -1444,6 +1454,9 @@ struct RTypedData {
 
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
+
+  /** Clear the Hash object */
+  VALUE   rb_hash_clear(VALUE self);
 
   /** Remove the key and return the associated value. */
   VALUE   rb_hash_delete(VALUE self, VALUE key);

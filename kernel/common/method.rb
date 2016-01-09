@@ -142,6 +142,12 @@ class Method
   end
 
   ##
+  # Calls curry on the method in proc representation
+  def curry(n = nil)
+    to_proc.curry(n)
+  end
+
+  ##
   # Detach this Method from the receiver object it is bound to and create an
   # UnboundMethod object. Populates the UnboundMethod with the method data as
   # well as the Module it is defined in and the Module it was extracted from.
@@ -150,6 +156,20 @@ class Method
 
   def unbind
     UnboundMethod.new(@defined_in, @executable, @receiver.class, @name)
+  end
+
+  def super_method
+    superclass = @defined_in.direct_superclass
+
+    if superclass
+      mod, entry = superclass.lookup_method(@name)
+
+      if entry && entry.visibility != :undef
+        return Method.new(@receiver, superclass, entry.method, @name)
+      end
+    end
+
+    return nil
   end
 
 end
@@ -281,5 +301,19 @@ class UnboundMethod
     else
       @defined_in
     end
+  end
+
+  def super_method
+    superclass = @defined_in.direct_superclass
+
+    if superclass
+      mod, entry = superclass.lookup_method(@name)
+
+      if entry && entry.visibility != :undef
+        return UnboundMethod.new(superclass, entry.method, @defined_in, @name)
+      end
+    end
+
+    return nil
   end
 end

@@ -620,7 +620,7 @@ namespace rubinius {
             data += wrote;
             bytes -= wrote;
 
-            state->vm()->metrics().system_metrics.io_write_bytes += wrote;
+            state->vm()->metrics().system.write_bytes += wrote;
           }
         }
       }
@@ -661,6 +661,10 @@ namespace rubinius {
 
     if(count > STACK_BUF_SZ) {
       malloc_buf = (char*)malloc(count);
+      if(!malloc_buf) {
+        Exception::memory_error(state);
+        return NULL;
+      }
       buf = malloc_buf;
     }
 
@@ -700,7 +704,7 @@ namespace rubinius {
       return cNil;
     }
 
-    state->vm()->metrics().system_metrics.io_read_bytes += bytes_read;
+    state->vm()->metrics().system.read_bytes += bytes_read;
 
     String* str = String::create(state, buf, bytes_read);
     if(malloc_buf) free(malloc_buf);
@@ -723,7 +727,7 @@ namespace rubinius {
     int res = ::select(fd+1, &set, 0, 0, &tv);
 
     if(res == 0) {
-      Exception::errno_eagain_error(state, "no data ready");
+      Exception::errno_wait_readable(state, EAGAIN);
       return 0;
     } else if(res <= 0) {
       Exception::errno_error(state, "read(2) failed");
@@ -749,7 +753,7 @@ namespace rubinius {
 
     if(bytes_read == 0) return cNil;
 
-    state->vm()->metrics().system_metrics.io_read_bytes += bytes_read;
+    state->vm()->metrics().system.read_bytes += bytes_read;
 
     buffer->num_bytes(state, Fixnum::from(bytes_read));
     return buffer;
@@ -804,7 +808,7 @@ namespace rubinius {
         left -= cnt;
         cur  += cnt;
 
-        state->vm()->metrics().system_metrics.io_write_bytes += cnt;
+        state->vm()->metrics().system.write_bytes += cnt;
       }
     }
 
@@ -830,9 +834,9 @@ namespace rubinius {
 
     // We can use byte_address() here since we use an explicit size
     int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
-    if(n == -1) Exception::errno_error(state, "write_nonblock");
+    if(n == -1) Exception::errno_wait_writable(state, errno);
 
-    state->vm()->metrics().system_metrics.io_write_bytes += n;
+    state->vm()->metrics().system.write_bytes += n;
 
     return Fixnum::from(n);
   }
@@ -1484,7 +1488,7 @@ failed: /* try next '*' position */
       }
       memcpy(self->at_unused(), temp_buffer, bytes_read);
       self->read_bytes(state, bytes_read);
-      state->vm()->metrics().system_metrics.io_read_bytes += bytes_read;
+      state->vm()->metrics().system.read_bytes += bytes_read;
     }
 
     return Fixnum::from(bytes_read);

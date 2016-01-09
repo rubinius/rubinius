@@ -7,19 +7,15 @@
 #include <list>
 
 namespace rubinius {
+  class InternalThread;
   class VM;
 
-  namespace metrics {
-    struct MetricsData;
-  }
+  typedef std::list<InternalThread*> InternalThreadList;
 
   class InternalThread {
     VM* vm_;
-    std::string name_;
     bool thread_running_;
     uint32_t stack_size_;
-
-    metrics::MetricsData& metrics_;
 
   protected:
 
@@ -55,10 +51,6 @@ namespace rubinius {
       return vm_;
     }
 
-    metrics::MetricsData& metrics() {
-      return metrics_;
-    }
-
     virtual void initialize(STATE);
     virtual void start(STATE);
     virtual void start_thread(STATE);
@@ -74,7 +66,7 @@ namespace rubinius {
     bool fork_exec_in_progress_;
     bool shutdown_in_progress_;
     utilities::thread::Mutex mutex_;
-    std::list<InternalThread*> threads_;
+    InternalThreadList threads_;
 
   public:
     InternalThreads()

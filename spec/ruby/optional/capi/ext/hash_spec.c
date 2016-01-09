@@ -11,6 +11,18 @@ VALUE hash_spec_rb_hash(VALUE self, VALUE hash) {
 }
 #endif
 
+#ifdef HAVE_RB_HASH_DUP
+VALUE hash_spec_rb_hash_dup(VALUE self, VALUE hash) {
+  return rb_hash_dup(hash);
+}
+#endif
+
+#ifdef HAVE_RB_HASH_FREEZE
+VALUE hash_spec_rb_hash_freeze(VALUE self, VALUE hash) {
+  return rb_hash_freeze(hash);
+}
+#endif
+
 #ifdef HAVE_RB_HASH_AREF
 VALUE hash_spec_rb_hash_aref(VALUE self, VALUE hash, VALUE key) {
   return rb_hash_aref(hash, key);
@@ -25,6 +37,12 @@ VALUE hash_spec_rb_hash_aref_nil(VALUE self, VALUE hash, VALUE key) {
 #ifdef HAVE_RB_HASH_ASET
 VALUE hash_spec_rb_hash_aset(VALUE self, VALUE hash, VALUE key, VALUE val) {
   return rb_hash_aset(hash, key, val);
+}
+#endif
+
+#ifdef HAVE_RB_HASH_CLEAR
+VALUE hash_spec_rb_hash_clear(VALUE self, VALUE hash) {
+  return rb_hash_clear(hash);
 }
 #endif
 
@@ -119,6 +137,14 @@ void Init_hash_spec() {
   rb_define_method(cls, "rb_hash", hash_spec_rb_hash, 1);
 #endif
 
+#ifdef HAVE_RB_HASH_DUP
+  rb_define_method(cls, "rb_hash_dup", hash_spec_rb_hash_dup, 1);
+#endif
+
+#ifdef HAVE_RB_HASH_FREEZE
+  rb_define_method(cls, "rb_hash_freeze", hash_spec_rb_hash_freeze, 1);
+#endif
+
 #ifdef HAVE_RB_HASH_AREF
   rb_define_method(cls, "rb_hash_aref", hash_spec_rb_hash_aref, 2);
   rb_define_method(cls, "rb_hash_aref_nil", hash_spec_rb_hash_aref_nil, 2);
@@ -126,6 +152,10 @@ void Init_hash_spec() {
 
 #ifdef HAVE_RB_HASH_ASET
   rb_define_method(cls, "rb_hash_aset", hash_spec_rb_hash_aset, 3);
+#endif
+
+#ifdef HAVE_RB_HASH_CLEAR
+  rb_define_method(cls, "rb_hash_clear", hash_spec_rb_hash_clear, 1);
 #endif
 
 #ifdef HAVE_RB_HASH_DELETE

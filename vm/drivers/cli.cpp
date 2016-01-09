@@ -52,7 +52,11 @@ int main(int argc, char** argv) {
         env.load_conf(path);
       }
 
-      env.run_from_filesystem();
+      env.boot();
+
+      // If we are here, something went wrong. Otherwise, exit(3) will always
+      // be called explicitly.
+      exit_code = -1;
     } catch(Assertion *e) {
       std::cout << "VM Assertion:" << std::endl;
       std::cout << "  " << e->reason << std::endl << std::endl;
@@ -129,11 +133,6 @@ int main(int argc, char** argv) {
     } catch(std::runtime_error& e) {
       std::cout << "Runtime exception: " << e.what() << std::endl;
       exit_code = 1;
-    }
-
-    env.halt(env.state);
-    if(!exit_code) {
-      exit_code = env.exit_code(env.state);
     }
   }
 

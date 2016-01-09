@@ -21,6 +21,17 @@ def write_sha1_digest_file(filename)
   puts "Computed SHA1 to #{digest_file}"
 end
 
+def write_sha512_digest_file(filename)
+  require 'digest/sha2'
+
+  digest_file = "#{filename}.sha512"
+  File.open(digest_file, "w") do |f|
+    f.puts Digest::SHA512.file(filename).hexdigest
+  end
+
+  puts "Computed SHA512 to #{digest_file}"
+end
+
 def rbx_version
   release_revision.first
 end
@@ -118,8 +129,7 @@ class RubiniusPackager
     end
 
     create_archive package_name
-    write_md5_digest_file package_name
-    write_sha1_digest_file package_name
+    write_sha512_digest_file package_name
   rescue Object => e
     # Some rake versions swallow the backtrace, so we do it explicitly.
     STDERR.puts e.message, e.backtrace

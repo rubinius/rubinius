@@ -12,8 +12,6 @@
 
 #include "primitives.hpp"
 
-#include "lock.hpp"
-
 #include "util/thread.hpp"
 
 #include "capi/capi_constants.h"
@@ -66,7 +64,7 @@ namespace rubinius {
   struct CallFrame;
 
   typedef std_unordered_set<std::string> CApiBlackList;
-  typedef std::vector<Mutex*> CApiLocks;
+  typedef std::vector<utilities::thread::Mutex*> CApiLocks;
   typedef std_unordered_map<std::string, int> CApiLockMap;
 
   typedef std::vector<std::string> CApiConstantNameMap;
@@ -84,10 +82,10 @@ namespace rubinius {
    * single process.
    */
 
-  class SharedState : public Lockable {
+  class SharedState {
   private:
     InternalThreads* internal_threads_;
-    SignalThread* signal_thread_;
+    SignalThread* signals_;
     FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
@@ -104,7 +102,6 @@ namespace rubinius {
     int thread_ids_;
 
     bool initialized_;
-    bool ruby_critical_set_;
     bool check_global_interrupts_;
     bool check_gc_;
 
@@ -112,17 +109,18 @@ namespace rubinius {
     Environment* env_;
     tooling::ToolBroker* tool_broker_;
 
-    // This lock is to implement Thread.critical. It is not critical as
-    // the name would make it sound.
-    utilities::thread::Mutex ruby_critical_lock_;
-    pthread_t ruby_critical_thread_;
-
     utilities::thread::Mutex fork_exec_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
+    utilities::thread::SpinLock global_capi_handle_lock_;
+    utilities::thread::SpinLock capi_handle_cache_lock_;
     utilities::thread::SpinLock llvm_state_lock_;
+    utilities::thread::SpinLock vm_lock_;
+    utilities::thread::SpinLock wait_lock_;
+    utilities::thread::SpinLock type_info_lock_;
+    utilities::thread::SpinLock code_resource_lock_;
 
     CApiBlackList capi_black_list_;
     CApiLocks capi_locks_;
@@ -160,14 +158,6 @@ namespace rubinius {
       return internal_threads_;
     }
 
-    SignalThread* signal_handler() const {
-      return signal_thread_;
-    }
-
-    void set_signal_handler(SignalThread* thr) {
-      signal_thread_ = thr;
-    }
-
     FinalizerThread* finalizer_handler() const {
       return finalizer_thread_;
     }
@@ -176,7 +166,7 @@ namespace rubinius {
       finalizer_thread_ = thr;
     }
 
-    VM* new_vm();
+    VM* new_vm(const char* name = NULL);
     void remove_vm(VM*);
 
     ThreadList* threads() {
@@ -214,6 +204,12 @@ namespace rubinius {
     int& primitive_hits(int primitive) {
       return primitive_hits_[primitive];
     }
+
+    SignalThread* signals() const {
+      return signals_;
+    }
+
+    SignalThread* start_signals(STATE);
 
     console::Console* console() const {
       return console_;
@@ -291,10 +287,30 @@ namespace rubinius {
       return capi_constant_lock_;
     }
 
+    utilities::thread::SpinLock& global_capi_handle_lock() {
+      return global_capi_handle_lock_;
+    }
+
+    utilities::thread::SpinLock& capi_handle_cache_lock() {
+      return capi_handle_cache_lock_;
+    }
+
     int capi_lock_index(std::string name);
 
     utilities::thread::SpinLock& llvm_state_lock() {
       return llvm_state_lock_;
+    }
+
+    utilities::thread::SpinLock& wait_lock() {
+      return wait_lock_;
+    }
+
+    utilities::thread::SpinLock& type_info_lock() {
+      return type_info_lock_;
+    }
+
+    utilities::thread::SpinLock& code_resource_lock() {
+      return code_resource_lock_;
     }
 
     void scheduler_loop();
@@ -318,9 +334,6 @@ namespace rubinius {
     void gc_dependent(THREAD, utilities::thread::Condition* = NULL);
     void gc_independent(THREAD);
     void gc_independent();
-
-    void set_critical(STATE, CallFrame* call_frame);
-    void clear_critical(STATE);
 
     void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);

@@ -63,7 +63,7 @@ end
 describe "rescueing SignalException" do
   it "raises a SignalException when sent a signal" do
     begin
-      Process.kill :TERM, Process.pid
+      raise SignalException.new(Signal.list["TERM"])
     rescue SignalException => e
       e.signo.should == Signal.list["TERM"]
     end

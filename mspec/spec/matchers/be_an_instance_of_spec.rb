@@ -16,22 +16,22 @@ end
 describe BeAnInstanceOfMatcher do
   it "matches when actual is an instance_of? expected" do
     a = BeAnInOfSpecs::A.new
-    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::A).matches?(a).should be_true
+    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::A).matches?(a).should be_truthy
 
     b = BeAnInOfSpecs::B.new
-    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::B).matches?(b).should be_true
+    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::B).matches?(b).should be_truthy
   end
 
   it "does not match when actual is not an instance_of? expected" do
     a = BeAnInOfSpecs::A.new
-    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::B).matches?(a).should be_false
+    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::B).matches?(a).should be_falsey
 
     b = BeAnInOfSpecs::B.new
-    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::A).matches?(b).should be_false
+    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::A).matches?(b).should be_falsey
 
     c = BeAnInOfSpecs::C.new
-    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::A).matches?(c).should be_false
-    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::B).matches?(c).should be_false
+    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::A).matches?(c).should be_falsey
+    BeAnInstanceOfMatcher.new(BeAnInOfSpecs::B).matches?(c).should be_falsey
   end
 
   it "provides a useful failure message" do

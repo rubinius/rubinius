@@ -8,7 +8,7 @@ def revision_file
 end
 
 def describe_revision
-  @description ||= `git describe --tags --match=v2* --abbrev=40 --long`
+  @description ||= `git describe --tags --match=v* --abbrev=40 --long`
 end
 
 def release_revision
@@ -29,7 +29,7 @@ end
 
 def release_date
   if git_directory
-    m = `git show --format="%ci" HEAD`.match(/^(\d+-\d+-\d+)/)
+    m = `git show --format="%ci" HEAD`.lines.first.match(/^(\d+-\d+-\d+)/)
     date = m[1]
   end
 

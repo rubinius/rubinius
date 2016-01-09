@@ -7,15 +7,4 @@ task :revision_file do
 end
 
 desc "Create a release tarball"
-task :release => :revision_file do
-  Dir.chdir BUILD_CONFIG[:gems_cache] do
-    sh "rm -f *", :verbose => $verbose
-  end
-  sh "bundle update", :verbose => $verbose
-  Rake::Task['gems:update_list'].invoke
-  Dir.chdir BUILD_CONFIG[:gems_cache] do
-    sh "rm -f bundler*", :verbose => $verbose
-    sh "gem fetch bundler", :verbose => $verbose
-  end
-  Rake::Task['package:tar'].invoke
-end
+task :release => %W[revision_file package:tar]

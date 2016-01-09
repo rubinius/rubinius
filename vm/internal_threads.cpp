@@ -12,11 +12,9 @@ namespace rubinius {
   using namespace utilities;
 
   InternalThread::InternalThread(STATE, std::string name, StackSize stack_size)
-    : vm_(state->shared().new_vm())
-    , name_(name)
+    : vm_(state->shared().new_vm(name.c_str()))
     , thread_running_(false)
     , stack_size_(stack_size)
-    , metrics_(vm_->metrics())
     , thread_exit_(false)
   {
     state->shared().internal_threads()->register_thread(this);
@@ -29,14 +27,14 @@ namespace rubinius {
     SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
 
-    state->vm()->set_run_state(ManagedThread::eIndependent);
+    vm->set_current_thread();
+    vm->set_run_state(ManagedThread::eIndependent);
 
-    RBX_DTRACE_CHAR_P thread_name =
-      const_cast<RBX_DTRACE_CHAR_P>(thread->name_.c_str());
-    vm->set_name(thread_name);
+    RUBINIUS_THREAD_START(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                          vm->thread_id(), 1);
+    int stack_address = 0;
+    vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), thread->stack_size_);
 
     NativeMethod::init_thread(state);
 
@@ -44,16 +42,17 @@ namespace rubinius {
 
     thread->run(state);
 
+    vm->set_call_frame(0);
     thread->thread_running_ = false;
 
     NativeMethod::cleanup_thread(state);
 
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                         vm->thread_id(), 1);
+    RUBINIUS_THREAD_STOP(
+        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
-    if(state->vm()->run_state() != ManagedThread::eIndependent) {
-      shared.gc_independent();
-    }
+    shared.gc_independent();
+
+    vm->set_zombie(state);
 
     return 0;
   }
@@ -75,7 +74,7 @@ namespace rubinius {
 
     if(int error = pthread_create(&vm_->os_thread(), &attrs,
           InternalThread::run, (void*)this)) {
-      logger::fatal("%s: %s: create thread failed", strerror(error), name_.c_str());
+      logger::fatal("%s: %s: create thread failed", strerror(error), vm_->name().c_str());
       ::abort();
     }
 
@@ -136,7 +135,7 @@ namespace rubinius {
     if(exec_in_progress_) return;
     exec_in_progress_ = true;
 
-    for(std::list<InternalThread*>::reverse_iterator i = threads_.rbegin();
+    for(InternalThreadList::reverse_iterator i = threads_.rbegin();
         i != threads_.rend();
         ++i) {
       (*i)->before_exec(state);
@@ -148,7 +147,7 @@ namespace rubinius {
     // after execvp() call.
     state->shared().env()->after_exec(state);
 
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_exec(state);
@@ -163,7 +162,7 @@ namespace rubinius {
     if(fork_exec_in_progress_) return;
     fork_exec_in_progress_ = true;
 
-    for(std::list<InternalThread*>::reverse_iterator i = threads_.rbegin();
+    for(InternalThreadList::reverse_iterator i = threads_.rbegin();
         i != threads_.rend();
         ++i) {
       (*i)->before_fork_exec(state);
@@ -173,7 +172,7 @@ namespace rubinius {
   void InternalThreads::after_fork_exec_parent(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_exec_parent(state);
@@ -185,7 +184,7 @@ namespace rubinius {
   void InternalThreads::after_fork_exec_child(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after execvp() call.
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_exec_child(state);
@@ -201,7 +200,7 @@ namespace rubinius {
     if(fork_in_progress_) return;
     fork_in_progress_ = true;
 
-    for(std::list<InternalThread*>::reverse_iterator i = threads_.rbegin();
+    for(InternalThreadList::reverse_iterator i = threads_.rbegin();
         i != threads_.rend();
         ++i) {
       (*i)->before_fork(state);
@@ -211,7 +210,7 @@ namespace rubinius {
   void InternalThreads::after_fork_parent(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_parent(state);
@@ -225,7 +224,7 @@ namespace rubinius {
     // after fork() call.
     state->shared().env()->after_fork_child(state);
 
-    for(std::list<InternalThread*>::iterator i = threads_.begin();
+    for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_child(state);

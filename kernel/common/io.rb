@@ -14,6 +14,22 @@ class IO
     include ::IO::WaitWritable
   end
 
+  class EWOULDBLOCKWaitReadable < Errno::EAGAIN
+    include WaitReadable
+  end
+
+  class EWOULDBLOCKWaitWritable < Errno::EAGAIN
+    include WaitWritable
+  end
+
+  class EINPROGRESSWaitReadable < Errno::EINPROGRESS
+    include WaitReadable
+  end
+
+  class EINPROGRESSWaitWritable < Errno::EINPROGRESS
+    include WaitWritable
+  end
+
   # Import platform constants
 
   SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
@@ -1778,9 +1794,9 @@ class IO
           str = ""
         elsif Thread.guarding? arg
           str = "[...]"
-        elsif arg.kind_of?(Array)
+        elsif arg.respond_to?(:to_ary)
           Thread.recursion_guard arg do
-            arg.each do |a|
+            arg.to_ary.each do |a|
               puts a
             end
           end

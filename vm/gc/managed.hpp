@@ -5,11 +5,11 @@
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 #include "gc/root.hpp"
-#include "lock.hpp"
 #include "metrics.hpp"
 
 #include <algorithm>
 #include <vector>
+#include <string>
 
 namespace rubinius {
   class SharedState;
@@ -18,13 +18,14 @@ namespace rubinius {
 
   typedef std::vector<ObjectHeader*> LockedObjects;
 
-  class ManagedThread : public Lockable {
+  class ManagedThread {
   public:
     // WorldState sets the run_state_ directly.
     friend class WorldState;
 
     enum Kind {
-      eRuby, eSystem
+      eRuby,
+      eSystem
     };
 
     enum RunState {
@@ -51,8 +52,11 @@ namespace rubinius {
     uint32_t id_;
 
   public:
-    ManagedThread(uint32_t id, SharedState& ss, Kind kind);
+    ManagedThread(uint32_t id, SharedState& ss, Kind kind, const char* name);
     ~ManagedThread();
+
+    static void set_current_thread(ManagedThread* vm);
+    static ManagedThread* current();
 
     Roots& roots() {
       return roots_;
@@ -99,17 +103,11 @@ namespace rubinius {
     }
 
     VM* as_vm() {
-      if(kind_ == eRuby) return reinterpret_cast<VM*>(this);
-      return 0;
+      return reinterpret_cast<VM*>(this);
     }
 
     std::string name() const {
       return name_;
-    }
-
-    void set_name(std::string name) {
-      name_ = name;
-      utilities::thread::Thread::set_os_name(name.c_str());
     }
 
     uint32_t thread_id() const {
@@ -131,10 +129,6 @@ namespace rubinius {
     metrics::MetricsData& metrics() {
       return metrics_;
     }
-
-  public:
-    static ManagedThread* current();
-    static void set_current(ManagedThread* vm, std::string name);
   };
 }
 

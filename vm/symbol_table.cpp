@@ -12,10 +12,20 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
+#include "util/logger.hpp"
+
 #include <iostream>
 #include <iomanip>
 
 namespace rubinius {
+  void SymbolTable::Diagnostics::log() {
+    if(!modified_p()) return;
+
+    diagnostics::Diagnostics::log();
+
+    utilities::logger::write("symbol table: diagnostics: symbols: %ld, bytes: %ld",
+        objects_, bytes_);
+  }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
     std::string str = strings[sym->index()];
@@ -83,28 +93,37 @@ namespace rubinius {
     return k;
   }
 
-  size_t SymbolTable::add(std::string str, int enc) {
-    bytes_used_ += (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
+  size_t SymbolTable::add(STATE, std::string str, int enc) {
+    size_t bytes = (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
+    diagnostics_.objects_++;
+    diagnostics_.bytes_ += bytes;
+    diagnostics_.modify();
 
     strings.push_back(str);
     encodings.push_back(enc);
     kinds.push_back(eUnknown);
+
+    state->vm()->metrics().memory.symbols++;
+    state->vm()->metrics().memory.symbols_bytes += bytes;
+
     return strings.size() - 1;
   }
 
   Symbol* SymbolTable::lookup(STATE, const char* str, size_t length) {
-    return lookup(str, length, Encoding::eAscii, state->hash_seed());
+    return lookup(state, str, length, Encoding::eAscii, state->hash_seed());
   }
 
-  Symbol* SymbolTable::lookup(SharedState* shared, const std::string& str) {
-    return lookup(str.data(), str.size(), Encoding::eAscii, shared->hash_seed);
+  Symbol* SymbolTable::lookup(STATE, SharedState* shared, const std::string& str) {
+    return lookup(state, str.data(), str.size(), Encoding::eAscii, shared->hash_seed);
   }
 
   Symbol* SymbolTable::lookup(STATE, const std::string& str) {
-    return lookup(str.data(), str.size(), Encoding::eAscii, state->hash_seed());
+    return lookup(state, str.data(), str.size(), Encoding::eAscii, state->hash_seed());
   }
 
-  Symbol* SymbolTable::lookup(const char* str, size_t length, int enc, uint32_t seed) {
+  Symbol* SymbolTable::lookup(STATE, const char* str, size_t length,
+      int enc, uint32_t seed)
+  {
     size_t sym;
 
     hashval hash = String::hash_str((unsigned char*)str, length, seed);
@@ -115,7 +134,7 @@ namespace rubinius {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       SymbolMap::iterator entry = symbols.find(hash);
       if(entry == symbols.end()) {
-        sym = add(std::string(str, length), enc);
+        sym = add(state, std::string(str, length), enc);
         SymbolIds v(1, sym);
         symbols[hash] = v;
       } else {
@@ -126,7 +145,7 @@ namespace rubinius {
 
           if(!strncmp(s.data(), str, length) && e == enc) return Symbol::from_index(*i);
         }
-        sym = add(std::string(str, length), enc);
+        sym = add(state, std::string(str, length), enc);
         v.push_back(sym);
       }
     }
@@ -150,7 +169,7 @@ namespace rubinius {
     if(CBOOL(str->ascii_only_p(state))) {
       enc = Encoding::eAscii;
     }
-    return lookup(bytes, size, enc, state->hash_seed());
+    return lookup(state, bytes, size, enc, state->hash_seed());
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {

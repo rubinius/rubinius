@@ -73,6 +73,9 @@ namespace rubinius {
     // Rubinius.primitive+ :stat_ctime
     Time* stat_ctime(STATE);
 
+    // Rubinius.primitive+ :stat_birthtime
+    Object* stat_birthtime(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

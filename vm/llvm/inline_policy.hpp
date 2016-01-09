@@ -47,7 +47,7 @@ namespace rubinius {
       try {
         eval.drive(mcode);
       } catch(LLVMState::CompileError& e) {
-        utilities::logger::warn("JIT: inline evaluator: compile error: %s", e.error());
+        utilities::logger::info("JIT: inline evaluator: compile error: %s", e.error());
         return false;
       }
 

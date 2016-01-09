@@ -217,9 +217,6 @@ namespace rubinius {
     // Rubinius.primitive :thread_join
     Thread* join(STATE, GCToken gct, Object* timeout, CallFrame* calling_environment);
 
-    // Rubinius.primitive :thread_set_critical
-    static Object* set_critical(STATE, Object* obj, CallFrame* calling_environment);
-
     // Rubinius.primitive :thread_unlock_locks
     Object* unlock_locks(STATE, GCToken gct, CallFrame* calling_environment);
 
@@ -280,14 +277,18 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, Object* self, ThreadFunction function);
     static Thread* create(STATE, VM* vm);
+    static Thread* create(STATE, VM* vm, ThreadFunction function);
+    static Thread* create(STATE, Object* self, ThreadFunction function);
+    static Thread* create(STATE, Object* self, VM* vm, ThreadFunction function);
     static Thread* create(STATE, Class* klass, VM* vm);
 
     static void finalize(STATE, Thread* thread);
 
-    int start_thread(STATE, const pthread_attr_t &attrs);
+    int start_thread(STATE, void* (*function)(void*));
     static void* run(void*);
+
+    static Object* main_thread(STATE);
 
   public:   /* TypeInfo */
 

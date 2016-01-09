@@ -269,7 +269,8 @@ namespace rubinius {
         }
 
         policy->increase_size(mcode);
-        meth->add_inliner(ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
+        meth->add_inliner(ops_.llvm_state()->state(),
+            ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
 
         inline_generic_method(klass, data, defined_in, code, mcode, hits);
         return true;
@@ -313,7 +314,8 @@ namespace rubinius {
     }
 
 remember:
-    meth->add_inliner(ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
+    meth->add_inliner(ops_.llvm_state()->state(),
+        ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
 
     return true;
   }
@@ -429,7 +431,7 @@ remember:
     }
 
     ctx_->enter_inline();
-    ops_.llvm_state()->add_accessor_inlined();
+    ops_.llvm_state()->vm()->metrics().jit.inlined_accessors++;
 
     check_recv(klass, data);
 
@@ -515,7 +517,7 @@ remember:
     }
 
     ctx_->enter_inline();
-    ops_.llvm_state()->add_accessor_inlined();
+    ops_.llvm_state()->vm()->metrics().jit.inlined_accessors++;
 
     check_recv(klass, data);
 
@@ -652,6 +654,8 @@ remember:
     set_result(info.return_phi());
 
     ctx_->leave_inline();
+
+    ops_.llvm_state()->vm()->metrics().jit.inlined_methods++;
   }
 
   void Inliner::emit_inline_block(JITInlineBlock* ib, Value* self) {
@@ -704,6 +708,8 @@ remember:
     set_result(info.return_phi());
 
     ctx_->leave_inline();
+
+    ops_.llvm_state()->vm()->metrics().jit.inlined_blocks++;
   }
 
   Type* find_type(JITOperations& ops_, size_t type) {
@@ -1049,6 +1055,8 @@ remember:
 
     exception_safe();
     set_result(result);
+
+    ops_.llvm_state()->vm()->metrics().jit.inlined_ffi++;
 
     return true;
   }

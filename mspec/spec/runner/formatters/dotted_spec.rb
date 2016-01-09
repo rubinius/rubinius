@@ -17,7 +17,7 @@ end
 describe DottedFormatter, "#register" do
   before :each do
     @formatter = DottedFormatter.new
-    MSpec.stub!(:register)
+    MSpec.stub(:register)
   end
 
   it "registers self with MSpec for appropriate actions" do
@@ -29,8 +29,8 @@ describe DottedFormatter, "#register" do
   end
 
   it "creates TimerAction and TallyAction" do
-    timer = mock("timer")
-    tally = mock("tally")
+    timer = double("timer")
+    tally = double("tally")
     timer.should_receive(:register)
     tally.should_receive(:register)
     tally.should_receive(:counter)
@@ -85,16 +85,16 @@ describe DottedFormatter, "#exception" do
 
   it "sets the #failure? flag" do
     @formatter.exception @failure
-    @formatter.failure?.should be_true
+    @formatter.failure?.should be_truthy
     @formatter.exception @error
-    @formatter.failure?.should be_false
+    @formatter.failure?.should be_falsey
   end
 
   it "sets the #exception? flag" do
     @formatter.exception @error
-    @formatter.exception?.should be_true
+    @formatter.exception?.should be_truthy
     @formatter.exception @failure
-    @formatter.exception?.should be_true
+    @formatter.exception?.should be_truthy
   end
 
   it "addes the exception to the list of exceptions" do
@@ -113,25 +113,25 @@ describe DottedFormatter, "#exception?" do
   end
 
   it "returns false if there have been no exceptions" do
-    @formatter.exception?.should be_false
+    @formatter.exception?.should be_falsey
   end
 
   it "returns true if any exceptions are errors" do
     @formatter.exception @failure
     @formatter.exception @error
-    @formatter.exception?.should be_true
+    @formatter.exception?.should be_truthy
   end
 
   it "returns true if all exceptions are failures" do
     @formatter.exception @failure
     @formatter.exception @failure
-    @formatter.exception?.should be_true
+    @formatter.exception?.should be_truthy
   end
 
   it "returns true if all exceptions are errors" do
     @formatter.exception @error
     @formatter.exception @error
-    @formatter.exception?.should be_true
+    @formatter.exception?.should be_truthy
   end
 end
 
@@ -143,19 +143,19 @@ describe DottedFormatter, "#failure?" do
   end
 
   it "returns false if there have been no exceptions" do
-    @formatter.failure?.should be_false
+    @formatter.failure?.should be_falsey
   end
 
   it "returns false if any exceptions are errors" do
     @formatter.exception @failure
     @formatter.exception @error
-    @formatter.failure?.should be_false
+    @formatter.failure?.should be_falsey
   end
 
   it "returns true if all exceptions are failures" do
     @formatter.exception @failure
     @formatter.exception @failure
-    @formatter.failure?.should be_true
+    @formatter.failure?.should be_truthy
   end
 end
 
@@ -167,15 +167,15 @@ describe DottedFormatter, "#before" do
   end
 
   it "resets the #failure? flag to false" do
-    @formatter.failure?.should be_true
+    @formatter.failure?.should be_truthy
     @formatter.before @state
-    @formatter.failure?.should be_false
+    @formatter.failure?.should be_falsey
   end
 
   it "resets the #exception? flag to false" do
-    @formatter.exception?.should be_true
+    @formatter.exception?.should be_truthy
     @formatter.before @state
-    @formatter.exception?.should be_false
+    @formatter.exception?.should be_falsey
   end
 end
 
@@ -221,15 +221,15 @@ end
 
 describe DottedFormatter, "#finish" do
   before :each do
-    @tally = mock("tally").as_null_object
-    TallyAction.stub!(:new).and_return(@tally)
-    @timer = mock("timer").as_null_object
-    TimerAction.stub!(:new).and_return(@timer)
+    @tally = double("tally").as_null_object
+    TallyAction.stub(:new).and_return(@tally)
+    @timer = double("timer").as_null_object
+    TimerAction.stub(:new).and_return(@timer)
 
     $stdout = @out = IOStub.new
     context = ContextState.new "Class#method"
     @state = ExampleState.new(context, "runs")
-    MSpec.stub!(:register)
+    MSpec.stub(:register)
     @formatter = DottedFormatter.new
     @formatter.register
   end
@@ -248,7 +248,7 @@ describe DottedFormatter, "#finish" do
 
   it "prints a backtrace for an exception" do
     exc = ExceptionState.new @state, nil, MSpecExampleError.new("broken")
-    exc.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    exc.stub(:backtrace).and_return("path/to/some/file.rb:35:in method")
     @formatter.exception exc
     @formatter.after @state
     @formatter.finish
@@ -269,7 +269,7 @@ describe DottedFormatter, "#finish" do
 
   it "prints errors, backtraces, elapsed time, and tallies" do
     exc = ExceptionState.new @state, nil, MSpecExampleError.new("broken")
-    exc.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    exc.stub(:backtrace).and_return("path/to/some/file.rb:35:in method")
     @formatter.exception exc
     @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
     @tally.should_receive(:format).and_return("1 example, 1 failure")

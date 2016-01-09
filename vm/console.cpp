@@ -128,7 +128,7 @@ namespace rubinius {
         req = new char[bytes+1];
         memcpy(req, buf, bytes);
         req[bytes] = 0;
-        metrics().m.console_metrics.requests_received++;
+        vm()->metrics().console.requests_received++;
       } else if(bytes < 0) {
         logger::error("%s: console: unable to read request", strerror(errno));
       }
@@ -270,7 +270,7 @@ namespace rubinius {
         logger::error("%s: console: unable to write response", strerror(errno));
       }
 
-      metrics().m.console_metrics.responses_sent++;
+      vm()->metrics().console.responses_sent++;
     }
 
     void Response::run(STATE) {

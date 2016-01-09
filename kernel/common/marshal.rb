@@ -627,7 +627,8 @@ module Marshal
 
       obj = result * sign
 
-      store_unique_object obj
+      add_object obj
+      obj
     end
 
     def construct_data
@@ -674,8 +675,11 @@ module Marshal
       store_unique_object obj
 
       construct_integer.times do
+        original_modules = @modules
+        @modules = nil
         key = construct
         val = construct
+        @modules = original_modules
 
         # Use __store__ (an alias for []=) to get around subclass overrides
         obj.__store__ key, val

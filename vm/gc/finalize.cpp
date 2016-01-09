@@ -121,10 +121,14 @@ namespace rubinius {
     worker_signal();
   }
 
+  void FinalizerThread::stop(STATE) {
+    state->shared().internal_threads()->unregister_thread(this);
+
+    stop_thread(state);
+  }
+
   void FinalizerThread::run(STATE) {
     GCTokenImpl gct;
-
-    metrics().init(metrics::eFinalizerMetrics);
 
     state->gc_dependent(gct, 0);
 
@@ -173,7 +177,13 @@ namespace rubinius {
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, process_item_->object->id(state));
-          process_item_->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
+          if(!process_item_->ruby_finalizer->send(state, call_frame, G(sym_call), ary)) {
+            if(state->vm()->thread_state()->raise_reason() == cException) {
+              utilities::logger::warn(
+                  "finalizer: an exception occurred running a Ruby finalizer: %s",
+                  state->vm()->thread_state()->current_exception()->message_c_str(state));
+            }
+          }
         }
       }
 
@@ -260,7 +270,7 @@ namespace rubinius {
         process_list_ = NULL;
         process_item_kind_ = eRuby;
         lists_->pop_back();
-        metrics().m.finalizer_metrics.objects_finalized++;
+        vm()->metrics().gc.objects_finalized++;
         break;
       }
     }
@@ -268,9 +278,6 @@ namespace rubinius {
 
   void FinalizerThread::finish(STATE, GCToken gct) {
     finishing_ = true;
-
-    stop_thread(state);
-
     if(process_list_ || !lists_->empty() || !live_list_->empty()) {
       while(true) {
         if(!process_list_) {
@@ -303,6 +310,8 @@ namespace rubinius {
     if(!lists_->empty() || !live_list_->empty() || process_list_ != NULL) {
       utilities::logger::warn("FinalizerThread exiting with pending finalizers");
     }
+
+    VM::discard(state, vm());
   }
 
   void FinalizerThread::record(Object* obj, FinalizerFunction func,
@@ -321,7 +330,7 @@ namespace rubinius {
     // Makes a copy of fi.
     live_list_->push_front(fi);
 
-    metrics().m.finalizer_metrics.objects_queued++;
+    vm()->metrics().gc.objects_queued++;
   }
 
   void FinalizerThread::set_ruby_finalizer(Object* obj, Object* finalizer) {

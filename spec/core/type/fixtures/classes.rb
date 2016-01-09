@@ -67,4 +67,17 @@ module TypeSpecs
     def private_method
     end
   end
+
+  module RespondToMissing
+    def respond_to_missing?(name, include_private)
+      if :missing_public == name
+        true
+      elsif :missing_private == name && include_private
+        true
+      else
+        false
+      end
+    end
+    module_function :respond_to_missing?
+  end
 end

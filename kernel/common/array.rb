@@ -993,7 +993,7 @@ class Array
 
   def permutation(num=undefined, &block)
     unless block_given?
-      return to_enum(:permutation, num) do 
+      return to_enum(:permutation, num) do
         Rubinius::Mirror::Array.reflect(self).permutation_size(num)
       end
     end
@@ -1365,7 +1365,6 @@ class Array
     else
       if size / count > 3
         abandon = false
-        spin = 0
 
         result = Array.new count
         i = 1
@@ -1373,20 +1372,31 @@ class Array
         result[0] = rng.rand(size)
         while i < count
           k = rng.rand(size)
-          j = 0
 
-          while j < i
-            while k == result[j]
-              spin += 1
-              if spin > 100
+          spin = false
+          spin_count = 0
+
+          while true
+            j = 0
+            while j < i
+              if k == result[j]
+                spin = true
+                break
+              end
+
+              j += 1
+            end
+
+            if spin
+              if (spin_count += 1) > 100
                 abandon = true
                 break
               end
-              k = rng.rand(size)
-            end
-            break if abandon
 
-            j += 1
+              k = rng.rand(size)
+            else
+              break
+            end
           end
 
           break if abandon
@@ -1858,20 +1868,29 @@ class Array
 
   def zip(*others)
     out = Array.new(size) { [] }
-    others = others.map do |ary|
-      if ary.respond_to?(:to_ary)
-        ary.to_ary
+    others = others.map do |other|
+      if other.respond_to?(:to_ary)
+        other.to_ary
       else
-        elements = []
-        ary.each { |e| elements << e }
-        elements
+        other.to_enum :each
       end
     end
 
     size.times do |i|
       slot = out.at(i)
       slot << @tuple.at(@start + i)
-      others.each { |ary| slot << ary.at(i) }
+      others.each do |other|
+        slot << case other
+                when Array
+                  other.at i
+                else
+                  begin
+                    other.next
+                  rescue StopIteration
+                    nil
+                  end
+                end
+      end
     end
 
     if block_given?
@@ -1943,9 +1962,20 @@ class Array
       while i < total
         o = tuple.at i
 
-        if ary = Rubinius::Type.check_convert_type(o, Array, :to_ary)
+        if Rubinius::Type.object_kind_of? o, Array
           modified = true
-          recursively_flatten(ary, out, max_levels)
+          recursively_flatten o, out, max_levels
+        elsif Rubinius::Type.object_respond_to? o, :to_ary
+          ary = o.__send__ :to_ary
+          if nil.equal? ary
+            out << o
+          else
+            modified = true
+            recursively_flatten ary, out, max_levels
+          end
+        elsif ary = Rubinius::Type.execute_check_convert_type(o, Array, :to_ary)
+          modified = true
+          recursively_flatten ary, out, max_levels
         else
           out << o
         end

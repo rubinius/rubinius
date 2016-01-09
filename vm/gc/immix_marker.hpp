@@ -1,7 +1,6 @@
 #ifndef RBX_GC_IMMIX_MARKER_HPP
 #define RBX_GC_IMMIX_MARKER_HPP
 
-#include "lock.hpp"
 #include "internal_threads.hpp"
 
 #include "gc/root.hpp"
@@ -13,7 +12,7 @@ namespace rubinius {
   class ImmixGC;
   class GCData;
 
-  class ImmixMarker : public InternalThread, public Lockable {
+  class ImmixMarker : public InternalThread {
     ImmixGC* immix_;
     GCData* data_;
 

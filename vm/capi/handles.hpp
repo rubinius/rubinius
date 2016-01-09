@@ -1,27 +1,43 @@
 #ifndef RBX_CAPI_HANDLES_HPP
 #define RBX_CAPI_HANDLES_HPP
 
+#include "diagnostics.hpp"
 #include "vm.hpp"
 #include "gc/root.hpp"
 #include "util/allocator.hpp"
 #include "capi/handle.hpp"
 
 #include <vector>
+#include <stdint.h>
 
 namespace rubinius {
   class BakerGC;
 
   namespace capi {
-
     class Handles {
+    public:
+      class Diagnostics : public diagnostics::MemoryDiagnostics {
+      public:
+        int64_t collections_;
+
+        Diagnostics()
+          : diagnostics::MemoryDiagnostics()
+          , collections_(0)
+        { }
+
+        void log();
+      };
 
     private:
       Allocator<Handle>* allocator_;
+
+      Diagnostics diagnostics_;
 
     public:
 
       Handles()
         : allocator_(new Allocator<Handle>())
+        , diagnostics_(Diagnostics())
       {}
 
       ~Handles();
@@ -48,6 +64,9 @@ namespace rubinius {
         return allocator_->in_use_;
       }
 
+      Diagnostics& diagnostics() {
+        return diagnostics_;
+      }
     };
   }
 }

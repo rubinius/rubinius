@@ -4,7 +4,9 @@
 #include "gc/gc.hpp"
 #include "gc/root.hpp"
 #include "object_position.hpp"
+#include "diagnostics.hpp"
 
+#include <stdint.h>
 #include <list>
 
 namespace rubinius {
@@ -16,21 +18,28 @@ namespace rubinius {
 
   class MarkSweepGC : public GarbageCollector {
   public:
+    class Diagnostics : public diagnostics::MemoryDiagnostics {
+    public:
+      Diagnostics()
+        : diagnostics::MemoryDiagnostics()
+      { }
+
+      void log();
+    };
+
+  public:
     typedef std::list<Object*> MarkStack;
 
   private:
       MarkStack mark_stack_;
 
+      Diagnostics diagnostics_;
+
   public:
     /* Data members */
     std::list<Object*> entries;
-    size_t allocated_bytes;
-    size_t allocated_objects;
     int    collection_threshold;
     int    next_collection_bytes;
-    bool   free_entries;
-    int    times_collected;
-    int    last_freed;
 
     /* Prototypes */
 
@@ -50,6 +59,10 @@ namespace rubinius {
     void profile(STATE);
 
     ObjectPosition validate_object(Object* obj);
+
+    Diagnostics& diagnostics() {
+      return diagnostics_;
+    }
   };
 };
 

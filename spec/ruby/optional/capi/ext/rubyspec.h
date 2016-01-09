@@ -49,6 +49,7 @@
 /* Array */
 #define HAVE_RB_ARRAY                      1
 #define HAVE_RARRAY                        1
+#define HAVE_RARRAY_AREF                   1
 #define HAVE_RARRAY_LEN                    1
 #define HAVE_RARRAY_PTR                    1
 #define HAVE_RB_ARY_AREF                   1
@@ -318,8 +319,11 @@
 
 /* Hash */
 #define HAVE_RB_HASH                       1
+#define HAVE_RB_HASH_DUP                   1
+#define HAVE_RB_HASH_FREEZE                1
 #define HAVE_RB_HASH_AREF                  1
 #define HAVE_RB_HASH_ASET                  1
+#define HAVE_RB_HASH_CLEAR                 1
 #define HAVE_RB_HASH_DELETE                1
 #define HAVE_RB_HASH_DELETE_IF             1
 #define HAVE_RB_HASH_FOREACH               1

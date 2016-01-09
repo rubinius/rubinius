@@ -544,6 +544,7 @@ namespace rubinius {
 
     if(len > STACK_BUF_SZ) {
       malloc_buf = (uint8_t*)malloc(len);
+      if(!malloc_buf) rubinius::abort();
       buf = malloc_buf;
     }
 

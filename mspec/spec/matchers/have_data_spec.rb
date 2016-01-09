@@ -21,19 +21,19 @@ describe HaveDataMatcher do
   end
 
   it "matches when the named file begins with the same bytes as data" do
-    HaveDataMatcher.new("123a").matches?(@name).should be_true
+    HaveDataMatcher.new("123a").matches?(@name).should be_truthy
   end
 
   it "does not match when the named file begins with fewer bytes than data" do
-    HaveDataMatcher.new("123abcPQR").matches?(@name).should be_false
+    HaveDataMatcher.new("123abcPQR").matches?(@name).should be_falsey
   end
 
   it "does not match when the named file begins with different bytes than data" do
-    HaveDataMatcher.new("abc1").matches?(@name).should be_false
+    HaveDataMatcher.new("abc1").matches?(@name).should be_falsey
   end
 
   it "accepts an optional mode argument to open the data file" do
-    HaveDataMatcher.new("123a", "r").matches?(@name).should be_true
+    HaveDataMatcher.new("123a", "r").matches?(@name).should be_truthy
   end
 
   it "provides a useful failure message" do

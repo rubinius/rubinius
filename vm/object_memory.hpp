@@ -3,17 +3,16 @@
 
 #include "prelude.hpp"
 #include "type_info.hpp"
-
 #include "object_position.hpp"
-
 #include "oop.hpp"
+#include "diagnostics.hpp"
+
 #include "gc/code_manager.hpp"
 #include "gc/finalize.hpp"
 #include "gc/write_barrier.hpp"
 
 #include "util/immix.hpp"
 #include "util/thread.hpp"
-#include "lock.hpp"
 
 #include "shared_state.hpp"
 
@@ -36,6 +35,10 @@ namespace rubinius {
   class FinalizerThread;
   class ImmixMarker;
 
+  namespace diagnostics {
+    class ObjectDiagnostics;
+  }
+
   namespace gc {
     class Slab;
   }
@@ -45,22 +48,6 @@ namespace rubinius {
     class Handles;
     class GlobalHandle;
   }
-
-  struct YoungCollectStats {
-    int bytes_copied;
-    double percentage_used;
-    int promoted_objects;
-    int lifetime;
-    int excess_objects;
-
-    YoungCollectStats()
-      : bytes_copied(0)
-      , percentage_used(0.0)
-      , promoted_objects(0)
-      , lifetime(0)
-      , excess_objects(0)
-    {}
-  };
 
   /**
    * ObjectMemory is the primary API that the rest of the VM uses to interact
@@ -84,8 +71,8 @@ namespace rubinius {
    *   mautre generations independently.
    */
 
-  class ObjectMemory : public gc::WriteBarrier, public Lockable {
-
+  class ObjectMemory : public gc::WriteBarrier {
+  private:
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
 
@@ -116,7 +103,6 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
-    unsigned int young_gc_while_marking_;
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
     /// Flag set when concurrent mature mark is requested
@@ -124,7 +110,6 @@ namespace rubinius {
     /// Flag set when a mature GC is already in progress
     bool mature_gc_in_progress_;
     /// Flag set when requesting a young gen resize
-    bool young_gc_resize_;
 
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
@@ -138,6 +123,8 @@ namespace rubinius {
 
     SharedState& shared_;
 
+    diagnostics::ObjectDiagnostics* diagnostics_;
+
   public:
     /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;
@@ -145,7 +132,7 @@ namespace rubinius {
     /// Flag indicating whether a full collection should be performed soon
     bool collect_mature_now;
 
-    VM* root_state_;
+    VM* vm_;
     /// Counter used for issuing object ids when #object_id is called on a
     /// Ruby object.
     size_t last_object_id;
@@ -154,13 +141,14 @@ namespace rubinius {
 
     /* Config variables */
     size_t large_object_threshold;
-    size_t young_max_bytes;
-    int young_autotune_factor;
-    bool young_autotune_size;
 
   public:
-    VM* state() {
-      return root_state_;
+    void set_vm(VM* vm) {
+      vm_ = vm;
+    }
+
+    VM* vm() {
+      return vm_;
     }
 
     unsigned int mark() const {
@@ -224,7 +212,7 @@ namespace rubinius {
     ObjectArray* weak_refs_set();
 
   public:
-    ObjectMemory(VM* state, Configuration& config);
+    ObjectMemory(VM* state, SharedState& shared);
     ~ObjectMemory();
 
     void after_fork_child(STATE);
@@ -287,7 +275,6 @@ namespace rubinius {
     }
 
     TypeInfo* find_type_info(Object* obj);
-    void set_young_lifetime(size_t age);
     Object* promote_object(Object* obj);
 
     bool refill_slab(STATE, gc::Slab& slab);
@@ -300,10 +287,9 @@ namespace rubinius {
     bool inflate_for_contention(STATE, ObjectHeader* obj);
 
     bool valid_object_p(Object* obj);
-    void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
 
-    void add_code_resource(CodeResource* cr);
+    void add_code_resource(STATE, CodeResource* cr);
     void memstats();
 
     void validate_handles(capi::Handles* handles);
@@ -312,22 +298,11 @@ namespace rubinius {
 
     ObjectPosition validate_object(Object* obj);
 
-    size_t young_bytes_allocated() const;
-    size_t mature_bytes_allocated() const;
-    size_t code_bytes_allocated() const;
-    size_t symbol_bytes_allocated() const;
-    size_t jit_bytes_allocated() const;
-
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 
     void needs_finalization(Object* obj, FinalizerFunction func,
         FinalizeObject::FinalizeKind kind = FinalizeObject::eManaged);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
-
-    size_t& loe_usage();
-    size_t& young_usage();
-    size_t& immix_usage();
-    size_t& code_usage();
 
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
@@ -345,15 +320,17 @@ namespace rubinius {
       mature_gc_in_progress_ = false;
     }
 
-    immix::MarkStack& mature_mark_stack();
+    diagnostics::ObjectDiagnostics* diagnostics() {
+      return diagnostics_;
+    }
 
-    void young_autotune();
+    immix::MarkStack& mature_mark_stack();
 
   private:
     Object* allocate_object(size_t bytes);
     Object* allocate_object_mature(size_t bytes);
 
-    void collect_young(STATE, GCData* data, YoungCollectStats* stats = 0);
+    void collect_young(STATE, GCData* data);
     void collect_mature(STATE, GCData* data);
 
   public:

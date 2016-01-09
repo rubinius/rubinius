@@ -1,6 +1,7 @@
 #include "vm.hpp"
 #include "object_memory.hpp"
 #include "global_cache.hpp"
+#include "environment.hpp"
 #include "gc/gc.hpp"
 
 #include "object_utils.hpp"
@@ -66,17 +67,18 @@ namespace rubinius {
   static rlim_t cMaxStack = (1024 * 1024 * 128);
 #endif
 
-  VM::VM(uint32_t id, SharedState& shared)
-    : ManagedThread(id, shared, ManagedThread::eRuby)
+  VM::VM(uint32_t id, SharedState& shared, const char* name)
+    : ManagedThread(id, shared, ManagedThread::eRuby, name)
     , saved_call_frame_(0)
     , saved_call_site_information_(0)
     , fiber_stacks_(this, shared)
     , park_(new Park)
     , tooling_env_(NULL)
+    , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
     , zombie_(false)
-    , run_signals_(false)
+    , main_thread_(false)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -106,46 +108,16 @@ namespace rubinius {
 
   void VM::discard(STATE, VM* vm) {
     vm->saved_call_frame_ = 0;
-    vm->shared.remove_vm(vm);
 
-    state->vm()->metrics().system_metrics.vm_threads--;
+    state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
   }
 
-  void VM::set_zombie() {
+  void VM::set_zombie(STATE) {
+    state->shared().remove_vm(this);
     thread.set(nil<Thread>());
     zombie_ = true;
-  }
-
-  void VM::initialize_as_root() {
-
-    om = new ObjectMemory(this, shared.config);
-    shared.om = om;
-
-    allocation_tracking_ = shared.config.allocation_tracking;
-
-    local_slab_.refill(0, 0);
-
-    shared.set_initialized();
-
-    shared.gc_dependent(this);
-
-    State state(this);
-
-    TypeInfo::auto_learn_fields(&state);
-
-    bootstrap_ontology(&state);
-
-    MachineCode::init(&state);
-
-    // Setup the main Thread, which is wrapper of the main native thread
-    // when the VM boots.
-    Thread::create(&state, this);
-    thread->alive(&state, cTrue);
-    thread->sleep(&state, cFalse);
-
-    VM::set_current(this, "rbx.ruby.main");
   }
 
   void VM::initialize_config() {
@@ -187,8 +159,8 @@ namespace rubinius {
   /**
    * Sets this VM instance as the current VM on this pthread.
    */
-  void VM::set_current(VM* vm, std::string name) {
-    ManagedThread::set_current(vm, name);
+  void VM::set_current_thread() {
+    ManagedThread::set_current_thread(this);
   }
 
   Object* VM::new_object_typed_dirty(Class* cls, size_t size, object_type type) {
@@ -323,6 +295,14 @@ namespace rubinius {
     om->collect_maybe(&state, gct, call_frame);
   }
 
+  void VM::after_fork_child(STATE) {
+    interrupt_lock_.init();
+    set_main_thread();
+
+    // TODO: Remove need for root_vm.
+    state->shared().env()->set_root_vm(state->vm());
+  }
+
   void VM::set_const(const char* name, Object* val) {
     State state(this);
     globals().object->set_const(&state, (char*)name, val);
@@ -371,7 +351,7 @@ namespace rubinius {
   }
 
   bool VM::wakeup(STATE, GCToken gct, CallFrame* call_frame) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
 
     set_check_local_interrupts();
     Object* wait = waiting_object_.get();
@@ -385,7 +365,7 @@ namespace rubinius {
 #else
       pthread_kill(os_thread_, SIGVTALRM);
 #endif
-      UNSYNC;
+      interrupt_lock_.unlock();
       // Wakeup any locks hanging around with contention
       om->release_contention(state, gct, call_frame);
       return true;
@@ -393,19 +373,19 @@ namespace rubinius {
       // We shouldn't hold the VM lock and the IH lock at the same time,
       // other threads can grab them and deadlock.
       InflatedHeader* ih = wait->inflated_header(state);
-      UNSYNC;
+      interrupt_lock_.unlock();
       ih->wakeup(state, gct, call_frame, wait);
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {
-        UNSYNC;
+        interrupt_lock_.unlock();
         om->release_contention(state, gct, call_frame);
         chan->send(state, gct, cNil, call_frame);
         return true;
       } else if(custom_wakeup_) {
-        UNSYNC;
+        interrupt_lock_.unlock();
         om->release_contention(state, gct, call_frame);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
@@ -416,7 +396,8 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+
     vm_jit_.interrupt_with_signal_ = false;
     waiting_channel_.set(nil<Channel>());
     waiting_object_.set(cNil);
@@ -425,18 +406,21 @@ namespace rubinius {
   }
 
   void VM::wait_on_channel(Channel* chan) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+
     thread->sleep(this, cTrue);
     waiting_channel_.set(chan);
   }
 
   void VM::wait_on_inflated_lock(Object* wait) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+
     waiting_object_.set(wait);
   }
 
   void VM::wait_on_custom_function(void (*func)(void*), void* data) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
   }
@@ -454,13 +438,13 @@ namespace rubinius {
   }
 
   void VM::register_raise(STATE, Exception* exc) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
     interrupted_exception_.set(exc);
     set_check_local_interrupts();
   }
 
   void VM::register_kill(STATE) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
     set_interrupt_by_kill();
     set_check_local_interrupts();
   }

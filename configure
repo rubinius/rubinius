@@ -136,6 +136,7 @@ class Configure
       "rubysl-etc",
       "rubysl-fcntl",
       "rubysl-fileutils",
+      "rubysl-io-nonblock",
       "rubysl-monitor",
       "rubysl-openssl",
       "rubysl-optparse",
@@ -161,7 +162,7 @@ class Configure
     @vendored_libdir = File.join(root, "/vendor")
 
     # Ruby compatibility version
-    @ruby_version = "2.1.0"
+    @ruby_version = "2.2.0"
     @ruby_libversion = @ruby_version.split(/\./)[0..1].join.to_i
 
     # Configure settings
@@ -276,6 +277,11 @@ class Configure
     @runtime_gems_dir ||= "#{@build_prefix}#{@runtimedir}/gems"
   end
 
+  def add_opt_dir(dir)
+    @include_dirs << "#{dir}/include"
+    @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
+  end
+
   def options
     @options = Rubinius::Options.new "Usage: configure [options]", 30
     o = @options
@@ -365,8 +371,7 @@ class Configure
 
     o.on "--with-opt-dir", "DIR", "Add DIR/include and DIR/lib to include and library search paths" do |dir|
       dir.split(File::PATH_SEPARATOR).each do |d|
-        @include_dirs << "#{d}/include"
-        @lib_dirs     << "#{d}/lib" << "#{d}/lib64"
+        add_opt_dir(d)
       end
     end
 
@@ -577,8 +582,8 @@ class Configure
         if macports?
           config = macports_llvm_config
         else
-          out = Bundler.with_clean_env { `brew list llvm | grep '/llvm-config$'` }
-          config = out.chomp if $?.success?
+          out = Bundler.with_clean_env { `brew --prefix llvm35` }.chomp
+          config = "#{out}/bin/llvm-config-3.5" if $?.success?
         end
       end
     end
@@ -709,6 +714,14 @@ int main() { LLVMContext &Context = getGlobalContext(); }
 
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
+
+    unless @cc == "clang" and @cxx == "clang++"
+      @log.deprecated <<-EOM
+Support for compilers other than clang/clang++ is deprecated and will be
+removed soon. If your platform does not have support for clang/clang++,
+please notify us.
+      EOM
+    end
 
     @make ||= ENV['MAKE'] || 'make'
     @rake ||= ENV['RAKE'] || 'rake'
@@ -1027,8 +1040,7 @@ int main() { return tgetnum(""); }
 
   def detect_build_dirs
     ["/usr/local", "/opt/local", "/usr/pkg"].each do |dir|
-      @include_dirs << "#{dir}/include"
-      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
+      add_opt_dir(dir)
     end
 
     @include_dirs = @include_dirs.select {|p| File.directory? p }
@@ -1165,7 +1177,7 @@ int main() { return tgetnum(""); }
 
   def detect_features
     # Default on *BSD is no execinfo
-    if RUBY_PLATFORM =~ /bsd/i and @features["execinfo"].configured.nil?
+    if @bsd and @features["execinfo"].configured.nil?
       @features["execinfo"].configured = false
     end
 
@@ -1228,6 +1240,46 @@ int main() { return tgetnum(""); }
 
     if has_function("gettid", ["unistd.d", "sys/types.h"])
       @defines << "HAVE_GETTID"
+    end
+
+    if has_struct_member("stat", "st_atim", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_ATIM"
+    end
+
+    if has_struct_member("stat", "st_atimespec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_ATIMESPEC"
+    end
+
+    if has_struct_member("stat", "st_atimensec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_ATIMENSEC"
+    end
+
+    if has_struct_member("stat", "st_mtim", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_MTIM"
+    end
+
+    if has_struct_member("stat", "st_mtimespec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_MTIMESPEC"
+    end
+
+    if has_struct_member("stat", "st_mtimensec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_MTIMENSEC"
+    end
+
+    if has_struct_member("stat", "st_ctim", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_CTIM"
+    end
+
+    if has_struct_member("stat", "st_ctimespec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_CTIMESPEC"
+    end
+
+    if has_struct_member("stat", "st_ctimensec", ["sys/stat.h"])
+      @defines << "HAVE_STRUCT_STAT_ST_CTIMENSEC"
+    end
+
+    if has_struct_member("stat", "st_birthtimespec", ["sys/stat.h"])
+      @defines << "HAVE_ST_BIRTHTIME"
     end
 
     # glibc has useless lchmod() so we don't try to use lchmod() on linux
@@ -1357,7 +1409,6 @@ int main() { return tgetnum(""); }
   end
 
   def process
-    set_host
     set_system_commands
 
     enable_features
@@ -1810,7 +1861,9 @@ int main() { return tgetnum(""); }
     end
 
     options
+    set_host
     parse ARGV
+    detect_homebrew_openssl_lib
     create_directories
     check_tools
     check_force_clean
@@ -1972,6 +2025,21 @@ Available commands are:
       STDERR.puts message
     end
 
+    DEPRECATION_HEADER =
+      "------------------------------ Deprecation notice ------------------------------"
+    DEPRECATION_FOOTER =
+      "--------------------------------------------------------------------------------"
+
+    def deprecated(message)
+      log DEPRECATION_HEADER, true
+      log message, true
+      log DEPRECATION_FOOTER, true
+
+      STDERR.puts DEPRECATION_HEADER
+      STDERR.puts message
+      STDERR.puts DEPRECATION_FOOTER
+    end
+
     # Yields an IO for writing log messages.
     def output
       File.open @path, "a" do |f|
@@ -2009,6 +2077,21 @@ Available commands are:
                           fgrep llvm-config`.split
     avail_binaries.reject { |fname| fname.include? 'libexec' }.last
   end
+
+  # Returns true if the *brew* command is in the PATH and identifies
+  # itself with "Homebrew" when run interactively with -v argument.
+  def homebrew?
+    `echo quit | brew -v 2>&-`.start_with? 'Homebrew'
+  end
+
+  # Check if latest version of openssl is installed; if so, add to include
+  # and libs
+  def detect_homebrew_openssl_lib
+    if @darwin && homebrew? && (`brew list`.split("\n").include? 'openssl')
+      add_opt_dir(`brew --prefix openssl`.chomp)
+    end
+  end
+
 end
 
 STDOUT.sync = true

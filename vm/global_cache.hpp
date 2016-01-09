@@ -18,7 +18,7 @@ namespace rubinius {
 
   typedef std_unordered_set<native_int> SeenMethodSet;
 
-  class GlobalCache : public Lockable {
+  class GlobalCache {
   public:
     struct CacheEntry {
       Module* klass;

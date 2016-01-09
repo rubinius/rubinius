@@ -14,7 +14,7 @@ describe "Enumerable#each_cons" do
     acc.should == @in_threes
   end
 
-  it "raises an Argument Error if there is not a single parameter > 0" do
+  it "raises an ArgumentError if there is not a single parameter > 0" do
     lambda{ @enum.each_cons(0){}    }.should raise_error(ArgumentError)
     lambda{ @enum.each_cons(-2){}   }.should raise_error(ArgumentError)
     lambda{ @enum.each_cons{}       }.should raise_error(ArgumentError)
@@ -73,6 +73,11 @@ describe "Enumerable#each_cons" do
             enum.each_cons(3).size.should == 8
             enum.each_cons(2).size.should == 9
             enum.each_cons(1).size.should == 10
+          end
+
+          it "returns 0 when the argument is larger than self" do
+            enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3)
+            enum.each_cons(20).size.should == 0
           end
 
           it "returns 0 when the enum is empty" do

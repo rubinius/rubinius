@@ -128,7 +128,9 @@ class Object
       end
 
       begin
-        `#{ruby_cmd(code, opts)}`
+        platform_is_not :opal do
+          `#{ruby_cmd(code, opts)}`
+        end
       ensure
         saved_env.each { |key, value| ENV[key] = value }
         env.keys.each do |key|
@@ -144,11 +146,16 @@ class Object
 
     if code and not File.exist?(code)
       if opts[:escape]
-        code = "'#{code}'"
+        heredoc_separator = "END_OF_RUBYCODE"
+        lines = code.lines
+        until lines.none? {|line| line.start_with? heredoc_separator }
+          heredoc_separator << heredoc_separator
+        end
+
+        body = %Q!-e "$(cat <<'#{heredoc_separator}'\n#{code}\n#{heredoc_separator}\n)"!
       else
-        code = code.inspect
+        body = "-e #{code.inspect}"
       end
-      body = "-e #{code}"
     end
 
     [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]].compact.join(' ')

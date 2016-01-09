@@ -390,6 +390,13 @@ namespace rubinius {
      * Similar to CRuby rb_check_frozen
      */
     void check_frozen(STATE);
+    
+    /**
+     * Returns true unless one of the objects is nil, true, or
+     * false. Those objects are allowed to be modified when
+     * frozen.
+     */
+    Object* frozen_mod_disallowed(STATE);
 
   public:   /* accessors */
 

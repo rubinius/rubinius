@@ -1255,7 +1255,7 @@ extern "C" {
                                 int32_t unwind_count,
                                 bool force_deoptimization) {
 
-    state->shared().llvm_state->add_uncommons_taken();
+    state->vm()->metrics().jit.uncommon_exits++;
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 

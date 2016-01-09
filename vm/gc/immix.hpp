@@ -1,5 +1,5 @@
-#ifndef RBX_GC_IMMIX
-#define RBX_GC_IMMIX
+#ifndef RBX_GC_IMMIX_HPP
+#define RBX_GC_IMMIX_HPP
 
 #include "util/address.hpp"
 #include "util/immix.hpp"
@@ -19,6 +19,37 @@ namespace rubinius {
    */
 
   class ImmixGC : public GarbageCollector {
+  public:
+    class Diagnostics : public diagnostics::MemoryDiagnostics {
+    public:
+      int64_t collections_;
+      int64_t total_bytes_;
+      int64_t chunks_;
+      int64_t holes_;
+      double percentage_;
+
+      Diagnostics()
+        : diagnostics::MemoryDiagnostics()
+        , collections_(0)
+        , total_bytes_(0)
+        , chunks_(0)
+        , holes_(0)
+        , percentage_(0.0)
+      { }
+
+      Diagnostics(int64_t collections)
+        : diagnostics::MemoryDiagnostics()
+        , collections_(collections)
+        , total_bytes_(0)
+        , chunks_(0)
+        , holes_(0)
+        , percentage_(0.0)
+      { }
+
+      void log();
+    };
+
+  private:
 
     /**
      * Class used as an interface to the Rubinius specific object memory layout
@@ -105,7 +136,6 @@ namespace rubinius {
 
         if(obj->marked_p(object_memory_->mark())) return false;
         obj->mark(object_memory_, object_memory_->mark());
-        gc_->inc_marked_objects();
 
         if(push) ms.push_back(addr);
         // If this is a young object, let the GC know not to try and mark
@@ -117,9 +147,9 @@ namespace rubinius {
     immix::GC<ObjectDescriber> gc_;
     immix::ExpandingAllocator allocator_;
     ImmixMarker* marker_;
-    int marked_objects_;
     int chunks_left_;
     int chunks_before_collection_;
+    Diagnostics diagnostics_;
 
   public:
     ImmixGC(ObjectMemory* om);
@@ -145,26 +175,16 @@ namespace rubinius {
       return gc_.bytes_allocated();
     }
 
-    void inc_marked_objects() {
-      marked_objects_++;
-    }
-
-    int marked_objects() {
-      return marked_objects_;
-    }
-
-    int clear_marked_objects() {
-      int m = marked_objects_;
-      marked_objects_ = 0;
-      return m;
-    }
-
     int dec_chunks_left() {
       return --chunks_left_;
     }
 
     void reset_chunks_left() {
       chunks_left_ = chunks_before_collection_;
+    }
+
+    Diagnostics& diagnostics() {
+      return diagnostics_;
     }
 
     void start_marker(STATE);

@@ -15,11 +15,11 @@ end
 
 describe MockProxy, ".new" do
   it "creates a mock proxy by default" do
-    MockProxy.new.mock?.should be_true
+    MockProxy.new.mock?.should be_truthy
   end
 
   it "creates a stub proxy by request" do
-    MockProxy.new(:stub).stub?.should be_true
+    MockProxy.new(:stub).stub?.should be_truthy
   end
 
   it "sets the call expectation to 1 call for a mock" do
@@ -294,21 +294,21 @@ end
 
 describe MockProxy, "#stub?" do
   it "returns true if the proxy is created as a stub" do
-    MockProxy.new(:stub).stub?.should be_true
+    MockProxy.new(:stub).stub?.should be_truthy
   end
 
   it "returns false if the proxy is created as a mock" do
-    MockProxy.new(:mock).stub?.should be_false
+    MockProxy.new(:mock).stub?.should be_falsey
   end
 end
 
 describe MockProxy, "#mock?" do
   it "returns true if the proxy is created as a mock" do
-    MockProxy.new(:mock).mock?.should be_true
+    MockProxy.new(:mock).mock?.should be_truthy
   end
 
   it "returns false if the proxy is created as a stub" do
-    MockProxy.new(:stub).mock?.should be_false
+    MockProxy.new(:stub).mock?.should be_falsey
   end
 end
 
@@ -340,7 +340,7 @@ describe MockProxy, "#raising" do
   end
 
   it "returns the exception object passed to #and_raise" do
-    exc = mock("exception")
+    exc = double("exception")
     @proxy.and_raise(exc)
     @proxy.raising.should equal(exc)
   end
@@ -379,11 +379,11 @@ describe MockProxy, "#yielding?" do
   end
 
   it "returns false if the proxy is not yielding" do
-    @proxy.yielding?.should be_false
+    @proxy.yielding?.should be_falsey
   end
 
   it "returns true if the proxy is yielding" do
     @proxy.and_yield(1)
-    @proxy.yielding?.should be_true
+    @proxy.yielding?.should be_truthy
   end
 end

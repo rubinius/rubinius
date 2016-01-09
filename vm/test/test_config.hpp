@@ -35,6 +35,14 @@ class TestConfig : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(std::string("-3"), e->value);
   }
 
+  void test_parse_line_with_dot() {
+    ConfigParser cfg;
+
+    ConfigParser::Entry* e = cfg.parse_line("rbx.blah = ./foo.bar");
+    TS_ASSERT_EQUALS(std::string("rbx.blah"), e->variable);
+    TS_ASSERT_EQUALS(std::string("./foo.bar"), e->value);
+  }
+
   void test_parse_stream() {
     std::istringstream stream;
 

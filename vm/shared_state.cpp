@@ -14,6 +14,7 @@
 
 #include "console.hpp"
 #include "metrics.hpp"
+#include "signal.hpp"
 #include "world_state.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
@@ -31,7 +32,7 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : internal_threads_(0)
-    , signal_thread_(0)
+    , signals_(0)
     , finalizer_thread_(0)
     , console_(0)
     , metrics_(0)
@@ -41,12 +42,22 @@ namespace rubinius {
     , global_serial_(1)
     , thread_ids_(1)
     , initialized_(false)
-    , ruby_critical_set_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
     , root_vm_(0)
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
+    , fork_exec_lock_()
+    , capi_ds_lock_()
+    , capi_locks_lock_()
+    , capi_constant_lock_()
+    , global_capi_handle_lock_()
+    , capi_handle_cache_lock_()
+    , llvm_state_lock_()
+    , vm_lock_()
+    , wait_lock_()
+    , type_info_lock_()
+    , code_resource_lock_()
     , use_capi_lock_(false)
     , om(0)
     , global_cache(new GlobalCache)
@@ -92,41 +103,36 @@ namespace rubinius {
     delete internal_threads_;
   }
 
-  int SharedState::size() {
-    return sizeof(SharedState) +
-      sizeof(WorldState) +
-      symbols.bytes_used();
-  }
-
   uint32_t SharedState::new_thread_id() {
     return atomic::fetch_and_add(&thread_ids_, 1);
   }
 
-  VM* SharedState::new_vm() {
-    uint32_t id = new_thread_id();
-
-    SYNC_TL;
+  VM* SharedState::new_vm(const char* name) {
+    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
 
     // TODO calculate the thread id by finding holes in the
     // field of ids, so we reuse ids.
+    uint32_t id = new_thread_id();
 
-    VM* vm = new VM(id, *this);
+    VM* vm = new VM(id, *this, name);
     threads_.push_back(vm);
 
     // If there is no root vm, then the first one created becomes it.
     if(!root_vm_) root_vm_ = vm;
+
     return vm;
   }
 
   void SharedState::remove_vm(VM* vm) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
+
     threads_.remove(vm);
 
     // Don't delete ourself here, it's too problematic.
   }
 
   Array* SharedState::vm_threads(STATE) {
-    SYNC_TL;
+    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
 
     Array* threads = Array::create(state, 0);
     for(ThreadList::iterator i = threads_.begin();
@@ -139,12 +145,18 @@ namespace rubinius {
         }
       }
     }
+
     return threads;
   }
 
-  console::Console* SharedState::start_console(STATE) {
-    SYNC(state);
+  SignalThread* SharedState::start_signals(STATE) {
+    signals_ = new SignalThread(state, state->vm());
+    signals_->start(state);
 
+    return signals_;
+  }
+
+  console::Console* SharedState::start_console(STATE) {
     if(!console_) {
       console_ = new console::Console(state);
       console_->start(state);
@@ -154,8 +166,6 @@ namespace rubinius {
   }
 
   metrics::Metrics* SharedState::start_metrics(STATE) {
-    SYNC(state);
-
     if(!metrics_) {
       metrics_ = new metrics::Metrics(state);
       metrics_->start(state);
@@ -177,8 +187,7 @@ namespace rubinius {
            ++i) {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) {
-          vm->metrics().init(metrics::eRubyMetrics);
-          state->vm()->metrics().system_metrics.vm_threads++;
+          state->vm()->metrics().system.threads_created++;
           continue;
         }
 
@@ -189,7 +198,6 @@ namespace rubinius {
           }
         }
 
-        vm->unlock();
         vm->reset_parked();
       }
     }
@@ -203,23 +211,29 @@ namespace rubinius {
 
     config.jit_inline_debug.set("no");
 
-    env_->set_root_vm(state->vm());
+    state->vm()->after_fork_child(state);
 
     disable_metrics(state);
 
     reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
-    lock_init(state->vm());
     global_cache->reset();
-    ruby_critical_lock_.init();
     fork_exec_lock_.init();
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
+    global_capi_handle_lock_.init();
+    capi_handle_cache_lock_.init();
+    llvm_state_lock_.init();
+    vm_lock_.init();
+    wait_lock_.init();
+    type_info_lock_.init();
+    code_resource_lock_.init();
     internal_threads_->init();
 
     om->after_fork_child(state);
+    signals_->after_fork_child(state);
     console_->after_fork_child(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);
@@ -280,35 +294,10 @@ namespace rubinius {
     return om->mark_address();
   }
 
-  void SharedState::set_critical(STATE, CallFrame* call_frame) {
-    SYNC(state);
-
-    if(!ruby_critical_set_ ||
-         !pthread_equal(ruby_critical_thread_, pthread_self())) {
-
-      UNSYNC;
-      GCIndependent gc_guard(state, call_frame);
-      ruby_critical_lock_.lock();
-      ruby_critical_thread_ = pthread_self();
-      ruby_critical_set_ = true;
-    }
-
-    return;
-  }
-
-  void SharedState::clear_critical(STATE) {
-    SYNC(state);
-
-    if(ruby_critical_set_ && pthread_equal(ruby_critical_thread_, pthread_self())) {
-      ruby_critical_set_ = false;
-      ruby_critical_lock_.unlock();
-    }
-  }
-
   void SharedState::enter_capi(STATE, const char* file, int line) {
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {
-      capi_locks_[lock_index - 1]->lock(state->vm(), file, line);
+      capi_locks_[lock_index - 1]->lock();
     }
   }
 
@@ -333,7 +322,7 @@ namespace rubinius {
       return 0;
     }
 
-    Mutex* lock = new Mutex();
+    utilities::thread::Mutex* lock = new utilities::thread::Mutex(true);
     capi_locks_.push_back(lock);
 
     // We use a 1 offset index, so 0 can indicate no lock used

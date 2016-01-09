@@ -11,32 +11,14 @@ Rubinius::ConfigurationVariables.define do |c|
   end
 
   c.section "gc" do |s|
-    s.vm_variable "young_initial_bytes", 3145728,
-      "The initial number of bytes the young generation of the GC should use"
-
-    s.vm_variable "young_max_bytes", 5 * 3145728,
-      "The maximum number of bytes the young generation of the GC should use"
-
-    s.vm_variable "young_autotune_size", true,
-      "Set whether or not the young GC should autotune the size"
-
-    s.vm_variable "young_autotune_factor", 8,
-      "Set the young GC size autotune factor. This is the denominator of the fraction of total memory used for young GC"
+    s.vm_variable "young_bytes", (30 * 1024 * 1024),
+      "The number of bytes the young generation of the GC should use"
 
     s.vm_variable "young_lifetime", 2,
       "How many young GC cycles an object lives before promotion"
 
-    s.vm_variable "young_autotune_lifetime", true,
-      "Set whether or not the young GC should adjust promotion age for performance"
-
-    s.vm_variable "large_object", (50 * 1024),
+    s.vm_variable "large_object", (1024 * 1024),
       "The size (in bytes) of the large object threshold"
-
-    s.vm_variable "show", :bool,
-      "Display information whenever the GC runs"
-
-    s.vm_variable "noisy", :bool,
-      "Beep whenever the GC runs (once for young, twice for mature). Requires gc.show"
 
     s.vm_variable "immix.concurrent", true,
       "Set whether we want the Immix mark phase to run concurrently"
@@ -50,10 +32,10 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "autopack", true,
       "Set whether or not objects should be packed tightly in memory"
 
-    s.vm_variable "marksweep_threshold", (10 * 1024 * 1024),
+    s.vm_variable "marksweep_threshold", (25 * 1024 * 1024),
       "The number of bytes allocated before the marksweep GC region is collected"
 
-    s.vm_variable "malloc_threshold", 104857600,
+    s.vm_variable "malloc_threshold", (25 * 1024 * 1024),
       "How many bytes allocated by C extensions til the GC is run"
   end
 
@@ -192,6 +174,15 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "log", "$TMPDIR/$PROGRAM_NAME-$USER.log",
       "Logging facility to use: 'syslog', 'console', or path"
 
+    s.vm_variable "log.limit", (10 * 1024 * 1024),
+      "The maximum size of the log file before log rotation is performed"
+
+    s.vm_variable "log.archives", 5,
+      "The number of prior logs that will be saved as '$(system.log).N.Z' zip files"
+
+    s.vm_variable "log.access", 0600,
+      "Permissions on the log file"
+
     s.vm_variable "log.level", "warn",
       "Logging level: fatal, error, warn, info, debug"
 
@@ -199,7 +190,7 @@ Rubinius::ConfigurationVariables.define do |c|
       "Number of milliseconds between aggregation of VM metrics"
 
     s.vm_variable "metrics.target", "none",
-      "Location to send metrics every interval: 'statsd', 'disk'"
+      "Location to send metrics every interval: 'statsd', path"
 
     s.vm_variable "metrics.statsd.server", "localhost:8125",
       "The [host:]port of the StatsD server"

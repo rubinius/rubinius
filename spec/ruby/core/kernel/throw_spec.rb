@@ -41,8 +41,8 @@ describe "Kernel.throw" do
     res.should == :return_value
   end
 
-  it "raises an ArgumentError if there is no catch block for the symbol" do
-    lambda { throw :blah }.should raise_error(ArgumentError)
+  it "raises an UncaughtThrowError if there is no catch block for the symbol" do
+    lambda { throw :blah }.should raise_error(UncaughtThrowError)
   end
 
   it "raises ArgumentError if 3 or more arguments provided" do

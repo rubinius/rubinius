@@ -1,5 +1,6 @@
 #include "arguments.hpp"
 #include "builtin/array.hpp"
+#include "builtin/basic_object.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
@@ -136,7 +137,10 @@ namespace rubinius {
       } else if(CompactLookupTable* clt = try_as<CompactLookupTable>(other->ivars())) {
         ivars(state, clt->duplicate(state));
       } else {
-        utilities::logger::warn("Object::copy_object: invalid ivars_ reference");
+        utilities::logger::warn(
+          "Object::copy_object: invalid ivars_ reference for %s",
+          other->class_object(state)->to_string(state, true).c_str()
+        );
       };
     }
 
@@ -167,9 +171,9 @@ namespace rubinius {
   Object* Object::frozen_p(STATE) {
     if(reference_p()) {
       return RBOOL(is_frozen_p());
-    } else if(try_as<Symbol>(this)) {
+    } else if(try_as<Symbol>(this) || try_as<Fixnum>(this)) {
       return cTrue;
-    } else if(try_as<Fixnum>(this)) {
+    } else if(this->nil_p() || this->true_p() || this->false_p()) {
       return cTrue;
     } else {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
@@ -179,9 +183,16 @@ namespace rubinius {
   }
 
   void Object::check_frozen(STATE) {
-    if(CBOOL(frozen_p(state))) {
+    if(CBOOL(frozen_p(state)) && CBOOL(frozen_mod_disallowed(state))) {
       Exception::frozen_error(state, this);
     }
+  }
+  
+  Object* Object::frozen_mod_disallowed(STATE) {
+	  if(this->nil_p() || this->true_p() || this->false_p()) {
+	    return cFalse;
+	  }
+	  return cTrue;
   }
 
   Object* Object::get_field(STATE, size_t index) {
@@ -832,25 +843,15 @@ namespace rubinius {
     return this;
   }
 
-  Object* Object::respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment) {
-    Object* responds = respond_to(state, name, priv);
+  Object* Object::respond_to(STATE, Symbol* name, Object* priv,
+      CallFrame* calling_environment)
+  {
     Object* self = this;
+    OnStack<1> os(state, self);
 
-    if(!CBOOL(responds)) {
-      LookupData lookup(self, self->lookup_begin(state), G(sym_private));
-      Symbol* missing = G(sym_respond_to_missing);
-      Dispatch dis(missing);
+    Object* responds = respond_to(state, name, priv);
 
-      Object* buf[2];
-      buf[0] = name;
-      buf[1] = priv;
-
-      Arguments args(missing, self, 2, buf);
-      OnStack<3> os(state, self, name, priv);
-      responds = dis.send(state, calling_environment, lookup, args);
-      if(!responds) return NULL;
-      responds = RBOOL(CBOOL(responds));
-    }
+    if(!responds) return NULL;
 
     CompiledCode* code = NULL;
     CallSiteInformation* info = state->vm()->saved_call_site_information();
@@ -868,15 +869,40 @@ namespace rubinius {
     }
 
     return responds;
-
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
-    LookupData lookup(cUndef, lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_public));
+    Object* self = this;
+    OnStack<1> os(state, self);
+
+    LookupData lookup(cUndef, lookup_begin(state),
+        CBOOL(priv) ? G(sym_private) : G(sym_public));
 
     Dispatch dis(name);
 
-    return RBOOL(dis.resolve(state, name, lookup));
+    if(dis.resolve(state, name, lookup)) {
+      return cTrue;
+    } else {
+      LookupData lookup(self, self->lookup_begin(state), G(sym_private));
+      Symbol* missing = G(sym_respond_to_missing);
+      Dispatch dis(missing);
+
+      if(dis.resolve(state, missing, lookup)) {
+        Object* buf[2];
+        buf[0] = name;
+        buf[1] = priv;
+
+        Arguments args(missing, self, 2, buf);
+        OnStack<3> os(state, self, name, priv);
+        Object* responds = dis.send(state, 0, lookup, args);
+
+        if(!responds) return NULL;
+
+        return RBOOL(CBOOL(responds));
+      } else {
+        return cFalse;
+      }
+    }
   }
 
   void Object::write_barrier(ObjectMemory* om, void* obj) {

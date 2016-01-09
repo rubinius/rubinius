@@ -21,3 +21,4 @@ ruby_constants.rbc
 pack.rbc
 metrics.rbc
 code_db.rbc
+deprecations.rbc

@@ -8,12 +8,13 @@ namespace :package do
   desc "Create a release tarball from the source"
   task :tar do
     archive = "rubinius-#{rbx_version}.tar.bz2"
+    sh "rm -rf #{archive}"
+
     files = "{ git ls-files; ls .revision; ls vendor/cache/*.gem; }"
     prefix = "-s '|^|rubinius-#{rbx_version}/|'"
     sh "#{files} | sort | uniq | tar -c #{prefix} -T - -f - | bzip2 > #{archive}"
 
-    write_md5_digest_file archive
-    write_sha1_digest_file archive
+    write_sha512_digest_file archive
   end
 
   task :binary_builder do

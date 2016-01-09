@@ -3,6 +3,8 @@
 
 #include "oop.hpp"
 #include "prelude.hpp"
+#include "diagnostics.hpp"
+
 #include "util/thread.hpp"
 
 #include <string>
@@ -38,6 +40,16 @@ namespace rubinius {
   typedef std_unordered_map<hashval, SymbolIds> SymbolMap;
 
   class SymbolTable {
+  public:
+    class Diagnostics : public diagnostics::MemoryDiagnostics {
+    public:
+      Diagnostics()
+        : diagnostics::MemoryDiagnostics()
+      { }
+
+      void log();
+    };
+
   public: // Types
 
     // We encode in the symbol some information about it, mostly
@@ -61,24 +73,28 @@ namespace rubinius {
     SymbolEncodings encodings;
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
-    size_t bytes_used_;
+    Diagnostics diagnostics_;
 
   public:
 
     SymbolTable()
-      : bytes_used_(0)
+      : diagnostics_(Diagnostics())
     {
       lock_.init();
     }
 
-    size_t& bytes_used() {
-      return bytes_used_;
+    Diagnostics& diagnostics() {
+      return diagnostics_;
     }
 
-    Symbol* lookup(SharedState* shared, const std::string& str);
+    size_t size() {
+      return symbols.size();
+    };
+
+    Symbol* lookup(STATE, SharedState* shared, const std::string& str);
     Symbol* lookup(STATE, const std::string& str);
     Symbol* lookup(STATE, const char* str, size_t length);
-    Symbol* lookup(const char* str, size_t length, int enc, uint32_t seed);
+    Symbol* lookup(STATE, const char* str, size_t length, int enc, uint32_t seed);
     Symbol* lookup(STATE, String* str);
     String* lookup_string(STATE, const Symbol* sym);
 
@@ -90,7 +106,7 @@ namespace rubinius {
 
     Kind kind(STATE, const Symbol* sym);
 
-    size_t add(std::string str, int enc);
+    size_t add(STATE, std::string str, int enc);
     Kind detect_kind(STATE, const Symbol* sym);
   };
 };

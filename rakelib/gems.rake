@@ -1,35 +1,14 @@
-def bootstrap_rubinius(cmd)
+def bootstrap_rubinius(cmd, options=nil)
   gems_path = File.expand_path "../", BUILD_CONFIG[:bootstrap_gems_dir]
   ENV["RBX_GEMS_PATH"] = gems_path
   ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:build_prefix]
-  sh "#{BUILD_CONFIG[:build_exe]} #{cmd}"
+  sh "#{BUILD_CONFIG[:build_exe]} #{cmd} #{options}"
 ensure
   ENV.delete "RBX_GEMS_PATH"
   ENV.delete "RBX_PREFIX_PATH"
 end
 
 namespace :gems do
-  desc 'Update list of gems to install. Requires Rubinius'
-  task :update_list do
-    RedCard.verify "2.1", :rubinius
-
-    begin
-      ENV["BUNDLE_GEMFILE"] = "Gemfile.installed"
-      sh "bundle update && bundle package --no-prune"
-
-      File.open BUILD_CONFIG[:gems_list], "w" do |f|
-        `bundle list`.each_line do |line|
-          m = line.match(/\s+\*\s([^ ]+)\s\((\d+\.\d+\.\d+([^ ]*))\)/)
-          next unless m
-
-          f.puts "#{m[1]}-#{m[2]}.gem"
-        end
-      end
-    ensure
-      ENV.delete "BUNDLE_GEMFILE"
-    end
-  end
-
   desc 'Install the pre-installed gems'
   task :install do
     clean_environment
@@ -75,6 +54,14 @@ namespace :gems do
       %r[.*/rubysl-(etc|fcntl)-.*]
     )
 
+    unless BUILD_CONFIG[:darwin] and
+             ENV["TRAVIS_OS_NAME"] != "osx" and
+             `which brew`.chomp.size > 0 and
+             $?.success? and
+             (openssl = `brew --prefix #{ENV["RBX_OPENSSL"] || "openssl"}`.chomp).size > 0
+      openssl = false
+    end
+
     re = %r[(.*)/(ext|lib)/[^/]+/(.*extconf.rb)]
     names.each do |name|
       next unless m = re.match(name)
@@ -86,7 +73,13 @@ namespace :gems do
       Dir.chdir File.dirname(name) do
         puts "Building #{m[1]}..."
 
-        bootstrap_rubinius build_gem_extconf unless File.exist? "Makefile"
+        if m[1] =~ /openssl/ and openssl
+          options = "--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"
+        else
+          options = nil
+        end
+
+        bootstrap_rubinius build_gem_extconf, options unless File.exist? "Makefile"
         sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
 
         if File.exist? ext_name

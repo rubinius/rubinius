@@ -1,2 +1,3 @@
+fails:An instance method with a default argument shadows an existing method with the same name as the local
 fails:A singleton method definition raises RuntimeError if frozen
 fails:A method definition inside a metaclass scope raises RuntimeError if frozen
