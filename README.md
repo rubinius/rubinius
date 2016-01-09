@@ -9,10 +9,15 @@ Rubinius includes a bytecode virtual machine, generational garbage collector, an
 Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft Windows is not yet supported.
 
 
+### Code of Conduct
+
+Participation in the Rubinius project is governed by the Rubinius [Code of
+Conduct](http://rubinius.com/code-of-conduct/).
+
 ### The Ruby Programming Language
 
 Many popular Ruby applications, like Rails, run on Rubinius, which aims to be
-compatible with Ruby version 2.1.
+compatible with Ruby version 2.2.
 
 Rubinius includes a Ruby parser, Ruby bytecode compiler, Ruby core library,
 and C-API compatibility for native C extensions. The Ruby core library is

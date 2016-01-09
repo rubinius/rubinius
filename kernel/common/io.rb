@@ -2170,6 +2170,7 @@ class IO
       end
     end
 
+    raise ArgumentError, "limit of 0 is invalid" if limit && limit.zero?
     return if eof?
 
     EachReader.new(self, sep, limit).each(&block)
@@ -2596,9 +2597,9 @@ class IO
           str = ""
         elsif Thread.guarding? arg
           str = "[...]"
-        elsif arg.kind_of?(Array)
+        elsif arg.respond_to?(:to_ary)
           Thread.recursion_guard arg do
-            arg.each do |a|
+            arg.to_ary.each do |a|
               puts a
             end
           end

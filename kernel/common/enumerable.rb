@@ -563,7 +563,9 @@ module Enumerable
 
   def first(n=undefined)
     return __take__(n) unless undefined.equal?(n)
-    each { |element| return element }
+    each do
+      return Rubinius.single_block_arg
+    end
     nil
   end
 

@@ -11,10 +11,15 @@ Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
 Windows is not yet supported.
 
 
-2. The Ruby Programming Language
+2. Code of Conduct
+
+Participation in the Rubinius project is governed by the Rubinius Code of
+Conduct. See http://rubinius.com/code-of-conduct/
+
+3. The Ruby Programming Language
 
 Many popular Ruby applications, like Rails, run on Rubinius, which aims to be
-compatible with Ruby version 2.1.
+compatible with Ruby version 2.2.
 
 Rubinius includes a Ruby parser, Ruby bytecode compiler, Ruby core library,
 and C-API compatibility for native C extensions. The Ruby core library is
@@ -33,13 +38,13 @@ The following Ruby features are not supported on Rubinius:
 * $SAFE levels
 
 
-3. License
+4. License
 
 Rubinius uses the MPL-2.0 license. See LICENSE for details. Contributions made
 prior to January 3rd, 2016 are licensed under the old BSD 3-clause license. A
 copy of this license can be found in the file "BSD_LICENSE".
 
-4. Installing Rubinius from Source
+5. Installing Rubinius from Source
 
 To install Rubinius, use the following steps:
 
@@ -56,21 +61,21 @@ information see http://rubinius.com/doc/en/getting-started/requirements/
 and http://rubinius.com/doc/en/getting-started/building/.
 
 
-5. Using RubyGems
+6. Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
   $ rbx -S gem install <gem_name>
 
 
-6. Documentation
+7. Documentation
 
 The Rubinius documentation is available at the Rubinius website:
 
   http://rubinius.com
 
 
-7. Issues & Support
+8. Issues & Support
 
 Please file tickets for bugs or problems. The issue tracker is:
 
@@ -81,7 +86,7 @@ For additional help, visit the Rubinius Gitter chat room:
   https://gitter.im/rubinius/rubinius
 
 
-8. Contributing
+9. Contributing
 
 The Rubinius team welcomes contributions. For more information, read the
 CONTRIBUTING file in the root directory of Rubinius.

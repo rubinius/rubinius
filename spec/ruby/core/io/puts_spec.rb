@@ -37,7 +37,16 @@ describe "IO#puts" do
     @io.puts(nil, nil).should == nil
   end
 
-  it "calls to_s before writing non-string objects" do
+  it "calls to_ary before writing non-string objects that respond to :to_ary" do
+    object = mock('hola')
+    object.should_receive(:to_ary).and_return(["hola"])
+
+    @io.should_receive(:write).with("hola")
+    @io.should_receive(:write).with("\n")
+    @io.puts(object).should == nil
+  end
+
+  it "calls to_s before writing non-string objects that don't respond to :to_ary" do
     object = mock('hola')
     object.should_receive(:to_s).and_return("hola")
 
