@@ -656,7 +656,7 @@ class IO
 
         if FFI.call_failed?(bytes_written = FFI::Platform::POSIX.write(@descriptor, buffer, left))
           clear_nonblock
-          Errno.handle("write_nonblock")
+          Errno.raise_waitwritable("write_nonblock")
         end
 
         left -= bytes_written
