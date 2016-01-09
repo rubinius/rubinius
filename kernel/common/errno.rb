@@ -29,6 +29,10 @@ module Errno
     raise IO::EAGAINWaitReadable, message
   end
 
+  def self.raise_waitwritable(message=nil)
+    raise IO::EAGAINWaitWritable, message
+  end
+
   def self.raise_eagain(message=nil)
     raise_errno(message, Errno::EAGAIN::Errno)
   end
