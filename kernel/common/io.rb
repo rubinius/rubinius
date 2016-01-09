@@ -1394,6 +1394,7 @@ class IO
       end
     end
 
+    raise ArgumentError, "limit of 0 is invalid" if limit && limit.zero?
     return if @ibuffer.exhausted?
 
     EachReader.new(self, @ibuffer, sep, limit).each(&block)
