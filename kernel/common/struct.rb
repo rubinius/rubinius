@@ -181,6 +181,19 @@ class Struct
     return instance_variable_set(:"@#{var}", obj)
   end
 
+  def dig(*sequence)
+    item = begin
+             self[sequence.shift]
+            rescue NameError
+              nil
+            end
+    return item if sequence.empty? || item.nil?
+
+    raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
+
+    item.dig(*sequence)
+  end
+
   def eql?(other)
     return true if equal? other
     return false if self.class != other.class

@@ -583,6 +583,15 @@ class Array
     self
   end
 
+  def dig(*sequence)
+    item = self[sequence.shift]
+    return item if sequence.empty? || item.nil?
+
+    raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
+
+    item.dig(*sequence)
+  end
+
   def each_index
     return to_enum(:each_index) { size } unless block_given?
 
