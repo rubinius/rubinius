@@ -1125,6 +1125,8 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
+    return if closed?
+
     if @mode == WRONLY || @mode == RDWR
       raise IOError, 'closing non-duplex IO for reading'
     end
@@ -1145,6 +1147,8 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
+    return if closed?
+
     if @mode == RDONLY || @mode == RDWR
       raise IOError, 'closing non-duplex IO for writing'
     end
@@ -2446,6 +2450,7 @@ class IO
   end
 
   def close
+    return if closed?
     begin
       flush
     ensure
@@ -2498,13 +2503,11 @@ class IO::BidirectionalPipe < IO
   end
 
   def close_read
-    raise IOError, 'closed stream' if closed?
-
     close
   end
 
   def close_write
-    raise IOError, 'closed stream' if @write.closed?
+    return if @write.closed?
 
     @write.close
   end
