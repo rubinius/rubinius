@@ -60,8 +60,7 @@ extern "C" {
       ep.pop(env);
 
       if(env->state()->thread_state()->raise_reason() != cException) {
-        //Something bad happened, we shouldn't be here.
-        return Qnil;
+        env->current_ep()->return_to(env);
       }
 
       VALUE exc_handle = env->get_handle(env->state()->thread_state()->current_exception());
