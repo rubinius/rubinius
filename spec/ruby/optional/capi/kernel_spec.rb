@@ -265,6 +265,14 @@ describe "C-API Kernel function" do
       @s.rb_rescue(@std_error_proc, nil, lambda { |*_| $! }, nil).class.should == StandardError
       $!.should == nil
     end
+
+    it "returns the break value if the passed function yields to a block with a break" do
+      def proc_caller
+        @s.rb_rescue(lambda { |*_| yield }, nil, @proc, nil)
+      end
+
+      proc_caller { break :value }.should == :value
+    end
   end
 
   describe "rb_rescue2" do
