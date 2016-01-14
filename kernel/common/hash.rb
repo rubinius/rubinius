@@ -800,6 +800,10 @@ class Hash
     self
   end
 
+  def to_proc
+    method(:[]).to_proc
+  end
+
   def value?(value)
     each_item do |item|
       return true if item.value == value
