@@ -338,8 +338,20 @@ class Array
     nil
   end
 
-  def bsearch
-    return to_enum :bsearch unless block_given?
+  def bsearch(&block)
+    return to_enum :bsearch unless block
+
+    i = bsearch_index(&block)
+    return unless i
+
+    m = Rubinius::Mirror::Array.reflect self
+    tuple = m.tuple
+
+    tuple.at(i)
+  end
+
+  def bsearch_index
+    return to_enum :bsearch_index unless block_given?
 
     m = Rubinius::Mirror::Array.reflect self
 
@@ -354,7 +366,7 @@ class Array
     while max >= min and i >= start and i < total
       x = yield tuple.at(i)
 
-      return tuple.at(i) if x == 0
+      return i if x == 0
 
       case x
       when Numeric
@@ -369,14 +381,14 @@ class Array
       when false, nil
         min = i + 1
       else
-        raise TypeError, "Array#bsearch block must return Numeric or boolean"
+        raise TypeError, "block must return Numeric or boolean"
       end
 
       i = min + (max - min) / 2
     end
 
-    return tuple.at(i) if max > min
-    return tuple.at(last_true) if last_true
+    return i if max > min
+    return last_true if last_true
 
     nil
   end
