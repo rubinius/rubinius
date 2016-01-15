@@ -300,28 +300,30 @@ class Array
 
   def ==(other)
     return true if equal?(other)
-    unless other.kind_of? Array
-      return false unless other.respond_to? :to_ary
+
+    unless other.kind_of?(Array)
+      return false unless other.respond_to?(:to_ary)
       return other == self
     end
 
     return false unless size == other.size
 
-    Thread.detect_recursion self, other do
-      m = Rubinius::Mirror::Array.reflect other
+    Thread.detect_recursion(self, other) do
+      mirror = Rubinius::Mirror::Array.reflect(other)
 
-      md = @tuple
-      od = m.tuple
+      self_tuple  = @tuple
+      other_tuple = mirror.tuple
 
-      i = @start
-      j = m.start
+      self_idx  = @start
+      other_idx = mirror.start
 
-      total = i + @total
+      total = self_idx + @total
 
-      while i < total
-        return false unless md[i] == od[j]
-        i += 1
-        j += 1
+      while self_idx < total
+        return false unless self_tuple[self_idx] == other_tuple[other_idx]
+
+        self_idx  += 1
+        other_idx += 1
       end
     end
 
