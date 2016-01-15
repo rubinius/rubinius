@@ -37,33 +37,9 @@ describe "Comparable#==" do
     (@a == @b).should be_false
   end
 
-  it "returns false if calling #<=> on self returns a non-Integer" do
+  it "raises an ArgumentError if calling #<=> on self returns a non-Integer" do
     @a.should_receive(:<=>).any_number_of_times.and_return("abc")
-    (@a == @b).should be_false
-  end
-
-  describe "when calling #<=> on self raises an Exception" do
-    before(:all) do
-      @raise_standard_error = @a.dup
-      def @raise_standard_error.<=>(b) raise StandardError, "test"; end
-
-      @raise_sub_standard_error  = @a.dup
-      def @raise_sub_standard_error.<=>(b) raise TypeError, "test"; end
-
-      @not_standard_error = SyntaxError
-      @raise_not_standard_error  = @a.dup
-      def @raise_not_standard_error.<=>(b) raise SyntaxError, "test"; end
-    end
-
-    it "raises the error if #<=> raises an Exception that excluding StandardError" do
-      lambda { @raise_not_standard_error == @b }.should raise_error(@not_standard_error)
-    end
-
-    # Behaviour confirmed by MRI test suite
-    it "returns false if #<=> raises a StandardError" do
-      (@raise_standard_error == @b).should be_false
-      (@raise_sub_standard_error == @b).should be_false
-    end
+    lambda { @a == @b }.should raise_error(ArgumentError)
   end
 
   context "when #<=> is not defined" do
