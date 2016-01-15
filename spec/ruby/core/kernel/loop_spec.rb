@@ -60,6 +60,11 @@ describe "Kernel.loop" do
     lambda{ loop do raise StandardError end }.should raise_error( StandardError )
   end
 
+  it "returns StopIteration#result when stopped by the exception" do
+    enum = Enumerator.new { |y| :ok }
+    loop { enum.next }.should == :ok
+  end
+
   describe "when no block is given" do
     describe "returned Enumerator" do
       describe "size" do
