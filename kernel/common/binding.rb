@@ -11,7 +11,7 @@ class Binding
   end
 
   def self.self_context(recv, variables)
-    recv.equal?(Kernel) ? recv : variables.self
+    Rubinius::Type.object_equal(recv, Kernel) ? recv : variables.self
   end
   private :self_context
 

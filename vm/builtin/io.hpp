@@ -121,9 +121,6 @@ namespace rubinius {
     // Rubinius.primitive :io_close
     Object* close(STATE);
 
-    // Rubinius.primitive :io_accept
-    Object* accept(STATE, CallFrame* calling_environment);
-
     // Rubinius.primitive :io_send_io
     Object* send_io(STATE, IO* io);
 

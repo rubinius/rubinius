@@ -510,7 +510,8 @@ module Kernel
       while true
         yield
       end
-    rescue StopIteration
+    rescue StopIteration => e
+      e.result
     end
   end
   module_function :loop

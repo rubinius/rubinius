@@ -322,6 +322,15 @@ class Hash
     return yield(key) if block_given?
   end
 
+  def dig(*sequence)
+    item = self[sequence.shift]
+    return item if sequence.empty? || item.nil?
+
+    raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
+
+    item.dig(*sequence)
+  end
+
   def each_item
     return unless @state
 
@@ -789,6 +798,10 @@ class Hash
 
   def to_hash
     self
+  end
+
+  def to_proc
+    method(:[]).to_proc
   end
 
   def value?(value)

@@ -2595,16 +2595,20 @@ class IO
       args.each do |arg|
         if arg.equal? nil
           str = ""
+        elsif arg.kind_of? String
+          str = arg
         elsif Thread.guarding? arg
           str = "[...]"
-        elsif arg.respond_to?(:to_ary)
+        else
           Thread.recursion_guard arg do
-            arg.to_ary.each do |a|
-              puts a
+            begin
+              arg.to_ary.each { |a| puts a }
+            rescue NoMethodError
+              unless (str = arg.to_s).kind_of? String
+                str = "#<#{arg.class}:0x#{arg.object_id.to_s(16)}>"
+              end
             end
           end
-        else
-          str = arg.to_s
         end
 
         if str

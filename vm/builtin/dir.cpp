@@ -78,8 +78,6 @@ namespace rubinius {
   }
 
   Object* Dir::close(STATE) {
-    guard(state);
-
     if(os_) {
       closedir(os_);
       os_ = 0;
