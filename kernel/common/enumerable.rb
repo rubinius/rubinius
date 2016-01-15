@@ -308,6 +308,23 @@ module Enumerable
     ary
   end
 
+  def grep_v(pattern)
+    ary = []
+
+    each do
+      element = Rubinius.single_block_arg
+      unless pattern === element
+        if block_given?
+          ary << yield(element)
+        else
+          ary << element
+        end
+      end
+    end
+
+    ary
+  end
+
   def sort(&prc)
     ary = to_a
     ary.frozen? ? ary.sort(&prc) : ary.sort!(&prc)
