@@ -78,6 +78,7 @@ class Configure
     @dtrace_const = false
     @have_lchmod  = false
     @have_lchown  = false
+    @have_mkfifo  = false
     @debug_build  = false
     @include_dirs = []
     @lib_dirs     = []
@@ -1290,6 +1291,10 @@ int main() { return tgetnum(""); }
     if has_function("lchown", ["sys/stat.h", "unistd.h"])
       @have_lchown = true
     end
+
+    if has_function("mkfifo", ["sys/stat.h", "sys/types.h"])
+      @have_mkfifo = true
+    end
   end
 
   def detect_structures
@@ -1656,6 +1661,7 @@ int main() { return tgetnum(""); }
 #define RBX_LIBC             "#{@libc}"
 #define RBX_HAVE_LCHMOD      #{@have_lchmod}
 #define RBX_HAVE_LCHOWN      #{@have_lchown}
+#define RBX_HAVE_MKFIFO      #{@have_mkfifo}
 #define RBX_DEBUG_BUILD      #{@debug_build.inspect}
       EOC
 

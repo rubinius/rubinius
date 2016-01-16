@@ -517,6 +517,7 @@ namespace rubinius {
 
     G(rubinius)->set_const(state, "HAVE_LCHMOD", RBX_HAVE_LCHMOD ? cTrue : cFalse);
     G(rubinius)->set_const(state, "HAVE_LCHOWN", RBX_HAVE_LCHOWN ? cTrue : cFalse);
+    G(rubinius)->set_const(state, "HAVE_MKFIFO", RBX_HAVE_MKFIFO ? cTrue : cFalse);
 
 #ifdef RBX_LITTLE_ENDIAN
     G(rubinius)->set_const(state, "ENDIAN", state->symbol("little"));
