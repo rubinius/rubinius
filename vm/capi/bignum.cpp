@@ -133,6 +133,14 @@ extern "C" {
   VALUE rb_dbl2big(double num) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    // We have to handle exceptional cases here so that a C++ exception is not
+    // thrown when we call into C++ code.
+    if(isinf(num)) {
+      rb_raise(rb_eFloatDomainError, num < 0 ? "-Infinity" : "Infinity");
+    } else if(isnan(num)) {
+      rb_raise(rb_eFloatDomainError, "NaN");
+    }
+
     Integer* bignum = Bignum::from_double(env->state(), num);
 
     return env->get_handle(bignum);
