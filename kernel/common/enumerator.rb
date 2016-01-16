@@ -347,19 +347,15 @@ module Enumerable
       end
 
       def grep(pattern)
-        if block_given?
-          Lazy.new(self, nil) do |yielder, *args|
-            val = args.length >= 2 ? args : args.first
-            if pattern === val
-              Regexp.set_block_last_match
+        Lazy.new(self, nil) do |yielder, *args|
+          val = args.length >= 2 ? args : args.first
+
+          if pattern === val
+            Regexp.set_block_last_match
+
+            if block_given?
               yielder.yield yield(val)
-            end
-          end
-        else
-          Lazy.new(self, nil) do |yielder, *args|
-            val = args.length >= 2 ? args : args.first
-            if pattern === val
-              Regexp.set_block_last_match
+            else
               yielder.yield val
             end
           end
