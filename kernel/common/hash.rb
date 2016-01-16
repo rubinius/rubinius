@@ -322,13 +322,13 @@ class Hash
     return yield(key) if block_given?
   end
 
-  def dig(*sequence)
-    item = self[sequence.shift]
-    return item if sequence.empty? || item.nil?
+  def dig(key, *remaining_keys)
+    item = self[key]
+    return item if remaining_keys.empty? || item.nil?
 
     raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
 
-    item.dig(*sequence)
+    item.dig(*remaining_keys)
   end
 
   def each_item
