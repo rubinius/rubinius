@@ -19,6 +19,12 @@ describe "Array#dig" do
     lambda { a.dig(0, 1) }.should raise_error(TypeError)
   end
 
+  it "raises an ArgumentError if no arguments provided" do
+    a = []
+
+    lambda { a.dig }.should raise_error(ArgumentError)
+  end
+
   it "returns nil if any intermediate step is nil" do
     a = [[1, [2, 3]]]
 
