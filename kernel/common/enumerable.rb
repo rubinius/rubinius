@@ -293,19 +293,13 @@ module Enumerable
   def grep(pattern)
     ary = []
 
-    if block_given?
-      each do
-        element = Rubinius.single_block_arg
-        if pattern === element
-          Regexp.set_block_last_match
+    each do
+      element = Rubinius.single_block_arg
+      if pattern === element
+        Regexp.set_block_last_match
+        if block_given?
           ary << yield(element)
-        end
-      end
-    else
-      each do
-        element = Rubinius.single_block_arg
-        if pattern === element
-          Regexp.set_block_last_match
+        else
           ary << element
         end
       end
