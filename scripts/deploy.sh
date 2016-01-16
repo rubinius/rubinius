@@ -261,7 +261,7 @@ function rbx_deploy_docker_release {
   file="Dockerfile"
 
   for path in "${paths[@]}"; do
-    url="https://api.github.com/repos/rubinius/rubinius/contents/dockerfiles/ubuntu/$path/$file"
+    url="https://api.github.com/repos/rubinius/docker/contents/ubuntu/$path/$file"
     response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
 
     cat > "$file" <<EOF
