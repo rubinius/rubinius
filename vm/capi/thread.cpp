@@ -334,6 +334,8 @@ extern "C" {
     thr->locals_store(state, state->symbol("function"), nm);
     thr->locals_store(state, state->symbol("argument"), ptr);
 
+    thr->group(state, state->vm()->thread.get()->group());
+
     VALUE thr_handle = env->get_handle(thr);
     thr->fork(state);
     // We do a lock and unlock here so we wait until the started

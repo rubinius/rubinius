@@ -1224,40 +1224,6 @@ failed: /* try next '*' position */
 
 
   /** Socket methods */
-  Object* IO::accept(STATE, CallFrame* calling_environment) {
-    int fd = descriptor()->to_native();
-    int new_fd = -1;
-
-    struct sockaddr_storage socka;
-    socklen_t sock_len = sizeof(socka);
-
-  retry:
-    state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, cTrue);
-
-    {
-      UnmanagedPhase unmanaged(state);
-      new_fd = ::accept(fd, (struct sockaddr*)&socka, &sock_len);
-    }
-
-    state->vm()->thread->sleep(state, cFalse);
-    state->vm()->clear_waiter();
-
-    if(new_fd == -1) {
-      if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(calling_environment)) return NULL;
-        ensure_open(state);
-        goto retry;
-      } else {
-        Exception::errno_error(state, "accept(2) failed");
-      }
-
-      return NULL;
-    }
-
-    return Fixnum::from(new_fd);
-  }
-
   static const int cmsg_space = CMSG_SPACE(sizeof(int));
 
   Object* IO::send_io(STATE, IO* io) {

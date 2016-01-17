@@ -21,7 +21,7 @@ describe :dir_open, :shared => true do
 
   it "closes the Dir instance when the block exits if given a block" do
     closed_dir = Dir.send(@method, DirSpecs.mock_dir) { |dir| dir }
-    lambda { closed_dir.close }.should raise_error(IOError)
+    closed_dir.close.should == nil
   end
 
   it "closes the Dir instance when the block exits the block even due to an exception" do
@@ -34,7 +34,7 @@ describe :dir_open, :shared => true do
       end
     end.should raise_error
 
-    lambda { @closed_dir.close }.should raise_error(IOError)
+    @closed_dir.close.should == nil
   end
 
   it "calls #to_path on non-String arguments" do

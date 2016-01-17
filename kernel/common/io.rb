@@ -1125,6 +1125,8 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
+    return if closed?
+
     if @mode == WRONLY || @mode == RDWR
       raise IOError, 'closing non-duplex IO for reading'
     end
@@ -1145,6 +1147,8 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
+    return if closed?
+
     if @mode == RDONLY || @mode == RDWR
       raise IOError, 'closing non-duplex IO for writing'
     end
@@ -1394,6 +1398,7 @@ class IO
       end
     end
 
+    raise ArgumentError, "limit of 0 is invalid" if limit && limit.zero?
     return if @ibuffer.exhausted?
 
     EachReader.new(self, @ibuffer, sep, limit).each(&block)
@@ -1792,16 +1797,20 @@ class IO
       args.each do |arg|
         if arg.equal? nil
           str = ""
+        elsif arg.kind_of? String
+          str = arg
         elsif Thread.guarding? arg
           str = "[...]"
-        elsif arg.kind_of?(Array)
+        else
           Thread.recursion_guard arg do
-            arg.each do |a|
-              puts a
+            begin
+              arg.to_ary.each { |a| puts a }
+            rescue NoMethodError
+              unless (str = arg.to_s).kind_of? String
+                str = "#<#{arg.class}:0x#{arg.object_id.to_s(16)}>"
+              end
             end
           end
-        else
-          str = arg.to_s
         end
 
         if str
@@ -2441,6 +2450,7 @@ class IO
   end
 
   def close
+    return if closed?
     begin
       flush
     ensure
@@ -2493,13 +2503,11 @@ class IO::BidirectionalPipe < IO
   end
 
   def close_read
-    raise IOError, 'closed stream' if closed?
-
     close
   end
 
   def close_write
-    raise IOError, 'closed stream' if @write.closed?
+    return if @write.closed?
 
     @write.close
   end

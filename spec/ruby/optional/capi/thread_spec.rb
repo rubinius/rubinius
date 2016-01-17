@@ -84,5 +84,10 @@ describe "C-API Thread function" do
 
       lambda { thr.join }.should raise_error(NotImplementedError)
     end
+
+    it "sets the thread's group" do
+      thread_group = @t.rb_thread_create(lambda {}, nil).group
+      thread_group.should be_an_instance_of(ThreadGroup)
+    end
   end
 end

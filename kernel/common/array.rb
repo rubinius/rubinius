@@ -300,28 +300,30 @@ class Array
 
   def ==(other)
     return true if equal?(other)
-    unless other.kind_of? Array
-      return false unless other.respond_to? :to_ary
+
+    unless other.kind_of?(Array)
+      return false unless other.respond_to?(:to_ary)
       return other == self
     end
 
     return false unless size == other.size
 
-    Thread.detect_recursion self, other do
-      m = Rubinius::Mirror::Array.reflect other
+    Thread.detect_recursion(self, other) do
+      mirror = Rubinius::Mirror::Array.reflect(other)
 
-      md = @tuple
-      od = m.tuple
+      self_tuple  = @tuple
+      other_tuple = mirror.tuple
 
-      i = @start
-      j = m.start
+      self_idx  = @start
+      other_idx = mirror.start
 
-      total = i + @total
+      total = self_idx + @total
 
-      while i < total
-        return false unless md[i] == od[j]
-        i += 1
-        j += 1
+      while self_idx < total
+        return false unless self_tuple[self_idx] == other_tuple[other_idx]
+
+        self_idx  += 1
+        other_idx += 1
       end
     end
 
@@ -338,8 +340,20 @@ class Array
     nil
   end
 
-  def bsearch
-    return to_enum :bsearch unless block_given?
+  def bsearch(&block)
+    return to_enum :bsearch unless block
+
+    i = bsearch_index(&block)
+    return unless i
+
+    m = Rubinius::Mirror::Array.reflect self
+    tuple = m.tuple
+
+    tuple.at(i)
+  end
+
+  def bsearch_index
+    return to_enum :bsearch_index unless block_given?
 
     m = Rubinius::Mirror::Array.reflect self
 
@@ -354,7 +368,7 @@ class Array
     while max >= min and i >= start and i < total
       x = yield tuple.at(i)
 
-      return tuple.at(i) if x == 0
+      return i if x == 0
 
       case x
       when Numeric
@@ -369,14 +383,14 @@ class Array
       when false, nil
         min = i + 1
       else
-        raise TypeError, "Array#bsearch block must return Numeric or boolean"
+        raise TypeError, "block must return Numeric or boolean"
       end
 
       i = min + (max - min) / 2
     end
 
-    return tuple.at(i) if max > min
-    return tuple.at(last_true) if last_true
+    return i if max > min
+    return last_true if last_true
 
     nil
   end
@@ -581,6 +595,15 @@ class Array
     @total = pos - @start
 
     self
+  end
+
+  def dig(index, *remaining_indeces)
+    item = self[index]
+    return item if remaining_indeces.empty? || item.nil?
+
+    raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
+
+    item.dig(*remaining_indeces)
   end
 
   def each_index

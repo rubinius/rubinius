@@ -44,7 +44,7 @@ describe "The throw keyword" do
   end
 
   it "does not convert strings to a symbol" do
-    lambda { catch(:exit) { throw "exit" } }.should raise_error(ArgumentError)
+    lambda { catch(:exit) { throw "exit" } }.should raise_error(UncaughtThrowError)
   end
 
   it "unwinds stack from within a method" do
@@ -62,18 +62,18 @@ describe "The throw keyword" do
     catch(:foo) { c.call }.should == :msg
   end
 
-  it "raises an ArgumentError if outside of scope of a matching catch" do
-    lambda { throw :test,5 }.should raise_error(ArgumentError)
-    lambda { catch(:different) { throw :test,5 } }.should raise_error(ArgumentError)
+  it "raises an UncaughtThrowError if outside of scope of a matching catch" do
+    lambda { throw :test,5 }.should raise_error(UncaughtThrowError)
+    lambda { catch(:different) { throw :test,5 } }.should raise_error(UncaughtThrowError)
   end
 
-  it "raises an ArgumentError if used to exit a thread" do
+  it "raises an UncaughtThrowError if used to exit a thread" do
     lambda {
       catch(:what) do
         Thread.new do
           throw :what
         end.join
       end
-    }.should raise_error(ArgumentError)
+    }.should raise_error(UncaughtThrowError)
   end
 end

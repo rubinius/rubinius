@@ -32,6 +32,7 @@ module FFI::Platform::POSIX
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :rename,   [:string, :string], :int
   attach_function :utimes,   [:string, :pointer], :int
+  attach_function :mkfifo,   [:string, :mode_t], :int
 
   # directories
   attach_function :chdir,     [:string], :int

@@ -229,19 +229,19 @@ describe :process_spawn, :shared => true do
       end.should output_to_fd(Process.getpgid(Process.pid).to_s)
     end
 
-    it "joins the current process if :pgroup => false" do
+    it "joins the current process if :pgroup is false" do
       lambda do
         Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => false)
       end.should output_to_fd(Process.getpgid(Process.pid).to_s)
     end
 
-    it "joins the current process if :pgroup => nil" do
+    it "joins the current process if :pgroup is nil" do
       lambda do
         Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => nil)
       end.should output_to_fd(Process.getpgid(Process.pid).to_s)
     end
 
-    it "joins a new process group if :pgroup => true" do
+    it "joins a new process group if :pgroup is true" do
       process = lambda do
         Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => true)
       end
@@ -250,7 +250,7 @@ describe :process_spawn, :shared => true do
       process.should output_to_fd(/\d+/)
     end
 
-    it "joins a new process group if :pgroup => 0" do
+    it "joins a new process group if :pgroup is 0" do
       process = lambda do
         Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => 0)
       end
@@ -259,7 +259,7 @@ describe :process_spawn, :shared => true do
       process.should output_to_fd(/\d+/)
     end
 
-    it "joins the specified process group if :pgroup => pgid" do
+    it "joins the specified process group if :pgroup is pgid" do
       lambda do
         Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => 123)
       end.should_not output_to_fd("123")
@@ -334,7 +334,7 @@ describe :process_spawn, :shared => true do
 
   # redirection
 
-  it "redirects STDOUT to the given file descriptior if :out => Fixnum" do
+  it "redirects STDOUT to the given file descriptior if :out is Fixnum" do
     File.open(@name, 'w') do |file|
       lambda do
         Process.wait @object.spawn(ruby_cmd("print :glark"), :out => file.fileno)
@@ -342,7 +342,7 @@ describe :process_spawn, :shared => true do
     end
   end
 
-  it "redirects STDOUT to the given file if :out => IO" do
+  it "redirects STDOUT to the given file if :out is IO" do
     File.open(@name, 'w') do |file|
       lambda do
         Process.wait @object.spawn(ruby_cmd("print :glark"), :out => file)
@@ -350,12 +350,12 @@ describe :process_spawn, :shared => true do
     end
   end
 
-  it "redirects STDOUT to the given file if :out => String" do
+  it "redirects STDOUT to the given file if :out is String" do
     Process.wait @object.spawn(ruby_cmd("print :glark"), :out => @name)
     @name.should have_data("glark")
   end
 
-  it "redirects STDERR to the given file descriptior if :err => Fixnum" do
+  it "redirects STDERR to the given file descriptior if :err is Fixnum" do
     File.open(@name, 'w') do |file|
       lambda do
         Process.wait @object.spawn(ruby_cmd("STDERR.print :glark"), :err => file.fileno)
@@ -363,7 +363,7 @@ describe :process_spawn, :shared => true do
     end
   end
 
-  it "redirects STDERR to the given file descriptor if :err => IO" do
+  it "redirects STDERR to the given file descriptor if :err is IO" do
     File.open(@name, 'w') do |file|
       lambda do
         Process.wait @object.spawn(ruby_cmd("STDERR.print :glark"), :err => file)
@@ -371,9 +371,17 @@ describe :process_spawn, :shared => true do
     end
   end
 
-  it "redirects STDERR to the given file if :err => String" do
+  it "redirects STDERR to the given file if :err is String" do
     Process.wait @object.spawn(ruby_cmd("STDERR.print :glark"), :err => @name)
     @name.should have_data("glark")
+  end
+
+  it "redirects STDERR to child STDOUT if :err is [:child, :out]" do
+    File.open(@name, 'w') do |file|
+      lambda do
+        Process.wait @object.spawn(ruby_cmd("STDERR.print :glark"), :out => file, :err => [:child, :out])
+      end.should output_to_fd("glark", file)
+    end
   end
 
   it "redirects both STDERR and STDOUT to the given file descriptior" do
@@ -402,7 +410,7 @@ describe :process_spawn, :shared => true do
     @name.should have_data("")
   end
 
-  context "when passed :close_others => true" do
+  context "when passed :close_others is true" do
     before :each do
       @output = tmp("spawn_close_others_true")
       @options = { :close_others => true }
@@ -445,7 +453,7 @@ describe :process_spawn, :shared => true do
     end
   end
 
-  context "when passed :close_others => false" do
+  context "when passed :close_others is false" do
     before :each do
       @output = tmp("spawn_close_others_false")
       @options = { :close_others => false }

@@ -12,7 +12,7 @@ function rbx_get_revision {
   local describe count version commit_count commit_date commit_hash
 
   if [[ -d $(rbx_git_directory) ]]; then
-    describe=$(git describe --tags --match=v2* --abbrev=40 --long)
+    describe=$(git describe --tags --match=v* --abbrev=40 --long)
 
     count=$(echo "$describe" | cut -d - -f 2)
     if [[ $count != "0" ]]; then

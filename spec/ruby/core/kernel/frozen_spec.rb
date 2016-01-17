@@ -41,4 +41,22 @@ describe "Kernel#frozen?" do
       @symbol.frozen?.should be_true
     end
   end
+
+  describe "on nil" do
+    it "returns true" do
+      nil.frozen?.should be_true
+    end
+  end
+
+  describe "on true" do
+    it "returns true" do
+      true.frozen?.should be_true
+    end
+  end
+
+  describe "on false" do
+    it "returns true" do
+      false.frozen?.should be_true
+    end
+  end
 end

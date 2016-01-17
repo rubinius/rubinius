@@ -87,8 +87,8 @@ describe "C-API Kernel function" do
       ScratchPad.recorded.should == [:before_throw]
     end
 
-    it "raises an ArgumentError if there is no catch block for the symbol" do
-      lambda { @s.rb_throw(nil) }.should raise_error(ArgumentError)
+    it "raises an UncaughtThrowError if there is no catch block for the symbol" do
+      lambda { @s.rb_throw(nil) }.should raise_error(UncaughtThrowError)
     end
   end
 
@@ -113,8 +113,8 @@ describe "C-API Kernel function" do
       ScratchPad.recorded.should == [:before_throw]
     end
 
-    it "raises an ArgumentError if there is no catch block for the symbol" do
-      lambda { @s.rb_throw(nil) }.should raise_error(ArgumentError)
+    it "raises an UncaughtThrowError if there is no catch block for the symbol" do
+      lambda { @s.rb_throw(nil) }.should raise_error(UncaughtThrowError)
     end
   end
 
@@ -265,6 +265,14 @@ describe "C-API Kernel function" do
       @s.rb_rescue(@std_error_proc, nil, lambda { |*_| $! }, nil).class.should == StandardError
       $!.should == nil
     end
+
+    it "returns the break value if the passed function yields to a block with a break" do
+      def proc_caller
+        @s.rb_rescue(lambda { |*_| yield }, nil, @proc, nil)
+      end
+
+      proc_caller { break :value }.should == :value
+    end
   end
 
   describe "rb_rescue2" do
@@ -296,8 +304,8 @@ describe "C-API Kernel function" do
       ScratchPad.recorded.should == [:before_throw]
     end
 
-    it "raises an ArgumentError if the throw symbol isn't caught" do
-      lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(ArgumentError)
+    it "raises an UncaughtThrowError if the throw symbol isn't caught" do
+      lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(UncaughtThrowError)
     end
   end
 
@@ -322,8 +330,8 @@ describe "C-API Kernel function" do
       ScratchPad.recorded.should == [:before_throw]
     end
 
-    it "raises an ArgumentError if the throw symbol isn't caught" do
-      lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(ArgumentError)
+    it "raises an UncaughtThrowError if the throw symbol isn't caught" do
+      lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(UncaughtThrowError)
     end
   end
 

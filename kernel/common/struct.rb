@@ -181,6 +181,19 @@ class Struct
     return instance_variable_set(:"@#{var}", obj)
   end
 
+  def dig(key, *remaining_keys)
+    item = begin
+             self[key]
+           rescue NameError
+             nil
+           end
+    return item if remaining_keys.empty? || item.nil?
+
+    raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
+
+    item.dig(*remaining_keys)
+  end
+
   def eql?(other)
     return true if equal? other
     return false if self.class != other.class

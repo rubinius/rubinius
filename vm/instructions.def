@@ -162,7 +162,7 @@ end
 
 instruction goto_if_nil(location) [ value -- ] => branch
   Object* t1 = stack_pop();
-  if(t1 == cNil) {
+  if(t1->nil_p()) {
     store_ip(location);
   }
 end

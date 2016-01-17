@@ -8,7 +8,7 @@ def revision_file
 end
 
 def describe_revision
-  @description ||= `git describe --tags --match=v2* --abbrev=40 --long`
+  @description ||= `git describe --tags --match=v* --abbrev=40 --long`
 end
 
 def release_revision

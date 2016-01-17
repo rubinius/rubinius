@@ -30,12 +30,12 @@ describe "Kernel.catch" do
     ScratchPad.recorded.should == :thrown_key
   end
 
-  it "raises an ArgumentError if a Symbol is thrown for a String catch value" do
-    lambda { catch("exit") { throw :exit } }.should raise_error(ArgumentError)
+  it "raises an UncaughtThrowError if a Symbol is thrown for a String catch value" do
+    lambda { catch("exit") { throw :exit } }.should raise_error(UncaughtThrowError)
   end
 
-  it "raises an ArgumentError if a String with different identity is thrown" do
-    lambda { catch("exit") { throw "exit" } }.should raise_error(ArgumentError)
+  it "raises an UncaughtThrowError if a String with different identity is thrown" do
+    lambda { catch("exit") { throw "exit" } }.should raise_error(UncaughtThrowError)
   end
 
   it "catches a Symbol when thrown a matching Symbol" do

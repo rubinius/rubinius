@@ -185,8 +185,7 @@ module Rubinius
               [obj[0], File::RDONLY, 0644]
             when 2
               if obj[0] == :child
-                fd = convert_to_fd obj[1], target
-                fd.kind_of?(::Fixnum) ?  -(fd + 1) : fd
+                convert_to_fd obj[1], target
               else
                 [obj[0], convert_file_mode(obj[1]), 0644]
               end

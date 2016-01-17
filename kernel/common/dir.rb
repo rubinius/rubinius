@@ -174,6 +174,11 @@ class Dir
     self
   end
 
+  def fileno
+    Rubinius.primitive :dir_fileno
+    raise PrimitiveFailure, "Dir#fileno primitive failed"
+  end
+
   attr_reader :path
 
   alias_method :to_path, :path

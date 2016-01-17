@@ -285,4 +285,32 @@ class Float < Numeric
     return int if self > 0 or self == int
     return int - 1
   end
+
+  def next_float
+    return NAN if self.nan?
+    return -MAX if self == -INFINITY
+    return INFINITY if self == MAX
+    return Math.ldexp(0.5, MIN_EXP - MANT_DIG + 1) if self.zero?
+
+    frac, exp = Math.frexp self
+
+    if frac == -0.5
+      frac *= 2
+      exp -= 1
+    end
+
+    smallest_frac = EPSILON / 2
+    smallest_frac = Math.ldexp(smallest_frac, MIN_EXP - exp) if exp < MIN_EXP
+
+    result_frac = frac + smallest_frac
+
+    return -0.0 if result_frac.zero? && frac < 0
+    return 0.0 if result_frac.zero? && frac > 0
+
+    return Math.ldexp result_frac, exp
+  end
+
+  def prev_float
+    return -(-self).next_float
+  end
 end

@@ -268,6 +268,23 @@ describe "A lambda literal -> () { }" do
       result = @a.(1, 2, e: 3, g: 4, h: 5, i: 6, &(l = ->{}))
       result.should == [1, 1, [], 2, 3, 2, 4, { h: 5, i: 6 }, l]
     end
+
+    describe "with circular optional argument reference" do
+      it "shadows an existing local with the same name as the argument" do
+        a = 1
+        -> (a=a) { a }.call.should == nil
+      end
+
+      it "shadows an existing method with the same name as the argument" do
+        def a; 1; end
+        -> (a=a) { a }.call.should == nil
+      end
+
+      it "calls an existing method with the same name as the argument if explicitly using ()" do
+        def a; 1; end
+        -> (a=a()) { a }.call.should == 1
+      end
+    end
   end
 end
 
