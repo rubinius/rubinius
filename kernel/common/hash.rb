@@ -367,6 +367,10 @@ class Hash
     raise KeyError, "key #{key} not found"
   end
 
+  def fetch_values(*keys, &block)
+    keys.map { |key| fetch(key, &block) }
+  end
+
   # Searches for an item matching +key+. Returns the item
   # if found. Otherwise returns +nil+.
   def find_item(key)
