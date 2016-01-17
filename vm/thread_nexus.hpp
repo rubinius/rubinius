@@ -56,6 +56,10 @@ namespace rubinius {
       return &threads_;
     }
 
+    utilities::thread::SpinLock& threads_lock() {
+      return threads_lock_;
+    }
+
     bool stop_p() {
       return stop_;
     }

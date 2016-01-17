@@ -190,10 +190,13 @@ namespace rubinius {
       }
     }
 
-    if(data->threads()) {
-      for(ThreadList::iterator i = data->threads()->begin();
-          i != data->threads()->end();
-          ++i) {
+    {
+      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+
+      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+          i != data->thread_nexus()->threads()->end();
+          ++i)
+      {
         scan(*i, false);
       }
     }
@@ -286,9 +289,11 @@ namespace rubinius {
     } while(process_mark_stack(memory_->collect_mature_now));
 
     // Remove unreachable locked objects still in the list
-    if(data->threads()) {
-      for(ThreadList::iterator i = data->threads()->begin();
-          i != data->threads()->end();
+    {
+      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+
+      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+          i != data->thread_nexus()->threads()->end();
           ++i)
       {
         clean_locked_objects(*i, false);

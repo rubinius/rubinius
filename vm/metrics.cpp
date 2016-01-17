@@ -490,13 +490,18 @@ namespace rubinius {
         if(thread_exit_) break;
 
         metrics_data_ = MetricsData();
-        ThreadList* threads = state->shared().thread_nexus()->threads();
+        ThreadNexus* thread_nexus = state->shared().thread_nexus();
 
-        for(ThreadList::iterator i = threads->begin();
-            i != threads->end();
-            ++i) {
-          if(VM* vm = (*i)->as_vm()) {
-            metrics_data_.add(vm->metrics());
+        {
+          utilities::thread::SpinLock::LockGuard guard(thread_nexus->threads_lock());
+
+          for(ThreadList::iterator i = thread_nexus->threads()->begin();
+              i != thread_nexus->threads()->end();
+              ++i)
+          {
+            if(VM* vm = (*i)->as_vm()) {
+              metrics_data_.add(vm->metrics());
+            }
           }
         }
 

@@ -53,7 +53,6 @@ namespace rubinius {
     , global_capi_handle_lock_()
     , capi_handle_cache_lock_()
     , llvm_state_lock_()
-    , vm_lock_()
     , wait_lock_()
     , type_info_lock_()
     , code_resource_lock_()
@@ -102,12 +101,14 @@ namespace rubinius {
   }
 
   Array* SharedState::vm_threads(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(vm_lock_);
+    utilities::thread::SpinLock::LockGuard guard(thread_nexus_->threads_lock());
 
     Array* threads = Array::create(state, 0);
+
     for(ThreadList::iterator i = thread_nexus_->threads()->begin();
         i != thread_nexus_->threads()->end();
-        ++i) {
+        ++i)
+    {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread.get();
         if(!thread->nil_p() && CBOOL(thread->alive())) {
@@ -165,7 +166,6 @@ namespace rubinius {
     global_capi_handle_lock_.init();
     capi_handle_cache_lock_.init();
     llvm_state_lock_.init();
-    vm_lock_.init();
     wait_lock_.init();
     type_info_lock_.init();
     code_resource_lock_.init();

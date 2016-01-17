@@ -36,10 +36,13 @@ namespace rubinius {
       saw_object(i->get());
     }
 
-    if(data.threads()) {
-      for(ThreadList::iterator i = data.threads()->begin();
-          i != data.threads()->end();
-          ++i) {
+    {
+      utilities::thread::SpinLock::LockGuard guard(data.thread_nexus()->threads_lock());
+
+      for(ThreadList::iterator i = data.thread_nexus()->threads()->begin();
+          i != data.thread_nexus()->threads()->end();
+          ++i)
+      {
         scan(*i, false);
       }
     }

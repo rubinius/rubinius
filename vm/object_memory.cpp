@@ -567,10 +567,13 @@ step1:
 
     data->global_cache()->prune_young();
 
-    if(data->threads()) {
-      for(ThreadList::iterator i = data->threads()->begin();
-          i != data->threads()->end();
-          ++i) {
+    {
+      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+
+      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+          i != data->thread_nexus()->threads()->end();
+          ++i)
+      {
         gc::Slab& slab = (*i)->local_slab();
 
         // Reset the slab to a size of 0 so that the thread has to do
@@ -602,7 +605,7 @@ step1:
     if(mature_gc_in_progress_) return;
 
     code_manager_.clear_marks();
-    clear_fiber_marks(data->threads());
+    clear_fiber_marks(data);
 
     immix_->reset_stats();
 
@@ -716,14 +719,14 @@ step1:
     handles->deallocate_handles(cached, mark(), young);
   }
 
-  void ObjectMemory::clear_fiber_marks(ThreadList* threads) {
-    if(threads) {
-      for(ThreadList::iterator i = threads->begin();
-          i != threads->end();
-          ++i) {
-        if(VM* vm = (*i)->as_vm()) {
-          vm->gc_fiber_clear_mark();
-        }
+  void ObjectMemory::clear_fiber_marks(GCData* data) {
+    utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+
+    for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+        i != data->thread_nexus()->threads()->end();
+        ++i) {
+      if(VM* vm = (*i)->as_vm()) {
+        vm->gc_fiber_clear_mark();
       }
     }
   }

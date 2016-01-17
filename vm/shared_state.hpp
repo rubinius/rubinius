@@ -111,7 +111,6 @@ namespace rubinius {
     utilities::thread::SpinLock global_capi_handle_lock_;
     utilities::thread::SpinLock capi_handle_cache_lock_;
     utilities::thread::SpinLock llvm_state_lock_;
-    utilities::thread::SpinLock vm_lock_;
     utilities::thread::SpinLock wait_lock_;
     utilities::thread::SpinLock type_info_lock_;
     utilities::thread::SpinLock code_resource_lock_;

@@ -35,7 +35,7 @@ namespace rubinius {
     capi::Handles* handles_;
     std::list<capi::Handle*>* cached_handles_;
     GlobalCache* global_cache_;
-    ThreadList* threads_;
+    ThreadNexus* thread_nexus_;
     std::list<capi::GlobalHandle*>* global_handle_locations_;
 #ifdef ENABLE_LLVM
     LLVMState* llvm_state_;
@@ -48,8 +48,8 @@ namespace rubinius {
       return roots_;
     }
 
-    ThreadList* threads() {
-      return threads_;
+    ThreadNexus* thread_nexus() {
+      return thread_nexus_;
     }
 
     capi::Handles* handles() {

@@ -37,7 +37,7 @@ namespace rubinius {
     , handles_(state->memory()->capi_handles())
     , cached_handles_(state->memory()->cached_capi_handles())
     , global_cache_(state->shared.global_cache)
-    , threads_(state->shared.thread_nexus()->threads())
+    , thread_nexus_(state->shared.thread_nexus())
     , global_handle_locations_(state->memory()->global_capi_handle_locations())
 #ifdef ENABLE_LLVM
     , llvm_state_(state->shared.llvm_state)
@@ -337,10 +337,13 @@ namespace rubinius {
   }
 
   void GarbageCollector::verify(GCData* data) {
-    if(data->threads()) {
-      for(ThreadList::iterator i = data->threads()->begin();
-          i != data->threads()->end();
-          ++i) {
+    {
+      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+
+      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+          i != data->thread_nexus()->threads()->end();
+          ++i)
+      {
         ManagedThread* thr = *i;
         for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
           ri->get()->validate();
@@ -394,10 +397,13 @@ namespace rubinius {
   }
 
   void GarbageCollector::scan_fibers(GCData* data, bool marked_only) {
-    if(data->threads()) {
-      for(ThreadList::iterator i = data->threads()->begin();
-          i != data->threads()->end();
-          ++i) {
+    {
+      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+
+      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+          i != data->thread_nexus()->threads()->end();
+          ++i)
+      {
         if(VM* vm = (*i)->as_vm()) {
           vm->gc_fiber_scan(this, marked_only);
         }

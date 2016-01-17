@@ -507,7 +507,7 @@ namespace rubinius {
 
     void validate_handles(capi::Handles* handles);
     void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young);
-    void clear_fiber_marks(ThreadList* threads);
+    void clear_fiber_marks(GCData* data);
 
     ObjectPosition validate_object(Object* obj);
 

@@ -132,6 +132,8 @@ namespace rubinius {
 #define RBX_MAX_STOP_ITERATIONS 10000
 
   bool ThreadNexus::locking(VM* vm) {
+    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+
     timer::StopWatch<timer::nanoseconds> timer(
         vm->metrics().lock.stop_the_world_ns);
 
