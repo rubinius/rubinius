@@ -173,7 +173,7 @@ namespace rubinius {
   void ImmixGC::collect(GCData* data) {
     gc_.clear_marks();
     collect_scan(data);
-    process_mark_stack(memory_->collect_mature_now);
+    process_mark_stack();
     collect_finish(data);
   }
 
@@ -273,7 +273,7 @@ namespace rubinius {
           }
         }
       }
-    } while(process_mark_stack(memory_->collect_mature_now));
+    } while(process_mark_stack());
 
     // We've now finished marking the entire object graph.
     // Clean weakrefs before keeping additional objects alive
@@ -286,7 +286,7 @@ namespace rubinius {
     do {
       walk_finalizers();
       scan_fibers(data, true);
-    } while(process_mark_stack(memory_->collect_mature_now));
+    } while(process_mark_stack());
 
     // Remove unreachable locked objects still in the list
     {
@@ -351,6 +351,11 @@ namespace rubinius {
     if(!marker_) {
       marker_ = new ImmixMarker(state, this);
     }
+  }
+
+  bool ImmixGC::process_mark_stack() {
+    bool exit = false;
+    return gc_.process_mark_stack(allocator_, exit);
   }
 
   bool ImmixGC::process_mark_stack(bool& exit) {

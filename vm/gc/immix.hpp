@@ -193,6 +193,7 @@ namespace rubinius {
     }
 
     void start_marker(STATE);
+    bool process_mark_stack();
     bool process_mark_stack(bool& exit);
     immix::MarkStack& mark_stack();
 
