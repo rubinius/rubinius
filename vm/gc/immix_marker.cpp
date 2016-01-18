@@ -97,10 +97,10 @@ namespace rubinius {
         if(thread_exit_) break;
 
         {
-          LockPhase locked(state);
-
           timer::StopWatch<timer::milliseconds> timer(
               state->vm()->metrics().gc.immix_stop_ms);
+
+          LockPhase locked(state);
 
           state->memory()->clear_mature_mark_in_progress();
           state->memory()->collect_mature_finish(state, data_);
