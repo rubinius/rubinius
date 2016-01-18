@@ -252,6 +252,37 @@ class Hash
     true
   end
 
+  def <(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other > self
+  end
+
+  def <=(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other >= self
+  end
+
+  def >(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+
+    return false if size <= other.size
+
+    self >= other
+  end
+
+  def >=(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+
+    return false if size < other.size
+
+    other.each do |other_key, other_val|
+      val = fetch(other_key, undefined)
+      return false if undefined.equal?(val) || val != other_val
+    end
+
+    true
+  end
+
   def assoc(key)
     each_item { |e| return e.key, e.value if key == e.key }
   end
