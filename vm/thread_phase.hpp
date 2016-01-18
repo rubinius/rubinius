@@ -19,7 +19,7 @@ namespace rubinius {
     LockPhase(STATE)
       : state_(state)
     {
-      state->shared().thread_nexus()->lock_or_wait(state->vm());
+      state->shared().thread_nexus()->lock(state->vm());
     }
 
     ~LockPhase() {

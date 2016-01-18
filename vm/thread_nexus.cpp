@@ -13,6 +13,10 @@
 #include <time.h>
 
 namespace rubinius {
+  void ThreadNexus::blocking(VM* vm) {
+    vm->set_thread_phase(cBlocking);
+  }
+
   bool ThreadNexus::blocking_p(VM* vm) {
     return (vm->thread_phase() & cBlocking) == cBlocking;
   }
@@ -108,12 +112,9 @@ namespace rubinius {
     return "cUnknown";
   }
 
-  static void abort_deadlock(ThreadList& threads, VM* vm) {
-    utilities::logger::fatal("thread nexus: thread will not yield: %s, %s",
-        vm->name().c_str(), phase_name(vm));
-
-    for(ThreadList::iterator i = threads.begin();
-           i != threads.end();
+  void ThreadNexus::list_threads() {
+    for(ThreadList::iterator i = threads_.begin();
+           i != threads_.end();
            ++i)
     {
       if(VM* other_vm = (*i)->as_vm()) {
@@ -121,21 +122,54 @@ namespace rubinius {
             other_vm->thread_id(), other_vm->name().c_str(), phase_name(other_vm));
       }
     }
-
-    rubinius::abort();
   }
 
-  void ThreadNexus::blocking(VM* vm) {
-    vm->set_thread_phase(cBlocking);
+#define RBX_MAX_STOP_NANOSECONDS 500000000
+
+  void ThreadNexus::detect_lock_deadlock(uint64_t nanoseconds, VM* vm) {
+    if(nanoseconds > RBX_MAX_STOP_NANOSECONDS) {
+      utilities::logger::fatal("thread nexus: thread will not yield: %s, %s",
+          vm->name().c_str(), phase_name(vm));
+
+      list_threads();
+
+      rubinius::abort();
+    }
   }
 
-#define RBX_MAX_STOP_ITERATIONS 10000
+  void ThreadNexus::detect_halt_deadlock(uint64_t nanoseconds, VM* vm) {
+    if(nanoseconds > RBX_MAX_STOP_NANOSECONDS) {
+      utilities::logger::fatal("thread nexus: thread will not yield: %s, %s",
+          vm->name().c_str(), phase_name(vm));
 
-  bool ThreadNexus::locking(VM* vm) {
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+      list_threads();
 
+      rubinius::abort();
+    }
+  }
+
+  uint64_t ThreadNexus::delay() {
+    static int i = 0;
+    static int delay[] = { 1, 21, 270, 482, 268, 169, 224, 481,
+                           262, 79, 133, 448, 227, 249, 22 };
+    static int modulo = sizeof(delay) / sizeof(int);
+    static struct timespec ts = {0, 0};
+
+    atomic::memory_barrier();
+
+    uint64_t ns = ts.tv_nsec = delay[i++ % modulo];
+    nanosleep(&ts, NULL);
+
+    return ns;
+  }
+
+  bool ThreadNexus::serialized_p(VM* vm) {
     timer::StopWatch<timer::nanoseconds> timer(
         vm->metrics().lock.stop_the_world_ns);
+
+    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+
+    uint64_t ns = 0;
 
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
@@ -145,31 +179,18 @@ namespace rubinius {
         if(vm == other_vm || yielding_p(other_vm)) continue;
 
         while(true) {
-          bool yielding = false;
-
-          for(int j = 0; j < RBX_MAX_STOP_ITERATIONS; j++) {
-            if(yielding_p(other_vm)) {
-              yielding = true;
-              break;
-            } else if(blocking_p(other_vm)) {
-              return false;
-            }
-
-            static int delay[] = { 1, 21, 270, 482, 268, 169, 224, 481,
-                                   262, 79, 133, 448, 227, 249, 22 };
-            static int modulo = sizeof(delay) / sizeof(int);
-            static struct timespec ts = {0, 0};
-
-            atomic::memory_barrier();
-
-            ts.tv_nsec = delay[j % modulo];
-            nanosleep(&ts, NULL);
+          if(yielding_p(other_vm)) {
+            break;
+          } else if(blocking_p(other_vm)) {
+            return false;
           }
 
-          if(yielding) break;
+          ns += delay();
 
           // This thread never yielded; we could be deadlocked.
-          if(vm->memory()->can_gc()) abort_deadlock(threads_, other_vm);
+          if(vm->memory()->can_gc()) {
+            detect_lock_deadlock(ns, other_vm);
+          }
         }
       }
     }
@@ -178,52 +199,78 @@ namespace rubinius {
   }
 
   void ThreadNexus::yielding(VM* vm) {
+    vm->set_thread_phase(cWaiting);
+
     {
       utilities::thread::Mutex::LockGuard guard(wait_mutex_);
 
       if(stop_) {
-        vm->set_thread_phase(cWaiting);
         wait_condition_.wait(wait_mutex_);
       }
     }
 
-    {
-      utilities::thread::Mutex::LockGuard guard(lock_);
+    managed_lock(vm);
+  }
 
-      vm->set_thread_phase(cManaged);
+  void ThreadNexus::managed_lock(VM* vm) {
+    utilities::thread::Mutex::LockGuard guard(lock_);
+
+    vm->set_thread_phase(cManaged);
+  }
+
+  void ThreadNexus::waiting_lock(VM* vm) {
+    vm->set_thread_phase(ThreadNexus::cWaiting);
+    lock_.lock();
+    vm->set_thread_phase(ThreadNexus::cManaged);
+  }
+
+  void ThreadNexus::lock(VM* vm) {
+    waiting_lock(vm);
+
+    while(!serialized_p(vm)) {
+      ; // wait until serialized or abort with deadlock
     }
   }
 
-  void ThreadNexus::become_managed(VM* vm) {
-    if(lock_.try_lock() == utilities::thread::cLocked) {
-      vm->set_thread_phase(cManaged);
-      lock_.unlock();
-    } else {
-      yielding(vm);
-    }
-  }
+  bool ThreadNexus::stop_lock(VM* vm) {
+    if(!stop_) return false;
 
-  bool ThreadNexus::lock_or_yield(VM* vm) {
-    if(lock_.try_lock() == utilities::thread::cLocked) {
-      if(locking(vm)) return true;
-    } else {
-      yielding(vm);
-    }
+    waiting_lock(vm);
 
-    return false;
-  }
-
-  bool ThreadNexus::lock_or_wait(VM* vm) {
-    while(true) {
-      if(lock_.try_lock() == utilities::thread::cLocked) {
-        set_stop();
-        if(locking(vm)) return true;
-      } else {
-        yielding(vm);
-        set_stop();
+    // Assumption about stop_ may change while we progress.
+    if(stop_) {
+      if(serialized_p(vm)) {
+        if(stop_) {
+          return true;
+        }
       }
     }
 
+    // Either we're not stop_'ing or something blocked us from serializing.
+    unlock();
     return false;
+  }
+
+  void ThreadNexus::wait_till_alone(VM* vm) {
+    vm->set_thread_phase(cWaiting);
+
+    uint64_t ns = 0;
+
+    // TODO: add thread_stop signalling
+    while(true) {
+      {
+        utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+
+        if(threads_.size() == 1) {
+          if(threads_.front()->as_vm() == vm) {
+            return;
+          }
+        }
+      }
+
+      ns += delay();
+
+      detect_halt_deadlock(ns, vm);
+    }
   }
 }

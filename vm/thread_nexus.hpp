@@ -79,15 +79,26 @@ namespace rubinius {
     void blocking(VM* vm);
     bool yielding_p(VM* vm);
     void yielding(VM* vm);
-    bool locking(VM* vm);
+    bool serialized_p(VM* vm);
+
+    uint64_t delay();
+    void list_threads();
+    void detect_lock_deadlock(uint64_t nanoseconds, VM* vm);
+    void detect_halt_deadlock(uint64_t nanoseconds, VM* vm);
+
     VM* new_vm(SharedState* shared, const char* name = NULL);
     VM* new_vm_solo(SharedState* shared, const char* name = NULL);
     void add_vm(VM* vm);
     void delete_vm(VM* vm);
+
     void after_fork_child(STATE);
-    void become_managed(VM* vm);
-    bool lock_or_yield(VM* vm);
-    bool lock_or_wait(VM* vm);
+
+    void lock(VM* vm);
+    void waiting_lock(VM* vm);
+    void managed_lock(VM* vm);
+    bool stop_lock(VM* vm);
+
+    void wait_till_alone(VM* vm);
   };
 }
 

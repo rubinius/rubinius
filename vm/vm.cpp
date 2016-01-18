@@ -122,7 +122,7 @@ namespace rubinius {
   }
 
   void VM::become_managed() {
-    thread_nexus_->become_managed(this);
+    thread_nexus_->managed_lock(this);
   }
 
   void VM::set_zombie(STATE) {

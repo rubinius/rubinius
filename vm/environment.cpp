@@ -606,7 +606,7 @@ namespace rubinius {
 
     state->vm()->set_call_frame(0);
 
-    shared->thread_nexus()->lock_or_wait(state->vm());
+    shared->thread_nexus()->wait_till_alone(state->vm());
 
     shared->finalizer_handler()->finish(state);
 

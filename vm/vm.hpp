@@ -391,15 +391,13 @@ namespace rubinius {
     void checkpoint(STATE, CallFrame* call_frame) {
       metrics().machine.checkpoints++;
 
-      if(thread_nexus_->stop_p()) {
+      if(thread_nexus_->stop_lock(this)) {
         metrics().machine.stops++;
 
         set_call_frame(call_frame);
+        collect_maybe(state);
 
-        if(thread_nexus_->lock_or_yield(this)) {
-          collect_maybe(state);
-          thread_nexus_->unlock();
-        }
+        thread_nexus_->unlock();
       }
     }
 
