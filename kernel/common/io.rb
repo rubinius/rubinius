@@ -476,8 +476,15 @@ class IO
       # Discover final size of file so we can set EOF properly
       stat = Stat.fstat(@descriptor) unless stat
       @total_size = stat.size
-      seek_positioning
-      #@eof = @offset >= @total_size
+
+      # We may have reopened a file descriptor that went from "file" to a different
+      # ftype which doesn't allow seeking, so catch it here.
+      if stat.ftype == "file"
+        seek_positioning
+      else
+        @offset = 0
+      end
+
       determine_eof
     end
     
