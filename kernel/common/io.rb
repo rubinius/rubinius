@@ -1810,11 +1810,6 @@ class IO
     !@binmode.nil?
   end
 
-  # Used to find out if there is buffered data available.
-  def buffer_empty?
-    #@unget_buffer.empty?
-  end
-
   def close_on_exec=(value)
     if value
       fcntl(F_SETFD, fcntl(F_GETFD) | FD_CLOEXEC)
