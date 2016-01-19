@@ -52,10 +52,6 @@
 
 #include "util/logger.hpp"
 
-// Used by XMALLOC at the bottom
-static long gc_malloc_threshold = 0;
-static long bytes_until_collection = 0;
-
 namespace rubinius {
   void ObjectMemory::memory_error(STATE) {
     Exception::memory_error(state);
@@ -102,9 +98,6 @@ namespace rubinius {
     }
 
     TypeInfo::init(this);
-
-    gc_malloc_threshold = shared.config.gc_malloc_threshold;
-    bytes_until_collection = gc_malloc_threshold;
   }
 
   ObjectMemory::~ObjectMemory() {
@@ -897,49 +890,25 @@ step1:
   }
 };
 
-// The following memory functions are defined in ruby.h for use by C-API
-// extensions, and also used by library code lifted from MRI (e.g. Oniguruma).
-// They provide some book-keeping around memory usage for non-VM code, so that
-// the garbage collector is run periodically in response to memory allocations
-// in non-VM code.
-// Without these  checks, memory can become exhausted without the VM being aware
-// there is a problem. As this memory may only be being used by Ruby objects
-// that have become garbage, performing a garbage collection periodically after
-// a significant amount of memory has been malloc-ed should keep non-VM memory
-// usage from growing uncontrollably.
-
-
 void* XMALLOC(size_t bytes) {
-  bytes_until_collection -= bytes;
-  if(bytes_until_collection <= 0) {
-    rubinius::VM::current()->run_gc_soon();
-    bytes_until_collection = gc_malloc_threshold;
-  }
+  rubinius::VM::current()->system_allocated_bytes(bytes);
   return malloc(bytes);
 }
 
 void XFREE(void* ptr) {
+  rubinius::VM::current()->system_freed_bytes(bytes);
   free(ptr);
 }
 
 void* XREALLOC(void* ptr, size_t bytes) {
-  bytes_until_collection -= bytes;
-  if(bytes_until_collection <= 0) {
-    rubinius::VM::current()->run_gc_soon();
-    bytes_until_collection = gc_malloc_threshold;
-  }
-
+  rubinius::VM::current()->system_freed_bytes(bytes);
+  rubinius::VM::current()->system_allocated_bytes(bytes);
   return realloc(ptr, bytes);
 }
 
 void* XCALLOC(size_t items, size_t bytes_per) {
   size_t bytes = bytes_per * items;
 
-  bytes_until_collection -= bytes;
-  if(bytes_until_collection <= 0) {
-    rubinius::VM::current()->run_gc_soon();
-    bytes_until_collection = gc_malloc_threshold;
-  }
-
+  rubinius::VM::current()->system_allocated_bytes(bytes);
   return calloc(items, bytes_per);
 }

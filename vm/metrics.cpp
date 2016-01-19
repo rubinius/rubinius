@@ -387,6 +387,10 @@ namespace rubinius {
 
       // System metrics
       metrics_map_.push_back(new MetricsItem(
+            "system.allocated.bytes", metrics_data_.system.allocated_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "system.freed.bytes", metrics_data_.system.freed_bytes));
+      metrics_map_.push_back(new MetricsItem(
             "system.read.bytes", metrics_data_.system.read_bytes));
       metrics_map_.push_back(new MetricsItem(
             "system.write.bytes", metrics_data_.system.write_bytes));

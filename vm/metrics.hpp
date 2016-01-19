@@ -235,6 +235,8 @@ namespace rubinius {
     };
 
     struct SystemMetrics {
+      metric allocated_bytes;
+      metric freed_bytes;
       metric read_bytes;
       metric write_bytes;
       metric signals_received;
@@ -243,6 +245,8 @@ namespace rubinius {
       metric threads_destroyed;
 
       SystemMetrics() {
+        allocated_bytes = 0;
+        freed_bytes = 0;
         read_bytes = 0;
         write_bytes = 0;
         signals_received = 0;
@@ -252,6 +256,8 @@ namespace rubinius {
       }
 
       void add(SystemMetrics& data) {
+        allocated_bytes += data.allocated_bytes;
+        freed_bytes += data.freed_bytes;
         read_bytes += data.read_bytes;
         write_bytes += data.write_bytes;
         signals_received += data.signals_received;

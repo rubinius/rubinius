@@ -386,6 +386,14 @@ namespace rubinius {
     void bootstrap_symbol(STATE);
     void initialize_config();
 
+    void system_allocated_bytes(size_t bytes) {
+      metrics().system.allocated_bytes += bytes;
+    }
+
+    void system_freed_bytes(size_t bytes) {
+      metrics().system.freed_bytes += bytes;
+    }
+
     void collect_maybe(STATE);
 
     void checkpoint(STATE, CallFrame* call_frame) {
