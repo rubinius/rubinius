@@ -213,6 +213,8 @@ namespace rubinius {
   }
 
   void ThreadNexus::managed_lock(VM* vm) {
+    vm->set_thread_phase(cWaiting);
+
     utilities::thread::Mutex::LockGuard guard(lock_);
 
     vm->set_thread_phase(cManaged);
