@@ -73,13 +73,13 @@ namespace rubinius {
     , mature_mark_concurrent_(shared.config.gc_immix_concurrent)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
+    , collect_young_flag_(false)
+    , collect_full_flag_(false)
     , shared_(vm->shared)
     , diagnostics_(new diagnostics::ObjectDiagnostics(young_->diagnostics(),
           immix_->diagnostics(), mark_sweep_->diagnostics(),
           inflated_headers_->diagnostics(), capi_handles_->diagnostics(),
           code_manager_.diagnostics(), shared.symbols.diagnostics()))
-    , collect_young_now(false)
-    , collect_mature_now(false)
     , vm_(vm)
     , last_object_id(1)
     , last_snapshot_id(0)
@@ -472,13 +472,23 @@ step1:
   Object* ObjectMemory::promote_object(Object* obj) {
     size_t sz = obj->size_in_bytes(vm());
 
-    Object* copy = immix_->move_object(obj, sz, collect_mature_now);
+    bool collect_flag = false;
+    Object* copy = immix_->move_object(obj, sz, collect_flag);
+
+    if(collect_flag) {
+      schedule_full_collection();
+    }
 
     vm()->metrics().memory.promoted_objects++;
     vm()->metrics().memory.promoted_bytes += sz;
 
     if(unlikely(!copy)) {
-      copy = mark_sweep_->move_object(obj, sz, collect_mature_now);
+      collect_flag = false;
+      copy = mark_sweep_->move_object(obj, sz, collect_flag);
+
+      if(collect_flag) {
+        schedule_full_collection();
+      }
     }
 
 #ifdef ENABLE_OBJECT_WATCH
@@ -492,10 +502,17 @@ step1:
   }
 
   void ObjectMemory::collect_maybe(STATE) {
-    // Don't go any further unless we're allowed to GC.
-    if(!can_gc()) return;
+    /* Don't go any further unless we're allowed to GC. We also reset the
+     * flags so that we don't thrash constantly trying to GC. When the GC
+     * prohibition lifts, a GC will eventually be triggered again.
+     */
+    if(!can_gc()) {
+      collect_young_flag_ = false;
+      collect_full_flag_ = false;
+      return;
+    }
 
-    if(!collect_young_now && !collect_mature_now) return;
+    if(!collect_young_flag_ && !collect_full_flag_) return;
 
     if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
       finalizer->start_collection(state);
@@ -506,7 +523,7 @@ step1:
                 << " WORLD beginning GC.]" << std::endl;
     }
 
-    if(collect_young_now) {
+    if(collect_young_flag_) {
       GCData gc_data(state->vm());
 
       RUBINIUS_GC_BEGIN(0);
@@ -523,31 +540,27 @@ step1:
       RUBINIUS_GC_END(0);
     }
 
-    if(collect_mature_now) {
+    if(collect_full_flag_) {
       GCData* gc_data = new GCData(state->vm());
       RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCMature);
-        collect_mature(state, gc_data);
+        collect_full(state, gc_data);
       } else {
-        collect_mature(state, gc_data);
+        collect_full(state, gc_data);
       }
 #else
-      collect_mature(state, gc_data);
+      collect_full(state, gc_data);
 #endif
       if(!mature_mark_concurrent_) {
-        collect_mature_finish(state, gc_data);
+        collect_full(state, gc_data);
         delete gc_data;
       }
     }
   }
 
   void ObjectMemory::collect_young(STATE, GCData* data) {
-#ifndef RBX_GC_STRESS_YOUNG
-    collect_young_now = false;
-#endif
-
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
 
@@ -581,18 +594,17 @@ step1:
 #ifdef RBX_GC_DEBUG
     young_->verify(data);
 #endif
+
     if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
       finalizer->finish_collection(state);
     }
+
+    collect_young_flag_ = false;
   }
 
-  void ObjectMemory::collect_mature(STATE, GCData* data) {
+  void ObjectMemory::collect_full(STATE, GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.immix_concurrent_ms);
-
-#ifndef RBX_GC_STRESS_MATURE
-    collect_mature_now = false;
-#endif
 
     // If we're already collecting, ignore this request
     if(mature_gc_in_progress_) return;
@@ -611,7 +623,7 @@ step1:
     }
   }
 
-  void ObjectMemory::collect_mature_finish(STATE, GCData* data) {
+  void ObjectMemory::collect_full_finish(STATE, GCData* data) {
 
     immix_->collect_finish(data);
     code_manager_.sweep();
@@ -640,6 +652,8 @@ step1:
     if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
       finalizer->finish_collection(state);
     }
+
+    collect_full_flag_ = false;
 
     RUBINIUS_GC_END(1);
   }
@@ -737,28 +751,26 @@ step1:
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = 0;
-    collect_mature_now = false;
+    bool collect_flag = false;
 
     // TODO: check if immix_ needs to trigger GC
-    if(likely(obj = immix_->allocate(bytes, collect_mature_now))) {
+    if(likely(obj = immix_->allocate(bytes, collect_flag))) {
       vm()->metrics().memory.immix_objects++;
       vm()->metrics().memory.immix_bytes += bytes;
 
       return obj;
     }
 
-    if(collect_mature_now) {
-      vm()->metrics().gc.immix_set++;
-      state->shared().gc_soon();
+    if(collect_flag) {
+      schedule_full_collection(state->vm()->metrics().gc.immix_set);
     }
 
-    if(likely(obj = mark_sweep_->allocate(bytes, collect_mature_now))) {
+    if(likely(obj = mark_sweep_->allocate(bytes, collect_flag))) {
       vm()->metrics().memory.large_objects++;
       vm()->metrics().memory.large_bytes += bytes;
 
-      if(collect_mature_now) {
-        vm()->metrics().gc.large_set++;
-        state->shared().gc_soon();
+      if(collect_flag) {
+        schedule_full_collection(state->vm()->metrics().gc.large_set);
       }
 
       return obj;
@@ -789,7 +801,12 @@ step1:
 
     state->vm()->metrics().memory.code_bytes += cr->size();
 
-    code_manager_.add_resource(cr, &collect_mature_now);
+    bool collect_flag = false;
+    code_manager_.add_resource(cr, &collect_flag);
+
+    if(collect_flag) {
+      schedule_full_collection(state->vm()->metrics().gc.resource_set);
+    }
   }
 
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func,
@@ -891,24 +908,24 @@ step1:
 };
 
 void* XMALLOC(size_t bytes) {
-  rubinius::VM::current()->system_allocated_bytes(bytes);
+  rubinius::VM::current()->metrics().system.allocated_bytes += bytes;
   return malloc(bytes);
 }
 
 void XFREE(void* ptr) {
-  rubinius::VM::current()->system_freed_bytes(bytes);
+  rubinius::VM::current()->metrics().system.freed++;
   free(ptr);
 }
 
 void* XREALLOC(void* ptr, size_t bytes) {
-  rubinius::VM::current()->system_freed_bytes(bytes);
-  rubinius::VM::current()->system_allocated_bytes(bytes);
+  rubinius::VM::current()->metrics().system.freed++;
+  rubinius::VM::current()->metrics().system.allocated_bytes += bytes;
   return realloc(ptr, bytes);
 }
 
 void* XCALLOC(size_t items, size_t bytes_per) {
   size_t bytes = bytes_per * items;
 
-  rubinius::VM::current()->system_allocated_bytes(bytes);
+  rubinius::VM::current()->metrics().system.allocated_bytes += bytes;
   return calloc(items, bytes_per);
 }

@@ -47,9 +47,9 @@ public:
   void test_new_object() {
     ObjectMemory& om = *state->memory();
 
-    Tuple* obj;
+    om.collect_young(state, gc_data);
 
-    obj = util_new_object(om);
+    Tuple* obj = util_new_object(om);
 
     TS_ASSERT_EQUALS(obj->num_fields(), 3);
     TS_ASSERT_EQUALS(obj->zone(), YoungObjectZone);
@@ -183,6 +183,8 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
+    om.collect_young(state, gc_data);
+
     young =  as<Tuple>(util_new_object(om));
     TS_ASSERT_EQUALS(young->zone(), YoungObjectZone);
 
@@ -205,6 +207,8 @@ public:
     ObjectMemory& om = *state->memory();
     Object* young;
 
+    om.collect_young(state, gc_data);
+
     young = util_new_object(om);
 
     Root r(roots, young);
@@ -222,6 +226,8 @@ public:
   void test_collect_young_resets_remember_set() {
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
+
+    om.collect_young(state, gc_data);
 
     young =  as<Tuple>(util_new_object(om));
     mature = as<Tuple>(util_new_object(om, LARGE_OBJECT_BYTE_SIZE));
@@ -282,7 +288,7 @@ public:
     TS_ASSERT_EQUALS(obj->raw_bytes()[0], static_cast<char>(47));
   }
 
-  void test_collect_mature() {
+  void test_collect_full() {
     ObjectMemory& om = *state->memory();
     Object* mature;
 
@@ -295,14 +301,14 @@ public:
     TS_ASSERT(!mature->marked_p(mark));
     Root r(roots, mature);
 
-    om.collect_mature(state, gc_data);
+    om.collect_full(state, gc_data);
     // marker thread cleans up gc_data
     gc_data = NULL;
 
     TS_ASSERT(mature->marked_p(mark));
   }
 
-  void test_collect_mature_marks_young_objects() {
+  void test_collect_full_marks_young_objects() {
     ObjectMemory& om = *state->memory();
     Tuple* young;
     Object* mature;
@@ -316,14 +322,14 @@ public:
     TS_ASSERT(!young->marked_p(mark));
     Root r(roots, young);
 
-    om.collect_mature(state, gc_data);
+    om.collect_full(state, gc_data);
     gc_data = NULL;
 
     TS_ASSERT(young->marked_p(mark));
   }
 
   /* Could segfault on failure due to infinite loop. */
-  void test_collect_mature_stops_at_already_marked_objects() {
+  void test_collect_full_stops_at_already_marked_objects() {
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
@@ -340,7 +346,7 @@ public:
 
     Root r(roots, young);
 
-    om.collect_mature(state, gc_data);
+    om.collect_full(state, gc_data);
     gc_data = NULL;
 
     mature = as<Tuple>(young->field[0]);
@@ -383,20 +389,5 @@ public:
     obj->set_zone((gc_zone)0);
     TS_ASSERT(!om.valid_object_p(obj));
   }
-
-  void test_xmalloc_causes_gc() {
-    // Knows that the threshold is 10M
-    state->shared().check_gc_p();
-
-    int bytes = 1024 * 1024;
-    int total = 110 * bytes;
-    while(total >= 0) {
-      XFREE(XMALLOC(bytes));
-      total -= bytes;
-    }
-
-    TS_ASSERT_EQUALS(state->shared().check_gc_p(), true);
-  }
-
 };
 

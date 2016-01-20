@@ -873,12 +873,7 @@ namespace rubinius {
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
     if(CBOOL(force) || state->shared().config.gc_honor_start) {
-      // TODO: fix this
-      state->memory()->collect_young_now = true;
-      state->memory()->collect_mature_now = true;
-      state->shared().thread_nexus()->set_stop();
-      state->vm()->checkpoint(state, call_frame);
-      // TODO: end this
+      state->memory()->collect(state);
     }
     return cNil;
   }

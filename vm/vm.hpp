@@ -168,6 +168,10 @@ namespace rubinius {
       return tracked_;
     }
 
+    ThreadNexus* thread_nexus() {
+      return thread_nexus_;
+    }
+
     void set_thread_phase(ThreadNexus::Phase thread_phase) {
       thread_phase_ = thread_phase;
     }
@@ -386,14 +390,6 @@ namespace rubinius {
     void bootstrap_symbol(STATE);
     void initialize_config();
 
-    void system_allocated_bytes(size_t bytes) {
-      metrics().system.allocated_bytes += bytes;
-    }
-
-    void system_freed_bytes(size_t bytes) {
-      metrics().system.freed_bytes += bytes;
-    }
-
     void collect_maybe(STATE);
 
     void checkpoint(STATE, CallFrame* call_frame) {
@@ -445,10 +441,6 @@ namespace rubinius {
 #endif
 
     void print_backtrace();
-
-
-    /// Run the garbage collectors as soon as you can
-    void run_gc_soon();
 
     void wait_on_channel(Channel* channel);
     void wait_on_inflated_lock(Object* wait);

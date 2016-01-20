@@ -310,6 +310,16 @@ namespace rubinius {
             "gc.large.count", metrics_data_.gc.large_count));
       metrics_map_.push_back(new MetricsItem(
             "gc.large.sweep.us", metrics_data_.gc.large_sweep_us));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.objects.queued", metrics_data_.gc.objects_queued));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.objects.finalized", metrics_data_.gc.objects_finalized));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.headers.set", metrics_data_.gc.headers_set));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.handles.set", metrics_data_.gc.handles_set));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.resource.set", metrics_data_.gc.resource_set));
 
       // JIT metrics
       metrics_map_.push_back(new MetricsItem(
@@ -389,7 +399,7 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "system.allocated.bytes", metrics_data_.system.allocated_bytes));
       metrics_map_.push_back(new MetricsItem(
-            "system.freed.bytes", metrics_data_.system.freed_bytes));
+            "system.freed", metrics_data_.system.freed));
       metrics_map_.push_back(new MetricsItem(
             "system.read.bytes", metrics_data_.system.read_bytes));
       metrics_map_.push_back(new MetricsItem(

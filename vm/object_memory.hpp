@@ -6,6 +6,7 @@
 #include "object_position.hpp"
 #include "oop.hpp"
 #include "diagnostics.hpp"
+#include "metrics.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
@@ -116,6 +117,12 @@ namespace rubinius {
     /// allocations.
     size_t slab_size_;
 
+    /// Flag indicating whether a young collection should be performed soon
+    bool collect_young_flag_;
+
+    /// Flag indicating whether a full collection should be performed soon
+    bool collect_full_flag_;
+
     /// Mutex used to manage lock contention
     utilities::thread::Mutex contention_lock_;
 
@@ -127,12 +134,6 @@ namespace rubinius {
     diagnostics::ObjectDiagnostics* diagnostics_;
 
   public:
-    /// Flag indicating whether a young collection should be performed soon
-    bool collect_young_now;
-
-    /// Flag indicating whether a full collection should be performed soon
-    bool collect_mature_now;
-
     VM* vm_;
     /// Counter used for issuing object ids when #object_id is called on a
     /// Ruby object.
@@ -180,6 +181,29 @@ namespace rubinius {
 
     void inhibit_gc() {
       allow_gc_ = false;
+    }
+
+    void schedule_young_collection(VM* vm, metrics::metric& counter) {
+      counter++;
+
+      // Don't trigger GC if currently prohibited so we don't thrash checking.
+      if(can_gc()) {
+        collect_young_flag_ = true;
+        shared_.thread_nexus()->set_stop();
+      }
+    }
+
+    void schedule_full_collection(metrics::metric& counter) {
+      counter++;
+      schedule_full_collection();
+    }
+
+    void schedule_full_collection() {
+      // Don't trigger GC if currently prohibited so we don't thrash checking.
+      if(can_gc()) {
+        collect_full_flag_ = true;
+        shared_.thread_nexus()->set_stop();
+      }
     }
 
     FinalizerThread* finalizer_handler() const {
@@ -269,11 +293,8 @@ namespace rubinius {
         if(refill_slab(state, state->vm()->local_slab())) {
           goto allocate;
         } else {
-          // TODO: set young collection
-          state->vm()->metrics().gc.young_set++;
-          collect_young_now = true;
-          state->shared().gc_soon();
-        }
+          schedule_young_collection(state->vm(), state->vm()->metrics().gc.young_set);
+       }
       }
 
       if(likely(obj = new_object(state, bytes))) goto set_type;
@@ -291,10 +312,6 @@ namespace rubinius {
       if(obj->mature_object_p()) {
         write_barrier(obj, klass);
       }
-
-#ifdef RBX_GC_STRESS
-      state.shared().gc_soon();
-#endif
 
       return obj;
     }
@@ -322,10 +339,6 @@ namespace rubinius {
       obj->ivars_ = cNil;
 
       write_barrier(obj, klass);
-
-#ifdef RBX_GC_STRESS
-      state.shared().gc_soon();
-#endif
 
       return obj;
     }
@@ -511,6 +524,12 @@ namespace rubinius {
 
     ObjectPosition validate_object(Object* obj);
 
+    void collect(STATE) {
+      collect_young_flag_ = true;
+      collect_full_flag_ = true;
+      collect_maybe(state);
+    }
+
     void collect_maybe(STATE);
 
     void needs_finalization(Object* obj, FinalizerFunction func,
@@ -520,10 +539,6 @@ namespace rubinius {
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
     void inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle);
-
-    /// This only has one use! Don't use it!
-    Object* allocate_object_raw(size_t bytes);
-    void collect_mature_finish(STATE, GCData* data);
 
     // TODO: generalize when fixing safe points.
     String* new_string_certain(STATE, Class* klass);
@@ -542,12 +557,13 @@ namespace rubinius {
 
     immix::MarkStack& mature_mark_stack();
 
-  private:
-    Object* allocate_object(size_t bytes);
-    Object* allocate_object_mature(size_t bytes);
+    bool& collect_young_flag() {
+      return collect_young_flag_;
+    }
 
     void collect_young(STATE, GCData* data);
-    void collect_mature(STATE, GCData* data);
+    void collect_full(STATE, GCData* data);
+    void collect_full_finish(STATE, GCData* data);
 
   public:
     friend class ::TestObjectMemory;

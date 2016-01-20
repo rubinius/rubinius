@@ -176,10 +176,6 @@ namespace rubinius {
     }
 #endif
 
-#ifdef RBX_GC_STRESS
-    state->shared().gc_soon();
-#endif
-
     return obj;
   }
 

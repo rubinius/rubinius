@@ -27,7 +27,7 @@ namespace rubinius {
     InflatedHeader* header = allocator_->from_index(header_index);
     if(needs_gc) {
       diagnostics_.collections_++;
-      state->memory()->collect_mature_now = true;
+      state->memory()->schedule_full_collection(state->vm()->metrics().gc.headers_set);
     }
     atomic::memory_barrier();
     return header;

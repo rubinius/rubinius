@@ -205,13 +205,6 @@ namespace rubinius {
     return memory()->type_info[type];
   }
 
-  void VM::run_gc_soon() {
-    memory()->collect_young_now = true;
-    memory()->collect_mature_now = true;
-    shared.gc_soon();
-    thread_nexus_->set_stop();
-  }
-
   void VM::after_fork_child(STATE) {
     thread_nexus_->after_fork_child(state);
 

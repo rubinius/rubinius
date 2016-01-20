@@ -84,7 +84,7 @@ namespace rubinius {
 
           state->shared().thread_nexus()->blocking(state->vm());
 
-          while(immix_->process_mark_stack(immix_->memory()->collect_young_now)) {
+          while(immix_->process_mark_stack(immix_->memory()->collect_young_flag())) {
             if(state->shared().thread_nexus()->stop_p()) {
               state->shared().thread_nexus()->yielding(state->vm());
             }
@@ -103,7 +103,7 @@ namespace rubinius {
           LockPhase locked(state);
 
           state->memory()->clear_mature_mark_in_progress();
-          state->memory()->collect_mature_finish(state, data_);
+          state->memory()->collect_full_finish(state, data_);
         }
       }
 

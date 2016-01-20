@@ -51,7 +51,7 @@ namespace rubinius {
    */
   void ImmixGC::ObjectDescriber::last_block() {
     if(object_memory_) {
-      object_memory_->collect_mature_now = true;
+      object_memory_->schedule_full_collection();
     }
   }
 
@@ -82,9 +82,15 @@ namespace rubinius {
       immix::Allocator& alloc) {
     Object* orig = original.as<Object>();
 
+    bool collect_flag = false;
+
     memory::Address copy_addr = alloc.allocate(
         orig->size_in_bytes(object_memory_->vm()),
-        object_memory_->collect_mature_now);
+        collect_flag);
+
+    if(collect_flag) {
+      object_memory_->schedule_full_collection();
+    }
 
     Object* copy = copy_addr.as<Object>();
 

@@ -62,6 +62,9 @@ namespace rubinius {
       metric large_sweep_us;
       metric objects_queued;
       metric objects_finalized;
+      metric headers_set;
+      metric handles_set;
+      metric resource_set;
 
       GCMetrics() {
         young_set = 0;
@@ -77,6 +80,9 @@ namespace rubinius {
         large_sweep_us = 0;
         objects_queued = 0;
         objects_finalized = 0;
+        headers_set = 0;
+        handles_set = 0;
+        resource_set = 0;
       }
 
       void add(GCMetrics& data) {
@@ -93,6 +99,9 @@ namespace rubinius {
         large_sweep_us += data.large_sweep_us;
         objects_queued += data.objects_queued;
         objects_finalized += data.objects_finalized;
+        headers_set += data.headers_set;
+        handles_set += data.handles_set;
+        resource_set += data.resource_set;
       }
     };
 
@@ -236,7 +245,7 @@ namespace rubinius {
 
     struct SystemMetrics {
       metric allocated_bytes;
-      metric freed_bytes;
+      metric freed;
       metric read_bytes;
       metric write_bytes;
       metric signals_received;
@@ -246,7 +255,7 @@ namespace rubinius {
 
       SystemMetrics() {
         allocated_bytes = 0;
-        freed_bytes = 0;
+        freed = 0;
         read_bytes = 0;
         write_bytes = 0;
         signals_received = 0;
@@ -257,7 +266,7 @@ namespace rubinius {
 
       void add(SystemMetrics& data) {
         allocated_bytes += data.allocated_bytes;
-        freed_bytes += data.freed_bytes;
+        freed += data.freed;
         read_bytes += data.read_bytes;
         write_bytes += data.write_bytes;
         signals_received += data.signals_received;
