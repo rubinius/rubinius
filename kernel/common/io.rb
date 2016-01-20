@@ -729,7 +729,7 @@ class IO
     end
   end # class FIFOFileDescriptor
   
-  class DirectoryFileDescriptor < FileDescriptor
+  class DirectoryFileDescriptor < BufferedFileDescriptor
   end # class DirectoryFileDescriptor
 
   class SocketFileDescriptor < FIFOFileDescriptor
@@ -2635,7 +2635,9 @@ class IO
     end
 
     str = ""
-    result = @fd.read(length, str)
+    emulate_blocking_read do
+      read_nonblock(length, str)
+    end
 
     if str.empty? && length > 0
       str = nil
@@ -2660,7 +2662,9 @@ class IO
     str = ""
     begin
       buffer = ""
-      @fd.read(nil, buffer)
+      emulate_blocking_read do
+        read_nonblock(FileDescriptor.pagesize, buffer)
+      end
       str << buffer
     end until eof?
 
@@ -2722,12 +2726,19 @@ class IO
 
     buffer = StringValue buffer if buffer
 
+    unless @fd.blocking?
+      @fd.set_nonblock
+      nonblock_reset = true
+    end
+
     if str = read_if_available(size)
       buffer.replace(str) if buffer
       return str
     else
       raise EOFError, "stream closed"
     end
+  ensure
+    @fd.clear_nonblock if nonblock_reset
   end
 
   ##
@@ -3328,6 +3339,22 @@ class IO
     descriptor == -1 || descriptor.nil?
   end
   private :invalid_descriptor?
+
+  def emulate_blocking_read
+    # Simple wrapper intended to wrap a call to #read_nonblock.
+    # Loops forever while waiting for data to become available
+    # just like a blocking read, but avoids blocking on the
+    # low-level read(2) call. Allows us to catch situations
+    # where another thread has closed the FD.
+    begin
+      yield
+    rescue IO::EAGAINWaitReadable
+      sleep 0.10
+      retry
+    rescue EOFError
+    end
+  end
+  private :emulate_blocking_read
 end
 
 ##
