@@ -213,7 +213,7 @@ module Enumerable
   end
 
   def chunk_while(&block)
-    raise ArgumentError, "wrong number of arguments (0 for 1)" unless block_given?
+    raise ArgumentError, "no block given" unless block_given?
 
     slice_when { |before, after| !(block.call(before, after)) }
   end
