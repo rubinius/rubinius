@@ -215,7 +215,7 @@ module Enumerable
   def chunk_while(&block)
     raise ArgumentError, "no block given" unless block_given?
 
-    slice_when { |before, after| !(block.call(before, after)) }
+    slice_when { |before, after| !(yield before, after) }
   end
 
   def to_a(*arg)
