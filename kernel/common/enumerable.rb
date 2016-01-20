@@ -212,6 +212,12 @@ module Enumerable
     end
   end
 
+  def chunk_while(&block)
+    raise ArgumentError, "no block given" unless block_given?
+
+    slice_when { |before, after| !(yield before, after) }
+  end
+
   def to_a(*arg)
     ary = []
     each(*arg) do
