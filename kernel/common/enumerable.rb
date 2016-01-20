@@ -212,6 +212,12 @@ module Enumerable
     end
   end
 
+  def chunk_while(&block)
+    raise ArgumentError, "wrong number of arguments (0 for 1)" unless block_given?
+
+    slice_when { |before, after| !(block.call(before, after)) }
+  end
+
   def to_a(*arg)
     ary = []
     each(*arg) do
