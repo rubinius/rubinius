@@ -136,18 +136,18 @@ module Enumerable
     h
   end
 
-  def slice_before(arg = undefined, &block)
-    if block_given?
-      has_init = !(undefined.equal? arg)
-    else
-      raise ArgumentError, "wrong number of arguments (0 for 1)" if undefined.equal? arg
-      block = Proc.new{ |elem| arg === elem }
-    end
+  def slice_before(pattern = undefined, &block)
+    pattern_given = !(undefined.equal? pattern)
+
+    raise ArgumentError, "cannot pass both pattern and block" if pattern_given && block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 1)" if !pattern_given && !block_given?
+
+    block = Proc.new{ |elem| pattern === elem } if pattern_given
+
     Enumerator.new do |yielder|
-      init = arg.dup if has_init
       accumulator = nil
       each do |element|
-        start_new = has_init ? block.yield(element, init) : block.yield(element)
+        start_new = block.yield(element)
         if start_new
           yielder.yield accumulator if accumulator
           accumulator = [element]
