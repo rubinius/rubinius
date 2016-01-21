@@ -33,6 +33,8 @@ EOM
     rbx_tag_usage
   fi
 
+  git fetch --all -p
+
   IFS="." read -r -a array <<< "$(rbx_revision_version)"
 
   let major=${array[0]}
