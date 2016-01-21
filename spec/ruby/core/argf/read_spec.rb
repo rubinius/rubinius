@@ -42,6 +42,14 @@ describe "ARGF.read" do
     end
   end
 
+  it "clears output buffer before appending to it" do
+    argv [@file1_name] do
+      buffer = "to be cleared"
+      ARGF.send(@method, @file1.size, buffer)
+      buffer.should == @file1
+    end
+  end
+
   it "reads a number of bytes from the first file" do
     argv [@file1_name] do
       ARGF.read(5).should == @file1[0,5]
