@@ -962,7 +962,8 @@ class IO
 
   attr_accessor :external
   attr_accessor :internal
-  attr_accessor :fd # FIXME: just for debugging
+  # intended to only be used by IO.setup to associate a new FileDescriptor object with instance of IO
+  attr_accessor :fd
   
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
@@ -1625,7 +1626,8 @@ class IO
       end
     end
 
-    #io.descriptor = fd
+    fd_obj = FileDescriptor.choose_type(fd)
+    io.fd = fd_obj
     io.mode       = mode || cur_mode
     io.sync       = !!sync
 
