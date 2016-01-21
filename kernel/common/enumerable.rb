@@ -134,7 +134,7 @@ module Enumerable
     pattern_given = !(undefined.equal? pattern)
 
     raise ArgumentError, "cannot pass both pattern and block" if pattern_given && block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 1)" if !pattern_given && !block_given?
+    raise ArgumentError, "a pattern or a block must be provided" if !pattern_given && !block_given?
 
     block = Proc.new{ |elem| pattern === elem } if pattern_given
 
@@ -158,7 +158,7 @@ module Enumerable
     pattern_given = !undefined.equal?(pattern)
 
     raise ArgumentError, "cannot pass both pattern and block" if pattern_given && block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 1)" if !pattern_given && !block_given?
+    raise ArgumentError, "a pattern or a block must be provided" if !pattern_given && !block_given?
 
     block = Proc.new { |elem| pattern === elem } if pattern_given
 
