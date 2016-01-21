@@ -4,19 +4,13 @@
 # these methods can be written *in those classes* to override these.
 
 module Enumerable
-  def chunk(initial_state = nil, &original_block)
+  def chunk
     raise ArgumentError, "no block given" unless block_given?
     ::Enumerator.new do |yielder|
       previous = nil
       accumulate = []
-      block = if initial_state.nil?
-        original_block
-      else
-        duplicated_initial_state = initial_state.dup
-        Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
-      end
       each do |element|
-        key = block.yield(element)
+        key = yield(element)
         if key.nil? || (key.is_a?(Symbol) && key.to_s[0, 1] == "_")
           yielder.yield [previous, accumulate] unless accumulate.empty?
           accumulate = []
