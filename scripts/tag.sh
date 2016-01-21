@@ -6,6 +6,8 @@ __dir__="$(cd "$(dirname "$0")" && pwd)"
 source "$__dir__/configuration.sh"
 
 function rbx_tag_release {
+  git fetch --all -p
+
   IFS="." read -r -a array <<< "$(rbx_revision_version)"
 
   let major=${array[0]}
