@@ -402,6 +402,27 @@ module Rubinius
 
     alias_method :to_a, :readlines
 
+    def readpartial(maxlen, output=nil)
+      output ||= default_value
+
+      unless advance!
+        output.clear
+        raise EOFError, "ARGF at end"
+      end
+
+      begin
+        @stream.readpartial(maxlen, output)
+      rescue EOFError => e
+        raise e if @use_stdin_only
+
+        @stream.close
+        @advance = true
+        advance! or raise e
+      end
+
+      return output
+    end
+
     #
     # Rewind the stream to its beginning.
     #
