@@ -138,6 +138,10 @@ class IO
       @@max_descriptors.get_and_set(new_fd)
     end
 
+    def self.max_fd
+      @@max_descriptors.get
+    end
+
     def self.get_flags(fd)
       if IO::F_GETFL
         if FFI.call_failed?(flags = FFI::Platform::POSIX.fcntl(fd, IO::F_GETFL, 0))

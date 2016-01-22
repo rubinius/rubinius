@@ -13,6 +13,7 @@
 #include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/method_table.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
@@ -340,7 +341,10 @@ namespace rubinius {
       }
 
       if(CBOOL(table->has_key(state, state->symbol("close_others")))) {
-        int max = IO::max_descriptors();
+        NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
+        Class* fd_class = (Class*) G(io)->get_const(state, "FileDescriptor");
+        Fixnum* max_fd = (Fixnum*)fd_class->send(state, native_env->current_call_frame(), state->symbol("max_fd"));
+        int max = max_fd->to_native();
         int flags;
 
         for(int fd = STDERR_FILENO + 1; fd < max; fd++) {
@@ -354,13 +358,20 @@ namespace rubinius {
             table->fetch(state, state->symbol("assign_fd"))))
       {
         native_int size = assign->size();
+        NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
+        Class* fd_class = (Class*) G(io)->get_const(state, "FileDescriptor");
         for(native_int i = 0; i < size; i += 4) {
           int from = as<Fixnum>(assign->get(state, i))->to_native();
-          int mode = as<Fixnum>(assign->get(state, i + 2))->to_native();
-          int perm = as<Fixnum>(assign->get(state, i + 3))->to_native();
-          const char* name = as<String>(assign->get(state, i + 1))->c_str_null_safe(state);
+          Fixnum* mode = (Fixnum*)assign->get(state, i + 2);
+          Fixnum* perm = (Fixnum*)assign->get(state, i + 3);
+          String* name = (String*)assign->get(state, i + 1);
 
-          int to = IO::open_with_cloexec(state, name, mode, perm);
+          Array*  ary = Array::create(state, 3);
+          ary->set(state, 0, name);
+          ary->set(state, 1, mode);
+          ary->set(state, 2, perm);
+
+          int to = as<Fixnum>(fd_class->send(state, native_env->current_call_frame(), state->symbol("open_with_cloexec"), ary))->to_native();
           redirect_file_descriptor(from, to);
         }
       }
