@@ -52,6 +52,15 @@ describe "Enumerable#slice_before" do
     lambda { @enum.slice_before }.should raise_error(ArgumentError)
   end
 
+  describe "when iterator method yields more than one value" do
+    it "should process all yielded values" do
+      def foo
+        yield 1, 2
+      end
+      to_enum(:foo).slice_before { true }.to_a.should == [[[1, 2]]]
+    end
+  end
+
   before :all do
     @method_args = [3]
   end

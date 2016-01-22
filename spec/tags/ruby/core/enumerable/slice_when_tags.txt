@@ -1,0 +1,1 @@
+fails:Enumerable#slice_when when iterator method yields more than one value should work on all yielded values

@@ -28,6 +28,15 @@ describe "Enumerable#slice_when" do
     end
   end
 
+  describe "when iterator method yields more than one value" do
+    it "should process all yielded values" do
+      def foo
+        yield 1, 2
+      end
+      to_enum(:foo).slice_when { true }.to_a.should == [[[1, 2]]]
+    end
+  end
+
   context "when not given a block" do
     it "raises an ArgumentError" do
       lambda { @enum.slice_when }.should raise_error(ArgumentError)
