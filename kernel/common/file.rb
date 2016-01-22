@@ -1195,6 +1195,21 @@ class File < IO
     return false
   end
 
+  def self.mkfifo(file_name, mode = 0666)
+    raise NotImplementedError, "mkfifo is not implemented on this platform" unless Rubinius::HAVE_MKFIFO
+
+    file_name = file_name.to_path if file_name.respond_to?(:to_path)
+    file_name = StringValue(file_name)
+
+    ret = POSIX.mkfifo(file_name, mode)
+
+    if ret == 0
+      ret
+    else
+      Errno.handle(file_name)
+    end
+  end
+
   class << self
     alias_method :delete,   :unlink
     alias_method :exists?,  :exist?

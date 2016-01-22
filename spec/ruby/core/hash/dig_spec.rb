@@ -25,6 +25,12 @@ describe "Hash#dig" do
     lambda { h.dig(:foo, 3) }.should raise_error(TypeError)
   end
 
+  it "raises an ArgumentError if no arguments provided" do
+    h = {}
+
+    lambda { h.dig }.should raise_error(ArgumentError)
+  end
+
   it "calls #dig on any intermediate step with the rest of the sequence as arguments" do
     o = Object.new
     h = new_hash(foo: o)

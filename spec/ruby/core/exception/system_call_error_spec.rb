@@ -62,12 +62,12 @@ describe "SystemCallError#errno" do
   end
 
   it "returns the errno given as optional argument to new" do
-    SystemCallError.new("message", -2**30).errno.should == -2**30
+    SystemCallError.new("message", -2**20).errno.should == -2**20
     SystemCallError.new("message", -1).errno.should == -1
     SystemCallError.new("message", 0).errno.should == 0
     SystemCallError.new("message", 1).errno.should == 1
     SystemCallError.new("message", 42).errno.should == 42
-    SystemCallError.new("message", 2**30).errno.should == 2**30
+    SystemCallError.new("message", 2**20).errno.should == 2**20
   end
 end
 

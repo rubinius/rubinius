@@ -254,21 +254,26 @@ function rbx_deploy_docker_release {
   echo "Deploying Docker release $(rbx_revision_version)..."
 
   local version release file url response sha
-  local -a paths=("15.10" "14.04")
+  local -a paths=("12.04")
 
   version=$(rbx_revision_version)
   release=$(rbx_release_name)
   file="Dockerfile"
 
   for path in "${paths[@]}"; do
-    url="https://api.github.com/repos/rubinius/rubinius/contents/dockerfiles/ubuntu/$path/$file"
+    url="https://api.github.com/repos/rubinius/docker/contents/ubuntu/$path/$file"
     response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
 
     cat > "$file" <<EOF
 FROM ubuntu:$path
 
+RUN apt-get update && apt-get install -y \
+        bzip2 \
+        libyaml-0-2 \
+        libssl1.0.0
+
 ADD https://rubinius-binaries-rubinius-com.s3-us-west-2.amazonaws.com/ubuntu/$path/x86_64/$release /tmp/rubinius.tar.bz2
-RUN apt-get -y install bzip2 && cd /opt && tar xvjf /tmp/rubinius.tar.bz2
+RUN cd /opt && tar xvjf /tmp/rubinius.tar.bz2
 
 ENV PATH /opt/rubinius/$version/bin:/opt/rubinius/$version/gems/bin:\$PATH
 

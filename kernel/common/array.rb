@@ -597,13 +597,13 @@ class Array
     self
   end
 
-  def dig(*sequence)
-    item = self[sequence.shift]
-    return item if sequence.empty? || item.nil?
+  def dig(index, *remaining_indeces)
+    item = self[index]
+    return item if remaining_indeces.empty? || item.nil?
 
     raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
 
-    item.dig(*sequence)
+    item.dig(*remaining_indeces)
   end
 
   def each_index

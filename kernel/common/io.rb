@@ -2722,9 +2722,14 @@ class IO
   #
   # If the read buffer is not empty, read_nonblock reads from the
   # buffer like readpartial. In this case, read(2) is not called.
-  def read_nonblock(size, buffer=nil)
+  def read_nonblock(size, buffer=nil, opts={})
     raise ArgumentError, "illegal read size" if size < 0
     ensure_open
+
+    if buffer.is_a?(Hash)
+      opts = buffer
+      buffer = nil
+    end
 
     buffer = StringValue buffer if buffer
 
@@ -2733,11 +2738,19 @@ class IO
       nonblock_reset = true
     end
 
-    if str = read_if_available(size)
+    begin
+      str = read_if_available(size)
+    rescue EAGAINWaitReadable => exc
+      raise exc unless opts[:exception] == false
+
+      return :wait_readable
+    end
+
+    if str
       buffer.replace(str) if buffer
       return str
     else
-      raise EOFError, "stream closed"
+      raise EOFError, "stream closed" unless opts[:exception] == false
     end
   ensure
     @fd.clear_nonblock if nonblock_reset
@@ -3293,13 +3306,17 @@ class IO
     data.bytesize
   end
 
-  def write_nonblock(data)
+  def write_nonblock(data, opts={})
     ensure_open_and_writable
 
     data = String data
     return 0 if data.bytesize == 0
 
     @fd.write_nonblock(data)
+  rescue EAGAINWaitWritable => exc
+    raise exc unless opts[:exception] == false
+
+    return :wait_writable
   end
 
   def close
