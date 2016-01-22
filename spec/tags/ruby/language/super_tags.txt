@@ -1,2 +1,3 @@
 fails:The super keyword raises a RuntimeError when called with implicit arguments from a method defined with define_method
 fails:The super keyword invokes methods from a chain of anonymous modules
+fails:The super keyword when using keyword arguments does not pass any keyword arguments to the parent when none are given

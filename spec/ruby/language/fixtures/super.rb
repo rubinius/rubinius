@@ -327,4 +327,18 @@ module Super
     whatever
     whatever
   end
+
+  module KeywordArguments
+    class A
+      def foo(**args)
+        args
+      end
+    end
+
+    class B < A
+      def foo(**)
+        super
+      end
+    end
+  end
 end
