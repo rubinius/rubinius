@@ -7,6 +7,12 @@ describe "String.new" do
     str.should be_an_instance_of(String)
   end
 
+  it "accepts an encoding argument" do
+    str = String.new("\xA4\xA2", encoding: 'euc-jp')
+
+    str.encoding.should == Encoding::EUC_JP
+  end
+
   it "returns a fully-formed String" do
     str = String.new
     str.size.should == 0

@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     daedalus-core (0.5.0)
-    rake (10.4.2)
+    rake (10.5.0)
     redcard (1.1.0)
     rubinius-ast (2.3.2)
     rubinius-bridge (1.1.0)

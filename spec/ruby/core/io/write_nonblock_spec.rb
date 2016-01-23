@@ -44,9 +44,19 @@ describe 'IO#write_nonblock' do
     @write.close
   end
 
-  it 'raises IO::EAGAINWaitWritable when the operation would block' do
-    proc { loop { @write.write_nonblock('a' * 10_000) } }
-      .should raise_error(IO::EAGAINWaitWritable)
+  context "when the operation would block" do
+    context "when exception option is not passed" do
+      it "raises IO::EAGAINWaitWritable" do
+        lambda { loop { @write.write_nonblock("a" * 10_000) } }.should raise_error(IO::EAGAINWaitWritable)
+      end
+    end
+
+    context "when exception option is set to false" do
+      it "returns :wait_writable" do
+        loop { break if @write.write_nonblock("a" * 10_000, exception: false) == :wait_writable }
+        1.should == 1
+      end
+    end
   end
 end
 
