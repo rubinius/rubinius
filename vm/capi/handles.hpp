@@ -12,8 +12,6 @@
 #include <stdint.h>
 
 namespace rubinius {
-  class BakerGC;
-
   namespace capi {
     class Handles {
     public:
@@ -53,7 +51,7 @@ namespace rubinius {
 
       bool validate(Handle* handle);
 
-      void deallocate_handles(std::list<Handle*>* cached, unsigned int mark, BakerGC* young);
+      void deallocate_handles(std::list<Handle*>* cached, unsigned int mark, /* BakerGC */ void* young);
 
       void flush_all(NativeMethodEnvironment* env);
 

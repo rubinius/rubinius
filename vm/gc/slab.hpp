@@ -81,6 +81,9 @@ namespace gc {
      * is returned.
      */
     Address allocate(size_t bytes) {
+      // TODO: GC
+      return 0;
+
       Address addr = current_;
       Address new_current = addr + bytes;
 

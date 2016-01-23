@@ -26,7 +26,6 @@ class TestVM; // So we can friend it properly
 
 namespace rubinius {
   struct CallFrame;
-  class BakerGC;
   class Configuration;
   class FinalizerThread;
   class GCData;
@@ -79,7 +78,7 @@ namespace rubinius {
     utilities::thread::SpinLock inflation_lock_;
 
     /// BakerGC used for the young generation
-    BakerGC* young_;
+    /* BakerGC* young_; */
 
     /// MarkSweepGC used for the large object store
     MarkSweepGC* mark_sweep_;
@@ -277,8 +276,9 @@ namespace rubinius {
      * initializing all reference fields other than klass_ and ivars_.
      */
     Object* new_object(STATE, Class* klass, native_int bytes, object_type type) {
-    allocate:
-      Object* obj = state->vm()->local_slab().allocate(bytes).as<Object>();
+      // TODO: GC
+    // allocate:
+      Object* obj = 0; /* state->vm()->local_slab().allocate(bytes).as<Object>();
 
       if(likely(obj)) {
         state->vm()->metrics().memory.young_objects++;
@@ -296,6 +296,7 @@ namespace rubinius {
           schedule_young_collection(state->vm(), state->vm()->metrics().gc.young_set);
        }
       }
+      */
 
       if(likely(obj = new_object(state, bytes))) goto set_type;
 
@@ -305,7 +306,7 @@ namespace rubinius {
     set_type:
       obj->set_obj_type(type);
 
-    set_klass:
+    // set_klass:
       obj->klass_ = klass;
       obj->ivars_ = cNil;
 
@@ -519,7 +520,7 @@ namespace rubinius {
     void memstats();
 
     void validate_handles(capi::Handles* handles);
-    void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young);
+    void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young);
     void clear_fiber_marks(GCData* data);
 
     ObjectPosition validate_object(Object* obj);

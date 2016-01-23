@@ -669,7 +669,8 @@ namespace immix {
         Block& block = current_chunk_->get_block(block_cursor_++);
         if(chunk_cursor_ == chunks_.size() - 1 &&
             block_cursor_ == (size_t)cBlocksPerChunk - 5) {
-          triggers_.last_block();
+          // TODO: GC
+          // triggers_.last_block();
         }
 
         if(block.usable()) return block;
@@ -690,6 +691,7 @@ namespace immix {
         if(block.status() == cFree) return block;
       }
 
+      triggers_.last_block();
       add_chunk();
       return current_chunk_->get_block(0);
     }

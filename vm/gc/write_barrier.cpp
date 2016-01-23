@@ -29,6 +29,9 @@ namespace gc {
    * @param target The mature object to be added to the remember set.
    */
   void WriteBarrier::remember_object(Object* target) {
+    // TODO: GC
+    return;
+
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
     // If it's already remembered, ignore this request

@@ -12,7 +12,6 @@
 #include "capi/tag.hpp"
 
 #include "gc/mark_sweep.hpp"
-#include "gc/baker.hpp"
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"
 #include "gc/walker.hpp"
@@ -61,8 +60,8 @@ namespace rubinius {
 
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(VM* vm, SharedState& shared)
-    : young_(new BakerGC(this, shared.config))
-    , mark_sweep_(new MarkSweepGC(this, shared.config))
+    /* : young_(new BakerGC(this, shared.config)) */
+    : mark_sweep_(new MarkSweepGC(this, shared.config))
     , immix_(new ImmixGC(this))
     , immix_marker_(NULL)
     , inflated_headers_(new InflatedHeaders)
@@ -76,7 +75,7 @@ namespace rubinius {
     , collect_young_flag_(false)
     , collect_full_flag_(false)
     , shared_(vm->shared)
-    , diagnostics_(new diagnostics::ObjectDiagnostics(young_->diagnostics(),
+    , diagnostics_(new diagnostics::ObjectDiagnostics(/* young_->diagnostics(), */
           immix_->diagnostics(), mark_sweep_->diagnostics(),
           inflated_headers_->diagnostics(), capi_handles_->diagnostics(),
           code_manager_.diagnostics(), shared.symbols.diagnostics()))
@@ -111,7 +110,7 @@ namespace rubinius {
 
     delete immix_;
     delete mark_sweep_;
-    delete young_;
+    /* delete young_; */
 
     for(std::list<capi::GlobalHandle*>::iterator i = global_capi_handle_locations_.begin();
           i != global_capi_handle_locations_.end(); ++i) {
@@ -436,7 +435,7 @@ step1:
   bool ObjectMemory::refill_slab(STATE, gc::Slab& slab) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
-    Address addr = young_->allocate_for_slab(slab_size_);
+    Address addr = Address::null(); /* young_->allocate_for_slab(slab_size_); */
 
     metrics::MetricsData& metrics = state->vm()->metrics();
     metrics.memory.young_objects += slab.allocations();
@@ -455,7 +454,7 @@ step1:
 
   bool ObjectMemory::valid_object_p(Object* obj) {
     if(obj->young_object_p()) {
-      return young_->validate_object(obj) == cValid;
+      return false; /* young_->validate_object(obj) == cValid; */
     } else if(obj->mature_object_p()) {
       if(immix_->validate_object(obj) == cInImmix) {
         return true;
@@ -527,35 +526,24 @@ step1:
       GCData gc_data(state->vm());
 
       RUBINIUS_GC_BEGIN(0);
-#ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCYoung);
         collect_young(state, &gc_data);
       } else {
         collect_young(state, &gc_data);
       }
-#else
-      collect_young(state, &gc_data);
-#endif
       RUBINIUS_GC_END(0);
     }
 
     if(collect_full_flag_) {
-      GCData* gc_data = new GCData(state->vm());
+      GCData gc_data(state->vm());
+
       RUBINIUS_GC_BEGIN(1);
-#ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCMature);
-        collect_full(state, gc_data);
+        collect_full(state, &gc_data);
       } else {
-        collect_full(state, gc_data);
-      }
-#else
-      collect_full(state, gc_data);
-#endif
-      if(!mature_mark_concurrent_) {
-        collect_full(state, gc_data);
-        delete gc_data;
+        collect_full(state, &gc_data);
       }
     }
   }
@@ -564,6 +552,7 @@ step1:
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
 
+    /* 
     young_->collect(data);
 
     prune_handles(data->handles(), data->cached_handles(), young_);
@@ -598,6 +587,7 @@ step1:
     if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
       finalizer->finish_collection(state);
     }
+    */
 
     collect_young_flag_ = false;
   }
@@ -620,12 +610,13 @@ step1:
       mature_gc_in_progress_ = true;
     } else {
       immix_->collect(data);
+      collect_full_finish(state, data);
     }
   }
 
   void ObjectMemory::collect_full_finish(STATE, GCData* data) {
-
     immix_->collect_finish(data);
+
     code_manager_.sweep();
 
     data->global_cache()->prune_unmarked(mark());
@@ -722,7 +713,7 @@ step1:
 
   }
 
-  void ObjectMemory::prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young) {
+  void ObjectMemory::prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young) {
     handles->deallocate_handles(cached, mark(), young);
   }
 
@@ -787,8 +778,10 @@ step1:
   ObjectPosition ObjectMemory::validate_object(Object* obj) {
     ObjectPosition pos;
 
+    /*
     pos = young_->validate_object(obj);
     if(pos != cUnknown) return pos;
+    */
 
     pos = immix_->validate_object(obj);
     if(pos != cUnknown) return pos;

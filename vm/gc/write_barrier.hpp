@@ -80,6 +80,9 @@ namespace gc {
      * @param val    The object being referenced (i.e. the referee).
      */
     void inline write_barrier(ObjectHeader* target, ObjectHeader* val, int mark) {
+      // TODO: GC
+      return;
+
       if(!val->reference_p()) return;
       if(target->reference_p()) {
         // Check if we need to mark the value set because the

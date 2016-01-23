@@ -4,7 +4,6 @@
 
 #include "gc/gc.hpp"
 #include "gc/root.hpp"
-#include "gc/baker.hpp"
 #include "gc/mark_sweep.hpp"
 #include "capi/handles.hpp"
 
@@ -44,7 +43,8 @@ public:
     return Tuple::create(state, count);
   }
 
-  void test_new_object() {
+  /* TODO: young gen
+  void xtest_new_object() {
     ObjectMemory& om = *state->memory();
 
     om.collect_young(state, gc_data);
@@ -54,8 +54,10 @@ public:
     TS_ASSERT_EQUALS(obj->num_fields(), 3);
     TS_ASSERT_EQUALS(obj->zone(), YoungObjectZone);
   }
+  */
 
-  void test_write_barrier() {
+  /* TODO: young gen
+  void xtest_write_barrier() {
     ObjectMemory& om = *state->memory();
     Object* obj;
     Object* obj2;
@@ -79,6 +81,7 @@ public:
     om.write_barrier(obj, obj2);
     TS_ASSERT_EQUALS(om.remember_set()->size(), start + 1);
   }
+  */
 
   /* Causes a segfault when fails. */
   void test_write_barrier_not_called_for_immediates() {
@@ -95,7 +98,8 @@ public:
     TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
   }
 
-  void test_collect_young() {
+  /* TODO: young gen
+  void xtest_collect_young() {
     ObjectMemory& om = *state->memory();
     Object* obj;
     size_t start = om.young_->bytes_used();
@@ -117,8 +121,10 @@ public:
     om.collect_young(state, gc_data);
     TS_ASSERT(obj->forwarded_p());
   }
+  */
 
-  void test_collect_young_through_references() {
+  /* TODO: young gen
+  void xtest_collect_young_through_references() {
     ObjectMemory& om = *state->memory();
     Tuple *obj, *obj2, *obj3;
 
@@ -150,6 +156,7 @@ public:
 
     TS_ASSERT_EQUALS(obj2->field[0], cTrue);
   }
+  */
 
 #define LARGE_OBJECT_BYTE_SIZE   30 * 1024 * 1024
 
@@ -157,13 +164,17 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple* obj;
 
+  /* TODO: young gen
     size_t start = om.young_->bytes_used();
+    */
 
     obj = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
     TS_ASSERT_EQUALS(obj->num_fields(), LARGE_OBJECT_BYTE_SIZE);
     TS_ASSERT_EQUALS(obj->zone(), MatureObjectZone);
 
+  /* TODO: young gen
     TS_ASSERT_EQUALS(om.young_->bytes_used(), start);
+    */
   }
 
   void test_collect_young_doesnt_move_mature_objects() {
@@ -179,7 +190,8 @@ public:
     TS_ASSERT_EQUALS(obj, roots->front()->get());
   }
 
-  void test_collect_young_uses_remember_set() {
+  /* TODO: young gen
+  void xtest_collect_young_uses_remember_set() {
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
@@ -202,8 +214,10 @@ public:
     TS_ASSERT(mature->field[0] != young);
     TS_ASSERT_EQUALS((as<Tuple>(mature->field[0])->field[0]), cTrue);
   }
+  */
 
-  void test_collect_young_promotes_objects() {
+  /* TODO: young gen
+  void xtest_collect_young_promotes_objects() {
     ObjectMemory& om = *state->memory();
     Object* young;
 
@@ -222,8 +236,10 @@ public:
 
     TS_ASSERT(roots->front()->get()->mature_object_p());
   }
+  */
 
-  void test_collect_young_resets_remember_set() {
+  /* TODO: young gen
+  void xtest_collect_young_resets_remember_set() {
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
@@ -247,8 +263,10 @@ public:
     TS_ASSERT_EQUALS(mature->field[0]->age(), 2U);
     om.collect_young(state, gc_data);
   }
+  */
 
-  void test_collect_young_uses_forwarding_pointers() {
+  /* TODO: young gen
+  void xtest_collect_young_uses_forwarding_pointers() {
     ObjectMemory& om = *state->memory();
     Tuple *obj, *obj2;
 
@@ -271,8 +289,10 @@ public:
     TS_ASSERT_EQUALS(obj2, obj->field[1]);
     TS_ASSERT_EQUALS(obj2, obj->field[2]);
   }
+  */
 
-  void test_collect_young_copies_byte_bodies() {
+  /* TODO: young gen
+  void xtest_collect_young_copies_byte_bodies() {
     ObjectMemory& om = *state->memory();
 
     ByteArray* obj;
@@ -287,6 +307,7 @@ public:
     obj = as<ByteArray>(roots->front()->get());
     TS_ASSERT_EQUALS(obj->raw_bytes()[0], static_cast<char>(47));
   }
+  */
 
   void test_collect_full() {
     ObjectMemory& om = *state->memory();
@@ -354,7 +375,8 @@ public:
     TS_ASSERT_EQUALS(mature->field[0], young);
   }
 
-  void test_collect_young_stops_at_already_marked_objects() {
+  /* TODO: young gen
+  void xtest_collect_young_stops_at_already_marked_objects() {
     ObjectMemory& om = *state->memory();
     Tuple *obj, *obj2;
 
@@ -378,6 +400,7 @@ public:
     TS_ASSERT_EQUALS(obj2->field[0], obj);
     TS_ASSERT_EQUALS(obj2->field[1], cTrue);
   }
+  */
 
   void test_valid_object_p() {
     ObjectMemory& om = *state->memory();

@@ -1,8 +1,12 @@
 #include "builtin/native_method.hpp"
+
 #include "object_memory.hpp"
-#include "gc/baker.hpp"
+
+#include "gc/gc.hpp"
+
 #include "capi/capi.hpp"
 #include "capi/handles.hpp"
+
 #include "util/logger.hpp"
 
 namespace rubinius {
@@ -69,7 +73,7 @@ namespace rubinius {
     }
 
     void Handles::deallocate_handles(std::list<Handle*>* cached,
-        unsigned int mark, BakerGC* young)
+        unsigned int mark, /* BakerGC */ void* young)
     {
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
@@ -95,6 +99,7 @@ namespace rubinius {
           }
 
           if(young) {
+            /*
             if(obj->young_object_p()) {
               // A weakref pointing to a valid young object
               //
@@ -118,6 +123,7 @@ namespace rubinius {
               chunk_marks[i] = true;
               diagnostics_.objects_++;
             }
+            */
 
           // A weakref pointing to a dead mature object
           } else if(!obj->marked_p(mark)) {

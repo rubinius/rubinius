@@ -178,9 +178,6 @@ namespace rubinius {
    */
   void ImmixGC::collect(GCData* data) {
     gc_.clear_marks();
-    collect_scan(data);
-    process_mark_stack();
-    collect_finish(data);
   }
 
   void ImmixGC::collect_start(GCData* data) {
@@ -245,6 +242,7 @@ namespace rubinius {
 
   void ImmixGC::collect_finish(GCData* data) {
     collect_scan(data);
+    process_mark_stack();
 
     ObjectArray* marked_set = object_memory_->swap_marked_set();
     for(ObjectArray::iterator oi = marked_set->begin();

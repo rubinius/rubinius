@@ -7,7 +7,6 @@
 
 #include "capi/handles.hpp"
 
-#include "gc/baker.hpp"
 #include "gc/code_manager.hpp"
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"
@@ -16,7 +15,6 @@
 namespace rubinius {
   namespace diagnostics {
     class ObjectDiagnostics {
-      rubinius::BakerGC::Diagnostics& baker_;
       rubinius::ImmixGC::Diagnostics& immix_;
       rubinius::MarkSweepGC::Diagnostics& mark_sweep_;
       rubinius::InflatedHeaders::Diagnostics& headers_;
@@ -25,15 +23,13 @@ namespace rubinius {
       rubinius::SymbolTable::Diagnostics& symbols_;
 
     public:
-      ObjectDiagnostics(rubinius::BakerGC::Diagnostics& baker,
-          rubinius::ImmixGC::Diagnostics& immix,
+      ObjectDiagnostics(rubinius::ImmixGC::Diagnostics& immix,
           rubinius::MarkSweepGC::Diagnostics& mark_sweep,
           rubinius::InflatedHeaders::Diagnostics& inflated_headers,
           rubinius::capi::Handles::Diagnostics& capi_handles,
           rubinius::CodeManager::Diagnostics& code_manager,
           rubinius::SymbolTable::Diagnostics& symbols)
-        : baker_(baker)
-        , immix_(immix)
+        : immix_(immix)
         , mark_sweep_(mark_sweep)
         , headers_(inflated_headers)
         , handles_(capi_handles)
