@@ -17,7 +17,7 @@
 namespace rubinius {
   void Class::bootstrap(STATE) {
     GO(klass).set(Class::bootstrap_class(state, nil<Class>(), ClassType));
-    G(klass)->klass_ = G(klass);
+    G(klass)->klass(state, G(klass));
   }
 
   Class* Class::bootstrap_class(STATE, Class* super, object_type type) {
@@ -30,7 +30,7 @@ namespace rubinius {
   void Class::bootstrap_initialize(STATE, Class* klass, Class* super, object_type type) {
     Module::bootstrap_initialize(state, klass, super);
 
-    klass->klass_ = G(klass);
+    klass->klass(state, G(klass));
     klass->ivars_ = cNil;
 
     // The type of object that this class is (ie Class).

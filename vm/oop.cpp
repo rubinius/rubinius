@@ -743,9 +743,13 @@ step2:
     // MUST never change obj_type_ to make them match. This causes the GC
     // to get confused about the memory shape of the object!
     assert(type_id() == other->type_id());
+
     set_age(new_age);
     klass_ = other->klass_;
     ivars_ = other->ivars_;
+
+    om->write_barrier(this, klass_);
+    om->write_barrier(this, ivars_);
   }
 
   void ObjectHeader::initialize_full_state(VM* state, Object* other, unsigned int age) {

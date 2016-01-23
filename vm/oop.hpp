@@ -417,15 +417,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       header.f.zone = loc;
     }
 
-    void init_header(Class* cls, gc_zone loc, object_type type) {
-      header.flags64 = 0;
-      header.f.obj_type = type;
-      header.f.zone = loc;
-
-      klass_ = cls;
-      ivars_ = cNil;
-    }
-
     void** pointer_to_body() {
       return __body__;
     }
