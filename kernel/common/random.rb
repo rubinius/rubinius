@@ -66,9 +66,9 @@ class Rubinius::Randomizer
   end
 
   def random_range(limit)
-    min, max = limit.max.coerce(limit.min)
+    min, max = limit.last.coerce(limit.first)
     diff = max - min
-    diff += 1 if max.kind_of?(Integer)
+    diff += 1 if max.kind_of?(Integer) && !limit.exclude_end?
     random(diff) + min
   end
 
