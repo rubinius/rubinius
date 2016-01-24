@@ -20,7 +20,7 @@ namespace rubinius {
     Object* result = cNil;
     while(!wake_) {
       {
-        UnmanagedPhase unmanaged(state);
+        SleepPhase sleeping(state);
 
         cond_.wait(mutex_);
       }
@@ -50,7 +50,7 @@ namespace rubinius {
 
     while(!wake_) {
       {
-        UnmanagedPhase unmanaged(state);
+        SleepPhase sleeping(state);
 
         utilities::thread::Code status = cond_.wait_until(mutex_, ts);
         if(status == utilities::thread::cTimedOut) {

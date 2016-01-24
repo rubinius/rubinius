@@ -21,6 +21,10 @@ namespace rubinius {
     return (vm->thread_phase() & cBlocking) == cBlocking;
   }
 
+  bool ThreadNexus::sleeping_p(VM* vm) {
+    return (vm->thread_phase() & cSleeping) == cSleeping;
+  }
+
   bool ThreadNexus::yielding_p(VM* vm) {
     return (vm->thread_phase() & cYielding) == cYielding;
   }
@@ -65,6 +69,7 @@ namespace rubinius {
     stop_ = false;
     threads_lock_.init();
     lock_.init(true);
+    sleep_lock_.init();
     wait_mutex_.init();
     wait_condition_.init();
 
@@ -103,6 +108,8 @@ namespace rubinius {
         return "cUnmanaged";
       case ThreadNexus::cWaiting:
         return "cWaiting";
+      case ThreadNexus::cSleeping:
+        return "cSleeping";
       case ThreadNexus::cYielding:
         return "cYielding";
       case ThreadNexus::cBlocking:
@@ -221,9 +228,14 @@ namespace rubinius {
   }
 
   void ThreadNexus::waiting_lock(VM* vm) {
-    vm->set_thread_phase(ThreadNexus::cWaiting);
+    vm->set_thread_phase(cWaiting);
     lock_.lock();
-    vm->set_thread_phase(ThreadNexus::cManaged);
+    vm->set_thread_phase(cManaged);
+  }
+
+  void ThreadNexus::sleep_lock(VM* vm) {
+    utilities::thread::Mutex::LockGuard guard(sleep_lock_);
+    vm->become_managed();
   }
 
   void ThreadNexus::lock(VM* vm) {
@@ -254,21 +266,38 @@ namespace rubinius {
   }
 
   void ThreadNexus::wait_till_alone(VM* vm) {
+    /* We block acquiring the sleep lock so that any waking thread that raced
+     * us to it will finish waking up. Any sleeping thread that wakes up after
+     * we get the lock will block until the process exits because once we
+     * acquire the sleep lock, we never unlock it.
+     */
+    sleep_lock_.lock();
+
     vm->set_thread_phase(cWaiting);
 
     uint64_t ns = 0;
 
     // TODO: add thread_stop signalling
     while(true) {
+      bool blocking = false;
+
       {
         utilities::thread::SpinLock::LockGuard guard(threads_lock_);
 
-        if(threads_.size() == 1) {
-          if(threads_.front()->as_vm() == vm) {
-            return;
+        for(ThreadList::iterator i = threads_.begin();
+               i != threads_.end();
+               ++i)
+        {
+          if(VM* other_vm = (*i)->as_vm()) {
+            if(vm == other_vm || sleeping_p(other_vm)) continue;
+
+            blocking = true;
+            break;
           }
         }
       }
+
+      if(!blocking) return;
 
       ns += delay();
 

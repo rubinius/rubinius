@@ -27,6 +27,21 @@ namespace rubinius {
     }
   };
 
+  class SleepPhase {
+    State* state_;
+
+  public:
+    SleepPhase(STATE)
+      : state_(state)
+    {
+      state->vm()->set_thread_phase(ThreadNexus::cSleeping);
+    }
+
+    ~SleepPhase() {
+      state_->shared().thread_nexus()->sleep_lock(state_->vm());
+    }
+  };
+
   class ManagedPhase {
     State* state_;
 

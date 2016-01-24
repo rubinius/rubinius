@@ -23,6 +23,7 @@ namespace rubinius {
     bool stop_;
     utilities::thread::SpinLock threads_lock_;
     utilities::thread::Mutex lock_;
+    utilities::thread::Mutex sleep_lock_;
     utilities::thread::Mutex wait_mutex_;
     utilities::thread::Condition wait_condition_;
     ThreadList threads_;
@@ -35,6 +36,7 @@ namespace rubinius {
       cBlocking   = 0x04,
       cUnmanaged  = 0x81,
       cWaiting    = 0x82,
+      cSleeping   = 0x84,
       cYielding   = 0x80
     };
 
@@ -42,6 +44,7 @@ namespace rubinius {
       : stop_(false)
       , threads_lock_()
       , lock_(true)
+      , sleep_lock_()
       , wait_mutex_()
       , wait_condition_()
       , threads_()
@@ -77,6 +80,7 @@ namespace rubinius {
 
     bool blocking_p(VM* vm);
     void blocking(VM* vm);
+    bool sleeping_p(VM* vm);
     bool yielding_p(VM* vm);
     void yielding(VM* vm);
     bool serialized_p(VM* vm);
@@ -96,6 +100,7 @@ namespace rubinius {
     void lock(VM* vm);
     void waiting_lock(VM* vm);
     void managed_lock(VM* vm);
+    void sleep_lock(VM* vm);
     bool stop_lock(VM* vm);
 
     void wait_till_alone(VM* vm);
