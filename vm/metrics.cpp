@@ -73,7 +73,7 @@ namespace rubinius {
         }
       }
 
-      if(write(fd_, "\n", 1)) {
+      if(write(fd_, "\n", 1) < 0) {
         logger::error("%s: unable to write file metrics", strerror(errno));
       }
     }
@@ -97,7 +97,7 @@ namespace rubinius {
           }
         }
 
-        if(write(fd_, "\n", 1)) {
+        if(write(fd_, "\n", 1) < 0) {
           logger::error("%s: unable to write file metrics", strerror(errno));
         }
       }
