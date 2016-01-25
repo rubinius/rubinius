@@ -42,8 +42,9 @@ class String
     alias_method :dup, :clone
   end
 
-  def initialize(arg = undefined)
+  def initialize(arg = undefined, encoding: nil)
     replace arg unless undefined.equal?(arg)
+    self.force_encoding(encoding) if encoding
     self
   end
 

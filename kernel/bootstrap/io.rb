@@ -145,13 +145,6 @@ class IO
     raise PrimitiveFailure, "io_socket_read failed"
   end
 
-  module Socketable
-    def accept
-      Rubinius.primitive :io_accept
-      raise PrimitiveFailure, "io_accept failed"
-    end
-  end
-
   module TransferIO
     def send_io
       Rubinius.primitive :io_send_io

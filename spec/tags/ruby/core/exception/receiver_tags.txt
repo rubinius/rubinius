@@ -1,0 +1,1 @@
+fails:NameError#receiver returns the receiver of the method call where the error occurred

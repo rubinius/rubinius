@@ -37,5 +37,9 @@ describe "Dir#close" do
     DirSpecs.delete_mock_dirs
   end
 
-  it_behaves_like :dir_closed, :close
+  it "returns nil when called on a closed Dir instance" do
+    dir = Dir.open DirSpecs.mock_dir
+    dir.close
+    dir.close.should == nil
+  end
 end

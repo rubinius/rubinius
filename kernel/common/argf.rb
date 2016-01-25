@@ -330,6 +330,7 @@ module Rubinius
     def read(bytes=nil, output=nil)
       # The user might try to pass in nil, so we have to check here
       output ||= default_value
+      output.clear
 
       if bytes
         bytes_left = bytes
@@ -400,6 +401,27 @@ module Rubinius
     end
 
     alias_method :to_a, :readlines
+
+    def readpartial(maxlen, output=nil)
+      output ||= default_value
+
+      unless advance!
+        output.clear
+        raise EOFError, "ARGF at end"
+      end
+
+      begin
+        @stream.readpartial(maxlen, output)
+      rescue EOFError => e
+        raise e if @use_stdin_only
+
+        @stream.close
+        @advance = true
+        advance! or raise e
+      end
+
+      return output
+    end
 
     #
     # Rewind the stream to its beginning.

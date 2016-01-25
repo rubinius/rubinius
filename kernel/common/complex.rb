@@ -25,6 +25,8 @@ class Complex < Numeric
   undef_method :step
   undef_method :truncate
   undef_method :i
+  undef_method :positive?
+  undef_method :negative?
 
   def self.convert(real, imag = undefined)
     if real.equal?(nil) || imag.equal?(nil)

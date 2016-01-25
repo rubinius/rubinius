@@ -158,4 +158,18 @@ describe "The super keyword" do
   it "invokes methods from a chain of anonymous modules" do
     Super::AnonymousModuleIncludedTwice.new.a([]).should == ["anon", "anon", "non-anon"]
   end
+
+  describe 'when using keyword arguments' do
+    it 'passes any given keyword arguments to the parent' do
+      b = Super::KeywordArguments::B.new
+
+      b.foo(:number => 10).should == {:number => 10}
+    end
+
+    it 'does not pass any keyword arguments to the parent when none are given' do
+      b = Super::KeywordArguments::B.new
+
+      b.foo.should == {}
+    end
+  end
 end

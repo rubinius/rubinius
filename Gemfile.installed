@@ -8,7 +8,7 @@ gem "daedalus-core", "~> 0.1"
 gem "rubinius-build_tools", "~> 2.0"
 gem "rubinius-developer_tools", "~> 2.0"
 
-gem "rubysl", "~> 2.0"
+gem "rubysl", "~> 2.2"
 gem "rubysl-test-unit", "~> 2.0"
 gem "minitest", "~> 4.7"
 gem "racc", "~> 1.4"

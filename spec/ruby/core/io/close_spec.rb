@@ -31,9 +31,9 @@ describe "IO#close" do
     lambda { @io.write "data" }.should raise_error(IOError)
   end
 
-  it "raises an IOError if closed" do
+  it "does nothing if closed" do
     @io.close
-    lambda { @io.close }.should raise_error(IOError)
+    @io.close.should == nil
   end
 end
 

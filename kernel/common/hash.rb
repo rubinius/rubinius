@@ -252,6 +252,37 @@ class Hash
     true
   end
 
+  def <(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other > self
+  end
+
+  def <=(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other >= self
+  end
+
+  def >(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+
+    return false if size <= other.size
+
+    self >= other
+  end
+
+  def >=(other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+
+    return false if size < other.size
+
+    other.each do |other_key, other_val|
+      val = fetch(other_key, undefined)
+      return false if undefined.equal?(val) || val != other_val
+    end
+
+    true
+  end
+
   def assoc(key)
     each_item { |e| return e.key, e.value if key == e.key }
   end
@@ -322,6 +353,15 @@ class Hash
     return yield(key) if block_given?
   end
 
+  def dig(key, *remaining_keys)
+    item = self[key]
+    return item if remaining_keys.empty? || item.nil?
+
+    raise TypeError, "#{item.class} does not have #dig method" unless item.respond_to?(:dig)
+
+    item.dig(*remaining_keys)
+  end
+
   def each_item
     return unless @state
 
@@ -356,6 +396,10 @@ class Hash
     return yield(key) if block_given?
     return default unless undefined.equal?(default)
     raise KeyError, "key #{key} not found"
+  end
+
+  def fetch_values(*keys, &block)
+    keys.map { |key| fetch(key, &block) }
   end
 
   # Searches for an item matching +key+. Returns the item
@@ -789,6 +833,10 @@ class Hash
 
   def to_hash
     self
+  end
+
+  def to_proc
+    method(:[]).to_proc
   end
 
   def value?(value)

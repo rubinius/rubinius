@@ -41,32 +41,8 @@ describe "Enumerable#slice_before" do
     end
 
     describe "and an argument" do
-      it "calls the block with a copy of that argument" do
-        arg = [:foo]
-        first = nil
-        e = @enum.slice_before(arg) do |i, init|
-          init.should == arg
-          init.should_not equal(arg)
-          first = init
-          i == 6 || i == 2
-        end
-        e.should be_an_instance_of(enumerator_class)
-        e.to_a.should == [[7], [6, 5, 4, 3], [2, 1]]
-        e = @enum.slice_before(arg) do |i, init|
-          init.should_not equal(first)
-        end
-        e.to_a
-      end
-
-      quarantine! do # need to double-check with ruby-core. Might be wrong or too specific
-        it "duplicates the argument directly without calling dup" do
-          arg = EnumerableSpecs::Undupable.new
-          e = @enum.slice_before(arg) do |i, init|
-            init.initialize_dup_called.should be_true
-            false
-          end
-          e.to_a.should == [[7, 6, 5, 4, 3, 2, 1]]
-        end
+      it "raises an ArgumentError" do
+        lambda { @enum.slice_before("one") { |i| i == 6 } }.should raise_error(ArgumentError)
       end
     end
   end

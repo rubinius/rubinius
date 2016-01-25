@@ -1125,6 +1125,8 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
+    return if closed?
+
     if @mode == WRONLY || @mode == RDWR
       raise IOError, 'closing non-duplex IO for reading'
     end
@@ -1145,6 +1147,8 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
+    return if closed?
+
     if @mode == RDONLY || @mode == RDWR
       raise IOError, 'closing non-duplex IO for writing'
     end
@@ -1394,6 +1398,7 @@ class IO
       end
     end
 
+    raise ArgumentError, "limit of 0 is invalid" if limit && limit.zero?
     return if @ibuffer.exhausted?
 
     EachReader.new(self, @ibuffer, sep, limit).each(&block)
@@ -1792,16 +1797,20 @@ class IO
       args.each do |arg|
         if arg.equal? nil
           str = ""
+        elsif arg.kind_of? String
+          str = arg
         elsif Thread.guarding? arg
           str = "[...]"
-        elsif arg.respond_to?(:to_ary)
+        else
           Thread.recursion_guard arg do
-            arg.to_ary.each do |a|
-              puts a
+            begin
+              arg.to_ary.each { |a| puts a }
+            rescue NoMethodError
+              unless (str = arg.to_s).kind_of? String
+                str = "#<#{arg.class}:0x#{arg.object_id.to_s(16)}>"
+              end
             end
           end
-        else
-          str = arg.to_s
         end
 
         if str
@@ -1886,9 +1895,14 @@ class IO
   #
   # If the read buffer is not empty, read_nonblock reads from the
   # buffer like readpartial. In this case, read(2) is not called.
-  def read_nonblock(size, buffer=nil)
+  def read_nonblock(size, buffer=nil, opts={})
     raise ArgumentError, "illegal read size" if size < 0
     ensure_open
+
+    if buffer.is_a?(Hash)
+      opts = buffer
+      buffer = nil
+    end
 
     buffer = StringValue buffer if buffer
 
@@ -1896,11 +1910,19 @@ class IO
       return @ibuffer.shift(size)
     end
 
-    if str = read_if_available(size)
+    begin
+      str = read_if_available(size)
+    rescue EAGAINWaitReadable => exc
+      raise exc unless opts[:exception] == false
+
+      return :wait_readable
+    end
+
+    if str
       buffer.replace(str) if buffer
       return str
     else
-      raise EOFError, "stream closed"
+      raise EOFError, "stream closed" unless opts[:exception] == false
     end
   end
 
@@ -2429,7 +2451,7 @@ class IO
     data.bytesize
   end
 
-  def write_nonblock(data)
+  def write_nonblock(data, opts={})
     ensure_open_and_writable
 
     data = String data
@@ -2438,9 +2460,14 @@ class IO
     @ibuffer.unseek!(self) unless @sync
 
     raw_write(data)
+  rescue EAGAINWaitWritable => exc
+    raise exc unless opts[:exception] == false
+
+    return :wait_writable
   end
 
   def close
+    return if closed?
     begin
       flush
     ensure
@@ -2493,13 +2520,11 @@ class IO::BidirectionalPipe < IO
   end
 
   def close_read
-    raise IOError, 'closed stream' if closed?
-
     close
   end
 
   def close_write
-    raise IOError, 'closed stream' if @write.closed?
+    return if @write.closed?
 
     @write.close
   end
