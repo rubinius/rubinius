@@ -2204,6 +2204,12 @@ instruction zsuper(literal) [ block -- value ]
     }
   }
 
+  native_int keywords_position, placeholder_position;
+  if(mc->keywords) {
+    placeholder_position = splat_obj ? mc->total_args : mc->total_args - 1;
+    keywords_position = placeholder_position + 1;
+  }
+
   Tuple* tup = Tuple::create_dirty(state, arg_count);
   for(int i = 0; i < mc->total_args; i++) {
     tup->put(state, i, scope->get_local(state, i));
@@ -2215,6 +2221,18 @@ instruction zsuper(literal) [ block -- value ]
     }
   } else if(splat_obj) {
     tup->put(state, mc->total_args, splat_obj);
+  }
+
+  if(mc->keywords) {
+    Object* placeholder = scope->get_local(state, placeholder_position);
+    Array* ary = Array::create(state, 2);
+
+    for(native_int i = keywords_position; i <= mc->keywords_count; i++) {
+      ary->set(state, 0, as<Symbol>(call_frame->compiled_code->local_names()->at(state, i)));
+      ary->set(state, 1, scope->get_local(state, i));
+
+      placeholder->send(state, call_frame, state->symbol("[]="), ary);
+    }
   }
 
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
