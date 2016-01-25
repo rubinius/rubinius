@@ -166,6 +166,12 @@ describe "The super keyword" do
       b.foo(:number => 10).should == {:number => 10}
     end
 
+    it "passes any given keyword arguments including optional and required ones to the parent" do
+      c = Super::KeywordArguments::C.new
+
+      c.foo(a: 'a', c: 'c').should == {a: 'a', b: 'b', c: 'c'}
+    end
+
     it 'does not pass any keyword arguments to the parent when none are given' do
       b = Super::KeywordArguments::B.new
 
