@@ -534,7 +534,24 @@ class IO
       ensure_open
       FFI::Platform::POSIX.isatty(@descriptor) == 1
     end
-    
+
+    def ttyname
+      # Need to protect this call with a lock since the OS copies this string information
+      # to an internal static object and returns a pointer to that object. Future calls
+      # to #ttyname modify that same object. Therefore, we need to protect this from
+      # race conditions.
+      Rubinius.lock(self)
+      name = FFI::Platform::POSIX.ttyname(descriptor)
+      if name
+        name
+      else
+        Errno.handle("ttyname(3) failed")
+        nil
+      end
+    ensure
+      Rubinius.unlock(self)
+    end
+
     def inspect
       stat = Stat.fstat(@descriptor)
       "fd [#{descriptor}], mode [#{@mode}], total_size [#{@total_size}], offset [#{@offset}], eof [#{@eof}], stat.size [#{stat.size}], written? [#{@written}]"
@@ -3230,6 +3247,10 @@ class IO
   end
 
   alias_method :isatty, :tty?
+
+  def ttyname
+    @fd.ttyname
+  end
 
   def syswrite(data)
     data = String data

@@ -24,15 +24,6 @@ class IO
     raise PrimitiveFailure, "IO#fnmatch primitive failed"
   end
 
-  def query(which)
-    Rubinius.primitive :io_query
-    raise PrimitiveFailure, "IO#query primitive failed"
-  end
-
-  def ttyname
-    query :ttyname
-  end
-
   #
   # Close read and/or write stream of a full-duplex descriptor.
   #
