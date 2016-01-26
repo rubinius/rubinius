@@ -66,6 +66,7 @@ module FFI::Platform::POSIX
 
   #   inspecting
   attach_function :isatty,   [:int], :int
+  attach_function :ttyname,  [:int], :string
 
   #   locking
   attach_function :flock, [:int, :int], :int
