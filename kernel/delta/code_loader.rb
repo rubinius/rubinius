@@ -137,7 +137,7 @@ module Rubinius
             require_compiled "rubinius/melbourne"
             require_compiled "rubinius/processor"
             require_compiled "rubinius/compiler"
-            require_compiled "rubinius/ast"
+            require_compiled "rubinius/code/ast"
           end
         rescue Object => e
           raise LoadError, "Unable to load the bytecode compiler", e
