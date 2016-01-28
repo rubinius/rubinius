@@ -229,7 +229,7 @@ namespace :compiler do
       require "rubinius/melbourne"
       require "rubinius/processor"
       require "rubinius/compiler"
-      require "rubinius/ast"
+      require "rubinius/code/ast"
     end
 
     require File.expand_path("../../kernel/signature", __FILE__)
