@@ -28,8 +28,8 @@ describe "Enumerable#slice_when" do
     end
   end
 
-  describe "when iterator method yields more than one value" do
-    it "should process all yielded values" do
+  describe "when an iterator method yields more than one value" do
+    it "processes all yielded values" do
       def foo
         yield 1, 2
       end
