@@ -53,7 +53,10 @@ module Enumerable
   def count(item = undefined)
     seq = 0
     if !undefined.equal?(item)
-      each { |element| seq += 1 if item == element }
+      each do
+        element = Rubinius.single_block_arg
+        seq += 1 if item == element
+      end
     elsif block_given?
       each { |element| seq += 1 if yield(element) }
     else
