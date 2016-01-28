@@ -140,7 +140,8 @@ module Enumerable
 
     Enumerator.new do |yielder|
       accumulator = nil
-      each do |element|
+      each do
+        element = Rubinius.single_block_arg
         start_new = block.yield(element)
         if start_new
           yielder.yield accumulator if accumulator
@@ -164,7 +165,8 @@ module Enumerable
 
     Enumerator.new do |yielder|
       accumulator = nil
-      each do |element|
+      each do
+        element = Rubinius.single_block_arg
         end_chunk = block.yield(element)
         accumulator ||= []
         if end_chunk
