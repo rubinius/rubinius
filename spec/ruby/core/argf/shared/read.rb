@@ -75,10 +75,10 @@ describe :argf_read, shared: true do
     end
 
     it "reads the contents of the file with default encoding" do
-      Encoding.default_external = Encoding::US_ASCII
+      Encoding.default_external = Encoding::ASCII_8BIT
 
       argv [@file1_name, @file2_name] do
-        ARGF.send(@method, 4).encoding.should == Encoding::US_ASCII
+        ARGF.send(@method, 4).encoding.should == Encoding::ASCII_8BIT
       end
     end
   end
