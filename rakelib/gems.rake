@@ -22,7 +22,7 @@ namespace :gems do
 
   task :melbourne do
     prefix = "#{BUILD_CONFIG[:build_prefix]}#{BUILD_CONFIG[:runtimedir]}"
-    path = Dir["#{prefix}/gems/rubinius-melbourne-*/ext/rubinius/melbourne"].first
+    path = Dir["#{prefix}/gems/rubinius-melbourne-*/ext/rubinius/code/melbourne"].first
     Dir.chdir path do
       begin
         ENV["RBX_RUN_COMPILED"] = "1"

@@ -40,9 +40,16 @@ The following Ruby features are not supported on Rubinius:
 
 4. License
 
-Rubinius uses the MPL-2.0 license. See LICENSE for details. Contributions made
-prior to January 3rd, 2016 are licensed under the old BSD 3-clause license. A
-copy of this license can be found in the file "BSD_LICENSE".
+All source code in this repository is subject to the terms of the Mozilla Public
+License, version 2.0 unless stated otherwise. A copy of this license can be
+found the file "LICENSE" or at https://www.mozilla.org/MPL/2.0/.
+
+Contributions made prior to January 3rd, 2016 are licensed under the old BSD
+3-clause license. A copy of this license can be found in the file "BSD_LICENSE".
+
+In the event a directory contains a "LICENSE", "LICENSE.txt" or "COPYING" file
+the license specified in said file applies to the contents of said directory and
+all sub directories, overwriting the licenses specified above.
 
 5. Installing Rubinius from Source
 

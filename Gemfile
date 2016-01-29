@@ -6,4 +6,4 @@ gem "redcard", "~> 1.0"
 gem "daedalus-core", "~> 0.1"
 gem "rubinius-bridge", "~> 1.0"
 
-gem "rubinius-build_tools", "~> 2.0"
+gem "rubinius-code", "~> 3"
