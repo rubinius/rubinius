@@ -223,12 +223,12 @@ namespace :compiler do
 
   task :load => ['compiler:generate'] do
     require "rubinius/bridge"
-    require "rubinius/toolset"
+    require "rubinius/code/toolset"
 
     Rubinius::ToolSets.create :build do
-      require "rubinius/melbourne"
-      require "rubinius/processor"
-      require "rubinius/compiler"
+      require "rubinius/code/melbourne"
+      require "rubinius/code/processor"
+      require "rubinius/code/compiler"
       require "rubinius/code/ast"
     end
 
