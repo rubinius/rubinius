@@ -355,7 +355,7 @@ module Enumerable
     sort_values = map do
       element = Rubinius.single_block_arg
       SortedElement.new(element, yield(element))
-    end
+    end.to_a
 
     # Now sort the tuple according to the sort by value
     sort_values.sort!
