@@ -363,6 +363,29 @@ module Rubinius
       output
     end
 
+    def read_nonblock(maxlen, output = nil, exception: true)
+      output ||= default_value
+
+      unless advance!
+        output.clear
+        raise EOFError, "ARGF at end"
+      end
+
+      begin
+        out = @stream.read_nonblock(maxlen, output, exception: exception)
+
+        return out if out == :wait_readable
+      rescue EOFError => e
+        raise e if @use_stdin_only
+
+        @stream.close
+        @advance = true
+        advance! or raise e
+      end
+
+      return output
+    end
+
     #
     # Read next line of text.
     #
