@@ -299,7 +299,6 @@ namespace rubinius {
     state->vm()->thread->pid(state, Fixnum::from(gettid()));
 
     state->shared().env()->load_kernel(state, runtime);
-    state->shared().env()->run_file(state, runtime + "/loader.rbc");
 
     state->vm()->thread->alive(state, cTrue);
     state->vm()->thread_state()->clear();

@@ -470,27 +470,6 @@ namespace rubinius {
     state->shared().set_use_capi_lock(config.capi_lock);
   }
 
-  void Environment::load_directory(STATE, std::string dir) {
-    // Read the version-specific load order file.
-    std::string path = dir + "/load_order.txt";
-    std::ifstream stream(path.c_str());
-    if(!stream) {
-      std::string msg = "Unable to load directory, " + path + " is missing";
-      throw std::runtime_error(msg);
-    }
-
-    while(!stream.eof()) {
-      std::string line;
-      stream >> line;
-      stream.get(); // eat newline
-
-      // skip empty lines
-      if(line.empty()) continue;
-
-      run_file(state, dir + "/" + line);
-    }
-  }
-
   void Environment::load_platform_conf(std::string dir) {
     std::string path = dir + "/platform.conf";
     std::ifstream stream(path.c_str());
@@ -636,29 +615,7 @@ namespace rubinius {
    *             relative to this path.
    */
   void Environment::load_kernel(STATE, std::string root) {
-    // Check that the index file exists; this tells us which sub-directories to
-    // load, and the order in which to load them
-    std::string index = root + "/index";
-    std::ifstream stream(index.c_str());
-    if(!stream) {
-      std::string error = "Unable to load kernel index: " + root;
-      throw std::runtime_error(error);
-    }
-
-    // Load alpha
-    run_file(state, root + "/alpha.rbc");
-
-    while(!stream.eof()) {
-      std::string line;
-
-      stream >> line;
-      stream.get(); // eat newline
-
-      // skip empty lines
-      if(line.empty()) continue;
-
-      load_directory(state, root + "/" + line);
-    }
+    run_file(state, root + "/kernel.rbc");
   }
 
   void Environment::load_tool() {
