@@ -131,12 +131,12 @@ module Rubinius
             $LOAD_PATH.unshift dir
           end
 
-          require_compiled "rubinius/toolset"
+          require_compiled "rubinius/code/toolset"
 
           Rubinius::ToolSets.create :runtime do
-            require_compiled "rubinius/melbourne"
-            require_compiled "rubinius/processor"
-            require_compiled "rubinius/compiler"
+            require_compiled "rubinius/code/melbourne"
+            require_compiled "rubinius/code/processor"
+            require_compiled "rubinius/code/compiler"
             require_compiled "rubinius/code/ast"
           end
         rescue Object => e
