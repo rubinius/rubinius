@@ -26,9 +26,6 @@ end
 # TODO: Build this functionality into the compiler
 class KernelCompiler
   def self.compile(file, output, line=1, transforms=[:default, :kernel])
-    puts "compiling: #{file}, #{output}, #{line}, #{transforms.inspect}"
-    return
-
     compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_library
 
     parser = compiler.parser
@@ -64,12 +61,12 @@ kernel_load_order = "kernel/load_order.txt"
 kernel_files = FileList[]
 
 IO.foreach kernel_load_order do |name|
-  kernel_files << name.chomp
+  kernel_files << "#{BUILD_CONFIG[:sourcedir]}/kernel/#{name.chomp}"
 end
 
 file runtime_kernel_file => kernel_files + [signature_file] do |t|
   t.prerequisites.each do |source|
-    puts "RBC #{source}"
+    puts "RBC #{File.basename source}"
     KernelCompiler.compile source, t.name, 1, [:default, :kernel]
   end
 end
@@ -79,11 +76,6 @@ end
 runtime_files = FileList[
   "runtime/platform.conf",
   runtime_kernel_file
-]
-
-bootstrap_files = FileList[
-  "library/rbconfig.rb",
-  "library/rubinius/build_config.rb",
 ]
 
 runtime_gems_dir = BUILD_CONFIG[:runtime_gems_dir]
