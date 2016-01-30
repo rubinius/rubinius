@@ -4,6 +4,7 @@
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
+#include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 #include "object_memory.hpp"
 #include "primitives.hpp"
@@ -57,12 +58,21 @@ namespace rubinius {
 
     RIO* Handle::as_rio(NativeMethodEnvironment* env) {
       IO* io_obj = c_as<IO>(object());
+      ID id_descriptor = rb_intern("descriptor");
+      ID id_mode = rb_intern("mode");
+      VALUE jobj = env->get_handle(io_obj);
 
       if(type_ != cRIO) {
         env->shared().capi_ds_lock().lock();
 
         if(type_ != cRIO) {
-          int fd = (int)io_obj->descriptor()->to_native();
+          native_int fd = -1;
+          VALUE fileno = rb_funcall(jobj, id_descriptor, 0);
+          Fixnum* tmp_fd = try_as<Fixnum>(env->get_object(fileno));
+
+          if(tmp_fd) {
+            fd = tmp_fd->to_native();
+          }
 
           env->shared().capi_ds_lock().unlock();
 
@@ -72,7 +82,7 @@ namespace rubinius {
             rb_raise(rb_eIOError, "%s (%d)", err, errno);
           }
 
-          FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
+          FILE* f = fdopen(fd, flags_modestr(try_as<Fixnum>(env->get_object(rb_funcall(jobj, id_mode, 0)))->to_native()));
 
           if(!f) {
             char buf[RBX_STRERROR_BUFSIZE];
@@ -165,8 +175,7 @@ extern "C" {
   int rb_io_fd(VALUE io_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    IO* io = c_as<IO>(env->get_object(io_handle));
-    return io->descriptor()->to_native();
+    return c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("fileno"), 0)))->to_native();
   }
 
   long rb_io_fread(char* ptr, int len, FILE* f) {
@@ -351,10 +360,9 @@ extern "C" {
 
   void rb_io_set_nonblock(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE fd_ivar = rb_ivar_get(io_handle, rb_intern("fd"));
 
-    IO* io = c_as<IO>(env->get_object(io_handle));
-    io->set_nonblock(env->state());
+    rb_funcall(fd_ivar, rb_intern("set_nonblock"), 0);
   }
 
   VALUE rb_io_check_io(VALUE io) {
@@ -369,9 +377,8 @@ extern "C" {
   void rb_io_check_closed(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    IO* io = c_as<IO>(env->get_object(io_handle));
 
-    if(io->descriptor()->to_native() == -1) {
+    if(c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("fileno"), 0)))->to_native() == -1) {
       rb_raise(rb_eIOError, "closed stream");
     }
   }
@@ -379,8 +386,7 @@ extern "C" {
   void rb_io_check_readable(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    IO* io = c_as<IO>(env->get_object(io_handle));
-    int io_mode = io->mode()->to_native() & O_ACCMODE;
+    int io_mode = c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("mode"), 0)))->to_native() & O_ACCMODE;
     if(!(O_RDONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for reading");
     }
@@ -389,8 +395,7 @@ extern "C" {
   void rb_io_check_writable(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    IO* io = c_as<IO>(env->get_object(io_handle));
-    int io_mode = io->mode()->to_native() & O_ACCMODE;
+    int io_mode = c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("mode"), 0)))->to_native() & O_ACCMODE;
     if(!(O_WRONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for writing");
     }
@@ -398,16 +403,34 @@ extern "C" {
 
   void rb_update_max_fd(int fd) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    IO::update_max_fd(env->state(), fd);
+    State *state = env->state();
+    Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
+    VALUE fd_class = env->get_handle(fd_object);
+    VALUE descriptor = env->get_handle(Fixnum::from(fd));
+
+    rb_funcall(fd_class, rb_intern("update_max_fd"), 1, descriptor);
   }
 
   void rb_fd_fix_cloexec(int fd) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    IO::new_open_fd(env->state(), fd);
+    State *state = env->state();
+    Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
+    VALUE fd_class = env->get_handle(fd_object);
+    VALUE descriptor = env->get_handle(Fixnum::from(fd));
+
+    rb_funcall(fd_class, rb_intern("new_open_fd"), 1, descriptor);
   }
 
   int rb_cloexec_open(const char *pathname, int flags, int mode) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return IO::open_with_cloexec(env->state(), pathname, mode, flags);
+    State *state = env->state();
+    Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
+    VALUE fd_class = env->get_handle(fd_object);
+    VALUE pathname_v = env->get_handle(String::create(env->state(), pathname));
+    VALUE flags_v = env->get_handle(Fixnum::from(flags));
+    VALUE mode_v = env->get_handle(Fixnum::from(mode));
+    VALUE result = rb_funcall(fd_class, rb_intern("open_with_cloexec"), 3, pathname_v, flags_v, mode_v);
+	
+    return c_as<Fixnum>(env->get_object(result))->to_native();
   }
 }

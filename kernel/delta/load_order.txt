@@ -1,5 +1,6 @@
 ctype.rbc
 exception.rbc
+io.rbc
 file.rbc
 rubinius.rbc
 runtime.rbc

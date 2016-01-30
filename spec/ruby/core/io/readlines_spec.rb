@@ -111,9 +111,9 @@ describe "IO#readlines" do
     it "gets data from a fork when passed -" do
       lines = IO.readlines("|-")
 
-      if lines # parent
+      if !lines.empty? # parent, #readlines always returns an array
         lines.should == ["hello\n", "from a fork\n"]
-      else
+      elsif lines.empty?
         puts "hello"
         puts "from a fork"
         exit!

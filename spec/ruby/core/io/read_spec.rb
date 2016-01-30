@@ -278,6 +278,23 @@ describe "IO#read" do
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_io.read }.should raise_error(IOError)
   end
+
+  it "raises IOError when stream is closed by another thread" do
+    r, w = IO.pipe
+    t = Thread.new do
+      begin
+        r.read(1)
+      rescue => e
+        e
+      end
+    end
+    
+    sleep(0.1) until t.stop?
+    r.close
+    t.join
+    t.value.should be_kind_of(IOError)
+    w.close
+  end
 end
 
 platform_is :windows do
@@ -544,7 +561,6 @@ end
 
 describe "IO#read with large data" do
   before :each do
-    # TODO: what is the significance of this mystery math?
     @data_size = 8096 * 2 + 1024
     @data = "*" * @data_size
 

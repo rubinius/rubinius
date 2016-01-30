@@ -204,7 +204,45 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
   };
+  
+  class FDSet : public Object {
+  public:
+    const static object_type type = FDSetType;
+    
+  private:
+    uint8_t descriptor_set[sizeof(fd_set)];
+    
+  public:
+  
+    static void init(STATE);
 
+    static FDSet* create(STATE);
+    
+    // Rubinius.primitive :fdset_allocate
+    static FDSet* allocate(STATE, Object* self);
+    
+      // Rubinius.primitive :fdset_zero
+    Object* zero(STATE);
+    
+    // Rubinius.primitive :fdset_is_set
+    Object* is_set(STATE, Fixnum* descriptor);
+    
+    // Rubinius.primitive :fdset_set
+    Object* set(STATE, Fixnum* descriptor);
+	
+	// Rubinius.primitive :fdset_to_set
+	Object* to_set(STATE);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      void auto_mark(Object* obj, ObjectMark& mark) { }
+      void set_field(STATE, Object* target, size_t index, Object* val) { }
+      Object* get_field(STATE, Object* target, size_t index) { return cNil; }
+      void populate_slot_locations() { }
+    };
+  };
+  
 }
 
 #endif

@@ -4,6 +4,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/ffi_pointer.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
 #include "builtin/string.hpp"
@@ -1483,4 +1484,54 @@ failed: /* try next '*' position */
     start += used_->to_native();
     return start;
   }
-};
+  
+  void FDSet::init(STATE) {
+    // Create a constant for FDSet under the IO::Select namespace, i.e. IO::Select::FDSet
+    GO(select).set(ontology::new_class_under(state, "Select", G(io)));
+    GO(fdset).set(ontology::new_class_under(state, "FDSet", G(select)));
+    G(fdset)->set_object_type(state, FDSetType);
+  }
+
+  FDSet* FDSet::allocate(STATE, Object* self) {
+    FDSet* fdset = create(state);
+    fdset->klass(state, as<Class>(self));
+    return fdset;
+  }
+
+  FDSet* FDSet::create(STATE) {
+    FDSet* fdset = state->new_object<FDSet>(G(fdset));
+    return fdset;
+  }
+  
+  Object* FDSet::zero(STATE) {
+    FD_ZERO((fd_set*)descriptor_set);
+    return cTrue;
+  }
+  
+  Object* FDSet::set(STATE, Fixnum* descriptor) {
+    native_int fd = descriptor->to_native();
+    
+    FD_SET((int_fd_t)fd, (fd_set*)descriptor_set);
+    
+    return cTrue;
+  }
+  
+  Object* FDSet::is_set(STATE, Fixnum* descriptor) {
+    native_int fd = descriptor->to_native();
+    
+    if (FD_ISSET(fd, (fd_set*)descriptor_set)) {
+      return cTrue;
+    }
+    else {
+      return cFalse;
+    }
+  }
+
+  Object* FDSet::to_set(STATE) {
+    void *ptr = (void*)&descriptor_set;
+
+    return Pointer::create(state, ptr);
+  }
+  
+}; // ends namespace rubinius
+

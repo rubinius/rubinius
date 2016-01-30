@@ -82,6 +82,10 @@ module FFI
       FFI::Platform::POSIX.errno
     end
 
+    # Convenience method for determining if a function call succeeded or failed
+    def call_failed?(return_code)
+      return_code == -1
+    end
   end
 
   # Converts a char
@@ -98,15 +102,23 @@ module FFI
 
   # Converts an unsigned short
   add_typedef TYPE_USHORT,  :ushort
+  add_typedef TYPE_USHORT,  :mode_t
+  add_typedef TYPE_USHORT,  :nlink_t
 
   # Converts an int
   add_typedef TYPE_INT,     :int
+  add_typedef TYPE_INT,     :dev_t
+  add_typedef TYPE_INT,     :blksize_t
+  add_typedef TYPE_INT,     :time_t
 
   # Converts an unsigned int
   add_typedef TYPE_UINT,    :uint
+  add_typedef TYPE_UINT,    :uid_t
+  add_typedef TYPE_UINT,    :gid_t
 
   # Converts a long
   add_typedef TYPE_LONG,    :long
+  add_typedef TYPE_LONG,    :ssize_t
 
   # Converts an unsigned long
   add_typedef TYPE_ULONG,   :ulong
@@ -116,9 +128,12 @@ module FFI
 
   # Converts a long long
   add_typedef TYPE_LL,      :long_long
+  add_typedef TYPE_LL,      :blkcnt_t
+  add_typedef TYPE_LL,      :off_t
 
   # Converts an unsigned long long
   add_typedef TYPE_ULL,     :ulong_long
+  add_typedef TYPE_ULL,     :ino64_t
 
   # Converts a float
   add_typedef TYPE_FLOAT,   :float
