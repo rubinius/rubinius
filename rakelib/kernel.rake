@@ -60,7 +60,6 @@ end
 # Collection of all files in the kernel runtime. Modified by
 # various tasks below.
 runtime_files = FileList["runtime/platform.conf"]
-code_db_source = FileList[]
 code_db_files = FileList[
   "runtime/kernel/contents",
   "runtime/kernel/data",
@@ -72,13 +71,13 @@ code_db_scripts = []
 code_db_code = []
 code_db_data = []
 
-# Names of subdirectories of the language directories.
-dir_names = %w[
-  bootstrap
-  platform
-  common
-  delta
-]
+# All the kernel files are listed in the `kernel_load_order`
+kernel_load_order = "kernel/load_order.txt"
+kernel_files = FileList[]
+
+IO.foreach kernel_load_order do |name|
+  kernel_files << "kernel/#{name.chomp}"
+end
 
 # Generate file tasks for all kernel and load_order files.
 def file_task(re, runtime_files, signature, rb, rbc)
@@ -127,11 +126,6 @@ else
   ffi_files = runtime_gem_files = bootstrap_gem_files = ext_files = []
 end
 
-kernel_files = FileList[
-  "kernel/**/*.txt",
-  "kernel/**/*.rb"
-].exclude(signature_file)
-
 config_files = FileList[
   "Rakefile",
   "config.rb",
@@ -166,15 +160,6 @@ end
 directory(runtime_base_dir = "runtime")
 runtime_files << runtime_base_dir
 
-runtime_index = "#{runtime_base_dir}/index"
-runtime_files << runtime_index
-
-file runtime_index => runtime_base_dir do |t|
-  File.open t.name, "wb" do |file|
-    file.puts dir_names
-  end
-end
-
 signature = "runtime/signature"
 file signature => signature_file do |t|
   File.open t.name, "wb" do |file|
@@ -183,44 +168,6 @@ file signature => signature_file do |t|
   end
 end
 runtime_files << signature
-
-code_db_source << "kernel/alpha.rb"
-
-# All the kernel files
-dir_names.each do |dir|
-  directory(runtime_dir = "runtime/#{dir}")
-  runtime_files << runtime_dir
-
-  load_order = "runtime/#{dir}/load_order.txt"
-  runtime_files << load_order
-
-  kernel_load_order = "kernel/#{dir}/load_order.txt"
-
-  file load_order => [kernel_load_order, signature] do |t|
-    cp t.prerequisites.first, t.name, :verbose => $verbose
-  end
-
-  kernel_dir  = "kernel/#{dir}/"
-  runtime_dir = "runtime/#{dir}/"
-
-  IO.foreach kernel_load_order do |name|
-    rbc = runtime_dir + name.chomp!
-    rb  = kernel_dir + name.chop
-    kernel_file_task runtime_files, signature_file, rb, rbc
-    code_db_source << rb
-  end
-end
-
-code_db_source << "kernel/delta/converter_paths.rb"
-code_db_source << "kernel/loader.rb"
-
-[ signature_file,
-  "kernel/alpha.rb",
-  "kernel/loader.rb",
-  "kernel/delta/converter_paths.rb"
-].each do |name|
-  kernel_file_task runtime_files, signature_file, name
-end
 
 # Build the bootstrap files
 bootstrap_files.each do |name|
@@ -238,7 +185,6 @@ bootstrap_gem_files.each do |name|
 end
 
 namespace :compiler do
-
   task :load => ['compiler:generate'] do
     require "rubinius/bridge"
     require "rubinius/code/toolset"
@@ -293,7 +239,7 @@ end
 file "runtime/kernel/data" => ["runtime/kernel"] + runtime_files do |t|
   puts "CodeDB: writing data..."
 
-  code_db_source.each do |file|
+  kernel_files.each do |file|
     id = CodeDBCompiler.m_id
 
     code_db_code << [id, CodeDBCompiler.compile(file, 1, [:default, :kernel])]
