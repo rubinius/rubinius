@@ -5,7 +5,7 @@ gem "bundler", "~> 1.7"
 gem "redcard", "~> 1.0"
 gem "daedalus-core", "~> 0.1"
 
-gem "rubinius-build_tools", "~> 2.0"
+gem "rubinius-code", "~> 3"
 gem "rubinius-developer_tools", "~> 2.0"
 
 gem "rubysl", "~> 2.2"

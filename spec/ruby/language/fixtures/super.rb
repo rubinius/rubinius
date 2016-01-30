@@ -340,5 +340,11 @@ module Super
         super
       end
     end
+
+    class C < A
+      def foo(a:, b: 'b', **)
+        super
+      end
+    end
   end
 end
