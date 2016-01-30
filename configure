@@ -20,7 +20,7 @@ end
 
 root = File.expand_path File.dirname(__FILE__)
 
-require File.join(root, "kernel", "delta", "options")
+require File.join(root, "kernel", "options")
 
 class Configure
 
@@ -1622,9 +1622,7 @@ int main() { return tgetnum(""); }
 
     write_config_rb @config, config_settings
 
-    lib_rubinius_dir = "#{@sourcedir}/library/rubinius"
-    FileUtils.mkdir_p lib_rubinius_dir unless File.directory? lib_rubinius_dir
-    FileUtils.cp @config, "#{lib_rubinius_dir}/build_config.rb"
+    FileUtils.cp @config, "#{@sourcedir}/kernel/build_config.rb"
 
     # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
