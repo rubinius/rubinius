@@ -53,7 +53,10 @@ module Enumerable
   def count(item = undefined)
     seq = 0
     if !undefined.equal?(item)
-      each { |element| seq += 1 if item == element }
+      each do
+        element = Rubinius.single_block_arg
+        seq += 1 if item == element
+      end
     elsif block_given?
       each { |element| seq += 1 if yield(element) }
     else
@@ -140,7 +143,8 @@ module Enumerable
 
     Enumerator.new do |yielder|
       accumulator = nil
-      each do |element|
+      each do
+        element = Rubinius.single_block_arg
         start_new = block.yield(element)
         if start_new
           yielder.yield accumulator if accumulator
@@ -164,7 +168,8 @@ module Enumerable
 
     Enumerator.new do |yielder|
       accumulator = nil
-      each do |element|
+      each do
+        element = Rubinius.single_block_arg
         end_chunk = block.yield(element)
         accumulator ||= []
         if end_chunk
@@ -350,7 +355,7 @@ module Enumerable
     sort_values = map do
       element = Rubinius.single_block_arg
       SortedElement.new(element, yield(element))
-    end
+    end.to_a
 
     # Now sort the tuple according to the sort by value
     sort_values.sort!
