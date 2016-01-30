@@ -8,6 +8,6 @@ end
 describe "IO#ttyname" do
   it "returns the name of the STDOUT tty" do
     io = $stdout
-    io.ttyname.should =~ /dev\/tty/
+    io.ttyname.should =~ Regexp.new('/dev/')
   end
 end
