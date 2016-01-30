@@ -190,12 +190,20 @@ class IO
       end
 
       @sync = true
+      @autoclose = false
       reset_positioning(@stat)
 
       # Don't bother to add finalization for stdio
       if @descriptor >= 3
-        # finalize
+        # Sometimes a FileDescriptor class is replaced (see IO#reopen) so we need to be
+        # careful we don't finalize that descriptor. Probably need a way to cancel
+        # the finalization when we are transferring an FD from one instance to another.
+        ObjectSpace.define_finalizer(self, method(:finalizer))
       end
+    end
+
+    def autoclose=(bool)
+      @autoclose = bool
     end
 
     def descriptor
@@ -555,6 +563,34 @@ class IO
     def inspect
       stat = Stat.fstat(@descriptor)
       "fd [#{descriptor}], mode [#{@mode}], total_size [#{@total_size}], offset [#{@offset}], eof [#{@eof}], stat.size [#{stat.size}], written? [#{@written}]"
+    end
+
+    def cancel_finalizer
+      ObjectSpace.undefine_finalizer(self)
+    end
+
+    def finalizer
+      return if @descriptor.nil? || @descriptor == -1
+
+      fd = @descriptor
+
+      # Should flush a write buffer here if one exists. Current
+      # implementation does not buffer writes internally, so this
+      # is a no-op.
+
+      # Do not close stdin/out/err (0, 1, and 2)
+      if @descriptor > 3
+        @descriptor = -1
+
+        # Take care of any IO cleanup for the C API here. An IO may
+        # have been promoted to a low-level RIO struct using #fdopen,
+        # so we MUST use #fclose to clost it.
+
+        # no op for now
+
+        # Ignore any return code... don't care if it fails
+        FFI::Platform::POSIX.close(fd) if @autoclose
+      end
     end
   end # class FileDescriptor
 
@@ -1647,8 +1683,13 @@ class IO
       end
     end
 
-    fd_obj = FileDescriptor.choose_type(fd)
-    io.fd = fd_obj
+    # Check the given +io+ for a valid fd instance first. If it has one, don't
+    # allocate another because we could double up on finalizers for the same
+    # fd. Only allocate one here if +fd+ ivar is nil.
+    if io.instance_variable_get(:@fd).nil?
+      fd_obj = FileDescriptor.choose_type(fd)
+      io.instance_variable_set(:@fd, fd_obj)
+    end
     io.mode       = mode || cur_mode
     io.sync       = !!sync
 
@@ -1676,9 +1717,10 @@ class IO
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
     fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-    @fd = BufferedFileDescriptor.choose_type(fd)
+    @fd = FileDescriptor.choose_type(fd)
     raise "FD could not be allocated for fd [#{fd}]" unless @fd
     raise "No descriptor set for fd [#{fd}]" unless @fd.descriptor
+    autoclose = @autoclose
     IO.setup self, fd, mode
     @lineno = 0
 
@@ -1730,6 +1772,7 @@ class IO
     dest_io.mode = original_io.mode
     dest_io.sync = original_io.sync
     dest_io.binmode if original_io.binmode?
+    dest_io.autoclose = original_io.autoclose
 
     dest_io
   end
@@ -1810,12 +1853,17 @@ class IO
     nil
   end
 
+  def autoclose
+    @autoclose
+  end
+
   def autoclose?
     @autoclose
   end
 
-  def autoclose=(autoclose)
-    @autoclose = !!autoclose
+  def autoclose=(bool)
+    @fd.autoclose = bool
+    @autoclose = !!bool
   end
 
   def binmode
@@ -2944,6 +2992,7 @@ class IO
       
       # When reopening we may be going from a Pipe to a File or vice versa. Let the
       # system figure out the proper FD class.
+      @fd.cancel_finalizer # cancel soon-to-be-overwritten instance's finalizer
       @fd = FileDescriptor.choose_type(descriptor)
       Rubinius::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
@@ -2967,7 +3016,6 @@ class IO
       end
 
       reopen_path Rubinius::Type.coerce_to_path(other), mode
-      @fd = FileDescriptor.choose_type(descriptor)
 
       unless closed?
         seek(0, SEEK_SET) rescue Errno::ESPIPE
@@ -2979,6 +3027,7 @@ class IO
 
   def reopen_path(path, mode)
     status =  @fd.reopen_path(path, mode)
+    @fd.cancel_finalizer
     @fd = FileDescriptor.choose_type(descriptor)
     return status
   end
