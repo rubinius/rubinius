@@ -26,7 +26,7 @@ end
 # TODO: Build this functionality into the compiler
 class KernelCompiler
   def self.compile(file, output, line=1, transforms=[:default, :kernel])
-    compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_library
+    compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_file
 
     parser = compiler.parser
     parser.root Rubinius::ToolSets::Build::AST::Script
@@ -61,10 +61,12 @@ kernel_load_order = "kernel/load_order.txt"
 kernel_files = FileList[]
 
 IO.foreach kernel_load_order do |name|
-  kernel_files << "#{BUILD_CONFIG[:sourcedir]}/kernel/#{name.chomp}"
+  kernel_files << "kernel/#{name.chomp}"
 end
 
 file runtime_kernel_file => kernel_files + [signature_file] do |t|
+  rm_f t.name
+
   t.prerequisites.each do |source|
     puts "RBC #{File.basename source}"
     KernelCompiler.compile source, t.name, 1, [:default, :kernel]
@@ -158,6 +160,33 @@ namespace :compiler do
       require "rubinius/code/processor"
       require "rubinius/code/compiler"
       require "rubinius/code/ast"
+    end
+
+    # TODO: Build this functionality into the compiler
+    class Rubinius::ToolSets::Build::Compiler::Writer
+      def run
+        return @input unless @name
+
+        dir = File.dirname(@name)
+        unless File.directory?(dir)
+          parts = []
+
+          until dir == "/" or dir == "."
+            parts << dir
+            dir = File.dirname(dir)
+          end
+
+          parts.reverse_each do |d|
+            Dir.mkdir d unless File.directory?(d)
+          end
+        end
+
+        File.open(@name, "ab") do |f|
+          @processor.new("!RBIX", @signature, @version).encode_to(f, @input)
+        end
+
+        @input
+      end
     end
 
     require File.expand_path("../../kernel/signature", __FILE__)
