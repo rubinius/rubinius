@@ -26,7 +26,6 @@ class Continuation
 end
 
 module Kernel
-
   def callcc
     raise NotImplementedError, "call/cc is not implemented!"
 #    cont = Continuation.create

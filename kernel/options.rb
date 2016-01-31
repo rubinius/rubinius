@@ -5,7 +5,11 @@ module Rubinius
 
     # A single command line option.
     class Option
-      attr_reader :short, :long, :arg, :description, :block
+      attr_reader :short
+      attr_reader :long
+      attr_reader :arg
+      attr_reader :description
+      attr_reader :block
 
       def initialize(short, long, arg, description, block)
         @short       = short
@@ -34,7 +38,10 @@ module Rubinius
     # Raised if an unrecognized option is encountered.
     class ParseError < Exception; end
 
-    attr_accessor :config, :banner, :width, :options
+    attr_accessor :config
+    attr_accessor :banner
+    attr_accessor :width
+    attr_accessor :options
 
     def initialize(banner="", width=30, config=nil)
       @parse    = true

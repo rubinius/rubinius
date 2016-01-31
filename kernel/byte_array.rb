@@ -1,3 +1,6 @@
+##
+# An array of bytes, used as a low-level data store for implementing various
+# other classes.
 module Rubinius
   class ByteArray
     def self.allocate
@@ -34,10 +37,14 @@ module Rubinius
       raise PrimitiveFailure, "ByteArray#get_byte primitive failed"
     end
 
+    alias_method :[], :get_byte
+
     def set_byte(index, value)
       Rubinius.primitive :bytearray_set_byte
       raise PrimitiveFailure, "ByteArray#set_byte primitive failed"
     end
+
+    alias_method :[]=, :set_byte
 
     def compare_bytes(other, a, b)
       Rubinius.primitive :bytearray_compare_bytes
@@ -87,16 +94,6 @@ module Rubinius
       Rubinius.primitive :bytearray_reverse
       raise PrimitiveFailure, "ByteArray#reverse primitive failed"
     end
-  end
-end
-##
-# An array of bytes, used as a low-level data store for implementing various
-# other classes.
-
-module Rubinius
-  class ByteArray
-    alias_method :[], :get_byte
-    alias_method :[]=, :set_byte
 
     # TODO: encoding
     def character_at_index(index)

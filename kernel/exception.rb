@@ -1,10 +1,4 @@
 class Exception
-  def capture_backtrace!(offset)
-    # replaced in delta with a real implementation
-  end
-end
-class Exception
-
   attr_accessor :locations
   attr_accessor :parent
   attr_accessor :custom_backtrace
@@ -14,6 +8,10 @@ class Exception
     @locations = nil
     @backtrace = nil
     @custom_backtrace = nil
+  end
+
+  def capture_backtrace!(offset=1)
+    @locations = Rubinius::VM.backtrace offset
   end
 
   def ==(other)
@@ -536,6 +534,7 @@ class Rubinius::InvalidBytecode < Rubinius::Internal
     end
   end
 end
+
 # MRI has an Exception class named "fatal" that is raised
 # by the rb_fatal function. The class is not accessible from
 # ruby because the name is begins with a lower-case letter.
@@ -546,10 +545,4 @@ end
 # the wild, we can rename it.
 
 class FatalError < Exception
-end
-
-class Exception
-  def capture_backtrace!(offset=1)
-    @locations = Rubinius::VM.backtrace offset
-  end
 end

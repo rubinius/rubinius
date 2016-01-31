@@ -298,7 +298,6 @@ class Rational < Numeric
 
     reduce(num, den)
   end
-  private_class_method :convert
 
   def self.reduce(num, den, mathn = true)
     case num
@@ -336,7 +335,11 @@ class Rational < Numeric
 
     new(num, den)
   end
-  private_class_method :reduce
+
+  class << self
+    private :convert
+    private :reduce
+  end
 
   def initialize(num, den)
     @numerator = num

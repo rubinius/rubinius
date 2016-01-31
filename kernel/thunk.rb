@@ -40,5 +40,4 @@ module Rubinius
       raise PrimitiveFailure, "CallUnitAdapter.new primitive failed"
     end
   end
-
 end

@@ -1,5 +1,4 @@
 class WeakRef < BasicObject
-
   class RefError < ::RuntimeError; end
 
   def self.new(obj)

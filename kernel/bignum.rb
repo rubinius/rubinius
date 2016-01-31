@@ -1,5 +1,4 @@
 class Bignum < Integer
-
   # unary operators
 
   def ~
@@ -167,8 +166,6 @@ class Bignum < Integer
     Rubinius.primitive :bignum_size
     raise PrimitiveFailure, "Bignum#size primitive failed"
   end
-end
-class Bignum < Integer
 
   # see README-DEVELOPERS regarding safe math compiler plugin
   alias_method :/, :divide

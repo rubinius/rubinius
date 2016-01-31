@@ -1,5 +1,4 @@
 module Rubinius
-
   # CAPI contains utility methods used by capi.
   module CAPI
     def self.coerce(x, y, error=false)
@@ -87,37 +86,6 @@ module Rubinius
 
       return status == :finished ? result : str
     end
-
-    INTEGER_PACK_MSWORD_FIRST       = 0x01
-    INTEGER_PACK_LSWORD_FIRST       = 0x02
-    INTEGER_PACK_MSBYTE_FIRST       = 0x10
-    INTEGER_PACK_LSBYTE_FIRST       = 0x20
-    INTEGER_PACK_NATIVE_BYTE_ORDER  = 0x40
-    INTEGER_PACK_2COMP              = 0x80
-    INTEGER_PACK_FORCE_BIGNUM       = 0x100
-    INTEGER_PACK_NEGATIVE           = 0x200
-
-    INTEGER_PACK_LITTLE_ENDIAN  = INTEGER_PACK_LSWORD_FIRST|INTEGER_PACK_LSBYTE_FIRST
-    INTEGER_PACK_BIG_ENDIAN     = INTEGER_PACK_MSWORD_FIRST|INTEGER_PACK_MSBYTE_FIRST
-
-    INTEGER_PACK_DIGITS = [
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0,10,11,12,13,14,15, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ]
 
     def self.rb_integer_pack(value, words, numwords, wordsize, nails, flags)
       digits = INTEGER_PACK_DIGITS

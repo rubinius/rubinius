@@ -6,6 +6,8 @@
 # library extensions is not provided here.
 
 module Rubinius
+  class InvalidRBC < RuntimeError; end
+
   class CodeLoader
     attr_reader :feature
     attr_reader :path
@@ -27,8 +29,6 @@ module Rubinius
       @stat = nil
       @type = nil
     end
-
-    Lock = Object.new
 
     class RequireRequest
       def initialize(type, map, key)
@@ -169,12 +169,6 @@ module Rubinius
       self.class.loaded_features_dup = $LOADED_FEATURES.dup
       self.class.loaded_features_index[@short_path] = feature
     end
-
-    # Hook support. This allows code to be told when a file was just compiled,
-    # or when it has finished loading.
-    @compiled_hook = Rubinius::Hook.new
-    @loaded_hook = Rubinius::Hook.new
-    @loaded_features_index = Hash.new(false)
 
     class << self
       attr_reader :compiled_hook
@@ -467,21 +461,15 @@ module Rubinius
       @file_path  = path
       @load_path  = path
     end
-  end
-end
-# Implementation-specific behavior for Kernel#require and Kernel#load.
-#
-# In particular, this file implements #load_file for loading a Ruby source
-# file and #load_library for loading a shared library extension file.
-#
-# Also provides #require_compiled which loads a precompiled version of a Ruby
-# source file. Several CodeLoader class methods are implemented as a
-# convenient way to invoke the CodeLoader.
 
-module Rubinius
-  class InvalidRBC < RuntimeError; end
-
-  class CodeLoader
+    # Implementation-specific behavior for Kernel#require and Kernel#load.
+    #
+    # In particular, this file implements #load_file for loading a Ruby source
+    # file and #load_library for loading a shared library extension file.
+    #
+    # Also provides #require_compiled which loads a precompiled version of a Ruby
+    # source file. Several CodeLoader class methods are implemented as a
+    # convenient way to invoke the CodeLoader.
 
     # Loads compiled files. Performs exactly as Kernel#require except that
     #

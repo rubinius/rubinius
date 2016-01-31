@@ -2,16 +2,16 @@
 # Used to implement Module#autoload.
 
 class Autoload
-  def self.allocate
-    Rubinius.primitive :autoload_allocate
-    raise PrimtiveFailure, "Autoload.allocate primitive failed"
-  end
-
   attr_reader :name
   attr_reader :scope
   attr_reader :path
   attr_reader :constant
   attr_reader :thread
+
+  def self.allocate
+    Rubinius.primitive :autoload_allocate
+    raise PrimtiveFailure, "Autoload.allocate primitive failed"
+  end
 
   def initialize(name, scope, path)
     @name = name
@@ -98,5 +98,4 @@ class Autoload
 
     under.const_missing(name)
   end
-
 end

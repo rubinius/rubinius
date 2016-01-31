@@ -1,21 +1,5 @@
 module Rubinius
   class Sprinter
-
-    total = Rubinius::Config['printf.cache']
-
-    case total
-    when Fixnum
-      if total == 0
-        @cache = nil
-      else
-        @cache = Rubinius::LRUCache.new(total)
-      end
-    when false
-      @cache = nil
-    else
-      @cache = Rubinius::LRUCache.new(50)
-    end
-
     def self.cache
       @cache
     end
@@ -332,9 +316,6 @@ module Rubinius
           @g.send direction, 1
         end
       end
-
-      RADIX = { 'u' => 10, 'x' => 16, 'X' => 16, 'o' => 8, 'b' => 2, 'B' => 2 }
-      PREFIX = { 'o' => '0', 'x' => '0x', 'X' => '0X', 'b' => '0b', 'B' => '0B' }
 
       def next_index(specified=nil)
         if specified
@@ -1036,49 +1017,6 @@ module Rubinius
         yield
         l.set!
       end
-
-      AtomMap = Rubinius::LookupTable.new
-
-      AtomMap[?c] = CharAtom
-      AtomMap[?s] = StringAtom
-      AtomMap[?p] = InspectAtom
-      AtomMap[?e] = FloatAtom
-      AtomMap[?E] = FloatAtom
-      AtomMap[?g] = FloatAtom
-      AtomMap[?G] = FloatAtom
-      AtomMap[?f] = FloatAtom
-      AtomMap[?d] = IntegerAtom
-      AtomMap[?i] = IntegerAtom
-      AtomMap[?u] = IntegerAtom
-      AtomMap[?b] = ExtIntegerAtom
-      AtomMap[?B] = ExtIntegerAtom
-      AtomMap[?x] = ExtIntegerAtom
-      AtomMap[?X] = ExtIntegerAtom
-      AtomMap[?o] = ExtIntegerAtom
-
-      RE = /
-        ([^%]+|%(?:[\n\0]|\z)) # 1
-        |
-        %
-        ( # 2
-          (<[^>]+>)? # 3
-          ([0# +-]*) # 4
-          (?:([0-9]+)\$)? # 5
-          ([0# +-]*) # 6
-          (?:
-            (\*(?:([0-9]+)\$)?|([1-9][0-9]*))? # 7 8 9
-            (?:\.(\*(?:([0-9]+)\$)?|([0-9][0-9]*))?)? # 10 11 12
-          )
-          (?:([0-9]+)\$)? # 13
-          ([BbcdEefGgiopsuXx]) # 14
-        )
-        |
-        (%)(?:%|[-+0-9# *.$]+\$[0-9.]*\z) # 15
-        |
-        (%{[^}]+}) #16
-        |
-        (%) # 17
-      /x
 
       def parse
         @arg_count = 0

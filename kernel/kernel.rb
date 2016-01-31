@@ -107,8 +107,6 @@ module Kernel
   end
   private :yield_gdb
 
-end
-module Kernel
   def Array(obj)
     ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
 
@@ -426,24 +424,6 @@ module Kernel
     Process.exit!(code)
   end
   module_function :exit!
-
-  def extend(*modules)
-    raise ArgumentError, "wrong number of arguments (0 for 1+)" if modules.empty?
-    Rubinius.check_frozen
-
-    modules.reverse_each do |mod|
-      Rubinius.privately do
-        mod.extend_object self
-      end
-
-      Rubinius.privately do
-        mod.extended self
-      end
-    end
-    self
-  end
-
-  alias_method :__extend__, :extend
 
   def fork(&block)
     Process.fork(&block)
@@ -1029,10 +1009,6 @@ module Kernel
   end
   module_function :system
 
-  def to_s
-    Rubinius::Type.infect("#<#{self.class}:0x#{self.__id__.to_s(16)}>", self)
-  end
-
   def trace_var(name, cmd = nil, &block)
     if !cmd && !block
       raise(
@@ -1079,181 +1055,78 @@ module Kernel
     $stderr.puts message if $VERBOSE
   end
   module_function :warning
-end
 
-module Kernel
+  def catch(obj = Object.new, &block)
+    raise LocalJumpError unless block_given?
 
-end
-module Kernel
-  def raise(exc=undefined, msg=undefined, ctx=nil)
-    skip = false
-    if undefined.equal? exc
-      exc = $!
-      if exc
-        skip = true
-      else
-        exc = RuntimeError.new("No current exception")
-      end
-    elsif exc.respond_to? :exception
-      if undefined.equal? msg
-        exc = exc.exception
-      else
-        exc = exc.exception msg
-      end
-      raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
-    elsif exc.kind_of? String
-      exc = ::RuntimeError.exception exc
+    Rubinius::ThrownValue.register(obj) do
+      return Rubinius.catch(obj, block)
+    end
+  end
+  module_function :catch
+
+  def throw(obj, value=nil)
+    unless Rubinius::ThrownValue.available? obj
+      raise UncaughtThrowError, "uncaught throw #{obj.inspect}"
+    end
+
+    Rubinius.throw obj, value
+  end
+  module_function :throw
+
+  # Names of local variables at point of call (including evaled)
+  #
+  def local_variables
+    scope = Rubinius::VariableScope.of_sender
+    scope.local_variables
+  end
+  module_function :local_variables
+
+  # Obtain binding here for future evaluation/execution context.
+  #
+  def binding
+    return Binding.setup(
+      Rubinius::VariableScope.of_sender,
+      Rubinius::CompiledCode.of_sender,
+      Rubinius::ConstantScope.of_sender,
+      Rubinius::VariableScope.of_sender.self,
+      Rubinius::Location.of_closest_ruby_method
+    )
+  end
+  module_function :binding
+
+  # Evaluate and execute code given in the String.
+  #
+  def eval(string, binding=nil, filename=nil, lineno=nil)
+    string = StringValue(string)
+    filename = StringValue(filename) if filename
+    lineno = Rubinius::Type.coerce_to lineno, Fixnum, :to_i if lineno
+    lineno = 1 if filename && !lineno
+
+    if binding
+      binding = Rubinius::Type.coerce_to_binding binding
+      filename ||= binding.constant_scope.active_path
     else
-      raise ::TypeError, 'exception class/object expected'
+      binding = Binding.setup(Rubinius::VariableScope.of_sender,
+                              Rubinius::CompiledCode.of_sender,
+                              Rubinius::ConstantScope.of_sender,
+                              self)
+
+      filename ||= "(eval)"
     end
 
-    unless skip
-      exc.set_context ctx if ctx
-      exc.capture_backtrace!(2) unless exc.backtrace?
-    end
+    lineno ||= binding.line_number
 
-    if $DEBUG and $VERBOSE != nil
-      if loc = exc.locations and loc[1]
-        pos = loc[1].position
-      else
-        pos = Rubinius::VM.backtrace(1)[0].position
-      end
+    existing_scope = binding.constant_scope
+    binding.constant_scope = existing_scope.dup
 
-      STDERR.puts "Exception: `#{exc.class}' #{pos} - #{exc.message}"
-    end
+    c = Rubinius::ToolSets::Runtime::Compiler
+    be = c.construct_block string, binding, filename, lineno
 
-    Rubinius.raise_exception exc
+    result = be.call_on_instance(binding.receiver)
+    binding.constant_scope = existing_scope
+    result
   end
-  module_function :raise
-
-  alias_method :fail, :raise
-  module_function :fail
-
-  def method_missing(meth, *args)
-    cls = NoMethodError
-
-    case Rubinius.method_missing_reason
-    when :private
-      msg = "private method `#{meth}' called"
-    when :protected
-      msg = "protected method `#{meth}' called"
-    when :super
-      msg = "no superclass method `#{meth}'"
-    when :vcall
-      msg = "undefined local variable or method `#{meth}'"
-      cls = NameError
-    else
-      msg = "undefined method `#{meth}'"
-    end
-
-    object_class = Rubinius::Type.object_class(self)
-
-    if Rubinius::Type.object_kind_of?(self, Module)
-      msg << " on #{self} (#{object_class})"
-
-    # A separate case for nil, because people like to patch methods to
-    # nil, so we can't call methods on it reliably.
-    elsif nil.equal?(self)
-      msg << " on nil:NilClass."
-    elsif ImmediateValue === self
-      msg << " on #{self}:#{object_class}."
-    else
-      msg << " on an instance of #{object_class}."
-    end
-
-    Kernel.raise cls.new(msg, meth, args)
-  end
-
-  private :method_missing
-
-  # Add in $! in as a hook, to just do $!. This is for accesses to $!
-  # that the compiler can't see.
-  Rubinius::Globals.set_hook(:$!) { $! }
-
-  get = proc do
-    # We raise an exception here because Regexp.last_match won't work
-    raise TypeError, "Unable to handle $~ in this context"
-  end
-  set = proc do |key, val|
-    if val.nil? || val.kind_of?(MatchData)
-      Rubinius.invoke_primitive :regexp_set_last_match, val
-    else
-      raise TypeError, "Cannot assign #{val.class}, expexted nil or instance MatchData."
-    end
-  end
-  Rubinius::Globals.set_hook(:$~, get, set)
-
-  Rubinius::Globals.set_hook(:$*) { ARGV }
-
-  Rubinius::Globals.set_hook(:$@) { $! ? $!.backtrace : nil }
-
-  Rubinius::Globals.set_hook(:$$) { Process.pid }
-
-  prc = proc { ARGF.filename }
-  Rubinius::Globals.set_hook(:$FILENAME, prc, :raise_readonly)
-
-  write_filter = proc do |key, io|
-    unless io.respond_to? :write
-      raise ::TypeError, "#{key} must have write method, #{io.class} given"
-    end
-    io
-  end
-
-  get = proc { |key| Thread.current[:$_] }
-  set = proc { |key, val| Thread.current[:$_] = val }
-  Rubinius::Globals.set_hook(:$_, get, set)
-
-  Rubinius::Globals.add_alias :$stdout, :$>
-  Rubinius::Globals.set_filter(:$stdout, write_filter)
-  Rubinius::Globals.set_filter(:$stderr, write_filter)
-
-  get = proc do
-    warn "$KCODE is unused in Ruby 1.9 and later"
-    nil
-  end
-
-  set = proc do |key, io|
-    warn "$KCODE is unused in Ruby 1.9 and later, changes are ignored"
-    nil
-  end
-
-  Rubinius::Globals.set_hook(:$KCODE, get, set)
-
-  set = proc do |key, val|
-    val = Rubinius::Type.coerce_to val, String, :to_str
-    Rubinius.invoke_primitive :vm_set_process_title, val
-  end
-  Rubinius::Globals.set_hook(:$0, :[], set)
-
-  set = proc { |key, val| STDERR.puts("WARNING: $SAFE is not supported on Rubinius."); val }
-  Rubinius::Globals.set_hook(:$SAFE, :[], set)
-
-  # Alias $0 $PROGRAM_NAME
-  Rubinius::Globals.add_alias(:$0, :$PROGRAM_NAME)
-
-  Rubinius::Globals.read_only :$:, :$LOAD_PATH, :$-I
-  Rubinius::Globals.read_only :$", :$LOADED_FEATURES
-  Rubinius::Globals.read_only :$<
-
-  Rubinius::Globals[:$-a] = false
-  Rubinius::Globals[:$-l] = false
-  Rubinius::Globals[:$-p] = false
-  Rubinius::Globals.read_only :$-a, :$-l, :$-p
-
-  Rubinius::Globals.add_alias :$DEBUG,   :$-d
-  Rubinius::Globals.add_alias :$VERBOSE, :$-v
-  Rubinius::Globals.add_alias :$VERBOSE, :$-w
-
-  set_string = proc do |key, value|
-    unless value.nil? or value.kind_of? String
-      raise TypeError, "value of #{key} must be a String"
-    end
-
-    Rubinius::Globals.set! key, value
-  end
-
-  Rubinius::Globals.set_filter :$/, set_string
-  Rubinius::Globals.add_alias :$/, :$-0
-
-  Rubinius::Globals.set_filter :$,, set_string
+  module_function :eval
+  private :eval
 end

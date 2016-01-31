@@ -153,6 +153,4 @@ module Rubinius
       end
     end
   end
-
-  Globals = GlobalVariables.new
 end

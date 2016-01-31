@@ -5,8 +5,6 @@ module Rubinius
     end
 
     class Data
-      MetricsHash = Hash.new
-
       def keys
         Map.keys
       end

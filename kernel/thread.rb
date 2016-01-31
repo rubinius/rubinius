@@ -1,4 +1,12 @@
+#--
+# Be very careful about calling raise in here! Thread has its own
+# raise which, if you're calling raise, you probably don't want. Use
+# Kernel.raise to call the proper raise.
+#++
 class Thread
+  attr_reader :recursive_objects
+  attr_reader :pid
+
   def self.start(*args)
     raise ArgumentError.new("no block passed to Thread.start") unless block_given?
 
@@ -418,22 +426,10 @@ class Thread
   def active_exception
     nil
   end
-end
-#--
-# Be very careful about calling raise in here! Thread has its own
-# raise which, if you're calling raise, you probably don't want. Use
-# Kernel.raise to call the proper raise.
-#++
-
-class Thread
-  MUTEX_FOR_THREAD_EXCLUSIVE = Mutex.new
 
   def self.exclusive
     MUTEX_FOR_THREAD_EXCLUSIVE.synchronize { yield }
   end
-
-  attr_reader :recursive_objects
-  attr_reader :pid
 
   # Implementation note: ideally, the recursive_objects
   # lookup table would be different per method call.
@@ -584,10 +580,4 @@ class Thread
       end
     end
   end
-end
-class Thread
-  Thread.initialize_main_thread(Thread.current)
-  dg = ThreadGroup::Default
-  Default = dg
-  dg.add Thread.current
 end

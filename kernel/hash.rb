@@ -1,4 +1,3 @@
-unless Rubinius::Config['hash.hamt']
 class Hash
   include Enumerable
 
@@ -147,7 +146,10 @@ class Hash
     end
     hash
   end
-  private_class_method :new_from_associate_array
+
+  class << self
+    private :new_from_associate_array
+  end
 
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, Hash, :to_hash
@@ -870,5 +872,4 @@ class Hash
 
   alias_method :indices, :values_at
   alias_method :indexes, :values_at
-end
 end

@@ -31,6 +31,4 @@ module Rubinius
 
     alias_method :get, :[]
   end
-
-  Config = Configuration.new
 end

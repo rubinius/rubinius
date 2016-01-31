@@ -1,10 +1,29 @@
 class String
+  include Comparable
+
   attr_reader :num_bytes
   attr_reader_specific :num_bytes, :bytesize
 
   attr_writer :encoding
   attr_writer :ascii_only
   attr_writer :valid_encoding
+
+  attr_accessor :data
+
+  alias_method :__data__, :data
+  alias_method :__data__=, :data=
+
+  def self.__allocate__
+    Rubinius.primitive :string_allocate
+    raise PrimitiveFailure, "String.allocate primitive failed"
+  end
+
+  def self.allocate
+    str = __allocate__
+    str.__data__ = Rubinius::ByteArray.allocate_sized(1)
+    str.num_bytes = 0
+    str
+  end
 
   def self.from_codepoint(code, enc)
     Rubinius.primitive :string_from_codepoint
@@ -172,30 +191,6 @@ class String
     Rubinius.primitive :string_valid_encoding_p
     raise PrimitiveFailure, "String#valid_encoding? primitive failed"
   end
-end
-# Default Ruby Record Separator
-# Used in this file and by various methods that need to ignore $/
-DEFAULT_RECORD_SEPARATOR = "\n"
-
-class String
-  include Comparable
-
-  def self.__allocate__
-    Rubinius.primitive :string_allocate
-    raise PrimitiveFailure, "String.allocate primitive failed"
-  end
-
-  def self.allocate
-    str = __allocate__
-    str.__data__ = Rubinius::ByteArray.allocate_sized(1)
-    str.num_bytes = 0
-    str
-  end
-
-  attr_accessor :data
-
-  alias_method :__data__, :data
-  alias_method :__data__=, :data=
 
   ##
   # Creates a new string from copying _count_ bytes from the

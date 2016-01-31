@@ -104,7 +104,6 @@ class Class
   end
 end
 
-
 module Kernel
 
   # Return the Class object this object is an instance of.
@@ -244,6 +243,15 @@ end
 # See kernel/bootstrap/rubinius.rb
 #
 module Rubinius
+  class Mirror
+    def self.subject=(klass)
+      @subject = klass
+    end
+
+    def self.subject
+      @subject
+    end
+  end
 
   module Runtime
     def self.dup_as_array(obj)
@@ -322,7 +330,6 @@ module Rubinius
   #     kernel/common/constant_table.rb
   #
   class ConstantTable
-
     # Perform lookup for constant name.
     #
     def lookup(name)
@@ -344,7 +351,6 @@ module Rubinius
   #     kernel/common/method_table.rb
   #
   class MethodTable
-
     # Perform lookup for method name.
     #
     def lookup(name)
@@ -368,7 +374,6 @@ module Rubinius
   end
 end
 
-
 class Symbol
   # Produce String representation of this Symbol.
   #
@@ -383,7 +388,6 @@ class Symbol
     self
   end
 end
-
 
 class String
   # Returns the <code>Symbol</code> corresponding to <i>self</i>, creating the
@@ -414,7 +418,6 @@ class String
   end
 end
 
-
 module Process
   # Terminate with given status code.
   #
@@ -444,7 +447,6 @@ module Process
     end
   end
 end
-
 
 class Module
   def method_table   ; @method_table ; end
@@ -670,11 +672,15 @@ class Module
       entry.get_method.custom_call_site
     end
   end
+
+  def undef_method(name)
+    @method_table.store name, nil, nil, nil, 0, :undef
+    Rubinius::VM.reset_method_cache self, name
+    name
+  end
 end
 
-
 module Rubinius
-
   class AccessVariable
     attr_reader :name
   end
@@ -795,3 +801,8 @@ class Object
   include Kernel
 end
 
+module Enumerable; end
+class Integer; end
+class IO; end
+class Numeric; end
+class String; end

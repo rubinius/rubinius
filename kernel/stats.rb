@@ -104,6 +104,5 @@ module Rubinius
         printf @stats_format, metric, *values.map { |d| send meth, d }
       end
     end
-
   end
 end

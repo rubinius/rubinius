@@ -11,8 +11,6 @@ class Class
   end
 
   private :set_superclass
-end
-class Class
 
   def initialize(sclass=Object, name=nil, under=nil)
     raise TypeError, "already initialized class" if @instance_type
@@ -64,13 +62,4 @@ class Class
 
     return cls
   end
-end
-code = Class.method_table.lookup(:new).get_method
-code.serial = Rubinius::CompiledCode::KernelMethodSerial
-
-class Class
-  undef_method :append_features
-  undef_method :extend_object
-  undef_method :module_function
-  undef_method :prepend_features
 end

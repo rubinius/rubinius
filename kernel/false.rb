@@ -10,10 +10,7 @@ class FalseClass
   def to_s
     "false"
   end
-end
 
-FALSE = false
-class FalseClass
   alias_method :|, :^
 
   def inspect

@@ -1,122 +1,8 @@
 class Regexp
-
   def self.allocate
     Rubinius.primitive :regexp_allocate
     raise PrimitiveFailure, "Regexp.allocate primitive failed"
   end
-
-  ##
-  # See Regexp.new. This may be overridden by subclasses.
-
-  def compile(pattern, opts)
-    Rubinius.primitive :regexp_initialize
-    raise PrimitiveFailure, "Regexp.compile(#{pattern.inspect}, #{opts}) primitive failed"
-  end
-
-  private :compile
-
-  def search_region(str, start, finish, forward) # equiv to MRI's re_search
-    Rubinius.primitive :regexp_search_region
-    raise PrimitiveFailure, "Regexp#search_region primitive failed"
-  end
-
-  def match_start(str, offset) # equiv to MRI's re_match
-    Rubinius.primitive :regexp_match_start
-    raise PrimitiveFailure, "Regexp#match_start primitive failed"
-  end
-
-  def search_from(str, offset) # equiv to MRI's rb_reg_search
-    Rubinius.primitive :regexp_search_from
-    raise PrimitiveFailure, "Regexp#search_from primitive failed"
-  end
-
-  def options
-    Rubinius.primitive :regexp_options
-    raise PrimitiveFailure, "Regexp#options primitive failed"
-  end
-
-  def self.last_match(field=nil)
-    Rubinius.primitive :regexp_last_match
-
-    return last_match(Integer(field)) if field
-    raise PrimitiveFailure, "Regexp#last_match primitive failed"
-  end
-
-  def self.last_match=(match)
-    Rubinius.primitive :regexp_set_last_match
-
-    unless match.kind_of? MatchData
-      raise TypeError, "Expected MatchData, got #{match.inspect}"
-    end
-
-    raise PrimitiveFailure, "Regexp#set_last_match primitive failed"
-  end
-
-  def self.propagate_last_match
-    Rubinius.primitive :regexp_propagate_last_match
-    raise PrimitiveFailure, "Regexp#propagate_last_match primitive failed"
-  end
-
-  def self.set_block_last_match
-    Rubinius.primitive :regexp_set_block_last_match
-    raise PrimitiveFailure, "Regexp#set_block_last_match primitive failed"
-  end
-
-  def fixed_encoding?
-    Rubinius.primitive :regexp_fixed_encoding_p
-    raise PrimitiveFailure, "Regexp.fixed_encoding? primitive failed"
-  end
-end
-class Regexp
-  IGNORECASE         = 1
-  EXTENDED           = 2
-  MULTILINE          = 4
-  FIXEDENCODING      = 16
-  NOENCODING         = 32
-  DONT_CAPTURE_GROUP = 128
-  CAPTURE_GROUP      = 256
-
-  KCODE_NONE = (1 << 9)
-  KCODE_EUC  = (2 << 9)
-  KCODE_SJIS = (3 << 9)
-  KCODE_UTF8 = (4 << 9)
-  KCODE_MASK = KCODE_NONE | KCODE_EUC | KCODE_SJIS | KCODE_UTF8
-
-  OPTION_MASK = IGNORECASE | EXTENDED | MULTILINE | FIXEDENCODING | NOENCODING | DONT_CAPTURE_GROUP | CAPTURE_GROUP
-
-  ESCAPE_TABLE = Rubinius::Tuple.new(256)
-
-  # Seed it with direct replacements
-  i = 0
-  while i < 256
-    ESCAPE_TABLE[i] = i.chr
-    i += 1
-  end
-
-  # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
-  # so we use literal values instead so this is 1.8/1.9 compatible.
-  ESCAPE_TABLE[9]   = '\\t'
-  ESCAPE_TABLE[10]  = '\\n'
-  ESCAPE_TABLE[11]  = '\\v'
-  ESCAPE_TABLE[12]  = '\\f'
-  ESCAPE_TABLE[13]  = '\\r'
-  ESCAPE_TABLE[32]  = '\\ '
-  ESCAPE_TABLE[35]  = '\\#'
-  ESCAPE_TABLE[36]  = '\\$'
-  ESCAPE_TABLE[40]  = '\\('
-  ESCAPE_TABLE[41]  = '\\)'
-  ESCAPE_TABLE[42]  = '\\*'
-  ESCAPE_TABLE[43]  = '\\+'
-  ESCAPE_TABLE[45]  = '\\-'
-  ESCAPE_TABLE[46]  = '\\.'
-  ESCAPE_TABLE[63]  = '\\?'
-  ESCAPE_TABLE[91]  = '\\['
-  ESCAPE_TABLE[92]  = '\\\\'
-  ESCAPE_TABLE[93]  = '\\]'
-  ESCAPE_TABLE[94]  = '\\^'
-  ESCAPE_TABLE[123] = '\\{'
-  ESCAPE_TABLE[124] = '\\|'
-  ESCAPE_TABLE[125] = '\\}'
 
   class << self
     alias_method :compile, :new
@@ -191,6 +77,68 @@ class Regexp
 
   class << self
     alias_method :quote, :escape
+  end
+
+  ##
+  # See Regexp.new. This may be overridden by subclasses.
+
+  def compile(pattern, opts)
+    Rubinius.primitive :regexp_initialize
+    raise PrimitiveFailure, "Regexp.compile(#{pattern.inspect}, #{opts}) primitive failed"
+  end
+
+  private :compile
+
+  def search_region(str, start, finish, forward) # equiv to MRI's re_search
+    Rubinius.primitive :regexp_search_region
+    raise PrimitiveFailure, "Regexp#search_region primitive failed"
+  end
+
+  def match_start(str, offset) # equiv to MRI's re_match
+    Rubinius.primitive :regexp_match_start
+    raise PrimitiveFailure, "Regexp#match_start primitive failed"
+  end
+
+  def search_from(str, offset) # equiv to MRI's rb_reg_search
+    Rubinius.primitive :regexp_search_from
+    raise PrimitiveFailure, "Regexp#search_from primitive failed"
+  end
+
+  def options
+    Rubinius.primitive :regexp_options
+    raise PrimitiveFailure, "Regexp#options primitive failed"
+  end
+
+  def self.last_match(field=nil)
+    Rubinius.primitive :regexp_last_match
+
+    return last_match(Integer(field)) if field
+    raise PrimitiveFailure, "Regexp#last_match primitive failed"
+  end
+
+  def self.last_match=(match)
+    Rubinius.primitive :regexp_set_last_match
+
+    unless match.kind_of? MatchData
+      raise TypeError, "Expected MatchData, got #{match.inspect}"
+    end
+
+    raise PrimitiveFailure, "Regexp#set_last_match primitive failed"
+  end
+
+  def self.propagate_last_match
+    Rubinius.primitive :regexp_propagate_last_match
+    raise PrimitiveFailure, "Regexp#propagate_last_match primitive failed"
+  end
+
+  def self.set_block_last_match
+    Rubinius.primitive :regexp_set_block_last_match
+    raise PrimitiveFailure, "Regexp#set_block_last_match primitive failed"
+  end
+
+  def fixed_encoding?
+    Rubinius.primitive :regexp_fixed_encoding_p
+    raise PrimitiveFailure, "Regexp.fixed_encoding? primitive failed"
   end
 
   def initialize(pattern, opts=nil, lang=nil)
@@ -344,12 +292,6 @@ class Regexp
 
   class SourceParser
     class Part
-      OPTIONS_MAP = {
-        'm' => Regexp::MULTILINE,
-        'i' => Regexp::IGNORECASE,
-        'x' => Regexp::EXTENDED
-      }
-
       attr_accessor :options
       attr_accessor :source
 
@@ -537,7 +479,6 @@ class Regexp
       @parts << Part.new
     end
 
-    PossibleOptions = [[MULTILINE, "m"], [IGNORECASE, "i"], [EXTENDED, "x"]]
     def options_string
       chosen_options = []
       possible_options = PossibleOptions
@@ -633,217 +574,4 @@ class Regexp
       []
     end
   end
-
 end
-
-class MatchData
-
-  def begin(idx)
-    if idx == 0
-      start = @full.at(0)
-    else
-      start = @region.at(idx - 1).at(0)
-      return nil if start == -1
-    end
-    m = Rubinius::Mirror.reflect @source
-    m.byte_to_character_index start
-  end
-
-  def end(idx)
-    if idx == 0
-      fin = @full.at(1)
-    else
-      fin = @region.at(idx - 1).at(1)
-      return nil if fin == -1
-    end
-    m = Rubinius::Mirror.reflect @source
-    m.byte_to_character_index fin
-  end
-
-  def offset(idx)
-    out = []
-    out << self.begin(idx)
-    out << self.end(idx)
-    return out
-  end
-
-  def [](idx, len = nil)
-    return to_a[idx, len] if len
-
-    case idx
-    when Fixnum
-      if idx <= 0
-        return matched_area() if idx == 0
-        return to_a[idx]
-      elsif idx <= @region.size
-        tup = @region[idx - 1]
-
-        x = tup.at(0)
-        return nil if x == -1
-
-        y = tup.at(1)
-        return @source.byteslice(x, y-x)
-      end
-    when String
-      if @regexp.name_table
-        return self[idx.to_sym]
-      end
-      raise IndexError, "Unknown named group '#{idx}'"
-    when Symbol
-      if @regexp.name_table
-        if nums = @regexp.name_table[idx]
-          nums.reverse_each do |num|
-            val = self[num]
-            return val if val
-          end
-          return nil
-        end
-      end
-      raise IndexError, "Unknown named group '#{idx}'"
-    end
-
-    return to_a[idx]
-  end
-
-  attr_reader :regexp
-
-  def ==(other)
-    other.kind_of?(MatchData) &&
-      string == other.string  &&
-      regexp == other.regexp  &&
-      captures == other.captures
-  end
-  alias_method :eql?, :==
-
-  def string
-    @source.dup.freeze
-  end
-
-  def source
-    @source
-  end
-
-  def full
-    @full
-  end
-
-  def length
-    @region.fields + 1
-  end
-
-  def captures
-    out = Array.new(@region.fields)
-
-    idx = 0
-    @region.each do |tup|
-      x = tup.at(0)
-
-      if x == -1
-        val = nil
-      else
-        y = tup.at(1)
-        val = @source.byteslice(x, y-x)
-      end
-
-      out[idx] = val
-      idx += 1
-    end
-
-    return out
-  end
-
-  def names
-    @regexp.names
-  end
-
-  def pre_match
-    return @source.byteslice(0, 0) if @full.at(0) == 0
-    nd = @full.at(0) - 1
-    @source.byteslice(0, nd+1)
-  end
-
-  def pre_match_from(idx)
-    return @source.byteslice(0, 0) if @full.at(0) == 0
-    nd = @full.at(0) - 1
-    @source.byteslice(idx, nd-idx+1)
-  end
-
-  def collapsing?
-    @full[0] == @full[1]
-  end
-
-  def post_match
-    nd = @source.bytesize - 1
-    st = @full.at(1)
-    @source.byteslice(st, nd-st+1)
-  end
-
-  def inspect
-    capts = captures
-    if capts.empty?
-      "#<MatchData \"#{matched_area}\">"
-    else
-      idx = 0
-      capts.map! { |capture| "#{idx += 1}:#{capture.inspect}" }
-      "#<MatchData \"#{matched_area}\" #{capts.join(" ")}>"
-    end
-  end
-
-  def select
-    unless block_given?
-      raise LocalJumpError, "no block given"
-    end
-
-    out = []
-    ma = matched_area()
-    out << ma if yield ma
-
-    each_capture do |str|
-      if yield(str)
-        out << str
-      end
-    end
-    return out
-  end
-
-  alias_method :size, :length
-
-  def to_a
-    ary = captures()
-    ary.unshift matched_area()
-    return ary
-  end
-
-  def values_at(*indexes)
-    indexes.map { |i| self[i] }.flatten(1)
-  end
-
-  def matched_area
-    x = @full.at(0)
-    y = @full.at(1)
-    @source.byteslice(x, y-x)
-  end
-
-  alias_method :to_s, :matched_area
-  private :matched_area
-
-  def get_capture(num)
-    x, y = @region[num]
-    return nil if !y or x == -1
-
-    return @source.byteslice(x, y-x)
-  end
-
-  private :get_capture
-
-  def each_capture
-    @region.each do |tup|
-      x, y = *tup
-      yield @source.byteslice(x, y-x)
-    end
-  end
-
-  private :each_capture
-
-end
-

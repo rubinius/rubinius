@@ -64,8 +64,6 @@ class Complex < Numeric
     rect(real, imag)
   end
 
-  private_class_method :convert
-
   def Complex.generic?(other) # :nodoc:
     other.kind_of?(Integer) or
     other.kind_of?(Float) or
@@ -76,7 +74,6 @@ class Complex < Numeric
     raise TypeError, 'not a real' unless check_real?(real) && check_real?(imag)
     new(real, imag)
   end
-  class << self; alias_method :rectangular, :rect end
 
   def Complex.polar(r, theta=0)
     raise TypeError, 'not a real' unless check_real?(r) && check_real?(theta)
@@ -87,7 +84,6 @@ class Complex < Numeric
   def Complex.check_real?(obj)
     obj.kind_of?(Numeric) && obj.real?
   end
-  private_class_method :check_real?
 
   def initialize(a, b = 0)
     @real = a
@@ -207,7 +203,7 @@ class Complex < Numeric
   def conjugate
     Complex(@real, -@imag)
   end
-  alias conj conjugate
+  alias_method :conj, :conjugate
 
   def ==(other)
     if other.kind_of?(Complex)
@@ -329,7 +325,12 @@ class Complex < Numeric
     self
   end
 
-  I = Complex(0, 1)
+  class << self
+    private :convert
+    private :check_real?
+
+    alias_method :rectangular, :rect
+  end
 
   attr_reader :real
   attr_reader :imag

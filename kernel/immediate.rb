@@ -29,24 +29,3 @@ module ImmediateValue
     raise TypeError, "can't clone #{self.class.name}"
   end
 end
-
-class NilClass
-  include ImmediateValue
-end
-
-class FalseClass
-  include ImmediateValue
-end
-
-class TrueClass
-  include ImmediateValue
-end
-
-class Symbol
-  include ImmediateValue
-end
-
-class Fixnum
-  include ImmediateValue
-end
-

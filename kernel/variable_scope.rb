@@ -1,5 +1,17 @@
 module Rubinius
   class VariableScope
+    # To handle Module#private, protected
+    attr_accessor :method_visibility
+
+    attr_reader :parent
+    attr_reader :block
+    attr_reader :module
+    attr_reader :self
+
+    # CompiledCode this scope is for.
+    #
+    attr_reader :method
+
     def self.of_sender
       Rubinius.primitive :variable_scope_of_sender
       raise PrimitiveFailure, "Rubinius::VariableScope.of_sender primitive failed"
@@ -49,21 +61,6 @@ module Rubinius
       Rubinius.primitive :variable_scope_set_locked
       raise PrimitiveFailure, "Rubinius::VariableScope#set_locked primitive failed"
     end
-
-    # To handle Module#private, protected
-    attr_accessor :method_visibility
-  end
-end
-module Rubinius
-  class VariableScope
-    attr_reader :parent
-    attr_reader :block
-    attr_reader :module
-    attr_reader :self
-
-    # CompiledCode this scope is for.
-    #
-    attr_reader :method
 
     def self=(obj)
       @self = obj

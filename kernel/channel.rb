@@ -8,13 +8,8 @@
 # that same thread, the VM wakes up t1 and the value passed to #send is
 # returned.  This allows us to implement all manner of Thread semantics, such
 # as Mutex.
-#
-# Channel is used heavily by Scheduler, to allow ruby code to interact with
-# the outside world in a thread aware manner.
-
 module Rubinius
   class Channel
-
     ##
     # Returns nil if nothing is waiting, or a List object which contains all
     # Thread objects waiting on this Channel.
@@ -71,14 +66,7 @@ module Rubinius
       Rubinius.primitive :channel_try_receive
       raise PrimitiveFailure, "Channel#try_receive primitive failed"
     end
-  end
-end
-##
-# A communication mechanism based on pi-calculus channels used primarily to
-# communicate between ruby and the VM about events.
 
-module Rubinius
-  class Channel
     def inspect
       "#<Rubinius::Channel:0x#{object_id.to_s(16)}>"
     end

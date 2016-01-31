@@ -567,13 +567,3 @@ module Enumerable
     end
   end
 end
-
-Enumerator = Enumerable::Enumerator
-
-module Kernel
-  def to_enum(method=:each, *args)
-    Enumerable::Enumerator.new(self, method, *args)
-  end
-
-  alias_method :enum_for, :to_enum
-end

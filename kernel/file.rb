@@ -1,24 +1,6 @@
 ##
 # Platform specific behavior for the File class.
 
-module Rubinius
-module FFI::Platform::File
-  SEPARATOR = '/'
-  ALT_SEPARATOR = nil
-  PATH_SEPARATOR = ':'
-end
-end
-module Rubinius
-module FFI::Platform::POSIX
-  #--
-  # Internal class for accessing timevals
-  #++
-  class TimeVal < FFI::Struct
-    config 'rbx.platform.timeval', :tv_sec, :tv_usec
-  end
-end
-end
-
 class File < IO
   include Enumerable
 
@@ -26,63 +8,6 @@ class File < IO
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
   class PermissionError < FileError; end
-
-  module Constants
-    F_GETFL  = Rubinius::Config['rbx.platform.fcntl.F_GETFL']
-    F_SETFL  = Rubinius::Config['rbx.platform.fcntl.F_SETFL']
-
-    # O_ACCMODE is /undocumented/ for fcntl() on some platforms
-    ACCMODE  = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
-
-    F_GETFD  = Rubinius::Config['rbx.platform.fcntl.F_GETFD']
-    F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
-    FD_CLOEXEC = Rubinius::Config['rbx.platform.fcntl.FD_CLOEXEC']
-
-    RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
-    WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
-    RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']
-
-    CREAT    = Rubinius::Config['rbx.platform.file.O_CREAT']
-    EXCL     = Rubinius::Config['rbx.platform.file.O_EXCL']
-    NOCTTY   = Rubinius::Config['rbx.platform.file.O_NOCTTY']
-    TRUNC    = Rubinius::Config['rbx.platform.file.O_TRUNC']
-    APPEND   = Rubinius::Config['rbx.platform.file.O_APPEND']
-    NONBLOCK = Rubinius::Config['rbx.platform.file.O_NONBLOCK']
-    SYNC     = Rubinius::Config['rbx.platform.file.O_SYNC']
-
-    # TODO: these flags should probably be imported from Platform
-    LOCK_SH  = 0x01
-    LOCK_EX  = 0x02
-    LOCK_NB  = 0x04
-    LOCK_UN  = 0x08
-    BINARY   = 0x04
-
-    # TODO: "OK" constants aren't in File::Constants in MRI
-    F_OK = 0 # test for existence of file
-    X_OK = 1 # test for execute or search permission
-    W_OK = 2 # test for write permission
-    R_OK = 4 # test for read permission
-
-    FNM_NOESCAPE = 0x01
-    FNM_PATHNAME = 0x02
-    FNM_DOTMATCH = 0x04
-    FNM_CASEFOLD = 0x08
-    FNM_EXTGLOB  = 0x10
-
-    if Rubinius.windows?
-      NULL = 'NUL'
-    else
-      NULL = '/dev/null'
-    end
-  end
-
-  FFI = Rubinius::FFI
-
-  SEPARATOR = FFI::Platform::File::SEPARATOR
-  Separator = FFI::Platform::File::SEPARATOR
-  ALT_SEPARATOR = FFI::Platform::File::ALT_SEPARATOR
-  PATH_SEPARATOR = FFI::Platform::File::PATH_SEPARATOR
-  POSIX = FFI::Platform::POSIX
 
   attr_reader :path
 
@@ -975,7 +900,10 @@ class File < IO
 
     real
   end
-  private_class_method :basic_realpath
+
+  class << self
+    private :basic_realpath
+  end
 
   ##
   # Renames the given file to the new name. Raises a SystemCallError
@@ -1338,40 +1266,6 @@ class File < IO
   def size
     raise IOError, "closed stream" if closed?
     stat.size
-  end
-end     # File
-
-# Inject the constants into IO
-class IO
-  include File::Constants
-end
-
-File::Stat = Rubinius::Stat
-class File::Stat
-  @module_name = :"File::Stat"
-
-  def world_readable?
-    if mode & S_IROTH == S_IROTH
-      tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
-    end
-  end
-
-  def world_writable?
-    if mode & S_IWOTH == S_IWOTH
-      tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
-    end
-  end
-end
-class File
-  # these will be necessary when we run on Windows
-  DOSISH = false # !!(RUBY_PLATFORM =~ /mswin/)
-  CASEFOLD_FILESYSTEM = DOSISH
-  FNM_SYSCASE = CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : 0
-
-  module Constants
-    FNM_SYSCASE = File::FNM_SYSCASE
   end
 
   ##

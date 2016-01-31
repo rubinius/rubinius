@@ -205,16 +205,6 @@ module Rubinius
           end
         end
 
-        # Mapping of string open modes to integer oflag versions.
-        OFLAGS = {
-          "r"  => ::File::RDONLY,
-          "r+" => ::File::RDWR   | ::File::CREAT,
-          "w"  => ::File::WRONLY | ::File::CREAT  | ::File::TRUNC,
-          "w+" => ::File::RDWR   | ::File::CREAT  | ::File::TRUNC,
-          "a"  => ::File::WRONLY | ::File::APPEND | ::File::CREAT,
-          "a+" => ::File::RDWR   | ::File::APPEND | ::File::CREAT
-        }
-
         def convert_file_mode(obj)
           case obj
           when ::Fixnum

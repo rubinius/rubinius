@@ -83,6 +83,7 @@ Gemfile.installed.lock
 vm/include/capi/ruby/digest.h
 
 /kernel/signature.rb
+/kernel/build_config.rb
 
 # Generated documentation
 doc/generated/vm

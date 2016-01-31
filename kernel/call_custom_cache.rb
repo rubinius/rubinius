@@ -11,4 +11,3 @@ module Rubinius
 
   end
 end
-

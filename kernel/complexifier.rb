@@ -1,14 +1,5 @@
 class String
   class Complexifier
-    SPACE = Rationalizer::SPACE
-    NUMERATOR = Rationalizer::NUMERATOR
-    DENOMINATOR = Rationalizer::DENOMINATOR
-    NUMBER = "[-+]?#{NUMERATOR}(?:\\/#{DENOMINATOR})?"
-    NUMBERNOS = "#{NUMERATOR}(?:\\/#{DENOMINATOR})?"
-    PATTERN0 = Regexp.new "\\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}"
-    PATTERN1 = Regexp.new "\\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}"
-    PATTERN2 = Regexp.new "\\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}"
-
     def initialize(value)
       @value = value
     end

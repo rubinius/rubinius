@@ -1,4 +1,6 @@
 class Symbol
+  include Comparable
+
   def self.===(obj)
     Rubinius.primitive :symbol_s_eqq
     super
@@ -28,9 +30,6 @@ class Symbol
     Rubinius.primitive :symbol_is_constant
     raise PrimitiveFailure, "Symbol#is_constant primitive failed."
   end
-end
-class Symbol
-  include Comparable
 
   def <=>(other)
     return unless other.kind_of? Symbol

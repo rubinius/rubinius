@@ -1,6 +1,5 @@
 module Rubinius
   class CallSite
-
     attr_reader :name
     attr_reader :executable
 
@@ -20,6 +19,5 @@ module Rubinius
     def inspect
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} #{location}##{@name}(#{hits})>"
     end
-
   end
 end

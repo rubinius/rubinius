@@ -1,15 +1,4 @@
 module Signal
-  Names = {
-    "EXIT" => 0
-  }
-
-  Numbers = {
-    0 => "EXIT"
-  }
-
-  @threads = {}
-  @handlers = {}
-
   def self.trap(sig, prc=nil, &block)
     sig = sig.to_s if sig.kind_of?(Symbol)
 
@@ -78,18 +67,5 @@ module Signal
 
   def self.list
     Names.dup
-  end
-end
-module Signal
-  Rubinius::Config.section 'rbx.platform.signal.' do |key, value|
-    name = key[23, key.length]
-    number = value.to_i
-    Names[name] = number
-    Numbers[number] = name
-  end
-
-  # special case of signal.c
-  if Names["CHLD"]
-    Names["CLD"] = Names["CHLD"]
   end
 end

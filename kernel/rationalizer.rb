@@ -6,13 +6,6 @@
 #
 class String
   class Rationalizer
-    SPACE = "\\s*"
-    DIGITS = "(?:[0-9](?:_[0-9]|[0-9])*)"
-    NUMERATOR = "(?:#{DIGITS}?\\.)?#{DIGITS}(?:[eE][-+]?#{DIGITS})?"
-    DENOMINATOR = DIGITS
-    RATIONAL = "\\A#{SPACE}([-+])?(#{NUMERATOR})(?:\\/(#{DENOMINATOR}))?#{SPACE}"
-    PATTERN = Regexp.new RATIONAL
-
     def initialize(value)
       @value = value
     end

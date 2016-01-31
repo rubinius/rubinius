@@ -125,13 +125,6 @@ module Rubinius
       Rubinius.primitive :encoding_get_object_encoding
       raise PrimitiveFailure, "Rubinius::Type.object_encoding primitive failed"
     end
-  end
-end
-##
-# Namespace for coercion functions between various ruby objects.
-
-module Rubinius
-  module Type
 
     ##
     # Returns an object of given class. If given object already is one, it is

@@ -1,4 +1,6 @@
 class Time
+  include Comparable
+
   def self.now
     Rubinius.primitive :time_s_now
     raise PrimitiveFailure, "Time.now primitive failed"
@@ -37,14 +39,6 @@ class Time
     Rubinius.primitive :time_strftime
     raise PrimitiveFailure, "Time#strftime primitive failed"
   end
-end
-class Time
-  include Comparable
-
-  MonthValue = {
-    'JAN' => 1, 'FEB' => 2, 'MAR' => 3, 'APR' => 4, 'MAY' => 5, 'JUN' => 6,
-    'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
-  }
 
   def self.at(sec, usec=undefined)
     if undefined.equal?(usec)
@@ -317,7 +311,9 @@ class Time
     end
   end
 
-  private_class_method :_load
+  class << self
+    private :_load
+  end
 
   #--
   # TODO: doesn't dump ivars

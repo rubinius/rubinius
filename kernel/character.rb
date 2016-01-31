@@ -1,6 +1,5 @@
 module Rubinius
   class Character < ::String
-
     def self.__allocate__
       Rubinius.primitive :character_allocate
       raise PrimitiveFailure, "Rubinius::Character.allocate primitive failed"

@@ -41,8 +41,7 @@ module GC
   def garbage_collect
     GC.start
   end
-end
-module GC
+
   def self.count
     data = stat
     data[:"gc.young.count"] + data[:"gc.immix.count"]

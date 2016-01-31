@@ -129,6 +129,46 @@ class Module
     tbl.keys
   end
 
+  #--
+  # These have to be aliases, not methods that call instance eval, because we
+  # need to pull in the binding of the person that calls them, not the
+  # intermediate binding.
+  #++
+
+  def module_eval(string=undefined, filename="(eval)", line=1, &prc)
+    # we have a custom version with the prc, rather than using instance_exec
+    # so that we can setup the ConstantScope properly.
+    if prc
+      unless undefined.equal?(string)
+        raise ArgumentError, "cannot pass both string and proc"
+      end
+
+      # Return a copy of the BlockEnvironment with the receiver set to self
+      env = prc.block
+      constant_scope = env.repoint_scope self
+      return env.call_under(self, constant_scope, true, self)
+    elsif undefined.equal?(string)
+      raise ArgumentError, 'block not supplied'
+    end
+
+    string = StringValue(string)
+    filename = StringValue(filename)
+
+    # The constantscope of a module_eval CM is the receiver of module_eval
+    cs = Rubinius::ConstantScope.new self, Rubinius::ConstantScope.of_sender
+
+    binding = Binding.setup(Rubinius::VariableScope.of_sender,
+                            Rubinius::CompiledCode.of_sender,
+                            cs)
+
+    c = Rubinius::ToolSets::Runtime::Compiler
+    be = c.construct_block string, binding, filename, line
+
+    be.call_under self, cs, true, self
+  end
+
+  alias_method :class_eval, :module_eval
+
   def private_constant(*names)
     names = names.map(&:to_sym)
     unknown_constants = names - @constant_table.keys
@@ -279,18 +319,6 @@ class Module
   end
   alias_method :class_variables, :__class_variables__
 
-  def name
-    Rubinius::Type.module_name self
-  end
-
-  def to_s
-    Rubinius::Type.module_inspect self
-  end
-
-  def inspect
-    to_s
-  end
-
   def lookup_method(sym, check_object_too=true, trim_im=true)
     mod = self
 
@@ -314,62 +342,6 @@ class Module
     out = []
     Rubinius::Type.each_ancestor(self) { |mod| out << mod }
     return out
-  end
-
-  def undef_method(*names)
-    return self if names.empty?
-    names.map!{ |name| Rubinius::Type.coerce_to_symbol name }
-    Rubinius.check_frozen
-
-    names.each do |name|
-      # Will raise a NameError if the method doesn't exist.
-      instance_method name
-      undef_method! name
-    end
-
-    self
-  end
-
-  # Like undef_method, but doesn't even check that the method exists. Used
-  # mainly to implement rb_undef_method.
-  def undef_method!(name)
-    Rubinius.check_frozen
-    name = Rubinius::Type.coerce_to_symbol(name)
-    @method_table.store name, nil, nil, nil, 0, :undef
-    Rubinius::VM.reset_method_cache self, name
-    if obj = Rubinius::Type.singleton_class_object(self)
-      Rubinius.privately do
-        obj.singleton_method_undefined(name)
-      end
-    else
-      method_undefined(name)
-    end
-
-    name
-  end
-
-  def remove_method(*names)
-    names.each do |name|
-      name = Rubinius::Type.coerce_to_symbol(name)
-      Rubinius.check_frozen
-
-      unless @method_table.lookup(name)
-        raise NameError.new("method `#{name}' not defined in #{self.name}", name)
-      end
-      @method_table.delete name
-
-      Rubinius::VM.reset_method_cache self, name
-
-      if obj = Rubinius::Type.singleton_class_object(self)
-        Rubinius.privately do
-          obj.singleton_method_removed(name)
-        end
-      else
-        method_removed(name)
-      end
-    end
-
-    self
   end
 
   def public_method_defined?(sym)
@@ -532,6 +504,7 @@ class Module
   def extend_object(obj)
     include_into Rubinius::Type.object_singleton_class(obj)
   end
+  private :extend_object
 
   def include?(mod)
     if !mod.kind_of?(Module) or mod.kind_of?(Class)
@@ -582,31 +555,6 @@ class Module
   end
   private :set_class_visibility
 
-  def protected(*args)
-    if args.empty?
-      vs = Rubinius::VariableScope.of_sender
-      vs.method_visibility = :protected
-    else
-      args.each { |meth| set_visibility(meth, :protected) }
-    end
-
-    self
-  end
-
-  def private_class_method(*args)
-    args.each do |meth|
-      set_class_visibility(meth, :private)
-    end
-    self
-  end
-
-  def public_class_method(*args)
-    args.each do |meth|
-      set_class_visibility(meth, :public)
-    end
-    self
-  end
-
   def module_exec(*args, &prc)
     raise LocalJumpError, "Missing block" unless block_given?
 
@@ -615,28 +563,6 @@ class Module
     return env.call_under(self, constant_scope, true, *args)
   end
   alias_method :class_exec, :module_exec
-
-  def const_set(name, value)
-    name = Rubinius::Type.coerce_to_constant_name name
-    Rubinius.check_frozen
-
-    if Rubinius::Type.object_kind_of? value, Module
-      Rubinius::Type.set_module_name value, name, self
-
-      if Object.equal? self
-        value.constant_table.each do |n, c, _|
-          if Rubinius::Type.object_kind_of? c, Module and !c.name
-            Rubinius::Type.set_module_name c, n, value
-          end
-        end
-      end
-    end
-
-    @constant_table.store(name, value, :public)
-    Rubinius.inc_global_serial
-
-    return value
-  end
 
   ##
   # Return the named constant enclosed in this Module.
@@ -850,205 +776,6 @@ class Module
     super
   end
 
-  def attr_reader(name)
-    meth = Rubinius::AccessVariable.get_ivar name
-    @method_table.store name, nil, meth, nil, 0, :public
-    Rubinius::VM.reset_method_cache self, name
-    ivar_name = "@#{name}".to_sym
-    if @seen_ivars
-      @seen_ivars.each do |ivar|
-        return nil if ivar == ivar_name
-      end
-      @seen_ivars[@seen_ivars.size] = ivar_name
-    else
-      @seen_ivars = [ivar_name]
-    end
-    nil
-  end
-
-  def attr_writer(name)
-    meth = Rubinius::AccessVariable.set_ivar name
-    writer_name = "#{name}=".to_sym
-    @method_table.store writer_name, nil, meth, nil, 0, :public
-    Rubinius::VM.reset_method_cache self, writer_name
-    ivar_name = "@#{name}".to_sym
-    if @seen_ivars
-      @seen_ivars.each do |ivar|
-        return nil if ivar == ivar_name
-      end
-      @seen_ivars[@seen_ivars.size] = ivar_name
-    else
-      @seen_ivars = [ivar_name]
-    end
-    nil
-  end
-end
-class Module
-  def alias_method(new_name, current_name)
-    new_name = Rubinius::Type.coerce_to_symbol(new_name)
-    current_name = Rubinius::Type.coerce_to_symbol(current_name)
-    mod, entry = lookup_method(current_name, true, false)
-
-    if entry
-      method_visibility = visibility_for_aliased_method(new_name, entry.visibility)
-
-      # If we're aliasing a method we contain, just reference it directly, no
-      # need for the alias wrapper
-      #
-      # The 'and entry.method' is there to force us to use the alias code
-      # when the original method exists only to change the visibility of
-      # a parent method.
-      if mod == self and entry.get_method
-        @method_table.store new_name, entry.method_id, entry.method,
-          entry.scope, entry.serial, method_visibility
-      else
-        @method_table.alias new_name, method_visibility, current_name,
-                            entry.get_method, mod
-      end
-
-      Rubinius::VM.reset_method_cache self, new_name
-
-      if ai = Rubinius::Type.singleton_class_object(self)
-        Rubinius.privately do
-          ai.singleton_method_added new_name
-        end
-      else
-        method_added new_name
-      end
-
-      self
-    else
-      if ai = Rubinius::Type.singleton_class_object(self)
-        raise NameError, "Unable to find '#{current_name}' for object #{ai.inspect}"
-      else
-        thing = Rubinius::Type.object_kind_of?(self, Class) ? "class" : "module"
-        raise NameError, "undefined method `#{current_name}' for #{thing} `#{self.name}'"
-      end
-    end
-  end
-
-  def module_function(*args)
-    if kind_of? Class
-      raise TypeError, "invalid receiver class #{__class__}, expected Module"
-    end
-
-    if args.empty?
-      vs = Rubinius::VariableScope.of_sender
-      vs.method_visibility = :module
-    else
-      sc = Rubinius::Type.object_singleton_class(self)
-      args.each do |meth|
-        method_name = Rubinius::Type.coerce_to_symbol meth
-        mod, entry = lookup_method(method_name)
-        sc.method_table.store method_name, entry.method_id, entry.method,
-          entry.scope, entry.serial, :public
-        Rubinius::VM.reset_method_cache self, method_name
-        set_visibility method_name, :private
-      end
-    end
-
-    return self
-  end
-
-  def public(*args)
-    if args.empty?
-      vs = Rubinius::VariableScope.of_sender
-      vs.method_visibility = nil
-    else
-      args.each { |meth| set_visibility(meth, :public) }
-    end
-
-    self
-  end
-
-  def private(*args)
-    if args.empty?
-      vs = Rubinius::VariableScope.of_sender
-      vs.method_visibility = :private
-    else
-      args.each { |meth| set_visibility(meth, :private) }
-    end
-
-    self
-  end
-
-  # Invokes <code>Module#append_features</code> and
-  # <code>Module#included</code> on each argument, passing in self.
-  #
-  def include(*modules)
-    modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
-        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
-      end
-
-      Rubinius.privately do
-        mod.append_features self
-      end
-
-      Rubinius.privately do
-        mod.included self
-      end
-    end
-    self
-  end
-
-  # Add all constants, instance methods and module variables
-  # of this Module and all Modules that this one includes to +klass+
-  #
-  # This method is aliased as append_features as the default implementation
-  # for that method. Kernel#extend calls this method directly through
-  # Module#extend_object, because Kernel#extend should not use append_features.
-  def include_into(klass)
-    unless klass.kind_of? Module
-      raise TypeError, "invalid argument class #{klass.class}, expected Module"
-    end
-
-    if kind_of? Class
-      raise TypeError, "invalid receiver class #{__class__}, expected Module"
-    end
-
-    Rubinius::Type.include_modules_from(self, klass.origin)
-    Rubinius::Type.infect(klass, self)
-
-    self
-  end
-
-  # Called when this Module is being included in another Module.
-  # This may be overridden for custom behaviour. The default
-  # is to add constants, instance methods and module variables
-  # of this Module and all Modules that this one includes to +klass+.
-  #
-  # See also #include.
-  #
-  alias_method :append_features, :include_into
-
-  def attr_reader(*names)
-    vis = Rubinius::VariableScope.of_sender.method_visibility
-
-    names.each { |name| Rubinius.add_reader name, self, vis }
-
-    return nil
-  end
-
-  def attr_writer(*names)
-    vis = Rubinius::VariableScope.of_sender.method_visibility
-
-    names.each { |name| Rubinius::add_writer name, self, vis }
-
-    return nil
-  end
-
-  def attr_accessor(*names)
-    vis = Rubinius::VariableScope.of_sender.method_visibility
-
-    names.each do |name|
-      Rubinius.add_reader name, self, vis
-      Rubinius.add_writer name, self, vis
-    end
-
-    return nil
-  end
-
   def origin= origin
     @origin = origin
   end
@@ -1095,9 +822,5 @@ class Module
     Rubinius::Type.infect(klass, self)
     self
   end
-
-  private :remove_method, :undef_method, :alias_method,
-          :module_function, :prepend_features, :append_features, :extend_object,
-          :public, :private, :protected,
-          :attr_reader, :attr_writer, :attr_accessor
+  private :prepend_features
 end

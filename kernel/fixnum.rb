@@ -1,5 +1,9 @@
+##
+#--
+# NOTE do not define to_sym or id2name. It's been deprecated for 5 years and
+# we've decided to remove it.
+#++
 class Fixnum < Integer
-
   def self.===(obj)
     Rubinius.primitive :fixnum_s_eqq
     super
@@ -173,14 +177,6 @@ class Fixnum < Integer
     Rubinius.primitive :fixnum_size
     raise PrimitiveFailure, "Fixnum#size primitive failed"
   end
-end
-##
-#--
-# NOTE do not define to_sym or id2name. It's been deprecated for 5 years and
-# we've decided to remove it.
-#++
-
-class Fixnum < Integer
 
   def self.induced_from(obj)
     case obj

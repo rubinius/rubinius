@@ -1,5 +1,4 @@
 class Rubinius::VM
-
   # Get an Array of Rubinius::Location objects representing the current
   # call stack. +frames_to_skip+ says how many initial frames to ignore.
   # If +include_vars+ is set, then the Location objects also include a

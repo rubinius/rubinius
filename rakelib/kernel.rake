@@ -94,11 +94,6 @@ end
 # Generate a digest of the Rubinius runtime files
 signature_file = "kernel/signature.rb"
 
-bootstrap_files = FileList[
-  "library/rbconfig.rb",
-  "library/rubinius/build_config.rb",
-]
-
 runtime_gems_dir = BUILD_CONFIG[:runtime_gems_dir]
 bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
 
@@ -169,11 +164,6 @@ file signature => signature_file do |t|
 end
 runtime_files << signature
 
-# Build the bootstrap files
-bootstrap_files.each do |name|
-  file_task nil, runtime_files, signature_file, name, nil
-end
-
 # Build the gem files
 runtime_gem_files.each do |name|
   file_task nil, runtime_files, signature_file, name, nil
@@ -236,7 +226,7 @@ class CodeDBCompiler
   end
 end
 
-file "runtime/kernel/data" => ["runtime/kernel"] + runtime_files do |t|
+file "runtime/kernel/data" => ["runtime/kernel", kernel_load_order] + runtime_files do |t|
   puts "CodeDB: writing data..."
 
   kernel_files.each do |file|

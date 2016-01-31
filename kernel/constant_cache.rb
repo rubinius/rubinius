@@ -1,6 +1,5 @@
 module Rubinius
   class ConstantCache
-
     attr_reader :name
     attr_reader :value
     attr_reader :under
@@ -24,7 +23,6 @@ module Rubinius
     def inspect
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} #{location}##{@name} constant=#{@value} under=#{@under}>"
     end
-
   end
 end
 

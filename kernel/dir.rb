@@ -1,4 +1,6 @@
 class Dir
+  include Enumerable
+
   def self.allocate
     Rubinius.primitive :dir_allocate
     raise PrimitiveFailure, "Dir.allocate primitive failed"
@@ -49,15 +51,6 @@ class Dir
   end
 
   private :control
-end
-class Dir
-  include Enumerable
-
-  # This seems silly, I know. But we do this to make Dir more resistent to people
-  # screwing with ::File later (ie, fakefs)
-  PrivateFile = ::File
-
-  FFI = Rubinius::FFI
 
   def self.open(path, options=undefined)
     dir = new path, options

@@ -1,6 +1,5 @@
 module Rubinius
   class CompiledCode < Executable
-
     attr_accessor :name
 
     def self.allocate
@@ -59,15 +58,6 @@ module Rubinius
       Rubinius.primitive :compiledcode_current
       raise PrimitiveFailure, "CompiledCode.current primitive failed"
     end
-  end
-
-  # NOTE: Temporary alias for backwards compatibility. CompiledMethod is
-  # deprecated. Client code should use CompiledCode.
-  CompiledMethod = CompiledCode
-
-end
-module Rubinius
-  class CompiledCode < Executable
 
     ##
     # Any CompiledCode with this value in it's serial slot
@@ -708,4 +698,8 @@ module Rubinius
       end
     end
   end
+
+  # NOTE: Temporary alias for backwards compatibility. CompiledMethod is
+  # deprecated. Client code should use CompiledCode.
+  CompiledMethod = CompiledCode
 end

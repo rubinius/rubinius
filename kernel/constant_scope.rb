@@ -1,3 +1,9 @@
+##
+# A linked list that details the static, lexical scope the method was created
+# in.
+#
+# TODO: document
+
 module Rubinius
   class ConstantScope
     def self.of_sender
@@ -28,20 +34,6 @@ module Rubinius
 
       raise NameError, "Invalid class variable name '#{sym}'"
     end
-  end
-
-  # NOTE: Temporary alias for backwards compatibility. StaticScope will
-  # eventually be deprecated in favor of ConstantScope.
-  StaticScope = ConstantScope
-end
-##
-# A linked list that details the static, lexical scope the method was created
-# in.
-#
-# TODO: document
-
-module Rubinius
-  class ConstantScope
 
     #
     # @todo  Verify the recursion here does not cause problems. --rue
@@ -181,5 +173,9 @@ module Rubinius
       @module.const_set name, value
     end
   end
+
+  # NOTE: Temporary alias for backwards compatibility. StaticScope will
+  # eventually be deprecated in favor of ConstantScope.
+  StaticScope = ConstantScope
 end
 

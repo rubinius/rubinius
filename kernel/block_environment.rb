@@ -1,5 +1,19 @@
+##
+# Describes the environment a block was created in.  BlockEnvironment is used
+# to create a BlockContext.
+
 module Rubinius
   class BlockEnvironment
+    attr_reader :scope
+    attr_reader :top_scope
+    attr_reader :module
+
+    # The CompiledCode that implements the code for the block
+    attr_reader :compiled_code
+    attr_reader :constant_scope
+
+    attr_accessor :proc_environment
+
     def self.allocate
       Rubinius.primitive :blockenvironment_allocate
       raise PrimitiveFailure, "BlockEnvironment.allocate primitive failed"
@@ -62,23 +76,6 @@ module Rubinius
         @block_env.line
       end
     end
-  end
-end
-##
-# Describes the environment a block was created in.  BlockEnvironment is used
-# to create a BlockContext.
-
-module Rubinius
-  class BlockEnvironment
-    attr_reader :scope
-    attr_reader :top_scope
-    attr_reader :module
-
-    # The CompiledCode that implements the code for the block
-    attr_reader :compiled_code
-    attr_reader :constant_scope
-
-    attr_accessor :proc_environment
 
     def from_proc?
       @proc_environment

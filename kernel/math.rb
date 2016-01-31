@@ -1,169 +1,74 @@
-##
-# Platform specific behavior for Math.
-
-module Rubinius
-module FFI::Platform::Math
-  extend FFI::Library
-
-  attach_function :fabs,  [:double], :double
-  attach_function :atan2, [:double, :double], :double
-  attach_function :cos,   [:double], :double
-  attach_function :sin,   [:double], :double
-  attach_function :tan,   [:double], :double
-  attach_function :acos,  [:double], :double
-  attach_function :asin,  [:double], :double
-  attach_function :atan,  [:double], :double
-  attach_function :cosh,  [:double], :double
-  attach_function :sinh,  [:double], :double
-  attach_function :tanh,  [:double], :double
-  attach_function :acosh, [:double], :double
-  attach_function :asinh, [:double], :double
-  attach_function :atanh, [:double], :double
-  attach_function :exp,   [:double], :double
-  attach_function :log,   [:double], :double
-  attach_function :log10, [:double], :double
-  attach_function :sqrt,  [:double], :double
-  attach_function :frexp, [:double, :pointer], :double
-  attach_function :ldexp, [:double, :int], :double
-  attach_function :hypot, [:double, :double], :double
-  attach_function :erf,   [:double], :double
-  attach_function :erfc,  [:double], :double
-  attach_function :cbrt, [:double], :double
-  attach_function :tgamma, [:double], :double
-  attach_function :lgamma_r, [:double, :pointer], :double
-
-  # Rubinius-specific, used in Marshal
-  attach_function :modf,  [:double, :pointer], :double
-
-  # TODO: we need a way to determine whether a function
-  # is defined for a particular platform.
-  #
-  # attach_function :log2,  [:double], :double
-  def self.log2(x)
-    log10(x) / log10(2.0)
-  end
-end
-end
 module Math
-  FFI = Rubinius::FFI
-
-  # Constants
-  PI = 3.14159_26535_89793_23846
-  E  = 2.71828_18284_59045_23536
-
-  FactorialTable = [
-    1.0,
-    1.0,
-    2.0,
-    6.0,
-    24.0,
-    120.0,
-    720.0,
-    5040.0,
-    40320.0,
-    362880.0,
-    3628800.0,
-    39916800.0,
-    479001600.0,
-    6227020800.0,
-    87178291200.0,
-    1307674368000.0,
-    20922789888000.0,
-    355687428096000.0,
-    6402373705728000.0,
-    121645100408832000.0,
-    2432902008176640000.0,
-    51090942171709440000.0,
-    1124000727777607680000.0
-  ]
-
-  if Errno.const_defined? :EDOM
-    DomainError = Errno::EDOM
-  elsif Errno.const_defined? :ERANGE
-    DomainError = Errno::ERANGE
-  else
-    class DomainError < SystemCallError
-    end
-  end
-
   def atan2(y, x)
     y = Rubinius::Type.coerce_to_float y
     x = Rubinius::Type.coerce_to_float x
     FFI::Platform::Math.atan2 y, x
   end
+  module_function :atan2
 
   def cos(x)
     FFI::Platform::Math.cos Rubinius::Type.coerce_to_float(x)
   end
+  module_function :cos
 
   def sin(x)
     FFI::Platform::Math.sin Rubinius::Type.coerce_to_float(x)
   end
+  module_function :sin
 
   def tan(x)
     FFI::Platform::Math.tan Rubinius::Type.coerce_to_float(x)
   end
+  module_function :tan
 
   def atan(x)
     FFI::Platform::Math.atan Rubinius::Type.coerce_to_float(x)
   end
+  module_function :atan
 
   def cosh(x)
     FFI::Platform::Math.cosh Rubinius::Type.coerce_to_float(x)
   end
+  module_function :cosh
 
   def sinh(x)
     FFI::Platform::Math.sinh Rubinius::Type.coerce_to_float(x)
   end
+  module_function :sinh
 
   def tanh(x)
     FFI::Platform::Math.tanh Rubinius::Type.coerce_to_float(x)
   end
+  module_function :tanh
 
   def asinh(x)
     FFI::Platform::Math.asinh Rubinius::Type.coerce_to_float(x)
   end
+  module_function :asinh
 
-  # This is wierd, but we need to only do the ERANGE check if
-  # there is an ERANGE.
-  if Errno.const_defined?(:ERANGE)
+  def atanh(x)
+    x = Rubinius::Type.coerce_to_float(x)
+    raise DomainError, 'atanh' unless x.abs <= 1.0
 
-    def atanh(x)
-      x = Rubinius::Type.coerce_to_float(x)
-      raise DomainError, 'atanh' unless x.abs <= 1.0
+    FFI::Platform::POSIX.errno = 0
 
-      FFI::Platform::POSIX.errno = 0
-
-      ret = FFI::Platform::Math.atanh x
-      begin
-        Errno.handle
-
-        # Linux sets errno to ERANGE, but it should be EDOM
-      rescue Errno::ERANGE
-        raise Errno::EDOM
-      end
-
-      ret
-    end
-
-  else
-
-    def atanh(x)
-      x = Rubinius::Type.coerce_to_float(x)
-      raise DomainError, 'atanh' unless x.abs <= 1.0
-
-      FFI::Platform::POSIX.errno = 0
-
-      ret = FFI::Platform::Math.atanh x
+    ret = FFI::Platform::Math.atanh x
+    begin
       Errno.handle
-      ret
+
+      # Linux sets errno to ERANGE, but it should be EDOM
+    rescue Errno::ERANGE
+      raise Errno::EDOM
     end
 
+    ret
   end
+  module_function :atanh
 
   def exp(x)
     FFI::Platform::Math.exp Rubinius::Type.coerce_to_float(x)
   end
+  module_function :exp
 
   def frexp(x)
     x = Rubinius::Type.coerce_to_float(x)
@@ -172,6 +77,7 @@ module Math
       [result, exp.read_int]
     end
   end
+  module_function :frexp
 
   def ldexp(x, n)
     if n.kind_of? Float and n.nan?
@@ -182,6 +88,7 @@ module Math
 
     FFI::Platform::Math.ldexp Rubinius::Type.coerce_to_float(x), n
   end
+  module_function :ldexp
 
   # Rubinius-specific, used in Marshal
   def modf(x)
@@ -190,20 +97,24 @@ module Math
       [fractional, integral.read_double]
     end
   end
+  module_function :modf
 
   def hypot(x, y)
     x = Rubinius::Type.coerce_to_float x
     y = Rubinius::Type.coerce_to_float y
     FFI::Platform::Math.hypot x, y
   end
+  module_function :hypot
 
   def erf(x)
     FFI::Platform::Math.erf Rubinius::Type.coerce_to_float(x)
   end
+  module_function :erf
 
   def erfc(x)
     FFI::Platform::Math.erfc Rubinius::Type.coerce_to_float(x)
   end
+  module_function :erfc
 
   def asin(x)
     return Float::NAN if x.kind_of? Float and x.nan?
@@ -212,6 +123,7 @@ module Math
     raise DomainError, 'asin' unless x.abs <= 1.0
     FFI::Platform::Math.asin x
   end
+  module_function :asin
 
   def acos(x)
     return Float::NAN if x.kind_of? Float and x.nan?
@@ -225,6 +137,7 @@ module Math
     Errno.handle
     ret
   end
+  module_function :acos
 
   def acosh(x)
     return Float::NAN if x.kind_of? Float and x.nan?
@@ -233,11 +146,13 @@ module Math
     raise DomainError, 'acosh' unless x >= 1.0
     FFI::Platform::Math.acosh x
   end
+  module_function :acosh
 
   def cbrt(x)
     x = Rubinius::Type.coerce_to_float x
     FFI::Platform::Math.cbrt x
   end
+  module_function :cbrt
 
   def gamma(x)
     x = Rubinius::Type.coerce_to_float x
@@ -265,6 +180,7 @@ module Math
 
     FFI::Platform::Math.tgamma x
   end
+  module_function :gamma
 
   def lgamma(x)
     x = Rubinius::Type.coerce_to_float x
@@ -281,6 +197,7 @@ module Math
       [result, sign.read_int]
     end
   end
+  module_function :lgamma
 
   def log(x, base=undefined)
     return Float::NAN if x.kind_of? Float and x.nan?
@@ -295,6 +212,7 @@ module Math
     end
     y
   end
+  module_function :log
 
   def log2(x)
     return Float::NAN if x.kind_of? Float and x.nan?
@@ -303,6 +221,7 @@ module Math
     raise DomainError, 'log2' unless x >= 0.0
     FFI::Platform::Math.log2 x
   end
+  module_function :log2
 
   def log10(x)
     return Float::NAN if x.kind_of? Float and x.nan?
@@ -311,6 +230,7 @@ module Math
     raise DomainError, 'log10' unless x >= 0.0
     FFI::Platform::Math.log10 x
   end
+  module_function :log10
 
   def sqrt(x)
     return Float::NAN if x.kind_of? Float and x.nan?
@@ -319,60 +239,5 @@ module Math
     raise DomainError, 'sqrt' unless x >= 0.0
     FFI::Platform::Math.sqrt x
   end
-end
-module Math
-  module_function \
-    :acos,
-    :acosh,
-    :asin,
-    :asinh,
-    :atan,
-    :atan2,
-    :atanh,
-    :cbrt,
-    :cos,
-    :cosh,
-    :erf,
-    :erfc,
-    :exp,
-    :frexp,
-    :gamma,
-    :hypot,
-    :ldexp,
-    :lgamma,
-    :log,
-    :log10,
-    :log2,
-    :modf,
-    :sin,
-    :sinh,
-    :sqrt,
-    :tan,
-    :tanh
-
-  private \
-    :acos,
-    :acosh,
-    :asin,
-    :asinh,
-    :atan,
-    :atan2,
-    :atanh,
-    :cos,
-    :cosh,
-    :erf,
-    :erfc,
-    :exp,
-    :frexp,
-    :hypot,
-    :ldexp,
-    :log,
-    :log10,
-    :log2,
-    :modf,
-    :sin,
-    :sinh,
-    :sqrt,
-    :tan,
-    :tanh
+  module_function :sqrt
 end

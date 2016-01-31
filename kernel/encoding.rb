@@ -1,25 +1,3 @@
-class Encoding
-  attr_reader :name
-  attr_reader :dummy
-
-  alias_method :to_s, :name
-  alias_method :dummy?, :dummy
-
-  def self.compatible?(a, b)
-    Rubinius.primitive :encoding_compatible_p
-    raise PrimitiveFailure, "Encoding.compatible? primitive failed"
-  end
-
-  def replicate(name)
-    Rubinius.primitive :encoding_replicate
-    raise PrimitiveFailure, "Encoding#replicate primitive failed"
-  end
-
-  def ascii_compatible?
-    Rubinius.primitive :encoding_ascii_compatible_p
-    raise PrimitiveFailure, "Encoding#ascii_compatible? primitive failed"
-  end
-end
 class EncodingError < StandardError
 end
 
@@ -383,11 +361,6 @@ class Encoding
     end
 
     class TranscodingPath
-      @paths = {}
-      @load_cache = true
-      @cache_valid = false
-      @transcoders_count = TranscodingMap.size
-
       def self.paths
         if load_cache? and cache_threshold?
           begin
@@ -503,6 +476,27 @@ class Encoding
     end
   end
 
+  attr_reader :name
+  attr_reader :dummy
+
+  alias_method :to_s, :name
+  alias_method :dummy?, :dummy
+
+  def self.compatible?(a, b)
+    Rubinius.primitive :encoding_compatible_p
+    raise PrimitiveFailure, "Encoding.compatible? primitive failed"
+  end
+
+  def replicate(name)
+    Rubinius.primitive :encoding_replicate
+    raise PrimitiveFailure, "Encoding#replicate primitive failed"
+  end
+
+  def ascii_compatible?
+    Rubinius.primitive :encoding_ascii_compatible_p
+    raise PrimitiveFailure, "Encoding#ascii_compatible? primitive failed"
+  end
+
   def self.aliases
     aliases = {}
     EncodingMap.each do |n, r|
@@ -535,7 +529,10 @@ class Encoding
 
     EncodingMap[key][1] = index
   end
-  private_class_method :set_alias_index
+
+  class << self
+    private :set_alias_index
+  end
 
   def self.default_external
     if undefined.equal? @default_external

@@ -1,5 +1,6 @@
 module Rubinius
   class Tuple
+    include Enumerable
 
     def self.allocate
       raise TypeError, "Tuple cannot be created via allocate()"
@@ -185,19 +186,6 @@ module Rubinius
 
       t
     end
-  end
-end
-##
-# The tuple data type.
-# A simple storage class. Created to contain a fixed number of elements.
-#
-# Not designed to be subclassed, as it does not call initialize
-# on new instances.
-
-module Rubinius
-  class Tuple
-
-    include Enumerable
 
     def self.[](*args)
       args.to_tuple

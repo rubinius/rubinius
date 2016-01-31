@@ -100,8 +100,6 @@ class Integer < Numeric
     end
   end
 
-  alias_method :magnitude, :abs
-
   def gcd(other)
     raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
     min = self.abs

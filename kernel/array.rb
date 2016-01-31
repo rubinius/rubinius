@@ -1,4 +1,6 @@
 class Array
+  include Enumerable
+
   def self.allocate
     Rubinius.primitive :array_allocate
     raise PrimitiveFailure, "Array.allocate primitive failed"
@@ -18,12 +20,6 @@ class Array
   def new_reserved(count)
     Rubinius.primitive :array_new_reserved
     raise PrimitiveFailure, "Array.new_reserved primitive failed"
-  end
-
-  # THIS MUST NOT BE REMOVED. the kernel requires a simple
-  # Array#[] to work while parts of the kernel boot.
-  def [](idx)
-    at(idx)
   end
 
   def []=(idx, ent)
@@ -126,9 +122,6 @@ class Array
     tuple.copy_from @tuple, @start, @total, 0
     tuple
   end
-end
-class Array
-  include Enumerable
 
   # The flow control for many of these methods is
   # pretty evil due to how MRI works. There is
@@ -1577,6 +1570,24 @@ class Array
     end
   end
 
+  def select(&block)
+    return to_enum(:select) { size } unless block_given?
+
+    values = []
+
+    i = @start
+    total = i + @total
+    tuple = @tuple
+
+    while i < total
+      elem = tuple.at(i)
+      values << elem if yield elem
+      i += 1
+    end
+
+    values
+  end
+
   def select!(&block)
     return to_enum(:select!) { size } unless block_given?
 
@@ -1726,10 +1737,6 @@ class Array
   alias_method :[]=, :set_index
 
   private :set_index
-
-  # Some code depends on Array having it's own #select method,
-  # not just using the Enumerable one. This alias achieves that.
-  alias_method :select, :find_all
 
   def shift(n=undefined)
     Rubinius.check_frozen

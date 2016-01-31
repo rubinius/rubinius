@@ -91,7 +91,6 @@ module Rubinius
         return 0 if combination_size < 0
         @object.size ** combination_size
       end
-
     end
   end
 end

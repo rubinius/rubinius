@@ -42,8 +42,6 @@ module Rubinius
       set_program_name "rbx"
       @stage = "running Loader preamble"
 
-      Object.const_set :ENV, EnvironmentVariables.new
-
       # Set the default visibility for the top level binding
       TOPLEVEL_BINDING.variables.method_visibility = :private
 

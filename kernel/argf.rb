@@ -530,7 +530,7 @@ module Rubinius
       @advance = false
 
       file = ARGV.shift
-      @stream = stream(file) 
+      @stream = stream(file)
       @filename = file
 
       if $-i && @stream != STDIN
@@ -546,10 +546,3 @@ module Rubinius
     private :advance!
   end
 end
-
-#
-# The virtual concatenation file of the files given on command line (or
-# from $stdin if no files were given.) Usable like an IO.
-#
-ARGF = Rubinius::ARGFClass.new
-

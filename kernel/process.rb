@@ -13,48 +13,6 @@ module Process
     Rubinius.primitive :vm_times
     raise PrimitiveFailure, "Process.cpu_times primitive failed"
   end
-end
-module Process
-  module Constants
-    EXIT_SUCCESS = Rubinius::Config['rbx.platform.process.EXIT_SUCCESS'] || 0
-    EXIT_FAILURE = Rubinius::Config['rbx.platform.process.EXIT_FAILURE'] || 1
-
-    PRIO_PGRP    = Rubinius::Config['rbx.platform.process.PRIO_PGRP']
-    PRIO_PROCESS = Rubinius::Config['rbx.platform.process.PRIO_PROCESS']
-    PRIO_USER    = Rubinius::Config['rbx.platform.process.PRIO_USER']
-
-    RLIM_INFINITY  = Rubinius::Config['rbx.platform.process.RLIM_INFINITY']
-    RLIM_SAVED_MAX = Rubinius::Config['rbx.platform.process.RLIM_SAVED_MAX']
-    RLIM_SAVED_CUR = Rubinius::Config['rbx.platform.process.RLIM_SAVED_CUR']
-
-    RLIMIT_AS      = Rubinius::Config['rbx.platform.process.RLIMIT_AS']
-    RLIMIT_CORE    = Rubinius::Config['rbx.platform.process.RLIMIT_CORE']
-    RLIMIT_CPU     = Rubinius::Config['rbx.platform.process.RLIMIT_CPU']
-    RLIMIT_DATA    = Rubinius::Config['rbx.platform.process.RLIMIT_DATA']
-    RLIMIT_FSIZE   = Rubinius::Config['rbx.platform.process.RLIMIT_FSIZE']
-    RLIMIT_MEMLOCK = Rubinius::Config['rbx.platform.process.RLIMIT_MEMLOCK']
-    RLIMIT_NOFILE  = Rubinius::Config['rbx.platform.process.RLIMIT_NOFILE']
-    RLIMIT_NPROC   = Rubinius::Config['rbx.platform.process.RLIMIT_NPROC']
-    RLIMIT_RSS     = Rubinius::Config['rbx.platform.process.RLIMIT_RSS']
-    RLIMIT_SBSIZE  = Rubinius::Config['rbx.platform.process.RLIMIT_SBSIZE']
-    RLIMIT_STACK   = Rubinius::Config['rbx.platform.process.RLIMIT_STACK']
-
-    RLIMIT_RTPRIO     = Rubinius::Config['rbx.platform.process.RLIMIT_RTPRIO']
-    RLIMIT_RTTIME     = Rubinius::Config['rbx.platform.process.RLIMIT_RTTIME']
-    RLIMIT_SIGPENDING = Rubinius::Config['rbx.platform.process.RLIMIT_SIGPENDING']
-    RLIMIT_MSGQUEUE   = Rubinius::Config['rbx.platform.process.RLIMIT_MSGQUEUE']
-    RLIMIT_NICE       = Rubinius::Config['rbx.platform.process.RLIMIT_NICE']
-
-    WNOHANG = 1
-    WUNTRACED = 2
-  end
-  include Constants
-
-  FFI = Rubinius::FFI
-
-  class Rlimit < FFI::Struct
-    config "rbx.platform.rlimit", :rlim_cur, :rlim_max
-  end
 
   ##
   # Sets the process title. Calling this method does not affect the value of
@@ -461,9 +419,6 @@ module Process
     alias_method :waitpid2, :wait2
   end
 
-  Rubinius::Globals.read_only :$?
-  Rubinius::Globals.set_hook(:$?) { Thread.current[:$?] }
-
   def self.daemon(stay_in_dir=false, keep_stdio_open=false)
     # Do not run at_exit handlers in the parent
     exit!(0) if fork
@@ -529,7 +484,10 @@ module Process
     end
     const_get constant
   end
-  private_class_method :coerce_rlimit_resource
+
+  class << self
+    private :coerce_rlimit_resource
+  end
 
   #--
   # TODO: Most of the fields aren't implemented yet.
