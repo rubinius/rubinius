@@ -353,6 +353,8 @@ namespace rubinius {
   Executable* MethodTableBucket::get_method(STATE) {
     if(!method()->nil_p()) return as<Executable>(method());
 
+    if(method_id()->nil_p()) return nil<Executable>();
+
     CompiledCode* code = CodeDB::load(state, as<String>(method_id()));
     if(ConstantScope* cs = try_as<ConstantScope>(scope())) {
       code->scope(state, cs);

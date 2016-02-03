@@ -31,9 +31,9 @@ class Module
       # If we're aliasing a method we contain, just reference it directly, no
       # need for the alias wrapper
       #
-      # The 'and entry.method' is there to force us to use the alias code
-      # when the original method exists only to change the visibility of
-      # a parent method.
+      # The 'and entry.get_method' is there to force us to use the alias code
+      # when the original method exists only to change the visibility of a
+      # parent method.
       if mod == self and entry.get_method
         @method_table.store new_name, entry.method_id, entry.method,
           entry.scope, entry.serial, method_visibility

@@ -446,15 +446,15 @@ class Module
     when Proc
       if meth.ruby_method
         code = Rubinius::DelegatedMethod.new(name, :call, meth, false)
+        scope = meth.ruby_method.executable.scope
       else
         be = meth.block.dup
         be.change_name name
         code = Rubinius::BlockEnvironment::AsMethod.new(be)
         meth = meth.dup
         meth.lambda_style!
+        scope = meth.block.scope
       end
-
-      scope = meth.block.scope
     when Method
       Rubinius::Type.bindable_method? meth.defined_in, self.class
 
@@ -539,8 +539,9 @@ class Module
 
     if entry = @method_table.lookup(name)
       entry.visibility = vis
-    elsif lookup_method(name)
-      @method_table.store name, nil, nil, nil, 0, vis
+    elsif ary = lookup_method(name)
+      entry = ary.last
+      @method_table.store name, entry.method_id, entry.method, nil, 0, vis
     else
       raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end

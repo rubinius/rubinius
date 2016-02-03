@@ -35,9 +35,36 @@ module Rubinius
     end
 
     class AsMethod < Executable
+      attr_reader :block_env
+
       def self.new(block_env)
         Rubinius.primitive :block_as_method_create
         raise PrimitiveFailure, "BlockEnvironment::AsMethod.new primitive failed"
+      end
+
+      def ==(other)
+        # Given the following code:
+        # class Foo
+        #   p = Proc.new { :cool }
+        #   define_method :a, p
+        #   define_method :a, p
+        # end
+        # foo = Foo.new
+        # foo.method(:a)
+        # foo.method(:b)
+        #
+        # The Method instances for :a and :b have different
+        # BlockEnvironments as define_method dups the BE
+        # when given a Proc.
+        #
+        # The methods are equal if the BEs are equal.
+        return false unless other.kind_of? AsMethod
+
+        @block_env == other.block_env
+      end
+
+      def parameters
+        @block_env.parameters
       end
 
       def arity
@@ -147,35 +174,6 @@ module Rubinius
 
     def inspect
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} scope=#{@scope.inspect} top_scope=#{@top_scope.inspect} module=#{@module.inspect} compiled_code=#{@compiled_code.inspect} constant_scope=#{@constant_scope.inspect}>"
-    end
-
-    class AsMethod < Executable
-      attr_reader :block_env
-
-      def ==(other)
-        # Given the following code:
-        # class Foo
-        #   p = Proc.new { :cool }
-        #   define_method :a, p
-        #   define_method :a, p
-        # end
-        # foo = Foo.new
-        # foo.method(:a)
-        # foo.method(:b)
-        #
-        # The Method instances for :a and :b have different
-        # BlockEnvironments as define_method dups the BE
-        # when given a Proc.
-        #
-        # The methods are equal if the BEs are equal.
-        return false unless other.kind_of? AsMethod
-
-        @block_env == other.block_env
-      end
-
-      def parameters
-        @block_env.parameters
-      end
     end
   end
 end
