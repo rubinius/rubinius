@@ -52,8 +52,8 @@ class Struct
     return klass
   end
 
-  # Don't specialize any thing created in the kernel. We hook up
-  # better form of this in delta.
+  # Don't specialize any thing created in the core library. We hook up better
+  # form of this in core/zed.rb.
   def self._specialize(attrs)
   end
 

@@ -1,11 +1,10 @@
+# This is the beginning of loading Ruby code. At this point, the VM is
+# bootstrapped and the fundamental data structures, primitive functions and
+# the basic classes and objects are available.
 #
-# This is the beginning of loading Ruby code. At this point, the VM
-# is bootstrapped and the fundamental data structures, primitive
-# functions and the basic classes and objects are available.
-#
-# The classes, modules, and methods defined here provide basic
-# functionality needed to load the bootstrap directory. By the
-# end of this file, the following methods are available:
+# The classes, modules, and methods defined here provide basic functionality
+# needed to load the bootstrap directory. By the end of this file, the
+# following methods are available:
 #
 #   attr_reader :sym
 #   attr_writer :sym
@@ -16,17 +15,17 @@
 #
 #   module_function :sym
 #
-# These forms should be used in the rest of the kernel. In delta,
+# These forms should be used in the rest of the core library. In core/zed.rb,
 # more complete forms of these methods are provided for user code.
 #
 # NOTE: The order of these definitions is important. Do not
 #       change it without consultation.
 
 
-# This class encapsulates primitives that involve the VM
-# itself rather than something in Ruby-land.
+# This class encapsulates primitives that involve the VM itself rather than
+# something in Ruby-land.
 #
-# See kernel/bootstrap/vm.rb
+# See core/vm.rb
 #
 class Rubinius::VM
 
@@ -69,9 +68,9 @@ class Class
 
   # Allocate memory for an instance of the class without initialization.
   #
-  # The object returned is valid to use, but its #initialize
-  # method has not been called. In almost all cases, .new is
-  # the correct method to use instead.
+  # The object returned is valid to use, but its #initialize method has not
+  # been called. In almost all cases, .new is the correct method to use
+  # instead.
   #
   # See .new
   #
@@ -82,9 +81,9 @@ class Class
 
   # Allocate and initialize an instance of the class.
   #
-  # Default implementation: merely allocates the instance, and
-  # then calls the #initialize method on the object with the
-  # given arguments and block, if provided.
+  # Default implementation: merely allocates the instance, and then calls the
+  # #initialize method on the object with the given arguments and block, if
+  # provided.
   #
   # See .allocate
   #
@@ -108,8 +107,8 @@ module Kernel
 
   # Return the Class object this object is an instance of.
   #
-  # Note that this method must always be called with an
-  # explicit receiver, since class by itself is a keyword.
+  # Note that this method must always be called with an explicit receiver,
+  # since class by itself is a keyword.
   #
   def class
     Rubinius.primitive :object_class
@@ -126,9 +125,8 @@ module Kernel
 
   # String representation of an object.
   #
-  # By default, the representation is the name of the object's
-  # class preceded by a # to indicate the object is an instance
-  # thereof.
+  # By default, the representation is the name of the object's class preceded
+  # by a # to indicate the object is an instance thereof.
   #
   def to_s
     "#<#{self.class.name}>"
@@ -136,13 +134,13 @@ module Kernel
 
   # :internal:
   #
-  # Lowest-level implementation of raise, used internally by
-  # kernel code until a more sophisticated version is loaded.
+  # Lowest-level implementation of raise, used internally by core library code
+  # until a more sophisticated version is loaded.
   #
   # Redefined later.
   #
   def raise(cls, str, junk=nil)
-    Rubinius::VM.write_error "Fatal error loading runtime kernel:\n  "
+    Rubinius::VM.write_error "Fatal error loading core library:\n  "
     Rubinius::VM.write_error str
     Rubinius::VM.write_error "\n"
     Rubinius::VM.show_backtrace
@@ -150,8 +148,8 @@ module Kernel
   end
 
   # Returns true if the given Class is either the class or superclass of the
-  # object or, when given a Module, if the Module has been included in object's
-  # class or one of its superclasses. Returns false otherwise.
+  # object or, when given a Module, if the Module has been included in
+  # object's class or one of its superclasses. Returns false otherwise.
   #
   # If the argument is not a Class or Module, a TypeError is raised.
   #
@@ -166,9 +164,9 @@ module Kernel
   # information about the message.
   #
   # This method may be overridden, and is often used to provide dynamic
-  # behaviour. An overriding version should call super if it fails to
-  # resolve the message. This practice ensures that the default version
-  # will be called if all else fails.
+  # behaviour. An overriding version should call super if it fails to resolve
+  # the message. This practice ensures that the default version will be called
+  # if all else fails.
   #
   def method_missing(meth, *args)
     raise NoMethodError, "Unable to send '#{meth}' on '#{self}' (#{self.class})"
@@ -178,25 +176,23 @@ module Kernel
   #
   # Backend method for Object#dup and Object#clone.
   #
-  # Redefined in kernel/common/kernel.rb
+  # Redefined in core/kernel.rb
   #
   def initialize_copy(other)
   end
 
   # Generic shallow copy of object.
   #
-  # Copies instance variables, but does not recursively copy the
-  # objects they reference. Copies taintedness.
+  # Copies instance variables, but does not recursively copy the objects they
+  # reference. Copies taintedness.
   #
-  # In contrast to .clone, .dup can be considered as creating a
-  # new object of the same class and populating it with data from
-  # the object.
+  # In contrast to .clone, .dup can be considered as creating a new object of
+  # the same class and populating it with data from the object.
   #
-  # If class-specific behaviour is desired, the class should
-  # define #initialize_copy and implement the behaviour there.
-  # #initialize_copy will automatically be called on the new
-  # object - the copy - with the original object as argument
-  # if defined.
+  # If class-specific behaviour is desired, the class should define
+  # #initialize_copy and implement the behaviour there.  #initialize_copy will
+  # automatically be called on the new object - the copy - with the original
+  # object as argument if defined.
   #
   def dup
     copy = Rubinius::Type.object_class(self).allocate
@@ -209,18 +205,16 @@ module Kernel
 
   # Direct shallow copy of object.
   #
-  # Copies instance variables, but does not recursively copy the
-  # objects they reference. Copies taintedness and frozenness.
+  # Copies instance variables, but does not recursively copy the objects they
+  # reference. Copies taintedness and frozenness.
   #
-  # In contrast to .dup, .clone can be considered to actually
-  # clone the existing object, including its internal state
-  # and any singleton methods.
+  # In contrast to .dup, .clone can be considered to actually clone the
+  # existing object, including its internal state and any singleton methods.
   #
-  # If class-specific behaviour is desired, the class should
-  # define #initialize_copy and implement the behaviour there.
-  # #initialize_copy will automatically be called on the new
-  # object - the copy - with the original object as argument
-  # if defined.
+  # If class-specific behaviour is desired, the class should define
+  # #initialize_copy and implement the behaviour there.  #initialize_copy will
+  # automatically be called on the new object - the copy - with the original
+  # object as argument if defined.
   #
   def clone
     # Do not implement in terms of dup. It breaks rails.
@@ -240,7 +234,7 @@ end
 
 # Module for internals.
 #
-# See kernel/bootstrap/rubinius.rb
+# See core/rubinius.rb
 #
 module Rubinius
   class Mirror
@@ -273,9 +267,8 @@ module Rubinius
 
     # Set up the executable.
     #
-    # Name of variable provided without leading @, the
-    # second parameter should be true if the attr is
-    # writable.
+    # Name of variable provided without leading @, the second parameter should
+    # be true if the attr is writable.
     #
     def initialize(variable, write)
       @primitive = nil
@@ -305,7 +298,7 @@ module Rubinius
 
   # Simplified lookup table.
   #
-  # See kernel/bootstrap/lookuptable.rb.
+  # See core/lookup_table.rb.
   #
   class LookupTable
 
@@ -326,8 +319,7 @@ module Rubinius
 
   # Constant table for storing methods.
   #
-  # See kernel/bootstrap/constant_table.rb and
-  #     kernel/common/constant_table.rb
+  # See core/constant_table.rb
   #
   class ConstantTable
     # Perform lookup for constant name.
@@ -347,8 +339,7 @@ module Rubinius
 
   # Lookup table for storing methods.
   #
-  # See kernel/bootstrap/methodtable.rb and
-  #     kernel/common/method_table.rb
+  # See core/method_table.rb
   #
   class MethodTable
     # Perform lookup for method name.
@@ -365,8 +356,8 @@ module Rubinius
       raise PrimitiveFailure, "MethodTable#store primitive failed"
     end
 
-    # Make an alias from +original_name+ in +original_mod+ to +name+
-    # with visibility +vis+
+    # Make an alias from +original_name+ in +original_mod+ to +name+ with
+    # visibility +vis+
     def alias(name, visibility, original_name, original_exec, original_mod)
       Rubinius.primitive :methodtable_alias
       raise PrimitiveFailure, "MethodTable#alias primitive failed"
@@ -465,10 +456,10 @@ class Module
   #
   # Hook called when a constant cannot be located.
   #
-  # Default implementation 'raises', but we don't use #raise
-  # to prevent infinite recursion.
+  # Default implementation 'raises', but we don't use #raise to prevent
+  # infinite recursion.
   #
-  # Redefined in kernel/common/module.rb
+  # Redefined in core/module.rb
   #
   def const_missing(name)
     Rubinius::VM.write_error "Missing or uninitialized constant: #{name.to_s}"
@@ -476,9 +467,8 @@ class Module
 
   # Set Module's direct superclass.
   #
-  # The corresponding 'getter' #superclass method is defined
-  # in class.rb, because it is more complex than a mere
-  # accessor
+  # The corresponding 'getter' #superclass method is defined in class.rb,
+  # because it is more complex than a mere accessor
   #
   def superclass=(other)
     Rubinius.check_frozen
@@ -497,7 +487,7 @@ class Module
   #
   # Perform actual work for including a Module in this one.
   #
-  # Redefined in kernel/delta/module.rb.
+  # Redefined in core/module.rb.
   #
   def append_features(mod)
     im = Rubinius::IncludedModule.new(self)
@@ -512,9 +502,9 @@ class Module
 
   # :internal:
   #
-  # Basic version of .include used in kernel code.
+  # Basic version of .include used while loading core library code.
   #
-  # Redefined in kernel/delta/module.rb.
+  # Redefined in core/module.rb.
   #
   def include(mod)
     mod.append_features(self)
@@ -526,9 +516,9 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code.
+  # Basic version used while loading core library code.
   #
-  # Redefined in kernel/common/module.rb.
+  # Redefined in core/module.rb.
   #
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
@@ -546,9 +536,9 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code.
+  # Basic version used while loading core library code.
   #
-  # Redefined in kernel/common/module.rb.
+  # Redefined in core/module.rb.
   #
   def attr_writer(name)
     meth = Rubinius::AccessVariable.set_ivar name
@@ -560,9 +550,9 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code.
+  # Basic version used while loading core library code.
   #
-  # Redefined in kernel/common/module.rb.
+  # Redefined in core/module.rb.
   #
   def attr_accessor(name)
     attr_reader(name)
@@ -572,11 +562,10 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code.
-  # Cannot be used as a toggle, and only
-  # takes a single method name.
+  # Basic version used while loading core library code. Cannot be used as a
+  # toggle, and only takes a single method name.
   #
-  # Redefined in kernel/delta/module.rb.
+  # Redefined in core/module.rb.
   #
   def public(name)
     if entry = @method_table.lookup(name)
@@ -586,11 +575,10 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code.
-  # Cannot be used as a toggle, and only
-  # takes a single method name.
+  # Basic version used while loading core library code. Cannot be used as a
+  # toggle, and only takes a single method name.
   #
-  # Redefined in kernel/delta/module.rb.
+  # Redefined in core/module.rb.
   #
   def private(name)
     if entry = @method_table.lookup(name)
@@ -600,11 +588,10 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code.
-  # Cannot be used as a toggle, and only
-  # takes a single method name.
+  # Basic version used while loading core library code. Cannot be used as a
+  # toggle, and only takes a single method name.
   #
-  # Redefined in kernel/common/module.rb.
+  # Redefined in core/module.rb.
   #
   def protected(name)
     if entry = @method_table.lookup(name)
@@ -614,11 +601,10 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code. Creates a copy
-  # of current method and stores it under the new name.
-  # The two are independent.
+  # Basic version used while loading core library code. Creates a copy of
+  # current method and stores it under the new name. The two are independent.
   #
-  # Redefined in kernel/delta/module.rb.
+  # Redefined in core/module.rb.
   #
   def alias_method(new_name, current_name)
     # If we're aliasing a method we contain, just reference it directly, no
@@ -647,10 +633,10 @@ class Module
 
   # :internal:
   #
-  # Basic version used in kernel code. Only
-  # takes a single method name.
+  # Basic version used while loading core library code. Only takes a single
+  # method name.
   #
-  # Redefined in kernel/common/module.rb.
+  # Redefined in core/module.rb.
   #
   def module_function(name)
     if entry = @method_table.lookup(name)
@@ -687,8 +673,7 @@ module Rubinius
 
   # Visibility handling for MethodTables.
   #
-  # See kernel/bootstrap/methodtable.rb and
-  #     kernel/common/method_table.rb
+  # See core/method_table.rb
   #
   class MethodTable::Bucket
     attr_accessor :visibility
@@ -719,9 +704,8 @@ module Rubinius
   #
   # Internal representation of a Module's inclusion in another.
   #
-  # Abstracts the injection of the included Module into the
-  # ancestor hierarchy for method- and constant lookup in a
-  # roughly transparent fashion.
+  # Abstracts the injection of the included Module into the ancestor hierarchy
+  # for method- and constant lookup in a roughly transparent fashion.
   #
   # This class is known to the VM.
   #
@@ -754,8 +738,7 @@ module Rubinius
 
     # :internal:
     #
-    # Inject self inbetween class and its previous direct
-    # superclass.
+    # Inject self inbetween class and its previous direct superclass.
     #
     def attach_to(cls)
       @superclass = cls.direct_superclass
@@ -784,8 +767,8 @@ module Rubinius
       "#<IncludedModule #{@module.to_s}>"
     end
 
-    # Returns true if +other+ is the same object as self or if +other+
-    # is the module this IncludedModule is for.
+    # Returns true if +other+ is the same object as self or if +other+ is the
+    # module this IncludedModule is for.
     #
     def ==(other)
       if other.kind_of? IncludedModule

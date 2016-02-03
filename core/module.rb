@@ -65,7 +65,7 @@ class Module
   private :attr
 
   # Install a new Autoload object into the constants table
-  # See kernel/common/autoload.rb
+  # See core/autoload.rb
   def autoload(name, path)
     path = Rubinius::Type.coerce_to_path(path)
 

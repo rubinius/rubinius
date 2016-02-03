@@ -60,8 +60,8 @@ module Rubinius
     end
 
     ##
-    # Any CompiledCode with this value in it's serial slot
-    # is expected to be the default, kernel version
+    # Any CompiledCode with this value in it's serial slot is expected to be
+    # the default, core library version.
     KernelMethodSerial = 47
 
     ##

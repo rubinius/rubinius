@@ -157,14 +157,6 @@ module Rubinius
       load_file(wrap)
     end
 
-    # Adds a feature name to $LOADED_FEATURES, where a feature may be a Ruby
-    # source file or a shared library extension. Only Kernel#require and
-    # autoloads use this, Kernel#load does not.
-    def add_feature
-      $LOADED_FEATURES << @feature
-      add_feature_to_index
-    end
-
     def add_feature_to_index(feature = @feature)
       self.class.loaded_features_dup = $LOADED_FEATURES.dup
       self.class.loaded_features_index[@short_path] = feature
@@ -439,18 +431,6 @@ module Rubinius
       raise error
     end
 
-    # Implementation specific method to load a Ruby source file. Overridden in
-    # delta.
-    def load_file
-      raise NotImplementedError, "loading Ruby source files is not implemented"
-    end
-
-    # Implementation specific method to load a shared library extension file.
-    # Overridden in delta.
-    def load_library
-      raise NotImplementedError, "loading extension libraries is not implemented"
-    end
-
     # Sets +@feature+, +@file_path+, +@load_path+ with the correct format.
     # Used by #verify_load_path, #check_path and #check_file.
     def update_paths(file, path)
@@ -527,8 +507,7 @@ module Rubinius
       CodeLoader.loaded_hook.trigger!(@path)
     end
 
-    # Overrides the version of #add_feature provided in kernel/common. When
-    # loading precompiled source files via #require, adds ".rb" files to
+    # When loading precompiled source files via #require, adds ".rb" files to
     # $LOADED_FEATURES.
     def add_feature
       name = @feature.suffix?(".rbc") ? @feature[0..-2] : @feature

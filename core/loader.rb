@@ -37,7 +37,7 @@ module Rubinius
       @debugger_proc = prc
     end
 
-    # Finish setting up after loading kernel.
+    # Finish setting up after loading the core library.
     def preamble
       set_program_name "rbx"
       @stage = "running Loader preamble"

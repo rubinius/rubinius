@@ -23,8 +23,8 @@ class Binding
   # +code+ is a Rubinius::CompiledCode object
   # +constant_scope+ is a Rubinius::ConstantScope object
   #
-  # See Kernel#binding in kernel/common/eval.rb for a simple example of
-  # creating a Binding object.
+  # See Kernel#binding in core/eval.rb for a simple example of creating a
+  # Binding object.
   #
   def self.setup(variables, code, constant_scope, recv=nil, location=nil)
     bind = allocate()

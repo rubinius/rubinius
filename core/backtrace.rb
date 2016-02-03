@@ -8,7 +8,7 @@ class Rubinius::Backtrace
   MIN_WIDTH = 20
 
   attr_accessor :first_color
-  attr_accessor :kernel_color
+  attr_accessor :core_color
   attr_accessor :eval_color
 
   # If passed nil, we assume someone forgot to create a backtrace
@@ -27,7 +27,7 @@ class Rubinius::Backtrace
 
     @locations = locations
     @first_color = "\033[0;31m"
-    @kernel_color = "\033[0;34m"
+    @core_color = "\033[0;34m"
     @eval_color = "\033[0;33m"
     @inline_effect = "\033[0;4m"
 
@@ -161,8 +161,8 @@ class Rubinius::Backtrace
   def color_from_loc(loc, first)
     return @first_color if first
 
-    if loc =~ /^kernel/
-      @kernel_color
+    if loc =~ /^core/
+      @core_color
     elsif loc =~ /\(eval\)/
       @eval_color
     else

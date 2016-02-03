@@ -181,8 +181,8 @@ module Rubinius
       end
 
       # Generic error method attached in place of missing foreign functions
-      # during kernel loading. See kernel/delta/ffi.rb for a version that raises
-      # immediately if the foreign function is unavaiblable.
+      # during loading the core library. See core/zed.rb for a version that
+      # raises immediately if the foreign function is unavaiblable.
       def ffi_function_not_implemented(*args)
         raise NotImplementedError, "function not implemented on this platform"
       end

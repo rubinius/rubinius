@@ -312,9 +312,9 @@ module Rubinius
     private :privatized_method?
   end
 
-  # TODO: This is presently duplicated from Kernel::kernel because -> () { }
+  # TODO: This is presently duplicated from Kernel::lambda because -> () { }
   # in MRI dispatches to a hidden function that isn't modifiable by overriding
-  # Kernel::kernel.
+  # Kernel::lambda.
   def self.lambda
     env = nil
 

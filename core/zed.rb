@@ -1,10 +1,9 @@
-# TODO: Finish adding some layer structure to the kernel. This file is a
+# TODO: Finish adding some layer structure to the core library. This file is a
 # complete mess at the moment.
 #
-# A proper layered structure for 'kernel' (or core library) would enable and
-# encourage composition and make visible where pieces are loosely or tightly
-# coupled. A reasonable layer for something as complex as the Ruby core
-# library would be:
+# A proper layered structure for the core library would enable and encourage
+# composition and make visible where pieces are loosely or tightly coupled. A
+# reasonable layer for something as complex as the Ruby core library would be:
 #
 # 1. Simple values like Fixnum, Bignum, Float;
 # 2. Basic data structures like Tuple, ByteArray, Array, Hash;
@@ -792,7 +791,7 @@ module Rubinius
       def find_symbol(name)
         ptr = DynamicLibrary.find_symbol @handle, name
         return nil unless ptr
-        # defined in kernel/platform/pointer.rb
+        # defined in core/pointer.rb
         FFI::DynamicLibrary::Symbol.new(self, ptr, name)
       end
 
@@ -1861,8 +1860,8 @@ end
 module Rubinius
   module FFI
     module Library
-      # Once the kernel is loaded, we want to raise an error if attempting to
-      # attach to a non-existent function.
+      # Once the core library is loaded, we want to raise an error if
+      # attempting to attach to a non-existent function.
       def ffi_function_missing(name, *args)
         raise FFI::NotFoundError, "Unable to find foreign function '#{name}'"
       end
