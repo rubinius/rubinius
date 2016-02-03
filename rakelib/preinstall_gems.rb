@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'rubygems/installer'
-require 'rubinius/build_config'
 
 puts "Pre-installing gems for #{RUBY_VERSION}..."
 
