@@ -539,9 +539,8 @@ class Module
 
     if entry = @method_table.lookup(name)
       entry.visibility = vis
-    elsif ary = lookup_method(name)
-      entry = ary.last
-      @method_table.store name, entry.method_id, entry.method, nil, 0, vis
+    elsif lookup_method(name)
+      @method_table.store name, nil, nil, nil, 0, vis
     else
       raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end
