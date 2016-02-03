@@ -416,12 +416,12 @@ namespace rubinius {
   }
 
   void Environment::set_codedb_paths() {
-    std::string kernel_path(config.codedb_kernel_path.value);
+    std::string core_path(config.codedb_core_path.value);
     std::string runtime_path(system_prefix() + RBX_RUNTIME_PATH);
 
-    expand_config_value(kernel_path, "$RUNTIME", runtime_path.c_str());
+    expand_config_value(core_path, "$RUNTIME", runtime_path.c_str());
 
-    config.codedb_kernel_path.value.assign(kernel_path);
+    config.codedb_core_path.value.assign(core_path);
 
     std::string cache_path(config.codedb_cache_path.value);
 
@@ -624,17 +624,15 @@ namespace rubinius {
   }
 
   /**
-   * Loads the runtime kernel files stored in /runtime.
-   * These files consist of the compiled Ruby /kernel code in .rbc files, which
-   * are needed to bootstrap the Ruby kernel.
-   * This method is called after the VM has completed bootstrapping, and is
-   * ready to load Ruby code.
+   * Loads the runtime core library files stored in runtime/core. This method
+   * is called after the VM has completed bootstrapping, and is ready to load
+   * Ruby code.
    *
-   * @param root The path to the /runtime directory. All kernel loading is
-   *             relative to this path.
+   * @param root The path to the /runtime directory. All core library loading
+   *             is relative to this path.
    */
-  void Environment::load_kernel(STATE, std::string root) {
-    CodeDB::open(state, config.codedb_kernel_path.value.c_str());
+  void Environment::load_core(STATE, std::string root) {
+    CodeDB::open(state, config.codedb_core_path.value.c_str());
   }
 
   void Environment::load_tool() {

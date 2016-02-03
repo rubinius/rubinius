@@ -89,9 +89,9 @@ def install_runtime(prefix, target)
   end
 end
 
-def install_kernel(prefix, target)
+def install_core(prefix, target)
   FileList["#{prefix}/**/*.rb"].each do |name|
-    install_file name, prefix, "#{target}#{BUILD_CONFIG[:kerneldir]}"
+    install_file name, prefix, "#{target}#{BUILD_CONFIG[:coredir]}"
   end
 end
 
@@ -206,9 +206,9 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
     end
   end
 
-  task :kernel do
+  task :core do
     if BUILD_CONFIG[:stagingdir]
-      install_kernel "#{BUILD_CONFIG[:sourcedir]}/kernel", BUILD_CONFIG[:stagingdir]
+      install_core "#{BUILD_CONFIG[:sourcedir]}/core", BUILD_CONFIG[:stagingdir]
     end
   end
 
@@ -238,7 +238,7 @@ Rubinius has been configured for the following paths:
 bin:     #{prefix}#{BUILD_CONFIG[:bindir]}
 lib:     #{prefix}#{BUILD_CONFIG[:libdir]}
 runtime: #{prefix}#{BUILD_CONFIG[:runtimedir]}
-kernel:  #{prefix}#{BUILD_CONFIG[:kerneldir]}
+core:    #{prefix}#{BUILD_CONFIG[:coredir]}
 site:    #{prefix}#{BUILD_CONFIG[:sitedir]}
 vendor:  #{prefix}#{BUILD_CONFIG[:vendordir]}
 man:     #{prefix}#{BUILD_CONFIG[:mandir]}
@@ -261,7 +261,7 @@ appropriate command to elevate permissions (eg su, sudo).
 
         install_runtime "#{stagingdir}#{BUILD_CONFIG[:runtimedir]}", prefixdir
 
-        install_kernel "#{stagingdir}#{BUILD_CONFIG[:kerneldir]}", prefixdir
+        install_core "#{stagingdir}#{BUILD_CONFIG[:coredir]}", prefixdir
 
         install_lib "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 

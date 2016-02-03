@@ -351,9 +351,9 @@ namespace rubinius {
     return name_->to_str(state);
   }
 
-  bool CompiledCode::kernel_method(STATE) {
+  bool CompiledCode::core_method(STATE) {
     std::string s = file()->cpp_str(state);
-    if(s.size() >= 7 && strncmp(s.data(), "kernel/", 7) == 0) return true;
+    if(s.size() >= 7 && strncmp(s.data(), "core/", 7) == 0) return true;
     return false;
   }
 

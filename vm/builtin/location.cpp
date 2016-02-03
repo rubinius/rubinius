@@ -149,7 +149,7 @@ namespace rubinius {
     while(call_frame) {
       // Ignore synthetic frames
       if(call_frame->compiled_code &&
-         !call_frame->compiled_code->kernel_method(state)) {
+         !call_frame->compiled_code->core_method(state)) {
         Symbol* name;
         Object* block = cFalse;
         Fixnum* line = Fixnum::from(call_frame->line(state));

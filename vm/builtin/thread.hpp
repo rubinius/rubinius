@@ -111,7 +111,7 @@ namespace rubinius {
      *  @see  Thread::create()
      *
      *  @see  vm/vm.hpp
-     *  @see  kernel/bootstrap/thread.rb
+     *  @see  kernel/thread.rb
      */
     // Rubinius.primitive :thread_allocate
     static Thread* allocate(STATE, Object* self);
@@ -147,7 +147,7 @@ namespace rubinius {
      *
      *  @see  Thread::allocate()
      *
-     *  @see  kernel/bootstrap/thread.rb
+     *  @see  kernel/thread.rb
      */
     // Rubinius.primitive :thread_fork
     Object* fork(STATE);

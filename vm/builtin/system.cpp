@@ -849,7 +849,7 @@ namespace rubinius {
   }
 
   Object* System::vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* call_frame) {
-    // force is set if this is being called by the kernel (for instance
+    // force is set if this is being called by the core library (for instance
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.

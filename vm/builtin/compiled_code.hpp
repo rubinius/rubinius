@@ -135,7 +135,7 @@ namespace rubinius {
 
     String* full_name(STATE);
 
-    bool kernel_method(STATE);
+    bool core_method(STATE);
 
     Object* execute_script(STATE);
 

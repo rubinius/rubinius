@@ -157,7 +157,7 @@ task :rebuild => %w[clean build]
 desc 'Remove rubinius build files'
 task :clean => %w[
   vm:clean
-  kernel:clean
+  core:clean
   clean:crap
 ]
 
@@ -176,16 +176,6 @@ namespace :clean do
   end
 end
 
-desc "Run the Rubinius documentation website"
-task :docs do
-  require 'kernel/delta/options'
-  require 'rbconfig'
-  require 'webrick'
-  require 'lib/rubinius/documentation'
-
-  Rubinius::Documentation.main
-end
-
 desc "Run specs in default (configured) mode but do not rebuild on failure"
 task :spec => %w[build vm:test] do
   clean_environment
@@ -200,11 +190,11 @@ task :ci do
   Rake::Task["spec"].invoke
 end
 
-desc "Print list of items marked to-do in kernel/ (@todo|TODO)"
+desc "Print list of items marked to-do in core/ (@todo|TODO)"
 task :todos do
 
   # create array with files to be checked
-  filesA = Dir['kernel/**/*.*']
+  filesA = Dir['core/*.*']
 
   # search for @todo or TODO
   filesA.sort!.each do |filename|

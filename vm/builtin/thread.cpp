@@ -298,7 +298,7 @@ namespace rubinius {
 
     state->vm()->thread->pid(state, Fixnum::from(gettid()));
 
-    state->shared().env()->load_kernel(state, runtime);
+    state->shared().env()->load_core(state, runtime);
 
     state->vm()->thread->alive(state, cTrue);
     state->vm()->thread_state()->clear();
