@@ -353,7 +353,7 @@ namespace rubinius {
 
   bool CompiledCode::core_method(STATE) {
     std::string s = file()->cpp_str(state);
-    if(s.size() >= 7 && strncmp(s.data(), "core/", 7) == 0) return true;
+    if(s.size() >= 5 && strncmp(s.data(), "core/", 5) == 0) return true;
     return false;
   }
 
