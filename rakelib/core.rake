@@ -241,10 +241,10 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
   while x = code_db_code.shift
     id, cc = x
 
-    cc.literals.each_with_index do |x, index|
-      if x.kind_of? Rubinius::CompiledCode
+    cc.literals.each_with_index do |lit, index|
+      if lit.kind_of? Rubinius::CompiledCode
         cc.literals[index] = i = CodeDBCompiler.m_id
-        code_db_code.unshift [i, x]
+        code_db_code.unshift [i, lit]
       end
     end
 
@@ -254,11 +254,11 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
   end
 
   File.open t.name, "wb" do |f|
-    code_db_data.map! do |id, marshaled|
+    code_db_data.map! do |m_id, data|
       offset = f.pos
-      f.write marshaled
+      f.write data
 
-      [id, offset, f.pos - offset]
+      [m_id, offset, f.pos - offset]
     end
   end
 end

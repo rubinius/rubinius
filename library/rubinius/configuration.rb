@@ -1,4 +1,4 @@
-require 'rubinius/build_config'
+require 'core/build_config'
 require 'rubinius/configuration_variables'
 
 Rubinius::ConfigurationVariables.define do |c|
