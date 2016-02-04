@@ -105,6 +105,11 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#current_exception primitive failed"
   end
 
+  def set_exception(exception)
+    Rubinius.primitive :thread_set_exception
+    Kernel.raise PrimitiveFailure, "Thread#set_exception primitive failed"
+  end
+
   @abort_on_exception = false
 
   def self.abort_on_exception
@@ -353,7 +358,6 @@ class Thread
   # Called by Thread#fork in the new thread
   #
   def __run__
-    exception = nil
     begin
       begin
         Rubinius.unlock(self)
@@ -384,26 +388,21 @@ class Thread
         end
       end
     rescue Exception => e
-      exception = e
-    ensure
-      unless exception && (abort_on_exception || Thread.abort_on_exception)
-        @exception = exception
-        if $DEBUG
-          STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
-        end
-      end
+      set_exception e
 
+      STDERR.puts "Exception in thread: #{e.message} (#{e.class})" if $DEBUG
+
+      if abort_on_exception or Thread.abort_on_exception
+        Thread.main.raise e
+      end
+    ensure
       Rubinius::Mirror.reflect(@group).remove self
 
       if Rubinius.thread_state[0] == :thread_kill
         @killed = true
       end
-      @alive = false
-      Rubinius.unlock(self)
-    end
 
-    unless @exception
-      Thread.main.raise exception
+      Rubinius.unlock(self)
     end
   end
 

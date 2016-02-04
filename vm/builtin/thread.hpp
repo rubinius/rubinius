@@ -176,6 +176,9 @@ namespace rubinius {
     // Rubinius.primitive :thread_raise
     Object* raise(STATE, GCToken gct, Exception* exc, CallFrame* calling_environment);
 
+    // Rubinius.primitive :thread_set_exception
+    Object* set_exception(STATE, Exception* exc);
+
     /**
      *  Returns current exception
      */
