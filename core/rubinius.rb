@@ -70,13 +70,63 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.mri_backtrace primitive failed"
   end
 
-  def self.add_method(name, executable, mod, serial, vis)
-    if executable.kind_of? String
-      mod.method_table.store name, executable, nil, serial, :public
+  def self.add_method(name, executable, mod, scope, serial, vis)
+    vis ||= :public
+
+    # Don't change the visibility for methods added to singleton
+    # classes
+    if Type.singleton_class_object(mod)
+      visibility = vis
+    elsif vis == :module or privatized_method?(name)
+      visibility = :private
     else
-      mod.method_table.store name, nil, executable, serial, :public
+      visibility = vis
+    end
+
+    if Type.object_kind_of? executable, String
+      mod.method_table.store name, executable, nil, scope, serial, visibility
+    else
+      mod.method_table.store name, nil, executable, scope, serial, visibility
     end
     Rubinius::VM.reset_method_cache mod, name
+
+    Rubinius.privately do
+      mod.module_function name if vis == :module
+    end
+
+    # Have to use Rubinius::Type.object_respond_to? rather than #respond_to?
+    # because code will redefine #respond_to? itself, which is added
+    # via #add_method, and then we'll call this new #respond_to?, which
+    # commonly can't run yet because it requires methods that haven't been
+    # added yet. (ActionMailer does this)
+
+    if obj = Type.singleton_class_object(mod)
+      if Type.object_kind_of? obj, Numeric
+
+        # Such a weird protocol. If :singleton_method_added exists, allow this.
+        # le sigh.
+        unless obj.respond_to? :singleton_method_added
+          raise TypeError, "Unable to define singleton methods on Numerics"
+        end
+      end
+
+      Rubinius.privately do
+        obj.singleton_method_added(name)
+      end
+    else
+      case executable
+      when CompiledCode, AccessVariable
+        mod.add_ivars(executable)
+      end
+
+      Rubinius.privately do
+        mod.method_added(name)
+      end
+    end
+
+    @add_method_hook.trigger! mod, name, executable
+
+    return executable
   end
 
   def self.mathn_loaded?
