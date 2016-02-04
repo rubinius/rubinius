@@ -17,6 +17,7 @@ capi.rb
 channel.rb
 character.rb
 class.rb
+code_db.rb
 code_loader.rb
 compact_lookup_table.rb
 comparable.rb

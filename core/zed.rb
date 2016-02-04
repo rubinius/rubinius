@@ -1799,6 +1799,12 @@ class Time
 end
 
 module Rubinius
+  class CodeDB
+    class << self
+      undef :new
+    end
+  end
+
   module FFI
     module Library
       # Once the core library is loaded, we want to raise an error if

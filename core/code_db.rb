@@ -1,9 +1,5 @@
 module Rubinius
   class CodeDB
-    class << self
-      undef :new
-    end
-
     def self.open(path)
       Rubinius.primitive :code_db_open
       raise PrimitiveFailure, "Rubinius::CodeDB.open primitive failed"
