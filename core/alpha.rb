@@ -610,7 +610,7 @@ class Module
     # If we're aliasing a method we contain, just reference it directly, no
     # need for the alias wrapper
     if entry = @method_table.lookup(current_name)
-      @method_table.store new_name, entry.method_id, entry.method,
+      @method_table.store new_name, entry.method_id, entry.get_method,
         entry.scope, entry.serial, entry.visibility
     else
       mod = direct_superclass()
@@ -625,7 +625,7 @@ class Module
       end
 
       @method_table.alias new_name, entry.visibility, current_name,
-                          entry.method, mod
+                          entry.get_method, mod
     end
 
     Rubinius::VM.reset_method_cache self, new_name
