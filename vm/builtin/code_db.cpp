@@ -133,6 +133,14 @@ namespace rubinius {
     return load(state, m_id->c_str(state));
   }
 
+  CompiledCode* CodeDB::load(STATE, Object* id_or_code) {
+    if(String* m_id = try_as<String>(id_or_code)) {
+      return CodeDB::load(state, m_id);
+    }
+
+    return as<CompiledCode>(id_or_code);
+  }
+
   Object* CodeDB::store(STATE, CompiledCode* code) {
     return cNil;
   }
