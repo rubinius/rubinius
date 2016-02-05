@@ -444,26 +444,9 @@ class Module
 
     case meth
     when Proc
-      code, scope = meth.for_define_method(name)
+      code, scope = meth.for_define_method(name, nil)
     when Method
-      Rubinius::Type.bindable_method? meth.defined_in, self.class
-
-      exec = meth.executable
-      # We see through delegated methods because code creates these crazy calls
-      # to define_method over and over again and if we don't check, we create
-      # a huge delegated method chain. So instead, just see through them at one
-      # level always.
-      if exec.kind_of? Rubinius::DelegatedMethod
-        code = exec
-        scope = nil
-      else
-        code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
-        if exec.kind_of? Rubinius::CompiledCode
-          scope = exec.scope
-        else
-          scope = nil
-        end
-      end
+      code, scope = meth.for_define_method(name, self.class)
     when UnboundMethod
       Rubinius::Type.bindable_method? meth.defined_in, self.class
 

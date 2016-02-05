@@ -244,7 +244,7 @@ class Proc
     copy
   end
 
-  def for_define_method(name)
+  def for_define_method(name, klass)
     if @ruby_method
       code = Rubinius::DelegatedMethod.new(name, :call, self, false)
       if @ruby_method.executable.kind_of? Rubinius::CompiledCode
