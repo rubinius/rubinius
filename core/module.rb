@@ -442,7 +442,11 @@ class Module
 
     name = Rubinius::Type.coerce_to_symbol name
 
-    code, scope = meth.for_define_method(name, self.class)
+    if meth.respond_to?(:for_define_method)
+      code, scope = meth.for_define_method(name, self.class)
+    else
+      raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
+    end
 
     Rubinius.add_method name, code, self, scope, 0, :public
 
