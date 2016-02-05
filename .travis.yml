@@ -16,8 +16,7 @@ before_install:
 - gem --version
 before_script:
 - travis_retry bundle
-- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=./vendor/llvm/Release/bin/llvm-config; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
+- ./configure
 script: rake ci
 after_success:
 - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh all; fi
