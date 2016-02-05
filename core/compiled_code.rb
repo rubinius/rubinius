@@ -212,6 +212,12 @@ module Rubinius
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
     end
 
+    def for_define_method(name, meth)
+      code  = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
+
+      [code, @scope]
+    end
+
     class Script
       attr_accessor :compiled_code
       attr_accessor :file_path

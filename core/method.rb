@@ -175,25 +175,8 @@ class Method
   def for_define_method(name, klass)
     Rubinius::Type.bindable_method? self.defined_in, klass
 
-    # We see through delegated methods because code creates these crazy calls
-    # to define_method over and over again and if we don't check, we create
-    # a huge delegated method chain. So instead, just see through them at one
-    # level always.
-    if @executable.kind_of? Rubinius::DelegatedMethod
-      code = @executable
-      scope = nil
-    else
-      code = Rubinius::DelegatedMethod.new(name, :call_on_instance, self.unbind, true)
-      if @executable.kind_of? Rubinius::CompiledCode
-        scope = @executable.scope
-      else
-        scope = nil
-      end
-    end
-
-    [code, scope]
+    @executable.for_define_method(name, self.unbind)
   end
-
 end
 
 ##
@@ -342,18 +325,6 @@ class UnboundMethod
   def for_define_method(name, klass)
     Rubinius::Type.bindable_method? self.defined_in, klass
 
-    if @executable.kind_of? Rubinius::DelegatedMethod
-      code = @executable
-      scope = nil
-    else
-      code = Rubinius::DelegatedMethod.new(name, :call_on_instance, self, true)
-      if @executable.kind_of? Rubinius::CompiledCode
-        scope = @executable.scope
-      else
-        scope = nil
-      end
-    end
-
-    [code, scope]
+    @executable.for_define_method(name, self)
   end
 end

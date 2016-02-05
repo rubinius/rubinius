@@ -102,6 +102,12 @@ module Rubinius
       def defined_line
         @block_env.line
       end
+
+      def for_define_method(name, meth)
+        code  = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
+
+        [code, nil]
+      end
     end
 
     def from_proc?
