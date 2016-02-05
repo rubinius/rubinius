@@ -1,10 +1,11 @@
 language: cpp
+sudo: required
+dist: trusty
 compiler:
 - clang
 os:
 - linux
 - osx
-sudo: false
 ruby: 2.2.0
 before_install:
 - echo $LANG
