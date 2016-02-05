@@ -246,12 +246,7 @@ class Proc
 
   def for_define_method(name, klass)
     if @ruby_method
-      code = Rubinius::DelegatedMethod.new(name, :call, self, false)
-      if @ruby_method.executable.kind_of? Rubinius::CompiledCode
-        scope = @ruby_method.executable.scope
-      else
-        scope = nil
-      end
+      code, scope = @ruby_method.for_define_method(name, klass, self)
     else
       be = @block.dup
       be.change_name name
