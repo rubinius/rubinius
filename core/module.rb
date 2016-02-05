@@ -442,30 +442,7 @@ class Module
 
     name = Rubinius::Type.coerce_to_symbol name
 
-    case meth
-    when Proc
-      code, scope = meth.for_define_method(name, nil)
-    when Method
-      code, scope = meth.for_define_method(name, self.class)
-    when UnboundMethod
-      Rubinius::Type.bindable_method? meth.defined_in, self.class
-
-      exec = meth.executable
-      # Same reasoning as above.
-      if exec.kind_of? Rubinius::DelegatedMethod
-        code = exec
-        scope = nil
-      else
-        code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
-        if exec.kind_of? Rubinius::CompiledCode
-          scope = exec.scope
-        else
-          scope = nil
-        end
-      end
-    else
-      raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
-    end
+    code, scope = meth.for_define_method(name, self.class)
 
     Rubinius.add_method name, code, self, scope, 0, :public
 
