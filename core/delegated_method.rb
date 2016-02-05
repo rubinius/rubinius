@@ -32,8 +32,8 @@ module Rubinius
       @receiver.source_location
     end
 
-    def for_define_method(name, meth)
-      [self, nil]
+    def scope
+      nil
     end
   end
 end

@@ -103,10 +103,8 @@ module Rubinius
         @block_env.line
       end
 
-      def for_define_method(name, meth)
-        code  = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
-
-        [code, nil]
+      def scope
+        nil
       end
     end
 

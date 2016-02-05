@@ -79,10 +79,8 @@ module Rubinius
       @file
     end
 
-    def for_define_method(name, meth)
-      code  = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
-
-      [code, nil]
+    def scope
+      nil
     end
   end
 end
