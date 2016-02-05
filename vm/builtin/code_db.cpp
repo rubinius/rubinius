@@ -1,13 +1,14 @@
 #include "signature.h"
 
+#include "object_memory.hpp"
+#include "object_utils.hpp"
+#include "ontology.hpp"
+#include "marshal.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/code_db.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/string.hpp"
-
-#include "object_utils.hpp"
-#include "ontology.hpp"
-#include "marshal.hpp"
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -21,7 +22,8 @@ namespace rubinius {
   static CodeDBMap codedb_index;
 
   void CodeDB::bootstrap(STATE) {
-    GO(codedb).set(ontology::new_class_under(state, "CodeDB", G(rubinius)));
+    GO(codedb).set(state->memory()->new_class<Class, CodeDB>(
+          state, G(rubinius), "CodeDB"));
     G(codedb)->set_object_type(state, CodeDBType);
   }
 
@@ -30,7 +32,7 @@ namespace rubinius {
   }
 
   CodeDB* CodeDB::open(STATE, const char* path) {
-    CodeDB* codedb = state->vm()->new_object<CodeDB>(G(codedb));
+    CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
     codedb->path(state, String::create(state, path));
 
     std::string base_path(path);
