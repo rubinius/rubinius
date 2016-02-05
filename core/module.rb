@@ -446,7 +446,11 @@ class Module
     when Proc
       if meth.ruby_method
         code = Rubinius::DelegatedMethod.new(name, :call, meth, false)
-        scope = meth.ruby_method.executable.scope
+        if meth.ruby_method.executable.kind_of? Rubinius::CompiledCode
+          scope = meth.ruby_method.executable.scope
+        else
+          scope = nil
+        end
       else
         be = meth.block.dup
         be.change_name name
