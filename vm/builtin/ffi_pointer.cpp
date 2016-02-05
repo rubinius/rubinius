@@ -54,7 +54,7 @@ namespace rubinius {
 
     G(ffi)->set_const(state, "LIB_SUFFIXES", suffix);
 
-    // Legacy. Fix the kernel to not need this.
+    // Legacy. Fix the core library to not need this.
     String* main_suffix;
 #ifdef _WIN32
     main_suffix = String::create(state, ".dll");

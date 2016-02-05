@@ -20,7 +20,7 @@ end
 
 root = File.expand_path File.dirname(__FILE__)
 
-require File.join(root, "kernel", "delta", "options")
+require File.join(root, "core", "options")
 
 class Configure
 
@@ -91,7 +91,7 @@ class Configure
     @libdir       = nil
     @encdir       = nil
     @runtimedir   = nil
-    @kerneldir    = nil
+    @coredir      = nil
     @sitedir      = nil
     @vendordir    = nil
     @mandir       = nil
@@ -228,7 +228,7 @@ class Configure
 
       @libdir     = dir + "/library"
       @runtimedir = dir + "/runtime"
-      @kerneldir  = dir + "/kernel"
+      @coredir    = dir + "/core"
       @sitedir    = dir + "/site"
       @vendordir  = dir + "/vendor"
     end
@@ -236,7 +236,7 @@ class Configure
     @bindir       = @prefixdir + "/bin" unless @bindir
     @libdir       = @prefixdir + "/library" unless @libdir
     @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
-    @kerneldir    = @prefixdir + "/kernel" unless @kerneldir
+    @coredir      = @prefixdir + "/core" unless @coredir
     @sitedir      = @prefixdir + "/site" unless @sitedir
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
     @mandir       = @prefixdir + "/man" unless @mandir
@@ -245,7 +245,7 @@ class Configure
 
     @encdir = @libdir + "/encoding/converter"
 
-    dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
+    dirs = [@bindir, @libdir, @runtimedir, @coredir, @sitedir, @vendordir,
             @mandir, @gemsdir, @includedir, @encdir]
 
     parts = dirs.map { |d| d.split "/" }
@@ -1594,7 +1594,7 @@ int main() { return tgetnum(""); }
       :libdir             => @libdir,
       :encdir             => @encdir,
       :runtimedir         => @runtimedir,
-      :kerneldir          => @kerneldir,
+      :coredir            => @coredir,
       :sitedir            => @sitedir,
       :vendordir          => @vendordir,
       :includedir         => @includedir,
@@ -1622,9 +1622,7 @@ int main() { return tgetnum(""); }
 
     write_config_rb @config, config_settings
 
-    lib_rubinius_dir = "#{@sourcedir}/library/rubinius"
-    FileUtils.mkdir_p lib_rubinius_dir unless File.directory? lib_rubinius_dir
-    FileUtils.cp @config, "#{lib_rubinius_dir}/build_config.rb"
+    FileUtils.cp @config, "#{@sourcedir}/core/build_config.rb"
 
     # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
@@ -1636,7 +1634,8 @@ int main() { return tgetnum(""); }
 #define RBX_BIN_PATH         "#{@bindir}"
 #define RBX_GEMS_PATH        "#{@gemsdir}"
 #define RBX_RUNTIME_PATH     "#{@runtimedir}"
-#define RBX_KERNEL_PATH      "#{@kerneldir}"
+#define RBX_KERNEL_PATH      "#{@coredir}"
+#define RBX_CORE_PATH        "#{@coredir}"
 #define RBX_LIB_PATH         "#{@libdir}"
 #define RBX_ENC_PATH         "#{@encdir}"
 #define RBX_HDR_PATH         "#{@includedir}"
@@ -1923,7 +1922,7 @@ bin:        #{@prefixdir}#{@bindir}
 lib:        #{@prefixdir}#{@libdir}
 include:    #{@prefixdir}#{@includedir}
 runtime:    #{@prefixdir}#{@runtimedir}
-kernel:     #{@prefixdir}#{@kerneldir}
+core:       #{@prefixdir}#{@coredir}
 site:       #{@prefixdir}#{@sitedir}
 vendor:     #{@prefixdir}#{@vendordir}
 man:        #{@prefixdir}#{@mandir}

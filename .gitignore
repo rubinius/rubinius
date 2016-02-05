@@ -82,7 +82,8 @@ Gemfile.installed.lock
 # rubysl-digest installs this header
 vm/include/capi/ruby/digest.h
 
-/kernel/signature.rb
+/core/signature.rb
+/core/build_config.rb
 
 # Generated documentation
 doc/generated/vm

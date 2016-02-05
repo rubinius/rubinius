@@ -149,7 +149,8 @@ namespace rubinius {
     if(!klass) return false;
 
     Module* defined_in = 0;
-    Executable* meth = klass->find_method(call_site_->name(), &defined_in);
+    Executable* meth = klass->find_method(
+        ops_.llvm_state()->state(),call_site_->name(), &defined_in);
 
     if(!meth) {
       if(ops_.llvm_state()->config().jit_inline_debug) {

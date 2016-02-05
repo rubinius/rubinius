@@ -115,7 +115,7 @@ namespace rubinius {
      *  @see  Thread::create()
      *
      *  @see  vm/vm.hpp
-     *  @see  kernel/bootstrap/thread.rb
+     *  @see  kernel/thread.rb
      */
     // Rubinius.primitive :thread_allocate
     static Thread* allocate(STATE, Object* self, CallFrame* calling_environment);
@@ -151,7 +151,7 @@ namespace rubinius {
      *
      *  @see  Thread::allocate()
      *
-     *  @see  kernel/bootstrap/thread.rb
+     *  @see  kernel/thread.rb
      */
     // Rubinius.primitive :thread_fork
     Object* fork(STATE);
@@ -179,6 +179,9 @@ namespace rubinius {
      */
     // Rubinius.primitive :thread_raise
     Object* raise(STATE, Exception* exc, CallFrame* calling_environment);
+
+    // Rubinius.primitive :thread_set_exception
+    Object* set_exception(STATE, Exception* exc);
 
     /**
      *  Returns current exception

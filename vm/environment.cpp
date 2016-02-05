@@ -12,6 +12,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/code_db.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/jit.hpp"
@@ -365,6 +366,7 @@ namespace rubinius {
     set_username();
     set_pid();
     set_console_path();
+    set_codedb_paths();
   }
 
   void Environment::expand_config_value(std::string& cvar,
@@ -413,6 +415,23 @@ namespace rubinius {
     expand_config_value(path, "$USER", shared->username.c_str());
 
     config.system_console_path.value.assign(path);
+  }
+
+  void Environment::set_codedb_paths() {
+    std::string core_path(config.codedb_core_path.value);
+    std::string runtime_path(system_prefix() + RBX_RUNTIME_PATH);
+
+    expand_config_value(core_path, "$RUNTIME", runtime_path.c_str());
+
+    config.codedb_core_path.value.assign(core_path);
+
+    std::string cache_path(config.codedb_cache_path.value);
+
+    expand_config_value(cache_path, "$TMPDIR", config.system_tmp);
+    expand_config_value(cache_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+    expand_config_value(cache_path, "$USER", shared->username.c_str());
+
+    config.codedb_cache_path.value.assign(cache_path);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -470,27 +489,6 @@ namespace rubinius {
     }
 
     state->shared().set_use_capi_lock(config.capi_lock);
-  }
-
-  void Environment::load_directory(STATE, std::string dir) {
-    // Read the version-specific load order file.
-    std::string path = dir + "/load_order.txt";
-    std::ifstream stream(path.c_str());
-    if(!stream) {
-      std::string msg = "Unable to load directory, " + path + " is missing";
-      throw std::runtime_error(msg);
-    }
-
-    while(!stream.eof()) {
-      std::string line;
-      stream >> line;
-      stream.get(); // eat newline
-
-      // skip empty lines
-      if(line.empty()) continue;
-
-      run_file(state, dir + "/" + line);
-    }
   }
 
   void Environment::load_platform_conf(std::string dir) {
@@ -618,39 +616,15 @@ namespace rubinius {
   }
 
   /**
-   * Loads the runtime kernel files stored in /runtime.
-   * These files consist of the compiled Ruby /kernel code in .rbc files, which
-   * are needed to bootstrap the Ruby kernel.
-   * This method is called after the VM has completed bootstrapping, and is
-   * ready to load Ruby code.
+   * Loads the runtime core library files stored in runtime/core. This method
+   * is called after the VM has completed bootstrapping, and is ready to load
+   * Ruby code.
    *
-   * @param root The path to the /runtime directory. All kernel loading is
-   *             relative to this path.
+   * @param root The path to the /runtime directory. All core library loading
+   *             is relative to this path.
    */
-  void Environment::load_kernel(STATE, std::string root) {
-    // Check that the index file exists; this tells us which sub-directories to
-    // load, and the order in which to load them
-    std::string index = root + "/index";
-    std::ifstream stream(index.c_str());
-    if(!stream) {
-      std::string error = "Unable to load kernel index: " + root;
-      throw std::runtime_error(error);
-    }
-
-    // Load alpha
-    run_file(state, root + "/alpha.rbc");
-
-    while(!stream.eof()) {
-      std::string line;
-
-      stream >> line;
-      stream.get(); // eat newline
-
-      // skip empty lines
-      if(line.empty()) continue;
-
-      load_directory(state, root + "/" + line);
-    }
+  void Environment::load_core(STATE, std::string root) {
+    CodeDB::open(state, config.codedb_core_path.value.c_str());
   }
 
   void Environment::load_tool() {

@@ -15,6 +15,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/lookup_table.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
@@ -337,9 +338,9 @@ namespace rubinius {
     return name_->to_str(state);
   }
 
-  bool CompiledCode::kernel_method(STATE) {
+  bool CompiledCode::core_method(STATE) {
     std::string s = file()->cpp_str(state);
-    if(s.size() >= 7 && strncmp(s.data(), "kernel/", 7) == 0) return true;
+    if(s.size() >= 5 && strncmp(s.data(), "core/", 5) == 0) return true;
     return false;
   }
 
@@ -413,6 +414,47 @@ namespace rubinius {
 
   Object* CompiledCode::jitted_p(STATE) {
     return RBOOL(machine_code_ && machine_code_->jitted_p());
+  }
+
+  Object* CompiledCode::execute_script(STATE) {
+    state->thread_state()->clear();
+
+    Arguments args(state->symbol("script"), G(main), 0, 0);
+
+    scope(state, ConstantScope::create(state));
+    scope()->module(state, G(object));
+
+    execute(state, NULL, this, G(object), args);
+
+    /* We have to assume that this can fail before the Kernel is able to
+     * handle that failure, so we manually process exceptional behavior here.
+     *
+     * TODO: Fix this by ensuring normal Exceptions can be raised
+     */
+    if(state->vm()->thread_state()->raise_reason() == cException) {
+      Exception* exc = as<Exception>(state->vm()->thread_state()->current_exception());
+      std::ostringstream msg;
+
+      msg << "exception detected at toplevel: ";
+      if(!exc->reason_message()->nil_p()) {
+        if(String* str = try_as<String>(exc->reason_message())) {
+          msg << str->c_str(state);
+        } else {
+          msg << "<non-string Exception message>";
+        }
+      } else if(Exception::argument_error_p(state, exc)) {
+        msg << "given "
+            << as<Fixnum>(exc->get_ivar(state, state->symbol("@given")))->to_native()
+            << ", expected "
+            << as<Fixnum>(exc->get_ivar(state, state->symbol("@expected")))->to_native();
+      }
+      msg << " (" << exc->klass()->debug_str(state) << ")";
+      std::cout << msg.str() << "\n";
+      exc->print_locations(state);
+      Assertion::raise(msg.str().c_str());
+    }
+
+    return cNil;
   }
 
   void CompiledCode::Info::mark(Object* obj, ObjectMark& mark) {

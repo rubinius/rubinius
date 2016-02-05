@@ -213,6 +213,19 @@ describe "Module#define_method" do
     end
   end
 
+  it "allows a Method from a parent class to be defined on a child class" do
+    class DefineMethodSpecClass::ParentDefineMethod
+      def parent_define_method; end
+    end
+
+    DefineMethodSpecClass::ChildDefineMethod = Class.new do
+      define_method :child_define_method,
+        DefineMethodSpecClass::ParentDefineMethod.new.method(:parent_define_method)
+    end
+
+    DefineMethodSpecClass::ChildDefineMethod.new.should respond_to(:child_define_method)
+  end
+
   it "allows an UnboundMethod from a module to be defined on a class" do
     DestinationClass = Class.new {
       define_method :bar, ModuleSpecs::UnboundMethodTest.instance_method(:foo)
