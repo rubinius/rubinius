@@ -444,21 +444,7 @@ class Module
 
     case meth
     when Proc
-      if meth.ruby_method
-        code = Rubinius::DelegatedMethod.new(name, :call, meth, false)
-        if meth.ruby_method.executable.kind_of? Rubinius::CompiledCode
-          scope = meth.ruby_method.executable.scope
-        else
-          scope = nil
-        end
-      else
-        be = meth.block.dup
-        be.change_name name
-        code = Rubinius::BlockEnvironment::AsMethod.new(be)
-        meth = meth.dup
-        meth.lambda_style!
-        scope = meth.block.scope
-      end
+      code, scope = meth.for_define_method(name)
     when Method
       Rubinius::Type.bindable_method? meth.defined_in, self.class
 

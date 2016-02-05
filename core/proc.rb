@@ -244,6 +244,26 @@ class Proc
     copy
   end
 
+  def for_define_method(name)
+    if @ruby_method
+      code = Rubinius::DelegatedMethod.new(name, :call, self, false)
+      if @ruby_method.executable.kind_of? Rubinius::CompiledCode
+        scope = @ruby_method.executable.scope
+      else
+        scope = nil
+      end
+    else
+      be = @block.dup
+      be.change_name name
+      code = Rubinius::BlockEnvironment::AsMethod.new(be)
+      meth = self.dup
+      meth.lambda_style!
+      scope = meth.block.scope
+    end
+
+    [code, scope]
+  end
+
   def self.from_method(meth)
     if meth.kind_of? Method
       return __from_method__(meth)
