@@ -80,16 +80,10 @@ class IO
   end
 
   class FileDescriptor
-    @@max_descriptors = Rubinius::AtomicReference.new(2)
-
     attr_reader :offset
 
-    O_RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
-    O_WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
-    O_RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']
-
     def self.choose_type(fd)
-      stat = Stat.fstat(fd)
+      stat = File::Stat.fstat(fd)
 
       case stat.ftype
       when "file"
@@ -853,8 +847,6 @@ class IO
         raise PrimitiveFailure, "FDSet.to_set failed"
       end
     end
-
-    FD_SETSIZE = Rubinius::Config['rbx.platform.select.FD_SETSIZE']
 
     def self.fd_set_from_array(array)
       highest = -1

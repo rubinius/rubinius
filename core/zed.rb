@@ -1108,6 +1108,7 @@ class File < IO
 
     # O_ACCMODE is /undocumented/ for fcntl() on some platforms
     ACCMODE  = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
+    O_ACCMODE = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
 
     F_GETFD  = Rubinius::Config['rbx.platform.fcntl.F_GETFD']
     F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
@@ -1203,6 +1204,20 @@ class IO
   POSIX_FADV_WILLNEED   = Rubinius::Config['rbx.platform.advise.POSIX_FADV_WILLNEED']
   POSIX_FADV_DONTNEED   = Rubinius::Config['rbx.platform.advise.POSIX_FADV_DONTNEED']
   POSIX_FADV_NOREUSE    = Rubinius::Config['rbx.platform.advise.POSIX_FADV_NOREUSE']
+
+  class FileDescriptor
+    @@max_descriptors = Rubinius::AtomicReference.new(2)
+
+    include File::Constants
+
+    O_RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
+    O_WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
+    O_RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']
+  end
+
+  class Select
+    FD_SETSIZE = Rubinius::Config['rbx.platform.select.FD_SETSIZE']
+  end
 end
 
 class NilClass
