@@ -47,6 +47,7 @@
 
 namespace rubinius {
   typedef std::map<int, LocalInfo> LocalMap;
+  class State;
   class SymbolTable;
   class CompiledCode;
   class GarbageCollector;
@@ -74,13 +75,13 @@ namespace rubinius {
     jit::RubiniusJITMemoryManager* memory_;
     llvm::JITEventListener* jit_event_listener_;
 
+    State* state_;
     Configuration& config_;
 
     TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
 
     SharedState& shared_;
-    State* state_;
 
     bool include_profiling_;
 

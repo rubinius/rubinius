@@ -99,7 +99,7 @@ namespace rubinius {
         continue;
       }
 
-      if(filter && cf->compiled_code->kernel_method(state)) {
+      if(filter && cf->compiled_code->core_method(state)) {
         cf = cf->previous;
         continue;
       }

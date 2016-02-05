@@ -1324,7 +1324,12 @@ end
 
 instruction create_block(literal) [ -- block ]
   Object* _lit = call_frame->compiled_code->literals()->at(state, literal);
-  CompiledCode* code = as<CompiledCode>(_lit);
+  CompiledCode* code = 0;
+
+  if(!(code = try_as<CompiledCode>(_lit))) {
+    code = CodeDB::load(state, as<String>(_lit));
+    call_frame->compiled_code->literals()->put(state, literal, code);
+  }
 
   Object* be = BlockEnvironment::under_call_frame(state, gct, code, mcode, call_frame);
 
@@ -1871,6 +1876,10 @@ end
 #   push_ivar instructions into this.
 
 instruction store_my_field(index) [ value -- value ]
+  if(CBOOL(call_frame->self()->frozen_p(state))) {
+    Exception::frozen_error(state, call_frame, call_frame->self());
+    RUN_EXCEPTION();
+  }
   call_frame->self()->set_field(state, index, stack_top());
 end
 

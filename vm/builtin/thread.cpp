@@ -298,8 +298,7 @@ namespace rubinius {
 
     state->vm()->thread->pid(state, Fixnum::from(gettid()));
 
-    state->shared().env()->load_kernel(state, runtime);
-    state->shared().env()->run_file(state, runtime + "/loader.rbc");
+    state->shared().env()->load_core(state, runtime);
 
     state->vm()->thread->alive(state, cTrue);
     state->vm()->thread_state()->clear();
@@ -455,6 +454,11 @@ namespace rubinius {
     vm->register_raise(state, exc);
 
     vm->wakeup(state, gct, calling_environment);
+    return exc;
+  }
+
+  Object* Thread::set_exception(STATE, Exception* exc) {
+    exception(state, exc);
     return exc;
   }
 

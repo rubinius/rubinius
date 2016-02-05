@@ -103,7 +103,7 @@ namespace rubinius {
     return cNil;
   }
 
-  // bootstrap method, replaced with an attr_accessor in kernel.
+  // bootstrap method, replaced with an attr_accessor in core library.
   Object* VariableScope::method_visibility(STATE) {
     return cNil;
   }

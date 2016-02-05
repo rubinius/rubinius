@@ -127,8 +127,7 @@ namespace rubinius {
     void log_argv();
     void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
-    void load_kernel(STATE, std::string root);
-    void load_directory(STATE, std::string dir);
+    void load_core(STATE, std::string root);
     void load_platform_conf(std::string dir);
     void load_conf(std::string path);
     void load_string(std::string str);
@@ -136,6 +135,7 @@ namespace rubinius {
     void expand_config_value(std::string& cvar, const char* var, const char* value);
     void set_tmp_path();
     void set_username();
+    void set_codedb_paths();
     void set_pid();
     void set_console_path();
     void load_tool();

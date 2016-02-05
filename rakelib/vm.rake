@@ -124,6 +124,7 @@ field_extract_headers = %w[
   vm/builtin/character.hpp
   vm/builtin/thread_state.hpp
   vm/builtin/jit.hpp
+  vm/builtin/code_db.hpp
   vm/builtin/diagnostics.hpp
 ]
 
@@ -162,8 +163,8 @@ namespace :build do
     stage:bin
     stage:extra_bins
     stage:capi_include
-    kernel:build
-    stage:kernel
+    core:build
+    stage:core
     stage:runtime
     stage:lib
     gems:melbourne
@@ -358,18 +359,4 @@ namespace :vm do
 
   desc "Clean up, including all external libs"
   task :distclean => :clean
-
-  desc "Show which primitives are missing"
-  task :missing_primitives do
-    kernel_files = FileList['kernel/**/*.rb'].join " "
-    kernel_primitives = `grep 'Rubinius.primitive' #{kernel_files} | awk '{ print $3 }'`
-    kernel_primitives = kernel_primitives.gsub(':', '').split("\n").sort.uniq
-
-    cpp_primitives = `grep 'Rubinius.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
-    cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
-
-    missing = kernel_primitives - cpp_primitives
-
-    puts missing.join("\n")
-  end
 end

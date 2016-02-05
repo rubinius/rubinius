@@ -1,8 +1,12 @@
 #include "builtin/alias.hpp"
 #include "builtin/class.hpp"
+#include "builtin/code_db.hpp"
+#include "builtin/compiled_code.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/method_table.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "object_utils.hpp"
@@ -60,7 +64,8 @@ namespace rubinius {
       MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
 
       while(entry) {
-        dup->store(state, entry->name(), entry->method(), entry->visibility());
+        dup->store(state, entry->name(), entry->method_id(),
+            entry->method(), entry->scope(), entry->serial(), entry->visibility());
         entry = try_as<MethodTableBucket>(entry->next());
       }
     }
@@ -96,26 +101,22 @@ namespace rubinius {
     bins(state, Fixnum::from(size));
   }
 
-  Object* MethodTable::store(STATE, Symbol* name, Object* exec, Symbol* vis)
+  Object* MethodTable::store(STATE, Symbol* name, Object* method_id,
+      Object* method, Object* scope, Fixnum* serial, Symbol* visibility)
   {
     check_frozen(state);
 
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    Executable* method;
-    if(exec->nil_p()) {
-      method = nil<Executable>();
-    } else {
-      if(Alias* stored_alias = try_as<Alias>(exec)) {
+    if(!method->nil_p()) {
+      if(Alias* stored_alias = try_as<Alias>(method)) {
         lock_.unlock();
-        Object* res = alias(state, name, vis,
+        Object* res = alias(state, name, visibility,
                            stored_alias->original_name(),
                            stored_alias->original_exec(),
                            stored_alias->original_module());
         lock_.lock();
         return res;
-      } else {
-        method = as<Executable>(exec);
       }
     }
 
@@ -133,8 +134,11 @@ namespace rubinius {
 
     while(entry) {
       if(entry->name() == name) {
+        entry->method_id(state, method_id);
         entry->method(state, method);
-        entry->visibility(state, vis);
+        entry->scope(state, scope);
+        entry->serial(state, serial);
+        entry->visibility(state, visibility);
         return name;
       }
 
@@ -143,10 +147,11 @@ namespace rubinius {
     }
 
     if(last) {
-      last->next(state, MethodTableBucket::create(state, name, method, vis));
+      last->next(state, MethodTableBucket::create(
+            state, name, method_id, method, scope, serial, visibility));
     } else {
-      values_->put(state, bin,
-                         MethodTableBucket::create(state, name, method, vis));
+      values_->put(state, bin, MethodTableBucket::create(
+            state, name, method_id, method, scope, serial, visibility));
     }
 
     entries(state, Fixnum::from(num_entries + 1));
@@ -190,7 +195,10 @@ namespace rubinius {
 
     while(entry) {
       if(entry->name() == name) {
+        entry->method_id(state, nil<String>());
         entry->method(state, method);
+        entry->scope(state, cNil);
+        entry->serial(state, Fixnum::from(0));
         entry->visibility(state, vis);
         return name;
       }
@@ -200,10 +208,11 @@ namespace rubinius {
     }
 
     if(last) {
-      last->next(state, MethodTableBucket::create(state, name, method, vis));
+      last->next(state, MethodTableBucket::create(
+            state, name, nil<String>(), method, cNil, Fixnum::from(0), vis));
     } else {
-      values_->put(state, bin,
-                         MethodTableBucket::create(state, name, method, vis));
+      values_->put(state, bin, MethodTableBucket::create(
+            state, name, nil<String>(), method, cNil, Fixnum::from(0), vis));
     }
 
     entries(state, Fixnum::from(num_entries + 1));
@@ -252,7 +261,7 @@ namespace rubinius {
     return nil<MethodTableBucket>();
   }
 
-  Executable* MethodTable::remove(STATE, Symbol* name) {
+  Object* MethodTable::remove(STATE, Symbol* name) {
     check_frozen(state);
 
     utilities::thread::SpinLock::LockGuard lg(lock_);
@@ -271,7 +280,7 @@ namespace rubinius {
 
     while(entry) {
       if(entry->name() == name) {
-        Executable* val = entry->method();
+        Object* val = entry->method();
         if(last) {
           last->next(state, entry->next());
         } else {
@@ -325,16 +334,37 @@ namespace rubinius {
     close_body(level);
   }
 
-  MethodTableBucket* MethodTableBucket::create(STATE, Symbol* name,
-      Executable* method, Symbol* vis)
+  MethodTableBucket* MethodTableBucket::create(STATE, Symbol* name, Object* method_id,
+      Object* method, Object* scope, Fixnum* serial, Symbol* vis)
   {
     MethodTableBucket *entry =
       state->new_object<MethodTableBucket>(G(methtblbucket));
 
     entry->name(state, name);
+    entry->method_id(state, method_id);
     entry->method(state, method);
+    entry->scope(state, scope);
+    entry->serial(state, serial);
     entry->visibility(state, vis);
+
     return entry;
+  }
+
+  Executable* MethodTableBucket::get_method(STATE) {
+    if(!method()->nil_p()) return as<Executable>(method());
+
+    if(method_id()->nil_p()) return nil<Executable>();
+
+    CompiledCode* code = CodeDB::load(state, as<String>(method_id()));
+    if(ConstantScope* cs = try_as<ConstantScope>(scope())) {
+      code->scope(state, cs);
+    } else {
+      code->scope(state, nil<ConstantScope>());
+    }
+    code->serial(state, serial_);
+    method(state, code);
+
+    return as<Executable>(code);
   }
 
   Object* MethodTableBucket::append(STATE, MethodTableBucket* nxt) {

@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "builtin/array.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/data.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookup_table.hpp"
@@ -736,8 +737,10 @@ extern "C" {
       break;
     }
 
-    module->add_method(state, method_name, method, visibility);
-    System::vm_reset_method_cache(env->state(), module, method_name, env->current_call_frame());
+    module->add_method(state, method_name, nil<String>(), method,
+        nil<ConstantScope>(), visibility);
+    System::vm_reset_method_cache(env->state(), module, method_name,
+        env->current_call_frame());
   }
 
   VALUE capi_class_superclass(VALUE class_handle) {

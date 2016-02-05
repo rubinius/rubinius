@@ -4,6 +4,7 @@
 #include "builtin/object.hpp"
 
 namespace rubinius {
+  class ConstantScope;
   class ConstantTable;
   class MethodTable;
 
@@ -83,11 +84,12 @@ namespace rubinius {
 
     void del_const(STATE, Symbol* sym);
 
-    void add_method(STATE, Symbol* name, Executable* exec, Symbol* vis = 0);
+    void add_method(STATE, Symbol* name, String* method_id, Object* exec,
+        ConstantScope* scope, Symbol* vis = 0);
 
     Object* reset_method_cache(STATE, Symbol* name);
 
-    Executable* find_method(Symbol* name, Module** defined_in = 0);
+    Executable* find_method(STATE, Symbol* name, Module** defined_in = 0);
 
     std::string debug_str(STATE);
 

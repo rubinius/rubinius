@@ -262,13 +262,18 @@ namespace rubinius {
     for(native_int i = 0; i < size; i++) {
       ConstantTableBucket* entry = try_as<ConstantTableBucket>(tbl->values()->at(state, i));
 
+      bool entries = false;
       while(entry) {
-       if(Symbol* sym = try_as<Symbol>(entry->name())) {
+        if(entries) std::cout << ", ";
+
+        if(Symbol* sym = try_as<Symbol>(entry->name())) {
           std::cout << ":" << sym->debug_str(state);
         } else if(Fixnum* fix = try_as<Fixnum>(entry->name())) {
           std::cout << fix->to_native();
         }
         entry = try_as<ConstantTableBucket>(entry->next());
+
+        entries = true;
       }
       if(i < size - 1) std::cout << ", ";
     }

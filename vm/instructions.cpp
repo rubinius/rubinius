@@ -3,6 +3,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
+#include "builtin/code_db.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"

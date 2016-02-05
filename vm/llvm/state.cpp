@@ -90,6 +90,7 @@ namespace rubinius {
 
   LLVMState::LLVMState(STATE)
     : InternalThread(state, "rbx.jit", InternalThread::eXLarge)
+    , state_(0)
     , config_(state->shared().config)
     , compile_list_(state)
     , symbols_(state->shared().symbols)

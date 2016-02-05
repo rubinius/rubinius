@@ -48,7 +48,9 @@ namespace rubinius {
         if(!skip_vis_check) {
           msg.visibility = entry->visibility();
         }
-        if(entry->method()->nil_p()) {
+        if(entry->method()->nil_p() && entry->method_id()->nil_p()) {
+        // TODO: fix using method() == cNil for this
+        // if(entry->method()->nil_p()) {
           skip_vis_check = true;
           goto keep_looking;
         }
@@ -63,7 +65,7 @@ namespace rubinius {
             msg.module = alias->original_module();
           }
         } else {
-          msg.method = entry->method();
+          msg.method = entry->get_method(state);
           msg.module = module;
         }
         if(msg.method) return true;
@@ -97,7 +99,9 @@ namespace rubinius {
         if(!skip_vis_check) {
           msg.visibility = entry->visibility();
         }
-        if(entry->method()->nil_p()) {
+        if(entry->method()->nil_p() && entry->method_id()->nil_p()) {
+        // TODO: fix using method() == cNil for this
+        // if(entry->method()->nil_p()) {
           skip_vis_check = true;
           goto keep_looking;
         }
@@ -112,7 +116,7 @@ namespace rubinius {
             msg.module = alias->original_module();
           }
         } else {
-          msg.method = entry->method();
+          msg.method = entry->get_method(state);
           msg.module = module;
         }
         if(msg.method) return true;

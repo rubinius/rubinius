@@ -124,7 +124,8 @@ namespace rubinius {
     oc->primitive(state, prim);
     oc->resolve_primitive(state);
 
-    tbl->store(state, name, oc, G(sym_public));
+    tbl->store(state, name, nil<String>(), oc, nil<ConstantScope>(),
+        Fixnum::from(0), G(sym_public));
   }
 
 /* Primitives */
@@ -859,7 +860,7 @@ namespace rubinius {
   }
 
   Object* System::vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* call_frame) {
-    // force is set if this is being called by the kernel (for instance
+    // force is set if this is being called by the core library (for instance
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
@@ -1244,21 +1245,29 @@ namespace rubinius {
   }
 
   Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
-                                CompiledCode* method,
+                                Object* method,
                                 ConstantScope* scope, Object* vis,
                                 CallFrame* calling_environment)
   {
     Module* mod = scope->for_method_definition();
 
-    method->scope(state, scope);
-    method->serial(state, Fixnum::from(0));
+    CompiledCode* cc = try_as<CompiledCode>(method);
+    if(cc) {
+      cc->scope(state, scope);
+      cc->serial(state, Fixnum::from(0));
+      mod->add_method(state, name, nil<String>(), cc, scope);
+    } else {
+      mod->add_method(state, name, as<String>(method), cNil, scope);
+    }
 
-    mod->add_method(state, name, method);
+    vm_reset_method_cache(state, mod, name, calling_environment);
+
+    if(!cc) return method;
 
     if(Class* cls = try_as<Class>(mod)) {
-      OnStack<5> o2(state, mod, method, scope, vis, cls);
+      OnStack<5> o2(state, mod, cc, scope, vis, cls);
 
-      if(!method->internalize(state, gct, calling_environment)) {
+      if(!cc->internalize(state, gct, calling_environment)) {
         Exception::argument_error(state, "invalid bytecode method");
         return 0;
       }
@@ -1266,7 +1275,7 @@ namespace rubinius {
       object_type type = (object_type)cls->instance_type()->to_native();
       TypeInfo* ti = state->memory()->type_info[type];
       if(ti) {
-        method->specialize(state, ti);
+        cc->specialize(state, ti);
       }
     }
 
@@ -1286,7 +1295,7 @@ namespace rubinius {
         mod->seen_ivars(state, ary);
       }
 
-      Tuple* lits = method->literals();
+      Tuple* lits = cc->literals();
       for(native_int i = 0; i < lits->num_fields(); i++) {
         if(Symbol* sym = try_as<Symbol>(lits->at(state, i))) {
           if(CBOOL(sym->is_ivar_p(state))) {
@@ -1296,22 +1305,24 @@ namespace rubinius {
       }
     }
 
-    vm_reset_method_cache(state, mod, name, calling_environment);
-
-    return method;
+    return cc;
   }
 
   Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name,
-                                   CompiledCode* method,
+                                   Object* method,
                                    ConstantScope* scope, Object* recv,
                                    CallFrame* calling_environment)
   {
     Module* mod = recv->singleton_class(state);
 
-    method->scope(state, scope);
-    method->serial(state, Fixnum::from(0));
+    if(CompiledCode* cc = try_as<CompiledCode>(method)) {
+      cc->scope(state, scope);
+      cc->serial(state, Fixnum::from(0));
+      mod->add_method(state, name, nil<String>(), cc, scope);
+    } else {
+      mod->add_method(state, name, as<String>(method), cNil, scope);
+    }
 
-    mod->add_method(state, name, method);
     vm_reset_method_cache(state, mod, name, calling_environment);
 
     return method;

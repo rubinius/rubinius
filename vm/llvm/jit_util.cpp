@@ -8,6 +8,7 @@
 #include "call_frame.hpp"
 #include "on_stack.hpp"
 
+#include "builtin/code_db.hpp"
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -249,7 +250,12 @@ extern "C" {
     CPP_TRY
 
     Object* _lit = call_frame->compiled_code->literals()->at(state, index);
-    CompiledCode* code = as<CompiledCode>(_lit);
+    CompiledCode* code = 0;
+
+    if(!(code = try_as<CompiledCode>(_lit))) {
+      code = CodeDB::load(state, as<String>(_lit));
+      call_frame->compiled_code->literals()->put(state, index, code);
+    }
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
     GCTokenImpl gct;

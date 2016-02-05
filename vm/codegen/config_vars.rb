@@ -1,3 +1,4 @@
+$:.unshift File.expand_path("../../..", __FILE__)
 $:.unshift File.expand_path("../../../library", __FILE__)
 
 require 'rubinius/configuration'

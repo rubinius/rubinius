@@ -2,6 +2,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compact_lookup_table.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/constant_table.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/lookup_table.hpp"
@@ -167,9 +168,11 @@ namespace rubinius {
     return get_const(state, state->symbol(sym));
   }
 
-  void Module::add_method(STATE, Symbol* name, Executable* exec, Symbol* vis) {
+  void Module::add_method(STATE, Symbol* name,
+      String* method_id, Object* exec, ConstantScope* scope, Symbol* vis)
+  {
     if(!vis) vis = G(sym_public);
-    method_table_->store(state, name, exec, vis);
+    method_table_->store(state, name, method_id, exec, scope, Fixnum::from(0), vis);
     state->vm()->global_cache()->clear(state, this, name);
     reset_method_cache(state, name);
   }
@@ -180,9 +183,9 @@ namespace rubinius {
     }
     if(!name->nil_p()) {
       if(MethodTableBucket* b = method_table_->find_entry(state, name)) {
-        Executable* exec = b->method();
+        Object* exec = b->method();
         if(!exec->nil_p()) {
-          exec->clear_inliners(state);
+          as<Executable>(exec)->clear_inliners(state);
         }
       }
     }
@@ -198,7 +201,7 @@ namespace rubinius {
     return cNil;
   }
 
-  Executable* Module::find_method(Symbol* name, Module** defined_in) {
+  Executable* Module::find_method(STATE, Symbol* name, Module** defined_in) {
     Module* mod = this;
 
     do {
@@ -206,7 +209,7 @@ namespace rubinius {
         MethodTableBucket* buk = mod->method_table()->find_entry(name);
         if(buk) {
           if(defined_in) *defined_in = mod;
-          return buk->method();
+          return buk->get_method(state);
         }
       }
       mod = mod->superclass();

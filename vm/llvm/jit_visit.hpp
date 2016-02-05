@@ -1,5 +1,6 @@
 #include "instructions_util.hpp"
 
+#include "builtin/code_db.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/constant_cache.hpp"
@@ -1809,7 +1810,7 @@ namespace rubinius {
       b().CreateBr(block_continue);
       set_block(block_continue);
 
-      CompiledCode* block_code = as<CompiledCode>(literal(which));
+      CompiledCode* block_code = CodeDB::load(ctx_->llvm_state()->state(), literal(which));
       MachineCode* code = block_code->machine_code();
 
       current_block_ = new JITInlineBlock(ctx_, block_code, code, &info(), which, stack_ptr());
