@@ -58,4 +58,59 @@ class Binding
   def local_variables
     variables.local_variables
   end
+
+  def local_variable_set(name, value)
+    unless name.is_a?(Symbol)
+      name = Rubinius::Type.coerce_to(name, String, :to_str).to_sym
+    end
+
+    vars = variables
+
+    # If a local variable is defined in a parent scope we should update the
+    # variable in said scope and all child scopes, instead of _only_ setting it
+    # in the current scope.
+    while vars
+      meth = vars.method
+
+      if meth.local_names.include?(name)
+        return vars.set_local(meth.local_slot(name), value)
+      elsif vars.eval_local_defined?(name)
+        return vars.set_eval_local(name, value)
+      end
+
+      vars = vars.parent
+    end
+
+    variables.set_eval_local(name, value)
+  end
+
+  def local_variable_get(name)
+    unless name.is_a?(Symbol)
+      name = Rubinius::Type.coerce_to(name, String, :to_str).to_sym
+    end
+
+    vars = variables
+
+    while vars
+      meth = vars.method
+
+      if meth.local_names.include?(name)
+        return vars.locals[meth.local_slot(name)]
+      elsif vars.eval_local_defined?(name)
+        return vars.get_eval_local(name)
+      end
+
+      vars = vars.parent
+    end
+
+    raise NameErrror, "local variable #{name.inspect} not defined for #{inspect}"
+  end
+
+  def local_variable_defined?(name)
+    unless name.is_a?(Symbol)
+      name = Rubinius::Type.coerce_to(name, String, :to_str).to_sym
+    end
+
+    variables.local_defined?(name)
+  end
 end
