@@ -74,8 +74,8 @@ end
 def install_runtime(prefix, target)
   FileList[
     "#{prefix}/platform.conf",
-    "#{prefix}/**/index",
-    "#{prefix}/**/signature",
+    "#{prefix}/core/*",
+    "#{prefix}/signature",
     "#{prefix}/**/*.rb",
     "#{prefix}/**/*.rb{a,c}",
     "#{prefix}/**/*.{c,h}pp",
@@ -83,7 +83,6 @@ def install_runtime(prefix, target)
     "#{prefix}/**/*.c.*",
     "#{prefix}/**/*.ffi",
     "#{prefix}/**/*.#{$dlext}",
-    "#{prefix}/**/load_order*.txt"
   ].each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:runtimedir]}"
   end
