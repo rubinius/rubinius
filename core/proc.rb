@@ -250,10 +250,9 @@ class Proc
     else
       be = @block.dup
       be.change_name name
-      code = Rubinius::BlockEnvironment::AsMethod.new(be)
-      meth = self.dup
-      meth.lambda_style!
-      scope = meth.block.scope
+
+      code  = Rubinius::BlockEnvironment::AsMethod.new(be)
+      scope = code.block_env.scope
     end
 
     [code, scope]
