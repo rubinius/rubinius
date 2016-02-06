@@ -188,16 +188,16 @@ describe "Module#define_method" do
       end
     end
 
-    o = ProcFromMethod.new
-    o.data = :foo
+    object1 = ProcFromMethod.new
+    object1.data = :foo
 
-    p     = o.method(:cool_method).to_proc
+    method_proc = object1.method(:cool_method).to_proc
     klass = Class.new(ProcFromMethod)
-    klass.send(:define_method, :other_cool_method, p)
+    klass.send(:define_method, :other_cool_method, &method_proc)
 
-    object = klass.new
-    object.data = :bar
-    object.other_cool_method.should == "data is foo"
+    object2 = klass.new
+    object2.data = :bar
+    object2.other_cool_method.should == "data is foo"
   end
 
   it "maintains the Proc's scope" do
