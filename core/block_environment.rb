@@ -104,7 +104,7 @@ module Rubinius
       end
 
       def scope
-        nil
+        @block_env.scope
       end
     end
 

@@ -251,8 +251,10 @@ class Proc
       be = @block.dup
       be.change_name name
 
-      code  = Rubinius::BlockEnvironment::AsMethod.new(be)
-      scope = code.block_env.scope
+      executable = Rubinius::BlockEnvironment::AsMethod.new(be)
+
+      code  = executable
+      scope = executable.scope
     end
 
     [code, scope]
