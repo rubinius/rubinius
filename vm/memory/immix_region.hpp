@@ -9,11 +9,12 @@
 #include <list>
 #include <vector>
 
-#include "util/address.hpp"
-#include "util/gc_alloc.hpp"
+#include "memory/address.hpp"
+#include "memory/gc_alloc.hpp"
+
+namespace rubinius {
 
 using memory::Address;
-
 
 namespace immix {
 
@@ -1183,6 +1184,7 @@ namespace immix {
       return false;
     }
   };
+}
 }
 
 #endif

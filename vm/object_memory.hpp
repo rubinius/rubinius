@@ -16,7 +16,8 @@
 #include "memory/finalize.hpp"
 #include "memory/write_barrier.hpp"
 
-#include "util/immix.hpp"
+#include "memory/immix.hpp"
+
 #include "util/thread.hpp"
 
 #include "shared_state.hpp"

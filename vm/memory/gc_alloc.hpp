@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #endif
 
+namespace rubinius {
 namespace memory {
 
 #ifndef RBX_WINDOWS
@@ -44,5 +45,6 @@ namespace memory {
     }
   }
 #endif
+}
 }
 #endif

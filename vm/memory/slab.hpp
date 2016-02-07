@@ -1,9 +1,7 @@
 #ifndef RBX_GC_SLAB_HPP
 #define RBX_GC_SLAB_HPP
 
-#include "util/address.hpp"
-
-using memory::Address;
+#include "memory/address.hpp"
 
 #include <stdint.h>
 #include <unistd.h>

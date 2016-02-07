@@ -18,6 +18,7 @@
 #define RBX_MEMORY_ALIGN(var) ((var + (RBX_MEMORY_ALIGNMENT - 1)) & ~(RBX_MEMORY_ALIGNMENT - 1))
 #endif
 
+namespace rubinius {
 namespace memory {
 
   /**
@@ -93,6 +94,7 @@ namespace memory {
       }
   };
 
+}
 }
 
 #endif

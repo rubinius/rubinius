@@ -4,7 +4,7 @@
 
 #include "memory/gc.hpp"
 
-#include "util/allocator.hpp"
+#include "memory/allocator.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"

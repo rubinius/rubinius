@@ -1,8 +1,8 @@
 #ifndef RBX_GC_IMMIX_HPP
 #define RBX_GC_IMMIX_HPP
 
-#include "util/address.hpp"
-#include "util/immix.hpp"
+#include "memory/address.hpp"
+#include "memory/immix_region.hpp"
 #include "memory/gc.hpp"
 #include "exception.hpp"
 
