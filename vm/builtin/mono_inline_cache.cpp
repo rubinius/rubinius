@@ -1,6 +1,6 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/mono_inline_cache.hpp"

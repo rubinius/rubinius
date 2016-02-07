@@ -9,7 +9,7 @@
 #include "object_position.hpp"
 
 namespace rubinius {
-  class ObjectMemory;
+  class Memory;
 
 namespace memory {
   class ImmixGC;
@@ -56,7 +56,7 @@ namespace memory {
     /**
      * Class used as an interface to the Rubinius specific object memory layout
      * by the (general purpose) Immix memory manager. By imposing this interface
-     * between ObjectMemory and the utility Immix memory manager, the latter can
+     * between Memory and the utility Immix memory manager, the latter can
      * be made reusable.
      *
      * The Immix memory manager delegates to this class to:
@@ -73,7 +73,7 @@ namespace memory {
      * - allocates from the last free block, indicating a collection is needed
      */
     class ObjectDescriber {
-      ObjectMemory* object_memory_;
+      Memory* object_memory_;
       ImmixGC* gc_;
 
     public:
@@ -82,7 +82,7 @@ namespace memory {
         , gc_(NULL)
       {}
 
-      void set_object_memory(ObjectMemory* om, ImmixGC* gc) {
+      void set_object_memory(Memory* om, ImmixGC* gc) {
         object_memory_ = om;
         gc_ = gc;
       }
@@ -126,14 +126,14 @@ namespace memory {
 
     GC<ObjectDescriber> gc_;
     ExpandingAllocator allocator_;
-    ObjectMemory* memory_;
+    Memory* memory_;
     ImmixMarker* marker_;
     int chunks_left_;
     int chunks_before_collection_;
     Diagnostics diagnostics_;
 
   public:
-    ImmixGC(ObjectMemory* om);
+    ImmixGC(Memory* om);
     virtual ~ImmixGC();
 
     Object* allocate(uint32_t bytes, bool& collect_now);
@@ -152,7 +152,7 @@ namespace memory {
     ObjectPosition validate_object(Object*);
 
   public: // Inline
-    ObjectMemory* memory() {
+    Memory* memory() {
       return memory_;
     }
 

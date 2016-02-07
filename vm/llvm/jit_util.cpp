@@ -5,7 +5,7 @@
 
 #include "vm.hpp"
 #include "state.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "call_frame.hpp"
 #include "on_stack.hpp"
 
@@ -386,7 +386,7 @@ extern "C" {
           /* The references in args are not visible to the GC and
            * there's not a simple mechanism to manage that now.
            */
-          ObjectMemory::GCInhibit inhibitor(state);
+          Memory::GCInhibit inhibitor(state);
 
           if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
             return -1;

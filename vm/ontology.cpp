@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 

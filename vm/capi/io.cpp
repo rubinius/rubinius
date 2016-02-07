@@ -6,7 +6,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
 #include "builtin/thread.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "primitives.hpp"
 #include "thread_phase.hpp"
 

@@ -6,7 +6,7 @@
 #include "config.h"
 #include "vm.hpp"
 #include "state.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "thread_phase.hpp"
 
 #include "capi/tag.hpp"
@@ -52,14 +52,14 @@
 #include "util/logger.hpp"
 
 namespace rubinius {
-  void ObjectMemory::memory_error(STATE) {
+  void Memory::memory_error(STATE) {
     Exception::memory_error(state);
   }
 
   Object* object_watch = 0;
 
-  /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(VM* vm, SharedState& shared)
+  /* Memory methods */
+  Memory::Memory(VM* vm, SharedState& shared)
     /* : young_(new BakerGC(this, shared.config)) */
     : mark_sweep_(new memory::MarkSweepGC(this, shared.config))
     , immix_(new memory::ImmixGC(this))
@@ -99,7 +99,7 @@ namespace rubinius {
     TypeInfo::init(this);
   }
 
-  ObjectMemory::~ObjectMemory() {
+  Memory::~Memory() {
     mark_sweep_->free_objects();
 
     // @todo free immix data
@@ -124,20 +124,20 @@ namespace rubinius {
     delete inflated_headers_;
   }
 
-  void ObjectMemory::after_fork_child(STATE) {
+  void Memory::after_fork_child(STATE) {
     contention_lock_.init();
     mature_gc_in_progress_ = false;
     vm_ = state->vm();
   }
 
-  void ObjectMemory::assign_object_id(STATE, Object* obj) {
+  void Memory::assign_object_id(STATE, Object* obj) {
     // Double check we've got no id still after the lock.
     if(obj->object_id(state) > 0) return;
 
     obj->set_object_id(state, atomic::fetch_and_add(&last_object_id, (size_t)1));
   }
 
-  bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj,
+  bool Memory::inflate_lock_count_overflow(STATE, ObjectHeader* obj,
                                                  int count)
   {
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
@@ -166,7 +166,7 @@ namespace rubinius {
     return true;
   }
 
-  LockStatus ObjectMemory::contend_for_lock(STATE, CallFrame* call_frame,
+  LockStatus Memory::contend_for_lock(STATE, CallFrame* call_frame,
                                             ObjectHeader* obj, size_t us, bool interrupt)
   {
     bool timed = false;
@@ -295,12 +295,12 @@ step1:
     }
   }
 
-  void ObjectMemory::release_contention(STATE, CallFrame* call_frame) {
+  void Memory::release_contention(STATE, CallFrame* call_frame) {
     MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
     contention_var_.broadcast();
   }
 
-  bool ObjectMemory::inflate_and_lock(STATE, ObjectHeader* obj) {
+  bool Memory::inflate_and_lock(STATE, ObjectHeader* obj) {
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     InflatedHeader* ih = 0;
@@ -369,7 +369,7 @@ step1:
     return true;
   }
 
-  bool ObjectMemory::inflate_for_contention(STATE, ObjectHeader* obj) {
+  bool Memory::inflate_for_contention(STATE, ObjectHeader* obj) {
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     for(;;) {
@@ -432,7 +432,7 @@ step1:
     }
   }
 
-  bool ObjectMemory::refill_slab(STATE, memory::Slab& slab) {
+  bool Memory::refill_slab(STATE, memory::Slab& slab) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     memory::Address addr = memory::Address::null(); /* young_->allocate_for_slab(slab_size_); */
@@ -452,7 +452,7 @@ step1:
     }
   }
 
-  bool ObjectMemory::valid_object_p(Object* obj) {
+  bool Memory::valid_object_p(Object* obj) {
     if(obj->young_object_p()) {
       return false; /* young_->validate_object(obj) == cValid; */
     } else if(obj->mature_object_p()) {
@@ -468,7 +468,7 @@ step1:
 
   /* Garbage collection */
 
-  Object* ObjectMemory::promote_object(Object* obj) {
+  Object* Memory::promote_object(Object* obj) {
     size_t sz = obj->size_in_bytes(vm());
 
     bool collect_flag = false;
@@ -500,7 +500,7 @@ step1:
     return copy;
   }
 
-  void ObjectMemory::collect_maybe(STATE) {
+  void Memory::collect_maybe(STATE) {
     /* Don't go any further unless we're allowed to GC. We also reset the
      * flags so that we don't thrash constantly trying to GC. When the GC
      * prohibition lifts, a GC will eventually be triggered again.
@@ -548,7 +548,7 @@ step1:
     }
   }
 
-  void ObjectMemory::collect_young(STATE, memory::GCData* data) {
+  void Memory::collect_young(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
 
@@ -592,7 +592,7 @@ step1:
     collect_young_flag_ = false;
   }
 
-  void ObjectMemory::collect_full(STATE, memory::GCData* data) {
+  void Memory::collect_full(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.immix_concurrent_ms);
 
@@ -614,7 +614,7 @@ step1:
     }
   }
 
-  void ObjectMemory::collect_full_finish(STATE, memory::GCData* data) {
+  void Memory::collect_full_finish(STATE, memory::GCData* data) {
     immix_->collect_finish(data);
 
     code_manager_.sweep();
@@ -649,11 +649,11 @@ step1:
     RUBINIUS_GC_END(1);
   }
 
-  memory::MarkStack& ObjectMemory::mature_mark_stack() {
+  memory::MarkStack& Memory::mature_mark_stack() {
     return immix_->mark_stack();
   }
 
-  void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
+  void Memory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     HeaderWord orig = obj->header;
@@ -683,7 +683,7 @@ step1:
 
   }
 
-  void ObjectMemory::inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle) {
+  void Memory::inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle) {
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     HeaderWord orig = obj->header;
@@ -713,11 +713,11 @@ step1:
 
   }
 
-  void ObjectMemory::prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young) {
+  void Memory::prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young) {
     handles->deallocate_handles(cached, mark(), young);
   }
 
-  void ObjectMemory::clear_fiber_marks(memory::GCData* data) {
+  void Memory::clear_fiber_marks(memory::GCData* data) {
     utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
 
     for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
@@ -729,7 +729,7 @@ step1:
     }
   }
 
-  void ObjectMemory::add_type_info(TypeInfo* ti) {
+  void Memory::add_type_info(TypeInfo* ti) {
     utilities::thread::SpinLock::LockGuard guard(shared_.type_info_lock());
 
     if(TypeInfo* current = type_info[ti->type]) {
@@ -738,7 +738,7 @@ step1:
     type_info[ti->type] = ti;
   }
 
-  Object* ObjectMemory::new_object(STATE, native_int bytes) {
+  Object* Memory::new_object(STATE, native_int bytes) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = 0;
@@ -771,11 +771,11 @@ step1:
     return NULL;
   }
 
-  TypeInfo* ObjectMemory::find_type_info(Object* obj) {
+  TypeInfo* Memory::find_type_info(Object* obj) {
     return type_info[obj->type_id()];
   }
 
-  ObjectPosition ObjectMemory::validate_object(Object* obj) {
+  ObjectPosition Memory::validate_object(Object* obj) {
     ObjectPosition pos;
 
     /*
@@ -789,7 +789,7 @@ step1:
     return mark_sweep_->validate_object(obj);
   }
 
-  void ObjectMemory::add_code_resource(STATE, memory::CodeResource* cr) {
+  void Memory::add_code_resource(STATE, memory::CodeResource* cr) {
     utilities::thread::SpinLock::LockGuard guard(shared_.code_resource_lock());
 
     state->vm()->metrics().memory.code_bytes += cr->size();
@@ -802,7 +802,7 @@ step1:
     }
   }
 
-  void ObjectMemory::needs_finalization(Object* obj, memory::FinalizerFunction func,
+  void Memory::needs_finalization(Object* obj, memory::FinalizerFunction func,
       memory::FinalizeObject::FinalizeKind kind)
   {
     if(memory::FinalizerThread* finalizer = shared_.finalizer_handler()) {
@@ -810,11 +810,11 @@ step1:
     }
   }
 
-  void ObjectMemory::set_ruby_finalizer(Object* obj, Object* finalizer) {
+  void Memory::set_ruby_finalizer(Object* obj, Object* finalizer) {
     shared_.finalizer_handler()->set_ruby_finalizer(obj, finalizer);
   }
 
-  capi::Handle* ObjectMemory::add_capi_handle(STATE, Object* obj) {
+  capi::Handle* Memory::add_capi_handle(STATE, Object* obj) {
     if(!obj->reference_p()) {
       rubinius::bug("Trying to add a handle for a non reference");
     }
@@ -824,7 +824,7 @@ step1:
     return obj->handle(state);
   }
 
-  void ObjectMemory::add_global_capi_handle_location(STATE, capi::Handle** loc,
+  void Memory::add_global_capi_handle_location(STATE, capi::Handle** loc,
                                                const char* file, int line) {
     utilities::thread::SpinLock::LockGuard guard(state->shared().global_capi_handle_lock());
 
@@ -876,7 +876,7 @@ step1:
     global_capi_handle_locations_.push_back(global_handle);
   }
 
-  void ObjectMemory::del_global_capi_handle_location(STATE, capi::Handle** loc) {
+  void Memory::del_global_capi_handle_location(STATE, capi::Handle** loc) {
     utilities::thread::SpinLock::LockGuard guard(state->shared().global_capi_handle_lock());
 
     for(std::list<capi::GlobalHandle*>::iterator i = global_capi_handle_locations_.begin();
@@ -890,12 +890,12 @@ step1:
     rubinius::bug("Removing handle not in the list");
   }
 
-  void ObjectMemory::make_capi_handle_cached(STATE, capi::Handle* handle) {
+  void Memory::make_capi_handle_cached(STATE, capi::Handle* handle) {
     utilities::thread::SpinLock::LockGuard guard(state->shared().capi_handle_cache_lock());
     cached_capi_handles_.push_back(handle);
   }
 
-  ObjectArray* ObjectMemory::weak_refs_set() {
+  ObjectArray* Memory::weak_refs_set() {
     return immix_->weak_refs_set();
   }
 };

@@ -2,7 +2,7 @@
 #include "configuration.hpp"
 #include "fiber_stack.hpp"
 #include "fiber_data.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "state.hpp"
 #include "vm.hpp"
 

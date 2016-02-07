@@ -29,7 +29,7 @@
 #include "helpers.hpp"
 #include "instruments/tooling.hpp"
 #include "lookup_data.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"

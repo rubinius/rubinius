@@ -11,7 +11,7 @@
 #include "builtin/compiled_code.hpp"
 #include "builtin/module.hpp"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {
@@ -69,7 +69,7 @@ namespace jit {
     }
   }
 
-  void RuntimeDataHolder::run_write_barrier(ObjectMemory* om, Object* obj) {
+  void RuntimeDataHolder::run_write_barrier(Memory* om, Object* obj) {
     for(std::vector<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
         ++i) {

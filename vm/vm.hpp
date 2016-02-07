@@ -50,7 +50,7 @@ namespace rubinius {
   class Channel;
   class GlobalCache;
   class Primitives;
-  class ObjectMemory;
+  class Memory;
   class TypeInfo;
   class String;
   class Symbol;
@@ -140,7 +140,7 @@ namespace rubinius {
     void (*custom_wakeup_)(void*);
     void* custom_wakeup_data_;
 
-    ObjectMemory* memory_;
+    Memory* memory_;
 
     VMThreadState thread_state_;
 
@@ -198,7 +198,7 @@ namespace rubinius {
       return &thread_state_;
     }
 
-    ObjectMemory* memory() {
+    Memory* memory() {
       return shared.memory();
     }
 

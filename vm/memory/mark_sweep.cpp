@@ -1,6 +1,6 @@
 #include "memory/gc.hpp"
 #include "memory/mark_sweep.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "object_utils.hpp"
 
@@ -22,7 +22,7 @@
 namespace rubinius {
 namespace memory {
 
-  MarkSweepGC::MarkSweepGC(ObjectMemory *om, Configuration& config)
+  MarkSweepGC::MarkSweepGC(Memory *om, Configuration& config)
     : GarbageCollector(om)
     , diagnostics_(Diagnostics())
     , collection_threshold(config.gc_marksweep_threshold)

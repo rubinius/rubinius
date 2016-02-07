@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_CONSTANT_CACHE_HPP
 
 #include "machine_code.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/constant_scope.hpp"

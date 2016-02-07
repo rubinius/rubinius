@@ -14,7 +14,7 @@ namespace rubinius {
 
   class Class;
   class Object;
-  class ObjectMemory;
+  class Memory;
   class ObjectHeader;
 
   namespace memory {
@@ -59,8 +59,8 @@ namespace rubinius {
 
   public: /* Class initializers */
 
-    static void init(ObjectMemory* om);
-    static void auto_init(ObjectMemory* om);
+    static void init(Memory* om);
+    static void auto_init(Memory* om);
     static void auto_learn_fields(STATE);
     virtual void auto_mark(Object* obj, memory::ObjectMark& mark) = 0;
 

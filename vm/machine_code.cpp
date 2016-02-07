@@ -2,7 +2,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "defines.hpp"
 #include "machine_code.hpp"
 
@@ -555,7 +555,7 @@ namespace rubinius {
           /* The references in args are not visible to the GC and
            * there's not a simple mechanism to manage that now.
            */
-          ObjectMemory::GCInhibit inhibitor(state);
+          Memory::GCInhibit inhibitor(state);
 
           kw_result = dispatch.send(state, call_frame, args);
         }

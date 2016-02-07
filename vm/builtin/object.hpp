@@ -405,7 +405,7 @@ namespace rubinius {
      * defining Object, we need to know Class).
      */
     void klass(STATE, Class* obj);
-    void klass(ObjectMemory* memory, Class* obj);
+    void klass(Memory* memory, Class* obj);
 
     /* ivars_ from ObjectHeader. */
     attr_accessor(ivars, Object);

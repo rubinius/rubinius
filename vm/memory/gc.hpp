@@ -11,7 +11,7 @@
 namespace rubinius {
   struct CallFrame;
 
-  class ObjectMemory;
+  class Memory;
   class VariableScope;
   class GlobalCache;
   class StackVariables;
@@ -108,8 +108,8 @@ namespace memory {
 
   class GarbageCollector {
   protected:
-    /// Reference to the ObjectMemory we are collecting
-    ObjectMemory* object_memory_;
+    /// Reference to the Memory we are collecting
+    Memory* object_memory_;
 
   private:
     /// Array of weak references
@@ -117,9 +117,9 @@ namespace memory {
 
   public:
     /**
-     * Constructor; takes a pointer to ObjectMemory.
+     * Constructor; takes a pointer to Memory.
      */
-    GarbageCollector(ObjectMemory *om);
+    GarbageCollector(Memory *om);
 
     virtual ~GarbageCollector() {
       if(weak_refs_) delete weak_refs_;
@@ -163,7 +163,7 @@ namespace memory {
     void verify(GCData* data);
 
     VM* vm();
-    ObjectMemory* object_memory() {
+    Memory* object_memory() {
       return object_memory_;
     }
 

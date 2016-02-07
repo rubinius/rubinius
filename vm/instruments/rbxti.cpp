@@ -2,7 +2,7 @@
 
 #include "rbxti-internal.hpp"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "machine_code.hpp"

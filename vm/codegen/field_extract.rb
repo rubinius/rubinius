@@ -1063,7 +1063,7 @@ end
 
 write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   f.puts "size_t TypeInfo::instance_sizes[(int)LastObjectType] = {ObjectHeader::align(sizeof(Object))};"
-  f.puts "void TypeInfo::auto_init(ObjectMemory* om) {"
+  f.puts "void TypeInfo::auto_init(Memory* om) {"
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"

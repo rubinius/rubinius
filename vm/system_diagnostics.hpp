@@ -2,7 +2,7 @@
 #define RBX_SYSTEM_DIAGNOSTICS_HPP
 
 #include "diagnostics.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "symbol_table.hpp"
 
 #include "capi/handles.hpp"

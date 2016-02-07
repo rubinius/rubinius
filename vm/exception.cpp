@@ -2,7 +2,7 @@
 #include "state.hpp"
 #include "exception.hpp"
 #include "detection.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/exception.hpp"
 #include "builtin/string.hpp"

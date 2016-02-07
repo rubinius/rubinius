@@ -24,7 +24,7 @@
 #include "internal_threads.hpp"
 #include "machine_code.hpp"
 #include "field_offset.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "on_stack.hpp"
 #include "thread_phase.hpp"
 

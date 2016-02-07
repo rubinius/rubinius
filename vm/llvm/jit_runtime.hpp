@@ -13,7 +13,7 @@ namespace rubinius {
   class CompiledCode;
   class Symbol;
   class Module;
-  class ObjectMemory;
+  class Memory;
   class VM;
 
   namespace memory {
@@ -102,7 +102,7 @@ namespace rubinius {
       }
 
       void mark_all(Object* obj, memory::ObjectMark& mark);
-      void run_write_barrier(ObjectMemory* om, Object* obj);
+      void run_write_barrier(Memory* om, Object* obj);
     };
   }
 }

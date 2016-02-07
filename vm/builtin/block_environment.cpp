@@ -4,7 +4,7 @@
 #include "instruments/tooling.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
@@ -224,7 +224,7 @@ namespace rubinius {
                 /* The references in args are not visible to the GC and
                  * there's not a simple mechanism to manage that now.
                  */
-                ObjectMemory::GCInhibit inhibitor(state);
+                Memory::GCInhibit inhibitor(state);
 
                 if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
                   return false;
@@ -284,7 +284,7 @@ namespace rubinius {
           /* The references in args are not visible to the GC and
            * there's not a simple mechanism to manage that now.
            */
-          ObjectMemory::GCInhibit inhibitor(state);
+          Memory::GCInhibit inhibitor(state);
 
           kw_result = dispatch.send(state, call_frame, args);
         }

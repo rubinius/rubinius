@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_STATICSCOPE_HPP
 
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"

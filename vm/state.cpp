@@ -1,6 +1,6 @@
 #include "call_frame.hpp"
 #include "helpers.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "park.hpp"
 #include "signal.hpp"
 #include "state.hpp"

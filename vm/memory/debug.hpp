@@ -13,7 +13,7 @@ namespace memory {
     int seen_objects;
     std::map <Object*, int> seen;
 
-    HeapDebug(ObjectMemory *om);
+    HeapDebug(Memory *om);
     virtual ~HeapDebug() { }
 
     virtual Object* saw_object(Object* obj);

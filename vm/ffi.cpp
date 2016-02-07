@@ -14,7 +14,7 @@
 
 #include "vm.hpp"
 #include "state.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"

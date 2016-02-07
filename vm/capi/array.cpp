@@ -4,7 +4,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/lookup_table.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"

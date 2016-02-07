@@ -1,6 +1,6 @@
 #include "call_frame.hpp"
 #include "machine_code.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "on_stack.hpp"
 #include "stack_variables.hpp"
 

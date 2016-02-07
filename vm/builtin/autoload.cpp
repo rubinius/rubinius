@@ -1,5 +1,5 @@
 #include "helpers.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "on_stack.hpp"
 
 #include "builtin/autoload.hpp"

@@ -8,7 +8,7 @@
 #include "builtin/exception.hpp"
 
 namespace rubinius {
-  class ObjectMemory;
+  class Memory;
 
   class WeakRef : public Object {
   public:
@@ -29,7 +29,7 @@ namespace rubinius {
       return object_;
     }
 
-    void set_object(ObjectMemory* om, Object* obj);
+    void set_object(Memory* om, Object* obj);
 
     // Rubinius.primitive+ :weakref_set_object
     Object* set_object(STATE, Object* obj);

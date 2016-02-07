@@ -17,13 +17,13 @@ namespace rubinius {
 
   class MachineCode;
   class CompiledCode;
-  class ObjectMemory;
+  class Memory;
 
   class Inliners : public memory::CodeResource {
     std::vector<CompiledCode*> inliners_;
 
   public:
-    Inliners(STATE, ObjectMemory* om);
+    Inliners(STATE, Memory* om);
 
     std::vector<CompiledCode*>& inliners() {
       return inliners_;
@@ -101,7 +101,7 @@ namespace rubinius {
 
     bool resolve_primitive(STATE);
 
-    void add_inliner(STATE, ObjectMemory* om, CompiledCode* code);
+    void add_inliner(STATE, Memory* om, CompiledCode* code);
     void clear_inliners(STATE);
 
     class Info : public TypeInfo {

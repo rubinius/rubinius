@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_CLASS_HPP
 
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/object.hpp"
 #include "builtin/fixnum.hpp"

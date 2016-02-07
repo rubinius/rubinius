@@ -12,7 +12,7 @@ namespace rubinius {
   class Class;
   class Exception;
   class Object;
-  class ObjectMemory;
+  class Memory;
   class SharedState;
   class String;
   class Symbol;
@@ -85,7 +85,7 @@ namespace rubinius {
       return vm_->thread_state();
     }
 
-    ObjectMemory* memory() {
+    Memory* memory() {
       return shared_.memory();
     }
 

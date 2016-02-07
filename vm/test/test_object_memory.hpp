@@ -15,7 +15,7 @@
 
 using namespace rubinius;
 
-class TestObjectMemory : public CxxTest::TestSuite, public VMTest {
+class TestMemory : public CxxTest::TestSuite, public VMTest {
 public:
 
   memory::GCData* gc_data;
@@ -39,13 +39,13 @@ public:
     destroy();
   }
 
-  Tuple* util_new_object(ObjectMemory &om, size_t count = 3) {
+  Tuple* util_new_object(Memory &om, size_t count = 3) {
     return Tuple::create(state, count);
   }
 
   /* TODO: young gen
   void xtest_new_object() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
 
     om.collect_young(state, gc_data);
 
@@ -58,7 +58,7 @@ public:
 
   /* TODO: young gen
   void xtest_write_barrier() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Object* obj;
     Object* obj2;
 
@@ -85,7 +85,7 @@ public:
 
   /* Causes a segfault when fails. */
   void test_write_barrier_not_called_for_immediates() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Object* obj;
     Object* obj2;
 
@@ -100,7 +100,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Object* obj;
     size_t start = om.young_->bytes_used();
 
@@ -125,7 +125,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young_through_references() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple *obj, *obj2, *obj3;
 
     om.collect_young(state, gc_data);
@@ -161,7 +161,7 @@ public:
 #define LARGE_OBJECT_BYTE_SIZE   30 * 1024 * 1024
 
   void test_new_large_object() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple* obj;
 
   /* TODO: young gen
@@ -178,7 +178,7 @@ public:
   }
 
   void test_collect_young_doesnt_move_mature_objects() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Object* obj;
 
     obj = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
@@ -192,7 +192,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young_uses_remember_set() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple *young, *mature;
 
     om.collect_young(state, gc_data);
@@ -218,7 +218,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young_promotes_objects() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Object* young;
 
     om.collect_young(state, gc_data);
@@ -240,7 +240,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young_resets_remember_set() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple *young, *mature;
 
     om.collect_young(state, gc_data);
@@ -267,7 +267,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young_uses_forwarding_pointers() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple *obj, *obj2;
 
     obj =  as<Tuple>(util_new_object(om));
@@ -293,7 +293,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young_copies_byte_bodies() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
 
     ByteArray* obj;
 
@@ -310,7 +310,7 @@ public:
   */
 
   void test_collect_full() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Object* mature;
 
     om.large_object_threshold = 10;
@@ -330,7 +330,7 @@ public:
   }
 
   void test_collect_full_marks_young_objects() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple* young;
     Object* mature;
 
@@ -351,7 +351,7 @@ public:
 
   /* Could segfault on failure due to infinite loop. */
   void test_collect_full_stops_at_already_marked_objects() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple *young, *mature;
 
     om.large_object_threshold = 50;
@@ -377,7 +377,7 @@ public:
 
   /* TODO: young gen
   void xtest_collect_young_stops_at_already_marked_objects() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Tuple *obj, *obj2;
 
     obj =  as<Tuple>(util_new_object(om));
@@ -403,7 +403,7 @@ public:
   */
 
   void test_valid_object_p() {
-    ObjectMemory& om = *state->memory();
+    Memory& om = *state->memory();
     Object* obj;
 
     obj = util_new_object(om);

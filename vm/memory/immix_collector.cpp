@@ -1,4 +1,4 @@
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "memory/immix_collector.hpp"
 #include "memory/immix_marker.hpp"
 
@@ -60,7 +60,7 @@ namespace memory {
     from.as<Object>()->set_forward(to.as<Object>());
   }
 
-  ImmixGC::ImmixGC(ObjectMemory* om)
+  ImmixGC::ImmixGC(Memory* om)
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
     , memory_(om)

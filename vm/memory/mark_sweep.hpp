@@ -14,7 +14,7 @@ namespace rubinius {
 
   /* Forwards */
   class Object;
-  class ObjectMemory;
+  class Memory;
   struct CallFrame;
 
 namespace memory {
@@ -45,7 +45,7 @@ namespace memory {
 
     /* Prototypes */
 
-    MarkSweepGC(ObjectMemory *om, Configuration& config);
+    MarkSweepGC(Memory *om, Configuration& config);
     virtual ~MarkSweepGC();
     void   free_objects();
     Object* allocate(size_t bytes, bool& collect_now);

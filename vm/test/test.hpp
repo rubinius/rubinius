@@ -5,7 +5,7 @@
 #include "state.hpp"
 #include "config_parser.hpp"
 #include "vm/object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "configuration.hpp"
 #include "metrics.hpp"
 #include "vm/detection.hpp"
@@ -27,7 +27,7 @@ public:
   void initialize_as_root(VM* vm) {
     vm->set_current_thread();
 
-    ObjectMemory* om = new ObjectMemory(vm, vm->shared);
+    Memory* om = new Memory(vm, vm->shared);
     vm->shared.om = om;
 
     vm->shared.set_initialized();
@@ -57,7 +57,7 @@ public:
   }
 
   void destroy() {
-    if(ObjectMemory* om = state->memory()) {
+    if(Memory* om = state->memory()) {
       if(memory::ImmixMarker* im = om->immix_marker()) {
         im->stop(state);
       }

@@ -1,6 +1,6 @@
 #include "signature.h"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "marshal.hpp"

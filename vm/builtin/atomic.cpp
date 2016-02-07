@@ -1,4 +1,4 @@
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/atomic.hpp"
 #include "builtin/class.hpp"

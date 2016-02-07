@@ -1,6 +1,6 @@
 #include "ffi_util.hpp"
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "windows_compat.h"
 
 #include "builtin/array.hpp"

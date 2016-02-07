@@ -1,6 +1,6 @@
 #include "builtin/native_method.hpp"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "memory/gc.hpp"
 

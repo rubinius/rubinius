@@ -3,7 +3,7 @@
 #include "transcoder.h"
 
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"

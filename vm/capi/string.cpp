@@ -4,7 +4,7 @@
 
 #include "vm.hpp"
 #include "state.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/byte_array.hpp"
 #include "builtin/fixnum.hpp"

@@ -1,5 +1,5 @@
 #include "arguments.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "state.hpp"
 #include "vm.hpp"
 

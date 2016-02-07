@@ -1,5 +1,5 @@
 #include "defines.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "park.hpp"
 #include "state.hpp"
 #include "thread_phase.hpp"

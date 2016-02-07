@@ -1,6 +1,6 @@
 #include "configuration.hpp"
 #include "global_cache.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 

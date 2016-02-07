@@ -2,7 +2,7 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/block_as_method.hpp"
 #include "builtin/block_environment.hpp"

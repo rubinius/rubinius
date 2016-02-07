@@ -1,6 +1,6 @@
 
 #include "type_info.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "gen/includes.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
@@ -13,7 +13,7 @@
 
 namespace rubinius {
 
-  void TypeInfo::init(ObjectMemory* om) {
+  void TypeInfo::init(Memory* om) {
     // Call the automatically generated function
     auto_init(om);
   }

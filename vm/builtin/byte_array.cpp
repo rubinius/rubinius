@@ -1,6 +1,6 @@
 #include "alloc.hpp"
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"

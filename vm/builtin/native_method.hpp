@@ -3,7 +3,7 @@
 
 #include "defines.hpp"
 #include "executor.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"

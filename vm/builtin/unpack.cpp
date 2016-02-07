@@ -11,7 +11,7 @@
 
 #include "vm/config.h"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "state.hpp"

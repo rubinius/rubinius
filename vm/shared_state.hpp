@@ -53,7 +53,7 @@ namespace rubinius {
   }
 
   class SignalThread;
-  class ObjectMemory;
+  class Memory;
   class GlobalCache;
   class ConfigParser;
   class State;
@@ -127,7 +127,7 @@ namespace rubinius {
 
   public:
     Globals globals;
-    ObjectMemory* om;
+    Memory* om;
     GlobalCache* global_cache;
     Configuration& config;
     ConfigParser& user_variables;
@@ -231,7 +231,7 @@ namespace rubinius {
       return tool_broker_;
     }
 
-    ObjectMemory* memory() const {
+    Memory* memory() const {
       return om;
     }
 

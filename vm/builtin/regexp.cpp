@@ -4,7 +4,7 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/block_environment.hpp"

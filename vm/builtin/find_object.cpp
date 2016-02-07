@@ -12,7 +12,7 @@
 #include "builtin/system.hpp"
 #include "memory/gc.hpp"
 #include "memory/walker.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "thread_phase.hpp"
@@ -257,7 +257,7 @@ namespace rubinius {
                                  Array* arg, Object* callable,
                                  CallFrame* calling_environment)
   {
-    ObjectMemory::GCInhibit inhibitor(state->memory());
+    Memory::GCInhibit inhibitor(state->memory());
 
     // Support an aux mode, where callable is an array and we just append
     // objects to it rather than #call it.

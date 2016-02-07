@@ -14,7 +14,7 @@
 #include "call_frame.hpp"
 #include "compiled_file.hpp"
 #include "marshal.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {

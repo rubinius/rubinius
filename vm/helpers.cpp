@@ -1,5 +1,5 @@
 #include "arguments.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "call_frame.hpp"
 #include "global_cache.hpp"
 #include "helpers.hpp"

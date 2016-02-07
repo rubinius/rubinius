@@ -1,7 +1,7 @@
 #include "config.h"
 #include "windows_compat.h"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "call_frame.hpp"
 
 #include "builtin/string.hpp"

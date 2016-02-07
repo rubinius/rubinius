@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_LOCATION_HPP
 
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/constant_scope.hpp"
 #include "builtin/fixnum.hpp"

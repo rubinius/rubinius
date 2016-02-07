@@ -1,7 +1,7 @@
 #include "config.h"
 #include "configuration.hpp"
 #include "metrics.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "state.hpp"
 #include "thread_phase.hpp"
 #include "vm.hpp"

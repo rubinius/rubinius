@@ -1,14 +1,14 @@
 #include "defines.hpp"
 #include "memory/gc.hpp"
 #include "memory/debug.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include <iostream>
 #include <stdexcept>
 
 namespace rubinius {
 namespace memory {
-  HeapDebug::HeapDebug(ObjectMemory *om) :
+  HeapDebug::HeapDebug(Memory *om) :
     GarbageCollector(om), seen_objects(0) {
 
   }

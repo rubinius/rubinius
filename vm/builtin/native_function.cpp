@@ -3,7 +3,7 @@
 #include "call_frame.hpp"
 #include "ffi_util.hpp"
 #include "metrics.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 

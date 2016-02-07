@@ -13,7 +13,7 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/DataLayout.h>

@@ -2,7 +2,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "on_stack.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "call_frame.hpp"
 #include "metrics.hpp"
 #include "exception_point.hpp"

@@ -4,7 +4,7 @@
 #include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "config.h"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "environment.hpp"
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"

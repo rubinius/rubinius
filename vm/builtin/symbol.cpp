@@ -7,7 +7,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include <sstream>
 

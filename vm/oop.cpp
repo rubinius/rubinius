@@ -2,7 +2,7 @@
 
 #include "bug.hpp"
 #include "configuration.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "on_stack.hpp"
 #include "oop.hpp"
 #include "thread_phase.hpp"
@@ -44,7 +44,7 @@ namespace rubinius {
     return state->memory()->inflated_headers()->find_index(header.f.aux_word);
   }
 
-  InflatedHeader* ObjectHeader::header_to_inflated_header(ObjectMemory* om, HeaderWord header) {
+  InflatedHeader* ObjectHeader::header_to_inflated_header(Memory* om, HeaderWord header) {
     return om->inflated_headers()->find_index(header.f.aux_word);
   }
 
@@ -194,7 +194,7 @@ retry:
     }
   }
 
-  void ObjectHeader::mark(ObjectMemory* om, unsigned int which) {
+  void ObjectHeader::mark(Memory* om, unsigned int which) {
     for(;;) {
       HeaderWord orig    = header;
       HeaderWord new_val = orig;
@@ -732,7 +732,7 @@ step2:
     return vm->memory()->type_info[type_id()]->object_size(this);
   }
 
-  void ObjectHeader::initialize_copy(ObjectMemory* om, Object* other, unsigned int new_age) {
+  void ObjectHeader::initialize_copy(Memory* om, Object* other, unsigned int new_age) {
     /* Even though we dup it, we have to be careful to maintain
      * the zone. */
 

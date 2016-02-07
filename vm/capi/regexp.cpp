@@ -7,7 +7,7 @@
 #include "builtin/io.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "primitives.hpp"
 
 #include "capi/capi.hpp"

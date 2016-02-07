@@ -28,7 +28,7 @@
 
 #include "call_frame.hpp"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "instructions.hpp"

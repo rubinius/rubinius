@@ -1,7 +1,7 @@
 #ifndef RBX_BUILTIN_TUPLE_HPP
 #define RBX_BUILTIN_TUPLE_HPP
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/object.hpp"
 

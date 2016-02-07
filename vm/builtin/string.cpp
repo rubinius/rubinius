@@ -3,7 +3,7 @@
 #include "regenc.h"
 
 #include "configuration.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"

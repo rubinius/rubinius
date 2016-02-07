@@ -1,6 +1,6 @@
 #include "vm.hpp"
 #include "state.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "global_cache.hpp"
 #include "environment.hpp"
 #include "memory/gc.hpp"

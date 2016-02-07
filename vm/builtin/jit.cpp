@@ -1,5 +1,5 @@
 #include "configuration.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/block_environment.hpp"
 #include "builtin/jit.hpp"

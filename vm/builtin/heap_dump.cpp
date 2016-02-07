@@ -13,7 +13,7 @@
 #include "builtin/variable_scope.hpp"
 #include "memory/gc.hpp"
 #include "memory/walker.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 #include <fcntl.h>

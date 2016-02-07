@@ -21,7 +21,7 @@
 
 #include "shared_state.hpp"
 
-class TestObjectMemory; // So we can friend it properly
+class TestMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
 
 namespace rubinius {
@@ -51,7 +51,7 @@ namespace rubinius {
   }
 
   /**
-   * ObjectMemory is the primary API that the rest of the VM uses to interact
+   * Memory is the primary API that the rest of the VM uses to interact
    * with actions such as allocating objects, storing data in objects, and
    * performing garbage collection.
    *
@@ -60,7 +60,7 @@ namespace rubinius {
    *   - ImmixGC:     handles mature objects
    *   - MarkSweepGC: handles large objects
    *
-   * ObjectMemory also manages the memory used for CodeResources, which are
+   * Memory also manages the memory used for CodeResources, which are
    * internal objects used for executing Ruby code. This includes MachineCode,
    * various JIT classes, and FFI data.
    *
@@ -72,7 +72,7 @@ namespace rubinius {
    *   mautre generations independently.
    */
 
-  class ObjectMemory : public memory::WriteBarrier {
+  class Memory : public memory::WriteBarrier {
   private:
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
@@ -154,7 +154,7 @@ namespace rubinius {
       return vm_;
     }
 
-    ObjectMemory* memory() {
+    Memory* memory() {
       return this;
     }
 
@@ -242,8 +242,8 @@ namespace rubinius {
     ObjectArray* weak_refs_set();
 
   public:
-    ObjectMemory(VM* state, SharedState& shared);
-    ~ObjectMemory();
+    Memory(VM* state, SharedState& shared);
+    ~Memory();
 
     void after_fork_child(STATE);
 
@@ -300,7 +300,7 @@ namespace rubinius {
 
       if(likely(obj = new_object(state, bytes))) goto set_type;
 
-      ObjectMemory::memory_error(state);
+      Memory::memory_error(state);
       return NULL;
 
     set_type:
@@ -329,7 +329,7 @@ namespace rubinius {
       Object* obj = new_object(state, bytes);
 
       if(unlikely(!obj)) {
-        ObjectMemory::memory_error(state);
+        Memory::memory_error(state);
         return NULL;
       }
 
@@ -567,7 +567,7 @@ namespace rubinius {
     void collect_full_finish(STATE, memory::GCData* data);
 
   public:
-    friend class ::TestObjectMemory;
+    friend class ::TestMemory;
     friend class ::TestVM;
 
 
@@ -581,10 +581,10 @@ namespace rubinius {
      */
 
     class GCInhibit {
-      ObjectMemory* om_;
+      Memory* om_;
 
     public:
-      GCInhibit(ObjectMemory* om)
+      GCInhibit(Memory* om)
         : om_(om)
       {
         om->inhibit_gc();

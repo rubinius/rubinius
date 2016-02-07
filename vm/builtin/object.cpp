@@ -4,7 +4,7 @@
 #include "dispatch.hpp"
 #include "global_cache.hpp"
 #include "lookup_data.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 
@@ -43,7 +43,7 @@ namespace rubinius {
     state->memory()->write_barrier(this, obj);
   }
 
-  void Object::klass(ObjectMemory* memory, Class* obj) {
+  void Object::klass(Memory* memory, Class* obj) {
     klass_ = obj;
     memory->write_barrier(this, obj);
   }

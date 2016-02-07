@@ -1,7 +1,7 @@
 #include "builtin/block_environment.hpp"
 #include "vm.hpp"
 #include "state.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include <cxxtest/TestSuite.h>
 

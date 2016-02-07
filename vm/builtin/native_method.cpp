@@ -4,7 +4,7 @@
 #include "exception.hpp"
 #include "exception_point.hpp"
 #include "instruments/tooling.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "on_stack.hpp"
 
 #include "builtin/array.hpp"

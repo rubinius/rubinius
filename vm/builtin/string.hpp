@@ -8,7 +8,7 @@
 
 #include "configuration.hpp"
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE

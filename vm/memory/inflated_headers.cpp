@@ -1,7 +1,7 @@
 #include "oop.hpp"
 #include "vm.hpp"
 #include "state.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "memory/inflated_headers.hpp"
 
 #include <iostream>

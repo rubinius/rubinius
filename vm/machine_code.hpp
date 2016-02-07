@@ -6,7 +6,7 @@
 #include "primitives.hpp"
 #include "type_info.hpp"
 #include "unwind_info.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"

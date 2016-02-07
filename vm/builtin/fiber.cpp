@@ -1,6 +1,6 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"

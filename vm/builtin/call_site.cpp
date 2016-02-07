@@ -3,7 +3,7 @@
 #include "global_cache.hpp"
 #include "lookup_data.hpp"
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/call_custom_cache.hpp"
@@ -57,7 +57,7 @@ namespace rubinius {
       /* The references in args are not visible to the GC and
        * there's not a simple mechanism to manage that now.
        */
-      ObjectMemory::GCInhibit inhibitor(state);
+      Memory::GCInhibit inhibitor(state);
 
       ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"), ary);
     }

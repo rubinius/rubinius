@@ -1,7 +1,7 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "dispatch.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/class.hpp"
@@ -60,7 +60,7 @@ namespace rubinius {
     return dispatch.send(state, call_frame, args);
   }
 
-  void Executable::add_inliner(STATE, ObjectMemory* om, CompiledCode* code) {
+  void Executable::add_inliner(STATE, Memory* om, CompiledCode* code) {
     if(!inliners_ || inliners_ == (Inliners*)cNil) {
       inliners_ = new Inliners(state, om);
     }
@@ -106,7 +106,7 @@ namespace rubinius {
     }
   }
 
-  Inliners::Inliners(STATE, ObjectMemory* om) {
+  Inliners::Inliners(STATE, Memory* om) {
     om->add_code_resource(state, this);
   }
 

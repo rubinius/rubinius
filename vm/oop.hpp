@@ -262,7 +262,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return (mark_ & which) == which;
     }
 
-    void mark(ObjectMemory* om, unsigned int which) {
+    void mark(Memory* om, unsigned int which) {
       mark_ = which;
     }
 
@@ -315,7 +315,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     static InflatedHeader* header_to_inflated_header(STATE, HeaderWord header);
-    static InflatedHeader* header_to_inflated_header(ObjectMemory* om, HeaderWord header);
+    static InflatedHeader* header_to_inflated_header(Memory* om, HeaderWord header);
 
     InflatedHeader* inflated_header(STATE) const {
       return header_to_inflated_header(state, header);
@@ -386,7 +386,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
   public:
 
-    void initialize_copy(ObjectMemory* om, Object* other, unsigned int age);
+    void initialize_copy(Memory* om, Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
     void copy_body(VM* state, Object* other);
@@ -495,7 +495,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags().Marked == which + 1;
     }
 
-    void mark(ObjectMemory* om, unsigned int which);
+    void mark(Memory* om, unsigned int which);
     void scanned();
 
     unsigned int which_mark() const {
@@ -620,7 +620,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     friend class TypeInfo;
-    friend class ObjectMemory;
+    friend class Memory;
 
   private:
     // Define these as private and without implementation so we

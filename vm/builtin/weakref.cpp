@@ -1,5 +1,5 @@
 #include "configuration.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/class.hpp"
@@ -19,7 +19,7 @@ namespace rubinius {
     return ref;
   }
 
-  void WeakRef::set_object(ObjectMemory* om, Object* obj) {
+  void WeakRef::set_object(Memory* om, Object* obj) {
     object_ = obj;
     om->write_barrier(this, obj);
   }

@@ -12,7 +12,7 @@ namespace memory {
     std::map<Object*, bool> mark_bits_;
 
   public:
-    ObjectWalker(ObjectMemory* om)
+    ObjectWalker(Memory* om)
       : GarbageCollector(om)
     {}
 

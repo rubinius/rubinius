@@ -1,7 +1,7 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/call_unit.hpp"
 #include "builtin/class.hpp"

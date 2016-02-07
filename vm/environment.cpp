@@ -5,7 +5,7 @@
 #include "environment.hpp"
 #include "config_parser.hpp"
 #include "compiled_file.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "exception.hpp"
 #include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
@@ -587,7 +587,7 @@ namespace rubinius {
 
     state->shared().tool_broker()->shutdown(state);
 
-    if(ObjectMemory* om = state->memory()) {
+    if(Memory* om = state->memory()) {
       if(memory::ImmixMarker* im = om->immix_marker()) {
         im->stop(state);
       }
@@ -786,7 +786,7 @@ namespace rubinius {
     // TODO: Fix this to only record main thread.
     state->vm()->set_current_thread();
 
-    shared->om = new ObjectMemory(state->vm(), *shared);
+    shared->om = new Memory(state->vm(), *shared);
 
     shared->set_initialized();
 

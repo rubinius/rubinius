@@ -2,7 +2,7 @@
 #include "object_utils.hpp"
 #include "memory/gc.hpp"
 
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "memory/object_mark.hpp"
 
@@ -45,7 +45,7 @@ namespace memory {
 #endif
   { }
 
-  GarbageCollector::GarbageCollector(ObjectMemory *om)
+  GarbageCollector::GarbageCollector(Memory *om)
     : object_memory_(om)
     , weak_refs_(NULL)
   { }

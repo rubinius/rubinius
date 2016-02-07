@@ -1,5 +1,5 @@
 #include "object_utils.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
