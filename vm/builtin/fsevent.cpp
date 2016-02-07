@@ -81,8 +81,9 @@ namespace rubinius {
     if((fsevent->in_ = inotify_init()) < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));
     } else {
-      state->memory()->needs_finalization(fsevent, (FinalizerFunction)&FSEvent::finalize,
-          FinalizeObject::eUnmanaged);
+      state->memory()->needs_finalization(fsevent,
+          (memory::FinalizerFunction)&FSEvent::finalize,
+          memory::FinalizeObject::eUnmanaged);
     }
 
     return fsevent;
