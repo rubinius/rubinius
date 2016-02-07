@@ -1,7 +1,7 @@
 #ifndef RBX_SIGNAL_HPP
 #define RBX_SIGNAL_HPP
 
-#include "gc/root.hpp"
+#include "memory/root.hpp"
 
 #include "util/thread.hpp"
 

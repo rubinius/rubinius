@@ -1,4 +1,4 @@
-#include "gc/root.hpp"
+#include "memory/root.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 

@@ -1,5 +1,5 @@
-#include "gc/object_mark.hpp"
-#include "gc/gc.hpp"
+#include "memory/object_mark.hpp"
+#include "memory/gc.hpp"
 #include "object_utils.hpp"
 #include "object_memory.hpp"
 

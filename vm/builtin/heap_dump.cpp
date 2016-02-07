@@ -11,8 +11,8 @@
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
-#include "gc/gc.hpp"
-#include "gc/walker.hpp"
+#include "memory/gc.hpp"
+#include "memory/walker.hpp"
 #include "object_memory.hpp"
 #include "object_utils.hpp"
 

@@ -39,7 +39,7 @@
 
 #include "llvm/local_info.hpp"
 
-#include "gc/managed.hpp"
+#include "memory/managed.hpp"
 #include "internal_threads.hpp"
 #include "configuration.hpp"
 #include "metrics.hpp"

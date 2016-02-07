@@ -12,9 +12,9 @@
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"
 
-#include "gc/code_manager.hpp"
-#include "gc/finalize.hpp"
-#include "gc/write_barrier.hpp"
+#include "memory/code_manager.hpp"
+#include "memory/finalize.hpp"
+#include "memory/write_barrier.hpp"
 
 #include "util/immix.hpp"
 #include "util/thread.hpp"
@@ -40,7 +40,7 @@ namespace rubinius {
     class ObjectDiagnostics;
   }
 
-  namespace gc {
+  namespace memory {
     class Slab;
   }
 
@@ -72,7 +72,7 @@ namespace rubinius {
    *   mautre generations independently.
    */
 
-  class ObjectMemory : public gc::WriteBarrier {
+  class ObjectMemory : public memory::WriteBarrier {
   private:
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
@@ -256,11 +256,11 @@ namespace rubinius {
     }
 
     inline void write_barrier(ObjectHeader* target, ObjectHeader* val) {
-      gc::WriteBarrier::write_barrier(target, val, mark_);
+      memory::WriteBarrier::write_barrier(target, val, mark_);
     }
 
     inline void write_barrier(ObjectHeader* target, Class* val) {
-      gc::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
+      memory::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
     }
 
     // Object must be created in Immix or large object space.
@@ -504,7 +504,7 @@ namespace rubinius {
     TypeInfo* find_type_info(Object* obj);
     Object* promote_object(Object* obj);
 
-    bool refill_slab(STATE, gc::Slab& slab);
+    bool refill_slab(STATE, memory::Slab& slab);
 
     void assign_object_id(STATE, Object* obj);
     bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);

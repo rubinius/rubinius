@@ -5,17 +5,17 @@
 
 #include "vm_jit.hpp"
 #include "globals.hpp"
-#include "gc/object_mark.hpp"
-#include "gc/managed.hpp"
+#include "memory/object_mark.hpp"
+#include "memory/managed.hpp"
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
 #include "metrics.hpp"
 
 #include "util/thread.hpp"
 
-#include "gc/variable_buffer.hpp"
-#include "gc/root_buffer.hpp"
-#include "gc/slab.hpp"
+#include "memory/variable_buffer.hpp"
+#include "memory/root_buffer.hpp"
+#include "memory/slab.hpp"
 
 #include "shared_state.hpp"
 
@@ -42,7 +42,7 @@ namespace rubinius {
     class Loop;
   }
 
-  namespace gc {
+  namespace memory {
     class WriteBarrier;
   }
 

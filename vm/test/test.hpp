@@ -9,7 +9,7 @@
 #include "configuration.hpp"
 #include "metrics.hpp"
 #include "vm/detection.hpp"
-#include "vm/gc/immix_marker.hpp"
+#include "vm/memory/immix_marker.hpp"
 #include "builtin/thread.hpp"
 
 #include <cxxtest/TestSuite.h>

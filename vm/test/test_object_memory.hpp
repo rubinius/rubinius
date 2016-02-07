@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "gc/gc.hpp"
-#include "gc/root.hpp"
-#include "gc/mark_sweep.hpp"
+#include "memory/gc.hpp"
+#include "memory/root.hpp"
+#include "memory/mark_sweep.hpp"
 #include "capi/handles.hpp"
 
 #include "object_utils.hpp"

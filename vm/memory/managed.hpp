@@ -1,10 +1,10 @@
 #ifndef RBX_GC_MANAGED_THREAD
 #define RBX_GC_MANAGED_THREAD
 
-#include "gc/slab.hpp"
-#include "gc/variable_buffer.hpp"
-#include "gc/root_buffer.hpp"
-#include "gc/root.hpp"
+#include "memory/slab.hpp"
+#include "memory/variable_buffer.hpp"
+#include "memory/root_buffer.hpp"
+#include "memory/root.hpp"
 #include "metrics.hpp"
 
 #include <algorithm>
@@ -35,7 +35,7 @@ namespace rubinius {
     metrics::MetricsData metrics_;
 
   protected:
-    gc::Slab local_slab_;
+    memory::Slab local_slab_;
     pthread_t os_thread_;
     uint32_t id_;
 
@@ -58,7 +58,7 @@ namespace rubinius {
       return root_buffers_;
     }
 
-    gc::Slab& local_slab() {
+    memory::Slab& local_slab() {
       return local_slab_;
     }
 

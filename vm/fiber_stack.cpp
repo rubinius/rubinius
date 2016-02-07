@@ -6,7 +6,7 @@
 #include "state.hpp"
 #include "vm.hpp"
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 #include <stdlib.h>
 #ifdef HAVE_VALGRIND_H

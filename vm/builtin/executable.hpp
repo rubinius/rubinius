@@ -8,7 +8,7 @@
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 
-#include "gc/code_resource.hpp"
+#include "memory/code_resource.hpp"
 
 #include <vector>
 

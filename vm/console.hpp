@@ -3,7 +3,7 @@
 
 #include "internal_threads.hpp"
 
-#include "gc/root.hpp"
+#include "memory/root.hpp"
 
 #include "util/thread.hpp"
 

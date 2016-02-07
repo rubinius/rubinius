@@ -3,7 +3,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "object_memory.hpp"
-#include "gc/debug.hpp"
+#include "memory/debug.hpp"
 
 #include <cxxtest/TestSuite.h>
 

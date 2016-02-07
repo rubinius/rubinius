@@ -18,7 +18,7 @@
 #include "builtin/class.hpp"
 #include "instruments/tooling.hpp"
 
-#include "gc/walker.hpp"
+#include "memory/walker.hpp"
 
 #include "object_utils.hpp"
 

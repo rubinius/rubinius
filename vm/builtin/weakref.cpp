@@ -5,7 +5,7 @@
 #include "builtin/class.hpp"
 #include "builtin/weakref.hpp"
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 namespace rubinius {
   void WeakRef::bootstrap(STATE) {

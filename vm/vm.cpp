@@ -3,7 +3,7 @@
 #include "object_memory.hpp"
 #include "global_cache.hpp"
 #include "environment.hpp"
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 #include "object_utils.hpp"
 

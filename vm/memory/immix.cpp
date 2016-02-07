@@ -1,6 +1,6 @@
 #include "object_memory.hpp"
-#include "gc/immix.hpp"
-#include "gc/immix_marker.hpp"
+#include "memory/immix.hpp"
+#include "memory/immix_marker.hpp"
 
 #include "capi/handles.hpp"
 #include "capi/tag.hpp"

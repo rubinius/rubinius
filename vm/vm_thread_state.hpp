@@ -2,7 +2,7 @@
 #define RBX_THREAD_STATE_HPP
 
 #include "raise_reason.hpp"
-#include "gc/root.hpp"
+#include "memory/root.hpp"
 #include <iostream>
 
 namespace rubinius {

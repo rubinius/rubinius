@@ -1,9 +1,9 @@
 #include "builtin/object.hpp"
-#include "gc/write_barrier.hpp"
+#include "memory/write_barrier.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {
-namespace gc {
+namespace memory {
 
   /**
    * Creates a remember set for the new WriteBarrier.

@@ -1,7 +1,7 @@
 #ifndef RBX_LLVM_JIT_RUNTIME
 #define RBX_LLVM_JIT_RUNTIME
 
-#include "gc/code_resource.hpp"
+#include "memory/code_resource.hpp"
 #include <vector>
 
 namespace llvm {

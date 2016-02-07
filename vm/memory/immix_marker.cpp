@@ -10,8 +10,8 @@
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
 
-#include "gc/gc.hpp"
-#include "gc/immix.hpp"
+#include "memory/gc.hpp"
+#include "memory/immix.hpp"
 
 #include "dtrace/dtrace.h"
 #include "instruments/timing.hpp"

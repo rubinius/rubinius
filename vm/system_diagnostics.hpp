@@ -7,10 +7,10 @@
 
 #include "capi/handles.hpp"
 
-#include "gc/code_manager.hpp"
-#include "gc/immix.hpp"
-#include "gc/inflated_headers.hpp"
-#include "gc/mark_sweep.hpp"
+#include "memory/code_manager.hpp"
+#include "memory/immix.hpp"
+#include "memory/inflated_headers.hpp"
+#include "memory/mark_sweep.hpp"
 
 namespace rubinius {
   namespace diagnostics {

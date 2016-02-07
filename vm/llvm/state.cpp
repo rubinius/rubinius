@@ -61,7 +61,7 @@
 
 #include "windows_compat.h"
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 namespace autogen_types {
   void makeLLVMModuleContents(llvm::Module* module);

@@ -1,8 +1,8 @@
 #ifndef RBX_MARKSWEEP_H
 #define RBX_MARKSWEEP_H
 
-#include "gc/gc.hpp"
-#include "gc/root.hpp"
+#include "memory/gc.hpp"
+#include "memory/root.hpp"
 #include "object_position.hpp"
 #include "diagnostics.hpp"
 

@@ -9,7 +9,7 @@
 #include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 namespace rubinius {
 

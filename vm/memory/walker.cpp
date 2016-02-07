@@ -1,4 +1,4 @@
-#include "gc/walker.hpp"
+#include "memory/walker.hpp"
 #include "object_memory.hpp"
 
 #include "capi/handles.hpp"

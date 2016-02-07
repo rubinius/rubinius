@@ -2,8 +2,8 @@
 
 #include "vm.hpp"
 #include "state.hpp"
-#include "gc/code_manager.hpp"
-#include "gc/code_resource.hpp"
+#include "memory/code_manager.hpp"
+#include "memory/code_resource.hpp"
 
 namespace rubinius {
   void CodeManager::Diagnostics::log() {

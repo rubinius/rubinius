@@ -2,7 +2,7 @@
 #define RBX_VMMETHOD_HPP
 
 #include "executor.hpp"
-#include "gc/root.hpp"
+#include "memory/root.hpp"
 #include "primitives.hpp"
 #include "type_info.hpp"
 #include "unwind_info.hpp"
@@ -10,7 +10,7 @@
 
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
-#include "gc/code_resource.hpp"
+#include "memory/code_resource.hpp"
 
 #ifdef ENABLE_LLVM
 namespace llvm {

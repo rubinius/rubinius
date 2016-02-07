@@ -34,8 +34,8 @@
 #include <llvm/Support/ManagedStatic.h>
 #endif
 
-#include "gc/immix_marker.hpp"
-#include "gc/finalize.hpp"
+#include "memory/immix_marker.hpp"
+#include "memory/finalize.hpp"
 
 #include "signal.hpp"
 #include "object_utils.hpp"

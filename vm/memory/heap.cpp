@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
-#include "gc/heap.hpp"
+#include "memory/heap.hpp"
 #include "util/gc_alloc.hpp"
 
 namespace rubinius {

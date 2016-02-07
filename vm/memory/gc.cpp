@@ -1,10 +1,10 @@
 /* The GC superclass methods, used by both GCs. */
 #include "object_utils.hpp"
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 #include "object_memory.hpp"
 
-#include "gc/object_mark.hpp"
+#include "memory/object_mark.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/tuple.hpp"

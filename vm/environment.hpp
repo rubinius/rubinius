@@ -9,7 +9,7 @@
 #include "config_parser.hpp"
 #include "configuration.hpp"
 
-#include "gc/root.hpp"
+#include "memory/root.hpp"
 
 namespace rubinius {
 

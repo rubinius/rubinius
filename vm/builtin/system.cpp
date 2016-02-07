@@ -24,7 +24,7 @@
 #include "configuration.hpp"
 #include "config_parser.hpp"
 #include "dtrace/dtrace.h"
-#include "gc/walker.hpp"
+#include "memory/walker.hpp"
 #include "global_cache.hpp"
 #include "helpers.hpp"
 #include "instruments/tooling.hpp"

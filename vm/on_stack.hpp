@@ -1,7 +1,7 @@
 #ifndef RBX_ON_STACK_HPP
 #define RBX_ON_STACK_HPP
 
-#include "gc/variable_buffer.hpp"
+#include "memory/variable_buffer.hpp"
 
 namespace rubinius {
 

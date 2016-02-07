@@ -3,7 +3,7 @@
 
 #include "util/address.hpp"
 #include "util/immix.hpp"
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 #include "exception.hpp"
 
 #include "object_position.hpp"

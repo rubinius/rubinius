@@ -2,7 +2,7 @@
 
 #include "object_memory.hpp"
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 #include "util/allocator.hpp"
 

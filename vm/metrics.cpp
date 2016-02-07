@@ -20,7 +20,7 @@
 #include "llvm/state.hpp"
 #endif
 
-#include "gc/managed.hpp"
+#include "memory/managed.hpp"
 
 #include "dtrace/dtrace.h"
 

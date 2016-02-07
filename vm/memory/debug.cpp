@@ -1,6 +1,6 @@
 #include "defines.hpp"
-#include "gc/gc.hpp"
-#include "gc/debug.hpp"
+#include "memory/gc.hpp"
+#include "memory/debug.hpp"
 #include "object_memory.hpp"
 
 #include <iostream>

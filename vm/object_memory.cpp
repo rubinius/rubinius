@@ -11,10 +11,10 @@
 
 #include "capi/tag.hpp"
 
-#include "gc/mark_sweep.hpp"
-#include "gc/immix.hpp"
-#include "gc/inflated_headers.hpp"
-#include "gc/walker.hpp"
+#include "memory/mark_sweep.hpp"
+#include "memory/immix.hpp"
+#include "memory/inflated_headers.hpp"
+#include "memory/walker.hpp"
 
 #include "system_diagnostics.hpp"
 
@@ -432,7 +432,7 @@ step1:
     }
   }
 
-  bool ObjectMemory::refill_slab(STATE, gc::Slab& slab) {
+  bool ObjectMemory::refill_slab(STATE, memory::Slab& slab) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Address addr = Address::null(); /* young_->allocate_for_slab(slab_size_); */
@@ -569,7 +569,7 @@ step1:
           i != data->thread_nexus()->threads()->end();
           ++i)
       {
-        gc::Slab& slab = (*i)->local_slab();
+        memory::Slab& slab = (*i)->local_slab();
 
         // Reset the slab to a size of 0 so that the thread has to do
         // an allocation to get a proper refill. This keeps the number

@@ -10,7 +10,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 namespace rubinius {
   void VariableScope::bootstrap(STATE) {

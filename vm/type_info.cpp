@@ -6,7 +6,7 @@
 #include "builtin/symbol.hpp"
 #include "field_offset.hpp"
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 #include <iostream>
 #include <iomanip>

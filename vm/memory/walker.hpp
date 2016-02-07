@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "gc/gc.hpp"
+#include "memory/gc.hpp"
 
 namespace rubinius {
   class ObjectWalker : public GarbageCollector {

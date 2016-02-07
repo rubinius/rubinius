@@ -2,7 +2,7 @@
 #include "state.hpp"
 
 #include "util/thread.hpp"
-#include "gc/managed.hpp"
+#include "memory/managed.hpp"
 #include "shared_state.hpp"
 #include "metrics.hpp"
 

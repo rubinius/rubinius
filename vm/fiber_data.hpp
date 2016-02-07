@@ -5,7 +5,7 @@
 #include "bug.hpp"
 #include "defines.hpp"
 
-#include "gc/variable_buffer.hpp"
+#include "memory/variable_buffer.hpp"
 
 namespace rubinius {
 

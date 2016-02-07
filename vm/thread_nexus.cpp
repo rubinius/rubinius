@@ -4,7 +4,7 @@
 
 #include "builtin/thread.hpp"
 
-#include "gc/managed.hpp"
+#include "memory/managed.hpp"
 
 #include "util/atomic.hpp"
 

@@ -4,8 +4,8 @@
 #include "llvm/jit_runtime.hpp"
 #include "llvm/state.hpp"
 
-#include "gc/code_manager.hpp"
-#include "gc/gc.hpp"
+#include "memory/code_manager.hpp"
+#include "memory/gc.hpp"
 
 #include "builtin/symbol.hpp"
 #include "builtin/compiled_code.hpp"

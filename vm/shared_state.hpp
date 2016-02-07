@@ -3,8 +3,8 @@
 
 #include "config.h"
 
-#include "gc/variable_buffer.hpp"
-#include "gc/root_buffer.hpp"
+#include "memory/variable_buffer.hpp"
+#include "memory/root_buffer.hpp"
 
 #include "internal_threads.hpp"
 #include "globals.hpp"

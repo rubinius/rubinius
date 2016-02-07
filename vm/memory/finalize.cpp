@@ -15,7 +15,7 @@
 
 #include "capi/handle.hpp"
 
-#include "gc/finalize.hpp"
+#include "memory/finalize.hpp"
 
 #include "util/logger.hpp"
 

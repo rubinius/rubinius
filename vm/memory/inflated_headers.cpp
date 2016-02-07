@@ -2,7 +2,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "object_memory.hpp"
-#include "gc/inflated_headers.hpp"
+#include "memory/inflated_headers.hpp"
 
 #include <iostream>
 

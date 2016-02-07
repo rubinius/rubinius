@@ -9,7 +9,7 @@ using memory::Address;
 #include <unistd.h>
 
 namespace rubinius {
-namespace gc {
+namespace memory {
 
   /***
    * Represents a contiguous range of memory from which new Objects can be

@@ -7,7 +7,7 @@ namespace rubinius {
 
   class Object;
 
-namespace gc {
+namespace memory {
 
   /**
    * A write barrier keeps track of objects in the mature generation that hold

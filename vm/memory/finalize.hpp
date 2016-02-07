@@ -3,8 +3,8 @@
 
 #include "internal_threads.hpp"
 
-#include "gc/finalize.hpp"
-#include "gc/root.hpp"
+#include "memory/finalize.hpp"
+#include "memory/root.hpp"
 
 #include <list>
 

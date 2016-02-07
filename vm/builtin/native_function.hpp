@@ -7,7 +7,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 
-#include "gc/code_resource.hpp"
+#include "memory/code_resource.hpp"
 
 #include <ffi.h>
 

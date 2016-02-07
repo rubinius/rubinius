@@ -12,7 +12,7 @@
 #include "builtin/exception.hpp"
 
 #include "capi/handles.hpp"
-#include "gc/inflated_headers.hpp"
+#include "memory/inflated_headers.hpp"
 
 #include <assert.h>
 #include <sys/time.h>
