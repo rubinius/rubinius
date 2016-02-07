@@ -47,8 +47,12 @@ namespace rubinius {
     class Metrics;
   }
 
+  namespace memory {
+    class FinalizerThread;
+    class ManagedThread;
+  }
+
   class SignalThread;
-  class FinalizerThread;
   class ObjectMemory;
   class GlobalCache;
   class ConfigParser;
@@ -56,7 +60,6 @@ namespace rubinius {
   class VM;
   class Configuration;
   class LLVMState;
-  class ManagedThread;
   class QueryAgent;
   class Environment;
 
@@ -84,7 +87,7 @@ namespace rubinius {
     ThreadNexus* thread_nexus_;
     InternalThreads* internal_threads_;
     SignalThread* signals_;
-    FinalizerThread* finalizer_thread_;
+    memory::FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
 
@@ -153,11 +156,11 @@ namespace rubinius {
       return internal_threads_;
     }
 
-    FinalizerThread* finalizer_handler() const {
+    memory::FinalizerThread* finalizer_handler() const {
       return finalizer_thread_;
     }
 
-    void set_finalizer_handler(FinalizerThread* thr) {
+    void set_finalizer_handler(memory::FinalizerThread* thr) {
       finalizer_thread_ = thr;
     }
 

@@ -389,12 +389,12 @@ namespace rubinius {
     }
   }
 
-  void LLVMState::gc_scan(GarbageCollector* gc) {
+  void LLVMState::gc_scan(memory::GarbageCollector* gc) {
     if(current_compiler_) {
       jit::RuntimeDataHolder* rd = current_compiler_->context()->runtime_data_holder();
       rd->set_mark();
 
-      ObjectMark mark(gc);
+      memory::ObjectMark mark(gc);
       rd->mark_all(0, mark);
     }
   }

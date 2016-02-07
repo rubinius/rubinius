@@ -20,6 +20,7 @@
 #include <algorithm>
 
 namespace rubinius {
+namespace memory {
 
   MarkSweepGC::MarkSweepGC(ObjectMemory *om, Configuration& config)
     : GarbageCollector(om)
@@ -163,4 +164,5 @@ namespace rubinius {
 
     return cUnknown;
   }
+}
 }

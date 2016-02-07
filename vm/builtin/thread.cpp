@@ -86,8 +86,9 @@ namespace rubinius {
 
     thr->function_ = function;
 
-    state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize,
-        FinalizeObject::eUnmanaged);
+    state->memory()->needs_finalization(thr,
+        (memory::FinalizerFunction)&Thread::finalize,
+        memory::FinalizeObject::eUnmanaged);
 
     state->vm()->metrics().system.threads_created++;
 
@@ -125,8 +126,8 @@ namespace rubinius {
     Thread* self = this;
     OnStack<1> os(state, self);
 
-    LockedObjects& los = self->vm_->locked_objects();
-    for(LockedObjects::iterator i = los.begin();
+    memory::LockedObjects& los = self->vm_->locked_objects();
+    for(memory::LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
       ObjectHeader* locked = *i;
@@ -141,8 +142,8 @@ namespace rubinius {
   void Thread::unlock_after_fork(STATE) {
     unlock_object_after_fork(state);
 
-    LockedObjects& los = vm_->locked_objects();
-    for(LockedObjects::iterator i = los.begin();
+    memory::LockedObjects& los = vm_->locked_objects();
+    for(memory::LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
       Object* obj = static_cast<Object*>(*i);
@@ -365,8 +366,8 @@ namespace rubinius {
     vm->thread->join_lock_.lock();
     vm->thread->stopped();
 
-    LockedObjects& los = state->vm()->locked_objects();
-    for(LockedObjects::iterator i = los.begin();
+    memory::LockedObjects& los = state->vm()->locked_objects();
+    for(memory::LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
       (*i)->unlock_for_terminate(state, 0);

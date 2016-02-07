@@ -113,7 +113,7 @@ namespace rubinius {
       }
     }
 
-    void HandleSet::gc_scan(GarbageCollector* gc) {
+    void HandleSet::gc_scan(memory::GarbageCollector* gc) {
       for(int i = 0; i < cFastHashSize; i++) {
         if(Handle* handle = table_[i]) {
           handle->set_object(gc->mark_object(handle->object()));

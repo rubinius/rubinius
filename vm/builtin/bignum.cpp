@@ -1182,7 +1182,7 @@ namespace rubinius {
     return storage->raw_bytes();
   }
 
-  void Bignum::Info::mark(Object* obj, ObjectMark& mark) {
+  void Bignum::Info::mark(Object* obj, memory::ObjectMark& mark) {
     Bignum* big = force_as<Bignum>(obj);
 
     mp_int* n = big->mp_val();

@@ -82,5 +82,5 @@ namespace rubinius {
     show(state, self, level);
   }
 
-  void Symbol::Info::mark(Object* t, ObjectMark& mark) { }
+  void Symbol::Info::mark(Object* t, memory::ObjectMark& mark) { }
 }

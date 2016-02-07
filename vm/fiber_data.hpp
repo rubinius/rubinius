@@ -61,7 +61,7 @@ namespace rubinius {
     size_t heap_size_;
     size_t heap_capacity_;
 
-    VariableRootBuffers variable_root_buffers_;
+    memory::VariableRootBuffers variable_root_buffers_;
 
     CallFrame* call_frame_;
 
@@ -111,7 +111,7 @@ namespace rubinius {
       return thread_;
     }
 
-    VariableRootBuffers& variable_root_buffers() {
+    memory::VariableRootBuffers& variable_root_buffers() {
       return variable_root_buffers_;
     }
 

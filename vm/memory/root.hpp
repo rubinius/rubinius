@@ -11,6 +11,7 @@
 #include "util/thread.hpp"
 
 namespace rubinius {
+namespace memory {
   class Root;
 
   /**
@@ -173,6 +174,7 @@ namespace rubinius {
         return reinterpret_cast<ObjType>(object_);
       }
     };
+}
 }
 
 #endif

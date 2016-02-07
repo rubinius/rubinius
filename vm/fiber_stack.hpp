@@ -8,8 +8,11 @@
 #include "util/thread.hpp"
 
 namespace rubinius {
+  namespace memory {
+    class GarbageCollector;
+  }
+
   class FiberData;
-  class GarbageCollector;
 
   class FiberStack {
     void* address_;
@@ -99,7 +102,7 @@ namespace rubinius {
     void* trampoline();
 
     void gc_clear_mark();
-    void gc_scan(GarbageCollector* gc, bool marked_only = true);
+    void gc_scan(memory::GarbageCollector* gc, bool marked_only = true);
   };
 }
 

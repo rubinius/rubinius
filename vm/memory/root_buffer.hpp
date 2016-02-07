@@ -4,8 +4,10 @@
 #include "linkedlist.hpp"
 
 namespace rubinius {
-  class RootBuffer;
   class Object;
+
+namespace memory {
+  class RootBuffer;
 
   class RootBuffers : public LinkedList {
   public:
@@ -48,6 +50,7 @@ namespace rubinius {
     }
 
   };
+}
 }
 
 #endif

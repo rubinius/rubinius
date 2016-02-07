@@ -7,6 +7,7 @@
 #include <iostream>
 
 namespace rubinius {
+namespace memory {
   void InflatedHeaders::Diagnostics::log() {
     if(!modified_p()) return;
 
@@ -58,4 +59,5 @@ namespace rubinius {
     diagnostics_.bytes_ = allocator_->in_use_ * sizeof(InflatedHeader);
     diagnostics_.modify();
   }
+}
 }

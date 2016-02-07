@@ -67,7 +67,7 @@ namespace rubinius {
     if(!mcode) {
       OnStack<3> os(state, env, args.recv_location(), args.block_location());
       OnStack<3> iv(state, invocation.self, invocation.constant_scope, invocation.module);
-      VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+      memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                              &args.arguments_location(), args.total());
 
       mcode = env->machine_code(state, previous);

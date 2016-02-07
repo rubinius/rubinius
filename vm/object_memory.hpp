@@ -13,10 +13,9 @@
 #include "builtin/object.hpp"
 
 #include "memory/code_manager.hpp"
-#include "memory/finalize.hpp"
+#include "memory/finalizer.hpp"
 #include "memory/write_barrier.hpp"
-
-#include "memory/immix.hpp"
+#include "memory/immix_collector.hpp"
 
 #include "util/thread.hpp"
 
@@ -28,21 +27,21 @@ class TestVM; // So we can friend it properly
 namespace rubinius {
   struct CallFrame;
   class Configuration;
-  class FinalizerThread;
-  class GCData;
-  class ImmixGC;
-  class ImmixMarker;
-  class InflatedHeaders;
   class Integer;
-  class MarkSweepGC;
   class Thread;
+
+  namespace memory {
+    class FinalizerThread;
+    class GCData;
+    class ImmixGC;
+    class ImmixMarker;
+    class InflatedHeaders;
+    class MarkSweepGC;
+    class Slab;
+  }
 
   namespace diagnostics {
     class ObjectDiagnostics;
-  }
-
-  namespace memory {
-    class Slab;
   }
 
   namespace capi {
@@ -82,16 +81,16 @@ namespace rubinius {
     /* BakerGC* young_; */
 
     /// MarkSweepGC used for the large object store
-    MarkSweepGC* mark_sweep_;
+    memory::MarkSweepGC* mark_sweep_;
 
     /// ImmixGC used for the mature generation
-    ImmixGC* immix_;
+    memory::ImmixGC* immix_;
 
     /// ImmixMarker thread used for the mature generation
-    ImmixMarker* immix_marker_;
+    memory::ImmixMarker* immix_marker_;
 
     /// Storage for all InflatedHeader instances.
-    InflatedHeaders* inflated_headers_;
+    memory::InflatedHeaders* inflated_headers_;
 
     /// Storage for C-API handle allocator, cached C-API handles
     /// and global handle locations.
@@ -100,7 +99,7 @@ namespace rubinius {
     std::list<capi::GlobalHandle*> global_capi_handle_locations_;
 
     /// Garbage collector for CodeResource objects.
-    CodeManager code_manager_;
+    memory::CodeManager code_manager_;
 
     /// The current mark value used when marking objects.
     unsigned int mark_;
@@ -206,11 +205,11 @@ namespace rubinius {
       }
     }
 
-    FinalizerThread* finalizer_handler() const {
+    memory::FinalizerThread* finalizer_handler() const {
       return shared_.finalizer_handler();
     }
 
-    InflatedHeaders* inflated_headers() const {
+    memory::InflatedHeaders* inflated_headers() const {
       return inflated_headers_;
     }
 
@@ -218,11 +217,11 @@ namespace rubinius {
       return capi_handles_;
     }
 
-    ImmixMarker* immix_marker() const {
+    memory::ImmixMarker* immix_marker() const {
       return immix_marker_;
     }
 
-    void set_immix_marker(ImmixMarker* immix_marker) {
+    void set_immix_marker(memory::ImmixMarker* immix_marker) {
       immix_marker_ = immix_marker;
     }
 
@@ -517,12 +516,12 @@ namespace rubinius {
     bool valid_object_p(Object* obj);
     void add_type_info(TypeInfo* ti);
 
-    void add_code_resource(STATE, CodeResource* cr);
+    void add_code_resource(STATE, memory::CodeResource* cr);
     void memstats();
 
     void validate_handles(capi::Handles* handles);
     void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young);
-    void clear_fiber_marks(GCData* data);
+    void clear_fiber_marks(memory::GCData* data);
 
     ObjectPosition validate_object(Object* obj);
 
@@ -534,8 +533,8 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
-    void needs_finalization(Object* obj, FinalizerFunction func,
-        FinalizeObject::FinalizeKind kind = FinalizeObject::eManaged);
+    void needs_finalization(Object* obj, memory::FinalizerFunction func,
+        memory::FinalizeObject::FinalizeKind kind = memory::FinalizeObject::eManaged);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
@@ -557,15 +556,15 @@ namespace rubinius {
       return diagnostics_;
     }
 
-    immix::MarkStack& mature_mark_stack();
+    memory::MarkStack& mature_mark_stack();
 
     bool& collect_young_flag() {
       return collect_young_flag_;
     }
 
-    void collect_young(STATE, GCData* data);
-    void collect_full(STATE, GCData* data);
-    void collect_full_finish(STATE, GCData* data);
+    void collect_young(STATE, memory::GCData* data);
+    void collect_full(STATE, memory::GCData* data);
+    void collect_full_finish(STATE, memory::GCData* data);
 
   public:
     friend class ::TestObjectMemory;

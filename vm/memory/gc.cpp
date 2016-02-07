@@ -31,6 +31,7 @@
 #include "thread_nexus.hpp"
 
 namespace rubinius {
+namespace memory {
 
   GCData::GCData(VM* state)
     : roots_(state->globals().roots)
@@ -466,4 +467,5 @@ namespace rubinius {
       }
     }
   }
+}
 }

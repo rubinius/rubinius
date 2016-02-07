@@ -9,7 +9,7 @@ namespace rubinius {
 
   template <int size>
   class OnStack {
-    VariableRootBuffer buffer_;
+    memory::VariableRootBuffer buffer_;
     Object** objects_[size];
 
   public:

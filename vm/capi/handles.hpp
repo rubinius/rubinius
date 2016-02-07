@@ -28,14 +28,14 @@ namespace rubinius {
       };
 
     private:
-      Allocator<Handle>* allocator_;
+      memory::Allocator<Handle>* allocator_;
 
       Diagnostics diagnostics_;
 
     public:
 
       Handles()
-        : allocator_(new Allocator<Handle>())
+        : allocator_(new memory::Allocator<Handle>())
         , diagnostics_(Diagnostics())
       {}
 
@@ -55,7 +55,7 @@ namespace rubinius {
 
       void flush_all(NativeMethodEnvironment* env);
 
-      Allocator<Handle>* allocator() const {
+      memory::Allocator<Handle>* allocator() const {
         return allocator_;
       }
 

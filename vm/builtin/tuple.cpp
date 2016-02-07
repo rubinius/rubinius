@@ -312,7 +312,7 @@ namespace rubinius {
     return force_as<Tuple>(obj)->full_size_;
   }
 
-  void Tuple::Info::mark(Object* obj, ObjectMark& mark) {
+  void Tuple::Info::mark(Object* obj, memory::ObjectMark& mark) {
     Tuple* tup = as<Tuple>(obj);
 
     for(native_int i = 0; i < tup->num_fields(); i++) {

@@ -1,5 +1,6 @@
 #include "memory/object_mark.hpp"
 #include "memory/gc.hpp"
+
 #include "object_utils.hpp"
 #include "object_memory.hpp"
 
@@ -7,6 +8,7 @@
 #include "state.hpp"
 
 namespace rubinius {
+namespace memory {
   VM* ObjectMark::vm() {
     return gc->vm();
   }
@@ -60,4 +62,4 @@ namespace rubinius {
     }
   }
 }
-
+}

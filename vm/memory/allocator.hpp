@@ -2,6 +2,7 @@
 #define RBX_ALLOCATOR_H
 
 namespace rubinius {
+namespace memory {
 
   template <class T>
   class Allocator {
@@ -162,7 +163,7 @@ namespace rubinius {
     };
 
   };
-
+}
 }
 
 #endif // RBX_ALLOCATOR_H

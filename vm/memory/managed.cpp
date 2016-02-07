@@ -9,6 +9,7 @@
 #include <sstream>
 
 namespace rubinius {
+namespace memory {
   utilities::thread::ThreadData<ManagedThread*> _current_thread;
 
   ManagedThread::ManagedThread(uint32_t id, SharedState& ss,
@@ -43,4 +44,5 @@ namespace rubinius {
     th->os_thread_ = pthread_self();
     _current_thread.set(th);
   }
+}
 }

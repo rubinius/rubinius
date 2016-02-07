@@ -6,9 +6,11 @@
 #include "builtin/tuple.hpp"
 
 namespace rubinius {
-  class Array;
+  namespace memory {
+    class GarbageCollector;
+  }
 
-  class GarbageCollector;
+  class Array;
 
   class Arguments {
     Symbol* name_;

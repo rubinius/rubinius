@@ -166,7 +166,7 @@ namespace rubinius {
     }
   }
 
-  void PolyInlineCache::Info::mark(Object* obj, ObjectMark& mark) {
+  void PolyInlineCache::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
     PolyInlineCache* cache = static_cast<PolyInlineCache*>(obj);
 

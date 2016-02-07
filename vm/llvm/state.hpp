@@ -50,7 +50,10 @@ namespace rubinius {
   class State;
   class SymbolTable;
   class CompiledCode;
-  class GarbageCollector;
+
+  namespace memory {
+    class GarbageCollector;
+  }
 
   namespace jit {
     class Builder;
@@ -78,7 +81,7 @@ namespace rubinius {
     State* state_;
     Configuration& config_;
 
-    TypedRoot<List*> compile_list_;
+    memory::TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
 
     SharedState& shared_;
@@ -264,7 +267,7 @@ namespace rubinius {
 
     void after_fork_child(STATE);
 
-    void gc_scan(GarbageCollector* gc);
+    void gc_scan(memory::GarbageCollector* gc);
 
     static void show_machine_code(void* impl, size_t bytes);
 

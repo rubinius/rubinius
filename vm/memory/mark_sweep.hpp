@@ -3,6 +3,7 @@
 
 #include "memory/gc.hpp"
 #include "memory/root.hpp"
+
 #include "object_position.hpp"
 #include "diagnostics.hpp"
 
@@ -16,6 +17,7 @@ namespace rubinius {
   class ObjectMemory;
   struct CallFrame;
 
+namespace memory {
   class MarkSweepGC : public GarbageCollector {
   public:
     class Diagnostics : public diagnostics::MemoryDiagnostics {
@@ -64,6 +66,7 @@ namespace rubinius {
       return diagnostics_;
     }
   };
-};
+}
+}
 
 #endif

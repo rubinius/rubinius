@@ -3,7 +3,6 @@
 
 #include "internal_threads.hpp"
 
-#include "memory/finalize.hpp"
 #include "memory/root.hpp"
 
 #include <list>
@@ -14,6 +13,7 @@ namespace rubinius {
   struct CallFrame;
   class Object;
 
+namespace memory {
   typedef void (*FinalizerFunction)(STATE, Object*);
 
   struct FinalizeObject {
@@ -128,6 +128,7 @@ namespace rubinius {
     void stop(STATE);
     void wakeup(STATE);
   };
+}
 }
 
 #endif

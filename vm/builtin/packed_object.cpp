@@ -66,7 +66,7 @@ namespace rubinius {
     }
   }
 
-  void PackedObject::Info::mark(Object* obj, ObjectMark& mark) {
+  void PackedObject::Info::mark(Object* obj, memory::ObjectMark& mark) {
     PackedObject* po = static_cast<PackedObject*>(obj);
 
     size_t fields = to_fields(object_size(obj));

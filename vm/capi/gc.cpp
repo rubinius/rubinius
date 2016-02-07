@@ -9,15 +9,15 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 
-static utilities::thread::ThreadData<ObjectMark*> _current_mark;
+static utilities::thread::ThreadData<memory::ObjectMark*> _current_mark;
 
 namespace rubinius {
   namespace capi {
-    void set_current_mark(ObjectMark* mark) {
+    void set_current_mark(memory::ObjectMark* mark) {
       _current_mark.set(mark);
     }
 
-    ObjectMark* current_mark() {
+    memory::ObjectMark* current_mark() {
       return _current_mark.get();
     }
   }

@@ -10,6 +10,8 @@
 
 namespace rubinius {
   class ObjectMemory;
+
+namespace memory {
   class ImmixGC;
   class ImmixMarker;
 
@@ -88,64 +90,42 @@ namespace rubinius {
       void added_chunk(int count);
       void last_block();
 
-      void set_forwarding_pointer(memory::Address from, memory::Address to);
+      void set_forwarding_pointer(Address from, Address to);
 
-      memory::Address forwarding_pointer(memory::Address cur) {
+      Address forwarding_pointer(Address cur) {
         Object* obj = cur.as<Object>();
 
         if(obj->forwarded_p()) return obj->forward();
 
-        return memory::Address::null();
+        return Address::null();
       }
 
-      bool pinned(memory::Address addr) {
+      bool pinned(Address addr) {
         return addr.as<Object>()->pinned_p();
       }
 
-      memory::Address copy(memory::Address original, immix::Allocator& alloc);
+      Address copy(Address original, ImmixAllocator& alloc);
 
-      void walk_pointers(memory::Address addr, immix::Marker<ObjectDescriber>& mark) {
+      void walk_pointers(Address addr, Marker<ObjectDescriber>& mark) {
         Object* obj = addr.as<Object>();
         if(obj) gc_->scan_object(obj);
       }
 
-      memory::Address update_pointer(memory::Address addr) {
-        Object* obj = addr.as<Object>();
-        if(!obj) return memory::Address::null();
-        if(obj->young_object_p()) {
-          if(obj->forwarded_p()) return obj->forward();
-          return memory::Address::null();
-        } else {
-          // we must remember this because it might
-          // contain references to young gen objects
-          object_memory_->remember_object(obj);
-        }
-        return addr;
-      }
+      Address update_pointer(Address addr);
 
-      int size(memory::Address addr);
+      int size(Address addr);
 
       /**
-       * Called when the immix::GC object wishes to mark an object.
+       * Called when the GC object wishes to mark an object.
        *
        * @returns true if the object is not already marked, and in the Immix
        * space; otherwise false.
        */
-      inline bool mark_address(memory::Address addr, immix::MarkStack& ms, bool push = true) {
-        Object* obj = addr.as<Object>();
-
-        if(obj->marked_p(object_memory_->mark())) return false;
-        obj->mark(object_memory_, object_memory_->mark());
-
-        if(push) ms.push_back(addr);
-        // If this is a young object, let the GC know not to try and mark
-        // the block it's in.
-        return obj->in_immix_p();
-      }
+      bool mark_address(Address addr, MarkStack& ms, bool push = true);
     };
 
-    immix::GC<ObjectDescriber> gc_;
-    immix::ExpandingAllocator allocator_;
+    GC<ObjectDescriber> gc_;
+    ExpandingAllocator allocator_;
     ObjectMemory* memory_;
     ImmixMarker* marker_;
     int chunks_left_;
@@ -195,11 +175,12 @@ namespace rubinius {
     void start_marker(STATE);
     bool process_mark_stack();
     bool process_mark_stack(bool& exit);
-    immix::MarkStack& mark_stack();
+    MarkStack& mark_stack();
 
   private:
     void collect_scan(GCData* data);
   };
+}
 }
 
 #endif

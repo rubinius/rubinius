@@ -75,7 +75,7 @@ namespace rubinius {
 
     // Don't bother to add finalization for stdio
     if(fd >= 3) {
-      state->memory()->needs_finalization(io, (FinalizerFunction)&IO::finalize);
+      state->memory()->needs_finalization(io, (memory::FinalizerFunction)&IO::finalize);
     }
 
     return io;
@@ -85,7 +85,7 @@ namespace rubinius {
     IO* io = state->memory()->new_object<IO>(state, as<Class>(self));
     io->ibuffer(state, IOBuffer::create(state));
 
-    state->memory()->needs_finalization(io, (FinalizerFunction)&IO::finalize);
+    state->memory()->needs_finalization(io, (memory::FinalizerFunction)&IO::finalize);
 
     return io;
   }

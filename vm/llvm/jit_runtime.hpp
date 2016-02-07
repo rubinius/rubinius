@@ -13,11 +13,14 @@ namespace rubinius {
   class CompiledCode;
   class Symbol;
   class Module;
-  class GarbageCollector;
-  class RuntimeDataHolder;
-  class ObjectMark;
   class ObjectMemory;
   class VM;
+
+  namespace memory {
+    class GarbageCollector;
+    class RuntimeDataHolder;
+    class ObjectMark;
+  }
 
   namespace jit {
 
@@ -48,10 +51,10 @@ namespace rubinius {
 
       // For GC access.
       friend class RuntimeDataHolder;
-      friend class rubinius::GarbageCollector;
+      friend class memory::GarbageCollector;
     };
 
-    class RuntimeDataHolder : public CodeResource {
+    class RuntimeDataHolder : public memory::CodeResource {
       std::vector<RuntimeData*> runtime_data_;
       void* function_allocation_;
       void* native_func_;
@@ -66,7 +69,7 @@ namespace rubinius {
 
       ~RuntimeDataHolder();
 
-      virtual void cleanup(State* vm, CodeManager* cm);
+      virtual void cleanup(State* vm, memory::CodeManager* cm);
 
       virtual const char* kind() {
         return "jit-runtime";
@@ -98,7 +101,7 @@ namespace rubinius {
         return native_size_;
       }
 
-      void mark_all(Object* obj, ObjectMark& mark);
+      void mark_all(Object* obj, memory::ObjectMark& mark);
       void run_write_barrier(ObjectMemory* om, Object* obj);
     };
   }

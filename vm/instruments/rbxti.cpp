@@ -236,8 +236,8 @@ namespace rbxti {
   }
 
   void Env::find_all_compiled_code(compiled_code_iterator func, void* data) {
-    ObjectWalker walker(private_->state()->memory());
-    GCData gc_data(private_->state()->vm());
+    memory::ObjectWalker walker(private_->state()->memory());
+    memory::GCData gc_data(private_->state()->vm());
 
     walker.seed(gc_data);
 

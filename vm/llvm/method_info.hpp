@@ -33,12 +33,12 @@ namespace rubinius {
     JITInlineBlock* inline_block_;
     JITInlineBlock* block_info_;
 
-    TypedRoot<CompiledCode*> method_;
+    memory::TypedRoot<CompiledCode*> method_;
 
     llvm::BasicBlock* return_pad_;
     llvm::PHINode* return_phi_;
 
-    TypedRoot<Class*> self_class_;
+    memory::TypedRoot<Class*> self_class_;
     LocalMap local_info_;
 
   public:

@@ -112,8 +112,8 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      virtual void mark(Object* t, ObjectMark& mark);
-      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+      virtual void mark(Object* t, memory::ObjectMark& mark);
+      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
     };
   };
 

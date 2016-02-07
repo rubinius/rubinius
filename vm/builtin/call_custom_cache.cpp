@@ -37,7 +37,7 @@ namespace rubinius {
                        cu->executable(), cu->module(), args);
   }
 
-  void CallCustomCache::Info::mark(Object* obj, ObjectMark& mark) {
+  void CallCustomCache::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
   }
 }

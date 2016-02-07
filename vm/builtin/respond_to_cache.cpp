@@ -65,7 +65,7 @@ namespace rubinius {
     return Integer::from(state, hits_);
   }
 
-  void RespondToCache::Info::mark(Object* obj, ObjectMark& mark) {
+  void RespondToCache::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
   }
 

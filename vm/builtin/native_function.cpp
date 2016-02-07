@@ -711,7 +711,7 @@ namespace rubinius {
     }
 
     // Because we call back into ruby to do conversions.
-    RootBuffer vrf(state->vm()->root_buffers(), args.arguments(), args.total());
+    memory::RootBuffer vrf(state->vm()->root_buffers(), args.arguments(), args.total());
 
     // Make sure we have this on the stack
     NativeFunction* self = this;
@@ -1228,7 +1228,7 @@ namespace rubinius {
     return ret;
   }
 
-  void NativeFunction::Info::mark(Object* obj, ObjectMark& mark) {
+  void NativeFunction::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
     mark_inliners(obj, mark);
 

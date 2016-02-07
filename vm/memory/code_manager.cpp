@@ -6,6 +6,7 @@
 #include "memory/code_resource.hpp"
 
 namespace rubinius {
+namespace memory {
   void CodeManager::Diagnostics::log() {
     if(!modified_p()) return;
 
@@ -158,4 +159,5 @@ namespace rubinius {
       chunk = chunk->next;
     }
   }
+}
 }

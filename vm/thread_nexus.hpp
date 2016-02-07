@@ -12,12 +12,15 @@
 #include <stdint.h>
 
 namespace rubinius {
-  class ManagedThread;
+  namespace memory {
+    class ManagedThread;
+  }
+
   class SharedState;
   class State;
   class VM;
 
-  typedef std::list<ManagedThread*> ThreadList;
+  typedef std::list<memory::ManagedThread*> ThreadList;
 
   class ThreadNexus {
     bool stop_;

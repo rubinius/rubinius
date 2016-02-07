@@ -136,9 +136,8 @@ namespace rubinius {
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
       FiberData* data = fib->data();
       if(data) {
-        AddressDisplacement dis(data->data_offset(),
-                                data->data_lower_bound(),
-                                data->data_upper_bound());
+        memory::AddressDisplacement dis(data->data_offset(),
+            data->data_lower_bound(), data->data_upper_bound());
 
         ary = dis.displace(ary);
       }
@@ -168,9 +167,8 @@ namespace rubinius {
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
       FiberData* data = fib->data();
       if(data) {
-        AddressDisplacement dis(data->data_offset(),
-                                data->data_lower_bound(),
-                                data->data_upper_bound());
+        memory::AddressDisplacement dis(data->data_offset(),
+            data->data_lower_bound(), data->data_upper_bound());
 
         ary = dis.displace(ary);
       }
@@ -216,7 +214,7 @@ namespace rubinius {
     }
   }
 
-  void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
+  void VariableScope::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
 
     VariableScope* vs = as<VariableScope>(obj);
@@ -228,9 +226,8 @@ namespace rubinius {
         FiberData* data = fib->data();
 
         if(data) {
-          AddressDisplacement dis(data->data_offset(),
-                                  data->data_lower_bound(),
-                                  data->data_upper_bound());
+          memory::AddressDisplacement dis(data->data_offset(),
+              data->data_lower_bound(), data->data_upper_bound());
 
           ary = dis.displace(ary);
         }

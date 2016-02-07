@@ -85,7 +85,7 @@ namespace rubinius {
       return data_->stack_size();
     }
 
-    VariableRootBuffers& variable_root_buffers() {
+    memory::VariableRootBuffers& variable_root_buffers() {
       return data_->variable_root_buffers();
     }
 
@@ -126,7 +126,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void mark(Object* t, memory::ObjectMark& mark);
     };
   };
 }

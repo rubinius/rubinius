@@ -73,7 +73,7 @@ namespace rubinius {
     class Info : public Executable::Info {
     public:
       BASIC_TYPEINFO(Executable::Info)
-      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void mark(Object* t, memory::ObjectMark& mark);
     };
 
   };
@@ -84,7 +84,7 @@ namespace rubinius {
     NativeFunction* callback;
   };
 
-  class FFIData: public CodeResource {
+  class FFIData: public memory::CodeResource {
   public:
     ffi_cif cif;
     ffi_closure* closure;
@@ -100,7 +100,7 @@ namespace rubinius {
     FFIData(STATE, NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret);
 
     virtual ~FFIData();
-    void cleanup(State* state, CodeManager* cm) { }
+    void cleanup(State* state, memory::CodeManager* cm) { }
 
     static FFIData* create(STATE, NativeFunction* func, int count, FFIArgInfo* args, FFIArgInfo* ret);
   };

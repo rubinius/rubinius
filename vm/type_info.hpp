@@ -14,9 +14,12 @@ namespace rubinius {
 
   class Class;
   class Object;
-  class ObjectMark;
   class ObjectMemory;
   class ObjectHeader;
+
+  namespace memory {
+    class ObjectMark;
+  }
 
   /**
    *  Static type information for the VM.
@@ -59,7 +62,7 @@ namespace rubinius {
     static void init(ObjectMemory* om);
     static void auto_init(ObjectMemory* om);
     static void auto_learn_fields(STATE);
-    virtual void auto_mark(Object* obj, ObjectMark& mark) = 0;
+    virtual void auto_mark(Object* obj, memory::ObjectMark& mark) = 0;
 
   public:   /* Ctors */
 
@@ -83,7 +86,7 @@ namespace rubinius {
       return state_;
     }
 
-    virtual void mark(Object* obj, ObjectMark& mark);
+    virtual void mark(Object* obj, memory::ObjectMark& mark);
 
     virtual void set_field(STATE, Object* target, size_t index, Object* val);
     virtual Object* get_field(STATE, Object* target, size_t index);
@@ -156,7 +159,7 @@ namespace rubinius {
 
 #define BASIC_TYPEINFO(super) \
   Info(object_type type) : super(type) { } \
-  virtual void auto_mark(Object* obj, ObjectMark& mark); \
+  virtual void auto_mark(Object* obj, memory::ObjectMark& mark); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
   virtual Object* get_field(STATE, Object* target, size_t index); \
   virtual void populate_slot_locations();

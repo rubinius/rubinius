@@ -39,7 +39,7 @@ namespace rubinius {
     data->internal_ = rdata;
 
     if(mark || free) {
-      state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
+      state->memory()->needs_finalization(data, (memory::FinalizerFunction)&Data::finalize);
     }
 
     state->vm()->metrics().memory.data_objects++;
@@ -72,7 +72,7 @@ namespace rubinius {
     data->internal_ = rdata;
 
     if(type->function.dmark || type->function.dfree) {
-      state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
+      state->memory()->needs_finalization(data, (memory::FinalizerFunction)&Data::finalize);
     }
 
     state->vm()->metrics().memory.data_objects++;
@@ -138,7 +138,7 @@ namespace rubinius {
     }
   }
 
-  void Data::Info::mark(Object* t, ObjectMark& mark) {
+  void Data::Info::mark(Object* t, memory::ObjectMark& mark) {
     auto_mark(t, mark);
 
     Data* data = force_as<Data>(t);
@@ -161,7 +161,7 @@ namespace rubinius {
     Data::MarkFunctor marker = data->mark();
 
     if(marker) {
-      ObjectMark* cur = capi::current_mark();
+      memory::ObjectMark* cur = capi::current_mark();
       capi::set_current_mark(&mark);
 
       (*marker)(data->data());

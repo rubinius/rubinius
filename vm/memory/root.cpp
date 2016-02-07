@@ -3,6 +3,7 @@
 #include "state.hpp"
 
 namespace rubinius {
+namespace memory {
 
 /* Roots */
 
@@ -69,4 +70,5 @@ namespace rubinius {
       if(object_ != cUndef) roots_->add(this);
     }
   }
+}
 }

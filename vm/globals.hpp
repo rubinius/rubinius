@@ -41,104 +41,104 @@ namespace rubinius {
 
   struct Globals {
 
-    Roots roots;
+    memory::Roots roots;
 
     /* This requires some manual work when adding a root, but thats ok.
      * First, add the root to the END of this list. Then add it to
      * the constructor for Globals, again, at the END of the list. */
 
     /* classes for the core 'types' */
-    TypedRoot<Class*> compiled_code, tuple, module, basicobject, object, array;
-    TypedRoot<Class*> klass, method_table, bytearray;
-    TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
-    TypedRoot<Class*> string, character, symbol, io;
-    TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
-    TypedRoot<Class*> floatpoint, nmc, list, list_node;
-    TypedRoot<Class*> channel, thread, thread_state, constantscope;
-    TypedRoot<Class*> constant_table, lookup_table;
-    TypedRoot<Class*> iseq, executable, native_function, iobuffer;
-    TypedRoot<Class*> included_module;
+    memory::TypedRoot<Class*> compiled_code, tuple, module, basicobject, object, array;
+    memory::TypedRoot<Class*> klass, method_table, bytearray;
+    memory::TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
+    memory::TypedRoot<Class*> string, character, symbol, io;
+    memory::TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
+    memory::TypedRoot<Class*> floatpoint, nmc, list, list_node;
+    memory::TypedRoot<Class*> channel, thread, thread_state, constantscope;
+    memory::TypedRoot<Class*> constant_table, lookup_table;
+    memory::TypedRoot<Class*> iseq, executable, native_function, iobuffer;
+    memory::TypedRoot<Class*> included_module;
 
     /* the primary symbol table */
-    TypedRoot<Symbol*> sym_method_missing;
-    TypedRoot<Symbol*> sym_respond_to_missing;
-    TypedRoot<Symbol*> sym_inherited;
-    TypedRoot<Symbol*> sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
-    TypedRoot<Symbol*> sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
-    TypedRoot<Symbol*> sym_initialize;
-    TypedRoot<Symbol*> sym_coerce_to_array, sym_to_ary, sym_to_hash;
-    TypedRoot<Symbol*> sym_allocation_site, sym_keyword_object;
+    memory::TypedRoot<Symbol*> sym_method_missing;
+    memory::TypedRoot<Symbol*> sym_respond_to_missing;
+    memory::TypedRoot<Symbol*> sym_inherited;
+    memory::TypedRoot<Symbol*> sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
+    memory::TypedRoot<Symbol*> sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
+    memory::TypedRoot<Symbol*> sym_initialize;
+    memory::TypedRoot<Symbol*> sym_coerce_to_array, sym_to_ary, sym_to_hash;
+    memory::TypedRoot<Symbol*> sym_allocation_site, sym_keyword_object;
 
-    TypedRoot<Class*> exception;
-    TypedRoot<Class*> exc_arg, exc_segfault;
-    TypedRoot<Class*> exc_loe, exc_type, exc_rex, exc_rte;
-    TypedRoot<Class*> exc_primitive_failure;
+    memory::TypedRoot<Class*> exception;
+    memory::TypedRoot<Class*> exc_arg, exc_segfault;
+    memory::TypedRoot<Class*> exc_loe, exc_type, exc_rex, exc_rte;
+    memory::TypedRoot<Class*> exc_primitive_failure;
 
-    TypedRoot<LookupTable*> external_ivars;
-    TypedRoot<LookupTable*> errno_mapping;
-    TypedRoot<Object*> config;
-    TypedRoot<Symbol*> sym_send;
-    TypedRoot<Symbol*> sym_public, sym_private, sym_protected, sym_const_missing;
-    TypedRoot<Symbol*> sym_object_id, sym_call, sym_undef;
+    memory::TypedRoot<LookupTable*> external_ivars;
+    memory::TypedRoot<LookupTable*> errno_mapping;
+    memory::TypedRoot<Object*> config;
+    memory::TypedRoot<Symbol*> sym_send;
+    memory::TypedRoot<Symbol*> sym_public, sym_private, sym_protected, sym_const_missing;
+    memory::TypedRoot<Symbol*> sym_object_id, sym_call, sym_undef;
 
-    TypedRoot<Object*> main, undefined;
-    TypedRoot<Class*> dir;
-    TypedRoot<Class*> compactlookuptable;
-    TypedRoot<Class*> lookup_table_bucket;
-    TypedRoot<Class*> constant_table_bucket;
-    TypedRoot<Class*> method_table_bucket;
-    TypedRoot<Class*> access_variable;
-    TypedRoot<Module*> rubinius;
-    TypedRoot<Class*> time_class;
-    TypedRoot<Class*> stat_class;
-    TypedRoot<Class*> integer;
-    TypedRoot<Class*> numeric;
-    TypedRoot<Class*> memory_pointer;
-    TypedRoot<Module*> ffi;
-    TypedRoot<Class*> ffi_pointer;
-    TypedRoot<Class*> taskprobe;
-    TypedRoot<Class*> randomizer;
+    memory::TypedRoot<Object*> main, undefined;
+    memory::TypedRoot<Class*> dir;
+    memory::TypedRoot<Class*> compactlookuptable;
+    memory::TypedRoot<Class*> lookup_table_bucket;
+    memory::TypedRoot<Class*> constant_table_bucket;
+    memory::TypedRoot<Class*> method_table_bucket;
+    memory::TypedRoot<Class*> access_variable;
+    memory::TypedRoot<Module*> rubinius;
+    memory::TypedRoot<Class*> time_class;
+    memory::TypedRoot<Class*> stat_class;
+    memory::TypedRoot<Class*> integer;
+    memory::TypedRoot<Class*> numeric;
+    memory::TypedRoot<Class*> memory_pointer;
+    memory::TypedRoot<Module*> ffi;
+    memory::TypedRoot<Class*> ffi_pointer;
+    memory::TypedRoot<Class*> taskprobe;
+    memory::TypedRoot<Class*> randomizer;
 
-    TypedRoot<Class*> nmethod;        /**< NativeMethod */
+    memory::TypedRoot<Class*> nmethod;        /**< NativeMethod */
 
-    TypedRoot<Class*> data;
+    memory::TypedRoot<Class*> data;
 
-    TypedRoot<Class*> autoload; /**< Autoload class */
-    TypedRoot<Class*> proc; /**< Proc class */
-    TypedRoot<Class*> variable_scope;
-    TypedRoot<Class*> location;
-    TypedRoot<Class*> stack_error;
-    TypedRoot<Class*> jump_error;
-    TypedRoot<Class*> exc_vm_internal;
-    TypedRoot<Class*> exc_vm_bad_bytecode;
-    TypedRoot<Class*> call_site;
-    TypedRoot<Class*> mono_inline_cache;
-    TypedRoot<Class*> poly_inline_cache;
-    TypedRoot<Class*> inline_cache_entry;
-    TypedRoot<Class*> call_custom_cache;
-    TypedRoot<Class*> respond_to_cache;
-    TypedRoot<Class*> constant_cache;
-    TypedRoot<Class*> cls_weakref;
-    TypedRoot<Class*> fiber;
-    TypedRoot<Class*> alias;
-    TypedRoot<Class*> encoding;
-    TypedRoot<Object*> encoding_list;
-    TypedRoot<Module*> type;
-    TypedRoot<Class*> vm_class;
-    TypedRoot<Class*> atomic_ref;
-    TypedRoot<Class*> mirror;
-    TypedRoot<Class*> fsevent;
-    TypedRoot<Class*> logger;
-    TypedRoot<JIT*> jit;
-    TypedRoot<Module*> runtime;
-    TypedRoot<Class*> codedb;
+    memory::TypedRoot<Class*> autoload; /**< Autoload class */
+    memory::TypedRoot<Class*> proc; /**< Proc class */
+    memory::TypedRoot<Class*> variable_scope;
+    memory::TypedRoot<Class*> location;
+    memory::TypedRoot<Class*> stack_error;
+    memory::TypedRoot<Class*> jump_error;
+    memory::TypedRoot<Class*> exc_vm_internal;
+    memory::TypedRoot<Class*> exc_vm_bad_bytecode;
+    memory::TypedRoot<Class*> call_site;
+    memory::TypedRoot<Class*> mono_inline_cache;
+    memory::TypedRoot<Class*> poly_inline_cache;
+    memory::TypedRoot<Class*> inline_cache_entry;
+    memory::TypedRoot<Class*> call_custom_cache;
+    memory::TypedRoot<Class*> respond_to_cache;
+    memory::TypedRoot<Class*> constant_cache;
+    memory::TypedRoot<Class*> cls_weakref;
+    memory::TypedRoot<Class*> fiber;
+    memory::TypedRoot<Class*> alias;
+    memory::TypedRoot<Class*> encoding;
+    memory::TypedRoot<Object*> encoding_list;
+    memory::TypedRoot<Module*> type;
+    memory::TypedRoot<Class*> vm_class;
+    memory::TypedRoot<Class*> atomic_ref;
+    memory::TypedRoot<Class*> mirror;
+    memory::TypedRoot<Class*> fsevent;
+    memory::TypedRoot<Class*> logger;
+    memory::TypedRoot<JIT*> jit;
+    memory::TypedRoot<Module*> runtime;
+    memory::TypedRoot<Class*> codedb;
 
-    TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
+    memory::TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
     /* Add new globals above this line. */
 
     /* Leave this as the last data member always */
-    TypedRoot<Class*> special_classes[SPECIAL_CLASS_SIZE];
+    memory::TypedRoot<Class*> special_classes[SPECIAL_CLASS_SIZE];
 
     Globals() :
       compiled_code(&roots),

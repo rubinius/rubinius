@@ -1,5 +1,5 @@
 #include "object_memory.hpp"
-#include "memory/immix.hpp"
+#include "memory/immix_collector.hpp"
 #include "memory/immix_marker.hpp"
 
 #include "capi/handles.hpp"
@@ -17,6 +17,7 @@
 #endif
 
 namespace rubinius {
+namespace memory {
   void ImmixGC::Diagnostics::log() {
     if(!modified_p()) return;
 
@@ -79,7 +80,7 @@ namespace rubinius {
   }
 
   memory::Address ImmixGC::ObjectDescriber::copy(memory::Address original,
-      immix::Allocator& alloc) {
+      ImmixAllocator& alloc) {
     Object* orig = original.as<Object>();
 
     bool collect_flag = false;
@@ -106,8 +107,34 @@ namespace rubinius {
     return addr.as<Object>()->size_in_bytes(object_memory_->vm());
   }
 
+  Address ImmixGC::ObjectDescriber::update_pointer(Address addr) {
+    Object* obj = addr.as<Object>();
+    if(!obj) return Address::null();
+    if(obj->young_object_p()) {
+      if(obj->forwarded_p()) return obj->forward();
+      return Address::null();
+    } else {
+      // we must remember this because it might
+      // contain references to young gen objects
+      object_memory_->remember_object(obj);
+    }
+    return addr;
+  }
+
+  bool ImmixGC::ObjectDescriber::mark_address(Address addr, MarkStack& ms, bool push) {
+    Object* obj = addr.as<Object>();
+
+    if(obj->marked_p(object_memory_->mark())) return false;
+    obj->mark(object_memory_, object_memory_->mark());
+
+    if(push) ms.push_back(addr);
+    // If this is a young object, let the GC know not to try and mark
+    // the block it's in.
+    return obj->in_immix_p();
+  }
+
   Object* ImmixGC::allocate(uint32_t bytes, bool& collect_now) {
-    if(bytes > immix::cMaxObjectSize) return 0;
+    if(bytes > cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
     obj->init_header(MatureObjectZone, InvalidType);
@@ -117,7 +144,7 @@ namespace rubinius {
   }
 
   Object* ImmixGC::move_object(Object* orig, uint32_t bytes, bool& collect_now) {
-    if(bytes > immix::cMaxObjectSize) return 0;
+    if(bytes > cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
 
@@ -327,16 +354,16 @@ namespace rubinius {
       diagnostics_ = Diagnostics(diagnostics_.collections_);
 
       // Now, calculate how much space we're still using.
-      immix::Chunks& chunks = gc_.block_allocator().chunks();
-      immix::AllBlockIterator iter(chunks);
+      Chunks& chunks = gc_.block_allocator().chunks();
+      AllBlockIterator iter(chunks);
 
       diagnostics_.chunks_ = chunks.size();
 
-      while(immix::Block* block = iter.next()) {
+      while(Block* block = iter.next()) {
         diagnostics_.holes_ += block->holes();
         diagnostics_.objects_ += block->objects();
         diagnostics_.bytes_ += block->object_bytes();
-        diagnostics_.total_bytes_ += immix::cBlockSize;
+        diagnostics_.total_bytes_ += cBlockSize;
       }
 
       diagnostics_.percentage_ =
@@ -366,7 +393,7 @@ namespace rubinius {
     return gc_.process_mark_stack(allocator_, exit);
   }
 
-  immix::MarkStack& ImmixGC::mark_stack() {
+  MarkStack& ImmixGC::mark_stack() {
     return gc_.mark_stack();
   }
 
@@ -395,4 +422,5 @@ namespace rubinius {
       i.next(live);
     }
   }
+}
 }

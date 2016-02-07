@@ -764,7 +764,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
     str = ''
 
     str << <<-EOF unless marks.empty?
-void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
+void #{@name}::Info::auto_mark(Object* _t, memory::ObjectMark& mark) {
   #{@name}* target = as<#{@name}>(_t);
 
 #{marks}

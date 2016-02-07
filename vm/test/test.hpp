@@ -31,6 +31,7 @@ public:
     vm->shared.om = om;
 
     vm->shared.set_initialized();
+    vm->shared.set_root_vm(vm);
 
     vm->become_managed();
 
@@ -57,7 +58,7 @@ public:
 
   void destroy() {
     if(ObjectMemory* om = state->memory()) {
-      if(ImmixMarker* im = om->immix_marker()) {
+      if(memory::ImmixMarker* im = om->immix_marker()) {
         im->stop(state);
       }
     }

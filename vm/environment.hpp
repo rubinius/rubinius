@@ -17,10 +17,13 @@ namespace rubinius {
     class SystemDiagnostics;
   }
 
+  namespace memory {
+    class FinalizerThread;
+  }
+
   class ConfigParser;
   class QueryAgent;
   class SignalThread;
-  class FinalizerThread;
 
   /**
    * Thrown when unable to find Rubinius runtime directories.
@@ -61,14 +64,14 @@ namespace rubinius {
      */
     uint64_t signature_;
 
-    FinalizerThread* finalizer_thread_;
+    memory::FinalizerThread* finalizer_thread_;
 
     std::string system_prefix_;
     std::string runtime_path_;
 
     utilities::thread::Mutex halt_lock_;
 
-    TypedRoot<Object*>* loader_;
+    memory::TypedRoot<Object*>* loader_;
 
     diagnostics::SystemDiagnostics* diagnostics_;
 

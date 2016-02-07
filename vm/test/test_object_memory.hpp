@@ -18,16 +18,16 @@ using namespace rubinius;
 class TestObjectMemory : public CxxTest::TestSuite, public VMTest {
 public:
 
-  GCData* gc_data;
-  Roots* roots;
-  VariableRootBuffers variable_buffers;
+  memory::GCData* gc_data;
+  memory::Roots* roots;
+  memory::VariableRootBuffers variable_buffers;
   capi::Handles handles;
   std::list<capi::Handle*> cached_handles;
 
   void setUp() {
     create();
     roots = &state->globals().roots;
-    gc_data = new GCData(state->vm());
+    gc_data = new memory::GCData(state->vm());
   }
 
   void tearDown() {
@@ -116,7 +116,7 @@ public:
 
     obj = util_new_object(om);
     TS_ASSERT_EQUALS(obj->age(), 0U);
-    Root r(roots, obj);
+    memory::Root r(roots, obj);
 
     om.collect_young(state, gc_data);
     TS_ASSERT(obj->forwarded_p());
@@ -139,7 +139,7 @@ public:
     TS_ASSERT(obj->young_object_p());
     TS_ASSERT(obj2->young_object_p());
 
-    Root r(roots, obj);
+    memory::Root r(roots, obj);
 
     om.collect_young(state, gc_data);
 
@@ -183,7 +183,7 @@ public:
 
     obj = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
 
-    Root r(roots, obj);
+    memory::Root r(roots, obj);
 
     om.collect_young(state, gc_data);
 
@@ -225,7 +225,7 @@ public:
 
     young = util_new_object(om);
 
-    Root r(roots, young);
+    memory::Root r(roots, young);
 
     TS_ASSERT_EQUALS(young->age(), 0U);
     om.collect_young(state, gc_data);
@@ -279,7 +279,7 @@ public:
 
     om.write_barrier(obj, obj2);
 
-    Root r(roots, obj);
+    memory::Root r(roots, obj);
 
     om.collect_young(state, gc_data);
 
@@ -300,7 +300,7 @@ public:
     obj = ByteArray::create(state, 3);
     obj->raw_bytes()[0] = 47;
 
-    Root r(roots, obj);
+    memory::Root r(roots, obj);
 
     om.collect_young(state, gc_data);
 
@@ -320,7 +320,7 @@ public:
     TS_ASSERT(mature->mature_object_p());
     unsigned int mark = om.mark();
     TS_ASSERT(!mature->marked_p(mark));
-    Root r(roots, mature);
+    memory::Root r(roots, mature);
 
     om.collect_full(state, gc_data);
     // marker thread cleans up gc_data
@@ -341,7 +341,7 @@ public:
 
     unsigned int mark = om.mark();
     TS_ASSERT(!young->marked_p(mark));
-    Root r(roots, young);
+    memory::Root r(roots, young);
 
     om.collect_full(state, gc_data);
     gc_data = NULL;
@@ -365,7 +365,7 @@ public:
     om.write_barrier(young, mature);
     om.write_barrier(mature, young);
 
-    Root r(roots, young);
+    memory::Root r(roots, young);
 
     om.collect_full(state, gc_data);
     gc_data = NULL;
@@ -390,7 +390,7 @@ public:
     om.write_barrier(obj, obj2);
     om.write_barrier(obj2, obj);
 
-    Root r(roots, obj);
+    memory::Root r(roots, obj);
 
     om.collect_young(state, gc_data);
 

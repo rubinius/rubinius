@@ -25,9 +25,9 @@ namespace rubinius {
 
   namespace capi {
 
-    /** Set what ObjectMark* object should be used by C-API */
-    void set_current_mark(ObjectMark* mark);
-    ObjectMark* current_mark();
+    /** Set what memory::ObjectMark* object should be used by C-API */
+    void set_current_mark(memory::ObjectMark* mark);
+    memory::ObjectMark* current_mark();
 
     Symbol* prefixed_by(STATE, const char* prefix, size_t len, ID name);
     Symbol* prefixed_by(STATE, const char prefix, ID name);

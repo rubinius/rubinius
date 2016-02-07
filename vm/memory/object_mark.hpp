@@ -4,9 +4,10 @@
 namespace rubinius {
 
   class VM;
-  class GarbageCollector;
   class Object;
 
+namespace memory {
+  class GarbageCollector;
 
   /**
    * Used by GarbageCollector implementations to mark objects that are still
@@ -30,8 +31,7 @@ namespace rubinius {
     void set(Object* target, Object** pos, Object* val);
     void just_set(Object* target, Object* val);
   };
-
+}
 }
 
 #endif
-

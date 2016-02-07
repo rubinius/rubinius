@@ -12,8 +12,8 @@ namespace rubinius {
     : current_exception_(state, nil<Exception>())
     , raise_value_(state, cNil)
     , throw_dest_(state, cNil)
-    , raise_reason_(cNone)
     , destination_scope_(state, nil<VariableScope>())
+    , raise_reason_(cNone)
   {}
 
   ThreadState* VMThreadState::state_as_object(STATE) {

@@ -35,7 +35,7 @@
 #endif
 
 #include "memory/immix_marker.hpp"
-#include "memory/finalize.hpp"
+#include "memory/finalizer.hpp"
 
 #include "signal.hpp"
 #include "object_utils.hpp"
@@ -116,7 +116,7 @@ namespace rubinius {
 
     state = new State(root_vm);
 
-    loader_ = new TypedRoot<Object*>(state);
+    loader_ = new memory::TypedRoot<Object*>(state);
 
     NativeMethod::init_thread(state);
 
@@ -208,7 +208,7 @@ namespace rubinius {
   }
 
   void Environment::start_finalizer(STATE) {
-    finalizer_thread_ = new FinalizerThread(state);
+    finalizer_thread_ = new memory::FinalizerThread(state);
     finalizer_thread_->start(state);
   }
 
@@ -588,7 +588,7 @@ namespace rubinius {
     state->shared().tool_broker()->shutdown(state);
 
     if(ObjectMemory* om = state->memory()) {
-      if(ImmixMarker* im = om->immix_marker()) {
+      if(memory::ImmixMarker* im = om->immix_marker()) {
         im->stop(state);
       }
     }

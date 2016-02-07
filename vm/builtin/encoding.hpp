@@ -154,8 +154,8 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* obj, ObjectMark& mark);
-      virtual void auto_mark(Object* obj, ObjectMark& mark);
+      virtual void mark(Object* obj, memory::ObjectMark& mark);
+      virtual void auto_mark(Object* obj, memory::ObjectMark& mark);
       virtual void set_field(STATE, Object* target, size_t index, Object* val);
       virtual Object* get_field(STATE, Object* target, size_t index);
       virtual void populate_slot_locations();

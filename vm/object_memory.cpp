@@ -12,7 +12,7 @@
 #include "capi/tag.hpp"
 
 #include "memory/mark_sweep.hpp"
-#include "memory/immix.hpp"
+#include "memory/immix_collector.hpp"
 #include "memory/inflated_headers.hpp"
 #include "memory/walker.hpp"
 
@@ -61,10 +61,10 @@ namespace rubinius {
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(VM* vm, SharedState& shared)
     /* : young_(new BakerGC(this, shared.config)) */
-    : mark_sweep_(new MarkSweepGC(this, shared.config))
-    , immix_(new ImmixGC(this))
+    : mark_sweep_(new memory::MarkSweepGC(this, shared.config))
+    , immix_(new memory::ImmixGC(this))
     , immix_marker_(NULL)
-    , inflated_headers_(new InflatedHeaders)
+    , inflated_headers_(new memory::InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&vm->shared)
     , mark_(2)
@@ -435,7 +435,7 @@ step1:
   bool ObjectMemory::refill_slab(STATE, memory::Slab& slab) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
-    Address addr = Address::null(); /* young_->allocate_for_slab(slab_size_); */
+    memory::Address addr = memory::Address::null(); /* young_->allocate_for_slab(slab_size_); */
 
     metrics::MetricsData& metrics = state->vm()->metrics();
     metrics.memory.young_objects += slab.allocations();
@@ -513,7 +513,7 @@ step1:
 
     if(!collect_young_flag_ && !collect_full_flag_) return;
 
-    if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
+    if(memory::FinalizerThread* finalizer = state->shared().finalizer_handler()) {
       finalizer->start_collection(state);
     }
 
@@ -523,7 +523,7 @@ step1:
     }
 
     if(collect_young_flag_) {
-      GCData gc_data(state->vm());
+      memory::GCData gc_data(state->vm());
 
       RUBINIUS_GC_BEGIN(0);
       if(unlikely(state->vm()->tooling())) {
@@ -536,7 +536,7 @@ step1:
     }
 
     if(collect_full_flag_) {
-      GCData gc_data(state->vm());
+      memory::GCData gc_data(state->vm());
 
       RUBINIUS_GC_BEGIN(1);
       if(unlikely(state->vm()->tooling())) {
@@ -548,7 +548,7 @@ step1:
     }
   }
 
-  void ObjectMemory::collect_young(STATE, GCData* data) {
+  void ObjectMemory::collect_young(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
 
@@ -584,7 +584,7 @@ step1:
     young_->verify(data);
 #endif
 
-    if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
+    if(memory::FinalizerThread* finalizer = state->shared().finalizer_handler()) {
       finalizer->finish_collection(state);
     }
     */
@@ -592,7 +592,7 @@ step1:
     collect_young_flag_ = false;
   }
 
-  void ObjectMemory::collect_full(STATE, GCData* data) {
+  void ObjectMemory::collect_full(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.immix_concurrent_ms);
 
@@ -614,7 +614,7 @@ step1:
     }
   }
 
-  void ObjectMemory::collect_full_finish(STATE, GCData* data) {
+  void ObjectMemory::collect_full_finish(STATE, memory::GCData* data) {
     immix_->collect_finish(data);
 
     code_manager_.sweep();
@@ -640,7 +640,7 @@ step1:
     metrics.gc.immix_count++;
     metrics.gc.large_count++;
 
-    if(FinalizerThread* finalizer = state->shared().finalizer_handler()) {
+    if(memory::FinalizerThread* finalizer = state->shared().finalizer_handler()) {
       finalizer->finish_collection(state);
     }
 
@@ -649,7 +649,7 @@ step1:
     RUBINIUS_GC_END(1);
   }
 
-  immix::MarkStack& ObjectMemory::mature_mark_stack() {
+  memory::MarkStack& ObjectMemory::mature_mark_stack() {
     return immix_->mark_stack();
   }
 
@@ -717,7 +717,7 @@ step1:
     handles->deallocate_handles(cached, mark(), young);
   }
 
-  void ObjectMemory::clear_fiber_marks(GCData* data) {
+  void ObjectMemory::clear_fiber_marks(memory::GCData* data) {
     utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
 
     for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
@@ -789,7 +789,7 @@ step1:
     return mark_sweep_->validate_object(obj);
   }
 
-  void ObjectMemory::add_code_resource(STATE, CodeResource* cr) {
+  void ObjectMemory::add_code_resource(STATE, memory::CodeResource* cr) {
     utilities::thread::SpinLock::LockGuard guard(shared_.code_resource_lock());
 
     state->vm()->metrics().memory.code_bytes += cr->size();
@@ -802,10 +802,10 @@ step1:
     }
   }
 
-  void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func,
-      FinalizeObject::FinalizeKind kind)
+  void ObjectMemory::needs_finalization(Object* obj, memory::FinalizerFunction func,
+      memory::FinalizeObject::FinalizeKind kind)
   {
-    if(FinalizerThread* finalizer = shared_.finalizer_handler()) {
+    if(memory::FinalizerThread* finalizer = shared_.finalizer_handler()) {
       finalizer->record(obj, func, kind);
     }
   }

@@ -13,11 +13,11 @@ namespace rubinius {
   class ThreadState;
 
   class VMThreadState {
-    TypedRoot<Exception*> current_exception_;
-    TypedRoot<Object*> raise_value_;
-    TypedRoot<Object*> throw_dest_;
+    memory::TypedRoot<Exception*> current_exception_;
+    memory::TypedRoot<Object*> raise_value_;
+    memory::TypedRoot<Object*> throw_dest_;
+    memory::TypedRoot<VariableScope*> destination_scope_;
     RaiseReason raise_reason_;
-    TypedRoot<VariableScope*> destination_scope_;
 
   public:
     VMThreadState(VM* state);

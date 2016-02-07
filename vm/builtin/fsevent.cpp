@@ -32,8 +32,9 @@ namespace rubinius {
     if((fsevent->kq_ = kqueue()) < 0) {
       logger::error("%s: unable to create kqueue", strerror(errno));
     } else {
-      state->memory()->needs_finalization(fsevent, (FinalizerFunction)&FSEvent::finalize,
-          FinalizeObject::eUnmanaged);
+      state->memory()->needs_finalization(fsevent,
+          (memory::FinalizerFunction)&FSEvent::finalize,
+          memory::FinalizeObject::eUnmanaged);
     }
 
     return fsevent;

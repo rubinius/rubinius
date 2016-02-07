@@ -69,7 +69,7 @@ namespace rubinius {
 #endif
 
   VM::VM(uint32_t id, SharedState& shared, const char* name)
-    : ManagedThread(id, shared, ManagedThread::eRuby, name)
+    : memory::ManagedThread(id, shared, memory::ManagedThread::eRuby, name)
     , thread_nexus_(shared.thread_nexus())
     , last_frame_(0)
     , saved_call_site_information_(0)
@@ -164,14 +164,14 @@ namespace rubinius {
    * Returns the current VM executing on this pthread.
    */
   VM* VM::current() {
-    return ManagedThread::current()->as_vm();
+    return memory::ManagedThread::current()->as_vm();
   }
 
   /**
    * Sets this VM instance as the current VM on this pthread.
    */
   void VM::set_current_thread() {
-    ManagedThread::set_current_thread(this);
+    memory::ManagedThread::set_current_thread(this);
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
@@ -367,7 +367,7 @@ namespace rubinius {
     current_fiber.set(fib);
   }
 
-  VariableRootBuffers& VM::current_root_buffers() {
+  memory::VariableRootBuffers& VM::current_root_buffers() {
     if(current_fiber->nil_p() || current_fiber->root_p()) {
       return variable_root_buffers();
     }
@@ -375,7 +375,7 @@ namespace rubinius {
     return current_fiber->variable_root_buffers();
   }
 
-  void VM::gc_scan(GarbageCollector* gc) {
+  void VM::gc_scan(memory::GarbageCollector* gc) {
     if(CallFrame* cf = last_frame()) {
       gc->walk_call_frame(cf);
     }
@@ -393,11 +393,11 @@ namespace rubinius {
     fiber_stacks_.gc_clear_mark();
   }
 
-  void VM::gc_fiber_scan(GarbageCollector* gc, bool only_marked) {
+  void VM::gc_fiber_scan(memory::GarbageCollector* gc, bool only_marked) {
     fiber_stacks_.gc_scan(gc, only_marked);
   }
 
-  void VM::gc_verify(GarbageCollector* gc) {
+  void VM::gc_verify(memory::GarbageCollector* gc) {
     if(CallFrame* cf = last_frame()) {
       gc->verify_call_frame(cf);
     }

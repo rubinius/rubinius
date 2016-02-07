@@ -289,7 +289,7 @@ namespace rubinius {
     return true;
   }
 
-  void CallSite::Info::mark(Object* obj, ObjectMark& mark) {
+  void CallSite::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
   }
 

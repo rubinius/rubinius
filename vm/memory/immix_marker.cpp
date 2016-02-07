@@ -1,6 +1,5 @@
 #include "config.h"
 #include "configuration.hpp"
-#include "immix_marker.hpp"
 #include "metrics.hpp"
 #include "object_memory.hpp"
 #include "state.hpp"
@@ -11,12 +10,14 @@
 #include "builtin/thread.hpp"
 
 #include "memory/gc.hpp"
-#include "memory/immix.hpp"
+#include "memory/immix_collector.hpp"
+#include "memory/immix_marker.hpp"
 
 #include "dtrace/dtrace.h"
 #include "instruments/timing.hpp"
 
 namespace rubinius {
+namespace memory {
 
   ImmixMarker::ImmixMarker(STATE, ImmixGC* immix)
     : InternalThread(state, "rbx.immix")
@@ -122,4 +123,5 @@ namespace rubinius {
 
     state->memory()->clear_mature_mark_in_progress();
   }
+}
 }

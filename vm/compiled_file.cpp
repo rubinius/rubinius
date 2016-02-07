@@ -37,7 +37,7 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    TypedRoot<CompiledCode*> code(state, as<CompiledCode>(body(state)));
+    memory::TypedRoot<CompiledCode*> code(state, as<CompiledCode>(body(state)));
 
     state->thread_state()->clear();
 

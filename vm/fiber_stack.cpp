@@ -80,7 +80,7 @@ namespace rubinius {
     if(trampoline_) free(trampoline_);
   }
 
-  void FiberStacks::gc_scan(GarbageCollector* gc, bool marked_only) {
+  void FiberStacks::gc_scan(memory::GarbageCollector* gc, bool marked_only) {
     for(Datas::iterator i = datas_.begin(); i != datas_.end(); ++i) {
       FiberData* data = *i;
       if(data->dead_p()) continue;
@@ -89,9 +89,8 @@ namespace rubinius {
         continue;
       }
 
-      AddressDisplacement dis(data->data_offset(),
-                              data->data_lower_bound(),
-                              data->data_upper_bound());
+      memory::AddressDisplacement dis(data->data_offset(),
+          data->data_lower_bound(), data->data_upper_bound());
 
       if(CallFrame* cf = data->call_frame()) {
         gc->walk_call_frame(cf, &dis);

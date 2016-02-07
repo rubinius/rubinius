@@ -817,7 +817,7 @@ namespace rubinius {
     return match;
   }
 
-  void Regexp::Info::mark(Object* obj, ObjectMark& mark) {
+  void Regexp::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
 
     Regexp* reg_o = force_as<Regexp>(obj);

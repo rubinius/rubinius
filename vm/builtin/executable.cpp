@@ -80,12 +80,12 @@ namespace rubinius {
     inliners_->inliners().clear();
   }
 
-  void Executable::Info::mark(Object* obj, ObjectMark& mark) {
+  void Executable::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
     mark_inliners(obj, mark);
   }
 
-  void Executable::Info::mark_inliners(Object* obj, ObjectMark& mark) {
+  void Executable::Info::mark_inliners(Object* obj, memory::ObjectMark& mark) {
     Executable* exc = static_cast<Executable*>(obj);
     if(!exc->inliners_ || exc->inliners_ == (Inliners*)cNil) return;
 
@@ -110,7 +110,7 @@ namespace rubinius {
     om->add_code_resource(state, this);
   }
 
-  void Inliners::cleanup(STATE, CodeManager* cm) {
+  void Inliners::cleanup(STATE, memory::CodeManager* cm) {
     inliners_.clear();
   }
 }

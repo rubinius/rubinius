@@ -15,6 +15,7 @@ namespace rubinius {
   class SharedState;
   class VM;
 
+namespace memory {
   typedef std::vector<ObjectHeader*> LockedObjects;
 
   class ManagedThread {
@@ -110,6 +111,7 @@ namespace rubinius {
       return metrics_;
     }
   };
+}
 }
 
 #endif

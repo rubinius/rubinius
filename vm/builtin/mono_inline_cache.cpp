@@ -115,7 +115,7 @@ namespace rubinius {
     }
   }
 
-  void MonoInlineCache::Info::mark(Object* obj, ObjectMark& mark) {
+  void MonoInlineCache::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
   }
 

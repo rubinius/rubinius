@@ -6,6 +6,7 @@
 #include "memory/gc.hpp"
 
 namespace rubinius {
+namespace memory {
   class ObjectWalker : public GarbageCollector {
     std::vector<Object*> stack_;
     std::map<Object*, bool> mark_bits_;
@@ -26,6 +27,7 @@ namespace rubinius {
     size_t stack_size();
     Object** stack_buf();
   };
+}
 }
 
 #endif

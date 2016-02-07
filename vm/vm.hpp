@@ -43,6 +43,7 @@ namespace rubinius {
   }
 
   namespace memory {
+    class GarbageCollector;
     class WriteBarrier;
   }
 
@@ -65,7 +66,6 @@ namespace rubinius {
   class SymbolTable;
   class SharedState;
   class Fiber;
-  class GarbageCollector;
   class Park;
   class NativeMethodEnvironment;
 
@@ -86,7 +86,7 @@ namespace rubinius {
    * running Ruby code.
    */
 
-  class VM : public ManagedThread {
+  class VM : public memory::ManagedThread {
     friend class State;
     friend class VMJIT;
 
@@ -121,19 +121,19 @@ namespace rubinius {
   public:
     /* Data members */
     SharedState& shared;
-    TypedRoot<Channel*> waiting_channel_;
-    TypedRoot<Exception*> interrupted_exception_;
+    memory::TypedRoot<Channel*> waiting_channel_;
+    memory::TypedRoot<Exception*> interrupted_exception_;
     /// The Thread object for this VM state
-    TypedRoot<Thread*> thread;
+    memory::TypedRoot<Thread*> thread;
 
     /// The current fiber running on this thread
-    TypedRoot<Fiber*> current_fiber;
+    memory::TypedRoot<Fiber*> current_fiber;
 
     /// Root fiber, if any (lazily initialized)
-    TypedRoot<Fiber*> root_fiber;
+    memory::TypedRoot<Fiber*> root_fiber;
 
     /// Object that waits for inflation
-    TypedRoot<Object*> waiting_object_;
+    memory::TypedRoot<Object*> waiting_object_;
 
     NativeMethodEnvironment* native_method_environment;
 
@@ -370,7 +370,7 @@ namespace rubinius {
       fiber_stacks_.remove_data(data);
     }
 
-    VariableRootBuffers& current_root_buffers();
+    memory::VariableRootBuffers& current_root_buffers();
 
   public:
     static void init_stack_size();
@@ -461,10 +461,10 @@ namespace rubinius {
     void register_raise(STATE, Exception* exc);
     void register_kill(STATE);
 
-    void gc_scan(GarbageCollector* gc);
+    void gc_scan(memory::GarbageCollector* gc);
     void gc_fiber_clear_mark();
-    void gc_fiber_scan(GarbageCollector* gc, bool only_marked = true);
-    void gc_verify(GarbageCollector* gc);
+    void gc_fiber_scan(memory::GarbageCollector* gc, bool only_marked = true);
+    void gc_verify(memory::GarbageCollector* gc);
   };
 }
 

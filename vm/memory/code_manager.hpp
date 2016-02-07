@@ -7,8 +7,10 @@
 #include <stdint.h>
 
 namespace rubinius {
-  class CodeResource;
   class SharedState;
+
+namespace memory {
+  class CodeResource;
 
 
   /**
@@ -99,6 +101,7 @@ namespace rubinius {
   private:
     void add_chunk();
   };
+}
 }
 
 #endif

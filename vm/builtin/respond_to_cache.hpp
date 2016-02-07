@@ -91,7 +91,7 @@ namespace rubinius {
     class Info : public CallSite::Info {
     public:
       BASIC_TYPEINFO(CallSite::Info)
-      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void mark(Object* t, memory::ObjectMark& mark);
     };
 
   };

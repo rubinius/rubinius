@@ -116,7 +116,8 @@ namespace rubinius {
     if(autorelease) {
       if(!set_finalizer) {
         state->memory()->needs_finalization(this,
-            (FinalizerFunction)&Pointer::finalize, FinalizeObject::eUnmanaged);
+            (memory::FinalizerFunction)&Pointer::finalize,
+            memory::FinalizeObject::eUnmanaged);
         set_finalizer = true;
       }
     } else {
@@ -538,6 +539,6 @@ namespace rubinius {
     }
   }
 
-  void Pointer::Info::mark(Object* obj, ObjectMark& mark) {
+  void Pointer::Info::mark(Object* obj, memory::ObjectMark& mark) {
   }
 }

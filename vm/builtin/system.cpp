@@ -1380,8 +1380,8 @@ namespace rubinius {
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
-    ObjectWalker walker(state->memory());
-    GCData gc_data(state->vm());
+    memory::ObjectWalker walker(state->memory());
+    memory::GCData gc_data(state->vm());
 
     // Seed it with the root objects.
     walker.seed(gc_data);

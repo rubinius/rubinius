@@ -4,7 +4,6 @@
 #include "util/thread.hpp"
 
 namespace rubinius {
-
   class Object;
 
 namespace memory {
@@ -113,7 +112,7 @@ namespace memory {
     // Returns the current marked set, and replaces it with a new, empty one.
     ObjectArray* swap_marked_set();
   };
-
-}}
+}
+}
 
 #endif

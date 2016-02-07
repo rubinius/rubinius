@@ -1,16 +1,19 @@
 #ifndef RBX_GC_INFLATED_HEADERS_HPP
 #define RBX_GC_INFLATED_HEADERS_HPP
 
-#include <stddef.h>
-#include <list>
 #include "diagnostics.hpp"
 #include "defines.hpp"
-#include "util/allocator.hpp"
+#include "memory/allocator.hpp"
+
+#include <stddef.h>
+#include <list>
 
 namespace rubinius {
   class ObjectHeader;
   class InflatedHeader;
   class VM;
+
+namespace memory {
 
   class InflatedHeaders {
   public:
@@ -57,6 +60,7 @@ namespace rubinius {
       return diagnostics_;
     }
   };
+}
 }
 
 #endif

@@ -2,9 +2,10 @@
 #include <string.h>
 #include "config.h"
 #include "memory/heap.hpp"
-#include "util/gc_alloc.hpp"
+#include "memory/gc_alloc.hpp"
 
 namespace rubinius {
+namespace memory {
 
   /**
    * Allocates a new chunk of memory of +bytes+ size.
@@ -82,5 +83,5 @@ namespace rubinius {
 
     return tmp;
   }
-
+}
 }

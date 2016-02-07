@@ -19,6 +19,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
+#include "memory/object_mark.hpp"
+
 #include "util/logger.hpp"
 
 #include <ostream>
@@ -200,7 +202,7 @@ namespace rubinius {
 
       OnStack<5> os(state, code, exec, mod, args.recv_location(), args.block_location());
 
-      VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+      memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                              &args.arguments_location(), args.total());
 
       if(!code->internalize(state, call_frame, &reason, &ip)) {
@@ -457,7 +459,7 @@ namespace rubinius {
     return cNil;
   }
 
-  void CompiledCode::Info::mark(Object* obj, ObjectMark& mark) {
+  void CompiledCode::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
 
     mark_inliners(obj, mark);

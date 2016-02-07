@@ -30,7 +30,7 @@ namespace rubinius {
   typedef Object* (*InterpreterRunner)(STATE, MachineCode* const mcode,
                                        InterpreterCallFrame* const call_frame);
 
-  class MachineCode : public CodeResource {
+  class MachineCode : public memory::CodeResource {
   public:
 
     enum Flags {
@@ -99,7 +99,7 @@ namespace rubinius {
 
     MachineCode(STATE, CompiledCode* code);
     virtual ~MachineCode();
-    virtual void cleanup(STATE, CodeManager* code) {}
+    virtual void cleanup(STATE, memory::CodeManager* code) {}
     virtual int size();
 
     bool jitted_p() const {

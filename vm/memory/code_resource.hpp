@@ -2,9 +2,11 @@
 #define RBX_CODE_RESOURCE
 
 namespace rubinius {
-  class CodeManager;
   class VM;
   class State;
+
+namespace memory {
+  class CodeManager;
 
   class CodeResource {
     bool mark_;
@@ -31,6 +33,7 @@ namespace rubinius {
       mark_ = false;
     }
   };
+}
 }
 
 #endif

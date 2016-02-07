@@ -598,7 +598,7 @@ namespace rubinius {
     return n;
   }
 
-  void Encoding::Info::mark(Object* obj, ObjectMark& mark) {
+  void Encoding::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
 
     Encoding* enc_o = force_as<Encoding>(obj);
@@ -733,8 +733,9 @@ namespace rubinius {
 
     c->set_converter(NULL);
 
-    state->memory()->needs_finalization(c, (FinalizerFunction)&Converter::finalize,
-        FinalizeObject::eUnmanaged);
+    state->memory()->needs_finalization(c,
+        (memory::FinalizerFunction)&Converter::finalize,
+        memory::FinalizeObject::eUnmanaged);
 
     return c;
   }

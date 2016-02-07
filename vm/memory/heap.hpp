@@ -1,15 +1,13 @@
 #ifndef RBX_VM_HEAP
 
 #include "builtin/object.hpp"
-#include "util/address.hpp"
-
-using memory::Address;
-
+#include "memory/address.hpp"
 
 namespace rubinius {
   class Object;
   class VM;
 
+namespace memory {
 
   /**
    * A Heap is a chunk of memory used by the Baker GC.
@@ -200,7 +198,7 @@ namespace rubinius {
     void reset();
     Object* move_object(VM* state, Object*);
   };
-
+}
 }
 
 #endif

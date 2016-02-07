@@ -358,7 +358,7 @@ namespace rubinius {
     class Metrics : public InternalThread {
       bool enabled_;
 
-      TypedRoot<Tuple*> values_;
+      memory::TypedRoot<Tuple*> values_;
 
       int interval_;
       utilities::timer::Timer* timer_;

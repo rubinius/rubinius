@@ -77,7 +77,7 @@ namespace rubinius {
     VariableScope* create_heap_alias(STATE, CallFrame* call_frame, bool full=true);
     void flush_to_heap(STATE);
 
-    friend class GarbageCollector;
+    friend class memory::GarbageCollector;
   };
 
 #define ALLOCA_STACKVARIABLES(local_size) \

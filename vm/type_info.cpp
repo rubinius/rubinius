@@ -44,7 +44,7 @@ namespace rubinius {
   /* By default, just call auto_mark(). This exists so that
    * other types can overload this to perform work before or
    * after auto_marking is done. */
-  void TypeInfo::mark(Object* obj, ObjectMark& mark) {
+  void TypeInfo::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
   }
 

@@ -518,7 +518,7 @@ namespace rubinius {
     close_body(level);
   }
 
-  void Module::Info::mark(Object* obj, ObjectMark& mark) {
+  void Module::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
 
     Array* subclasses = as<Module>(obj)->hierarchy_subclasses_;

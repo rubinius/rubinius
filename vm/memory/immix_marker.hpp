@@ -9,6 +9,8 @@ namespace rubinius {
   class VM;
   class State;
   struct CallFrame;
+
+namespace memory {
   class ImmixGC;
   class GCData;
 
@@ -35,6 +37,6 @@ namespace rubinius {
     void concurrent_mark(GCData* data);
   };
 }
+}
 
 #endif
-

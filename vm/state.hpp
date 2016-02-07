@@ -11,7 +11,6 @@ namespace rubinius {
 
   class Class;
   class Exception;
-  class ManagedThread;
   class Object;
   class ObjectMemory;
   class SharedState;
@@ -20,6 +19,10 @@ namespace rubinius {
   class VM;
   class VMJIT;
   class VMThreadState;
+
+  namespace memory {
+    class ManagedThread;
+  }
 
   class State {
     VM* vm_;
@@ -37,8 +40,8 @@ namespace rubinius {
       return vm_;
     }
 
-    ManagedThread* thread() {
-      return static_cast<ManagedThread*>(vm_);
+    memory::ManagedThread* thread() {
+      return static_cast<memory::ManagedThread*>(vm_);
     }
 
     Object* raise_exception(Exception* exc) {

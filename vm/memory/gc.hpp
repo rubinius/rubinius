@@ -3,25 +3,26 @@
 
 #include <list>
 
-#include "object_memory.hpp"
 #include "oop.hpp"
 #include "shared_state.hpp"
 
 #include "builtin/object.hpp"
 
 namespace rubinius {
+  struct CallFrame;
 
   class ObjectMemory;
-  struct CallFrame;
   class VariableScope;
   class GlobalCache;
   class StackVariables;
-  class ManagedThread;
   class LLVMState;
 
   namespace capi {
     class Handles;
   }
+
+namespace memory {
+  class ManagedThread;
 
   /**
    * Holds all the root pointers from which garbage collections will commence.
@@ -192,8 +193,7 @@ namespace rubinius {
 
     friend class ObjectMark;
   };
-
-
+}
 }
 
 #endif

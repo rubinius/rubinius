@@ -13,10 +13,7 @@
 #include "memory/gc_alloc.hpp"
 
 namespace rubinius {
-
-using memory::Address;
-
-namespace immix {
+namespace memory {
 
   /// Size of a Block; 32K, to match the size of a page of virtual memory
   const uint32_t cBlockSize = 32768;
@@ -184,7 +181,7 @@ namespace immix {
      * a fixed size.
      */
     static uint32_t size() {
-      return immix::cBlockSize;
+      return cBlockSize;
     }
 
     /**
@@ -840,9 +837,9 @@ namespace immix {
    * space.
    */
 
-  class Allocator {
+  class ImmixAllocator {
   public:
-    virtual ~Allocator() {}
+    virtual ~ImmixAllocator() {}
     virtual Address allocate(uint32_t bytes, bool& collect_now) = 0;
   };
 
@@ -854,7 +851,7 @@ namespace immix {
    * This allocator is used for testing.
    */
 
-  class SingleBlockAllocator : public HoleFinder, public Allocator {
+  class SingleBlockAllocator : public HoleFinder, public ImmixAllocator {
   public:
 
     SingleBlockAllocator(Block& block) {
@@ -887,7 +884,7 @@ namespace immix {
    * the number of blocks in use if necessary.
    */
 
-  class ExpandingAllocator : public HoleFinder, public Allocator {
+  class ExpandingAllocator : public HoleFinder, public ImmixAllocator {
     BlockAllocator& block_allocator_;
 
   public:
@@ -959,10 +956,10 @@ namespace immix {
   template <typename Describer>
   class Marker {
     GC<Describer>* gc;
-    Allocator& alloc;
+    ImmixAllocator& alloc;
 
   public:
-    Marker(GC<Describer>* gc, Allocator& alloc)
+    Marker(GC<Describer>* gc, ImmixAllocator& alloc)
       : gc(gc)
       , alloc(alloc)
     {}
@@ -1055,7 +1052,7 @@ namespace immix {
      * for evacuation). Since this method does not actually know how to do the
      * marking of an object, it calls back to ObjectDescriber to handle this.
      */
-    Address mark_address(Address addr, Allocator& alloc, bool push = true) {
+    Address mark_address(Address addr, ImmixAllocator& alloc, bool push = true) {
       Address fwd = desc.forwarding_pointer(addr);
 
       if(!fwd.is_null()) {
@@ -1088,7 +1085,7 @@ namespace immix {
     /**
      * Calls the Describer to scan from each of the Addresses in the mark stack.
      */
-    bool process_mark_stack(Allocator& alloc, bool& exit) {
+    bool process_mark_stack(ImmixAllocator& alloc, bool& exit) {
       Marker<Describer> mark(this, alloc);
 
       if(mark_stack_.empty()) return false;
@@ -1107,7 +1104,7 @@ namespace immix {
      * Calls the describer to update addresses that might have been
      * forwarded by another GC.
      */
-    size_t update_mark_stack(Allocator& alloc) {
+    size_t update_mark_stack(ImmixAllocator& alloc) {
       Marker<Describer> mark(this, alloc);
 
       for(MarkStack::iterator i = mark_stack_.begin(); i != mark_stack_.end(); ++i) {

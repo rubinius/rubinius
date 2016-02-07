@@ -59,7 +59,7 @@ namespace rubinius {
     VALUE get_handle(Object* obj);
 
     /** GC marking for Objects behind VALUEs. */
-    void mark_handles(ObjectMark& mark);
+    void mark_handles(memory::ObjectMark& mark);
 
     metrics::MetricsData* metrics() {
       return &metrics_;

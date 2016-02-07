@@ -4,6 +4,7 @@
 #include "capi/handles.hpp"
 
 namespace rubinius {
+namespace memory {
   ObjectWalker::~ObjectWalker() {
   }
 
@@ -70,4 +71,5 @@ namespace rubinius {
   Object** ObjectWalker::stack_buf() {
     return stack_.data();
   }
+}
 }

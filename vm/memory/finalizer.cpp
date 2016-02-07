@@ -15,13 +15,14 @@
 
 #include "capi/handle.hpp"
 
-#include "memory/finalize.hpp"
+#include "memory/finalizer.hpp"
 
 #include "util/logger.hpp"
 
 #include "dtrace/dtrace.h"
 
 namespace rubinius {
+namespace memory {
   FinalizerThread::iterator::iterator(FinalizerThread* fh)
     : handler_(fh)
     , current_list_(NULL)
@@ -448,4 +449,5 @@ namespace rubinius {
     iterator_ = new iterator(this);
     return *iterator_;
   }
+}
 }

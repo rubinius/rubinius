@@ -19,7 +19,7 @@ namespace rubinius {
   class CompiledCode;
   class ObjectMemory;
 
-  class Inliners : public CodeResource {
+  class Inliners : public memory::CodeResource {
     std::vector<CompiledCode*> inliners_;
 
   public:
@@ -29,7 +29,7 @@ namespace rubinius {
       return inliners_;
     }
 
-    void cleanup(State* state, CodeManager* cm);
+    void cleanup(State* state, memory::CodeManager* cm);
   };
 
   class Executable : public Object {
@@ -108,9 +108,9 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
 
-      virtual void mark(Object* obj, ObjectMark& mark);
+      virtual void mark(Object* obj, memory::ObjectMark& mark);
 
-      void mark_inliners(Object* obj, ObjectMark& mark);
+      void mark_inliners(Object* obj, memory::ObjectMark& mark);
     };
 
     friend class Info;

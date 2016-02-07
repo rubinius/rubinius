@@ -84,8 +84,8 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* t, ObjectMark& mark);
-      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+      virtual void mark(Object* t, memory::ObjectMark& mark);
+      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
       virtual size_t object_size(const ObjectHeader* object);
     };
 

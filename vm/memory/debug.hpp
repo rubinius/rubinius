@@ -4,9 +4,9 @@
 #include <map>
 
 namespace rubinius {
-
   class Object;
 
+namespace memory {
 
   class HeapDebug : public GarbageCollector {
   public:
@@ -21,4 +21,5 @@ namespace rubinius {
     virtual bool mature_gc_in_progress() { return false; }
     void walk(Roots &roots);
   };
+}
 }

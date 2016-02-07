@@ -25,7 +25,7 @@ namespace jit {
     runtime_data_.clear();
   }
 
-  void RuntimeDataHolder::cleanup(State* state, CodeManager* cm) {
+  void RuntimeDataHolder::cleanup(State* state, memory::CodeManager* cm) {
     LLVMState* ls = cm->shared()->llvm_state;
     assert(ls);
 
@@ -40,7 +40,7 @@ namespace jit {
     ls->remove(function_allocation_);
   }
 
-  void RuntimeDataHolder::mark_all(Object* obj, ObjectMark& mark) {
+  void RuntimeDataHolder::mark_all(Object* obj, memory::ObjectMark& mark) {
     for(std::vector<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
         ++i) {

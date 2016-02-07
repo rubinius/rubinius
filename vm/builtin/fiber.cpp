@@ -36,8 +36,9 @@ namespace rubinius {
 
       fib->data_ = state->vm()->new_fiber_data(true);
 
-      state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize,
-          FinalizeObject::eUnmanaged);
+      state->memory()->needs_finalization(fib,
+          (memory::FinalizerFunction)&Fiber::finalize,
+          memory::FinalizeObject::eUnmanaged);
 
       state->vm()->current_fiber.set(fib);
       state->vm()->root_fiber.set(fib);
@@ -105,8 +106,9 @@ namespace rubinius {
     fib->starter(state, callable);
     fib->status_ = Fiber::eSleeping;
 
-    state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize,
-        FinalizeObject::eUnmanaged);
+    state->memory()->needs_finalization(fib,
+        (memory::FinalizerFunction)&Fiber::finalize,
+        memory::FinalizeObject::eUnmanaged);
 
     return fib;
 #else
@@ -284,7 +286,7 @@ namespace rubinius {
 #endif
   }
 
-  void Fiber::Info::mark(Object* obj, ObjectMark& mark) {
+  void Fiber::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
     Fiber* fib = force_as<Fiber>(obj);
     FiberData* data = fib->data_;

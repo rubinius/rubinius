@@ -370,8 +370,8 @@ namespace rubinius {
   };
 
   Object* System::vm_dump_heap(STATE, String* path) {
-    ObjectWalker walker(state->memory());
-    GCData gc_data(state->vm());
+    memory::ObjectWalker walker(state->memory());
+    memory::GCData gc_data(state->vm());
 
     // Seed it with the root objects.
     walker.seed(gc_data);

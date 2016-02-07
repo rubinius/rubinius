@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 namespace rubinius {
+namespace memory {
   HeapDebug::HeapDebug(ObjectMemory *om) :
     GarbageCollector(om), seen_objects(0) {
 
@@ -45,4 +46,5 @@ namespace rubinius {
 
     return NULL;
   }
+}
 }

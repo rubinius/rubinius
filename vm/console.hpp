@@ -31,7 +31,7 @@ namespace rubinius {
       Response* response_;
       Request* request_;
 
-      TypedRoot<Object*> ruby_console_;
+      memory::TypedRoot<Object*> ruby_console_;
 
     public:
       Console(STATE);
@@ -68,7 +68,7 @@ namespace rubinius {
     class Listener : public InternalThread {
       Console* console_;
 
-      TypedRoot<FSEvent*> fsevent_;
+      memory::TypedRoot<FSEvent*> fsevent_;
 
       int fd_;
 
@@ -90,8 +90,8 @@ namespace rubinius {
     class Response : public InternalThread {
       Console* console_;
 
-      TypedRoot<Channel*> inbox_;
-      TypedRoot<Channel*> outbox_;
+      memory::TypedRoot<Channel*> inbox_;
+      memory::TypedRoot<Channel*> outbox_;
 
       int fd_;
 
@@ -129,7 +129,7 @@ namespace rubinius {
 
       int fd_;
 
-      TypedRoot<FSEvent*> fsevent_;
+      memory::TypedRoot<FSEvent*> fsevent_;
 
     public:
 

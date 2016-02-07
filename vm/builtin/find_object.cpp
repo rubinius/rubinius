@@ -302,8 +302,8 @@ namespace rubinius {
     OnStack<2> os(state, ary, args);
 
     state->vm()->set_call_frame(calling_environment);
-    ObjectWalker walker(state->memory());
-    GCData gc_data(state->vm());
+    memory::ObjectWalker walker(state->memory());
+    memory::GCData gc_data(state->vm());
 
     {
       LockPhase locked(state);
@@ -331,7 +331,7 @@ namespace rubinius {
           for(size_t i = 0; i < stack_size; ++i) {
             variable_buffer[i] = &stack_buf[i];
           }
-          VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+          memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                                  variable_buffer, stack_size);
           args->set(state, 0, obj);
           ret = callable->send(state, calling_environment, G(sym_call),

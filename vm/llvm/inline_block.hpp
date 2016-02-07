@@ -13,7 +13,7 @@ namespace rubinius {
     llvm::BasicBlock* block_break_loc_;
     llvm::BasicBlock* block_emit_loc_;
     MachineCode* machine_code_;
-    TypedRoot<CompiledCode*> method_;
+    memory::TypedRoot<CompiledCode*> method_;
     JITMethodInfo* scope_;
     int which_;
     llvm::Value* stack_ptr_;
