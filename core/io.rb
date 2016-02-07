@@ -500,7 +500,7 @@ class IO
     
     def reset_positioning(stat=nil)
       # Discover final size of file so we can set EOF properly
-      stat = Stat.fstat(@descriptor) unless stat
+      stat = File::Stat.fstat(@descriptor) unless stat
       @total_size = stat.size
 
       # We may have reopened a file descriptor that went from "file" to a different
@@ -575,7 +575,7 @@ class IO
     end
 
     def inspect
-      stat = Stat.fstat(@descriptor)
+      stat = File::Stat.fstat(@descriptor)
       "fd [#{descriptor}], mode [#{@mode}], total_size [#{@total_size}], offset [#{@offset}], eof [#{@eof}], stat.size [#{stat.size}], written? [#{@written}]"
     end
 
