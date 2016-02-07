@@ -100,12 +100,12 @@ class Configure
 
     @stagingdir       = nil
     @build_prefix     = nil
-    @capi_includedir  = "#{@sourcedir}/vm/include/capi"
+    @capi_includedir  = "#{@sourcedir}/machine/include/capi"
 
     @runtime_gems_dir   = nil
     @bootstrap_gems_dir = nil
 
-    @vm_release_h = File.join(root, "/vm/gen/release.h")
+    @vm_release_h = File.join(root, "/machine/gen/release.h")
 
     @preserve_prefix = false
 
@@ -241,7 +241,7 @@ class Configure
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
     @mandir       = @prefixdir + "/man" unless @mandir
     @gemsdir      = @prefixdir + "/gems" unless @gemsdir
-    @includedir   = @prefixdir + "/vm/include/capi" unless @includedir
+    @includedir   = @prefixdir + "/machine/include/capi" unless @includedir
 
     @encdir = @libdir + "/encoding/converter"
 
@@ -1625,9 +1625,9 @@ int main() { return tgetnum(""); }
     FileUtils.cp @config, "#{@sourcedir}/core/build_config.rb"
 
     # Write the config file used to build the C++ VM.
-    Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
+    Dir.mkdir "machine/gen" unless File.directory? "machine/gen"
 
-    vm_paths_h = "vm/gen/paths.h"
+    vm_paths_h = "machine/gen/paths.h"
     File.open vm_paths_h, "wb" do |f|
       f.puts <<-EOF
 #define RBX_PREFIX_PATH      "#{@prefixdir}"
@@ -1644,7 +1644,7 @@ int main() { return tgetnum(""); }
       EOF
     end
 
-    vm_config_h = "vm/gen/config.h"
+    vm_config_h = "machine/gen/config.h"
     File.open vm_config_h, "wb" do |f|
       f.puts <<-EOC
 #define RBX_PROGRAM_NAME     "#{@program_name}"
@@ -1745,8 +1745,8 @@ int main() { return tgetnum(""); }
       end
     end
 
-    # Create C-API header for vm/test
-    File.open "vm/test/ruby.h", "w" do |f|
+    # Create C-API header for machine/test
+    File.open "machine/test/ruby.h", "w" do |f|
       f.puts %[#include "#{@capi_includedir}/ruby.h"]
     end
   end
@@ -1757,7 +1757,7 @@ int main() { return tgetnum(""); }
     cat("config.rb")
     puts "\nSetting the following defines for the VM"
     puts "----------------------------------------"
-    cat("vm/gen/config.h")
+    cat("machine/gen/config.h")
   end
 
   def cat(file)

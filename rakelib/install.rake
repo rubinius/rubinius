@@ -157,10 +157,10 @@ end
 
 namespace :stage do
   task :bin do
-    install_bin "#{BUILD_CONFIG[:sourcedir]}/vm/vm", BUILD_CONFIG[:sourcedir]
+    install_bin "#{BUILD_CONFIG[:sourcedir]}/machine/vm", BUILD_CONFIG[:sourcedir]
 
     if BUILD_CONFIG[:stagingdir]
-      install_bin "#{BUILD_CONFIG[:sourcedir]}/vm/vm", BUILD_CONFIG[:stagingdir]
+      install_bin "#{BUILD_CONFIG[:sourcedir]}/machine/vm", BUILD_CONFIG[:stagingdir]
 
       name = BUILD_CONFIG[:program_name]
       mode = File::CREAT | File::TRUNC | File::WRONLY
@@ -219,7 +219,7 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 
   task :manpages do
     if BUILD_CONFIG[:stagingdir]
-      install_manpages "#{BUILD_CONFIG[:sourcedir]}/doc/generated/vm/man", BUILD_CONFIG[:stagingdir]
+      install_manpages "#{BUILD_CONFIG[:sourcedir]}/doc/generated/machine/man", BUILD_CONFIG[:stagingdir]
     end
   end
 end

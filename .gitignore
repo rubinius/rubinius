@@ -73,25 +73,20 @@ Gemfile.installed.lock
 # don't ignore spec/tags
 !/spec/tags
 
-/vm/log
-/vm/.deps
-/vm/vm.exe
+/machine/log
+/machine/.deps
+/machine/vm.exe
 
-/vm/test/ruby.h
+/machine/test/ruby.h
 
 # rubysl-digest installs this header
-vm/include/capi/ruby/digest.h
+machine/include/capi/ruby/digest.h
 
 /core/signature.rb
 /core/build_config.rb
 
-# Generated documentation
-doc/generated/vm
-web/doc/*/*.bak
-web/doc/*/*.new
-
 # Ignore generated DTrace header
-vm/dtrace/probes.h
+machine/dtrace/probes.h
 
 # Ignore rubygems except bundled ones
 vendor/cache/*

@@ -53,12 +53,12 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:dtrace]
     gcc.ldflags << "-lelf"
-    gcc.ldflags << "vm/dtrace/probes.o"
+    gcc.ldflags << "machine/dtrace/probes.o"
 
-    gcc.add_pre_link "rm -f vm/dtrace/probes.o"
+    gcc.add_pre_link "rm -f machine/dtrace/probes.o"
 
-    blk = lambda { |files| files.select { |f| f =~ %r[vm/.*\.o$] } }
-    cmd = "dtrace -G -s vm/dtrace/probes.d -o vm/dtrace/probes.o %objects%"
+    blk = lambda { |files| files.select { |f| f =~ %r[machine/.*\.o$] } }
+    cmd = "dtrace -G -s machine/dtrace/probes.d -o machine/dtrace/probes.o %objects%"
     gcc.add_pre_link(cmd, &blk)
   end
 
@@ -74,10 +74,10 @@ Daedalus.blueprint do |i|
 
   # Files
   subdirs = %w[ builtin capi util instruments memory llvm missing ].map do |x|
-    "vm/#{x}/*.{cpp,c}"
+    "machine/#{x}/*.{cpp,c}"
   end
 
-  files = i.source_files "vm/*.{cpp,c}", *subdirs
+  files = i.source_files "machine/*.{cpp,c}", *subdirs
 
   perl = Rubinius::BUILD_CONFIG[:build_perl] || "perl"
 
@@ -98,7 +98,7 @@ Daedalus.blueprint do |i|
     g.depends_on "config.h", "configure"
 
     gcc.cflags.unshift "-I#{src}/vendor/oniguruma"
-    g.cflags = [ "-DHAVE_CONFIG_H", "-I#{src}/vm/include/capi" ]
+    g.cflags = [ "-DHAVE_CONFIG_H", "-I#{src}/machine/include/capi" ]
     g.cflags += gcc.cflags
 
     g.static_library "libonig" do |l|
@@ -266,9 +266,9 @@ Daedalus.blueprint do |i|
     gcc.ldflags << ldflags
   end
 
-  # Make sure to push these up front so vm/ stuff has priority
-  dirs = %w[ /vm /vm/include /vm/builtin ]
-  gcc.cflags.unshift "#{dirs.map { |d| "-I#{src}#{d}" }.join(" ")} -I. -Ivm/test/cxxtest"
+  # Make sure to push these up front so machine/ stuff has priority
+  dirs = %w[ /machine /machine/include /machine/builtin ]
+  gcc.cflags.unshift "#{dirs.map { |d| "-I#{src}#{d}" }.join(" ")} -I. -Imachine/test/cxxtest"
 
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-Werror"
@@ -278,23 +278,23 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-D_FILE_OFFSET_BITS=64"
 
   cli = files.dup
-  cli << i.source_file("vm/drivers/cli.cpp")
+  cli << i.source_file("machine/drivers/cli.cpp")
 
-  exe = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
+  exe = RUBY_PLATFORM =~ /mingw|mswin/ ? 'machine/vm.exe' : 'machine/vm'
   i.program exe, *cli
 
   test_files = files.dup
-  test_files << i.source_file("vm/test/runner.cpp") { |f|
-    tests = Dir["vm/test/**/test_*.hpp"].sort
+  test_files << i.source_file("machine/test/runner.cpp") { |f|
+    tests = Dir["machine/test/**/test_*.hpp"].sort
 
     f.depends_on tests
 
     f.autogenerate do |x|
-      x.command("#{perl} vm/test/cxxtest/cxxtestgen.pl --error-printer --have-eh " +
-        "--abort-on-fail -include=vm/test/test_setup.h -o vm/test/runner.cpp " +
+      x.command("#{perl} machine/test/cxxtest/cxxtestgen.pl --error-printer --have-eh " +
+        "--abort-on-fail -include=machine/test/test_setup.h -o machine/test/runner.cpp " +
         tests.join(' '))
     end
   }
 
-  i.program "vm/test/runner", *test_files
+  i.program "machine/test/runner", *test_files
 end
