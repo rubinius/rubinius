@@ -251,10 +251,11 @@ class Proc
       be = @block.dup
       be.change_name name
 
-      executable = Rubinius::BlockEnvironment::AsMethod.new(be)
+      duped_proc = self.dup
+      duped_proc.lambda_style!
 
-      code  = executable
-      scope = executable.scope
+      code  = Rubinius::BlockEnvironment::AsMethod.new(be)
+      scope = duped_proc.block.scope
     end
 
     [code, scope]
