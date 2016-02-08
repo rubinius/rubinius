@@ -56,7 +56,7 @@ namespace memory {
     }
   }
 
-  void ImmixGC::ObjectDescriber::set_forwarding_pointer(memory::Address from, memory::Address to) {
+  void ImmixGC::ObjectDescriber::set_forwarding_pointer(Address from, Address to) {
     from.as<Object>()->set_forward(to.as<Object>());
   }
 
@@ -79,13 +79,13 @@ namespace memory {
     }
   }
 
-  memory::Address ImmixGC::ObjectDescriber::copy(memory::Address original,
+  Address ImmixGC::ObjectDescriber::copy(Address original,
       ImmixAllocator& alloc) {
     Object* orig = original.as<Object>();
 
     bool collect_flag = false;
 
-    memory::Address copy_addr = alloc.allocate(
+    Address copy_addr = alloc.allocate(
         orig->size_in_bytes(object_memory_->vm()),
         collect_flag);
 
@@ -103,7 +103,7 @@ namespace memory {
     return copy_addr;
   }
 
-  int ImmixGC::ObjectDescriber::size(memory::Address addr) {
+  int ImmixGC::ObjectDescriber::size(Address addr) {
     return addr.as<Object>()->size_in_bytes(object_memory_->vm());
   }
 
@@ -167,7 +167,7 @@ namespace memory {
 
     if(!obj->reference_p()) return NULL;
 
-    memory::Address fwd = gc_.mark_address(memory::Address(obj), allocator_);
+    Address fwd = gc_.mark_address(Address(obj), allocator_);
     Object* copy = fwd.as<Object>();
 
     // Check and update an inflated header
@@ -189,7 +189,7 @@ namespace memory {
   }
 
   ObjectPosition ImmixGC::validate_object(Object* obj) {
-    if(gc_.allocated_address(memory::Address(obj))) {
+    if(gc_.allocated_address(Address(obj))) {
       if(obj->in_immix_p()) {
         return cInImmix;
       } else {
