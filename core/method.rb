@@ -172,6 +172,23 @@ class Method
     return nil
   end
 
+  def for_define_method(name, klass, callable_proc = nil)
+    Rubinius::Type.bindable_method? self.defined_in, klass
+
+    scope = @executable.scope
+
+    if @executable.is_a? Rubinius::DelegatedMethod
+      code = @executable
+    else
+      if callable_proc
+        code = Rubinius::DelegatedMethod.new(name, :call, callable_proc, false)
+      else
+        code = Rubinius::DelegatedMethod.new(name, :call_on_instance, self.unbind, true)
+      end
+    end
+
+    [code, scope]
+  end
 end
 
 ##
@@ -315,5 +332,23 @@ class UnboundMethod
     end
 
     return nil
+  end
+
+  def for_define_method(name, klass, callable_proc = nil)
+    Rubinius::Type.bindable_method? self.defined_in, klass
+
+    scope = @executable.scope
+
+    if @executable.is_a? Rubinius::DelegatedMethod
+      code = @executable
+    else
+      if callable_proc
+        code = Rubinius::DelegatedMethod.new(name, :call, callable_proc, false)
+      else
+        code = Rubinius::DelegatedMethod.new(name, :call_on_instance, self, true)
+      end
+    end
+
+    [code, scope]
   end
 end
