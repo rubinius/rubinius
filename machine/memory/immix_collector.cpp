@@ -36,9 +36,9 @@ namespace memory {
   }
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
-    if(object_memory_) {
-      object_memory_->schedule_full_collection();
-      object_memory_->vm()->metrics().memory.immix_chunks++;
+    if(memory_) {
+      memory_->schedule_full_collection();
+      memory_->vm()->metrics().memory.immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
         gc_->reset_chunks_left();
@@ -52,8 +52,8 @@ namespace memory {
    * collection.
    */
   void ImmixGC::ObjectDescriber::last_block() {
-    if(object_memory_) {
-      object_memory_->schedule_full_collection();
+    if(memory_) {
+      memory_->schedule_full_collection();
     }
   }
 
@@ -87,16 +87,16 @@ namespace memory {
     bool collect_flag = false;
 
     Address copy_addr = alloc.allocate(
-        orig->size_in_bytes(object_memory_->vm()),
+        orig->size_in_bytes(memory_->vm()),
         collect_flag);
 
     if(collect_flag) {
-      object_memory_->schedule_full_collection();
+      memory_->schedule_full_collection();
     }
 
     Object* copy = copy_addr.as<Object>();
 
-    copy->initialize_full_state(object_memory_->vm(), orig, 0);
+    copy->initialize_full_state(memory_->vm(), orig, 0);
 
     copy->set_zone(MatureObjectZone);
     copy->set_in_immix();
@@ -105,7 +105,7 @@ namespace memory {
   }
 
   int ImmixGC::ObjectDescriber::size(Address addr) {
-    return addr.as<Object>()->size_in_bytes(object_memory_->vm());
+    return addr.as<Object>()->size_in_bytes(memory_->vm());
   }
 
   Address ImmixGC::ObjectDescriber::update_pointer(Address addr) {
@@ -117,7 +117,7 @@ namespace memory {
     } else {
       // we must remember this because it might
       // contain references to young gen objects
-      object_memory_->remember_object(obj);
+      memory_->remember_object(obj);
     }
     return addr;
   }
@@ -125,13 +125,13 @@ namespace memory {
   bool ImmixGC::ObjectDescriber::mark_address(Address addr, MarkStack& ms, bool push) {
     Object* obj = addr.as<Object>();
 
-    if(!object_memory_->valid_object_p(obj)) {
+    if(!memory_->valid_object_p(obj)) {
       std::cerr << "mark_address: invalid object" << std::endl;
       ::abort();
     }
 
-    if(obj->marked_p(object_memory_->mark())) return false;
-    obj->mark(object_memory_, object_memory_->mark());
+    if(obj->marked_p(memory_->mark())) return false;
+    obj->mark(memory_, memory_->mark());
 
     if(push) ms.push_back(addr);
     // If this is a young object, let the GC know not to try and mark
@@ -191,7 +191,7 @@ namespace memory {
   }
 
   bool ImmixGC::mature_gc_in_progress() {
-    return object_memory_->mature_gc_in_progress();
+    return memory_->mature_gc_in_progress();
   }
 
   ObjectPosition ImmixGC::validate_object(Object* obj) {
@@ -277,7 +277,7 @@ namespace memory {
     collect_scan(data);
     process_mark_stack();
 
-    ObjectArray* marked_set = object_memory_->swap_marked_set();
+    ObjectArray* marked_set = memory_->swap_marked_set();
     for(ObjectArray::iterator oi = marked_set->begin();
         oi != marked_set->end();
         ++oi) {
@@ -305,7 +305,7 @@ namespace memory {
         if(!hdl->in_use_p()) continue;
         if(hdl->is_rdata()) {
           Object* obj = hdl->object();
-          if(obj->marked_p(object_memory_->mark())) {
+          if(obj->marked_p(memory_->mark())) {
             scan_object(obj);
           }
         }
@@ -338,8 +338,8 @@ namespace memory {
     }
 
     // Clear unreachable objects from the various remember sets
-    unsigned int mark = object_memory_->mark();
-    object_memory_->unremember_objects(mark);
+    unsigned int mark = memory_->mark();
+    memory_->unremember_objects(mark);
   }
 
   void ImmixGC::sweep() {
@@ -404,7 +404,7 @@ namespace memory {
   }
 
   void ImmixGC::walk_finalizers() {
-    FinalizerThread* fh = object_memory_->finalizer_handler();
+    FinalizerThread* fh = memory_->finalizer_handler();
     if(!fh) return;
 
     for(FinalizerThread::iterator i = fh->begin();
@@ -413,7 +413,7 @@ namespace memory {
     {
       FinalizeObject& fi = i.current();
 
-      bool live = fi.object->marked_p(object_memory_->mark());
+      bool live = fi.object->marked_p(memory_->mark());
 
       if(fi.ruby_finalizer) {
         if(Object* fwd = saw_object(fi.ruby_finalizer)) {

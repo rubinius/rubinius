@@ -22,7 +22,7 @@ namespace memory {
   }
 
   void ObjectWalker::seed(GCData& data) {
-    ObjectArray *current_rs = object_memory_->remember_set();
+    ObjectArray *current_rs = memory_->remember_set();
 
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();

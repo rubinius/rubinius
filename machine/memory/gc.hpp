@@ -109,7 +109,7 @@ namespace memory {
   class GarbageCollector {
   protected:
     /// Reference to the Memory we are collecting
-    Memory* object_memory_;
+    Memory* memory_;
 
   private:
     /// Array of weak references
@@ -164,7 +164,7 @@ namespace memory {
 
     VM* vm();
     Memory* object_memory() {
-      return object_memory_;
+      return memory_;
     }
 
     /**

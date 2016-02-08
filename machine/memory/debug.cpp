@@ -36,7 +36,7 @@ namespace memory {
 
     /*
     if(obj->young_object_p()) {
-      if(!object_memory_->young.current->contains_p(obj)) {
+      if(!memory_->young.current->contains_p(obj)) {
         throw std::runtime_error("Invalid young object detected.");
       }
     }

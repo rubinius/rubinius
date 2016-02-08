@@ -62,14 +62,14 @@ namespace memory {
     diagnostics_.objects_++;
     diagnostics_.bytes_ += bytes;
 
-    object_memory_->vm()->metrics().memory.large_objects++;
-    object_memory_->vm()->metrics().memory.large_bytes += bytes;
+    memory_->vm()->metrics().memory.large_objects++;
+    memory_->vm()->metrics().memory.large_bytes += bytes;
 
     entries.push_back(obj);
 
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
-      object_memory_->vm()->metrics().gc.large_set++;
+      memory_->vm()->metrics().gc.large_set++;
       collect_now = true;
       next_collection_bytes = collection_threshold;
     }
@@ -81,7 +81,7 @@ namespace memory {
 
   void MarkSweepGC::free_object(Object* obj, bool fast) {
     diagnostics_.objects_--;
-    diagnostics_.bytes_ -= obj->size_in_bytes(object_memory_->vm());
+    diagnostics_.bytes_ -= obj->size_in_bytes(memory_->vm());
 
     if(!fast) {
       delete_object(obj);
@@ -107,16 +107,16 @@ namespace memory {
   }
 
   Object* MarkSweepGC::copy_object(Object* orig, bool& collect_now) {
-    Object* obj = allocate(orig->size_in_bytes(object_memory_->vm()), collect_now);
+    Object* obj = allocate(orig->size_in_bytes(memory_->vm()), collect_now);
 
-    obj->initialize_full_state(object_memory_->vm(), orig, 0);
+    obj->initialize_full_state(memory_->vm(), orig, 0);
 
     return obj;
   }
 
   Object* MarkSweepGC::saw_object(Object* obj) {
-    if(obj->marked_p(object_memory_->mark())) return NULL;
-    obj->mark(object_memory_, object_memory_->mark());
+    if(obj->marked_p(memory_->mark())) return NULL;
+    obj->mark(memory_, memory_->mark());
 
     // Add the object to the mark stack, to be scanned later.
     mark_stack_.push_back(obj);
@@ -124,11 +124,11 @@ namespace memory {
   }
 
   bool MarkSweepGC::mature_gc_in_progress() {
-    return object_memory_->mature_gc_in_progress();
+    return memory_->mature_gc_in_progress();
   }
 
   void MarkSweepGC::after_marked() {
-    metrics::MetricsData& metrics = object_memory_->vm()->metrics();
+    metrics::MetricsData& metrics = memory_->vm()->metrics();
 
     timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
 
@@ -144,7 +144,7 @@ namespace memory {
 
     for(i = entries.begin(); i != entries.end();) {
       Object* obj = *i;
-      if(obj->marked_p(object_memory_->mark())) {
+      if(obj->marked_p(memory_->mark())) {
         ++i;
       } else {
         free_object(obj);

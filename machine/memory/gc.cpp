@@ -46,12 +46,12 @@ namespace memory {
   { }
 
   GarbageCollector::GarbageCollector(Memory *om)
-    : object_memory_(om)
+    : memory_(om)
     , weak_refs_(NULL)
   { }
 
   VM* GarbageCollector::vm() {
-    return object_memory_->vm();
+    return memory_->vm();
   }
 
   /**
@@ -78,12 +78,12 @@ namespace memory {
     scanned_object(obj);
 
     if(Object* klass = saw_object(obj->klass())) {
-      obj->klass(object_memory_, force_as<Class>(klass));
+      obj->klass(memory_, force_as<Class>(klass));
     }
 
     if(obj->ivars()->reference_p()) {
       if(Object* ivars = saw_object(obj->ivars())) {
-        obj->ivars(object_memory_, ivars);
+        obj->ivars(memory_, ivars);
       }
     }
 
@@ -96,12 +96,12 @@ namespace memory {
         if(slot->reference_p()) {
           if(Object* moved = saw_object(slot)) {
             tup->field[i] = moved;
-            object_memory_->write_barrier(tup, moved);
+            memory_->write_barrier(tup, moved);
           }
         }
       }
     } else {
-      TypeInfo* ti = object_memory_->type_info[obj->type_id()];
+      TypeInfo* ti = memory_->type_info[obj->type_id()];
 
       ObjectMark mark(this);
       ti->mark(obj, mark);
@@ -114,7 +114,7 @@ namespace memory {
    */
   void GarbageCollector::delete_object(Object* obj) {
     if(obj->remembered_p()) {
-      object_memory_->unremember_object(obj);
+      memory_->unremember_object(obj);
     }
   }
 
@@ -428,13 +428,13 @@ namespace memory {
       if(check_forwards) {
         if(obj->young_object_p()) {
           if(!obj->forwarded_p()) {
-            ref->set_object(object_memory_, cNil);
+            ref->set_object(memory_, cNil);
           } else {
-            ref->set_object(object_memory_, obj->forward());
+            ref->set_object(memory_, obj->forward());
           }
         }
-      } else if(!obj->marked_p(object_memory_->mark())) {
-        ref->set_object(object_memory_, cNil);
+      } else if(!obj->marked_p(memory_->mark())) {
+        ref->set_object(memory_, cNil);
       }
     }
 
@@ -459,7 +459,7 @@ namespace memory {
           ++i;
         }
       } else {
-        if(!obj->marked_p(object_memory_->mark())) {
+        if(!obj->marked_p(memory_->mark())) {
           i = los.erase(i);
         } else {
           ++i;

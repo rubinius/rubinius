@@ -46,7 +46,7 @@ namespace memory {
   void ObjectMark::set(Object* target, Object** pos, Object* val) {
     *pos = val;
     if(val->reference_p()) {
-      gc->object_memory_->write_barrier(target, val);
+      gc->memory_->write_barrier(target, val);
     }
   }
 
@@ -58,7 +58,7 @@ namespace memory {
    */
   void ObjectMark::just_set(Object* target, Object* val) {
     if(val->reference_p()) {
-      gc->object_memory_->write_barrier(target, val);
+      gc->memory_->write_barrier(target, val);
     }
   }
 }

@@ -73,17 +73,17 @@ namespace memory {
      * - allocates from the last free block, indicating a collection is needed
      */
     class ObjectDescriber {
-      Memory* object_memory_;
+      Memory* memory_;
       ImmixGC* gc_;
 
     public:
       ObjectDescriber()
-        : object_memory_(0)
+        : memory_(0)
         , gc_(NULL)
       {}
 
       void set_object_memory(Memory* om, ImmixGC* gc) {
-        object_memory_ = om;
+        memory_ = om;
         gc_ = gc;
       }
 
