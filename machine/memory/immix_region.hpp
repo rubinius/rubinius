@@ -652,11 +652,19 @@ namespace memory {
         return current_chunk_->get_block(0);
       }
 
+      bool reset_chunk_cursor = false;
+
       for(;;) {
         if(block_cursor_ >= (size_t)cBlocksPerChunk) {
           chunk_cursor_++;
           if(chunk_cursor_ >= chunks_.size()) {
-            add_chunk();
+            if(reset_chunk_cursor) {
+              add_chunk();
+            } else {
+              reset_chunk_cursor = true;
+              chunk_cursor_ = 0;
+              block_cursor_ = 0;
+            }
           } else {
             block_cursor_ = 0;
           }
@@ -667,8 +675,7 @@ namespace memory {
         Block& block = current_chunk_->get_block(block_cursor_++);
         if(chunk_cursor_ == chunks_.size() - 1 &&
             block_cursor_ == (size_t)cBlocksPerChunk - 5) {
-          // TODO: GC
-          // triggers_.last_block();
+          triggers_.last_block();
         }
 
         if(block.usable()) return block;

@@ -37,6 +37,7 @@ namespace memory {
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(object_memory_) {
+      object_memory_->schedule_full_collection();
       object_memory_->vm()->metrics().memory.immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
@@ -123,6 +124,11 @@ namespace memory {
 
   bool ImmixGC::ObjectDescriber::mark_address(Address addr, MarkStack& ms, bool push) {
     Object* obj = addr.as<Object>();
+
+    if(!object_memory_->valid_object_p(obj)) {
+      std::cerr << "mark_address: invalid object" << std::endl;
+      ::abort();
+    }
 
     if(obj->marked_p(object_memory_->mark())) return false;
     obj->mark(object_memory_, object_memory_->mark());
