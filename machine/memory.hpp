@@ -7,6 +7,7 @@
 #include "oop.hpp"
 #include "diagnostics.hpp"
 #include "metrics.hpp"
+#include "configuration.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
@@ -192,16 +193,22 @@ namespace rubinius {
       }
     }
 
-    void schedule_full_collection(metrics::metric& counter) {
+    void schedule_full_collection(const char* trigger, metrics::metric& counter) {
       counter++;
-      schedule_full_collection();
+      schedule_full_collection(trigger);
     }
 
-    void schedule_full_collection() {
+    void schedule_full_collection(const char* trigger) {
       // Don't trigger GC if currently prohibited so we don't thrash checking.
+      if(shared_.config.memory_collection_log.value) {
+        utilities::logger::write("memory: full collection: trigger: %s", trigger);
+      }
+
       if(can_gc()) {
         collect_full_flag_ = true;
         shared_.thread_nexus()->set_stop();
+      } else if(shared_.config.memory_collection_log.value) {
+        utilities::logger::write("memory: collection: disabled");
       }
     }
 

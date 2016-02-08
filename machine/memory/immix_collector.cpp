@@ -37,7 +37,7 @@ namespace memory {
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(memory_) {
-      memory_->schedule_full_collection();
+      memory_->schedule_full_collection("Immix region chunk added");
       memory_->vm()->metrics().memory.immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
@@ -53,7 +53,7 @@ namespace memory {
    */
   void ImmixGC::ObjectDescriber::last_block() {
     if(memory_) {
-      memory_->schedule_full_collection();
+      memory_->schedule_full_collection("Immix region last block");
     }
   }
 
@@ -91,7 +91,7 @@ namespace memory {
         collect_flag);
 
     if(collect_flag) {
-      memory_->schedule_full_collection();
+      memory_->schedule_full_collection("Immix region copy object");
     }
 
     Object* copy = copy_addr.as<Object>();

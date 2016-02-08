@@ -16,6 +16,7 @@
 #include "memory/inflated_headers.hpp"
 #include "memory/walker.hpp"
 
+#include "environment.hpp"
 #include "system_diagnostics.hpp"
 
 #if ENABLE_LLVM
@@ -475,7 +476,7 @@ step1:
     Object* copy = immix_->move_object(obj, sz, collect_flag);
 
     if(collect_flag) {
-      schedule_full_collection();
+      schedule_full_collection("promote object");
     }
 
     vm()->metrics().memory.promoted_objects++;
@@ -486,7 +487,7 @@ step1:
       copy = mark_sweep_->move_object(obj, sz, collect_flag);
 
       if(collect_flag) {
-        schedule_full_collection();
+        schedule_full_collection("promote object to large space");
       }
     }
 
@@ -546,11 +547,19 @@ step1:
         collect_full(state, &gc_data);
       }
     }
+
+    if(state->shared().config.memory_collection_log.value) {
+      state->shared().env()->diagnostics()->log();
+    }
   }
 
   void Memory::collect_young(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
+
+    if(state->shared().config.memory_collection_log.value) {
+      utilities::logger::write("memory: young collection");
+    }
 
     /* 
     young_->collect(data);
@@ -598,6 +607,10 @@ step1:
 
     // If we're already collecting, ignore this request
     if(mature_gc_in_progress_) return;
+
+    if(state->shared().config.memory_collection_log.value) {
+      utilities::logger::write("memory: full collection");
+    }
 
     code_manager_.clear_marks();
     clear_fiber_marks(data);
@@ -753,7 +766,9 @@ step1:
     }
 
     if(collect_flag) {
-      schedule_full_collection(state->vm()->metrics().gc.immix_set);
+      schedule_full_collection(
+          "mature region allocate object",
+          state->vm()->metrics().gc.immix_set);
     }
 
     if(likely(obj = mark_sweep_->allocate(bytes, collect_flag))) {
@@ -761,7 +776,9 @@ step1:
       vm()->metrics().memory.large_bytes += bytes;
 
       if(collect_flag) {
-        schedule_full_collection(state->vm()->metrics().gc.large_set);
+        schedule_full_collection(
+            "large region allocate object",
+            state->vm()->metrics().gc.large_set);
       }
 
       return obj;
@@ -798,7 +815,9 @@ step1:
     code_manager_.add_resource(cr, &collect_flag);
 
     if(collect_flag) {
-      schedule_full_collection(state->vm()->metrics().gc.resource_set);
+      schedule_full_collection(
+          "add code resource",
+          state->vm()->metrics().gc.resource_set);
     }
   }
 

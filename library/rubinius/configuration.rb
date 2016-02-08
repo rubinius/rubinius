@@ -10,6 +10,13 @@ Rubinius::ConfigurationVariables.define do |c|
       "Path for the compiled code cache CodeDB"
   end
 
+  c.section "memory" do |s|
+    s.section "collection" do |c|
+      c.vm_variable "log", false,
+        "Log when collections are triggered and run"
+    end
+  end
+
   c.section "gc" do |s|
     s.vm_variable "young_bytes", (30 * 1024 * 1024),
       "The number of bytes the young generation of the GC should use"

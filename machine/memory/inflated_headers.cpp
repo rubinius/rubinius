@@ -28,7 +28,9 @@ namespace memory {
     InflatedHeader* header = allocator_->from_index(header_index);
     if(needs_gc) {
       diagnostics_.collections_++;
-      state->memory()->schedule_full_collection(state->vm()->metrics().gc.headers_set);
+      state->memory()->schedule_full_collection(
+          "Inflated headers",
+          state->vm()->metrics().gc.headers_set);
     }
     atomic::memory_barrier();
     return header;

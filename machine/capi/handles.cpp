@@ -28,7 +28,9 @@ namespace rubinius {
       handle->validate();
       if(needs_gc) {
         diagnostics_.collections_++;
-        state->memory()->schedule_full_collection(state->vm()->metrics().gc.handles_set);
+        state->memory()->schedule_full_collection(
+            "CAPI handles",
+            state->vm()->metrics().gc.handles_set);
       }
       atomic::memory_barrier();
       return handle;
@@ -47,7 +49,9 @@ namespace rubinius {
       handle->validate();
       if(needs_gc) {
         diagnostics_.collections_++;
-        state->memory()->schedule_full_collection(state->vm()->metrics().gc.handles_set);
+        state->memory()->schedule_full_collection(
+            "CAPI handles",
+            state->vm()->metrics().gc.handles_set);
       }
       atomic::memory_barrier();
 
