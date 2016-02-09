@@ -180,6 +180,26 @@ describe "Module#define_method" do
     lambda{o.other_inspect}.should raise_error(NoMethodError)
   end
 
+  it "accepts a proc from a method" do
+    class ProcFromMethod
+      attr_accessor :data
+      def cool_method
+        "data is #{@data}"
+      end
+    end
+
+    object1 = ProcFromMethod.new
+    object1.data = :foo
+
+    method_proc = object1.method(:cool_method).to_proc
+    klass = Class.new(ProcFromMethod)
+    klass.send(:define_method, :other_cool_method, &method_proc)
+
+    object2 = klass.new
+    object2.data = :bar
+    object2.other_cool_method.should == "data is foo"
+  end
+
   it "maintains the Proc's scope" do
     class DefineMethodByProcClass
       in_scope = true

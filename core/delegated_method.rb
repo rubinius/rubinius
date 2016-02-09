@@ -31,5 +31,9 @@ module Rubinius
     def source_location
       @receiver.source_location
     end
+
+    def scope
+      nil
+    end
   end
 end

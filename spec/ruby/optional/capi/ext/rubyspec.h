@@ -423,6 +423,7 @@
 #define HAVE_RB_CONST_SET                  1
 #define HAVE_RB_DEFINE_ALIAS               1
 #define HAVE_RB_DEFINE_CLASS_UNDER         1
+#define HAVE_RB_DEFINE_CLASS_ID_UNDER      1
 #define HAVE_RB_DEFINE_CONST               1
 #define HAVE_RB_DEFINE_GLOBAL_CONST        1
 #define HAVE_RB_DEFINE_GLOBAL_FUNCTION     1

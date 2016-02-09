@@ -102,6 +102,10 @@ module Rubinius
       def defined_line
         @block_env.line
       end
+
+      def scope
+        @block_env.scope
+      end
     end
 
     def from_proc?

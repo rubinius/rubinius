@@ -1300,6 +1300,9 @@ struct RTypedData {
   /** Reopen or create new class with superclass and name under parent module. Returns the Class object. */
   VALUE   rb_define_class_under(VALUE parent, const char* name, VALUE superclass);
 
+  /** Reopen or create new class with superclass and name under parent module. Returns the Class object. */
+  VALUE   rb_define_class_id_under(VALUE parent, ID name, VALUE superclass);
+
   /** Define a toplevel constant */
   void    rb_define_global_const(const char* name, VALUE obj);
 
