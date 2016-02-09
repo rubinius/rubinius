@@ -2828,8 +2828,12 @@ class IO
     end
 
     if str
-      buffer.replace(str) if buffer
-      return str
+      if buffer
+        buffer.replace(str)
+        IO.read_encode(self, buffer)
+      else
+        IO.read_encode(self, str)
+      end
     else
       raise EOFError, "stream closed" unless opts[:exception] == false
     end
