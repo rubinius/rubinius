@@ -214,6 +214,10 @@ describe "C-API Class function" do
 
       ClassUnderAutoload.name.should == "ClassUnderAutoload"
     end
+
+    it "raises a TypeError if class is defined and its superclass mismatches the given one" do
+      lambda { @s.rb_define_class_under(CApiClassSpecs, "Sub", nil) }.should raise_error(TypeError)
+    end
   end
 
   describe "rb_define_class_variable" do
