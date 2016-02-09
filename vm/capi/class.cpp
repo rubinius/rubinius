@@ -172,14 +172,12 @@ extern "C" {
   }
 
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
-  VALUE rb_define_class_under(VALUE outer, const char* name, VALUE super) {
-
-
+  VALUE rb_define_class_id_under(VALUE outer, ID name, VALUE super) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Module* module = c_as<Module>(env->get_object(outer));
     Class* superclass = c_as<Class>(env->get_object(super ? super : rb_cObject));
-    Symbol* constant = env->state()->symbol(name);
+    Symbol* constant = reinterpret_cast<Symbol*>(name);
 
     bool created = false;
 
@@ -210,6 +208,10 @@ extern "C" {
     if(super) rb_funcall(super, rb_intern("inherited"), 1, klass);
 
     return klass;
+  }
+
+  VALUE rb_define_class_under(VALUE outer, const char* name, VALUE super) {
+    return rb_define_class_id_under(outer, rb_intern(name), super);
   }
 
   void rb_attr(VALUE klass, ID id, int read, int write, int ex) {
