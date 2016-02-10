@@ -78,5 +78,9 @@ module Rubinius
     def active_path
       @file
     end
+
+    def scope
+      nil
+    end
   end
 end

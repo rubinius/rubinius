@@ -4,6 +4,7 @@ require File.expand_path('../fixtures/class', __FILE__)
 load_extension("class")
 
 autoload :ClassUnderAutoload, "#{extension_path}/class_under_autoload_spec"
+autoload :ClassIdUnderAutoload, "#{extension_path}/class_id_under_autoload_spec"
 
 describe :rb_path_to_class, :shared => true do
   it "returns a class or module from a scoped String" do
@@ -213,6 +214,43 @@ describe "C-API Class function" do
       compile_extension("class_under_autoload")
 
       ClassUnderAutoload.name.should == "ClassUnderAutoload"
+    end
+
+    it "raises a TypeError if class is defined and its superclass mismatches the given one" do
+      lambda { @s.rb_define_class_under(CApiClassSpecs, "Sub", nil) }.should raise_error(TypeError)
+    end
+  end
+
+  describe "rb_define_class_id_under" do
+    it "creates a subclass of the superclass contained in a module" do
+      cls = @s.rb_define_class_id_under(CApiClassSpecs, :ClassIdUnder1, CApiClassSpecs::Super)
+      cls.should be_kind_of(Class)
+      CApiClassSpecs::Super.should be_ancestor_of(CApiClassSpecs::ClassIdUnder1)
+    end
+
+    it "uses Object as the superclass if NULL is passed" do
+      @s.rb_define_class_id_under(CApiClassSpecs, :ClassIdUnder2, nil)
+      Object.should be_ancestor_of(CApiClassSpecs::ClassIdUnder2)
+    end
+
+    it "sets the class name" do
+      cls = @s.rb_define_class_id_under(CApiClassSpecs, :ClassIdUnder3, nil)
+      cls.name.should == "CApiClassSpecs::ClassIdUnder3"
+    end
+
+    it "calls #inherited on the superclass" do
+      CApiClassSpecs::Super.should_receive(:inherited)
+      @s.rb_define_class_id_under(CApiClassSpecs, :ClassIdUnder4, CApiClassSpecs::Super)
+    end
+
+    it "defines a class for an existing Autoload" do
+      compile_extension("class_id_under_autoload")
+
+      ClassIdUnderAutoload.name.should == "ClassIdUnderAutoload"
+    end
+
+    it "raises a TypeError if class is defined and its superclass mismatches the given one" do
+      lambda { @s.rb_define_class_id_under(CApiClassSpecs, :Sub, nil) }.should raise_error(TypeError)
     end
   end
 

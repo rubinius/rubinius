@@ -442,54 +442,8 @@ class Module
 
     name = Rubinius::Type.coerce_to_symbol name
 
-    case meth
-    when Proc
-      if meth.ruby_method
-        code = Rubinius::DelegatedMethod.new(name, :call, meth, false)
-        scope = meth.ruby_method.executable.scope
-      else
-        be = meth.block.dup
-        be.change_name name
-        code = Rubinius::BlockEnvironment::AsMethod.new(be)
-        meth = meth.dup
-        meth.lambda_style!
-        scope = meth.block.scope
-      end
-    when Method
-      Rubinius::Type.bindable_method? meth.defined_in, self.class
-
-      exec = meth.executable
-      # We see through delegated methods because code creates these crazy calls
-      # to define_method over and over again and if we don't check, we create
-      # a huge delegated method chain. So instead, just see through them at one
-      # level always.
-      if exec.kind_of? Rubinius::DelegatedMethod
-        code = exec
-        scope = nil
-      else
-        code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
-        if exec.kind_of? Rubinius::CompiledCode
-          scope = exec.scope
-        else
-          scope = nil
-        end
-      end
-    when UnboundMethod
-      Rubinius::Type.bindable_method? meth.defined_in, self.class
-
-      exec = meth.executable
-      # Same reasoning as above.
-      if exec.kind_of? Rubinius::DelegatedMethod
-        code = exec
-        scope = nil
-      else
-        code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
-        if exec.kind_of? Rubinius::CompiledCode
-          scope = exec.scope
-        else
-          scope = nil
-        end
-      end
+    if meth.respond_to?(:for_define_method)
+      code, scope = meth.for_define_method(name, self.class)
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end

@@ -244,6 +244,23 @@ class Proc
     copy
   end
 
+  def for_define_method(name, klass)
+    if @ruby_method
+      code, scope = @ruby_method.for_define_method(name, klass, self)
+    else
+      be = @block.dup
+      be.change_name name
+
+      duped_proc = self.dup
+      duped_proc.lambda_style!
+
+      code  = Rubinius::BlockEnvironment::AsMethod.new(be)
+      scope = duped_proc.block.scope
+    end
+
+    [code, scope]
+  end
+
   def self.from_method(meth)
     if meth.kind_of? Method
       return __from_method__(meth)

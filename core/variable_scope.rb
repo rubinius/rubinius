@@ -136,6 +136,8 @@ module Rubinius
         return true if vars.eval_local_defined?(name, false)
         vars = vars.parent
       end
+
+      false
     end
 
     def local_layout
