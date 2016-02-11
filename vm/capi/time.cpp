@@ -106,4 +106,23 @@ extern "C" {
     struct timespec ts = capi_time_num_timespec(env, time);
     return ts;
   }
+
+  VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Time* time = Time::at(env->state(), ts->tv_sec, ts->tv_nsec);
+
+    if(-86400 < offset && offset < 86400) { /* fixed offset */
+      time->offset(env->state(), Fixnum::from(offset));
+      time->is_gmt(env->state(), cFalse);
+      time->zone(env->state(), cNil);
+    } else if(offset == INT_MAX) { /* localtime */
+    } else if(offset == INT_MAX - 1) { /* UTC */
+      time->is_gmt(env->state(), cTrue);
+    } else {
+      rb_raise(rb_eArgError, "utc_offset out of range");
+    }
+
+    return env->get_handle(time);
+  }
 }
