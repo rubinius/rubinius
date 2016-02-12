@@ -2148,6 +2148,9 @@ struct RTypedData {
   struct timeval rb_time_timeval(VALUE time);
   struct timespec rb_time_timespec(VALUE time);
 
+  /** Returns a time object with UTC/localtime/fixed offset */
+  VALUE rb_time_timespec_new(const struct timespec *ts, int offset);
+
 #define HAVE_RB_TIME_NEW 1
 #define HAVE_RB_TIME_NANO_NEW 1
 #define HAVE_RB_TIME_NUM_NEW 1

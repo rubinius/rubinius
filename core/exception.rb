@@ -237,9 +237,19 @@ end
 class NameError < StandardError
   attr_reader :name
 
-  def initialize(*args)
+  def initialize(*args, receiver: nil)
     super(args.shift)
+
     @name = args.shift
+    @receiver = receiver
+  end
+
+  def receiver
+    if @receiver
+      @receiver
+    else
+      raise ArgumentError, 'no receiver is available'
+    end
   end
 end
 
@@ -247,8 +257,8 @@ class NoMethodError < NameError
   attr_reader :name
   attr_reader :args
 
-  def initialize(*arguments)
-    super(arguments.shift)
+  def initialize(*arguments, **options)
+    super(arguments.shift, **options)
     @name = arguments.shift
     @args = arguments.shift
   end

@@ -11,3 +11,21 @@ describe "NameError.new" do
     NameError.new("msg","name").name.should == "name"
   end
 end
+
+describe 'NameError#receiver' do
+  it 'returns the receiver if available' do
+    x = 'foo'
+
+    begin
+      x.foo
+    rescue NameError => error
+      error.receiver.should == x
+    end
+  end
+
+  it 'raises ArgumentError when no receiver is available' do
+    error = NameError.new('msg', 'name')
+
+    proc { error.receiver }.should raise_error(ArgumentError)
+  end
+end
