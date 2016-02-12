@@ -1367,7 +1367,7 @@ module Kernel
       msg << " on an instance of #{object_class}."
     end
 
-    Kernel.raise cls.new(msg, meth, args)
+    Kernel.raise(cls.new(msg, meth, args, receiver: self))
   end
 
   private :method_missing
