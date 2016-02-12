@@ -117,7 +117,7 @@ describe :method_missing_instance, :shared => true do
       begin
         obj.method_private
       rescue NoMethodError => error
-        error.receiver.should == obj
+        (error.receiver == obj).should == true
       end
     end
   end
