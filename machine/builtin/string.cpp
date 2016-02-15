@@ -574,7 +574,7 @@ namespace rubinius {
   native_int String::char_size(STATE) {
     if(num_chars_->nil_p()) {
       OnigEncodingType* enc = encoding(state)->get_encoding();
-      if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
+      if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
         num_chars(state, num_bytes_);
       } else if(fixed_width_p(encoding_)) {
         num_chars(state, Fixnum::from((byte_size() + ONIGENC_MBC_MINLEN(enc) - 1) / ONIGENC_MBC_MINLEN(enc)));
@@ -1304,7 +1304,7 @@ namespace rubinius {
     if(i >= byte_size() || i < 0) return cNil;
 
     native_int len = char_size(state);
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
+    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
       return byte_substring(state, i, 1);
     } else {
       // Assumptions above about size are possibly invalid, recalculate.
@@ -1322,7 +1322,7 @@ namespace rubinius {
   native_int String::find_character_byte_index(STATE, native_int index,
                                                native_int start) {
     OnigEncodingType* enc = encoding(state)->get_encoding();
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
+    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
       return start + index;
     } else if(fixed_width_p(encoding_)) {
       return start + index * ONIGENC_MBC_MINLEN(enc);
@@ -1358,7 +1358,7 @@ namespace rubinius {
   native_int String::find_byte_character_index(STATE, native_int index,
                                                native_int start) {
     OnigEncodingType* enc = encoding(state)->get_encoding();
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
+    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
       return index;
     } else if(fixed_width_p(encoding_)) {
       return index / ONIGENC_MBC_MINLEN(enc);
@@ -1467,7 +1467,7 @@ namespace rubinius {
       n = size - i;
     }
 
-    if(n == 0 || byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
+    if(n == 0 || byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
       return byte_substring(state, i, n);
     } else {
       return char_substring(state, i, n);
@@ -1531,7 +1531,7 @@ namespace rubinius {
     uint8_t* s;
     uint8_t* ss;
 
-    if(byte_compatible_p(encoding()) || CBOOL(ascii_only_)) {
+    if(byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
       for(s = p += offset, ss = pp; p < e; s = ++p) {
         if(*p != *pp) continue;
 
