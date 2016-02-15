@@ -399,6 +399,12 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "system.allocated.bytes", metrics_data_.system.allocated_bytes));
       metrics_map_.push_back(new MetricsItem(
+            "system.malloc", metrics_data_.system.malloc));
+      metrics_map_.push_back(new MetricsItem(
+            "system.calloc", metrics_data_.system.calloc));
+      metrics_map_.push_back(new MetricsItem(
+            "system.realloc", metrics_data_.system.realloc));
+      metrics_map_.push_back(new MetricsItem(
             "system.freed", metrics_data_.system.freed));
       metrics_map_.push_back(new MetricsItem(
             "system.read.bytes", metrics_data_.system.read_bytes));

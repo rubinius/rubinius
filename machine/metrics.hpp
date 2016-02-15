@@ -245,6 +245,9 @@ namespace rubinius {
 
     struct SystemMetrics {
       metric allocated_bytes;
+      metric malloc;
+      metric calloc;
+      metric realloc;
       metric freed;
       metric read_bytes;
       metric write_bytes;
@@ -255,6 +258,9 @@ namespace rubinius {
 
       SystemMetrics() {
         allocated_bytes = 0;
+        malloc = 0;
+        calloc = 0;
+        realloc = 0;
         freed = 0;
         read_bytes = 0;
         write_bytes = 0;
@@ -266,6 +272,9 @@ namespace rubinius {
 
       void add(SystemMetrics& data) {
         allocated_bytes += data.allocated_bytes;
+        malloc += data.malloc;
+        calloc += data.calloc;
+        realloc += data.realloc;
         freed += data.freed;
         read_bytes += data.read_bytes;
         write_bytes += data.write_bytes;

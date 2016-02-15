@@ -920,6 +920,7 @@ step1:
 };
 
 void* XMALLOC(size_t bytes) {
+  rubinius::VM::current()->metrics().system.malloc++;
   rubinius::VM::current()->metrics().system.allocated_bytes += bytes;
   return malloc(bytes);
 }
@@ -930,6 +931,7 @@ void XFREE(void* ptr) {
 }
 
 void* XREALLOC(void* ptr, size_t bytes) {
+  rubinius::VM::current()->metrics().system.realloc++;
   rubinius::VM::current()->metrics().system.freed++;
   rubinius::VM::current()->metrics().system.allocated_bytes += bytes;
   return realloc(ptr, bytes);
@@ -938,6 +940,7 @@ void* XREALLOC(void* ptr, size_t bytes) {
 void* XCALLOC(size_t items, size_t bytes_per) {
   size_t bytes = bytes_per * items;
 
+  rubinius::VM::current()->metrics().system.calloc++;
   rubinius::VM::current()->metrics().system.allocated_bytes += bytes;
   return calloc(items, bytes_per);
 }
