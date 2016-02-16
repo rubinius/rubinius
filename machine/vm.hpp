@@ -140,8 +140,6 @@ namespace rubinius {
     void (*custom_wakeup_)(void*);
     void* custom_wakeup_data_;
 
-    Memory* memory_;
-
     VMThreadState thread_state_;
 
     static unsigned long cStackDepthMax;
