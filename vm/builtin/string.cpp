@@ -1723,30 +1723,40 @@ namespace rubinius {
 
       return nil<Fixnum>();
     } else if(Fixnum* index = try_as<Fixnum>(value)) {
-      OnigEncodingType* enc = encoding(state)->get_encoding();
-      uint8_t* p = byte_address();
-      uint8_t* e = p + total;
-      native_int i, k = index->to_native();
+      native_int k = index->to_native();
 
       if(k < 0) {
         Exception::argument_error(state, "character index is negative");
       }
 
-      for(i = 0; i < k && p < e; i++) {
-        int c = Encoding::precise_mbclen(p, e, enc);
-
-        // If it's an invalid byte, just treat it as a single byte
-        if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) {
-          ++p;
+      if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
+        if(k > total) {
+          return nil<Fixnum>();
         } else {
-          p += ONIGENC_MBCLEN_CHARFOUND_LEN(c);
+          return index;
         }
-      }
-
-      if(i < k) {
-        return nil<Fixnum>();
       } else {
-        return Fixnum::from(p - byte_address());
+        OnigEncodingType* enc = encoding(state)->get_encoding();
+        uint8_t* p = byte_address();
+        uint8_t* e = p + total;
+        native_int i;
+
+        for(i = 0; i < k && p < e; i++) {
+          int c = Encoding::precise_mbclen(p, e, enc);
+
+          // If it's an invalid byte, just treat it as a single byte
+          if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) {
+            ++p;
+          } else {
+            p += ONIGENC_MBCLEN_CHARFOUND_LEN(c);
+          }
+        }
+
+        if(i < k) {
+          return nil<Fixnum>();
+        } else {
+          return Fixnum::from(p - byte_address());
+        }
       }
     }
 
