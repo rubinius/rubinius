@@ -125,11 +125,6 @@ namespace memory {
   bool ImmixGC::ObjectDescriber::mark_address(Address addr, MarkStack& ms, bool push) {
     Object* obj = addr.as<Object>();
 
-    if(!memory_->valid_object_p(obj)) {
-      std::cerr << "mark_address: invalid object" << std::endl;
-      ::abort();
-    }
-
     if(obj->marked_p(memory_->mark())) return false;
     obj->mark(memory_, memory_->mark());
 
