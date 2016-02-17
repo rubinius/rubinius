@@ -6,27 +6,6 @@ performance improvements, and help with documentation. Every contribution is
 meaningful, so thank you for participating. That being said, here are a few
 guidelines that we ask you to follow so we can successfully address your issue.
 
-### Submitting Issues
-
-Please include the following:
-
-* The Rubinius version (`rbx -v`)
-* Your OS (`uname -a`) RVM/rbenv/chruby/etc version or the commit hash from git
-  if you're building off of a clone
-* Stack trace (preferably as a Gist, since they're easier to read.) If you can
-  add a failing spec, that's great!
-* Please include the simplest possible reproduction you can. This last point is
-  vital to fixing issues.
-
-If available, please also include the contents of the following files as a
-Gist:
-
-* `configure.log`
-* `config.rb`
-
-These two files contain the output of the compilation process and the various
-configuration options used (e.g. compiler options).
-
 ### Version Managers
 
 We can *not* help you with any issues that might be caused by a Ruby version
