@@ -1858,7 +1858,7 @@ namespace rubinius {
 
   Object* String::valid_encoding_p(STATE) {
     if(valid_encoding_->nil_p()) {
-      if(encoding(state) == Encoding::ascii8bit_encoding(state)) {
+      if(encoding(state) == Encoding::ascii8bit_encoding(state) || CBOOL(ascii_only_p(state))) {
         valid_encoding(state, cTrue);
         return valid_encoding_;
       }
