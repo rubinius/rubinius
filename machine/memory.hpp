@@ -199,6 +199,9 @@ namespace rubinius {
     }
 
     void schedule_full_collection(const char* trigger) {
+      // Don't trigger if already triggered.
+      if(collect_full_flag_) return;
+
       // Don't trigger GC if currently prohibited so we don't thrash checking.
       if(shared_.config.memory_collection_log.value) {
         utilities::logger::write("memory: full collection: trigger: %s", trigger);

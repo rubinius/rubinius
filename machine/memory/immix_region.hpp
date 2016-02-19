@@ -652,19 +652,11 @@ namespace memory {
         return current_chunk_->get_block(0);
       }
 
-      bool reset_chunk_cursor = false;
-
       for(;;) {
         if(block_cursor_ >= (size_t)cBlocksPerChunk) {
           chunk_cursor_++;
           if(chunk_cursor_ >= chunks_.size()) {
-            if(reset_chunk_cursor) {
-              add_chunk();
-            } else {
-              reset_chunk_cursor = true;
-              chunk_cursor_ = 0;
-              block_cursor_ = 0;
-            }
+            add_chunk();
           } else {
             block_cursor_ = 0;
           }
@@ -894,11 +886,37 @@ namespace memory {
   class ExpandingAllocator : public HoleFinder, public ImmixAllocator {
     BlockAllocator& block_allocator_;
 
+    size_t last_bytes_;
+    size_t free_bytes_;
+    size_t threshold_bytes_;
+    size_t current_bytes_;
+
+    bool collection_pending_;
+
   public:
     ExpandingAllocator(BlockAllocator& ba)
       : block_allocator_(ba)
+      , last_bytes_(0)
+      , free_bytes_(0)
+      , threshold_bytes_(0)
+      , current_bytes_(0)
+      , collection_pending_(false)
     {
       get_new_block();
+    }
+
+    void update_bytes(size_t last_bytes, size_t free_bytes) {
+      last_bytes_ = last_bytes;
+      free_bytes_ = free_bytes;
+
+      if(free_bytes_ > last_bytes_) {
+        threshold_bytes_ = free_bytes_;
+      } else {
+        threshold_bytes_ = last_bytes_;
+      }
+
+      current_bytes_ = 0;
+      collection_pending_ = false;
     }
 
     Block& current_block() {
@@ -908,21 +926,14 @@ namespace memory {
     /**
      * Returns the next block containing free space.
      */
-    void get_new_block(bool free_only = false) {
+    bool get_new_block(bool free_only = false) {
       for(;;) {
-        /*
-         *
-         * DISABLED FOR NOW.
-        if(free_only) {
-          block = &block_allocator_.get_free_block();
-        } else {
-          block = &block_allocator_.get_block();
-        }
-        */
         Block* block = &block_allocator_.get_block();
 
         if(reset(block)) break;
       }
+
+      return true;
     }
 
     /*
@@ -934,19 +945,38 @@ namespace memory {
       if(!reset()) get_new_block();
     }
 
+    bool collection_threshold_p() {
+      if(last_bytes_ == 0) {
+        if(block_allocator_.chunks().size() > 2) return true;
+      } else if(current_bytes_ > threshold_bytes_) {
+        return true;
+      }
+
+      return false;
+    }
+
     /**
      * Attempts to allocate space for an object of the specified +size+.
      * If unsuccessful at finding space in the current Block memory, a new
      * Block is obtained from the BlockAllocator.
      */
     Address allocate(uint32_t size, bool& collect_now) {
+      // TODO: GC: Fix this hack
+      if(collection_pending_) return Address::null();
+
       while(cursor_ + size > limit_) {
         if(!find_hole()) {
-          collect_now = true;
-          get_new_block(size >= cMediumObjectLimit);
+          if(collection_threshold_p()) {
+            collection_pending_ = true;
+            collect_now = true;
+            return Address::null();
+          }
+
+          get_new_block();
         }
       }
 
+      current_bytes_ += size;
       return bump(size);
     }
   };

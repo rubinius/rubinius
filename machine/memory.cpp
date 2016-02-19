@@ -771,6 +771,8 @@ step1:
           state->vm()->metrics().gc.immix_set);
     }
 
+    collect_flag = false;
+
     if(likely(obj = mark_sweep_->allocate(bytes, collect_flag))) {
       vm()->metrics().memory.large_objects++;
       vm()->metrics().memory.large_bytes += bytes;

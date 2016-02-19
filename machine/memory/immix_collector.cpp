@@ -37,23 +37,12 @@ namespace memory {
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(memory_) {
-      memory_->schedule_full_collection("Immix region chunk added");
+      // memory_->schedule_full_collection("Immix region chunk added");
       memory_->vm()->metrics().memory.immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
         gc_->reset_chunks_left();
       }
-    }
-  }
-
-
-  /**
-   * This means we're getting low on memory! Time to schedule a garbage
-   * collection.
-   */
-  void ImmixGC::ObjectDescriber::last_block() {
-    if(memory_) {
-      memory_->schedule_full_collection("Immix region last block");
     }
   }
 
@@ -138,8 +127,10 @@ namespace memory {
     if(bytes > cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
-    obj->init_header(MatureObjectZone, InvalidType);
-    obj->set_in_immix();
+    if(likely(obj)) {
+      obj->init_header(MatureObjectZone, InvalidType);
+      obj->set_in_immix();
+    }
 
     return obj;
   }
@@ -344,10 +335,6 @@ namespace memory {
     // Sweep up the garbage
     gc_.sweep_blocks();
 
-    // This resets the allocator state to sync it up with the BlockAllocator
-    // properly.
-    allocator_.get_new_block();
-
     {
       timer::StopWatch<timer::microseconds> timer(
           vm()->metrics().gc.immix_diagnostics_us);
@@ -372,11 +359,15 @@ namespace memory {
 
       diagnostics_.collections_++;
       diagnostics_.modify();
+
+      allocator_.update_bytes(diagnostics_.bytes_,
+          diagnostics_.total_bytes_ - diagnostics_.bytes_ * 2);
     }
 
-    if(diagnostics_.percentage_ >= 0.90) {
-      gc_.block_allocator().add_chunk();
-    }
+    // TODO: GC: Fix this
+    // This resets the allocator state to sync it up with the BlockAllocator
+    // properly.
+    allocator_.get_new_block();
   }
 
   void ImmixGC::start_marker(STATE) {

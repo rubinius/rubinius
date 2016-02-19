@@ -88,7 +88,7 @@ namespace memory {
       }
 
       void added_chunk(int count);
-      void last_block();
+      void last_block() { }
 
       void set_forwarding_pointer(Address from, Address to);
 
