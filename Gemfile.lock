@@ -16,7 +16,7 @@ GEM
       rubinius-toolset (~> 3)
     rubinius-compiler (3.0)
     rubinius-instructions (3.0)
-    rubinius-melbourne (3.1)
+    rubinius-melbourne (3.3)
     rubinius-processor (3.0)
     rubinius-toolset (3.0)
 
