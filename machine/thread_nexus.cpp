@@ -289,7 +289,7 @@ namespace rubinius {
                ++i)
         {
           if(VM* other_vm = (*i)->as_vm()) {
-            if(vm == other_vm || sleeping_p(other_vm)) continue;
+            if(vm == other_vm || yielding_p(other_vm)) continue;
 
             blocking = true;
             break;
