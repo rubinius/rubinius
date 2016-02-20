@@ -17,7 +17,7 @@ rubinius-coverage-2.0.3.gem
 rubinius-debugger-2.2.1.gem
 rubinius-developer_tools-2.0.0.gem
 rubinius-instructions-3.0.gem
-rubinius-melbourne-3.1.gem
+rubinius-melbourne-3.3.gem
 rubinius-processor-3.0.gem
 rubinius-profiler-2.0.2.gem
 rubinius-toolset-3.0.gem
@@ -76,7 +76,7 @@ rubysl-openssl-2.8.0.gem
 rubysl-open-uri-2.0.0.gem
 rubysl-optparse-2.0.1.gem
 rubysl-ostruct-2.1.0.gem
-rubysl-pathname-2.1.0.gem
+rubysl-pathname-2.3.gem
 rubysl-prettyprint-2.0.3.gem
 rubysl-prime-2.0.1.gem
 rubysl-profile-2.0.0.gem

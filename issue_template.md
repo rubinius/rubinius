@@ -1,21 +1,23 @@
-### Summary
+## Problem
 
-### Reproduction
+Please describe the problem here, try to keep it brief and clear.
 
-Please keep this as simple as possible.
-Either include a script here or add a link to
-a gist or a repository. If it's a repo, please
-detail `how` to run the example in the `README`.
+## How to Reproduce
 
-### Details
+Please keep this as simple as possible and provide either a set of steps or a
+script/application to reproduce this problem (and remove this sentence).
 
-* `rbx -v`:
-* `uname -a`:
-* `config.rb` (as gist please, if relevant)
-* `configure.log` (as gist please, if relevant)
+## Configuration Details
 
-### Stack Trace
+* Output of `rbx -v`:
+* Output of `uname -a`:
+* Distribution name (in case of Linux/BSD):
+* Contents of `config.rb` (as a Gist link):
+* Contents of `configure.log` (as a Gist link):
 
-(as gist please)
+## Stack Trace
 
-### Failing Spec
+Use https://gist.github.com/ and replace this sentence with a link to said Gist.
+In case of a SEGV please also include the GDB stack trace, see
+http://rubinius.com/doc/en/how-to/obtaining-gdb-backtraces/ for more
+information.
