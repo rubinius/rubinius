@@ -21,7 +21,8 @@ function rbx_github_release {
   fi
 
   log=$(git log --color=never --max-parents=1 --reverse --pretty='format:* %s (%an)%+b' \
-    "v$previous..v$version" | sed 's/\[ci skip\]//' | sed '/^$/N;/^\n$/D')
+    "v$previous..v$version" | sed 's/\[ci skip\]//' | sed 's/\[skip ci\]//' \
+    | sed '/^$/N;/^\n$/D')
 
   unset GEM_HOME GEM_PATH GEM_ROOT
 
