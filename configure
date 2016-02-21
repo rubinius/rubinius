@@ -667,8 +667,6 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     flags = '--ldflags'
 
     if @llvm_api_version >= 305
-      @llvm_cxxflags << " -std=c++11"
-
       # Starting with LLVM 3.5 the --system-libs option is required in order to
       # link against libraries such as zlib. Prior to 3.5 this was handled by
       # --ldflags.
@@ -678,6 +676,9 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     # Generate the actual flags. For whatever reason llvm-config also includes
     # newlines in the output, so lets get rid of those while we're at it.
     @llvm_ldflags = `#{@llvm_configure} #{flags}`.strip.gsub("\n", ' ')
+
+    # We use some C++11 features in the VM source, so we need to enable support.
+    @llvm_cxxflags << " -std=c++11"
   end
 
   def env(which)
