@@ -40,7 +40,7 @@ class Autoload
     if !undefined.equal?(constant) && Thread.current == thread
       constant
     else
-      worked = resolve
+      worked = !resolve.nil?
 
       if !honor_require or worked
         find_const under
