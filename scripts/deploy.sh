@@ -108,7 +108,7 @@ function rbx_deploy_travis_binary {
   declare -a paths os_releases versions
 
   if [[ $os_name == linux ]]; then
-    os_releases=("12.04" "14.04" "15.10")
+    os_releases=($(cat /etc/issue | egrep -o '[[:digit:]]+\.[[:digit:]]+'))
     for (( i=0; i < ${#os_releases[@]}; i++ )); do
       paths[i]="/ubuntu/${os_releases[i]}/x86_64/"
     done
