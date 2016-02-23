@@ -26,6 +26,10 @@ function rbx_url_prefix {
   echo "https://${bucket}.s3-us-west-2.amazonaws.com"
 }
 
+function rbx_dist_version {
+  egrep -o '[[:digit:]]+\.[[:digit:]]+' /etc/issue
+}
+
 function rbx_upload_files {
   local bucket dest src path url name index
   local -a file_exts
@@ -108,7 +112,7 @@ function rbx_deploy_travis_binary {
   declare -a paths os_releases versions
 
   if [[ $os_name == linux ]]; then
-    os_releases=($(cat /etc/issue | egrep -o '[[:digit:]]+\.[[:digit:]]+'))
+    os_releases=($(rbx_dist_version))
     for (( i=0; i < ${#os_releases[@]}; i++ )); do
       paths[i]="/ubuntu/${os_releases[i]}/x86_64/"
     done
@@ -254,7 +258,7 @@ function rbx_deploy_docker_release {
   echo "Deploying Docker release $(rbx_revision_version)..."
 
   local version release file url response sha
-  local -a paths=("12.04")
+  local -a paths=($(rbx_dist_version))
 
   version=$(rbx_revision_version)
   release=$(rbx_release_name)
