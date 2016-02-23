@@ -271,10 +271,12 @@ function rbx_deploy_docker_release {
     cat > "$file" <<EOF
 FROM ubuntu:$path
 
-RUN apt-get update && apt-get install -y \
-        bzip2 \
-        libyaml-0-2 \
-        libssl1.0.0
+RUN apt-get update && apt-get install -y \\
+        bzip2 \\
+        libyaml-0-2 \\
+        libssl1.0.0 \\
+        clang-3.4 \\
+        make
 
 ADD https://rubinius-binaries-rubinius-com.s3-us-west-2.amazonaws.com/ubuntu/$path/x86_64/$release /tmp/rubinius.tar.bz2
 RUN cd /opt && tar xvjf /tmp/rubinius.tar.bz2
