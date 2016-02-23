@@ -209,9 +209,13 @@ module RbConfig
   CONFIG["PACKAGE_VERSION"]    = ""
   CONFIG["PACKAGE_STRING"]     = ""
   CONFIG["PACKAGE_BUGREPORT"]  = ""
-  CONFIG["LDSHARED"]           = Rubinius::LDSHARED.dup
-  CONFIG["LIBRUBY_LDSHARED"]   = Rubinius::LDSHARED.dup
-  CONFIG["LDSHAREDXX"]         = Rubinius::LDSHAREDXX.dup
+
+  ldshared = (ENV["LDSHARED"] || Rubinius::LDSHARED.sub(/^(gcc|clang)/, "cc")).dup
+  ldsharedxx = (ENV["LDSHAREDXX"] || Rubinius::LDSHAREDXX.sub(/^(g|clang)\+\+/, "c++")).dup
+
+  CONFIG["LDSHARED"]           = ldshared
+  CONFIG["LIBRUBY_LDSHARED"]   = ldshared
+  CONFIG["LDSHAREDXX"]         = ldsharedxx
 
   # absolute path to ruby executable (pulled directly from MRI's mkconfig.rb)
   def RbConfig.ruby
