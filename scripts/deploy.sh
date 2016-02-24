@@ -146,6 +146,30 @@ function rbx_deploy_travis_binary {
   done
 }
 
+function rbx_deploy_travis_12_04_binary {
+  local url response sha travis_yml version
+
+  json_url="https://api.github.com/repos/rubinius/rubinius-build/contents/.travis.yml"
+
+  response=$(curl "$json_url?access_token=$GITHUB_OAUTH_TOKEN")
+  sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+    egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+
+  raw_url="https://raw.githubusercontent.com/rubinius/rubinius-build/master/.travis.yml"
+  response=$(curl "$raw_url?access_token=$GITHUB_OAUTH_TOKEN")
+
+  travis_yml=rubinius-build.travis.yml
+  version=$(rbx_revision_version)
+
+  echo "$response" | \
+    sed "s/RUBINIUS_VERSION=.*$/RUBINIUS_VERSION=$version/" \
+    > "$travis_yml"
+
+  rbx_github_update_file "$travis_yml" "${sha:1:${#sha}-2}" "Version $version." "$json_url"
+
+  rm -f "$travis_yml"
+}
+
 function rbx_deploy_github_release {
   local os_name upload_url
 
@@ -311,7 +335,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   for cmd in "${@}"; do
     case "$cmd" in
       "all")
-        "$0" release github travis docker homebrew-binary homebrew-release website
+        "$0" release github travis travis-12.04 docker homebrew-binary homebrew-release website
         ;;
       "release")
         rbx_deploy_release_tarball "$TRAVIS_OS_NAME"
@@ -321,6 +345,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         ;;
       "travis")
         rbx_deploy_travis_binary "$TRAVIS_OS_NAME"
+        ;;
+      "travis-12.04")
+        rbx_deploy_travis_12_04_binary
         ;;
       "homebrew-binary")
         rbx_deploy_homebrew_binary "$TRAVIS_OS_NAME"
