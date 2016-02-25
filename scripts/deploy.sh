@@ -147,6 +147,10 @@ function rbx_deploy_travis_binary {
 }
 
 function rbx_deploy_travis_12_04_binary {
+  if [[ $1 != linux ]]; then
+    return
+  fi
+
   local url response sha travis_yml version
 
   json_url="https://api.github.com/repos/rubinius/rubinius-build/contents/.travis.yml"
@@ -347,7 +351,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         rbx_deploy_travis_binary "$TRAVIS_OS_NAME"
         ;;
       "travis-12.04")
-        rbx_deploy_travis_12_04_binary
+        rbx_deploy_travis_12_04_binary "$TRAVIS_OS_NAME"
         ;;
       "homebrew-binary")
         rbx_deploy_homebrew_binary "$TRAVIS_OS_NAME"
