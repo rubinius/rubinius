@@ -80,26 +80,33 @@ class IO
   end
 
   class FileDescriptor
+    class RIOStream
+      def self.close(io, raise_exception)
+        Rubinius.primitive :rio_close
+        raise PrimitiveFailure, "IO::FileDescriptor::RIOStream.close primitive failed"
+      end
+    end
+
     attr_reader :offset
 
-    def self.choose_type(fd)
+    def self.choose_type(fd, io)
       stat = File::Stat.fstat(fd)
 
       case stat.ftype
       when "file"
-        BufferedFileDescriptor.new(fd, stat)
+        BufferedFileDescriptor.new(fd, stat, io)
       when "fifo", "characterSpecial"
-        FIFOFileDescriptor.new(fd, stat)
+        FIFOFileDescriptor.new(fd, stat, io)
       when "socket"
-        SocketFileDescriptor.new(fd, stat)
+        SocketFileDescriptor.new(fd, stat, io)
       when "directory"
-        DirectoryFileDescriptor.new(fd, stat)
+        DirectoryFileDescriptor.new(fd, stat, io)
       when "blockSpecial"
         raise "cannot make block special"
       when "link"
         raise "cannot make link"
       else
-        new(fd, stat)
+        new(fd, stat, io)
       end
     end
 
@@ -188,8 +195,8 @@ class IO
     end
 
 
-    def initialize(fd, stat)
-      @descriptor, @stat = fd, stat
+    def initialize(fd, stat, io)
+      @descriptor, @stat, @io = fd, stat, io
       acc_mode = FileDescriptor.get_flags(@descriptor)
 
       if acc_mode < 0
@@ -372,6 +379,7 @@ class IO
       fd = @descriptor
 
       if fd != -1
+        RIOStream.close(@io, true)
         ret_code = FFI::Platform::POSIX.close(fd)
 
         if FFI.call_failed?(ret_code)
@@ -599,8 +607,7 @@ class IO
         # Take care of any IO cleanup for the C API here. An IO may
         # have been promoted to a low-level RIO struct using #fdopen,
         # so we MUST use #fclose to clost it.
-
-        # no op for now
+        return if RIOStream.close(@io, false)
 
         # Ignore any return code... don't care if it fails
         FFI::Platform::POSIX.close(fd) if @autoclose
@@ -765,8 +772,8 @@ class IO
       return [fd0, fd1]
     end
 
-    def initialize(fd, stat, mode=nil)
-      super(fd, stat)
+    def initialize(fd, stat, io, mode=nil)
+      super(fd, stat, self)
       @mode = mode if mode
       @eof = false # force to false
     end
@@ -804,7 +811,7 @@ class IO
   end # class DirectoryFileDescriptor
 
   class SocketFileDescriptor < FIFOFileDescriptor
-    def initialize(fd, stat)
+    def initialize(fd, stat, io)
       super
 
       @mode &= O_ACCMODE
@@ -1699,7 +1706,7 @@ class IO
     # allocate another because we could double up on finalizers for the same
     # fd. Only allocate one here if +fd+ ivar is nil.
     if io.instance_variable_get(:@fd).nil?
-      fd_obj = FileDescriptor.choose_type(fd)
+      fd_obj = FileDescriptor.choose_type(fd, io)
       io.instance_variable_set(:@fd, fd_obj)
     end
     io.mode       = mode || cur_mode
@@ -1729,7 +1736,7 @@ class IO
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
     fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-    @fd = FileDescriptor.choose_type(fd)
+    @fd = FileDescriptor.choose_type(fd, self)
     raise "FD could not be allocated for fd [#{fd}]" unless @fd
     raise "No descriptor set for fd [#{fd}]" unless @fd.descriptor
     autoclose = @autoclose
@@ -1780,7 +1787,7 @@ class IO
     # the same @fd as the original. That shallow copy is really only
     # relevant for primitive values (Fixnum, String, etc) and not
     # our own objects. Instantiate a new @fd.
-    @fd = FileDescriptor.choose_type(fd)
+    @fd = FileDescriptor.choose_type(fd, dest_io)
     dest_io.mode = original_io.mode
     dest_io.sync = original_io.sync
     dest_io.binmode if original_io.binmode?
@@ -1791,7 +1798,7 @@ class IO
   private :initialize_copy
 
   def new_pipe(fd, external, internal, options, mode, do_encoding=false)
-    @fd = FIFOFileDescriptor.new(fd, nil, mode)
+    @fd = FIFOFileDescriptor.new(fd, nil, self, mode)
     @lineno = 0
     @pipe = true
 
@@ -3009,7 +3016,7 @@ class IO
       # When reopening we may be going from a Pipe to a File or vice versa. Let the
       # system figure out the proper FD class.
       @fd.cancel_finalizer # cancel soon-to-be-overwritten instance's finalizer
-      @fd = FileDescriptor.choose_type(descriptor)
+      @fd = FileDescriptor.choose_type(descriptor, self)
       Rubinius::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
         @path = io.path
@@ -3044,7 +3051,7 @@ class IO
   def reopen_path(path, mode)
     status =  @fd.reopen_path(path, mode)
     @fd.cancel_finalizer
-    @fd = FileDescriptor.choose_type(descriptor)
+    @fd = FileDescriptor.choose_type(descriptor, self)
     return status
   end
 

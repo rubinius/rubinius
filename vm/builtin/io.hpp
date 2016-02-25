@@ -243,6 +243,25 @@ namespace rubinius {
     };
   };
   
+  class RIOStream : public Object {
+  public:
+    const static object_type type = RIOStreamType;
+
+    static void init(STATE);
+
+    // Rubinius.primitive :rio_close
+    static Object* close(STATE, Object* io, Object* raise_exception);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      void auto_mark(Object* obj, ObjectMark& mark) { }
+      void set_field(STATE, Object* target, size_t index, Object* val) { }
+      Object* get_field(STATE, Object* target, size_t index) { return cNil; }
+      void populate_slot_locations() { }
+    };
+  };
+
 }
 
 #endif

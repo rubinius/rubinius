@@ -1532,6 +1532,27 @@ failed: /* try next '*' position */
 
     return Pointer::create(state, ptr);
   }
+
+  void RIOStream::init(STATE) {
+    GO(rio_stream).set(ontology::new_class_under(state, "RIOStream", G(rubinius)));
+    G(rio_stream)->set_object_type(state, RIOStreamType);
+  }
+
+  Object* RIOStream::close(STATE, Object* io, Object* raise_exception) {
+    // If there is a handle for this IO, and it's been promoted into
+    // a lowlevel RIO struct using fdopen, then we MUST use fclose
+    // to close it.
+
+    if(capi::Handle* hdl = io->handle(state)) {
+      if(hdl->is_rio()) {
+        if(!hdl->rio_close() && CBOOL(raise_exception)) {
+          Exception::errno_error(state);
+        }
+        return cTrue;
+      }
+    }
+    return cFalse;
+  }
   
 }; // ends namespace rubinius
 
