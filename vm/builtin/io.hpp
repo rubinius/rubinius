@@ -250,7 +250,7 @@ namespace rubinius {
     static void init(STATE);
 
     // Rubinius.primitive :rio_close
-    static Object* close(STATE, Object* io, Object* raise_exception);
+    static Object* close(STATE, Object* io, Object* allow_exception);
 
     class Info : public TypeInfo {
     public:

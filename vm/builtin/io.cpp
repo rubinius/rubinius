@@ -1538,14 +1538,14 @@ failed: /* try next '*' position */
     G(rio_stream)->set_object_type(state, RIOStreamType);
   }
 
-  Object* RIOStream::close(STATE, Object* io, Object* raise_exception) {
+  Object* RIOStream::close(STATE, Object* io, Object* allow_exception) {
     // If there is a handle for this IO, and it's been promoted into
     // a lowlevel RIO struct using fdopen, then we MUST use fclose
     // to close it.
 
     if(capi::Handle* hdl = io->handle(state)) {
       if(hdl->is_rio()) {
-        if(!hdl->rio_close() && CBOOL(raise_exception)) {
+        if(!hdl->rio_close() && CBOOL(allow_exception)) {
           Exception::errno_error(state);
         }
         return cTrue;
