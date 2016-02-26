@@ -81,7 +81,7 @@ class IO
 
   class FileDescriptor
     class RIOStream
-      def self.close(io, raise_exception)
+      def self.close(io, allow_exception)
         Rubinius.primitive :rio_close
         raise PrimitiveFailure, "IO::FileDescriptor::RIOStream.close primitive failed"
       end
@@ -379,7 +379,8 @@ class IO
       fd = @descriptor
 
       if fd != -1
-        RIOStream.close(@io, true)
+        # return early if this handle was promoted to a stream by a C-ext
+        return if RIOStream.close(@io, true)
         ret_code = FFI::Platform::POSIX.close(fd)
 
         if FFI.call_failed?(ret_code)
