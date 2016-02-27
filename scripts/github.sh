@@ -72,19 +72,21 @@ function rbx_github_release_assets {
 }
 
 function rbx_github_update_file {
-  local file sha message url content request
+  local file sha message url branch content request
 
   file=$1
   sha=$2
   message=$3
   url=$4
+  branch=${5:-master}
   content=$(rbx_base64 "$file")
 
   request=$(printf '{
     "message": "%s",
     "content": "%s",
-    "sha": "%s"
-  }' "$message" "$content" "$sha")
+    "sha": "%s",
+    "branch": "%s"
+  }' "$message" "$content" "$sha" "$branch")
 
   curl -X PUT --data "$request" "$url?access_token=$GITHUB_OAUTH_TOKEN"
 }

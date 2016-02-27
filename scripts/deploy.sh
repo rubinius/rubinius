@@ -82,14 +82,62 @@ function rbx_deploy_release_tarball {
 
 # Build and upload a Homebrew binary to S3.
 function rbx_deploy_homebrew_binary {
-  if [[ $1 == osx ]]; then
-    echo "Deploying Homebrew binary $(rbx_release_name)..."
-
-    "$__dir__/package.sh" homebrew || fail "unable to build Homebrew binary"
-
-    rbx_upload_files "$(rbx_binary_bucket)" "$(rbx_release_name)" \
-      "$(rbx_release_name)" "/homebrew/"
+  if [[ $1 != osx ]]; then
+    return
   fi
+
+  echo "Deploying Homebrew binary $(rbx_release_name)..."
+
+  "$__dir__/package.sh" homebrew || fail "unable to build Homebrew binary"
+
+  rbx_upload_files "$(rbx_binary_bucket)" "$(rbx_release_name)" \
+    "$(rbx_release_name)" "/homebrew/"
+
+  echo "Deploying Homebrew release $(rbx_revision_version)..."
+
+  local release file url response sha
+
+  release=$(rbx_release_name)
+  file="rubinius.rb"
+  url="https://api.github.com/repos/rubinius/homebrew-apps/contents/$file"
+  response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
+
+  cat > "$file" <<EOF
+require 'formula'
+
+class Rubinius < Formula
+  homepage 'http://rubinius.com/'
+  url 'https://rubinius-binaries-rubinius-com.s3.amazonaws.com/homebrew/$release'
+  sha1 '$(cat "$release.sha1")'
+
+  depends_on 'libyaml'
+
+  depends_on :arch => :x86_64
+  depends_on MinimumMacOSRequirement => :mountain_lion
+
+  keg_only "Conflicts with MRI (Matz's Ruby Implementation)."
+
+  def install
+    bin.install Dir["bin/*"]
+    lib.install Dir["lib/*"]
+    include.install Dir["include/*"]
+    man1.install Dir["man/man1/*"]
+  end
+
+  test do
+    assert_equal 'rbx', \`"#{bin}/rbx" -e "puts RUBY_ENGINE"\`.chomp
+  end
+end
+EOF
+
+  sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+    egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+
+  let i=${#sha}
+
+  rbx_github_update_file "$file" "${sha:1:$i-2}" "Version $(rbx_revision_version)" "$url"
+
+  rm "$file"
 }
 
 # Build and upload a Heroku binary to S3.
@@ -175,20 +223,17 @@ function rbx_deploy_travis_binary {
   done
 }
 
-function rbx_deploy_travis_12_04_binary {
-  if [[ $1 != linux ]]; then
-    return
-  fi
+function rbx_trigger_deploy {
+  local branch json_url response sha raw_url travis_yml version
 
-  local url response sha travis_yml version
-
+  branch=$1
   json_url="https://api.github.com/repos/rubinius/rubinius-build/contents/.travis.yml"
 
-  response=$(curl "$json_url?access_token=$GITHUB_OAUTH_TOKEN")
+  response=$(curl "$json_url?ref=$branch&access_token=$GITHUB_OAUTH_TOKEN")
   sha=$(echo "$response" | "$__dir__/json.sh" -b | \
     egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
 
-  raw_url="https://raw.githubusercontent.com/rubinius/rubinius-build/master/.travis.yml"
+  raw_url="https://raw.githubusercontent.com/rubinius/rubinius-build/$branch/.travis.yml"
   response=$(curl "$raw_url?access_token=$GITHUB_OAUTH_TOKEN")
 
   travis_yml=rubinius-build.travis.yml
@@ -198,7 +243,8 @@ function rbx_deploy_travis_12_04_binary {
     sed "s/RUBINIUS_VERSION=.*$/RUBINIUS_VERSION=$version/" \
     > "$travis_yml"
 
-  rbx_github_update_file "$travis_yml" "${sha:1:${#sha}-2}" "Version $version." "$json_url"
+  rbx_github_update_file "$travis_yml" "${sha:1:${#sha}-2}" \
+    "Version $version." "$json_url" "$branch"
 
   rm -f "$travis_yml"
 }
@@ -251,60 +297,6 @@ EOF
   fi
 }
 
-function rbx_deploy_homebrew_release {
-  local os_name=$1
-
-  if [[ $os_name != osx ]]; then
-    return
-  fi
-
-  echo "Deploying Homebrew release $(rbx_revision_version)..."
-
-  local release file url response sha
-
-  release=$(rbx_release_name)
-  file="rubinius.rb"
-  url="https://api.github.com/repos/rubinius/homebrew-apps/contents/$file"
-  response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
-
-  cat > "$file" <<EOF
-require 'formula'
-
-class Rubinius < Formula
-  homepage 'http://rubinius.com/'
-  url 'https://rubinius-binaries-rubinius-com.s3.amazonaws.com/homebrew/$release'
-  sha1 '$(cat "$release.sha1")'
-
-  depends_on 'libyaml'
-
-  depends_on :arch => :x86_64
-  depends_on MinimumMacOSRequirement => :mountain_lion
-
-  keg_only "Conflicts with MRI (Matz's Ruby Implementation)."
-
-  def install
-    bin.install Dir["bin/*"]
-    lib.install Dir["lib/*"]
-    include.install Dir["include/*"]
-    man1.install Dir["man/man1/*"]
-  end
-
-  test do
-    assert_equal 'rbx', \`"#{bin}/rbx" -e "puts RUBY_ENGINE"\`.chomp
-  end
-end
-EOF
-
-  sha=$(echo "$response" | "$__dir__/json.sh" -b | \
-    egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
-
-  let i=${#sha}
-
-  rbx_github_update_file "$file" "${sha:1:$i-2}" "Version $(rbx_revision_version)" "$url"
-
-  rm "$file"
-}
-
 function rbx_deploy_docker_release {
   local os_name=$1
 
@@ -355,7 +347,7 @@ EOF
 
 function rbx_deploy_usage {
   cat >&2 <<-EOM
-Usage: ${0##*/} [all release github travis docker homebrew-binary homebrew-release website]
+Usage: ${0##*/} [release github travis heroku homebrew website docker trigger-heroku trigger-homebrew trigger-travis-osx trigger-travis-12.04 trigger-travis-14.04 triggers]
 EOM
   exit 1
 }
@@ -367,9 +359,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
   for cmd in "${@}"; do
     case "$cmd" in
-      "all")
-        "$0" release github travis travis-12.04 docker homebrew-binary homebrew-release website
-        ;;
       "release")
         rbx_deploy_release_tarball "$TRAVIS_OS_NAME"
         ;;
@@ -382,20 +371,36 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       "heroku")
         rbx_deploy_heroku_binary "$TRAVIS_OS_NAME"
         ;;
-      "travis-12.04")
-        rbx_deploy_travis_12_04_binary "$TRAVIS_OS_NAME"
-        ;;
-      "homebrew-binary")
+      "homebrew")
         rbx_deploy_homebrew_binary "$TRAVIS_OS_NAME"
-        ;;
-      "homebrew-release")
-        rbx_deploy_homebrew_release "$TRAVIS_OS_NAME"
         ;;
       "website")
         rbx_deploy_website_release "$TRAVIS_OS_NAME"
         ;;
       "docker")
         rbx_deploy_docker_release "$TRAVIS_OS_NAME"
+        ;;
+      "trigger-heroku")
+        rbx_trigger_deploy heroku
+        ;;
+      "trigger-homebrew")
+        rbx_trigger_deploy homebrew
+        ;;
+      "trigger-travis-osx")
+        rbx_trigger_deploy travis-osx
+        ;;
+      "trigger-travis-12.04")
+        rbx_trigger_deploy travis-12.04
+        ;;
+      "trigger-travis-14.04")
+        rbx_trigger_deploy travis-14.04
+        ;;
+      "triggers")
+        rbx_trigger_deploy heroku
+        rbx_trigger_deploy homebrew
+        rbx_trigger_deploy travis-osx
+        rbx_trigger_deploy travis-12.04
+        rbx_trigger_deploy travis-14.04
         ;;
       "-h"|"--help"|*)
         rbx_deploy_usage
