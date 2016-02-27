@@ -632,7 +632,12 @@ namespace rubinius {
    *             is relative to this path.
    */
   void Environment::load_core(STATE, std::string root) {
-    CodeDB::open(state, config.codedb_core_path.value.c_str());
+    try {
+      CodeDB::open(state, config.codedb_core_path.value.c_str());
+    } catch(RubyException& exc) {
+      exc.show(state);
+      exit(1);
+    }
   }
 
   void Environment::load_tool() {
