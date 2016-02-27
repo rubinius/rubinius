@@ -25,6 +25,27 @@ namespace rubinius {
     G(codedb)->set_object_type(state, CodeDBType);
   }
 
+  bool CodeDB::valid_database_p(STATE, std::string path) {
+    struct stat st;
+
+    std::string signature_path = path + "/signature";
+    if(stat(signature_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
+      return false;
+    }
+
+    std::string index_path = path + "/index";
+    if(stat(index_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
+      return false;
+    }
+
+    std::string data_path = path + "/data";
+    if(stat(data_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
+      return false;
+    }
+
+    return true;
+  }
+
   CodeDB* CodeDB::open(STATE, String* path) {
     return open(state, path->c_str(state));
   }
