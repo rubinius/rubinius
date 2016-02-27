@@ -92,6 +92,35 @@ function rbx_deploy_homebrew_binary {
   fi
 }
 
+# Build and upload a Heroku binary to S3.
+function rbx_deploy_heroku_binary {
+  if [[ $1 != linux ]]; then
+    return
+  fi
+
+  if [[ $(rbx_dist_version) != "14.04" ]]; then
+    return
+  fi
+
+  echo "Deploying Heroku binary $(rbx_heroku_release_name)..."
+
+  "$__dir__/package.sh" heroku || fail "unable to build Heroku binary"
+
+  local -a file_exts=("" ".sha1")
+  local url bucket name
+
+  bucket="$(rbx_binary_bucket)"
+  url="$(rbx_url_prefix "$bucket")"
+  name="$(rbx_heroku_release_name)"
+
+  for ext in "${file_exts[@]}"; do
+    if [[ -f $src$ext ]]; then
+      rbx_s3_upload "$url" "$bucket" "$name$ext" "$name$ext" "/ubuntu/cedar-14/" ||
+        fail "unable to upload file"
+    fi
+  done
+}
+
 # Build and upload a binary to S3.
 function rbx_deploy_travis_binary {
   local os_name vendor_llvm
@@ -349,6 +378,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         ;;
       "travis")
         rbx_deploy_travis_binary "$TRAVIS_OS_NAME"
+        ;;
+      "heroku")
+        rbx_deploy_heroku_binary "$TRAVIS_OS_NAME"
         ;;
       "travis-12.04")
         rbx_deploy_travis_12_04_binary "$TRAVIS_OS_NAME"
