@@ -456,13 +456,8 @@ class Regexp
     end
 
     def process_until_group_finished
-      if @source[@index].chr == ")"
-        @index += 1
-        return
-      else
-        push_current_character!
-        process_until_group_finished
-      end
+      push_current_character! until @source[@index].chr == ")"
+      @index += 1
     end
 
     def push_current_character!

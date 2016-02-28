@@ -54,7 +54,7 @@ namespace rubinius {
         char* end = (char*)memchr(message, '\0', LOGGER_MSG_SIZE);
         size_t bytes = end ? end - message : LOGGER_MSG_SIZE;
 
-        if(bytes < LOGGER_MSG_SIZE) {
+        if(bytes + 1 < LOGGER_MSG_SIZE) {
           if(message[bytes-1] != '\n') {
             message[bytes] = '\n';
             message[bytes += 1] = '\0';

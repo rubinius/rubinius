@@ -26,6 +26,7 @@ namespace rubinius {
     attr_accessor(path, String);
 
     static void bootstrap(STATE);
+    static bool valid_database_p(STATE, std::string path);
 
     // Rubinius.primitive :code_db_open
     static CodeDB* open(STATE, String* path);
