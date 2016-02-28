@@ -7,9 +7,11 @@
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 #include "capi/handle.hpp"
+#include "call_frame.hpp"
 #include "configuration.hpp"
 #include "object_memory.hpp"
 #include "object_utils.hpp"
@@ -50,32 +52,19 @@ namespace rubinius {
     return io;
   }
 
-  IO* IO::allocate(STATE, Object* self) {
-    IO* io = state->new_object<IO>(G(io));
-    io->descriptor(state, nil<Fixnum>());
+  native_int IO::descriptor(STATE) {
+    NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
+    Object* io_object = (Object*) native_env->current_call_frame()->self();
 
-    // Ensure the instance's class is set (i.e. for subclasses of IO)
-    io->klass(state, as<Class>(self));
-
-    return io;
+    return as<Fixnum>(io_object->send(state, native_env->current_call_frame(), state->symbol("descriptor")))->to_native();    
   }
 
-  Object* IO::ensure_open(STATE) {
-    if(descriptor_->nil_p()) {
-      Exception::io_error(state, "uninitialized stream");
-    }
-    else if(to_fd() == -1) {
-      Exception::io_error(state, "closed stream");
-    }
-    else if(to_fd() == -2) {
-      Exception::io_error(state, "shutdown stream");
-    }
+  void IO::ensure_open(STATE) {
+    NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
+    Object* io_object = (Object*) native_env->current_call_frame()->self();
 
-    return cNil;
-  }
-
-  native_int IO::to_fd() {
-    return descriptor_->to_native();
+    // Will raise an exception if the file descriptor is not open
+    io_object->send(state, native_env->current_call_frame(), state->symbol("ensure_open"));
   }
 
   Array* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
@@ -168,7 +157,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, calling_environment);
-      bytes_read = recvfrom(descriptor()->to_native(),
+      bytes_read = recvfrom(descriptor(state),
                             (char*)buffer->byte_address(), size,
                             flags->to_native(),
                             (struct sockaddr*)buf, &alen);
@@ -423,7 +412,7 @@ failed: /* try next '*' position */
     struct cmsghdr *cmsg;
     char cmsg_buf[cmsg_space];
 
-    fd = io->descriptor()->to_native();
+    fd = io->descriptor(state);
 
     msg.msg_name = NULL;
     msg.msg_namelen = 0;
@@ -448,7 +437,7 @@ failed: /* try next '*' position */
     int* fd_data = (int*)CMSG_DATA(cmsg);
     *fd_data = fd;
 
-    if(sendmsg(descriptor()->to_native(), &msg, 0) == -1) {
+    if(sendmsg(descriptor(state), &msg, 0) == -1) {
       return Primitives::failure();
     }
 
@@ -490,7 +479,7 @@ failed: /* try next '*' position */
     int* fd_data = (int *)CMSG_DATA(cmsg);
     *fd_data = -1;
 
-    int read_fd = descriptor()->to_native();
+    int read_fd = descriptor(state);
 
     int code = -1;
 

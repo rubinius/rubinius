@@ -13,31 +13,21 @@ namespace rubinius {
   public:
     const static object_type type = IOType;
 
-  private:
-    Fixnum* descriptor_; // slot
-
   public:
-    /* accessors */
-
-    attr_accessor(descriptor, Fixnum);
-
     /* interface */
 
     static void init(STATE);
     static IO* create(STATE, int fd);
 
-    native_int to_fd();
+    native_int descriptor(STATE);
+    void ensure_open(STATE);
 
   /* Class primitives */
-
-    static IO*      allocate(STATE, Object* self);
 
     // Rubinius.primitive :io_fnmatch
     static Object* fnmatch(STATE, String* pattern, String* path, Fixnum* flags);
 
   /* Instance primitives */
-
-    Object* ensure_open(STATE);
 
     // Rubinius.primitive :io_socket_read
     Object* socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type, CallFrame* calling_environment);
