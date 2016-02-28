@@ -300,24 +300,23 @@ EOF
 }
 
 function rbx_deploy_docker_release {
-  if [[ $1 != osx ]]; then
+  if [[ $1 != linux ]]; then
     return
   fi
 
   echo "Deploying Docker release $(rbx_revision_version)..."
 
-  local version release file url response sha
-  local -a paths=($(rbx_dist_version))
+  local version release path file url response sha
 
   version=$(rbx_revision_version)
   release=$(rbx_release_name)
+  path=$(rbx_dist_version)
   file="Dockerfile"
 
-  for path in "${paths[@]}"; do
-    url="https://api.github.com/repos/rubinius/docker/contents/ubuntu/$path/$file"
-    response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
+  url="https://api.github.com/repos/rubinius/docker/contents/ubuntu/$path/$file"
+  response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
 
-    cat > "$file" <<EOF
+  cat > "$file" <<EOF
 FROM ubuntu:$path
 
 RUN apt-get update && apt-get install -y \\
@@ -335,14 +334,13 @@ ENV PATH /opt/rubinius/$version/bin:/opt/rubinius/$version/gems/bin:\$PATH
 CMD ["bash"]
 EOF
 
-    sha=$(echo "$response" | "$__dir__/json.sh" -b | \
-      egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+  sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+    egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
 
-    rbx_github_update_file "$file" "${sha:1:${#sha}-2}" \
-      "Updated Dockerfile for $path to $version.\n\n[ci skip]" "$url"
+  rbx_github_update_file "$file" "${sha:1:${#sha}-2}" \
+    "Updated Dockerfile for $path to $version.\n\n[ci skip]" "$url"
 
-    rm "$file"
-  done
+  rm "$file"
 }
 
 function rbx_deploy_usage {
