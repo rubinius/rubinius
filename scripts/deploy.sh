@@ -291,7 +291,7 @@ function rbx_deploy_website_release {
 
   cat > "$updates" <<EOF
 - version: "$version"
-date: $(rbx_revision_date)
+  date: $(rbx_revision_date)
 EOF
 
   cat "$releases" >> "$updates"
