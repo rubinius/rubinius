@@ -11,6 +11,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fsevent.hpp"
 #include "builtin/io.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
@@ -41,8 +42,14 @@ namespace rubinius {
   namespace console {
     static int open_file(STATE, std::string path) {
       int perms = state->shared().config.system_console_access;
-      int fd = IO::open_with_cloexec(state, path.c_str(),
-          O_CREAT | O_TRUNC | O_RDWR | O_SYNC, perms);
+      NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
+      Class* fd_class = (Class*) G(io)->get_const(state, "FileDescriptor");
+      Array*  ary = Array::create(state, 3);
+      ary->set(state, 0, String::create(state, path.c_str()));
+      ary->set(state, 1, Fixnum::from(O_CREAT | O_TRUNC | O_RDWR | O_SYNC));
+      ary->set(state, 2, Fixnum::from(perms));
+
+      int fd = as<Fixnum>(fd_class->send(state, native_env->current_call_frame(), state->symbol("open_with_cloexec"), ary))->to_native();
 
       if(fd < 0) {
         logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());
