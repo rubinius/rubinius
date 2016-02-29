@@ -19,7 +19,7 @@ before_script:
 - ./configure
 script: rake ci
 after_success:
-- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website docker triggers; fi
+- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi
 branches:
   only:
   - master

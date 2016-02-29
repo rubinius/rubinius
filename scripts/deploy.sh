@@ -162,7 +162,7 @@ function rbx_deploy_heroku_binary {
   name="$(rbx_heroku_release_name)"
 
   for ext in "${file_exts[@]}"; do
-    if [[ -f $src$ext ]]; then
+    if [[ -f $name$ext ]]; then
       rbx_s3_upload "$url" "$bucket" "$name$ext" "$name$ext" "/ubuntu/cedar-14/" ||
         fail "unable to upload file"
     fi
@@ -224,9 +224,13 @@ function rbx_deploy_travis_binary {
 }
 
 function rbx_trigger_deploy {
+  if [[ $1 != osx ]]; then
+    return
+  fi
+
   local branch json_url response sha raw_url travis_yml version
 
-  branch=$1
+  branch=$2
   json_url="https://api.github.com/repos/rubinius/rubinius-build/contents/.travis.yml"
 
   response=$(curl "$json_url?ref=$branch&access_token=$GITHUB_OAUTH_TOKEN")
@@ -250,11 +254,9 @@ function rbx_trigger_deploy {
 }
 
 function rbx_deploy_github_release {
-  local os_name upload_url
+  local upload_url
 
-  os_name=$1
-
-  if [[ $os_name == osx ]]; then
+  if [[ $1 == osx ]]; then
     upload_url=$(rbx_github_release "$(rbx_revision_version)" "$(rbx_revision_date)")
 
     rbx_github_release_assets "$upload_url" "$(rbx_release_name)"
@@ -262,62 +264,59 @@ function rbx_deploy_github_release {
 }
 
 function rbx_deploy_website_release {
-  local os_name releases updates version url response sha download_url
+  if [[ $1 != osx ]]; then
+    return
+  fi
 
-  os_name=$1
+  local releases updates version url response sha download_url
 
-  if [[ $os_name == osx ]]; then
-    releases="releases.yml"
-    updates="updated_$releases"
-    version=$(rbx_revision_version)
-    url="https://api.github.com/repos/rubinius/rubinius.github.io/contents/_data/releases.yml"
+  releases="releases.yml"
+  updates="updated_$releases"
+  version=$(rbx_revision_version)
+  url="https://api.github.com/repos/rubinius/rubinius.github.io/contents/_data/releases.yml"
 
-    response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
+  response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
 
-    download_url=$(echo "$response" | "$__dir__/json.sh" -b | \
-      egrep '\["download_url"\][[:space:]]\"[^"]+\"' | egrep -o '\"[^\"]+\"$')
-    curl -o "$releases" "${download_url:1:${#download_url}-2}?access_token=$GITHUB_OAUTH_TOKEN"
+  download_url=$(echo "$response" | "$__dir__/json.sh" -b | \
+    egrep '\["download_url"\][[:space:]]\"[^"]+\"' | egrep -o '\"[^\"]+\"$')
+  curl -o "$releases" "${download_url:1:${#download_url}-2}?access_token=$GITHUB_OAUTH_TOKEN"
 
-    grep "^- version: \"$version\"\$" "$releases"
-    if [ $? -eq 0 ]; then
-      return
-    fi
+  grep "^- version: \"$version\"\$" "$releases"
+  if [ $? -eq 0 ]; then
+    return
+  fi
 
-    sha=$(echo "$response" | "$__dir__/json.sh" -b | \
-      egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+  sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+    egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
 
-    cat > "$updates" <<EOF
+  cat > "$updates" <<EOF
 - version: "$version"
   date: $(rbx_revision_date)
 EOF
 
-    cat "$releases" >> "$updates"
+  cat "$releases" >> "$updates"
 
-    rbx_github_update_file "$updates" "${sha:1:${#sha}-2}" "Version $version." "$url"
-  fi
+  rbx_github_update_file "$updates" "${sha:1:${#sha}-2}" "Version $version." "$url"
 }
 
 function rbx_deploy_docker_release {
-  local os_name=$1
-
-  if [[ $os_name != osx ]]; then
+  if [[ $1 != linux ]]; then
     return
   fi
 
   echo "Deploying Docker release $(rbx_revision_version)..."
 
-  local version release file url response sha
-  local -a paths=($(rbx_dist_version))
+  local version release path file url response sha
 
   version=$(rbx_revision_version)
   release=$(rbx_release_name)
+  path=$(rbx_dist_version)
   file="Dockerfile"
 
-  for path in "${paths[@]}"; do
-    url="https://api.github.com/repos/rubinius/docker/contents/ubuntu/$path/$file"
-    response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
+  url="https://api.github.com/repos/rubinius/docker/contents/ubuntu/$path/$file"
+  response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
 
-    cat > "$file" <<EOF
+  cat > "$file" <<EOF
 FROM ubuntu:$path
 
 RUN apt-get update && apt-get install -y \\
@@ -335,14 +334,13 @@ ENV PATH /opt/rubinius/$version/bin:/opt/rubinius/$version/gems/bin:\$PATH
 CMD ["bash"]
 EOF
 
-    sha=$(echo "$response" | "$__dir__/json.sh" -b | \
-      egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
+  sha=$(echo "$response" | "$__dir__/json.sh" -b | \
+    egrep '\["sha"\][[:space:]]\"[^"]+\"' | egrep -o '\"[[:xdigit:]]+\"')
 
-    rbx_github_update_file "$file" "${sha:1:${#sha}-2}" \
-      "Updated Dockerfile for $path to $version.\n\n[ci skip]" "$url"
+  rbx_github_update_file "$file" "${sha:1:${#sha}-2}" \
+    "Updated Dockerfile for $path to $version.\n\n[ci skip]" "$url"
 
-    rm "$file"
-  done
+  rm "$file"
 }
 
 function rbx_deploy_usage {
@@ -381,26 +379,26 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         rbx_deploy_docker_release "$TRAVIS_OS_NAME"
         ;;
       "trigger-heroku")
-        rbx_trigger_deploy heroku
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" heroku
         ;;
       "trigger-homebrew")
-        rbx_trigger_deploy homebrew
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" homebrew
         ;;
       "trigger-travis-osx")
-        rbx_trigger_deploy travis-osx
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-osx
         ;;
       "trigger-travis-12.04")
-        rbx_trigger_deploy travis-12.04
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-12.04
         ;;
       "trigger-travis-14.04")
-        rbx_trigger_deploy travis-14.04
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-14.04
         ;;
       "triggers")
-        rbx_trigger_deploy heroku
-        rbx_trigger_deploy homebrew
-        rbx_trigger_deploy travis-osx
-        rbx_trigger_deploy travis-12.04
-        rbx_trigger_deploy travis-14.04
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" heroku
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" homebrew
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-osx
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-12.04
+        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-14.04
         ;;
       "-h"|"--help"|*)
         rbx_deploy_usage
