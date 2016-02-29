@@ -11,10 +11,8 @@ describe "Thread#value" do
     lambda { t.value }.should raise_error(RuntimeError, "Hello")
   end
 
-  quarantine! do
   it "is nil for a killed thread" do
     t = Thread.new { Thread.current.exit }
     t.value.should == nil
-  end
   end
 end
