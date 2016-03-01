@@ -529,53 +529,6 @@ public:
     TS_ASSERT_EQUALS(&block, &chunk->get_block(1));
   }
 
-  void test_ExpandingAllocator_allocate_pulls_new_blocks() {
-    memory::ExpandingAllocator ea(gc->block_allocator());
-    memory::Block& block = ea.current_block();
-
-    for(uint32_t i = 0; i < memory::cLineTableSize; i++) {
-      block.mark_line(i);
-    }
-
-    block.free_line(1);
-    block.copy_marks();
-
-    ea.resync_position();
-
-    bool collect;
-
-    memory::Address small = ea.allocate(24, collect);
-    TS_ASSERT(!small.is_null());
-
-    memory::Address addr = ea.allocate(156, collect);
-    TS_ASSERT(!addr.is_null());
-
-    memory::Block& block2 = ea.current_block();
-
-    TS_ASSERT(&block != &block2);
-  }
-
-  void test_ExpandingAllocator_allocate_searches_for_new_holes() {
-    memory::ExpandingAllocator ea(gc->block_allocator());
-    memory::Block& block = ea.current_block();
-
-    block.mark_line(1);
-
-    ea.resync_position();
-
-    bool collect;
-
-    memory::Address small = ea.allocate(24, collect);
-    TS_ASSERT(!small.is_null());
-
-    memory::Address addr = ea.allocate(156, collect);
-    TS_ASSERT(!addr.is_null());
-
-    memory::Block& block2 = ea.current_block();
-
-    TS_ASSERT(&block == &block2);
-  }
-
   void test_HoleFinder_find_hole_on_empty_block() {
     memory::Block& block = gc->get_block();
     memory::HoleFinder alloc;

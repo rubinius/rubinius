@@ -640,6 +640,14 @@ namespace memory {
       return *current_chunk_;
     }
 
+    size_t chunk_cursor() {
+      return chunk_cursor_;
+    }
+
+    size_t block_cursor() {
+      return block_cursor_;
+    }
+
     /**
      * Returns a Block from which allocations can be made. This may be a new
      * Block that is totally free, or a recyclable block, which contains at
@@ -691,6 +699,29 @@ namespace memory {
       triggers_.last_block();
       add_chunk();
       return current_chunk_->get_block(0);
+    }
+
+    Block* get_block_or_fail() {
+      if(current_chunk_ == 0) {
+        add_chunk();
+        return &current_chunk_->get_block(0);
+      }
+
+      for(;;) {
+        if(block_cursor_ >= (size_t)cBlocksPerChunk) {
+          chunk_cursor_++;
+          if(chunk_cursor_ >= chunks_.size()) {
+            return NULL;
+          } else {
+            block_cursor_ = 0;
+          }
+
+          current_chunk_ = chunks_[chunk_cursor_];
+        }
+
+        Block& block = current_chunk_->get_block(block_cursor_++);
+        if(block.usable()) return &block;
+      }
     }
 
     /**
@@ -886,41 +917,24 @@ namespace memory {
   class ExpandingAllocator : public HoleFinder, public ImmixAllocator {
     BlockAllocator& block_allocator_;
 
-    size_t last_bytes_;
-    size_t free_bytes_;
-    size_t threshold_bytes_;
-    size_t current_bytes_;
-
+    size_t bytes_allocated_;
+    size_t chunks_added_;
+    size_t spill_allocations_;
+    size_t bytes_available_;
+    size_t declines_;
     bool collection_pending_;
 
   public:
     ExpandingAllocator(BlockAllocator& ba)
       : block_allocator_(ba)
-      , last_bytes_(0)
-      , free_bytes_(0)
-      , threshold_bytes_(0)
-      , current_bytes_(0)
+      , bytes_allocated_(0)
+      , chunks_added_(0)
+      , spill_allocations_(0)
+      , bytes_available_(0)
+      , declines_(0)
       , collection_pending_(false)
     {
       get_new_block();
-    }
-
-    void update_bytes(size_t last_bytes, size_t free_bytes) {
-      last_bytes_ = last_bytes;
-      free_bytes_ = free_bytes;
-
-      if(free_bytes_ > last_bytes_) {
-        threshold_bytes_ = free_bytes_;
-      } else {
-        threshold_bytes_ = last_bytes_;
-      }
-
-      current_bytes_ = 0;
-      collection_pending_ = false;
-    }
-
-    Block& current_block() {
-      return block();
     }
 
     /**
@@ -936,23 +950,51 @@ namespace memory {
       return true;
     }
 
-    /*
-     * Resets the allocator to the next free hole in the current block, or
-     * the next block if the current block is full.
-     * Used for testing.
-     */
-    void resync_position() {
-      if(!reset()) get_new_block();
+    void restart(double occupancy, size_t bytes_available) {
+      collection_pending_ = false;
+      bytes_allocated_ = 0;
+      chunks_added_ = 0;
+      spill_allocations_ = 0;
+      declines_ = 0;
+      bytes_available_ = bytes_available;
+
+      if(occupancy > 0.4) {
+        block_allocator_.add_chunk();
+        chunks_added_++;
+      }
+
+      block_allocator_.reset();
+      get_new_block();
     }
 
-    bool collection_threshold_p() {
-      if(last_bytes_ == 0) {
-        if(block_allocator_.chunks().size() > 2) return true;
-      } else if(current_bytes_ > threshold_bytes_) {
+    bool add_chunk_p() {
+      if(block_allocator_.chunks().size() < 5) {
+        return true;
+      }
+
+      if(chunks_added_ < 1 && (double)bytes_allocated_ / (double)bytes_available_ < 0.25) {
         return true;
       }
 
       return false;
+    }
+
+    bool get_block() {
+      for(;;) {
+        Block* block = block_allocator_.get_block_or_fail();
+
+        if(block) {
+          if(reset(block)) return true;
+        } else {
+          if(add_chunk_p()) {
+            block_allocator_.add_chunk();
+            chunks_added_++;
+            continue;
+          }
+
+          return false;
+        }
+      }
     }
 
     /**
@@ -961,22 +1003,28 @@ namespace memory {
      * Block is obtained from the BlockAllocator.
      */
     Address allocate(uint32_t size, bool& collect_now) {
+      if(size > cMediumObjectLimit) {
+        declines_++;
+        return Address::null();
+      }
+
       // TODO: GC: Fix this hack
-      if(collection_pending_) return Address::null();
+      if(collection_pending_) {
+        spill_allocations_++;
+        return Address::null();
+      }
 
       while(cursor_ + size > limit_) {
         if(!find_hole()) {
-          if(collection_threshold_p()) {
+          if(!get_block()) {
             collection_pending_ = true;
             collect_now = true;
             return Address::null();
           }
-
-          get_new_block();
         }
       }
 
-      current_bytes_ += size;
+      bytes_allocated_ += size;
       return bump(size);
     }
   };

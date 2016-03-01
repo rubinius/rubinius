@@ -359,15 +359,10 @@ namespace memory {
 
       diagnostics_.collections_++;
       diagnostics_.modify();
-
-      allocator_.update_bytes(diagnostics_.bytes_,
-          diagnostics_.total_bytes_ - diagnostics_.bytes_ * 2);
     }
 
-    // TODO: GC: Fix this
-    // This resets the allocator state to sync it up with the BlockAllocator
-    // properly.
-    allocator_.get_new_block();
+    allocator_.restart(diagnostics_.percentage_,
+        diagnostics_.total_bytes_ - diagnostics_.bytes_);
   }
 
   void ImmixGC::start_marker(STATE) {
