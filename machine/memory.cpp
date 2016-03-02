@@ -70,7 +70,7 @@ namespace rubinius {
     , code_manager_(&vm->shared)
     , mark_(2)
     , allow_gc_(true)
-    , mature_mark_concurrent_(false /* TODO: GC shared.config.gc_immix_concurrent*/)
+    , mature_mark_concurrent_(shared.config.gc_immix_concurrent)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , collect_young_flag_(false)
