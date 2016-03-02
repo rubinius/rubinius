@@ -40,7 +40,11 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      Info(object_type type) : TypeInfo(type) { }
+      void auto_mark(Object* obj, ObjectMark& mark) { }
+      void set_field(STATE, Object* target, size_t index, Object* val) { }
+      Object* get_field(STATE, Object* target, size_t index) { return cNil; }
+      void populate_slot_locations() { }
     };
 
   };
