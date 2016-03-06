@@ -737,16 +737,23 @@ namespace rubinius {
 
       InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
 
-      // If argument handling fails..
-      if(ArgumentHandler::call(state, mcode, scope, args, previous) == false) {
-        if(state->vm()->thread_state()->raise_reason() == cNone) {
-          Exception* exc =
-            Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
-          exc->locations(state, Location::from_call_stack(state, previous));
-          state->raise_exception(exc);
+      {
+        Object* recv = args.recv();
+        OnStack<2> os(state, recv, code);
+
+        // If argument handling fails..
+        if(ArgumentHandler::call(state, mcode, scope, args, previous) == false) {
+          if(state->vm()->thread_state()->raise_reason() == cNone) {
+            Exception* exc =
+              Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
+            exc->locations(state, Location::from_call_stack(state, previous));
+            state->raise_exception(exc);
+          }
+
+          return NULL;
         }
 
-        return NULL;
+        scope->set_self(recv);
       }
 
       frame->prepare(mcode->stack_size);
