@@ -537,14 +537,12 @@ step1:
     }
 
     if(collect_full_flag_) {
-      memory::GCData gc_data(state->vm());
-
       RUBINIUS_GC_BEGIN(1);
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCMature);
-        collect_full(state, &gc_data);
+        collect_full(state);
       } else {
-        collect_full(state, &gc_data);
+        collect_full(state);
       }
     }
 
@@ -601,7 +599,7 @@ step1:
     collect_young_flag_ = false;
   }
 
-  void Memory::collect_full(STATE, memory::GCData* data) {
+  void Memory::collect_full(STATE) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.immix_concurrent_ms);
 
@@ -613,17 +611,23 @@ step1:
     }
 
     code_manager_.clear_marks();
-    clear_fiber_marks(data);
 
     immix_->reset_stats();
 
+    // TODO: GC hacks hacks hacks fix fix fix.
     if(mature_mark_concurrent_) {
+      memory::GCData* data = new memory::GCData(state->vm());
+
+      clear_fiber_marks(data);
       immix_->start_marker(state);
       immix_->collect_start(data);
       mature_gc_in_progress_ = true;
     } else {
-      immix_->collect(data);
-      collect_full_finish(state, data);
+      memory::GCData data(state->vm());
+
+      clear_fiber_marks(&data);
+      immix_->collect(&data);
+      collect_full_finish(state, &data);
     }
   }
 

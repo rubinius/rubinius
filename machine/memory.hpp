@@ -573,7 +573,7 @@ namespace rubinius {
     }
 
     void collect_young(STATE, memory::GCData* data);
-    void collect_full(STATE, memory::GCData* data);
+    void collect_full(STATE);
     void collect_full_finish(STATE, memory::GCData* data);
 
   public:

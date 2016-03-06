@@ -322,7 +322,7 @@ public:
     TS_ASSERT(!mature->marked_p(mark));
     memory::Root r(roots, mature);
 
-    om.collect_full(state, gc_data);
+    om.collect_full(state);
     // marker thread cleans up gc_data
     gc_data = NULL;
 
@@ -343,7 +343,7 @@ public:
     TS_ASSERT(!young->marked_p(mark));
     memory::Root r(roots, young);
 
-    om.collect_full(state, gc_data);
+    om.collect_full(state);
     gc_data = NULL;
 
     TS_ASSERT(young->marked_p(mark));
@@ -367,7 +367,7 @@ public:
 
     memory::Root r(roots, young);
 
-    om.collect_full(state, gc_data);
+    om.collect_full(state);
     gc_data = NULL;
 
     mature = as<Tuple>(young->field[0]);
