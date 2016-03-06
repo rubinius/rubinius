@@ -18,14 +18,17 @@ namespace rubinius {
   }
 
   bool ThreadNexus::blocking_p(VM* vm) {
+    atomic::memory_barrier();
     return (vm->thread_phase() & cBlocking) == cBlocking;
   }
 
   bool ThreadNexus::sleeping_p(VM* vm) {
+    atomic::memory_barrier();
     return (vm->thread_phase() & cSleeping) == cSleeping;
   }
 
   bool ThreadNexus::yielding_p(VM* vm) {
+    atomic::memory_barrier();
     return (vm->thread_phase() & cYielding) == cYielding;
   }
 
@@ -131,7 +134,7 @@ namespace rubinius {
     }
   }
 
-#define RBX_MAX_STOP_NANOSECONDS 500000000
+#define RBX_MAX_STOP_NANOSECONDS 5000000000
 
   void ThreadNexus::detect_lock_deadlock(uint64_t nanoseconds, VM* vm) {
     if(nanoseconds > RBX_MAX_STOP_NANOSECONDS) {
@@ -157,8 +160,10 @@ namespace rubinius {
 
   uint64_t ThreadNexus::delay() {
     static int i = 0;
-    static int delay[] = { 1, 21, 270, 482, 268, 169, 224, 481,
-                           262, 79, 133, 448, 227, 249, 22 };
+    static int delay[] = {
+      133, 464, 254, 306, 549, 287, 358, 638, 496, 81,
+      472, 288, 131, 31, 435, 258, 221, 73, 537, 854
+    };
     static int modulo = sizeof(delay) / sizeof(int);
     static struct timespec ts = {0, 0};
 
