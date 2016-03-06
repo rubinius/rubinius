@@ -1,6 +1,6 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 
-describe "Rubinis::Options::Option.new" do
+describe "Rubinius::Options::Option.new" do
   before :each do
     @opt = Rubinius::Options::Option.new("-a", "--bdc", "ARG", "desc", :block)
   end
