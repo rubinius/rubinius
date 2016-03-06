@@ -105,10 +105,10 @@ namespace rubinius {
     return state->vm()->thread.get()->send(state, NULL, state->symbol("__run__"));
   }
 
-  Thread* Thread::allocate(STATE, Object* self, CallFrame* calling_environment) {
+  Thread* Thread::allocate(STATE, Object* self) {
     Thread* thread = Thread::create(state, self, send_run);
 
-    CallFrame* call_frame = calling_environment->get(1);
+    CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
     utilities::logger::write("create thread: %s, %s:%d",
         thread->vm()->name().c_str(),
@@ -122,7 +122,7 @@ namespace rubinius {
     return state->vm()->thread.get();
   }
 
-  Object* Thread::unlock_locks(STATE, CallFrame* calling_environment) {
+  Object* Thread::unlock_locks(STATE) {
     Thread* self = this;
     OnStack<1> os(state, self);
 
@@ -132,7 +132,7 @@ namespace rubinius {
         ++i) {
       ObjectHeader* locked = *i;
       if(locked != self) {
-        locked->unlock_for_terminate(state, calling_environment);
+        locked->unlock_for_terminate(state);
       }
     }
     los.clear();
@@ -278,7 +278,7 @@ namespace rubinius {
   }
 
   Object* Thread::main_thread(STATE) {
-    state->vm()->thread->hard_unlock(state, 0);
+    state->vm()->thread->hard_unlock(state);
 
     std::string& runtime = state->shared().env()->runtime_path();
 
@@ -359,10 +359,6 @@ namespace rubinius {
     Object* ret = vm->thread->function_(state);
     vm->shared.tool_broker()->thread_stop(state);
 
-    // Clear the call_frame, so that if we wait for GC going independent,
-    // the GC doesn't see pointers into now-unallocated CallFrames
-    vm->set_call_frame(0);
-
     vm->thread->join_lock_.lock();
     vm->thread->stopped();
 
@@ -370,7 +366,7 @@ namespace rubinius {
     for(memory::LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
-      (*i)->unlock_for_terminate(state, 0);
+      (*i)->unlock_for_terminate(state);
     }
 
     vm->thread->join_cond_.broadcast();
@@ -404,13 +400,13 @@ namespace rubinius {
     if(int error = start_thread(state, Thread::run)) {
       char buf[RBX_STRERROR_BUFSIZE];
       char* err = RBX_STRERROR(error, buf, RBX_STRERROR_BUFSIZE);
-      Exception::thread_error(state, err);
+      Exception::raise_thread_error(state, err);
     }
 
     return cNil;
   }
 
-  Object* Thread::pass(STATE, CallFrame* calling_environment) {
+  Object* Thread::pass(STATE) {
     atomic::pause();
     return cNil;
   }
@@ -428,7 +424,7 @@ namespace rubinius {
     return priority();
   }
 
-  Object* Thread::raise(STATE, Exception* exc, CallFrame* calling_environment) {
+  Object* Thread::raise(STATE, Exception* exc) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
     Thread* self = this;
     OnStack<2> os(state, self, exc);
@@ -440,7 +436,7 @@ namespace rubinius {
 
     vm->register_raise(state, exc);
 
-    vm->wakeup(state, calling_environment);
+    vm->wakeup(state);
     return exc;
   }
 
@@ -454,7 +450,7 @@ namespace rubinius {
     return vm_->thread_state()->current_exception();
   }
 
-  Object* Thread::kill(STATE, CallFrame* calling_environment) {
+  Object* Thread::kill(STATE) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
     Thread* self = this;
     OnStack<1> os(state, self);
@@ -469,12 +465,12 @@ namespace rubinius {
       return NULL;
     } else {
       vm->register_kill(state);
-      vm->wakeup(state, calling_environment);
+      vm->wakeup(state);
       return self;
     }
   }
 
-  Thread* Thread::wakeup(STATE, CallFrame* calling_environment) {
+  Thread* Thread::wakeup(STATE) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
     Thread* self = this;
     OnStack<1> os(state, self);
@@ -484,7 +480,7 @@ namespace rubinius {
       return force_as<Thread>(Primitives::failure());
     }
 
-    vm->wakeup(state, calling_environment);
+    vm->wakeup(state);
 
     return self;
   }
@@ -495,21 +491,21 @@ namespace rubinius {
     VM* vm = vm_;
     if(!vm) return nil<Tuple>();
 
-    CallFrame* cf = vm->last_frame()->top_ruby_frame();
+    CallFrame* cf = vm->get_ruby_frame();
 
     VariableScope* scope = cf->promote_scope(state);
 
     return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->compiled_code, scope);
   }
 
-  Array* Thread::mri_backtrace(STATE, CallFrame* calling_environment) {
+  Array* Thread::mri_backtrace(STATE) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
     if(!vm) return nil<Array>();
     LockPhase locked(state);
 
-    return Location::mri_backtrace(state, vm->last_frame());
+    return Location::mri_backtrace(state);
   }
 
   void Thread::stopped() {
@@ -520,7 +516,7 @@ namespace rubinius {
     init_lock_.init();
   }
 
-  Thread* Thread::join(STATE, Object* timeout, CallFrame* calling_environment) {
+  Thread* Thread::join(STATE, Object* timeout) {
     Thread* self = this;
     OnStack<2> os(state, self, timeout);
 

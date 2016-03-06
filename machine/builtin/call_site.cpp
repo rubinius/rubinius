@@ -38,9 +38,7 @@ namespace rubinius {
     return Integer::from(state, ip_);
   }
 
-  Object* CallSite::empty_cache_custom(STATE, CallSite* call_site,
-      CallFrame* call_frame, Arguments& args)
-  {
+  Object* CallSite::empty_cache_custom(STATE, CallSite* call_site, Arguments& args) {
     Object* const recv = args.recv();
 
     Array* ary = Array::create(state, args.total() + 2);
@@ -59,31 +57,31 @@ namespace rubinius {
        */
       Memory::GCInhibit inhibitor(state);
 
-      ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"), ary);
+      ret = G(rubinius)->send(state, state->vm()->call_frame(),
+          state->symbol("bind_call"), ary);
     }
 
     if(CallUnit* cu = try_as<CallUnit>(ret)) {
       CallCustomCache* cache = CallCustomCache::create(state, call_site, cu);
       call_site->update_call_site(state, cache);
-      return cu->execute(state, call_frame, cu, cu->executable(), cu->module(), args);
+      return cu->execute(state, cu, cu->executable(), cu->module(), args);
     } else {
-      Exception::internal_error(state, call_frame, "bind_call must return CallUnit");
+      Exception::internal_error(state, "bind_call must return CallUnit");
       return 0;
     }
   }
 
-  Object* CallSite::empty_cache(STATE, CallSite* call_site,
-      CallFrame* call_frame, Arguments& args)
-  {
+  Object* CallSite::empty_cache(STATE, CallSite* call_site, Arguments& args) {
+    Object* const self = state->vm()->call_frame()->self();
     Object* const recv = args.recv();
     Class*  const recv_class  = recv->direct_class(state);
 
-    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_public));
+    LookupData lookup(self, recv->lookup_begin(state), G(sym_public));
     Dispatch dispatch(call_site->name());
 
     if(!dispatch.resolve(state, call_site->name(), lookup)) {
-      if(!lookup_method_missing(state, call_frame, args,
-          dispatch, call_frame->self(), recv->lookup_begin(state))) {
+      if(!lookup_method_missing(state, args,
+          dispatch, self, recv->lookup_begin(state))) {
         return NULL;
       }
     }
@@ -98,26 +96,27 @@ namespace rubinius {
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
-      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      Object* res = meth->execute(state, meth, mod, args);
       state->set_call_site_information(NULL);
       return res;
     } else {
-      return meth->execute(state, call_frame, meth, mod, args);
+      return meth->execute(state, meth, mod, args);
     }
   }
 
-  Object* CallSite::empty_cache_private(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* CallSite::empty_cache_private(STATE, CallSite* call_site,
                                    Arguments& args)
   {
+    Object* const self = state->vm()->call_frame()->self();
     Object* const recv = args.recv();
     Class* const recv_class = recv->direct_class(state);
 
-    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
+    LookupData lookup(self, recv->lookup_begin(state), G(sym_private));
     Dispatch dispatch(call_site->name());
 
     if(!dispatch.resolve(state, dispatch.name, lookup)) {
-      if(!lookup_method_missing(state, call_frame, args,
-          dispatch, call_frame->self(), recv->lookup_begin(state))) {
+      if(!lookup_method_missing(state, args,
+          dispatch, self, recv->lookup_begin(state))) {
         return NULL;
       }
     }
@@ -132,28 +131,26 @@ namespace rubinius {
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
-      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      Object* res = meth->execute(state, meth, mod, args);
       state->set_call_site_information(NULL);
       return res;
     } else {
-      return meth->execute(state, call_frame, meth, mod, args);
+      return meth->execute(state, meth, mod, args);
     }
   }
 
-  Object* CallSite::empty_cache_vcall(STATE, CallSite* call_site, CallFrame* call_frame,
-                                         Arguments& args)
-  {
-
+  Object* CallSite::empty_cache_vcall(STATE, CallSite* call_site, Arguments& args) {
+    Object* const self = state->vm()->call_frame()->self();
     Object* const recv = args.recv();
     Class* const recv_class = recv->direct_class(state);
 
-    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
+    LookupData lookup(self, recv->lookup_begin(state), G(sym_private));
     Dispatch dispatch(call_site->name());
 
     if(!dispatch.resolve(state, call_site->name(), lookup)) {
       dispatch.method_missing = eVCall;
-      if(!lookup_method_missing(state, call_frame, args,
-          dispatch, call_frame->self(), recv->lookup_begin(state))) {
+      if(!lookup_method_missing(state, args,
+          dispatch, self, recv->lookup_begin(state))) {
         return NULL;
       }
     }
@@ -168,17 +165,19 @@ namespace rubinius {
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
-      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      Object* res = meth->execute(state, meth, mod, args);
       state->set_call_site_information(NULL);
       return res;
     } else {
-      return meth->execute(state, call_frame, meth, mod, args);
+      return meth->execute(state, meth, mod, args);
     }
   }
 
-  Object* CallSite::empty_cache_super(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* CallSite::empty_cache_super(STATE, CallSite* call_site,
                                    Arguments& args)
   {
+    CallFrame* call_frame = state->vm()->call_frame();
+
     Symbol* original_name = call_frame->original_name();
     if(call_site->name_ != original_name) {
       call_site->name_ = original_name;
@@ -204,7 +203,7 @@ namespace rubinius {
         msg << recv_class->to_string(state);
         msg << "#" << call_site->name()->to_string(state);
 
-        Exception::internal_error(state, call_frame, msg.str().c_str());
+        Exception::internal_error(state, msg.str().c_str());
         return 0;
       }
 
@@ -226,11 +225,11 @@ namespace rubinius {
     if(meth->custom_call_site_p()) {
       CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
-      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      Object* res = meth->execute(state, meth, mod, args);
       state->set_call_site_information(NULL);
       return res;
     } else {
-      return meth->execute(state, call_frame, meth, mod, args);
+      return meth->execute(state, meth, mod, args);
     }
   }
 
@@ -239,8 +238,7 @@ namespace rubinius {
     call_site->update_call_site(state, cache);
   }
 
-  bool CallSite::update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial) {
-
+  bool CallSite::update_and_validate(STATE, Object* recv, Symbol* vis, int serial) {
     Class* const recv_class = recv->direct_class(state);
 
     if(MonoInlineCache* mono = try_as<MonoInlineCache>(this)) {
@@ -254,7 +252,8 @@ namespace rubinius {
       if(likely(ice)) return ice->method()->serial()->to_native() == serial;
     }
 
-    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_public));
+    LookupData lookup(state->vm()->call_frame()->self(),
+        recv->lookup_begin(state), G(sym_public));
     Dispatch dispatch(name_);
 
     if(dispatch.resolve(state, name_, lookup)) {
@@ -264,7 +263,7 @@ namespace rubinius {
     return false;
   }
 
-  bool CallSite::lookup_method_missing(STATE, CallFrame* call_frame,
+  bool CallSite::lookup_method_missing(STATE,
       Arguments& args, Dispatch& dispatch, Object* self, Module* begin)
   {
     LookupData missing_lookup(self, begin, G(sym_private));
@@ -276,7 +275,7 @@ namespace rubinius {
       msg << begin->to_string(state);
       msg << "#" << dispatch.name->to_string(state);
 
-      Exception::internal_error(state, call_frame, msg.str().c_str());
+      Exception::internal_error(state, msg.str().c_str());
       return false;
     }
 

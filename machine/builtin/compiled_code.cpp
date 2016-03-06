@@ -57,23 +57,23 @@ namespace rubinius {
     return code;
   }
 
-  Tuple* CompiledCode::call_sites(STATE, CallFrame* calling_environment) {
+  Tuple* CompiledCode::call_sites(STATE) {
     CompiledCode* self = this;
     OnStack<1> os(state, self);
 
     if(self->machine_code_ == NULL) {
-      if(!self->internalize(state, calling_environment)) return force_as<Tuple>(Primitives::failure());
+      if(!self->internalize(state)) return force_as<Tuple>(Primitives::failure());
     }
     MachineCode* mcode = self->machine_code_;
     return mcode->call_sites(state);
   }
 
-  Tuple* CompiledCode::constant_caches(STATE, CallFrame* calling_environment) {
+  Tuple* CompiledCode::constant_caches(STATE) {
     CompiledCode* self = this;
     OnStack<1> os(state, self);
 
     if(self->machine_code_ == NULL) {
-      if(!self->internalize(state, calling_environment)) return force_as<Tuple>(Primitives::failure());
+      if(!self->internalize(state)) return force_as<Tuple>(Primitives::failure());
     }
     MachineCode* mcode = self->machine_code_;
     return mcode->constant_caches(state);
@@ -112,7 +112,7 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(fin+1))->to_native();
   }
 
-  MachineCode* CompiledCode::internalize(STATE, CallFrame* call_frame,
+  MachineCode* CompiledCode::internalize(STATE,
                                         const char** reason, int* ip)
   {
     MachineCode* mcode = machine_code_;
@@ -124,7 +124,7 @@ namespace rubinius {
     CompiledCode* self = this;
     OnStack<1> os(state, self);
 
-    self->hard_lock(state, call_frame);
+    self->hard_lock(state);
 
     mcode = self->machine_code_;
     if(!mcode) {
@@ -155,11 +155,11 @@ namespace rubinius {
       set_executor(mcode->fallback);
     }
 
-    self->hard_unlock(state, call_frame);
+    self->hard_unlock(state);
     return mcode;
   }
 
-  Object* CompiledCode::primitive_failed(STATE, CallFrame* call_frame,
+  Object* CompiledCode::primitive_failed(STATE,
               Executable* exec, Module* mod, Arguments& args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
@@ -182,9 +182,9 @@ namespace rubinius {
     }
 
     if(target) {
-      return target(state, call_frame, exec, mod, args);
+      return target(state, exec, mod, args);
     } else {
-      return MachineCode::execute(state, call_frame, exec, mod, args);
+      return MachineCode::execute(state, exec, mod, args);
     }
   }
 
@@ -192,7 +192,7 @@ namespace rubinius {
     machine_code_->specialize(state, this, ti);
   }
 
-  Object* CompiledCode::default_executor(STATE, CallFrame* call_frame,
+  Object* CompiledCode::default_executor(STATE,
                           Executable* exec, Module* mod, Arguments& args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
@@ -205,16 +205,16 @@ namespace rubinius {
       memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                              &args.arguments_location(), args.total());
 
-      if(!code->internalize(state, call_frame, &reason, &ip)) {
-        Exception::bytecode_error(state, call_frame, code, ip, reason);
+      if(!code->internalize(state, &reason, &ip)) {
+        Exception::bytecode_error(state, code, ip, reason);
         return 0;
       }
     }
 
-    return code->execute(state, call_frame, exec, mod, args);
+    return code->execute(state, exec, mod, args);
   }
 
-  Object* CompiledCode::specialized_executor(STATE, CallFrame* call_frame,
+  Object* CompiledCode::specialized_executor(STATE,
                           Executable* exec, Module* mod, Arguments& args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
@@ -240,7 +240,7 @@ namespace rubinius {
     // specializations. FIX THIS BUG!
     if(!target) target = v->fallback;
 
-    return target(state, call_frame, exec, mod, args);
+    return target(state, exec, mod, args);
   }
 
   bool CompiledCode::can_specialize_p() {
@@ -346,13 +346,13 @@ namespace rubinius {
     return false;
   }
 
-  Object* CompiledCode::set_breakpoint(STATE, Fixnum* ip, Object* bp, CallFrame* calling_environment) {
+  Object* CompiledCode::set_breakpoint(STATE, Fixnum* ip, Object* bp) {
     CompiledCode* self = this;
     OnStack<3> os(state, self, ip, bp);
 
     int i = ip->to_native();
     if(self->machine_code_ == NULL) {
-      if(!self->internalize(state, calling_environment)) return Primitives::failure();
+      if(!self->internalize(state)) return Primitives::failure();
     }
 
     if(!self->machine_code_->validate_ip(state, i)) return Primitives::failure();
@@ -399,19 +399,18 @@ namespace rubinius {
     return RBOOL(found);
   }
 
-  CompiledCode* CompiledCode::of_sender(STATE, CallFrame* calling_environment) {
-    CallFrame* caller = calling_environment->previous;
-    if(caller) {
-      if(caller->compiled_code) {
-        return caller->compiled_code;
+  CompiledCode* CompiledCode::of_sender(STATE) {
+    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+      if(frame->compiled_code) {
+        return frame->compiled_code;
       }
     }
 
     return nil<CompiledCode>();
   }
 
-  CompiledCode* CompiledCode::current(STATE, CallFrame* calling_environment) {
-    return calling_environment->compiled_code;
+  CompiledCode* CompiledCode::current(STATE) {
+    return state->vm()->call_frame()->compiled_code;
   }
 
   Object* CompiledCode::jitted_p(STATE) {
@@ -426,7 +425,7 @@ namespace rubinius {
     scope(state, ConstantScope::create(state));
     scope()->module(state, G(object));
 
-    execute(state, NULL, this, G(object), args);
+    execute(state, this, G(object), args);
 
     /* We have to assume that this can fail before the Kernel is able to
      * handle that failure, so we manually process exceptional behavior here.

@@ -35,7 +35,7 @@ namespace rubinius {
     return chan;
   }
 
-  Object* Channel::send(STATE, Object* val, CallFrame* calling_environment) {
+  Object* Channel::send(STATE, Object* val) {
     Channel* self = this;
 
     OnStack<2> os(state, val, self);
@@ -62,7 +62,7 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* Channel::try_receive(STATE, CallFrame* calling_environment) {
+  Object* Channel::try_receive(STATE) {
     Channel* self = this;
     OnStack<1> os(state, self);
 
@@ -77,12 +77,12 @@ namespace rubinius {
     return self->value_->shift(state);
   }
 
-  Object* Channel::receive(STATE, CallFrame* call_frame) {
-    return receive_timeout(state, cNil, call_frame);
+  Object* Channel::receive(STATE) {
+    return receive_timeout(state, cNil);
   }
 
 #define NANOSECONDS 1000000000
-  Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
+  Object* Channel::receive_timeout(STATE, Object* duration) {
     // Passing control away means that the GC might run. So we need
     // to stash this into a root, and read it back out again after
     // control is returned.
@@ -134,7 +134,7 @@ namespace rubinius {
       ts.tv_nsec  = nano % NANOSECONDS;
     }
 
-    if(!state->check_async(call_frame)) {
+    if(!state->check_async(state)) {
       return NULL;
     }
 
@@ -157,7 +157,7 @@ namespace rubinius {
 
       // or there are values available.
       if(self->semaphore_count_ > 0 || !self->value()->empty_p()) break;
-      if(!state->check_async(call_frame)) {
+      if(!state->check_async(state)) {
         exception = true;
         break;
       }
@@ -169,7 +169,7 @@ namespace rubinius {
     self->unpin();
     self->waiters_--;
 
-    if(exception || !state->check_async(call_frame)) return NULL;
+    if(exception || !state->check_async(state)) return NULL;
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;

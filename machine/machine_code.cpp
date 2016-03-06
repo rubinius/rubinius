@@ -340,7 +340,7 @@ namespace rubinius {
   class NoArguments {
   public:
     static bool call(STATE, MachineCode* mcode, StackVariables* scope,
-                     Arguments& args, CallFrame* call_frame)
+                     Arguments& args)
     {
       return args.total() == 0;
     }
@@ -350,7 +350,7 @@ namespace rubinius {
   class OneArgument {
   public:
     static bool call(STATE, MachineCode* mcode, StackVariables* scope,
-                     Arguments& args, CallFrame* call_frame)
+                     Arguments& args)
     {
       if(args.total() != 1) return false;
       scope->set_local(0, args.get_argument(0));
@@ -362,7 +362,7 @@ namespace rubinius {
   class TwoArguments {
   public:
     static bool call(STATE, MachineCode* mcode, StackVariables* scope,
-                     Arguments& args, CallFrame* call_frame)
+                     Arguments& args)
     {
       if(args.total() != 2) return false;
       scope->set_local(0, args.get_argument(0));
@@ -375,7 +375,7 @@ namespace rubinius {
   class ThreeArguments {
   public:
     static bool call(STATE, MachineCode* mcode, StackVariables* scope,
-                     Arguments& args, CallFrame* call_frame)
+                     Arguments& args)
     {
       if(args.total() != 3) return false;
       scope->set_local(0, args.get_argument(0));
@@ -389,7 +389,7 @@ namespace rubinius {
   class FixedArguments {
   public:
     static bool call(STATE, MachineCode* mcode, StackVariables* scope,
-                     Arguments& args, CallFrame* call_frame)
+                     Arguments& args)
     {
       if((native_int)args.total() != mcode->total_args) return false;
 
@@ -405,7 +405,7 @@ namespace rubinius {
   class SplatOnlyArgument {
   public:
     static bool call(STATE, MachineCode* mcode, StackVariables* scope,
-                     Arguments& args, CallFrame* call_frame)
+                     Arguments& args)
     {
       const size_t total = args.total();
       Array* ary = Array::create(state, total);
@@ -422,9 +422,7 @@ namespace rubinius {
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
-                     Arguments& args, CallFrame* call_frame)
-    {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
       /* There are 5 types of arguments, illustrated here:
        *    m(a, b=1, *c, d, e: 2)
        *
@@ -557,7 +555,7 @@ namespace rubinius {
            */
           Memory::GCInhibit inhibitor(state);
 
-          kw_result = dispatch.send(state, call_frame, args);
+          kw_result = dispatch.send(state, state->vm()->call_frame(), args);
         }
 
         if(kw_result) {
@@ -735,7 +733,7 @@ namespace rubinius {
    * called from outside of this file. Thus all the template expansions are done.
    */
   template <typename ArgumentHandler>
-    Object* MachineCode::execute_specialized(STATE, CallFrame* previous,
+    Object* MachineCode::execute_specialized(STATE,
         Executable* exec, Module* mod, Arguments& args) {
 
       CompiledCode* code = as<CompiledCode>(exec);
@@ -750,23 +748,23 @@ namespace rubinius {
       // Thus, we have to cache the value in the StackVariables.
       scope->initialize(args.recv(), args.block(), mod, mcode->number_of_locals);
 
-      InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
-
       // If argument handling fails..
-      if(ArgumentHandler::call(state, mcode, scope, args, previous) == false) {
+      if(ArgumentHandler::call(state, mcode, scope, args) == false) {
         if(state->vm()->thread_state()->raise_reason() == cNone) {
           Exception* exc =
             Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
-          exc->locations(state, Location::from_call_stack(state, previous));
+          exc->locations(state, Location::from_call_stack(state));
           state->raise_exception(exc);
         }
 
         return NULL;
       }
 
+      CallFrame* previous_frame = 0;
+      InterpreterCallFrame* frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+
       frame->prepare(mcode->stack_size);
 
-      frame->previous = previous;
       frame->constant_scope_ = code->scope();
       frame->dispatch_data = 0;
       frame->compiled_code = code;
@@ -776,7 +774,7 @@ namespace rubinius {
       frame->scope = scope;
       frame->arguments = &args;
 
-      state->vm()->set_call_frame(frame);
+      state->vm()->push_call_frame(frame, previous_frame);
 
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
@@ -785,50 +783,52 @@ namespace rubinius {
         if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
           OnStack<3> os(state, exec, mod, code);
 
-          G(jit)->compile_callframe(state, code, frame);
+          G(jit)->compile_callframe(state, code);
         } else {
           mcode->call_count++;
         }
       }
 #endif
 
+      Object* value = 0;
+
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         // Check the stack and interrupts here rather than in the interpreter
         // loop itself.
         OnStack<2> os(state, exec, code);
-        if(!state->check_interrupts(frame, frame)) return NULL;
+        if(!state->check_interrupts(state)) return NULL;
 
         tooling::MethodEntry method(state, exec, scope->module(), args, code);
 
-        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
-        Object* result = (*mcode->run)(state, mcode, frame);
-        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
-        return result;
+        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
+        value = (*mcode->run)(state, mcode);
+        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
       } else {
-        if(!state->check_interrupts(frame, frame)) return NULL;
+        if(!state->check_interrupts(state)) return NULL;
 
-        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
-        Object* result = (*mcode->run)(state, mcode, frame);
-        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
-        return result;
+        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
+        value = (*mcode->run)(state, mcode);
+        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
       }
 #else
-      if(!state->check_interrupts(frame, frame)) return NULL;
+      if(!state->check_interrupts(state)) return NULL;
 
-      RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
-      Object* result = (*mcode->run)(state, mcode, frame);
-      RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
-      return result;
+      RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
+      value = (*mcode->run)(state, mcode);
+      RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
 #endif
+
+      state->vm()->pop_call_frame(previous_frame);
+      return value;
     }
 
   /** This is used as a fallback way of entering the interpreter */
-  Object* MachineCode::execute(STATE, CallFrame* previous, Executable* exec, Module* mod, Arguments& args) {
-    return execute_specialized<GenericArguments>(state, previous, exec, mod, args);
+  Object* MachineCode::execute(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return execute_specialized<GenericArguments>(state, exec, mod, args);
   }
 
-  Object* MachineCode::execute_as_script(STATE, CompiledCode* code, CallFrame* previous) {
+  Object* MachineCode::execute_as_script(STATE, CompiledCode* code) {
     MachineCode* mcode = code->machine_code();
 
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
@@ -840,13 +840,13 @@ namespace rubinius {
     // Thus, we have to cache the value in the StackVariables.
     scope->initialize(G(main), cNil, G(object), mcode->number_of_locals);
 
-    InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
+    CallFrame* previous_frame = 0;
+    InterpreterCallFrame* frame = ALLOCA_CALL_FRAME(mcode->stack_size);
 
     frame->prepare(mcode->stack_size);
 
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
-    frame->previous = previous;
     frame->constant_scope_ = code->scope();
     frame->dispatch_data = 0;
     frame->compiled_code = code;
@@ -856,21 +856,25 @@ namespace rubinius {
     frame->scope = scope;
     frame->arguments = &args;
 
-    state->vm()->set_call_frame(frame);
+    state->vm()->push_call_frame(frame, previous_frame);
 
     // Do NOT check if we should JIT this. We NEVER want to jit a script.
 
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
 
-    if(!state->check_interrupts(frame, frame)) return NULL;
+    if(!state->check_interrupts(state)) return NULL;
 
-    state->vm()->checkpoint(state, frame);
+    state->vm()->checkpoint(state);
 
     // Don't generate profiling info here, it's expected
     // to be done by the caller.
 
-    return (*mcode->run)(state, mcode, frame);
+    Object* value = (*mcode->run)(state, mcode);
+
+    state->vm()->pop_call_frame(previous_frame);
+
+    return value;
   }
 
   // If +disable+ is set, then the method is tagged as not being

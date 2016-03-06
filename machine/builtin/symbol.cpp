@@ -36,7 +36,7 @@ namespace rubinius {
     if(!str) {
       std::ostringstream msg;
       msg << "Invalid symbol 0x" << std::hex << reinterpret_cast<uintptr_t>(this);
-      Exception::range_error(state, msg.str().c_str());
+      Exception::raise_range_error(state, msg.str().c_str());
     }
     return str;
   }

@@ -20,12 +20,12 @@ namespace rubinius {
     return state->memory()->new_object<AccessVariable>(state, G(access_variable));
   }
 
-  Object* AccessVariable::access_read_regular_ivar(STATE, CallFrame* call_frame,
+  Object* AccessVariable::access_read_regular_ivar(STATE,
       Executable* exec, Module* mod, Arguments& args)
   {
     AccessVariable* access = as<AccessVariable>(exec);
     if(unlikely(args.total() != 0)) {
-      Exception::argument_error(state, 0, args.total());
+      Exception::raise_argument_error(state, 0, args.total());
       return NULL;
     }
 
@@ -33,18 +33,18 @@ namespace rubinius {
     return recv->get_ivar(state, access->name());
   }
 
-  Object* AccessVariable::access_write_regular_ivar(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
+  Object* AccessVariable::access_write_regular_ivar(STATE, Executable* exec, Module* mod,
                                          Arguments& args) {
     AccessVariable* access = as<AccessVariable>(exec);
     if(unlikely(args.total() != 1)) {
-      Exception::argument_error(state, 1, args.total());
+      Exception::raise_argument_error(state, 1, args.total());
       return NULL;
     }
 
     Object* recv = args.recv();
 
     if(CBOOL(recv->frozen_p(state)) && CBOOL(recv->frozen_mod_disallowed(state))) {
-      Exception::frozen_error(state, call_frame, recv);
+      Exception::frozen_error(state, recv);
       return 0;
     }
 
@@ -53,7 +53,7 @@ namespace rubinius {
 
   /* Run when an AccessVariable is executed. Uses the details in exec
    * to access instance variables of args.recv() */
-  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
+  Object* AccessVariable::access_execute(STATE, Executable* exec, Module* mod,
                                          Arguments& args) {
     AccessVariable* access = as<AccessVariable>(exec);
     Object* const self = args.recv();
@@ -61,12 +61,12 @@ namespace rubinius {
     /* The writer case. */
     if(access->write()->true_p()) {
       if(CBOOL(self->frozen_p(state)) && CBOOL(self->frozen_mod_disallowed(state))) {
-        Exception::frozen_error(state, call_frame, self);
+        Exception::frozen_error(state, self);
         return 0;
       }
 
       if(args.total() != 1) {
-        Exception::argument_error(state, 1, args.total());
+        Exception::raise_argument_error(state, 1, args.total());
         return NULL;
       }
 
@@ -92,7 +92,7 @@ namespace rubinius {
 
     /* The read case. */
     if(args.total() != 0) {
-      Exception::argument_error(state, 0, args.total());
+      Exception::raise_argument_error(state, 0, args.total());
       return NULL;
     }
 

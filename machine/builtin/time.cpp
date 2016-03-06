@@ -87,27 +87,27 @@ namespace rubinius {
 
     tm.tm_sec = sec->to_native();
     if(tm.tm_sec < 0 || tm.tm_sec > 60) {
-      Exception::argument_error(state, "sec must be in 0..60");
+      Exception::raise_argument_error(state, "sec must be in 0..60");
     }
 
     tm.tm_min = min->to_native();
     if(tm.tm_min < 0 || tm.tm_min > 60) {
-      Exception::argument_error(state, "min must be in 0..60");
+      Exception::raise_argument_error(state, "min must be in 0..60");
     }
 
     tm.tm_hour = hour->to_native();
     if(tm.tm_hour < 0 || tm.tm_hour > 24) {
-      Exception::argument_error(state, "hour must be in 0..24");
+      Exception::raise_argument_error(state, "hour must be in 0..24");
     }
 
     tm.tm_mday = mday->to_native();
     if(tm.tm_mday < 1 || tm.tm_mday > 31) {
-      Exception::argument_error(state, "mday must be in 1..31");
+      Exception::raise_argument_error(state, "mday must be in 1..31");
     }
 
     tm.tm_mon = mon->to_native() - 1;
     if(tm.tm_mon < 0 || tm.tm_mon > 11) {
-      Exception::argument_error(state, "mon must be in 0..11");
+      Exception::raise_argument_error(state, "mon must be in 0..11");
     }
 
     tm.tm_wday = -1;
@@ -287,7 +287,7 @@ namespace rubinius {
       char* malloc_str = (char*)malloc(buf_size);
 
       if(!malloc_str) {
-        Exception::memory_error(state);
+        Exception::raise_memory_error(state);
         return NULL;
       }
 

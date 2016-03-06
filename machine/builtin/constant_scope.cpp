@@ -22,9 +22,9 @@ namespace rubinius {
     return state->memory()->new_object<ConstantScope>(state, G(constantscope));
   }
 
-  ConstantScope* ConstantScope::of_sender(STATE, CallFrame* calling_environment) {
-    if(calling_environment->previous) {
-      return calling_environment->previous->top_ruby_frame()->constant_scope();
+  ConstantScope* ConstantScope::of_sender(STATE) {
+    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+      return frame->constant_scope();
     }
 
     return nil<ConstantScope>();

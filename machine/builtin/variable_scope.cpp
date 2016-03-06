@@ -25,16 +25,20 @@ namespace rubinius {
                              state->symbol("variable_scope_method_visibility"));
   }
 
-  VariableScope* VariableScope::of_sender(STATE, CallFrame* call_frame) {
-    CallFrame* dest = call_frame->previous;
-    // Skip any frames for native methods
-    while(dest->native_method_p()) { dest = dest->previous; }
-    return dest->promote_scope(state);
+  VariableScope* VariableScope::of_sender(STATE) {
+    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+      return frame->promote_scope(state);
+    }
+
+    return nil<VariableScope>();
   }
 
-  VariableScope* VariableScope::current(STATE, CallFrame* call_frame) {
-    if(call_frame->native_method_p()) return nil<VariableScope>();
-    return call_frame->promote_scope(state);
+  VariableScope* VariableScope::current(STATE) {
+    if(CallFrame* call_frame = state->vm()->call_frame()) {
+      if(!call_frame->native_method_p()) return call_frame->promote_scope(state);
+    }
+
+    return nil<VariableScope>();
   }
 
   VariableScope* VariableScope::allocate(STATE) {
@@ -85,9 +89,9 @@ namespace rubinius {
     int num = number->to_int();
 
     if(num < 0) {
-      Exception::argument_error(state, "negative local index");
+      Exception::raise_argument_error(state, "negative local index");
     } else if(num >= number_of_locals_) {
-      Exception::argument_error(state, "index larger than number of locals");
+      Exception::raise_argument_error(state, "index larger than number of locals");
     }
 
     set_local(state, num, object);

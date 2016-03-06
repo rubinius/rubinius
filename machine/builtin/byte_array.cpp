@@ -23,7 +23,7 @@ namespace rubinius {
 
   ByteArray* ByteArray::create(STATE, native_int bytes) {
     if(bytes < 0) {
-      Exception::argument_error(state, "negative byte array size");
+      Exception::raise_argument_error(state, "negative byte array size");
     } else if(bytes == 0) {
       bytes = 1;
     }
@@ -37,7 +37,7 @@ namespace rubinius {
 
   ByteArray* ByteArray::create_pinned(STATE, native_int bytes) {
     if(bytes < 0) {
-      Exception::argument_error(state, "negative byte array size");
+      Exception::raise_argument_error(state, "negative byte array size");
     } else if(bytes == 0) {
       bytes = 1;
     }
@@ -61,7 +61,7 @@ namespace rubinius {
     native_int idx = index->to_native();
 
     if(idx < 0 || idx >= size()) {
-      Exception::object_bounds_exceeded_error(state, "index out of bounds");
+      Exception::raise_object_bounds_exceeded_error(state, "index out of bounds");
     }
 
     return Fixnum::from(this->bytes[idx]);
@@ -71,7 +71,7 @@ namespace rubinius {
     native_int idx = index->to_native();
 
     if(idx < 0 || idx >= size()) {
-      Exception::object_bounds_exceeded_error(state, "index out of bounds");
+      Exception::raise_object_bounds_exceeded_error(state, "index out of bounds");
     }
 
     this->bytes[idx] = value->to_native();
@@ -84,15 +84,15 @@ namespace rubinius {
     native_int dst = dest->to_native();
 
     if(src < 0) {
-      Exception::object_bounds_exceeded_error(state, "start less than zero");
+      Exception::raise_object_bounds_exceeded_error(state, "start less than zero");
     } else if(dst < 0) {
-      Exception::object_bounds_exceeded_error(state, "dest less than zero");
+      Exception::raise_object_bounds_exceeded_error(state, "dest less than zero");
     } else if(cnt < 0) {
-      Exception::object_bounds_exceeded_error(state, "count less than zero");
+      Exception::raise_object_bounds_exceeded_error(state, "count less than zero");
     } else if((dst + cnt) > size()) {
-      Exception::object_bounds_exceeded_error(state, "move is beyond end of bytearray");
+      Exception::raise_object_bounds_exceeded_error(state, "move is beyond end of bytearray");
     } else if((src + cnt) > size()) {
-      Exception::object_bounds_exceeded_error(state, "move is more than available bytes");
+      Exception::raise_object_bounds_exceeded_error(state, "move is more than available bytes");
     }
 
     memmove(this->bytes + dst, this->bytes + src, cnt);
@@ -105,11 +105,11 @@ namespace rubinius {
     native_int cnt = count->to_native();
 
     if(src < 0) {
-      Exception::object_bounds_exceeded_error(state, "start less than zero");
+      Exception::raise_object_bounds_exceeded_error(state, "start less than zero");
     } else if(cnt < 0) {
-      Exception::object_bounds_exceeded_error(state, "count less than zero");
+      Exception::raise_object_bounds_exceeded_error(state, "count less than zero");
     } else if((src + cnt) > size()) {
-      Exception::object_bounds_exceeded_error(state, "fetch is more than available bytes");
+      Exception::raise_object_bounds_exceeded_error(state, "fetch is more than available bytes");
     }
 
     ByteArray* ba =
@@ -153,10 +153,10 @@ namespace rubinius {
     native_int olim = b->to_native();
 
     if(slim < 0) {
-      Exception::object_bounds_exceeded_error(state,
+      Exception::raise_object_bounds_exceeded_error(state,
           "bytes of self to compare is less than zero");
     } else if(olim < 0) {
-      Exception::object_bounds_exceeded_error(state,
+      Exception::raise_object_bounds_exceeded_error(state,
           "bytes of other to compare is less than zero");
     }
 

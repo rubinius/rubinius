@@ -20,7 +20,7 @@ namespace rubinius {
     attr_accessor(original_module, Module);
     attr_accessor(original_exec, Executable);
 
-    static Object* executor(STATE, CallFrame* call_frame,
+    static Object* executor(STATE,
         Executable* exe, Module* mod, Arguments& args);
 
     static void bootstrap(STATE);

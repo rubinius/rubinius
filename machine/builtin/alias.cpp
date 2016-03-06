@@ -10,10 +10,10 @@ namespace rubinius {
           state, G(executable), G(rubinius), "Alias"));
   }
 
-  Object* Alias::executor(STATE, CallFrame* call_frame, Executable* exe,
+  Object* Alias::executor(STATE, Executable* exe,
                          Module* mod, Arguments& args)
   {
-    Exception::type_error(state, "Unable to directly execute a Alias", call_frame);
+    Exception::type_error(state, "Unable to directly execute a Alias");
     return 0;
   }
 

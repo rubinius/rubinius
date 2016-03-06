@@ -125,9 +125,7 @@ namespace rubinius {
   }
 
   namespace {
-    Object* allocate_packed(STATE, Class* self,
-                            CallFrame* calling_environment)
-    {
+    Object* allocate_packed(STATE, Class* self) {
       uint32_t size = self->packed_size();
 
       assert(size > 0);
@@ -145,12 +143,12 @@ namespace rubinius {
     }
   }
 
-  Object* Class::allocate(STATE, CallFrame* calling_environment) {
+  Object* Class::allocate(STATE) {
     Object* obj = cNil;
     object_type obj_type = type_info_->type;
 
     if(obj_type == PackedObject::type) {
-      obj = allocate_packed(state, this, calling_environment);
+      obj = allocate_packed(state, this);
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       std::ostringstream msg;
       msg << "direct allocation disabled for ";
@@ -159,10 +157,10 @@ namespace rubinius {
       } else {
          msg << module_name()->debug_str(state);
       }
-      Exception::type_error(state, msg.str().c_str());
+      Exception::raise_type_error(state, msg.str().c_str());
     } else if(obj_type == Object::type) {
-      auto_pack(state, calling_environment);
-      obj = allocate_packed(state, this, calling_environment);
+      auto_pack(state);
+      obj = allocate_packed(state, this);
     } else {
       // type_info_->type is neither PackedObject nor Object, so use the
       // generic path.
@@ -172,7 +170,7 @@ namespace rubinius {
 
 #ifdef RBX_ALLOC_TRACKING
     if(unlikely(state->vm()->allocation_tracking())) {
-      new_obj->setup_allocation_site(state, calling_environment);
+      new_obj->setup_allocation_site(state);
     }
 #endif
 
@@ -201,7 +199,7 @@ namespace rubinius {
     }
 
     if(try_as<SingletonClass>(sup)) {
-      Exception::type_error(state, "cannot inherit from a singleton class");
+      Exception::raise_type_error(state, "cannot inherit from a singleton class");
     }
 
     superclass(state, sup);
@@ -230,16 +228,16 @@ namespace rubinius {
    *
    * This locks the class so that construction is serialized.
    */
-  void Class::auto_pack(STATE, CallFrame* call_frame) {
+  void Class::auto_pack(STATE) {
     Class* self = this;
     OnStack<1> os(state, self);
 
-    hard_lock(state, call_frame);
+    hard_lock(state);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
     if(self->type_info_->type == PackedObject::type) {
-      self->hard_unlock(state, call_frame);
+      self->hard_unlock(state);
       return;
     }
 
@@ -289,7 +287,7 @@ namespace rubinius {
     atomic::memory_barrier();
     self->set_object_type(state, PackedObject::type);
 
-    self->hard_unlock(state, call_frame);
+    self->hard_unlock(state);
   }
 
   Class* Class::real_class(STATE, Class* klass) {

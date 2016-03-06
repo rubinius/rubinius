@@ -241,7 +241,7 @@ namespace rubinius {
 
   Float* Float::mod(STATE, Float* other) {
     if(other->val == 0.0) {
-      Exception::zero_division_error(state, "divided by 0");
+      Exception::raise_zero_division_error(state, "divided by 0");
     }
 
     double res = fmod(this->val, other->val);
@@ -258,7 +258,7 @@ namespace rubinius {
 
   Array* Float::divmod(STATE, Float* other) {
     if(other->val == 0.0) {
-      Exception::zero_division_error(state, "divided by 0");
+      Exception::raise_zero_division_error(state, "divided by 0");
     }
 
     Array* ary = Array::create(state, 2);
@@ -404,7 +404,7 @@ namespace rubinius {
     if(size >= FLOAT_TO_S_STRLEN) {
       std::ostringstream msg;
       msg << "formatted string exceeds " << FLOAT_TO_S_STRLEN << " bytes";
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
     String* str = String::create(state, buf, size);
     infect(state, str);

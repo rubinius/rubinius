@@ -43,7 +43,7 @@ namespace rubinius {
     static Array* create(STATE, native_int size);
     static Array* create_dirty(STATE, native_int size);
     static Array* from_tuple(STATE, Tuple* tup);
-    static Array* to_ary(STATE, Object* obj, CallFrame* frame);
+    static Array* to_ary(STATE, Object* obj);
 
     // Rubinius.primitive :array_allocate
     static Array* allocate(STATE, Object* self);
@@ -67,7 +67,7 @@ namespace rubinius {
     Array* concat(STATE, Array* other);
 
     // Rubinius.primitive :array_pack
-    String* pack(STATE, String* directives, CallFrame* calling_environment);
+    String* pack(STATE, String* directives);
 
     Object* get(STATE, native_int idx);
     Object* set(STATE, native_int idx, Object* val);

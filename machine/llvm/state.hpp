@@ -241,18 +241,17 @@ namespace rubinius {
       method_update_lock_.unlock();
     }
 
-    void compile(STATE, CompiledCode* code, CallFrame* call_frame,
+    void compile(STATE, CompiledCode* code,
         Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
 
-    void compile_soon(STATE, CompiledCode* code, CallFrame* call_frame,
+    void compile_soon(STATE, CompiledCode* code,
         Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
 
     void add(STATE, JITCompileRequest* req);
     void remove(void* func);
 
-    CallFrame* find_candidate(STATE, CompiledCode* start, CallFrame* call_frame);
-    void compile_callframe(STATE, CompiledCode* start, CallFrame* call_frame,
-                           int primitive = -1);
+    CallFrame* find_candidate(STATE, CallFrame* call_frame, CompiledCode* start);
+    void compile_callframe(STATE, CompiledCode* start, int primitive = -1);
 
     Symbol* symbol(const std::string& sym);
     std::string symbol_debug_str(const Symbol* sym);

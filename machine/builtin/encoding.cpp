@@ -890,7 +890,7 @@ namespace rubinius {
 
       // Check if the size has overflown, then raise exception
       if(byte_size < 0) {
-        Exception::argument_error(state, "string sizes too big");
+        Exception::raise_argument_error(state, "string sizes too big");
       }
 
       goto retry;

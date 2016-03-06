@@ -432,7 +432,7 @@ namespace rubinius {
 
   Integer* Bignum::divide(STATE, Fixnum* denominator, Integer** remainder) {
     if(denominator->to_native() == 0) {
-      Exception::zero_division_error(state, "divided by 0");
+      Exception::raise_zero_division_error(state, "divided by 0");
     }
 
     NMP;
@@ -465,7 +465,7 @@ namespace rubinius {
 
   Integer* Bignum::divide(STATE, Bignum* b, Integer** remainder) {
     if(mp_iszero(b->mp_val())) {
-      Exception::zero_division_error(state, "divided by 0");
+      Exception::raise_zero_division_error(state, "divided by 0");
     }
 
     NMP;
@@ -946,14 +946,14 @@ namespace rubinius {
     native_int b = base->to_native();
     mp_int* self = mp_val();
     if(b < 2 || b > 36) {
-      Exception::argument_error(state, "base must be between 2 and 36");
+      Exception::raise_argument_error(state, "base must be between 2 and 36");
     }
 
     int sz = 0;
     int digits;
     mp_radix_size(self, b, &sz);
     if(sz == 0) {
-      Exception::runtime_error(state, "couldn't convert bignum to string");
+      Exception::raise_runtime_error(state, "couldn't convert bignum to string");
     }
 
     String* str = String::create(state, Fixnum::from(sz));
@@ -1076,9 +1076,9 @@ namespace rubinius {
     value = (d < 0) ? -d : d;
 
     if(isinf(d)) {
-      Exception::float_domain_error(state, d < 0 ? "-Infinity" : "Infinity");
+      Exception::raise_float_domain_error(state, d < 0 ? "-Infinity" : "Infinity");
     } else if(isnan(d)) {
-      Exception::float_domain_error(state, "NaN");
+      Exception::raise_float_domain_error(state, "NaN");
     }
 
     while(!(value <= (LONG_MAX >> 1)) || 0 != (long)value) {
@@ -1141,7 +1141,7 @@ namespace rubinius {
     if(bits > size) {
       std::ostringstream msg;
       msg << "Bignum too large to fit in " << size << " bits";
-      Exception::range_error(state, msg.str().c_str());
+      Exception::raise_range_error(state, msg.str().c_str());
     }
   }
 

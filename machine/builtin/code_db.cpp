@@ -4,11 +4,14 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "marshal.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/code_db.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/string.hpp"
+
+#include "util/thread.hpp"
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -53,6 +56,8 @@ namespace rubinius {
   }
 
   CodeDB* CodeDB::open(STATE, const char* path) {
+    MutexLockUnmanaged guard(state, state->shared().codedb_lock());
+
     CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
     codedb->path(state, String::create(state, path));
 
@@ -66,24 +71,24 @@ namespace rubinius {
       signature >> sig;
 
       if(sig != RBX_SIGNATURE) {
-        Exception::runtime_error(state,
+        Exception::raise_runtime_error(state,
             "the CodeDB signature is not valid for this version");
       }
 
       signature.close();
     } else {
-      Exception::runtime_error(state, "unable to open CodeDB signature");
+      Exception::raise_runtime_error(state, "unable to open CodeDB signature");
     }
 
     // Map the CodeDB data to memory.
     std::string data_path = base_path + "/data";
     if((codedb->data_fd_ = ::open(data_path.c_str(), O_RDONLY)) < 0) {
-      Exception::runtime_error(state, "unable to open CodeDB data");
+      Exception::raise_runtime_error(state, "unable to open CodeDB data");
     }
 
     struct stat st;
     if(stat(data_path.c_str(), &st)) {
-      Exception::runtime_error(state, "unable to get CodeDB data size");
+      Exception::raise_runtime_error(state, "unable to get CodeDB data size");
     }
 
     codedb->data_ = mmap(NULL, st.st_size, PROT_READ,
@@ -93,7 +98,7 @@ namespace rubinius {
     std::string index_path = base_path + "/index";
     std::ifstream data_stream(index_path.c_str());
     if(!data_stream) {
-      Exception::runtime_error(state, "unable to open CodeDB index");
+      Exception::raise_runtime_error(state, "unable to open CodeDB index");
     }
 
     while(true) {
@@ -115,7 +120,7 @@ namespace rubinius {
     std::string initialize_path = base_path + "/initialize";
     std::ifstream initialize_stream(initialize_path.c_str());
     if(!initialize_stream) {
-      Exception::runtime_error(state, "unable to open CodeDB initialize");
+      Exception::raise_runtime_error(state, "unable to open CodeDB initialize");
     }
 
     while(true) {
@@ -126,7 +131,7 @@ namespace rubinius {
 
       CompiledCode* code = load(state, m_id.c_str());
       if(code->nil_p()) {
-        Exception::runtime_error(state, "unable to resolve method in CodeDB initialize");
+        Exception::raise_runtime_error(state, "unable to resolve method in CodeDB initialize");
       }
 
       code->execute_script(state);
@@ -136,6 +141,8 @@ namespace rubinius {
   }
 
   CompiledCode* CodeDB::load(STATE, const char* m_id) {
+    MutexLockUnmanaged guard(state, state->shared().codedb_lock());
+
     CodeDBMap::const_iterator index = codedb_index.find(std::string(m_id));
 
     if(index == codedb_index.end()) {

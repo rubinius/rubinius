@@ -63,7 +63,7 @@ extern "C" {
         ret = select(max, read, write, except, tvp);
       }
 
-      bool ok = env->state()->check_async(env->current_call_frame());
+      bool ok = env->state()->check_async(env->state());
 
       ENTER_CAPI(env->state());
 
@@ -199,7 +199,7 @@ extern "C" {
     State* state = env->state();
     void* ret = NULL;
 
-    if(!state->check_async(env->current_call_frame())) {
+    if(!state->check_async(env->state())) {
       return ret;
     }
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
@@ -248,8 +248,8 @@ extern "C" {
     self->locals_remove(state, state->symbol("argument"));
 
     NativeMethodFrame nmf(env, 0, nm);
+    CallFrame* previous_frame = 0;
     CallFrame cf;
-    cf.previous = 0;
     cf.constant_scope_ = 0;
     cf.dispatch_data = (void*)&nmf;
     cf.compiled_code = 0;
@@ -263,6 +263,9 @@ extern "C" {
     env->set_current_call_frame(&cf);
     env->set_current_native_frame(&nmf);
 
+    // Register the CallFrame, because we might GC below this.
+    state->vm()->push_call_frame(&cf, previous_frame);
+
     nmf.setup(
         env->get_handle(self),
         env->get_handle(cNil),
@@ -271,7 +274,7 @@ extern "C" {
 
     {
       OnStack<3> os(state, self, nm, ptr);
-      self->hard_unlock(state, &cf);
+      self->hard_unlock(state);
     }
 
     ENTER_CAPI(state);
@@ -283,25 +286,31 @@ extern "C" {
     PLACE_EXCEPTION_POINT(ep);
 
     if(unlikely(ep.jumped_to())) {
+      LEAVE_CAPI(state);
+
+      state->vm()->pop_call_frame(previous_frame);
+
       // Setup exception in thread so it's raised when joining
       // Reload self because it might have been moved
       self = state->vm()->thread.get();
-      CallFrame* call_frame = env->current_call_frame();
 
       {
         OnStack<1> os(state, self);
-        self->hard_lock(state, call_frame, false);
+        self->hard_lock(state, false);
         Exception* exc = capi::c_as<Exception>(self->current_exception(state));
         self->exception(state, exc);
         self->alive(state, cFalse);
-        self->hard_unlock(state, call_frame);
+        self->hard_unlock(state);
       }
+
       return NULL;
     } else {
       ret = env->get_object(nm->func()(ptr->pointer));
     }
 
     LEAVE_CAPI(state);
+
+    state->vm()->pop_call_frame(previous_frame);
 
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
@@ -311,9 +320,9 @@ extern "C" {
 
     OnStack<1> os(state, self);
 
-    self->hard_lock(state, &cf, false);
+    self->hard_lock(state, false);
     self->alive(state, cFalse);
-    self->hard_unlock(state, &cf);
+    self->hard_unlock(state);
 
     return ret;
   }
@@ -341,8 +350,8 @@ extern "C" {
     // We do a lock and unlock here so we wait until the started
     // thread is actually ready. This is to prevent we GC stuff on
     // the stack in the C-API caller that might be stuffed in the void* argument
-    thr->hard_lock(state, env->current_call_frame());
-    thr->hard_unlock(state, env->current_call_frame());
+    thr->hard_lock(state);
+    thr->hard_unlock(state);
 
     return thr_handle;
   }

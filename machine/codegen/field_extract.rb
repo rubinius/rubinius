@@ -9,8 +9,7 @@ class BasicPrimitive
   attr_accessor :can_fail
 
   def output_header(str)
-    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {\n"
-    str << "  state->vm()->set_call_frame(call_frame);\n"
+    str << "Object* Primitives::#{@name}(STATE, Executable* exec, Module* mod, Arguments& args) {\n"
     str << "  Object* ret;\n"
     return str if @raw
     str << "  Object* self;\n" if @pass_self
@@ -44,7 +43,6 @@ class BasicPrimitive
       args.push "exec"
       args.push "mod"
     end
-    args.push "call_frame" if @pass_call_frame
 
     return args
   end
@@ -59,24 +57,24 @@ class BasicPrimitive
     str << "#ifdef RBX_PROFILER\n"
     str << "    if(unlikely(state->vm()->tooling())) {\n"
     str << "      tooling::MethodEntry method(state, exec, mod, args);\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);\n"
+    str << "      RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name());\n"
     str << "      ret = #{call}(#{args.join(', ')});\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name(), call_frame);\n"
+    str << "      RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name());\n"
     str << "    } else {\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);\n"
+    str << "      RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name());\n"
     str << "      ret = #{call}(#{args.join(', ')});\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name(), call_frame);\n"
+    str << "      RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name());\n"
     str << "    }\n"
     str << "#else\n"
-    str << "    RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);\n"
+    str << "    RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name());\n"
     str << "    ret = #{call}(#{args.join(', ')});\n"
-    str << "    RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name(), call_frame);\n"
+    str << "    RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name());\n"
     str << "#endif\n"
     str << "  } catch(const RubyException& exc) {\n"
     str << "    exc.exception->locations(state,\n"
-    str << "          Location::from_call_stack(state, call_frame));\n"
+    str << "          Location::from_call_stack(state));\n"
     str << "    state->raise_exception(exc.exception);\n"
-    str << "    RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name(), call_frame);\n"
+    str << "    RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name());\n"
     str << "    return NULL;\n"
     str << "  }\n"
     str << "\n"
@@ -84,7 +82,7 @@ class BasicPrimitive
     str << "    goto fail;\n\n"
     prim_return(str);
     str << "fail:\n"
-    str << "  return CompiledCode::primitive_failed(state, call_frame, exec, mod, args);\n"
+    str << "  return CompiledCode::primitive_failed(state, exec, mod, args);\n"
     str << "}\n\n"
   end
 
@@ -119,10 +117,10 @@ class CPPPrimitive < BasicPrimitive
     if @raw
       str << "\n"
       str << "  try {\n"
-      str << "    ret = recv->#{@cpp_name}(state, call_frame, exec, mod, args);\n"
+      str << "    ret = recv->#{@cpp_name}(state, exec, mod, args);\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    exc.exception->locations(state,\n"
-      str << "          Location::from_call_stack(state, call_frame));\n"
+      str << "          Location::from_call_stack(state));\n"
       str << "    state->raise_exception(exc.exception);\n"
       str << "    return NULL;\n"
       str << "  }\n"
@@ -130,7 +128,7 @@ class CPPPrimitive < BasicPrimitive
       str << "  return ret;\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return CompiledCode::primitive_failed(state, call_frame, exec, mod, args);\n"
+      str << "  return CompiledCode::primitive_failed(state, exec, mod, args);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -157,12 +155,7 @@ class CPPPrimitive < BasicPrimitive
       arg_list = ", " + list.join(", ")
     end
 
-    if @safe && !@pass_call_frame
-      str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
-    else
-      str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
-    end
-
+    str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
     str << "  Object* ret;\n"
 
     emit_fail = false
@@ -191,13 +184,8 @@ class CPPPrimitive < BasicPrimitive
       i += 1
     end
 
-    unless @safe
-      str << "  state->vm()->set_call_frame(call_frame);\n"
-    end
-
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
-    args.push "call_frame" if @pass_call_frame
 
     if @safe
       str << "  ret = self->#{@cpp_name}(#{args.join(', ')});\n"
@@ -208,7 +196,7 @@ class CPPPrimitive < BasicPrimitive
       str << "    ret = self->#{@cpp_name}(#{args.join(', ')});\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    exc.exception->locations(state,\n"
-      str << "          Location::from_call_stack(state, call_frame));\n"
+      str << "          Location::from_call_stack(state));\n"
       str << "    state->raise_exception(exc.exception);\n"
       str << "    return NULL;\n"
       str << "  }\n"
@@ -242,8 +230,7 @@ class CPPPrimitive < BasicPrimitive
       arg_list = ", " + list.join(", ")
     end
 
-    str << "extern \"C\" Object* invoke_#{@name}(STATE, CallFrame* call_frame, Object** args, int arg_count) {\n"
-
+    str << "extern \"C\" Object* invoke_#{@name}(STATE, Object** args, int arg_count) {\n"
     str << "  Object* ret;\n"
 
     i = 0
@@ -281,14 +268,13 @@ class CPPPrimitive < BasicPrimitive
 
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
-    args.push "call_frame" if @pass_call_frame
 
     str << "\n"
     str << "  try {\n"
     str << "    ret = self->#{@cpp_name}(#{args.join(', ')});\n"
     str << "  } catch(const RubyException& exc) {\n"
     str << "    exc.exception->locations(state,\n"
-    str << "          Location::from_call_stack(state, call_frame));\n"
+    str << "          Location::from_call_stack(state));\n"
     str << "    state->raise_exception(exc.exception);\n"
     str << "    return NULL;\n"
     str << "  }\n"
@@ -298,8 +284,8 @@ class CPPPrimitive < BasicPrimitive
     str << "  return ret;\n"
 
     str << "fail:\n"
-    str << "  Exception::internal_error(state, call_frame, \"invoked primitive failed\");"
-    str << "  return 0;\n"
+    str << "  Exception::internal_error(state, \"invoked primitive failed\");"
+    str << "  return NULL;\n"
 
     str << "}\n\n"
   end
@@ -313,10 +299,10 @@ class CPPStaticPrimitive < CPPPrimitive
     if @raw
       str << "\n"
       str << "  try {\n"
-      str << "    return #{@type}::#{@cpp_name}(state, exec, call_frame, mod);\n"
+      str << "    return #{@type}::#{@cpp_name}(state, exec, mod);\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    exc.exception->locations(state,\n"
-      str << "          Location::from_call_stack(state, call_frame));\n"
+      str << "          Location::from_call_stack(state));\n"
       str << "    state->raise_exception(exc.exception);\n"
       str << "    return NULL;\n"
       str << "  }\n"
@@ -345,12 +331,7 @@ class CPPStaticPrimitive < CPPPrimitive
       arg_list = ", " + list.join(", ")
     end
 
-    if @safe && !@pass_call_frame
-      str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
-    else
-      str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
-    end
-
+    str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
     str << "  Object* ret;\n"
 
     i = 0
@@ -373,7 +354,6 @@ class CPPStaticPrimitive < CPPPrimitive
 
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
-    args.push "call_frame" if @pass_call_frame
 
     if @safe
       str << "  ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
@@ -384,7 +364,7 @@ class CPPStaticPrimitive < CPPPrimitive
       str << "    ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    exc.exception->locations(state,\n"
-      str << "          Location::from_call_stack(state, call_frame));\n"
+      str << "          Location::from_call_stack(state));\n"
       str << "    state->raise_exception(exc.exception);\n"
       str << "    return NULL;\n"
       str << "  }\n"
@@ -418,8 +398,7 @@ class CPPStaticPrimitive < CPPPrimitive
       arg_list = ", " + list.join(", ")
     end
 
-    str << "extern \"C\" Object* invoke_#{@name}(STATE, CallFrame* call_frame, Object** args, int arg_count) {\n"
-
+    str << "extern \"C\" Object* invoke_#{@name}(STATE, Object** args, int arg_count) {\n"
     str << "  Object* ret;\n"
 
     i = 0
@@ -443,14 +422,13 @@ class CPPStaticPrimitive < CPPPrimitive
 
     args.unshift "args[arg_count-1]" if @pass_self
     args.unshift "state" if @pass_state
-    args.push "call_frame" if @pass_call_frame
 
     str << "\n"
     str << "  try {\n"
     str << "    ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
     str << "  } catch(const RubyException& exc) {\n"
     str << "    exc.exception->locations(state,\n"
-    str << "          Location::from_call_stack(state, call_frame));\n"
+    str << "          Location::from_call_stack(state));\n"
     str << "    state->raise_exception(exc.exception);\n"
     str << "    return NULL;\n"
     str << "  }\n"
@@ -460,8 +438,8 @@ class CPPStaticPrimitive < CPPPrimitive
     str << "  return ret;\n"
 
     str << "fail:\n"
-    str << "  Exception::internal_error(state, call_frame, \"invoked primitive failed\");"
-    str << "  return 0;\n"
+    str << "  Exception::internal_error(state, \"invoked primitive failed\");"
+    str << "  return NULL;\n"
 
     str << "}\n\n"
   end
@@ -511,7 +489,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
       str << "#endif\n"
       str << "      } catch(const RubyException& exc) {\n"
       str << "        exc.exception->locations(state,\n"
-      str << "              Location::from_call_stack(state, call_frame));\n"
+      str << "              Location::from_call_stack(state));\n"
       str << "        state->raise_exception(exc.exception);\n"
       str << "        return NULL;\n"
       str << "      }\n"
@@ -524,7 +502,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return CompiledCode::primitive_failed(state, call_frame, exec, mod, args);\n"
+    str << "  return CompiledCode::primitive_failed(state, exec, mod, args);\n"
     str << "}\n\n"
     return str
   end
@@ -648,7 +626,7 @@ class CPPClass
     all_fields.each do |name, type, idx, flags|
       str << "  case #{idx}:\n"
       if flags[:readonly]
-        str << "    Exception::assertion_error(state, \"#{name} is readonly\");\n"
+        str << "    Exception::raise_assertion_error(state, \"#{name} is readonly\");\n"
       else
         str << "    target->#{name}(state, val->nil_p() ? nil<#{type}>() : as<#{type}>(val));\n"
       end
@@ -661,13 +639,13 @@ class CPPClass
   def generate_accessors
     str = ""
     all_fields.each do |name, type, idx, flags|
-      str << "Object* Primitives::access_#{@name}_#{name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
+      str << "Object* Primitives::access_#{@name}_#{name}(STATE, Executable* exec, Module* mod,
                    Arguments& args) {\n"
       str << "  AccessVariable* access = as<AccessVariable>(exec);\n"
       str << "  if(access->write()->true_p()) {\n"
       str << <<-ARGS
         if(args.total() != 1) {
-          Exception::argument_error(state, 1, args.total());
+          Exception::raise_argument_error(state, 1, args.total());
           return NULL;
         }
       ARGS
@@ -681,7 +659,7 @@ class CPPClass
       str << "  }\n"
       str << <<-ARGS
         if(args.total() != 0) {
-          Exception::argument_error(state, 0, args.total());
+          Exception::raise_argument_error(state, 0, args.total());
           return NULL;
         }
       ARGS
@@ -714,7 +692,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
   std::ostringstream error;
   error << "Unable to access field " << index << " in a #{@name} instance";
 
-  Exception::assertion_error(state, error.str().c_str());
+  Exception::raise_assertion_error(state, error.str().c_str());
 
   return cNil; // never reached
 }
@@ -949,11 +927,6 @@ class CPPParser
             end
           end
 
-          if args.last == "CallFrame* calling_environment"
-            pass_call_frame = true
-            args.pop
-          end
-
           if i = args.index("Arguments& args")
             pass_arguments = true
             args[i] = :arguments
@@ -1133,12 +1106,12 @@ write_if_new "machine/gen/primitives_declare.hpp" do |f|
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     total_prims += cpp.primitives.size
     cpp.primitives.map{|pn, prim| pn }.sort.each do |pn|
-      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);"
+      f.puts "static Object* #{pn}(STATE, Executable* exec, Module* mod, Arguments& args);"
     end
 
     total_prims += cpp.access_primitives.size
     cpp.access_primitives.sort.each do |name|
-      f.puts "static Object* #{name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);"
+      f.puts "static Object* #{name}(STATE, Executable* exec, Module* mod, Arguments& args);"
     end
   end
 

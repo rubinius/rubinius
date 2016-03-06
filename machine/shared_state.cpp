@@ -47,6 +47,7 @@ namespace rubinius {
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
     , fork_exec_lock_()
+    , codedb_lock_(true)
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
@@ -150,7 +151,7 @@ namespace rubinius {
     if(metrics_) metrics_->disable(state);
   }
 
-  void SharedState::after_fork_child(STATE, CallFrame* call_frame) {
+  void SharedState::after_fork_child(STATE) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
     config.jit_inline_debug.set("no");
@@ -160,6 +161,7 @@ namespace rubinius {
     // Reinit the locks for this object
     global_cache->reset();
     fork_exec_lock_.init();
+    codedb_lock_.init(true);
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();

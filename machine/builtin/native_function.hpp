@@ -54,7 +54,7 @@ namespace rubinius {
     }
 
     static NativeFunction* create(STATE, Symbol* name, int args);
-    static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    static Object* execute(STATE, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :nativefunction_generate
     static NativeFunction* generate(STATE, Pointer* ptr, Symbol* name, Array* args, Object* ret);
@@ -68,7 +68,7 @@ namespace rubinius {
     static ffi_type* ffi_type_info(FFIArgInfo* info);
 
     void prep(STATE, int arg_count, FFIArgInfo* args, FFIArgInfo* ret);
-    Object* call(STATE, Arguments& args, CallFrame* call_frame);
+    Object* call(STATE, Arguments& args);
 
     class Info : public Executable::Info {
     public:

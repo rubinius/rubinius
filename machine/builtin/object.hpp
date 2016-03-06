@@ -96,7 +96,7 @@ namespace rubinius {
 
   public:   /* GC support, bookkeeping &c. */
 
-    void        setup_allocation_site(STATE, CallFrame* call_frame = NULL);
+    void        setup_allocation_site(STATE = NULL);
 
   public:   /* Type information, field access, copy support &c. */
 
@@ -117,14 +117,14 @@ namespace rubinius {
      */
 
     // Rubinius.primitive :object_copy_object
-    Object* copy_object_prim(STATE, Object* other, CallFrame* calling_environment);
+    Object* copy_object_prim(STATE, Object* other);
 
     /**
      * Copies this Object's MetaClass to the other Object. Called
      * by Kernel#clone.
      */
     // Rubinius.primitive :object_copy_singleton_class
-    Object* copy_singleton_class(STATE, Object* other, CallFrame* calling_environment);
+    Object* copy_singleton_class(STATE, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
     bool fixnum_p() const;
@@ -170,20 +170,20 @@ namespace rubinius {
         Object* block = cNil, bool allow_private = true);
     Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
 
-    Object* send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args,
+    Object* send_prim(STATE, Executable* exec, Module* mod, Arguments& args,
         Symbol* min_visibility);
 
     /**
      *  Ruby #send/#__send__
      */
     // Rubinius.primitive? :object_send
-    Object* private_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    Object* private_send_prim(STATE, Executable* exec, Module* mod, Arguments& args);
 
     /**
      *  Ruby #public_send
      */
     // Rubinius.primitive? :object_public_send
-    Object* public_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    Object* public_send_prim(STATE, Executable* exec, Module* mod, Arguments& args);
 
 
   public:   /* Ruby interface */
@@ -376,7 +376,7 @@ namespace rubinius {
      * Returns cTrue if this responds to method +meth+
      */
     // Rubinius.primitive+ :object_respond_to
-    Object* respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment);
+    Object* respond_to_prim(STATE, Symbol* name, Object* priv);
 
     Object* respond_to(STATE, Symbol* name, Object* priv);
 
@@ -385,7 +385,7 @@ namespace rubinius {
      * Similar to CRuby rb_check_frozen
      */
     void check_frozen(STATE);
-    
+
     /**
      * Returns true unless one of the objects is nil, true, or
      * false. Those objects are allowed to be modified when

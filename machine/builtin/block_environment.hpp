@@ -35,7 +35,7 @@ namespace rubinius {
     {}
   };
 
-  typedef Object* (*BlockExecutor)(STATE, CallFrame*, BlockEnvironment* const,
+  typedef Object* (*BlockExecutor)(STATE, BlockEnvironment* const,
                                    Arguments&, BlockInvocation& invocation);
 
   class BlockEnvironment : public Object {
@@ -49,7 +49,7 @@ namespace rubinius {
     ConstantScope* constant_scope_; // slot
     Module* module_;                // slot
 
-    MachineCode* machine_code(STATE, CallFrame* call_frame);
+    MachineCode* machine_code(STATE);
 
   public:
     /* accessors */
@@ -75,29 +75,27 @@ namespace rubinius {
     // Rubinius.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);
 
-    static Object* invoke(STATE, CallFrame* previous,
+    static Object* invoke(STATE, BlockEnvironment* env, Arguments& args,
+                          BlockInvocation& invocation);
+
+    static BlockEnvironment* under_call_frame(STATE, CompiledCode* cm, MachineCode* caller);
+
+    static Object* execute_interpreter(STATE,
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation);
 
-    static BlockEnvironment* under_call_frame(STATE, CompiledCode* cm,
-      MachineCode* caller, CallFrame* call_frame);
-
-    static Object* execute_interpreter(STATE, CallFrame* previous,
-                            BlockEnvironment* env, Arguments& args,
-                            BlockInvocation& invocation);
-
-    Object* call(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
+    Object* call(STATE, Arguments& args, int flags=0);
 
     // Rubinius.primitive? :block_call
-    Object* call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    Object* call_prim(STATE, Executable* exec, Module* mod, Arguments& args);
 
-    Object* call_on_object(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
+    Object* call_on_object(STATE, Arguments& args, int flags=0);
 
     // Rubinius.primitive? :block_call_under
-    Object* call_under(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    Object* call_under(STATE, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :block_env_of_sender
-    static Object* of_sender(STATE, CallFrame* calling_environment);
+    static Object* of_sender(STATE);
 
     void lock_scope(STATE);
 

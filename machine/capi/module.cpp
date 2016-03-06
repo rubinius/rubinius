@@ -39,12 +39,12 @@ extern "C" {
   ID rb_frame_last_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CallFrame* rcf = env->current_call_frame()->previous;
-    Symbol* name = rcf->name();
+    if(CallFrame* frame = env->state()->vm()->get_ruby_frame(1)) {
+      Symbol* name = frame->name();
+      if(!name->nil_p()) return env->get_handle(name);
+    }
 
-    if(name->nil_p()) return rb_intern("<nil>");
-
-    return env->get_handle(name);
+    return rb_intern("<nil>");
   }
 
   ID rb_frame_this_func() {
@@ -233,8 +233,7 @@ extern "C" {
     {
       OnStack<2> os(env->state(), parent, constant);
 
-      module = rubinius::Helpers::open_module(env->state(),
-          env->current_call_frame(), parent, constant);
+      module = rubinius::Helpers::open_module(env->state(), parent, constant);
     }
 
     // The call above could have triggered an Autoload resolve, which may

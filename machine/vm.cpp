@@ -25,6 +25,7 @@
 #include "builtin/call_site.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/jit.hpp"
+#include "variable_scope.hpp"
 
 #include "instruments/tooling.hpp"
 #include "instruments/rbxti-internal.hpp"
@@ -70,8 +71,8 @@ namespace rubinius {
 
   VM::VM(uint32_t id, SharedState& shared, const char* name)
     : memory::ManagedThread(id, shared, memory::ManagedThread::eRuby, name)
+    , call_frame_(0)
     , thread_nexus_(shared.thread_nexus())
-    , last_frame_(0)
     , saved_call_site_information_(0)
     , fiber_stacks_(this, shared)
     , park_(new Park)
@@ -110,11 +111,92 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    vm->last_frame_ = 0;
+    vm->call_frame_ = 0;
 
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
+  }
+
+  void VM::push_call_frame(CallFrame* frame, CallFrame*& previous_frame) {
+    previous_frame = call_frame_;
+    frame->previous = call_frame_;
+    call_frame_ = frame;
+  }
+
+  CallFrame* VM::get_call_frame(ssize_t up) {
+    CallFrame* frame = call_frame_;
+
+    while(frame && up-- > 0) {
+      frame = frame->previous;
+    }
+
+    return frame;
+  }
+
+  CallFrame* VM::get_ruby_frame(ssize_t up) {
+    CallFrame* frame = call_frame_;
+
+    while(frame && up-- > 0) {
+      frame = frame->previous;
+    }
+
+    while(frame) {
+      if(!frame->native_method_p()) return frame;
+      frame = frame->previous;
+    }
+
+    return NULL;
+  }
+
+  CallFrame* VM::get_variables_frame(ssize_t up) {
+    CallFrame* frame = call_frame_;
+
+    while(frame && up-- > 0) {
+      frame = frame->previous;
+    }
+
+    while(frame) {
+      if(!frame->is_inline_block()
+          && !frame->native_method_p()
+          && frame->scope)
+      {
+        return frame;
+      }
+
+      frame = frame->previous;
+    }
+
+    return NULL;
+  }
+
+  CallFrame* VM::get_scope_frame(ssize_t up) {
+    CallFrame* frame = call_frame_;
+
+    while(frame && up-- > 0) {
+      frame = frame->previous;
+    }
+
+    while(frame) {
+      if(frame->scope) return frame;
+      frame = frame->previous;
+    }
+
+    return NULL;
+  }
+
+  bool VM::scope_valid_p(VariableScope* scope) {
+    CallFrame* frame = call_frame_;
+
+    while(frame) {
+      if(frame->scope && frame->scope->on_heap() == scope) {
+        return true;
+      }
+
+      frame = frame->previous;
+    }
+
+    return false;
   }
 
   void VM::collect_maybe(STATE) {
@@ -179,7 +261,7 @@ namespace rubinius {
         || (type == FixnumType && !obj->fixnum_p())) {
       std::ostringstream msg;
       msg << reason << ": " << obj->to_string(state, true);
-      Exception::type_error(state, type, obj, msg.str().c_str());
+      Exception::raise_type_error(state, type, obj, msg.str().c_str());
     }
   }
 
@@ -263,7 +345,7 @@ namespace rubinius {
     vm_jit_.interrupt_with_signal_ = true;
   }
 
-  bool VM::wakeup(STATE, CallFrame* call_frame) {
+  bool VM::wakeup(STATE) {
     utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
 
     set_check_local_interrupts();
@@ -280,26 +362,26 @@ namespace rubinius {
 #endif
       interrupt_lock_.unlock();
       // Wakeup any locks hanging around with contention
-      memory()->release_contention(state, call_frame);
+      memory()->release_contention(state);
       return true;
     } else if(!wait->nil_p()) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
       // other threads can grab them and deadlock.
       InflatedHeader* ih = wait->inflated_header(state);
       interrupt_lock_.unlock();
-      ih->wakeup(state, call_frame, wait);
+      ih->wakeup(state, wait);
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
-        memory()->release_contention(state, call_frame);
-        chan->send(state, cNil, call_frame);
+        memory()->release_contention(state);
+        chan->send(state, cNil);
         return true;
       } else if(custom_wakeup_) {
         interrupt_lock_.unlock();
-        memory()->release_contention(state, call_frame);
+        memory()->release_contention(state);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }
@@ -376,9 +458,7 @@ namespace rubinius {
   }
 
   void VM::gc_scan(memory::GarbageCollector* gc) {
-    if(CallFrame* cf = last_frame()) {
-      gc->walk_call_frame(cf);
-    }
+    gc->walk_call_frame(call_frame_);
 
     if(CallSiteInformation* info = saved_call_site_information()) {
       info->executable = as<Executable>(gc->mark_object(info->executable));
@@ -398,9 +478,7 @@ namespace rubinius {
   }
 
   void VM::gc_verify(memory::GarbageCollector* gc) {
-    if(CallFrame* cf = last_frame()) {
-      gc->verify_call_frame(cf);
-    }
+    gc->verify_call_frame(call_frame_);
 
     if(CallSiteInformation* info = saved_call_site_information()) {
       info->executable->validate();

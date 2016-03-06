@@ -38,7 +38,7 @@ namespace rubinius {
 
   void Dir::guard(STATE) {
     if(!os_) {
-      Exception::io_error(state, "closed directory");
+      Exception::raise_io_error(state, "closed directory");
     }
   }
 
@@ -48,7 +48,7 @@ namespace rubinius {
     os_ = opendir(path->c_str_null_safe(state));
 
     if(!os_) {
-      Exception::errno_error(state, "Unable to open directory", errno, path->c_str_null_safe(state));
+      Exception::raise_errno_error(state, "Unable to open directory", errno, path->c_str_null_safe(state));
       return 0;
     }
 
@@ -90,7 +90,7 @@ namespace rubinius {
     struct dirent ent;
     struct dirent* entp = &ent;
     if(int erno = readdir_r(os_, entp, &entp)) {
-      Exception::errno_error(state, "readdir_r(3) failed", erno);
+      Exception::raise_errno_error(state, "readdir_r(3) failed", erno);
     }
 
     if(!entp) return cNil;

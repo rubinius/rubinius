@@ -186,45 +186,45 @@ namespace memory {
   /**
    * Walks the chain of objects accessible from the specified CallFrame.
    */
-  void GarbageCollector::walk_call_frame(CallFrame* top_call_frame,
+  void GarbageCollector::walk_call_frame(CallFrame* call_frame,
                                          AddressDisplacement* offset)
   {
-    CallFrame* call_frame = top_call_frame;
+    CallFrame* frame = call_frame;
 
-    while(call_frame) {
-      call_frame = displace(call_frame, offset);
+    while(frame) {
+      frame = displace(frame, offset);
 
-      if(call_frame->constant_scope_ &&
-          call_frame->constant_scope_->reference_p()) {
-        call_frame->constant_scope_ =
-          (ConstantScope*)mark_object(call_frame->constant_scope_);
+      if(frame->constant_scope_ &&
+          frame->constant_scope_->reference_p()) {
+        frame->constant_scope_ =
+          (ConstantScope*)mark_object(frame->constant_scope_);
       }
 
-      if(call_frame->compiled_code && call_frame->compiled_code->reference_p()) {
-        call_frame->compiled_code = (CompiledCode*)mark_object(call_frame->compiled_code);
+      if(frame->compiled_code && frame->compiled_code->reference_p()) {
+        frame->compiled_code = (CompiledCode*)mark_object(frame->compiled_code);
       }
 
-      if(call_frame->compiled_code) {
-        native_int stack_size = call_frame->compiled_code->stack_size()->to_native();
+      if(frame->compiled_code) {
+        native_int stack_size = frame->compiled_code->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
-          Object* obj = call_frame->stk[i];
+          Object* obj = frame->stk[i];
           if(obj && obj->reference_p()) {
-            call_frame->stk[i] = mark_object(obj);
+            frame->stk[i] = mark_object(obj);
           }
         }
       }
 
-      if(call_frame->multiple_scopes_p() && call_frame->top_scope_) {
-        call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
+      if(frame->multiple_scopes_p() && frame->top_scope_) {
+        frame->top_scope_ = (VariableScope*)mark_object(frame->top_scope_);
       }
 
-      if(BlockEnvironment* env = call_frame->block_env()) {
-        call_frame->set_block_env((BlockEnvironment*)mark_object(env));
+      if(BlockEnvironment* env = frame->block_env()) {
+        frame->set_block_env((BlockEnvironment*)mark_object(env));
       }
 
-      Arguments* args = displace(call_frame->arguments, offset);
+      Arguments* args = displace(frame->arguments, offset);
 
-      if(!call_frame->inline_method_p() && args) {
+      if(!frame->inline_method_p() && args) {
         args->set_recv(mark_object(args->recv()));
         args->set_block(mark_object(args->block()));
 
@@ -238,72 +238,72 @@ namespace memory {
         }
       }
 
-      if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
+      if(NativeMethodFrame* nmf = frame->native_method_frame()) {
         nmf->handles().gc_scan(this);
       }
 
 #ifdef ENABLE_LLVM
-      if(jit::RuntimeDataHolder* jd = call_frame->jit_data()) {
+      if(jit::RuntimeDataHolder* jd = frame->jit_data()) {
         jd->set_mark();
 
         ObjectMark mark(this);
         jd->mark_all(0, mark);
       }
 
-      if(jit::RuntimeData* rd = call_frame->runtime_data()) {
+      if(jit::RuntimeData* rd = frame->runtime_data()) {
         rd->method_ = (CompiledCode*)mark_object(rd->method());
         rd->name_ = (Symbol*)mark_object(rd->name());
         rd->module_ = (Module*)mark_object(rd->module());
       }
 #endif
 
-      if(call_frame->scope && call_frame->compiled_code) {
-        saw_variable_scope(call_frame, displace(call_frame->scope, offset));
+      if(frame->scope && frame->compiled_code) {
+        saw_variable_scope(frame, displace(frame->scope, offset));
       }
 
-      call_frame = call_frame->previous;
+      frame = frame->previous;
     }
   }
 
   /**
    * Walks the chain of objects accessible from the specified CallFrame.
    */
-  void GarbageCollector::verify_call_frame(CallFrame* top_call_frame,
+  void GarbageCollector::verify_call_frame(CallFrame* call_frame,
                                            AddressDisplacement* offset)
   {
-    CallFrame* call_frame = top_call_frame;
+    CallFrame* frame = call_frame;
 
-    while(call_frame) {
-      call_frame = displace(call_frame, offset);
+    while(frame) {
+      frame = displace(frame, offset);
 
-      if(call_frame->constant_scope_) {
-        call_frame->constant_scope_->validate();
+      if(frame->constant_scope_) {
+        frame->constant_scope_->validate();
       }
 
-      if(call_frame->compiled_code) {
-        call_frame->compiled_code->validate();
+      if(frame->compiled_code) {
+        frame->compiled_code->validate();
       }
 
-      if(call_frame->compiled_code) {
-        native_int stack_size = call_frame->compiled_code->stack_size()->to_native();
+      if(frame->compiled_code) {
+        native_int stack_size = frame->compiled_code->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
-          Object* obj = call_frame->stk[i];
+          Object* obj = frame->stk[i];
           obj->validate();
         }
       }
 
-      VariableScope* scope = call_frame->top_scope_;
-      if(call_frame->multiple_scopes_p() && scope && !scope->nil_p()) {
+      VariableScope* scope = frame->top_scope_;
+      if(frame->multiple_scopes_p() && scope && !scope->nil_p()) {
         scope->validate();
       }
 
-      if(BlockEnvironment* env = call_frame->block_env()) {
+      if(BlockEnvironment* env = frame->block_env()) {
         env->validate();
       }
 
-      Arguments* args = displace(call_frame->arguments, offset);
+      Arguments* args = displace(frame->arguments, offset);
 
-      if(!call_frame->inline_method_p() && args) {
+      if(!frame->inline_method_p() && args) {
         args->recv()->validate();
         args->block()->validate();
 
@@ -313,11 +313,11 @@ namespace memory {
         }
       }
 
-      if(call_frame->scope && call_frame->compiled_code) {
-        verify_variable_scope(call_frame, displace(call_frame->scope, offset));
+      if(frame->scope && frame->compiled_code) {
+        verify_variable_scope(frame, displace(frame->scope, offset));
       }
 
-      call_frame = call_frame->previous;
+      frame = frame->previous;
     }
   }
 

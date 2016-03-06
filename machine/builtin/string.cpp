@@ -174,7 +174,7 @@ namespace rubinius {
   static void invalid_codepoint_error(STATE, unsigned int c) {
     std::ostringstream msg;
     msg << "invalid codepoint: " << c;
-    Exception::range_error(state, msg.str().c_str());
+    Exception::raise_range_error(state, msg.str().c_str());
   }
 
   struct convert_escaped_state {
@@ -431,7 +431,7 @@ namespace rubinius {
       std::ostringstream msg;
       msg << reason << ": byte: " << p - str->byte_address()
           << ": " << str->c_str(state);
-      Exception::regexp_error(state, msg.str().c_str());
+      Exception::raise_regexp_error(state, msg.str().c_str());
     }
 
     String* finalize() {
@@ -673,7 +673,7 @@ namespace rubinius {
   const char* String::c_str_null_safe(STATE) {
     const char* str = c_str(state);
     if(byte_size() > (native_int) strnlen(str, byte_size())) {
-      Exception::argument_error(state, "string contains NULL byte");
+      Exception::raise_argument_error(state, "string contains NULL byte");
     }
     return str;
   }
@@ -759,7 +759,7 @@ namespace rubinius {
     if(encoding() != other->encoding()) {
       Encoding* new_encoding = Encoding::compatible_p(state, this, other);
       if(new_encoding->nil_p()) {
-        Exception::encoding_compatibility_error(state, other, this);
+        Exception::raise_encoding_compatibility_error(state, other, this);
       }
       encoding(state, new_encoding);
     }
@@ -816,7 +816,7 @@ namespace rubinius {
 
     // Check for overflow, too big if that happens
     if(new_size < 0) {
-      Exception::argument_error(state, "string sizes too big");
+      Exception::raise_argument_error(state, "string sizes too big");
     }
 
     if(capacity <= new_size) {
@@ -860,7 +860,7 @@ namespace rubinius {
     native_int sz = count->to_native();
 
     if(sz < 0) {
-      Exception::argument_error(state, "negative byte array size");
+      Exception::raise_argument_error(state, "negative byte array size");
     }
 
     ByteArray* ba =
@@ -955,7 +955,7 @@ namespace rubinius {
           } else {
             message << "invalid range in string transliteration";
           }
-          Exception::argument_error(state, message.str().c_str());
+          Exception::raise_argument_error(state, message.str().c_str());
         } else if(max >= 0) {
           if(chr > max) {
             max = CBOOL(invalid_as_empty) ? chr - 1 : chr;
@@ -1029,7 +1029,7 @@ namespace rubinius {
     uint8_t* output = (uint8_t*)malloc(out_size);
 
     if(!output) {
-      Exception::memory_error(state);
+      Exception::raise_memory_error(state);
       return NULL;
     }
 
@@ -1080,7 +1080,7 @@ namespace rubinius {
         uint8_t* new_output = (uint8_t*)realloc(output, out_size);
         if(!new_output) {
           free(output);
-          Exception::memory_error(state);
+          Exception::raise_memory_error(state);
           return NULL;
         }
         output = new_output;
@@ -1168,9 +1168,9 @@ namespace rubinius {
     if(src < 0) src = osz + src;
 
     if(src >= osz) {
-      Exception::object_bounds_exceeded_error(state, "start exceeds size of other");
+      Exception::raise_object_bounds_exceeded_error(state, "start exceeds size of other");
     } else if(src < 0) {
-      Exception::object_bounds_exceeded_error(state, "start less than zero");
+      Exception::raise_object_bounds_exceeded_error(state, "start less than zero");
     }
 
     if(src + cnt > osz) cnt = osz - src;
@@ -1190,7 +1190,7 @@ namespace rubinius {
 
   String* String::pattern(STATE, Object* self, Fixnum* size, Object* pattern) {
     if(!size->positive_p()) {
-      Exception::argument_error(state, "size must be positive");
+      Exception::raise_argument_error(state, "size must be positive");
     }
 
     native_int cnt = size->to_native();
@@ -1232,7 +1232,7 @@ namespace rubinius {
       s->valid_encoding(state, pat->valid_encoding_p(state));
       s->encoding_from(state, pat);
     } else {
-      Exception::argument_error(state, "pattern must be a Fixnum or String");
+      Exception::raise_argument_error(state, "pattern must be a Fixnum or String");
     }
 
     s->data(state, ba);
@@ -1270,7 +1270,7 @@ namespace rubinius {
     char* result = ::crypt(this->c_str(state), salt->c_str(state));
     if(!result) {
       rbx_spinlock_unlock(&crypt_lock);
-      Exception::errno_error(state, "crypt(3) failed");
+      Exception::raise_errno_error(state, "crypt(3) failed");
       return NULL;
     }
     String* res = String::create(state, result);
@@ -1479,7 +1479,7 @@ namespace rubinius {
     native_int match_size = pattern->byte_size();
 
     if(start->to_native() < 0) {
-      Exception::argument_error(state, "negative start given");
+      Exception::raise_argument_error(state, "negative start given");
     }
 
     switch(match_size) {
@@ -1598,7 +1598,7 @@ namespace rubinius {
     native_int pos = start->to_native();
 
     if(pos < 0) {
-      Exception::argument_error(state, "negative start given");
+      Exception::raise_argument_error(state, "negative start given");
     }
 
     if(pos >= total) pos = total - 1;
@@ -1648,7 +1648,7 @@ namespace rubinius {
       native_int match_size = pattern->byte_size();
 
       if(offset < 0) {
-        Exception::argument_error(state, "negative start given");
+        Exception::raise_argument_error(state, "negative start given");
       }
 
       if(match_size == 0) return start;
@@ -1657,7 +1657,7 @@ namespace rubinius {
 
       Encoding* encoding = Encoding::compatible_p(state, this, pattern);
       if(encoding->nil_p()) {
-        Exception::argument_error(state, "encodings are incompatible");
+        Exception::raise_argument_error(state, "encodings are incompatible");
       }
 
       OnigEncodingType* enc = encoding->get_encoding();
@@ -1693,7 +1693,7 @@ namespace rubinius {
       native_int k = index->to_native();
 
       if(k < 0) {
-        Exception::argument_error(state, "character index is negative");
+        Exception::raise_argument_error(state, "character index is negative");
       }
 
       if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
@@ -1727,7 +1727,7 @@ namespace rubinius {
       }
     }
 
-    Exception::argument_error(state, "argument is not a String or Fixnum");
+    Exception::raise_argument_error(state, "argument is not a String or Fixnum");
     return nil<Fixnum>(); // satisfy compiler
   }
 
@@ -1735,7 +1735,7 @@ namespace rubinius {
     native_int i = index->to_native();
 
     if(i < 0) {
-      Exception::argument_error(state, "negative index given");
+      Exception::raise_argument_error(state, "negative index given");
     }
 
     OnigEncodingType* enc = encoding(state)->get_encoding();

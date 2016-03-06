@@ -12,10 +12,10 @@
 
 namespace rubinius {
 
-extern "C" Object* invoke_unknown_primitive(STATE, CallFrame* call_frame,
+extern "C" Object* invoke_unknown_primitive(STATE,
     Object** args, int arg_count)
 {
-  Exception::internal_error(state, call_frame, "unable to invoke primitive");
+  Exception::internal_error(state, "unable to invoke primitive");
   return 0;
 }
 

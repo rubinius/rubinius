@@ -134,13 +134,13 @@ namespace rubinius {
     return ary;
   }
 
-  Array* Array::to_ary(STATE, Object* value, CallFrame* call_frame) {
+  Array* Array::to_ary(STATE, Object* value) {
     if(Tuple* tup = try_as<Tuple>(value)) {
       return Array::from_tuple(state, tup);
     }
 
     if(CBOOL(value->respond_to(state, G(sym_to_ary), cTrue))) {
-      Object* res = value->send(state, call_frame, G(sym_to_ary));
+      Object* res = value->send(state, state->vm()->call_frame(), G(sym_to_ary));
       if(!res) return 0;
 
       if(Array* ary = try_as<Array>(res)) {
@@ -148,7 +148,7 @@ namespace rubinius {
       }
 
       if(!res->nil_p()) {
-        Exception::type_error(state, "to_ary should return an Array", call_frame);
+        Exception::type_error(state, "to_ary should return an Array");
         return 0;
       }
     }

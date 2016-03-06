@@ -211,7 +211,7 @@ namespace rubinius {
 
     std::getline(stream, line);
     if(stream.fail()) {
-      Exception::type_error(state, "Unable to unmarshal Float: failed to read value");
+      Exception::raise_type_error(state, "Unable to unmarshal Float: failed to read value");
     }
 
     data = line.c_str();
@@ -247,7 +247,7 @@ namespace rubinius {
       } else if(!strncasecmp(data, "NaN", 3U)) {
         val = zero;
       } else {
-        Exception::type_error(state, "Unable to unmarshal Float: invalid format");
+        Exception::raise_type_error(state, "Unable to unmarshal Float: invalid format");
       }
 
       return Float::create(state, val / zero);
@@ -343,7 +343,7 @@ namespace rubinius {
     default:
       std::string str = "unknown marshal code: ";
       str.append( 1, code );
-      Exception::type_error(state, str.c_str());
+      Exception::raise_type_error(state, str.c_str());
       return cNil;    // make compiler happy
     }
   }

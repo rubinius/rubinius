@@ -155,7 +155,7 @@ namespace rubinius {
 
   Symbol* SymbolTable::lookup(STATE, String* str) {
     if(str->nil_p()) {
-      Exception::argument_error(state, "Cannot look up Symbol from nil");
+      Exception::raise_argument_error(state, "Cannot look up Symbol from nil");
       return NULL;
     }
 
@@ -175,7 +175,7 @@ namespace rubinius {
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
     utilities::thread::SpinLock::LockGuard guard(lock_);
     if(sym->nil_p()) {
-      Exception::argument_error(state, "Cannot look up Symbol from nil");
+      Exception::raise_argument_error(state, "Cannot look up Symbol from nil");
       return NULL;
     }
 

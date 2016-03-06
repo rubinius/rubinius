@@ -8,8 +8,8 @@
 #include "builtin/thread.hpp"
 
 namespace rubinius {
-  Object* Park::park(STATE, CallFrame* call_frame) {
-    if(!state->check_async(call_frame)) return NULL;
+  Object* Park::park(STATE) {
+    if(!state->check_async(state)) return NULL;
 
     utilities::thread::Mutex::LockGuard lg(mutex_);
 
@@ -25,7 +25,7 @@ namespace rubinius {
         cond_.wait(mutex_);
       }
       mutex_.unlock();
-      if(!state->check_async(call_frame)) {
+      if(!state->check_async(state)) {
         mutex_.lock();
         result = NULL;
         break;
@@ -38,9 +38,9 @@ namespace rubinius {
     return result;
   }
 
-  Object* Park::park_timed(STATE, CallFrame* call_frame, struct timespec* ts) {
+  Object* Park::park_timed(STATE, struct timespec* ts) {
     utilities::thread::Mutex::LockGuard lg(mutex_);
-    if(!state->check_async(call_frame)) return NULL;
+    if(!state->check_async(state)) return NULL;
 
     wake_ = false;
     sleeping_ = true;
@@ -59,7 +59,7 @@ namespace rubinius {
         }
       }
       mutex_.unlock();
-      if(!state->check_async(call_frame)) {
+      if(!state->check_async(state)) {
         mutex_.lock();
         timeout = NULL;
         break;

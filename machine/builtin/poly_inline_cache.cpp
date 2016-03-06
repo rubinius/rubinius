@@ -90,7 +90,7 @@ namespace rubinius {
     return Integer::from(state, seen_classes_overflow_);
   }
 
-  Object* PolyInlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* PolyInlineCache::check_cache(STATE, CallSite* call_site,
                                    Arguments& args)
   {
     Class* const recv_class = args.recv()->direct_class(state);
@@ -104,13 +104,13 @@ namespace rubinius {
       entry->hit();
       state->vm()->metrics().machine.methods_invoked++;
 
-      return meth->execute(state, call_frame, meth, mod, args);
+      return meth->execute(state, meth, mod, args);
     }
 
-    return cache->fallback(state, call_frame, args);
+    return cache->fallback(state, args);
   }
 
-  Object* PolyInlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* PolyInlineCache::check_cache_mm(STATE, CallSite* call_site,
                                       Arguments& args)
   {
     Class* const recv_class = args.recv()->direct_class(state);
@@ -128,10 +128,10 @@ namespace rubinius {
       entry->hit();
       state->vm()->metrics().machine.methods_invoked++;
 
-      return meth->execute(state, call_frame, meth, mod, args);
+      return meth->execute(state, meth, mod, args);
     }
 
-    return cache->fallback(state, call_frame, args);
+    return cache->fallback(state, args);
   }
 
   void PolyInlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {

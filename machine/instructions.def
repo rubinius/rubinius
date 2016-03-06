@@ -452,14 +452,14 @@ end
 
 instruction push_local_depth(depth index) [ -- value ]
   if(depth == 0) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "illegal push_local_depth usage");
     RUN_EXCEPTION();
   } else {
     VariableScope* scope = call_frame->scope->parent();
 
     if(!scope || scope->nil_p()) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal push_local_depth usage, no parent");
       RUN_EXCEPTION();
     }
@@ -467,14 +467,14 @@ instruction push_local_depth(depth index) [ -- value ]
     for(int j = 1; j < depth; j++) {
       scope = scope->parent();
       if(!scope || scope->nil_p()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal push_local_depth usage, no parent");
         RUN_EXCEPTION();
       }
     }
 
     if(index >= scope->number_of_locals()) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal push_local_depth usage, bad index");
       RUN_EXCEPTION();
     }
@@ -500,14 +500,14 @@ end
 
 instruction set_local_depth(depth index) [ value -- value ]
   if(depth == 0) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "illegal set_local_depth usage");
     RUN_EXCEPTION();
   } else {
     VariableScope* scope = call_frame->scope->parent();
 
     if(!scope || scope->nil_p()) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal set_local_depth usage, no parent");
       RUN_EXCEPTION();
     }
@@ -515,14 +515,14 @@ instruction set_local_depth(depth index) [ value -- value ]
     for(int j = 1; j < depth; j++) {
       scope = scope->parent();
       if(!scope || scope->nil_p()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal set_local_depth usage, no parent");
         RUN_EXCEPTION();
       }
     }
 
     if(index >= scope->number_of_locals()) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal set_local_depth usage, bad index");
       RUN_EXCEPTION();
     }
@@ -540,7 +540,7 @@ end
 
 instruction passed_arg(index) [ -- boolean ]
   if(!call_frame->arguments) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "no arguments object");
     RUN_EXCEPTION();
   }
@@ -609,7 +609,7 @@ instruction raise_exc() [ value -- ] => raise
   flush_ip();
   Object* t1 = stack_pop();
   Exception* exc = as<Exception>(t1);
-  exc->locations(state, Location::from_call_stack(state, call_frame));
+  exc->locations(state, Location::from_call_stack(state));
   state->raise_exception(exc);
   RUN_EXCEPTION();
 end
@@ -646,7 +646,7 @@ end
 
 instruction pop_unwind() [ -- ]
   if(!unwinds.has_unwinds()) {
-    Exception::internal_error(state, call_frame, "unbalanced pop_unwind");
+    Exception::internal_error(state, "unbalanced pop_unwind");
     RUN_EXCEPTION();
   }
   unwinds.drop();
@@ -664,9 +664,9 @@ end
 instruction raise_return() [ value -- value ] => raise
   flush_ip();
   if(!(call_frame->flags & CallFrame::cIsLambda) &&
-     !call_frame->scope_still_valid(call_frame->top_scope(state))) {
+     !state->vm()->scope_valid_p(call_frame->top_scope(state))) {
     Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
   } else {
     if(call_frame->flags & CallFrame::cIsLambda) {
@@ -702,11 +702,11 @@ instruction raise_break() [ value -- value ] => raise
   flush_ip();
   if(call_frame->flags & CallFrame::cIsLambda) {
     return stack_top();
-  } else if(call_frame->scope_still_valid(call_frame->scope->parent())) {
+  } else if(state->vm()->scope_valid_p(call_frame->scope->parent())) {
     state->vm()->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
   } else {
     Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exited method");
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
   }
   RUN_EXCEPTION();
@@ -747,7 +747,7 @@ instruction make_array(count) [ +count -- array ]
 
 #ifdef RBX_ALLOC_TRACKING
   if(unlikely(state->vm()->allocation_tracking())) {
-    ary->setup_allocation_site(state, call_frame);
+    ary->setup_allocation_site(state);
   }
 #endif
   int j = count - 1;
@@ -849,7 +849,7 @@ section "Manipulate instance variables"
 
 instruction set_ivar(literal) [ value -- value ]
   if(CBOOL(call_frame->self()->frozen_p(state))) {
-    Exception::frozen_error(state, call_frame, call_frame->self());
+    Exception::frozen_error(state, call_frame->self());
     RUN_EXCEPTION();
   }
   Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
@@ -879,13 +879,13 @@ section "Manipulate constants"
 instruction push_const(literal) [ -- constant ]
   ConstantMissingReason reason;
   Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
-  Object* res = Helpers::const_get(state, call_frame, sym, &reason);
+  Object* res = Helpers::const_get(state, sym, &reason);
   if(reason != vFound) {
     flush_ip();
-    res = Helpers::const_missing(state, sym, call_frame);
+    res = Helpers::const_missing(state, sym);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
-    res = autoload->resolve(state, call_frame);
+    res = autoload->resolve(state);
   }
 
   CHECK_AND_PUSH(res);
@@ -937,10 +937,10 @@ instruction find_const(literal) [ module -- constant ]
   Object* res = Helpers::const_get_under(state, under, sym, &reason);
   if(reason != vFound) {
     flush_ip();
-    res = Helpers::const_missing_under(state, under, sym, call_frame);
+    res = Helpers::const_missing_under(state, under, sym);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
-    res = autoload->resolve(state, call_frame, under);
+    res = autoload->resolve(state, under);
   }
 
   CHECK_AND_PUSH(res);
@@ -974,13 +974,13 @@ instruction push_const_fast(literal) [ -- constant ]
     flush_ip();
 
     Symbol* sym = cache->name();
-    res = Helpers::const_get(state, call_frame, sym, &reason);
+    res = Helpers::const_get(state, sym, &reason);
 
     if(reason == vFound) {
       OnStack<2> os(state, cache, res);
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();
-        res = autoload->resolve(state, call_frame);
+        res = autoload->resolve(state);
       }
 
       if(res) {
@@ -988,7 +988,7 @@ instruction push_const_fast(literal) [ -- constant ]
         cache->update_constant_cache(state, update);
       }
     } else {
-      res = Helpers::const_missing(state, sym, call_frame);
+      res = Helpers::const_missing(state, sym);
     }
   }
 
@@ -1025,7 +1025,7 @@ instruction find_const_fast(literal) [ module -- constant ]
       OnStack<3> os(state, cache, under, res);
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();
-        res = autoload->resolve(state, call_frame, under);
+        res = autoload->resolve(state, under);
       }
 
       if(res) {
@@ -1033,7 +1033,7 @@ instruction find_const_fast(literal) [ module -- constant ]
         cache->update_constant_cache(state, update);
       }
     } else {
-      res = Helpers::const_missing_under(state, under, sym, call_frame);
+      res = Helpers::const_missing_under(state, under, sym);
     }
   }
 
@@ -1076,13 +1076,13 @@ instruction send_method(literal) [ receiver -- value ] => send
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
   Arguments args(call_site->name(), recv, cNil, 0, 0);
-  Object* ret = call_site->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, args);
 
   (void)stack_pop();
 
   CHECK_AND_PUSH(ret);
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1117,13 +1117,13 @@ instruction send_stack(literal count) [ receiver +count -- value ] => send
   Arguments args(call_site->name(), recv, cNil, count,
                  stack_back_position(count));
 
-  Object* ret = call_site->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, args);
 
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1160,13 +1160,13 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
   Arguments args(call_site->name(), recv, block, count,
                  stack_back_position(count));
 
-  Object* ret = call_site->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, args);
 
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1215,13 +1215,13 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
 
   SET_CALL_FLAGS(0);
 
-  Object* ret = call_site->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, args);
 
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1249,7 +1249,7 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
   Arguments new_args(call_site->name(), recv, block, count,
                      stack_back_position(count));
 
-  Object* ret = call_site->execute(state, call_frame, new_args);
+  Object* ret = call_site->execute(state, new_args);
 
   stack_clear(count);
 
@@ -1292,7 +1292,7 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
 
   SET_CALL_FLAGS(0);
 
-  Object* ret = call_site->execute(state, call_frame, new_args);
+  Object* ret = call_site->execute(state, new_args);
 
   stack_clear(count);
 
@@ -1318,7 +1318,7 @@ end
 
 instruction passed_blockarg(count) [ -- boolean ]
   if(!call_frame->arguments) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "no arguments object");
     RUN_EXCEPTION();
   }
@@ -1339,7 +1339,7 @@ instruction create_block(literal) [ -- block ]
     call_frame->compiled_code->literals()->put(state, literal, code);
   }
 
-  Object* be = BlockEnvironment::under_call_frame(state, code, mcode, call_frame);
+  Object* be = BlockEnvironment::under_call_frame(state, code, mcode);
 
   CHECK_AND_PUSH(be);
 end
@@ -1364,7 +1364,7 @@ end
 
 instruction cast_for_single_block_arg() [ -- argument ]
   if(!call_frame->arguments) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "no arguments object");
     RUN_EXCEPTION();
   }
@@ -1413,7 +1413,7 @@ end
 
 instruction cast_for_multi_block_arg() [ -- array ]
   if(!call_frame->arguments) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "no arguments object");
     RUN_EXCEPTION();
   }
@@ -1431,7 +1431,7 @@ instruction cast_for_multi_block_arg() [ -- array ]
       if(kind_of<Array>(obj)) {
         stack_push(obj);
       } else {
-        Exception::type_error(state, "to_ary must return an Array", call_frame);
+        Exception::type_error(state, "to_ary must return an Array");
         RUN_EXCEPTION();
       }
     } else {
@@ -1454,7 +1454,7 @@ end
 
 instruction cast_for_splat_block_arg() [ -- arguments ]
   if(!call_frame->arguments) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "no arguments object");
     RUN_EXCEPTION();
   }
@@ -1473,7 +1473,7 @@ instruction cast_for_splat_block_arg() [ -- arguments ]
         Object* ignored = obj->send(state, call_frame, G(sym_to_ary));
         if(!ignored) RUN_EXCEPTION();
         if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
-          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          Exception::type_error(state, "to_ary must return an Array");
           RUN_EXCEPTION();
         }
       }
@@ -1511,11 +1511,11 @@ instruction yield_stack(count) [ +count -- value ] => yield
   Arguments args(G(sym_call), t1, count, stack_back_position(count));
 
   if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-    ret = env->call(state, call_frame, args);
+    ret = env->call(state, args);
   } else if(Proc* proc = try_as<Proc>(t1)) {
-    ret = proc->yield(state, call_frame, args);
+    ret = proc->yield(state, args);
   } else if(t1->nil_p()) {
-    state->raise_exception(Exception::make_lje(state, call_frame));
+    state->raise_exception(Exception::make_lje(state));
     ret = NULL;
   } else {
     Dispatch dispatch(G(sym_call));
@@ -1526,7 +1526,7 @@ instruction yield_stack(count) [ +count -- value ] => yield
 
   CHECK_AND_PUSH(ret);
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1558,11 +1558,11 @@ instruction yield_splat(count) [ array +count -- value ] => yield
 
   Object* ret;
   if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-    ret = env->call(state, call_frame, args);
+    ret = env->call(state, args);
   } else if(Proc* proc = try_as<Proc>(t1)) {
-    ret = proc->yield(state, call_frame, args);
+    ret = proc->yield(state, args);
   } else if(t1->nil_p()) {
-    state->raise_exception(Exception::make_lje(state, call_frame));
+    state->raise_exception(Exception::make_lje(state));
     ret = NULL;
   } else {
     Dispatch dispatch(G(sym_call));
@@ -1573,7 +1573,7 @@ instruction yield_splat(count) [ array +count -- value ] => yield
 
   CHECK_AND_PUSH(ret);
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 section "Manipulate strings"
@@ -1675,7 +1675,7 @@ instruction string_build(count) [ +count -- string ]
   String* str = String::create(state, 0, size);
 #ifdef RBX_ALLOC_TRACKING
   if(unlikely(state->vm()->allocation_tracking())) {
-    str->setup_allocation_site(state, call_frame);
+    str->setup_allocation_site(state);
   }
 #endif
 
@@ -1751,7 +1751,7 @@ instruction string_dup() [ string -- string ]
 
 #ifdef RBX_ALLOC_TRACKING
   if(unlikely(state->vm()->allocation_tracking())) {
-    dup->setup_allocation_site(state, call_frame);
+    dup->setup_allocation_site(state);
   }
 #endif
 end
@@ -1804,9 +1804,9 @@ instruction check_interrupts() [ -- ]
     mcode->call_count++;
   }
 
-  if(!state->check_async(call_frame)) RUN_EXCEPTION();
+  if(!state->check_async(state)) RUN_EXCEPTION();
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1817,7 +1817,7 @@ end
 
 instruction yield_debugger() [ -- ]
   flush_ip();
-  Helpers::yield_debugger(state, call_frame, cNil);
+  Helpers::yield_debugger(state, cNil);
 end
 
 # [Description]
@@ -1854,7 +1854,7 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
   stack_push(RBOOL(call_site->update_and_validate(state,
-                    call_frame, recv, G(sym_public), serial)));
+                    recv, G(sym_public), serial)));
 end
 
 # [Description]
@@ -1868,7 +1868,7 @@ instruction check_serial_private(literal serial) [ receiver -- boolean ]
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
   stack_push(RBOOL(call_site->update_and_validate(state,
-                    call_frame, recv, G(sym_private), serial)));
+                    recv, G(sym_private), serial)));
 end
 
 section "Access object fields"
@@ -1897,7 +1897,7 @@ end
 
 instruction store_my_field(index) [ value -- value ]
   if(CBOOL(call_frame->self()->frozen_p(state))) {
-    Exception::frozen_error(state, call_frame, call_frame->self());
+    Exception::frozen_error(state, call_frame->self());
     RUN_EXCEPTION();
   }
   call_frame->self()->set_field(state, index, stack_top());
@@ -1990,7 +1990,7 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
     flush_ip();
     Arguments out_args(G(sym_plus), left, 1, stack_back_position(1));
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Object* ret = call_site->execute(state, call_frame, out_args);
+    Object* ret = call_site->execute(state, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -2016,7 +2016,7 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
     flush_ip();
     Arguments out_args(G(sym_minus), left, 1, stack_back_position(1));
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Object* ret = call_site->execute(state, call_frame, out_args);
+    Object* ret = call_site->execute(state, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -2044,7 +2044,7 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
 
     Arguments out_args(G(sym_equal), t1, 1, stack_back_position(1));
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Object* ret = call_site->execute(state, call_frame, out_args);
+    Object* ret = call_site->execute(state, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -2071,7 +2071,7 @@ instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
     flush_ip();
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
     Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
-    Object* ret = call_site->execute(state, call_frame, out_args);
+    Object* ret = call_site->execute(state, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -2098,7 +2098,7 @@ instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
     flush_ip();
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
     Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
-    Object* ret = call_site->execute(state, call_frame, out_args);
+    Object* ret = call_site->execute(state, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -2127,7 +2127,7 @@ instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
     flush_ip();
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
     Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
-    Object* ret = call_site->execute(state, call_frame, out_args);
+    Object* ret = call_site->execute(state, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -2153,12 +2153,12 @@ instruction meta_send_call(literal count) [ receiver +count -- value ] => send
   Arguments out_args(G(sym_call), t1, count, stack_back_position(count));
 
   if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-    ret = env->call(state, call_frame, out_args);
+    ret = env->call(state, out_args);
   } else if(Proc* proc = try_as<Proc>(t1)) {
-    ret = proc->call(state, call_frame, out_args);
+    ret = proc->call(state, out_args);
   } else {
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    ret = call_site->execute(state, call_frame, out_args);
+    ret = call_site->execute(state, out_args);
   }
 
   stack_clear(count + 1);
@@ -2256,7 +2256,7 @@ instruction zsuper(literal) [ block -- value ]
     call_site->name(state, current_name);
   }
 
-  ret = call_site->execute(state, call_frame, new_args);
+  ret = call_site->execute(state, new_args);
 
   CHECK_AND_PUSH(ret);
 end
@@ -2271,7 +2271,7 @@ end
 
 instruction push_block_arg() [ -- block ]
   if(!call_frame->arguments) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "no arguments object");
     RUN_EXCEPTION();
   }
@@ -2326,7 +2326,7 @@ end
 
 instruction push_proc() [ -- value ]
   if(!call_frame->arguments) {
-    Exception::internal_error(state, call_frame,
+    Exception::internal_error(state,
                               "no arguments object");
     RUN_EXCEPTION();
   }
@@ -2335,7 +2335,7 @@ instruction push_proc() [ -- value ]
   if(CBOOL(obj)) {
     Proc* prc = Proc::from_env(state, G(proc), obj);
     if(!prc) {
-      Exception::internal_error(state, call_frame, "invalid block type");
+      Exception::internal_error(state, "invalid block type");
       RUN_EXCEPTION();
     }
     stack_push(prc);
@@ -2354,7 +2354,7 @@ instruction check_frozen() [ value -- value ]
   Object* value = stack_top();
 
   if(value->reference_p() && value->is_frozen_p()) {
-    Exception::frozen_error(state, call_frame, value);
+    Exception::frozen_error(state, value);
     RUN_EXCEPTION();
   }
 end
@@ -2371,7 +2371,7 @@ instruction cast_multi_value() [ value -- array ]
   Object* value = stack_top();
 
   if(!kind_of<Array>(value)) {
-    Object* res = Array::to_ary(state, value, call_frame);
+    Object* res = Array::to_ary(state, value);
     if(!res) {
       RUN_EXCEPTION();
     } else {
@@ -2398,7 +2398,7 @@ instruction invoke_primitive(literal count) [ +count -- value ]
   flush_ip();
   InvokePrimitive ip = reinterpret_cast<InvokePrimitive>(literal);
 
-  Object* ret = (*ip)(state, call_frame, stack_back_position(count), count);
+  Object* ret = (*ip)(state, stack_back_position(count), count);
 
   stack_clear(count);
 
@@ -2436,13 +2436,13 @@ instruction call_custom(literal count) [ receiver +count -- value ] => send
   Arguments args(call_site->name(), recv, cNil, count,
                  stack_back_position(count));
 
-  Object* ret = call_site->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, args);
 
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
 
-  state->vm()->checkpoint(state, call_frame);
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -2459,7 +2459,7 @@ instruction meta_to_s(literal) [ object -- string ] => send
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
     Arguments args(call_site->name(), stack_top(), cNil, 0, 0);
-    Object* ret = call_site->execute(state, call_frame, args);
+    Object* ret = call_site->execute(state, args);
     if(ret && !kind_of<String>(ret)) {
       ret = stack_top()->to_s(state, false);
     }

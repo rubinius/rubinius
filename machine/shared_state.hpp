@@ -107,6 +107,7 @@ namespace rubinius {
     tooling::ToolBroker* tool_broker_;
 
     utilities::thread::Mutex fork_exec_lock_;
+    utilities::thread::Mutex codedb_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
@@ -271,6 +272,10 @@ namespace rubinius {
       return fork_exec_lock_;
     }
 
+    utilities::thread::Mutex& codedb_lock() {
+      return codedb_lock_;
+    }
+
     void set_use_capi_lock(bool s) {
       use_capi_lock_ = s;
     }
@@ -311,7 +316,7 @@ namespace rubinius {
 
     void scheduler_loop();
 
-    void after_fork_child(STATE, CallFrame* call_frame);
+    void after_fork_child(STATE);
 
     void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);

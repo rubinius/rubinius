@@ -21,7 +21,7 @@ namespace rubinius {
     return pe;
   }
 
-  Object* BlockAsMethod::block_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
+  Object* BlockAsMethod::block_executor(STATE, Executable* exec, Module* mod,
                                        Arguments& args)
   {
     BlockAsMethod* bm = as<BlockAsMethod>(exec);
@@ -69,7 +69,7 @@ namespace rubinius {
     if(exception) {
       Exception* exc =
         Exception::make_argument_error(state, expected, args.total(), args.name());
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
     }
@@ -80,7 +80,7 @@ namespace rubinius {
 
     invocation.module = mod;
 
-    return bm->block_env()->invoke(state, call_frame,
+    return bm->block_env()->invoke(state,
                                    bm->block_env(), args, invocation);
   }
 }

@@ -61,7 +61,7 @@ namespace rubinius {
     return cache;
   }
 
-  Object* MonoInlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* MonoInlineCache::check_cache(STATE, CallSite* call_site,
                                        Arguments& args) {
 
     MonoInlineCache* cache = reinterpret_cast<MonoInlineCache*>(call_site);
@@ -72,13 +72,13 @@ namespace rubinius {
     if(likely(cache->receiver_.raw == recv_data)) {
       cache->hits_++;
       state->vm()->metrics().machine.methods_invoked++;
-      return cache->method_->execute(state, call_frame, cache->method_, cache->stored_module_, args);
+      return cache->method_->execute(state, cache->method_, cache->stored_module_, args);
     }
 
-    return call_site->fallback(state, call_frame, args);
+    return call_site->fallback(state, args);
   }
 
-  Object* MonoInlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* MonoInlineCache::check_cache_mm(STATE, CallSite* call_site,
                                    Arguments& args) {
     MonoInlineCache* cache = reinterpret_cast<MonoInlineCache*>(call_site);
 
@@ -91,10 +91,10 @@ namespace rubinius {
       state->vm()->metrics().machine.methods_invoked++;
       state->vm()->set_method_missing_reason(cache->method_missing_);
       args.unshift(state, call_site->name_);
-      return cache->method_->execute(state, call_frame, cache->method_, cache->stored_module_, args);
+      return cache->method_->execute(state, cache->method_, cache->stored_module_, args);
     }
 
-    return call_site->fallback(state, call_frame, args);
+    return call_site->fallback(state, args);
   }
 
   void MonoInlineCache::mono_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {

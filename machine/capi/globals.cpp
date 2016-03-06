@@ -87,7 +87,7 @@ extern "C" {
     if((len == 1 && name[0] == '~') ||
        (len == 2 && name[0] == '$' && name[1] == '~')) {
       return env->get_handle(Regexp::last_match_result(env->state(),
-        Fixnum::from(0), Fixnum::from(0), env->current_call_frame()));
+        Fixnum::from(0), Fixnum::from(0)));
     }
     VALUE Globals = rb_const_get(rb_mRubinius, rb_intern("Globals"));
 

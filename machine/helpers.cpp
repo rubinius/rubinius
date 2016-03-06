@@ -47,13 +47,13 @@ namespace rubinius {
       return cNil;
     }
 
-    Object* const_get(STATE, CallFrame* call_frame, Symbol* name, ConstantMissingReason* reason, Object* filter, bool replace_autoload) {
+    Object* const_get(STATE, Symbol* name, ConstantMissingReason* reason, Object* filter, bool replace_autoload) {
       ConstantScope *cur;
       Object* result;
 
       *reason = vNonExistent;
 
-      call_frame = call_frame->top_ruby_frame();
+      CallFrame* frame = state->vm()->get_ruby_frame();
 
       // Ok, this has to be explained or it will be considered black magic.
       // The scope chain always ends with an entry at the top that contains
@@ -93,7 +93,7 @@ namespace rubinius {
       // chain. If Object isn't seen, this means we are directly deriving from
       // BasicObject.
 
-      cur = call_frame->constant_scope();
+      cur = frame->constant_scope();
       while(!cur->nil_p()) {
         // Detect the toplevel scope (the default) and get outta dodge.
         if(cur->top_level_p(state)) break;
@@ -110,7 +110,7 @@ namespace rubinius {
       // Now look up the superclass chain.
       Module *fallback = G(object);
 
-      cur = call_frame->constant_scope();
+      cur = frame->constant_scope();
       if(!cur->nil_p()) {
         bool object_seen = false;
         Module* mod = cur->module();
@@ -144,16 +144,16 @@ namespace rubinius {
       return cNil;
     }
 
-    Object* const_missing_under(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
+    Object* const_missing_under(STATE, Module* under, Symbol* sym) {
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
-      return under->send(state, call_frame, G(sym_const_missing), args);
+      return under->send(state, state->vm()->call_frame(), G(sym_const_missing), args);
     }
 
-    Object* const_missing(STATE, Symbol* sym, CallFrame* call_frame) {
+    Object* const_missing(STATE, Symbol* sym) {
       Module* under;
 
-      call_frame = call_frame->top_ruby_frame();
+      CallFrame* call_frame = state->vm()->get_ruby_frame();
 
       ConstantScope* scope = call_frame->constant_scope();
       if(scope->nil_p()) {
@@ -167,10 +167,10 @@ namespace rubinius {
       return under->send(state, call_frame, G(sym_const_missing), args);
     }
 
-    Class* open_class(STATE, CallFrame* call_frame, Object* super, Symbol* name, bool* created) {
+    Class* open_class(STATE, Object* super, Symbol* name, bool* created) {
       Module* under;
 
-      call_frame = call_frame->top_ruby_frame();
+      CallFrame* call_frame = state->vm()->get_ruby_frame();
 
       if(call_frame->constant_scope()->nil_p()) {
         under = G(object);
@@ -178,7 +178,7 @@ namespace rubinius {
         under = call_frame->constant_scope()->module();
       }
 
-      return open_class(state, call_frame, under, super, name, created);
+      return open_class(state, under, super, name, created);
     }
 
     static Class* add_class(STATE, Module* under, Object* super, Symbol* name) {
@@ -191,7 +191,7 @@ namespace rubinius {
       return cls;
     }
 
-    static Class* check_superclass(STATE, CallFrame* call_frame, Class* cls, Object* super) {
+    static Class* check_superclass(STATE, Class* cls, Object* super) {
       if(super->nil_p()) return cls;
       if(cls->true_superclass(state) != super) {
         std::ostringstream message;
@@ -201,7 +201,7 @@ namespace rubinius {
                 << cls->true_superclass(state)->debug_str(state);
         Exception* exc =
           Exception::make_type_error(state, Class::type, super, message.str().c_str());
-        exc->locations(state, Location::from_call_stack(state, call_frame));
+        exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
         return NULL;
       }
@@ -209,7 +209,7 @@ namespace rubinius {
       return cls;
     }
 
-    Class* open_class(STATE, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created) {
+    Class* open_class(STATE, Module* under, Object* super, Symbol* name, bool* created) {
       ConstantMissingReason reason;
 
       *created = false;
@@ -220,7 +220,7 @@ namespace rubinius {
         OnStack<4> os(state, under, super, name, obj);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, call_frame, under, true);
+          obj = autoload->resolve(state, under, true);
 
           // Check if an exception occurred
           if(!obj) return NULL;
@@ -229,7 +229,7 @@ namespace rubinius {
         // Autoload::resolve will return nil if code loading failed, in which
         // case we ignore the autoload.
         if(!obj->nil_p()) {
-          return check_superclass(state, call_frame, as<Class>(obj), super);
+          return check_superclass(state, as<Class>(obj), super);
         }
       }
 
@@ -237,19 +237,19 @@ namespace rubinius {
       return add_class(state, under, super, name);
     }
 
-    Module* open_module(STATE, CallFrame* call_frame, Symbol* name) {
+    Module* open_module(STATE, Symbol* name) {
       Module* under = G(object);
 
-      call_frame = call_frame->top_ruby_frame();
+      CallFrame* call_frame = state->vm()->get_ruby_frame();
 
       if(!call_frame->constant_scope()->nil_p()) {
         under = call_frame->constant_scope()->module();
       }
 
-      return open_module(state, call_frame, under, name);
+      return open_module(state, under, name);
     }
 
-    Module* open_module(STATE, CallFrame* call_frame, Module* under, Symbol* name) {
+    Module* open_module(STATE, Module* under, Symbol* name) {
       Module* module;
       ConstantMissingReason reason;
 
@@ -259,7 +259,7 @@ namespace rubinius {
         OnStack<3> os(state, under, name, obj);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, call_frame, under, true);
+          obj = autoload->resolve(state, under, true);
         }
 
         // Check if an exception occurred
@@ -280,7 +280,7 @@ namespace rubinius {
       return module;
     }
 
-    bool yield_debugger(STATE, CallFrame* call_frame, Object* bp) {
+    bool yield_debugger(STATE, Object* bp) {
       Thread* cur = Thread::current(state);
       Thread* debugger = cur->debugger_thread();
 
@@ -301,8 +301,6 @@ namespace rubinius {
       // without being explicitly requested.
       state->vm()->clear_thread_step();
 
-      state->vm()->set_call_frame(call_frame);
-
       Channel* my_control = cur->control_channel();
 
       // Lazily create our own control channel.
@@ -311,15 +309,15 @@ namespace rubinius {
         cur->control_channel(state, my_control);
       }
 
-      Array* locs = Location::from_call_stack(state, call_frame, true, true);
+      Array* locs = Location::from_call_stack(state, true, true);
 
       OnStack<1> os(state, my_control);
 
       debugger_chan->send(state,
-          Tuple::from(state, 4, bp, cur, my_control, locs), call_frame);
+          Tuple::from(state, 4, bp, cur, my_control, locs));
 
       // Block until the debugger wakes us back up.
-      Object* ret = my_control->receive(state, call_frame);
+      Object* ret = my_control->receive(state);
 
       // Do not access any locals other than ret beyond here unless you add OnStack<>
       // to them! The GC has probably run and moved things.

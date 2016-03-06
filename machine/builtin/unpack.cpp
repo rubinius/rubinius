@@ -311,7 +311,7 @@ namespace rubinius {
 
         if(value & 0x80) {
           if(!(value & 0x40)) {
-            Exception::argument_error(state, "malformed UTF-8 character");
+            Exception::raise_argument_error(state, "malformed UTF-8 character");
           }
 
           if(!(value & 0x20)) {
@@ -330,7 +330,7 @@ namespace rubinius {
             n = 6;
             value &= 0x01;
           } else {
-            Exception::argument_error(state, "malformed UTF-8 character");
+            Exception::raise_argument_error(state, "malformed UTF-8 character");
           }
 
           if(n > remainder) {
@@ -338,7 +338,7 @@ namespace rubinius {
             snprintf(error_msg, MALFORMED_UTF8_ERROR_SIZE,
                     "malformed UTF-8 character (expected %d bytes, given %d bytes)",
                     n, (int)remainder);
-            Exception::argument_error(state, error_msg);
+            Exception::raise_argument_error(state, error_msg);
           }
 
           length = n--;
@@ -346,7 +346,7 @@ namespace rubinius {
             while(n--) {
               c = *bytes++ & 0xff;
               if((c & 0xc0) != 0x80) {
-                Exception::argument_error(state, "malformed UTF-8 character");
+                Exception::raise_argument_error(state, "malformed UTF-8 character");
               } else {
                 c &= 0x3f;
                 value = value << 6 | c;
@@ -355,7 +355,7 @@ namespace rubinius {
           }
 
           if(value < utf8_limits[length-1]) {
-            Exception::argument_error(state, "redundant UTF-8 sequence");
+            Exception::raise_argument_error(state, "redundant UTF-8 sequence");
           }
         }
 
@@ -525,13 +525,13 @@ namespace rubinius {
     void outside_of_string(STATE, const char c) {
       std::ostringstream msg;
       msg << c << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
 
     void non_native_error(STATE, const char c) {
       std::ostringstream msg;
       msg << "'" << c << "' allowed only after types sSiIlL";
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
   }
 

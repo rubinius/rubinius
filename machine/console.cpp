@@ -208,7 +208,7 @@ namespace rubinius {
     void Response::wakeup(STATE) {
       InternalThread::wakeup(state);
 
-      inbox_.get()->send(state, String::create(state, ""), 0);
+      inbox_.get()->send(state, String::create(state, ""));
 
       response_cond_.signal();
     }
@@ -301,13 +301,13 @@ namespace rubinius {
 
           pending_requests++;
 
-          inbox->send(state, String::create(state, request), 0);
+          inbox->send(state, String::create(state, request));
 
           request = NULL;
         }
 
         if(pending_requests > 0) {
-          if((response = try_as<String>(outbox->try_receive(state, 0)))) {
+          if((response = try_as<String>(outbox->try_receive(state)))) {
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
                 response->byte_size());

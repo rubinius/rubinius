@@ -15,12 +15,12 @@ namespace rubinius {
     return pe;
   }
 
-  Object* CallUnitAdapter::adapter_executor(STATE, CallFrame* call_frame,
+  Object* CallUnitAdapter::adapter_executor(STATE,
       Executable* exec, Module* mod, Arguments& args)
   {
     CallUnitAdapter* adapter = as<CallUnitAdapter>(exec);
     CallUnit* unit = adapter->unit_;
 
-    return unit->execute(state, call_frame, unit, exec, mod, args);
+    return unit->execute(state, unit, exec, mod, args);
   }
 }

@@ -60,21 +60,6 @@ namespace rubinius {
     // Stack
     Object* stk[0];
 
-    // ACCESS
-    CallFrame* get(int frame) {
-      CallFrame* call_frame = this;
-
-      for(int i = 0; i < frame; i++) {
-        if(CallFrame* cf = call_frame->previous) {
-          call_frame = cf;
-        } else {
-          break;
-        }
-      }
-
-      return call_frame;
-    }
-
     int ip() const {
       return ip_;
     }
@@ -205,21 +190,7 @@ namespace rubinius {
       return 0;
     }
 
-    CallFrame* top_ruby_frame() {
-      // Skip over any native method frames.
-      CallFrame* cf = this;
-
-      while(cf->native_method_p()) {
-        cf = cf->previous;
-      }
-
-      return cf;
-    }
-
     void jit_fixup(STATE, CallFrame* creator);
-
-    Object* last_match(STATE);
-    void set_last_match(STATE, Object* obj);
 
     Module* module() const {
       return scope->module();
@@ -252,8 +223,6 @@ namespace rubinius {
     Symbol* file(STATE);
     int line(STATE);
 
-    bool scope_still_valid(VariableScope* scope);
-
     void dump();
 
     Object* find_breakpoint(STATE);
@@ -275,8 +244,12 @@ namespace rubinius {
     }
   };
 
-#define ALLOCA_CALLFRAME(stack_size) \
+#define THREAD_STACK_SIZE 4194304
+
+#define ALLOCA_CALL_FRAME(stack_size) \
   reinterpret_cast<InterpreterCallFrame*>(alloca(sizeof(InterpreterCallFrame) + (sizeof(Object*) * stack_size)))
 };
+
+#define MAX_CALL_FRAMES  (THREAD_STACK_SIZE / sizeof(InterpreterCallFrame))
 
 #endif

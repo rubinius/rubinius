@@ -45,7 +45,7 @@ namespace rubinius {
     static ConstantScope* create(STATE);
 
     // Rubinius.primitive+ :constant_scope_of_sender
-    static ConstantScope* of_sender(STATE, CallFrame* calling_environment);
+    static ConstantScope* of_sender(STATE);
 
     // Rubinius.primitive :constant_scope_const_set
     Object* const_set(STATE, Symbol* name, Object* value);

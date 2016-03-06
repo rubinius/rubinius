@@ -133,8 +133,6 @@ namespace memory {
     state->vm()->become_managed();
 
     while(!thread_exit_) {
-      state->vm()->set_call_frame(0);
-
       if(!process_list_) first_process_item();
 
       if(!process_list_) {
@@ -169,7 +167,7 @@ namespace memory {
     switch(process_item_kind_) {
     case eRuby: {
       if(process_item_->ruby_finalizer) {
-        CallFrame* call_frame = 0;
+        CallFrame* call_frame = state->vm()->call_frame();
         // Rubinius specific code. If the finalizer is cTrue, then send the
         // object the __finalize__ message.
         if(process_item_->ruby_finalizer->true_p()) {
@@ -177,7 +175,8 @@ namespace memory {
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, process_item_->object->id(state));
-          if(!process_item_->ruby_finalizer->send(state, call_frame, G(sym_call), ary)) {
+          if(!process_item_->ruby_finalizer->send(state,
+                call_frame, G(sym_call), ary)) {
             if(state->vm()->thread_state()->raise_reason() == cException) {
               utilities::logger::warn(
                   "finalizer: an exception occurred running a Ruby finalizer: %s",
@@ -198,9 +197,10 @@ namespace memory {
           NativeMethodEnvironment* env = state->vm()->native_method_environment;
           NativeMethodFrame nmf(env, 0, 0);
           ExceptionPoint ep(env);
-          CallFrame* call_frame = ALLOCA_CALLFRAME(0);
 
-          call_frame->previous = 0;
+          CallFrame* previous_frame = 0;
+          CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
+
           call_frame->constant_scope_ = 0;
           call_frame->dispatch_data = (void*)&nmf;
           call_frame->compiled_code = 0;
@@ -214,7 +214,7 @@ namespace memory {
           env->set_current_native_frame(&nmf);
 
           // Register the CallFrame, because we might GC below this.
-          state->vm()->set_call_frame(call_frame);
+          state->vm()->push_call_frame(call_frame, previous_frame);
 
           nmf.setup(Qnil, Qnil, Qnil, Qnil);
 
@@ -226,7 +226,8 @@ namespace memory {
             (*process_item_->finalizer)(state, process_item_->object);
           }
 
-          state->vm()->set_call_frame(0);
+
+          state->vm()->pop_call_frame(previous_frame);
           env->set_current_call_frame(0);
           env->set_current_native_frame(0);
         }

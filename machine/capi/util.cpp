@@ -308,7 +308,7 @@ extern "C" {
 
   const char* rb_sourcefile() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    CallFrame* call_frame = env->current_call_frame()->top_ruby_frame();
+    CallFrame* call_frame = env->state()->vm()->get_ruby_frame();
     if(call_frame->compiled_code) {
       Symbol* name = try_as<Symbol>(call_frame->compiled_code->file());
       if(name) {
@@ -321,7 +321,7 @@ extern "C" {
 
   int rb_sourceline() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    CallFrame* call_frame = env->current_call_frame()->top_ruby_frame();
+    CallFrame* call_frame = env->state()->vm()->get_ruby_frame();
     return call_frame->line(env->state());
   }
 

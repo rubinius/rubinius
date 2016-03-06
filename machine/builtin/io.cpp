@@ -90,7 +90,7 @@ namespace rubinius {
     return io;
   }
 
-  Fixnum* IO::open(STATE, String* p, Fixnum* m, Fixnum* perm, CallFrame* calling_environment) {
+  Fixnum* IO::open(STATE, String* p, Fixnum* m, Fixnum* perm) {
     char* path = strdup(p->c_str_null_safe(state));
     int mode = m->to_int();
     int permissions = perm->to_int();
@@ -106,7 +106,7 @@ namespace rubinius {
     free(path);
 
     if(fd < 0) {
-      Exception::errno_error(state, p->c_str_null_safe(state));
+      Exception::raise_errno_error(state, p->c_str_null_safe(state));
     }
 
     return Fixnum::from(fd);
@@ -127,9 +127,9 @@ namespace rubinius {
   void IO::new_open_fd(STATE, native_int new_fd) {
     if(new_fd > 2) {
       int flags = fcntl(new_fd, F_GETFD);
-      if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
+      if(flags == -1) Exception::raise_errno_error(state, "fcntl(2) failed");
       flags = fcntl(new_fd, F_SETFD, fcntl(new_fd, F_GETFD) | FD_CLOEXEC);
-      if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
+      if(flags == -1) Exception::raise_errno_error(state, "fcntl(2) failed");
     }
     update_max_fd(state, new_fd);
   }
@@ -220,8 +220,7 @@ namespace rubinius {
    *  @todo This is highly unoptimised since we always rebuild the FD_SETs. --rue
    */
   Object* IO::select(STATE, Object* readables, Object* writables,
-                     Object* errorables, Object* timeout,
-                     CallFrame* calling_environment)
+                     Object* errorables, Object* timeout)
   {
     // GC protection / awareness
     OnStack<3> os(state, readables, writables, errorables);
@@ -287,7 +286,7 @@ namespace rubinius {
 
     if(events == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(calling_environment)) return NULL;
+        if(!state->check_async(state)) return NULL;
 
         // Recalculate the limit and go again.
         if(maybe_limit) {
@@ -299,7 +298,7 @@ namespace rubinius {
         goto retry;
       }
 
-      Exception::errno_error(state, "select(2) failed");
+      Exception::raise_errno_error(state, "select(2) failed");
       return NULL;
     }
 
@@ -325,7 +324,7 @@ namespace rubinius {
     native_int other_fd = other->to_fd();
 
     if(dup2(other_fd, cur_fd) == -1) {
-      Exception::errno_error(state, "reopen");
+      Exception::raise_errno_error(state, "reopen");
       return NULL;
     }
 
@@ -337,7 +336,7 @@ namespace rubinius {
     return cTrue;
   }
 
-  Object* IO::reopen_path(STATE, String* p, Fixnum* m, CallFrame* calling_environment) {
+  Object* IO::reopen_path(STATE, String* p, Fixnum* m) {
     native_int cur_fd   = to_fd();
 
     char* path = strdup(p->c_str_null_safe(state));
@@ -355,7 +354,7 @@ namespace rubinius {
     free(path);
 
     if(other_fd < 0) {
-      Exception::errno_error(state, p->c_str_null_safe(state));
+      Exception::raise_errno_error(state, p->c_str_null_safe(state));
     }
 
     if(dup2(other_fd, cur_fd) == -1) {
@@ -364,7 +363,7 @@ namespace rubinius {
         descriptor(state, Fixnum::from(other_fd));
       } else {
         if(other_fd > 0) ::close(other_fd);
-        Exception::errno_error(state, p->c_str_null_safe(state));
+        Exception::raise_errno_error(state, p->c_str_null_safe(state));
       }
     } else {
       ::close(other_fd);
@@ -380,13 +379,13 @@ namespace rubinius {
 
   Object* IO::ensure_open(STATE) {
     if(descriptor_->nil_p()) {
-      Exception::io_error(state, "uninitialized stream");
+      Exception::raise_io_error(state, "uninitialized stream");
     }
     else if(to_fd() == -1) {
-      Exception::io_error(state, "closed stream");
+      Exception::raise_io_error(state, "closed stream");
     }
     else if(to_fd() == -2) {
-      Exception::io_error(state, "shutdown stream");
+      Exception::raise_io_error(state, "shutdown stream");
     }
 
     return cNil;
@@ -395,7 +394,7 @@ namespace rubinius {
   Object* IO::connect_pipe(STATE, IO* lhs, IO* rhs) {
     int fds[2];
     if(pipe(fds) == -1) {
-      Exception::errno_error(state, "creating pipe");
+      Exception::raise_errno_error(state, "creating pipe");
     }
 
     new_open_fd(state, fds[0]);
@@ -422,7 +421,7 @@ namespace rubinius {
     off_t position = lseek(to_fd(), offset, whence->to_native());
 
     if(position == -1) {
-      Exception::errno_error(state);
+      Exception::raise_errno_error(state);
     }
 
     return Integer::from(state, position);
@@ -441,7 +440,7 @@ namespace rubinius {
 
     int status = ::ftruncate(to_fd(), offset);
     if(status == -1) {
-      Exception::errno_error(state);
+      Exception::raise_errno_error(state);
     }
 
     return Integer::from(state, status);
@@ -459,7 +458,7 @@ namespace rubinius {
 
     int status = ::truncate(name->c_str_null_safe(state), offset);
     if(status == -1) {
-      Exception::errno_error(state);
+      Exception::raise_errno_error(state);
     }
 
     return Integer::from(state, status);
@@ -490,7 +489,7 @@ namespace rubinius {
     if(capi::Handle* hdl = handle(state)) {
       if(hdl->is_rio()) {
         if(!hdl->rio_close()) {
-          Exception::errno_error(state);
+          Exception::raise_errno_error(state);
         }
         return cNil;
       }
@@ -498,7 +497,7 @@ namespace rubinius {
 
     switch(::close(desc)) {
     case -1:
-      Exception::errno_error(state);
+      Exception::raise_errno_error(state);
       break;
 
     case 0:
@@ -507,7 +506,7 @@ namespace rubinius {
     default:
       std::ostringstream message;
       message << "::close(): Unknown error on fd " << desc;
-      Exception::system_call_error(state, message.str());
+      Exception::raise_system_call_error(state, message.str());
     }
 
     return cNil;
@@ -529,12 +528,12 @@ namespace rubinius {
     if(which != SHUT_RD && which != SHUT_WR && which != SHUT_RDWR) {
       std::ostringstream message;
       message << "::shutdown(): Invalid `how` " << which << " for fd " << desc;
-      Exception::argument_error(state, message.str().c_str());
+      Exception::raise_argument_error(state, message.str().c_str());
     }
 
     switch(::shutdown(desc, which)) {
     case -1:
-      Exception::errno_error(state);
+      Exception::raise_errno_error(state);
       break;
 
     case 0:
@@ -550,7 +549,7 @@ namespace rubinius {
     default:
       std::ostringstream message;
       message << "::shutdown(): Unknown error on fd " << desc;
-      Exception::system_call_error(state, message.str());
+      Exception::raise_system_call_error(state, message.str());
     }
 
     return how;
@@ -564,7 +563,7 @@ namespace rubinius {
 #ifdef F_GETFL
     int acc_mode = fcntl(to_fd(), F_GETFL);
     if(acc_mode < 0) {
-      Exception::errno_error(state);
+      Exception::raise_errno_error(state);
     }
 #else
     int acc_mode = 0;
@@ -643,9 +642,7 @@ namespace rubinius {
 
 #define STACK_BUF_SZ 8192
 
-  Object* IO::sysread(STATE, Fixnum* number_of_bytes,
-                             CallFrame* calling_environment)
-  {
+  Object* IO::sysread(STATE, Fixnum* number_of_bytes) {
     char stack_buf[STACK_BUF_SZ];
     char* malloc_buf = 0;
 
@@ -656,7 +653,7 @@ namespace rubinius {
     if(count > STACK_BUF_SZ) {
       malloc_buf = (char*)malloc(count);
       if(!malloc_buf) {
-        Exception::memory_error(state);
+        Exception::raise_memory_error(state);
         return NULL;
       }
       buf = malloc_buf;
@@ -679,14 +676,14 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(calling_environment)) {
+        if(!state->check_async(state)) {
           if(malloc_buf) free(malloc_buf);
           return NULL;
         }
         ensure_open(state);
         goto retry;
       } else {
-        Exception::errno_error(state, "read(2) failed");
+        Exception::raise_errno_error(state, "read(2) failed");
       }
 
       if(malloc_buf) free(malloc_buf);
@@ -721,10 +718,10 @@ namespace rubinius {
     int res = ::select(fd+1, &set, 0, 0, &tv);
 
     if(res == 0) {
-      Exception::errno_wait_readable(state, EAGAIN);
+      Exception::raise_errno_wait_readable(state, EAGAIN);
       return 0;
     } else if(res <= 0) {
-      Exception::errno_error(state, "read(2) failed");
+      Exception::raise_errno_error(state, "read(2) failed");
       return 0;
     }
 
@@ -742,7 +739,7 @@ namespace rubinius {
     buffer->unpin();
 
     if(bytes_read == -1) {
-      Exception::errno_error(state, "read(2) failed");
+      Exception::raise_errno_error(state, "read(2) failed");
     }
 
     if(bytes_read == 0) return cNil;
@@ -753,7 +750,7 @@ namespace rubinius {
     return buffer;
   }
 
-  Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
+  Object* IO::write(STATE, String* buf) {
     native_int buf_size = buf->byte_size();
     native_int data_size = as<ByteArray>(buf->data())->size();
     native_int left = buf_size;
@@ -809,7 +806,7 @@ namespace rubinius {
     delete[] bytes;
 
     if(error) {
-      Exception::errno_error(state);
+      Exception::raise_errno_error(state);
       return NULL;
     }
 
@@ -828,7 +825,7 @@ namespace rubinius {
 
     // We can use byte_address() here since we use an explicit size
     int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
-    if(n == -1) Exception::errno_wait_writable(state, errno);
+    if(n == -1) Exception::raise_errno_wait_writable(state, errno);
 
     state->vm()->metrics().system.write_bytes += n;
 
@@ -858,7 +855,7 @@ namespace rubinius {
     int erno = posix_fadvise(to_fd(), offset->to_long_long(), len->to_long_long(), advice);
 
     if(erno) {
-      Exception::errno_error(state, "posfix_fadvise(2) failed", erno);
+      Exception::raise_errno_error(state, "posfix_fadvise(2) failed", erno);
     }
 
 #endif
@@ -937,8 +934,7 @@ namespace rubinius {
   }
 #endif
 
-  Object* IO::socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type,
-                          CallFrame* calling_environment) {
+  Object* IO::socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type) {
     char buf[1024];
     socklen_t alen = sizeof(buf);
     size_t size = (size_t)bytes->to_native();
@@ -969,11 +965,11 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
-        if(!state->check_async(calling_environment)) return NULL;
+        if(!state->check_async(state)) return NULL;
         ensure_open(state);
         goto retry;
       } else {
-        Exception::errno_error(state, "read(2) failed");
+        Exception::raise_errno_error(state, "read(2) failed");
       }
 
       return NULL;
@@ -1026,7 +1022,7 @@ namespace rubinius {
         return res;
       } else {
         rbx_spinlock_unlock(&ttyname_lock);
-        Exception::errno_error(state, "ttyname(3) failed");
+        Exception::raise_errno_error(state, "ttyname(3) failed");
         return NULL;
       }
 #endif
@@ -1271,7 +1267,7 @@ failed: /* try next '*' position */
 #endif
   }
 
-  Object* IO::recv_fd(STATE, CallFrame* calling_environment) {
+  Object* IO::recv_fd(STATE) {
 #ifdef _WIN32
     return Primitives::failure();
 #else
@@ -1323,7 +1319,7 @@ failed: /* try next '*' position */
 
     if(code == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(calling_environment)) return NULL;
+        if(!state->check_async(state)) return NULL;
         ensure_open(state);
         goto retry;
       }
@@ -1347,7 +1343,7 @@ failed: /* try next '*' position */
   void IO::set_nonblock(STATE) {
 #ifdef F_GETFL
     int flags = fcntl(descriptor_->to_native(), F_GETFL);
-    if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
+    if(flags == -1) Exception::raise_errno_error(state, "fcntl(2) failed");
 #else
     int flags = 0;
 #endif
@@ -1355,7 +1351,7 @@ failed: /* try next '*' position */
     if((flags & O_NONBLOCK) == 0) {
       flags |= O_NONBLOCK;
       flags = fcntl(descriptor_->to_native(), F_SETFL, flags);
-      if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
+      if(flags == -1) Exception::raise_errno_error(state, "fcntl(2) failed");
     }
   }
 
@@ -1398,7 +1394,7 @@ failed: /* try next '*' position */
     return Fixnum::from(total_sz);
   }
 
-  Object* IOBuffer::fill(STATE, IO* io, CallFrame* calling_environment) {
+  Object* IOBuffer::fill(STATE, IO* io) {
     ssize_t bytes_read = 0;
     native_int fd = io->descriptor()->to_native();
 
@@ -1431,11 +1427,11 @@ failed: /* try next '*' position */
         break;
       case EAGAIN:
       case EINTR:
-        if(!state->check_async(calling_environment)) return NULL;
+        if(!state->check_async(state)) return NULL;
         io->ensure_open(state);
         goto retry;
       default:
-        Exception::errno_error(state, "read(2) failed");
+        Exception::raise_errno_error(state, "read(2) failed");
         return NULL;
       }
     }
@@ -1444,7 +1440,7 @@ failed: /* try next '*' position */
       // Detect if another thread has updated the buffer
       // and now there isn't enough room for this data.
       if(bytes_read > (ssize_t)self->left()) {
-        Exception::internal_error(state, calling_environment, "IO buffer overrun");
+        Exception::internal_error(state, "IO buffer overrun");
         return NULL;
       }
       memcpy(self->at_unused(), temp_buffer, bytes_read);

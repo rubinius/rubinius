@@ -21,7 +21,7 @@ namespace rubinius {
       eKindOf
     };
 
-    typedef Object* (*Execute)(State*, CallFrame*, CallUnit* unit,
+    typedef Object* (*Execute)(State*, CallUnit* unit,
                                Executable* exec, Module* mod, Arguments& args);
 
   private:
@@ -74,22 +74,22 @@ namespace rubinius {
     // Rubinius.primitive :callunit_kind_of
     static CallUnit* create_kind_of(STATE, Object* self, Module* mod, Fixnum* which);
 
-    static Object* constant_value_executor(STATE, CallFrame* call_frame,
+    static Object* constant_value_executor(STATE,
                                             CallUnit* unit,
                                             Executable* exec, Module* mod,
                                             Arguments& args);
 
-    static Object* method_executor(STATE, CallFrame* call_frame,
+    static Object* method_executor(STATE,
                                             CallUnit* unit,
                                             Executable* exec, Module* mod,
                                             Arguments& args);
 
-    static Object* test_executor(STATE, CallFrame* call_frame,
+    static Object* test_executor(STATE,
                                             CallUnit* unit,
                                             Executable* exec, Module* mod,
                                             Arguments& args);
 
-    static Object* kind_of_executor(STATE, CallFrame* call_frame,
+    static Object* kind_of_executor(STATE,
                                             CallUnit* unit,
                                             Executable* exec, Module* mod,
                                             Arguments& args);

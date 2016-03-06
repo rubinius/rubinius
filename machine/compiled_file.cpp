@@ -46,7 +46,7 @@ namespace rubinius {
     code.get()->scope(state, ConstantScope::create(state));
     code.get()->scope()->module(state, G(object));
 
-    code->execute(state, NULL, code.get(), G(object), args);
+    code->execute(state, code.get(), G(object), args);
 
     return true;
   }

@@ -28,7 +28,7 @@ namespace rubinius {
     // Rubinius.primitive :thunk_create
     static Thunk* create(STATE, Object* self, Object* value);
 
-    static Object* thunk_executor(STATE, CallFrame* call_frame,
+    static Object* thunk_executor(STATE,
                            Executable* exec, Module* mod, Arguments& args);
 
     class Info : public Executable::Info {

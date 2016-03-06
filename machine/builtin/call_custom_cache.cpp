@@ -27,13 +27,11 @@ namespace rubinius {
     return cache;
   }
 
-  Object* CallCustomCache::check_cache(STATE, CallSite* call_site,
-      CallFrame* call_frame, Arguments& args)
-  {
+  Object* CallCustomCache::check_cache(STATE, CallSite* call_site, Arguments& args) {
     CallCustomCache* cache = static_cast<CallCustomCache*>(call_site);
 
     CallUnit* cu = cache->call_unit_;
-    return cu->execute(state, call_frame, cu,
+    return cu->execute(state, cu,
                        cu->executable(), cu->module(), args);
   }
 

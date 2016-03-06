@@ -9,25 +9,26 @@
 #include "call_frame.hpp"
 #include "on_stack.hpp"
 
-#include "builtin/code_db.hpp"
-#include "builtin/object.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/system.hpp"
-#include "builtin/class.hpp"
-#include "builtin/string.hpp"
-#include "builtin/block_environment.hpp"
-#include "builtin/constant_scope.hpp"
-#include "builtin/proc.hpp"
 #include "builtin/autoload.hpp"
-#include "builtin/constant_cache.hpp"
+#include "builtin/block_environment.hpp"
 #include "builtin/call_site.hpp"
-#include "builtin/iseq.hpp"
-#include "builtin/ffi_pointer.hpp"
-#include "builtin/integer.hpp"
-#include "builtin/float.hpp"
-#include "builtin/location.hpp"
+#include "builtin/class.hpp"
+#include "builtin/code_db.hpp"
+#include "builtin/constant_cache.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/ffi_pointer.hpp"
+#include "builtin/float.hpp"
+#include "builtin/integer.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/location.hpp"
+#include "builtin/object.hpp"
+#include "builtin/proc.hpp"
+#include "builtin/regexp.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
 #include "builtin/thread_state.hpp"
 #include "builtin/variable_scope.hpp"
 
@@ -53,12 +54,12 @@
     } catch(TypeError& e) { \
       Exception* exc = \
         Exception::make_type_error(state, e.type, e.object, e.reason); \
-      exc->locations(state, Location::from_call_stack(state, call_frame)); \
+      exc->locations(state, Location::from_call_stack(state)); \
       state->raise_exception(exc); \
       return NULL; \
     } catch(const RubyException& exc) { \
       exc.exception->locations(state, \
-            Location::from_call_stack(state, call_frame)); \
+            Location::from_call_stack(state)); \
       state->raise_exception(exc.exception); \
       return NULL; \
     }
@@ -76,9 +77,9 @@ extern "C" {
     return val;
   }
 
-  Object* rbx_check_frozen(STATE, CallFrame* call_frame, Object* obj) {
+  Object* rbx_check_frozen(STATE, Object* obj) {
     if(obj->reference_p() && obj->is_frozen_p()) {
-      Exception::frozen_error(state, call_frame, obj);
+      Exception::frozen_error(state, obj);
       return NULL;
     }
 
@@ -117,7 +118,7 @@ extern "C" {
     entry->~MethodEntry();
   }
 
-  Object* rbx_splat_send(STATE, CallFrame* call_frame, CallSite* call_site,
+  Object* rbx_splat_send(STATE, CallSite* call_site,
                           int count, int call_flags, Object** args) {
     Object* recv = args[0];
     Arguments out_args(call_site->name(), recv, args[count+2], count, args+1);
@@ -130,10 +131,10 @@ extern "C" {
       }
     }
 
-    return call_site->execute(state, call_frame, out_args);
+    return call_site->execute(state, out_args);
   }
 
-  Object* rbx_splat_send_private(STATE, CallFrame* call_frame, CallSite* call_site,
+  Object* rbx_splat_send_private(STATE, CallSite* call_site,
                                   int count, int call_flags, Object** args) {
     Object* recv = args[0];
     Arguments out_args(call_site->name(), recv, args[count+2], count, args+1);
@@ -146,19 +147,19 @@ extern "C" {
       }
     }
 
-    return call_site->execute(state, call_frame, out_args);
+    return call_site->execute(state, out_args);
   }
 
-  Object* rbx_super_send(STATE, CallFrame* call_frame, CallSite* call_site,
+  Object* rbx_super_send(STATE, CallSite* call_site,
                           int count, int call_flags, Object** args) {
-    Object* recv = call_frame->self();
+    Object* recv = state->vm()->call_frame()->self();
     Arguments out_args(call_site->name(), recv, args[count], count, args);
-    return call_site->execute(state, call_frame, out_args);
+    return call_site->execute(state, out_args);
   }
 
-  Object* rbx_super_splat_send(STATE, CallFrame* call_frame, CallSite* call_site,
+  Object* rbx_super_splat_send(STATE, CallSite* call_site,
                           int count, int call_flags, Object** args) {
-    Object* recv = call_frame->self();
+    Object* recv = state->vm()->call_frame()->self();
     Arguments out_args(call_site->name(), recv, args[count+1], count, args);
 
     if(Array* ary = try_as<Array>(args[count])) {
@@ -169,13 +170,13 @@ extern "C" {
       }
     }
 
-    return call_site->execute(state, call_frame, out_args);
+    return call_site->execute(state, out_args);
   }
 
-  Object* rbx_zsuper_send(STATE, CallFrame* call_frame, CallSite* call_site, Object* block) {
-    Object* const recv = call_frame->self();
+  Object* rbx_zsuper_send(STATE, CallSite* call_site, Object* block) {
+    Object* const recv = state->vm()->call_frame()->self();
 
-    VariableScope* scope = call_frame->method_scope(state);
+    VariableScope* scope = state->vm()->call_frame()->method_scope(state);
     assert(scope);
 
     MachineCode* v = scope->method()->machine_code();
@@ -217,19 +218,19 @@ extern "C" {
     Arguments out_args(call_site->name(), recv, block, arg_count, 0);
     out_args.use_tuple(tup, arg_count);
 
-    return call_site->execute(state, call_frame, out_args);
+    return call_site->execute(state, out_args);
   }
 
-  Object* rbx_arg_error(STATE, CallFrame* call_frame, Arguments& args, int required) {
+  Object* rbx_arg_error(STATE, Arguments& args, int required) {
     Exception* exc =
         Exception::make_argument_error(state, required, args.total(), args.name());
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
 
     return NULL;
   }
 
-  Object* rbx_string_dup(STATE, CallFrame* call_frame, Object* obj) {
+  Object* rbx_string_dup(STATE, Object* obj) {
     CPP_TRY
 
     String* str = as<String>(obj)->string_dup(state);
@@ -245,14 +246,14 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_meta_to_s(STATE, CallFrame* call_frame, CallSite* call_site,
+  Object* rbx_meta_to_s(STATE, CallSite* call_site,
                         Object* obj)
   {
     if(kind_of<String>(obj)) return obj;
 
     Arguments out_args(call_site->name(), obj, cNil, 0, 0);
     OnStack<1> os(state, obj);
-    Object* ret = call_site->execute(state, call_frame, out_args);
+    Object* ret = call_site->execute(state, out_args);
     if(!ret) return 0;
 
     if(!kind_of<String>(ret)) {
@@ -262,9 +263,10 @@ extern "C" {
     return ret;
   }
 
-  Object* rbx_create_block(STATE, CallFrame* call_frame, int index) {
+  Object* rbx_create_block(STATE, int index) {
     CPP_TRY
 
+    CallFrame* call_frame = state->vm()->call_frame();
     Object* _lit = call_frame->compiled_code->literals()->at(state, index);
     CompiledCode* code = 0;
 
@@ -274,7 +276,7 @@ extern "C" {
     }
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
-    return BlockEnvironment::under_call_frame(state, code, mcode, call_frame);
+    return BlockEnvironment::under_call_frame(state, code, mcode);
 
     CPP_CATCH
   }
@@ -303,14 +305,14 @@ extern "C" {
 
     assert(closest);
     MachineCode* mcode = closest->compiled_code->machine_code();
-    return BlockEnvironment::under_call_frame(state, code, mcode, closest);
+    return BlockEnvironment::under_call_frame(state, code, mcode);
   }
 
-  Object* rbx_promote_variables(STATE, CallFrame* call_frame) {
-    return call_frame->promote_scope(state);
+  Object* rbx_promote_variables(STATE) {
+    return state->vm()->call_frame()->promote_scope(state);
   }
 
-  Object* rbx_check_keyword(STATE, CallFrame* call_frame, Object* obj) {
+  Object* rbx_check_keyword(STATE, Object* obj) {
     Object* cls = G(object)->get_const(state, "Hash");
 
     if(!cls->nil_p()) {
@@ -323,12 +325,12 @@ extern "C" {
         Arguments args(name, obj, 0, 0);
         Dispatch dispatch(name);
 
-        obj = dispatch.send(state, call_frame, args);
+        obj = dispatch.send(state, state->vm()->call_frame(), args);
         if(obj) {
           if(obj->kind_of_p(state, cls)) {
             return obj;
           } else if(!obj->nil_p()) {
-            Exception::type_error(state, "to_hash must return a Hash", call_frame);
+            Exception::type_error(state, "to_hash must return a Hash");
             return NULL;
           }
         } else {
@@ -359,7 +361,7 @@ extern "C" {
       }
   }
 
-  Object* rbx_cast_array(STATE, CallFrame* call_frame, Object* top) {
+  Object* rbx_cast_array(STATE, Object* top) {
     if(top->nil_p()) {
       return Array::create_dirty(state, 0);
     } else if(Tuple* tup = try_as<Tuple>(top)) {
@@ -373,10 +375,10 @@ extern "C" {
     Arguments args(G(sym_coerce_to_array), recv, 1, &top);
     Dispatch dispatch(G(sym_coerce_to_array));
 
-    return dispatch.send(state, call_frame, args);
+    return dispatch.send(state, state->vm()->call_frame(), args);
   }
 
-  int rbx_destructure_args(STATE, CallFrame* call_frame, Arguments& args) {
+  int rbx_destructure_args(STATE, Arguments& args) {
     Object* obj = args.get_argument(0);
     Array* ary = 0;
 
@@ -388,13 +390,13 @@ extern "C" {
            */
           Memory::GCInhibit inhibitor(state);
 
-          if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
+          if(!(obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary)))) {
             return -1;
           }
         }
 
         if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
-          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          Exception::type_error(state, "to_ary must return an Array");
           return -1;
         }
       }
@@ -407,18 +409,18 @@ extern "C" {
     return args.total();
   }
 
-  int rbx_destructure_inline_args(STATE, CallFrame* call_frame,
+  int rbx_destructure_inline_args(STATE,
                                   Object* obj, Object** vars, int size)
   {
     Array* ary = try_as<Array>(obj);
 
     if(!ary && CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-      obj = obj->send(state, call_frame, G(sym_to_ary));
+      obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
       if(!obj) return 0;
       if(Array* ary2 = try_as<Array>(obj)) {
         ary = ary2;
       } else {
-        Exception::type_error(state, "to_ary must return an Array", call_frame);
+        Exception::type_error(state, "to_ary must return an Array");
         return 0;
       }
     }
@@ -439,26 +441,26 @@ extern "C" {
     }
   }
 
-  Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
+  Object* rbx_cast_multi_value(STATE, Object* top) {
     if(kind_of<Array>(top)) return top;
-    return Array::to_ary(state, top, call_frame);
+    return Array::to_ary(state, top);
   }
 
-  Object* rbx_add_scope(STATE, CallFrame* call_frame, Object* top) {
+  Object* rbx_add_scope(STATE, Object* top) {
     CPP_TRY
 
     Module* mod = as<Module>(top);
     ConstantScope* scope = ConstantScope::create(state);
     scope->module(state, mod);
-    scope->parent(state, call_frame->constant_scope());
-    call_frame->constant_scope_ = scope;
+    scope->parent(state, state->vm()->call_frame()->constant_scope());
+    state->vm()->call_frame()->constant_scope_ = scope;
 
     return cNil;
 
     CPP_CATCH
   }
 
-  Object* rbx_cast_for_splat_block_arg(STATE, CallFrame* call_frame, Arguments& args) {
+  Object* rbx_cast_for_splat_block_arg(STATE, Arguments& args) {
     if(args.total() == 1) {
       Object* obj = args.get_argument(0);
       if(!kind_of<Array>(obj)) {
@@ -470,10 +472,10 @@ extern "C" {
          */
         if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
           OnStack<1> os(state, obj);
-          Object* ignored = obj->send(state, call_frame, G(sym_to_ary));
+          Object* ignored = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
           if(!ignored) return 0;
           if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
-            Exception::type_error(state, "to_ary must return an Array", call_frame);
+            Exception::type_error(state, "to_ary must return an Array");
             return 0;
           }
         }
@@ -490,21 +492,21 @@ extern "C" {
     }
   }
 
-  Object* rbx_cast_for_multi_block_arg(STATE, CallFrame* call_frame, Arguments& args) {
+  Object* rbx_cast_for_multi_block_arg(STATE, Arguments& args) {
     /* If there is only one argument and that thing is an array...
      AND the thing being invoked is not a lambda... */
-    if(!(call_frame->flags & CallFrame::cIsLambda) &&
+    if(!(state->vm()->call_frame()->flags & CallFrame::cIsLambda) &&
         args.total() == 1) {
       Object* obj = args.get_argument(0);
       if(kind_of<Array>(obj)) {
         return obj;
       } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-        obj = obj->send(state, call_frame, G(sym_to_ary));
+        obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
         if(!obj) return 0;
         if(kind_of<Array>(obj)) {
           return obj;
         } else {
-          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          Exception::type_error(state, "to_ary must return an Array");
           return 0;
         }
       }
@@ -521,7 +523,7 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_cast_for_splat_block_arg_varargs(STATE, CallFrame* call_frame,
+  Object* rbx_cast_for_splat_block_arg_varargs(STATE,
                                                int count, ...)
   {
     va_list ap;
@@ -540,11 +542,11 @@ extern "C" {
          */
         if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
           OnStack<1> os(state, obj);
-          Object* ignored = obj->send(state, call_frame, G(sym_to_ary));
+          Object* ignored = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
           if(!ignored) {
             obj = 0;
           } else if(!kind_of<Array>(ignored)) {
-            Exception::type_error(state, "to_ary must return an Array", call_frame);
+            Exception::type_error(state, "to_ary must return an Array");
             obj = 0;
           }
         }
@@ -571,7 +573,7 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_cast_for_multi_block_arg_varargs(STATE, CallFrame* call_frame,
+  Object* rbx_cast_for_multi_block_arg_varargs(STATE,
                                                int count, ...)
   {
     va_list ap;
@@ -585,9 +587,9 @@ extern "C" {
       if(kind_of<Array>(obj)) {
         // Nothing! it's good.
       } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-        obj = obj->send(state, call_frame, G(sym_to_ary));
+        obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
         if(obj && !kind_of<Array>(obj)) {
-          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          Exception::type_error(state, "to_ary must return an Array");
           obj = 0;
         }
       } else {
@@ -627,28 +629,29 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_check_serial(STATE, CallFrame* call_frame, CallSite* call_site,
+  Object* rbx_check_serial(STATE, CallSite* call_site,
                            int serial, Object* recv, Symbol* vis) {
-    return RBOOL(call_site->update_and_validate(state, call_frame, recv, G(sym_public), serial));
+    return RBOOL(call_site->update_and_validate(state, recv, G(sym_public), serial));
   }
 
-  Object* rbx_check_serial_private(STATE, CallFrame* call_frame, CallSite* call_site,
+  Object* rbx_check_serial_private(STATE, CallSite* call_site,
                            int serial, Object* recv) {
-    return RBOOL(call_site->update_and_validate(state, call_frame, recv, G(sym_private), serial));
+    return RBOOL(call_site->update_and_validate(state, recv, G(sym_private), serial));
   }
 
-  Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
+  Object* rbx_find_const(STATE, int index, Object* top) {
     CPP_TRY
 
     ConstantMissingReason reason;
     Module* under = as<Module>(top);
-    Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(
+        state->vm()->call_frame()->compiled_code->literals()->at(state, index));
     Object* res = Helpers::const_get_under(state, under, sym, &reason);
 
     if(reason != vFound) {
-      res = Helpers::const_missing_under(state, under, sym, call_frame);
+      res = Helpers::const_missing_under(state, under, sym);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame, under);
+      res = autoload->resolve(state, under);
     }
 
     return res;
@@ -656,13 +659,14 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_find_const_fast(STATE, CallFrame* call_frame, ConstantCache** cache_ptr, Object* top) {
+  Object* rbx_find_const_fast(STATE, ConstantCache** cache_ptr, Object* top) {
     CPP_TRY
 
     Module* under = as<Module>(top);
     ConstantCache* cache = *cache_ptr;
 
-    Object* res = cache->retrieve(state, under, call_frame->constant_scope());
+    Object* res = cache->retrieve(state, under,
+        state->vm()->call_frame()->constant_scope());
 
     if(!res) {
       ConstantMissingReason reason;
@@ -671,15 +675,16 @@ extern "C" {
       if(reason == vFound) {
         OnStack<2> os(state, cache, res);
         if(Autoload* autoload = try_as<Autoload>(res)) {
-          res = autoload->resolve(state, call_frame, under);
+          res = autoload->resolve(state, under);
         }
 
         if(res) {
-          ConstantCache* update = ConstantCache::create(state, cache, res, under, call_frame->constant_scope());
+          ConstantCache* update = ConstantCache::create(state, cache, res, under,
+              state->vm()->call_frame()->constant_scope());
           cache->update_constant_cache(state, update);
         }
       } else {
-        res = Helpers::const_missing_under(state, under, cache->name(), call_frame);
+        res = Helpers::const_missing_under(state, under, cache->name());
       }
     }
 
@@ -688,7 +693,7 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_instance_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
+  Object* rbx_instance_of(STATE, Object* top, Object* b1) {
     CPP_TRY
 
     Class* cls = as<Class>(b1);
@@ -730,42 +735,38 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_meta_send_call(STATE, CallFrame* call_frame, CallSite* call_site, int count, Object** args) {
+  Object* rbx_meta_send_call(STATE, CallSite* call_site, int count, Object** args) {
     Object* t1 = args[0];
 
     Arguments out_args(G(sym_call), cNil, count, args+1);
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      return env->call(state, call_frame, out_args);
+      return env->call(state, out_args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      return proc->call(state, call_frame, out_args);
+      return proc->call(state, out_args);
     }
 
-    return call_site->execute(state, call_frame, out_args);
+    return call_site->execute(state, out_args);
   }
 
-  Object* rbx_yield_stack(STATE, CallFrame* call_frame, Object* block,
-                          int count, Object** args)
-  {
+  Object* rbx_yield_stack(STATE, Object* block, int count, Object** args) {
     Arguments out_args(G(sym_call), block, count, args);
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(block)) {
-      return env->call(state, call_frame, out_args);
+      return env->call(state, out_args);
     } else if(Proc* proc = try_as<Proc>(block)) {
-      return proc->yield(state, call_frame, out_args);
+      return proc->yield(state, out_args);
     } else if(block->nil_p()) {
-      state->raise_exception(Exception::make_lje(state, call_frame));
+      state->raise_exception(Exception::make_lje(state));
       return NULL;
     }
 
     Dispatch dispatch(G(sym_call));
 
-    return dispatch.send(state, call_frame, out_args);
+    return dispatch.send(state, state->vm()->call_frame(), out_args);
   }
 
-  Object* rbx_yield_splat(STATE, CallFrame* call_frame, Object* block,
-                          int count, Object** stk)
-  {
+  Object* rbx_yield_splat(STATE, Object* block, int count, Object** stk) {
     Object* ary = stk[count];
 
     Arguments args(G(sym_call), block, count, stk);
@@ -775,16 +776,16 @@ extern "C" {
     }
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(block)) {
-      return env->call(state, call_frame, args);
+      return env->call(state, args);
     } else if(Proc* proc = try_as<Proc>(block)) {
-      return proc->yield(state, call_frame, args);
+      return proc->yield(state, args);
     } else if(block->nil_p()) {
-      state->raise_exception(Exception::make_lje(state, call_frame));
+      state->raise_exception(Exception::make_lje(state));
       return NULL;
     }
 
     Dispatch dispatch(G(sym_call));
-    return dispatch.send(state, call_frame, args);
+    return dispatch.send(state, state->vm()->call_frame(), args);
   }
 
   Object* rbx_passed_arg(STATE, Arguments& args, int index) {
@@ -796,57 +797,59 @@ extern "C" {
     return RBOOL(index == (int)args.total());
   }
 
-  Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
+  Object* rbx_push_const(STATE, Symbol* sym) {
     ConstantMissingReason reason;
-    Object* res = Helpers::const_get(state, call_frame, sym, &reason);
+    Object* res = Helpers::const_get(state, sym, &reason);
 
     if(reason != vFound) {
-      res = Helpers::const_missing(state, sym, call_frame);
+      res = Helpers::const_missing(state, sym);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame);
+      res = autoload->resolve(state);
     }
 
     return res;
   }
 
-  Object* rbx_push_const_fast(STATE, CallFrame* call_frame, ConstantCache** cache_ptr) {
+  Object* rbx_push_const_fast(STATE, ConstantCache** cache_ptr) {
 
     ConstantCache* cache = *cache_ptr;
-    Object* res = cache->retrieve(state, call_frame->constant_scope());
+    Object* res = cache->retrieve(state,
+        state->vm()->call_frame()->constant_scope());
 
     if(!res) {
       ConstantMissingReason reason;
-      res = Helpers::const_get(state, call_frame, cache->name(), &reason);
+      res = Helpers::const_get(state, cache->name(), &reason);
 
       if(reason == vFound) {
         OnStack<2> os(state, cache, res);
         if(Autoload* autoload = try_as<Autoload>(res)) {
-          res = autoload->resolve(state, call_frame);
+          res = autoload->resolve(state);
         }
 
         if(res) {
-          ConstantCache* update = ConstantCache::create(state, cache, res, call_frame->constant_scope());
+          ConstantCache* update = ConstantCache::create(state, cache, res,
+              state->vm()->call_frame()->constant_scope());
           cache->update_constant_cache(state, update);
         }
       } else {
-        res = Helpers::const_missing(state, cache->name(), call_frame);
+        res = Helpers::const_missing(state, cache->name());
       }
     }
 
     return res;
   }
 
-  Object* rbx_set_local_depth(STATE, CallFrame* call_frame, Object* top,
+  Object* rbx_set_local_depth(STATE, Object* top,
                               int depth, int index) {
     if(depth == 0) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal set_local_depth usage");
       return 0;
     } else {
-      VariableScope* scope = call_frame->scope->parent();
+      VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
       if(!scope || scope->nil_p()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal set_local_depth usage, no parent");
         return 0;
       }
@@ -854,14 +857,14 @@ extern "C" {
       for(int j = 1; j < depth; j++) {
         scope = scope->parent();
         if(!scope || scope->nil_p()) {
-          Exception::internal_error(state, call_frame,
+          Exception::internal_error(state,
                                     "illegal set_local_depth usage, no parent");
           return 0;
         }
       }
 
       if(index >= scope->number_of_locals()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal set_local_depth usage, bad index");
         return 0;
       }
@@ -872,12 +875,12 @@ extern "C" {
     return top;
   }
 
-  Object* rbx_set_local_from(STATE, CallFrame* call_frame, Object* top,
+  Object* rbx_set_local_from(STATE, Object* top,
                              int depth, int index) {
-    VariableScope* scope = call_frame->scope->parent();
+    VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
     if(!scope || scope->nil_p()) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal set_local_from usage, no parent");
       return 0;
     }
@@ -885,7 +888,7 @@ extern "C" {
     for(int j = 1; j < depth; j++) {
       scope = scope->parent();
       if(!scope || scope->nil_p()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal set_local_from usage, no parent");
         return 0;
       }
@@ -897,17 +900,17 @@ extern "C" {
     return top;
   }
 
-  Object* rbx_push_local_depth(STATE, CallFrame* call_frame,
+  Object* rbx_push_local_depth(STATE,
                               int depth, int index) {
     if(depth == 0) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal push_local_depth usage");
       return 0;
     } else {
-      VariableScope* scope = call_frame->scope->parent();
+      VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
       if(!scope || scope->nil_p()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal push_local_depth usage, no parent");
         return 0;
       }
@@ -915,14 +918,14 @@ extern "C" {
       for(int j = 1; j < depth; j++) {
         scope = scope->parent();
         if(!scope || scope->nil_p()) {
-          Exception::internal_error(state, call_frame,
+          Exception::internal_error(state,
                                     "illegal push_local_depth usage, no parent");
           return 0;
         }
       }
 
       if(index >= scope->number_of_locals()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal push_local_depth usage, bad index");
         return 0;
       }
@@ -931,12 +934,12 @@ extern "C" {
     }
   }
 
-  Object* rbx_push_local_from(STATE, CallFrame* call_frame,
+  Object* rbx_push_local_from(STATE,
                               int depth, int index) {
-    VariableScope* scope = call_frame->scope->parent();
+    VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
     if(!scope || scope->nil_p()) {
-      Exception::internal_error(state, call_frame,
+      Exception::internal_error(state,
                                 "illegal push_local_from usage, no parent");
       return 0;
     }
@@ -945,7 +948,7 @@ extern "C" {
       scope = scope->parent();
 
       if(!scope || scope->nil_p()) {
-        Exception::internal_error(state, call_frame,
+        Exception::internal_error(state,
                                   "illegal push_local_from usage, no parent");
         return 0;
       }
@@ -958,47 +961,45 @@ extern "C" {
     return state->vm()->tooling();
   }
 
-  Object* rbx_prologue_check(STATE, CallFrame* call_frame) {
-    if(!state->check_interrupts(call_frame, &state)) return NULL;
+  Object* rbx_prologue_check(STATE) {
+    if(!state->check_interrupts(state)) return NULL;
 
-    state->vm()->set_call_frame(call_frame);
     // TODO: ensure no stack references exist at this point
     // state->vm()->checkpoint(state);
 
     return cTrue;
   }
 
-  Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
-    if(!state->check_async(call_frame)) return NULL;
+  Object* rbx_check_interrupts(STATE) {
+    if(!state->check_async(state)) return NULL;
 
-    state->vm()->set_call_frame(call_frame);
     // TODO: ensure no stack references exist at this point
     // state->vm()->checkpoint(state);
 
     return cTrue;
   }
 
-  int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
+  int rbx_enter_unmanaged(STATE) {
     state->vm()->become_unmanaged();
     return 0;
   }
 
-  int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
+  int rbx_exit_unmanaged(STATE) {
     state->vm()->become_managed();
     return 0;
   }
 
-  bool rbx_return_to_here(STATE, CallFrame* call_frame) {
+  bool rbx_return_to_here(STATE) {
     VMThreadState* th = state->vm()->thread_state();
     if(th->raise_reason() != cReturn) return false;
-    if(th->destination_scope() == call_frame->scope->on_heap()) return true;
+    if(th->destination_scope() == state->vm()->call_frame()->scope->on_heap()) return true;
     return false;
   }
 
-  bool rbx_break_to_here(STATE, CallFrame* call_frame) {
+  bool rbx_break_to_here(STATE) {
     VMThreadState* th = state->vm()->thread_state();
     if(th->raise_reason() != cBreak) return false;
-    if(th->destination_scope() == call_frame->scope->on_heap()) return true;
+    if(th->destination_scope() == state->vm()->call_frame()->scope->on_heap()) return true;
     return false;
   }
 
@@ -1034,7 +1035,7 @@ extern "C" {
     return state->vm()->thread_state()->state_as_object(state);
   }
 
-  Object* rbx_restore_exception_state(STATE, CallFrame* call_frame, Object* top) {
+  Object* rbx_restore_exception_state(STATE, Object* top) {
     if(top->nil_p()) {
       state->vm()->thread_state()->clear();
     } else {
@@ -1048,9 +1049,9 @@ extern "C" {
     return self->get_ivar(state, name);
   }
 
-  Object* rbx_set_ivar(STATE, CallFrame* call_frame, Object* self, Symbol* name, Object* val) {
+  Object* rbx_set_ivar(STATE, Object* self, Symbol* name, Object* val) {
     if(self->reference_p() && self->is_frozen_p()) {
-      Exception::frozen_error(state, call_frame, self);
+      Exception::frozen_error(state, self);
       return NULL;
     }
 
@@ -1066,8 +1067,8 @@ extern "C" {
     return val;
   }
 
-  Object* rbx_set_const(STATE, CallFrame* call_frame, Symbol* name, Object* val) {
-    call_frame->constant_scope()->module()->set_const(state, name, val);
+  Object* rbx_set_const(STATE, Symbol* name, Object* val) {
+    state->vm()->call_frame()->constant_scope()->module()->set_const(state, name, val);
     return val;
   }
 
@@ -1077,12 +1078,12 @@ extern "C" {
     return val;
   }
 
-  Object* rbx_set_literal(STATE, CallFrame* call_frame, int which, Object* val) {
-    call_frame->compiled_code->literals()->put(state, which, val);
+  Object* rbx_set_literal(STATE, int which, Object* val) {
+    state->vm()->call_frame()->compiled_code->literals()->put(state, which, val);
     return cNil;
   }
 
-  Object* rbx_shift_array(STATE, CallFrame* call_frame, Object** loc) {
+  Object* rbx_shift_array(STATE, Object** loc) {
     CPP_TRY
 
     Array* array = as<Array>(*loc);
@@ -1104,7 +1105,7 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_string_append(STATE, CallFrame* call_frame, Object* left, Object* right) {
+  Object* rbx_string_append(STATE, Object* left, Object* right) {
     CPP_TRY
 
     return as<String>(left)->append(state, as<String>(right));
@@ -1112,7 +1113,7 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_string_build(STATE, CallFrame* call_frame, int count, Object** parts) {
+  Object* rbx_string_build(STATE, int count, Object** parts) {
     size_t size = 0;
 
     bool tainted = false;
@@ -1194,7 +1195,7 @@ extern "C" {
           Encoding* enc = Encoding::compatible_p(state, str, sub);
 
           if(enc->nil_p()) {
-            Exception::encoding_compatibility_error(state, str, sub, call_frame);
+            Exception::encoding_compatibility_error(state, str, sub);
             return 0;
           } else {
             str->encoding(state, enc);
@@ -1223,11 +1224,12 @@ extern "C" {
     return str;
   }
 
-  Object* rbx_raise_return(STATE, CallFrame* call_frame, Object* top) {
+  Object* rbx_raise_return(STATE, Object* top) {
+    CallFrame* call_frame = state->vm()->call_frame();
     if(!(call_frame->flags & CallFrame::cIsLambda) &&
-       !call_frame->scope_still_valid(call_frame->top_scope(state))) {
+       !state->vm()->scope_valid_p(call_frame->top_scope(state))) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
     } else {
       if(call_frame->flags & CallFrame::cIsLambda) {
@@ -1240,22 +1242,24 @@ extern "C" {
     return cNil;
   }
 
-  Object* rbx_ensure_return(STATE, CallFrame* call_frame, Object* top) {
-    state->vm()->thread_state()->raise_return(top, call_frame->promote_scope(state));
+  Object* rbx_ensure_return(STATE, Object* top) {
+    state->vm()->thread_state()->raise_return(top,
+        state->vm()->call_frame()->promote_scope(state));
     return cNil;
   }
 
-  Object* rbx_raise_break(STATE, CallFrame* call_frame, Object* top) {
+  Object* rbx_raise_break(STATE, Object* top) {
+    CallFrame* call_frame = state->vm()->call_frame();
     if(call_frame->flags & CallFrame::cIsLambda) {
       // We have to use raise_return here because the jit code
       // jumps to raising the exception right away.
       state->vm()->thread_state()->raise_return(top,
                                           call_frame->promote_scope(state));
-    } else if(call_frame->scope_still_valid(call_frame->scope->parent())) {
+    } else if(state->vm()->scope_valid_p(call_frame->scope->parent())) {
       state->vm()->thread_state()->raise_break(top, call_frame->scope->parent());
     } else {
       Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exited method");
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
     }
     return cNil;
@@ -1269,7 +1273,7 @@ extern "C" {
     state->vm()->unwinds().set_unwind_info(count, target_ip, stack_depth, type);
   }
 
-  Object* rbx_continue_uncommon(STATE, CallFrame* call_frame,
+  Object* rbx_continue_uncommon(STATE,
                                 int32_t entry_ip, native_int sp,
                                 CallFrame* method_call_frame,
                                 CallFrame* creator_call_frame,
@@ -1279,6 +1283,7 @@ extern "C" {
 
     state->vm()->metrics().jit.uncommon_exits++;
 
+    CallFrame* call_frame = state->vm()->call_frame();
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 
     if(call_frame->is_inline_frame() && creator_call_frame) {
@@ -1293,13 +1298,14 @@ extern "C" {
                                           force_deoptimization);
   }
 
-  Object* rbx_continue_debugging(STATE, CallFrame* call_frame,
+  Object* rbx_continue_debugging(STATE,
                                  int32_t entry_ip, native_int sp,
                                  CallFrame* method_call_frame,
                                  CallFrame* creator_call_frame,
                                  int32_t unwind_count,
                                  Object* top_of_stack) {
 
+    CallFrame* call_frame = state->vm()->call_frame();
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 
     if(call_frame->is_inline_frame() && creator_call_frame) {
@@ -1470,12 +1476,12 @@ extern "C" {
     return obj->class_object(state);
   }
 
-  Object* rbx_make_proc(STATE, CallFrame* call_frame) {
-    Object* obj = call_frame->arguments->block();
+  Object* rbx_make_proc(STATE) {
+    Object* obj = state->vm()->call_frame()->arguments->block();
     if(CBOOL(obj)) {
       Proc* prc = Proc::from_env(state, G(proc), obj);
       if(!prc) {
-        Exception::internal_error(state, call_frame, "invalid block type");
+        Exception::internal_error(state, "invalid block type");
         return 0;
       }
 
@@ -1493,10 +1499,10 @@ extern "C" {
     return Integer::from(state, str->hash_string(state));
   }
 
-  Object* rbx_create_instance(STATE, CallFrame* call_frame, Class* cls) {
+  Object* rbx_create_instance(STATE, Class* cls) {
     CPP_TRY
 
-    return cls->allocate(state, call_frame);
+    return cls->allocate(state);
 
     CPP_CATCH
   }
@@ -1505,34 +1511,31 @@ extern "C" {
     return Bignum::from(state, arg);
   }
 
-  Object* rbx_regexp_set_last_match(STATE, Object* obj, CallFrame* call_frame) {
-    if(CallFrame* parent = call_frame->previous) {
-      parent->set_last_match(state, obj);
-    }
-    return obj;
+  Object* rbx_regexp_set_last_match(STATE, Object* obj) {
+    return Regexp::set_last_match(state, obj);
   }
 
-  Object* rbx_proc_call(STATE, CallFrame* call_frame, Proc* proc, int count, Object** stk) {
+  Object* rbx_proc_call(STATE, Proc* proc, int count, Object** stk) {
 
     Arguments args(G(sym_call), cNil, count, stk);
 
-    return proc->call(state, call_frame, args);
+    return proc->call(state, args);
   }
 
-  VariableScope* rbx_variable_scope_of_sender(STATE, CallFrame* call_frame) {
-    return VariableScope::of_sender(state, call_frame);
+  VariableScope* rbx_variable_scope_of_sender(STATE) {
+    return VariableScope::of_sender(state);
   }
 
-  CompiledCode* rbx_compiledcode_of_sender(STATE, CallFrame* call_frame) {
-    return CompiledCode::of_sender(state, call_frame);
+  CompiledCode* rbx_compiledcode_of_sender(STATE) {
+    return CompiledCode::of_sender(state);
   }
 
-  ConstantScope* rbx_constant_scope_of_sender(STATE, CallFrame* call_frame) {
-    return ConstantScope::of_sender(state, call_frame);
+  ConstantScope* rbx_constant_scope_of_sender(STATE) {
+    return ConstantScope::of_sender(state);
   }
 
-  Location* rbx_location_of_closest_ruby_method(STATE, CallFrame* call_frame) {
-    return Location::of_closest_ruby_method(state, call_frame);
+  Location* rbx_location_of_closest_ruby_method(STATE) {
+    return Location::of_closest_ruby_method(state);
   }
 }
 

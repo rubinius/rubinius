@@ -18,7 +18,7 @@ namespace rubinius {
     return pe;
   }
 
-  Object* Thunk::thunk_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
+  Object* Thunk::thunk_executor(STATE, Executable* exec, Module* mod,
                                        Arguments& args)
   {
     Thunk* thunk = as<Thunk>(exec);
@@ -26,7 +26,7 @@ namespace rubinius {
     if(args.total() != 0) {
       Exception* exc =
         Exception::make_argument_error(state, 0, args.total(), args.name());
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
     }

@@ -51,13 +51,13 @@ namespace rubinius {
       return map[type];
     }
 
-    bool capi_check_interrupts(STATE, CallFrame* call_frame, void* end) {
-      if(!state->check_stack(call_frame, end)) {
+    bool capi_check_interrupts(STATE, void* stack_marker) {
+      if(!state->check_stack(state, stack_marker)) {
         return false;
       }
 
       if(unlikely(state->check_local_interrupts())) {
-        if(!state->process_async(call_frame)) return false;
+        if(!state->process_async(state)) return false;
       }
       return true;
     }
@@ -115,8 +115,8 @@ namespace rubinius {
                                       Object** args, Object* block,
                                       bool allow_private)
     {
-      int marker = 0;
-      if(!capi_check_interrupts(env->state(), env->current_call_frame(), &marker)) {
+      int stack_marker = 0;
+      if(!capi_check_interrupts(env->state(), &stack_marker)) {
         env->current_ep()->return_to(env);
       }
 
@@ -208,8 +208,8 @@ namespace rubinius {
                               Object* blk,
                               size_t arg_count, Object** arg_vals)
     {
-      int marker = 0;
-      if(!capi_check_interrupts(env->state(), env->current_call_frame(), &marker)) {
+      int stack_marker = 0;
+      if(!capi_check_interrupts(env->state(), &stack_marker)) {
         env->current_ep()->return_to(env);
       }
 
@@ -229,11 +229,11 @@ namespace rubinius {
         Arguments args(G(sym_call), blk, arg_count, arg_vals);
 
         if(BlockEnvironment* be = try_as<BlockEnvironment>(blk)) {
-          ret = be->call(state, call_frame, args);
+          ret = be->call(state, args);
         } else if(Proc* proc = try_as<Proc>(blk)) {
-          ret = proc->yield(state, call_frame, args);
+          ret = proc->yield(state, args);
         } else if(blk->nil_p()) {
-          state->raise_exception(Exception::make_lje(state, call_frame));
+          state->raise_exception(Exception::make_lje(state));
           ret = NULL;
         } else {
           Dispatch dispatch(G(sym_call));
@@ -260,8 +260,8 @@ namespace rubinius {
     VALUE capi_call_super_native(NativeMethodEnvironment* env,
                                  size_t arg_count, Object** args)
     {
-      int marker = 0;
-      if(!capi_check_interrupts(env->state(), env->current_call_frame(), &marker)) {
+      int stack_marker = 0;
+      if(!capi_check_interrupts(env->state(), &stack_marker)) {
         env->current_ep()->return_to(env);
       }
 
@@ -736,8 +736,7 @@ extern "C" {
 
     module->add_method(state, method_name, nil<String>(), method,
         nil<ConstantScope>(), visibility);
-    System::vm_reset_method_cache(env->state(), module, method_name,
-        env->current_call_frame());
+    System::vm_reset_method_cache(env->state(), module, method_name);
   }
 
   VALUE capi_class_superclass(VALUE class_handle) {

@@ -253,10 +253,7 @@ namespace rubinius {
     return 0;
   }
 
-  Object* System::vm_find_object(STATE,
-                                 Array* arg, Object* callable,
-                                 CallFrame* calling_environment)
-  {
+  Object* System::vm_find_object(STATE, Array* arg, Object* callable) {
     Memory::GCInhibit inhibitor(state->memory());
 
     // Support an aux mode, where callable is an array and we just append
@@ -282,7 +279,7 @@ namespace rubinius {
           delete condition;
           std::ostringstream msg;
           msg << "Invalid symbol 0x" << std::hex << reinterpret_cast<uintptr_t>(sym);
-          Exception::range_error(state, msg.str().c_str());
+          Exception::raise_range_error(state, msg.str().c_str());
           return 0;
         }
       }
@@ -290,7 +287,7 @@ namespace rubinius {
         ary->append(state, obj);
       } else {
         args->set(state, 0, obj);
-        ret = callable->send(state, calling_environment, G(sym_call),
+        ret = callable->send(state, state->vm()->call_frame(), G(sym_call),
                              args, cNil, false);
       }
 
@@ -301,7 +298,6 @@ namespace rubinius {
 
     OnStack<2> os(state, ary, args);
 
-    state->vm()->set_call_frame(calling_environment);
     memory::ObjectWalker walker(state->memory());
     memory::GCData gc_data(state->vm());
 
@@ -334,7 +330,7 @@ namespace rubinius {
           memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                                  variable_buffer, stack_size);
           args->set(state, 0, obj);
-          ret = callable->send(state, calling_environment, G(sym_call),
+          ret = callable->send(state, state->vm()->call_frame(), G(sym_call),
                                args, cNil, false);
           if(!ret) break;
         }

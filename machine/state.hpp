@@ -101,30 +101,29 @@ namespace rubinius {
       return vm_jit_->check_local_interrupts_;
     }
 
-    bool check_async(CallFrame* call_frame) {
-      vm_->set_call_frame(call_frame);
+    bool check_async(STATE) {
       if(vm_->check_local_interrupts()) {
-        return process_async(call_frame);
+        return process_async(state);
       }
       return true;
     }
 
-    void raise_stack_error(CallFrame* call_frame);
+    void raise_stack_error(STATE);
 
-    bool check_stack(CallFrame* call_frame, void* end) {
+    bool check_stack(STATE, void* end) {
       // @TODO assumes stack growth direction
       if(unlikely(vm_->detect_stack_condition(end))) {
-        raise_stack_error(call_frame);
+        raise_stack_error(state);
         return false;
       }
       return true;
     }
 
-    bool process_async(CallFrame* call_frame);
-    bool check_interrupts(CallFrame* call_frame, void* end);
+    bool process_async(STATE);
+    bool check_interrupts(STATE);
 
-    Object* park(CallFrame* call_frame);
-    Object* park_timed(CallFrame* call_frame, struct timespec* ts);
+    Object* park(STATE);
+    Object* park_timed(STATE, struct timespec* ts);
   };
 }
 

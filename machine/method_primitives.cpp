@@ -18,11 +18,11 @@
 
 namespace rubinius {
 
-  Object* Primitives::unknown_primitive(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+  Object* Primitives::unknown_primitive(STATE, Executable* exec, Module* mod, Arguments& args) {
     std::string message = std::string("Called unbound or invalid primitive from method name: ");
     message += args.name()->to_str(state)->c_str(state);
 
-    Exception::assertion_error(state, message.c_str());
+    Exception::raise_assertion_error(state, message.c_str());
 
     return cNil;
   }

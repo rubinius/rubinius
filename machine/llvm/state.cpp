@@ -428,7 +428,7 @@ namespace rubinius {
     compile_cond_.signal();
   }
 
-  void LLVMState::compile(STATE, CompiledCode* code, CallFrame* call_frame,
+  void LLVMState::compile(STATE, CompiledCode* code,
       Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
     if(!enabled_) return;
@@ -442,7 +442,7 @@ namespace rubinius {
 
     // In case the method hasn't been internalized yet
     if(!code->machine_code()) {
-      code->internalize(state, call_frame);
+      code->internalize(state);
     }
 
     JITCompileRequest* req = JITCompileRequest::create(state, code, receiver_class,
@@ -453,8 +453,6 @@ namespace rubinius {
 
     add(state, req);
 
-    state->vm()->set_call_frame(call_frame);
-
     {
       UnmanagedPhase unmanaged(state);
 
@@ -462,7 +460,6 @@ namespace rubinius {
     }
 
     wait_mutex.unlock();
-    state->vm()->set_call_frame(0);
 
     if(state->shared().config.jit_show_compiling) {
       llvm::outs() << "[[[ JIT compiled "
@@ -471,7 +468,7 @@ namespace rubinius {
     }
   }
 
-  void LLVMState::compile_soon(STATE, CompiledCode* code, CallFrame* call_frame,
+  void LLVMState::compile_soon(STATE, CompiledCode* code,
                                Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
     bool wait = config().jit_sync;
@@ -507,8 +504,6 @@ namespace rubinius {
       add(state, req);
       bool req_block = req->is_block();
 
-      state->vm()->set_call_frame(call_frame);
-
       {
         UnmanagedPhase unmanaged(state);
 
@@ -516,7 +511,6 @@ namespace rubinius {
       }
 
       wait_mutex.unlock();
-      state->vm()->set_call_frame(0);
 
       if(state->shared().config.jit_show_compiling) {
         llvm::outs() << "[[[ JIT compiled "
@@ -543,9 +537,9 @@ namespace rubinius {
 
   const static size_t eMaxInlineSendCount = 10;
 
-  void LLVMState::compile_callframe(STATE, CompiledCode* start,
-      CallFrame* call_frame, int primitive)
-  {
+  void LLVMState::compile_callframe(STATE, CompiledCode* start, int primitive) {
+    CallFrame* call_frame = state->vm()->call_frame();
+
     // TODO: Fix compile policy checks
     if(!start->keywords()->nil_p()) {
       vm()->metrics().jit.methods_failed++;
@@ -559,7 +553,7 @@ namespace rubinius {
             << symbol_debug_str(start->name()) << std::endl;
     }
 
-   CallFrame* candidate = find_candidate(state, start, call_frame);
+   CallFrame* candidate = find_candidate(state, call_frame, start);
     if(!candidate || candidate->jitted_p() || candidate->inline_method_p()) {
       if(config().jit_show_compiling) {
         llvm::outs() << "[[[ JIT error finding call frame "
@@ -592,19 +586,19 @@ namespace rubinius {
     }
 
     if(candidate->block_p()) {
-      compile_soon(state, candidate->compiled_code, call_frame,
+      compile_soon(state, candidate->compiled_code,
                    candidate->self()->direct_class(state), candidate->block_env(), true);
     } else {
       if(candidate->compiled_code->can_specialize_p()) {
-        compile_soon(state, candidate->compiled_code, call_frame,
+        compile_soon(state, candidate->compiled_code,
                      candidate->self()->direct_class(state));
       } else {
-        compile_soon(state, candidate->compiled_code, call_frame, NULL);
+        compile_soon(state, candidate->compiled_code, NULL);
       }
     }
   }
 
-  CallFrame* LLVMState::find_candidate(STATE, CompiledCode* start, CallFrame* call_frame) {
+  CallFrame* LLVMState::find_candidate(STATE, CallFrame* call_frame, CompiledCode* start) {
     if(!config_.jit_inline_generic) {
       return call_frame;
     }
@@ -618,12 +612,6 @@ namespace rubinius {
     if(!call_frame) {
       throw CompileError("find_candidate: null call frame");
     }
-
-    // if(!start) {
-      // start = call_frame->compiled_code;
-      // call_frame = call_frame->previous;
-      // depth--;
-    // }
 
     if(debug_search) {
       std::cout << "> call_count: " << call_frame->compiled_code->machine_code()->call_count
@@ -664,14 +652,12 @@ namespace rubinius {
     }
 
     CallFrame* callee = call_frame;
-    call_frame = call_frame->previous;
-
-    if(!call_frame) return callee;
 
     // Now start looking at callers.
+    while(callee) {
+      if(depth-- == 0) break;
 
-    while(depth-- > 0) {
-      CompiledCode* cur = call_frame->compiled_code;
+      CompiledCode* cur = callee->compiled_code;
 
       if(!cur) {
         if(debug_search) {
@@ -734,7 +720,7 @@ namespace rubinius {
         return callee;
       }
 
-      if(call_frame->jitted_p() || call_frame->inline_method_p()) {
+      if(callee->jitted_p() || callee->inline_method_p()) {
         return callee;
       }
 
@@ -743,7 +729,7 @@ namespace rubinius {
           std::cout << "JIT: STOP. reason: high send count" << std::endl;
         }
 
-        return call_frame;
+        return callee;
       }
 
       // if(mcode->required_args != mcode->total_args // has a splat
@@ -751,15 +737,6 @@ namespace rubinius {
           // || mcode->jitted() // already jitted
           // || !mcode->no_inline_p() // method marked as not inlineable
         // ) return callee;
-
-      CallFrame* prev = call_frame->previous;
-
-      if(!prev) {
-        if(debug_search) {
-          std::cout << "JIT: STOP. reason: toplevel method" << std::endl;
-        }
-        return call_frame;
-      }
 
       // if(cur->machine_code()->total > SMALL_METHOD_SIZE) {
         // if(debug_search) {
@@ -774,8 +751,7 @@ namespace rubinius {
 
       // if(!next || cur->machine_code()->total > SMALL_METHOD_SIZE) return call_frame;
 
-      callee = call_frame;
-      call_frame = prev;
+      callee = callee->previous;
     }
 
     return callee;

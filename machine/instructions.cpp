@@ -39,7 +39,7 @@
 
 #include "gen/instruction_defines.hpp"
 
-#define interp_assert(code) if(!(code)) { Exception::internal_error(state, call_frame, "assertion failed: " #code); RUN_EXCEPTION(); }
+#define interp_assert(code) if(!(code)) { Exception::internal_error(state, "assertion failed: " #code); RUN_EXCEPTION(); }
 
 using namespace rubinius;
 
@@ -65,8 +65,8 @@ using namespace rubinius;
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 #define JUMP_DEBUGGING \
-  return MachineCode::debugger_interpreter_continue(state, mcode, call_frame, \
-         stack_calculate_sp(), is, unwinds)
+  return MachineCode::debugger_interpreter_continue(state, mcode, \
+         call_frame, stack_calculate_sp(), is, unwinds)
 
 #define CHECK_AND_PUSH(val) \
    if(val == NULL) { goto exception; } \
@@ -77,12 +77,11 @@ using namespace rubinius;
 #define SET_CALL_FLAGS(val) is.call_flags = (val)
 #define CALL_FLAGS() is.call_flags
 
-Object* MachineCode::interpreter(STATE,
-                                 MachineCode* const mcode,
-                                 InterpreterCallFrame* const call_frame)
-{
+Object* MachineCode::interpreter(STATE, MachineCode* const mcode) {
 
 #include "gen/instruction_locations.hpp"
+
+  CallFrame* call_frame = state->vm()->call_frame();
 
   InterpreterState is;
 
@@ -111,14 +110,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
 
     state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          Location::from_call_stack(state, call_frame));
+          Location::from_call_stack(state));
     state->raise_exception(exc.exception);
     return NULL;
   }
@@ -238,6 +237,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
   Object** stack_ptr = call_frame->stk + sp;
 
   UnwindInfoSet unwinds(thread_unwinds);
+
 continue_to_run:
   try {
 
@@ -258,14 +258,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
 
     state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          Location::from_call_stack(state, call_frame));
+          Location::from_call_stack(state));
     state->raise_exception(exc.exception);
     return NULL;
   }
@@ -358,10 +358,7 @@ exception:
  * each opcode for the breakpoint flag. It is installed on the MachineCode when
  * a breakpoint is set on compiled method.
  */
-Object* MachineCode::debugger_interpreter(STATE,
-                                          MachineCode* const mcode,
-                                          InterpreterCallFrame* const call_frame)
-{
+Object* MachineCode::debugger_interpreter(STATE, MachineCode* const mcode) {
 
 #include "gen/instruction_locations.hpp"
 
@@ -369,6 +366,8 @@ Object* MachineCode::debugger_interpreter(STATE,
   InterpreterState is;
 
   UnwindInfoSet unwinds;
+
+  CallFrame* call_frame = state->vm()->call_frame();
 
   // TODO: ug, cut and paste of the whole interpreter above. Needs to be fast,
   // maybe could use a function template?
@@ -384,7 +383,7 @@ continue_to_run:
 #undef DISPATCH
 #define DISPATCH \
     if(Object* bp = call_frame->find_breakpoint(state)) { \
-      if(!Helpers::yield_debugger(state, call_frame, bp)) goto exception; \
+      if(!Helpers::yield_debugger(state, bp)) goto exception; \
     } \
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
@@ -402,14 +401,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
 
     state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          Location::from_call_stack(state, call_frame));
+          Location::from_call_stack(state));
     state->raise_exception(exc.exception);
     return NULL;
   }
@@ -510,13 +509,14 @@ Object* MachineCode::debugger_interpreter_continue(STATE,
   Object** stack_ptr = call_frame->stk + sp;
 
   UnwindInfoSet unwinds(thread_unwinds);
+
 continue_to_run:
   try {
 
 #undef DISPATCH
 #define DISPATCH \
     if(Object* bp = call_frame->find_breakpoint(state)) { \
-      if(!Helpers::yield_debugger(state, call_frame, bp)) goto exception; \
+      if(!Helpers::yield_debugger(state, bp)) goto exception; \
     } \
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
@@ -534,14 +534,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
 
     state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          Location::from_call_stack(state, call_frame));
+          Location::from_call_stack(state));
     state->raise_exception(exc.exception);
     return NULL;
   }
@@ -628,12 +628,11 @@ exception:
 /* The tooling interpreter calls the registered tool for every instruction
  * executed.
  */
-Object* MachineCode::tooling_interpreter(STATE,
-                                         MachineCode* const mcode,
-                                         InterpreterCallFrame* const call_frame)
-{
+Object* MachineCode::tooling_interpreter(STATE, MachineCode* const mcode) {
 
 #include "gen/instruction_locations.hpp"
+
+  CallFrame* call_frame = state->vm()->call_frame();
 
   opcode* stream = mcode->opcodes;
   InterpreterState is;
@@ -664,14 +663,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
 
     state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          Location::from_call_stack(state, call_frame));
+          Location::from_call_stack(state));
     state->raise_exception(exc.exception);
     return NULL;
   }

@@ -83,7 +83,7 @@ namespace rubinius {
     static Object*  connect_pipe(STATE, IO* lhs, IO* rhs);
 
     // Rubinius.primitive :io_open
-    static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm, CallFrame* calling_environment);
+    static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm);
 
     static native_int open_with_cloexec(STATE, const char* path, int mode, int permissions);
     static void new_open_fd(STATE, native_int fd);
@@ -95,7 +95,7 @@ namespace rubinius {
      *  @todo Replace with an evented version when redoing events. --rue
      */
     // Rubinius.primitive :io_select
-    static Object*  select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout, CallFrame* calling_environment);
+    static Object*  select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout);
 
     // Rubinius.primitive :io_fnmatch
     static Object* fnmatch(STATE, String* pattern, String* path, Fixnum* flags);
@@ -111,13 +111,13 @@ namespace rubinius {
      *  Returns cNil at EOF.
      */
     // Rubinius.primitive :io_sysread
-    Object* sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment);
+    Object* sysread(STATE, Fixnum* number_of_bytes);
 
     // Rubinius.primitive :io_read_if_available
     Object* read_if_available(STATE, Fixnum* number_of_bytes);
 
     // Rubinius.primitive :io_socket_read
-    Object* socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type, CallFrame* calling_environment);
+    Object* socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type);
 
     // Rubinius.primitive :io_seek
     Integer* seek(STATE, Integer* amount, Fixnum* whence);
@@ -129,13 +129,13 @@ namespace rubinius {
     Integer* ftruncate(STATE, Fixnum* off);
 
     // Rubinius.primitive :io_write
-    Object* write(STATE, String* buf, CallFrame* calling_environment);
+    Object* write(STATE, String* buf);
 
     // Rubinius.primitive :io_reopen
     Object* reopen(STATE, IO* other);
 
     // Rubinius.primitive :io_reopen_path
-    Object* reopen_path(STATE, String* other, Fixnum * mode, CallFrame* calling_environment);
+    Object* reopen_path(STATE, String* other, Fixnum * mode);
 
     // Rubinius.primitive :io_close
     Object* close(STATE);
@@ -144,7 +144,7 @@ namespace rubinius {
     Object* send_io(STATE, IO* io);
 
     // Rubinius.primitive :io_recv_fd
-    Object* recv_fd(STATE, CallFrame* calling_environment);
+    Object* recv_fd(STATE);
 
     /**
      *  Shutdown a full-duplex descriptor's read and/or write stream.
@@ -217,7 +217,7 @@ namespace rubinius {
     Object* unshift(STATE, String* str, Fixnum* start_pos);
 
     // Rubinius.primitive :iobuffer_fill
-    Object* fill(STATE, IO* io, CallFrame* calling_environment);
+    Object* fill(STATE, IO* io);
 
     void reset(STATE);
     String* drain(STATE);

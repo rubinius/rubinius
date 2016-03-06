@@ -54,11 +54,11 @@ namespace rubinius {
     return state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
   }
 
-  MachineCode* BlockEnvironment::machine_code(STATE, CallFrame* call_frame) {
-    return compiled_code_->internalize(state, call_frame);
+  MachineCode* BlockEnvironment::machine_code(STATE) {
+    return compiled_code_->internalize(state);
   }
 
-  Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
+  Object* BlockEnvironment::invoke(STATE,
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation)
   {
@@ -70,10 +70,10 @@ namespace rubinius {
       memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                              &args.arguments_location(), args.total());
 
-      mcode = env->machine_code(state, previous);
+      mcode = env->machine_code(state);
 
       if(!mcode) {
-        Exception::internal_error(state, previous, "invalid bytecode method");
+        Exception::internal_error(state, "invalid bytecode method");
         return 0;
       }
     }
@@ -82,17 +82,17 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(executor ptr = mcode->unspecialized) {
-      return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
+      return (*((BlockExecutor)ptr))(state, env, args, invocation);
     }
 #endif
 
-    return execute_interpreter(state, previous, env, args, invocation);
+    return execute_interpreter(state, env, args, invocation);
   }
 
   // TODO: this is a quick hack to process block arguments in 1.9.
   class GenericArguments {
   public:
-    static bool call(STATE, CallFrame* call_frame,
+    static bool call(STATE,
                      MachineCode* mcode, StackVariables* scope,
                      Arguments& args, int flags)
     {
@@ -226,13 +226,13 @@ namespace rubinius {
                  */
                 Memory::GCInhibit inhibitor(state);
 
-                if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
+                if(!(obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary)))) {
                   return false;
                 }
               }
 
               if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
-                Exception::type_error(state, "to_ary must return an Array", call_frame);
+                Exception::type_error(state, "to_ary must return an Array");
                 return false;
               }
             }
@@ -286,7 +286,7 @@ namespace rubinius {
            */
           Memory::GCInhibit inhibitor(state);
 
-          kw_result = dispatch.send(state, call_frame, args);
+          kw_result = dispatch.send(state, state->vm()->call_frame(), args);
         }
 
         if(kw_result) {
@@ -401,7 +401,7 @@ namespace rubinius {
   //
   // Future code will detect hot blocks and queue them in the JIT, whereby the
   // JIT will install a newly minted machine function into ::execute.
-  Object* BlockEnvironment::execute_interpreter(STATE, CallFrame* previous,
+  Object* BlockEnvironment::execute_interpreter(STATE,
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation)
   {
@@ -410,7 +410,7 @@ namespace rubinius {
     MachineCode* const mcode = env->compiled_code_->machine_code();
 
     if(!mcode) {
-      Exception::internal_error(state, previous, "invalid bytecode method");
+      Exception::internal_error(state, "invalid bytecode method");
       return 0;
     }
 
@@ -419,7 +419,7 @@ namespace rubinius {
       if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
         OnStack<1> os(state, env);
 
-        G(jit)->compile_soon(state, env->compiled_code(), previous,
+        G(jit)->compile_soon(state, env->compiled_code(),
             invocation.self->direct_class(state), env, true);
       } else {
         mcode->call_count++;
@@ -440,11 +440,11 @@ namespace rubinius {
     scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
     scope->set_parent(env->scope_);
 
-    InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
+    CallFrame* previous_frame = 0;
+    InterpreterCallFrame* frame = ALLOCA_CALL_FRAME(mcode->stack_size);
 
     frame->prepare(mcode->stack_size);
 
-    frame->previous = previous;
     frame->constant_scope_ = invocation.constant_scope;
 
     frame->arguments = &args;
@@ -455,18 +455,23 @@ namespace rubinius {
     frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
-    state->vm()->set_call_frame(frame);
+    state->vm()->push_call_frame(frame, previous_frame);
 
-    if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
+    if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
+      state->vm()->pop_call_frame(previous_frame);
+
       if(state->vm()->thread_state()->raise_reason() == cNone) {
         Exception* exc =
           Exception::make_argument_error(state, mcode->required_args, args.total(),
                                          mcode->name());
-        exc->locations(state, Location::from_call_stack(state, previous));
+        exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
       }
+
       return NULL;
     }
+
+    Object* value = 0;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {
@@ -481,54 +486,58 @@ namespace rubinius {
 
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
-      if(!state->check_interrupts(frame, frame)) return NULL;
+      if(state->check_interrupts(state)) {
+        state->vm()->checkpoint(state);
 
-      state->vm()->checkpoint(state, frame);
-
-      tooling::BlockEntry method(state, env, mod);
-      return (*mcode->run)(state, mcode, frame);
+        tooling::BlockEntry method(state, env, mod);
+        value = (*mcode->run)(state, mcode);
+      }
     } else {
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
-      if(!state->check_interrupts(frame, frame)) return NULL;
+      if(state->check_interrupts(state)) {
+        state->vm()->checkpoint(state);
 
-      state->vm()->checkpoint(state, frame);
-
-      return (*mcode->run)(state, mcode, frame);
+        value = (*mcode->run)(state, mcode);
+      }
     }
 #else
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
-    if(!state->check_interrupts(frame, frame)) return NULL;
+    if(state->check_interrupts(state)) {
+      state->vm()->checkpoint(state);
 
-    state->vm()->checkpoint(state, frame);
-
-    return (*mcode->run)(state, mcode, frame);
+      value = (*mcode->run)(state, mcode);
+    }
 #endif
+
+    state->vm()->pop_call_frame(previous_frame);
+
+    return value;
   }
 
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame,
+  Object* BlockEnvironment::call(STATE,
                                  Arguments& args, int flags)
   {
     BlockInvocation invocation(scope_->self(), constant_scope_, flags);
-    return invoke(state, call_frame, this, args, invocation);
+    return invoke(state, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_prim(STATE, CallFrame* call_frame,
+  Object* BlockEnvironment::call_prim(STATE,
                                       Executable* exec, Module* mod,
                                       Arguments& args)
   {
-    return call(state, call_frame, args);
+    return call(state, args);
   }
 
-  Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame,
+  Object* BlockEnvironment::call_on_object(STATE,
                                            Arguments& args, int flags)
   {
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(),
                                        compiled_code_->name());
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
     }
@@ -536,10 +545,10 @@ namespace rubinius {
     Object* recv = args.shift(state);
 
     BlockInvocation invocation(recv, constant_scope_, flags);
-    return invoke(state, call_frame, this, args, invocation);
+    return invoke(state, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_under(STATE, CallFrame* call_frame,
+  Object* BlockEnvironment::call_under(STATE,
                                        Executable* exec, Module* mod,
                                        Arguments& args)
   {
@@ -547,7 +556,7 @@ namespace rubinius {
       Exception* exc =
         Exception::make_argument_error(state, 3, args.total(),
                                        compiled_code_->name());
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
     }
@@ -558,27 +567,28 @@ namespace rubinius {
 
     int flags = CBOOL(visibility_scope) ? CallFrame::cTopLevelVisibility : 0;
     BlockInvocation invocation(recv, constant_scope, flags);
-    return invoke(state, call_frame, this, args, invocation);
+    return invoke(state, this, args, invocation);
   }
 
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE,
-      CompiledCode* ccode, MachineCode* caller,
-      CallFrame* call_frame)
+      CompiledCode* ccode, MachineCode* caller)
   {
 
     MachineCode* mcode = ccode->machine_code();
     if(!mcode) {
       OnStack<1> os(state, ccode);
-      mcode = ccode->internalize(state, call_frame);
+      mcode = ccode->internalize(state);
       if(!mcode) {
-        Exception::internal_error(state, call_frame, "invalid bytecode method");
+        Exception::internal_error(state, "invalid bytecode method");
         return 0;
       }
     }
 
     BlockEnvironment* be =
       state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
+
+    CallFrame* call_frame = state->vm()->call_frame();
 
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
@@ -602,25 +612,22 @@ namespace rubinius {
     return be;
   }
 
-  Object* BlockEnvironment::of_sender(STATE, CallFrame* call_frame) {
-    if(NativeMethodFrame* nmf = call_frame->previous->native_method_frame()) {
-      return state->vm()->native_method_environment->get_object(nmf->block());
-    }
+  Object* BlockEnvironment::of_sender(STATE) {
+    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+      if(NativeMethodFrame* nmf = frame->native_method_frame()) {
+        return state->vm()->native_method_environment->get_object(nmf->block());
+      }
 
-    CallFrame* target = call_frame->previous->top_ruby_frame();
+      // TODO: What?
+      // We assume that code using this is going to use it over and
+      // over again (ie Proc.new) so we mark the method as not
+      // inlinable so that this works even with the JIT on.
 
-    // We assume that code using this is going to use it over and
-    // over again (ie Proc.new) so we mark the method as not
-    // inlinable so that this works even with the JIT on.
+      frame->compiled_code->machine_code()->set_no_inline();
 
-    if(!target) {
-      return cNil;
-    }
-
-    target->compiled_code->machine_code()->set_no_inline();
-
-    if(target->scope) {
-      return target->scope->block();
+      if(frame->scope) {
+        return frame->scope->block();
+      }
     }
 
     return cNil;

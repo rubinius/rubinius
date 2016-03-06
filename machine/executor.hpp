@@ -14,10 +14,8 @@ namespace rubinius {
     cExecuteRestart
   };
 
-  typedef Object* (*executor)(State*, CallFrame*, Executable* exec, Module* mod,
-                              Arguments& args);
-
-  typedef Object* (*InvokePrimitive)(State*, CallFrame*, Object**, int);
+  typedef Object* (*executor)(State*, Executable* exec, Module* mod, Arguments& args);
+  typedef Object* (*InvokePrimitive)(State*, Object**, int);
 }
 
 #endif

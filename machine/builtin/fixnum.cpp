@@ -95,7 +95,7 @@ namespace rubinius {
 
   Integer* Fixnum::div(STATE, Fixnum* other) {
     if(other->to_native() == 0) {
-      Exception::zero_division_error(state, "divided by 0");
+      Exception::raise_zero_division_error(state, "divided by 0");
     }
     native_int numerator = to_native();
     native_int denominator = other->to_native();
@@ -154,7 +154,7 @@ namespace rubinius {
 
   Array* Fixnum::divmod(STATE, Fixnum* other) {
     if(other->to_native() == 0) {
-      Exception::zero_division_error(state, "divided by 0");
+      Exception::raise_zero_division_error(state, "divided by 0");
     }
     native_int numerator = to_native();
     native_int denominator = other->to_native();
@@ -425,7 +425,7 @@ namespace rubinius {
     k = to_native();
 
     if(j < 2 || j > 36) {
-      Exception::argument_error(state, "base must be between 2 and 36");
+      Exception::raise_argument_error(state, "base must be between 2 and 36");
     }
 
     /* Algorithm taken from 1.8.4 rb_fix2str */

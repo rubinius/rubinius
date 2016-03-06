@@ -130,15 +130,15 @@ namespace rubinius {
 
     Object* enable(STATE);
 
-    Object* compile_soon(STATE, CompiledCode* code, CallFrame* call_frame,
+    Object* compile_soon(STATE, CompiledCode* code,
         Class* receiver_class, BlockEnvironment* block_env=NULL, bool is_block=false);
-    Object* compile_callframe(STATE, CompiledCode* code, CallFrame* call_frame,
+    Object* compile_callframe(STATE, CompiledCode* code,
         int primitive=-1);
     Object* start_method_update(STATE);
     Object* end_method_update(STATE);
 
     // Rubinius.primitive :jit_compile
-    Object* compile(STATE, Object* object, CompiledCode* code, Object* block_environment, CallFrame* calling_environment);
+    Object* compile(STATE, Object* object, CompiledCode* code, Object* block_environment);
 
     // Rubinius.primitive :jit_compile_threshold
     Object* compile_threshold(STATE);

@@ -175,11 +175,11 @@ namespace rubinius {
   }
 
   StackVariables* NativeMethodEnvironment::scope() {
-    CallFrame* cur = current_call_frame();
-    while(!cur->scope) {
-      cur = cur->previous;
+    if(CallFrame* frame = state()->vm()->get_scope_frame()) {
+      return frame->scope;
     }
-    return cur->scope;
+
+    return NULL;
   }
 
   void NativeMethod::bootstrap(STATE) {
@@ -631,7 +631,7 @@ namespace rubinius {
 
   template <class ArgumentHandler>
   Object* NativeMethod::executor_implementation(STATE,
-      CallFrame* previous, Executable* exec, Module* mod, Arguments& args) {
+      Executable* exec, Module* mod, Arguments& args) {
     NativeMethod* nm = as<NativeMethod>(exec);
 
     int arity = nm->arity()->to_int();
@@ -639,7 +639,7 @@ namespace rubinius {
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
           state, arity, args.total(), args.name());
-      exc->locations(state, Location::from_call_stack(state, previous));
+      exc->locations(state, Location::from_call_stack(state, state->vm()->call_frame()));
       state->raise_exception(exc);
 
       return NULL;
@@ -659,8 +659,8 @@ namespace rubinius {
     }
 
     NativeMethodFrame nmf(env, env->current_native_frame(), nm);
-    CallFrame* call_frame = ALLOCA_CALLFRAME(0);
-    call_frame->previous = previous;
+    CallFrame* previous_frame = 0;
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
     call_frame->constant_scope_ = 0;
     call_frame->dispatch_data = (void*)&nmf;
     call_frame->compiled_code = 0;
@@ -675,7 +675,7 @@ namespace rubinius {
     env->set_current_native_frame(&nmf);
 
     // Register the CallFrame, because we might GC below this.
-    state->vm()->set_call_frame(call_frame);
+    state->vm()->push_call_frame(call_frame, previous_frame);
 
     // Be sure to do this after installing nmf as the current
     // native frame.
@@ -701,7 +701,7 @@ namespace rubinius {
       OnStack<2> os(state, exec, mod);
       if(unlikely(state->vm()->tooling())) {
         tooling::MethodEntry method(state, exec, mod, args);
-        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name());
 
         PLACE_EXCEPTION_POINT(ep);
 
@@ -710,9 +710,9 @@ namespace rubinius {
         } else {
           ret = ArgumentHandler::invoke(state, nm, env, args);
         }
-        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
+        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
       } else {
-        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name());
 
         PLACE_EXCEPTION_POINT(ep);
 
@@ -721,10 +721,10 @@ namespace rubinius {
         } else {
           ret = ArgumentHandler::invoke(state, nm, env, args);
         }
-        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
+        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
       }
 #else
-      RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+      RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name());
 
       PLACE_EXCEPTION_POINT(ep);
 
@@ -733,11 +733,12 @@ namespace rubinius {
       } else {
         ret = ArgumentHandler::invoke(state, nm, env, args);
       }
-      RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
+      RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
 #endif
     } catch(const RubyException& exc) {
       LEAVE_CAPI(state);
 
+      state->vm()->pop_call_frame(previous_frame);
       env->set_current_call_frame(saved_frame);
       env->set_current_native_frame(nmf.previous());
       ep.pop(env);
@@ -747,6 +748,7 @@ namespace rubinius {
 
     LEAVE_CAPI(state);
 
+    state->vm()->pop_call_frame(previous_frame);
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
@@ -755,7 +757,7 @@ namespace rubinius {
 
     // Handle any signals that occurred while the native method
     // was running.
-    if(!state->check_async(call_frame)) return NULL;
+    if(!state->check_async(state)) return NULL;
 
     return ret;
   }

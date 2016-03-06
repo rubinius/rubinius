@@ -214,7 +214,7 @@ namespace rubinius {
         onig_error_code_to_str(onig_err_buf, err, &err_info);
         snprintf(err_buf, REGEXP_ONIG_ERROR_MESSAGE_LEN, "%s: %s", onig_err_buf, pat);
 
-        Exception::regexp_error(state, err_buf);
+        Exception::raise_regexp_error(state, err_buf);
         return NULL;
       }
 
@@ -287,7 +287,7 @@ namespace rubinius {
         onig_error_code_to_str(onig_err_buf, err, &err_info);
         snprintf(err_buf, REGEXP_ONIG_ERROR_MESSAGE_LEN, "%s: %s", onig_err_buf, pat);
 
-        Exception::regexp_error(state, err_buf);
+        Exception::raise_regexp_error(state, err_buf);
         return 0;
       }
     }
@@ -319,7 +319,7 @@ namespace rubinius {
 
   Fixnum* Regexp::options(STATE) {
     if(unlikely(!onig_source_data(state))) {
-      Exception::type_error(state, "Not properly initialized Regexp");
+      Exception::raise_type_error(state, "Not properly initialized Regexp");
     }
 
     int result = ((int)onig_get_options(onig_source_data(state)) & OPTION_MASK);
@@ -398,13 +398,13 @@ namespace rubinius {
     const UChar *str;
 
     if(unlikely(!onig_source_data(state))) {
-      Exception::argument_error(state, "Not properly initialized Regexp");
+      Exception::raise_argument_error(state, "Not properly initialized Regexp");
     }
 
     if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
       std::ostringstream msg;
       msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
 
     max = string->byte_size();
@@ -484,13 +484,13 @@ namespace rubinius {
     const UChar *fin;
 
     if(unlikely(!onig_source_data(state))) {
-      Exception::argument_error(state, "Not properly initialized Regexp");
+      Exception::raise_argument_error(state, "Not properly initialized Regexp");
     }
 
     if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
       std::ostringstream msg;
       msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
 
     max = string->byte_size();
@@ -558,13 +558,13 @@ namespace rubinius {
     const UChar *fin;
 
     if(unlikely(!onig_source_data(state))) {
-      Exception::argument_error(state, "Not properly initialized Regexp");
+      Exception::raise_argument_error(state, "Not properly initialized Regexp");
     }
 
     if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
       std::ostringstream msg;
       msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
 
     lock_.lock();
@@ -745,10 +745,8 @@ namespace rubinius {
     return nil<String>();
   }
 
-  Object* Regexp::last_match_result(STATE, Fixnum* mode, Fixnum* which,
-                                    CallFrame* call_frame)
-  {
-    Object* current_match = call_frame->last_match(state);
+  Object* Regexp::last_match_result(STATE, Fixnum* mode, Fixnum* which) {
+    Object* current_match = last_match(state);
 
     if(MatchData* match = try_as<MatchData>(current_match)) {
       switch(mode->to_native()) {
@@ -769,52 +767,63 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* Regexp::last_match(STATE, Arguments& args, CallFrame* call_frame) {
-    MatchData* match = try_as<MatchData>(call_frame->last_match(state));
-    if(!match) return cNil;
-
-    if(args.total() == 0) return match;
-    if(args.total() > 1) return Primitives::failure();
-
-    native_int which = as<Fixnum>(args.get_argument(0))->to_native();
-
-    if(which == 0) {
-      return match->matched_string(state);
-    } else {
-      return match->nth_capture(state, which - 1);
+  Object* Regexp::last_match(STATE) {
+    if(CallFrame* frame = state->vm()->get_variables_frame()) {
+      return frame->scope->last_match(state);
     }
+
+    return cNil;
   }
 
-  Object* Regexp::set_last_match(STATE, Object* obj, CallFrame* call_frame) {
+  Object* Regexp::last_match(STATE, Arguments& args) {
+    if(MatchData* match = try_as<MatchData>(last_match(state))) {
+      if(args.total() == 0) return match;
+      if(args.total() > 1) return Primitives::failure();
+
+      native_int which = as<Fixnum>(args.get_argument(0))->to_native();
+
+      if(which == 0) {
+        return match->matched_string(state);
+      } else {
+        return match->nth_capture(state, which - 1);
+      }
+    }
+
+    return cNil;
+  }
+
+  Object* Regexp::set_last_match(STATE, Object* obj) {
     if(!obj->nil_p() && !kind_of<MatchData>(obj)) {
       return Primitives::failure();
     }
 
-    if(CallFrame* parent = call_frame->previous) {
-      parent->set_last_match(state, obj);
+    if(CallFrame* frame = state->vm()->get_variables_frame(1)) {
+      frame->scope->set_last_match(state, obj);
     }
 
     return obj;
   }
 
-  Object* Regexp::propagate_last_match(STATE, CallFrame* call_frame) {
-    Object* obj = call_frame->last_match(state);
-    Regexp::set_last_match(state, obj, call_frame);
+  Object* Regexp::propagate_last_match(STATE) {
+    Object* obj = last_match(state);
+    Regexp::set_last_match(state, obj);
     return obj;
   }
 
-  Object* Regexp::set_block_last_match(STATE, CallFrame* call_frame) {
-    Object* blk = call_frame->scope->block();
-    MatchData* match = try_as<MatchData>(call_frame->last_match(state));
-    if(!match) return cNil;
+  Object* Regexp::set_block_last_match(STATE) {
+    Object* blk = state->vm()->get_variables_frame()->scope->block();
 
-    if(BlockEnvironment* env = try_as<BlockEnvironment>(blk)) {
-      env->top_scope()->last_match(state, match);
-    } else if(Proc* proc = try_as<Proc>(blk)) {
-      proc->block()->top_scope()->last_match(state, match);
+    if(MatchData* match = try_as<MatchData>(last_match(state))) {
+      if(BlockEnvironment* env = try_as<BlockEnvironment>(blk)) {
+        env->top_scope()->last_match(state, match);
+      } else if(Proc* proc = try_as<Proc>(blk)) {
+        proc->block()->top_scope()->last_match(state, match);
+      }
+
+      return match;
     }
 
-    return match;
+    return cNil;
   }
 
   void Regexp::Info::mark(Object* obj, memory::ObjectMark& mark) {

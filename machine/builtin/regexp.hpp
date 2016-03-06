@@ -129,19 +129,21 @@ namespace rubinius {
     static Regexp* allocate(STATE, Object* self);
 
     // Rubinius.primitive :regexp_last_match_result
-    static Object* last_match_result(STATE, Fixnum* mode, Fixnum* which, CallFrame* calling_environment);
+    static Object* last_match_result(STATE, Fixnum* mode, Fixnum* which);
+
+    static Object* last_match(STATE);
 
     // Rubinius.primitive :regexp_last_match
-    static Object* last_match(STATE, Arguments& args, CallFrame* calling_environment);
+    static Object* last_match(STATE, Arguments& args);
 
     // Rubinius.primitive :regexp_set_last_match
-    static Object* set_last_match(STATE, Object* obj, CallFrame* calling_environment);
+    static Object* set_last_match(STATE, Object* obj);
 
     // Rubinius.primitive :regexp_propagate_last_match
-    static Object* propagate_last_match(STATE, CallFrame* calling_environment);
+    static Object* propagate_last_match(STATE);
 
     // Rubinius.primitive :regexp_set_block_last_match
-    static Object* set_block_last_match(STATE, CallFrame* calling_environment);
+    static Object* set_block_last_match(STATE);
 
     // Rubinius.primitive+ :regexp_encoding
     Encoding* encoding(STATE);

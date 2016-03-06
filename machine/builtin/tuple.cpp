@@ -31,7 +31,7 @@ namespace rubinius {
     msg << method;
     msg << ": index " << index << " out of bounds for size " << num_fields();
 
-    Exception::object_bounds_exceeded_error(state, msg.str().c_str());
+    Exception::raise_object_bounds_exceeded_error(state, msg.str().c_str());
     return 0;
   }
 
@@ -66,7 +66,7 @@ namespace rubinius {
 
   Tuple* Tuple::create(STATE, native_int fields) {
     if(fields < 0) {
-      Exception::argument_error(state, "negative tuple size");
+      Exception::raise_argument_error(state, "negative tuple size");
     }
 
     Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), fields);
@@ -79,7 +79,7 @@ namespace rubinius {
     native_int size = fields->to_native();
 
     if(size < 0) {
-      Exception::argument_error(state, "negative tuple size");
+      Exception::raise_argument_error(state, "negative tuple size");
     }
 
     Tuple* tuple = create(state, fields->to_native());
@@ -270,7 +270,7 @@ namespace rubinius {
     native_int cnt = size->to_native();
 
     if(cnt < 0) {
-      Exception::argument_error(state, "negative tuple size");
+      Exception::raise_argument_error(state, "negative tuple size");
     }
 
     Tuple* tuple = state->memory()->new_fields<Tuple>(state, G(tuple), cnt);

@@ -57,34 +57,34 @@ namespace rubinius {
     return pe;
   }
 
-  Object* CallUnit::constant_value_executor(STATE, CallFrame* call_frame,
+  Object* CallUnit::constant_value_executor(STATE,
       CallUnit* unit, Executable* exec, Module* mod, Arguments& args)
   {
     return unit->value();
   }
 
-  Object* CallUnit::method_executor(STATE, CallFrame* call_frame,
+  Object* CallUnit::method_executor(STATE,
       CallUnit* unit, Executable* exec, Module* mod, Arguments& args)
   {
     args.set_name(unit->name());
-    return unit->executable()->execute(state, call_frame,
+    return unit->executable()->execute(state,
                                  unit->executable(), unit->module(), args);
   }
 
-  Object* CallUnit::test_executor(STATE, CallFrame* call_frame,
+  Object* CallUnit::test_executor(STATE,
       CallUnit* unit, Executable* exec, Module* mod, Arguments& args)
   {
     Object* ret = unit->test_condition()->execute(
-             state, call_frame, unit->test_condition(), exec, mod, args);
+             state, unit->test_condition(), exec, mod, args);
     if(!ret) return ret;
     if(CBOOL(ret)) {
-      return unit->test_then()->execute(state, call_frame, unit->test_then(), exec, mod, args);
+      return unit->test_then()->execute(state, unit->test_then(), exec, mod, args);
     } else {
-      return unit->test_else()->execute(state, call_frame, unit->test_else(), exec, mod, args);
+      return unit->test_else()->execute(state, unit->test_else(), exec, mod, args);
     }
   }
 
-  Object* CallUnit::kind_of_executor(STATE, CallFrame* call_frame,
+  Object* CallUnit::kind_of_executor(STATE,
       CallUnit* unit, Executable* exec, Module* mod, Arguments& args)
   {
     Object* obj;

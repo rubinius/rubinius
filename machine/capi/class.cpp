@@ -190,7 +190,7 @@ extern "C" {
       OnStack<3> os(env->state(), module, superclass, constant);
 
       opened_class = rubinius::Helpers::open_class(env->state(),
-          env->current_call_frame(), module, superclass, constant, &created);
+          module, superclass, constant, &created);
     }
 
     // The call above could have triggered an Autoload resolve, which may

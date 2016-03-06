@@ -88,10 +88,10 @@ namespace rubinius {
     static Executable* allocate(STATE, Object* self);
 
     static void bootstrap(STATE);
-    static Object* default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    static Object* default_executor(STATE, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :executable_invoke
-    Object* invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* args, Object* block, CallFrame* calling_environment);
+    Object* invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* args, Object* block);
 
     // Rubinius.primitive :executable_set_custom_call_site
     Object* set_custom_call_site(STATE) {

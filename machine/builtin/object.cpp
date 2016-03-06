@@ -56,7 +56,7 @@ namespace rubinius {
       }
 
       if(mod->nil_p()) {
-        Exception::assertion_error(state, "Object::class_object() failed to find a class");
+        Exception::raise_assertion_error(state, "Object::class_object() failed to find a class");
       }
       return as<Class>(mod);
     }
@@ -73,7 +73,7 @@ namespace rubinius {
     return other->copy_object(state, this);
   }
 
-  Object* Object::copy_singleton_class(STATE, Object* other, CallFrame* calling_environment) {
+  Object* Object::copy_singleton_class(STATE, Object* other) {
     if(SingletonClass* sc = try_as<SingletonClass>(other->klass())) {
       MethodTable* source_methods = 0;
       ConstantTable* source_constants = 0;
@@ -96,12 +96,12 @@ namespace rubinius {
     return this;
   }
 
-  Object* Object::copy_object_prim(STATE, Object* other, CallFrame* call_frame) {
+  Object* Object::copy_object_prim(STATE, Object* other) {
     if(!reference_p() || !other->reference_p() || type_id() != other->type_id() ||
         class_object(state) != other->class_object(state)) {
       Exception* exc =
         Exception::make_type_error(state, type_id(), other);
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state, state->vm()->call_frame()));
       state->raise_exception(exc);
       return NULL;
     }
@@ -199,10 +199,10 @@ namespace rubinius {
 
   void Object::check_frozen(STATE) {
     if(CBOOL(frozen_p(state)) && CBOOL(frozen_mod_disallowed(state))) {
-      Exception::frozen_error(state, this);
+      Exception::raise_frozen_error(state, this);
     }
   }
-  
+
   Object* Object::frozen_mod_disallowed(STATE) {
 	  if(this->nil_p() || this->true_p() || this->false_p()) {
 	    return cFalse;
@@ -544,7 +544,7 @@ namespace rubinius {
     return dispatch.send(state, caller, lookup, args);
   }
 
-  Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec,
+  Object* Object::send_prim(STATE, Executable* exec,
       Module* mod, Arguments& args, Symbol* min_visibility)
   {
     if(args.total() < 1) return Primitives::failure();
@@ -578,7 +578,8 @@ namespace rubinius {
     // for protected.
     Dispatch dispatch(sym);
     Object* scope = this;
-    if(!call_frame->native_method_p()) {
+    CallFrame* call_frame = state->vm()->call_frame();
+    if(call_frame && !call_frame->native_method_p()) {
       scope = call_frame->self();
     }
     LookupData lookup(scope, lookup_begin(state), min_visibility);
@@ -586,16 +587,16 @@ namespace rubinius {
     return dispatch.send(state, call_frame, lookup, args);
   }
 
-  Object* Object::private_send_prim(STATE, CallFrame* call_frame,
+  Object* Object::private_send_prim(STATE,
       Executable* exec, Module* mod, Arguments& args)
   {
-    return send_prim(state, call_frame, exec, mod, args, G(sym_private));
+    return send_prim(state, exec, mod, args, G(sym_private));
   }
 
-  Object* Object::public_send_prim(STATE, CallFrame* call_frame,
+  Object* Object::public_send_prim(STATE,
       Executable* exec, Module* mod, Arguments& args)
   {
-    return send_prim(state, call_frame, exec, mod, args, G(sym_public));
+    return send_prim(state, exec, mod, args, G(sym_public));
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {
@@ -873,8 +874,7 @@ namespace rubinius {
     return this;
   }
 
-  Object* Object::respond_to(STATE, Symbol* name, Object* priv,
-      CallFrame* calling_environment)
+  Object* Object::respond_to_prim(STATE, Symbol* name, Object* priv)
   {
     Object* self = this;
     OnStack<1> os(state, self);
@@ -932,9 +932,9 @@ namespace rubinius {
     }
   }
 
-  void Object::setup_allocation_site(STATE, CallFrame* call_frame) {
+  void Object::setup_allocation_site(STATE) {
     this->set_ivar(state, G(sym_allocation_site),
-                   Location::create(state, call_frame));
+                   Location::create(state, state->vm()->call_frame()));
   }
 
 }

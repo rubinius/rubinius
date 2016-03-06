@@ -40,16 +40,16 @@ namespace rubinius {
   }
 
   Object* Executable::invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* ary,
-                             Object* block, CallFrame* call_frame)
+                             Object* block)
   {
     Arguments args(name, recv, 0, 0);
     args.use_array(ary);
     args.set_block(block);
 
-    return execute(state, call_frame, this, mod, args);
+    return execute(state, this, mod, args);
   }
 
-  Object* Executable::default_executor(STATE, CallFrame* call_frame,
+  Object* Executable::default_executor(STATE,
       Executable* exec, Module* mod, Arguments& args)
   {
     args.unshift2(state, args.recv(), args.name());
@@ -57,7 +57,7 @@ namespace rubinius {
 
     Dispatch dispatch(G(sym_call));
 
-    return dispatch.send(state, call_frame, args);
+    return dispatch.send(state, state->vm()->call_frame(), args);
   }
 
   void Executable::add_inliner(STATE, Memory* om, CompiledCode* code) {

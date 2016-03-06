@@ -54,7 +54,7 @@
 
 namespace rubinius {
   void Memory::memory_error(STATE) {
-    Exception::memory_error(state);
+    Exception::raise_memory_error(state);
   }
 
   Object* object_watch = 0;
@@ -167,7 +167,7 @@ namespace rubinius {
     return true;
   }
 
-  LockStatus Memory::contend_for_lock(STATE, CallFrame* call_frame,
+  LockStatus Memory::contend_for_lock(STATE,
                                             ObjectHeader* obj, size_t us, bool interrupt)
   {
     bool timed = false;
@@ -290,13 +290,13 @@ step1:
     InflatedHeader* ih = obj->inflated_header(state);
 
     if(timed) {
-      return ih->lock_mutex_timed(state, call_frame, obj, &ts, interrupt);
+      return ih->lock_mutex_timed(state, obj, &ts, interrupt);
     } else {
-      return ih->lock_mutex(state, call_frame, obj, 0, interrupt);
+      return ih->lock_mutex(state, obj, 0, interrupt);
     }
   }
 
-  void Memory::release_contention(STATE, CallFrame* call_frame) {
+  void Memory::release_contention(STATE) {
     MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
     contention_var_.broadcast();
   }
@@ -790,7 +790,7 @@ step1:
       return obj;
     }
 
-    Exception::memory_error(state);
+    Exception::raise_memory_error(state);
     return NULL;
   }
 

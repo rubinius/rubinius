@@ -46,7 +46,7 @@ namespace rubinius {
 
     return fib;
 #else
-    return nil<Fiber>();
+    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
 #endif
   }
 
@@ -112,11 +112,11 @@ namespace rubinius {
 
     return fib;
 #else
-    return static_cast<Fiber*>(Primitives::failure());
+    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
 #endif
   }
 
-  Object* Fiber::resume(STATE, Arguments& args, CallFrame* calling_environment) {
+  Object* Fiber::resume(STATE, Arguments& args) {
 #ifdef RBX_FIBER_ENABLED
     if(!data_) {
       data_ = state->vm()->new_fiber_data();
@@ -170,11 +170,11 @@ namespace rubinius {
     default: return ret;
     }
 #else
-    return Primitives::failure();
+    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
 #endif
   }
 
-  Object* Fiber::transfer(STATE, Arguments& args, CallFrame* calling_environment) {
+  Object* Fiber::transfer(STATE, Arguments& args) {
 #ifdef RBX_FIBER_ENABLED
     if(!data_) {
       data_ = state->vm()->new_fiber_data();
@@ -227,11 +227,11 @@ namespace rubinius {
     default: return ret;
     }
 #else
-    return Primitives::failure();
+    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
 #endif
   }
 
-  Object* Fiber::s_yield(STATE, Arguments& args, CallFrame* calling_environment) {
+  Object* Fiber::s_yield(STATE, Arguments& args) {
 #ifdef RBX_FIBER_ENABLED
     Fiber* cur = Fiber::current(state);
     Fiber* dest_fib = cur->prev();
@@ -271,7 +271,7 @@ namespace rubinius {
     default: return ret;
     }
 #else
-    return Primitives::failure();
+    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
 #endif
   }
 

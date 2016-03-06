@@ -19,8 +19,7 @@ namespace rubinius {
     return state->memory()->new_object<Location>(state, as<Class>(self));
   }
 
-  Location* Location::create(STATE, CallFrame* call_frame,
-                             bool include_variables)
+  Location* Location::create(STATE, CallFrame* call_frame, bool include_variables)
   {
     if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
       return create(state, nmf);
@@ -60,11 +59,12 @@ namespace rubinius {
     return loc;
   }
 
-  Location* Location::of_closest_ruby_method(STATE, CallFrame* calling_environment) {
-    CallFrame* dest = calling_environment->previous;
-    // Skip any frames for native methods
-    while(dest->native_method_p()) { dest = dest->previous; }
-    return Location::create(state, dest, false);
+  Location* Location::of_closest_ruby_method(STATE) {
+    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+      return Location::create(state, frame, false);
+    }
+
+    return nil<Location>();
   }
 
   Location* Location::create(STATE, NativeMethodFrame* nmf) {
@@ -86,83 +86,82 @@ namespace rubinius {
     return loc;
   }
 
-  Array* Location::from_call_stack(STATE, CallFrame* call_frame,
-                                   bool include_vars, bool on_ip)
-  {
+  Array* Location::from_call_stack(STATE, bool include_vars, bool on_ip, size_t up) {
+    CallFrame* frame = state->vm()->call_frame();
+
+    while(frame && up-- > 0) {
+      frame = frame->previous;
+    }
+
+    if(!frame) return nil<Array>();
+
     size_t count = 0;
 
-    CallFrame* c = call_frame;
-    while(c) {
-      if(c->compiled_code) count++;
-      c = c->previous;
+    CallFrame* base = frame;
+    while(base) {
+      count++;
+      base = base->previous;
     }
 
-    Array* bt = 0;
-    Location* loc = 0;
-    OnStack<2> os(state, bt, loc);
+    Array* array = Array::create(state, count);
+    bool first = true;
 
-    bt = Array::create(state, count);
+    while(frame) {
+      if(first) {
+        if(!frame->compiled_code) continue;
 
-    // Initial edge.
-    if(!call_frame) return bt;
-
-    // First the first normal frame
-    while(!call_frame->compiled_code) {
-      call_frame = call_frame->previous;
-      // Weird edge case.
-      if(!call_frame) return bt;
-    }
-
-    loc = Location::create(state, call_frame, include_vars);
-    if(on_ip) loc->set_ip_on_current(state);
-
-    bt->append(state, loc);
-
-    call_frame = call_frame->previous;
-
-    while(call_frame) {
-      // Ignore synthetic frames
-      if(call_frame->compiled_code) {
-        bt->append(state, Location::create(state, call_frame, include_vars));
-      } else if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
-        loc = Location::create(state, nmf);
-        if(loc) bt->append(state, loc);
+        first = false;
+        if(Location* location = Location::create(state, frame, include_vars)) {
+          if(on_ip) location->set_ip_on_current(state);
+          array->append(state, location);
+        }
+      } else {
+        if(frame->compiled_code) {
+          array->append(state, Location::create(state, frame, include_vars));
+        } else if(NativeMethodFrame* nmf = frame->native_method_frame()) {
+          if(Location* location = Location::create(state, nmf)) {
+            array->append(state, location);
+          }
+        }
       }
 
-      call_frame = call_frame->previous;
+      frame = frame->previous;
     }
 
-    return bt;
+    return array;
   }
 
-  Array* Location::mri_backtrace(STATE, CallFrame* call_frame) {
-    Array* bt = 0;
-    OnStack<1> os(state, bt);
+  Array* Location::mri_backtrace(STATE, size_t up) {
+    CallFrame* frame = state->vm()->call_frame();
+
+    while(frame && up-- > 0) {
+      frame = frame->previous;
+    }
+
+    if(!frame) return nil<Array>();
 
     size_t count = 0;
 
-    CallFrame* c = call_frame;
-    while(c) {
-      if(c->compiled_code) count++;
-      c = c->previous;
+    CallFrame* base = frame;
+    while(base) {
+      count++;
+      base = base->previous;
     }
 
-    bt = Array::create(state, count);
+    Array* array = Array::create(state, count);
 
-    while(call_frame) {
-      // Ignore synthetic frames
-      if(call_frame->compiled_code &&
-         !call_frame->compiled_code->core_method(state)) {
+    while(frame) {
+      if(frame->compiled_code && !frame->compiled_code->core_method(state)) {
         Symbol* name;
         Object* block = cFalse;
-        Fixnum* line = Fixnum::from(call_frame->line(state));
+        Fixnum* line = Fixnum::from(frame->line(state));
 
-        if(call_frame->block_p()) {
+        if(frame->block_p()) {
           block = cTrue;
-          name = call_frame->top_scope(state)->method()->name();
+          name = frame->top_scope(state)->method()->name();
         } else {
-          Symbol* current_name = call_frame->name();
-          Symbol* method_name  = call_frame->compiled_code->name();
+          Symbol* current_name = frame->name();
+          Symbol* method_name  = frame->compiled_code->name();
 
           if(current_name->nil_p()) {
             if(method_name->nil_p()) {
@@ -175,13 +174,13 @@ namespace rubinius {
           }
         }
 
-        bt->append(state,
-            Tuple::from(state, 4, call_frame->compiled_code, line, block, name));
+        array->append(state,
+            Tuple::from(state, 4, frame->compiled_code, line, block, name));
       }
 
-      call_frame = call_frame->previous;
+      frame = frame->previous;
     }
 
-    return bt;
+    return array;
   }
 }

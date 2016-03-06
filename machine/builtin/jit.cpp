@@ -25,7 +25,7 @@ namespace rubinius {
   }
 
   Object* JIT::compile(STATE, Object* object, CompiledCode* code,
-                       Object* block_environment, CallFrame* call_frame)
+                       Object* block_environment)
   {
 #ifndef ENABLE_LLVM
     return cFalse;
@@ -36,7 +36,7 @@ namespace rubinius {
     if(!block_env) block_env = nil<BlockEnvironment>();
 
     LLVMState* ls = state->shared().llvm_state;
-    ls->compile(state, code, call_frame, object->direct_class(state),
+    ls->compile(state, code, object->direct_class(state),
         block_env, !block_env->nil_p());
 
     return cTrue;
@@ -67,27 +67,27 @@ namespace rubinius {
     return cTrue;
   }
 
-  Object* JIT::compile_soon(STATE, CompiledCode* code, CallFrame* call_frame,
+  Object* JIT::compile_soon(STATE, CompiledCode* code,
       Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
     if(!CBOOL(enabled())) return cFalse;
 
 #ifdef ENABLE_LLVM
     LLVMState* ls = state->shared().llvm_state;
-    ls->compile_soon(state, code, call_frame, receiver_class, block_env, is_block);
+    ls->compile_soon(state, code, receiver_class, block_env, is_block);
 #endif
 
     return cTrue;
   }
 
-  Object* JIT::compile_callframe(STATE, CompiledCode* code, CallFrame* call_frame,
+  Object* JIT::compile_callframe(STATE, CompiledCode* code,
       int primitive)
   {
     if(!CBOOL(enabled())) return cFalse;
 
 #ifdef ENABLE_LLVM
     LLVMState* ls = state->shared().llvm_state;
-    ls->compile_callframe(state, code, call_frame, primitive);
+    ls->compile_callframe(state, code, primitive);
 #endif
 
     return cTrue;

@@ -42,7 +42,6 @@ namespace rubinius {
 
     thread->run(state);
 
-    vm->set_call_frame(0);
     thread->thread_running_ = false;
 
     NativeMethod::cleanup_thread(state);

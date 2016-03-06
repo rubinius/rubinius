@@ -28,23 +28,21 @@ class TestChannel : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_send_queues_values() {
-    CallFrame cf;
-    chan->send(state, cTrue, &cf);
+    chan->send(state, cTrue);
     TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 1U);
-    chan->send(state, cTrue, &cf);
+    chan->send(state, cTrue);
     TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 2U);
   }
 
   void test_send_then_receive() {
-    CallFrame cf;
-    chan->send(state, cTrue, &cf);
+    chan->send(state, cTrue);
 
     TS_ASSERT(kind_of<List>(chan->value()));
     List* lst = as<List>(chan->value());
     TS_ASSERT_EQUALS(lst->size(), 1U);
     TS_ASSERT_EQUALS(lst->locate(state, 0), cTrue);
 
-    Object* obj = chan->receive(state, &cf);
+    Object* obj = chan->receive(state);
     TS_ASSERT_EQUALS(obj, cTrue);
     TS_ASSERT_EQUALS(lst->size(), 0U);
   }

@@ -206,7 +206,6 @@ namespace rubinius {
       // TODO: block fork(), exec() on signal handler thread
       if(signal > 0) {
         ManagedPhase managed(state);
-        vm()->set_call_frame(0);
 
         vm()->metrics().system.signals_processed++;
 
@@ -237,8 +236,6 @@ namespace rubinius {
         if(queue_index_ != process_index_) continue;
         condition_.wait(lock_);
       }
-
-      vm()->set_call_frame(0);
     }
 
     state->shared().env()->halt(state, exit_code_);
@@ -309,11 +306,15 @@ namespace rubinius {
       VM* vm = (*i)->as_vm();
       if(!vm) continue;
 
-      if(vm->last_frame()) {
-        utilities::logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
-      }
+      bool first = true;
+      CallFrame* frame = vm->call_frame();
 
-      for(CallFrame* frame = vm->last_frame(); frame; frame = frame->previous) {
+      while(frame) {
+        if(first) {
+          utilities::logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
+          first = false;
+        }
+
         std::ostringstream stream;
 
         if(NativeMethodFrame* nmf = frame->native_method_frame()) {
@@ -388,6 +389,8 @@ namespace rubinius {
         }
 
         utilities::logger::fatal(stream.str().c_str());
+
+        frame = frame->previous;
       }
     }
   }

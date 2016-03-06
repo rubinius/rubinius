@@ -128,7 +128,7 @@ namespace rubinius {
     // Rubinius.primitive :compiledcode_allocate
     static CompiledCode* allocate(STATE, Object* self);
 
-    static Object* primitive_failed(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    static Object* primitive_failed(STATE, Executable* exec, Module* mod, Arguments& args);
 
     int start_line(STATE);
     int start_line();
@@ -137,14 +137,14 @@ namespace rubinius {
 
     void post_marshal(STATE);
     size_t number_of_locals();
-    MachineCode* internalize(STATE, CallFrame* call_frame, const char** failure_reason=0, int* ip=0);
+    MachineCode* internalize(STATE, const char** failure_reason=0, int* ip=0);
     void specialize(STATE, TypeInfo* ti);
 
-    static Object* default_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
-    static Object* specialized_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
+    static Object* default_executor(STATE, Executable* exec, Module* mod, Arguments& args);
+    static Object* specialized_executor(STATE, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :compiledcode_set_breakpoint
-    Object* set_breakpoint(STATE, Fixnum* ip, Object* bp, CallFrame* calling_environment);
+    Object* set_breakpoint(STATE, Fixnum* ip, Object* bp);
 
     // Rubinius.primitive :compiledcode_clear_breakpoint
     Object* clear_breakpoint(STATE, Fixnum* ip);
@@ -153,19 +153,19 @@ namespace rubinius {
     Object* is_breakpoint(STATE, Fixnum* ip);
 
     // Rubinius.primitive+ :compiledcode_of_sender
-    static CompiledCode* of_sender(STATE, CallFrame* calling_environment);
+    static CompiledCode* of_sender(STATE);
 
     // Rubinius.primitive+ :compiledcode_current
-    static CompiledCode* current(STATE, CallFrame* calling_environment);
+    static CompiledCode* current(STATE);
 
     // Rubinius.primitive :compiledcode_dup
     CompiledCode* dup(STATE);
 
     // Rubinius.primitive :compiledcode_call_sites
-    Tuple* call_sites(STATE, CallFrame* calling_environment);
+    Tuple* call_sites(STATE);
 
     // Rubinius.primitive :compiledcode_constant_caches
-    Tuple* constant_caches(STATE, CallFrame* calling_environment);
+    Tuple* constant_caches(STATE);
 
     // Rubinius.primitive :compiledcode_jitted_p
     Object* jitted_p(STATE);

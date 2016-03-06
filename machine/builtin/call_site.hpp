@@ -11,8 +11,8 @@ namespace rubinius {
 
   class Dispatch;
 
-  typedef Object* (CacheExecuteFunc)(STATE, CallSite*, CallFrame*, Arguments&);
-  typedef Object* (FallbackExecuteFunc)(STATE, CallSite*, CallFrame*, Arguments&);
+  typedef Object* (CacheExecuteFunc)(STATE, CallSite*, Arguments&);
+  typedef Object* (FallbackExecuteFunc)(STATE, CallSite*, Arguments&);
   typedef void (CacheUpdateFunc)(STATE, CallSite*, Class*, Dispatch&);
 
   typedef CacheExecuteFunc* CacheExecutor;
@@ -77,7 +77,7 @@ namespace rubinius {
       return type_id() == MonoInlineCacheType || type_id() == PolyInlineCacheType;
     }
 
-    bool update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial);
+    bool update_and_validate(STATE, Object* recv, Symbol* vis, int serial);
 
     void set_is_private() {
       executor_ = empty_cache_private;
@@ -112,14 +112,14 @@ namespace rubinius {
       }
     }
 
-    static bool lookup_method_missing(STATE, CallFrame* call_frame, Arguments& args, Dispatch& dis, Object* self, Module* begin);
+    static bool lookup_method_missing(STATE, Arguments& args, Dispatch& dis, Object* self, Module* begin);
 
-    Object* execute(STATE, CallFrame* call_frame, Arguments& args) {
-      return (*executor_)(state, this, call_frame, args);
+    Object* execute(STATE, Arguments& args) {
+      return (*executor_)(state, this, args);
     }
 
-    Object* fallback(STATE, CallFrame* call_frame, Arguments& args) {
-      return (*fallback_)(state, this, call_frame, args);
+    Object* fallback(STATE, Arguments& args) {
+      return (*fallback_)(state, this, args);
     }
 
     void update(STATE, Class* klass, Dispatch& dispatch) {

@@ -10,8 +10,6 @@
 #include "builtin/object.hpp"
 #include "builtin/randomizer.hpp"
 
-#define THREAD_STACK_SIZE 4194304
-
 namespace rubinius {
   class Array;
 
@@ -118,7 +116,7 @@ namespace rubinius {
      *  @see  kernel/thread.rb
      */
     // Rubinius.primitive :thread_allocate
-    static Thread* allocate(STATE, Object* self, CallFrame* calling_environment);
+    static Thread* allocate(STATE, Object* self);
 
     /**
      *  Returns the Thread object for the state.
@@ -132,7 +130,7 @@ namespace rubinius {
      *  Attempt to schedule some other Thread.
      */
     // Rubinius.primitive+ :thread_pass
-    static Object* pass(STATE, CallFrame* calling_environment);
+    static Object* pass(STATE);
 
     /**
      *   List all live threads.
@@ -178,7 +176,7 @@ namespace rubinius {
      *  Process an exception raised for this Thread.
      */
     // Rubinius.primitive :thread_raise
-    Object* raise(STATE, Exception* exc, CallFrame* calling_environment);
+    Object* raise(STATE, Exception* exc);
 
     // Rubinius.primitive :thread_set_exception
     Object* set_exception(STATE, Exception* exc);
@@ -193,7 +191,7 @@ namespace rubinius {
      *  Kill this Thread.
      */
     // Rubinius.primitive :thread_kill
-    Object* kill(STATE, CallFrame* calling_environment);
+    Object* kill(STATE);
 
     /**
      *  Set the priority for this Thread.
@@ -213,19 +211,19 @@ namespace rubinius {
      *  is queued to be run, although not necessarily immediately.
      */
     // Rubinius.primitive :thread_wakeup
-    Thread* wakeup(STATE, CallFrame* calling_environment);
+    Thread* wakeup(STATE);
 
     // Rubinius.primitive :thread_context
     Tuple* context(STATE);
 
     // Rubinius.primitive :thread_mri_backtrace
-    Array* mri_backtrace(STATE, CallFrame* calling_environment);
+    Array* mri_backtrace(STATE);
 
     // Rubinius.primitive :thread_join
-    Thread* join(STATE, Object* timeout, CallFrame* calling_environment);
+    Thread* join(STATE, Object* timeout);
 
     // Rubinius.primitive :thread_unlock_locks
-    Object* unlock_locks(STATE, CallFrame* calling_environment);
+    Object* unlock_locks(STATE);
 
     // This method must only be called after fork() with only one active
     // thread.

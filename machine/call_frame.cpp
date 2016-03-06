@@ -15,36 +15,6 @@
 #include <iostream>
 
 namespace rubinius {
-  Object* CallFrame::last_match(STATE) {
-    CallFrame* use = this->top_ruby_frame();;
-
-    while(use && use->is_inline_block()) {
-      CallFrame* yielder = use->previous;
-      if(!yielder) return cNil;
-      // This works because the creator is always one above
-      // the yielder with inline blocks.
-      use = yielder->previous;
-    }
-
-    if(!use) return cNil;
-    return use->scope->last_match(state);
-  }
-
-  void CallFrame::set_last_match(STATE, Object* obj) {
-    CallFrame* use = this->top_ruby_frame();
-
-    while(use && use->is_inline_block()) {
-      CallFrame* yielder = use->previous;
-      if(!yielder) return;
-      // This works because the creator is always one above
-      // the yielder with inline blocks.
-      use = yielder->previous;
-    }
-
-    if(!use) return;
-    use->scope->set_last_match(state, obj);
-  }
-
   VariableScope* CallFrame::promote_scope_full(STATE) {
     return scope->create_heap_alias(state, this, !has_closed_scope_p());
   }
@@ -171,7 +141,6 @@ namespace rubinius {
       stream << std::endl;
       cf = cf->previous;
     }
-
   }
 
   Symbol* CallFrame::file(STATE) {
@@ -185,17 +154,6 @@ namespace rubinius {
   int CallFrame::line(STATE) {
     if(!compiled_code) return -2;        // trampoline context
     return compiled_code->line(state, ip());
-  }
-
-  // Walks the CallFrame list to see if +scope+ is still running
-  bool CallFrame::scope_still_valid(VariableScope* scope) {
-    CallFrame* cur = this;
-    while(cur) {
-      if(cur->scope && cur->scope->on_heap() == scope) return true;
-      cur = cur->previous;
-    }
-
-    return false;
   }
 
   void CallFrame::jit_fixup(STATE, CallFrame* creator) {
@@ -250,9 +208,9 @@ namespace rubinius {
 
   /* For debugging. */
   extern "C" {
-    void __printbt__(CallFrame* call_frame) {
+    void __printbt__() {
       State state(VM::current());
-      call_frame->print_backtrace(&state);
+      state.vm()->call_frame()->print_backtrace(&state);
     }
   }
 }

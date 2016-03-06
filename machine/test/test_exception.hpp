@@ -36,10 +36,10 @@ public:
   }
 
   void test_ruby_exception_argument_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::argument_error(state, 1, 2),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_argument_error(state, 1, 2),
         const RubyException &e,
         TS_ASSERT(Exception::argument_error_p(state, e.exception)));
-    TS_ASSERT_THROWS_ASSERT(Exception::argument_error(state, "failed"),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_argument_error(state, "failed"),
         const RubyException &e,
         TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
@@ -53,45 +53,45 @@ public:
   }
 
   void test_ruby_exception_float_domain_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::float_domain_error(state, "failed"),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_float_domain_error(state, "failed"),
         const RubyException &e,
         TS_ASSERT(Exception::float_domain_error_p(state, e.exception)));
   }
 
   void test_ruby_exception_zero_division_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::zero_division_error(state, "failed"),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_zero_division_error(state, "failed"),
         const RubyException &e,
         TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_ruby_exception_assertion_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::assertion_error(state, "failed"),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_assertion_error(state, "failed"),
         const RubyException &e,
         TS_ASSERT(Exception::assertion_error_p(state, e.exception)));
   }
 
   void test_ruby_exception_object_bounds_exceeded_error() {
     TS_ASSERT_THROWS_ASSERT(
-        Exception::object_bounds_exceeded_error(state, G(object), 1U),
+        Exception::raise_object_bounds_exceeded_error(state, G(object), 1U),
         const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_ruby_exception_errno_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::errno_error(state, "failed", ENOENT),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_errno_error(state, "failed", ENOENT),
         const RubyException &e,
         TS_ASSERT(Exception::errno_error_p(state, e.exception)));
   }
 
   void test_ruby_exception_errno_error_sets_errno_ivar() {
-    TS_ASSERT_THROWS_ASSERT(Exception::errno_error(state, "failed", ENOENT),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_errno_error(state, "failed", ENOENT),
         const RubyException &e,
         TS_ASSERT_EQUALS(Fixnum::from(ENOENT),
                          e.exception->get_ivar(state, state->symbol("@errno"))));
   }
 
   void test_ruby_exception_errno_error_raises_system_call_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::errno_error(state, "failed", -1),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_errno_error(state, "failed", -1),
         const RubyException &e,
         TS_ASSERT(Exception::system_call_error_p(state, e.exception)));
   }
@@ -101,13 +101,13 @@ public:
   }
 
   void test_ruby_exception_io_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::io_error(state, "failed"),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_io_error(state, "failed"),
         const RubyException &e,
         TS_ASSERT(Exception::io_error_p(state, e.exception)));
   }
 
   void test_ruby_exception_runtime_error() {
-    TS_ASSERT_THROWS_ASSERT(Exception::runtime_error(state, "failed"),
+    TS_ASSERT_THROWS_ASSERT(Exception::raise_runtime_error(state, "failed"),
         const RubyException &e,
         TS_ASSERT(Exception::runtime_error_p(state, e.exception)));
   }

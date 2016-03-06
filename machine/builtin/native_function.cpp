@@ -65,41 +65,38 @@ namespace rubinius {
 
   /* Run when a NativeFunction is executed.  Executes the related C function.
    */
-  Object* NativeFunction::execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                                  Arguments& args) {
+  Object* NativeFunction::execute(STATE, Executable* exec, Module* mod, Arguments& args) {
     NativeFunction* nfunc = as<NativeFunction>(exec);
-
-    state->vm()->set_call_frame(call_frame);
 
     try {
       OnStack<2> os(state, exec, mod);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::MethodEntry method(state, exec, mod, args);
-        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name(), call_frame);
-        Object* ret = nfunc->call(state, args, call_frame);
-        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
+        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name());
+        Object* ret = nfunc->call(state, args);
+        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name());
         return ret;
       } else {
-        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name(), call_frame);
-        Object* ret = nfunc->call(state, args, call_frame);
-        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
+        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name());
+        Object* ret = nfunc->call(state, args);
+        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name());
         return ret;
       }
 #else
-      RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name(), call_frame);
-      Object* ret = nfunc->call(state, args, call_frame);
-      RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
+      RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name());
+      Object* ret = nfunc->call(state, args);
+      RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name());
       return ret;
 #endif
 
     } catch(TypeError &e) {
       Exception* exc =
         Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
 
       state->raise_exception(exc);
-      RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
+      RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name());
       return NULL;
     }
   }
@@ -294,7 +291,7 @@ namespace rubinius {
             varargs = true;
           } else {
             XFREE(args_info);
-            Exception::argument_error(state, "Only last argument can be varargs");
+            Exception::raise_argument_error(state, "Only last argument can be varargs");
           }
         }
       }
@@ -309,7 +306,7 @@ namespace rubinius {
 
     if(ret_info.type == RBX_FFI_TYPE_VARARGS) {
       if(args_info) XFREE(args_info);
-      Exception::argument_error(state, "Return value can't be of varargs type");
+      Exception::raise_argument_error(state, "Return value can't be of varargs type");
     }
 
     NativeFunction* func = NativeFunction::create(state, name, arg_count);
@@ -405,8 +402,8 @@ namespace rubinius {
         Array* ary = Array::create(state, 1);
         ary->set(state, 0, Fixnum::from(*(int*)parameters[i]));
 
-        Object* result = stub->args_info[i].enum_obj->send(
-            state, env->current_call_frame(), state->symbol("symbol"), ary);
+        Object* result = stub->args_info[i].enum_obj->send(state,
+            env->current_call_frame(), state->symbol("symbol"), ary);
 
         if(!result) {
           utilities::logger::error("Exception raised by callback, ignoring");
@@ -591,7 +588,6 @@ namespace rubinius {
 
     if(destroy_vm) {
       NativeMethod::cleanup_thread(state);
-      state->vm()->set_call_frame(0);
       VM::discard(state, state->vm());
     }
   }
@@ -673,7 +669,7 @@ namespace rubinius {
     return Pointer::create(state, func->ffi_data->ep);
   }
 
-  Object* NativeFunction::call(STATE, Arguments& args, CallFrame* call_frame) {
+  Object* NativeFunction::call(STATE, Arguments& args) {
     Object* ret;
     Object* obj;
 
@@ -690,7 +686,7 @@ namespace rubinius {
       Exception* exc =
         Exception::make_argument_error(state, ffi_data->arg_count,
                                          args.total(), args.name());
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
 
       return NULL;
@@ -703,7 +699,7 @@ namespace rubinius {
       if((given_args - req_count) & 1) {
         Exception* exc = Exception::make_exception(state, G(exc_arg),
                "Unbalanced type / value tuples for varargs");
-        exc->locations(state, Location::from_call_stack(state, call_frame));
+        exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
         return NULL;
       }
@@ -766,7 +762,7 @@ namespace rubinius {
 
           Exception* exc =
              Exception::make_exception(state, G(exc_arg), msg.str().c_str());
-          exc->locations(state, Location::from_call_stack(state, call_frame));
+          exc->locations(state, Location::from_call_stack(state));
           state->raise_exception(exc);
           for(size_t i = 0; i < arg_count; i++) {
             if(heap_allocations[i]) {
@@ -926,7 +922,8 @@ namespace rubinius {
               heap_allocations[ffi_index] = data;
               *tmp = data;
             } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), cTrue))) {
-              Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
+              Object* o2 = obj->send(state,
+                  state->vm()->call_frame(), state->symbol("to_ptr"));
               if(!o2) {
                 for(size_t i = 0; i < arg_count; i++) {
                   if(heap_allocations[i]) {
@@ -957,7 +954,7 @@ namespace rubinius {
           ary->set(state, 0, obj);
 
           Object* val = arg_info->enum_obj->send(
-              state, call_frame, state->symbol("[]"), ary);
+              state, state->vm()->call_frame(), state->symbol("[]"), ary);
 
           if(!val) {
             for(size_t i = 0; i < arg_count; i++) {
@@ -1035,7 +1032,7 @@ namespace rubinius {
 
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
     CallFrame* saved_frame = env->current_call_frame();
-    env->set_current_call_frame(call_frame);
+    env->set_current_call_frame(state->vm()->call_frame());
 
     state->vm()->interrupt_with_signal();
     state->vm()->become_unmanaged();
@@ -1152,8 +1149,8 @@ namespace rubinius {
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, Integer::from(state, (native_int)result));
 
-      ret = ffi_data->ret_info.enum_obj->send(
-          state, call_frame, state->symbol("symbol"), ary);
+      ret = ffi_data->ret_info.enum_obj->send(state,
+          state->vm()->call_frame(), state->symbol("symbol"), ary);
       break;
     }
     case RBX_FFI_TYPE_CALLBACK: {

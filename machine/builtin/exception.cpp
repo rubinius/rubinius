@@ -75,25 +75,25 @@ namespace rubinius {
     return exc;
   }
 
-  Exception* Exception::make_lje(STATE, CallFrame* call_frame) {
+  Exception* Exception::make_lje(STATE) {
     Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     return exc;
   }
 
-  void Exception::internal_error(STATE, CallFrame* call_frame, const char* reason) {
+  void Exception::internal_error(STATE, const char* reason) {
     Exception* exc = Exception::make_exception(state, G(exc_vm_internal), reason);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
   }
 
-  void Exception::bytecode_error(STATE, CallFrame* call_frame,
+  void Exception::bytecode_error(STATE,
                                  CompiledCode* code, int ip, const char* reason)
   {
     Exception* exc = Exception::make_exception(state, G(exc_vm_bad_bytecode), reason);
     exc->set_ivar(state, state->symbol("@compiled_code"), code);
     exc->set_ivar(state, state->symbol("@ip"), Fixnum::from(ip));
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
   }
 
@@ -105,13 +105,13 @@ namespace rubinius {
     return Exception::make_exception(state, G(exc_rte), msg.str().c_str());
   }
 
-  void Exception::frozen_error(STATE, Object* obj) {
+  void Exception::raise_frozen_error(STATE, Object* obj) {
     RubyException::raise(Exception::make_frozen_exception(state, obj), true);
   }
 
-  void Exception::frozen_error(STATE, CallFrame* call_frame, Object* obj) {
+  void Exception::frozen_error(STATE, Object* obj) {
     Exception* exc = Exception::make_frozen_exception(state, obj);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
   }
 
@@ -133,27 +133,25 @@ namespace rubinius {
                           msg.str().c_str());
   }
 
-  void Exception::encoding_compatibility_error(STATE, Object* a, Object* b,
-                                               CallFrame* call_frame)
-  {
+  void Exception::encoding_compatibility_error(STATE, Object* a, Object* b) {
     Exception* exc = Exception::make_encoding_compatibility_error(state, a, b);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
   }
 
-  void Exception::encoding_compatibility_error(STATE, Object* a, Object* b) {
+  void Exception::raise_encoding_compatibility_error(STATE, Object* a, Object* b) {
     RubyException::raise(make_encoding_compatibility_error(state, a, b));
   }
 
-  void Exception::argument_error(STATE, int expected, int given) {
+  void Exception::raise_argument_error(STATE, int expected, int given) {
     std::ostringstream msg;
 
     msg << "given " << given << ", expected " << expected;
 
-    argument_error(state, msg.str().c_str());
+    raise_argument_error(state, msg.str().c_str());
   }
 
-  void Exception::argument_error(STATE, const char* reason) {
+  void Exception::raise_argument_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_argument_error(state), reason));
   }
 
@@ -179,15 +177,15 @@ namespace rubinius {
     return make_exception(state, get_type_error(state), msg.str().c_str());
   }
 
-  void Exception::regexp_error(STATE, const char* reason) {
+  void Exception::raise_regexp_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, G(exc_rex), reason));
   }
 
-  void Exception::type_error(STATE, const char* reason) {
+  void Exception::raise_type_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_type_error(state), reason));
   }
 
-  void Exception::type_error(STATE, object_type type, Object* object,
+  void Exception::raise_type_error(STATE, object_type type, Object* object,
                                    const char* reason) {
     // We code for TypeError being raised defensively, so it's ok, to raise it
     // since someone close by will catch it and propogate it back to ruby
@@ -195,51 +193,55 @@ namespace rubinius {
     throw TypeError(type, object, reason);
   }
 
-  void Exception::type_error(STATE, const char* reason, CallFrame* call_frame) {
+  void Exception::type_error(STATE, const char* reason) {
     Exception* exc = Exception::make_exception(state, G(exc_type), reason);
-    exc->locations(state, Location::from_call_stack(state, call_frame));
+    exc->locations(state, Location::from_call_stack(state));
     state->raise_exception(exc);
   }
 
-  void Exception::float_domain_error(STATE, const char* reason) {
+  void Exception::raise_float_domain_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_float_domain_error(state), reason));
   }
 
-  void Exception::range_error(STATE, const char* reason) {
+  void Exception::raise_range_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_range_error(state), reason));
   }
 
-  void Exception::zero_division_error(STATE, const char* reason) {
+  void Exception::raise_zero_division_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_zero_division_error(state), reason));
   }
 
-  void Exception::assertion_error(STATE, const char* reason) {
+  void Exception::raise_assertion_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_assertion_error(state), reason));
   }
 
-  void Exception::system_call_error(STATE, const char* reason) {
+  void Exception::raise_system_call_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_system_call_error(state), reason));
   }
 
-  void Exception::system_call_error(STATE, const std::string& reason) {
-    system_call_error(state, reason.c_str());
+  void Exception::raise_system_call_error(STATE, const std::string& reason) {
+    raise_system_call_error(state, reason.c_str());
   }
 
-  void Exception::thread_error(STATE, const char* reason) {
+  void Exception::raise_thread_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_thread_error(state), reason));
   }
 
-  void Exception::fiber_error(STATE, const char* reason) {
+  void Exception::raise_fiber_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_fiber_error(state), reason));
   }
 
-  void Exception::memory_error(STATE) {
+  void Exception::raise_memory_error(STATE) {
     char buf[RBX_STRERROR_BUFSIZE];
     char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
     RubyException::raise(make_exception(state, get_errno_error(state, Fixnum::from(errno)), err));
   }
 
-  void Exception::object_bounds_exceeded_error(STATE, Object* obj, int index) {
+  void Exception::raise_not_implemented_error(STATE, const char* feature) {
+    RubyException::raise(make_exception(state, get_not_implemented_error(state), feature));
+  }
+
+  void Exception::raise_object_bounds_exceeded_error(STATE, Object* obj, int index) {
     TypeInfo* info = state->vm()->find_type(obj->type_id()); // HACK use object
     std::ostringstream msg;
 
@@ -251,7 +253,7 @@ namespace rubinius {
                                         msg.str().c_str()));
   }
 
-  void Exception::object_bounds_exceeded_error(STATE, const char* reason) {
+  void Exception::raise_object_bounds_exceeded_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state,
           get_object_bounds_exceeded_error(state), reason));
   }
@@ -290,7 +292,7 @@ namespace rubinius {
     return make_errno_exception(state, exc_class, reason, loc);
   }
 
-  void Exception::errno_error(STATE, const char* reason, int ern, const char* entity) {
+  void Exception::raise_errno_error(STATE, const char* reason, int ern, const char* entity) {
     Exception* exc;
 
     if(ern == 0) ern = errno;
@@ -319,7 +321,7 @@ namespace rubinius {
     RubyException::raise(exc);
   }
 
-  void Exception::errno_wait_readable(STATE, int error) {
+  void Exception::raise_errno_wait_readable(STATE, int error) {
     Exception* exc;
     Class* exc_class;
 
@@ -342,7 +344,7 @@ namespace rubinius {
     RubyException::raise(exc);
   }
 
-  void Exception::errno_wait_writable(STATE, int error) {
+  void Exception::raise_errno_wait_writable(STATE, int error) {
     Exception* exc;
     Class* exc_class;
 
@@ -365,11 +367,11 @@ namespace rubinius {
     RubyException::raise(exc);
   }
 
-  void Exception::io_error(STATE, const char* reason) {
+  void Exception::raise_io_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_io_error(state), reason));
   }
 
-  void Exception::runtime_error(STATE, const char* reason) {
+  void Exception::raise_runtime_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_runtime_error(state), reason));
   }
 
@@ -459,6 +461,11 @@ namespace rubinius {
 
   Class* Exception::get_encoding_compatibility_error(STATE) {
     return as<Class>(G(encoding)->get_const(state, "CompatibilityError"));
+  }
+
+
+  Class* Exception::get_not_implemented_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "NotImplementedError"));
   }
 
   Class* Exception::get_errno_error(STATE, Fixnum* ern) {

@@ -24,7 +24,7 @@
 #include <list>
 
 namespace rubinius {
-  extern "C" Object* invoke_object_class(STATE, CallFrame* call_frame, Object** args, int arg_count);
+  extern "C" Object* invoke_object_class(STATE, Object** args, int arg_count);
 
 
   typedef std::list<llvm::BasicBlock*> EHandlers;

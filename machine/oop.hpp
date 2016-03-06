@@ -268,14 +268,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool update(STATE, HeaderWord header);
     void initialize_mutex(int thread_id, int count);
-    LockStatus lock_mutex(STATE, CallFrame* call_frame, ObjectHeader* obj, size_t us, bool interrupt);
-    LockStatus lock_mutex_timed(STATE, CallFrame* call_frame, ObjectHeader* obj, const struct timespec* ts, bool interrupt);
-    LockStatus try_lock_mutex(STATE, CallFrame* call_frame, ObjectHeader* obj);
-    bool locked_mutex_p(STATE, CallFrame* call_frame, ObjectHeader* obj);
-    LockStatus unlock_mutex(STATE, CallFrame* call_frame, ObjectHeader* obj);
-    void unlock_mutex_for_terminate(STATE, CallFrame* call_frame, ObjectHeader* obj);
+    LockStatus lock_mutex(STATE, ObjectHeader* obj, size_t us, bool interrupt);
+    LockStatus lock_mutex_timed(STATE, ObjectHeader* obj, const struct timespec* ts, bool interrupt);
+    LockStatus try_lock_mutex(STATE, ObjectHeader* obj);
+    bool locked_mutex_p(STATE, ObjectHeader* obj);
+    LockStatus unlock_mutex(STATE, ObjectHeader* obj);
+    void unlock_mutex_for_terminate(STATE, ObjectHeader* obj);
 
-    void wakeup(STATE, CallFrame* call_frame, ObjectHeader* obj);
+    void wakeup(STATE, ObjectHeader* obj);
 
     private:
   };
@@ -576,18 +576,18 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_object_id(STATE, uint32_t id);
 
-    LockStatus lock(STATE, CallFrame* call_frame, size_t us=0, bool interrupt=true);
-    LockStatus try_lock(STATE, CallFrame* call_frame);
-    bool locked_p(STATE, CallFrame* call_frame);
-    LockStatus unlock(STATE, CallFrame* call_frame);
-    void unlock_for_terminate(STATE, CallFrame* call_frame);
+    LockStatus lock(STATE, size_t us=0, bool interrupt=true);
+    LockStatus try_lock(STATE);
+    bool locked_p(STATE);
+    LockStatus unlock(STATE);
+    void unlock_for_terminate(STATE);
     void unlock_object_after_fork(STATE);
 
     // Abort if unable to lock
-    void hard_lock(STATE, CallFrame* call_frame, size_t us=0);
+    void hard_lock(STATE, size_t us=0);
 
     // Abort if unable to unlock
-    void hard_unlock(STATE, CallFrame* call_frame);
+    void hard_unlock(STATE);
 
     void wait(STATE);
 

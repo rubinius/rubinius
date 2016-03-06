@@ -68,6 +68,7 @@ namespace rubinius {
   class Fiber;
   class Park;
   class NativeMethodEnvironment;
+  class VariableScope;
 
   enum MethodMissingReason {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
@@ -93,8 +94,8 @@ namespace rubinius {
   private:
     UnwindInfoSet unwinds_;
 
+    CallFrame* call_frame_;
     ThreadNexus* thread_nexus_;
-    CallFrame* last_frame_;
     CallSiteInformation* saved_call_site_information_;
     FiberStacks fiber_stacks_;
     Park* park_;
@@ -200,13 +201,27 @@ namespace rubinius {
       return shared.memory();
     }
 
-    void set_call_frame(CallFrame* frame) {
-      last_frame_ = frame;
+    void push_call_frame(CallFrame* frame, CallFrame*& previous_frame);
+
+    void pop_call_frame(CallFrame* frame) {
+      call_frame_ = frame;
     }
 
-    CallFrame* last_frame() const {
-      return last_frame_;
+    // Do NOT de-deplicate
+    void set_call_frame(CallFrame* frame) {
+      call_frame_ = frame;
     }
+
+    CallFrame* call_frame() {
+      return call_frame_;
+    }
+
+    CallFrame* get_call_frame(ssize_t up=0);
+    CallFrame* get_ruby_frame(ssize_t up=0);
+    CallFrame* get_variables_frame(ssize_t up=0);
+    CallFrame* get_scope_frame(ssize_t up=0);
+
+    bool scope_valid_p(VariableScope* scope);
 
     void set_call_site_information(CallSiteInformation* info) {
       saved_call_site_information_ = info;
@@ -390,13 +405,12 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
-    void checkpoint(STATE, CallFrame* call_frame) {
+    void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
       if(thread_nexus_->stop_lock(this)) {
         metrics().machine.stops++;
 
-        set_call_frame(call_frame);
         collect_maybe(state);
 
         thread_nexus_->unlock();
@@ -444,7 +458,7 @@ namespace rubinius {
     void wait_on_inflated_lock(Object* wait);
     void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
-    bool wakeup(STATE, CallFrame* call_frame);
+    bool wakeup(STATE);
 
     void reset_parked();
 

@@ -27,8 +27,7 @@ namespace rubinius {
   class MachineCode;
   class InterpreterCallFrame;
 
-  typedef Object* (*InterpreterRunner)(STATE, MachineCode* const mcode,
-                                       InterpreterCallFrame* const call_frame);
+  typedef Object* (*InterpreterRunner)(STATE, MachineCode* const mcode);
 
   class MachineCode : public memory::CodeResource {
   public:
@@ -172,12 +171,12 @@ namespace rubinius {
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
-    static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    static Object* execute(STATE, Executable* exec, Module* mod, Arguments& args);
 
     template <typename ArgumentHandler>
-      static Object* execute_specialized(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+      static Object* execute_specialized(STATE, Executable* exec, Module* mod, Arguments& args);
 
-    Object* execute_as_script(STATE, CompiledCode* code, CallFrame* previous);
+    Object* execute_as_script(STATE, CompiledCode* code);
 
     struct InterpreterState {
       int call_flags;
@@ -192,11 +191,9 @@ namespace rubinius {
      *
      *  @see  machine/instructions.cpp for the code.
      */
-    static Object* interpreter(STATE, MachineCode* const mcode,
-                               InterpreterCallFrame* const call_frame);
+    static Object* interpreter(STATE, MachineCode* const mcode);
 
-    static Object* debugger_interpreter(STATE, MachineCode* const mcode,
-                                        InterpreterCallFrame* const call_frame);
+    static Object* debugger_interpreter(STATE, MachineCode* const mcode);
     static Object* debugger_interpreter_continue(STATE,
                                        MachineCode* const mcode,
                                        CallFrame* const call_frame,
@@ -210,9 +207,7 @@ namespace rubinius {
       UnwindInfoSet& unwinds,
       bool force_deoptimization);
 
-    static Object* tooling_interpreter(STATE,
-                                       MachineCode* const mcode,
-                                       InterpreterCallFrame* const call_frame);
+    static Object* tooling_interpreter(STATE, MachineCode* const mcode);
 
     void setup_argument_handler();
 

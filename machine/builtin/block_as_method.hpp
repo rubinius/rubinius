@@ -31,7 +31,7 @@ namespace rubinius {
     // Rubinius.primitive :block_as_method_create
     static BlockAsMethod* create(STATE, Object* self, BlockEnvironment* be);
 
-    static Object* block_executor(STATE, CallFrame* call_frame,
+    static Object* block_executor(STATE,
                            Executable* exec, Module* mod, Arguments& args);
 
     class Info : public Executable::Info {

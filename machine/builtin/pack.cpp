@@ -35,11 +35,12 @@
 
 namespace rubinius {
   namespace pack {
-    inline Object* to_int(STATE, CallFrame* call_frame, Object* obj) {
+    inline Object* to_int(STATE, Object* obj) {
       Array* args = Array::create(state, 1);
       args->set(state, 0, obj);
 
-      return G(rubinius)->send(state, call_frame, state->symbol("pack_to_int"), args);
+      return G(rubinius)->send(state, state->vm()->call_frame(),
+          state->symbol("pack_to_int"), args);
     }
 
 #define BITS_LONG   (RBX_SIZEOF_LONG * 8)
@@ -66,15 +67,15 @@ namespace rubinius {
       }
     }
 
-    inline Object* to_f(STATE, CallFrame* call_frame, Object* obj) {
+    inline Object* to_f(STATE, Object* obj) {
       Array* args = Array::create(state, 1);
       args->set(state, 0, obj);
 
-      return G(rubinius)->send(state, call_frame, state->symbol("pack_to_float"), args);
+      return G(rubinius)->send(state, state->vm()->call_frame(),
+          state->symbol("pack_to_float"), args);
     }
 
-    inline String* encoding_string(STATE, CallFrame* call_frame, Object* obj,
-                                          const char* coerce_name)
+    inline String* encoding_string(STATE, Object* obj, const char* coerce_name)
     {
       String* s = try_as<String>(obj);
       if(s) return s;
@@ -84,7 +85,7 @@ namespace rubinius {
 
       std::string coerce_method("pack_");
       coerce_method += coerce_name;
-      Object* result = G(rubinius)->send(state, call_frame,
+      Object* result = G(rubinius)->send(state, state->vm()->call_frame(),
             state->symbol(coerce_method.c_str()), args);
 
       if(!result) return 0;
@@ -155,7 +156,7 @@ namespace rubinius {
       if(value->fixnum_p()) {
         long l = as<Fixnum>(value)->to_long();
         if(l > INT32_MAX || l < INT32_MIN) {
-          Exception::range_error(state, "Fixnum value out of range of int32");
+          Exception::raise_range_error(state, "Fixnum value out of range of int32");
         }
         return l;
       } else {
@@ -300,13 +301,13 @@ namespace rubinius {
         str.push_back(((v >> 6)  & 0x3f) | 0x80);
         str.push_back((v & 0x3f) | 0x80);
       } else {
-        Exception::range_error(state, "pack('U') value out of range");
+        Exception::raise_range_error(state, "pack('U') value out of range");
       }
     }
 
     void ber_encode(STATE, std::string& str, Integer* value) {
       if(!value->positive_p()) {
-        Exception::argument_error(state, "cannot BER compress a negative number");
+        Exception::raise_argument_error(state, "cannot BER compress a negative number");
       }
 
       std::string buf;
@@ -514,13 +515,13 @@ namespace rubinius {
     void exceeds_length_of_string(STATE, native_int count) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
 
     void non_native_error(STATE, const char c) {
       std::ostringstream msg;
       msg << "'" << c << "' allowed only after types sSiIlL";
-      Exception::argument_error(state, msg.str().c_str());
+      Exception::raise_argument_error(state, msg.str().c_str());
     }
   }
 
@@ -565,7 +566,7 @@ namespace rubinius {
     Object* item = self->get(state, index);     \
     T* value = try_as<T>(item);                 \
     if(!value) {                                \
-      item = coerce(state, call_frame, item);   \
+      item = coerce(state, item);   \
       if(!item) return 0;                       \
       value = as<T>(item);                      \
     }                                           \
@@ -626,7 +627,7 @@ namespace rubinius {
 #endif
 
 
-  String* Array::pack(STATE, String* directives, CallFrame* call_frame) {
+  String* Array::pack(STATE, String* directives) {
     // Ragel-specific variables
     const char* p;
     const char* pe;
@@ -3081,14 +3082,14 @@ _resume:
 	{
     stop = rest ? array_size : index + count;
     if(stop > array_size) {
-      Exception::argument_error(state, "too few arguments");
+      Exception::raise_argument_error(state, "too few arguments");
     }
   }
 	break;
 	case 5:
 	{
     if(index >= array_size) {
-      Exception::argument_error(state, "too few arguments");
+      Exception::raise_argument_error(state, "too few arguments");
     }
   }
 	break;
@@ -3235,21 +3236,21 @@ _resume:
 	break;
 	case 29:
 	{
-    string_value = pack::encoding_string(state, call_frame,
+    string_value = pack::encoding_string(state,
         self->get(state, index++), "to_str_or_nil");
     if(!string_value) return 0;
   }
 	break;
 	case 30:
 	{
-    string_value = pack::encoding_string(state, call_frame,
+    string_value = pack::encoding_string(state,
         self->get(state, index++), "to_str");
     if(!string_value) return 0;
   }
 	break;
 	case 31:
 	{
-    string_value = pack::encoding_string(state, call_frame,
+    string_value = pack::encoding_string(state,
         self->get(state, index++), "to_s");
     if(!string_value) return 0;
   }
@@ -3431,14 +3432,14 @@ _again:
 	{
     stop = rest ? array_size : index + count;
     if(stop > array_size) {
-      Exception::argument_error(state, "too few arguments");
+      Exception::raise_argument_error(state, "too few arguments");
     }
   }
 	break;
 	case 5:
 	{
     if(index >= array_size) {
-      Exception::argument_error(state, "too few arguments");
+      Exception::raise_argument_error(state, "too few arguments");
     }
   }
 	break;
@@ -3585,21 +3586,21 @@ _again:
 	break;
 	case 29:
 	{
-    string_value = pack::encoding_string(state, call_frame,
+    string_value = pack::encoding_string(state,
         self->get(state, index++), "to_str_or_nil");
     if(!string_value) return 0;
   }
 	break;
 	case 30:
 	{
-    string_value = pack::encoding_string(state, call_frame,
+    string_value = pack::encoding_string(state,
         self->get(state, index++), "to_str");
     if(!string_value) return 0;
   }
 	break;
 	case 31:
 	{
-    string_value = pack::encoding_string(state, call_frame,
+    string_value = pack::encoding_string(state,
         self->get(state, index++), "to_s");
     if(!string_value) return 0;
   }

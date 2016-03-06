@@ -119,10 +119,10 @@ namespace rubinius {
     VariableScope* promote(STATE);
 
     // Rubinius.primitive+ :variable_scope_of_sender
-    static VariableScope* of_sender(STATE, CallFrame* calling_environment);
+    static VariableScope* of_sender(STATE);
 
     // Rubinius.primitive+ :variable_scope_current
-    static VariableScope* current(STATE, CallFrame* calling_environment);
+    static VariableScope* current(STATE);
 
     // Rubinius.primitive :variable_scope_allocate
     static VariableScope* allocate(STATE);

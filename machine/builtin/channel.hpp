@@ -47,16 +47,16 @@ namespace rubinius {
     static Channel* create(STATE);
 
     // Rubinius.primitive :channel_send
-    Object* send(STATE, Object* val, CallFrame* calling_environment);
+    Object* send(STATE, Object* val);
 
     // Rubinius.primitive :channel_receive
-    Object* receive(STATE, CallFrame* calling_environment);
+    Object* receive(STATE);
 
     // Rubinius.primitive :channel_try_receive
-    Object* try_receive(STATE, CallFrame* calling_environment);
+    Object* try_receive(STATE);
 
     // Rubinius.primitive :channel_receive_timeout
-    Object* receive_timeout(STATE, Object* duration, CallFrame* calling_environment);
+    Object* receive_timeout(STATE, Object* duration);
 
     class Info : public TypeInfo {
     public:

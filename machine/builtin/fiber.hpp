@@ -111,13 +111,13 @@ namespace rubinius {
     static Fiber* current(STATE);
 
     // Rubinius.primitive :fiber_resume
-    Object* resume(STATE, Arguments& args, CallFrame* calling_environment);
+    Object* resume(STATE, Arguments& args);
 
     // Rubinius.primitive :fiber_transfer
-    Object* transfer(STATE, Arguments& args, CallFrame* calling_environment);
+    Object* transfer(STATE, Arguments& args);
 
     // Rubinius.primitive :fiber_s_yield
-    static Object* s_yield(STATE, Arguments& args, CallFrame* calling_environment);
+    static Object* s_yield(STATE, Arguments& args);
 
     static void finalize(STATE, Fiber* fib);
 

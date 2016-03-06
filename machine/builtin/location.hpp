@@ -63,18 +63,17 @@ namespace rubinius {
     }
 
     static Location* create(STATE, NativeMethodFrame* nmf);
-    static Location* create(STATE, CallFrame* call_frame,
-                            bool include_variables=false);
+    static Location* create(STATE, CallFrame* call_frame, bool include_variables=false);
 
     // Rubinius.primitive :location_allocate
     static Location* allocate(STATE, Object* self);
 
     // Rubinius.primitive :location_of_closest_ruby_method
-    static Location* of_closest_ruby_method(STATE, CallFrame* calling_environment);
+    static Location* of_closest_ruby_method(STATE);
 
-    static Array* from_call_stack(STATE, CallFrame* call_frame,
-                                  bool include_vars=false, bool on_ip=false);
-    static Array* mri_backtrace(STATE, CallFrame* call_frame);
+    static Array* from_call_stack(STATE,
+        bool include_vars=false, bool on_ip=false, size_t up=1);
+    static Array* mri_backtrace(STATE, size_t up=1);
 
     class Info : public TypeInfo {
     public:

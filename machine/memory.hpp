@@ -518,8 +518,8 @@ namespace rubinius {
 
     void assign_object_id(STATE, Object* obj);
     bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
-    LockStatus contend_for_lock(STATE, CallFrame* call_frame, ObjectHeader* obj, size_t us, bool interrupt);
-    void release_contention(STATE, CallFrame* call_frame);
+    LockStatus contend_for_lock(STATE, ObjectHeader* obj, size_t us, bool interrupt);
+    void release_contention(STATE);
     bool inflate_and_lock(STATE, ObjectHeader* obj);
     bool inflate_for_contention(STATE, ObjectHeader* obj);
 

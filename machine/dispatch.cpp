@@ -35,7 +35,7 @@ namespace rubinius {
         msg << lookup.from->to_string(state);
         msg << "#" << original_name->to_string(state);
 
-        Exception::internal_error(state, call_frame, msg.str().c_str());
+        Exception::internal_error(state, msg.str().c_str());
         return 0;
       }
 
@@ -46,7 +46,7 @@ namespace rubinius {
       args.unshift(state, original_name);
     }
 
-    return method->execute(state, call_frame, method, module, args);
+    return method->execute(state, method, module, args);
   }
 
   bool Dispatch::resolve(STATE, Symbol* name, LookupData& lookup) {

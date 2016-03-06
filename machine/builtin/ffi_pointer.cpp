@@ -86,7 +86,7 @@ namespace rubinius {
 
     obj->pointer = malloc(size->to_native());;
     if(!obj->pointer) {
-      Exception::memory_error(state);
+      Exception::raise_memory_error(state);
       return NULL;
     }
 
@@ -153,7 +153,7 @@ namespace rubinius {
   }
 
   Pointer* Pointer::write_string(STATE, String* str, Fixnum* len) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write string");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write string");
 
     native_int n = len->to_native();
     if(str->byte_size() < n) n = str->byte_size();
@@ -162,7 +162,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::write_char(STATE, Integer* val) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write char");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write char");
 
     unsigned char s = val->to_native();
     *(unsigned char*)pointer = s;
@@ -170,7 +170,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::read_char(STATE, Object* sign) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read char");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read char");
 
     if(CBOOL(sign)) {
       return Integer::from(state, *(char*)pointer);
@@ -180,7 +180,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::write_short(STATE, Integer* val) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write short");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write short");
 
     unsigned short s = val->to_native();
     *(unsigned short*)pointer = s;
@@ -188,7 +188,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::read_short(STATE, Object* sign) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read short");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read short");
 
     if(CBOOL(sign)) {
       return Integer::from(state, *(short*)pointer);
@@ -198,14 +198,14 @@ namespace rubinius {
   }
 
   Integer* Pointer::write_int(STATE, Integer* val) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write int");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write int");
 
     *(int*)pointer = val->to_native();
     return val;
   }
 
   Integer* Pointer::read_int(STATE, Object* sign) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read int");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read int");
 
     if(CBOOL(sign)) {
       return Integer::from(state, *(int*)pointer);
@@ -215,14 +215,14 @@ namespace rubinius {
   }
 
   Integer* Pointer::write_long(STATE, Integer* val) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write long");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write long");
 
     *(long*)pointer = val->to_native();
     return val;
   }
 
   Integer* Pointer::read_long(STATE, Object* sign) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read long");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read long");
 
     if(CBOOL(sign)) {
       return Integer::from(state, *(long*)pointer);
@@ -232,14 +232,14 @@ namespace rubinius {
   }
 
   Integer* Pointer::write_long_long(STATE, Integer* val) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write long long");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write long long");
 
     *(long long*)pointer = val->to_long_long();
     return val;
   }
 
   Integer* Pointer::read_long_long(STATE, Object* sign) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read long long");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read long long");
 
     if(CBOOL(sign)) {
       return Integer::from(state, *(long long*)pointer);
@@ -249,47 +249,47 @@ namespace rubinius {
   }
 
   Float* Pointer::write_float(STATE, Float* flt) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write float");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write float");
 
     *(float*)pointer = (float)flt->val;
     return flt;
   }
 
   Float* Pointer::read_float(STATE) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read float");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read float");
 
     return Float::create(state, (double)(*(float*)pointer));
   }
 
   Float* Pointer::write_double(STATE, Float* flt) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write double");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write double");
 
     *(double*)pointer = flt->val;
     return flt;
   }
 
   Float* Pointer::read_double(STATE) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read double");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read double");
 
     return Float::create(state, *(double*)pointer);
   }
 
   Pointer* Pointer::write_pointer(STATE, Pointer* ptr) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to write pointer");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write pointer");
 
     *(void**)pointer = ptr->pointer;
     return ptr;
   }
 
   Pointer* Pointer::read_pointer(STATE) {
-    if(!pointer) Exception::argument_error(state, "invalid pointer to read pointer");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to read pointer");
 
     return Pointer::create(state, *(void**)pointer);
   }
 
   Object* Pointer::network_order(STATE, Fixnum* offset, Fixnum* intsize) {
 
-    if(!pointer) Exception::argument_error(state, "invalid pointer to network order value");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to network order value");
 
     native_int size = intsize->to_native();
 
@@ -320,7 +320,7 @@ namespace rubinius {
 
   Object* Pointer::get_field(STATE, int offset, int type) {
     Object* ret;
-    if(!pointer) Exception::argument_error(state, "invalid pointer to get field from");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to get field from");
 
     char* ptr = (char*)pointer;
 
@@ -422,7 +422,7 @@ namespace rubinius {
 
   void Pointer::set_field(STATE, int offset, int type, Object* val) {
 
-    if(!pointer) Exception::argument_error(state, "invalid pointer to set field of");
+    if(!pointer) Exception::raise_argument_error(state, "invalid pointer to set field of");
 
     char* ptr = (char*)pointer;
 
