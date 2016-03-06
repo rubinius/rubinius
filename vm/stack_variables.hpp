@@ -46,6 +46,10 @@ namespace rubinius {
       block_ = block;
     }
 
+    void set_self(Object* self) {
+      self_ = self;
+    }
+
     Object* self() const {
       return self_;
     }
