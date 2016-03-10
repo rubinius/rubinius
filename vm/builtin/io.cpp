@@ -52,11 +52,15 @@ namespace rubinius {
     return io;
   }
 
-  native_int IO::descriptor(STATE) {
-    NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
-    Object* io_object = (Object*) native_env->current_call_frame()->self();
+  native_int IO::descriptor(STATE, CallFrame* frame) {
+    if (!frame) {
+      NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
+      frame = native_env->current_call_frame();
+    }
 
-    return as<Fixnum>(io_object->send(state, native_env->current_call_frame(), state->symbol("descriptor")))->to_native();    
+    assert(frame);
+    Object* io_object = (Object*) frame->self();
+    return as<Fixnum>(io_object->send(state, frame, state->symbol("descriptor")))->to_native();
   }
 
   void IO::ensure_open(STATE) {
@@ -157,7 +161,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, calling_environment);
-      bytes_read = recvfrom(descriptor(state),
+      bytes_read = recvfrom(descriptor(state, calling_environment),
                             (char*)buffer->byte_address(), size,
                             flags->to_native(),
                             (struct sockaddr*)buf, &alen);
@@ -412,7 +416,7 @@ failed: /* try next '*' position */
     struct cmsghdr *cmsg;
     char cmsg_buf[cmsg_space];
 
-    fd = io->descriptor(state);
+    fd = io->descriptor(state, NULL);
 
     msg.msg_name = NULL;
     msg.msg_namelen = 0;
@@ -437,7 +441,7 @@ failed: /* try next '*' position */
     int* fd_data = (int*)CMSG_DATA(cmsg);
     *fd_data = fd;
 
-    if(sendmsg(descriptor(state), &msg, 0) == -1) {
+    if(sendmsg(descriptor(state, NULL), &msg, 0) == -1) {
       return Primitives::failure();
     }
 
@@ -479,7 +483,7 @@ failed: /* try next '*' position */
     int* fd_data = (int *)CMSG_DATA(cmsg);
     *fd_data = -1;
 
-    int read_fd = descriptor(state);
+    int read_fd = descriptor(state, NULL);
 
     int code = -1;
 

@@ -19,7 +19,7 @@ namespace rubinius {
     static void init(STATE);
     static IO* create(STATE, int fd);
 
-    native_int descriptor(STATE);
+    native_int descriptor(STATE, CallFrame* frame);
     void ensure_open(STATE);
 
   /* Class primitives */
