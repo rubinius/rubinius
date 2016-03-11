@@ -76,7 +76,7 @@ namespace memory {
   }
 
   FinalizerThread::FinalizerThread(STATE)
-    : InternalThread(state, "rbx.finalizer")
+    : InternalThread(state, "rbx.finalizer", InternalThread::eXLarge)
     , lists_(NULL)
     , live_list_(NULL)
     , process_list_(NULL)
