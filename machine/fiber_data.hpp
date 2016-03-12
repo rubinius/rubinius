@@ -103,8 +103,8 @@ namespace rubinius {
       return call_frame_;
     }
 
-    void set_call_frame(CallFrame* cf) {
-      call_frame_ = cf;
+    void set_call_frame(CallFrame* call_frame) {
+      call_frame_ = call_frame;
     }
 
     VM* thread() const {

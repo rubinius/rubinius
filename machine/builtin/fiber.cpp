@@ -53,21 +53,23 @@ namespace rubinius {
   void Fiber::start_on_stack() {
 #ifdef RBX_FIBER_ENABLED
     VM* vm = VM::current();
-    State state(vm);
+    State state_obj(vm), *state = &state_obj;
 
-    Fiber* fib = Fiber::current(&state);
+    Fiber* fib = Fiber::current(state);
 
     // Reset the current fiber again to reset the stack limits so
     // we can properly detect stack overflows
     vm->set_current_fiber(fib);
 
     Array* result = nil<Array>();
-    Object* obj = fib->starter()->send(&state, NULL, state.globals().sym_call.get(), fib->value(), cNil, false);
+    Object* obj = fib->starter()->send(state, NULL, G(sym_call), fib->value(), cNil, false);
+
     // GC has run! Don't use stack vars!
 
-    fib = Fiber::current(&state);
+    fib = Fiber::current(state);
     fib->status_ = Fiber::eDead;
     fib->dead_ = cTrue;
+    fib->set_call_frame(0);
 
     Fiber* dest = fib->prev();
 
@@ -80,19 +82,20 @@ namespace rubinius {
     // of returning, so we can deal with it in the same way
     // as *args from #yield, #resume, and #transfer
     if(obj) {
-      result = Array::create(&state, 1);
-      result->set(&state, 0, obj);
+      result = Array::create(state, 1);
+      result->set(state, 0, obj);
     } else {
-      if(state.vm()->thread_state()->raise_reason() == cException) {
-        dest->exception(&state, state.vm()->thread_state()->current_exception());
+      if(state->vm()->thread_state()->raise_reason() == cException) {
+        dest->exception(state, state->vm()->thread_state()->current_exception());
       }
     }
 
-    dest->run();
-    dest->value(&state, result);
-    state.vm()->set_current_fiber(dest);
+    dest->run(state);
+    dest->value(state, result);
 
-    dest->data_->switch_and_orphan(&state, fib->data_);
+    dest->data_->switch_and_orphan(state, fib->data_);
+
+    // TODO: CallFrame: return from this function
 
     assert(0 && "fatal start_on_stack error");
 #else
@@ -123,15 +126,15 @@ namespace rubinius {
     }
 
     if(status_ == Fiber::eDead || data_->dead_p()) {
-      Exception::fiber_error(state, "dead fiber called");
+      Exception::raise_fiber_error(state, "dead fiber called");
     }
 
     if(!prev_->nil_p()) {
-      Exception::fiber_error(state, "double resume");
+      Exception::raise_fiber_error(state, "double resume");
     }
 
     if(data_->thread() && data_->thread() != state->vm()) {
-      Exception::fiber_error(state, "cross thread fiber resuming is illegal");
+      Exception::raise_fiber_error(state, "cross thread fiber resuming is illegal");
     }
 
     Array* val = args.as_array(state);
@@ -140,10 +143,9 @@ namespace rubinius {
     Fiber* cur = Fiber::current(state);
     prev(state, cur);
 
-    cur->sleep(calling_environment);
+    cur->sleep(state->vm()->call_frame());
 
-    run();
-    state->vm()->set_current_fiber(this);
+    run(state);
 
     data_->switch_to(state, cur->data_);
 
@@ -181,11 +183,11 @@ namespace rubinius {
     }
 
     if(status_ == Fiber::eDead || data_->dead_p()) {
-      Exception::fiber_error(state, "dead fiber called");
+      Exception::raise_fiber_error(state, "dead fiber called");
     }
 
     if(data_->thread() && data_->thread() != state->vm()) {
-      Exception::fiber_error(state, "cross thread fiber resuming is illegal");
+      Exception::raise_fiber_error(state, "cross thread fiber resuming is illegal");
     }
 
     Array* val = args.as_array(state);
@@ -197,10 +199,9 @@ namespace rubinius {
 
     prev(state, root);
 
-    cur->sleep(calling_environment);
+    cur->sleep(state->vm()->call_frame());
 
-    run();
-    state->vm()->set_current_fiber(this);
+    run(state);
 
     data_->switch_to(state, cur->data_);
 
@@ -239,7 +240,7 @@ namespace rubinius {
     assert(cur != dest_fib);
 
     if(cur->root_) {
-      Exception::fiber_error(state, "can't yield from root fiber");
+      Exception::raise_fiber_error(state, "can't yield from root fiber");
     }
 
     cur->prev(state, nil<Fiber>());
@@ -247,10 +248,9 @@ namespace rubinius {
     Array* val = args.as_array(state);
     dest_fib->value(state, val);
 
-    cur->sleep(calling_environment);
+    cur->sleep(state->vm()->call_frame());
 
-    dest_fib->run();
-    state->vm()->set_current_fiber(dest_fib);
+    dest_fib->run(state);
 
     dest_fib->data_->switch_to(state, cur->data_);
 

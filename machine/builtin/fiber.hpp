@@ -50,14 +50,23 @@ namespace rubinius {
       return data_->call_frame();
     }
 
-    void sleep(CallFrame* cf) {
-      if(cf && !data_) rubinius::bug("bad fiber");
-      data_->set_call_frame(cf);
+    void set_call_frame(CallFrame* call_frame) {
+      if(data_) {
+        data_->set_call_frame(call_frame);
+      }
+    }
+
+    void sleep(CallFrame* call_frame) {
+      if(call_frame && !data_) rubinius::bug("bad fiber");
+      data_->set_call_frame(call_frame);
       status_ = eSleeping;
     }
 
-    void run() {
-      if(data_) data_->set_call_frame(0);
+    void run(STATE) {
+      state->vm()->set_current_fiber(this);
+      if(data_) {
+        state->vm()->set_call_frame(data_->call_frame());
+      }
       status_ = eRunning;
     }
 
