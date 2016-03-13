@@ -309,7 +309,7 @@ namespace rubinius {
         cur->control_channel(state, my_control);
       }
 
-      Array* locs = Location::from_call_stack(state, true, true);
+      Array* locs = Location::debugging_call_stack(state);
 
       OnStack<1> os(state, my_control);
 

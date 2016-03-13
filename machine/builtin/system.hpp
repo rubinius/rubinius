@@ -124,7 +124,7 @@ namespace rubinius {
      *  Backtrace as an Array.
      */
     // Rubinius.primitive :vm_backtrace
-    static Array* vm_backtrace(STATE, Fixnum* skip, Object* inc_vars);
+    static Array* vm_backtrace(STATE, Fixnum* skip);
 
     // Rubinius.primitive :vm_mri_backtrace
     static Array* vm_mri_backtrace(STATE, Fixnum* skip);

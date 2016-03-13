@@ -71,8 +71,8 @@ namespace rubinius {
     // Rubinius.primitive :location_of_closest_ruby_method
     static Location* of_closest_ruby_method(STATE);
 
-    static Array* from_call_stack(STATE,
-        bool include_vars=false, bool on_ip=false, ssize_t up=1);
+    static Array* debugging_call_stack(STATE);
+    static Array* from_call_stack(STATE, ssize_t up=1);
     static Array* mri_backtrace(STATE, ssize_t up=1);
 
     class Info : public TypeInfo {

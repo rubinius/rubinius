@@ -86,71 +86,87 @@ namespace rubinius {
     return loc;
   }
 
-  Array* Location::from_call_stack(STATE, bool include_vars, bool on_ip, ssize_t up) {
-    CallFrame* frame = state->vm()->call_frame();
-
-    while(frame && up-- > 0) {
-      frame = frame->previous;
-    }
-
-    if(!frame) return nil<Array>();
-
+  Array* Location::debugging_call_stack(STATE) {
+    CallFrame* base = state->vm()->call_frame();
     size_t count = 0;
 
-    CallFrame* base = frame;
     while(base) {
       count++;
       base = base->previous;
     }
 
+    if(!base) return nil<Array>();
+
     Array* array = Array::create(state, count);
     bool first = true;
 
-    while(frame) {
-      if(first) {
-        if(!frame->compiled_code) continue;
-
-        first = false;
-        if(Location* location = Location::create(state, frame, include_vars)) {
-          if(on_ip) location->set_ip_on_current(state);
+    for(CallFrame* frame = base; frame; frame = frame->previous) {
+      if(frame->compiled_code) {
+        if(Location* location = Location::create(state, frame, true)) {
+          if(first) {
+            location->set_ip_on_current(state);
+            first = false;
+          }
           array->append(state, location);
         }
-      } else {
-        if(frame->compiled_code) {
-          array->append(state, Location::create(state, frame, include_vars));
-        } else if(NativeMethodFrame* nmf = frame->native_method_frame()) {
-          if(Location* location = Location::create(state, nmf)) {
-            array->append(state, location);
-          }
+      } else if(NativeMethodFrame* nmf = frame->native_method_frame()) {
+        if(Location* location = Location::create(state, nmf)) {
+          array->append(state, location);
         }
       }
+    }
 
-      frame = frame->previous;
+    return array;
+  }
+
+  Array* Location::from_call_stack(STATE, ssize_t up) {
+    CallFrame* base = state->vm()->call_frame();
+    size_t count = 0;
+
+    while(base) {
+      if(up-- > 0) {
+        // ignore this frame
+      } else {
+        count++;
+      }
+      base = base->previous;
+    }
+
+    if(!base) return nil<Array>();
+
+    Array* array = Array::create(state, count);
+
+    for(CallFrame* frame = base; frame; frame = frame->previous) {
+      if(frame->compiled_code) {
+        array->append(state, Location::create(state, frame));
+      } else if(NativeMethodFrame* nmf = frame->native_method_frame()) {
+        if(Location* location = Location::create(state, nmf)) {
+          array->append(state, location);
+        }
+      }
     }
 
     return array;
   }
 
   Array* Location::mri_backtrace(STATE, ssize_t up) {
-    CallFrame* frame = state->vm()->call_frame();
-
-    while(frame && up-- > 0) {
-      frame = frame->previous;
-    }
-
-    if(!frame) return nil<Array>();
-
+    CallFrame* base = state->vm()->call_frame();
     size_t count = 0;
 
-    CallFrame* base = frame;
     while(base) {
-      count++;
+      if(up-- > 0) {
+        // ignore this frame
+      } else {
+        count++;
+      }
       base = base->previous;
     }
 
+    if(!base) return nil<Array>();
+
     Array* array = Array::create(state, count);
 
-    while(frame) {
+    for(CallFrame* frame = base; frame; frame = frame->previous) {
       if(frame->compiled_code && !frame->compiled_code->core_method(state)) {
         Symbol* name;
         Object* block = cFalse;
@@ -177,8 +193,6 @@ namespace rubinius {
         array->append(state,
             Tuple::from(state, 4, frame->compiled_code, line, block, name));
       }
-
-      frame = frame->previous;
     }
 
     return array;

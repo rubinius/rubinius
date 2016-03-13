@@ -101,7 +101,7 @@ namespace rubinius {
         class_object(state) != other->class_object(state)) {
       Exception* exc =
         Exception::make_type_error(state, type_id(), other);
-      exc->locations(state, Location::from_call_stack(state, state->vm()->call_frame()));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
     }

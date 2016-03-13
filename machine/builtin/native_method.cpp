@@ -639,7 +639,7 @@ namespace rubinius {
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
           state, arity, args.total(), args.name());
-      exc->locations(state, Location::from_call_stack(state, state->vm()->call_frame()));
+      exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
 
       return NULL;

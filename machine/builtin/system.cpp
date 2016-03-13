@@ -941,16 +941,11 @@ namespace rubinius {
    /*  @todo Could possibly capture the system backtrace at this
    *        point. --rue
    */
-  Array* System::vm_backtrace(STATE, Fixnum* skip, Object* inc_vars) {
-    bool include_vars = CBOOL(inc_vars);
-
-    // TODO: CallFrame: fix this API
-    return Location::from_call_stack(state,
-        include_vars, false, skip->to_native());
+  Array* System::vm_backtrace(STATE, Fixnum* skip) {
+    return Location::from_call_stack(state, skip->to_native());
   }
 
   Array* System::vm_mri_backtrace(STATE, Fixnum* skip) {
-    // TODO: CallFrame: fix this API
     return Location::mri_backtrace(state, skip->to_native());
   }
 

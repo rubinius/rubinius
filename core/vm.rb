@@ -5,7 +5,7 @@ class Rubinius::VM
   # Rubinius::VariableScope object that can be used to access the frames
   # running information like locals, self, etc.
   #
-  def self.backtrace(frames_to_skip, include_vars=false)
+  def self.backtrace(frames_to_skip)
     Rubinius.primitive :vm_backtrace
 
     # Add the + 1 to skip this frame

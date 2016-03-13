@@ -365,8 +365,7 @@ namespace rubinius {
 
     void capi_raise_backend(Exception* exception) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      exception->locations(env->state(), Location::from_call_stack(env->state(),
-                           env->current_call_frame()));
+      exception->locations(env->state(), Location::from_call_stack(env->state()));
       env->state()->raise_exception(exception);
 
       env->current_ep()->return_to(env);
