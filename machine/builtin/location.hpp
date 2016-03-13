@@ -72,8 +72,8 @@ namespace rubinius {
     static Location* of_closest_ruby_method(STATE);
 
     static Array* from_call_stack(STATE,
-        bool include_vars=false, bool on_ip=false, size_t up=1);
-    static Array* mri_backtrace(STATE, size_t up=1);
+        bool include_vars=false, bool on_ip=false, ssize_t up=1);
+    static Array* mri_backtrace(STATE, ssize_t up=1);
 
     class Info : public TypeInfo {
     public:

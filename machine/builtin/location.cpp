@@ -86,7 +86,7 @@ namespace rubinius {
     return loc;
   }
 
-  Array* Location::from_call_stack(STATE, bool include_vars, bool on_ip, size_t up) {
+  Array* Location::from_call_stack(STATE, bool include_vars, bool on_ip, ssize_t up) {
     CallFrame* frame = state->vm()->call_frame();
 
     while(frame && up-- > 0) {
@@ -131,7 +131,7 @@ namespace rubinius {
     return array;
   }
 
-  Array* Location::mri_backtrace(STATE, size_t up) {
+  Array* Location::mri_backtrace(STATE, ssize_t up) {
     CallFrame* frame = state->vm()->call_frame();
 
     while(frame && up-- > 0) {
