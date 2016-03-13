@@ -27,7 +27,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "large_object", (1024 * 1024),
       "The size (in bytes) of the large object threshold"
 
-    s.vm_variable "immix.concurrent", true,
+    s.vm_variable "immix.concurrent", false,
       "Set whether we want the Immix mark phase to run concurrently"
 
     s.vm_variable "immix.debug", :bool,
