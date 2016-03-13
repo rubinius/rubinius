@@ -95,12 +95,15 @@ namespace rubinius {
       base = base->previous;
     }
 
-    if(!base) return nil<Array>();
+    if(count == 0) return nil<Array>();
 
     Array* array = Array::create(state, count);
     bool first = true;
 
-    for(CallFrame* frame = base; frame; frame = frame->previous) {
+    for(CallFrame* frame = state->vm()->call_frame();
+        frame;
+        frame = frame->previous)
+    {
       if(frame->compiled_code) {
         if(Location* location = Location::create(state, frame, true)) {
           if(first) {
@@ -121,22 +124,23 @@ namespace rubinius {
 
   Array* Location::from_call_stack(STATE, ssize_t up) {
     CallFrame* base = state->vm()->call_frame();
+    CallFrame* start = base;
     size_t count = 0;
 
     while(base) {
       if(up-- > 0) {
-        // ignore this frame
+        start = base = base->previous;
       } else {
         count++;
+        base = base->previous;
       }
-      base = base->previous;
     }
 
-    if(!base) return nil<Array>();
+    if(count == 0) return nil<Array>();
 
     Array* array = Array::create(state, count);
 
-    for(CallFrame* frame = base; frame; frame = frame->previous) {
+    for(CallFrame* frame = start; frame; frame = frame->previous) {
       if(frame->compiled_code) {
         array->append(state, Location::create(state, frame));
       } else if(NativeMethodFrame* nmf = frame->native_method_frame()) {
@@ -151,22 +155,23 @@ namespace rubinius {
 
   Array* Location::mri_backtrace(STATE, ssize_t up) {
     CallFrame* base = state->vm()->call_frame();
+    CallFrame* start = base;
     size_t count = 0;
 
     while(base) {
       if(up-- > 0) {
-        // ignore this frame
+        start = base = base->previous;
       } else {
         count++;
+        base = base->previous;
       }
-      base = base->previous;
     }
 
-    if(!base) return nil<Array>();
+    if(count == 0) return nil<Array>();
 
     Array* array = Array::create(state, count);
 
-    for(CallFrame* frame = base; frame; frame = frame->previous) {
+    for(CallFrame* frame = start; frame; frame = frame->previous) {
       if(frame->compiled_code && !frame->compiled_code->core_method(state)) {
         Symbol* name;
         Object* block = cFalse;
