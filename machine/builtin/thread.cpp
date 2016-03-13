@@ -474,7 +474,9 @@ namespace rubinius {
   Thread* Thread::wakeup(STATE) {
     utilities::thread::SpinLock::LockGuard guard(init_lock_);
 
-    if(!vm_) return nil<Thread>();
+    if(!CBOOL(alive()) || !vm_) {
+      return force_as<Thread>(Primitives::failure());
+    }
 
     vm_->wakeup(state);
 
