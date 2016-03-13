@@ -45,28 +45,31 @@ namespace rubinius {
       return root_;
     }
 
-    CallFrame* call_frame() const {
-      if(!data_) return 0;
+    CallFrame* call_frame(STATE) const {
+      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+
       return data_->call_frame();
     }
 
-    void set_call_frame(CallFrame* call_frame) {
-      if(data_) {
-        data_->set_call_frame(call_frame);
-      }
+    void set_call_frame(STATE, CallFrame* call_frame) {
+      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+
+      data_->set_call_frame(call_frame);
     }
 
-    void sleep(CallFrame* call_frame) {
-      if(call_frame && !data_) rubinius::bug("bad fiber");
-      data_->set_call_frame(call_frame);
+    void sleep(STATE) {
+      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+
+      data_->set_call_frame(state->vm()->call_frame());
       status_ = eSleeping;
     }
 
     void run(STATE) {
+      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+
       state->vm()->set_current_fiber(this);
-      if(data_) {
-        state->vm()->set_call_frame(data_->call_frame());
-      }
+      state->vm()->set_call_frame(data_->call_frame());
+      data_->set_call_frame(0);
       status_ = eRunning;
     }
 

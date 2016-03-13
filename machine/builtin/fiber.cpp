@@ -35,6 +35,7 @@ namespace rubinius {
       fib->status_ = Fiber::eRunning;
 
       fib->data_ = state->vm()->new_fiber_data(true);
+      fib->data_->set_call_frame(state->vm()->call_frame());
 
       state->memory()->needs_finalization(fib,
           (memory::FinalizerFunction)&Fiber::finalize,
@@ -69,7 +70,7 @@ namespace rubinius {
     fib = Fiber::current(state);
     fib->status_ = Fiber::eDead;
     fib->dead_ = cTrue;
-    fib->set_call_frame(0);
+    fib->set_call_frame(state, 0);
 
     Fiber* dest = fib->prev();
 
@@ -107,7 +108,6 @@ namespace rubinius {
 #ifdef RBX_FIBER_ENABLED
     Fiber* fib = state->memory()->new_object<Fiber>(state, as<Class>(self));
     fib->starter(state, callable);
-    fib->status_ = Fiber::eSleeping;
 
     state->memory()->needs_finalization(fib,
         (memory::FinalizerFunction)&Fiber::finalize,
@@ -143,7 +143,7 @@ namespace rubinius {
     Fiber* cur = Fiber::current(state);
     prev(state, cur);
 
-    cur->sleep(state->vm()->call_frame());
+    cur->sleep(state);
 
     run(state);
 
@@ -154,7 +154,6 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
-    state->vm()->set_call_frame(cur->call_frame());
 
     if(!cur->exception()->nil_p()) {
       state->raise_exception(cur->exception());
@@ -199,7 +198,7 @@ namespace rubinius {
 
     prev(state, root);
 
-    cur->sleep(state->vm()->call_frame());
+    cur->sleep(state);
 
     run(state);
 
@@ -210,7 +209,6 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
-    state->vm()->set_call_frame(cur->call_frame());
 
     if(!cur->exception()->nil_p()) {
       state->raise_exception(cur->exception());
@@ -248,7 +246,7 @@ namespace rubinius {
     Array* val = args.as_array(state);
     dest_fib->value(state, val);
 
-    cur->sleep(state->vm()->call_frame());
+    cur->sleep(state);
 
     dest_fib->run(state);
 
@@ -259,7 +257,6 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
-    state->vm()->set_call_frame(cur->call_frame());
 
     Array* ret = cur->value();
 
