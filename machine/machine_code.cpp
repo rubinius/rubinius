@@ -786,29 +786,30 @@ namespace rubinius {
         // Check the stack and interrupts here rather than in the interpreter
         // loop itself.
         OnStack<2> os(state, exec, code);
-        if(!state->check_interrupts(state)) return NULL;
+        if(state->check_interrupts(state)) {
+          tooling::MethodEntry method(state, exec, scope->module(), args, code);
 
-        tooling::MethodEntry method(state, exec, scope->module(), args, code);
-
-        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-        value = (*mcode->run)(state, mcode);
-        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
+          RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
+          value = (*mcode->run)(state, mcode);
+          RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
+        }
       } else {
-        if(!state->check_interrupts(state)) return NULL;
-
+        if(state->check_interrupts(state)) {
+          RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
+          value = (*mcode->run)(state, mcode);
+          RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
+        }
+      }
+#else
+      if(state->check_interrupts(state)) {
         RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
         value = (*mcode->run)(state, mcode);
         RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
       }
-#else
-      if(!state->check_interrupts(state)) return NULL;
-
-      RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-      value = (*mcode->run)(state, mcode);
-      RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
 #endif
 
       state->vm()->pop_call_frame(previous_frame);
+
       return value;
     }
 

@@ -1254,6 +1254,8 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
   stack_clear(count);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1297,6 +1299,8 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
   stack_clear(count);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state);
 end
 
 section "Manipulate blocks"
@@ -1994,6 +1998,8 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
+
+    state->vm()->checkpoint(state);
   }
 end
 
@@ -2020,6 +2026,8 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
+
+    state->vm()->checkpoint(state);
   }
 end
 
@@ -2048,6 +2056,8 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
+
+    state->vm()->checkpoint(state);
   }
 end
 
@@ -2075,6 +2085,8 @@ instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
+
+    state->vm()->checkpoint(state);
   }
 end
 
@@ -2102,6 +2114,8 @@ instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
+
+    state->vm()->checkpoint(state);
   }
 end
 
@@ -2131,6 +2145,8 @@ instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
+
+    state->vm()->checkpoint(state);
   }
 end
 
@@ -2164,6 +2180,8 @@ instruction meta_send_call(literal count) [ receiver +count -- value ] => send
   stack_clear(count + 1);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state);
 end
 
 section "More misc"
@@ -2259,6 +2277,8 @@ instruction zsuper(literal) [ block -- value ]
   ret = call_site->execute(state, new_args);
 
   CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -2466,6 +2486,8 @@ instruction meta_to_s(literal) [ object -- string ] => send
 
     (void)stack_pop();
     CHECK_AND_PUSH(ret);
+
+    state->vm()->checkpoint(state);
   }
 end
 

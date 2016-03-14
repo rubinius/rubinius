@@ -454,7 +454,19 @@ step1:
   }
 
   bool Memory::valid_object_p(Object* obj) {
-    if(obj->young_object_p()) {
+    if(obj->true_p()) {
+      return true;
+    } else if(obj->false_p()) {
+      return true;
+    } else if(obj->nil_p()) {
+      return true;
+    } else if(obj->undef_p()) {
+      return true;
+    } else if(obj->fixnum_p()) {
+      return true;
+    } else if(obj->symbol_p()) {
+      return true;
+    } else if(obj->young_object_p()) {
       return false; /* young_->validate_object(obj) == cValid; */
     } else if(obj->mature_object_p()) {
       if(immix_->validate_object(obj) == cInImmix) {

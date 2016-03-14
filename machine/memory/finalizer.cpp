@@ -219,11 +219,11 @@ namespace memory {
           PLACE_EXCEPTION_POINT(ep);
 
           if(unlikely(ep.jumped_to())) {
-            // TODO: log this?
+            utilities::logger::warn(
+                "finalizer: an exception occurred running a NativeMethod finalizer");
           } else {
             (*process_item_->finalizer)(state, process_item_->object);
           }
-
 
           state->vm()->pop_call_frame(previous_frame);
           env->set_current_call_frame(0);

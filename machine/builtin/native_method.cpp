@@ -689,7 +689,7 @@ namespace rubinius {
     // wait before entering the extension code.
     ENTER_CAPI(state);
 
-    Object* ret;
+    Object* value;
     ExceptionPoint ep(env);
 
     try {
@@ -706,9 +706,9 @@ namespace rubinius {
         PLACE_EXCEPTION_POINT(ep);
 
         if(unlikely(ep.jumped_to())) {
-          ret = NULL;
+          value = NULL;
         } else {
-          ret = ArgumentHandler::invoke(state, nm, env, args);
+          value = ArgumentHandler::invoke(state, nm, env, args);
         }
         RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
       } else {
@@ -717,9 +717,9 @@ namespace rubinius {
         PLACE_EXCEPTION_POINT(ep);
 
         if(unlikely(ep.jumped_to())) {
-          ret = NULL;
+          value = NULL;
         } else {
-          ret = ArgumentHandler::invoke(state, nm, env, args);
+          value = ArgumentHandler::invoke(state, nm, env, args);
         }
         RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
       }
@@ -729,9 +729,9 @@ namespace rubinius {
       PLACE_EXCEPTION_POINT(ep);
 
       if(unlikely(ep.jumped_to())) {
-        ret = NULL;
+        value = NULL;
       } else {
-        ret = ArgumentHandler::invoke(state, nm, env, args);
+        value = ArgumentHandler::invoke(state, nm, env, args);
       }
       RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
 #endif
@@ -753,13 +753,11 @@ namespace rubinius {
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
-    OnStack<1> os_ret(state, ret);
-
     // Handle any signals that occurred while the native method
     // was running.
     if(!state->check_async(state)) return NULL;
 
-    return ret;
+    return value;
   }
 
   NativeMethod* NativeMethod::load_extension_entry_point(STATE,

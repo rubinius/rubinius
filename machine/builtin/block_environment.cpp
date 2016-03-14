@@ -89,11 +89,10 @@ namespace rubinius {
     return execute_interpreter(state, env, args, invocation);
   }
 
-  // TODO: this is a quick hack to process block arguments in 1.9.
+  // TODO: Specialize argument handlers for blocks like those for methods.
   class GenericArguments {
   public:
-    static bool call(STATE,
-                     MachineCode* mcode, StackVariables* scope,
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
                      Arguments& args, int flags)
     {
       /* There are 5 types of arguments, illustrated here:
@@ -422,6 +421,18 @@ namespace rubinius {
     scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
     scope->set_parent(env->scope_);
 
+    if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
+      if(state->vm()->thread_state()->raise_reason() == cNone) {
+        Exception* exc =
+          Exception::make_argument_error(state, mcode->required_args, args.total(),
+                                         mcode->name());
+        exc->locations(state, Location::from_call_stack(state));
+        state->raise_exception(exc);
+      }
+
+      return NULL;
+    }
+
     CallFrame* previous_frame = 0;
     InterpreterCallFrame* frame = ALLOCA_CALL_FRAME(mcode->stack_size);
 
@@ -439,20 +450,6 @@ namespace rubinius {
 
     state->vm()->push_call_frame(frame, previous_frame);
 
-    if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
-      state->vm()->pop_call_frame(previous_frame);
-
-      if(state->vm()->thread_state()->raise_reason() == cNone) {
-        Exception* exc =
-          Exception::make_argument_error(state, mcode->required_args, args.total(),
-                                         mcode->name());
-        exc->locations(state, Location::from_call_stack(state));
-        state->raise_exception(exc);
-      }
-
-      return NULL;
-    }
-
     Object* value = 0;
 
 #ifdef RBX_PROFILER
@@ -469,8 +466,6 @@ namespace rubinius {
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
       if(state->check_interrupts(state)) {
-        state->vm()->checkpoint(state);
-
         tooling::BlockEntry method(state, env, mod);
         value = (*mcode->run)(state, mcode);
       }
@@ -478,8 +473,6 @@ namespace rubinius {
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
       if(state->check_interrupts(state)) {
-        state->vm()->checkpoint(state);
-
         value = (*mcode->run)(state, mcode);
       }
     }
@@ -487,8 +480,6 @@ namespace rubinius {
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
     if(state->check_interrupts(state)) {
-      state->vm()->checkpoint(state);
-
       value = (*mcode->run)(state, mcode);
     }
 #endif

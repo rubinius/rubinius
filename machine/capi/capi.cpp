@@ -156,8 +156,6 @@ namespace rubinius {
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
 
-      env->state()->vm()->checkpoint(env->state());
-
       return ret_handle;
     }
 
@@ -202,8 +200,6 @@ namespace rubinius {
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
-
-      env->state()->vm()->checkpoint(env->state());
 
       return ret_handle;
     }
@@ -256,8 +252,6 @@ namespace rubinius {
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
 
-      env->state()->vm()->checkpoint(env->state());
-
       return ret_handle;
     }
 
@@ -303,8 +297,6 @@ namespace rubinius {
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
-
-      env->state()->vm()->checkpoint(env->state());
 
       return ret_handle;
     }

@@ -595,8 +595,6 @@ namespace rubinius {
 
     stop_jit(state);
 
-    state->vm()->checkpoint(state);
-
     {
       UnmanagedPhase unmanaged(state);
       shared->internal_threads()->shutdown(state);
