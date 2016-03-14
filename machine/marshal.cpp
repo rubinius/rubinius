@@ -105,7 +105,7 @@ namespace rubinius {
     Arguments args(name, G(runtime), 2, objs);
     Dispatch dispatch(name);
 
-    if(Object* r = dispatch.send(state, NULL, args)) {
+    if(Object* r = dispatch.send(state, args)) {
       return r;
     } else {
       return cNil;
@@ -122,7 +122,7 @@ namespace rubinius {
     Arguments args(name, G(runtime), 2, objs);
     Dispatch dispatch(name);
 
-    if(Object* c = dispatch.send(state, NULL, args)) {
+    if(Object* c = dispatch.send(state, args)) {
       return c;
     } else {
       return cNil;

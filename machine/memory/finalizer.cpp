@@ -167,16 +167,14 @@ namespace memory {
     switch(process_item_kind_) {
     case eRuby: {
       if(process_item_->ruby_finalizer) {
-        CallFrame* call_frame = state->vm()->call_frame();
         // Rubinius specific code. If the finalizer is cTrue, then send the
         // object the __finalize__ message.
         if(process_item_->ruby_finalizer->true_p()) {
-          process_item_->object->send(state, call_frame, state->symbol("__finalize__"));
+          process_item_->object->send(state, state->symbol("__finalize__"));
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, process_item_->object->id(state));
-          if(!process_item_->ruby_finalizer->send(state,
-                call_frame, G(sym_call), ary)) {
+          if(!process_item_->ruby_finalizer->send(state, G(sym_call), ary)) {
             if(state->vm()->thread_state()->raise_reason() == cException) {
               utilities::logger::warn(
                   "finalizer: an exception occurred running a Ruby finalizer: %s",

@@ -57,7 +57,7 @@ namespace rubinius {
 
     Dispatch dispatch(G(sym_call));
 
-    return dispatch.send(state, state->vm()->call_frame(), args);
+    return dispatch.send(state, args);
   }
 
   void Executable::add_inliner(STATE, Memory* om, CompiledCode* code) {

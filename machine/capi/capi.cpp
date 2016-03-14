@@ -89,7 +89,7 @@ namespace rubinius {
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
 
-      Object* ret = recv->send(env->state(), env->current_call_frame(),
+      Object* ret = recv->send(env->state(),
           reinterpret_cast<Symbol*>(method_name), args, blk);
 
       // We need to get the handle for the return value before getting
@@ -140,7 +140,7 @@ namespace rubinius {
         Arguments args_o(method, recv, block, arg_count, args);
         Dispatch dispatch(method);
 
-        ret = dispatch.send(env->state(), env->current_call_frame(), lookup, args_o);
+        ret = dispatch.send(env->state(), lookup, args_o);
       }
 
       // We need to get the handle for the return value before getting
@@ -189,7 +189,7 @@ namespace rubinius {
         Arguments args_o(method, recv, cNil, arg_count, args);
         Dispatch dispatch(method);
 
-        ret = dispatch.send(env->state(), env->current_call_frame(), lookup, args_o);
+        ret = dispatch.send(env->state(), lookup, args_o);
       }
 
       // We need to get the handle for the return value before getting
@@ -225,8 +225,6 @@ namespace rubinius {
       Object* ret = cNil;
       STATE = env->state();
 
-      CallFrame* call_frame = env->current_call_frame();
-
       // Run in separate block so the arguments are destructed
       // properly before we make a potential longjmp.
       {
@@ -241,7 +239,7 @@ namespace rubinius {
           ret = NULL;
         } else {
           Dispatch dispatch(G(sym_call));
-          ret = dispatch.send(state, call_frame, args);
+          ret = dispatch.send(state, args);
         }
       }
 
@@ -290,7 +288,7 @@ namespace rubinius {
         Arguments args_o(name, recv, arg_count, args);
         Dispatch dispatch(name);
 
-        ret = dispatch.send(env->state(), env->current_call_frame(), lookup, args_o);
+        ret = dispatch.send(env->state(), lookup, args_o);
       }
 
       // We need to get the handle for the return value before getting
@@ -653,8 +651,7 @@ extern "C" {
     // Unlock, we're leaving extension code.
     LEAVE_CAPI(env->state());
 
-    Object* ret = obj->send(env->state(), env->current_call_frame(),
-        reinterpret_cast<Symbol*>(mid), ary, cNil);
+    Object* ret = obj->send(env->state(), reinterpret_cast<Symbol*>(mid), ary, cNil);
 
     // We need to get the handle for the return value before getting
     // the GEL so that ret isn't accidentally GCd while we wait.

@@ -140,7 +140,7 @@ namespace rubinius {
     }
 
     if(CBOOL(value->respond_to(state, G(sym_to_ary), cTrue))) {
-      Object* res = value->send(state, state->vm()->call_frame(), G(sym_to_ary));
+      Object* res = value->send(state, G(sym_to_ary));
       if(!res) return 0;
 
       if(Array* ary = try_as<Array>(res)) {

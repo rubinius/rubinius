@@ -1425,7 +1425,7 @@ namespace rubinius {
     args.set_recv(obj);
 
     OnStack<1> os(state, dest);
-    Object* ret = dispatch.send(state, state->vm()->call_frame(), lookup, args);
+    Object* ret = dispatch.send(state, lookup, args);
 
     if(!ret && state->vm()->thread_state()->raise_reason() == cCatchThrow) {
       if(state->vm()->thread_state()->throw_dest() == dest) {
@@ -1542,8 +1542,7 @@ namespace rubinius {
       buf[0] = name;
       buf[1] = G(sym_public);
       Arguments args(name, obj, 2, buf);
-      responds = RBOOL(CBOOL(dispatch.send(state,
-              state->vm()->call_frame(), lookup, args)));
+      responds = RBOOL(CBOOL(dispatch.send(state, lookup, args)));
     }
     return responds;
   }

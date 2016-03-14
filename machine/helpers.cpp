@@ -147,7 +147,7 @@ namespace rubinius {
     Object* const_missing_under(STATE, Module* under, Symbol* sym) {
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
-      return under->send(state, state->vm()->call_frame(), G(sym_const_missing), args);
+      return under->send(state, G(sym_const_missing), args);
     }
 
     Object* const_missing(STATE, Symbol* sym) {
@@ -164,7 +164,7 @@ namespace rubinius {
 
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
-      return under->send(state, call_frame, G(sym_const_missing), args);
+      return under->send(state, G(sym_const_missing), args);
     }
 
     Class* open_class(STATE, Object* super, Symbol* name, bool* created) {
@@ -313,8 +313,7 @@ namespace rubinius {
 
       OnStack<1> os(state, my_control);
 
-      debugger_chan->send(state,
-          Tuple::from(state, 4, bp, cur, my_control, locs));
+      debugger_chan->send(state, Tuple::from(state, 4, bp, cur, my_control, locs));
 
       // Block until the debugger wakes us back up.
       Object* ret = my_control->receive(state);

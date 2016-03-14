@@ -403,7 +403,7 @@ namespace rubinius {
         ary->set(state, 0, Fixnum::from(*(int*)parameters[i]));
 
         Object* result = stub->args_info[i].enum_obj->send(state,
-            env->current_call_frame(), state->symbol("symbol"), ary);
+            state->symbol("symbol"), ary);
 
         if(!result) {
           utilities::logger::error("Exception raised by callback, ignoring");
@@ -478,8 +478,7 @@ namespace rubinius {
       }
     }
 
-    Object* obj = stub->callable->send(
-        state, env->current_call_frame(), G(sym_call), args);
+    Object* obj = stub->callable->send(state, G(sym_call), args);
 
     // Ug. An exception is being raised...
     if(!obj) {
@@ -556,8 +555,7 @@ namespace rubinius {
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, obj);
 
-      Object* value = stub->ret_info.enum_obj->send(
-          state, env->current_call_frame(), state->symbol("[]"), ary);
+      Object* value = stub->ret_info.enum_obj->send(state, state->symbol("[]"), ary);
 
       if(!value) {
         // For now, log the error and return nil.
@@ -922,8 +920,7 @@ namespace rubinius {
               heap_allocations[ffi_index] = data;
               *tmp = data;
             } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), cTrue))) {
-              Object* o2 = obj->send(state,
-                  state->vm()->call_frame(), state->symbol("to_ptr"));
+              Object* o2 = obj->send(state, state->symbol("to_ptr"));
               if(!o2) {
                 for(size_t i = 0; i < arg_count; i++) {
                   if(heap_allocations[i]) {
@@ -953,8 +950,7 @@ namespace rubinius {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, obj);
 
-          Object* val = arg_info->enum_obj->send(
-              state, state->vm()->call_frame(), state->symbol("[]"), ary);
+          Object* val = arg_info->enum_obj->send(state, state->symbol("[]"), ary);
 
           if(!val) {
             for(size_t i = 0; i < arg_count; i++) {
@@ -1149,8 +1145,7 @@ namespace rubinius {
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, Integer::from(state, (native_int)result));
 
-      ret = ffi_data->ret_info.enum_obj->send(state,
-          state->vm()->call_frame(), state->symbol("symbol"), ary);
+      ret = ffi_data->ret_info.enum_obj->send(state, state->symbol("symbol"), ary);
       break;
     }
     case RBX_FFI_TYPE_CALLBACK: {

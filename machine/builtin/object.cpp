@@ -518,9 +518,7 @@ namespace rubinius {
     return class_object(state);
   }
 
-  Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* ary,
-      Object* block, bool allow_private)
-  {
+  Object* Object::send(STATE, Symbol* name, Array* ary, Object* block, bool allow_private) {
     LookupData lookup(this, this->lookup_begin(state),
         allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dispatch(name);
@@ -529,10 +527,10 @@ namespace rubinius {
     args.set_block(block);
     args.set_recv(this);
 
-    return dispatch.send(state, caller, lookup, args);
+    return dispatch.send(state, lookup, args);
   }
 
-  Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
+  Object* Object::send(STATE, Symbol* name, bool allow_private) {
     LookupData lookup(this, this->lookup_begin(state),
         allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dispatch(name);
@@ -541,26 +539,28 @@ namespace rubinius {
     args.set_block(cNil);
     args.set_recv(this);
 
-    return dispatch.send(state, caller, lookup, args);
+    return dispatch.send(state, lookup, args);
   }
 
-  Object* Object::send_prim(STATE, Executable* exec,
+  Object* Object::send(STATE, Executable* exec,
       Module* mod, Arguments& args, Symbol* min_visibility)
   {
     if(args.total() < 1) return Primitives::failure();
 
-    // Don't shift the argument because we might fail and we need Arguments
-    // to be pristine in the fallback code.
+    /* Don't shift the argument because we might fail and we need Arguments to
+     * be pristine in the fallback code.
+     */
     Object* meth = args.get_argument(0);
     Symbol* sym = try_as<Symbol>(meth);
 
-    // All coercion must be done here. Coercing Ruby-side and then
-    // re-calling #send/#__send__ would produce incorrect results when
-    // sending messages that are sensitive to the call stack like
-    // send("__callee__") and the regex globals following send("gsub").
-    //
-    // MRI checks for Fixnum explicitly and raises ArgumentError
-    // instead of TypeError. Seems silly, so we don't bother.
+    /* All coercion must be done here. Coercing Ruby-side and then re-calling
+     * #send/#__send__ would produce incorrect results when sending messages
+     * that are sensitive to the call stack like send("__callee__") and the
+     * regex globals following send("gsub").
+     *
+     * MRI checks for Fixnum explicitly and raises ArgumentError instead of
+     * TypeError. Seems silly, so we don't bother.
+     */
     if(!sym) {
       if(String* str = try_as<String>(meth)) {
         sym = str->to_sym(state);
@@ -573,9 +573,9 @@ namespace rubinius {
     args.shift(state);
     args.set_name(sym);
 
-    // We have to send it with self from the current frame as the
-    // source, not this object to have correct visibility checks
-    // for protected.
+    /* We have to send it with self from the current frame as the source, not
+     * this object to have correct visibility checks for protected.
+     */
     Dispatch dispatch(sym);
     Object* scope = this;
     CallFrame* call_frame = state->vm()->call_frame();
@@ -584,19 +584,19 @@ namespace rubinius {
     }
     LookupData lookup(scope, lookup_begin(state), min_visibility);
 
-    return dispatch.send(state, call_frame, lookup, args);
+    return dispatch.send(state, lookup, args);
   }
 
   Object* Object::private_send_prim(STATE,
       Executable* exec, Module* mod, Arguments& args)
   {
-    return send_prim(state, exec, mod, args, G(sym_private));
+    return send(state, exec, mod, args, G(sym_private));
   }
 
   Object* Object::public_send_prim(STATE,
       Executable* exec, Module* mod, Arguments& args)
   {
-    return send_prim(state, exec, mod, args, G(sym_public));
+    return send(state, exec, mod, args, G(sym_public));
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {
@@ -921,7 +921,7 @@ namespace rubinius {
 
         Arguments args(missing, this, 2, buf);
 
-        if(Object* responds = dispatch.send(state, 0, lookup, args)) {
+        if(Object* responds = dispatch.send(state, lookup, args)) {
           return RBOOL(CBOOL(responds));
         }
 

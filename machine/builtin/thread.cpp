@@ -111,7 +111,7 @@ namespace rubinius {
   }
 
   Object* send_run(STATE) {
-    return state->vm()->thread.get()->send(state, NULL, state->symbol("__run__"));
+    return state->vm()->thread.get()->send(state, state->symbol("__run__"));
   }
 
   Thread* Thread::allocate(STATE, Object* self) {
@@ -315,7 +315,7 @@ namespace rubinius {
     Object* instance = 0;
     OnStack<1> os(state, instance);
 
-    instance = klass->send(state, 0, state->symbol("new"));
+    instance = klass->send(state, state->symbol("new"));
     if(instance) {
       state->shared().env()->set_loader(instance);
     } else {
@@ -325,7 +325,7 @@ namespace rubinius {
     // Enable the JIT after the core library has loaded
     G(jit)->enable(state);
 
-    Object* exit = instance->send(state, 0, state->symbol("main"));
+    Object* exit = instance->send(state, state->symbol("main"));
 
     state->shared().signals()->system_exit(state->vm()->thread_state()->raise_value());
 

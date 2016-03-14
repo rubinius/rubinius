@@ -57,8 +57,7 @@ namespace rubinius {
        */
       Memory::GCInhibit inhibitor(state);
 
-      ret = G(rubinius)->send(state, state->vm()->call_frame(),
-          state->symbol("bind_call"), ary);
+      ret = G(rubinius)->send(state, state->symbol("bind_call"), ary);
     }
 
     if(CallUnit* cu = try_as<CallUnit>(ret)) {

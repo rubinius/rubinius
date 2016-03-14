@@ -212,7 +212,7 @@ namespace rubinius {
         Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(signal));
 
-        if(!G(rubinius)->send(state, 0, state->symbol("received_signal"), args, cNil)) {
+        if(!G(rubinius)->send(state, state->symbol("received_signal"), args, cNil)) {
           if(state->thread_state()->raise_reason() == cException ||
               state->thread_state()->raise_reason() == cExit)
           {
@@ -222,8 +222,8 @@ namespace rubinius {
             Array* args = Array::create(state, 1);
             args->set(state, 0, exc);
 
-            state->shared().env()->loader()->send(
-                state, 0, state->symbol("handle_exception"), args, cNil);
+            state->shared().env()->loader()->send(state,
+                state->symbol("handle_exception"), args, cNil);
 
             system_exit_ = true;
 

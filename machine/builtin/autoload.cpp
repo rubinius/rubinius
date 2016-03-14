@@ -18,7 +18,7 @@ namespace rubinius {
     Autoload* self = this;
     OnStack<2> os(state, self, under);
 
-    Object* res = send(state, state->vm()->call_frame(), state->symbol("resolve"));
+    Object* res = send(state, state->symbol("resolve"));
     if(!res) return NULL;
 
     if(CBOOL(res) || !honor_require) {
@@ -39,7 +39,7 @@ namespace rubinius {
     Autoload* self = this;
     OnStack<1> os(state, self);
 
-    Object* res = send(state, state->vm()->call_frame(), state->symbol("resolve"));
+    Object* res = send(state, state->symbol("resolve"));
     if(!res) return NULL;
 
     if(CBOOL(res) || !honor_require) {

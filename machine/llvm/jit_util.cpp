@@ -325,7 +325,7 @@ extern "C" {
         Arguments args(name, obj, 0, 0);
         Dispatch dispatch(name);
 
-        obj = dispatch.send(state, state->vm()->call_frame(), args);
+        obj = dispatch.send(state, args);
         if(obj) {
           if(obj->kind_of_p(state, cls)) {
             return obj;
@@ -375,7 +375,7 @@ extern "C" {
     Arguments args(G(sym_coerce_to_array), recv, 1, &top);
     Dispatch dispatch(G(sym_coerce_to_array));
 
-    return dispatch.send(state, state->vm()->call_frame(), args);
+    return dispatch.send(state, args);
   }
 
   int rbx_destructure_args(STATE, Arguments& args) {
@@ -390,7 +390,7 @@ extern "C" {
            */
           Memory::GCInhibit inhibitor(state);
 
-          if(!(obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary)))) {
+          if(!(obj = obj->send(state, G(sym_to_ary)))) {
             return -1;
           }
         }
@@ -415,7 +415,7 @@ extern "C" {
     Array* ary = try_as<Array>(obj);
 
     if(!ary && CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-      obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
+      obj = obj->send(state, G(sym_to_ary));
       if(!obj) return 0;
       if(Array* ary2 = try_as<Array>(obj)) {
         ary = ary2;
@@ -472,7 +472,7 @@ extern "C" {
          */
         if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
           OnStack<1> os(state, obj);
-          Object* ignored = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
+          Object* ignored = obj->send(state, G(sym_to_ary));
           if(!ignored) return 0;
           if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array");
@@ -501,7 +501,7 @@ extern "C" {
       if(kind_of<Array>(obj)) {
         return obj;
       } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-        obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
+        obj = obj->send(state, G(sym_to_ary));
         if(!obj) return 0;
         if(kind_of<Array>(obj)) {
           return obj;
@@ -542,7 +542,7 @@ extern "C" {
          */
         if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
           OnStack<1> os(state, obj);
-          Object* ignored = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
+          Object* ignored = obj->send(state, G(sym_to_ary));
           if(!ignored) {
             obj = 0;
           } else if(!kind_of<Array>(ignored)) {
@@ -587,7 +587,7 @@ extern "C" {
       if(kind_of<Array>(obj)) {
         // Nothing! it's good.
       } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-        obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
+        obj = obj->send(state, G(sym_to_ary));
         if(obj && !kind_of<Array>(obj)) {
           Exception::type_error(state, "to_ary must return an Array");
           obj = 0;
@@ -763,7 +763,7 @@ extern "C" {
 
     Dispatch dispatch(G(sym_call));
 
-    return dispatch.send(state, state->vm()->call_frame(), out_args);
+    return dispatch.send(state, out_args);
   }
 
   Object* rbx_yield_splat(STATE, Object* block, int count, Object** stk) {
@@ -785,7 +785,7 @@ extern "C" {
     }
 
     Dispatch dispatch(G(sym_call));
-    return dispatch.send(state, state->vm()->call_frame(), args);
+    return dispatch.send(state, args);
   }
 
   Object* rbx_passed_arg(STATE, Arguments& args, int index) {

@@ -80,7 +80,7 @@ namespace rubinius {
                    */
                   Memory::GCInhibit inhibitor(state);
 
-                  obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary));
+                  obj = obj->send(state, G(sym_to_ary));
                 }
 
                 if(!(ary = try_as<Array>(obj))) {
@@ -121,7 +121,7 @@ namespace rubinius {
     if(self->bound_method_->nil_p()) {
       if(self->block_->nil_p()) {
         Dispatch dispatch(state->symbol("__yield__"));
-        return dispatch.send(state, state->vm()->call_frame(), args);
+        return dispatch.send(state, args);
       } else {
         return self->block_->call(state, args, flags);
       }

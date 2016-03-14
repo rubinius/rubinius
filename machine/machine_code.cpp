@@ -555,7 +555,7 @@ namespace rubinius {
            */
           Memory::GCInhibit inhibitor(state);
 
-          kw_result = dispatch.send(state, state->vm()->call_frame(), args);
+          kw_result = dispatch.send(state, args);
         }
 
         if(kw_result) {

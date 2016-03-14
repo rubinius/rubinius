@@ -226,7 +226,7 @@ namespace rubinius {
                  */
                 Memory::GCInhibit inhibitor(state);
 
-                if(!(obj = obj->send(state, state->vm()->call_frame(), G(sym_to_ary)))) {
+                if(!(obj = obj->send(state, G(sym_to_ary)))) {
                   return false;
                 }
               }
@@ -286,7 +286,7 @@ namespace rubinius {
            */
           Memory::GCInhibit inhibitor(state);
 
-          kw_result = dispatch.send(state, state->vm()->call_frame(), args);
+          kw_result = dispatch.send(state, args);
         }
 
         if(kw_result) {

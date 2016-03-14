@@ -63,7 +63,7 @@ namespace rubinius {
     vm->set_current_fiber(fib);
 
     Array* result = nil<Array>();
-    Object* obj = fib->starter()->send(state, NULL, G(sym_call), fib->value(), cNil, false);
+    Object* obj = fib->starter()->send(state, G(sym_call), fib->value(), cNil, false);
 
     // GC has run! Don't use stack vars!
 

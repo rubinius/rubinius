@@ -9,7 +9,6 @@ namespace rubinius {
   class Module;
   class Object;
   class Executable;
-  struct CallFrame;
   class Arguments;
   struct LookupData;
 
@@ -29,9 +28,8 @@ namespace rubinius {
       , method_missing(eNone)
     {}
 
-    Object* send(STATE, CallFrame* call_frame, Arguments& args,
-                 MethodMissingReason reason = eNormal);
-    Object* send(STATE, CallFrame* call_frame, LookupData& lookup, Arguments& args,
+    Object* send(STATE, Arguments& args, MethodMissingReason reason = eNormal);
+    Object* send(STATE, LookupData& lookup, Arguments& args,
                  MethodMissingReason reason = eNormal);
     bool resolve(STATE, Symbol* name, LookupData& lookup);
   };

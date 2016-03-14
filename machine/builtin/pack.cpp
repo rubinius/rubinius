@@ -39,8 +39,7 @@ namespace rubinius {
       Array* args = Array::create(state, 1);
       args->set(state, 0, obj);
 
-      return G(rubinius)->send(state, state->vm()->call_frame(),
-          state->symbol("pack_to_int"), args);
+      return G(rubinius)->send(state, state->symbol("pack_to_int"), args);
     }
 
 #define BITS_LONG   (RBX_SIZEOF_LONG * 8)
@@ -71,8 +70,7 @@ namespace rubinius {
       Array* args = Array::create(state, 1);
       args->set(state, 0, obj);
 
-      return G(rubinius)->send(state, state->vm()->call_frame(),
-          state->symbol("pack_to_float"), args);
+      return G(rubinius)->send(state, state->symbol("pack_to_float"), args);
     }
 
     inline String* encoding_string(STATE, Object* obj, const char* coerce_name)
@@ -85,8 +83,7 @@ namespace rubinius {
 
       std::string coerce_method("pack_");
       coerce_method += coerce_name;
-      Object* result = G(rubinius)->send(state, state->vm()->call_frame(),
-            state->symbol(coerce_method.c_str()), args);
+      Object* result = G(rubinius)->send(state, state->symbol(coerce_method.c_str()), args);
 
       if(!result) return 0;
       return as<String>(result);

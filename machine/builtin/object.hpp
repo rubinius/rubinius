@@ -166,11 +166,11 @@ namespace rubinius {
      *  Sets up the current task to send the given method name to this
      *  Object, passing the given number of arguments through varargs.
      */
-    Object* send(STATE, CallFrame* caller, Symbol* name, Array* args,
+    Object* send(STATE, Symbol* name, Array* args,
         Object* block = cNil, bool allow_private = true);
-    Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
+    Object* send(STATE, Symbol* name, bool allow_private = true);
 
-    Object* send_prim(STATE, Executable* exec, Module* mod, Arguments& args,
+    Object* send(STATE, Executable* exec, Module* mod, Arguments& args,
         Symbol* min_visibility);
 
     /**

@@ -11,15 +11,13 @@
 #include <sstream>
 
 namespace rubinius {
-  Object* Dispatch::send(STATE, CallFrame* call_frame, Arguments& args,
-                         MethodMissingReason reason)
-  {
+  Object* Dispatch::send(STATE, Arguments& args, MethodMissingReason reason) {
     LookupData lookup(args.recv(), args.recv()->lookup_begin(state), G(sym_protected));
 
-    return send(state, call_frame, lookup, args, reason);
+    return send(state, lookup, args, reason);
   }
 
-  Object* Dispatch::send(STATE, CallFrame* call_frame, LookupData& lookup,
+  Object* Dispatch::send(STATE, LookupData& lookup,
                          Arguments& args, MethodMissingReason reason)
   {
     Symbol* original_name = name;

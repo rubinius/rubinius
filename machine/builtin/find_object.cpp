@@ -287,8 +287,7 @@ namespace rubinius {
         ary->append(state, obj);
       } else {
         args->set(state, 0, obj);
-        ret = callable->send(state, state->vm()->call_frame(), G(sym_call),
-                             args, cNil, false);
+        ret = callable->send(state, G(sym_call), args, cNil, false);
       }
 
       delete condition;
@@ -330,8 +329,7 @@ namespace rubinius {
           memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                                  variable_buffer, stack_size);
           args->set(state, 0, obj);
-          ret = callable->send(state, state->vm()->call_frame(), G(sym_call),
-                               args, cNil, false);
+          ret = callable->send(state, G(sym_call), args, cNil, false);
           if(!ret) break;
         }
       }
