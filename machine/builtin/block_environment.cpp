@@ -613,21 +613,24 @@ namespace rubinius {
   }
 
   Object* BlockEnvironment::of_sender(STATE) {
-    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
-      if(NativeMethodFrame* nmf = frame->native_method_frame()) {
-        return state->vm()->native_method_environment->get_object(nmf->block());
-      }
+    if(NativeMethodFrame* nmf = state->vm()->get_call_frame(1)->native_method_frame()) {
+      return state->vm()->native_method_environment->get_object(nmf->block());
+    }
 
-      // TODO: What?
-      // We assume that code using this is going to use it over and
-      // over again (ie Proc.new) so we mark the method as not
-      // inlinable so that this works even with the JIT on.
+    CallFrame* frame = state->vm()->get_ruby_frame(1);
 
-      frame->compiled_code->machine_code()->set_no_inline();
+    // We assume that code using this is going to use it over and
+    // over again (ie Proc.new) so we mark the method as not
+    // inlinable so that this works even with the JIT on.
 
-      if(frame->scope) {
-        return frame->scope->block();
-      }
+    if(!frame) {
+      return cNil;
+    }
+
+    frame->compiled_code->machine_code()->set_no_inline();
+
+    if(frame->scope) {
+      return frame->scope->block();
     }
 
     return cNil;
