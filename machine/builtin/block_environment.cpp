@@ -220,15 +220,8 @@ namespace rubinius {
 
           if(!(ary = try_as<Array>(obj))) {
             if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-              {
-                /* The references in args are not visible to the GC and
-                 * there's not a simple mechanism to manage that now.
-                 */
-                Memory::GCInhibit inhibitor(state);
-
-                if(!(obj = obj->send(state, G(sym_to_ary)))) {
-                  return false;
-                }
+              if(!(obj = obj->send(state, G(sym_to_ary)))) {
+                return false;
               }
 
               if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
@@ -278,18 +271,7 @@ namespace rubinius {
         Arguments args(G(sym_keyword_object), G(runtime), 2, arguments);
         Dispatch dispatch(G(sym_keyword_object));
 
-        Object* kw_result;
-
-        {
-          /* The references in args are not visible to the GC and
-           * there's not a simple mechanism to manage that now.
-           */
-          Memory::GCInhibit inhibitor(state);
-
-          kw_result = dispatch.send(state, args);
-        }
-
-        if(kw_result) {
+        if(Object* kw_result = dispatch.send(state, args)) {
           if(Array* ary = try_as<Array>(kw_result)) {
             Object* o = 0;
 

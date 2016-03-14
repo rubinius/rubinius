@@ -74,16 +74,7 @@ namespace rubinius {
 
             if(!(ary = try_as<Array>(obj))) {
               if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-                {
-                  /* The references in args are not visible to the GC and
-                   * there's not a simple mechanism to manage that now.
-                   */
-                  Memory::GCInhibit inhibitor(state);
-
-                  obj = obj->send(state, G(sym_to_ary));
-                }
-
-                if(!(ary = try_as<Array>(obj))) {
+                if(!(ary = try_as<Array>(obj->send(state, G(sym_to_ary))))) {
                   Exception::type_error(state, "to_ary must return an Array");
                   return 0;
                 }

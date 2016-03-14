@@ -49,16 +49,7 @@ namespace rubinius {
       ary->set(state, i + 2, args.get_argument(i));
     }
 
-    Object* ret;
-
-    {
-      /* The references in args are not visible to the GC and
-       * there's not a simple mechanism to manage that now.
-       */
-      Memory::GCInhibit inhibitor(state);
-
-      ret = G(rubinius)->send(state, state->symbol("bind_call"), ary);
-    }
+    Object* ret = G(rubinius)->send(state, state->symbol("bind_call"), ary);
 
     if(CallUnit* cu = try_as<CallUnit>(ret)) {
       CallCustomCache* cache = CallCustomCache::create(state, call_site, cu);

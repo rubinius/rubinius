@@ -384,15 +384,8 @@ extern "C" {
 
     if(!(ary = try_as<Array>(obj))) {
       if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-        {
-          /* The references in args are not visible to the GC and
-           * there's not a simple mechanism to manage that now.
-           */
-          Memory::GCInhibit inhibitor(state);
-
-          if(!(obj = obj->send(state, G(sym_to_ary)))) {
-            return -1;
-          }
+        if(!(obj = obj->send(state, G(sym_to_ary)))) {
+          return -1;
         }
 
         if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
