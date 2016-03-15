@@ -144,7 +144,7 @@ file signature_file => signature_files do
   end
 end
 
-signature_header = "vm/gen/signature.h"
+signature_header = "machine/gen/signature.h"
 
 file signature_header => signature_file do |t|
   File.open t.name, "wb" do |file|

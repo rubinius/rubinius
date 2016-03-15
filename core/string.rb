@@ -2680,4 +2680,12 @@ class String
     str += ".force_encoding(\"#{encoding}\")" unless encoding.ascii_compatible?
     s.replace(str)
   end
+
+  def -@
+    frozen? ? self : dup.freeze
+  end
+
+  def +@
+    frozen? ? dup : self
+  end
 end

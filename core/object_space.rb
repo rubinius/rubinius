@@ -6,11 +6,12 @@ module ObjectSpace
 
   def self._id2ref(id)
     ary = []
+
     if find_object([:object_id, Integer(id)], ary) > 0
       return ary.first
     end
 
-    return nil
+    raise RangeError, "#{id} is not a valid ID value"
   end
 
   def self.find_references(obj)

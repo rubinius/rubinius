@@ -52,3 +52,7 @@ function rbx_write_revision_file {
 function rbx_release_name {
   echo "rubinius-$(rbx_revision_version).tar.bz2"
 }
+
+function rbx_heroku_release_name {
+  echo "ruby-2.2.2-rbx-$(rbx_revision_version).tar.bz2"
+}

@@ -15,9 +15,17 @@ describe "Rubinius::Mirror::String#byte_index with Fixnum" do
     lambda { string_mirror("abc").byte_index(-1) }.should raise_error(ArgumentError)
   end
 
+  it "returns nil if index is greater than string's length" do
+    string_mirror("abc").byte_index(4).should be_nil
+  end
+
   with_feature :encoding do
     it "returns the byte index of a multibyte character index" do
       string_mirror("あそこ").byte_index(1).should == 3
+    end
+
+    it "returns nil if index is greater than string's length" do
+      string_mirror("あそこ").byte_index(4).should be_nil
     end
   end
 end

@@ -193,11 +193,19 @@ describe "Invoking a method" do
       o.message.should == :not_there
       o.args.should == [1,2]
     end
-    
+
     it "raises NameError if invoked as a vcall" do
       lambda { no_such_method }.should raise_error NameError
     end
-    
+
+    it 'adds the receiver to the raised exception' do
+      begin
+        no_such_method
+      rescue NameError => error
+        error.receiver.should == self
+      end
+    end
+
     it "raises NoMethodError if invoked as an unambiguous method call" do
       lambda { no_such_method() }.should raise_error NoMethodError
       lambda { no_such_method(1,2,3) }.should raise_error NoMethodError

@@ -173,7 +173,7 @@ module Rubinius
     #
     # @return [String]
     def inspect
-      "#<#{self.class.name} #{@name} file=#{@file}>"
+      "#<#{self.class.name}:0x#{object_id.to_s(16)} #{@name} file=#{@file}>"
     end
 
     ##

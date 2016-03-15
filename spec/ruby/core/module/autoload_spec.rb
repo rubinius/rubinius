@@ -440,6 +440,10 @@ describe "Module#autoload" do
       ScratchPad.recorded.get.should == mod_count
     end
   end
+
+  it "loads the registered constant even if the constant was already loaded by another thread" do
+    Thread.new { ModuleSpecs::Autoload::FromThread::D.foo }.value.should == :foo
+  end
 end
 
 describe "Module#autoload" do

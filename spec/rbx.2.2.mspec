@@ -66,7 +66,7 @@ class MSpecScript
     MSpec.enable_feature :hash_bucket
   end
 
-  if `#{get(:target)} -v` =~ /\sJID?\)/
+  if Rubinius::JIT.enabled?
     MSpec.enable_feature :jit
   end
 end

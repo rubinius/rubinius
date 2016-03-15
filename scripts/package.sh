@@ -33,6 +33,14 @@ function rbx_package_homebrew {
   rbx_digest_file "$(rbx_release_name)" "sha1"
 }
 
+function rbx_package_heroku {
+  echo "Packaging for Heroku..."
+
+  rake package:heroku
+
+  rbx_digest_file "$(rbx_heroku_release_name)" "sha1"
+}
+
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   case "$1" in
     "tar")
@@ -43,6 +51,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       ;;
     "homebrew")
       rbx_package_homebrew
+      ;;
+    "heroku")
+      rbx_package_heroku
       ;;
     *)
       echo "Usage: ${0##*/} package_type"

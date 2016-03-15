@@ -1,4 +1,4 @@
-require 'core/build_config'
+require 'core/build_config' unless defined?(Rubinius::BUILD_CONFIG)
 require 'rubinius/configuration_variables'
 
 Rubinius::ConfigurationVariables.define do |c|
@@ -8,6 +8,13 @@ Rubinius::ConfigurationVariables.define do |c|
       "Path for the Rubinius core library CodeDB"
     s.vm_variable "cache.path", "$TMPDIR/$PROGRAM_NAME-$USER-codedb",
       "Path for the compiled code cache CodeDB"
+  end
+
+  c.section "memory" do |s|
+    s.section "collection" do |c|
+      c.vm_variable "log", false,
+        "Log when collections are triggered and run"
+    end
   end
 
   c.section "gc" do |s|
@@ -20,7 +27,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "large_object", (1024 * 1024),
       "The size (in bytes) of the large object threshold"
 
-    s.vm_variable "immix.concurrent", true,
+    s.vm_variable "immix.concurrent", false,
       "Set whether we want the Immix mark phase to run concurrently"
 
     s.vm_variable "immix.debug", :bool,

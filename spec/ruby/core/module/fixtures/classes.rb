@@ -365,6 +365,22 @@ module ModuleSpecs
         return :good
       end
     end
+
+    module FromThread
+      module A
+        autoload :B, fixture(__FILE__, "autoload_empty.rb")
+
+        class B
+          autoload :C, fixture(__FILE__, "autoload_abc.rb")
+
+          def self.foo
+            C.foo
+          end
+        end
+      end
+
+      class D < A::B; end
+    end
   end
 
   # This class isn't inherited from or included in anywhere. It exists to test

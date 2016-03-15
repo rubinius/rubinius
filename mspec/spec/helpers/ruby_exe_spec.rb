@@ -63,30 +63,6 @@ describe "#ruby_exe_options" do
     name = File.join RbConfig::CONFIG['bindir'], bin
     @script.ruby_exe_options(:install_name).should == name
   end
-
-  describe "under Rubinius" do
-    before :each do
-      @ruby_version = RUBY_VERSION
-    end
-
-    after :each do
-      Object.const_set :RUBY_VERSION, @ruby_version
-    end
-
-    it "returns 'bin/rbx' when passed :engine, RUBY_NAME is 'rbx' and RUBY_VERSION < 1.9" do
-      Object.const_set :RUBY_VERSION, "1.8.7"
-      Object.const_set :RUBY_NAME, 'rbx'
-
-      @script.ruby_exe_options(:engine).should == 'bin/rbx'
-    end
-
-    it "returns 'bin/rbx -X19' when passed :engine, RUBY_NAME is 'rbx' and RUBY_VERSION >= 1.9" do
-      Object.const_set :RUBY_VERSION, "1.9.2"
-      Object.const_set :RUBY_NAME, 'rbx'
-
-      @script.ruby_exe_options(:engine).should == 'bin/rbx -X19'
-    end
-  end
 end
 
 describe "#resolve_ruby_exe" do

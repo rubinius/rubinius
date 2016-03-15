@@ -32,7 +32,7 @@ BUILD_CONFIG = {} unless Object.const_defined? :BUILD_CONFIG
 
 def load_configuration
   config_rb = File.expand_path "../config.rb", __FILE__
-  config_h  = File.expand_path "../vm/gen/config.h", __FILE__
+  config_h  = File.expand_path "../machine/gen/config.h", __FILE__
 
   unless File.exist?(config_rb) and File.exist?(config_h)
     if $cleaning
