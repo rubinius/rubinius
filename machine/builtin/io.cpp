@@ -21,7 +21,7 @@
 #include "capi/handle.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-#include "object_memory.hpp"
+#include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
@@ -50,33 +50,51 @@
 namespace rubinius {
 
   void IO::bootstrap(STATE) {
-    GO(io).set(ontology::new_class(state, "IO", G(object)));
+    GO(io).set(state->memory()->new_class<Class, IO>(state, G(object), "IO"));
     G(io)->set_object_type(state, IOType);
   }
 
   IO* IO::create(STATE, int fd) {
-    IO* io = state->new_object<IO>(G(io));
+    IO* io = state->memory()->new_object<IO>(state, G(io));
 
     return io;
   }
 
-  native_int IO::descriptor(STATE, CallFrame* frame) {
-    if (!frame) {
-      NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
-      frame = native_env->current_call_frame();
+  native_int IO::open_with_cloexec(STATE, const char* path, int mode, int permissions) {
+    if(Class* fd_class = try_as<Class>(G(io)->get_const(state, "FileDescriptor"))) {
+      Tuple* args = Tuple::from(state, 3,
+          String::create(state, path),
+          Fixnum::from(mode),
+          Fixnum::from(permissions));
+
+      if(Fixnum* fd = try_as<Fixnum>(fd_class->send(state,
+              state->symbol("open_with_cloexec"),
+              Array::from_tuple(state, args))))
+      {
+        return fd->to_native();
+      } else {
+        Exception::raise_runtime_error(state, "unable to open IO with cloexec");
+      }
+    } else {
+      Exception::raise_runtime_error(state, "unable to access IO::FileDescriptor class");
+    }
+  }
+
+  native_int IO::descriptor(STATE) {
+    Object* io_object = state->vm()->get_ruby_frame()->self();
+
+    if(Fixnum* fd = try_as<Fixnum>(io_object->send(state, state->symbol("descriptor")))) {
+      return fd->to_native();
     }
 
-    assert(frame);
-    Object* io_object = (Object*) frame->self();
-    return as<Fixnum>(io_object->send(state, frame, state->symbol("descriptor")))->to_native();
+    Exception::raise_runtime_error(state, "IO descriptor is not a Fixnum");
   }
 
   void IO::ensure_open(STATE) {
-    NativeMethodEnvironment* native_env = state->vm()->native_method_environment;
-    Object* io_object = (Object*) native_env->current_call_frame()->self();
+    Object* io_object = state->vm()->get_ruby_frame()->self();
 
     // Will raise an exception if the file descriptor is not open
-    io_object->send(state, native_env->current_call_frame(), state->symbol("ensure_open"));
+    io_object->send(state, state->symbol("ensure_open"));
   }
 
   Array* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
@@ -167,8 +185,9 @@ namespace rubinius {
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state, calling_environment);
-      bytes_read = recvfrom(descriptor(state, calling_environment),
+      UnmanagedPhase unmanaged(state);
+
+      bytes_read = recvfrom(descriptor(state),
                             (char*)buffer->byte_address(), size,
                             flags->to_native(),
                             (struct sockaddr*)buf, &alen);
@@ -423,7 +442,7 @@ failed: /* try next '*' position */
     struct cmsghdr *cmsg;
     char cmsg_buf[cmsg_space];
 
-    fd = io->descriptor(state, NULL);
+    fd = io->descriptor(state);
 
     msg.msg_name = NULL;
     msg.msg_namelen = 0;
@@ -448,7 +467,7 @@ failed: /* try next '*' position */
     int* fd_data = (int*)CMSG_DATA(cmsg);
     *fd_data = fd;
 
-    if(sendmsg(descriptor(state, NULL), &msg, 0) == -1) {
+    if(sendmsg(descriptor(state), &msg, 0) == -1) {
       return Primitives::failure();
     }
 
@@ -490,7 +509,7 @@ failed: /* try next '*' position */
     int* fd_data = (int *)CMSG_DATA(cmsg);
     *fd_data = -1;
 
-    int read_fd = descriptor(state, NULL);
+    int read_fd = descriptor(state);
 
     int code = -1;
 
@@ -531,9 +550,8 @@ failed: /* try next '*' position */
 
   void FDSet::bootstrap(STATE) {
     // Create a constant for FDSet under the IO::Select namespace, i.e. IO::Select::FDSet
-    GO(select).set(ontology::new_class_under(state, "Select", G(io)));
-    GO(fdset).set(ontology::new_class_under(state, "FDSet", G(select)));
-    G(fdset)->set_object_type(state, FDSetType);
+    GO(select).set(state->memory()->new_class<Class>(state, G(io), "Select"));
+    GO(fdset).set(state->memory()->new_class<Class, FDSet>(state, G(select), "FDSet"));
   }
 
   FDSet* FDSet::allocate(STATE, Object* self) {
@@ -543,7 +561,7 @@ failed: /* try next '*' position */
   }
 
   FDSet* FDSet::create(STATE) {
-    FDSet* fdset = state->new_object<FDSet>(G(fdset));
+    FDSet* fdset = state->memory()->new_object<FDSet>(state, G(fdset));
     return fdset;
   }
 
@@ -578,8 +596,7 @@ failed: /* try next '*' position */
   }
 
   void RIOStream::bootstrap(STATE) {
-    GO(rio_stream).set(ontology::new_class_under(state, "RIOStream", G(rubinius)));
-    G(rio_stream)->set_object_type(state, RIOStreamType);
+    GO(io).set(state->memory()->new_class<Class>(state, G(rubinius), "RIOStream"));
   }
 
   Object* RIOStream::close(STATE, Object* io, Object* allow_exception) {
@@ -590,7 +607,7 @@ failed: /* try next '*' position */
     if(capi::Handle* hdl = io->handle(state)) {
       if(hdl->is_rio()) {
         if(!hdl->rio_close() && CBOOL(allow_exception)) {
-          Exception::errno_error(state);
+          Exception::raise_errno_error(state, "failed to close RIOStream");
         }
         return cTrue;
       }

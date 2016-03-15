@@ -339,7 +339,7 @@ class IO
           @eof = false # only a failed read can set EOF!
         end
       end
-      
+
       Errno.handle("write failed") if error
 
       return(buf_size - left)
@@ -367,7 +367,7 @@ class IO
 
       return nil
     end
-    
+
     def determine_eof
       if @offset >= @total_size
         @eof = true
@@ -474,10 +474,10 @@ class IO
 
       set_mode
       reset_positioning
-      
+
       return true
     end
-    
+
     def reset_positioning(stat=nil)
       # Discover final size of file so we can set EOF properly
       stat = File::Stat.fstat(@descriptor) unless stat
@@ -493,7 +493,7 @@ class IO
 
       determine_eof
     end
-    
+
     def seek_positioning
       @offset = lseek(0, SEEK_CUR) # find current position if we are reopening!
     end
@@ -511,7 +511,7 @@ class IO
       flags = FileDescriptor.get_flags(@descriptor)
       FileDescriptor.clear_flag(O_NONBLOCK, @descriptor)
     end
-    
+
     def set_nonblock
       flags = FileDescriptor.get_flags(@descriptor)
       FileDescriptor.set_flag(O_NONBLOCK, @descriptor)
@@ -588,7 +588,7 @@ class IO
   end # class FileDescriptor
 
   class BufferedFileDescriptor < FileDescriptor
-    
+
     def buffer_reset
       @unget_buffer.clear
     end
@@ -661,7 +661,7 @@ class IO
         [nil, length]
       end
     end
-    
+
     def seek(bytes, whence)
       # @offset may not match actual file pointer if there were calls to #unget.
       if whence == SEEK_CUR
@@ -672,12 +672,12 @@ class IO
       buffer_reset
       lseek(bytes, whence)
     end
-    
+
     def sysread(byte_count)
       raise_if_buffering
       read(byte_count)
     end
-    
+
     def sysseek(bytes, whence)
       raise_if_buffering
       lseek(bytes, whence)
@@ -694,16 +694,16 @@ class IO
     def raise_if_buffering
       raise IOError unless @unget_buffer.empty?
     end
-    
+
     def reset_positioning(*args)
       @unget_buffer = []
       super
     end
-    
+
     def write_nonblock(str)
       buffer_reset
       set_nonblock
-      
+
       buf_size = str.bytesize
       left = buf_size
 
@@ -749,11 +749,11 @@ class IO
       @mode = mode if mode
       @eof = false # force to false
     end
-    
+
     def determine_eof
       if @offset >= @total_size
         @eof = true
-        
+
         # No seeking allowed on a pipe, so its size is always its offset
         @total_size = @offset
       end
@@ -778,7 +778,7 @@ class IO
       raise Errno::ESPIPE
     end
   end # class FIFOFileDescriptor
-  
+
   class DirectoryFileDescriptor < BufferedFileDescriptor
   end # class DirectoryFileDescriptor
 
@@ -805,22 +805,22 @@ class IO
         Rubinius.primitive :fdset_allocate
         raise PrimitiveFailure, "FDSet.allocate failed"
       end
-      
+
       def zero
         Rubinius.primitive :fdset_zero
         raise PrimitiveFailure, "FDSet.zero failed"
       end
-      
+
       def set(descriptor)
         Rubinius.primitive :fdset_set
         raise PrimitiveFailure, "FDSet.set failed"
       end
-      
+
       def set?(descriptor)
         Rubinius.primitive :fdset_is_set
         raise PrimitiveFailure, "FDSet.set? failed"
       end
-      
+
       def to_set
         Rubinius.primitive :fdset_to_set
         raise PrimitiveFailure, "FDSet.to_set failed"
@@ -831,11 +831,11 @@ class IO
       highest = -1
       fd_set = FDSet.new
       fd_set.zero
-            
+
       array.each do |io|
         io = io[1] if io.is_a?(Array)
         descriptor = io.descriptor
-        
+
         if descriptor >= FD_SETSIZE
           raise IOError
         end
@@ -943,7 +943,7 @@ class IO
       write_set, highest_write_fd = writables.nil? ? [nil, nil] : fd_set_from_array(writables)
       error_set, highest_err_fd = errorables.nil? ? [nil, nil] : fd_set_from_array(errorables)
       max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].compact.max || -1
-      
+
       unless const_defined?(:Timeval_t)
         # This is a complete hack.
         Select.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
@@ -970,7 +970,7 @@ class IO
             time_limit = reset_timeval_timeout(time_limit, future)
             continue
           end
-          
+
           Errno.handle("select(2) failed")
         end
 
@@ -1012,7 +1012,7 @@ class IO
   attr_accessor :internal
   # intended to only be used by IO.setup to associate a new FileDescriptor object with instance of IO
   attr_accessor :fd
-  
+
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
@@ -1824,7 +1824,7 @@ class IO
     unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
       raise NotImplementedError, advice.inspect
     end
-    
+
     advice = case advice
     when :normal; POSIX_FADV_NORMAL
     when :sequential; POSIX_FADV_SEQUENTIAL
@@ -1840,7 +1840,7 @@ class IO
     if FFI.call_failed?(FFI::Platform::POSIX.posix_fadvise(descriptor, offset, len, advice))
       Errno.handle("posix_fadvise(2) failed")
     end
-    
+
     nil
   end
 
@@ -1969,7 +1969,7 @@ class IO
 
   class EachReader
     READ_SIZE = 512 # bytes
-    
+
     def initialize(io, separator, limit)
       @io = io
       @separator = separator ? separator.force_encoding("ASCII-8BIT") : separator
@@ -2979,7 +2979,7 @@ class IO
       #      io.reset_buffering
 
       @fd.reopen(io.descriptor)
-      
+
       # When reopening we may be going from a Pipe to a File or vice versa. Let the
       # system figure out the proper FD class.
       @fd.cancel_finalizer # cancel soon-to-be-overwritten instance's finalizer

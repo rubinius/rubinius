@@ -425,14 +425,6 @@ extern "C" {
 
   int rb_cloexec_open(const char *pathname, int flags, int mode) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State *state = env->state();
-    Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
-    VALUE fd_class = env->get_handle(fd_object);
-    VALUE pathname_v = env->get_handle(String::create(env->state(), pathname));
-    VALUE flags_v = env->get_handle(Fixnum::from(flags));
-    VALUE mode_v = env->get_handle(Fixnum::from(mode));
-    VALUE result = rb_funcall(fd_class, rb_intern("open_with_cloexec"), 3, pathname_v, flags_v, mode_v);
-	
-    return c_as<Fixnum>(env->get_object(result))->to_native();
+    return IO::open_with_cloexec(env->state(), pathname, mode, flags);
   }
 }

@@ -23,22 +23,12 @@ namespace rubinius {
     /* interface */
 
     static void bootstrap(STATE);
-    static void initialize(STATE, IO* obj) {
-      obj->descriptor_ = nil<Fixnum>();
-      obj->path_ = nil<String>();
-      obj->ibuffer_ = nil<Object>();
-      obj->mode_ = nil<Fixnum>();
-      obj->eof_ = cFalse;
-      obj->lineno_ = Fixnum::from(0);
-      obj->sync_ = nil<Object>();
-      obj->external_ = nil<Encoding>();
-      obj->internal_ = nil<Encoding>();
-      obj->autoclose_ = nil<Object>();
-    }
+    static void initialize(STATE, IO* obj) { }
 
     static IO* create(STATE, int fd);
+    static native_int open_with_cloexec(STATE, const char* path, int mode, int permissions);
 
-    native_int descriptor(STATE, CallFrame* frame);
+    native_int descriptor(STATE);
     void ensure_open(STATE);
 
   /* Class primitives */
@@ -60,7 +50,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      void auto_mark(Object* obj, ObjectMark& mark) { }
+      void auto_mark(Object* obj, memory::ObjectMark& mark) { }
       void set_field(STATE, Object* target, size_t index, Object* val) { }
       Object* get_field(STATE, Object* target, size_t index) { return cNil; }
       void populate_slot_locations() { }
@@ -99,7 +89,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      void auto_mark(Object* obj, ObjectMark& mark) { }
+      void auto_mark(Object* obj, memory::ObjectMark& mark) { }
       void set_field(STATE, Object* target, size_t index, Object* val) { }
       Object* get_field(STATE, Object* target, size_t index) { return cNil; }
       void populate_slot_locations() { }
@@ -118,7 +108,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      void auto_mark(Object* obj, ObjectMark& mark) { }
+      void auto_mark(Object* obj, memory::ObjectMark& mark) { }
       void set_field(STATE, Object* target, size_t index, Object* val) { }
       Object* get_field(STATE, Object* target, size_t index) { return cNil; }
       void populate_slot_locations() { }
