@@ -185,7 +185,7 @@ extern "C" {
     *store = 0;
 
     String* str = c_as<String>(env->get_object(s));
-    str->num_bytes(env->state(), 0);
+    str->num_bytes(env->state(), Fixnum::from(0));
     str->data(env->state(), ByteArray::create(env->state(), 1));
   }
 
