@@ -21,6 +21,8 @@ namespace rubinius {
    *  Thread execution.
    */
   class Thread : public Object {
+    Array* args_;                     // slot
+    Object* block_;                   // slot
     Object* alive_;                   // slot
     Object* sleep_;                   // slot
     Channel* control_channel_;        // slot
@@ -30,12 +32,12 @@ namespace rubinius {
     Randomizer* randomizer_;          // slot
     LookupTable* locals_;             // slot
     Object* group_;                   // slot
-    Object* result_;                  // slot
+    Object* value_;                   // slot
     Exception* exception_;            // slot
     Object* critical_;                // slot
-    Object* killed_;                  // slot
     Fixnum* priority_;                // slot
     Fixnum* pid_;                     // slot
+    Object* initialized_;             // slot
 
     utilities::thread::SpinLock init_lock_;
     utilities::thread::Mutex join_lock_;
@@ -53,7 +55,9 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, Thread* obj) {
-      obj->alive_ = nil<Object>();
+      obj->args_ = nil<Array>();
+      obj->block_ = cNil;
+      obj->alive_ = cTrue;
       obj->sleep_ = cFalse;
       obj->control_channel_ = nil<Channel>();
       obj->recursive_objects(state, LookupTable::create(state));
@@ -61,13 +65,13 @@ namespace rubinius {
       obj->thread_id_ = nil<Fixnum>();
       obj->randomizer_ = nil<Randomizer>();
       obj->locals(state, LookupTable::create(state));
-      obj->group_ = nil<Object>();
-      obj->result_ = cFalse;
+      obj->group_ = cNil;
+      obj->value_ = cNil;
       obj->exception_ = nil<Exception>();
       obj->critical_ = cFalse;
-      obj->killed_ = cFalse;
       obj->priority_ = Fixnum::from(0);
       obj->pid_ = Fixnum::from(0);
+      obj->initialized_ = cFalse;
       obj->init_lock_.init();
       obj->join_lock_.init();
       obj->join_cond_.init();
@@ -75,6 +79,8 @@ namespace rubinius {
     }
 
   public:
+    attr_accessor(args, Array);
+    attr_accessor(block, Object);
     attr_accessor(alive, Object);
     attr_accessor(sleep, Object);
     attr_accessor(control_channel, Channel);
@@ -84,12 +90,12 @@ namespace rubinius {
     attr_accessor(randomizer, Randomizer);
     attr_accessor(locals, LookupTable);
     attr_accessor(group, Object);
-    attr_accessor(result, Object);
+    attr_accessor(value, Object);
     attr_accessor(exception, Exception);
     attr_accessor(critical, Object);
-    attr_accessor(killed, Object);
     attr_accessor(priority, Fixnum);
     attr_accessor(pid, Fixnum);
+    attr_accessor(initialized, Object);
 
     VM* vm() const {
       return vm_;
@@ -97,26 +103,11 @@ namespace rubinius {
 
   public:
 
-    /**
-     *  Allocate a Thread object.
-     *
-     *  Object is in a valid but not running state.
-     *  It still assumes that #initialize will be
-     *  called to fully set it up. The object is
-     *  not yet associated with an actual native
-     *  thread.
-     *
-     *  This method also creates a new VM object
-     *  to represent its state.
-     *
-     *  @see  Thread::fork()
-     *  @see  Thread::create()
-     *
-     *  @see  machine/vm.hpp
-     *  @see  kernel/thread.rb
-     */
-    // Rubinius.primitive :thread_allocate
-    static Thread* allocate(STATE, Object* self);
+    // Rubinius.primitive :thread_s_new
+    static Thread* s_new(STATE, Object* self, Array* args, Object* block);
+
+    // Rubinius.primitive :thread_s_start
+    static Thread* s_start(STATE, Object* self, Array* args, Object* block);
 
     /**
      *  Returns the Thread object for the state.
@@ -140,27 +131,7 @@ namespace rubinius {
 
   public:   /* Instance primitives */
 
-    /**
-     *  Execute the Thread.
-     *
-     *  Actually creates the native thread and starts it.
-     *  The native thread will start executing this Thread's
-     *  #__run__ method.
-     *
-     *  @see  Thread::allocate()
-     *
-     *  @see  kernel/thread.rb
-     */
-    // Rubinius.primitive :thread_fork
-    Object* fork(STATE);
-
-    /**
-     *  Execute the Thread.
-     *
-     *  This leaves the thread in an attached state, so that
-     *  a pthread_join() later on will work.
-     */
-    int fork_attached(STATE);
+    void fork(STATE);
 
     /**
      *  Retrieve the priority set for this Thread.
@@ -177,15 +148,6 @@ namespace rubinius {
      */
     // Rubinius.primitive :thread_raise
     Object* raise(STATE, Exception* exc);
-
-    // Rubinius.primitive :thread_set_exception
-    Object* set_exception(STATE, Exception* exc);
-
-    /**
-     *  Returns current exception
-     */
-    // Rubinius.primitive :thread_current_exception
-    Object* current_exception(STATE);
 
     /**
      *  Kill this Thread.
@@ -221,9 +183,6 @@ namespace rubinius {
 
     // Rubinius.primitive :thread_join
     Thread* join(STATE, Object* timeout);
-
-    // Rubinius.primitive :thread_unlock_locks
-    Object* unlock_locks(STATE);
 
     // This method must only be called after fork() with only one active
     // thread.

@@ -110,42 +110,73 @@ namespace rubinius {
     }
   }
 
-  Object* send_run(STATE) {
-    return state->vm()->thread.get()->send(state, state->symbol("__run__"));
+  Object* run_instance(STATE) {
+    // These are all referenced, so OnStack is not necessary.
+    Thread* thread = state->vm()->thread.get();
+    Array* args = thread->args();
+    Object* block = thread->block();
+
+    if(thread->initialized()->false_p() || args->nil_p() || block->nil_p()) {
+      return cNil;
+    }
+
+    Object* value = block->send(state, G(sym_call), args, block);
+
+    thread->exception(state, state->vm()->thread_state()->current_exception());
+
+    if(state->vm()->thread_state()->raise_reason() == cThreadKill) {
+      thread->value(state, cNil);
+    } else if(value) {
+      thread->value(state, value);
+    }
+
+    Object* mirror = G(mirror)->send(state, state->symbol("reflect"),
+        Array::from_tuple(state, Tuple::from(state, 1, thread)));
+    mirror->send(state, state->symbol("finish"));
+
+    return value;
   }
 
-  Thread* Thread::allocate(STATE, Object* self) {
-    Thread* thread = Thread::create(state, self, send_run);
+  Thread* Thread::s_new(STATE, Object* self, Array* args, Object* block) {
+    Thread* thread = Thread::create(state, self, run_instance);
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
-    utilities::logger::write("create thread: %s, %s:%d",
+    utilities::logger::write("new thread: %s, %s:%d",
         thread->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
+
+    if(!thread->send(state, state->symbol("initialize"), args, block, true)) {
+      return NULL;
+    }
+
+    thread->fork(state);
+
+    return thread;
+  }
+
+  Thread* Thread::s_start(STATE, Object* self, Array* args, Object* block) {
+    Thread* thread = Thread::create(state, self, run_instance);
+
+    CallFrame* call_frame = state->vm()->get_ruby_frame(1);
+
+    utilities::logger::write("start thread: %s, %s:%d",
+        thread->vm()->name().c_str(),
+        call_frame->file(state)->cpp_str(state).c_str(),
+        call_frame->line(state));
+
+    if(!thread->send(state, state->symbol("__thread_initialize__"), args, block, true)) {
+      return NULL;
+    }
+
+    thread->fork(state);
 
     return thread;
   }
 
   Thread* Thread::current(STATE) {
     return state->vm()->thread.get();
-  }
-
-  Object* Thread::unlock_locks(STATE) {
-    Thread* self = this;
-    OnStack<1> os(state, self);
-
-    memory::LockedObjects& los = self->vm_->locked_objects();
-    for(memory::LockedObjects::iterator i = los.begin();
-        i != los.end();
-        ++i) {
-      ObjectHeader* locked = *i;
-      if(locked != self) {
-        locked->unlock_for_terminate(state);
-      }
-    }
-    los.clear();
-    return cNil;
   }
 
   void Thread::unlock_after_fork(STATE) {
@@ -255,40 +286,20 @@ namespace rubinius {
     Thread* self = this;
     OnStack<1> os(state, self);
 
-    self->init_lock_.lock();
-
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
     pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
-    int error;
-
-    error = pthread_create(&self->vm_->os_thread(), &attrs,
+    int status = pthread_create(&self->vm_->os_thread(), &attrs,
         function, (void*)self->vm_);
 
     pthread_attr_destroy(&attrs);
 
-    if(error) {
-      return error;
-    } else {
-      // We can't return from here until the new thread completes a minimal
-      // initialization. After the initialization, it unlocks init_lock_.
-      // So, wait here until we can lock init_lock_ after that.
-      self->init_lock_.lock();
-
-      // We locked init_lock_. And we are sure that the new thread completed
-      // the initialization.
-      // Locking init_lock_ isn't needed anymore, so unlock it.
-      self->init_lock_.unlock();
-
-      return 0;
-    }
+    return status;
   }
 
   Object* Thread::main_thread(STATE) {
-    state->vm()->thread->hard_unlock(state);
-
     std::string& runtime = state->shared().env()->runtime_path();
 
     G(rubinius)->set_const(state, "Signature",
@@ -301,7 +312,6 @@ namespace rubinius {
 
     state->shared().env()->load_core(state, runtime);
 
-    state->vm()->thread->alive(state, cTrue);
     state->vm()->thread_state()->clear();
 
     state->shared().start_console(state);
@@ -325,11 +335,11 @@ namespace rubinius {
     // Enable the JIT after the core library has loaded
     G(jit)->enable(state);
 
-    Object* exit = instance->send(state, state->symbol("main"));
+    Object* value = instance->send(state, state->symbol("main"));
 
     state->shared().signals()->system_exit(state->vm()->thread_state()->raise_value());
 
-    return exit;
+    return value;
   }
 
   void* Thread::run(void* ptr) {
@@ -353,30 +363,23 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
-    // Lock the thread object and unlock it at __run__ in the ruby land.
-    vm->thread->alive(state, cTrue);
-    vm->thread->init_lock_.unlock();
-
-    // TODO: remove use of init_lock
-    // Become GC-dependent after unlocking init_lock_ to avoid deadlocks.
-    // gc_dependent may lock when it detects GC is happening. Also the parent
-    // thread is locked until init_lock_ is unlocked by this child thread.
     state->vm()->become_managed();
-    vm->thread->hard_lock(state, 0);
 
     vm->shared.tool_broker()->thread_start(state);
-    Object* ret = vm->thread->function_(state);
+    Object* value = vm->thread->function_(state);
     vm->shared.tool_broker()->thread_stop(state);
 
     vm->thread->join_lock_.lock();
     vm->thread->stopped();
 
-    memory::LockedObjects& los = state->vm()->locked_objects();
-    for(memory::LockedObjects::iterator i = los.begin();
-        i != los.end();
-        ++i) {
+    memory::LockedObjects& locked_objects = state->vm()->locked_objects();
+    for(memory::LockedObjects::iterator i = locked_objects.begin();
+        i != locked_objects.end();
+        ++i)
+    {
       (*i)->unlock_for_terminate(state);
     }
+    locked_objects.clear();
 
     vm->thread->join_cond_.broadcast();
     vm->thread->join_lock_.unlock();
@@ -387,7 +390,7 @@ namespace rubinius {
 
     vm->become_unmanaged();
 
-    if(vm->main_thread_p() || (!ret && vm->thread_state()->raise_reason() == cExit)) {
+    if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {
       state->shared().signals()->system_exit(vm->thread_state()->raise_value());
     }
 
@@ -399,19 +402,12 @@ namespace rubinius {
     return 0;
   }
 
-  Object* Thread::fork(STATE) {
-    // If the thread is already alive or already ran, we can't use it anymore.
-    if(CBOOL(alive()) || !vm_ || vm_->zombie_p()) {
-      return Primitives::failure();
-    }
-
+  void Thread::fork(STATE) {
     if(int error = start_thread(state, Thread::run)) {
       char buf[RBX_STRERROR_BUFSIZE];
       char* err = RBX_STRERROR(error, buf, RBX_STRERROR_BUFSIZE);
       Exception::raise_thread_error(state, err);
     }
-
-    return cNil;
   }
 
   Object* Thread::pass(STATE) {
@@ -441,19 +437,6 @@ namespace rubinius {
     vm_->wakeup(state);
 
     return exc;
-  }
-
-  Object* Thread::set_exception(STATE, Exception* exc) {
-    exception(state, exc);
-    return exc;
-  }
-
-  Object* Thread::current_exception(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
-
-    if(!vm_) return cNil;
-
-    return vm_->thread_state()->current_exception();
   }
 
   Object* Thread::kill(STATE) {

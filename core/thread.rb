@@ -6,29 +6,53 @@
 class Thread
   attr_reader :recursive_objects
   attr_reader :pid
+  attr_reader :exception
 
-  def self.start(*args)
-    raise ArgumentError.new("no block passed to Thread.start") unless block_given?
+  def self.new(*args, &block)
+    thr = Rubinius.invoke_primitive :thread_s_new, args, block, self
 
-    thr = Rubinius.invoke_primitive :thread_allocate, self
+    Rubinius::VariableScope.of_sender.locked!
 
-    Rubinius.asm(args, thr) do |args, obj|
-      run obj
-      dup
-
-      run args
-      push_block
-      send_with_splat :__thread_initialize__, 0, true
-      # no pop here, as .asm blocks imply a pop as they're not
-      # allowed to leak a stack value
+    unless thr.send :initialized?
+      raise ThreadError, "Thread#initialize not called"
     end
 
     return thr
   end
 
+  def self.start(*args, &block)
+    raise ArgumentError.new("no block passed to Thread.start") unless block
+
+    Rubinius.invoke_primitive :thread_s_start, args, block, self
+  end
+
   class << self
     alias_method :fork, :start
   end
+
+  def initialize(*args, &block)
+    unless block
+      Kernel.raise ThreadError, "no block passed to Thread#initialize"
+    end
+
+    if @initialized
+      Kernel.raise ThreadError, "already initialized thread"
+    end
+
+    @args = args
+    @block = block
+    @initialized = true
+
+    Thread.current.group.add self
+  end
+
+  alias_method :__thread_initialize__, :initialize
+
+  def initialized?
+    @initialized
+  end
+
+  private :initialized?
 
   def self.current
     Rubinius.primitive :thread_current
@@ -52,21 +76,6 @@ class Thread
   def self.stop
     sleep
     nil
-  end
-
-  def fork
-    Rubinius.primitive :thread_fork
-    Kernel.raise ThreadError, "Thread#fork failed, thread already started or dead"
-  end
-
-  def raise_prim(exc)
-    Rubinius.primitive :thread_raise
-    Kernel.raise PrimitiveFailure, "Thread#raise primitive failed"
-  end
-
-  def kill_prim
-    Rubinius.primitive :thread_kill
-    Kernel.raise PrimitiveFailure, "Thread#kill primitive failed"
   end
 
   def wakeup
@@ -93,21 +102,6 @@ class Thread
   def mri_backtrace
     Rubinius.primitive :thread_mri_backtrace
     Kernel.raise PrimitiveFailure, "Thread#mri_backtrace primitive failed"
-  end
-
-  def unlock_locks
-    Rubinius.primitive :thread_unlock_locks
-    Kernel.raise PrimitiveFailure, "Thread#unlock_locks primitive failed"
-  end
-
-  def current_exception
-    Rubinius.primitive :thread_current_exception
-    Kernel.raise PrimitiveFailure, "Thread#current_exception primitive failed"
-  end
-
-  def set_exception(exception)
-    Rubinius.primitive :thread_set_exception
-    Kernel.raise PrimitiveFailure, "Thread#set_exception primitive failed"
   end
 
   @abort_on_exception = false
@@ -137,50 +131,6 @@ class Thread
   end
 
   alias_method :to_s, :inspect
-
-  def self.new(*args)
-    thr = Rubinius.invoke_primitive :thread_allocate, self
-
-    Rubinius::VariableScope.of_sender.locked!
-
-    Rubinius.asm(args, thr) do |args, obj|
-      run obj
-      dup
-
-      run args
-      push_block
-      send_with_splat :initialize, 0, true
-      # no pop here, as .asm blocks imply a pop as they're not
-      # allowed to leak a stack value
-    end
-
-    unless thr.thread_is_setup?
-      raise ThreadError, "Thread#initialize not called"
-    end
-
-    return thr
-  end
-
-  def initialize(*args, &block)
-    unless block
-      Kernel.raise ThreadError, "no block passed to Thread#initialize"
-    end
-
-    @args = args
-    @block = block
-
-    th_group = Thread.current.group
-
-    th_group.add self
-
-    fork
-  end
-
-  alias_method :__thread_initialize__, :initialize
-
-  def thread_is_setup?
-    @block != nil
-  end
 
   def alive?
     Rubinius.synchronize(self) do
@@ -233,14 +183,9 @@ class Thread
   end
 
   def raise(exc=undefined, msg=nil, trace=nil)
-    Rubinius.lock(self)
+    Rubinius.synchronize(self) do
+      return self unless @alive
 
-    unless @alive
-      Rubinius.unlock(self)
-      return self
-    end
-
-    begin
       if undefined.equal? exc
         no_argument = true
         exc = active_exception
@@ -265,13 +210,10 @@ class Thread
       if self == Thread.current
         Kernel.raise exc
       else
-        raise_prim exc
+        Rubinius.invoke_primitive :thread_raise, self, exc
       end
-    ensure
-      Rubinius.unlock(self)
     end
   end
-  private :raise_prim
 
   def [](key)
     locals_aref(Rubinius::Type.coerce_to_symbol(key))
@@ -355,61 +297,10 @@ class Thread
 
   alias_method :run, :wakeup
 
-  # Called by Thread#fork in the new thread
-  #
-  def __run__
-    begin
-      begin
-        Rubinius.unlock(self)
-        @result = @block.call(*@args)
-      ensure
-        begin
-          # We must lock self in a careful way.
-          #
-          # At this point, it's possible that an other thread does Thread#raise
-          # and then our execution is interrupted AT ANY GIVEN TIME. We
-          # absolutely must make sure to lock self as soon as possible to lock
-          # out interrupts from other threads.
-          #
-          # Rubinius.uninterrupted_lock(self) just does that.
-          #
-          # Notice that this can't be moved to other methods and there should be
-          # no preceding code before it in the enclosing ensure clause.
-          # These are to prevent any interrupted lock failures.
-          Rubinius.uninterrupted_lock(self)
-
-          # Now, we locked self. No other thread can interrupt this thread
-          # anymore.
-          # If there is any not-triggered interrupt, check and process it. In
-          # either case, we jump to the following ensure clause.
-          Rubinius.check_interrupts
-        ensure
-          unlock_locks
-        end
-      end
-    rescue Exception => e
-      set_exception e
-
-      STDERR.puts "Exception in thread: #{e.message} (#{e.class})" if $DEBUG
-
-      if abort_on_exception or Thread.abort_on_exception
-        Thread.main.raise e
-      end
-    ensure
-      Rubinius::Mirror.reflect(@group).remove self
-
-      if Rubinius.thread_state[0] == :thread_kill
-        @killed = true
-      end
-
-      Rubinius.unlock(self)
-    end
-  end
-
   def kill
     @sleep = false
     Rubinius.synchronize(self) do
-      kill_prim
+      Rubinius.invoke_primitive :thread_kill, self
     end
     self
   end
@@ -419,7 +310,7 @@ class Thread
 
   def value
     join
-    @killed ? nil : @result
+    @value
   end
 
   def active_exception
