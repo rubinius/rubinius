@@ -239,13 +239,14 @@ extern "C" {
   Object* run_function(STATE) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Thread* self = state->vm()->thread.get();
+    Thread* thread = state->vm()->thread.get();
 
-    NativeMethod* nm = capi::c_as<NativeMethod>(self->locals_aref(state, state->symbol("function")));
-    Pointer* ptr = capi::c_as<Pointer>(self->locals_aref(state, state->symbol("argument")));
+    NativeMethod* nm = capi::c_as<NativeMethod>(
+        thread->locals_aref(state, state->symbol("function")));
+    Pointer* ptr = capi::c_as<Pointer>(thread->locals_aref(state, state->symbol("argument")));
 
-    self->locals_remove(state, state->symbol("function"));
-    self->locals_remove(state, state->symbol("argument"));
+    thread->locals_remove(state, state->symbol("function"));
+    thread->locals_remove(state, state->symbol("argument"));
 
     NativeMethodFrame nmf(env, 0, nm);
     CallFrame* previous_frame = 0;
@@ -267,19 +268,14 @@ extern "C" {
     state->vm()->push_call_frame(&cf, previous_frame);
 
     nmf.setup(
-        env->get_handle(self),
+        env->get_handle(thread),
         env->get_handle(cNil),
         env->get_handle(nm),
         env->get_handle(nm->module()));
 
-    {
-      OnStack<3> os(state, self, nm, ptr);
-      self->hard_unlock(state);
-    }
-
     ENTER_CAPI(state);
 
-    Object* ret = NULL;
+    Object* value = NULL;
 
     ExceptionPoint ep(env);
 
@@ -288,24 +284,11 @@ extern "C" {
     if(unlikely(ep.jumped_to())) {
       LEAVE_CAPI(state);
 
-      state->vm()->pop_call_frame(previous_frame);
-
-      // Setup exception in thread so it's raised when joining
-      // Reload self because it might have been moved
-      self = state->vm()->thread.get();
-
-      {
-        OnStack<1> os(state, self);
-        self->hard_lock(state, false);
-        Exception* exc = capi::c_as<Exception>(self->current_exception(state));
-        self->exception(state, exc);
-        self->alive(state, cFalse);
-        self->hard_unlock(state);
-      }
-
-      return NULL;
+      // Set exception in thread so it's raised when joining.
+      state->vm()->thread.get()->exception(state,
+          capi::c_as<Exception>(state->vm()->thread_state()->current_exception()));
     } else {
-      ret = env->get_object(nm->func()(ptr->pointer));
+      value = env->get_object(nm->func()(ptr->pointer));
     }
 
     LEAVE_CAPI(state);
@@ -316,15 +299,9 @@ extern "C" {
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
-    self = state->vm()->thread.get();
+    state->vm()->thread.get()->alive(state, cFalse);
 
-    OnStack<1> os(state, self);
-
-    self->hard_lock(state, false);
-    self->alive(state, cFalse);
-    self->hard_unlock(state);
-
-    return ret;
+    return value;
   }
 
   VALUE capi_thread_create(VALUE (*func)(ANYARGS), void* arg, const char* name, const char* file) {
