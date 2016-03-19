@@ -563,7 +563,7 @@ class IO
       ObjectSpace.undefine_finalizer(self)
     end
 
-    def finalizer
+    def finalizer(obj_id)
       return if @descriptor.nil? || @descriptor == -1
 
       fd = @descriptor
