@@ -385,7 +385,7 @@ namespace rubinius {
   }
 
   static int fork_exec(STATE, int errors_fd) {
-    utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
+    utilities::thread::SpinLock::LockGuard guard(state->shared().fork_exec_lock());
 
     state->shared().internal_threads()->before_fork_exec(state);
 
@@ -678,7 +678,7 @@ namespace rubinius {
   }
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
-    utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
+    utilities::thread::SpinLock::LockGuard guard(state->shared().fork_exec_lock());
 
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
@@ -820,7 +820,7 @@ namespace rubinius {
     int pid = -1;
 
     {
-      utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
+      utilities::thread::SpinLock::LockGuard guard(state->shared().fork_exec_lock());
 
       state->shared().internal_threads()->before_fork(state);
 
