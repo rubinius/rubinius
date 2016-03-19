@@ -596,7 +596,8 @@ failed: /* try next '*' position */
   }
 
   void RIOStream::bootstrap(STATE) {
-    GO(io).set(state->memory()->new_class<Class>(state, G(rubinius), "RIOStream"));
+    GO(rio_stream).set(state->memory()->new_class<Class, RIOStream>(
+          state, G(rubinius), "RIOStream"));
   }
 
   Object* RIOStream::close(STATE, Object* io, Object* allow_exception) {
