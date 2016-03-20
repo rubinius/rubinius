@@ -67,8 +67,8 @@ declare void @outputDispatch(%"struct.rubinius::Dispatch"*)
 %"struct.rubinius::CallSite" = type {
        %"struct.rubinius::Object", ; header
       %"struct.rubinius::Symbol"*, ; name
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; executor
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; fallback
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::Arguments"*)*, ; executor
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::Arguments"*)*, ; fallback
   void (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::Class"*, %"struct.rubinius::Dispatch"*)*, ; updater
   %"struct.rubinius::Executable"*, ; executable
                               i32  ; ip
@@ -257,7 +257,7 @@ declare void @outputCompiledCode(%"struct.rubinius::CompiledCode"*)
    %"struct.rubinius::Object", ; header
   %"struct.rubinius::Symbol"*, ; primitive
   %"struct.rubinius::Fixnum"*, ; serial
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Executable"*, %"struct.rubinius::Module"*, %"struct.rubinius::Arguments"*)*, ; execute
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::Executable"*, %"struct.rubinius::Module"*, %"struct.rubinius::Arguments"*)*, ; execute
   %"struct.rubinius::Inliners"*, ; inliners
                             i32, ; prim_index
                              i8  ; custom_call_site

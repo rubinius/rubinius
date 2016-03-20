@@ -82,8 +82,7 @@ namespace rubinius {
     , constant_missing_reason_(vFound)
     , zombie_(false)
     , main_thread_(false)
-    , tracked_(false)
-    , thread_phase_(ThreadNexus::cManaged)
+    , thread_phase_(ThreadNexus::cUnmanaged)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -111,8 +110,6 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    vm->call_frame_ = 0;
-
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
@@ -288,6 +285,8 @@ namespace rubinius {
   }
 
   void VM::after_fork_child(STATE) {
+    utilities::logger::set_label();
+
     thread_nexus_->after_fork_child(state);
 
     interrupt_lock_.init();

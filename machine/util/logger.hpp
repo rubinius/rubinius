@@ -32,6 +32,7 @@ namespace rubinius {
       void info(const char* message, ...);
       void debug(const char* message, ...);
 
+      void set_label();
       void set_loglevel(logger_level level);
 
       class Logger {
@@ -51,6 +52,8 @@ namespace rubinius {
         virtual void info(const char* message, int size) = 0;
         virtual void debug(const char* message, int size) = 0;
 
+        virtual void set_label() = 0;
+
         char* timestamp();
       };
 
@@ -66,10 +69,13 @@ namespace rubinius {
         void warn(const char* message, int size);
         void info(const char* message, int size);
         void debug(const char* message, int size);
+
+        void set_label();
       };
 
       class ConsoleLogger : public Logger {
         std::string identifier_;
+        std::string label_;
 
         void write_log(const char* level, const char* message, int size);
 
@@ -83,11 +89,13 @@ namespace rubinius {
         void warn(const char* message, int size);
         void info(const char* message, int size);
         void debug(const char* message, int size);
+
+        void set_label();
       };
 
       class FileLogger : public Logger {
         std::string path_;
-        std::string identifier_;
+        std::string label_;
         int logger_fd_;
         long limit_;
         long archives_;
@@ -109,6 +117,8 @@ namespace rubinius {
         void warn(const char* message, int size);
         void info(const char* message, int size);
         void debug(const char* message, int size);
+
+        void set_label();
       };
     }
   }

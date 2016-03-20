@@ -1287,18 +1287,16 @@ namespace rubinius {
 
       Signature sig(ops.context(), "Object");
       sig << "State";
-      sig << "CallFrame";
       sig << "Object";
 
       Function* func = sig.function("rbx_create_instance");
       func->setDoesNotCapture(1);
       func->setDoesNotCapture(2);
-      func->setDoesNotCapture(3);
       func->setDoesNotAlias(0);
 
-      Value* call_args[] = { ops.state(), ops.call_frame(), cls };
+      Value* call_args[] = { ops.state(), cls };
 
-      CallInst* out = sig.call("rbx_create_instance", call_args, 3,
+      CallInst* out = sig.call("rbx_create_instance", call_args, 2,
                                "instance", ops.b());
       // Even though an allocation actually modifies memory etc, it does
       // not have the semantics that it does. Allocation of this object
@@ -1455,20 +1453,16 @@ namespace rubinius {
 
       ops.set_block(set);
 
-      Value* call_frame = ops.call_frame();
-
       Signature sig(ops.context(), ops.ObjType);
       sig << ops.StateTy;
       sig << ops.ObjType;
-      sig << "CallFrame";
 
       Value* call_args[] = {
         ops.state(),
         matchdata,
-        call_frame
       };
 
-      CallInst* res = sig.call("rbx_regexp_set_last_match", call_args, 3, "set_last_match", ops.b());
+      CallInst* res = sig.call("rbx_regexp_set_last_match", call_args, 2, "set_last_match", ops.b());
       res->setDoesNotThrow();
 
       i.set_result(res);
@@ -1506,14 +1500,12 @@ namespace rubinius {
 
       Signature sig(ops.context(), ops.ObjType);
       sig << "State";
-      sig << "CallFrame";
       sig << "Object";
       sig << ops.context()->Int32Ty;
       sig << ops.ObjArrayTy;
 
       Value* call_args[] = {
         ops.state(),
-        ops.call_frame(),
         i.recv(),
         ops.cint(count),
         ops.stack_objects(count)
@@ -1532,14 +1524,12 @@ namespace rubinius {
 
       Signature sig(ops.context(), ops.ObjType);
       sig << "State";
-      sig << "CallFrame";
 
       Value* call_args[] = {
-        ops.state(),
-        ops.call_frame()
+        ops.state()
       };
 
-      CallInst* res = sig.call("rbx_variable_scope_of_sender", call_args, 2, "result", ops.b());
+      CallInst* res = sig.call("rbx_variable_scope_of_sender", call_args, 1, "result", ops.b());
       res->setDoesNotThrow();
 
       i.set_result(res);
@@ -1553,14 +1543,12 @@ namespace rubinius {
 
       Signature sig(ops.context(), ops.ObjType);
       sig << "State";
-      sig << "CallFrame";
 
       Value* call_args[] = {
-        ops.state(),
-        ops.call_frame()
+        ops.state()
       };
 
-      CallInst* res = sig.call("rbx_compiledcode_of_sender", call_args, 2, "result", ops.b());
+      CallInst* res = sig.call("rbx_compiledcode_of_sender", call_args, 1, "result", ops.b());
       res->setDoesNotThrow();
 
       i.set_result(res);
@@ -1574,14 +1562,12 @@ namespace rubinius {
 
       Signature sig(ops.context(), ops.ObjType);
       sig << "State";
-      sig << "CallFrame";
 
       Value* call_args[] = {
-        ops.state(),
-        ops.call_frame()
+        ops.state()
       };
 
-      CallInst* res = sig.call("rbx_constant_scope_of_sender", call_args, 2, "result", ops.b());
+      CallInst* res = sig.call("rbx_constant_scope_of_sender", call_args, 1, "result", ops.b());
       res->setDoesNotThrow();
 
       i.set_result(res);
@@ -1595,14 +1581,13 @@ namespace rubinius {
 
       Signature sig(ops.context(), ops.ObjType);
       sig << "State";
-      sig << "CallFrame";
 
       Value* call_args[] = {
-        ops.state(),
-        ops.call_frame()
+        ops.state()
       };
 
-      CallInst* res = sig.call("rbx_location_of_closest_ruby_method", call_args, 2, "result", ops.b());
+      CallInst* res = sig.call("rbx_location_of_closest_ruby_method",
+          call_args, 1, "result", ops.b());
       res->setDoesNotThrow();
 
       i.set_result(res);
@@ -1763,11 +1748,6 @@ namespace rubinius {
           Signature sig(ops_.context(), "Object");
           sig << "State";
           call_args.push_back(ops_.state());
-
-          if(stub_res.pass_callframe()) {
-            sig << "CallFrame";
-            call_args.push_back(ops_.call_frame());
-          }
 
           sig << "Object";
           call_args.push_back(recv());

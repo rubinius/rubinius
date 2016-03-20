@@ -19,7 +19,6 @@ namespace jit {
   void BlockBuilder::setup() {
     std::vector<Type*> ftypes;
     ftypes.push_back(ctx_->ptr_type("State"));
-    ftypes.push_back(ctx_->ptr_type("CallFrame"));
     ftypes.push_back(ctx_->ptr_type("BlockEnvironment"));
     ftypes.push_back(ctx_->ptr_type("Arguments"));
     ftypes.push_back(ctx_->ptr_type("BlockInvocation"));
@@ -39,7 +38,6 @@ namespace jit {
 
     Function::arg_iterator ai = func->arg_begin();
     llvm::Value* state = ai++; state->setName("state");
-    llvm::Value* prev = ai++; prev->setName("previous");
     block_env = ai++; block_env->setName("env");
     llvm::Value* args = ai++; args->setName("args");
     block_inv = ai++; block_inv->setName("invocation");
@@ -51,7 +49,8 @@ namespace jit {
 
     info_.set_state(state);
     info_.set_args(args);
-    info_.set_previous(prev);
+    // TODO: CallFrame
+    // info_.set_previous(prev);
     info_.set_entry(block);
 
     alloc_frame("block_body");
@@ -266,16 +265,14 @@ namespace jit {
 
       Signature sig(ctx_, ctx_->Int32Ty);
       sig << "State";
-      sig << "CallFrame";
       sig << "Arguments";
 
       Value* call_args[] = {
         info_.state(),
-        info_.call_frame(),
         info_.args()
       };
 
-      Value* val = sig.call("rbx_destructure_args", call_args, 3, "", b());
+      Value* val = sig.call("rbx_destructure_args", call_args, 2, "", b());
 
       Value* is_error = b().CreateICmpEQ(val, cint(-1));
 
@@ -364,17 +361,15 @@ namespace jit {
 
       Signature sig(ctx_, "Object");
       sig << "State";
-      sig << "CallFrame";
       sig << "Object";
 
       Value* call_args[] = {
         info_.state(),
-        info_.previous(),
         kw_arg
       };
 
       Value* keyword_val = sig.call("rbx_check_keyword",
-          call_args, 3, "rbx_check_keyword", b());
+          call_args, 2, "rbx_check_keyword", b());
 
       b().CreateStore(keyword_val, keyword_object_);
 
@@ -401,18 +396,16 @@ namespace jit {
     Signature sig(ctx_, "Object");
 
     sig << "State";
-    sig << "CallFrame";
     sig << "Arguments";
     sig << ctx_->Int32Ty;
 
     Value* call_args[] = {
       info_.state(),
-      info_.previous(),
       info_.args(),
       cint(machine_code_->total_args)
     };
 
-    Value* val = sig.call("rbx_arg_error", call_args, 4, "rbx_arg_error", b());
+    Value* val = sig.call("rbx_arg_error", call_args, 3, "rbx_arg_error", b());
     info_.add_return_value(val, b().GetInsertBlock());
     b().CreateBr(info_.return_pad());
 

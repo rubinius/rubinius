@@ -22,7 +22,6 @@ namespace jit {
   void MethodBuilder::setup() {
     std::vector<Type*> ftypes;
     ftypes.push_back(ctx_->ptr_type("State"));
-    ftypes.push_back(ctx_->ptr_type("CallFrame"));
     ftypes.push_back(ctx_->ptr_type("Executable"));
     ftypes.push_back(ctx_->ptr_type("Module"));
     ftypes.push_back(ctx_->ptr_type("Arguments"));
@@ -41,7 +40,6 @@ namespace jit {
 
     Function::arg_iterator ai = func->arg_begin();
     llvm::Value* state = ai++; state->setName("state");
-    llvm::Value* prev = ai++; prev->setName("previous");
     exec = ai++; exec->setName("exec");
     module = ai++; module->setName("mod");
     llvm::Value* args = ai++; args->setName("args");
@@ -53,7 +51,8 @@ namespace jit {
 
     info_.set_state(state);
     info_.set_args(args);
-    info_.set_previous(prev);
+    // TODO: CallFrame
+    // info_.set_previous(prev);
     info_.set_entry(block);
 
     alloc_frame("method_body");
@@ -144,17 +143,15 @@ namespace jit {
 
       Signature sig(ctx_, "Object");
       sig << "State";
-      sig << "CallFrame";
       sig << "Object";
 
       Value* call_args[] = {
         info_.state(),
-        info_.previous(),
         kw_arg
       };
 
       Value* keyword_val = sig.call("rbx_check_keyword",
-          call_args, 3, "keyword_val", b());
+          call_args, 2, "keyword_val", b());
 
       b().CreateStore(keyword_val, keyword_object_);
     }
@@ -167,18 +164,16 @@ namespace jit {
     Signature sig(ctx_, "Object");
 
     sig << "State";
-    sig << "CallFrame";
     sig << "Arguments";
     sig << ctx_->Int32Ty;
 
     Value* call_args[] = {
       info_.state(),
-      info_.previous(),
       info_.args(),
       cint(machine_code_->total_args)
     };
 
-    Value* val = sig.call("rbx_arg_error", call_args, 4, "ret", b());
+    Value* val = sig.call("rbx_arg_error", call_args, 3, "ret", b());
     return_value(val);
 
     // Switch to using continuation

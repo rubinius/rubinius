@@ -263,10 +263,9 @@ extern "C" {
     return ret;
   }
 
-  Object* rbx_create_block(STATE, int index) {
+  Object* rbx_create_block(STATE, CallFrame* call_frame, int index) {
     CPP_TRY
 
-    CallFrame* call_frame = state->vm()->call_frame();
     Object* _lit = call_frame->compiled_code->literals()->at(state, index);
     CompiledCode* code = 0;
 
@@ -402,9 +401,7 @@ extern "C" {
     return args.total();
   }
 
-  int rbx_destructure_inline_args(STATE,
-                                  Object* obj, Object** vars, int size)
-  {
+  int rbx_destructure_inline_args(STATE, Object* obj, Object** vars, int size) {
     Array* ary = try_as<Array>(obj);
 
     if(!ary && CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
@@ -623,7 +620,7 @@ extern "C" {
   }
 
   Object* rbx_check_serial(STATE, CallSite* call_site,
-                           int serial, Object* recv, Symbol* vis) {
+                           int serial, Object* recv) {
     return RBOOL(call_site->update_and_validate(state, recv, G(sym_public), serial));
   }
 
@@ -832,14 +829,14 @@ extern "C" {
     return res;
   }
 
-  Object* rbx_set_local_depth(STATE, Object* top,
+  Object* rbx_set_local_depth(STATE, CallFrame* call_frame, Object* top,
                               int depth, int index) {
     if(depth == 0) {
       Exception::internal_error(state,
                                 "illegal set_local_depth usage");
       return 0;
     } else {
-      VariableScope* scope = state->vm()->call_frame()->scope->parent();
+      VariableScope* scope = call_frame->scope->parent();
 
       if(!scope || scope->nil_p()) {
         Exception::internal_error(state,
@@ -868,9 +865,9 @@ extern "C" {
     return top;
   }
 
-  Object* rbx_set_local_from(STATE, Object* top,
+  Object* rbx_set_local_from(STATE, CallFrame* call_frame, Object* top,
                              int depth, int index) {
-    VariableScope* scope = state->vm()->call_frame()->scope->parent();
+    VariableScope* scope = call_frame->scope->parent();
 
     if(!scope || scope->nil_p()) {
       Exception::internal_error(state,
@@ -893,14 +890,14 @@ extern "C" {
     return top;
   }
 
-  Object* rbx_push_local_depth(STATE,
+  Object* rbx_push_local_depth(STATE, CallFrame* call_frame,
                               int depth, int index) {
     if(depth == 0) {
       Exception::internal_error(state,
                                 "illegal push_local_depth usage");
       return 0;
     } else {
-      VariableScope* scope = state->vm()->call_frame()->scope->parent();
+      VariableScope* scope = call_frame->scope->parent();
 
       if(!scope || scope->nil_p()) {
         Exception::internal_error(state,
@@ -927,9 +924,9 @@ extern "C" {
     }
   }
 
-  Object* rbx_push_local_from(STATE,
+  Object* rbx_push_local_from(STATE, CallFrame* call_frame,
                               int depth, int index) {
-    VariableScope* scope = state->vm()->call_frame()->scope->parent();
+    VariableScope* scope = call_frame->scope->parent();
 
     if(!scope || scope->nil_p()) {
       Exception::internal_error(state,

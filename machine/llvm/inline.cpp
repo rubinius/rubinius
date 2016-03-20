@@ -474,20 +474,18 @@ remember:
       if(!found) {
         Signature sig2(ops_.context(), "Object");
         sig2 << "State";
-        sig2 << "CallFrame";
         sig2 << "Object";
         sig2 << "Object";
         sig2 << "Object";
 
         Value* call_args2[] = {
           ops_.state(),
-          ops_.call_frame(),
           self,
           ops_.constant(acc->name()),
           val
         };
 
-        sig2.call("rbx_set_ivar", call_args2, 5, "ivar",
+        sig2.call("rbx_set_ivar", call_args2, 4, "ivar",
             ops_.b());
       }
     }
@@ -935,10 +933,9 @@ remember:
 
     Signature check(ops_.context(), ops_.NativeIntTy);
     check << "State";
-    check << "CallFrame";
 
-    Value* check_args[] = { ops_.state(), ops_.call_frame() };
-    check.call("rbx_enter_unmanaged", check_args, 2, "unused", ops_.b());
+    Value* check_args[] = { ops_.state() };
+    check.call("rbx_enter_unmanaged", check_args, 1, "unused", ops_.b());
 
     Type* return_type = find_type(ops_, nf->ffi_data->ret_info.type);
 
