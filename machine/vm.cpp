@@ -288,6 +288,8 @@ namespace rubinius {
   }
 
   void VM::after_fork_child(STATE) {
+    utilities::logger::set_label();
+
     thread_nexus_->after_fork_child(state);
 
     interrupt_lock_.init();

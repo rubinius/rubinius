@@ -48,6 +48,9 @@ namespace rubinius {
         delete logger_;
       }
 
+      void set_label() {
+        if(logger_) logger_->set_label();
+      }
 #define LOGGER_MSG_SIZE   1024
 
       static int append_newline(char* message) {
@@ -213,6 +216,10 @@ namespace rubinius {
         closelog();
       }
 
+      void Syslog::set_label() {
+        if(logger_) logger_->set_label();
+      }
+
       // Syslog doesn't give us the ability to write a message to the log
       // independent of a priority. Bummer.
       void Syslog::write(const char* message, int size) {
@@ -242,15 +249,20 @@ namespace rubinius {
 
       ConsoleLogger::ConsoleLogger(const char* identifier)
         : Logger()
+        , identifier_(identifier)
       {
-        std::ostringstream str;
-        str << identifier << "[" << getpid() << "]";
+        set_label();
+      }
 
-        identifier_ = std::string(str.str());
+      void ConsoleLogger::set_label() {
+        std::ostringstream label;
+        label << identifier_ << "[" << getpid() << "]";
+
+        label_ = std::string(label.str());
       }
 
       void ConsoleLogger::write_log(const char* level, const char* message, int size) {
-        fprintf(stderr, "%s %s %s %s", timestamp(), identifier_.c_str(), level, message);
+        fprintf(stderr, "%s %s %s %s", timestamp(), label_.c_str(), level, message);
       }
 
 #define LOGGER_LEVEL_FATAL  "<Fatal>"
@@ -260,7 +272,7 @@ namespace rubinius {
 #define LOGGER_LEVEL_DEBUG  "<Debug>"
 
       void ConsoleLogger::write(const char* message, int size) {
-        fprintf(stderr, "%s %s %s", timestamp(), identifier_.c_str(), message);
+        fprintf(stderr, "%s %s %s", timestamp(), label_.c_str(), message);
       }
 
       void ConsoleLogger::fatal(const char* message, int size) {
@@ -293,10 +305,7 @@ namespace rubinius {
         : Logger()
         , path_(path)
       {
-        std::ostringstream label;
-        label << " [" << getpid() << "] ";
-
-        identifier_ = label.str();
+        set_label();
 
         limit_ = va_arg(varargs, long);
         archives_ = va_arg(varargs, long);
@@ -312,6 +321,13 @@ namespace rubinius {
 
       FileLogger::~FileLogger() {
         cleanup();
+      }
+
+      void FileLogger::set_label() {
+        std::ostringstream label;
+        label << " [" << getpid() << "] ";
+
+        label_ = label.str();
       }
 
       void FileLogger::cleanup() {
@@ -388,7 +404,7 @@ namespace rubinius {
 
         const char* time = timestamp();
         write_status_ = ::write(logger_fd_, time, strlen(time));
-        write_status_ = ::write(logger_fd_, identifier_.c_str(), identifier_.size());
+        write_status_ = ::write(logger_fd_, label_.c_str(), label_.size());
         if(level) {
           write_status_ = ::write(logger_fd_, level, strlen(level));
           write_status_ = ::write(logger_fd_, " ", 1);
