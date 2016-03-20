@@ -165,20 +165,18 @@ namespace jit {
 
       Signature sig(ctx_, ctx_->Int32Ty);
       sig << "State";
-      sig << "CallFrame";
       sig << "Object";
       sig << args_array->getType();
       sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
         info_.state(),
-        info_.call_frame(),
         stack_args.at(0),
         args_array,
         cint(T)
       };
 
-      Value* size = sig.call("rbx_destructure_inline_args", call_args, 5, "", b());
+      Value* size = sig.call("rbx_destructure_inline_args", call_args, 4, "", b());
 
       info_.add_return_value(Constant::getNullValue(obj_type),
           b().GetInsertBlock());
@@ -231,12 +229,10 @@ namespace jit {
 
       Signature sig(ctx_, "Object");
       sig << "State";
-      sig << "CallFrame";
       sig << "Object";
 
       Value* call_args[] = {
         info_.state(),
-        info_.previous(),
         kw_arg
       };
 

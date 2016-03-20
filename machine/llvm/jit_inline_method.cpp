@@ -224,18 +224,16 @@ namespace jit {
       if(SN > M) {
         Signature sig(ctx_, "Object");
         sig << "State";
-        sig << "CallFrame";
         sig << "Object";
 
         Value* call_args[] = {
           info_.state(),
-          info_.previous(),
           b().CreateLoad(
               b().CreateGEP(args_array, cint(SN - H - 1)))
         };
 
         Value* keyword_val = sig.call("rbx_check_keyword",
-            call_args, 3, "keyword_val", b());
+            call_args, 2, "keyword_val", b());
 
         b().CreateStore(keyword_val, keyword_object);
       } else {

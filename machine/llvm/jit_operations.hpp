@@ -447,12 +447,11 @@ namespace rubinius {
       Signature sig(ctx_, "Object");
 
       sig << "State";
-      sig << "CallFrame";
       sig << "Object";
 
-      Value* call_args[] = { state_, call_frame_, stack_top() };
+      Value* call_args[] = { state_, stack_top() };
 
-      CallInst* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
+      CallInst* res = sig.call("rbx_check_frozen", call_args, 2, "check_frozen", b());
       res->setOnlyReadsMemory();
       res->setDoesNotThrow();
 

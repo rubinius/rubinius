@@ -58,8 +58,7 @@ namespace rubinius {
       , clear_raise_value(ctx)
     {
       return_to_here
-        << "State"
-        << "CallFrame";
+        << "State";
 
       return_to_here.resolve("rbx_return_to_here", ctx->Int1Ty);
 
@@ -148,13 +147,12 @@ namespace rubinius {
       bail_out_ = new_block("bail_out");
 
       Value* call_args[] = {
-        state_,
-        call_frame_
+        state_
       };
 
       set_block(bail_out_);
 
-      Value* isit = f.return_to_here.call(call_args, 2, "rth", b());
+      Value* isit = f.return_to_here.call(call_args, 1, "rth", b());
 
       BasicBlock* ret_raise_val = new_block("ret_raise_val");
       BasicBlock* bail_out_fast_ = new_block("ret_null");
@@ -263,14 +261,12 @@ namespace rubinius {
 
       Signature brk(ctx_, ctx_->Int1Ty);
       brk << StateTy;
-      brk << CallFrameTy;
 
       Value* call_args[] = {
-        state_,
-        call_frame_
+        state_
       };
 
-      Value* isit = brk.call("rbx_break_to_here", call_args, 2, "bth", b());
+      Value* isit = brk.call("rbx_break_to_here", call_args, 1, "bth", b());
 
       BasicBlock* push_break_val = new_block("push_break_val");
       BasicBlock* next = 0;
@@ -345,7 +341,6 @@ namespace rubinius {
       Signature sig(ctx_, "Object");
 
       sig << "State";
-      sig << "CallFrame";
       sig << ctx_->Int32Ty;
       sig << ctx_->IntPtrTy;
       sig << "CallFrame";
@@ -359,7 +354,6 @@ namespace rubinius {
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         cint(next_ip_),
         sp,
         root_callframe,
@@ -368,7 +362,7 @@ namespace rubinius {
         (pass_top ? val : Constant::getNullValue(val->getType()))
       };
 
-      Value* call = sig.call("rbx_continue_debugging", call_args, 8, "", b());
+      Value* call = sig.call("rbx_continue_debugging", call_args, 7, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());
@@ -631,14 +625,6 @@ namespace rubinius {
       b().CreateCondBr(rcmp, if_true, if_false);
     }
 
-    void add_send_args(Signature& sig) {
-      sig << StateTy;
-      sig << CallFrameTy;
-      sig << ObjType;
-      sig << ctx_->IntPtrTy;
-      sig << ObjArrayTy;
-    }
-
     void setup_out_args_with_block(Symbol* name, int args) {
       b().CreateStore(stack_back(args + 1), out_args_recv_);
       b().CreateStore(constant(name, ptr_type("Symbol")), out_args_name_);
@@ -674,7 +660,6 @@ namespace rubinius {
       Value* call_args[] = {
         state_,
         call_site_const,
-        call_frame_,
         out_args_
       };
 
@@ -719,7 +704,6 @@ namespace rubinius {
       Value* call_args[] = {
         state_,
         call_site_const,
-        call_frame_,
         out_args_
       };
 
@@ -733,7 +717,6 @@ namespace rubinius {
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << "CallSite";
       sig << ctx_->Int32Ty;
       sig << ctx_->Int32Ty;
@@ -756,7 +739,6 @@ namespace rubinius {
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         call_site_const,
         cint(args),
         cint(call_flags_),
@@ -765,14 +747,13 @@ namespace rubinius {
 
       call_flags_ = 0;
       flush_ip();
-      return sig.call(func_name, call_args, 6, "splat_send", b());
+      return sig.call(func_name, call_args, 5, "splat_send", b());
     }
 
     Value* super_send(opcode& which, int args, bool splat=false) {
 
       Signature sig(ctx_, ObjType);
       sig << StateTy;
-      sig << CallFrameTy;
       sig << "CallSite";
       sig << ctx_->Int32Ty;
       sig << ctx_->Int32Ty;
@@ -797,7 +778,6 @@ namespace rubinius {
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         call_site_const,
         cint(args),
         cint(call_flags_),
@@ -806,7 +786,7 @@ namespace rubinius {
 
       call_flags_ = 0;
       flush_ip();
-      return sig.call(func_name, call_args, 6, "super_send", b());
+      return sig.call(func_name, call_args, 5, "super_send", b());
     }
 
     void visit_meta_to_s(opcode& name) {
@@ -816,7 +796,6 @@ namespace rubinius {
 
       Signature sig(ctx_, "Object");
       sig << "State";
-      sig << "CallFrame";
       sig << "CallSite";
       sig << "Object";
 
@@ -830,12 +809,11 @@ namespace rubinius {
 
       Value* args[] = {
         state_,
-        call_frame_,
         call_site_const,
         recv
       };
 
-      Value* ret = sig.call("rbx_meta_to_s", args, 4, "", b());
+      Value* ret = sig.call("rbx_meta_to_s", args, 3, "", b());
       stack_remove(1);
       check_for_exception(ret);
       stack_push(ret);
@@ -1132,7 +1110,6 @@ namespace rubinius {
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -1140,12 +1117,10 @@ namespace rubinius {
           module_->getOrInsertFunction("rbx_string_dup", ft));
       func->setDoesNotCapture(1);
       func->setDoesNotCapture(2);
-      func->setDoesNotCapture(3);
       func->setDoesNotAlias(0);
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_pop()
       };
 
@@ -1370,7 +1345,6 @@ namespace rubinius {
       Signature sig(ctx_, "Object");
 
       sig << "State";
-      sig << "CallFrame";
       sig << ctx_->Int32Ty;
       sig << ctx_->IntPtrTy;
       sig << "CallFrame";
@@ -1386,7 +1360,6 @@ namespace rubinius {
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         cint(current_ip_),
         sp,
         root_callframe,
@@ -1396,7 +1369,7 @@ namespace rubinius {
         llvm::ConstantInt::get(ctx_->Int8Ty, force_deoptimization)
       };
 
-      Value* call = sig.call("rbx_continue_uncommon", call_args, 9, "", b());
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 8, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());
@@ -1513,13 +1486,12 @@ namespace rubinius {
 
       Signature sig(ctx_, "Object");
       sig << "State";
-      sig << "CallFrame";
       sig << ObjArrayTy;
       sig << ctx_->Int32Ty;
 
       Value* arg_ary = stack_objects(args);
 
-      Value* call_args[] = { state_, call_frame_, arg_ary, cint(args) };
+      Value* call_args[] = { state_, arg_ary, cint(args) };
 
       Value* ptr = b().CreateIntToPtr(
           clong(reinterpret_cast<uintptr_t>(invoker)),
@@ -1991,7 +1963,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -2000,7 +1971,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         top
       };
 
@@ -2044,7 +2014,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -2053,7 +2022,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         top
       };
 
@@ -2104,14 +2072,12 @@ use_send:
 
       Signature sig(ctx_, ObjType);
       sig << "State";
-      sig << "CallFrame";
 
       Value* args[] = {
-        state_,
-        call_frame_
+        state_
       };
 
-      Value* prc = sig.call("rbx_make_proc", args, 2, "proc", b());
+      Value* prc = sig.call("rbx_make_proc", args, 1, "proc", b());
       check_for_exception(prc);
       stack_push(prc);
     }
@@ -2166,7 +2132,6 @@ use_send:
 
       Signature sig(ctx_, ObjType);
       sig << StateTy;
-      sig << CallFrameTy;
       sig << "CallSite";
       sig << ObjType;
 
@@ -2180,13 +2145,12 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         call_site_const,
         stack_top()
       };
 
       flush_ip();
-      Value* ret = sig.call("rbx_zsuper_send", call_args, 4, "super_send", b());
+      Value* ret = sig.call("rbx_zsuper_send", call_args, 3, "super_send", b());
       stack_remove(1);
 
       check_for_exception(ret);
@@ -2199,7 +2163,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -2208,7 +2171,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_pop()
       };
 
@@ -2299,7 +2261,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ptr_type(ptr_type("ConstantCache")));
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -2313,7 +2274,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         constant(constant_cache_ptr, ptr_type(ptr_type("ConstantCache")))
       };
 
@@ -2340,7 +2300,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -2351,7 +2310,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         constant(as<Symbol>(literal(name)))
       };
 
@@ -2369,7 +2327,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
       types.push_back(ObjType);
 
@@ -2379,7 +2336,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         constant(as<Symbol>(literal(name))),
         stack_top()
       };
@@ -2419,7 +2375,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ctx_->Int32Ty);
       types.push_back(ObjType);
 
@@ -2429,7 +2384,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         cint(which),
         stack_top()
       };
@@ -2442,14 +2396,12 @@ use_send:
 
       Signature sig(ctx_, ObjType);
       sig << "State";
-      sig << "CallFrame";
 
       Value* args[] = {
-        state_,
-        call_frame_
+        state_
       };
 
-      stack_push(sig.call("rbx_promote_variables", args, 2, "promo_vars", b()));
+      stack_push(sig.call("rbx_promote_variables", args, 1, "promo_vars", b()));
     }
 
     void visit_push_scope() {
@@ -2517,7 +2469,6 @@ use_send:
       if(inline_args) {
         std::vector<Type*> types;
         types.push_back(ctx_->ptr_type("State"));
-        types.push_back(CallFrameTy);
         types.push_back(ctx_->Int32Ty);
 
         FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
@@ -2526,7 +2477,6 @@ use_send:
 
         std::vector<Value*> outgoing_args;
         outgoing_args.push_back(state_);
-        outgoing_args.push_back(call_frame_);
         outgoing_args.push_back(cint(inline_args->size()));
 
         for(size_t i = 0; i < inline_args->size(); i++) {
@@ -2540,16 +2490,14 @@ use_send:
       } else {
         Signature sig(ctx_, ObjType);
         sig << StateTy;
-        sig << CallFrameTy;
         sig << ptr_type("Arguments");
 
         Value* call_args[] = {
           state_,
-          call_frame_,
           args_
         };
 
-        Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 3,
+        Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 2,
             "cfmba", b());
         check_for_exception(val);
         stack_push(val);
@@ -2592,7 +2540,6 @@ use_send:
         } else {
           std::vector<Type*> types;
           types.push_back(ctx_->ptr_type("State"));
-          types.push_back(CallFrameTy);
           types.push_back(ctx_->Int32Ty);
 
           FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
@@ -2601,7 +2548,6 @@ use_send:
 
           std::vector<Value*> outgoing_args;
           outgoing_args.push_back(state_);
-          outgoing_args.push_back(call_frame_);
           outgoing_args.push_back(cint(inline_args->size()));
 
           for(size_t i = 0; i < inline_args->size(); i++) {
@@ -2616,16 +2562,14 @@ use_send:
       } else {
         Signature sig(ctx_, ObjType);
         sig << StateTy;
-        sig << CallFrameTy;
         sig << ptr_type("Arguments");
 
         Value* call_args[] = {
           state_,
-          call_frame_,
           args_
         };
 
-        Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 3,
+        Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 2,
             "cfmba", b());
         check_for_exception(val);
         stack_push(val);
@@ -3012,7 +2956,6 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << "Object";
       sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
@@ -3023,14 +2966,13 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         block_obj,
         cint(count),
         stack_objects(count)
       };
 
       flush_ip();
-      Value* val = sig.call("rbx_yield_stack", call_args, 5, "ys", b());
+      Value* val = sig.call("rbx_yield_stack", call_args, 4, "ys", b());
       stack_remove(count);
 
       check_for_exception(val);
@@ -3043,7 +2985,6 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << "Object";
       sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
@@ -3054,14 +2995,13 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         block_obj,
         cint(count),
         stack_objects(count + 1)
       };
 
       flush_ip();
-      Value* val = sig.call("rbx_yield_splat", call_args, 5, "ys", b());
+      Value* val = sig.call("rbx_yield_splat", call_args, 4, "ys", b());
       stack_remove(count + 1);
 
       check_for_exception(val);
@@ -3105,20 +3045,17 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_check_interrupts", ft));
 
       func->setDoesNotCapture(1);
-      func->setDoesNotCapture(2);
 
       flush();
 
       Value* call_args[] = {
-        state_,
-        call_frame_
+        state_
       };
 
       Value* ret = b().CreateCall(func, call_args, "ci");
@@ -3251,7 +3188,6 @@ use_send:
 
       Signature sig(ctx_, "Object");
       sig << "State";
-      sig << "CallFrame";
       sig << "CallSite";
       sig << ctx_->Int32Ty;
       sig << "Object";
@@ -3259,14 +3195,13 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         call_site_const,
         cint(serial),
         recv
       };
 
       sig.setDoesNotCapture(function, 2);
-      Value* fallback_result = sig.call(function, call_args, 5, "cs", b());
+      Value* fallback_result = sig.call(function, call_args, 4, "cs", b());
 
       create_branch(done);
       set_block(done);
@@ -3405,16 +3340,14 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_top()
       };
 
-      sig.call("rbx_raise_return", call_args, 3, "raise_return", b());
+      sig.call("rbx_raise_return", call_args, 2, "raise_return", b());
       visit_reraise();
     }
 
@@ -3422,16 +3355,14 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_top()
       };
 
-      sig.call("rbx_ensure_return", call_args, 3, "ensure_return", b());
+      sig.call("rbx_ensure_return", call_args, 2, "ensure_return", b());
       visit_reraise();
     }
 
@@ -3455,16 +3386,14 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_top()
       };
 
-      sig.call("rbx_raise_break", call_args, 3, "raise_break", b());
+      sig.call("rbx_raise_break", call_args, 2, "raise_break", b());
       visit_reraise();
     }
 
@@ -3516,14 +3445,13 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_restore_exception_state", ft));
 
-      Value* call_args[] = { state_, call_frame_, stack_pop() };
+      Value* call_args[] = { state_, stack_pop() };
 
       b().CreateCall(func, call_args);
     }
@@ -3532,20 +3460,18 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ctx_->Int32Ty;
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         cint(which),
         stack_pop()
       };
 
       flush();
 
-      Value* val = sig.call("rbx_find_const", call_args, 4, "constant", b());
+      Value* val = sig.call("rbx_find_const", call_args, 3, "constant", b());
       check_for_exception(val);
       stack_push(val);
     }
@@ -3562,7 +3488,6 @@ use_send:
       ConstantCache* constant_cache = *constant_cache_ptr;
 
       Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
-
 
       Value* cache_ptr = b().CreateIntToPtr(
         ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache_ptr))),
@@ -3648,20 +3573,18 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ptr_type(ptr_type("ConstantCache"));
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         constant(constant_cache_ptr, ptr_type(ptr_type("ConstantCache"))),
         under
       };
 
       flush();
 
-      CallInst* ret = sig.call("rbx_find_const_fast", call_args, 4, "constant", b());
+      CallInst* ret = sig.call("rbx_find_const_fast", call_args, 3, "constant", b());
       ret->setOnlyReadsMemory();
       ret->setDoesNotThrow();
       check_for_exception(ret);
@@ -3681,18 +3604,16 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ObjType;
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_pop(),
         stack_pop()
       };
 
-      Value* val = sig.call("rbx_instance_of", call_args, 4, "constant", b());
+      Value* val = sig.call("rbx_instance_of", call_args, 3, "constant", b());
       stack_push(val);
     }
 
@@ -3740,7 +3661,6 @@ use_send:
         Signature sig(ctx_, ObjType);
 
         sig << StateTy;
-        sig << CallFrameTy;
         sig << "CallSite";
         sig << ctx_->Int32Ty;
         sig << ObjArrayTy;
@@ -3755,14 +3675,13 @@ use_send:
 
         Value* call_args[] = {
           state_,
-          call_frame_,
           call_site_const,
           cint(count),
           stack_objects(count + 1)
         };
 
         flush_ip();
-        Value* val = sig.call("rbx_meta_send_call", call_args, 5, "constant", b());
+        Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", b());
         stack_remove(count+1);
         check_for_exception(val);
         stack_push(val);
@@ -4018,20 +3937,18 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << "CallFrame";
       sig << ObjType;
       sig << ObjType;
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         self,
         constant(name),
         ivar
       };
 
-      Value* ret = sig.call("rbx_set_ivar", call_args, 5, "ivar", b());
+      Value* ret = sig.call("rbx_set_ivar", call_args, 4, "ivar", b());
       check_for_exception(ret, false);
 
       create_branch(cont);
@@ -4130,16 +4047,14 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_back_position(0)
       };
 
-      Value* val = sig.call("rbx_shift_array", call_args, 3, "field", b());
+      Value* val = sig.call("rbx_shift_array", call_args, 2, "field", b());
       stack_push(val);
     }
 
@@ -4156,12 +4071,11 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         val,
         stack_pop()
       };
 
-      Value* str = sig.call("rbx_string_append", call_args, 4, "string", b());
+      Value* str = sig.call("rbx_string_append", call_args, 3, "string", b());
       stack_push(str);
     }
 
@@ -4171,18 +4085,16 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << CallFrameTy;
       sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         cint(count),
         stack_objects(count)
       };
 
-      Value* str = sig.call("rbx_string_build", call_args, 4, "string", b());
+      Value* str = sig.call("rbx_string_build", call_args, 3, "string", b());
       stack_remove(count);
 
       check_for_exception(str);
