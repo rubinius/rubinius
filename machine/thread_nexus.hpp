@@ -94,8 +94,6 @@ namespace rubinius {
     void detect_halt_deadlock(uint64_t nanoseconds, VM* vm);
 
     VM* new_vm(SharedState* shared, const char* name = NULL);
-    VM* new_vm_solo(SharedState* shared, const char* name = NULL);
-    void add_vm(VM* vm);
     void delete_vm(VM* vm);
 
     void after_fork_child(STATE);

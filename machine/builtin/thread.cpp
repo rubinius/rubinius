@@ -388,6 +388,7 @@ namespace rubinius {
 
     utilities::logger::write("exit thread: %s", vm->name().c_str());
 
+    vm->set_call_frame(0);
     vm->become_unmanaged();
 
     if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {
