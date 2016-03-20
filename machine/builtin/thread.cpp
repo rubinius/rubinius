@@ -81,8 +81,9 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
-    return Thread::create(state, self,
-        state->shared().thread_nexus()->new_vm_solo(&state->shared()), function);
+    VM* vm = state->shared().thread_nexus()->new_vm(&state->shared());
+
+    return Thread::create(state, self, vm, function);
   }
 
   Thread* Thread::create(STATE, Object* self, VM* vm, ThreadFunction function) {
@@ -347,7 +348,6 @@ namespace rubinius {
     State state_obj(vm), *state = &state_obj;
 
     vm->set_current_thread();
-    state->shared().thread_nexus()->add_vm(vm);
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
