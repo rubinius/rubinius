@@ -112,7 +112,6 @@ namespace rubinius {
         Value* call_args[] = {
           ops_.state(),
           call_site_const,
-          ops_.call_frame(),
           ops_.out_args()
         };
 
