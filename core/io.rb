@@ -190,7 +190,7 @@ class IO
         # Sometimes a FileDescriptor class is replaced (see IO#reopen) so we need to be
         # careful we don't finalize that descriptor. Probably need a way to cancel
         # the finalization when we are transferring an FD from one instance to another.
-        ObjectSpace.define_finalizer(self, method(:finalizer))
+        ObjectSpace.define_finalizer(self)
       end
     end
 
@@ -563,7 +563,7 @@ class IO
       ObjectSpace.undefine_finalizer(self)
     end
 
-    def finalizer(obj_id)
+    def __finalize__
       return if @descriptor.nil? || @descriptor == -1
 
       fd = @descriptor
