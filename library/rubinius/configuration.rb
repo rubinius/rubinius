@@ -94,9 +94,9 @@ Rubinius::ConfigurationVariables.define do |c|
       "The JIT will emit code to be sure JITd methods can be profiled"
 
     s.section "inline" do |i|
-      i.vm_variable "generic", true, "Have the JIT inline generic methods"
+      i.vm_variable "generic", false, "Have the JIT inline generic methods"
 
-      i.vm_variable "blocks", true,
+      i.vm_variable "blocks", false,
         "Have the JIT try to inline methods and their literal blocks"
 
       i.vm_variable "debug", false,
