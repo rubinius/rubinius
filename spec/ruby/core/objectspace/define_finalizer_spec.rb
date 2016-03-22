@@ -32,14 +32,15 @@ describe "ObjectSpace.define_finalizer" do
   # see [ruby-core:24095]
   with_feature :fork do
     it "calls finalizer on process termination" do
-      rd, wr = IO.pipe
+      @fname = tmp("finalizer_test.txt")
+      @contents = "finalized"
       if Kernel::fork then
-        wr.close
-        rd.read.should == "finalized"
-        rd.close
+        loop { break if File.exists?(@fname) }
+        IO.read(@fname).should == @contents
       else
-        rd.close
-        handler = ObjectSpaceFixtures.scoped(wr)
+        handler = Proc.new do
+          File.open(@fname, "w") { |f| f.write(@contents) }
+        end
         obj = "Test"
         ObjectSpace.define_finalizer(obj, handler)
         exit 0
@@ -47,15 +48,17 @@ describe "ObjectSpace.define_finalizer" do
     end
 
     it "calls finalizer at exit even if it is self-referencing" do
-      rd, wr = IO.pipe
+      @fname = tmp("finalizer_test.txt")
+      @contents = "finalized"
       if Kernel::fork then
-        wr.close
-        rd.read.should == "finalized"
-        rd.close
+        loop { break if File.exists?(@fname) }
+        IO.read(@fname).should == @contents
       else
-        rd.close
         obj = "Test"
-        handler = Proc.new { wr.write "finalized"; wr.close }
+        handler = Proc.new do
+          obj
+          File.open(@fname, "w") { |f| f.write(@contents) }
+        end
         ObjectSpace.define_finalizer(obj, handler)
         exit 0
       end
