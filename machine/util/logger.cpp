@@ -23,10 +23,6 @@ namespace rubinius {
       static Logger* logger_ = 0;
       static logger_level loglevel_ = eWarn;
 
-      void init() {
-        lock_.init();
-      }
-
       void open(logger_type type, const char* identifier, logger_level level, ...) {
         lock_.init();
         va_list varargs;
