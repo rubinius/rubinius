@@ -218,6 +218,7 @@ namespace rubinius {
   }
 
   void Environment::start_logging(STATE) {
+    utilities::logger::init();
     utilities::logger::logger_level level = utilities::logger::eWarn;
 
     if(!config.system_log_level.value.compare("fatal")) {
@@ -581,9 +582,9 @@ namespace rubinius {
   }
 
   void Environment::halt(STATE, int exit_code) {
-    utilities::thread::Mutex::LockGuard guard(halt_lock_);
-
     utilities::logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
+
+    utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
     state->shared().tool_broker()->shutdown(state);
 

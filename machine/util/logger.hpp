@@ -32,6 +32,7 @@ namespace rubinius {
       void info(const char* message, ...);
       void debug(const char* message, ...);
 
+      void init();
       void set_label();
       void set_loglevel(logger_level level);
 
