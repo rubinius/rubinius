@@ -12,7 +12,7 @@ class IO
   end
 
   module TransferIO
-    def send_io
+    def send_io(io)
       Rubinius.primitive :io_send_io
       raise PrimitiveFailure, "IO#send_io failed"
     end
@@ -1678,9 +1678,6 @@ class IO
     # the existing finalizer since we are about to allocate a new fd instance.
     if fd_obj = io.instance_variable_get(:@fd)
       fd_obj.cancel_finalizer
-    end
-    if sync
-      STDERR.puts "called setup"
     end
 
     fd_obj = FileDescriptor.choose_type(fd, io)
