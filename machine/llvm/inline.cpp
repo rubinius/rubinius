@@ -934,7 +934,7 @@ remember:
     check << "State";
 
     Value* check_args[] = { ops_.state() };
-    check.call("rbx_enter_unmanaged", check_args, 1, "unused", ops_.b());
+    check.call("rbx_enter_unmanaged", check_args, 1, "enter_unmanaged", ops_.b());
 
     Type* return_type = find_type(ops_, nf->ffi_data->ret_info.type);
 
@@ -945,7 +945,7 @@ remember:
 
     Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args, "ffi_result");
 
-    check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
+    check.call("rbx_exit_unmanaged", check_args, 1, "exit_unmanaged", ops_.b());
 
     Value* res_args[] = { ops_.state(), ffi_result };
 
