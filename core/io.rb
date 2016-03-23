@@ -1674,13 +1674,20 @@ class IO
       end
     end
 
-    # Check the given +io+ for a valid fd instance first. If it has one, don't
-    # allocate another because we could double up on finalizers for the same
-    # fd. Only allocate one here if +fd+ ivar is nil.
-    if io.instance_variable_get(:@fd).nil?
-      fd_obj = FileDescriptor.choose_type(fd, io)
-      io.instance_variable_set(:@fd, fd_obj)
+    # Check the given +io+ for a valid fd instance first. If it has one, cancel
+    # the existing finalizer since we are about to allocate a new fd instance.
+    if fd_obj = io.instance_variable_get(:@fd)
+      fd_obj.cancel_finalizer
     end
+    if sync
+      STDERR.puts "called setup"
+    end
+
+    fd_obj = FileDescriptor.choose_type(fd, io)
+    io.instance_variable_set(:@fd, fd_obj)
+    raise "FD could not be allocated for fd [#{fd}]" unless fd_obj
+    raise "No descriptor set for fd [#{fd}]" unless fd_obj.descriptor
+
     io.mode       = mode || cur_mode
     io.sync       = !!sync
 
@@ -1708,9 +1715,6 @@ class IO
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
     fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-    @fd = FileDescriptor.choose_type(fd, self)
-    raise "FD could not be allocated for fd [#{fd}]" unless @fd
-    raise "No descriptor set for fd [#{fd}]" unless @fd.descriptor
     autoclose = @autoclose
     IO.setup self, fd, mode
     @lineno = 0
