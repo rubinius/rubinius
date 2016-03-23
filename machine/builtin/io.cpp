@@ -81,9 +81,7 @@ namespace rubinius {
   }
 
   native_int IO::descriptor(STATE) {
-    Object* io_object = state->vm()->get_ruby_frame()->self();
-
-    if(Fixnum* fd = try_as<Fixnum>(io_object->send(state, state->symbol("descriptor")))) {
+    if(Fixnum* fd = try_as<Fixnum>(send(state, state->symbol("descriptor")))) {
       return fd->to_native();
     }
 
@@ -91,10 +89,8 @@ namespace rubinius {
   }
 
   void IO::ensure_open(STATE) {
-    Object* io_object = state->vm()->get_ruby_frame()->self();
-
     // Will raise an exception if the file descriptor is not open
-    io_object->send(state, state->symbol("ensure_open"));
+    send(state, state->symbol("ensure_open"));
   }
 
   Array* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
