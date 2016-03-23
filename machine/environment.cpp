@@ -80,6 +80,8 @@ namespace rubinius {
     : argc_(argc)
     , argv_(0)
     , signature_(0)
+    , fork_exec_lock_()
+    , halt_lock_()
     , finalizer_thread_(NULL)
     , loader_(NULL)
   {
@@ -90,8 +92,6 @@ namespace rubinius {
     }
 #endif
 #endif
-
-    halt_lock_.init();
 
     String::init_hash();
 
@@ -233,15 +233,18 @@ namespace rubinius {
     }
 
     if(!config.system_log.value.compare("syslog")) {
-      utilities::logger::open(utilities::logger::eSyslog, RBX_PROGRAM_NAME, level);
+      utilities::logger::open(fork_exec_lock_,
+          utilities::logger::eSyslog, RBX_PROGRAM_NAME, level);
     } else if(!config.system_log.value.compare("console")) {
-      utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
+      utilities::logger::open(fork_exec_lock_,
+          utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
       expand_config_value(config.system_log.value, "$TMPDIR", config.system_tmp);
       expand_config_value(config.system_log.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
       expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
 
-      utilities::logger::open(utilities::logger::eFileLogger,
+      utilities::logger::open(fork_exec_lock_,
+          utilities::logger::eFileLogger,
           config.system_log.value.c_str(), level,
           config.system_log_limit.value,
           config.system_log_archives.value,
@@ -568,16 +571,12 @@ namespace rubinius {
   }
 
   void Environment::after_fork_child(STATE) {
+    fork_exec_lock_.init();
     halt_lock_.init();
 
     set_pid();
 
-    stop_logging(state);
-    start_logging(state);
-  }
-
-  void Environment::after_fork_exec_child(STATE) {
-    halt_lock_.init();
+    utilities::logger::set_label();
   }
 
   void Environment::halt(STATE, int exit_code) {

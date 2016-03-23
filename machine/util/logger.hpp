@@ -6,6 +6,10 @@
 
 namespace rubinius {
   namespace utilities {
+    namespace thread {
+      class SpinLock;
+    }
+
     namespace logger {
       enum logger_type {
         eSyslog,
@@ -22,7 +26,8 @@ namespace rubinius {
       };
 
 
-      void open(logger_type type, const char* identifier, logger_level level=eWarn, ...);
+      void open(utilities::thread::SpinLock& lock, logger_type type,
+          const char* identifier, logger_level level=eWarn, ...);
       void close();
 
       void write(const char* message, ...);
@@ -36,13 +41,18 @@ namespace rubinius {
       void set_loglevel(logger_level level);
 
       class Logger {
+        utilities::thread::SpinLock& lock_;
+
 #define LOGGER_TIME_SIZE    16
 
         char formatted_time_[LOGGER_TIME_SIZE];
 
       public:
 
-        Logger() { }
+        Logger(utilities::thread::SpinLock& lock)
+          : lock_(lock)
+        { }
+
         virtual ~Logger() { }
 
         virtual void write(const char* message, int size) = 0;
@@ -55,12 +65,16 @@ namespace rubinius {
         virtual void set_label() = 0;
 
         char* timestamp();
+
+        utilities::thread::SpinLock& lock() {
+          return lock_;
+        }
       };
 
       class Syslog : public Logger {
       public:
 
-        Syslog(const char* identifier);
+        Syslog(utilities::thread::SpinLock& lock, const char* identifier);
         ~Syslog();
 
         void write(const char* message, int size);
@@ -81,7 +95,7 @@ namespace rubinius {
 
       public:
 
-        ConsoleLogger(const char* identifier);
+        ConsoleLogger(utilities::thread::SpinLock& lock, const char* identifier);
 
         void write(const char* message, int size);
         void fatal(const char* message, int size);
@@ -108,7 +122,7 @@ namespace rubinius {
 
       public:
 
-        FileLogger(const char* path, va_list varargs);
+        FileLogger(utilities::thread::SpinLock& lock, const char* path, va_list varargs);
         ~FileLogger();
 
         void write(const char* message, int size);

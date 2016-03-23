@@ -47,7 +47,6 @@ namespace rubinius {
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
     , codedb_lock_(true)
-    , fork_exec_lock_()
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
@@ -161,7 +160,6 @@ namespace rubinius {
     // Reinit the locks for this object
     global_cache->reset();
     codedb_lock_.init(true);
-    fork_exec_lock_.init();
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();

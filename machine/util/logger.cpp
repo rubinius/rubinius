@@ -19,24 +19,24 @@
 namespace rubinius {
   namespace utilities {
     namespace logger {
-      static thread::SpinLock lock_;
       static Logger* logger_ = 0;
       static logger_level loglevel_ = eWarn;
 
-      void open(logger_type type, const char* identifier, logger_level level, ...) {
-        lock_.init();
+      void open(utilities::thread::SpinLock& lock, logger_type type,
+          const char* identifier, logger_level level, ...)
+      {
         va_list varargs;
 
         switch(type) {
         case eSyslog:
-          logger_ = new Syslog(identifier);
+          logger_ = new Syslog(lock, identifier);
           break;
         case eConsoleLogger:
-          logger_ = new ConsoleLogger(identifier);
+          logger_ = new ConsoleLogger(lock, identifier);
           break;
         case eFileLogger:
           va_start(varargs, level);
-          logger_ = new FileLogger(identifier, varargs);
+          logger_ = new FileLogger(lock, identifier, varargs);
           va_end(varargs);
           break;
         }
@@ -74,9 +74,9 @@ namespace rubinius {
       }
 
       void write(const char* message, ...) {
-        thread::SpinLock::LockGuard guard(lock_);
-
         if(logger_) {
+          thread::SpinLock::LockGuard guard(logger_->lock());
+
           char buf[LOGGER_MSG_SIZE];
 
           va_list args;
@@ -90,11 +90,11 @@ namespace rubinius {
       }
 
       void fatal(const char* message, ...) {
-        thread::SpinLock::LockGuard guard(lock_);
-
-        if(loglevel_ < eFatal) return;
-
         if(logger_) {
+          thread::SpinLock::LockGuard guard(logger_->lock());
+
+          if(loglevel_ < eFatal) return;
+
           char buf[LOGGER_MSG_SIZE];
 
           va_list args;
@@ -108,11 +108,11 @@ namespace rubinius {
       }
 
       void error(const char* message, ...) {
-        thread::SpinLock::LockGuard guard(lock_);
-
-        if(loglevel_ < eError) return;
-
         if(logger_) {
+          thread::SpinLock::LockGuard guard(logger_->lock());
+
+          if(loglevel_ < eError) return;
+
           char buf[LOGGER_MSG_SIZE];
 
           va_list args;
@@ -125,11 +125,11 @@ namespace rubinius {
       }
 
       void warn(const char* message, ...) {
-        thread::SpinLock::LockGuard guard(lock_);
-
-        if(loglevel_ < eWarn) return;
-
         if(logger_) {
+          thread::SpinLock::LockGuard guard(logger_->lock());
+
+          if(loglevel_ < eWarn) return;
+
           char buf[LOGGER_MSG_SIZE];
 
           va_list args;
@@ -142,11 +142,11 @@ namespace rubinius {
       }
 
       void info(const char* message, ...) {
-        thread::SpinLock::LockGuard guard(lock_);
-
-        if(loglevel_ < eInfo) return;
-
         if(logger_) {
+          thread::SpinLock::LockGuard guard(logger_->lock());
+
+          if(loglevel_ < eInfo) return;
+
           char buf[LOGGER_MSG_SIZE];
 
           va_list args;
@@ -159,11 +159,11 @@ namespace rubinius {
       }
 
       void debug(const char* message, ...) {
-        thread::SpinLock::LockGuard guard(lock_);
-
-        if(loglevel_ < eDebug) return;
-
         if(logger_) {
+          thread::SpinLock::LockGuard guard(logger_->lock());
+
+          if(loglevel_ < eDebug) return;
+
           char buf[LOGGER_MSG_SIZE];
 
           va_list args;
@@ -184,8 +184,8 @@ namespace rubinius {
         return formatted_time_;
       }
 
-      Syslog::Syslog(const char* identifier)
-        : Logger()
+      Syslog::Syslog(utilities::thread::SpinLock& lock, const char* identifier)
+        : Logger(lock)
       {
         openlog(identifier, LOG_CONS | LOG_PID, LOG_LOCAL7);
 
@@ -247,8 +247,8 @@ namespace rubinius {
         syslog(LOG_DEBUG, "%s", message);
       }
 
-      ConsoleLogger::ConsoleLogger(const char* identifier)
-        : Logger()
+      ConsoleLogger::ConsoleLogger(utilities::thread::SpinLock& lock, const char* identifier)
+        : Logger(lock)
         , identifier_(identifier)
       {
         set_label();
@@ -301,8 +301,9 @@ namespace rubinius {
 #define LOGGER_FROM_FLAGS   (O_RDONLY | O_CLOEXEC)
 #define LOGGER_TO_FLAGS     (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 
-      FileLogger::FileLogger(const char* path, va_list varargs)
-        : Logger()
+      FileLogger::FileLogger(utilities::thread::SpinLock& lock,
+          const char* path, va_list varargs)
+        : Logger(lock)
         , path_(path)
       {
         set_label();

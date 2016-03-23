@@ -286,8 +286,6 @@ namespace rubinius {
   }
 
   void VM::after_fork_child(STATE) {
-    utilities::logger::set_label();
-
     thread_nexus_->after_fork_child(state);
 
     interrupt_lock_.init();
@@ -296,6 +294,8 @@ namespace rubinius {
 
     // TODO: Remove need for root_vm.
     state->shared().env()->set_root_vm(state->vm());
+
+    state->shared().env()->after_fork_child(state);
   }
 
   void VM::set_const(const char* name, Object* val) {

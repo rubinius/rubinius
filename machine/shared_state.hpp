@@ -108,7 +108,6 @@ namespace rubinius {
 
     utilities::thread::Mutex codedb_lock_;
 
-    utilities::thread::SpinLock fork_exec_lock_;
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
@@ -267,10 +266,6 @@ namespace rubinius {
     }
 
     const unsigned int* object_memory_mark_address() const;
-
-    utilities::thread::SpinLock& fork_exec_lock() {
-      return fork_exec_lock_;
-    }
 
     utilities::thread::Mutex& codedb_lock() {
       return codedb_lock_;

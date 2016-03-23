@@ -11,6 +11,8 @@
 
 #include "memory/root.hpp"
 
+#include "util/thread.hpp"
+
 namespace rubinius {
 
   namespace diagnostics {
@@ -64,12 +66,13 @@ namespace rubinius {
      */
     uint64_t signature_;
 
+    utilities::thread::SpinLock fork_exec_lock_;
+    utilities::thread::Mutex halt_lock_;
+
     memory::FinalizerThread* finalizer_thread_;
 
     std::string system_prefix_;
     std::string runtime_path_;
-
-    utilities::thread::Mutex halt_lock_;
 
     memory::TypedRoot<Object*>* loader_;
 
@@ -97,6 +100,10 @@ namespace rubinius {
 
     uint64_t signature() {
       return signature_;
+    }
+
+    utilities::thread::SpinLock& fork_exec_lock() {
+      return fork_exec_lock_;
     }
 
     std::string& runtime_path() {
@@ -147,7 +154,6 @@ namespace rubinius {
 
     void after_exec(STATE);
     void after_fork_child(STATE);
-    void after_fork_exec_child(STATE);
 
     void halt(STATE, int exit_code);
     void atexit();

@@ -190,7 +190,6 @@ namespace rubinius {
       (*i)->after_fork_exec_child(state);
     }
 
-    state->shared().env()->after_fork_exec_child(state);
     fork_exec_in_progress_ = false;
   }
 
@@ -224,8 +223,6 @@ namespace rubinius {
 
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    state->shared().env()->after_fork_child(state);
-
     for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
