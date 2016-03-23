@@ -71,9 +71,9 @@ namespace rubinius {
 
   VM::VM(uint32_t id, SharedState& shared, const char* name)
     : memory::ManagedThread(id, shared, memory::ManagedThread::eRuby, name)
-    , call_frame_(0)
+    , call_frame_(NULL)
     , thread_nexus_(shared.thread_nexus())
-    , saved_call_site_information_(0)
+    , saved_call_site_information_(NULL)
     , fiber_stacks_(this, shared)
     , park_(new Park)
     , tooling_env_(NULL)
@@ -90,8 +90,9 @@ namespace rubinius {
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
     , waiting_object_(this, cNil)
-    , custom_wakeup_(0)
-    , custom_wakeup_data_(0)
+    , native_method_environment(NULL)
+    , custom_wakeup_(NULL)
+    , custom_wakeup_data_(NULL)
     , thread_state_(this)
   {
     if(memory()) {

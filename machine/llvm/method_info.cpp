@@ -10,13 +10,6 @@
 #include "object_utils.hpp"
 
 namespace rubinius {
-  llvm::AllocaInst* JITMethodInfo::create_alloca(llvm::Type* type, llvm::Value* size,
-                                           const llvm::Twine& name)
-  {
-    return new llvm::AllocaInst(type, size, name,
-        function()->getEntryBlock().getTerminator());
-  }
-
   JITMethodInfo::JITMethodInfo(Context* ctx, CompiledCode* code, MachineCode* mcode,
                   JITMethodInfo* parent)
     : context_(ctx)

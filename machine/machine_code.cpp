@@ -749,21 +749,21 @@ namespace rubinius {
         return NULL;
       }
 
-      CallFrame* previous_frame = 0;
-      InterpreterCallFrame* frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+      CallFrame* previous_frame = NULL;
+      CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
 
-      frame->prepare(mcode->stack_size);
+      call_frame->prepare(mcode->stack_size);
 
-      frame->constant_scope_ = code->scope();
-      frame->dispatch_data = 0;
-      frame->compiled_code = code;
-      frame->flags = 0;
-      frame->optional_jit_data = 0;
-      frame->top_scope_ = 0;
-      frame->scope = scope;
-      frame->arguments = &args;
+      call_frame->constant_scope_ = code->scope();
+      call_frame->dispatch_data = NULL;
+      call_frame->compiled_code = code;
+      call_frame->flags = 0;
+      call_frame->optional_jit_data = NULL;
+      call_frame->top_scope_ = NULL;
+      call_frame->scope = scope;
+      call_frame->arguments = &args;
 
-      state->vm()->push_call_frame(frame, previous_frame);
+      state->vm()->push_call_frame(call_frame, previous_frame);
 
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
@@ -831,22 +831,22 @@ namespace rubinius {
     scope->initialize(G(main), cNil, G(object), mcode->number_of_locals);
 
     CallFrame* previous_frame = 0;
-    InterpreterCallFrame* frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
 
-    frame->prepare(mcode->stack_size);
+    call_frame->prepare(mcode->stack_size);
 
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
-    frame->constant_scope_ = code->scope();
-    frame->dispatch_data = 0;
-    frame->compiled_code = code;
-    frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;
-    frame->optional_jit_data = 0;
-    frame->top_scope_ = 0;
-    frame->scope = scope;
-    frame->arguments = &args;
+    call_frame->constant_scope_ = code->scope();
+    call_frame->dispatch_data = 0;
+    call_frame->compiled_code = code;
+    call_frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;
+    call_frame->optional_jit_data = 0;
+    call_frame->top_scope_ = 0;
+    call_frame->scope = scope;
+    call_frame->arguments = &args;
 
-    state->vm()->push_call_frame(frame, previous_frame);
+    state->vm()->push_call_frame(call_frame, previous_frame);
 
     // Do NOT check if we should JIT this. We NEVER want to jit a script.
 

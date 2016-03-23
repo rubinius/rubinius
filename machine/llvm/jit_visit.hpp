@@ -2611,20 +2611,18 @@ use_send:
 
           Signature sig(ctx_, ObjType);
           sig << StateTy;
-          sig << "CallFrame";
           sig << ObjType;
           sig << ctx_->Int32Ty;
           sig << ctx_->Int32Ty;
 
           Value* call_args[] = {
             state_,
-            nfo->call_frame(),
             stack_top(),
             cint(depth),
             cint(index)
           };
 
-          Value* val = sig.call("rbx_set_local_from", call_args, 5, "vs_uplocal", b());
+          Value* val = sig.call("rbx_set_local_from", call_args, 4, "vs_uplocal", b());
           check_for_exception(val);
         }
         return;
@@ -2654,7 +2652,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
       types.push_back(ctx_->Int32Ty);
       types.push_back(ctx_->Int32Ty);
@@ -2665,7 +2662,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         stack_pop(),
         cint(depth),
         cint(index)
@@ -2723,19 +2719,17 @@ use_send:
 
           Signature sig(ctx_, ObjType);
           sig << StateTy;
-          sig << "CallFrame";
           sig << ctx_->Int32Ty;
           sig << ctx_->Int32Ty;
 
           Value* call_args[] = {
             state_,
-            nfo->call_frame(),
             cint(depth),
             cint(index)
           };
 
           Value* val =
-              sig.call("rbx_push_local_from", call_args, 4, "vs_uplocal", b());
+              sig.call("rbx_push_local_from", call_args, 3, "vs_uplocal", b());
 
           check_for_exception(val);
           stack_push(val);
@@ -2747,7 +2741,6 @@ use_send:
       std::vector<Type*> types;
 
       types.push_back(StateTy);
-      types.push_back(CallFrameTy);
       types.push_back(ctx_->Int32Ty);
       types.push_back(ctx_->Int32Ty);
 
@@ -2757,7 +2750,6 @@ use_send:
 
       Value* call_args[] = {
         state_,
-        call_frame_,
         cint(depth),
         cint(index)
       };

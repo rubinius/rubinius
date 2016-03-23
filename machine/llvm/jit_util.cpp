@@ -118,6 +118,72 @@ extern "C" {
     entry->~MethodEntry();
   }
 
+  void rbx_method_frame_initialize(STATE, CallFrame* call_frame,
+      StackVariables* scope, Executable* exec, Module* mod, Arguments* args)
+  {
+    CompiledCode* code = as<CompiledCode>(exec);
+    MachineCode* mcode = code->machine_code();
+
+    scope->initialize(args->recv(), args->block(), mod, mcode->number_of_locals);
+
+    call_frame->prepare(mcode->stack_size);
+
+    call_frame->constant_scope_ = code->scope();
+    call_frame->dispatch_data = NULL;
+    call_frame->compiled_code = code;
+    call_frame->flags = 0;
+    call_frame->optional_jit_data = NULL;
+    call_frame->top_scope_ = NULL;
+    call_frame->scope = scope;
+    call_frame->arguments = args;
+
+    CallFrame* previous;
+    state->vm()->push_call_frame(call_frame, previous);
+  }
+
+  void rbx_block_frame_initialize(STATE,
+      CallFrame* call_frame, StackVariables* scope,
+      BlockEnvironment* env, Arguments* args, BlockInvocation* invocation)
+  {
+    MachineCode* const mcode = env->compiled_code()->machine_code();
+
+    if(!mcode) {
+      Exception::internal_error(state, "invalid bytecode method");
+    }
+
+    Module* mod = invocation->module;
+    if(!mod) mod = env->module();
+
+    Object* block = cNil;
+    if(VariableScope* vs = env->top_scope()) {
+      if(!vs->nil_p()) block = vs->block();
+    }
+
+    scope->initialize(invocation->self, block, mod, mcode->number_of_locals);
+    scope->set_parent(env->scope());
+
+    call_frame->prepare(mcode->stack_size);
+
+    call_frame->constant_scope_ = invocation->constant_scope;
+
+    call_frame->arguments = args;
+    call_frame->dispatch_data = env;
+    call_frame->compiled_code = env->compiled_code();
+    call_frame->scope = scope;
+    call_frame->optional_jit_data = NULL;
+    call_frame->top_scope_ = env->top_scope();
+    call_frame->flags = invocation->flags | CallFrame::cMultipleScopes
+                                          | CallFrame::cBlock
+                                          | CallFrame::cJITed;
+
+    CallFrame* previous;
+    state->vm()->push_call_frame(call_frame, previous);
+  }
+
+  void rbx_pop_call_frame(STATE) {
+    state->vm()->pop_call_frame(state->vm()->call_frame()->previous);
+  }
+
   Object* rbx_splat_send(STATE, CallSite* call_site,
                           int count, int call_flags, Object** args) {
     Object* recv = args[0];
@@ -829,14 +895,13 @@ extern "C" {
     return res;
   }
 
-  Object* rbx_set_local_depth(STATE, CallFrame* call_frame, Object* top,
-                              int depth, int index) {
+  Object* rbx_set_local_depth(STATE, Object* top, int depth, int index) {
     if(depth == 0) {
       Exception::internal_error(state,
                                 "illegal set_local_depth usage");
       return 0;
     } else {
-      VariableScope* scope = call_frame->scope->parent();
+      VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
       if(!scope || scope->nil_p()) {
         Exception::internal_error(state,
@@ -865,9 +930,8 @@ extern "C" {
     return top;
   }
 
-  Object* rbx_set_local_from(STATE, CallFrame* call_frame, Object* top,
-                             int depth, int index) {
-    VariableScope* scope = call_frame->scope->parent();
+  Object* rbx_set_local_from(STATE, Object* top, int depth, int index) {
+    VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
     if(!scope || scope->nil_p()) {
       Exception::internal_error(state,
@@ -890,14 +954,13 @@ extern "C" {
     return top;
   }
 
-  Object* rbx_push_local_depth(STATE, CallFrame* call_frame,
-                              int depth, int index) {
+  Object* rbx_push_local_depth(STATE, int depth, int index) {
     if(depth == 0) {
       Exception::internal_error(state,
                                 "illegal push_local_depth usage");
       return 0;
     } else {
-      VariableScope* scope = call_frame->scope->parent();
+      VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
       if(!scope || scope->nil_p()) {
         Exception::internal_error(state,
@@ -924,9 +987,8 @@ extern "C" {
     }
   }
 
-  Object* rbx_push_local_from(STATE, CallFrame* call_frame,
-                              int depth, int index) {
-    VariableScope* scope = call_frame->scope->parent();
+  Object* rbx_push_local_from(STATE, int depth, int index) {
+    VariableScope* scope = state->vm()->call_frame()->scope->parent();
 
     if(!scope || scope->nil_p()) {
       Exception::internal_error(state,

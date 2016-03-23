@@ -334,12 +334,12 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     Integer* fix = as<Integer>(Fixnum::from(-2)->pow(state, Fixnum::from(FIXNUM_WIDTH-1)));
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(Fixnum::from(-1L << (FIXNUM_WIDTH-1)), fix);
+    TS_ASSERT_EQUALS(Fixnum::from((0UL - 1L) << (FIXNUM_WIDTH-1)), fix);
 
     Integer* big = as<Integer>(Fixnum::from(-2)->pow(state, Fixnum::from(FIXNUM_WIDTH)));
 
     TS_ASSERT(kind_of<Bignum>(big));
-    TS_ASSERT(Bignum::from(state, -1L << (FIXNUM_WIDTH))->equal(state, as<Bignum>(big)));
+    TS_ASSERT(Bignum::from(state, (0UL - 1L) << (FIXNUM_WIDTH))->equal(state, as<Bignum>(big)));
   }
 
   void test_equal() {
@@ -470,7 +470,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     fix = Fixnum::from(-1)->left_shift(state, Fixnum::from(FIXNUM_WIDTH-1));
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(Fixnum::from(-1L << (FIXNUM_WIDTH-1)), fix);
+    TS_ASSERT_EQUALS(Fixnum::from((0UL - 1L) << (FIXNUM_WIDTH-1)), fix);
 
     Integer* max_plus1 = Fixnum::from(1)->left_shift(state, Fixnum::from(FIXNUM_WIDTH));
 
@@ -506,7 +506,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     fix = Fixnum::from(-1)->right_shift(state, Fixnum::from(-(FIXNUM_WIDTH-1)));
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(Fixnum::from(-1L << (FIXNUM_WIDTH-1)), fix);
+    TS_ASSERT_EQUALS(Fixnum::from((0UL - 1L) << (FIXNUM_WIDTH-1)), fix);
 
     Integer* max_plus1 = Fixnum::from(1)->right_shift(state, Fixnum::from(-FIXNUM_WIDTH));
 

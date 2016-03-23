@@ -65,11 +65,6 @@ namespace rubinius {
     MachineCode* mcode = env->compiled_code_->machine_code();
 
     if(!mcode) {
-      OnStack<3> os(state, env, args.recv_location(), args.block_location());
-      OnStack<3> iv(state, invocation.self, invocation.constant_scope, invocation.module);
-      memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
-                             &args.arguments_location(), args.total());
-
       mcode = env->machine_code(state);
 
       if(!mcode) {
@@ -414,8 +409,8 @@ namespace rubinius {
     if(!mod) mod = env->module();
 
     Object* block = cNil;
-    if(VariableScope* scope = env->top_scope_) {
-      if(!scope->nil_p()) block = scope->block();
+    if(VariableScope* vs = env->top_scope_) {
+      if(!vs->nil_p()) block = vs->block();
     }
 
     scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
@@ -433,24 +428,25 @@ namespace rubinius {
       return NULL;
     }
 
-    CallFrame* previous_frame = 0;
-    InterpreterCallFrame* frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+    CallFrame* previous_frame = NULL;
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
 
-    frame->prepare(mcode->stack_size);
+    call_frame->prepare(mcode->stack_size);
 
-    frame->constant_scope_ = invocation.constant_scope;
+    call_frame->constant_scope_ = invocation.constant_scope;
 
-    frame->arguments = &args;
-    frame->dispatch_data = env;
-    frame->compiled_code = env->compiled_code_;
-    frame->scope = scope;
-    frame->top_scope_ = env->top_scope_;
-    frame->flags = invocation.flags | CallFrame::cMultipleScopes
+    call_frame->arguments = &args;
+    call_frame->dispatch_data = env;
+    call_frame->compiled_code = env->compiled_code_;
+    call_frame->scope = scope;
+    call_frame->optional_jit_data = NULL;
+    call_frame->top_scope_ = env->top_scope_;
+    call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
-    state->vm()->push_call_frame(frame, previous_frame);
+    state->vm()->push_call_frame(call_frame, previous_frame);
 
-    Object* value = 0;
+    Object* value = NULL;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {
