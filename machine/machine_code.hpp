@@ -25,7 +25,8 @@ namespace rubinius {
   class CallSite;
   class ConstantCache;
   class MachineCode;
-  class InterpreterCallFrame;
+
+  struct CallFrame;
 
   typedef Object* (*InterpreterRunner)(STATE, MachineCode* const mcode);
 

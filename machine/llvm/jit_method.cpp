@@ -51,19 +51,77 @@ namespace jit {
 
     info_.set_state(state);
     info_.set_args(args);
-    // TODO: CallFrame
-    // info_.set_previous(prev);
     info_.set_entry(block);
 
     alloc_frame("method_body");
 
+    // Push the new CallFrame
+    Signature sig(ctx_, ctx_->VoidTy);
+    sig << "State"
+        << "CallFrame"
+        << "StackVariables"
+        << "Executable"
+        << "Module"
+        << "Arguments";
+
+    Value* call_args[] = {
+      state,
+      call_frame,
+      info_.variables(),
+      exec,
+      module,
+      args
+    };
+
+    sig.call("rbx_method_frame_initialize", call_args, 6, "", b());
+
+    // TODO: de-dup
+    {
+      b().SetInsertPoint(info_.return_pad());
+
+      Signature sig(ctx_, ctx_->VoidTy);
+      sig << "State";
+
+      Value* call_args[] = {
+        state
+      };
+
+      sig.call("rbx_pop_call_frame", call_args, 1, "", b());
+
+      b().SetInsertPoint(block);
+    }
+
+    if(ctx_->llvm_state()->include_profiling()) {
+      BasicBlock* setup_profiling = info_.new_block("setup_profiling");
+      BasicBlock* cont = info_.new_block("continue");
+
+      ctx_->profiling(b(), setup_profiling, cont);
+
+      Signature sig(ctx_, ctx_->VoidTy);
+      sig << "State";
+      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
+      sig << "Executable";
+      sig << "Module";
+      sig << "Arguments";
+      sig << "CompiledCode";
+
+      Value* call_args[] = {
+        info_.state(),
+        method_entry_,
+        exec,
+        module,
+        info_.args(),
+        method
+      };
+
+      sig.call("rbx_begin_profiling", call_args, 6, "", b());
+
+      b().CreateBr(cont);
+
+      b().SetInsertPoint(cont);
+    }
+
     check_arity();
-
-    initialize_frame(machine_code_->stack_size);
-
-    nil_stack(machine_code_->stack_size, constant(cNil, obj_type));
-
-    setup_scope();
 
     import_args();
 
@@ -174,7 +232,8 @@ namespace jit {
     };
 
     Value* val = sig.call("rbx_arg_error", call_args, 3, "ret", b());
-    return_value(val);
+    info_.add_return_value(val, b().GetInsertBlock());
+    b().CreateBr(info_.return_pad());
 
     // Switch to using continuation
     b().SetInsertPoint(cont);
@@ -514,152 +573,6 @@ namespace jit {
 
     b().CreateBr(after_args);
     b().SetInsertPoint(after_args);
-  }
-
-  void MethodBuilder::return_value(Value* ret, BasicBlock* cont) {
-    if(ctx_->llvm_state()->include_profiling()) {
-      BasicBlock* end_profiling = info_.new_block("end_profiling");
-      if(!cont) {
-        cont = info_.new_block("continue");
-      }
-
-      ctx_->profiling(b(), end_profiling, cont);
-
-      Signature sig(ctx_, ctx_->VoidTy);
-      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
-
-      Value* call_args[] = {
-        method_entry_
-      };
-
-      sig.call("rbx_end_profiling", call_args, 1, "", b());
-
-      b().CreateBr(cont);
-
-      b().SetInsertPoint(cont);
-    }
-
-    info_.add_return_value(ret, b().GetInsertBlock());
-    b().CreateBr(info_.return_pad());
-  }
-
-
-  void MethodBuilder::setup_scope() {
-    llvm::Value* args = info_.args();
-
-    Value* heap_null = ConstantExpr::getNullValue(llvm::PointerType::getUnqual(vars_type));
-    Value* heap_pos = get_field(vars, offset::StackVariables::on_heap);
-
-    b().CreateStore(heap_null, heap_pos);
-
-    Value* self = b().CreateLoad(get_field(args, offset::Arguments::recv),
-        "args.recv");
-
-    if(Class* klass = info_.self_class()) {
-      if(!klass->nil_p()) {
-        type::KnownType kt = type::KnownType::unknown();
-        if(kind_of<SingletonClass>(klass)) {
-          kt = type::KnownType::singleton_instance(klass->class_id());
-        } else {
-          kt = type::KnownType::instance(klass->class_id());
-        }
-        kt.associate(ctx_, self);
-      }
-    }
-
-    b().CreateStore(self, get_field(vars, offset::StackVariables::self));
-    Value* mod = module;
-    b().CreateStore(mod, get_field(vars, offset::StackVariables::module));
-
-    Value* blk = b().CreateLoad(get_field(args, offset::Arguments::block),
-        "args.block");
-    b().CreateStore(blk, get_field(vars, offset::StackVariables::block));
-
-    b().CreateStore(Constant::getNullValue(ctx_->ptr_type("VariableScope")),
-        get_field(vars, offset::StackVariables::parent));
-
-    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::StackVariables::last_match));
-
-    nil_locals();
-  }
-
-  void MethodBuilder::initialize_frame(int stack_size) {
-    Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
-    method = b().CreateBitCast(
-        exec, cast<llvm::PointerType>(code_gep->getType())->getElementType(), "compiled_code");
-
-    // previous
-    b().CreateStore(info_.previous(), get_field(call_frame, offset::CallFrame::previous));
-
-    // arguments
-    b().CreateStore(info_.args(), get_field(call_frame, offset::CallFrame::arguments));
-
-    // msg
-    b().CreateStore(
-        ConstantInt::getNullValue(ctx_->Int8PtrTy),
-        get_field(call_frame, offset::CallFrame::dispatch_data));
-
-    // compiled_code
-    b().CreateStore(method, code_gep);
-
-    // constant_scope
-    Value* constant_scope = b().CreateLoad(
-        b().CreateConstGEP2_32(method, 0, offset::CompiledCode::scope, "constant_scope_pos"),
-        "constant_scope");
-
-    Value* constant_scope_gep = get_field(call_frame, offset::CallFrame::constant_scope);
-    b().CreateStore(constant_scope, constant_scope_gep);
-
-    // flags
-    int flags = CallFrame::cJITed;
-    if(!use_full_scope_) flags |= CallFrame::cClosedScope;
-
-    b().CreateStore(
-        cint(flags),
-        get_field(call_frame, offset::CallFrame::flags));
-
-    // ip
-    b().CreateStore(
-        cint(0),
-        get_field(call_frame, offset::CallFrame::ip));
-
-    // scope
-    b().CreateStore(vars, get_field(call_frame, offset::CallFrame::scope));
-
-    // jit_data
-    b().CreateStore(
-        constant(ctx_->runtime_data_holder(), ctx_->Int8PtrTy),
-        get_field(call_frame, offset::CallFrame::jit_data));
-
-    if(ctx_->llvm_state()->include_profiling()) {
-      BasicBlock* setup_profiling = info_.new_block("setup_profiling");
-      BasicBlock* cont = info_.new_block("continue");
-
-      ctx_->profiling(b(), setup_profiling, cont);
-
-      Signature sig(ctx_, ctx_->VoidTy);
-      sig << "State";
-      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
-      sig << "Executable";
-      sig << "Module";
-      sig << "Arguments";
-      sig << "CompiledCode";
-
-      Value* call_args[] = {
-        info_.state(),
-        method_entry_,
-        exec,
-        module,
-        info_.args(),
-        method
-      };
-
-      sig.call("rbx_begin_profiling", call_args, 6, "", b());
-
-      b().CreateBr(cont);
-
-      b().SetInsertPoint(cont);
-    }
   }
 }
 }

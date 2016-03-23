@@ -21,7 +21,6 @@ namespace jit {
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
-    info_.set_previous(prev);
     info_.set_entry(entry);
 
     BasicBlock* body = BasicBlock::Create(ctx_->llvm_context(), "block_body", info_.function());

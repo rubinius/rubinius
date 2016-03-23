@@ -208,6 +208,17 @@ namespace rubinius {
       return ip_++;
     }
 
+    /**
+     *  Initialize frame for the given stack size.
+     */
+    void prepare(int stack) {
+      ip_ = 0;
+
+      for(int i = 0; i < stack; i++) {
+        stk[i] = cNil;
+      }
+    }
+
     VariableScope* promote_scope_full(STATE);
 
     VariableScope* promote_scope(STATE) {
@@ -228,28 +239,12 @@ namespace rubinius {
     Object* find_breakpoint(STATE);
   };
 
-  class InterpreterCallFrame : public CallFrame {
-  public:
-    // Methods
-
-    /**
-     *  Initialize frame for the given stack size.
-     */
-    void prepare(int stack) {
-      ip_ = 0;
-
-      for(int i = 0; i < stack; i++) {
-        stk[i] = cNil;
-      }
-    }
-  };
-
 #define THREAD_STACK_SIZE 4194304
 
 #define ALLOCA_CALL_FRAME(stack_size) \
-  reinterpret_cast<InterpreterCallFrame*>(alloca(sizeof(InterpreterCallFrame) + (sizeof(Object*) * stack_size)))
+  reinterpret_cast<CallFrame*>(alloca(sizeof(CallFrame) + (sizeof(Object*) * stack_size)))
 };
 
-#define MAX_CALL_FRAMES  (THREAD_STACK_SIZE / sizeof(InterpreterCallFrame))
+#define MAX_CALL_FRAMES  (THREAD_STACK_SIZE / sizeof(CallFrame))
 
 #endif
