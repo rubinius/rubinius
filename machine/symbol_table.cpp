@@ -12,7 +12,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -23,7 +23,7 @@ namespace rubinius {
 
     diagnostics::Diagnostics::log();
 
-    utilities::logger::write("symbol table: diagnostics: symbols: %ld, bytes: %ld",
+    logger::write("symbol table: diagnostics: symbols: %ld, bytes: %ld",
         objects_, bytes_);
   }
 

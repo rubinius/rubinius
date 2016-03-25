@@ -20,11 +20,13 @@
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
 #include "builtin/variable_scope.hpp"
+
 #include "call_frame.hpp"
 #include "compiled_file.hpp"
 #include "configuration.hpp"
 #include "config_parser.hpp"
 #include "dtrace/dtrace.h"
+#include "environment.hpp"
 #include "memory/walker.hpp"
 #include "global_cache.hpp"
 #include "helpers.hpp"
@@ -36,9 +38,11 @@
 #include "signal.hpp"
 #include "thread_phase.hpp"
 #include "windows_compat.h"
+
 #include "util/sha1.h"
 #include "util/timing.h"
-#include "util/logger.hpp"
+#include "logger.hpp"
+
 #include "paths.h"
 
 #include <vector>
@@ -335,7 +339,7 @@ namespace rubinius {
       {
         const char* dir = str->c_str_null_safe(state);
         if(chdir(dir) < 0) {
-          utilities::logger::error("%s: spawn: failed to change directory: %s",
+          logger::error("%s: spawn: failed to change directory: %s",
               strerror(errno), dir);
         }
       }
@@ -385,7 +389,7 @@ namespace rubinius {
   }
 
   static int fork_exec(STATE, int errors_fd) {
-    utilities::thread::SpinLock::LockGuard guard(state->shared().fork_exec_lock());
+    utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
     state->shared().internal_threads()->before_fork_exec(state);
 
@@ -471,13 +475,6 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
-      CallFrame* call_frame = state->vm()->get_ruby_frame(3);
-
-      utilities::logger::write("spawn: %s, %s, %s:%d", exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-
       if(exe.argc()) {
         (void)::execvp(exe.command(), exe.argv());
       } else {
@@ -490,12 +487,12 @@ namespace rubinius {
       for(size_t i = 0; i < exe.argc(); i++) {
         command_line << " " << exe.argv()[i];
       }
-      utilities::logger::error("%s: spawn: exec failed: %s",
+      logger::error("%s: spawn: exec failed: %s",
           strerror(errno), command_line.str().c_str());
 
       int error_no = errno;
       if(write(errors[1], &error_no, sizeof(int)) < 0) {
-        utilities::logger::error("%s: spawn: writing error status", strerror(errno));
+        logger::error("%s: spawn: writing error status", strerror(errno));
       }
       close(errors[1]);
 
@@ -503,6 +500,14 @@ namespace rubinius {
     }
 
     close(errors[1]);
+
+    CallFrame* call_frame = state->vm()->get_ruby_frame(3);
+
+    logger::write("spawn: %d: %s, %s, %s:%d",
+        pid, exe.command(),
+        state->vm()->name().c_str(),
+        call_frame->file(state)->cpp_str(state).c_str(),
+        call_frame->line(state));
 
     int error_no;
     ssize_t size;
@@ -513,7 +518,7 @@ namespace rubinius {
       case EINTR:
         continue;
       default:
-        utilities::logger::error("%s: spawn: reading error status", strerror(errno));
+        logger::error("%s: spawn: reading error status", strerror(errno));
         break;
       }
     }
@@ -593,22 +598,15 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
-      CallFrame* call_frame = state->vm()->get_ruby_frame(1);
-
-      utilities::logger::write("backtick: %s, %s, %s:%d", exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-
       exec_sh_fallback(state, exe.command(), exe.command_size());
 
       /* execvp() returning means it failed. */
-      utilities::logger::error("%s: backtick: exec failed: %s",
+      logger::error("%s: backtick: exec failed: %s",
           strerror(errno), exe.command());
 
       int error_no = errno;
       if(write(errors[1], &error_no, sizeof(int)) < 0) {
-        utilities::logger::error("%s: backtick: writing error status", strerror(errno));
+        logger::error("%s: backtick: writing error status", strerror(errno));
       }
       close(errors[1]);
 
@@ -617,6 +615,14 @@ namespace rubinius {
 
     close(errors[1]);
     close(output[1]);
+
+    CallFrame* call_frame = state->vm()->get_ruby_frame(1);
+
+    logger::write("backtick: %d: %s, %s, %s:%d",
+        pid, exe.command(),
+        state->vm()->name().c_str(),
+        call_frame->file(state)->cpp_str(state).c_str(),
+        call_frame->line(state));
 
     int error_no;
     ssize_t size;
@@ -627,7 +633,7 @@ namespace rubinius {
       case EINTR:
         continue;
       default:
-        utilities::logger::error("%s: backtick: reading error status", strerror(errno));
+        logger::error("%s: backtick: reading error status", strerror(errno));
         break;
       }
     }
@@ -678,12 +684,20 @@ namespace rubinius {
   }
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
-    utilities::thread::SpinLock::LockGuard guard(state->shared().fork_exec_lock());
-
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
      */
     ExecCommand exe(state, path, args);
+
+    CallFrame* call_frame = state->vm()->get_ruby_frame(3);
+
+    logger::write("exec: %s, %s, %s:%d", exe.command(),
+        state->vm()->name().c_str(),
+        call_frame->file(state)->cpp_str(state).c_str(),
+        call_frame->line(state));
+
+    // From this point, we are serialized.
+    utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
     state->shared().internal_threads()->before_exec(state);
 
@@ -705,13 +719,6 @@ namespace rubinius {
       sigaction(i, &action, &old_action);
       old_handlers[i] = (void*)old_action.sa_handler;
     }
-
-    CallFrame* call_frame = state->vm()->get_ruby_frame(3);
-
-    utilities::logger::write("exec: %s, %s, %s:%d", exe.command(),
-        state->vm()->name().c_str(),
-        call_frame->file(state)->cpp_str(state).c_str(),
-        call_frame->line(state));
 
     if(exe.argc()) {
       (void)::execvp(exe.command(), exe.argv());
@@ -820,28 +827,29 @@ namespace rubinius {
     int pid = -1;
 
     {
-      utilities::thread::SpinLock::LockGuard guard(state->shared().fork_exec_lock());
+      utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
       state->shared().internal_threads()->before_fork(state);
 
-      {
-        LockPhase locked(state);
+      LockPhase locked(state);
 
-        pid = ::fork();
+      pid = ::fork();
 
-        if(pid == 0) state->vm()->after_fork_child(state);
-      }
-
-      if(pid > 0) {
+      if(pid == 0) {
+        state->vm()->after_fork_child(state);
+      } else if(pid > 0) {
         state->shared().internal_threads()->after_fork_parent(state);
-
-        CallFrame* call_frame = state->vm()->get_ruby_frame(2);
-
-        utilities::logger::write("fork: child: %d, %s, %s:%d", pid,
-            state->vm()->name().c_str(),
-            call_frame->file(state)->cpp_str(state).c_str(),
-            call_frame->line(state));
       }
+    }
+
+    // We're in the parent...
+    if(pid > 0) {
+      CallFrame* call_frame = state->vm()->get_ruby_frame(2);
+
+      logger::write("fork: child: %d, %s, %s:%d", pid,
+          state->vm()->name().c_str(),
+          call_frame->file(state)->cpp_str(state).c_str(),
+          call_frame->line(state));
     }
 
     // We're in the child...

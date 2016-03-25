@@ -4,7 +4,7 @@
 #include "builtin/logger.hpp"
 #include "builtin/string.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 namespace rubinius {
   using namespace utilities;

@@ -93,6 +93,30 @@ namespace rubinius {
   };
 
   typedef LockUnmanaged<utilities::thread::Mutex> MutexLockUnmanaged;
+
+  template <class T>
+  class LockWaiting : public utilities::thread::LockGuardTemplate<T> {
+    State* state_;
+    ThreadNexus::Phase phase_;
+
+  public:
+    LockWaiting(STATE, T& in_lock)
+      : utilities::thread::LockGuardTemplate<T>(in_lock, false)
+      , state_(state)
+    {
+      phase_ = state->vm()->thread_phase();
+      state->vm()->set_thread_phase(ThreadNexus::cWaiting);
+
+      this->lock();
+    }
+
+    ~LockWaiting() {
+      this->unlock();
+      state_->vm()->restore_thread_phase(phase_);
+    }
+  };
+
+  typedef LockWaiting<utilities::thread::SpinLock> SpinLockWaiting;
 }
 
 #endif

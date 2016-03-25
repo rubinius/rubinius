@@ -69,7 +69,7 @@ namespace rubinius {
 
       state->vm()->set_current_fiber(this);
       state->vm()->set_call_frame(data_->call_frame());
-      data_->set_call_frame(0);
+      data_->set_call_frame(NULL);
       status_ = eRunning;
     }
 

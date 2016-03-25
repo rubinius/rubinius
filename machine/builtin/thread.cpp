@@ -26,7 +26,7 @@
 
 #include "instruments/tooling.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include "missing/gettid.h"
 
@@ -91,7 +91,7 @@ namespace rubinius {
 
     thr->function_ = function;
 
-    state->memory()->needs_finalization(thr,
+    state->memory()->needs_finalization(state, thr,
         (memory::FinalizerFunction)&Thread::finalize,
         memory::FinalizeObject::eUnmanaged);
 
@@ -112,7 +112,9 @@ namespace rubinius {
   }
 
   Object* run_instance(STATE) {
-    // These are all referenced, so OnStack is not necessary.
+    /* These are all referenced, so OnStack is not necessary. Additionally,
+     * thread is pinned, so we do not need to worry about it moving.
+     */
     Thread* thread = state->vm()->thread.get();
     Array* args = thread->args();
     Object* block = thread->block();
@@ -122,6 +124,11 @@ namespace rubinius {
     }
 
     Object* value = block->send(state, G(sym_call), args, block);
+
+    /* We explicitly set the current CallFrame reference to NULL because we
+     * are at the top of the stack in terms of managed code.
+     */
+    state->vm()->set_call_frame(NULL);
 
     thread->exception(state, state->vm()->thread_state()->current_exception());
 
@@ -143,7 +150,7 @@ namespace rubinius {
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
-    utilities::logger::write("new thread: %s, %s:%d",
+    logger::write("new thread: %s, %s:%d",
         thread->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
@@ -162,7 +169,7 @@ namespace rubinius {
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
-    utilities::logger::write("start thread: %s, %s:%d",
+    logger::write("start thread: %s, %s:%d",
         thread->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
@@ -354,7 +361,7 @@ namespace rubinius {
 
     vm->thread->pid(state, Fixnum::from(gettid()));
 
-    utilities::logger::write("start thread: %s, %d, %#x",
+    logger::write("start thread: %s, %d, %#x",
         vm->name().c_str(), vm->thread->pid()->to_native(),
         (unsigned int)thread_debug_self());
 
@@ -367,6 +374,7 @@ namespace rubinius {
 
     vm->shared.tool_broker()->thread_start(state);
     Object* value = vm->thread->function_(state);
+    vm->set_call_frame(NULL);
     vm->shared.tool_broker()->thread_stop(state);
 
     vm->thread->join_lock_.lock();
@@ -386,9 +394,8 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    utilities::logger::write("exit thread: %s", vm->name().c_str());
+    logger::write("exit thread: %s", vm->name().c_str());
 
-    vm->set_call_frame(0);
     vm->become_unmanaged();
 
     if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {

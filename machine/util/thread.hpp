@@ -17,7 +17,7 @@
 #include <iostream>
 
 #include "util/atomic.hpp"
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 intptr_t thread_debug_self();
 

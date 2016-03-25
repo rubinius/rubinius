@@ -14,7 +14,7 @@
 
 #include "instruments/timing.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -36,7 +36,7 @@ namespace memory {
 
     diagnostics::Diagnostics::log();
 
-    utilities::logger::write("large objects: diagnostics: objects: %ld, bytes: %ld",
+    logger::write("large objects: diagnostics: objects: %ld, bytes: %ld",
         objects_, bytes_);
   }
 

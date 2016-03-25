@@ -1,5 +1,5 @@
 #include "util/timer.hpp"
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include <string.h>
 #include <unistd.h>

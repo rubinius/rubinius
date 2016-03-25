@@ -15,7 +15,7 @@ namespace rubinius {
       symbols_.log();
 
       if(summarize) {
-        utilities::logger::write("object memory: diagnostics: total memory: %ld",
+        logger::write("object memory: diagnostics: total memory: %ld",
             immix_.total_bytes_ +
             mark_sweep_.bytes_ +
             headers_.bytes_ +

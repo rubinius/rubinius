@@ -19,7 +19,7 @@
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -121,8 +121,8 @@ namespace rubinius {
   void SignalThread::start(STATE) {
     initialize(state);
 
-    state->shared().signals()->print_machine_info(utilities::logger::write);
-    state->shared().signals()->print_process_info(utilities::logger::write);
+    state->shared().signals()->print_machine_info(logger::write);
+    state->shared().signals()->print_process_info(logger::write);
 
     run(state);
   }
@@ -311,7 +311,7 @@ namespace rubinius {
 
       while(frame) {
         if(first) {
-          utilities::logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
+          logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
           first = false;
         }
 
@@ -388,7 +388,7 @@ namespace rubinius {
           stream << ")";
         }
 
-        utilities::logger::fatal(stream.str().c_str());
+        logger::fatal(stream.str().c_str());
 
         frame = frame->previous;
       }

@@ -123,6 +123,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_call_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
@@ -133,6 +135,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_ruby_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
@@ -148,6 +152,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_variables_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
@@ -169,6 +175,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_scope_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
@@ -286,8 +294,6 @@ namespace rubinius {
   }
 
   void VM::after_fork_child(STATE) {
-    utilities::logger::set_label();
-
     thread_nexus_->after_fork_child(state);
 
     interrupt_lock_.init();
@@ -296,6 +302,8 @@ namespace rubinius {
 
     // TODO: Remove need for root_vm.
     state->shared().env()->set_root_vm(state->vm());
+
+    state->shared().env()->after_fork_child(state);
   }
 
   void VM::set_const(const char* name, Object* val) {

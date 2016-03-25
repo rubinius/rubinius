@@ -204,14 +204,14 @@ namespace rubinius {
 
       // Don't trigger GC if currently prohibited so we don't thrash checking.
       if(shared_.config.memory_collection_log.value) {
-        utilities::logger::write("memory: full collection: trigger: %s", trigger);
+        logger::write("memory: full collection: trigger: %s", trigger);
       }
 
       if(can_gc()) {
         collect_full_flag_ = true;
         shared_.thread_nexus()->set_stop();
       } else if(shared_.config.memory_collection_log.value) {
-        utilities::logger::write("memory: collection: disabled");
+        logger::write("memory: collection: disabled");
       }
     }
 
@@ -543,7 +543,7 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
-    void needs_finalization(Object* obj, memory::FinalizerFunction func,
+    void needs_finalization(STATE, Object* obj, memory::FinalizerFunction func,
         memory::FinalizeObject::FinalizeKind kind = memory::FinalizeObject::eManaged);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 

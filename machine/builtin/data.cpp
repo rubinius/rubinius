@@ -39,7 +39,8 @@ namespace rubinius {
     data->internal_ = rdata;
 
     if(mark || free) {
-      state->memory()->needs_finalization(data, (memory::FinalizerFunction)&Data::finalize);
+      state->memory()->needs_finalization(state, data,
+          (memory::FinalizerFunction)&Data::finalize);
     }
 
     state->vm()->metrics().memory.data_objects++;
@@ -72,7 +73,8 @@ namespace rubinius {
     data->internal_ = rdata;
 
     if(type->function.dmark || type->function.dfree) {
-      state->memory()->needs_finalization(data, (memory::FinalizerFunction)&Data::finalize);
+      state->memory()->needs_finalization(state, data,
+          (memory::FinalizerFunction)&Data::finalize);
     }
 
     state->vm()->metrics().memory.data_objects++;

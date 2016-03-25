@@ -24,7 +24,7 @@
 
 #include "dtrace/dtrace.h"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include <fcntl.h>
 #include <stdint.h>

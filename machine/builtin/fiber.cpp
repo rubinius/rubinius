@@ -37,7 +37,7 @@ namespace rubinius {
       fib->data_ = state->vm()->new_fiber_data(true);
       fib->data_->set_call_frame(state->vm()->call_frame());
 
-      state->memory()->needs_finalization(fib,
+      state->memory()->needs_finalization(state, fib,
           (memory::FinalizerFunction)&Fiber::finalize,
           memory::FinalizeObject::eUnmanaged);
 
@@ -109,7 +109,7 @@ namespace rubinius {
     Fiber* fib = state->memory()->new_object<Fiber>(state, as<Class>(self));
     fib->starter(state, callable);
 
-    state->memory()->needs_finalization(fib,
+    state->memory()->needs_finalization(state, fib,
         (memory::FinalizerFunction)&Fiber::finalize,
         memory::FinalizeObject::eUnmanaged);
 

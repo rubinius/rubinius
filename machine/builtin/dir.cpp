@@ -18,7 +18,7 @@ namespace rubinius {
     Dir* d = Dir::allocate(state, G(dir));
     d->os_ = 0;
 
-    state->memory()->needs_finalization(d,
+    state->memory()->needs_finalization(state, d,
         (memory::FinalizerFunction)&Dir::finalize,
         memory::FinalizeObject::eUnmanaged);
 

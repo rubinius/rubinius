@@ -17,7 +17,7 @@
 
 #include "memory/finalizer.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -176,7 +176,7 @@ namespace memory {
           ary->set(state, 0, process_item_->object->id(state));
           if(!process_item_->ruby_finalizer->send(state, G(sym_call), ary)) {
             if(state->vm()->thread_state()->raise_reason() == cException) {
-              utilities::logger::warn(
+              logger::warn(
                   "finalizer: an exception occurred running a Ruby finalizer: %s",
                   state->vm()->thread_state()->current_exception()->message_c_str(state));
             }
@@ -219,7 +219,7 @@ namespace memory {
           PLACE_EXCEPTION_POINT(ep);
 
           if(unlikely(ep.jumped_to())) {
-            utilities::logger::warn(
+            logger::warn(
                 "finalizer: an exception occurred running a NativeMethod finalizer");
           } else {
             (*process_item_->finalizer)(state, process_item_->object);
@@ -307,16 +307,20 @@ namespace memory {
     }
 
     if(!lists_->empty() || !live_list_->empty() || process_list_ != NULL) {
-      utilities::logger::warn("FinalizerThread exiting with pending finalizers");
+      logger::warn("FinalizerThread exiting with pending finalizers");
     }
 
     VM::discard(state, vm());
   }
 
-  void FinalizerThread::record(Object* obj, FinalizerFunction func,
+  void FinalizerThread::record(STATE, Object* obj, FinalizerFunction func,
       FinalizeObject::FinalizeKind kind)
   {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
+
+    if(!obj) {
+      Exception::raise_runtime_error(state, "NULL object added to finalization list");
+    }
 
     if(finishing_) return;
 

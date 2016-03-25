@@ -50,7 +50,7 @@
 #include "instruments/tooling.hpp"
 #include "dtrace/dtrace.h"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 namespace rubinius {
   void Memory::memory_error(STATE) {
@@ -568,7 +568,7 @@ step1:
         state->vm()->metrics().gc.young_ms);
 
     if(state->shared().config.memory_collection_log.value) {
-      utilities::logger::write("memory: young collection");
+      logger::write("memory: young collection");
     }
 
     /* 
@@ -619,7 +619,7 @@ step1:
     if(mature_gc_in_progress_) return;
 
     if(state->shared().config.memory_collection_log.value) {
-      utilities::logger::write("memory: full collection");
+      logger::write("memory: full collection");
     }
 
     code_manager_.clear_marks();
@@ -839,11 +839,11 @@ step1:
     }
   }
 
-  void Memory::needs_finalization(Object* obj, memory::FinalizerFunction func,
+  void Memory::needs_finalization(STATE, Object* obj, memory::FinalizerFunction func,
       memory::FinalizeObject::FinalizeKind kind)
   {
     if(memory::FinalizerThread* finalizer = shared_.finalizer_handler()) {
-      finalizer->record(obj, func, kind);
+      finalizer->record(state, obj, func, kind);
     }
   }
 

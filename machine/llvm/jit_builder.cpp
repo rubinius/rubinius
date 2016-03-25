@@ -572,7 +572,7 @@ namespace jit {
     try {
       walker.run<Walker>(cb);
     } catch(LLVMState::CompileError &e) {
-      utilities::logger::info("JIT: builder: generate body: compile error: %s", e.error());
+      logger::info("JIT: builder: generate body: compile error: %s", e.error());
       return false;
     }
 

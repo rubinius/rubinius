@@ -4,7 +4,7 @@
 #include "machine_code.hpp"
 #include "instructions_util.hpp"
 #include "llvm/jit_context.hpp"
-#include "machine/util/logger.hpp"
+#include "machine/logger.hpp"
 
 namespace rubinius {
   struct InlineOptions {
@@ -47,7 +47,7 @@ namespace rubinius {
       try {
         eval.drive(mcode);
       } catch(LLVMState::CompileError& e) {
-        utilities::logger::info("JIT: inline evaluator: compile error: %s", e.error());
+        logger::info("JIT: inline evaluator: compile error: %s", e.error());
         return false;
       }
 

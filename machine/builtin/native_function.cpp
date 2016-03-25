@@ -406,7 +406,7 @@ namespace rubinius {
             state->symbol("symbol"), ary);
 
         if(!result) {
-          utilities::logger::error("Exception raised by callback, ignoring");
+          logger::error("Exception raised by callback, ignoring");
           state->vm()->thread_state()->clear();
           result = cNil;
         }
@@ -483,7 +483,7 @@ namespace rubinius {
     // Ug. An exception is being raised...
     if(!obj) {
       // For now, log the error and return nil.
-      utilities::logger::error("Exception raised by callback, ignoring");
+      logger::error("Exception raised by callback, ignoring");
       state->vm()->thread_state()->clear();
       obj = cNil;
     }
@@ -559,7 +559,7 @@ namespace rubinius {
 
       if(!value) {
         // For now, log the error and return nil.
-        utilities::logger::error("Exception raised by callback, ignoring");
+        logger::error("Exception raised by callback, ignoring");
         state->vm()->thread_state()->clear();
         value = cNil;
       }

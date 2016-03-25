@@ -108,7 +108,8 @@ namespace memory {
     void next_process_item();
     void finish(STATE);
 
-    void record(Object* obj, FinalizerFunction func, FinalizeObject::FinalizeKind kind);
+    void record(STATE, Object* obj, FinalizerFunction func,
+        FinalizeObject::FinalizeKind kind);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
     void queue_objects(STATE);

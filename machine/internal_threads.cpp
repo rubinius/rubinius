@@ -8,7 +8,7 @@
 #include "builtin/native_method.hpp"
 
 #include "dtrace/dtrace.h"
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 namespace rubinius {
   using namespace utilities;
@@ -49,7 +49,7 @@ namespace rubinius {
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
-    vm->set_call_frame(0);
+    vm->set_call_frame(NULL);
     vm->become_unmanaged();
 
     vm->set_zombie(state);
@@ -190,7 +190,6 @@ namespace rubinius {
       (*i)->after_fork_exec_child(state);
     }
 
-    state->shared().env()->after_fork_exec_child(state);
     fork_exec_in_progress_ = false;
   }
 
@@ -224,8 +223,6 @@ namespace rubinius {
 
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    state->shared().env()->after_fork_child(state);
-
     for(InternalThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {

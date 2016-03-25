@@ -115,7 +115,7 @@ namespace rubinius {
            ++i)
     {
       if(VM* other_vm = (*i)->as_vm()) {
-        utilities::logger::fatal("thread %d: %s, %s",
+        logger::fatal("thread %d: %s, %s",
             other_vm->thread_id(), other_vm->name().c_str(), phase_name(other_vm));
       }
     }
@@ -125,7 +125,7 @@ namespace rubinius {
 
   void ThreadNexus::detect_lock_deadlock(uint64_t nanoseconds, VM* vm) {
     if(nanoseconds > RBX_MAX_STOP_NANOSECONDS) {
-      utilities::logger::fatal("thread nexus: thread will not yield: %s, %s",
+      logger::fatal("thread nexus: thread will not yield: %s, %s",
           vm->name().c_str(), phase_name(vm));
 
       list_threads();
@@ -136,7 +136,7 @@ namespace rubinius {
 
   void ThreadNexus::detect_halt_deadlock(uint64_t nanoseconds, VM* vm) {
     if(nanoseconds > RBX_MAX_STOP_NANOSECONDS) {
-      utilities::logger::fatal("thread nexus: thread will not yield: %s, %s",
+      logger::fatal("thread nexus: thread will not yield: %s, %s",
           vm->name().c_str(), phase_name(vm));
 
       list_threads();

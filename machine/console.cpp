@@ -20,7 +20,7 @@
 
 #include "util/atomic.hpp"
 #include "util/file.hpp"
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include <fcntl.h>
 #include <sys/file.h>
@@ -154,7 +154,7 @@ namespace rubinius {
         if(thread_exit_) break;
 
         if(status->nil_p()) {
-          utilities::logger::error("%s: console: request: wait for event failed",
+          logger::error("%s: console: request: wait for event failed",
               strerror(errno));
           continue;
         }
@@ -345,14 +345,14 @@ namespace rubinius {
           state->shared().config.system_console_access.value);
 
       if(fd_ < 0) {
-        utilities::logger::error("%s: unable to open Console connection file",
+        logger::error("%s: unable to open Console connection file",
             strerror(errno));
       }
 
       // The umask setting will override our permissions for open().
       if(chmod(console_->console_path().c_str(),
             state->shared().config.system_console_access.value) < 0) {
-        utilities::logger::error("%s: unable to set mode for Console connection file",
+        logger::error("%s: unable to set mode for Console connection file",
             strerror(errno));
       }
 
@@ -389,7 +389,7 @@ namespace rubinius {
         if(thread_exit_) break;
 
         if(status->nil_p()) {
-          utilities::logger::error("%s: console: listener: wait for event failed",
+          logger::error("%s: console: listener: wait for event failed",
               strerror(errno));
           continue;
         }

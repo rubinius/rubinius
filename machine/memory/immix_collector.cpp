@@ -10,7 +10,7 @@
 
 #include "instruments/timing.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -23,7 +23,7 @@ namespace memory {
 
     diagnostics::Diagnostics::log();
 
-    utilities::logger::write("immix: diagnostics: " \
+    logger::write("immix: diagnostics: " \
         "collections: %ld, " \
         "objects: %ld, " \
         "bytes: %ld, " \
