@@ -34,7 +34,11 @@ namespace rubinius {
     loc->flags(state, Fixnum::from(0));
 
     if(call_frame->is_block_p(state)) {
-      loc->name(state, call_frame->top_scope(state)->method()->name());
+      if(VariableScope* vs = try_as<VariableScope>(call_frame->top_scope(state))) {
+        loc->name(state, vs->method()->name());
+      } else {
+        loc->name(state, call_frame->name());
+      }
       loc->set_is_block(state);
     } else {
       loc->name(state, call_frame->name());
@@ -64,12 +68,12 @@ namespace rubinius {
       return Location::create(state, frame, false);
     }
 
-    return nil<Location>();
+    return Location::allocate(state, G(location));
   }
 
   Location* Location::create(STATE, NativeMethodFrame* nmf) {
     NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
-    if(!nm) return 0;
+    if(!nm) return Location::allocate(state, G(location));
 
     Location* loc = state->memory()->new_object<Location>(state, G(location));
     if(Module* mod = try_as<Module>(nmf->get_object(nmf->module()))) {
@@ -105,18 +109,18 @@ namespace rubinius {
         frame = frame->previous)
     {
       if(frame->compiled_code) {
-        if(Location* location = Location::create(state, frame, true)) {
-          if(first) {
-            location->set_ip_on_current(state);
-            first = false;
-          }
-          array->append(state, location);
+        Location* location = Location::create(state, frame, true);
+
+        if(first) {
+          location->set_ip_on_current(state);
+          first = false;
         }
+
+        array->append(state, location);
       } else if(NativeMethodFrame* nmf = frame->native_method_frame()) {
-        if(Location* location = Location::create(state, nmf)) {
-          array->append(state, location);
-        }
+        array->append(state, Location::create(state, nmf));
       }
+
     }
 
     return array;
@@ -144,9 +148,7 @@ namespace rubinius {
       if(frame->compiled_code) {
         array->append(state, Location::create(state, frame));
       } else if(NativeMethodFrame* nmf = frame->native_method_frame()) {
-        if(Location* location = Location::create(state, nmf)) {
-          array->append(state, location);
-        }
+        array->append(state, Location::create(state, nmf));
       }
     }
 
