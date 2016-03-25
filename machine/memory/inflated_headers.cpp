@@ -13,7 +13,7 @@ namespace memory {
 
     diagnostics::Diagnostics::log();
 
-    utilities::logger::write("inflated headers: diagnostics: " \
+    logger::write("inflated headers: diagnostics: " \
         "objects: %ld, bytes: %ld, collections: %ld\n",
         objects_, bytes_, collections_);
   }

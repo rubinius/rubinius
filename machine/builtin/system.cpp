@@ -40,7 +40,7 @@
 
 #include "util/sha1.h"
 #include "util/timing.h"
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include "paths.h"
 
@@ -338,7 +338,7 @@ namespace rubinius {
       {
         const char* dir = str->c_str_null_safe(state);
         if(chdir(dir) < 0) {
-          utilities::logger::error("%s: spawn: failed to change directory: %s",
+          logger::error("%s: spawn: failed to change directory: %s",
               strerror(errno), dir);
         }
       }
@@ -484,12 +484,12 @@ namespace rubinius {
       for(size_t i = 0; i < exe.argc(); i++) {
         command_line << " " << exe.argv()[i];
       }
-      utilities::logger::error("%s: spawn: exec failed: %s",
+      logger::error("%s: spawn: exec failed: %s",
           strerror(errno), command_line.str().c_str());
 
       int error_no = errno;
       if(write(errors[1], &error_no, sizeof(int)) < 0) {
-        utilities::logger::error("%s: spawn: writing error status", strerror(errno));
+        logger::error("%s: spawn: writing error status", strerror(errno));
       }
       close(errors[1]);
 
@@ -500,7 +500,7 @@ namespace rubinius {
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(3);
 
-    utilities::logger::write("spawn: %d: %s, %s, %s:%d",
+    logger::write("spawn: %d: %s, %s, %s:%d",
         pid, exe.command(),
         state->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
@@ -515,7 +515,7 @@ namespace rubinius {
       case EINTR:
         continue;
       default:
-        utilities::logger::error("%s: spawn: reading error status", strerror(errno));
+        logger::error("%s: spawn: reading error status", strerror(errno));
         break;
       }
     }
@@ -598,12 +598,12 @@ namespace rubinius {
       exec_sh_fallback(state, exe.command(), exe.command_size());
 
       /* execvp() returning means it failed. */
-      utilities::logger::error("%s: backtick: exec failed: %s",
+      logger::error("%s: backtick: exec failed: %s",
           strerror(errno), exe.command());
 
       int error_no = errno;
       if(write(errors[1], &error_no, sizeof(int)) < 0) {
-        utilities::logger::error("%s: backtick: writing error status", strerror(errno));
+        logger::error("%s: backtick: writing error status", strerror(errno));
       }
       close(errors[1]);
 
@@ -615,7 +615,7 @@ namespace rubinius {
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
-    utilities::logger::write("backtick: %d: %s, %s, %s:%d",
+    logger::write("backtick: %d: %s, %s, %s:%d",
         pid, exe.command(),
         state->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
@@ -630,7 +630,7 @@ namespace rubinius {
       case EINTR:
         continue;
       default:
-        utilities::logger::error("%s: backtick: reading error status", strerror(errno));
+        logger::error("%s: backtick: reading error status", strerror(errno));
         break;
       }
     }
@@ -688,7 +688,7 @@ namespace rubinius {
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(3);
 
-    utilities::logger::write("exec: %s, %s, %s:%d", exe.command(),
+    logger::write("exec: %s, %s, %s:%d", exe.command(),
         state->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
@@ -843,7 +843,7 @@ namespace rubinius {
     if(pid > 0) {
       CallFrame* call_frame = state->vm()->get_ruby_frame(2);
 
-      utilities::logger::write("fork: child: %d, %s, %s:%d", pid,
+      logger::write("fork: child: %d, %s, %s:%d", pid,
           state->vm()->name().c_str(),
           call_frame->file(state)->cpp_str(state).c_str(),
           call_frame->line(state));

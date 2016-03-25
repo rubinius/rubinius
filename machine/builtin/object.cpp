@@ -29,7 +29,7 @@
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include <sstream>
 
@@ -152,7 +152,7 @@ namespace rubinius {
       } else if(CompactLookupTable* clt = try_as<CompactLookupTable>(other->ivars())) {
         ivars(state, clt->duplicate(state));
       } else {
-        utilities::logger::warn(
+        logger::warn(
           "Object::copy_object: invalid ivars_ reference for %s",
           other->class_object(state)->to_string(state, true).c_str()
         );

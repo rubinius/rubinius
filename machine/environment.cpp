@@ -22,7 +22,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/thread.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -113,6 +113,7 @@ namespace rubinius {
     int stack_address = 0;
     root_vm->set_root_stack(
         reinterpret_cast<uintptr_t>(&stack_address), VM::cStackDepthMax);
+    root_vm->set_current_thread();
 
     state = new State(root_vm);
 
@@ -140,8 +141,8 @@ namespace rubinius {
   }
 
   void cpp_exception_bug() {
-    utilities::logger::fatal("[BUG: Uncaught C++ exception]");
-    utilities::logger::fatal("Please report this with the following backtrace to " \
+    logger::fatal("[BUG: Uncaught C++ exception]");
+    logger::fatal("Please report this with the following backtrace to " \
         "https://github.com/rubinius/rubinius/issues");
 
     rubinius::abort();
@@ -190,7 +191,7 @@ namespace rubinius {
   }
 
   void Environment::stop_logging(STATE) {
-    utilities::logger::close();
+    logger::close();
   }
 
   void Environment::stop_jit(STATE) {
@@ -218,33 +219,33 @@ namespace rubinius {
   }
 
   void Environment::start_logging(STATE) {
-    utilities::logger::logger_level level = utilities::logger::eWarn;
+    logger::logger_level level = logger::eWarn;
 
     if(!config.system_log_level.value.compare("fatal")) {
-      level = utilities::logger::eFatal;
+      level = logger::eFatal;
     } else if(!config.system_log_level.value.compare("error")) {
-      level = utilities::logger::eError;
+      level = logger::eError;
     } else if(!config.system_log_level.value.compare("warn")) {
-      level = utilities::logger::eWarn;
+      level = logger::eWarn;
     } else if(!config.system_log_level.value.compare("info")) {
-      level = utilities::logger::eInfo;
+      level = logger::eInfo;
     } else if(!config.system_log_level.value.compare("debug")) {
-      level = utilities::logger::eDebug;
+      level = logger::eDebug;
     }
 
     if(!config.system_log.value.compare("syslog")) {
-      utilities::logger::open(fork_exec_lock_,
-          utilities::logger::eSyslog, RBX_PROGRAM_NAME, level);
+      logger::open(fork_exec_lock_,
+          logger::eSyslog, RBX_PROGRAM_NAME, level);
     } else if(!config.system_log.value.compare("console")) {
-      utilities::logger::open(fork_exec_lock_,
-          utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
+      logger::open(fork_exec_lock_,
+          logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
       expand_config_value(config.system_log.value, "$TMPDIR", config.system_tmp);
       expand_config_value(config.system_log.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
       expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
 
-      utilities::logger::open(fork_exec_lock_,
-          utilities::logger::eFileLogger,
+      logger::open(fork_exec_lock_,
+          logger::eFileLogger,
           config.system_log.value.c_str(), level,
           config.system_log_limit.value,
           config.system_log_archives.value,
@@ -271,7 +272,7 @@ namespace rubinius {
       args << argv_[i];
     }
 
-    utilities::logger::write("command line: %s", args.str().c_str());
+    logger::write("command line: %s", args.str().c_str());
   }
 
   static void read_config_file(FILE* fp, ConfigParser& config_parser) {
@@ -576,13 +577,13 @@ namespace rubinius {
 
     set_pid();
 
-    utilities::logger::set_label();
+    logger::set_label();
   }
 
   void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-    utilities::logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
+    logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
 
     state->shared().tool_broker()->shutdown(state);
 
@@ -621,12 +622,12 @@ namespace rubinius {
   void Environment::load_core(STATE, std::string root) {
     try {
       if(CodeDB::valid_database_p(state, config.codedb_core_path.value)) {
-        utilities::logger::write("loading CodeDB: %s", config.codedb_core_path.value.c_str());
+        logger::write("loading CodeDB: %s", config.codedb_core_path.value.c_str());
         CodeDB::open(state, config.codedb_core_path.value.c_str());
       } else {
         std::string core = root + "/core";
 
-        utilities::logger::write("loading CodeDB: %s", core.c_str());
+        logger::write("loading CodeDB: %s", core.c_str());
         CodeDB::open(state, core.c_str());
       }
     } catch(RubyException& exc) {
@@ -790,9 +791,6 @@ namespace rubinius {
   void Environment::boot() {
     runtime_path_ = system_prefix() + RBX_RUNTIME_PATH;
     load_platform_conf(runtime_path_);
-
-    // TODO: Fix this to only record main thread.
-    state->vm()->set_current_thread();
 
     shared->om = new Memory(state->vm(), *shared);
 

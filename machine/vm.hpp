@@ -166,6 +166,20 @@ namespace rubinius {
       thread_phase_ = thread_phase;
     }
 
+    void restore_thread_phase(ThreadNexus::Phase thread_phase) {
+      switch(thread_phase) {
+      case ThreadNexus::cManaged:
+        become_managed();
+        break;
+      case ThreadNexus::cBlocking:
+      case ThreadNexus::cUnmanaged:
+      case ThreadNexus::cWaiting:
+      case ThreadNexus::cSleeping:
+      default:
+        thread_phase_ = thread_phase;
+      }
+    }
+
     utilities::thread::SpinLock& interrupt_lock() {
       return interrupt_lock_;
     }

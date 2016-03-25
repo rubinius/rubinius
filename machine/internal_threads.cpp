@@ -8,7 +8,7 @@
 #include "builtin/native_method.hpp"
 
 #include "dtrace/dtrace.h"
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 namespace rubinius {
   using namespace utilities;

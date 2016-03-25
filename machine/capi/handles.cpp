@@ -7,7 +7,7 @@
 #include "capi/capi.hpp"
 #include "capi/handles.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 namespace rubinius {
   namespace capi {
@@ -16,7 +16,7 @@ namespace rubinius {
 
       diagnostics::Diagnostics::log();
 
-      utilities::logger::write("C-API handles: diagnostics: " \
+      logger::write("C-API handles: diagnostics: " \
           "objects: %ld, bytes: %ld, collections: %ld\n",
           objects_, bytes_, collections_);
     }

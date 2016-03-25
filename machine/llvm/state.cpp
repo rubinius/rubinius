@@ -325,7 +325,7 @@ namespace rubinius {
           continue;
         }
       } catch(LLVMState::CompileError& e) {
-        utilities::logger::info("JIT: compile error: %s", e.error());
+        logger::info("JIT: compile error: %s", e.error());
 
         vm()->metrics().jit.methods_failed++;
 

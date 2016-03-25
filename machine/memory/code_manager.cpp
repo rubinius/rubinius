@@ -12,7 +12,7 @@ namespace memory {
 
     diagnostics::Diagnostics::log();
 
-    utilities::logger::write("code manager: diagnostics: " \
+    logger::write("code manager: diagnostics: " \
         "collections: %ld, chunks: %ld, objects: %ld, bytes: %ld",
         collections_, chunks_, objects_, bytes_);
   }

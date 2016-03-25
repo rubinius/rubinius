@@ -21,7 +21,7 @@
 
 #include "memory/object_mark.hpp"
 
-#include "util/logger.hpp"
+#include "logger.hpp"
 
 #include <ostream>
 
@@ -277,7 +277,7 @@ namespace rubinius {
                                        jit::RuntimeDataHolder* rd)
   {
     if(!machine_code_) {
-      utilities::logger::error("specializing with no backend");
+      logger::error("specializing with no backend");
       return;
     }
 
@@ -299,7 +299,7 @@ namespace rubinius {
 
       msg << "Specialization space exceeded for " <<
         machine_code_->name()->cpp_str(state);
-      utilities::logger::warn(msg.str().c_str());
+      logger::warn(msg.str().c_str());
 
       i = 0;
     }

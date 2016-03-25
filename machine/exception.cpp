@@ -117,25 +117,25 @@ namespace rubinius {
   }
 
   void abort() {
-    utilities::logger::fatal("The Rubinius process is aborting");
+    logger::fatal("The Rubinius process is aborting");
     print_backtrace();
     ::abort();
   }
 
   void bug(const char* message) {
-    utilities::logger::fatal("[BUG: %s]", message);
+    logger::fatal("[BUG: %s]", message);
     print_backtrace();
     ::abort();
   }
 
   void bug(const char* message, const char* arg) {
-    utilities::logger::fatal("[BUG: %s: %s]", message, arg);
+    logger::fatal("[BUG: %s: %s]", message, arg);
     print_backtrace();
     ::abort();
   }
 
   void warn(const char* message) {
-    utilities::logger::warn("[WARNING: %s]", message);
+    logger::warn("[WARNING: %s]", message);
     std::cerr << "[WARNING: " << message << "]\n";
   }
 
@@ -144,7 +144,7 @@ namespace rubinius {
     demangle(s);
 
     for(size_t i = 0; i < s.size(); i++) {
-      utilities::logger::warn("%s", s[i].c_str());
+      logger::warn("%s", s[i].c_str());
       std::cout << s[i] << std::endl;
     }
   }
@@ -184,7 +184,7 @@ namespace rubinius {
     if(!backtrace) return;
 
     for(size_t i = 0; i < backtrace->size(); i++) {
-      utilities::logger::warn("%s", backtrace->at(i).c_str());
+      logger::warn("%s", backtrace->at(i).c_str());
       std::cout << backtrace->at(i) << std::endl;
     }
   }
