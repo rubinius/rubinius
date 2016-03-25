@@ -127,6 +127,8 @@ namespace rubinius {
   }
 
   Array* Location::from_call_stack(STATE, ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;
     size_t count = 0;
@@ -156,6 +158,8 @@ namespace rubinius {
   }
 
   Array* Location::mri_backtrace(STATE, ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;
     size_t count = 0;

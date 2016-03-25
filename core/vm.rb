@@ -9,7 +9,7 @@ class Rubinius::VM
     Rubinius.primitive :vm_backtrace
 
     # Add the + 1 to skip this frame
-    backtrace(Integer(frames_to_skip) + 1, include_vars)
+    backtrace Integer(frames_to_skip) + 1
   end
 
   def self.stats

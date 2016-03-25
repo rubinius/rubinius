@@ -123,6 +123,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_call_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
@@ -133,6 +135,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_ruby_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
@@ -148,6 +152,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_variables_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
@@ -169,6 +175,8 @@ namespace rubinius {
   }
 
   CallFrame* VM::get_scope_frame(ssize_t up) {
+    if(up < 0) rubinius::bug("negative skip frame value provided");
+
     CallFrame* frame = call_frame_;
 
     while(frame && up-- > 0) {
