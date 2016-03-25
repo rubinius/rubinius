@@ -353,6 +353,10 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "machine.inline_cache.resets", metrics_data_.machine.inline_cache_resets));
       metrics_map_.push_back(new MetricsItem(
+            "machine.backtraces", metrics_data_.machine.backtraces));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.backtrace.us", metrics_data_.machine.backtrace_us));
+      metrics_map_.push_back(new MetricsItem(
             "machine.methods.invoked", metrics_data_.machine.methods_invoked));
       metrics_map_.push_back(new MetricsItem(
             "machine.blocks.invoked", metrics_data_.machine.blocks_invoked));
