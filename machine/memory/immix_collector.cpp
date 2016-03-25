@@ -117,11 +117,6 @@ namespace memory {
     if(obj->marked_p(memory_->mark())) return false;
     obj->mark(memory_, memory_->mark());
 
-    if(!memory_->valid_object_p(obj)) {
-      std::cerr << "mark_address: pid: " << getpid() << ", invalid object pushed on mark stack: " << obj << std::endl;
-      sleep(3600);
-    }
-
     if(push) ms.push_back(addr);
     // If this is a young object, let the GC know not to try and mark
     // the block it's in.
