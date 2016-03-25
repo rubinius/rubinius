@@ -839,11 +839,11 @@ step1:
     }
   }
 
-  void Memory::needs_finalization(Object* obj, memory::FinalizerFunction func,
+  void Memory::needs_finalization(STATE, Object* obj, memory::FinalizerFunction func,
       memory::FinalizeObject::FinalizeKind kind)
   {
     if(memory::FinalizerThread* finalizer = shared_.finalizer_handler()) {
-      finalizer->record(obj, func, kind);
+      finalizer->record(state, obj, func, kind);
     }
   }
 

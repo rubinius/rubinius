@@ -313,10 +313,14 @@ namespace memory {
     VM::discard(state, vm());
   }
 
-  void FinalizerThread::record(Object* obj, FinalizerFunction func,
+  void FinalizerThread::record(STATE, Object* obj, FinalizerFunction func,
       FinalizeObject::FinalizeKind kind)
   {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
+
+    if(!obj) {
+      Exception::raise_runtime_error(state, "NULL object added to finalization list");
+    }
 
     if(finishing_) return;
 

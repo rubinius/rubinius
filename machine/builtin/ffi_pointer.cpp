@@ -115,7 +115,7 @@ namespace rubinius {
 
     if(autorelease) {
       if(!set_finalizer) {
-        state->memory()->needs_finalization(this,
+        state->memory()->needs_finalization(state, this,
             (memory::FinalizerFunction)&Pointer::finalize,
             memory::FinalizeObject::eUnmanaged);
         set_finalizer = true;

@@ -91,7 +91,7 @@ namespace rubinius {
 
     thr->function_ = function;
 
-    state->memory()->needs_finalization(thr,
+    state->memory()->needs_finalization(state, thr,
         (memory::FinalizerFunction)&Thread::finalize,
         memory::FinalizeObject::eUnmanaged);
 

@@ -543,7 +543,7 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
-    void needs_finalization(Object* obj, memory::FinalizerFunction func,
+    void needs_finalization(STATE, Object* obj, memory::FinalizerFunction func,
         memory::FinalizeObject::FinalizeKind kind = memory::FinalizeObject::eManaged);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
