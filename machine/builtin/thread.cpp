@@ -112,7 +112,9 @@ namespace rubinius {
   }
 
   Object* run_instance(STATE) {
-    // These are all referenced, so OnStack is not necessary.
+    /* These are all referenced, so OnStack is not necessary. Additionally,
+     * thread is pinned, so we do not need to worry about it moving.
+     */
     Thread* thread = state->vm()->thread.get();
     Array* args = thread->args();
     Object* block = thread->block();
@@ -122,6 +124,11 @@ namespace rubinius {
     }
 
     Object* value = block->send(state, G(sym_call), args, block);
+
+    /* We explicitly set the current CallFrame reference to NULL because we
+     * are at the top of the stack in terms of managed code.
+     */
+    state->vm()->set_call_frame(NULL);
 
     thread->exception(state, state->vm()->thread_state()->current_exception());
 
@@ -367,6 +374,7 @@ namespace rubinius {
 
     vm->shared.tool_broker()->thread_start(state);
     Object* value = vm->thread->function_(state);
+    vm->set_call_frame(NULL);
     vm->shared.tool_broker()->thread_stop(state);
 
     vm->thread->join_lock_.lock();
@@ -388,7 +396,6 @@ namespace rubinius {
 
     logger::write("exit thread: %s", vm->name().c_str());
 
-    vm->set_call_frame(0);
     vm->become_unmanaged();
 
     if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {

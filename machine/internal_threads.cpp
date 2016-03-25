@@ -49,7 +49,7 @@ namespace rubinius {
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
-    vm->set_call_frame(0);
+    vm->set_call_frame(NULL);
     vm->become_unmanaged();
 
     vm->set_zombie(state);
