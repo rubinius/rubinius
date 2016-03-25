@@ -25,7 +25,7 @@
 #include "logger.hpp"
 
 #ifdef ENABLE_LLVM
-#include "llvm/state.hpp"
+#include "jit/llvm/state.hpp"
 #if RBX_LLVM_API_VER == 208
 #include <llvm/System/Threading.h>
 #elif RBX_LLVM_API_VER == 209

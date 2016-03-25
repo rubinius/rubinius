@@ -64,9 +64,9 @@
 #endif
 
 #ifdef ENABLE_LLVM
-#include "llvm/state.hpp"
-#include "llvm/jit_context.hpp"
-#include "llvm/jit_compiler.hpp"
+#include "jit/llvm/state.hpp"
+#include "jit/llvm/context.hpp"
+#include "jit/llvm/compiler.hpp"
 #endif
 
 #include "missing/setproctitle.h"

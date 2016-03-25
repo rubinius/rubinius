@@ -12,7 +12,7 @@
 #include <ostream>
 
 #ifdef ENABLE_LLVM
-#include "llvm/jit_runtime.hpp"
+#include "jit/llvm/runtime.hpp"
 #endif
 
 namespace rubinius {
