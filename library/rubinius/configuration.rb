@@ -145,7 +145,7 @@ Rubinius::ConfigurationVariables.define do |c|
       "Lock around using CAPI methods"
   end
 
-  c.vm_variable "int", false,
+  c.vm_variable "int", true,
     :as => "jit_disabled",
     :description => "Force the JIT to never turn on"
 

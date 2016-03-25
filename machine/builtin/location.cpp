@@ -9,6 +9,8 @@
 #include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
 
+#include "instruments/timing.hpp"
+
 namespace rubinius {
   void Location::bootstrap(STATE) {
     GO(location).set(state->memory()->new_class<Class, Location>(
@@ -129,6 +131,10 @@ namespace rubinius {
   Array* Location::from_call_stack(STATE, ssize_t up) {
     if(up < 0) rubinius::bug("negative skip frame value provided");
 
+    timer::StopWatch<timer::microseconds> timer(
+        state->vm()->metrics().machine.backtrace_us);
+    state->vm()->metrics().machine.backtraces++;
+
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;
     size_t count = 0;
@@ -159,6 +165,10 @@ namespace rubinius {
 
   Array* Location::mri_backtrace(STATE, ssize_t up) {
     if(up < 0) rubinius::bug("negative skip frame value provided");
+
+    timer::StopWatch<timer::microseconds> timer(
+        state->vm()->metrics().machine.backtrace_us);
+    state->vm()->metrics().machine.backtraces++;
 
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;

@@ -160,6 +160,8 @@ namespace rubinius {
       metric checkpoints;
       metric stops;
       metric inline_cache_resets;
+      metric backtraces;
+      metric backtrace_us;
       metric methods_invoked;
       metric blocks_invoked;
 
@@ -167,6 +169,8 @@ namespace rubinius {
         checkpoints = 0;
         stops = 0;
         inline_cache_resets = 0;
+        backtraces = 0;
+        backtrace_us = 0;
         methods_invoked = 0;
         blocks_invoked = 0;
       }
@@ -175,6 +179,8 @@ namespace rubinius {
         checkpoints += data.checkpoints;
         stops += data.stops;
         inline_cache_resets += data.inline_cache_resets;
+        backtraces += data.backtraces;
+        backtrace_us += data.backtrace_us;
         methods_invoked += data.methods_invoked;
         blocks_invoked += data.blocks_invoked;
       }
