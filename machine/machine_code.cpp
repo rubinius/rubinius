@@ -36,9 +36,7 @@
 #include <malloc.h>
 #endif
 
-#ifdef ENABLE_LLVM
 #include "jit/llvm/state.hpp"
-#endif
 
 /*
  * An internalization of a CompiledCode which holds the instructions for the
@@ -765,7 +763,6 @@ namespace rubinius {
 
       state->vm()->push_call_frame(call_frame, previous_frame);
 
-#ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
       // for this method.
       if(mcode->call_count >= 0) {
@@ -777,7 +774,6 @@ namespace rubinius {
           mcode->call_count++;
         }
       }
-#endif
 
       Object* value = 0;
 
@@ -873,7 +869,6 @@ namespace rubinius {
                             jit::RuntimeDataHolder* rd,
                             bool disable)
   {
-#ifdef ENABLE_LLVM
     G(jit)->start_method_update(state);
 
     bool still_others = false;
@@ -926,7 +921,6 @@ namespace rubinius {
     }
 
     G(jit)->end_method_update(state);
-#endif
   }
 
   /*

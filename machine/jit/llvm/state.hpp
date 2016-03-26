@@ -6,35 +6,17 @@
 
 #include "config.h"
 
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/Module.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
-#else
-#include <llvm/Module.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/Function.h>
-#include <llvm/Instructions.h>
-#endif
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/IRBuilder.h>
-#elif RBX_LLVM_API_VER >= 302
-#include <llvm/IRBuilder.h>
-#else
-#include <llvm/Support/IRBuilder.h>
-#endif
-#include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/CodeGen/MachineCodeInfo.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Pass.h>
-#include <llvm/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/LLVMContext.h>
-#else
-#include <llvm/LLVMContext.h>
-#endif
 #include <llvm/ExecutionEngine/JITEventListener.h>
 
 #include "jit/llvm/local_info.hpp"

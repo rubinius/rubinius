@@ -9,15 +9,11 @@
 #include <llvm/MC/MCAsmInfo.h>
 #include <llvm/MC/MCDisassembler.h>
 #include <llvm/Support/MemoryObject.h>
-#if RBX_LLVM_API_VER >= 305
 #include <llvm/MC/MCContext.h>
-#endif
 
 namespace rubinius {
 
   class JITMemoryObject: public llvm::MemoryObject {
-    using llvm::MemoryObject::readBytes;
-
     public:
 
       JITMemoryObject(const uint8_t* buffer, uint64_t size)
@@ -45,6 +41,13 @@ namespace rubinius {
         return 0;
       }
 
+      // TODO: LLVM-3.6
+      uint64_t readBytes(uint8_t *buffer, uint64_t size, uint64_t offset) const {
+        return 0;
+      }
+
+      /*
+      TODO: LLVM-3.6
       int readBytes(uint64_t offset, uint64_t size, uint8_t* buffer, uint64_t* copied) const {
         // Cannot read passed the maximum buffer size
         if(offset >= size_) {
@@ -60,6 +63,17 @@ namespace rubinius {
           *copied = size;
         }
         return 0;
+      }
+      */
+
+      // TODO: LLVM-3.6
+      const uint8_t* getPointer(uint64_t address, uint64_t size) const {
+        return NULL;
+      }
+
+      // TODO: LLVM-3.6
+      bool isValidAddress (uint64_t address) const {
+        return false;
       }
 
     private:
@@ -79,13 +93,9 @@ namespace rubinius {
       const llvm::TargetMachine* target_machine;
       const llvm::MCSubtargetInfo* sub_target;
       const llvm::MCAsmInfo* asm_info;
-#if RBX_LLVM_API_VER > 300
       const llvm::MCInstrInfo* instr_info;
       const llvm::MCRegisterInfo* reg_info;
-#endif
-#if RBX_LLVM_API_VER > 304
       llvm::MCContext* context;
-#endif
 
       llvm::MCDisassembler* disassembler;
       const JITMemoryObject* memory_object;

@@ -24,15 +24,8 @@
 
 #include "logger.hpp"
 
-#ifdef ENABLE_LLVM
 #include "jit/llvm/state.hpp"
-#if RBX_LLVM_API_VER == 208
-#include <llvm/System/Threading.h>
-#elif RBX_LLVM_API_VER == 209
-#include <llvm/Support/Threading.h>
-#endif
 #include <llvm/Support/ManagedStatic.h>
-#endif
 
 #include "memory/immix_marker.hpp"
 #include "memory/finalizer.hpp"
@@ -85,14 +78,6 @@ namespace rubinius {
     , finalizer_thread_(NULL)
     , loader_(NULL)
   {
-#ifdef ENABLE_LLVM
-#if RBX_LLVM_API_VER < 305
-    if(!llvm::llvm_start_multithreaded()) {
-      assert(0 && "llvm doesn't support threading!");
-    }
-#endif
-#endif
-
     String::init_hash();
 
     VM::init_stack_size();
@@ -183,11 +168,9 @@ namespace rubinius {
 
     if(state->shared().config.jit_disabled) return;
 
-#ifdef ENABLE_LLVM
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
-#endif
   }
 
   void Environment::stop_logging(STATE) {
@@ -199,13 +182,11 @@ namespace rubinius {
 
     if(state->shared().config.jit_disabled) return;
 
-#ifdef ENABLE_LLVM
     if(state->shared().llvm_state) {
       state->shared().llvm_state->stop(state);
     }
 
     llvm::llvm_shutdown();
-#endif
   }
 
   void Environment::start_finalizer(STATE) {

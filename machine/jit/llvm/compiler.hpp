@@ -1,7 +1,8 @@
 #ifndef RBX_LLVM_JIT_COMPILER_HPP
 #define RBX_LLVM_JIT_COMPILER_HPP
 
-#include <llvm/CodeGen/MachineCodeInfo.h>
+// TODO: LLVM-3.6
+// #include <llvm/CodeGen/MachineCodeInfo.h>
 
 #include "jit/llvm/context.hpp"
 
@@ -24,22 +25,21 @@ namespace jit {
   class Compiler {
     Context* ctx_;
     llvm::Function* function_;
-    llvm::MachineCodeInfo* mci_;
 
   public:
     Compiler(Context* ctx)
       : ctx_(ctx)
       , function_(0)
-      , mci_(0)
     {}
 
     ~Compiler() {
       if(function_) delete function_;
-      delete mci_;
     }
 
     int code_bytes() {
-      return mci_->size();
+      return 0;
+      // TODO: LLVM-3.6
+      // return mci_->size();
     }
 
     llvm::Function* llvm_function() {

@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 /*
 
 The code for this memory manager is based of the default jit memory manager
@@ -53,15 +51,12 @@ SOFTWARE.
 
 #include "config.h"
 
-#include <llvm/ExecutionEngine/JITMemoryManager.h>
+// TODO: LLVM-3.6
+// #include <llvm/ExecutionEngine/JITMemoryManager.h>
 #include <llvm/ADT/SmallPtrSet.h>
 #include <llvm/ADT/Statistic.h>
 #include <llvm/ADT/Twine.h>
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/GlobalValue.h>
-#else
-#include <llvm/GlobalValue.h>
-#endif
 #include <llvm/Support/Allocator.h>
 #include <llvm/Support/Compiler.h>
 #include <llvm/Support/Debug.h>
@@ -70,7 +65,8 @@ SOFTWARE.
 #include <llvm/Support/Memory.h>
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/DynamicLibrary.h>
-#include <llvm/Config/config.h>
+// TODO: LLVM-3.6
+// #include <llvm/Config/config.h>
 #include <vector>
 #include <cassert>
 #include <climits>
@@ -216,7 +212,6 @@ TrimAllocationToSize(FreeRangeHeader *FreeList, uint64_t NewSize) {
 // Memory Block Implementation.
 //===----------------------------------------------------------------------===//
 
-#if RBX_LLVM_API_VER >= 305
 void *JITSlabAllocator::Allocate(size_t Size, size_t /*Alignment*/) {
   sys::MemoryBlock B = JMM.allocateNewSlab(Size);
   return (void*)B.base();
@@ -226,33 +221,12 @@ void JITSlabAllocator::Deallocate(void *Slab, size_t Size) {
   sys::MemoryBlock B(Slab, Size);
   sys::Memory::ReleaseRWX(B);
 }
-#else
-MemSlab *JITSlabAllocator::Allocate(size_t Size) {
-  sys::MemoryBlock B = JMM.allocateNewSlab(Size);
-  MemSlab *Slab = (MemSlab*)B.base();
-  Slab->Size = B.size();
-  Slab->NextPtr = 0;
-  return Slab;
-}
-
-void JITSlabAllocator::Deallocate(MemSlab *Slab) {
-  sys::MemoryBlock B(Slab, Slab->Size);
-  sys::Memory::ReleaseRWX(B);
-}
-#endif
 
 RubiniusJITMemoryManager::RubiniusJITMemoryManager()
   :
-#if RBX_LLVM_API_VER >= 305
     LastSlab(nullptr, 0),
     StubAllocator(*this),
     DataAllocator(*this),
-#else
-    LastSlab(0, 0),
-    BumpSlabAllocator(*this),
-    StubAllocator(DefaultSlabSize, DefaultSizeThreshold, BumpSlabAllocator),
-    DataAllocator(DefaultSlabSize, DefaultSizeThreshold, BumpSlabAllocator),
-#endif
 #ifdef NDEBUG
     PoisonMemory(false) {
 #else
@@ -550,21 +524,8 @@ void *RubiniusJITMemoryManager::getPointerToNamedFunction(const std::string &Nam
   return 0;
 }
 
-#if RBX_LLVM_API_VER < 305
-// Allocate memory for code in 512K slabs.
-const size_t RubiniusJITMemoryManager::DefaultCodeSlabSize = 512 * 1024;
-
-// Allocate globals and stubs in slabs of 64K.  (probably 16 pages)
-const size_t RubiniusJITMemoryManager::DefaultSlabSize = 64 * 1024;
-
-const size_t RubiniusJITMemoryManager::DefaultSizeThreshold = 16 * 1024;
-#else
 const size_t RubiniusJITMemoryManager::DefaultCodeSlabSize;
 const size_t RubiniusJITMemoryManager::DefaultSlabSize;
 const size_t RubiniusJITMemoryManager::DefaultSizeThreshold;
-#endif
-
 }
 }
-
-#endif

@@ -1,13 +1,9 @@
-#ifdef ENABLE_LLVM
-
 #include "config.h"
+
 #include "jit/llvm/disassembler.hpp"
+
 #include <llvm/Support/Host.h>
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/Instructions.h>
-#else
-#include <llvm/Instructions.h>
-#endif
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
@@ -30,50 +26,24 @@ namespace rubinius {
   , disassembler(0)
   , memory_object(0)
   {
-#if RBX_LLVM_API_VER > 300
     std::string host = llvm::sys::getDefaultTargetTriple();
-#else
-    std::string host = llvm::sys::getHostTriple();
-#endif
     std::string error;
-#if RBX_LLVM_API_VER > 300
     llvm::InitializeNativeTargetDisassembler();
-#else
-    llvm::InitializeAllDisassemblers();
-#endif
     target = llvm::TargetRegistry::lookupTarget(host, error);
 
-#if RBX_LLVM_API_VER > 300
     llvm::TargetOptions options;
     options.NoFramePointerElim = true;
-#if RBX_LLVM_API_VER < 304
-    options.NoFramePointerElimNonLeaf = true;
-#endif
     target_machine = target->createTargetMachine(host, llvm::sys::getHostCPUName(), "", options);
-#else
-    target_machine = target->createTargetMachine(host, llvm::sys::getHostCPUName(), "");
-#endif
 
     sub_target = target->createMCSubtargetInfo(host, llvm::sys::getHostCPUName(), "");
 
-#if RBX_LLVM_API_VER > 300
     instr_info = target->createMCInstrInfo();
     reg_info = target->createMCRegInfo(host);
-#endif
-
-#if RBX_LLVM_API_VER > 303
     asm_info = target->createMCAsmInfo(*reg_info, host);
-#else
-    asm_info = target->createMCAsmInfo(host);
-#endif
 
     if(asm_info) {
-#if RBX_LLVM_API_VER > 304
       context = new llvm::MCContext(asm_info, reg_info, 0);
       disassembler = target->createMCDisassembler(*sub_target, *context);
-#else
-      disassembler = target->createMCDisassembler(*sub_target);
-#endif
       memory_object = new JITMemoryObject((const uint8_t*)buffer, (uint64_t) size);
     }
   }
@@ -81,9 +51,7 @@ namespace rubinius {
   JITDisassembler::~JITDisassembler() {
     if(memory_object) delete memory_object;
     if(disassembler) delete disassembler;
-#if RBX_LLVM_API_VER > 304
     if(context) delete context;
-#endif
     if(sub_target) delete sub_target;
     if(target_machine) delete target_machine;
   }
@@ -99,25 +67,27 @@ namespace rubinius {
 
     llvm::MCInstPrinter* printer = target->createMCInstPrinter(
                                    asm_info->getAssemblerDialect(), *asm_info,
-#if RBX_LLVM_API_VER > 300
                                    *instr_info,
                                    *reg_info,
-#endif
                                    *sub_target);
     if(!printer) {
       return std::string("No instruction printer for target");
     }
 
     uint64_t instruction_pointer = 0;
-    uint64_t instruction_offset = memory_object->getOffset();
+    // TODO: LLVM-3.6
+    // uint64_t instruction_offset = memory_object->getOffset();
     uint64_t instruction_count = memory_object->getExtent();
 
-    const llvm::TargetInstrInfo* inst_info = target_machine->getInstrInfo();
+    // TODO: LLVM-3.6
+    // const llvm::TargetInstrInfo* inst_info = target_machine->getInstrInfo();
 
     while(instruction_pointer < instruction_count) {
       std::string tmp;
       llvm::raw_string_ostream out(tmp);
       llvm::MCInst instruction;
+      // TODO: LLVM-3.6
+      /*
       uint64_t instruction_size;
       uint64_t instruction_position = instruction_offset + instruction_pointer;
       if(disassembler->getInstruction(instruction, instruction_size,
@@ -128,7 +98,8 @@ namespace rubinius {
         output << "0x" << instruction_position << "  ";
         output << std::setw(30) << std::left << out.str();
 
-        const llvm::MCInstrDesc &inst_descr = inst_info->get(instruction.getOpcode());
+        // TODO: LLVM-3.6
+        // const llvm::MCInstrDesc &inst_descr = inst_info->get(instruction.getOpcode());
 
         for(uint8_t i = 0; i < instruction.getNumOperands(); ++i) {
           llvm::MCOperand& op = instruction.getOperand(i);
@@ -136,9 +107,10 @@ namespace rubinius {
             uint64_t val = op.getImm();
             // If it's a branch we want to add the complete location
             // as an easier way to see where we are jumping to.
-            if(inst_descr.isBranch()) {
-              output << "; 0x" << instruction_position + instruction_size + val;
-            }
+            // TODO: LLVM-3.6
+            // if(inst_descr.isBranch()) {
+            //   output << "; 0x" << instruction_position + instruction_size + val;
+            // }
             // Check whether it might be a immediate that references
             // a specific method for a jump later or in this call instruction.
             Dl_info info;
@@ -152,11 +124,9 @@ namespace rubinius {
       } else {
         break;
       }
+      */
     }
 
     return output.str();
   }
-
 }
-
-#endif

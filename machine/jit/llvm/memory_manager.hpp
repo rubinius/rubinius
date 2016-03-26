@@ -55,7 +55,7 @@ SOFTWARE.
 
 #include <llvm/Support/Memory.h>
 #include <llvm/Support/Allocator.h>
-#include <llvm/ExecutionEngine/JITMemoryManager.h>
+#include <llvm/ExecutionEngine/SectionMemoryManager.h>
 
 #include "util/thread.hpp"
 
@@ -67,7 +67,6 @@ namespace jit {
   class RubiniusJITMemoryManager;
   class RubiniusRequestJITMemoryManager;
 
-#if RBX_LLVM_API_VER > 304
   class JITSlabAllocator {
     RubiniusJITMemoryManager &JMM;
   public:
@@ -75,16 +74,6 @@ namespace jit {
     void *Allocate(size_t Size, size_t /*Alignment*/);
     void Deallocate(void *Slab, size_t Size);
   };
-#else
-  class JITSlabAllocator : public SlabAllocator {
-    RubiniusJITMemoryManager &JMM;
-  public:
-    JITSlabAllocator(RubiniusJITMemoryManager &jmm) : JMM(jmm) { }
-    virtual ~JITSlabAllocator() { }
-    virtual MemSlab *Allocate(size_t Size);
-    virtual void Deallocate(MemSlab *Slab);
-  };
-#endif
 
   /// MemoryRangeHeader - For a range of memory, this is the header that we put
   /// on the block of memory.  It is carefully crafted to be one word of memory.
@@ -185,7 +174,6 @@ namespace jit {
 
     friend class RubiniusRequestJITMemoryManager;
 
-#if RBX_LLVM_API_VER > 304
   public:
     /// DefaultCodeSlabSize - When we have to go map more memory, we allocate at
     /// least this much unless more is requested. Currently, in 512k slabs.
@@ -201,7 +189,6 @@ namespace jit {
     static const size_t DefaultSizeThreshold = 16 * 1024;
 
   private:
-#endif
 
     /// LastSlab - This points to the last slab allocated and is used as the
     /// NearBlock parameter to AllocateRWX so that we can attempt to lay out all
@@ -213,14 +200,8 @@ namespace jit {
     // Memory slabs allocated by the JIT.  We refer to them as slabs so we don't
     // confuse them with the blocks of memory described above.
     std::vector<sys::MemoryBlock> CodeSlabs;
-#if RBX_LLVM_API_VER > 304
     BumpPtrAllocatorImpl<JITSlabAllocator, DefaultSlabSize, DefaultSizeThreshold> StubAllocator;
     BumpPtrAllocatorImpl<JITSlabAllocator, DefaultSlabSize, DefaultSizeThreshold> DataAllocator;
-#else
-    JITSlabAllocator BumpSlabAllocator;
-    BumpPtrAllocator StubAllocator;
-    BumpPtrAllocator DataAllocator;
-#endif
 
     // Circular list of free blocks.
     FreeRangeHeader *FreeMemoryList;
@@ -240,20 +221,6 @@ namespace jit {
     /// allocateNewSlab - Allocates a new MemoryBlock and remembers it as the
     /// last slab it allocated, so that subsequent allocations follow it.
     sys::MemoryBlock allocateNewSlab(size_t size);
-
-#if RBX_LLVM_API_VER < 305
-    /// DefaultCodeSlabSize - When we have to go map more memory, we allocate at
-    /// least this much unless more is requested.
-    static const size_t DefaultCodeSlabSize;
-
-    /// DefaultSlabSize - Allocate data into slabs of this size unless we get
-    /// an allocation above SizeThreshold.
-    static const size_t DefaultSlabSize;
-
-    /// DefaultSizeThreshold - For any allocation larger than this threshold, we
-    /// should allocate a separate slab.
-    static const size_t DefaultSizeThreshold;
-#endif
 
     /// getPointerToNamedFunction - This method returns the address of the
     /// specified function by using the dlsym function call.
@@ -391,13 +358,8 @@ namespace jit {
     }
 
     /// allocateCodeSection - Allocate memory for a code section.
-#if RBX_LLVM_API_VER > 303
     virtual uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID, StringRef SectionName) {
-#else
-    uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
-                                 unsigned SectionID) {
-#endif
       utilities::thread::SpinLock::LockGuard guard(lock_);
       // Grow the required block size to account for the block header
       Size += sizeof(*CurBlock);
@@ -438,26 +400,12 @@ namespace jit {
 
     /// allocateDataSection - Allocate memory for a data section.
     /// TODO: currently IsReadOnly is ignored.
-#if RBX_LLVM_API_VER >= 304
     virtual uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID, StringRef SectionName,
                                  bool IsReadOnly) {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
     }
-#elif RBX_LLVM_API_VER >= 303
-    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
-                                 unsigned SectionID, bool IsReadOnly) {
-      utilities::thread::SpinLock::LockGuard guard(lock_);
-      return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
-    }
-#else
-    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
-                                 unsigned SectionID) {
-      utilities::thread::SpinLock::LockGuard guard(lock_);
-      return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
-    }
-#endif
 
     /// startExceptionTable - Use startFunctionBody to allocate memory for the
     /// function's exception table.
@@ -536,23 +484,27 @@ namespace jit {
   /// RubiniusRequestJITMemoryManager - Wrapper for memory manager
   /// for a single request. This is needed because LLVM cleans this object
   /// up when the engine associated is also removed.
-  class RubiniusRequestJITMemoryManager : public JITMemoryManager {
+    // TODO: LLVM-3.6
+  class RubiniusRequestJITMemoryManager { // : public JITMemoryManager {
 
     friend class RubiniusJITMemoryManager;
 
     RubiniusJITMemoryManager* mgr_;
     void* GeneratedFunction;
-    uint8_t *GOTBase;     // Target Specific reserved memory
+    // TODO: LLVM-3.6
+    // uint8_t *GOTBase;     // Target Specific reserved memory
 
   public:
     RubiniusRequestJITMemoryManager(RubiniusJITMemoryManager* mgr)
       : mgr_(mgr)
       , GeneratedFunction(NULL)
-      , GOTBase(NULL)
+      // TODO: LLVM-3.6
+      // , GOTBase(NULL)
     {}
 
     virtual ~RubiniusRequestJITMemoryManager() {
-      if(GOTBase) delete[] GOTBase;
+      // TODO: LLVM-3.6
+      // if(GOTBase) delete[] GOTBase;
     }
 
     void *getPointerToNamedFunction(const std::string &Name,
@@ -560,49 +512,28 @@ namespace jit {
       return mgr_->getPointerToNamedFunction(Name, AbortOnFailure);
     }
 
-#if RBX_LLVM_API_VER >= 304
     virtual uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID, StringRef SectionName) {
       return mgr_->allocateCodeSection(Size, Alignment, SectionID,
                                        SectionName);
     }
-#else
-    uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
-                                 unsigned SectionID) {
-      return mgr_->allocateCodeSection(Size, Alignment, SectionID);
-    }
-#endif
 
     /// allocateDataSection - Allocate memory for a data section.
-#if RBX_LLVM_API_VER >= 304
     virtual uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID, StringRef SectionName,
                                  bool IsReadOnly) {
       return mgr_->allocateDataSection(Size, Alignment, SectionID,
                                        SectionName, IsReadOnly);
     }
-#elif RBX_LLVM_API_VER >= 303
-    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
-                                 unsigned SectionID, bool IsReadOnly) {
-      return mgr_->allocateDataSection(Size, Alignment, SectionID,
-                                       IsReadOnly);
-    }
-#else
-    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
-                                 unsigned SectionID) {
-      return mgr_->allocateDataSection(Size, Alignment, SectionID);
-    }
-#endif
 
-#if RBX_LLVM_API_VER >= 303
     virtual bool applyPermissions(std::string* ErrMsg = 0) {
       return false;
     };
-#endif
 
     void AllocateGOT() {
-      GOTBase = new uint8_t[sizeof(void*) * 8192];
-      HasGOT = true;
+      // TODO: LLVM-3.6
+      // GOTBase = new uint8_t[sizeof(void*) * 8192];
+      // HasGOT = true;
     }
 
     bool CheckInvariants(std::string &ErrorStr) { return mgr_->CheckInvariants(ErrorStr); }
@@ -647,7 +578,9 @@ namespace jit {
     }
 
     uint8_t *getGOTBase() const {
-      return GOTBase;
+      // TODO: LLVM-3.6
+      // return GOTBase;
+      return NULL;
     }
 
     void deallocateFunctionBody(void *Body) {
@@ -673,16 +606,11 @@ namespace jit {
       GeneratedFunction = NULL;
     }
 
-#if RBX_LLVM_API_VER > 303
     virtual bool finalizeMemory(std::string* ErrMsg = 0) {
       return false;
     }
-#endif
   };
-
-
 }
 }
 
 #endif
-

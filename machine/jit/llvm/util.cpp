@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 #include "jit/llvm/state.hpp"
 #include "jit/llvm/method_info.hpp"
 
@@ -1590,5 +1588,3 @@ extern "C" {
     return Location::of_closest_ruby_method(state);
   }
 }
-
-#endif

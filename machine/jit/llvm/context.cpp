@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 #include "jit/llvm/state.hpp"
 #include "jit/llvm/context.hpp"
 #include "jit/llvm/runtime.hpp"
@@ -9,13 +7,7 @@
 
 #include "machine_code.hpp"
 
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/DataLayout.h>
-#elif RBX_LLVM_API_VER >= 302
-#include <llvm/DataLayout.h>
-#else
-#include <llvm/Target/TargetData.h>
-#endif
 #include <llvm/Transforms/Scalar.h>
 
 using namespace llvm;
@@ -72,7 +64,27 @@ namespace rubinius {
 
     autogen_types::makeLLVMModuleContents(module_);
 
-    llvm::EngineBuilder factory(module_);
+    // TODO: LLVM-3.6
+    memory_ = NULL; // new jit::RubiniusRequestJITMemoryManager(ls->memory());
+
+    llvm::TargetOptions opts;
+    opts.NoFramePointerElim = true;
+    opts.JITEmitDebugInfo = true;
+
+    std::string error;
+
+    engine_ = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module_))
+                  .setErrorStr(&error)
+                  .setMCJITMemoryManager(NULL)
+                  .setTargetOptions(opts)
+                  .setMCPU(ls_->cpu())
+                  .create();
+
+    engine_->DisableLazyCompilation(true);
+
+    // TODO: LLVM-3.6
+    /*
+    llvm::EngineBuilder factory(std::unique_ptr<Module>module_);
     std::string error;
 
     factory.setAllocateGVsWithCode(false);
@@ -81,20 +93,15 @@ namespace rubinius {
     factory.setEngineKind(EngineKind::JIT);
     factory.setErrorStr(&error);
 
-#if RBX_LLVM_API_VER > 300
     llvm::TargetOptions opts;
     opts.NoFramePointerElim = true;
-#if RBX_LLVM_API_VER < 304
-    opts.NoFramePointerElimNonLeaf = true;
-#endif
     opts.JITEmitDebugInfo = true;
 
     factory.setTargetOptions(opts);
-#endif
-
     factory.setMCPU(ls_->cpu());
 
     engine_ = factory.create();
+    */
     if(!engine_) {
       std::cerr << "Error setting up LLVM Execution Engine: "<< error << std::endl;
       rubinius::bug("error configuring LLVM");
@@ -107,16 +114,9 @@ namespace rubinius {
     builder_->OptLevel = 2;
     passes_ = new llvm::FunctionPassManager(module_);
 
-#if RBX_LLVM_API_VER >= 305
     module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
-    passes_->add(new llvm::DataLayoutPass(module_));
-#elif RBX_LLVM_API_VER >= 302
-    module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
-    passes_->add(new llvm::DataLayout(*engine_->getDataLayout()));
-#else
-    module_->setDataLayout(engine_->getTargetData()->getStringRepresentation());
-    passes_->add(new llvm::TargetData(*engine_->getTargetData()));
-#endif
+    // TODO: LLVM-3.6
+    // passes_->add(new llvm::DataLayoutPass(module_));
 
     builder_->populateFunctionPassManager(*passes_);
 
@@ -170,7 +170,8 @@ namespace rubinius {
     void* addr = memory_->generatedFunction();
     memory_->resetGeneratedFunction();
 
-    engine_->freeMachineCodeForFunction(function_);
+    // TODO: LLVM-3.6
+    // engine_->freeMachineCodeForFunction(function_);
 
     // Nuke the Function from the module
     function_->replaceAllUsesWith(UndefValue::get(function_->getType()));
@@ -254,5 +255,3 @@ namespace rubinius {
 
 
 }
-
-#endif

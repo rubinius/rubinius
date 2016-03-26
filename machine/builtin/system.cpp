@@ -63,11 +63,9 @@
 #include <dlfcn.h>
 #endif
 
-#ifdef ENABLE_LLVM
 #include "jit/llvm/state.hpp"
 #include "jit/llvm/context.hpp"
 #include "jit/llvm/compiler.hpp"
-#endif
 
 #include "missing/setproctitle.h"
 

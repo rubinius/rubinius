@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 #include "jit/llvm/operations.hpp"
 #include "jit/llvm/types.hpp"
 
@@ -12,21 +10,23 @@ namespace type {
 
     llvm::MDNode* node;
     if(source_ != eUnknownSource) {
-      llvm::Value *impMD[] = {
-        ctx->cint(kind_),
-        ctx->clong(value_),
-        ctx->cint(source_),
-        ctx->cint(source_id_)
+      llvm::Metadata* impMD[] = {
+        llvm::ConstantAsMetadata::get(ctx->cint(kind_)),
+        llvm::ConstantAsMetadata::get(ctx->clong(value_)),
+        llvm::ConstantAsMetadata::get(ctx->cint(source_)),
+        llvm::ConstantAsMetadata::get(ctx->cint(source_id_))
       };
+      llvm::ArrayRef<llvm::Metadata*> md(impMD, 4);
 
-      node = llvm::MDNode::get(ctx->llvm_context(), impMD);
+      node = llvm::MDNode::get(ctx->llvm_context(), md);
     } else {
-      llvm::Value *impMD[] = {
-        ctx->cint(kind_),
-        ctx->clong(value_)
+      llvm::Metadata* impMD[] = {
+        llvm::ConstantAsMetadata::get(ctx->cint(kind_)),
+        llvm::ConstantAsMetadata::get(ctx->clong(value_))
       };
+      llvm::ArrayRef<llvm::Metadata*> md(impMD, 2);
 
-      node = llvm::MDNode::get(ctx->llvm_context(), impMD);
+      node = llvm::MDNode::get(ctx->llvm_context(), md);
     }
 
     I->setMetadata(ctx->metadata_id(), node);
@@ -49,18 +49,24 @@ namespace type {
   KnownType KnownType::extract(Context* ctx, llvm::Instruction* I) {
     if(llvm::MDNode* md = I->getMetadata(ctx->metadata_id())) {
       if(md->getNumOperands() == 2) {
-        ConstantInt* kind = dyn_cast<ConstantInt>(md->getOperand(0));
-        ConstantInt* value = dyn_cast<ConstantInt>(md->getOperand(1));
+        ConstantInt* kind = dyn_cast<ConstantInt>(
+            llvm::MetadataAsValue::get(ctx->llvm_context(), md->getOperand(0)));
+        ConstantInt* value = dyn_cast<ConstantInt>(
+            llvm::MetadataAsValue::get(ctx->llvm_context(), md->getOperand(1)));
 
         if(kind && value) {
           return KnownType((Kind)kind->getValue().getSExtValue(),
                            value->getValue().getSExtValue());
         }
       } else if(md->getNumOperands() == 4) {
-        ConstantInt* kind = dyn_cast<ConstantInt>(md->getOperand(0));
-        ConstantInt* value = dyn_cast<ConstantInt>(md->getOperand(1));
-        ConstantInt* source = dyn_cast<ConstantInt>(md->getOperand(2));
-        ConstantInt* source_id = dyn_cast<ConstantInt>(md->getOperand(3));
+        ConstantInt* kind = dyn_cast<ConstantInt>(
+            llvm::MetadataAsValue::get(ctx->llvm_context(), md->getOperand(0)));
+        ConstantInt* value = dyn_cast<ConstantInt>(
+            llvm::MetadataAsValue::get(ctx->llvm_context(), md->getOperand(1)));
+        ConstantInt* source = dyn_cast<ConstantInt>(
+            llvm::MetadataAsValue::get(ctx->llvm_context(), md->getOperand(2)));
+        ConstantInt* source_id = dyn_cast<ConstantInt>(
+            llvm::MetadataAsValue::get(ctx->llvm_context(), md->getOperand(3)));
 
         if(kind && value && source && source_id) {
           return KnownType((Kind)kind->getValue().getSExtValue(),
@@ -129,5 +135,3 @@ namespace type {
   }
 }
 }
-
-#endif

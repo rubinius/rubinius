@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 #include "jit/llvm/block.hpp"
 #include "jit/llvm/context.hpp"
 #include "jit/llvm/method_info.hpp"
@@ -158,8 +156,7 @@ namespace jit {
 
       b().SetInsertPoint(arity_check);
 
-      Value* N = b().CreateLoad(
-          b().CreateConstGEP2_32(
+      Value* N = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
             info_.args(), 0, offset::Arguments::total));
       Value* cmp = b().CreateICmpNE(N, cint(0), "arg_cmp");
 
@@ -176,8 +173,7 @@ namespace jit {
       BasicBlock* destruct = info_.new_block("destructure");
       BasicBlock* destruct_cont = info_.new_block("destructure_contuation");
 
-      Value* N = b().CreateLoad(
-          b().CreateConstGEP2_32(
+      Value* N = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
             info_.args(), 0, offset::Arguments::total));
 
       b().CreateCondBr(b().CreateAnd(
@@ -222,8 +218,7 @@ namespace jit {
     // N < M
     Value* cmp = b().CreateAnd(lambda,
         b().CreateICmpSLT(
-          b().CreateLoad(
-            b().CreateConstGEP2_32(
+          b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
               info_.args(), 0, offset::Arguments::total)),
           cint(M), "arg_cmp"));
     b().CreateCondBr(cmp, arg_error, n_gt_t);
@@ -234,8 +229,7 @@ namespace jit {
     if(!RP) {
       BasicBlock* update_n = info_.new_block("update_n");
 
-      Value* N = b().CreateLoad(
-          b().CreateConstGEP2_32(
+      Value* N = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
             info_.args(), 0, offset::Arguments::total));
 
       Value* cmp = b().CreateAnd(
@@ -250,8 +244,7 @@ namespace jit {
     if(machine_code_->keywords) {
       BasicBlock* kw_check = info_.new_block("kw_check_object");
 
-      Value* N = b().CreateLoad(
-          b().CreateConstGEP2_32(
+      Value* N = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
             info_.args(), 0, offset::Arguments::total));
 
       Value* null = Constant::getNullValue(obj_type);
@@ -264,10 +257,8 @@ namespace jit {
 
       b().SetInsertPoint(kw_check);
 
-      Value* arg_ary = b().CreateLoad(
-          b().CreateConstGEP2_32(info_.args(), 0,
-            offset::Arguments::arguments, "arg_ary_pos"),
-          "arg_ary");
+      Value* arg_ary = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
+            info_.args(), 0, offset::Arguments::arguments, "arg_ary_pos"), "arg_ary");
 
       // RP || (!RP && N < T) ? N - 1 : T
       Value* kw_index = b().CreateSelect(
@@ -363,13 +354,10 @@ namespace jit {
     const native_int RI = machine_code_->splat_position;
     const bool RP = (RI >= 0);
 
-    Value* arg_ary = b().CreateLoad(
-        b().CreateConstGEP2_32(info_.args(), 0,
-          offset::Arguments::arguments, "arg_ary_pos"),
-        "arg_ary");
+    Value* arg_ary = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
+          info_.args(), 0, offset::Arguments::arguments, "arg_ary_pos"), "arg_ary");
 
-    Value* N = b().CreateLoad(
-        b().CreateConstGEP2_32(
+    Value* N = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
           info_.args(), 0, offset::Arguments::total));
 
     BasicBlock* after_args = info_.new_block("after_args");
@@ -823,5 +811,3 @@ namespace jit {
   }
 }
 }
-
-#endif

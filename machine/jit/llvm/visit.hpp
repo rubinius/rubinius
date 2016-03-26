@@ -15,11 +15,7 @@
 
 #include "jit/llvm/stack_args.hpp"
 
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/DerivedTypes.h>
-#else
-#include <llvm/DerivedTypes.h>
-#endif
 
 #include <list>
 
@@ -178,7 +174,8 @@ namespace rubinius {
 
       set_block(start);
 
-      ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::ip, "ip_pos");
+      ip_pos_ = get_field(CallFrameTy, call_frame_, 0,
+          offset::CallFrame::ip, "ip_pos");
 
       global_serial_pos = b().CreateIntToPtr(
           clong((intptr_t)llvm_state()->shared().global_serial_address()),
@@ -215,13 +212,15 @@ namespace rubinius {
 
     Value* scope() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::scope, "scope_pos"),
+          get_field(CallFrameTy, call_frame_, 0,
+            offset::CallFrame::scope, "scope_pos"),
           "scope");
     }
 
     Value* top_scope() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::top_scope, "top_scope_pos"),
+          get_field(CallFrameTy, call_frame_, 0,
+            offset::CallFrame::top_scope, "top_scope_pos"),
           "top_scope");
     }
 
@@ -1063,11 +1062,12 @@ namespace rubinius {
     }
 
     Value* get_literal(opcode which) {
-      Value* gep = b().CreateConstGEP2_32(call_frame_, 0,
+      Value* gep = get_field(CallFrameTy, call_frame_, 0,
           offset::CallFrame::compiled_code, "code_pos");
       Value* code =  b().CreateLoad(gep, "code");
 
-      gep = b().CreateConstGEP2_32(code, 0, offset::CompiledCode::literals, "literals_pos");
+      gep = get_field(CompiledCodeTy, code, 0,
+          offset::CompiledCode::literals, "literals_pos");
       Value* lits = b().CreateLoad(gep, "literals");
 
       Value* idx2[] = {
@@ -1130,8 +1130,8 @@ namespace rubinius {
     }
 
     void push_scope_local(Value* scope, opcode which) {
-      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::VariableScope::locals,
-                                     "locals_pos");
+      Value* pos = get_field(VariableScopeTy, scope, 0,
+          offset::VariableScope::locals, "locals_pos");
 
       Value* table = b().CreateLoad(pos, "locals");
 
@@ -1183,8 +1183,8 @@ namespace rubinius {
     }
 
     void set_scope_local(Value* scope, opcode which) {
-      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::VariableScope::locals,
-                                     "locals_pos");
+      Value* pos = get_field(VariableScopeTy, scope, 0,
+          offset::VariableScope::locals, "locals_pos");
 
       Value* table = b().CreateLoad(pos, "locals");
 
@@ -1253,13 +1253,14 @@ namespace rubinius {
       assert(vars);
 
       return b().CreateLoad(
-          b().CreateConstGEP2_32(vars, 0, offset::StackVariables::self),
+          get_field(StackVariablesTy, vars, 0, offset::StackVariables::self),
           "self");
     }
 
     Value* get_block() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(vars_, 0, offset::StackVariables::block, "block_pos"));
+          get_field(StackVariablesTy, vars_, 0,
+            offset::StackVariables::block, "block_pos"));
     }
 
     void visit_push_self() {
@@ -1691,9 +1692,8 @@ namespace rubinius {
 
           b().CreateStore(
               blk,
-              b().CreateConstGEP2_32(nfo->variables(), 0,
-                offset::StackVariables::block),
-              false);
+              get_field(StackVariablesTy, nfo->variables(), 0,
+                offset::StackVariables::block), false);
         }
       }
     }
@@ -2085,12 +2085,12 @@ use_send:
     void visit_push_block_arg() {
 
       Value* args = b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::arguments, "args_pos"),
-          "args");
+          get_field(CallFrameTy, call_frame_, 0,
+            offset::CallFrame::arguments, "args_pos"), "args");
 
       stack_push(b().CreateLoad(
-          b().CreateConstGEP2_32(args, 0, offset::Arguments::block, "block_pos"),
-          "block"));
+          get_field(ArgumentsTy, args, 0,
+            offset::Arguments::block, "block_pos"), "block"));
     }
 
     void visit_send_super_stack_with_block(opcode& which, opcode args) {
@@ -2212,8 +2212,8 @@ use_send:
       Value* constant_scope = b().CreateLoad(constant_scope_pos, "constant_scope");
 
       Value* frame_scope = b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0,
-                                 offset::CallFrame::constant_scope, "scope_pos"), "frame_scope");
+          get_field(CallFrameTy, call_frame_, 0,
+            offset::CallFrame::constant_scope, "scope_pos"), "frame_scope");
 
       Value* scope_cmp = b().CreateICmpEQ(constant_scope, frame_scope, "same_scope");
 
@@ -2406,8 +2406,8 @@ use_send:
 
     void visit_push_scope() {
       Value* scope = b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0,
-                                 offset::CallFrame::constant_scope, "scope_pos"),
+          get_field(CallFrameTy, call_frame_, 0,
+            offset::CallFrame::constant_scope, "scope_pos"),
           "constant_scope");
 
       stack_push(scope);
@@ -2953,8 +2953,8 @@ use_send:
       sig << ObjArrayTy;
 
       Value* block_obj = b().CreateLoad(
-          b().CreateConstGEP2_32(vars, 0, offset::StackVariables::block),
-          "block");
+          get_field(StackVariablesTy, vars, 0,
+            offset::StackVariables::block), "block");
 
       Value* call_args[] = {
         state_,
@@ -2982,8 +2982,8 @@ use_send:
       sig << ObjArrayTy;
 
       Value* block_obj = b().CreateLoad(
-          b().CreateConstGEP2_32(vars_, 0, offset::StackVariables::block),
-          "block");
+          get_field(StackVariablesTy, vars_, 0,
+            offset::StackVariables::block), "block");
 
       Value* call_args[] = {
         state_,
@@ -3498,8 +3498,8 @@ use_send:
       Value* constant_scope = b().CreateLoad(constant_scope_pos, "constant_scope");
 
       Value* frame_scope = b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0,
-                                 offset::CallFrame::constant_scope, "scope_pos"), "frame_scope");
+          get_field(CallFrameTy, call_frame_, 0,
+            offset::CallFrame::constant_scope, "scope_pos"), "frame_scope");
 
       Value* scope_cmp = b().CreateICmpEQ(constant_scope, frame_scope, "same_scope");
 

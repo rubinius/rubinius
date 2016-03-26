@@ -251,11 +251,7 @@ namespace rubinius {
     const char* llvm_version;
     const char* jit_status;
 
-#if ENABLE_LLVM
     llvm_version = RBX_LLVM_VERSION;
-#else
-    llvm_version = "LLVM Disabled";
-#endif
 
     if(CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())) {
       jit_status = "JIT";

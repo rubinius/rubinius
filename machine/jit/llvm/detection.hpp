@@ -17,11 +17,9 @@
 #include "config.h"
 
 #include <llvm/Support/Host.h>
-#if RBX_LLVM_API_VER >= 302
 #include <llvm/Support/DataStream.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringSwitch.h>
-#endif
 
 namespace rubinius {
 

@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 #include "jit/llvm/inline.hpp"
 #include "jit/llvm/inline_method_builder.hpp"
 #include "jit/llvm/inline_block_builder.hpp"
@@ -1057,5 +1055,3 @@ remember:
     return true;
   }
 }
-
-#endif

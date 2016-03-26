@@ -5,9 +5,7 @@
 #include "builtin/jit.hpp"
 #include "builtin/list.hpp"
 
-#ifdef ENABLE_LLVM
 #include "jit/llvm/state.hpp"
-#endif
 
 namespace rubinius {
   void JIT::bootstrap(STATE) {
@@ -27,9 +25,6 @@ namespace rubinius {
   Object* JIT::compile(STATE, Object* object, CompiledCode* code,
                        Object* block_environment)
   {
-#ifndef ENABLE_LLVM
-    return cFalse;
-#else
     if(!CBOOL(enabled())) return cFalse;
 
     BlockEnvironment* block_env = try_as<BlockEnvironment>(block_environment);
@@ -40,7 +35,6 @@ namespace rubinius {
         block_env, !block_env->nil_p());
 
     return cTrue;
-#endif
   }
 
   Object* JIT::compile_threshold(STATE) {
@@ -59,10 +53,8 @@ namespace rubinius {
   Object* JIT::enable(STATE) {
     if(!CBOOL(enabled())) return cFalse;
 
-#ifdef ENABLE_LLVM
     state->shared().llvm_state->enable(state);
     enabled(state, cTrue);
-#endif
 
     return cTrue;
   }
@@ -72,10 +64,8 @@ namespace rubinius {
   {
     if(!CBOOL(enabled())) return cFalse;
 
-#ifdef ENABLE_LLVM
     LLVMState* ls = state->shared().llvm_state;
     ls->compile_soon(state, code, receiver_class, block_env, is_block);
-#endif
 
     return cTrue;
   }
@@ -85,10 +75,8 @@ namespace rubinius {
   {
     if(!CBOOL(enabled())) return cFalse;
 
-#ifdef ENABLE_LLVM
     LLVMState* ls = state->shared().llvm_state;
     ls->compile_callframe(state, code, primitive);
-#endif
 
     return cTrue;
   }
@@ -96,10 +84,8 @@ namespace rubinius {
   Object* JIT::start_method_update(STATE) {
     if(!CBOOL(enabled())) return cFalse;
 
-#ifdef ENABLE_LLVM
     LLVMState* ls = state->shared().llvm_state;
     ls->start_method_update();
-#endif
 
     return cTrue;
   }
@@ -107,10 +93,8 @@ namespace rubinius {
   Object* JIT::end_method_update(STATE) {
     if(!CBOOL(enabled())) return cFalse;
 
-#ifdef ENABLE_LLVM
     LLVMState* ls = state->shared().llvm_state;
     ls->end_method_update();
-#endif
 
     return cTrue;
   }

@@ -2,9 +2,6 @@
 #define RBX_LLVM_JIT_OPERATIONS
 
 #include "config.h"
-
-#include "memory.hpp"
-
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
@@ -15,41 +12,19 @@
 #include "object_utils.hpp"
 
 #include "jit/llvm/offset.hpp"
-
 #include "jit/llvm/inline_policy.hpp"
-
 #include "jit/llvm/context.hpp"
 #include "jit/llvm/builder.hpp"
 #include "jit/llvm/types.hpp"
-
 #include "jit/llvm/context.hpp"
 #include "jit/llvm/method_info.hpp"
 #include "jit/llvm/runtime.hpp"
 
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/Value.h>
-#elif RBX_LLVM_API_VER >= 302
-#include <llvm/Value.h>
-#endif
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Function.h>
-#else
-#include <llvm/BasicBlock.h>
-#include <llvm/Function.h>
-#endif
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/IRBuilder.h>
-#elif RBX_LLVM_API_VER >= 302
-#include <llvm/IRBuilder.h>
-#else
-#include <llvm/Support/IRBuilder.h>
-#endif
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/CallingConv.h>
-#else
-#include <llvm/CallingConv.h>
-#endif
 
 using namespace llvm;
 
@@ -118,6 +93,10 @@ namespace rubinius {
     // Frequently used types
     llvm::Type* StateTy;
     llvm::Type* CallFrameTy;
+    llvm::Type* ArgumentsTy;
+    llvm::Type* CompiledCodeTy;
+    llvm::Type* VariableScopeTy;
+    llvm::Type* StackVariablesTy;
 
     // Commonly used constants
     llvm::Value* NegOne;
@@ -164,6 +143,10 @@ namespace rubinius {
 
       StateTy = ptr_type("State");
       CallFrameTy = ptr_type("CallFrame");
+      ArgumentsTy = ptr_type("Arguments");
+      CompiledCodeTy = ptr_type("CompiledCode");
+      VariableScopeTy = ptr_type("VariableScope");
+      StackVariablesTy = ptr_type("StackVariables");
 
       Function::arg_iterator input = function_->arg_begin();
       state_ = input++;
@@ -178,13 +161,13 @@ namespace rubinius {
     void init_out_args() {
       out_args_ = info().out_args();
 
-      out_args_name_ = ptr_gep(out_args_, 0, "out_args_name");
-      out_args_recv_ = ptr_gep(out_args_, 1, "out_args_recv");
-      out_args_block_= ptr_gep(out_args_, 2, "out_args_block");
-      out_args_total_= ptr_gep(out_args_, 3, "out_args_total");
-      out_args_arguments_ = ptr_gep(out_args_, 4, "out_args_arguments");
-      out_args_container_ = ptr_gep(out_args_, offset::Arguments::argument_container,
-                                    "out_args_container");
+      out_args_name_ = ptr_gep(ArgumentsTy, out_args_, 0, "out_args_name");
+      out_args_recv_ = ptr_gep(ArgumentsTy, out_args_, 1, "out_args_recv");
+      out_args_block_= ptr_gep(ArgumentsTy, out_args_, 2, "out_args_block");
+      out_args_total_= ptr_gep(ArgumentsTy, out_args_, 3, "out_args_total");
+      out_args_arguments_ = ptr_gep(ArgumentsTy, out_args_, 4, "out_args_arguments");
+      out_args_container_ = ptr_gep(ArgumentsTy, out_args_,
+          offset::Arguments::argument_container, "out_args_container");
     }
 
     void setup_out_args(Symbol* name, int args) {
@@ -300,8 +283,12 @@ namespace rubinius {
       return module_->getTypeByName(full_name);
     }
 
-    Value* ptr_gep(Value* ptr, int which, const char* name) {
+    Value* ptr_gep(Type* ty, Value* ptr, int which, const char* name) {
+#if RBX_LLVM_API_VER > 306
+      return b().CreateConstGEP2_32(ty, ptr, 0, which, name);
+#else
       return b().CreateConstGEP2_32(ptr, 0, which, name);
+#endif
     }
 
     Value* upcast(Value* rec, const char* name) {
@@ -1245,8 +1232,8 @@ namespace rubinius {
 
     // Scope maintenance
     void flush_scope_to_heap(Value* vars) {
-      Value* pos = b().CreateConstGEP2_32(vars, 0, offset::StackVariables::on_heap,
-                                     "on_heap_pos");
+      Value* pos = b().CreateConstGEP2_32(StackVariablesTy, vars, 0,
+          offset::StackVariables::on_heap, "on_heap_pos");
 
       Value* on_heap = b().CreateLoad(pos, "on_heap");
 

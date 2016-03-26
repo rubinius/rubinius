@@ -1,6 +1,3 @@
-#ifdef ENABLE_LLVM
-
-
 #include "jit/llvm/runtime.hpp"
 #include "jit/llvm/state.hpp"
 
@@ -88,5 +85,5 @@ namespace jit {
       }
     }
   }
-}}
-#endif
+}
+}

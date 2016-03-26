@@ -58,7 +58,6 @@ class Configure
     @gem = nil
 
     # LLVM settings
-    @llvm_enabled           = true
     @llvm_path              = nil
     @llvm_system_name       = get_system_name
     @llvm_configure         = nil
@@ -336,10 +335,6 @@ class Configure
 
     o.doc "\n LLVM settings"
 
-    o.on "--disable-llvm", "Don't build with LLVM" do
-      @llvm_enabled = false
-    end
-
     o.on "--system-name", "NAME", "Name of OS (eg fedora-8, ubuntu-10.04)" do |name|
       @llvm_system_name = name
     end
@@ -565,11 +560,6 @@ class Configure
   end
 
   def setup_llvm
-    unless @llvm_enabled
-      @log.write "WARNING: LLVM disabled."
-      return false
-    end
-
     @log.print "  Checking for 'llvm-config': "
 
     config = @llvm_configure
@@ -583,8 +573,8 @@ class Configure
         if macports?
           config = macports_llvm_config
         else
-          out = Bundler.with_clean_env { `brew --prefix llvm35` }.chomp
-          config = "#{out}/bin/llvm-config-3.5" if $?.success?
+          out = Bundler.with_clean_env { `brew --prefix llvm` }.chomp
+          config = "#{out}/bin/llvm-config" if $?.success?
         end
       end
     end
@@ -604,8 +594,8 @@ class Configure
       unless failed
         parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
         api_version = ("%d%02d" % parts[0..1]).to_i
-        if api_version < 300 or api_version > 305
-          @log.write "only LLVM 3.0-3.5 is supported"
+        if api_version < 306
+          @log.write "only LLVM 3.6+ is supported"
         else
           @log.write "found! (version #{version} - api: #{api_version})"
           @llvm = :config
@@ -666,19 +656,16 @@ int main() { LLVMContext &Context = getGlobalContext(); }
   def check_llvm_flags
     flags = '--ldflags'
 
-    if @llvm_api_version >= 305
-      # Starting with LLVM 3.5 the --system-libs option is required in order to
-      # link against libraries such as zlib. Prior to 3.5 this was handled by
-      # --ldflags.
-      flags << ' --system-libs'
-    end
+    @llvm_cxxflags << " -std=c++11"
+
+    # Starting with LLVM 3.5 the --system-libs option is required in order to
+    # link against libraries such as zlib. Prior to 3.5 this was handled by
+    # --ldflags.
+    flags << ' --system-libs'
 
     # Generate the actual flags. For whatever reason llvm-config also includes
     # newlines in the output, so lets get rid of those while we're at it.
     @llvm_ldflags = `#{@llvm_configure} #{flags}`.strip.gsub("\n", ' ')
-
-    # We use some C++11 features in the VM source, so we need to enable support.
-    @llvm_cxxflags << " -std=c++11"
   end
 
   def env(which)
@@ -717,7 +704,7 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
 
-    unless @cc == "clang" and @cxx == "clang++"
+    unless @cc =~ /clang/ and @cxx =~ /clang\+\+/
       @log.deprecated <<-EOM
 Support for compilers other than clang/clang++ is deprecated and will be
 removed soon. If your platform does not have support for clang/clang++,
@@ -1532,10 +1519,6 @@ int main() { return tgetnum(""); }
   def write_configure_files
     @log.write "\nWriting configuration files..."
 
-    unless @llvm_enabled
-      @llvm_configure = ""
-    end
-
     @bin_links.delete @program_name
 
     config_settings = {
@@ -1544,7 +1527,6 @@ int main() { return tgetnum(""); }
       :build_make         => @make,
       :build_rake         => @rake,
       :build_perl         => @perl,
-      :llvm_enabled       => @llvm_enabled,
       :llvm_path          => @llvm_path,
       :llvm_system_name   => @llvm_system_name,
       :llvm_configure     => @llvm_configure,
@@ -2073,7 +2055,7 @@ Available commands are:
   # Query MacPorts for the path to the latest installed version of
   # llvm-config that is within the range of supported LLVM versions.
   def macports_llvm_config
-    supported_versions = (3.0 .. 3.5)
+    supported_versions = (3.6..3.9)
     installed_ports    = `port installed | egrep -o 'llvm-[^ ]+'`.split
     latest_usable_port = installed_ports.sort.select do |fname|
                            version = fname.match(/-\K.*/)[0].to_f

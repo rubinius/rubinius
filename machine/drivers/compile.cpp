@@ -31,7 +31,7 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/LinkAllPasses.h>
 #include <llvm/ModuleProvider.h>
-#include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/ExecutionEngine/Interpreter.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Support/CommandLine.h>

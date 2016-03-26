@@ -24,9 +24,7 @@
 #include <iostream>
 #include <iomanip>
 
-#ifdef ENABLE_LLVM
 #include "jit/llvm/state.hpp"
-#endif
 
 namespace rubinius {
 
@@ -78,11 +76,9 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-#ifdef ENABLE_LLVM
     if(llvm_state) {
       delete llvm_state;
     }
-#endif
 
     if(console_) {
       delete console_;

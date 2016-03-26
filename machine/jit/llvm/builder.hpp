@@ -8,20 +8,9 @@
 #include "jit/llvm/basic_block.hpp"
 #include "jit/llvm/inline_block.hpp"
 #include "jit/llvm/offset.hpp"
-#if RBX_LLVM_API_VER >= 303
+
 #include <llvm/IR/IRBuilder.h>
-#elif RBX_LLVM_API_VER >= 302
-#include <llvm/IRBuilder.h>
-#else
-#include <llvm/Support/IRBuilder.h>
-#endif
-#if RBX_LLVM_API_VER > 304
 #include <llvm/IR/DIBuilder.h>
-#elif RBX_LLVM_API_VER > 301
-#include <llvm/DIBuilder.h>
-#else
-#include <llvm/Analysis/DIBuilder.h>
-#endif
 
 namespace rubinius {
   class InlinePolicy;
@@ -106,7 +95,7 @@ namespace jit {
     bool generate_body();
     void generate_hard_return();
 
-    llvm::Value* get_field(llvm::Value* val, int which);
+    llvm::Value* get_field(llvm::Type* ty, llvm::Value* val, int which, const char* n="");
 
     template <typename T>
     llvm::Value* constant(T obj, llvm::Type* obj_type) {

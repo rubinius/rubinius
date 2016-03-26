@@ -2,10 +2,10 @@
 #include "bytecode_verification.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-#include "instruments/timing.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
 #include "on_stack.hpp"
+#include "logger.hpp"
 
 #include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
@@ -19,17 +19,15 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
-#include "memory/object_mark.hpp"
-
-#include "logger.hpp"
-
-#include <ostream>
-
-#ifdef ENABLE_LLVM
 #include "jit/llvm/state.hpp"
 #include "jit/llvm/compiler.hpp"
 #include "jit/llvm/runtime.hpp"
-#endif
+
+#include "memory/object_mark.hpp"
+
+#include "instruments/timing.hpp"
+
+#include <ostream>
 
 namespace rubinius {
 
@@ -258,9 +256,7 @@ namespace rubinius {
 
     machine_code_->set_execute_status(MachineCode::eJIT);
 
-#ifdef ENABLE_LLVM
     jit_data_ = rd;
-#endif
     machine_code_->unspecialized = exec;
 
     // See if we can also just make this the normal execute
@@ -469,7 +465,6 @@ namespace rubinius {
     MachineCode* mcode = code->machine_code_;
     mcode->set_mark();
 
-#ifdef ENABLE_LLVM
     if(code->jit_data()) {
       code->jit_data()->set_mark();
       code->jit_data()->mark_all(code, mark);
@@ -482,7 +477,6 @@ namespace rubinius {
         mcode->specializations[i].jit_data->mark_all(code, mark);
       }
     }
-#endif
 
     for(size_t i = 0; i < mcode->call_site_count(); i++) {
       size_t index = mcode->call_site_offsets()[i];
@@ -526,7 +520,6 @@ namespace rubinius {
     } else {
       std::cout << "yes\n";
 
-#ifdef ENABLE_LLVM
       MachineCode* v = code->machine_code();
 
       for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
@@ -538,7 +531,6 @@ namespace rubinius {
             v->specializations[i].jit_data->native_size());
         llvm::outs() << "</MachineCode>\n";
       }
-#endif
     }
 
     close_body(level);

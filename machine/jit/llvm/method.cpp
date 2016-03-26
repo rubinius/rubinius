@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 #include "jit/llvm/method.hpp"
 #include "jit/llvm/context.hpp"
 
@@ -132,8 +130,8 @@ namespace jit {
   }
 
   void MethodBuilder::check_arity() {
-    Value* total_offset = b().CreateConstGEP2_32(info_.args(), 0,
-        offset::Arguments::total, "total_pos");
+    Value* total_offset = get_field(ctx_->ptr_type("Arguments"),
+        info_.args(), 0, offset::Arguments::total, "total_pos");
     Value* N = b().CreateLoad(total_offset, "arg.total");
 
     // For others to use.
@@ -190,10 +188,8 @@ namespace jit {
 
       b().SetInsertPoint(kw_check);
 
-      Value* arg_ary = b().CreateLoad(
-          b().CreateConstGEP2_32(info_.args(), 0,
-            offset::Arguments::arguments, "arg_ary_pos"),
-          "arg_ary");
+      Value* arg_ary = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
+            info_.args(), 0, offset::Arguments::arguments, "arg_ary_pos"), "arg_ary");
 
       Value* kw_arg = b().CreateLoad(
             b().CreateGEP(arg_ary,
@@ -269,10 +265,8 @@ namespace jit {
     const native_int RI = machine_code_->splat_position;
     const bool RP = (RI >= 0);
 
-    Value* arg_ary = b().CreateLoad(
-                       b().CreateConstGEP2_32(info_.args(), 0,
-                         offset::Arguments::arguments, "arg_ary_pos"),
-                       "arg_ary");
+    Value* arg_ary = b().CreateLoad(get_field(ctx_->ptr_type("Arguments"),
+          info_.args(), 0, offset::Arguments::arguments, "arg_ary_pos"), "arg_ary");
 
     BasicBlock* after_args = info_.new_block("after_args");
     BasicBlock* setup_bounds = info_.new_block("setup_bounds");
@@ -576,5 +570,3 @@ namespace jit {
   }
 }
 }
-
-#endif

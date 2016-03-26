@@ -1,5 +1,3 @@
-#ifdef ENABLE_LLVM
-
 #include <sys/param.h>
 #include "jit/llvm/inline_block_builder.hpp"
 #include "jit/llvm/stack_args.hpp"
@@ -65,17 +63,16 @@ namespace jit {
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // compiled_code
-    method = b().CreateLoad(
-        b().CreateConstGEP2_32(rd, 0, offset::jit_RuntimeData::method, "method_pos"),
-        "compiled_code");
+    method = b().CreateLoad(get_field(ctx_->ptr_type("jit_RuntimeData"),
+          rd, 0, offset::jit_RuntimeData::method, "method_pos"), "compiled_code");
 
     Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
     b().CreateStore(method, code_gep);
 
     // constant_scope
-    Value* constant_scope = b().CreateLoad(
-        b().CreateConstGEP2_32(info_.creator_info()->call_frame(), 0, offset::CallFrame::constant_scope, "constant_scope_pos"),
-        "constant_scope");
+    Value* constant_scope = b().CreateLoad(get_field(ctx_->get_type("CallFrame"),
+          info_.creator_info()->call_frame(), 0, offset::CallFrame::constant_scope,
+          "constant_scope_pos"), "constant_scope");
 
     Value* constant_scope_gep = get_field(call_frame, offset::CallFrame::constant_scope);
     b().CreateStore(constant_scope, constant_scope_gep);
@@ -538,5 +535,3 @@ namespace jit {
   }
 }
 }
-
-#endif
