@@ -55,6 +55,7 @@ namespace rubinius {
       metric immix_set;
       metric immix_count;
       metric immix_stop_ms;
+      metric immix_suspend_ms;
       metric immix_concurrent_ms;
       metric immix_diagnostics_us;
       metric large_set;
@@ -73,6 +74,7 @@ namespace rubinius {
         immix_set = 0;
         immix_count = 0;
         immix_stop_ms = 0;
+        immix_suspend_ms = 0;
         immix_concurrent_ms = 0;
         immix_diagnostics_us = 0;
         large_set = 0;
@@ -92,6 +94,7 @@ namespace rubinius {
         immix_set += data.immix_set;
         immix_count += data.immix_count;
         immix_stop_ms += data.immix_stop_ms;
+        immix_suspend_ms += data.immix_suspend_ms;
         immix_concurrent_ms += data.immix_concurrent_ms;
         immix_diagnostics_us += data.immix_diagnostics_us;
         large_set += data.large_set;

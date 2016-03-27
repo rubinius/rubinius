@@ -396,6 +396,7 @@ namespace rubinius {
     int pid;
 
     state->vm()->become_managed();
+    state->memory()->set_interrupt();
 
     {
       LockPhase locked(state);
@@ -827,6 +828,7 @@ namespace rubinius {
       utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
       state->shared().internal_threads()->before_fork(state);
+      state->memory()->set_interrupt();
 
       LockPhase locked(state);
 

@@ -202,7 +202,6 @@ namespace memory {
   void ImmixGC::collect_start(GCData* data) {
     gc_.clear_marks();
     collect_scan(data);
-    marker_->concurrent_mark(data);
   }
 
   void ImmixGC::collect_scan(GCData* data) {
@@ -365,9 +364,9 @@ namespace memory {
         diagnostics_.total_bytes_ - diagnostics_.bytes_);
   }
 
-  void ImmixGC::start_marker(STATE) {
+  void ImmixGC::start_marker(STATE, GCData* data) {
     if(!marker_) {
-      marker_ = new ImmixMarker(state, this);
+      marker_ = new ImmixMarker(state, this, data);
     }
   }
 

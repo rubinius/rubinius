@@ -18,23 +18,18 @@ namespace memory {
     ImmixGC* immix_;
     GCData* data_;
 
-    utilities::thread::Condition run_cond_;
-    utilities::thread::Mutex run_lock_;
-
   public:
 
-    ImmixMarker(STATE, ImmixGC* immix);
+    ImmixMarker(STATE, ImmixGC* immix, GCData* data);
     virtual ~ImmixMarker();
 
     void initialize(STATE);
     void cleanup();
     void run(STATE);
-    void wakeup(STATE);
+    void suspend(STATE);
     void stop(STATE);
 
     void after_fork_child(STATE);
-
-    void concurrent_mark(GCData* data);
   };
 }
 }

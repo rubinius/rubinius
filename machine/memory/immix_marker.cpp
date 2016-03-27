@@ -1,8 +1,10 @@
 #include "config.h"
 #include "configuration.hpp"
+#include "environment.hpp"
 #include "metrics.hpp"
 #include "memory.hpp"
 #include "state.hpp"
+#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 #include "vm.hpp"
 
@@ -19,10 +21,10 @@
 namespace rubinius {
 namespace memory {
 
-  ImmixMarker::ImmixMarker(STATE, ImmixGC* immix)
+  ImmixMarker::ImmixMarker(STATE, ImmixGC* immix, GCData* data)
     : InternalThread(state, "rbx.immix")
     , immix_(immix)
-    , data_(NULL)
+    , data_(data)
   {
     state->memory()->set_immix_marker(this);
 
@@ -38,21 +40,12 @@ namespace memory {
     InternalThread::initialize(state);
 
     Thread::create(state, vm());
-
-    run_lock_.init();
-    run_cond_.init();
-  }
-
-  void ImmixMarker::wakeup(STATE) {
-    utilities::thread::Mutex::LockGuard lg(run_lock_);
-
-    InternalThread::wakeup(state);
-
-    run_cond_.signal();
   }
 
   void ImmixMarker::after_fork_child(STATE) {
     cleanup();
+
+    state->memory()->clear_mature_mark_in_progress();
 
     InternalThread::after_fork_child(state);
   }
@@ -68,57 +61,68 @@ namespace memory {
     InternalThread::stop(state);
   }
 
-  void ImmixMarker::concurrent_mark(GCData* data) {
-    utilities::thread::Mutex::LockGuard lg(run_lock_);
-    data_ = data;
-    run_cond_.signal();
+  void ImmixMarker::suspend(STATE) {
+    static int i = 0;
+    static int delay[] = {
+      45, 17, 38, 31, 10, 40, 13, 37, 16, 37, 1, 20, 23, 43, 38, 4, 2, 26, 25, 5
+    };
+    static int modulo = sizeof(delay) / sizeof(int);
+    static struct timespec ts = {0, 0};
+
+    SleepPhase sleeping(state);
+
+    timer::StopWatch<timer::milliseconds> timer(
+        state->vm()->metrics().gc.immix_suspend_ms);
+
+    ts.tv_nsec = delay[i++ % modulo];
+
+    nanosleep(&ts, NULL);
   }
 
   void ImmixMarker::run(STATE) {
     state->vm()->become_managed();
 
     while(!thread_exit_) {
-      if(data_) {
-        {
-          timer::StopWatch<timer::milliseconds> timer(
-              state->vm()->metrics().gc.immix_concurrent_ms);
+      timer::StopWatch<timer::milliseconds> timer(
+          state->vm()->metrics().gc.immix_concurrent_ms);
 
-          state->shared().thread_nexus()->blocking(state->vm());
+      state->shared().thread_nexus()->blocking(state->vm());
 
-          while(immix_->process_mark_stack(immix_->memory()->collect_young_flag())) {
-            if(state->shared().thread_nexus()->stop_p()) {
-              state->shared().thread_nexus()->yielding(state->vm());
-            }
-            state->shared().thread_nexus()->blocking(state->vm());
-          }
+      while(immix_->process_mark_stack(immix_->memory()->interrupt_p())) {
+        if(thread_exit_ || immix_->memory()->collect_full_p()) {
+          break;
+        } else if(immix_->memory()->collect_young_p()) {
+          state->shared().thread_nexus()->yielding(state->vm());
+        } else if(immix_->memory()->interrupt_p()) {
+          // We may be trying to fork or otherwise checkpoint
+          state->shared().thread_nexus()->yielding(state->vm());
+          immix_->memory()->reset_interrupt();
         }
 
-        state->vm()->become_managed();
-
-        if(thread_exit_) break;
-
-        {
-          timer::StopWatch<timer::milliseconds> timer(
-              state->vm()->metrics().gc.immix_stop_ms);
-
-          LockPhase locked(state);
-
-          state->memory()->clear_mature_mark_in_progress();
-          state->memory()->collect_full_finish(state, data_);
-        }
+        state->shared().thread_nexus()->blocking(state->vm());
       }
 
-      {
-        utilities::thread::Mutex::LockGuard guard(run_lock_);
+      if(thread_exit_) break;
 
-        cleanup();
-        if(thread_exit_) break;
+      if(immix_->memory()->collect_full_p()) {
+        timer::StopWatch<timer::milliseconds> timer(
+            state->vm()->metrics().gc.immix_stop_ms);
 
-        {
-          UnmanagedPhase unmanaged(state);
-          run_cond_.wait(run_lock_);
+        state->vm()->thread_nexus()->set_stop();
+
+        LockPhase locked(state);
+
+        state->memory()->collect_full_finish(state, data_);
+        state->memory()->collect_full_restart(state, data_);
+
+        if(state->shared().config.memory_collection_log.value) {
+          state->shared().env()->diagnostics()->log();
         }
+
+        continue;
       }
+
+      suspend(state);
     }
 
     state->memory()->clear_mature_mark_in_progress();
