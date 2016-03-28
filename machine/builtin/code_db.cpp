@@ -2,6 +2,7 @@
 
 #include "memory.hpp"
 #include "object_utils.hpp"
+#include "on_stack.hpp"
 #include "ontology.hpp"
 #include "marshal.hpp"
 #include "thread_phase.hpp"
@@ -130,6 +131,8 @@ namespace rubinius {
       if(m_id.empty()) break;
 
       CompiledCode* code = load(state, m_id.c_str());
+      OnStack<1> os(state, code);
+
       if(code->nil_p()) {
         Exception::raise_runtime_error(state, "unable to resolve method in CodeDB initialize");
       }
