@@ -68,6 +68,7 @@ namespace rubinius {
     , inflated_headers_(new memory::InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&vm->shared)
+    , cycle_(0)
     , mark_(2)
     , allow_gc_(true)
     , mature_mark_concurrent_(shared.config.gc_immix_concurrent)

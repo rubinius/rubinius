@@ -156,7 +156,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   struct ObjectFlags {
     object_type  obj_type        : 8;
     gc_zone      zone            : 2;
-    unsigned int age             : 4;
+    unsigned int age             : 7;
     aux_meaning  meaning         : 3;
 
     unsigned int Forwarded       : 1;
@@ -171,7 +171,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int Tainted         : 1;
     unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
-    unsigned int unused          : 3;
 
     uint32_t aux_word;
   };
@@ -358,6 +357,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     unsigned int inc_age() {
       return ++header.f.age;
+    }
+
+    void set_cycle(unsigned int cycle) {
+      header.f.age = cycle;
     }
 
     void set_age(unsigned int age);

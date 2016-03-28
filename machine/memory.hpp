@@ -103,6 +103,9 @@ namespace rubinius {
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
 
+    /// The number of GC cycles that have run
+    unsigned int cycle_;
+
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
@@ -161,6 +164,10 @@ namespace rubinius {
 
     Memory* memory() {
       return this;
+    }
+
+    unsigned int cycle() {
+      return cycle_;
     }
 
     unsigned int mark() const {
@@ -327,6 +334,8 @@ namespace rubinius {
       if(obj->mature_object_p()) {
         write_barrier(obj, klass);
       }
+
+      obj->set_cycle(cycle_);
 
       return obj;
     }
