@@ -804,6 +804,15 @@ step1:
       schedule_full_collection(
           "mature region allocate object",
           state->vm()->metrics().gc.immix_set);
+
+      if(mature_mark_concurrent_) {
+        /* Spilling allocations to the Large Object Space can be costly
+         * because that region and collector are less efficient. To mitigate
+         * spilling, we sleep for a very small random interval to allow the
+         * concurrent marking thread to catch up and complete the GC cycle.
+         */
+        state->vm()->blocking_suspend(state, state->vm()->metrics().memory.suspend_ms);
+      }
     }
 
     collect_flag = false;

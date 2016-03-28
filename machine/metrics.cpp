@@ -400,6 +400,8 @@ namespace rubinius {
             "memory.capi_handles", metrics_data_.memory.capi_handles));
       metrics_map_.push_back(new MetricsItem(
             "memory.inflated_headers", metrics_data_.memory.inflated_headers));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.suspend.ms", metrics_data_.memory.suspend_ms));
 
       // System metrics
       metrics_map_.push_back(new MetricsItem(

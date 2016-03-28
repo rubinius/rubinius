@@ -208,6 +208,7 @@ namespace rubinius {
       metric data_objects;
       metric capi_handles;
       metric inflated_headers;
+      metric suspend_ms;
 
       MemoryMetrics() {
         young_bytes = 0;
@@ -228,6 +229,7 @@ namespace rubinius {
         data_objects = 0;
         capi_handles = 0;
         inflated_headers = 0;
+        suspend_ms = 0;
       }
 
       void add(MemoryMetrics& data) {
@@ -249,6 +251,7 @@ namespace rubinius {
         data_objects += data.data_objects;
         capi_handles += data.capi_handles;
         inflated_headers += data.inflated_headers;
+        suspend_ms += data.suspend_ms;
       }
     };
 

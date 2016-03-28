@@ -61,24 +61,6 @@ namespace memory {
     InternalThread::stop(state);
   }
 
-  void ImmixMarker::suspend(STATE) {
-    static int i = 0;
-    static int delay[] = {
-      45, 17, 38, 31, 10, 40, 13, 37, 16, 37, 1, 20, 23, 43, 38, 4, 2, 26, 25, 5
-    };
-    static int modulo = sizeof(delay) / sizeof(int);
-    static struct timespec ts = {0, 0};
-
-    SleepPhase sleeping(state);
-
-    timer::StopWatch<timer::milliseconds> timer(
-        state->vm()->metrics().gc.immix_suspend_ms);
-
-    ts.tv_nsec = delay[i++ % modulo];
-
-    nanosleep(&ts, NULL);
-  }
-
   void ImmixMarker::run(STATE) {
     state->vm()->become_managed();
 
@@ -122,7 +104,7 @@ namespace memory {
         continue;
       }
 
-      suspend(state);
+      state->vm()->sleeping_suspend(state, state->vm()->metrics().gc.immix_suspend_ms);
     }
 
     state->memory()->clear_mature_mark_in_progress();
