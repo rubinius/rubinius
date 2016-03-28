@@ -768,8 +768,12 @@ namespace rubinius {
       ascii_only(state, cFalse);
     }
 
-    if(CBOOL(valid_encoding_) && !CBOOL(other->valid_encoding_p(state))) {
-      valid_encoding(state, cFalse);
+    if(!CBOOL(other->valid_encoding_p(state))) {
+      if(CBOOL(valid_encoding_)) {
+        valid_encoding(state, cFalse);
+      } else {
+        valid_encoding(state, cNil);
+      }
     }
 
     if(unlikely(length > data_length)) {

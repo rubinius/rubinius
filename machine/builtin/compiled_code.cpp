@@ -26,9 +26,9 @@
 #include <ostream>
 
 #ifdef ENABLE_LLVM
-#include "llvm/state.hpp"
-#include "llvm/jit_compiler.hpp"
-#include "llvm/jit_runtime.hpp"
+#include "jit/llvm/state.hpp"
+#include "jit/llvm/compiler.hpp"
+#include "jit/llvm/runtime.hpp"
 #endif
 
 namespace rubinius {

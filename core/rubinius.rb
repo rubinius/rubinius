@@ -288,6 +288,7 @@ module Rubinius
       end
     end
 
+    extra << "C" if Rubinius::CONCURRENT_GC
     extra << "D" if Rubinius::DEBUG_BUILD
 
     rev = BUILD_REV[0..7]

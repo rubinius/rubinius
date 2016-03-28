@@ -3,6 +3,8 @@
 #include "memory.hpp"
 #include "global_cache.hpp"
 #include "environment.hpp"
+#include "thread_phase.hpp"
+
 #include "memory/gc.hpp"
 
 #include "object_utils.hpp"
@@ -199,6 +201,33 @@ namespace rubinius {
 
   void VM::collect_maybe(STATE) {
     memory()->collect_maybe(state);
+  }
+
+  static void suspend_thread() {
+    static int i = 0;
+    static int delay[] = {
+      45, 17, 38, 31, 10, 40, 13, 37, 16, 37, 1, 20, 23, 43, 38, 4, 2, 26, 25, 5
+    };
+    static int modulo = sizeof(delay) / sizeof(int);
+    static struct timespec ts = {0, 0};
+
+    ts.tv_nsec = delay[i++ % modulo];
+
+    nanosleep(&ts, NULL);
+  }
+
+  void VM::blocking_suspend(STATE, metrics::metric& counter) {
+    timer::StopWatch<timer::milliseconds> timer(counter);
+
+    BlockPhase blocking(state);
+    suspend_thread();
+  }
+
+  void VM::sleeping_suspend(STATE, metrics::metric& counter) {
+    timer::StopWatch<timer::milliseconds> timer(counter);
+
+    SleepPhase sleeping(state);
+    suspend_thread();
   }
 
   void VM::become_managed() {

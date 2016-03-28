@@ -20,7 +20,7 @@
 #include "system_diagnostics.hpp"
 
 #if ENABLE_LLVM
-#include "llvm/state.hpp"
+#include "jit/llvm/state.hpp"
 #endif
 
 #include "on_stack.hpp"
@@ -68,11 +68,13 @@ namespace rubinius {
     , inflated_headers_(new memory::InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&vm->shared)
+    , cycle_(0)
     , mark_(2)
     , allow_gc_(true)
     , mature_mark_concurrent_(shared.config.gc_immix_concurrent)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
+    , interrupt_flag_(false)
     , collect_young_flag_(false)
     , collect_full_flag_(false)
     , shared_(vm->shared)
@@ -469,10 +471,14 @@ step1:
     } else if(obj->young_object_p()) {
       return false; /* young_->validate_object(obj) == cValid; */
     } else if(obj->mature_object_p()) {
-      if(immix_->validate_object(obj) == cInImmix) {
-        return true;
-      } else if(mark_sweep_->validate_object(obj) == cMatureObject) {
-        return true;
+      if(obj->in_immix_p()) {
+        if(immix_->validate_object(obj) == cInImmix) {
+          return true;
+        }
+      } else if(obj->large_object_p()) {
+        if(mark_sweep_->validate_object(obj) == cMatureObject) {
+          return true;
+        }
       }
     }
 
@@ -521,6 +527,7 @@ step1:
     if(!can_gc()) {
       collect_young_flag_ = false;
       collect_full_flag_ = false;
+      interrupt_flag_ = false;
       return;
     }
 
@@ -545,6 +552,9 @@ step1:
       } else {
         collect_young(state, &gc_data);
       }
+
+      if(!collect_full_flag_) interrupt_flag_ = false;
+
       RUBINIUS_GC_END(0);
     }
 
@@ -612,11 +622,11 @@ step1:
   }
 
   void Memory::collect_full(STATE) {
-    timer::StopWatch<timer::milliseconds> timerx(
-        state->vm()->metrics().gc.immix_concurrent_ms);
-
     // If we're already collecting, ignore this request
     if(mature_gc_in_progress_) return;
+
+    timer::StopWatch<timer::milliseconds> timerx(
+        state->vm()->metrics().gc.immix_stop_ms);
 
     if(state->shared().config.memory_collection_log.value) {
       logger::write("memory: full collection");
@@ -626,21 +636,34 @@ step1:
 
     immix_->reset_stats();
 
-    // TODO: GC hacks hacks hacks fix fix fix.
-    if(mature_mark_concurrent_) {
-      memory::GCData* data = new memory::GCData(state->vm());
-
-      clear_fiber_marks(data);
-      immix_->start_marker(state);
-      immix_->collect_start(data);
-      mature_gc_in_progress_ = true;
-    } else {
+    {
       memory::GCData data(state->vm());
 
       clear_fiber_marks(&data);
       immix_->collect(&data);
       collect_full_finish(state, &data);
     }
+
+    if(mature_mark_concurrent_) {
+      memory::GCData* data = new memory::GCData(state->vm());
+
+      mature_gc_in_progress_ = true;
+
+      immix_->collect_start(data);
+      immix_->start_marker(state, data);
+    }
+  }
+
+  void Memory::collect_full_restart(STATE, memory::GCData* data) {
+    if(state->shared().config.memory_collection_log.value) {
+      logger::write("memory: concurrent collection restart");
+    }
+
+    code_manager_.clear_marks();
+
+    immix_->reset_stats();
+
+    immix_->collect_start(data);
   }
 
   void Memory::collect_full_finish(STATE, memory::GCData* data) {
@@ -674,6 +697,7 @@ step1:
     }
 
     collect_full_flag_ = false;
+    interrupt_flag_ = false;
 
     RUBINIUS_GC_END(1);
   }
@@ -785,6 +809,15 @@ step1:
       schedule_full_collection(
           "mature region allocate object",
           state->vm()->metrics().gc.immix_set);
+
+      if(mature_mark_concurrent_) {
+        /* Spilling allocations to the Large Object Space can be costly
+         * because that region and collector are less efficient. To mitigate
+         * spilling, we sleep for a very small random interval to allow the
+         * concurrent marking thread to catch up and complete the GC cycle.
+         */
+        state->vm()->blocking_suspend(state, state->vm()->metrics().memory.suspend_ms);
+      }
     }
 
     collect_flag = false;

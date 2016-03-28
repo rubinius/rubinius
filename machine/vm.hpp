@@ -422,6 +422,9 @@ namespace rubinius {
       }
     }
 
+    void blocking_suspend(STATE, metrics::metric& counter);
+    void sleeping_suspend(STATE, metrics::metric& counter);
+
     void become_managed();
     void become_unmanaged() {
       thread_phase_ = ThreadNexus::cUnmanaged;

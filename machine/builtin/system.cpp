@@ -65,9 +65,9 @@
 #endif
 
 #ifdef ENABLE_LLVM
-#include "llvm/state.hpp"
-#include "llvm/jit_context.hpp"
-#include "llvm/jit_compiler.hpp"
+#include "jit/llvm/state.hpp"
+#include "jit/llvm/context.hpp"
+#include "jit/llvm/compiler.hpp"
 #endif
 
 #include "missing/setproctitle.h"
@@ -399,6 +399,7 @@ namespace rubinius {
     int pid;
 
     state->vm()->become_managed();
+    state->memory()->set_interrupt();
 
     {
       LockPhase locked(state);
@@ -830,6 +831,7 @@ namespace rubinius {
       utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
       state->shared().internal_threads()->before_fork(state);
+      state->memory()->set_interrupt();
 
       LockPhase locked(state);
 
