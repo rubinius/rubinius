@@ -406,6 +406,8 @@ namespace rubinius {
     G(rubinius)->set_const(state, "BUILD_REV", String::create(state, RBX_BUILD_REV));
     G(rubinius)->set_const(state, "RELEASE_DATE", String::create(state, RBX_RELEASE_DATE));
     G(rubinius)->set_const(state, "DEBUG_BUILD", RBOOL(RBX_DEBUG_BUILD));
+    G(rubinius)->set_const(state, "CONCURRENT_GC",
+        RBOOL(state->shared().config.gc_immix_concurrent));
     G(rubinius)->set_const(state, "LDSHARED", String::create(state, RBX_LDSHARED));
     G(rubinius)->set_const(state, "LDSHAREDXX", String::create(state, RBX_LDSHAREDXX));
 
