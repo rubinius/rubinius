@@ -470,10 +470,14 @@ step1:
     } else if(obj->young_object_p()) {
       return false; /* young_->validate_object(obj) == cValid; */
     } else if(obj->mature_object_p()) {
-      if(immix_->validate_object(obj) == cInImmix) {
-        return true;
-      } else if(mark_sweep_->validate_object(obj) == cMatureObject) {
-        return true;
+      if(obj->in_immix_p()) {
+        if(immix_->validate_object(obj) == cInImmix) {
+          return true;
+        }
+      } else if(obj->large_object_p()) {
+        if(mark_sweep_->validate_object(obj) == cMatureObject) {
+          return true;
+        }
       }
     }
 

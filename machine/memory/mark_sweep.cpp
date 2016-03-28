@@ -70,6 +70,7 @@ namespace memory {
     }
 
     obj->init_header(MatureObjectZone, InvalidType);
+    obj->set_in_large();
 
     return obj;
   }

@@ -164,13 +164,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int Marked          : 3;
 
     unsigned int InImmix         : 1;
+    unsigned int InLarge         : 1;
     unsigned int Pinned          : 1;
 
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
     unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
-    unsigned int unused          : 4;
+    unsigned int unused          : 3;
 
     uint32_t aux_word;
   };
@@ -451,6 +452,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return zone() == MatureObjectZone;
     }
 
+    bool large_object_p() const {
+      return flags().InLarge == 1;
+    }
+
     bool forwarded_p() const {
       return flags().Forwarded == 1;
     }
@@ -525,6 +530,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     // Only called in non contended scenario's
     void set_in_immix() {
       header.f.InImmix = 1;
+    }
+
+    // Only called in non contended scenario's
+    void set_in_large() {
+      header.f.InLarge = 1;
     }
 
     bool remembered_p() const {
