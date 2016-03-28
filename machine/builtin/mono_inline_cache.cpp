@@ -40,9 +40,9 @@ namespace rubinius {
     MonoInlineCache* cache =
       state->memory()->new_object<MonoInlineCache>(state, G(mono_inline_cache));
 
-    cache->name_     = call_site->name();
+    cache->name(state, call_site->name());
     cache->executable(state, call_site->executable());
-    cache->ip_       = call_site->ip();
+    cache->ip(call_site->ip());
     if(dis.method_missing == eNone) {
       cache->executor_ = check_cache;
     } else {
@@ -90,7 +90,7 @@ namespace rubinius {
       cache->hits_++;
       state->vm()->metrics().machine.methods_invoked++;
       state->vm()->set_method_missing_reason(cache->method_missing_);
-      args.unshift(state, call_site->name_);
+      args.unshift(state, call_site->name());
       return cache->method_->execute(state, cache->method_, cache->stored_module_, args);
     }
 

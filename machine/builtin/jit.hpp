@@ -18,24 +18,16 @@ namespace rubinius {
   public:
     const static object_type type = JITCompileRequestType;
 
-  private:
-    CompiledCode* method_;        // slot
-    Class* receiver_class_;       // slot
-    BlockEnvironment* block_env_; // slot
+    attr_accessor(method, CompiledCode);
+    attr_accessor(receiver_class, Class);
+    attr_accessor(block_env, BlockEnvironment);
 
+  private:
     utilities::thread::Condition* waiter_;
     int hits_;
     bool is_block_;
 
   public:
-    /* accessors */
-
-    attr_accessor(method, CompiledCode);
-    attr_accessor(receiver_class, Class);
-    attr_accessor(block_env, BlockEnvironment);
-
-  public:
-
     static void initialize(STATE, JITCompileRequest* obj) {
       obj->method_ = nil<CompiledCode>();
       obj->receiver_class_ = nil<Class>();
@@ -49,19 +41,7 @@ namespace rubinius {
         int hits, BlockEnvironment* block_env = NULL, bool is_block = false);
 
     MachineCode* machine_code() {
-      return method_->machine_code();
-    }
-
-    CompiledCode* method() {
-      return method_;
-    }
-
-    BlockEnvironment* block_env() {
-      return block_env_;
-    }
-
-    Class* receiver_class() {
-      return receiver_class_;
+      return method()->machine_code();
     }
 
     bool is_block() {
@@ -80,17 +60,6 @@ namespace rubinius {
       return waiter_;
     }
 
-    void set_method(CompiledCode* meth) {
-      method_ = meth;
-    }
-
-    void set_receiver_class(Class* receiver_class) {
-      receiver_class_ = receiver_class;
-    }
-
-    void set_block_env(BlockEnvironment* block_env) {
-      block_env_ = block_env;
-    }
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
@@ -101,22 +70,12 @@ namespace rubinius {
   public:
     const static object_type type = JITType;
 
-  private:
-    Class* compile_class_;        // slot
-    List* compile_list_;          // slot
-    Object* available_;           // slot
-    Object* enabled_;             // slot
-    Array* properties_;           // slot
-
-  public:
-    /* accessors */
     attr_accessor(compile_class, Class);
     attr_accessor(compile_list, List);
     attr_accessor(available, Object);
     attr_accessor(enabled, Object);
     attr_accessor(properties, Array);
 
-  public:
     static void bootstrap(STATE);
     static void initialize(STATE, JIT* obj) {
       obj->compile_class_ = nil<Class>();

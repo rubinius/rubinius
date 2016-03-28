@@ -22,22 +22,16 @@ namespace rubinius {
     time64_t seconds_;
     long nanoseconds_;
 
-    Array* decomposed_; // slot
-    Object* is_gmt_;  // slot
-    Object* offset_; // slot
-    Object* zone_; // slot
-
-    String* locale_string(STATE, const char* data);
-
   public:
-    /* accessors */
     attr_accessor(decomposed, Array);
     attr_accessor(is_gmt, Object);
     attr_accessor(offset, Object);
     attr_accessor(zone, Object);
 
-    /* interface */
+  private:
+    String* locale_string(STATE, const char* data);
 
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, Time* obj) {
       obj->seconds_ = 0;

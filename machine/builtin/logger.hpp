@@ -13,17 +13,9 @@ namespace rubinius {
   public:
     const static object_type type = LoggerType;
 
-  private:
-    String* name_;    // slot
-    String* format_;  // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(name, String);
     attr_accessor(format, String);
 
-  public:
     static void bootstrap(STATE);
     static void initialize(STATE, Logger* obj) {
       obj->name_ = nil<String>();

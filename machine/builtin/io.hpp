@@ -20,21 +20,6 @@ namespace rubinius {
   public:
     const static object_type type = IOType;
 
-  private:
-    Fixnum* descriptor_; // slot
-    String* path_;       // slot
-    Object* ibuffer_;    // slot
-    Fixnum* mode_;       // slot
-    Object* eof_;        // slot
-    Fixnum* lineno_;     // slot
-    Object* sync_;       // slot
-    Encoding* external_; // slot
-    Encoding* internal_; // slot
-    Object* autoclose_;  // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(descriptor, Fixnum);
     attr_accessor(path, String);
     attr_accessor(ibuffer, Object);
@@ -45,8 +30,6 @@ namespace rubinius {
     attr_accessor(external, Encoding);
     attr_accessor(internal, Encoding);
     attr_accessor(autoclose, Object);
-
-    /* interface */
 
     static void bootstrap(STATE);
     static void initialize(STATE, IO* obj) {
@@ -181,17 +164,6 @@ namespace rubinius {
     const static size_t fields = 7;
     const static object_type type = IOBufferType;
 
-  private:
-    ByteArray* storage_;   // slot
-    Fixnum* total_;        // slot
-    Fixnum* used_;         // slot
-    Fixnum* start_;        // slot
-    Object* eof_;          // slot
-    Object* write_synced_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(storage, ByteArray);
     attr_accessor(total, Fixnum);
     attr_accessor(used, Fixnum);
@@ -199,7 +171,6 @@ namespace rubinius {
     attr_accessor(eof, Object);
     attr_accessor(write_synced, Object);
 
-    /* interface */
     static void initialize(STATE, IOBuffer* obj) {
       obj->storage_ = nil<ByteArray>();
       obj->total_ = Fixnum::from(0);

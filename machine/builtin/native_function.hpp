@@ -19,23 +19,12 @@ namespace rubinius {
   public:
     static const object_type type = NativeFunctionType;
 
-  private:
-    Symbol* name_;         // slot
-    Symbol* file_;         // slot
-    Fixnum* required_;     // slot
-    Object* varargs_;      // slot
-
-  public:
-    FFIData* ffi_data;
-
-    /* accessors */
-
     attr_accessor(name, Symbol);
     attr_accessor(file, Symbol);
     attr_accessor(required, Fixnum);
     attr_accessor(varargs, Object);
 
-    /* interface */
+    FFIData* ffi_data;
 
     static size_t type_size(size_t type);
 

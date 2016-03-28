@@ -10,12 +10,6 @@ namespace rubinius {
   public:
     const static object_type type = AliasType;
 
-  private:
-    Symbol* original_name_; // slot
-    Module* original_module_; // slot
-    Executable* original_exec_; // slot
-
-  public:
     attr_accessor(original_name, Symbol);
     attr_accessor(original_module, Module);
     attr_accessor(original_exec, Executable);

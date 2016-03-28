@@ -32,19 +32,17 @@ namespace rubinius {
       eAscii
     };
 
-  private:
-    String* name_;    // slot
-    Object* dummy_;   // slot
+  public:
+    attr_accessor(name, String);
+    attr_accessor(dummy, Object);
 
+  private:
     OnigEncodingType* encoding_;
     int index_;
     int cache_index_;
     bool managed_;
 
   public:
-    attr_accessor(name, String);
-    attr_accessor(dummy, Object);
-
     int index() const {
       return index_;
     }
@@ -167,17 +165,6 @@ namespace rubinius {
   public:
     const static object_type type = ConverterType;
 
-  private:
-    Encoding* source_encoding_;       // slot
-    Encoding* destination_encoding_;  // slot
-    String* replacement_;             // slot
-    Array* convpath_;                 // slot
-    Array* converters_;               // slot
-    Array* replacement_converters_;   // slot
-
-    rb_econv_t* converter_;
-
-  public:
     attr_accessor(source_encoding, Encoding);
     attr_accessor(destination_encoding, Encoding);
     attr_accessor(replacement, String);
@@ -185,6 +172,10 @@ namespace rubinius {
     attr_accessor(converters, Array);
     attr_accessor(replacement_converters, Array);
 
+  private:
+    rb_econv_t* converter_;
+
+  public:
     void set_converter(rb_econv_t* c) {
       converter_ = c;
     }
@@ -226,16 +217,13 @@ namespace rubinius {
   public:
     const static object_type type = TranscodingType;
 
-  private:
-    String* source_;  // slot
-    String* target_;  // slot
-
-    OnigTranscodingType* transcoder_;
-
-  public:
     attr_accessor(source, String);
     attr_accessor(target, String);
 
+  private:
+    OnigTranscodingType* transcoder_;
+
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, Transcoding* obj);
 

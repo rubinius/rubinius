@@ -29,7 +29,7 @@ namespace rubinius {
     cache->message(state, msg);
     cache->responds(state, res);
 
-    cache->ip_ = fallback->ip();
+    cache->ip(fallback->ip());
     cache->executor_ = check_cache;
     cache->fallback_ = check_cache;
     cache->updater_ = NULL;

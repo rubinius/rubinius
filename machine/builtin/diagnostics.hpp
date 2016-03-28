@@ -14,15 +14,9 @@ namespace rubinius {
   public:
     const static object_type type = DiagnosticsType;
 
-  private:
-    LookupTable* map_;  // slot
-
-  public:
     attr_accessor(map, LookupTable);
 
-  public:
     static void bootstrap(STATE);
-
 
     class Info : public Class::Info {
     public:

@@ -34,18 +34,18 @@ namespace rubinius {
   public:
     const static object_type type = CallSiteType;
 
-    Symbol* name_; // slot
+    attr_accessor(name, Symbol);
+
     CacheExecutor    executor_;
     FallbackExecutor fallback_;
     CacheUpdater     updater_;
 
-    Executable* executable_; // slot
+    attr_accessor(executable, Executable);
+
+  private:
     int ip_;
 
   public:
-    attr_accessor(name, Symbol);
-    attr_accessor(executable, Executable);
-
     static void bootstrap(STATE);
     static void initialize(STATE, CallSite* obj) {
       obj->name_ = nil<Symbol>();
@@ -58,6 +58,10 @@ namespace rubinius {
 
     int ip() const {
       return ip_;
+    }
+
+    void ip(int new_ip) {
+      ip_ = new_ip;
     }
 
     // Rubinius.primitive+ :call_site_ip

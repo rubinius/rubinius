@@ -19,11 +19,14 @@ namespace rubinius {
  *  barrier.
  */
 #define attr_writer(name, type) \
-  template <class T> \
-  void name(T state, type* obj) { \
-    name ## _ = obj; \
-    state->memory()->write_barrier(this, obj); \
-  }
+  private: \
+    type* name ## _; \
+  public: \
+    template <class T> \
+    void name(T state, type* obj) { \
+      name ## _ = obj; \
+      state->memory()->write_barrier(this, obj); \
+    }
 
 /**
  *  Create a reader method for a slot.
@@ -32,7 +35,10 @@ namespace rubinius {
  *  instance variable foo_. A const version is also generated.
  */
 #define attr_reader(name, type) \
-  type* name() const { return name ## _; }
+  private: \
+    type* name ## _; \
+  public: \
+    type* name() const { return name ## _; }
 
 /**
  *  Ruby-like accessor creation for a slot.
@@ -40,8 +46,24 @@ namespace rubinius {
  *  Both attr_writer and attr_reader.
  */
 #define attr_accessor(name, type) \
-  attr_reader(name, type) \
-  attr_writer(name, type)
+  private: \
+    type* name ## _; \
+  public: \
+    type* name() const { return name ## _; } \
+    template <class T> \
+    void name(T state, type* obj) { \
+      name ## _ = obj; \
+      state->memory()->write_barrier(this, obj); \
+    }
+
+#define attr_field(name, type) \
+  public: \
+    type* name() const { return name ## _; } \
+    template <class T> \
+    void name(T state, type* obj) { \
+      name ## _ = obj; \
+      state->memory()->write_barrier(this, obj); \
+    }
 
   /* Forwards */
   class Fixnum;
@@ -407,8 +429,7 @@ namespace rubinius {
     void klass(STATE, Class* obj);
     void klass(Memory* memory, Class* obj);
 
-    /* ivars_ from ObjectHeader. */
-    attr_accessor(ivars, Object);
+    attr_field(ivars, Object)
 
   public:   /* TypeInfo */
 

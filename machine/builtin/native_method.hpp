@@ -295,36 +295,22 @@ namespace rubinius {
    *
    */
   class NativeMethod : public Executable {
-    /** Arity of the method. @see Arity. */
-    Fixnum* arity_;                                   // slot
-    /** C file in which rb_define_method called. */
-    String* file_;                                    // slot
-    /** Name given at creation time. */
-    Symbol* name_;                                    // slot
-    /** Module on which created. */
-    Module* module_;                                  // slot
-
-    /** Function object that implements this method. */
-    void* func_;
-
-    int capi_lock_index_;
-
-  public:   /* Accessors */
-
-    /** Arity of the method within. @see Arity. */
+  public:
     attr_accessor(arity, Fixnum);
-    /** C file in which rb_define_method called. */
     attr_accessor(file, String);
-    /** Name given at creation time. */
     attr_accessor(name, Symbol);
-    /** Module on which created. */
     attr_accessor(module, Module);
 
+  private:
+    /** Function object that implements this method. */
+    void* func_;
+    int capi_lock_index_;
+
+  public:
+    /** Arity of the method within. @see Arity. */
     int capi_lock_index() const {
       return capi_lock_index_;
     }
-
-  public:   /* Ruby bookkeeping */
 
     /** Statically held object type. */
     const static object_type type = NativeMethodType;

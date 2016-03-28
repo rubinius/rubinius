@@ -57,9 +57,9 @@ namespace rubinius {
   PolyInlineCache* PolyInlineCache::create(STATE, MonoInlineCache* mono) {
     PolyInlineCache* cache =
       state->memory()->new_object_pinned<PolyInlineCache>(state, G(poly_inline_cache));
-    cache->name_     = mono->name();
+    cache->name(state, mono->name());
     cache->executable(state, mono->executable());
-    cache->ip_       = mono->ip();
+    cache->ip(mono->ip());
     cache->executor_ = check_cache;
     cache->fallback_ = mono->fallback_;
     cache->updater_  = inline_cache_updater;
@@ -120,7 +120,7 @@ namespace rubinius {
 
     if(likely(entry)) {
       if(entry->method_missing() != eNone) {
-        args.unshift(state, call_site->name_);
+        args.unshift(state, call_site->name());
         state->vm()->set_method_missing_reason(entry->method_missing());
       }
       Executable* meth = entry->method();
@@ -141,7 +141,7 @@ namespace rubinius {
   }
 
   void PolyInlineCache::print(STATE, std::ostream& stream) {
-    stream << "name: " << name_->debug_str(state) << "\n"
+    stream << "name: " << name()->debug_str(state) << "\n"
            << "seen classes: " << classes_seen() << "\n"
            << "overflows: " << seen_classes_overflow_ << "\n"
            << "classes:\n";

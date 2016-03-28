@@ -12,13 +12,6 @@ namespace rubinius {
   public:
     const static object_type type = ListNodeType;
 
-  private:
-    Object* object_;  // slot
-    ListNode* next_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(object, Object);
     attr_accessor(next, ListNode);
 
@@ -40,14 +33,6 @@ namespace rubinius {
   class List : public Object {
   public:
     const static object_type type = ListType;
-
-  private:
-    Fixnum* count_;   // slot
-    ListNode* first_; // slot
-    ListNode* last_;  // slot
-
-  public:
-    /* accessors */
 
     attr_accessor(count, Fixnum);
     attr_accessor(first, ListNode);

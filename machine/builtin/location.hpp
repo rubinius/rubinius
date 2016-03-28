@@ -17,15 +17,6 @@ namespace rubinius {
   class ConstantScope;
 
   class Location : public Object {
-    Module* method_module_; // slot
-    Object* receiver_; // slot
-    Symbol* name_; // slot
-    Object* method_; // slot
-    Fixnum* ip_; // slot
-    Fixnum* flags_; // slot
-    VariableScope* variables_; // slot
-    ConstantScope* constant_scope_; // slot
-
   public:
     const static object_type type = LocationType;
 

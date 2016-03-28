@@ -29,21 +29,15 @@ namespace rubinius {
   public:
     const static object_type type = ClassType;
 
+    attr_accessor(packed_ivar_info, LookupTable);
+    attr_accessor(instance_type, Fixnum);
+
   private:
-    Fixnum* instance_type_;   // slot
-    LookupTable* packed_ivar_info_; // slot
-
     TypeInfo* type_info_;
-
     ClassData data_;
     uint32_t packed_size_;
 
   public:
-    /* accessors */
-
-    attr_accessor(packed_ivar_info, LookupTable);
-    attr_accessor(instance_type, Fixnum);
-
     TypeInfo* type_info() const {
       return type_info_;
     }
@@ -135,12 +129,6 @@ namespace rubinius {
   class SingletonClass : public Class {
   public:
     const static object_type type = SingletonClassType;
-
-  private:
-    WeakRef* object_reference_; // slot
-
-  public:
-    /* accessors */
 
     attr_accessor(object_reference, WeakRef);
 

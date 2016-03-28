@@ -15,21 +15,16 @@ namespace rubinius {
   public:
     const static object_type type = InlineCacheEntryType;
 
-  private:
-    Module* stored_module_;  // slot
-    Class*  receiver_class_; // slot
-    Executable* method_;     // slot
-
-    ClassData receiver_;
-
-    MethodMissingReason method_missing_;
-    int hits_;
-
-  public:
     attr_accessor(stored_module, Module);
     attr_accessor(receiver_class, Class);
     attr_accessor(method, Executable);
 
+  private:
+    ClassData receiver_;
+    MethodMissingReason method_missing_;
+    int hits_;
+
+  public:
     ClassData receiver_data() const {
       return receiver_;
     }

@@ -16,15 +16,6 @@ namespace rubinius {
   public:
     const static object_type type = AutoloadType;
 
-  private:
-    Symbol* name_; // slot
-    Module* scope_; // slot
-    Object* path_; // slot
-    Object* constant_; // slot
-    Thread* thread_; // slot
-    Object* loaded_; // slot
-
-  public:
     attr_accessor(name, Symbol);
     attr_accessor(scope, Module);
     attr_accessor(path, Object);

@@ -42,22 +42,14 @@ namespace rubinius {
   public:
     const static object_type type = StringType;
 
-  private:
-    Fixnum* num_bytes_;       // slot
-    Fixnum* num_chars_;       // slot
-    ByteArray* data_;         // slot
-    Fixnum* hash_value_;      // slot
-    Object* shared_;          // slot
-    Encoding* encoding_;      // slot
-    Object* ascii_only_;      // slot
-    Object* valid_encoding_;  // slot
-
-  public:
-    /* accessors */
-
     attr_reader(num_bytes, Fixnum);
+    attr_accessor(num_chars, Fixnum);
     attr_reader(data, ByteArray);
+    attr_accessor(hash_value, Fixnum);
+    attr_accessor(shared, Object);
     attr_reader(encoding, Encoding);
+    attr_accessor(ascii_only, Object);
+    attr_accessor(valid_encoding, Object);
 
     void update_handle(STATE);
     void update_handle(VM* vm);
@@ -92,12 +84,6 @@ namespace rubinius {
         encoding_ = obj;
         state->memory()->write_barrier(this, obj);
       }
-
-    attr_accessor(num_chars, Fixnum);
-    attr_accessor(hash_value, Fixnum);
-    attr_accessor(shared, Object);
-    attr_accessor(ascii_only, Object);
-    attr_accessor(valid_encoding, Object);
 
     /* interface */
 

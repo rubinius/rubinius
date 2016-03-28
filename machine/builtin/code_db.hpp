@@ -17,14 +17,13 @@ namespace rubinius {
   public:
     const static object_type type = CodeDBType;
 
+    attr_accessor(path, String);
+
   private:
-    String* path_;      // slot
     int data_fd_;
     void* data_;
 
   public:
-    attr_accessor(path, String);
-
     static void bootstrap(STATE);
     static bool valid_database_p(STATE, std::string path);
 

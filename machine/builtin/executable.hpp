@@ -36,11 +36,9 @@ namespace rubinius {
   public:
     const static object_type type = ExecutableType;
 
-  private:
-    Symbol* primitive_; // slot
-    Fixnum* serial_;    // slot
+    attr_accessor(primitive, Symbol);
+    attr_accessor(serial, Fixnum);
 
-  public:
     // This one is public so it can be directly invoked.
     executor execute;
 
@@ -50,11 +48,6 @@ namespace rubinius {
     bool custom_call_site_;
 
   public:
-    /* accessors */
-
-    attr_accessor(primitive, Symbol);
-    attr_accessor(serial, Fixnum);
-
     static void initialize(STATE, Executable* exc) {
       exc->primitive_ = nil<Symbol>();
       exc->serial_ = Fixnum::from(0);

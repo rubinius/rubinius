@@ -21,19 +21,15 @@ namespace rubinius {
 
     const static object_type type = ChannelType;
 
-  private:
-    List* value_;  // slot
+    attr_accessor(value, List);
 
+  private:
     utilities::thread::Condition condition_;
     utilities::thread::Mutex mutex_;
     int waiters_;
     int semaphore_count_;
 
   public:
-    /* accessors */
-
-    attr_accessor(value, List);
-
     /* interface */
     static void initialize(STATE, Channel* obj) {
       obj->value_ = nil<List>();

@@ -11,12 +11,6 @@ namespace rubinius {
   public:
     const static object_type type = InstructionSequenceType;
 
-  private:
-    Tuple* opcodes_;     // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(opcodes, Tuple);
 
     /* interface */

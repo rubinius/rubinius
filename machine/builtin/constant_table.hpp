@@ -15,13 +15,6 @@ namespace rubinius {
   public:
     const static object_type type = ConstantTableBucketType;
 
-  private:
-    Symbol* name_;   // slot
-    Object* constant_; // slot
-    Symbol* visibility_; // slot
-    ConstantTableBucket* next_;  // slot
-
-  public:
     attr_accessor(name, Symbol);
     attr_accessor(constant, Object);
     attr_accessor(visibility, Symbol);
@@ -55,21 +48,16 @@ namespace rubinius {
   public:
     const static object_type type = ConstantTableType;
 
+    attr_accessor(values, Tuple);
+    attr_accessor(bins, Integer);
+    attr_accessor(entries, Integer);
+
   private:
-    Tuple* values_;   // slot
-    Integer* bins_;    // slot
-    Integer* entries_; // slot
     utilities::thread::SpinLock lock_;
 
     void   redistribute(STATE, native_int size);
 
   public:
-    /* accessors */
-    attr_accessor(values, Tuple);
-    attr_accessor(bins, Integer);
-    attr_accessor(entries, Integer);
-
-    /* interface */
     static void bootstrap(STATE);
     static void initialize(STATE, ConstantTable* obj) {
       obj->values_ = nil<Tuple>();

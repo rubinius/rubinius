@@ -18,18 +18,16 @@ namespace rubinius {
   private:
     ClassData receiver_;
 
-    Class*  receiver_class_; // slot
-    Module* stored_module_;  // slot
-    Executable* method_;     // slot
-
-    MethodMissingReason method_missing_;
-    int hits_;
-
   public:
     attr_accessor(receiver_class, Class);
     attr_accessor(stored_module, Module);
     attr_accessor(method, Executable);
 
+  private:
+    MethodMissingReason method_missing_;
+    int hits_;
+
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, MonoInlineCache* obj) {
       CallSite::initialize(state, obj);

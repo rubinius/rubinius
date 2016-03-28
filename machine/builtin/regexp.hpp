@@ -32,15 +32,6 @@ namespace rubinius {
   public:
     const static object_type type = MatchDataType;
 
-  private:
-    String* source_; // slot
-    Regexp* regexp_; // slot
-    Tuple* full_;    // slot
-    Tuple* region_;  // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(source, String);
     attr_accessor(regexp, Regexp);
     attr_accessor(full, Tuple);
@@ -70,22 +61,16 @@ namespace rubinius {
   public:
     const static object_type type = RegexpType;
 
+    attr_accessor(source, String);
+    attr_accessor(names, LookupTable);
+
   private:
-    String* source_;     // slot
-    LookupTable* names_; // slot
     regex_t* onig_data[cCachedOnigDatas];
     utilities::thread::SpinLock lock_;
     bool fixed_encoding_;
     bool no_encoding_;
 
   public:
-    /* accessors */
-
-    attr_accessor(source, String);
-    attr_accessor(names, LookupTable);
-
-    /* interface */
-
     static void bootstrap(STATE);
     static void initialize(STATE, Regexp* obj) {
       obj->source_ = nil<String>();

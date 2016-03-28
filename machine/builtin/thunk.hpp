@@ -13,10 +13,6 @@ namespace rubinius {
   public:
     const static object_type type = ThunkType;
 
-  private:
-    Object* value_; // slot
-
-  public:
     attr_accessor(value, Object);
 
     static void initialize(STATE, Thunk* obj) {

@@ -18,9 +18,11 @@ namespace rubinius {
   public:
     const static object_type type = RandomizerType;
 
+  public:
+    attr_accessor(rng_data, ByteArray);
+
   private:
     utilities::thread::SpinLock lock_;
-    ByteArray *rng_data_; // slot
 
     struct random_state* rng_state();
 
@@ -31,11 +33,6 @@ namespace rubinius {
     native_uint limited_rand(native_uint limit);
 
   public:
-
-    attr_accessor(rng_data, ByteArray);
-
-    /* interface */
-
     static void bootstrap(STATE);
     static void initialize(STATE, Randomizer* obj);
 

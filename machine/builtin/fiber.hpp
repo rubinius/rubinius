@@ -20,20 +20,6 @@ namespace rubinius {
       eNotStarted, eSleeping, eRunning, eDead
     };
 
-  private:
-    Object* starter_; // slot
-    Array* value_; // slot
-    Fiber* prev_; // slot
-    Exception* exception_; // slot
-    LookupTable* locals_; // slot
-    Object* dead_; // slot
-    Status status_;
-
-    bool root_;
-
-    FiberData* data_;
-
-  public:
     attr_accessor(starter, Object);
     attr_accessor(value, Array);
     attr_accessor(prev, Fiber);
@@ -41,6 +27,12 @@ namespace rubinius {
     attr_accessor(locals, LookupTable);
     attr_accessor(dead, Object);
 
+  private:
+    Status status_;
+    bool root_;
+    FiberData* data_;
+
+  public:
     bool root_p() const {
       return root_;
     }

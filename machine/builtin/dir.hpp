@@ -19,15 +19,10 @@ namespace rubinius {
 
   private:
     DIR* os_;
-    String* path_; // slot
-    Encoding* encoding_; // slot
 
   public:
-
     attr_accessor(path, String);
     attr_accessor(encoding, Encoding);
-
-    /* interface */
 
     static void bootstrap(STATE);
     static void initialize(STATE, Dir* obj) {

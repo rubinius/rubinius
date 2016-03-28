@@ -16,12 +16,6 @@ namespace rubinius {
   public:
     const static object_type type = LookupTableBucketType;
 
-  private:
-    Object *key_;   // slot
-    Object *value_; // slot
-    LookupTableBucket *next_;  // slot
-
-  public:
     attr_accessor(key, Object);
     attr_accessor(value, Object);
     attr_accessor(next, LookupTableBucket);
@@ -46,14 +40,6 @@ namespace rubinius {
   class LookupTable : public Object {
   public:
     const static object_type type = LookupTableType;
-
-  private:
-    Tuple* values_;   // slot
-    Fixnum* bins_;    // slot
-    Fixnum* entries_; // slot
-
-  public:
-    /* accessors */
 
     attr_accessor(values, Tuple);
     attr_accessor(bins, Fixnum);

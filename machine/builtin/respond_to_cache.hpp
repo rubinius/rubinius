@@ -16,22 +16,17 @@ namespace rubinius {
   public:
     const static object_type type = RespondToCacheType;
 
-  private:
-    ClassData receiver_;
-    Class*  receiver_class_;       // slot
-    Object* message_;              // slot
-    Object* visibility_;           // slot
-    Object* responds_;             // slot
-    CallSite* fallback_call_site_; // slot
-    int hits_;
-
-  public:
     attr_accessor(receiver_class, Class);
     attr_accessor(message, Object);
     attr_accessor(visibility, Object);
     attr_accessor(responds, Object);
     attr_accessor(fallback_call_site, CallSite);
 
+  private:
+    ClassData receiver_;
+    int hits_;
+
+  public:
     void clear_receiver_data() {
       receiver_.raw = 0;
     }

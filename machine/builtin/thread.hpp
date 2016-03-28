@@ -21,24 +21,28 @@ namespace rubinius {
    *  Thread execution.
    */
   class Thread : public Object {
-    Array* args_;                     // slot
-    Object* block_;                   // slot
-    Object* alive_;                   // slot
-    Object* sleep_;                   // slot
-    Channel* control_channel_;        // slot
-    LookupTable* recursive_objects_;  // slot
-    Thread* debugger_thread_;         // slot
-    Fixnum* thread_id_;               // slot
-    Randomizer* randomizer_;          // slot
-    LookupTable* locals_;             // slot
-    Object* group_;                   // slot
-    Object* value_;                   // slot
-    Exception* exception_;            // slot
-    Object* critical_;                // slot
-    Fixnum* priority_;                // slot
-    Fixnum* pid_;                     // slot
-    Object* initialized_;             // slot
+  public:
+    const static object_type type = ThreadType;
 
+    attr_accessor(args, Array);
+    attr_accessor(block, Object);
+    attr_accessor(alive, Object);
+    attr_accessor(sleep, Object);
+    attr_accessor(control_channel, Channel);
+    attr_accessor(recursive_objects, LookupTable);
+    attr_accessor(debugger_thread, Thread);
+    attr_accessor(thread_id, Fixnum);
+    attr_accessor(randomizer, Randomizer);
+    attr_accessor(locals, LookupTable);
+    attr_accessor(group, Object);
+    attr_accessor(value, Object);
+    attr_accessor(exception, Exception);
+    attr_accessor(critical, Object);
+    attr_accessor(priority, Fixnum);
+    attr_accessor(pid, Fixnum);
+    attr_accessor(initialized, Object);
+
+  private:
     utilities::thread::SpinLock init_lock_;
     utilities::thread::Mutex join_lock_;
     utilities::thread::Condition join_cond_;
@@ -51,8 +55,6 @@ namespace rubinius {
     ThreadFunction function_;
 
   public:
-    const static object_type type = ThreadType;
-
     static void bootstrap(STATE);
     static void initialize(STATE, Thread* obj) {
       obj->args_ = nil<Array>();
@@ -79,24 +81,6 @@ namespace rubinius {
     }
 
   public:
-    attr_accessor(args, Array);
-    attr_accessor(block, Object);
-    attr_accessor(alive, Object);
-    attr_accessor(sleep, Object);
-    attr_accessor(control_channel, Channel);
-    attr_accessor(recursive_objects, LookupTable);
-    attr_accessor(debugger_thread, Thread);
-    attr_accessor(thread_id, Fixnum);
-    attr_accessor(randomizer, Randomizer);
-    attr_accessor(locals, LookupTable);
-    attr_accessor(group, Object);
-    attr_accessor(value, Object);
-    attr_accessor(exception, Exception);
-    attr_accessor(critical, Object);
-    attr_accessor(priority, Fixnum);
-    attr_accessor(pid, Fixnum);
-    attr_accessor(initialized, Object);
-
     VM* vm() const {
       return vm_;
     }

@@ -22,13 +22,6 @@ namespace rubinius {
   public:
     const static object_type type = FSEventType;
 
-  private:
-    Fixnum* fileno_;    // slot
-    String* path_;      // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(fileno, Fixnum);
     attr_accessor(path, String);
 

@@ -24,24 +24,6 @@ namespace rubinius {
     typedef Object* (*Execute)(State*, CallUnit* unit,
                                Executable* exec, Module* mod, Arguments& args);
 
-  private:
-    Kind kind_;
-
-    Object* value_; // slot
-    Module* module_; // slot
-    Executable* executable_; // slot
-    Symbol* name_; // slot
-
-    CallUnit* test_condition_; // slot
-    CallUnit* test_then_; // slot
-    CallUnit* test_else_; // slot
-
-    int which_;
-
-  public:
-    Execute execute;
-
-  public:
     attr_accessor(value, Object);
     attr_accessor(module, Module);
     attr_accessor(executable, Executable);
@@ -50,6 +32,13 @@ namespace rubinius {
     attr_accessor(test_condition, CallUnit);
     attr_accessor(test_then, CallUnit);
     attr_accessor(test_else, CallUnit);
+
+  private:
+    Kind kind_;
+    int which_;
+
+  public:
+    Execute execute;
 
     static void initialize(STATE, CallUnit* obj) {
       obj-> kind_ = eUnset;

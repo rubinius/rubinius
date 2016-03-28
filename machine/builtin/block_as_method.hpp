@@ -16,10 +16,6 @@ namespace rubinius {
   public:
     const static object_type type = BlockAsMethodType;
 
-  private:
-    BlockEnvironment* block_env_; // slot
-
-  public:
     attr_accessor(block_env, BlockEnvironment);
 
     static void initialize(STATE, BlockAsMethod* obj) {

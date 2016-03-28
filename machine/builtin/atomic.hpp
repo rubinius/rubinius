@@ -13,13 +13,8 @@ namespace rubinius {
   public:
     const static object_type type = AtomicReferenceType;
 
-  private:
-    Object* value_; // slot
-
-  public:
     attr_accessor(value, Object);
 
-  public:
     static void bootstrap(STATE);
     static void initialize(STATE, AtomicReference* ref) {
       ref->value_ = nil<Object>();

@@ -14,10 +14,6 @@ namespace rubinius {
   public:
     const static object_type type = CallUnitAdapterType;
 
-  private:
-    CallUnit* unit_; // slot
-
-  public:
     attr_accessor(unit, CallUnit);
 
     static void initialize(STATE, CallUnitAdapter* obj) {

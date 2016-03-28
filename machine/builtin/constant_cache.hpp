@@ -18,23 +18,17 @@ namespace rubinius {
   public:
     const static object_type type = ConstantCacheType;
 
-  private:
-    Symbol* name_;           // slot
-    Object* value_;          // slot
-    Module* under_;          // slot
-    ConstantScope* scope_;   // slot
-
-    Executable* executable_; // slot
-    int ip_;
-    int serial_;
-
-  public:
     attr_accessor(name, Symbol);
     attr_accessor(value, Object);
     attr_accessor(under, Module);
     attr_accessor(scope, ConstantScope);
     attr_accessor(executable, Executable);
 
+  private:
+    int ip_;
+    int serial_;
+
+  public:
     int ip() const { return ip_; }
     int serial() const { return serial_; }
 

@@ -12,13 +12,12 @@ namespace rubinius {
   public:
     const static object_type type = CallCustomCacheType;
 
+    attr_accessor(call_unit, CallUnit);
+
   private:
-    CallUnit* call_unit_; // slot
     int hits_;
 
   public:
-    attr_accessor(call_unit, CallUnit);
-
     static void bootstrap(STATE);
     static void initialize(STATE, CallCustomCache* obj) {
       CallSite::initialize(state, obj);

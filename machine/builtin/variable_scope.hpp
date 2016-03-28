@@ -26,43 +26,25 @@ namespace rubinius {
   public:
     const static object_type type = VariableScopeType;
 
-  private:    /* Instance variables */
-    /** Block given to method */
-    Object*         block_;   // slot
-    /** Method this scope is for. */
-    CompiledCode* method_;  // slot
-    Module*         module_;  // slot
-    VariableScope*  parent_;  // slot
-    Tuple*          heap_locals_; // slot
-    LookupTable*    dynamic_locals_; // slot
-    Object*         last_match_; // slot
-
-    // The Fiber that the scope was created on
-    Fiber*          fiber_; // slot
+    attr_accessor(block, Object);
+    attr_accessor(method, CompiledCode);
+    attr_accessor(module, Module);
+    attr_accessor(parent, VariableScope);
+    attr_accessor(heap_locals, Tuple);
+    attr_accessor(dynamic_locals, LookupTable);
+    attr_accessor(last_match, Object);
+    attr_accessor(fiber, Fiber);
+    attr_accessor(self, Object);
 
     void set_local_internal(STATE, int pos, Object* val);
     Object* get_local_internal(STATE, int pos);
     void flush_to_heap_internal(STATE);
-
-  public:
-    Object* self_;    // slot
 
     Object** locals_;
     int number_of_locals_;
     int isolated_;
     int flags_;
     utilities::thread::SpinLock lock_;
-
-  public: /* Accessors */
-    attr_accessor(block, Object);
-    attr_accessor(method, CompiledCode);
-    attr_accessor(module, Module);
-    attr_accessor(parent, VariableScope);
-    attr_accessor(self, Object);
-    attr_accessor(heap_locals, Tuple);
-    attr_accessor(last_match, Object);
-    attr_accessor(dynamic_locals, LookupTable);
-    attr_accessor(fiber, Fiber);
 
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
