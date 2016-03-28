@@ -156,6 +156,7 @@ namespace rubinius {
         call_frame->line(state));
 
     if(!thread->send(state, state->symbol("initialize"), args, block, true)) {
+      thread->vm()->set_zombie(state);
       return NULL;
     }
 
@@ -175,6 +176,7 @@ namespace rubinius {
         call_frame->line(state));
 
     if(!thread->send(state, state->symbol("__thread_initialize__"), args, block, true)) {
+      thread->vm()->set_zombie(state);
       return NULL;
     }
 

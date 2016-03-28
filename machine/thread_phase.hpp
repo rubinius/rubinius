@@ -27,6 +27,21 @@ namespace rubinius {
     }
   };
 
+  class BlockPhase {
+    State* state_;
+
+  public:
+    BlockPhase(STATE)
+      : state_(state)
+    {
+      state->shared().thread_nexus()->blocking(state->vm());
+    }
+
+    ~BlockPhase() {
+      state_->vm()->become_managed();
+    }
+  };
+
   class SleepPhase {
     State* state_;
 

@@ -18,6 +18,7 @@
 #include "memory/write_barrier.hpp"
 #include "memory/immix_collector.hpp"
 
+#include "util/atomic.hpp"
 #include "util/thread.hpp"
 
 #include "shared_state.hpp"
@@ -117,6 +118,9 @@ namespace rubinius {
     /// allocations.
     size_t slab_size_;
 
+    /// Flag indicating that a Memory condition exists
+    bool interrupt_flag_;
+
     /// Flag indicating whether a young collection should be performed soon
     bool collect_young_flag_;
 
@@ -188,7 +192,7 @@ namespace rubinius {
 
       // Don't trigger GC if currently prohibited so we don't thrash checking.
       if(can_gc()) {
-        collect_young_flag_ = true;
+        interrupt_flag_ = collect_young_flag_ = true;
         shared_.thread_nexus()->set_stop();
       }
     }
@@ -208,7 +212,7 @@ namespace rubinius {
       }
 
       if(can_gc()) {
-        collect_full_flag_ = true;
+        interrupt_flag_ = collect_full_flag_ = true;
         shared_.thread_nexus()->set_stop();
       } else if(shared_.config.memory_collection_log.value) {
         logger::write("memory: collection: disabled");
@@ -538,6 +542,7 @@ namespace rubinius {
     void collect(STATE) {
       collect_young_flag_ = true;
       collect_full_flag_ = true;
+      interrupt_flag_ = true;
       collect_maybe(state);
     }
 
@@ -568,12 +573,30 @@ namespace rubinius {
 
     memory::MarkStack& mature_mark_stack();
 
-    bool& collect_young_flag() {
+    void set_interrupt() {
+      interrupt_flag_ = true;
+      atomic::memory_barrier();
+    }
+
+    void reset_interrupt() {
+      interrupt_flag_ = false;
+    }
+
+    bool& interrupt_p() {
+      return interrupt_flag_;
+    }
+
+    bool& collect_young_p() {
       return collect_young_flag_;
+    }
+
+    bool& collect_full_p() {
+      return collect_full_flag_;
     }
 
     void collect_young(STATE, memory::GCData* data);
     void collect_full(STATE);
+    void collect_full_restart(STATE, memory::GCData* data);
     void collect_full_finish(STATE, memory::GCData* data);
 
   public:

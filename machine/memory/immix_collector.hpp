@@ -172,7 +172,7 @@ namespace memory {
       return diagnostics_;
     }
 
-    void start_marker(STATE);
+    void start_marker(STATE, GCData* data);
     bool process_mark_stack();
     bool process_mark_stack(bool& exit);
     MarkStack& mark_stack();

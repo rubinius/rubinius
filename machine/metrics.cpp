@@ -299,6 +299,8 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.stop.ms", metrics_data_.gc.immix_stop_ms));
       metrics_map_.push_back(new MetricsItem(
+            "gc.immix.suspend.ms", metrics_data_.gc.immix_suspend_ms));
+      metrics_map_.push_back(new MetricsItem(
             "gc.immix.concurrent.ms", metrics_data_.gc.immix_concurrent_ms));
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.diagnostics.us", metrics_data_.gc.immix_diagnostics_us));
@@ -396,6 +398,8 @@ namespace rubinius {
             "memory.capi_handles", metrics_data_.memory.capi_handles));
       metrics_map_.push_back(new MetricsItem(
             "memory.inflated_headers", metrics_data_.memory.inflated_headers));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.suspend.ms", metrics_data_.memory.suspend_ms));
 
       // System metrics
       metrics_map_.push_back(new MetricsItem(

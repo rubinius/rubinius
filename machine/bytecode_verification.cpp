@@ -40,27 +40,27 @@ namespace rubinius {
     if(Fixnum* fix = try_as<Fixnum>(method_->local_count())) {
       locals_ = fix->to_native();
     } else {
-      fail("method not initialized properly", -1);
+      fail("local_count is not a Fixnum", -1);
       return false;
     }
 
     InstructionSequence* iseq = try_as<InstructionSequence>(method_->iseq());
     if(!iseq) {
-      fail("method not initialized properly", -1);
+      fail("iseq is not an InstructionSequence", -1);
       return false;
     }
 
     if(Tuple* tup = try_as<Tuple>(iseq->opcodes())) {
       ops_ = tup;
     } else {
-      fail("method not initialized properly", -1);
+      fail("opcodes is not a Tuple", -1);
       return false;
     }
 
     if(Fixnum* fix = try_as<Fixnum>(method_->stack_size())) {
       max_stack_allowed_ = fix->to_native();
     } else {
-      fail("method not initialized properly", -1);
+      fail("stack_size is not a Fixnum", -1);
       return false;
     }
 
@@ -72,11 +72,18 @@ namespace rubinius {
     }
 
     Fixnum* tot = try_as<Fixnum>(method_->total_args());
+    if(!tot) {
+      fail("total_args is not a Fixnum", -1);
+      return false;
+    }
     Fixnum* req = try_as<Fixnum>(method_->required_args());
+    if(!req) {
+      fail("required_args is not a Fixnum", -1);
+      return false;
+    }
     Fixnum* post = try_as<Fixnum>(method_->post_args());
-
-    if(!tot || !req || !post) {
-      fail("method not initialized properly (missing arg counts)", -1);
+    if(!post) {
+      fail("post_args is not a Fixnum", -1);
       return false;
     }
 
