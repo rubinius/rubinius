@@ -585,6 +585,8 @@ namespace rubinius {
 
     logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
 
+    shared->finalizer_handler()->finish(state);
+
     state->shared().tool_broker()->shutdown(state);
 
     if(Memory* om = state->memory()) {
@@ -601,8 +603,6 @@ namespace rubinius {
     }
 
     shared->thread_nexus()->wait_till_alone(state->vm());
-
-    shared->finalizer_handler()->finish(state);
 
     NativeMethod::cleanup_thread(state);
 
