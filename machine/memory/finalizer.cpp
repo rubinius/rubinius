@@ -277,8 +277,6 @@ namespace memory {
 
   void FinalizerThread::finish(STATE) {
     finishing_ = true;
-    atomic::memory_barrier();
-
     if(process_list_ || !lists_->empty() || !live_list_->empty()) {
       while(true) {
         if(!process_list_) {
