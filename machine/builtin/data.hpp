@@ -56,16 +56,16 @@ namespace rubinius {
     typedef   void (*FreeFunctor)(void*);
 
   private:
-    RDataShadow* internal_;
-    bool freed_;
+    attr_field(internal, RDataShadow*);
+    attr_field(freed, bool);
 
   public:   /* Interface */
 
     /**  Register class with the VM. */
     static void bootstrap(STATE);
     static void initialize(STATE, Data* obj) {
-      obj->internal_ = NULL;
-      obj->freed_ = false;
+      obj->internal(NULL);
+      obj->freed(false);
     }
 
     /** New Data instance. */
@@ -77,19 +77,19 @@ namespace rubinius {
     static void finalize(STATE, Data* data);
 
     bool freed_p() const {
-      return freed_;
+      return freed();
     }
 
     void set_freed() {
-      freed_ = true;
+      freed(true);
     }
 
     RDataShadow* rdata(STATE) {
-      return internal_;
+      return internal();
     }
 
     RDataShadow* rdata() {
-      return internal_;
+      return internal();
     }
 
     bool typed() {

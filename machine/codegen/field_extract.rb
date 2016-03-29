@@ -1100,7 +1100,7 @@ write_if_new "machine/gen/typechecks.gen.cpp" do |f|
     f.puts "  slot_locations.resize(#{cpp.all_fields.size});\n"
 
     cpp.fields.each do |name, type, idx|
-      f.puts "  slot_locations[#{offset + idx}] = FIELD_OFFSET(#{n}, #{name}_);\n"
+      f.puts "  slot_locations[#{offset + idx}] = FIELD_OFFSET(#{n}, _#{name}_);\n"
     end
     f.puts "}"
   end

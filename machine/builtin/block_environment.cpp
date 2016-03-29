@@ -409,12 +409,12 @@ namespace rubinius {
     if(!mod) mod = env->module();
 
     Object* block = cNil;
-    if(VariableScope* vs = env->top_scope_) {
+    if(VariableScope* vs = env->top_scope()) {
       if(!vs->nil_p()) block = vs->block();
     }
 
     scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
-    scope->set_parent(env->scope_);
+    scope->set_parent(env->scope());
 
     if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
       if(state->vm()->thread_state()->raise_reason() == cNone) {
@@ -440,7 +440,7 @@ namespace rubinius {
     call_frame->compiled_code = env->compiled_code();
     call_frame->scope = scope;
     call_frame->optional_jit_data = NULL;
-    call_frame->top_scope_ = env->top_scope_;
+    call_frame->top_scope_ = env->top_scope();
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
@@ -513,7 +513,7 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    BlockInvocation invocation(recv, constant_scope_, flags);
+    BlockInvocation invocation(recv, constant_scope(), flags);
     return invoke(state, this, args, invocation);
   }
 
@@ -572,10 +572,10 @@ namespace rubinius {
     BlockEnvironment* be =
       state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
 
-    be->scope(state, scope_);
-    be->top_scope(state, top_scope_);
+    be->scope(state, scope());
+    be->top_scope(state, top_scope());
     be->compiled_code(state, compiled_code());
-    be->constant_scope(state, constant_scope_);
+    be->constant_scope(state, constant_scope());
     be->module(state, nil<Module>());
 
     return be;

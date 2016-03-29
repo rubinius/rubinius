@@ -17,8 +17,8 @@ namespace rubinius {
 
     /* interface */
     static void initialize(STATE, ListNode* obj) {
-      obj->object_ = nil<Object>();
-      obj->next_ = nil<ListNode>();
+      obj->object(nil<Object>());
+      obj->next(nil<ListNode>());
     }
 
     class Info : public TypeInfo {
@@ -40,9 +40,9 @@ namespace rubinius {
 
     /* interface */
     static void initialize(STATE, List* obj) {
-      obj->count_ = Fixnum::from(0);
-      obj->first_ = nil<ListNode>();
-      obj->last_ = nil<ListNode>();
+      obj->count(Fixnum::from(0));
+      obj->first(nil<ListNode>());
+      obj->last(nil<ListNode>());
     }
 
     bool empty_p();

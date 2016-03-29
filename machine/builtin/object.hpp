@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "defines.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "oop.hpp"
@@ -10,62 +11,6 @@
 #include "executor.hpp"
 
 namespace rubinius {
-
-/**
- *  Create a writer method for a slot.
- *
- *  For attr_writer(foo, SomeClass), creates void foo(STATE, SomeClass* obj)
- *  that sets the instance variable foo_ to the object given and runs the write
- *  barrier.
- */
-#define attr_writer(name, type) \
-  private: \
-    type* name ## _; \
-  public: \
-    template <class T> \
-    void name(T state, type* obj) { \
-      name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
-    }
-
-/**
- *  Create a reader method for a slot.
- *
- *  For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
- *  instance variable foo_. A const version is also generated.
- */
-#define attr_reader(name, type) \
-  private: \
-    type* name ## _; \
-  public: \
-    type* name() const { return name ## _; }
-
-/**
- *  Ruby-like accessor creation for a slot.
- *
- *  Both attr_writer and attr_reader.
- */
-#define attr_accessor(name, type) \
-  private: \
-    type* name ## _; \
-  public: \
-    type* name() const { return name ## _; } \
-    template <class T> \
-    void name(T state, type* obj) { \
-      name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
-    }
-
-#define attr_field(name, type) \
-  public: \
-    type* name() const { return name ## _; } \
-    template <class T> \
-    void name(T state, type* obj) { \
-      name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
-    }
-
-  /* Forwards */
   class Fixnum;
   class Integer;
   class String;
@@ -326,7 +271,7 @@ namespace rubinius {
 
     Object*   set_ivar(STATE, Symbol* sym, Object* val);
 
-    // Specialized version that only checks ivars_
+    // Specialized version that only checks _ivars_
     Object*   set_table_ivar(STATE, Symbol* sym, Object* val);
 
     /** String describing this object (through TypeInfo.) */
@@ -415,22 +360,6 @@ namespace rubinius {
      */
     Object* frozen_mod_disallowed(STATE);
 
-  public:   /* accessors */
-
-    /* klass_ from ObjectHeader. */
-    Class* klass() const {
-      return klass_;
-    }
-
-    /* attr_accessor can't be used because it requires knowing more about
-     * Class than we can know at this point (ie Class < Object, but when
-     * defining Object, we need to know Class).
-     */
-    void klass(STATE, Class* obj);
-    void klass(Memory* memory, Class* obj);
-
-    attr_field(ivars, Object)
-
   public:   /* TypeInfo */
 
     /**
@@ -455,7 +384,7 @@ namespace rubinius {
 
   inline Class* Object::direct_class(STATE) const {
     if(reference_p()) {
-      return klass_;
+      return klass();
     }
 
     return state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();

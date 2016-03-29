@@ -20,8 +20,8 @@ namespace rubinius {
     attr_accessor(path, String);
 
   private:
-    int data_fd_;
-    void* data_;
+    attr_field(data_fd, int);
+    attr_field(data, void*);
 
   public:
     static void bootstrap(STATE);

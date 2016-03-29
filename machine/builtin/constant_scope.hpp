@@ -27,9 +27,9 @@ namespace rubinius {
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
     static void initialize(STATE, ConstantScope* obj) {
-      obj->module_ = nil<Module>();
-      obj->current_module_ = nil<Module>();
-      obj->parent_ = nil<ConstantScope>();
+      obj->module(nil<Module>());
+      obj->current_module(nil<Module>());
+      obj->parent(nil<ConstantScope>());
     }
 
     static ConstantScope* create(STATE);
@@ -62,7 +62,7 @@ namespace rubinius {
     Object* cvar_get_or_set(STATE, Symbol* name, Object* value);
 
     bool top_level_p(STATE) const {
-      return parent_->nil_p();
+      return parent()->nil_p();
     }
 
     class Info : public TypeInfo {

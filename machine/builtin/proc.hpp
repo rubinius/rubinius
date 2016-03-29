@@ -20,10 +20,10 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, Proc* obj) {
-      obj->block_ = nil<BlockEnvironment>();
-      obj->lambda_ = nil<Object>();
-      obj->bound_method_ = nil<Object>();
-      obj->ruby_method_ = nil<Object>();
+      obj->block(nil<BlockEnvironment>());
+      obj->lambda(nil<Object>());
+      obj->bound_method(nil<Object>());
+      obj->ruby_method(nil<Object>());
     }
 
     // Rubinius.primitive :proc_allocate

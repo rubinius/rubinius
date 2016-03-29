@@ -19,7 +19,7 @@ namespace rubinius {
       Executable* exec, Module* mod, Arguments& args)
   {
     CallUnitAdapter* adapter = as<CallUnitAdapter>(exec);
-    CallUnit* unit = adapter->unit_;
+    CallUnit* unit = adapter->unit();
 
     return unit->execute(state, unit, exec, mod, args);
   }

@@ -23,11 +23,11 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, Exception* obj) {
-      obj->reason_message_ = nil<Object>();
-      obj->locations_ = nil<Array>();
-      obj->parent_ = nil<Exception>();
-      obj->backtrace_ = nil<Object>();
-      obj->custom_backtrace_ = nil<Object>();
+      obj->reason_message(nil<Object>());
+      obj->locations(nil<Array>());
+      obj->parent(nil<Exception>());
+      obj->backtrace(nil<Object>());
+      obj->custom_backtrace(nil<Object>());
     }
 
     static Exception* create(STATE);

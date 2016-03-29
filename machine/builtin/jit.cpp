@@ -124,9 +124,9 @@ namespace rubinius {
     request->method(state, code);
     request->receiver_class(state, receiver_class);
     request->block_env(state, block_env);
-    request->hits_ = hits;
-    request->is_block_ = is_block;
-    request->waiter_ = NULL;
+    request->hits(hits);
+    request->is_block(is_block);
+    request->waiter(NULL);
 
     return request;
   }

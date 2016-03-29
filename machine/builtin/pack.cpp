@@ -573,12 +573,12 @@ namespace rubinius {
 // Macros that depend on endianness
 #ifdef RBX_LITTLE_ENDIAN
 
-# define pack_double_element_le(v)  (pack::double_element(str, (v)->val))
-# define pack_double_element_be(v)  (pack::swap_double(str, (v)->val))
+# define pack_double_element_le(v)  (pack::double_element(str, (v)->value()))
+# define pack_double_element_be(v)  (pack::swap_double(str, (v)->value()))
 # define pack_double                pack_double_le
 
-# define pack_float_element_le(v)   (pack::float_element(str, (v)->val))
-# define pack_float_element_be(v)   (pack::swap_float(str, (v)->val))
+# define pack_float_element_le(v)   (pack::float_element(str, (v)->value()))
+# define pack_float_element_be(v)   (pack::swap_float(str, (v)->value()))
 # define pack_float                 pack_float_le
 
 # define pack_short_element_le(v)   (pack::short_element(str, pack::check_long(state, v)))
@@ -598,12 +598,12 @@ namespace rubinius {
 
 #else // Big endian
 
-# define pack_double_element_le(v)  (pack::swap_double(str, (v)->val))
-# define pack_double_element_be(v)  (pack::double_element(str, (v)->val))
+# define pack_double_element_le(v)  (pack::swap_double(str, (v)->value()))
+# define pack_double_element_be(v)  (pack::double_element(str, (v)->value()))
 # define pack_double                pack_double_be
 
-# define pack_float_element_le(v)   (pack::swap_float(str, (v)->val))
-# define pack_float_element_be(v)   (pack::float_element(str, (v)->val))
+# define pack_float_element_le(v)   (pack::swap_float(str, (v)->value()))
+# define pack_float_element_be(v)   (pack::float_element(str, (v)->value()))
 # define pack_float                 pack_float_be
 
 # define pack_short_element_le(v)   (pack::short_element(str, \

@@ -19,8 +19,8 @@ namespace rubinius {
     const static object_type type = TimeType;
 
   private:
-    time64_t seconds_;
-    long nanoseconds_;
+    attr_field(sec, time64_t);
+    attr_field(nsec, long);
 
   public:
     attr_accessor(decomposed, Array);
@@ -34,15 +34,19 @@ namespace rubinius {
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, Time* obj) {
-      obj->seconds_ = 0;
-      obj->nanoseconds_ = 0;
-      obj->decomposed_ = nil<Array>();
-      obj->is_gmt_ = cFalse;
-      obj->offset_ = nil<Object>();
-      obj->zone_ = nil<Object>();
+      obj->sec(0);
+      obj->nsec(0);
+      obj->decomposed(nil<Array>());
+      obj->is_gmt(cFalse);
+      obj->offset(nil<Object>());
+      obj->zone(nil<Object>());
     }
 
     static Time* at(STATE, time64_t seconds, long nanoseconds = 0);
+
+    bool gmt_p() {
+      return CBOOL(is_gmt());
+    }
 
     // Rubinius.primitive+ :time_s_specific
     static Time* specific(STATE, Object* self, Integer* sec, Integer* nsec, Object* gmt, Object* offset);
@@ -58,22 +62,22 @@ namespace rubinius {
 
     // Rubinius.primitive+ :time_seconds
     Integer* seconds(STATE) {
-      return Integer::from(state, seconds_);
+      return Integer::from(state, sec());
     }
 
     // Rubinius.primitive+ :time_useconds
     Integer* useconds(STATE) {
-      return Integer::from(state, nanoseconds_ / 1000);
+      return Integer::from(state, nsec() / 1000);
     }
 
     // Rubinius.primitive+ :time_nseconds
     Integer* nseconds(STATE) {
-      return Integer::from(state, nanoseconds_);
+      return Integer::from(state, nsec());
     }
 
     // Rubinius.primitive+ :time_set_nseconds
     Integer* set_nseconds(STATE, Integer* nanoseconds) {
-      this->nanoseconds_ = nanoseconds->to_long();
+      this->nsec(nanoseconds->to_long());
       return nanoseconds;
     }
 

@@ -33,16 +33,16 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, IO* obj) {
-      obj->descriptor_ = nil<Fixnum>();
-      obj->path_ = nil<String>();
-      obj->ibuffer_ = nil<Object>();
-      obj->mode_ = nil<Fixnum>();
-      obj->eof_ = cFalse;
-      obj->lineno_ = Fixnum::from(0);
-      obj->sync_ = nil<Object>();
-      obj->external_ = nil<Encoding>();
-      obj->internal_ = nil<Encoding>();
-      obj->autoclose_ = nil<Object>();
+      obj->descriptor(nil<Fixnum>());
+      obj->path(nil<String>());
+      obj->ibuffer(nil<Object>());
+      obj->mode(nil<Fixnum>());
+      obj->eof(cFalse);
+      obj->lineno(Fixnum::from(0));
+      obj->sync(nil<Object>());
+      obj->external(nil<Encoding>());
+      obj->internal(nil<Encoding>());
+      obj->autoclose(nil<Object>());
     }
 
     static IO* create(STATE, int fd);
@@ -172,12 +172,12 @@ namespace rubinius {
     attr_accessor(write_synced, Object);
 
     static void initialize(STATE, IOBuffer* obj) {
-      obj->storage_ = nil<ByteArray>();
-      obj->total_ = Fixnum::from(0);
-      obj->used_ = Fixnum::from(0);
-      obj->start_ = Fixnum::from(0);
-      obj->eof_ = cFalse;
-      obj->write_synced_ = cTrue;
+      obj->storage(nil<ByteArray>());
+      obj->total(Fixnum::from(0));
+      obj->used(Fixnum::from(0));
+      obj->start(Fixnum::from(0));
+      obj->eof(cFalse);
+      obj->write_synced(cTrue);
     }
 
     static IOBuffer* create(STATE, size_t bytes = IOBUFFER_SIZE);

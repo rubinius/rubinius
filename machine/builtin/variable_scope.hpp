@@ -40,50 +40,51 @@ namespace rubinius {
     Object* get_local_internal(STATE, int pos);
     void flush_to_heap_internal(STATE);
 
-    Object** locals_;
-    int number_of_locals_;
-    int isolated_;
-    int flags_;
-    utilities::thread::SpinLock lock_;
+    attr_field(locals, Object**);
+    attr_field(number_of_locals, int);
+    attr_field(isolated, int);
+    attr_field(flags, int);
+
+    utilities::thread::SpinLock _lock_;
 
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
     static void initialize(STATE, VariableScope* obj) {
-      obj->block_ = nil<Object>();
-      obj->method_ = nil<CompiledCode>();
-      obj->module_ = nil<Module>();
-      obj->parent_ = nil<VariableScope>();
-      obj->heap_locals_ = nil<Tuple>();
-      obj->dynamic_locals_ = nil<LookupTable>();
-      obj->last_match_ = nil<Object>();
-      obj->fiber_ = nil<Fiber>();
-      obj->self_ = nil<Object>();
+      obj->block(nil<Object>());
+      obj->method(nil<CompiledCode>());
+      obj->module(nil<Module>());
+      obj->parent(nil<VariableScope>());
+      obj->heap_locals(nil<Tuple>());
+      obj->dynamic_locals(nil<LookupTable>());
+      obj->last_match(nil<Object>());
+      obj->fiber(nil<Fiber>());
+      obj->self(nil<Object>());
 
-      obj->locals_ = 0;
-      obj->number_of_locals_ = 0;
-      obj->isolated_ = 1;
-      obj->flags_ = 0;
-      obj->lock_.init();;
+      obj->locals(0);
+      obj->number_of_locals(0);
+      obj->isolated(1);
+      obj->flags(0);
+      obj->_lock_.init();;
     }
 
-    bool isolated() const {
-      return isolated_ == 1;
+    bool isolated_p() const {
+      return isolated() == 1;
     }
 
     bool block_as_method_p() const {
-      return flags_ & CallFrame::cBlockAsMethod;
+      return flags() & CallFrame::cBlockAsMethod;
     }
 
     bool top_level_visibility_p() const {
-      return flags_ & CallFrame::cTopLevelVisibility;
+      return flags() & CallFrame::cTopLevelVisibility;
     }
 
     bool script_p() const {
-      return flags_ & CallFrame::cScript;
+      return flags() & CallFrame::cScript;
     }
 
     bool locked_p() const {
-      return flags_ & CallFrame::cScopeLocked;
+      return flags() & CallFrame::cScopeLocked;
     }
 
     void set_local(int pos, Object* val);
@@ -91,10 +92,6 @@ namespace rubinius {
 
     Object* get_local(int pos);
     Object* get_local(STATE, int pos);
-
-    int number_of_locals() const {
-      return number_of_locals_;
-    }
 
     void flush_to_heap(STATE);
 
@@ -113,7 +110,7 @@ namespace rubinius {
     static VariableScope* synthesize(STATE, CompiledCode* method, Module* module, Object* parent, Object* self, Object* block, Tuple* locals);
 
     // Rubinius.primitive :variable_scope_locals
-    Tuple* locals(STATE);
+    Tuple* local_variables(STATE);
 
     // Rubinius.primitive :variable_scope_set_local
     Object* set_local_prim(STATE, Fixnum* number, Object* object);

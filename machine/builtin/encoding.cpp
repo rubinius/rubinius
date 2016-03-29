@@ -96,12 +96,12 @@ namespace rubinius {
   }
 
   void Encoding::initialize(STATE, Encoding* obj) {
-    obj->name_ = nil<String>();
-    obj->dummy_ = nil<Object>();
-    obj->encoding_ = NULL;;
-    obj->index_ = 0;
-    obj->cache_index_ = 0;
-    obj->managed_ = false;
+    obj->name(nil<String>());
+    obj->dummy(nil<Object>());
+    obj->encoding(NULL);
+    obj->index(0);
+    obj->cache_index(0);
+    obj->managed(false);
   }
 
   static Symbol* encoding_symbol(STATE, const char* name) {
@@ -141,9 +141,9 @@ namespace rubinius {
     Encoding* e = state->memory()->new_object<Encoding>(state, G(encoding));
 
     e->dummy(state, dummy);
-    e->encoding_ = enc;
-    e->cache_index_ = cCachedOnigDatas - 1;
-    e->managed_ = false;
+    e->encoding(enc);
+    e->cache_index(cCachedOnigDatas - 1);
+    e->managed(false);
 
     return e;
   }
@@ -152,8 +152,8 @@ namespace rubinius {
                                        Index index, OnigEncodingType* enc)
   {
     Encoding* e = create(state, enc);
-    e->index_       = (int) index;
-    e->cache_index_ = (int) index;
+    e->index((int) index);
+    e->cache_index((int) index);
 
     Tuple* ref = encoding_reference(state, index);
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
@@ -177,7 +177,7 @@ namespace rubinius {
 
     Array* list = encoding_list(state);
     size_t index = list->size();
-    e->index_ = (int) index;
+    e->index((int) index);
 
     Tuple* ref = encoding_reference(state, index);
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
@@ -192,8 +192,8 @@ namespace rubinius {
   }
 
   Encoding* Encoding::replicate(STATE, const char* name, Encoding* enc) {
-    Encoding* repl = define(state, name, enc->get_encoding(), enc->dummy());
-    repl->make_managed(state, name, enc->get_encoding());
+    Encoding* repl = define(state, name, enc->encoding(), enc->dummy());
+    repl->make_managed(state, name, enc->encoding());
 
     return repl;
   }
@@ -462,7 +462,7 @@ namespace rubinius {
   }
 
   bool Encoding::ascii_compatible() {
-    return encoding_->min_enc_len == 1 && dummy_->false_p();
+    return encoding()->min_enc_len == 1 && dummy()->false_p();
   }
 
   Object* Encoding::ascii_compatible_p(STATE) {
@@ -473,7 +473,7 @@ namespace rubinius {
     ByteArray* enc_ba = ByteArray::create(state, sizeof(OnigEncodingType));
     memcpy(enc_ba->raw_bytes(), enc, sizeof(OnigEncodingType));
 
-    encoding_ = reinterpret_cast<OnigEncodingType*>(enc_ba->raw_bytes());
+    encoding(reinterpret_cast<OnigEncodingType*>(enc_ba->raw_bytes()));
     state->memory()->write_barrier(this, enc_ba);
 
     int size = strlen(name);
@@ -482,10 +482,10 @@ namespace rubinius {
     ByteArray* name_ba = ByteArray::create(state, size + 1);
     memcpy(name_ba->raw_bytes(), name, size);
     name_ba->raw_bytes()[size] = 0;
-    encoding_->name = reinterpret_cast<const char*>(name_ba->raw_bytes());
+    encoding()->name = reinterpret_cast<const char*>(name_ba->raw_bytes());
     state->memory()->write_barrier(this, name_ba);
 
-    managed_ = true;
+    managed(true);
   }
 
   native_int Encoding::find_non_ascii_index(const uint8_t* start, const uint8_t* end) {
@@ -602,17 +602,17 @@ namespace rubinius {
     auto_mark(obj, mark);
 
     Encoding* enc_o = force_as<Encoding>(obj);
-    if(!enc_o->managed_) return;
+    if(!enc_o->managed()) return;
 
-    OnigEncodingType* enc = enc_o->get_encoding();
+    OnigEncodingType* enc = enc_o->encoding();
     if(!enc) return;
 
     ByteArray* enc_ba = ByteArray::from_body(enc);
     if(ByteArray* tmp_ba = force_as<ByteArray>(mark.call(enc_ba))) {
-      enc_o->set_encoding(reinterpret_cast<OnigEncodingType*>(tmp_ba->raw_bytes()));
+      enc_o->encoding(reinterpret_cast<OnigEncodingType*>(tmp_ba->raw_bytes()));
       mark.just_set(obj, tmp_ba);
 
-      enc = enc_o->get_encoding();
+      enc = enc_o->encoding();
     }
 
     if(enc->name) {
@@ -643,9 +643,9 @@ namespace rubinius {
   }
 
   void Transcoding::initialize(STATE, Transcoding* obj) {
-    obj->source_ = nil<String>();
-    obj->target_ = nil<String>();
-    obj->transcoder_ = NULL;
+    obj->source(nil<String>());
+    obj->target(nil<String>());
+    obj->transcoder(NULL);
   }
 
   Transcoding* Transcoding::create(STATE, OnigTranscodingType* tr) {
@@ -654,7 +654,7 @@ namespace rubinius {
 
     t->source(state, String::create(state, tr->src_encoding));
     t->target(state, String::create(state, tr->dst_encoding));
-    t->transcoder_ = tr;
+    t->transcoder(tr);
 
     return t;
   }
@@ -716,13 +716,13 @@ namespace rubinius {
   }
 
   void Converter::initialize(STATE, Converter* obj) {
-    obj->source_encoding_ = nil<Encoding>();
-    obj->destination_encoding_ = nil<Encoding>();
-    obj->replacement_ = nil<String>();
-    obj->convpath_ = nil<Array>();
-    obj->converters_ = nil<Array>();
-    obj->replacement_converters_ = nil<Array>();
-    obj->converter_ = NULL;
+    obj->source_encoding(nil<Encoding>());
+    obj->destination_encoding(nil<Encoding>());
+    obj->replacement(nil<String>());
+    obj->convpath(nil<Array>());
+    obj->converters(nil<Array>());
+    obj->replacement_converters(nil<Array>());
+    obj->converter(NULL);
   }
 
   Converter* Converter::allocate(STATE, Object* self) {
@@ -731,7 +731,7 @@ namespace rubinius {
 
     c->klass(state, as<Class>(self));
 
-    c->set_converter(NULL);
+    c->converter(NULL);
 
     state->memory()->needs_finalization(state, c,
         (memory::FinalizerFunction)&Converter::finalize,
@@ -782,18 +782,18 @@ namespace rubinius {
 
   retry:
 
-    if(!self->converter_) {
+    if(!self->converter()) {
       size_t num_converters = self->converters()->size();
 
-      self->set_converter(rb_econv_alloc(num_converters));
+      self->converter(rb_econv_alloc(num_converters));
 
       for(size_t i = 0; i < num_converters; i++) {
         Transcoding* transcoding = as<Transcoding>(self->converters()->get(state, i));
-        rb_transcoder* tr = transcoding->get_transcoder();
+        rb_transcoder* tr = transcoding->transcoder();
 
-        if(rb_econv_add_transcoder_at(self->converter_, tr, i) == -1) {
-          rb_econv_free(self->get_converter());
-          self->set_converter(NULL);
+        if(rb_econv_add_transcoder_at(self->converter(), tr, i) == -1) {
+          rb_econv_free(self->converter());
+          self->converter(NULL);
           return force_as<Symbol>(Primitives::failure());
         }
       }
@@ -809,9 +809,9 @@ namespace rubinius {
       byte_size = src ? src->byte_size() : 4096;
     }
 
-    int flags = self->converter_->flags = options->to_native();
+    int flags = self->converter()->flags = options->to_native();
 
-    if(!self->replacement()->nil_p() && !self->converter_->replacement_str) {
+    if(!self->replacement()->nil_p() && !self->converter()->replacement_str) {
       // First check the array's whether they exist so we don't
       // leak memory or create badly initialized C structures
 
@@ -825,21 +825,21 @@ namespace rubinius {
       native_int byte_size = self->replacement()->byte_size();
       char* buf = (char*)XMALLOC(byte_size + 1);
       strncpy(buf, self->replacement()->c_str(state), byte_size + 1);
-      self->converter_->replacement_str = (const unsigned char*)buf;
-      self->converter_->replacement_len = self->replacement()->byte_size();
+      self->converter()->replacement_str = (const unsigned char*)buf;
+      self->converter()->replacement_len = self->replacement()->byte_size();
 
       String* name = self->replacement()->encoding()->name();
       byte_size = name->byte_size();
       buf = (char*)XMALLOC(byte_size + 1);
       strncpy(buf, name->c_str(state), byte_size + 1);
-      self->converter_->replacement_enc = (const char*)buf;
-      self->converter_->replacement_allocated = 1;
+      self->converter()->replacement_enc = (const char*)buf;
+      self->converter()->replacement_allocated = 1;
 
-      rb_econv_alloc_replacement_converters(self->converter_, num_converters / 2);
+      rb_econv_alloc_replacement_converters(self->converter(), num_converters / 2);
 
       for(size_t i = 0, k = 0; i < num_converters; k++, i += 2) {
         rb_econv_replacement_converters* repl_converter;
-        repl_converter = self->converter_->replacement_converters + k;
+        repl_converter = self->converter()->replacement_converters + k;
 
         // We can use force_as here since we know type has been checked above
         name = force_as<String>(self->replacement_converters()->get(state, i));
@@ -857,7 +857,7 @@ namespace rubinius {
 
         for(size_t j = 0; j < num_transcoders; j++) {
           Transcoding* transcoding = as<Transcoding>(trs->get(state, j));
-          rb_transcoder* tr = transcoding->get_transcoder();
+          rb_transcoder* tr = transcoding->transcoder();
 
           repl_converter->transcoders[j] = tr;
         }
@@ -877,14 +877,14 @@ namespace rubinius {
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
     unsigned char* buffer_end = buffer_ptr + byte_size;
 
-    rb_econv_result_t result = econv_convert(self->converter_, &source_ptr, source_end,
+    rb_econv_result_t result = econv_convert(self->converter(), &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);
 
     native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
 
     if(result == econv_destination_buffer_full && size->to_native() == -1) {
-      rb_econv_free(self->converter_);
-      self->set_converter(NULL);
+      rb_econv_free(self->converter());
+      self->converter(NULL);
 
       byte_size = byte_size < 2 ? 2 : byte_size * 2;
 
@@ -926,23 +926,23 @@ namespace rubinius {
   }
 
   LookupTable* Converter::last_error(STATE) {
-    if(!converter_) return nil<LookupTable>();
+    if(!converter()) return nil<LookupTable>();
 
     size_t read_again_length = 0;
     unsigned int codepoint = 0;
     bool codepoint_set = false;
 
-    switch(converter_->last_error.result) {
+    switch(converter()->last_error.result) {
     case econv_invalid_byte_sequence:
     case econv_incomplete_input:
-      read_again_length = converter_->last_error.readagain_len;
+      read_again_length = converter()->last_error.readagain_len;
       break;
     case econv_undefined_conversion:
-      if(strncmp(converter_->last_error.source_encoding, "UTF-8", 5) == 0) {
-        const uint8_t* p = (const uint8_t*)converter_->last_error.error_bytes_start;
-        size_t len = converter_->last_error.error_bytes_len;
+      if(strncmp(converter()->last_error.source_encoding, "UTF-8", 5) == 0) {
+        const uint8_t* p = (const uint8_t*)converter()->last_error.error_bytes_start;
+        size_t len = converter()->last_error.error_bytes_len;
         const uint8_t* e = p + len;
-        OnigEncodingType* utf8 = Encoding::utf8_encoding(state)->get_encoding();
+        OnigEncodingType* utf8 = Encoding::utf8_encoding(state)->encoding();
         int n = Encoding::precise_mbclen(p, e, utf8);
 
         if(ONIGENC_MBCLEN_CHARFOUND_P(n) &&
@@ -958,17 +958,17 @@ namespace rubinius {
 
     LookupTable* error = LookupTable::create(state);
 
-    Symbol* result = converter_result_symbol(state, converter_->last_error.result);
+    Symbol* result = converter_result_symbol(state, converter()->last_error.result);
     error->store(state, state->symbol("result"), result);
 
-    String* src_enc = String::create(state, converter_->last_error.source_encoding);
+    String* src_enc = String::create(state, converter()->last_error.source_encoding);
     error->store(state, state->symbol("source_encoding_name"), src_enc);
 
-    String* dst_enc = String::create(state, converter_->last_error.destination_encoding);
+    String* dst_enc = String::create(state, converter()->last_error.destination_encoding);
     error->store(state, state->symbol("destination_encoding_name"), dst_enc);
 
-    const char* error_start = (const char*)converter_->last_error.error_bytes_start;
-    size_t error_length = converter_->last_error.error_bytes_len;
+    const char* error_start = (const char*)converter()->last_error.error_bytes_start;
+    size_t error_length = converter()->last_error.error_bytes_len;
 
     String* error_bytes = String::create(state, error_start, error_length);
     error->store(state, state->symbol("error_bytes"), error_bytes);
@@ -990,31 +990,31 @@ namespace rubinius {
     Array* info = Array::create(state, 5);
     info->set(state, 4, cNil);
 
-    if(!converter_) {
+    if(!converter()) {
       info->set(state, 0, state->symbol("source_buffer_empty"));
       return info;
     }
 
-    Symbol* result = converter_result_symbol(state, converter_->last_error.result);
+    Symbol* result = converter_result_symbol(state, converter()->last_error.result);
     info->set(state, 0, result);
 
-    if(converter_->last_error.source_encoding) {
+    if(converter()->last_error.source_encoding) {
       info->set(state, 1,
-                String::create(state, converter_->last_error.source_encoding));
+                String::create(state, converter()->last_error.source_encoding));
     }
 
-    if(converter_->last_error.destination_encoding) {
+    if(converter()->last_error.destination_encoding) {
       info->set(state, 2,
-                String::create(state, converter_->last_error.destination_encoding));
+                String::create(state, converter()->last_error.destination_encoding));
     }
 
-    if(converter_->last_error.error_bytes_start) {
-      const char* error_start = (const char*)converter_->last_error.error_bytes_start;
-      size_t error_length = converter_->last_error.error_bytes_len;
+    if(converter()->last_error.error_bytes_start) {
+      const char* error_start = (const char*)converter()->last_error.error_bytes_start;
+      size_t error_length = converter()->last_error.error_bytes_len;
 
       info->set(state, 3, String::create(state, error_start, error_length));
       info->set(state, 4, String::create(state, error_start + error_length,
-                                         converter_->last_error.readagain_len));
+                                         converter()->last_error.readagain_len));
     }
 
     return info;
@@ -1026,17 +1026,17 @@ namespace rubinius {
 
     if(Fixnum* max_bytes = try_as<Fixnum>(maxbytes)) {
       n = max_bytes->to_native();
-      putbackable = rb_econv_putbackable(get_converter());
+      putbackable = rb_econv_putbackable(converter());
       if(putbackable < n) {
         n = putbackable;
       }
     } else {
-      n = rb_econv_putbackable(get_converter());
+      n = rb_econv_putbackable(converter());
     }
 
     ByteArray* ba = ByteArray::create(state, n);
 
-    rb_econv_putback(get_converter(), (unsigned char *)ba->raw_bytes(), n);
+    rb_econv_putback(converter(), (unsigned char *)ba->raw_bytes(), n);
 
     String* str = String::from_bytearray(state, ba, n);
     str->encoding(state, source_encoding());
@@ -1045,9 +1045,9 @@ namespace rubinius {
   }
 
   void Converter::finalize(STATE, Converter* converter) {
-    if(rb_econv_t* ec = converter->get_converter()) {
+    if(rb_econv_t* ec = converter->converter()) {
       rb_econv_free(ec);
-      converter->set_converter(NULL);
+      converter->converter(NULL);
     }
   }
 }

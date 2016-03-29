@@ -20,11 +20,11 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, ThreadState* obj) {
-      obj->current_exception_ = nil<Exception>();
-      obj->raise_value_ = nil<Object>();
-      obj->throw_dest_ = nil<Object>();
-      obj->raise_reason_ = nil<Fixnum>();
-      obj->destination_scope_ = nil<VariableScope>();
+      obj->current_exception(nil<Exception>());
+      obj->raise_value(nil<Object>());
+      obj->throw_dest(nil<Object>());
+      obj->raise_reason(nil<Fixnum>());
+      obj->destination_scope(nil<VariableScope>());
     }
 
     static ThreadState* create(STATE);

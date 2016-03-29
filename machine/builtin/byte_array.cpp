@@ -30,7 +30,7 @@ namespace rubinius {
 
     ByteArray* ba =
       state->memory()->new_bytes<ByteArray>(state, G(bytearray), bytes);
-    memset(ba->bytes, 0, ba->full_size_ - bytes_offset);
+    memset(ba->bytes, 0, ba->full_size() - bytes_offset);
 
     return ba;
   }
@@ -44,7 +44,7 @@ namespace rubinius {
 
     ByteArray* ba =
       state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), bytes);
-    memset(ba->bytes, 0, ba->full_size_ - bytes_offset);
+    memset(ba->bytes, 0, ba->full_size() - bytes_offset);
 
     return ba;
   }
@@ -216,7 +216,7 @@ namespace rubinius {
     const ByteArray *ba = static_cast<const ByteArray*>(obj);
     assert(ba);
 
-    return ba->full_size_;
+    return ba->full_size();
   }
 
   void ByteArray::Info::mark(Object* t, memory::ObjectMark& mark) {

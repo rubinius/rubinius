@@ -21,10 +21,10 @@ namespace rubinius {
     attr_accessor(next, ConstantTableBucket);
 
     static void initialize(STATE, ConstantTableBucket* obj) {
-      obj->name_ = nil<Symbol>();
-      obj->constant_ = nil<Object>();
-      obj->visibility_ = nil<Symbol>();
-      obj->next_ = nil<ConstantTableBucket>();
+      obj->name(nil<Symbol>());
+      obj->constant(nil<Object>());
+      obj->visibility(nil<Symbol>());
+      obj->next(nil<ConstantTableBucket>());
     }
 
     static ConstantTableBucket* create(STATE, Symbol* name,
@@ -60,9 +60,9 @@ namespace rubinius {
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, ConstantTable* obj) {
-      obj->values_ = nil<Tuple>();
-      obj->bins_ = Fixnum::from(0);
-      obj->entries_ = Fixnum::from(0);
+      obj->values(nil<Tuple>());
+      obj->bins(Fixnum::from(0));
+      obj->entries(Fixnum::from(0));
       obj->lock_.init();
     }
 
@@ -79,7 +79,7 @@ namespace rubinius {
     ConstantTable* duplicate(STATE);
 
     // Rubinius.primitive :constant_table_values
-    Tuple* values(STATE);
+    Tuple* table_values(STATE);
 
     ConstantTableBucket* find_entry(STATE, Symbol* name);
 

@@ -23,18 +23,18 @@ namespace rubinius {
     attr_accessor(block_env, BlockEnvironment);
 
   private:
-    utilities::thread::Condition* waiter_;
-    int hits_;
-    bool is_block_;
+    attr_field(waiter, utilities::thread::Condition*);
+    attr_field(hits, int);
+    attr_field(is_block, bool);
 
   public:
     static void initialize(STATE, JITCompileRequest* obj) {
-      obj->method_ = nil<CompiledCode>();
-      obj->receiver_class_ = nil<Class>();
-      obj->block_env_ = nil<BlockEnvironment>();
-      obj->waiter_ = NULL;
-      obj->hits_ = 0;
-      obj->is_block_ = false;
+      obj->method(nil<CompiledCode>());
+      obj->receiver_class(nil<Class>());
+      obj->block_env(nil<BlockEnvironment>());
+      obj->waiter(NULL);
+      obj->hits(0);
+      obj->is_block(false);
     }
 
     static JITCompileRequest* create(STATE, CompiledCode* code, Class* receiver_class,
@@ -42,22 +42,6 @@ namespace rubinius {
 
     MachineCode* machine_code() {
       return method()->machine_code();
-    }
-
-    bool is_block() {
-      return is_block_;
-    }
-
-    int hits() {
-      return hits_;
-    }
-
-    void set_waiter(utilities::thread::Condition* cond) {
-      waiter_ = cond;
-    }
-
-    utilities::thread::Condition* waiter() {
-      return waiter_;
     }
 
     class Info : public TypeInfo {
@@ -78,11 +62,11 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, JIT* obj) {
-      obj->compile_class_ = nil<Class>();
-      obj->compile_list_ = nil<List>();
-      obj->available_ = nil<Object>();
-      obj->enabled_ = nil<Object>();
-      obj->properties_ = nil<Array>();
+      obj->compile_class(nil<Class>());
+      obj->compile_list(nil<List>());
+      obj->available(nil<Object>());
+      obj->enabled(nil<Object>());
+      obj->properties(nil<Array>());
     }
 
     static void initialize(STATE, JIT* obj, Module* under, const char* name);

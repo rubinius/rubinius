@@ -449,7 +449,7 @@ namespace rubinius {
         0, block_env, is_block);
 
     wait_mutex.lock();
-    req->set_waiter(&wait_cond);
+    req->waiter(&wait_cond);
 
     add(state, req);
 
@@ -499,7 +499,7 @@ namespace rubinius {
     if(wait) {
       wait_mutex.lock();
 
-      req->set_waiter(&wait_cond);
+      req->waiter(&wait_cond);
 
       add(state, req);
       bool req_block = req->is_block();

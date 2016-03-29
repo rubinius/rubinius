@@ -33,32 +33,32 @@ namespace rubinius {
   }
 
   NativeMethodFrame::NativeMethodFrame(NativeMethodEnvironment* env, NativeMethodFrame* prev, NativeMethod* method)
-    : previous_(prev)
-    , env_(env)
-    , capi_lock_index_(method ? method->capi_lock_index() : 0)
-    , check_handles_(false)
-    , block_(Qnil)
-    , receiver_(Qnil)
-    , module_(Qnil)
-    , method_(Qnil)
+    : _previous_(prev)
+    , _env_(env)
+    , _capi_lock_index_(method ? method->capi_lock_index() : 0)
+    , _check_handles_(false)
+    , _block_(Qnil)
+    , _receiver_(Qnil)
+    , _module_(Qnil)
+    , _method_(Qnil)
   {}
 
   NativeMethodFrame::~NativeMethodFrame() {
     flush_cached_data();
-    handles_.deref_all();
+    handles().deref_all();
   }
 
   void NativeMethodFrame::check_tracked_handle(capi::Handle* handle,
                                                bool need_update)
   {
     if(need_update) {
-      check_handles_ = true;
+      check_handles(true);
     }
 
-    if(handles_.add_if_absent(handle)) {
+    if(handles().add_if_absent(handle)) {
       // We're seeing this object for the first time in this function.
       // Be sure that it's updated.
-      handle->update(env_);
+      handle->update(env());
     }
   }
 
@@ -67,14 +67,14 @@ namespace rubinius {
     capi::Handle* handle = obj->handle(state);
 
     if(handle) {
-      if(handles_.add_if_absent(handle)) {
+      if(handles().add_if_absent(handle)) {
         // We're seeing this object for the first time in this function.
         // Be sure that it's updated.
-        handle->update(env_);
+        handle->update(env());
       }
     } else {
       handle = state->memory()->add_capi_handle(state, obj);
-      handles_.add_if_absent(handle);
+      handles().add_if_absent(handle);
     }
 
     if(!handle->valid_p()) {
@@ -90,33 +90,33 @@ namespace rubinius {
   }
 
   void NativeMethodFrame::flush_cached_data() {
-    if(check_handles_) {
-      handles_.flush_all(env_);
+    if(check_handles()) {
+      handles().flush_all(env());
     }
 
-    if(env_->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env_->state()->memory()->cached_capi_handles();
+    if(env()->state()->shared().config.capi_global_flush) {
+      std::list<capi::Handle*>* handles = env()->state()->memory()->cached_capi_handles();
 
       for(std::list<capi::Handle*>::iterator i = handles->begin();
           i != handles->end();
           ++i) {
-        (*i)->flush(env_);
+        (*i)->flush(env());
       }
     }
   }
 
   void NativeMethodFrame::update_cached_data() {
-    if(check_handles_) {
-      handles_.update_all(env_);
+    if(check_handles()) {
+      handles().update_all(env());
     }
 
-    if(env_->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env_->state()->memory()->cached_capi_handles();
+    if(env()->state()->shared().config.capi_global_flush) {
+      std::list<capi::Handle*>* handles = env()->state()->memory()->cached_capi_handles();
 
       for(std::list<capi::Handle*>::iterator i = handles->begin();
           i != handles->end();
           ++i) {
-        (*i)->update(env_);
+        (*i)->update(env());
       }
     }
   }
@@ -127,7 +127,7 @@ namespace rubinius {
         rubinius::bug("Unable to create handles with no NMF");
       }
 
-      return current_native_frame_->get_handle(&state_, obj);
+      return current_native_frame()->get_handle(&state_, obj);
     } else if(obj->fixnum_p() || obj->symbol_p()) {
       return reinterpret_cast<VALUE>(obj);
     } else if(obj->nil_p()) {
@@ -146,7 +146,7 @@ namespace rubinius {
 
   Object* NativeMethodEnvironment::block() {
     if(!current_native_frame_) return cNil;
-    return get_object(current_native_frame_->block());
+    return get_object(current_native_frame()->block());
   }
 
   capi::HandleSet& NativeMethodEnvironment::handles() {
@@ -154,24 +154,24 @@ namespace rubinius {
       rubinius::bug("Requested handles with no frame");
     }
 
-    return current_native_frame_->handles();
+    return current_native_frame()->handles();
   }
 
   void NativeMethodEnvironment::flush_cached_data() {
     if(!current_native_frame_) return;
-    current_native_frame_->flush_cached_data();
+    current_native_frame()->flush_cached_data();
   }
 
   void NativeMethodEnvironment::check_tracked_handle(capi::Handle* hdl,
                                                      bool need_update)
   {
     if(!current_native_frame_) return;
-    current_native_frame_->check_tracked_handle(hdl, need_update);
+    current_native_frame()->check_tracked_handle(hdl, need_update);
   }
 
   void NativeMethodEnvironment::update_cached_data() {
     if(!current_native_frame_) return;
-    current_native_frame_->update_cached_data();
+    current_native_frame()->update_cached_data();
   }
 
   StackVariables* NativeMethodEnvironment::scope() {
@@ -192,12 +192,12 @@ namespace rubinius {
   void NativeMethod::initialize(STATE, NativeMethod* obj) {
     Executable::initialize(state, obj);
 
-    obj->arity_ = nil<Fixnum>();
-    obj->file_ = nil<String>();
-    obj->name_ = nil<Symbol>();
-    obj->module_ = nil<Module>();
+    obj->arity(nil<Fixnum>());
+    obj->file(nil<String>());
+    obj->name(nil<Symbol>());
+    obj->module(nil<Module>());
     obj->func_ = NULL;
-    obj->capi_lock_index_ = 0;
+    obj->capi_lock_index(0);
   }
 
   void NativeMethod::init_thread(STATE) {
@@ -564,7 +564,7 @@ namespace rubinius {
 
         Object* ob = nm->get_ivar(state, state->symbol("original_block"));
         if(!ob->nil_p()) {
-          env->current_native_frame()->set_block(env->get_handle(ob));
+          env->current_native_frame()->block(env->get_handle(ob));
         }
 
         VALUE val;
@@ -764,16 +764,16 @@ namespace rubinius {
       String* library, Symbol* name, Pointer* ptr) {
     void* func = ptr->pointer;
 
-    int capi_lock_index = state->shared().capi_lock_index(name->debug_str(state));
+    int lock_index = state->shared().capi_lock_index(name->debug_str(state));
 
     return NativeMethod::create(state, library, G(rubinius),
                                 name, func,
                                 Fixnum::from(INIT_FUNCTION),
-                                capi_lock_index);
+                                lock_index);
   }
 
   NativeMethod* NativeMethod::create(State* state, String* file_name, Module* module,
-      Symbol* method_name, void* func, Fixnum* arity, int capi_lock_index)
+      Symbol* method_name, void* func, Fixnum* arity, int lock_index)
   {
     NativeMethod* nmethod =
       state->memory()->new_object<NativeMethod>(state, G(nmethod));
@@ -808,7 +808,7 @@ namespace rubinius {
     }
 
     nmethod->primitive(state, state->symbol("nativemethod_call"));
-    nmethod->capi_lock_index_ = capi_lock_index;
+    nmethod->capi_lock_index(lock_index);
 
     return nmethod;
   }

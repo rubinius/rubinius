@@ -48,41 +48,38 @@ namespace rubinius {
     utilities::thread::Condition join_cond_;
 
     /// The VM state for this thread and this thread alone
-    VM* vm_;
+    attr_field(vm, VM*);
 
     typedef Object* (*ThreadFunction)(STATE);
 
-    ThreadFunction function_;
+    attr_field(function, ThreadFunction);
 
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, Thread* obj) {
-      obj->args_ = nil<Array>();
-      obj->block_ = cNil;
-      obj->alive_ = cTrue;
-      obj->sleep_ = cFalse;
-      obj->control_channel_ = nil<Channel>();
+      obj->args(nil<Array>());
+      obj->block(cNil);
+      obj->alive(cTrue);
+      obj->sleep(cFalse);
+      obj->control_channel(nil<Channel>());
       obj->recursive_objects(state, LookupTable::create(state));
-      obj->debugger_thread_ = nil<Thread>();
-      obj->thread_id_ = nil<Fixnum>();
-      obj->randomizer_ = nil<Randomizer>();
+      obj->debugger_thread(nil<Thread>());
+      obj->thread_id(nil<Fixnum>());
+      obj->randomizer(nil<Randomizer>());
       obj->locals(state, LookupTable::create(state));
-      obj->group_ = cNil;
-      obj->value_ = cNil;
-      obj->exception_ = nil<Exception>();
-      obj->critical_ = cFalse;
-      obj->priority_ = Fixnum::from(0);
-      obj->pid_ = Fixnum::from(0);
-      obj->initialized_ = cFalse;
+      obj->group(cNil);
+      obj->value(cNil);
+      obj->exception(nil<Exception>());
+      obj->critical(cFalse);
+      obj->priority(Fixnum::from(0));
+      obj->pid(Fixnum::from(0));
+      obj->initialized(cFalse);
+
       obj->init_lock_.init();
       obj->join_lock_.init();
       obj->join_cond_.init();
-      obj->vm_ = 0;
-    }
 
-  public:
-    VM* vm() const {
-      return vm_;
+      obj->vm(0);
     }
 
   public:

@@ -894,7 +894,7 @@ namespace rubinius {
 
     if(!rd || original->jit_data() == rd) {
       unspecialized = 0;
-      original->set_jit_data(0);
+      original->jit_data(0);
     }
 
     if(original->jit_data()) still_others = true;

@@ -44,31 +44,14 @@ namespace rubinius {
     attr_accessor(breakpoints, LookupTable);
 
   private:
-    MachineCode* machine_code_;
+    attr_field(machine_code, MachineCode*);
 
 #ifdef ENABLE_LLVM
-    jit::RuntimeDataHolder* jit_data_;
+    attr_field(jit_data, jit::RuntimeDataHolder*);
 #endif
 
   public:
-    // Access directly from assembly, so has to be public.
-    Tuple* literals_;           // slot
-
-    attr_field(literals, Tuple)
-
-    MachineCode* machine_code() {
-      return machine_code_;
-    }
-
-#ifdef ENABLE_LLVM
-    jit::RuntimeDataHolder* jit_data() {
-      return jit_data_;
-    }
-
-    void set_jit_data(jit::RuntimeDataHolder* rds) {
-      jit_data_ = rds;
-    }
-#endif
+    attr_accessor(literals, Tuple)
 
     bool can_specialize_p();
     void set_unspecialized(executor exec, jit::RuntimeDataHolder* rd);
@@ -81,29 +64,29 @@ namespace rubinius {
     static void initialize(STATE, CompiledCode* obj) {
       Executable::initialize(state, obj, CompiledCode::default_executor);
 
-      obj-> metadata_ = nil<Object>();
-      obj-> name_ = nil<Symbol>();
-      obj-> iseq_ = nil<InstructionSequence>();
-      obj-> stack_size_ = nil<Fixnum>();
-      obj-> local_count_ = Fixnum::from(0);
-      obj-> required_args_ = nil<Fixnum>();
-      obj-> post_args_ = nil<Fixnum>();
-      obj-> total_args_ = nil<Fixnum>();
-      obj-> splat_ = nil<Fixnum>();
-      obj-> lines_ = nil<Tuple>();
-      obj-> local_names_ = nil<Tuple>();
-      obj-> file_ = nil<Symbol>();
-      obj-> scope_ = nil<ConstantScope>();
-      obj-> keywords_ = nil<Tuple>();
-      obj-> arity_ = nil<Fixnum>();
-      obj-> breakpoints_ = nil<LookupTable>();
-      obj-> machine_code_ = NULL;
+      obj-> metadata(nil<Object>());
+      obj-> name(nil<Symbol>());
+      obj-> iseq(nil<InstructionSequence>());
+      obj-> stack_size(nil<Fixnum>());
+      obj-> local_count(Fixnum::from(0));
+      obj-> required_args(nil<Fixnum>());
+      obj-> post_args(nil<Fixnum>());
+      obj-> total_args(nil<Fixnum>());
+      obj-> splat(nil<Fixnum>());
+      obj-> lines(nil<Tuple>());
+      obj-> local_names(nil<Tuple>());
+      obj-> file(nil<Symbol>());
+      obj-> scope(nil<ConstantScope>());
+      obj-> keywords(nil<Tuple>());
+      obj-> arity(nil<Fixnum>());
+      obj-> breakpoints(nil<LookupTable>());
+      obj-> machine_code(NULL);
 
 #ifdef ENABLE_LLVM
-      obj->jit_data_ = NULL;
+      obj->jit_data(NULL);
 #endif
 
-      obj->literals_ = nil<Tuple>();
+      obj->literals(nil<Tuple>());
     }
 
     static CompiledCode* create(STATE);

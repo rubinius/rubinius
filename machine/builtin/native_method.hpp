@@ -157,27 +157,27 @@ namespace rubinius {
   class NativeMethodFrame {
     /** the last NativeMethodFrame used up the stack.
      *  @note This is rarely the direct caller. */
-    NativeMethodFrame* previous_;
+    attr_field(previous, NativeMethodFrame*);
 
-    NativeMethodEnvironment* env_;
+    attr_field(env, NativeMethodEnvironment*);
 
     /** HandleSet to Objects used in this Frame. */
-    capi::HandleSet handles_;
+    attr_field(handles, capi::HandleSet);
 
-    int capi_lock_index_;
-    bool check_handles_;
+    attr_field(capi_lock_index, int);
+    attr_field(check_handles, bool);
 
     /** Handle for the block passed in **/
-    VALUE block_;
+    attr_field(block, VALUE);
 
     /** Handle for receiver **/
-    VALUE receiver_;
+    attr_field(receiver, VALUE);
 
     /** Handle for module method came from **/
-    VALUE module_;
+    attr_field(module, VALUE);
 
     /** Handle for method being invoked **/
-    VALUE method_;
+    attr_field(method, VALUE);
 
   public:
     NativeMethodFrame(NativeMethodEnvironment* env, NativeMethodFrame* prev, NativeMethod* method);
@@ -204,49 +204,19 @@ namespace rubinius {
     /** Updates cached data with changes to the Ruby objects. */
     void update_cached_data();
 
-    int capi_lock_index() const {
-      return capi_lock_index_;
-    }
-
   public:     /* Accessors */
 
     /** HandleSet to Objects used in this Frame. */
     capi::HandleSet& handles() {
-      return handles_;
+      return _handles_;
     }
 
-    /** Native Frame active before this call. */
-    NativeMethodFrame* previous() const {
-      return previous_;
+    void setup(VALUE recv, VALUE blk, VALUE meth, VALUE mod) {
+      receiver(recv);
+      method(meth);
+      block(blk);
+      module(mod);
     }
-
-    void setup(VALUE recv, VALUE block, VALUE method, VALUE module) {
-      receiver_ = recv;
-      method_ = method;
-      block_ = block;
-      module_ = module;
-    }
-
-    VALUE block() const {
-      return block_;
-    }
-
-    void set_block(VALUE blk) {
-      block_ = blk;
-    }
-
-    VALUE receiver() const {
-      return receiver_;
-    }
-
-    VALUE method() const {
-      return method_;
-    }
-
-    VALUE module() const {
-      return module_;
-    }
-
   };
 
 
@@ -304,15 +274,9 @@ namespace rubinius {
   private:
     /** Function object that implements this method. */
     void* func_;
-    int capi_lock_index_;
+    attr_field(capi_lock_index, int);
 
   public:
-    /** Arity of the method within. @see Arity. */
-    int capi_lock_index() const {
-      return capi_lock_index_;
-    }
-
-    /** Statically held object type. */
     const static object_type type = NativeMethodType;
 
     /** Set class up in the VM. @see machine/ontology.cpp. */

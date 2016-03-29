@@ -15,11 +15,11 @@ namespace rubinius {
   }
 
   Integer* MonoInlineCache::hits_prim(STATE) {
-    return Integer::from(state, hits_);
+    return Integer::from(state, hits());
   }
 
   Symbol* MonoInlineCache::method_missing_prim(STATE) {
-    switch(method_missing_) {
+    switch(method_missing()) {
     case eNone:
       return state->symbol("none");
     case ePrivate:
@@ -44,19 +44,19 @@ namespace rubinius {
     cache->executable(state, call_site->executable());
     cache->ip(call_site->ip());
     if(dis.method_missing == eNone) {
-      cache->executor_ = check_cache;
+      cache->executor(check_cache);
     } else {
-      cache->executor_ = check_cache_mm;
+      cache->executor(check_cache_mm);
     }
-    cache->fallback_ = call_site->fallback_;
-    cache->updater_  = mono_cache_updater;
+    cache->fallback(call_site->fallback());
+    cache->updater(mono_cache_updater);
 
-    cache->receiver_ = klass->data();
+    cache->receiver_data(klass->class_data());
     cache->receiver_class(state, klass);
     cache->stored_module(state, dis.module);
     cache->method(state, dis.method);
-    cache->method_missing_ = dis.method_missing;
-    cache->hits_ = 1;
+    cache->method_missing(dis.method_missing);
+    cache->hits(1);
 
     return cache;
   }
@@ -69,10 +69,10 @@ namespace rubinius {
 
     uint64_t recv_data = recv_class->data_raw();
 
-    if(likely(cache->receiver_.raw == recv_data)) {
-      cache->hits_++;
+    if(likely(cache->receiver_data().raw == recv_data)) {
+      cache->hit();
       state->vm()->metrics().machine.methods_invoked++;
-      return cache->method_->execute(state, cache->method_, cache->stored_module_, args);
+      return cache->method()->execute(state, cache->method(), cache->stored_module(), args);
     }
 
     return call_site->fallback(state, args);
@@ -86,12 +86,12 @@ namespace rubinius {
 
     uint64_t recv_data = recv_class->data_raw();
 
-    if(likely(cache->receiver_.raw == recv_data)) {
-      cache->hits_++;
+    if(likely(cache->receiver_data().raw == recv_data)) {
+      cache->hit();
       state->vm()->metrics().machine.methods_invoked++;
-      state->vm()->set_method_missing_reason(cache->method_missing_);
+      state->vm()->set_method_missing_reason(cache->method_missing());
       args.unshift(state, call_site->name());
-      return cache->method_->execute(state, cache->method_, cache->stored_module_, args);
+      return cache->method()->execute(state, cache->method(), cache->stored_module(), args);
     }
 
     return call_site->fallback(state, args);
@@ -103,11 +103,11 @@ namespace rubinius {
     // If it's the same class, replace it since the old cache is
     // for an older version of the same class and we don't
     // want to go polymorphic in that case.
-    if(klass == mono_cache->receiver_class_) {
+    if(klass == mono_cache->receiver_class()) {
       CallSite::empty_cache_updater(state, call_site, klass, dispatch);
     } else {
       PolyInlineCache* poly_cache = PolyInlineCache::create(state, mono_cache);
-      InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(),
+      InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->class_data(),
                                                          klass, dispatch, 1);
 
       poly_cache->set_cache(state, entry);

@@ -15,23 +15,18 @@ namespace rubinius {
     attr_accessor(call_unit, CallUnit);
 
   private:
-    int hits_;
+    attr_field(hits, int);
 
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, CallCustomCache* obj) {
       CallSite::initialize(state, obj);
 
-      obj->call_unit_ = nil<CallUnit>();
-      obj->hits_ = 0;
+      obj->call_unit(nil<CallUnit>());
+      obj->hits(0);
     }
 
     static CallCustomCache* create(STATE, CallSite* call_site, CallUnit* call_unit);
-
-    int hits() {
-      return hits_;
-    }
-
     static CacheExecuteFunc check_cache;
 
   public: // Rubinius Type stuff

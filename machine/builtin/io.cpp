@@ -380,7 +380,7 @@ namespace rubinius {
   }
 
   Object* IO::ensure_open(STATE) {
-    if(descriptor_->nil_p()) {
+    if(descriptor()->nil_p()) {
       Exception::raise_io_error(state, "uninitialized stream");
     }
     else if(to_fd() == -1) {
@@ -558,7 +558,7 @@ namespace rubinius {
   }
 
   native_int IO::to_fd() {
-    return descriptor_->to_native();
+    return descriptor()->to_native();
   }
 
   void IO::set_mode(STATE) {
@@ -574,12 +574,12 @@ namespace rubinius {
   }
 
   void IO::force_read_only(STATE) {
-    int m = mode_->to_native();
+    int m = mode()->to_native();
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_RDONLY));
   }
 
   void IO::force_write_only(STATE) {
-    int m = mode_->to_native();
+    int m = mode()->to_native();
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_WRONLY));
   }
 
@@ -636,7 +636,7 @@ namespace rubinius {
         }
       }
 
-      if(!io->autoclose_->false_p()) {
+      if(!io->autoclose()->false_p()) {
         ::close(fd);
       }
     }
@@ -826,7 +826,7 @@ namespace rubinius {
     }
 
     // We can use byte_address() here since we use an explicit size
-    int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
+    int n = ::write(descriptor()->to_native(), buf->byte_address(), buf_size);
     if(n == -1) Exception::raise_errno_wait_writable(state, errno);
 
     state->vm()->metrics().system.write_bytes += n;
@@ -1344,7 +1344,7 @@ failed: /* try next '*' position */
 
   void IO::set_nonblock(STATE) {
 #ifdef F_GETFL
-    int flags = fcntl(descriptor_->to_native(), F_GETFL);
+    int flags = fcntl(descriptor()->to_native(), F_GETFL);
     if(flags == -1) Exception::raise_errno_error(state, "fcntl(2) failed");
 #else
     int flags = 0;
@@ -1352,7 +1352,7 @@ failed: /* try next '*' position */
 
     if((flags & O_NONBLOCK) == 0) {
       flags |= O_NONBLOCK;
-      flags = fcntl(descriptor_->to_native(), F_SETFL, flags);
+      flags = fcntl(descriptor()->to_native(), F_SETFL, flags);
       if(flags == -1) Exception::raise_errno_error(state, "fcntl(2) failed");
     }
   }
@@ -1383,14 +1383,14 @@ failed: /* try next '*' position */
       str_size = data_size;
     }
     native_int total_sz = str_size - start_pos_native;
-    native_int used_native = used_->to_native();
-    native_int available_space = total_->to_native() - used_native;
+    native_int used_native = used()->to_native();
+    native_int available_space = total()->to_native() - used_native;
 
     if(total_sz > available_space) {
       total_sz = available_space;
     }
 
-    memcpy(storage_->raw_bytes() + used_native, str->byte_address() + start_pos_native, total_sz);
+    memcpy(storage()->raw_bytes() + used_native, str->byte_address() + start_pos_native, total_sz);
     used(state, Fixnum::from(used_native + total_sz));
 
     return Fixnum::from(total_sz);
@@ -1460,20 +1460,20 @@ failed: /* try next '*' position */
   }
 
   void IOBuffer::read_bytes(STATE, size_t bytes) {
-    used(state, Fixnum::from(used_->to_native() + bytes));
+    used(state, Fixnum::from(used()->to_native() + bytes));
   }
 
   char* IOBuffer::byte_address() {
-    return (char*)storage_->raw_bytes();
+    return (char*)storage()->raw_bytes();
   }
 
   size_t IOBuffer::left() {
-    return total_->to_native() - used_->to_native();
+    return total()->to_native() - used()->to_native();
   }
 
   char* IOBuffer::at_unused() {
-    char* start = (char*)storage_->raw_bytes();
-    start += used_->to_native();
+    char* start = (char*)storage()->raw_bytes();
+    start += used()->to_native();
     return start;
   }
 };

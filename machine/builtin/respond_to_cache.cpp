@@ -30,11 +30,11 @@ namespace rubinius {
     cache->responds(state, res);
 
     cache->ip(fallback->ip());
-    cache->executor_ = check_cache;
-    cache->fallback_ = check_cache;
-    cache->updater_ = NULL;
-    cache->hits_ = hits;
-    cache->set_receiver_data(recv_class->data_raw());
+    cache->executor(check_cache);
+    cache->fallback(check_cache);
+    cache->updater(NULL);
+    cache->hits(hits);
+    cache->receiver_data(recv_class->class_data());
 
     return cache;
   }
@@ -52,17 +52,19 @@ namespace rubinius {
       }
 
       uint64_t recv_data = recv_class->data_raw();
-      if(likely(recv_data == cache->receiver_data_raw() && message == cache->message_ && visibility == cache->visibility_)) {
+      if(likely(recv_data == cache->receiver_data_raw()
+            && message == cache->message()
+            && visibility == cache->visibility())) {
         cache->hit();
-        return cache->responds_;
+        return cache->responds();
       }
     }
 
-    return cache->fallback_call_site_->execute(state, args);
+    return cache->fallback_call_site()->execute(state, args);
   }
 
   Integer* RespondToCache::hits_prim(STATE) {
-    return Integer::from(state, hits_);
+    return Integer::from(state, hits());
   }
 
   void RespondToCache::Info::mark(Object* obj, memory::ObjectMark& mark) {

@@ -21,7 +21,7 @@ namespace rubinius {
     static void initialize(STATE, BlockAsMethod* obj) {
       Executable::initialize(state, obj);
 
-      obj->block_env_ = nil<BlockEnvironment>();
+      obj->block_env(nil<BlockEnvironment>());
     }
 
     // Rubinius.primitive :block_as_method_create

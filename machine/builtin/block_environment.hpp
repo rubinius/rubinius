@@ -56,11 +56,11 @@ namespace rubinius {
     static void bootstrap_methods(STATE);
 
     static void initialize(STATE, BlockEnvironment* obj) {
-      obj->scope_ = nil<VariableScope>();
-      obj->top_scope_ = nil<VariableScope>();
-      obj->compiled_code_ = nil<CompiledCode>();
-      obj->constant_scope_ = nil<ConstantScope>();
-      obj->module_ = nil<Module>();
+      obj->scope(nil<VariableScope>());
+      obj->top_scope(nil<VariableScope>());
+      obj->compiled_code(nil<CompiledCode>());
+      obj->constant_scope(nil<ConstantScope>());
+      obj->module(nil<Module>());
     }
 
     // Rubinius.primitive :blockenvironment_allocate

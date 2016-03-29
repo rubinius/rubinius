@@ -9,6 +9,7 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
+#include "oop.hpp"
 
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
@@ -56,14 +57,14 @@ namespace rubinius {
 
     template <class T>
       void num_bytes(T state, Fixnum* obj) {
-        num_bytes_ = obj;
-        num_chars_ = nil<Fixnum>();
+        num_bytes(obj);
+        num_chars(nil<Fixnum>());
         update_handle(state);
       }
 
     template <class T>
       void data(T state, ByteArray* obj) {
-        data_ = obj;
+        data(obj);
         state->memory()->write_barrier(this, obj);
 
         update_handle(state);
@@ -71,17 +72,17 @@ namespace rubinius {
 
     template <class T>
       void encoding(T state, Encoding* obj) {
-        if(obj->nil_p() || (!CBOOL(ascii_only_) && obj->ascii_compatible())) {
-          ascii_only_ = cNil;
-          num_chars_ = nil<Fixnum>();
-          valid_encoding_ = cNil;
+        if(obj->nil_p() || (!CBOOL(ascii_only()) && obj->ascii_compatible())) {
+          ascii_only(cNil);
+          num_chars(nil<Fixnum>());
+          valid_encoding(cNil);
         }
         if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
-          ascii_only_ = cTrue;
-          num_chars_ = Fixnum::from(0);
-          valid_encoding_ = cTrue;
+          ascii_only(cTrue);
+          num_chars(Fixnum::from(0));
+          valid_encoding(cTrue);
         }
-        encoding_ = obj;
+        encoding(obj);
         state->memory()->write_barrier(this, obj);
       }
 
@@ -90,14 +91,14 @@ namespace rubinius {
     static void init_hash();
     static void bootstrap(STATE);
     static void initialize(STATE, String* string) {
-      string-> num_bytes_ = nil<Fixnum>();
-      string-> num_chars_ = nil<Fixnum>();
-      string-> data_ = nil<ByteArray>();
-      string-> hash_value_ = nil<Fixnum>();
-      string-> shared_ = cFalse;
-      string-> encoding_ = nil<Encoding>();
-      string-> ascii_only_ = nil<Object>();
-      string-> valid_encoding_ = nil<Object>();
+      string->num_bytes(nil<Fixnum>());
+      string->num_chars(nil<Fixnum>());
+      string->data(nil<ByteArray>());
+      string->hash_value(nil<Fixnum>());
+      string->shared(cFalse);
+      string->encoding(nil<Encoding>());
+      string->ascii_only(nil<Object>());
+      string->valid_encoding(nil<Object>());
     }
 
     // Rubinius.primitive+ :string_allocate
@@ -121,7 +122,7 @@ namespace rubinius {
 
     // Rubinius.primitive+ :string_equal
     Object* equal(STATE, String* other) {
-      if(encoding_ != other->encoding() &&
+      if(encoding() != other->encoding() &&
          Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
@@ -138,7 +139,7 @@ namespace rubinius {
 
     // Returns the number of bytes this String contains
     native_int byte_size() const {
-      return num_bytes_->to_native();
+      return num_bytes()->to_native();
     }
 
     native_int char_size(STATE);
@@ -151,7 +152,7 @@ namespace rubinius {
     //
     // NOTE: do not free() or realloc() this buffer.
     uint8_t* byte_address() const {
-      return data_->raw_bytes();
+      return data()->raw_bytes();
     }
 
     // Use this version if you want to use this String as a null
@@ -181,7 +182,7 @@ namespace rubinius {
 
     // Rubinius.primitive :string_dup
     String* string_dup(STATE) {
-      if(likely(klass_ == G(string) && ivars_->nil_p())) {
+      if(likely(klass() == G(string) && ivars()->nil_p())) {
         /* We have a plain string with no metaclass or ivars, so if we can
          * allocate a new object in the young space, we can copy it directly
          * without needing a write barrier.
@@ -199,18 +200,18 @@ namespace rubinius {
     }
 
     void encoding_from(STATE, String* other) {
-      encoding_ = other->encoding();
-      state->memory()->write_barrier(this, encoding_);
+      encoding(other->encoding());
+      state->memory()->write_barrier(this, encoding());
 
       if(other->ascii_only()->true_p()) {
-        ascii_only_ = cTrue;
+        ascii_only(cTrue);
       } else {
-        ascii_only_ = cNil;
+        ascii_only(cNil);
       }
       if(other->valid_encoding()->true_p()) {
-        valid_encoding_ = cTrue;
+        valid_encoding(cTrue);
       } else {
-        valid_encoding_ = cNil;
+        valid_encoding(cNil);
       }
     }
 

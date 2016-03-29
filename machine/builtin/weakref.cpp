@@ -20,12 +20,12 @@ namespace rubinius {
   }
 
   void WeakRef::set_object(Memory* om, Object* obj) {
-    object_ = obj;
+    object(obj);
     om->write_barrier(this, obj);
   }
 
   Object* WeakRef::set_object(STATE, Object* obj) {
-    object_ = obj;
+    object(obj);
     state->memory()->write_barrier(this, obj);
     return obj;
   }

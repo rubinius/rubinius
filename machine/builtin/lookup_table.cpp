@@ -57,13 +57,13 @@ namespace rubinius {
     size_t size, i;
     LookupTable *dup;
 
-    size = bins_->to_native();
+    size = bins()->to_native();
     dup = LookupTable::create(state, size);
 
     // Allow for subclassing.
     dup->klass(state, class_object(state));
 
-    size_t num = entries_->to_native();
+    size_t num = entries()->to_native();
 
     Array* entries = all_entries(state);
     for(i = 0; i < num; i++) {
@@ -74,11 +74,11 @@ namespace rubinius {
   }
 
   void LookupTable::redistribute(STATE, size_t size) {
-    size_t num = bins_->to_native();
+    size_t num = bins()->to_native();
     Tuple* new_values = Tuple::create(state, size);
 
     for(size_t i = 0; i < num; i++) {
-      LookupTableBucket* entry = try_as<LookupTableBucket>(values_->at(state, i));
+      LookupTableBucket* entry = try_as<LookupTableBucket>(values()->at(state, i));
 
       while(entry) {
         LookupTableBucket* link = try_as<LookupTableBucket>(entry->next());
@@ -106,8 +106,8 @@ namespace rubinius {
     LookupTableBucket* entry;
     LookupTableBucket* last = NULL;
 
-    num_entries = entries_->to_native();
-    num_bins = bins_->to_native();
+    num_entries = entries()->to_native();
+    num_bins = bins()->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
@@ -115,7 +115,7 @@ namespace rubinius {
 
     key_to_sym(key);
     bin = find_bin(key_hash(key), num_bins);
-    entry = try_as<LookupTableBucket>(values_->at(state, bin));
+    entry = try_as<LookupTableBucket>(values()->at(state, bin));
 
     while(entry) {
       if(entry->key() == key) {
@@ -129,7 +129,7 @@ namespace rubinius {
     if(last) {
       last->next(state, LookupTableBucket::create(state, key, val));
     } else {
-      values_->put(state, bin, LookupTableBucket::create(state, key, val));
+      values()->put(state, bin, LookupTableBucket::create(state, key, val));
     }
 
     entries(state, Fixnum::from(num_entries + 1));
@@ -140,8 +140,8 @@ namespace rubinius {
     unsigned int bin;
 
     key_to_sym(key);
-    bin = find_bin(key_hash(key), bins_->to_native());
-    LookupTableBucket *entry = try_as<LookupTableBucket>(values_->at(state, bin));
+    bin = find_bin(key_hash(key), bins()->to_native());
+    LookupTableBucket *entry = try_as<LookupTableBucket>(values()->at(state, bin));
 
     while(entry) {
       if(entry->key() == key) {
@@ -205,8 +205,8 @@ namespace rubinius {
     LookupTableBucket* entry;
     LookupTableBucket* last = NULL;
 
-    size_t num_entries = entries_->to_native();
-    size_t num_bins = bins_->to_native();
+    size_t num_entries = entries()->to_native();
+    size_t num_bins = bins()->to_native();
 
     if(min_density_p(num_entries, num_bins) && (num_bins >> 1) >= LOOKUPTABLE_MIN_SIZE) {
       redistribute(state, num_bins >>= 1);
@@ -214,7 +214,7 @@ namespace rubinius {
 
     key_to_sym(key);
     bin = find_bin(key_hash(key), num_bins);
-    entry = try_as<LookupTableBucket>(values_->at(state, bin));
+    entry = try_as<LookupTableBucket>(values()->at(state, bin));
 
     while(entry) {
       if(entry->key() == key) {
@@ -222,9 +222,9 @@ namespace rubinius {
         if(last) {
           last->next(state, entry->next());
         } else {
-          values_->put(state, bin, entry->next());
+          values()->put(state, bin, entry->next());
         }
-        entries(state, Fixnum::from(entries_->to_native() - 1));
+        entries(state, Fixnum::from(entries()->to_native() - 1));
         if(removed) *removed = true;
         return val;
       }

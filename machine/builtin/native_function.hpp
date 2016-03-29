@@ -24,7 +24,7 @@ namespace rubinius {
     attr_accessor(required, Fixnum);
     attr_accessor(varargs, Object);
 
-    FFIData* ffi_data;
+    attr_field(ffi_data, FFIData*);
 
     static size_t type_size(size_t type);
 
@@ -35,11 +35,11 @@ namespace rubinius {
     static void initialize(STATE, NativeFunction* obj) {
       Executable::initialize(state, obj);
 
-      obj->name_ = nil<Symbol>();
-      obj->file_ = nil<Symbol>();
-      obj->required_ = Fixnum::from(0);
-      obj->varargs_ = cFalse;
-      obj->ffi_data = NULL;
+      obj->name(nil<Symbol>());
+      obj->file(nil<Symbol>());
+      obj->required(Fixnum::from(0));
+      obj->varargs(cFalse);
+      obj->ffi_data(NULL);
     }
 
     static NativeFunction* create(STATE, Symbol* name, int args);

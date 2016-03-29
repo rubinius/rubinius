@@ -68,7 +68,7 @@ namespace rubinius {
       Exception::raise_thread_error(state, "attempt to create Thread with NULL VM*");
     }
 
-    thr->vm_ = vm;
+    thr->vm(vm);
     thr->thread_id(state, Fixnum::from(vm->thread_id()));
 
     vm->thread.set(thr);
@@ -89,7 +89,7 @@ namespace rubinius {
   Thread* Thread::create(STATE, Object* self, VM* vm, ThreadFunction function) {
     Thread* thr = Thread::create(state, as<Class>(self), vm);
 
-    thr->function_ = function;
+    thr->function(function);
 
     state->memory()->needs_finalization(state, thr,
         (memory::FinalizerFunction)&Thread::finalize,
@@ -105,9 +105,9 @@ namespace rubinius {
   }
 
   void Thread::finalize_instance(STATE) {
-    if(vm_ && vm_->zombie_p()) {
-      VM::discard(state, vm_);
-      vm_ = NULL;
+    if(vm() && vm()->zombie_p()) {
+      VM::discard(state, vm());
+      vm(NULL);
     }
   }
 
@@ -192,7 +192,7 @@ namespace rubinius {
   void Thread::unlock_after_fork(STATE) {
     unlock_object_after_fork(state);
 
-    memory::LockedObjects& los = vm_->locked_objects();
+    memory::LockedObjects& los = vm()->locked_objects();
     for(memory::LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
@@ -301,8 +301,8 @@ namespace rubinius {
     pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
-    int status = pthread_create(&self->vm_->os_thread(), &attrs,
-        function, (void*)self->vm_);
+    int status = pthread_create(&self->vm()->os_thread(), &attrs,
+        function, (void*)self->vm());
 
     pthread_attr_destroy(&attrs);
 
@@ -375,7 +375,7 @@ namespace rubinius {
     state->vm()->become_managed();
 
     vm->shared.tool_broker()->thread_start(state);
-    Object* value = vm->thread->function_(state);
+    Object* value = vm->thread->function()(state);
     vm->set_call_frame(NULL);
     vm->shared.tool_broker()->thread_stop(state);
 
@@ -441,10 +441,10 @@ namespace rubinius {
   Object* Thread::raise(STATE, Exception* exc) {
     utilities::thread::SpinLock::LockGuard guard(init_lock_);
 
-    if(!vm_) return cNil;
+    if(!vm()) return cNil;
 
-    vm_->register_raise(state, exc);
-    vm_->wakeup(state);
+    vm()->register_raise(state, exc);
+    vm()->wakeup(state);
 
     return exc;
   }
@@ -452,14 +452,14 @@ namespace rubinius {
   Object* Thread::kill(STATE) {
     utilities::thread::SpinLock::LockGuard guard(init_lock_);
 
-    if(!vm_) return cNil;
+    if(!vm()) return cNil;
 
     if(state->vm()->thread.get() == this) {
-      vm_->thread_state_.raise_thread_kill();
+      vm()->thread_state_.raise_thread_kill();
       return NULL;
     } else {
-      vm_->register_kill(state);
-      vm_->wakeup(state);
+      vm()->register_kill(state);
+      vm()->wakeup(state);
       return this;
     }
   }
@@ -467,11 +467,11 @@ namespace rubinius {
   Thread* Thread::wakeup(STATE) {
     utilities::thread::SpinLock::LockGuard guard(init_lock_);
 
-    if(!CBOOL(alive()) || !vm_) {
+    if(!CBOOL(alive()) || !vm()) {
       return force_as<Thread>(Primitives::failure());
     }
 
-    vm_->wakeup(state);
+    vm()->wakeup(state);
 
     return this;
   }
@@ -479,9 +479,9 @@ namespace rubinius {
   Tuple* Thread::context(STATE) {
     utilities::thread::SpinLock::LockGuard guard(init_lock_);
 
-    if(!vm_) return nil<Tuple>();
+    if(!vm()) return nil<Tuple>();
 
-    CallFrame* call_frame = vm_->get_ruby_frame();
+    CallFrame* call_frame = vm()->get_ruby_frame();
     VariableScope* scope = call_frame->promote_scope(state);
 
     return Tuple::from(state, 3, Fixnum::from(call_frame->ip()),
@@ -491,13 +491,13 @@ namespace rubinius {
   Array* Thread::mri_backtrace(STATE) {
     utilities::thread::SpinLock::LockGuard guard(init_lock_);
 
-    if(!vm_) return nil<Array>();
+    if(!vm()) return nil<Array>();
 
     return Location::mri_backtrace(state);
   }
 
   void Thread::stopped() {
-    alive_ = cFalse;
+    alive(cFalse);
   }
 
   void Thread::init_lock() {
@@ -505,7 +505,7 @@ namespace rubinius {
   }
 
   Thread* Thread::join(STATE, Object* timeout) {
-    if(!vm_) return nil<Thread>();
+    if(!vm()) return nil<Thread>();
 
     Thread* self = this;
     OnStack<2> os(state, self, timeout);
@@ -524,7 +524,7 @@ namespace rubinius {
           self->join_cond_.wait(self->join_lock_);
         } else {
           struct timespec ts = {0,0};
-          self->join_cond_.offset(&ts, as<Float>(timeout)->val);
+          self->join_cond_.offset(&ts, as<Float>(timeout)->value());
 
           if(self->join_cond_.wait_until(self->join_lock_, &ts)
                 == utilities::thread::cTimedOut) {

@@ -27,10 +27,13 @@ namespace rubinius {
     attr_accessor(next, MethodTableBucket);
 
     static void initialize(STATE, MethodTableBucket* obj) {
-      obj->name_ = nil<Symbol>();
-      obj->visibility_ = nil<Symbol>();
-      obj->method_ = nil<Executable>();
-      obj->next_ = nil<MethodTableBucket>();
+      obj->name(nil<Symbol>());
+      obj->visibility(nil<Symbol>());
+      obj->method_id(nil<Object>());
+      obj->method(nil<Executable>());
+      obj->scope(nil<Object>());
+      obj->serial(nil<Fixnum>());
+      obj->next(nil<MethodTableBucket>());
     }
 
     static MethodTableBucket* create(STATE, Symbol* name, Object* method_id,
@@ -69,9 +72,9 @@ namespace rubinius {
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, MethodTable* obj) {
-      obj->values_ = nil<Tuple>();
-      obj->bins_ = Fixnum::from(0);
-      obj->entries_ = Fixnum::from(0);
+      obj->values(nil<Tuple>());
+      obj->bins(Fixnum::from(0));
+      obj->entries(Fixnum::from(0));
       obj->lock_.init();
     }
 

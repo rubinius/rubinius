@@ -23,13 +23,15 @@ namespace rubinius {
 #ifdef HAVE_KQUEUE
 
   void FSEvent::finalize(STATE, FSEvent* fsevent) {
-    if(fsevent->kq_ > 0) ::close(fsevent->kq_);
+    if(fsevent->kq() > 0) ::close(fsevent->kq());
   }
 
   FSEvent* FSEvent::create(STATE) {
     FSEvent* fsevent = FSEvent::allocate(state, G(fsevent));
 
-    if((fsevent->kq_ = kqueue()) < 0) {
+    fsevent->kq(kqueue());
+
+    if(fsevent->kq() < 0) {
       logger::error("%s: unable to create kqueue", strerror(errno));
     } else {
       state->memory()->needs_finalization(state, fsevent,
@@ -44,7 +46,7 @@ namespace rubinius {
     this->fileno(state, fd);
     this->path(state, path);
 
-    EV_SET(&filter_, fd->to_native(), EVFILT_VNODE,
+    EV_SET(&_filter_, fd->to_native(), EVFILT_VNODE,
         EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_WRITE, 0, NULL);
 
     return cNil;
@@ -61,7 +63,7 @@ namespace rubinius {
     {
       UnmanagedPhase unmanaged(state);
 
-      status = kevent(kq_, &filter_, 1, &event, 1, NULL);
+      status = kevent(kq(), &_filter_, 1, &event, 1, NULL);
     }
 
     if(status < 0) return cNil;
@@ -72,13 +74,13 @@ namespace rubinius {
 #elif HAVE_INOTIFY
 
   void FSEvent::finalize(STATE, FSEvent* fsevent) {
-    if(fsevent->in_ > 0) ::close(fsevent->in_);
+    if(fsevent->in() > 0) ::close(fsevent->in());
   }
 
   FSEvent* FSEvent::create(STATE) {
     FSEvent* fsevent = state->memory()->new_object_pinned<FSEvent>(state, G(fsevent));
-    fsevent->watch_set_ = false;
-    if((fsevent->in_ = inotify_init()) < 0) {
+    fsevent->watch_set(false);
+    if((fsevent->in() = inotify_init()) < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));
     } else {
       state->memory()->needs_finalization(state, fsevent,
@@ -103,8 +105,8 @@ namespace rubinius {
     this->fileno(state, fd);
     this->path(state, path);
 
-    fsevent_add_watch(in_, path->c_str(state));
-    watch_set_ = true;
+    fsevent_add_watch(in(), path->c_str(state));
+    watch_set(true);
 
     return cNil;
   }
@@ -132,16 +134,16 @@ namespace rubinius {
     struct fsevent_inotify_event fsevent;
     int status;
 
-    if(!watch_set_) {
-      fsevent_add_watch(in_, path_->c_str(state));
+    if(!watch_set()) {
+      fsevent_add_watch(in(), path()->c_str(state));
     } else {
-      watch_set_ = false;
+      watch_set(false);
     }
 
     {
       UnmanagedPhase unmanaged(state);
 
-      status = read(in_, &fsevent, RBX_FSEVENT_BUF_LEN);
+      status = read(in(), &fsevent, RBX_FSEVENT_BUF_LEN);
     }
 
     if(status < 0) return cNil;

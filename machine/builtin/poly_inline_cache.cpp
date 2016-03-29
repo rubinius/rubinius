@@ -22,22 +22,22 @@ namespace rubinius {
     InlineCacheEntry* cache =
       state->memory()->new_object_pinned<InlineCacheEntry>(state, G(inline_cache_entry));
 
-    cache->receiver_ = data;
+    cache->receiver_data(data);
     cache->receiver_class(state, klass);
     cache->stored_module(state, dis.module);
     cache->method(state, dis.method);
-    cache->method_missing_ = dis.method_missing;
-    cache->hits_ = hits;
+    cache->method_missing(dis.method_missing);
+    cache->hits(hits);
 
     return cache;
   }
 
   Integer* InlineCacheEntry::hits_prim(STATE) {
-    return Integer::from(state, hits_);
+    return Integer::from(state, hits());
   }
 
   Symbol* InlineCacheEntry::method_missing_prim(STATE) {
-    switch(method_missing_) {
+    switch(method_missing()) {
     case eNone:
       return state->symbol("none");
     case ePrivate:
@@ -60,10 +60,10 @@ namespace rubinius {
     cache->name(state, mono->name());
     cache->executable(state, mono->executable());
     cache->ip(mono->ip());
-    cache->executor_ = check_cache;
-    cache->fallback_ = mono->fallback_;
-    cache->updater_  = inline_cache_updater;
-    cache->seen_classes_overflow_ = 0;
+    cache->executor(check_cache);
+    cache->fallback(mono->fallback());
+    cache->updater(inline_cache_updater);
+    cache->seen_classes_overflow(0);
     cache->clear();
 
     Dispatch dispatch(mono->name());
@@ -87,7 +87,7 @@ namespace rubinius {
   }
 
   Integer* PolyInlineCache::overflows(STATE) {
-    return Integer::from(state, seen_classes_overflow_);
+    return Integer::from(state, seen_classes_overflow());
   }
 
   Object* PolyInlineCache::check_cache(STATE, CallSite* call_site,
@@ -136,14 +136,15 @@ namespace rubinius {
 
   void PolyInlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     PolyInlineCache* cache = reinterpret_cast<PolyInlineCache*>(call_site);
-    InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch, 1);
+    InlineCacheEntry* entry = InlineCacheEntry::create(state,
+        klass->class_data(), klass, dispatch, 1);
     cache->set_cache(state, entry);
   }
 
   void PolyInlineCache::print(STATE, std::ostream& stream) {
     stream << "name: " << name()->debug_str(state) << "\n"
            << "seen classes: " << classes_seen() << "\n"
-           << "overflows: " << seen_classes_overflow_ << "\n"
+           << "overflows: " << seen_classes_overflow() << "\n"
            << "classes:\n";
 
     for(int i = 0; i < cTrackedICHits; i++) {

@@ -17,7 +17,7 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, AtomicReference* ref) {
-      ref->value_ = nil<Object>();
+      ref->value(nil<Object>());
     }
 
     static AtomicReference* allocate(STATE);
@@ -26,7 +26,7 @@ namespace rubinius {
     // Rubinius.primitive+ :atomic_get
     Object* get(STATE) {
       atomic::memory_barrier();
-      return value_;
+      return value();
     }
 
     // Rubinius.primitive+ :atomic_set

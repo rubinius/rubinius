@@ -17,7 +17,7 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, InstructionSequence* obj) {
-      obj->opcodes_ = nil<Tuple>();
+      obj->opcodes(nil<Tuple>());
     }
 
     static InstructionSequence* create(STATE, size_t instructions);

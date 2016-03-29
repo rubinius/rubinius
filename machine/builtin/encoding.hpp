@@ -37,20 +37,12 @@ namespace rubinius {
     attr_accessor(dummy, Object);
 
   private:
-    OnigEncodingType* encoding_;
-    int index_;
-    int cache_index_;
-    bool managed_;
+    attr_field(encoding, OnigEncodingType*);
+    attr_field(index, int);
+    attr_field(cache_index, int);
+    attr_field(managed, bool);
 
   public:
-    int index() const {
-      return index_;
-    }
-
-    int cache_index() const {
-      return cache_index_;
-    }
-
     static void bootstrap(STATE);
     static void initialize(STATE, Encoding* obj);
 
@@ -124,14 +116,6 @@ namespace rubinius {
     static int mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
     static int precise_mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
 
-    OnigEncodingType* get_encoding() const {
-      return encoding_;
-    }
-
-    void set_encoding(OnigEncodingType* enc) {
-      encoding_ = enc;
-    }
-
     void make_managed(STATE, const char* name, OnigEncodingType* enc);
 
     // Rubinius.primitive+ :encoding_compatible_p
@@ -173,17 +157,9 @@ namespace rubinius {
     attr_accessor(replacement_converters, Array);
 
   private:
-    rb_econv_t* converter_;
+    attr_field(converter, rb_econv_t*);
 
   public:
-    void set_converter(rb_econv_t* c) {
-      converter_ = c;
-    }
-
-    rb_econv_t* get_converter() const {
-      return converter_;
-    }
-
     static void bootstrap(STATE);
     static void initialize(STATE, Converter* obj);
 
@@ -221,7 +197,7 @@ namespace rubinius {
     attr_accessor(target, String);
 
   private:
-    OnigTranscodingType* transcoder_;
+    attr_field(transcoder, OnigTranscodingType*);
 
   public:
     static void bootstrap(STATE);
@@ -230,10 +206,6 @@ namespace rubinius {
     static Transcoding* create(STATE, OnigTranscodingType* tr);
     static void declare(STATE, const char* from, const char* to, const char* lib);
     static void define(STATE, OnigTranscodingType* tr);
-
-    OnigTranscodingType* get_transcoder() const {
-      return transcoder_;
-    }
 
     class Info : public TypeInfo {
     public:

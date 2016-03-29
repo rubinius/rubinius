@@ -45,7 +45,7 @@ extern "C" {
   rb_encoding* rb_utf8_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return Encoding::utf8_encoding(env->state())->get_encoding();
+    return Encoding::utf8_encoding(env->state())->encoding();
   }
 
   int rb_utf8_encindex(void) {
@@ -55,7 +55,7 @@ extern "C" {
   rb_encoding* rb_usascii_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return Encoding::usascii_encoding(env->state())->get_encoding();
+    return Encoding::usascii_encoding(env->state())->encoding();
   }
 
   int rb_usascii_encindex(void) {
@@ -65,7 +65,7 @@ extern "C" {
   rb_encoding* rb_ascii8bit_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return Encoding::ascii8bit_encoding(env->state())->get_encoding();
+    return Encoding::ascii8bit_encoding(env->state())->encoding();
   }
 
   int rb_ascii8bit_encindex(void) {
@@ -78,7 +78,7 @@ extern "C" {
     if(enc->nil_p()) {
       return rb_usascii_encoding();
     } else {
-      return enc->get_encoding();
+      return enc->encoding();
     }
   }
 
@@ -92,7 +92,7 @@ extern "C" {
     if(enc->nil_p()) {
       return rb_ascii8bit_encoding();
     } else {
-      return enc->get_encoding();
+      return enc->encoding();
     }
   }
 
@@ -106,7 +106,7 @@ extern "C" {
     if(enc->nil_p()) {
       return 0;
     } else {
-      return enc->get_encoding();
+      return enc->encoding();
     }
   }
 
@@ -116,7 +116,7 @@ extern "C" {
     if(enc->nil_p()) {
       return 0;
     } else {
-      return enc->get_encoding();
+      return enc->encoding();
     }
   }
 
@@ -128,7 +128,7 @@ extern "C" {
     Encoding* enc = Encoding::get_object_encoding(env->state(), val);
 
     if(enc->nil_p()) return 0;
-    return enc->get_encoding();
+    return enc->encoding();
   }
 
   VALUE rb_obj_encoding(VALUE obj) {
@@ -179,7 +179,7 @@ extern "C" {
     Encoding* enc = try_as<Encoding>(Encoding::from_index(env->state(), index));
 
     if(!enc) return 0;
-    return enc->get_encoding();
+    return enc->encoding();
   }
 
   int rb_to_encoding_index(VALUE obj) {
@@ -248,7 +248,7 @@ extern "C" {
 
     Encoding* enc = Encoding::find(env->state(), name);
     if(enc->nil_p()) return 0;
-    return enc->get_encoding();
+    return enc->encoding();
   }
 
   int rb_enc_find_index(const char *name) {
@@ -262,7 +262,7 @@ extern "C" {
 
     Encoding* enc = Encoding::from_index(env->state(), index);
     if(enc->nil_p()) return 0;
-    return enc->get_encoding();
+    return enc->encoding();
   }
 
   int rb_enc_to_index(rb_encoding* enc) {

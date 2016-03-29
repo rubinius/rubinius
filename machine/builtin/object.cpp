@@ -38,19 +38,9 @@ namespace rubinius {
     GO(object).set(Class::bootstrap_class(state, G(basicobject), ObjectType));
   }
 
-  void Object::klass(STATE, Class* obj) {
-    klass_ = obj;
-    state->memory()->write_barrier(this, obj);
-  }
-
-  void Object::klass(Memory* memory, Class* obj) {
-    klass_ = obj;
-    memory->write_barrier(this, obj);
-  }
-
   Class* Object::class_object(STATE) const {
     if(reference_p()) {
-      Module* mod = klass_;
+      Module* mod = klass();
       while(!mod->nil_p() && !instance_of<Class>(mod)) {
         mod = as<Module>(mod->superclass());
       }
@@ -404,7 +394,8 @@ namespace rubinius {
       } else if(Bignum* bignum = try_as<Bignum>(this)) {
         return bignum->hash_bignum(state);
       } else if(Float* flt = try_as<Float>(this)) {
-        return String::hash_str(state, (unsigned char *)(&(flt->val)), sizeof(double));
+        double value = flt->value();
+        return String::hash_str(state, (unsigned char *)(&value), sizeof(double));
       } else {
         return id(state)->to_native();
       }

@@ -28,57 +28,53 @@ namespace rubinius {
     attr_accessor(dead, Object);
 
   private:
-    Status status_;
-    bool root_;
-    FiberData* data_;
+    attr_field(status, Status);
+    attr_field(root, bool);
+    attr_field(data, FiberData*);
 
   public:
     bool root_p() const {
-      return root_;
+      return root();
     }
 
     CallFrame* call_frame(STATE) const {
-      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
 
-      return data_->call_frame();
+      return data()->call_frame();
     }
 
     void set_call_frame(STATE, CallFrame* call_frame) {
-      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
 
-      data_->set_call_frame(call_frame);
+      data()->set_call_frame(call_frame);
     }
 
     void sleep(STATE) {
-      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
 
-      data_->set_call_frame(state->vm()->call_frame());
-      status_ = eSleeping;
+      data()->set_call_frame(state->vm()->call_frame());
+      status(eSleeping);
     }
 
     void run(STATE) {
-      if(!data_) Exception::raise_fiber_error(state, "corrupt Fiber");
+      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
 
       state->vm()->set_current_fiber(this);
-      state->vm()->set_call_frame(data_->call_frame());
-      data_->set_call_frame(NULL);
-      status_ = eRunning;
+      state->vm()->set_call_frame(data()->call_frame());
+      data()->set_call_frame(NULL);
+      status(eRunning);
     }
 
     fiber_context_t* ucontext() const {
-      return data_->machine();
-    }
-
-    FiberData* data() const {
-      return data_;
+      return data()->machine();
     }
 
     void* stack_region() const {
-      return data_->stack_address();
+      return data()->stack_address();
     }
 
     void* stack_end() const {
-      return data_->stack_address();
+      return data()->stack_address();
     }
 
     void* stack_start() const {
@@ -86,25 +82,25 @@ namespace rubinius {
     }
 
     int stack_size() const {
-      return data_->stack_size();
+      return data()->stack_size();
     }
 
     memory::VariableRootBuffers& variable_root_buffers() {
-      return data_->variable_root_buffers();
+      return data()->variable_root_buffers();
     }
 
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, Fiber* obj) {
-      obj->starter_ = nil<Object>();
-      obj->value_ = nil<Array>();
-      obj->prev_ = nil<Fiber>();
-      obj->exception_ = nil<Exception>();
-      obj->locals_ = nil<LookupTable>();
-      obj->dead_ = nil<Object>();
-      obj->status_ = eNotStarted;
-      obj->root_ = false;
-      obj->data_ = NULL;
+      obj->starter(nil<Object>());
+      obj->value(nil<Array>());
+      obj->prev(nil<Fiber>());
+      obj->exception(nil<Exception>());
+      obj->locals(nil<LookupTable>());
+      obj->dead(nil<Object>());
+      obj->status(eNotStarted);
+      obj->root(false);
+      obj->data(NULL);
     }
 
     // Rubinius.primitive :fiber_new

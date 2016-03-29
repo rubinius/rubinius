@@ -83,7 +83,9 @@ namespace rubinius {
 
     // Map the CodeDB data to memory.
     std::string data_path = base_path + "/data";
-    if((codedb->data_fd_ = ::open(data_path.c_str(), O_RDONLY)) < 0) {
+    codedb->data_fd(::open(data_path.c_str(), O_RDONLY));
+
+    if(codedb->data_fd() < 0) {
       Exception::raise_runtime_error(state, "unable to open CodeDB data");
     }
 
@@ -92,8 +94,8 @@ namespace rubinius {
       Exception::raise_runtime_error(state, "unable to get CodeDB data size");
     }
 
-    codedb->data_ = mmap(NULL, st.st_size, PROT_READ,
-        MAP_PRIVATE, codedb->data_fd_, 0);
+    codedb->data(mmap(NULL, st.st_size, PROT_READ,
+        MAP_PRIVATE, codedb->data_fd(), 0));
 
     // Read the method id index.
     std::string index_path = base_path + "/index";
@@ -113,7 +115,7 @@ namespace rubinius {
 
       if(m_id.empty()) break;
 
-      codedb_index[m_id] = CodeDBIndex(codedb->data_, offset, length);
+      codedb_index[m_id] = CodeDBIndex(codedb->data(), offset, length);
     }
     data_stream.close();
 

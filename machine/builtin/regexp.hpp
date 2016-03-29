@@ -45,10 +45,10 @@ namespace rubinius {
 
     /* interface */
     static void initialize(STATE, MatchData* obj) {
-      obj->source_ = nil<String>();
-      obj->regexp_ = nil<Regexp>();
-      obj->full_ = nil<Tuple>();
-      obj->region_ = nil<Tuple>();
+      obj->source(nil<String>());
+      obj->regexp(nil<Regexp>());
+      obj->full(nil<Tuple>());
+      obj->region(nil<Tuple>());
     }
 
     class Info : public TypeInfo {
@@ -67,22 +67,23 @@ namespace rubinius {
   private:
     regex_t* onig_data[cCachedOnigDatas];
     utilities::thread::SpinLock lock_;
-    bool fixed_encoding_;
-    bool no_encoding_;
+
+    attr_field(fixed_encoding, bool);
+    attr_field(no_encoding, bool);
 
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, Regexp* obj) {
-      obj->source_ = nil<String>();
-      obj->names_ = nil<LookupTable>();
+      obj->source(nil<String>());
+      obj->names(nil<LookupTable>());
 
       for(int i = 0; i < cCachedOnigDatas; ++i) {
         obj->onig_data[i] = NULL;
       }
 
       obj->lock_.init();
-      obj->fixed_encoding_ = false;
-      obj->no_encoding_ = false;
+      obj->fixed_encoding(false);
+      obj->no_encoding(false);
     }
 
     static Regexp* create(STATE);
@@ -99,7 +100,9 @@ namespace rubinius {
     Fixnum* options(STATE);
 
     // Rubinius.primitive+ :regexp_fixed_encoding_p
-    Object* fixed_encoding_p(STATE);
+    Object* fixed_encoding_p(STATE) {
+      return RBOOL(fixed_encoding());
+    }
 
     // Rubinius.primitive :regexp_search_region
     MatchData* match_region(STATE, String* string, Fixnum* start, Fixnum* end, Object* forward);

@@ -20,7 +20,7 @@ namespace rubinius {
       if(handle->is_rfloat()) {
         Float* obj = c_as<Float>(handle->object());
         RFloat* rfloat = handle->as_rfloat(env);
-        obj->val = rfloat->value;
+        obj->value(rfloat->value);
       }
     }
 
@@ -29,7 +29,7 @@ namespace rubinius {
         Float* float_obj = c_as<Float>(object());
 
         RFloat* f = new RFloat;
-        f->value = float_obj->val;
+        f->value = float_obj->value();
 
         type_ = cRFloat;
         as_.rfloat = f;

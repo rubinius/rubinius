@@ -21,9 +21,9 @@ namespace rubinius {
     static void initialize(STATE, Alias* alias) {
       Executable::initialize(state, alias, Alias::executor);
 
-      alias->original_name_ = nil<Symbol>();
-      alias->original_module_ = nil<Module>();
-      alias->original_exec_ = nil<Executable>();
+      alias->original_name(nil<Symbol>());
+      alias->original_module(nil<Module>());
+      alias->original_exec(nil<Executable>());
     }
 
     static Alias* create(STATE, Symbol* name, Module* mod, Executable* exec);

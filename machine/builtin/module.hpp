@@ -106,7 +106,7 @@ namespace rubinius {
     static void initialize(STATE, IncludedModule* obj, Module* under, const char* name) {
       Module::initialize(state, obj, under, name);
 
-      obj->module_ = nil<Module>();
+      obj->module(nil<Module>());
     }
 
     static IncludedModule* create(STATE);

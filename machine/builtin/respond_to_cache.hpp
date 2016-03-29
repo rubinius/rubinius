@@ -23,40 +23,24 @@ namespace rubinius {
     attr_accessor(fallback_call_site, CallSite);
 
   private:
-    ClassData receiver_;
-    int hits_;
+    attr_field(receiver_data, ClassData);
+    attr_field(hits, int);
 
   public:
-    void clear_receiver_data() {
-      receiver_.raw = 0;
-    }
-
-    void set_receiver_data(uint64_t data) {
-      receiver_.raw = data;
-    }
-
-    ClassData receiver_data() {
-      return receiver_;
-    }
-
     uint64_t receiver_data_raw() {
-      return receiver_.raw;
+      return _receiver_data_.raw;
     }
 
     uint32_t receiver_class_id() {
-      return receiver_.f.class_id;
+      return _receiver_data_.f.class_id;
     }
 
     uint32_t receiver_serial_id() {
-      return receiver_.f.serial_id;
+      return _receiver_data_.f.serial_id;
     }
 
     void hit() {
-      ++hits_;
-    }
-
-    int hits() {
-      return hits_;
+      ++_hits_;
     }
 
     // Rubinius.primitive+ :respond_to_cache_hits
@@ -67,13 +51,13 @@ namespace rubinius {
     static void initialize(STATE, RespondToCache* obj) {
       CallSite::initialize(state, obj);
 
-      obj->receiver_.raw = 0;
-      obj->receiver_class_ = nil<Class>();
-      obj->message_ = nil<Object>();
-      obj->visibility_ = nil<Object>();
-      obj->responds_ = nil<Object>();
-      obj->fallback_call_site_ = nil<CallSite>();
-      obj->hits_ = 0;
+      obj->_receiver_data_.raw = 0;
+      obj->receiver_class(nil<Class>());
+      obj->message(nil<Object>());
+      obj->visibility(nil<Object>());
+      obj->responds(nil<Object>());
+      obj->fallback_call_site(nil<CallSite>());
+      obj->hits(0);
     }
 
     static RespondToCache* create(STATE, CallSite* fallback, Object* recv,

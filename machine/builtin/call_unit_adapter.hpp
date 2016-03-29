@@ -19,7 +19,7 @@ namespace rubinius {
     static void initialize(STATE, CallUnitAdapter* obj) {
       Executable::initialize(state, obj);
 
-      obj->unit_ = nil<CallUnit>();
+      obj->unit(nil<CallUnit>());
     }
 
     // Rubinius.primitive :callunitadapter_create

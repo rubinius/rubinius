@@ -42,19 +42,19 @@ namespace rubinius {
     // This one is public so it can be directly invoked.
     executor execute;
 
-  protected:
-    Inliners* inliners_;
-    int prim_index_;
-    bool custom_call_site_;
+  private:
+    attr_field(inliners, Inliners*);
+    attr_field(prim_index, int);
+    attr_field(custom_call_site, bool);
 
   public:
     static void initialize(STATE, Executable* exc) {
-      exc->primitive_ = nil<Symbol>();
-      exc->serial_ = Fixnum::from(0);
+      exc->primitive(nil<Symbol>());
+      exc->serial(Fixnum::from(0));
       exc->execute = Executable::default_executor;
-      exc->inliners_ = 0;
-      exc->prim_index_ = -1;
-      exc->custom_call_site_ = false;
+      exc->inliners(0);
+      exc->prim_index(-1);
+      exc->custom_call_site(false);
     }
 
     static void initialize(STATE, Executable* exc, executor exec) {
@@ -67,12 +67,8 @@ namespace rubinius {
       execute = exc;
     }
 
-    int prim_index() const {
-      return prim_index_;
-    }
-
     bool custom_call_site_p() const {
-      return custom_call_site_;
+      return custom_call_site();
     }
 
     /* interface */
@@ -88,7 +84,7 @@ namespace rubinius {
 
     // Rubinius.primitive :executable_set_custom_call_site
     Object* set_custom_call_site(STATE) {
-      custom_call_site_ = true;
+      custom_call_site(true);
       return cNil;
     }
 

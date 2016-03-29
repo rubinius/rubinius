@@ -28,10 +28,10 @@ namespace rubinius {
   }
 
   void Exception::print_locations(STATE) {
-    if(locations_->nil_p()) return;
+    if(locations()->nil_p()) return;
 
-    for(native_int i = 0; i < locations_->size(); i++) {
-      if(Location* loc = try_as<Location>(locations_->get(state, i))) {
+    for(native_int i = 0; i < locations()->size(); i++) {
+      if(Location* loc = try_as<Location>(locations()->get(state, i))) {
         if(CompiledCode* meth = try_as<CompiledCode>(loc->method())) {
           if(Symbol* file_sym = try_as<Symbol>(meth->file())) {
             std::cout << file_sym->debug_str(state) << ":"

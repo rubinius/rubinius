@@ -23,12 +23,12 @@ namespace rubinius {
 
   Channel* Channel::create(STATE) {
     Channel* chan = state->memory()->new_object_pinned<Channel>(state, G(channel));
-    chan->waiters_ = 0;
-    chan->semaphore_count_ = 0;
+    chan->waiters(0);
+    chan->semaphore_count(0);
 
-    // Using placement new to call the constructor of condition_
-    new(&chan->condition_) utilities::thread::Condition();
-    new(&chan->mutex_) utilities::thread::Mutex();
+    // Using placement new to call the constructor of _condition_ and _mutex_
+    new(&chan->_condition_) utilities::thread::Condition();
+    new(&chan->_mutex_) utilities::thread::Mutex();
 
     chan->value(state, List::create(state));
 
@@ -40,23 +40,23 @@ namespace rubinius {
 
     OnStack<2> os(state, val, self);
 
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, _mutex_);
 
     if(val->nil_p()) {
-      self->semaphore_count_++;
+      self->inc_semaphore_count();
     } else {
-      if(self->semaphore_count_ > 0) {
-        for(int i = 0; i < self->semaphore_count_; i++) {
-          self->value_->append(state, cNil);
+      if(self->semaphore_count() > 0) {
+        for(int i = 0; i < self->semaphore_count(); i++) {
+          self->value()->append(state, cNil);
         }
-        self->semaphore_count_ = 0;
+        self->semaphore_count(0);
       }
 
-      self->value_->append(state, val);
+      self->value()->append(state, val);
     }
 
-    if(self->waiters_ > 0) {
-      self->condition_.signal();
+    if(self->waiters() > 0) {
+      self->_condition_.signal();
     }
 
     return cNil;
@@ -66,15 +66,15 @@ namespace rubinius {
     Channel* self = this;
     OnStack<1> os(state, self);
 
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, _mutex_);
 
-    if(self->semaphore_count_ > 0) {
-      self->semaphore_count_--;
+    if(self->semaphore_count() > 0) {
+      self->dec_semaphore_count();
       return cNil;
     }
 
-    if(self->value_->empty_p()) return cNil;
-    return self->value_->shift(state);
+    if(self->value()->empty_p()) return cNil;
+    return self->value()->shift(state);
   }
 
   Object* Channel::receive(STATE) {
@@ -95,14 +95,14 @@ namespace rubinius {
     Channel* self = this;
     OnStack<2> os(state, self, duration);
 
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockUnmanaged lock_unmanaged(state, _mutex_);
 
-    if(self->semaphore_count_ > 0) {
-      self->semaphore_count_--;
+    if(self->semaphore_count() > 0) {
+      self->dec_semaphore_count();
       return cNil;
     }
 
-    if(!self->value_->empty_p()) return self->value_->shift(state);
+    if(!self->value()->empty_p()) return self->value()->shift(state);
 
     // Otherwise, we need to wait for a value.
     struct timespec ts = {0,0};
@@ -111,7 +111,7 @@ namespace rubinius {
     if(Fixnum* fix = try_as<Fixnum>(duration)) {
       ts.tv_sec = fix->to_native();
     } else if(Float* flt = try_as<Float>(duration)) {
-      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
+      uint64_t nano = (uint64_t)(flt->value() * NANOSECONDS);
       ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
       ts.tv_nsec =    (long)(nano % NANOSECONDS);
     } else if(duration->nil_p()) {
@@ -140,7 +140,7 @@ namespace rubinius {
 
     state->vm()->wait_on_channel(self);
 
-    self->waiters_++;
+    self->inc_waiters();
 
     bool exception = false;
 
@@ -149,14 +149,18 @@ namespace rubinius {
         UnmanagedPhase unmanaged(state);
 
         if(use_timed_wait) {
-          if(self->condition_.wait_until(self->mutex_, &ts) == utilities::thread::cTimedOut) break;
+          if(self->_condition_.wait_until(self->_mutex_, &ts)
+              == utilities::thread::cTimedOut)
+          {
+            break;
+          }
         } else {
-          self->condition_.wait(self->mutex_);
+          self->_condition_.wait(self->_mutex_);
         }
       }
 
       // or there are values available.
-      if(self->semaphore_count_ > 0 || !self->value()->empty_p()) break;
+      if(self->semaphore_count() > 0 || !self->value()->empty_p()) break;
       if(!state->check_async(state)) {
         exception = true;
         break;
@@ -167,12 +171,12 @@ namespace rubinius {
     state->vm()->thread->sleep(state, cFalse);
 
     self->unpin();
-    self->waiters_--;
+    self->_waiters_--;
 
     if(exception || !state->check_async(state)) return NULL;
 
-    if(self->semaphore_count_ > 0) {
-      self->semaphore_count_--;
+    if(self->semaphore_count() > 0) {
+      self->dec_semaphore_count();
       return cNil;
     }
 

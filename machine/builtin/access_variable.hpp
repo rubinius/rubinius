@@ -20,8 +20,8 @@ namespace rubinius {
     static void initialize(STATE, AccessVariable* av) {
       Executable::initialize(state, av, AccessVariable::access_execute);
 
-      av->name_ = nil<Symbol>();
-      av->write_ = nil<Object>();
+      av->name(nil<Symbol>());
+      av->write(nil<Object>());
     }
 
     // Rubinius.primitive :accessvariable_allocate

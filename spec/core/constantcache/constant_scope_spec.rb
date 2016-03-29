@@ -7,6 +7,6 @@ describe "Rubinius::ConstantCache#scope" do
   end
 
   it "returns the ConstantScope instance for the cache's scope" do
-    @cache.scope.should be_an_instance_of(Rubinius::ConstantScope)
+    @cache.constant_scope.should be_an_instance_of(Rubinius::ConstantScope)
   end
 end

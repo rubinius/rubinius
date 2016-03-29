@@ -20,41 +20,25 @@ namespace rubinius {
     attr_accessor(method, Executable);
 
   private:
-    ClassData receiver_;
-    MethodMissingReason method_missing_;
-    int hits_;
+    attr_field(receiver_data, ClassData);
+    attr_field(method_missing, MethodMissingReason);
+    attr_field(hits, int);
 
   public:
-    ClassData receiver_data() const {
-      return receiver_;
-    }
-
     uint64_t receiver_data_raw() const {
-      return receiver_.raw;
+      return receiver_data().raw;
     }
 
     uint32_t receiver_class_id() const {
-      return receiver_.f.class_id;
+      return receiver_data().f.class_id;
     }
 
     uint32_t receiver_serial_id() const {
-      return receiver_.f.serial_id;
-    }
-
-    void set_method_missing(MethodMissingReason reason) {
-      method_missing_ = reason;
-    }
-
-    MethodMissingReason method_missing() const {
-      return method_missing_;
-    }
-
-    int hits() const {
-      return hits_;
+      return receiver_data().f.serial_id;
     }
 
     void hit() {
-      ++hits_;
+      ++_hits_;
     }
 
     // Rubinius.primitive+ :inline_cache_entry_hits
@@ -82,7 +66,7 @@ namespace rubinius {
   private:
     InlineCacheEntry* entries_[cTrackedICHits];
 
-    int seen_classes_overflow_;
+    attr_field(seen_classes_overflow, int);
 
   public:
     static void bootstrap(STATE);
@@ -124,7 +108,7 @@ namespace rubinius {
     void set_cache(STATE, InlineCacheEntry* ice) {
       state->memory()->write_barrier(this, ice);
       if(ice->method_missing() != eNone) {
-        executor_ = check_cache_mm;
+        executor(check_cache_mm);
       }
       // Make sure we sync here, so the InlineCacheEntry ice is
       // guaranteed completely initialized. Otherwise another thread
@@ -141,12 +125,8 @@ namespace rubinius {
         }
       }
 
-      seen_classes_overflow_++;
+      _seen_classes_overflow_++;
       atomic::write(&entries_[least_used], ice);
-    }
-
-    int seen_classes_overflow() const {
-      return seen_classes_overflow_;
     }
 
     int classes_seen() const {

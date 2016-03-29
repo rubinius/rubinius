@@ -24,19 +24,36 @@ namespace rubinius {
     attr_accessor(value, List);
 
   private:
-    utilities::thread::Condition condition_;
-    utilities::thread::Mutex mutex_;
-    int waiters_;
-    int semaphore_count_;
+    utilities::thread::Condition _condition_;
+    utilities::thread::Mutex _mutex_;
+
+    attr_field(waiters, int);
+    attr_field(semaphore_count, int);
 
   public:
     /* interface */
     static void initialize(STATE, Channel* obj) {
-      obj->value_ = nil<List>();
-      obj->condition_.init();
-      obj->mutex_.init();
-      obj->waiters_ = 0;
-      obj->semaphore_count_ = 0;
+      obj->value(nil<List>());
+      obj->_condition_.init();
+      obj->_mutex_.init();
+      obj->waiters(0);
+      obj->semaphore_count(0);
+    }
+
+    void inc_semaphore_count() {
+      _semaphore_count_++;
+    }
+
+    void dec_semaphore_count() {
+      _semaphore_count_--;
+    }
+
+    void inc_waiters() {
+      _waiters_++;
+    }
+
+    void dec_waiters() {
+      _waiters_--;
     }
 
     // Rubinius.primitive :channel_new

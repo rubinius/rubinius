@@ -260,7 +260,7 @@ namespace rubinius {
     }
 
     state->shared().om->add_code_resource(state, data);
-    this->ffi_data = data;
+    this->ffi_data(data);
   }
 
   /* The main interface function, handles looking up the pointer in the library,
@@ -312,7 +312,7 @@ namespace rubinius {
     NativeFunction* func = NativeFunction::create(state, name, arg_count);
     if(varargs) func->varargs(state, cTrue);
     func->prep(state, arg_count, args_info, &ret_info);
-    func->ffi_data->ep = ptr->pointer;
+    func->ffi_data()->ep = ptr->pointer;
 
     if(args_info) XFREE(args_info);
 
@@ -419,10 +419,10 @@ namespace rubinius {
         if(ptr) {
           NativeFunction* orig = stub->args_info[i].callback;
           NativeFunction* func = NativeFunction::create(
-              state, state->symbol("ffi_tramp"), orig->ffi_data->arg_count);
-          func->prep(state, orig->ffi_data->arg_count,
-              orig->ffi_data->args_info, &orig->ffi_data->ret_info);
-          func->ffi_data->ep = ptr;
+              state, state->symbol("ffi_tramp"), orig->ffi_data()->arg_count);
+          func->prep(state, orig->ffi_data()->arg_count,
+              orig->ffi_data()->args_info, &orig->ffi_data()->ret_info);
+          func->ffi_data()->ep = ptr;
           Proc* prc = Proc::create(state, state->vm()->shared.globals.proc.get());
           prc->bound_method(state, func);
           args->set(state, i, prc);
@@ -518,14 +518,14 @@ namespace rubinius {
       break;
     case RBX_FFI_TYPE_FLOAT:
       if(Float* flt = try_as<Float>(obj)) {
-        *((float*)retval) = flt->val;
+        *((float*)retval) = flt->value();
       } else {
         *((float*)retval) = 0.0;
       }
       break;
     case RBX_FFI_TYPE_DOUBLE:
       if(Float* flt = try_as<Float>(obj)) {
-        *((double*)retval) = flt->val;
+        *((double*)retval) = flt->value();
       } else {
         *((double*)retval) = 0.0;
       }
@@ -622,10 +622,10 @@ namespace rubinius {
     NativeFunction* func = NativeFunction::create(state, name, tot);
     func->prep(state, tot, args_info, &ret_info);
 
-    func->ffi_data->callable = obj;
+    func->ffi_data()->callable = obj;
 
-    int status = ffi_prep_closure_loc(func->ffi_data->closure, &func->ffi_data->cif,
-        invoke_callback, func->ffi_data, func->ffi_data->ep);
+    int status = ffi_prep_closure_loc(func->ffi_data()->closure, &func->ffi_data()->cif,
+        invoke_callback, func->ffi_data(), func->ffi_data()->ep);
 
     if(args_info) XFREE(args_info);
     if(status != FFI_OK) {
@@ -634,7 +634,7 @@ namespace rubinius {
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, func);
-    ary->set(state, 1, Pointer::create(state, func->ffi_data->ep));
+    ary->set(state, 1, Pointer::create(state, func->ffi_data()->ep));
 
     return ary;
   }
@@ -644,19 +644,19 @@ namespace rubinius {
 
     Object* existing = obj->get_ivar(state, ffi_tramp);
     if(NativeFunction* f = try_as<NativeFunction>(existing)) {
-      return Pointer::create(state, f->ffi_data->ep);
+      return Pointer::create(state, f->ffi_data()->ep);
     }
 
     NativeFunction* func = NativeFunction::create(state, ffi_tramp,
-                             orig->ffi_data->arg_count);
+                             orig->ffi_data()->arg_count);
 
-    func->prep(state, orig->ffi_data->arg_count, orig->ffi_data->args_info,
-               &orig->ffi_data->ret_info);
+    func->prep(state, orig->ffi_data()->arg_count, orig->ffi_data()->args_info,
+               &orig->ffi_data()->ret_info);
 
-    func->ffi_data->callable = obj;
+    func->ffi_data()->callable = obj;
 
-    int status = ffi_prep_closure_loc(func->ffi_data->closure, &func->ffi_data->cif,
-        invoke_callback, func->ffi_data, func->ffi_data->ep);
+    int status = ffi_prep_closure_loc(func->ffi_data()->closure, &func->ffi_data()->cif,
+        invoke_callback, func->ffi_data(), func->ffi_data()->ep);
 
     if(status != FFI_OK) {
       return nil<Pointer>();
@@ -664,7 +664,7 @@ namespace rubinius {
 
     obj->set_ivar(state, ffi_tramp, func);
 
-    return Pointer::create(state, func->ffi_data->ep);
+    return Pointer::create(state, func->ffi_data()->ep);
   }
 
   Object* NativeFunction::call(STATE, Arguments& args) {
@@ -680,9 +680,9 @@ namespace rubinius {
       use_cb_block = true;
     }
 
-    if(!CBOOL(varargs()) && given_args != ffi_data->arg_count) {
+    if(!CBOOL(varargs()) && given_args != ffi_data()->arg_count) {
       Exception* exc =
-        Exception::make_argument_error(state, ffi_data->arg_count,
+        Exception::make_argument_error(state, ffi_data()->arg_count,
                                          args.total(), args.name());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
@@ -691,7 +691,7 @@ namespace rubinius {
     }
 
     size_t req_count = required()->to_native();
-    size_t arg_count = ffi_data->arg_count;
+    size_t arg_count = ffi_data()->arg_count;
 
     if(CBOOL(varargs())) {
       if((given_args - req_count) & 1) {
@@ -714,7 +714,7 @@ namespace rubinius {
     // We need to have ffi_data on the stack since
     // a GC might move this and there ffi_data will
     // point at the wrong place in memory
-    FFIData* ffi_data_local = self->ffi_data;
+    FFIData* ffi_data_local = self->ffi_data();
 
     size_t ffi_index = 0;
     size_t obj_index = 0;
@@ -1145,7 +1145,7 @@ namespace rubinius {
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, Integer::from(state, (native_int)result));
 
-      ret = ffi_data->ret_info.enum_obj->send(state, state->symbol("symbol"), ary);
+      ret = ffi_data()->ret_info.enum_obj->send(state, state->symbol("symbol"), ary);
       break;
     }
     case RBX_FFI_TYPE_CALLBACK: {
@@ -1157,10 +1157,10 @@ namespace rubinius {
       } else {
         NativeFunction* orig = ffi_data_local->ret_info.callback;
         NativeFunction* func = NativeFunction::create(
-            state, state->symbol("ffi_tramp"), orig->ffi_data->arg_count);
-        func->prep(state, orig->ffi_data->arg_count,
-            orig->ffi_data->args_info, &orig->ffi_data->ret_info);
-        func->ffi_data->ep = result;
+            state, state->symbol("ffi_tramp"), orig->ffi_data()->arg_count);
+        func->prep(state, orig->ffi_data()->arg_count,
+            orig->ffi_data()->args_info, &orig->ffi_data()->ret_info);
+        func->ffi_data()->ep = result;
         Proc* prc = Proc::create(state, state->vm()->shared.globals.proc.get());
         prc->bound_method(state, func);
         ret = (Object*)prc;
@@ -1226,18 +1226,18 @@ namespace rubinius {
 
     NativeFunction* func = force_as<NativeFunction>(obj);
 
-    if(func->ffi_data) {
-      func->ffi_data->set_mark();
+    if(func->ffi_data()) {
+      func->ffi_data()->set_mark();
 
-      if(func->ffi_data->callable) {
-        Object* tmp = mark.call(func->ffi_data->callable);
+      if(func->ffi_data()->callable) {
+        Object* tmp = mark.call(func->ffi_data()->callable);
         if(tmp) {
-          func->ffi_data->callable = tmp;
+          func->ffi_data()->callable = tmp;
           mark.just_set(obj, tmp);
         }
       }
-      for(size_t i = 0; i<func->ffi_data->arg_count; i++) {
-        FFIArgInfo* arg = &func->ffi_data->args_info[i];
+      for(size_t i = 0; i<func->ffi_data()->arg_count; i++) {
+        FFIArgInfo* arg = &func->ffi_data()->args_info[i];
         if(arg->callback) {
           Object* tmp = mark.call(arg->callback);
           if(tmp) {
@@ -1253,7 +1253,7 @@ namespace rubinius {
           }
         }
       }
-      FFIArgInfo* arg = &func->ffi_data->ret_info;
+      FFIArgInfo* arg = &func->ffi_data()->ret_info;
       if(arg->callback) {
         Object* tmp = mark.call(arg->callback);
         if(tmp) {
@@ -1268,7 +1268,7 @@ namespace rubinius {
           mark.just_set(obj, tmp);
         }
       }
-      func->ffi_data->function = func;
+      func->ffi_data()->function = func;
     }
   }
 }

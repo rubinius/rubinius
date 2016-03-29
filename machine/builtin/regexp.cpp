@@ -52,11 +52,11 @@ namespace rubinius {
   }
 
   Encoding* Regexp::encoding(STATE) {
-    return source_->encoding(state);
+    return source()->encoding(state);
   }
 
   Encoding* Regexp::encoding(STATE, Encoding* enc) {
-    source_->encoding(state, enc);
+    source()->encoding(state, enc);
     return enc;
   }
 
@@ -179,17 +179,17 @@ namespace rubinius {
     OnigErrorInfo err_info;
     int err;
 
-    if(fixed_encoding_) return onig_source_data(state);
+    if(fixed_encoding()) return onig_source_data(state);
 
     Encoding* string_enc = string->encoding(state);
     regex_t* onig_encoded = onig_data_encoded(state, string_enc);
 
     if(onig_encoded) return onig_encoded;
 
-    enc = string_enc->get_encoding();
+    enc = string_enc->encoding();
 
     Encoding* source_enc = source()->encoding(state);
-    String* converted = source()->convert_escaped(state, source_enc, fixed_encoding_);
+    String* converted = source()->convert_escaped(state, source_enc, _fixed_encoding_);
     pat = (UChar*)converted->byte_address();
     end = pat + converted->byte_size();
 
@@ -219,7 +219,7 @@ namespace rubinius {
       }
 
       string_enc = source_enc;
-      fixed_encoding_ = true;
+      fixed_encoding(true);
     }
 
     return make_managed(state, string_enc, reg);
@@ -237,35 +237,35 @@ namespace rubinius {
     OnigOptionType opts = options->to_native();
     Encoding* original_enc = pattern->encoding(state);
 
-    fixed_encoding_ = opts & OPTION_FIXEDENCODING;
-    no_encoding_    = opts & OPTION_NOENCODING;
+    fixed_encoding(opts & OPTION_FIXEDENCODING);
+    no_encoding(opts & OPTION_NOENCODING);
 
     Encoding* source_enc = original_enc;
 
     switch(opts & KCODE_MASK) {
     case KCODE_NONE:
-      no_encoding_ = true;
+      no_encoding(true);
       break;
     case KCODE_EUC:
       source_enc = Encoding::find(state, "EUC-JP");
-      fixed_encoding_ = true;
+      fixed_encoding(true);
       break;
     case KCODE_SJIS:
       source_enc = Encoding::find(state, "Windows-31J");
-      fixed_encoding_ = true;
+      fixed_encoding(true);
       break;
     case KCODE_UTF8:
       source_enc = Encoding::utf8_encoding(state);
-      fixed_encoding_ = true;
+      fixed_encoding(true);
       break;
     }
 
-    if(no_encoding_) source_enc = 0;
-    String* converted = pattern->convert_escaped(state, source_enc, fixed_encoding_);
+    if(no_encoding()) source_enc = 0;
+    String* converted = pattern->convert_escaped(state, source_enc, _fixed_encoding_);
 
     pat = (UChar*)converted->byte_address();
     end = pat + converted->byte_size();
-    enc = source_enc->get_encoding();
+    enc = source_enc->encoding();
 
     pattern = pattern->string_dup(state);
     pattern->encoding(state, source_enc);
@@ -276,8 +276,8 @@ namespace rubinius {
 
     if(err != ONIG_NORMAL) {
 
-      enc = original_enc->get_encoding();
-      fixed_encoding_ = true;
+      enc = original_enc->encoding();
+      fixed_encoding(true);
       err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
       pattern->encoding(state, original_enc);
 
@@ -324,19 +324,15 @@ namespace rubinius {
 
     int result = ((int)onig_get_options(onig_source_data(state)) & OPTION_MASK);
 
-    if(fixed_encoding_) {
+    if(fixed_encoding()) {
       result |= OPTION_FIXEDENCODING;
     }
 
-    if(no_encoding_) {
+    if(no_encoding()) {
       result |= OPTION_NOENCODING;
     }
 
     return Fixnum::from(result);
-  }
-
-  Object* Regexp::fixed_encoding_p(STATE) {
-    return RBOOL(fixed_encoding_);
   }
 
   static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int pos) {
@@ -626,10 +622,10 @@ namespace rubinius {
   }
 
   String* MatchData::matched_string(STATE) {
-    Fixnum* beg = as<Fixnum>(full_->at(state, 0));
-    Fixnum* fin = as<Fixnum>(full_->at(state, 1));
+    Fixnum* beg = as<Fixnum>(full()->at(state, 0));
+    Fixnum* fin = as<Fixnum>(full()->at(state, 1));
 
-    native_int max = source_->byte_size();
+    native_int max = source()->byte_size();
     native_int f = fin->to_native();
     native_int b = beg->to_native();
 
@@ -638,23 +634,23 @@ namespace rubinius {
     if(f > max || b > max || b < 0) {
       string = String::create(state, 0, 0);
     } else {
-      const char* str = (char*)source_->byte_address();
+      const char* str = (char*)source()->byte_address();
       native_int sz = fin->to_native() - beg->to_native();
 
       string = String::create(state, str + beg->to_native(), sz);
     }
 
-    source_->infect(state, string);
-    string->encoding_from(state, source_);
-    string->klass(state, source_->class_object(state));
+    source()->infect(state, string);
+    string->encoding_from(state, source());
+    string->klass(state, source()->class_object(state));
 
     return string;
   }
 
   String* MatchData::pre_matched(STATE) {
-    Fixnum* beg = as<Fixnum>(full_->at(state, 0));
+    Fixnum* beg = as<Fixnum>(full()->at(state, 0));
 
-    native_int max = source_->byte_size();
+    native_int max = source()->byte_size();
     native_int sz = beg->to_native();
 
     String* string;
@@ -664,30 +660,30 @@ namespace rubinius {
     } else {
       if(sz > max) sz = max;
 
-      const char* str = (char*)source_->byte_address();
+      const char* str = (char*)source()->byte_address();
 
       string = String::create(state, str, sz);
     }
 
-    source_->infect(state, string);
-    string->encoding_from(state, source_);
-    string->klass(state, source_->class_object(state));
+    source()->infect(state, string);
+    string->encoding_from(state, source());
+    string->klass(state, source()->class_object(state));
 
     return string;
   }
 
   String* MatchData::post_matched(STATE) {
-    Fixnum* fin = as<Fixnum>(full_->at(state, 1));
+    Fixnum* fin = as<Fixnum>(full()->at(state, 1));
 
     native_int f = fin->to_native();
-    native_int max = source_->byte_size();
+    native_int max = source()->byte_size();
 
     String* string;
 
     if(f >= max) {
       string = String::create(state, 0, 0);
     } else {
-      const char* str = (char*)source_->byte_address();
+      const char* str = (char*)source()->byte_address();
       native_int sz = max - f;
 
       if(sz > max) sz = max;
@@ -695,17 +691,17 @@ namespace rubinius {
       string = String::create(state, str + f, sz);
     }
 
-    source_->infect(state, string);
-    string->encoding_from(state, source_);
-    string->klass(state, source_->class_object(state));
+    source()->infect(state, string);
+    string->encoding_from(state, source());
+    string->klass(state, source()->class_object(state));
 
     return string;
   }
 
   String* MatchData::nth_capture(STATE, native_int which) {
-    if(region_->num_fields() <= which) return nil<String>();
+    if(region()->num_fields() <= which) return nil<String>();
 
-    Tuple* sub = try_as<Tuple>(region_->at(state, which));
+    Tuple* sub = try_as<Tuple>(region()->at(state, which));
     if(!sub) return nil<String>();
 
     Fixnum* beg = as<Fixnum>(sub->at(state, 0));
@@ -713,29 +709,29 @@ namespace rubinius {
 
     native_int b = beg->to_native();
     native_int f = fin->to_native();
-    native_int max = source_->byte_size();
+    native_int max = source()->byte_size();
 
     if(f > max ||
        b < 0) {
       return nil<String>();
     }
 
-    const char* str = (char*)source_->byte_address();
+    const char* str = (char*)source()->byte_address();
     native_int sz = f - b;
 
     if(sz > max) sz = max;
 
     String* string = String::create(state, str + b, sz);
-    source_->infect(state, string);
-    string->encoding_from(state, source_);
-    string->klass(state, source_->class_object(state));
+    source()->infect(state, string);
+    string->encoding_from(state, source());
+    string->klass(state, source()->class_object(state));
 
     return string;
   }
 
   String* MatchData::last_capture(STATE) {
-    if(region_->num_fields() == 0) return nil<String>();
-    native_int captures = region_->num_fields();
+    if(region()->num_fields() == 0) return nil<String>();
+    native_int captures = region()->num_fields();
     while(captures--) {
       String* capture = nth_capture(state, captures);
       if(!capture->nil_p()) {

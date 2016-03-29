@@ -251,7 +251,7 @@ namespace rubinius {
   Float* Pointer::write_float(STATE, Float* flt) {
     if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write float");
 
-    *(float*)pointer = (float)flt->val;
+    *(float*)pointer = (float)flt->value();
     return flt;
   }
 
@@ -264,7 +264,7 @@ namespace rubinius {
   Float* Pointer::write_double(STATE, Float* flt) {
     if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write double");
 
-    *(double*)pointer = flt->val;
+    *(double*)pointer = flt->value();
     return flt;
   }
 

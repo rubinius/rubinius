@@ -2,8 +2,8 @@ module Rubinius
   class ConstantCache
     attr_reader :name
     attr_reader :value
-    attr_reader :under
-    attr_reader :scope
+    attr_reader :module
+    attr_reader :constant_scope
     attr_reader :executable
 
     def ip
@@ -21,7 +21,7 @@ module Rubinius
     end
 
     def inspect
-      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} #{location}##{@name} constant=#{@value} under=#{@under}>"
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} #{location}##{@name} constant=#{@value} module=#{@module} constant_scope=#{@constant_scope}>"
     end
   end
 end

@@ -18,7 +18,7 @@ namespace rubinius {
     static void initialize(STATE, Thunk* obj) {
       Executable::initialize(state, obj);
 
-      obj->value_ = nil<Object>();
+      obj->value(nil<Object>());
     }
 
     // Rubinius.primitive :thunk_create

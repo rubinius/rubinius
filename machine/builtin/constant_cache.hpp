@@ -20,18 +20,15 @@ namespace rubinius {
 
     attr_accessor(name, Symbol);
     attr_accessor(value, Object);
-    attr_accessor(under, Module);
-    attr_accessor(scope, ConstantScope);
+    attr_accessor(module, Module);
+    attr_accessor(constant_scope, ConstantScope);
     attr_accessor(executable, Executable);
 
   private:
-    int ip_;
-    int serial_;
+    attr_field(ip, int);
+    attr_field(serial, int);
 
   public:
-    int ip() const { return ip_; }
-    int serial() const { return serial_; }
-
     // Rubinius.primitive+ :constant_cache_ip
     Integer* ip_prim(STATE);
 
@@ -40,40 +37,40 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, ConstantCache* obj) {
-      obj->name_ = nil<Symbol>();
-      obj->value_ = nil<Object>();
-      obj->under_ = nil<Module>();
-      obj->scope_ = nil<ConstantScope>();
-      obj->executable_ = nil<Executable>();
-      obj->ip_ = 0;
-      obj->serial_ = 0;
+      obj->name(nil<Symbol>());
+      obj->value(nil<Object>());
+      obj->module(nil<Module>());
+      obj->constant_scope(nil<ConstantScope>());
+      obj->executable(nil<Executable>());
+      obj->ip(0);
+      obj->serial(0);
     }
 
     static ConstantCache* create(STATE, ConstantCache* cache, Object* value, ConstantScope* scope);
-    static ConstantCache* create(STATE, ConstantCache* cache, Object* value, Module* under, ConstantScope* scope);
+    static ConstantCache* create(STATE, ConstantCache* cache, Object* value, Module* mod, ConstantScope* scope);
     static ConstantCache* empty(STATE, Symbol* name, Executable* executable, int ip);
 
     Object* retrieve(STATE, ConstantScope* scope) {
-      if(serial_ == state->shared().global_serial() &&
-         scope_ == scope) {
-        return value_;
+      if(serial() == state->shared().global_serial() &&
+         constant_scope() == scope) {
+        return value();
       }
       return NULL;
     }
 
-    Object* retrieve(STATE, Module* under, ConstantScope* scope) {
-      if(serial_ == state->shared().global_serial() &&
-         scope_ == scope &&
-         under_ == under) {
-        return value_;
+    Object* retrieve(STATE, Module* mod, ConstantScope* scope) {
+      if(serial() == state->shared().global_serial() &&
+         constant_scope() == scope &&
+         module() == mod) {
+        return value();
       }
       return NULL;
     }
 
     void update_constant_cache(STATE, ConstantCache* other) {
       if(this != other) {
-        if(CompiledCode* ccode = try_as<CompiledCode>(executable_)) {
-          ccode->machine_code()->store_constant_cache(state, ccode, ip_, other);
+        if(CompiledCode* ccode = try_as<CompiledCode>(executable())) {
+          ccode->machine_code()->store_constant_cache(state, ccode, ip(), other);
         }
       }
     }

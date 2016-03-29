@@ -21,9 +21,9 @@ namespace rubinius {
     attr_accessor(next, LookupTableBucket);
 
     static void initialize(STATE, LookupTableBucket* obj) {
-      obj->key_ = nil<Object>();
-      obj->value_ = nil<Object>();
-      obj->next_ = nil<LookupTableBucket>();
+      obj->key(nil<Object>());
+      obj->value(nil<Object>());
+      obj->next(nil<LookupTableBucket>());
     }
 
     static LookupTableBucket* create(STATE, Object* key, Object* value);
@@ -48,9 +48,9 @@ namespace rubinius {
     /* interface */
     static void bootstrap(STATE);
     static void initialize(STATE, LookupTable* obj) {
-      obj->values_ = nil<Tuple>();
-      obj->bins_ = Fixnum::from(0);
-      obj->entries_ = Fixnum::from(0);
+      obj->values(nil<Tuple>());
+      obj->bins(Fixnum::from(0));
+      obj->entries(Fixnum::from(0));
     }
 
     static LookupTable* create(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE);
@@ -136,7 +136,7 @@ namespace rubinius {
         if(index_ >= total_) return false;
 
         if(bucket_) {
-          bucket_ = try_as<LookupTableBucket>(bucket_->next());
+          bucket_ = try_as<LookupTableBucket>(bucket()->next());
         }
 
         while(!bucket_) {

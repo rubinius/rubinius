@@ -101,7 +101,7 @@ public:
     float one = 1.0;
     Pointer* ptr = Pointer::create(state, &one);
     Float* f = ptr->read_float(state);
-    TS_ASSERT_EQUALS(1.0, f->val);
+    TS_ASSERT_EQUALS(1.0, f->value());
   }
 
   void test_write_float() {
@@ -109,14 +109,14 @@ public:
     Pointer* ptr = Pointer::create(state, &one);
     ptr->write_float(state, Float::create(state, 2.0));
     Float* f = ptr->read_float(state);
-    TS_ASSERT_EQUALS(2.0, f->val);
+    TS_ASSERT_EQUALS(2.0, f->value());
   }
 
   void test_read_double() {
     double one = 1.0;
     Pointer* ptr = Pointer::create(state, &one);
     Float* f = ptr->read_double(state);
-    TS_ASSERT_EQUALS(1.0, f->val);
+    TS_ASSERT_EQUALS(1.0, f->value());
   }
 
   void test_write_double() {
@@ -124,7 +124,7 @@ public:
     Pointer* ptr = Pointer::create(state, &one);
     ptr->write_double(state, Float::create(state, 2.0));
     Float* f = ptr->read_double(state);
-    TS_ASSERT_EQUALS(2.0, f->val);
+    TS_ASSERT_EQUALS(2.0, f->value());
   }
 
   void test_read_pointer() {
