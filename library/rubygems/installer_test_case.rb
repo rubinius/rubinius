@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rubygems/test_case'
 require 'rubygems/installer'
 
@@ -168,6 +169,8 @@ class Gem::InstallerTestCase < Gem::TestCase
           File.open 'Rakefile', 'w' do |rf| rf.puts "task :default" end
         EOF
       end
+
+      yield @spec if block_given?
 
       use_ui ui do
         FileUtils.rm_f @gem
