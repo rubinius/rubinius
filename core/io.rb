@@ -1728,7 +1728,7 @@ class IO
         (@external || Encoding.default_external) == Encoding::ASCII_8BIT
         @internal = nil
       end
-    elsif !@fd.read_only?
+    elsif !mode_read_only?
       if Encoding.default_external != Encoding.default_internal
         @internal = Encoding.default_internal
       end
@@ -1906,7 +1906,7 @@ class IO
   def close_read
     return if invalid_descriptor?
 
-    if @fd.write_only? || @fd.read_write?
+    if mode_write_only? || mode_read_write?
       raise IOError, 'closing non-duplex IO for reading'
     end
 
@@ -1929,7 +1929,7 @@ class IO
   def close_write
     return if invalid_descriptor?
 
-    if @fd.read_only? || @fd.read_write?
+    if mode_read_only? || mode_read_write?
       raise IOError, 'closing non-duplex IO for writing'
     end
 
@@ -2340,9 +2340,19 @@ class IO
 
   alias_method :eof, :eof?
 
+  def ensure_open_and_readable
+    ensure_open
+    raise IOError, "not opened for reading" if mode_write_only?
+  end
+
+  def ensure_open_and_writable
+    ensure_open
+    raise IOError, "not opened for writing" if mode_read_only?
+  end
+
   def external_encoding
     return @external if @external
-    return Encoding.default_external if @fd.read_only?
+    return Encoding.default_external if mode_read_only?
   end
 
   ##
@@ -2544,6 +2554,21 @@ class IO
 
     @lineno = Integer(line_number)
   end
+
+  def mode_read_only?
+    @fd.read_only?
+  end
+  private :mode_read_only?
+
+  def mode_read_write?
+   @fd.read_write?
+  end
+  private :mode_read_write?
+
+  def mode_write_only?
+    @fd.write_only?
+  end
+  private :mode_write_only?
 
   ##
   # FIXME
@@ -2999,7 +3024,7 @@ class IO
         mode = @fd.mode
         # If this IO was already opened for writing, we should
         # create the target file if it doesn't already exist.
-        if (mode & RDWR == RDWR) || (mode & WRONLY == WRONLY)
+        if mode_read_write? || mode_write_only?
           mode |= CREAT
         end
       else
@@ -3075,7 +3100,7 @@ class IO
     when String
       @external = nil
     when nil
-      if @fd.read_only? || @external
+      if mode_read_only? || @external
         @external = nil
       else
         @external = Encoding.default_external
