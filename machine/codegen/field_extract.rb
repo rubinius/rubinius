@@ -847,6 +847,7 @@ class CPPParser
   def parse_stream(f)
     class_pattern = /class\s+([^\s]+)\s*:\s*public\s+([^\s]+)/
     slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)_\s*;\s*//\s*slot(.*)!
+    accessor_pattern = %r!^\s*attr_(accessor|reader|writer)\((\w+),\s*(\w+)\)!
     primitive_pattern = %r%^\s*//\s+Rubinius.primitive([?!\+])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!
     object_size_pattern = %r|size_t\s+object_size\s*\(const\s+ObjectHeader\s*|
@@ -897,6 +898,15 @@ class CPPParser
           field_type = @type_map[type] || type.to_s
 
           cpp.add_field idx, name, field_type, flag
+          idx += 1
+        # A attr_{accessor, reader, writer}(variable, Type) definition
+        elsif m = accessor_pattern.match(l)
+          name = m[2]
+          type = m[3]
+
+          field_type = @type_map[type] || type.to_s
+
+          cpp.add_field idx, name, field_type, nil
           idx += 1
         # A primitive declaration marked with '// Rubinius.primitive'
         elsif m = primitive_pattern.match(l)
@@ -1090,7 +1100,7 @@ write_if_new "machine/gen/typechecks.gen.cpp" do |f|
     f.puts "  slot_locations.resize(#{cpp.all_fields.size});\n"
 
     cpp.fields.each do |name, type, idx|
-      f.puts "  slot_locations[#{offset + idx}] = FIELD_OFFSET(#{n}, #{name}_);\n"
+      f.puts "  slot_locations[#{offset + idx}] = FIELD_OFFSET(#{n}, _#{name}_);\n"
     end
     f.puts "}"
   end

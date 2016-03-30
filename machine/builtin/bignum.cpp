@@ -786,8 +786,8 @@ namespace rubinius {
   }
 
   Object* Bignum::compare(STATE, Float* b) {
-    if(isinf(b->val)) {
-      if(b->val > 0) {
+    if(isinf(b->value())) {
+      if(b->value() > 0) {
         return Fixnum::from(-1);
       } else {
         return Fixnum::from(1);
@@ -1064,7 +1064,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::from_float(STATE, Float* f) {
-    return Bignum::from_double(state, f->val);
+    return Bignum::from_double(state, f->value());
   }
 
   Integer* Bignum::from_double(STATE, double d) {

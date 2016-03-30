@@ -15,23 +15,16 @@ namespace rubinius {
   public:
     const static object_type type = ConstantTableBucketType;
 
-  private:
-    Symbol* name_;   // slot
-    Object* constant_; // slot
-    Symbol* visibility_; // slot
-    ConstantTableBucket* next_;  // slot
-
-  public:
     attr_accessor(name, Symbol);
     attr_accessor(constant, Object);
     attr_accessor(visibility, Symbol);
     attr_accessor(next, ConstantTableBucket);
 
     static void initialize(STATE, ConstantTableBucket* obj) {
-      obj->name_ = nil<Symbol>();
-      obj->constant_ = nil<Object>();
-      obj->visibility_ = nil<Symbol>();
-      obj->next_ = nil<ConstantTableBucket>();
+      obj->name(nil<Symbol>());
+      obj->constant(nil<Object>());
+      obj->visibility(nil<Symbol>());
+      obj->next(nil<ConstantTableBucket>());
     }
 
     static ConstantTableBucket* create(STATE, Symbol* name,
@@ -55,26 +48,21 @@ namespace rubinius {
   public:
     const static object_type type = ConstantTableType;
 
+    attr_accessor(values, Tuple);
+    attr_accessor(bins, Integer);
+    attr_accessor(entries, Integer);
+
   private:
-    Tuple* values_;   // slot
-    Integer* bins_;    // slot
-    Integer* entries_; // slot
     utilities::thread::SpinLock lock_;
 
     void   redistribute(STATE, native_int size);
 
   public:
-    /* accessors */
-    attr_accessor(values, Tuple);
-    attr_accessor(bins, Integer);
-    attr_accessor(entries, Integer);
-
-    /* interface */
     static void bootstrap(STATE);
     static void initialize(STATE, ConstantTable* obj) {
-      obj->values_ = nil<Tuple>();
-      obj->bins_ = Fixnum::from(0);
-      obj->entries_ = Fixnum::from(0);
+      obj->values(nil<Tuple>());
+      obj->bins(Fixnum::from(0));
+      obj->entries(Fixnum::from(0));
       obj->lock_.init();
     }
 
@@ -91,7 +79,7 @@ namespace rubinius {
     ConstantTable* duplicate(STATE);
 
     // Rubinius.primitive :constant_table_values
-    Tuple* values(STATE);
+    Tuple* table_values(STATE);
 
     ConstantTableBucket* find_entry(STATE, Symbol* name);
 

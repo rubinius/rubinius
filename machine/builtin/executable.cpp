@@ -29,9 +29,9 @@ namespace rubinius {
   }
 
   bool Executable::resolve_primitive(STATE) {
-    if(!primitive_->nil_p()) {
-      if(Symbol* name = try_as<Symbol>(primitive_)) {
-        set_executor(Primitives::resolve_primitive(state, name, &prim_index_));
+    if(!primitive()->nil_p()) {
+      if(Symbol* name = try_as<Symbol>(primitive())) {
+        set_executor(Primitives::resolve_primitive(state, name, &_prim_index_));
         return true;
       }
     }
@@ -61,23 +61,23 @@ namespace rubinius {
   }
 
   void Executable::add_inliner(STATE, Memory* om, CompiledCode* code) {
-    if(!inliners_ || inliners_ == (Inliners*)cNil) {
-      inliners_ = new Inliners(state, om);
+    if(!inliners() || inliners() == (Inliners*)cNil) {
+      inliners(new Inliners(state, om));
     }
-    inliners_->inliners().push_back(code);
+    inliners()->inliners().push_back(code);
 
     om->write_barrier(this, code);
   }
 
   void Executable::clear_inliners(STATE) {
-    if(!inliners_ || inliners_ == (Inliners*)cNil) return;
-    for(std::vector<CompiledCode*>::const_iterator i = inliners_->inliners().begin();
-        i != inliners_->inliners().end();
+    if(!inliners() || inliners() == (Inliners*)cNil) return;
+    for(std::vector<CompiledCode*>::const_iterator i = inliners()->inliners().begin();
+        i != inliners()->inliners().end();
         ++i) {
       (*i)->machine_code()->deoptimize(state, *i, 0);
     }
 
-    inliners_->inliners().clear();
+    inliners()->inliners().clear();
   }
 
   void Executable::Info::mark(Object* obj, memory::ObjectMark& mark) {
@@ -87,9 +87,9 @@ namespace rubinius {
 
   void Executable::Info::mark_inliners(Object* obj, memory::ObjectMark& mark) {
     Executable* exc = static_cast<Executable*>(obj);
-    if(!exc->inliners_ || exc->inliners_ == (Inliners*)cNil) return;
+    if(!exc->inliners() || exc->inliners() == (Inliners*)cNil) return;
 
-    Inliners* inl = exc->inliners_;
+    Inliners* inl = exc->inliners();
     inl->set_mark();
 
     // std::cout << "Marking inliners: " << inl->inliners().size() << "\n";
@@ -111,6 +111,6 @@ namespace rubinius {
   }
 
   void Inliners::cleanup(STATE, memory::CodeManager* cm) {
-    inliners_.clear();
+    inliners().clear();
   }
 }

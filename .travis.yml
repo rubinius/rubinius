@@ -20,7 +20,7 @@ if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=llv
 if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
 script: rake ci
 after_success:
-- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi
+- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers docker; fi
 branches:
   only:
   - master

@@ -7,6 +7,7 @@
 #include "dispatch.hpp"
 #include "memory.hpp"
 #include "marshal.hpp"
+#include "on_stack.hpp"
 
 #include "object_utils.hpp"
 
@@ -96,13 +97,16 @@ namespace rubinius {
   }
 
   Object* UnMarshaller::get_rational() {
-    Object* objs[2];
+    Object* a;
+    Object* b;
+    OnStack<2> os(state, a, b);
 
-    objs[0] = unmarshal();
-    objs[1] = unmarshal();
+    a = unmarshal();
+    b = unmarshal();
 
     Symbol* name = state->symbol("unmarshal_rational");
-    Arguments args(name, G(runtime), 2, objs);
+    Arguments args(name, G(runtime),
+        Array::from_tuple(state, Tuple::from(state, 2, a, b)));
     Dispatch dispatch(name);
 
     if(Object* r = dispatch.send(state, args)) {
@@ -113,13 +117,16 @@ namespace rubinius {
   }
 
   Object* UnMarshaller::get_complex() {
-    Object* objs[2];
+    Object* a;
+    Object* b;
+    OnStack<2> os(state, a, b);
 
-    objs[0] = unmarshal();
-    objs[1] = unmarshal();
+    a = unmarshal();
+    b = unmarshal();
 
     Symbol* name = state->symbol("unmarshal_complex");
-    Arguments args(name, G(runtime), 2, objs);
+    Arguments args(name, G(runtime),
+        Array::from_tuple(state, Tuple::from(state, 2, a, b)));
     Dispatch dispatch(name);
 
     if(Object* c = dispatch.send(state, args)) {
@@ -186,6 +193,7 @@ namespace rubinius {
     stream >> count;
 
     Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), count);
+    OnStack<1> os(state, tup);
 
     if(tup->young_object_p()) {
       for(size_t i = 0; i < count; i++) {
@@ -266,6 +274,7 @@ namespace rubinius {
 
     InstructionSequence* iseq = InstructionSequence::create(state, count);
     Tuple* ops = iseq->opcodes();
+    OnStack<2> os(state, iseq, ops);
 
     for(size_t i = 0; i < count; i++) {
       stream.getline(data, OPCODE_LENGTH);
@@ -283,6 +292,7 @@ namespace rubinius {
     stream >> ver;
 
     CompiledCode* code = CompiledCode::create(state);
+    OnStack<1> os(state, code);
 
     code->metadata(state, unmarshal());
     code->primitive(state, force_as<Symbol>(unmarshal()));

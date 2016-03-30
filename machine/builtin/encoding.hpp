@@ -32,27 +32,17 @@ namespace rubinius {
       eAscii
     };
 
-  private:
-    String* name_;    // slot
-    Object* dummy_;   // slot
-
-    OnigEncodingType* encoding_;
-    int index_;
-    int cache_index_;
-    bool managed_;
-
   public:
     attr_accessor(name, String);
     attr_accessor(dummy, Object);
 
-    int index() const {
-      return index_;
-    }
+  private:
+    attr_field(encoding, OnigEncodingType*);
+    attr_field(index, int);
+    attr_field(cache_index, int);
+    attr_field(managed, bool);
 
-    int cache_index() const {
-      return cache_index_;
-    }
-
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, Encoding* obj);
 
@@ -126,14 +116,6 @@ namespace rubinius {
     static int mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
     static int precise_mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
 
-    OnigEncodingType* get_encoding() const {
-      return encoding_;
-    }
-
-    void set_encoding(OnigEncodingType* enc) {
-      encoding_ = enc;
-    }
-
     void make_managed(STATE, const char* name, OnigEncodingType* enc);
 
     // Rubinius.primitive+ :encoding_compatible_p
@@ -167,17 +149,6 @@ namespace rubinius {
   public:
     const static object_type type = ConverterType;
 
-  private:
-    Encoding* source_encoding_;       // slot
-    Encoding* destination_encoding_;  // slot
-    String* replacement_;             // slot
-    Array* convpath_;                 // slot
-    Array* converters_;               // slot
-    Array* replacement_converters_;   // slot
-
-    rb_econv_t* converter_;
-
-  public:
     attr_accessor(source_encoding, Encoding);
     attr_accessor(destination_encoding, Encoding);
     attr_accessor(replacement, String);
@@ -185,14 +156,10 @@ namespace rubinius {
     attr_accessor(converters, Array);
     attr_accessor(replacement_converters, Array);
 
-    void set_converter(rb_econv_t* c) {
-      converter_ = c;
-    }
+  private:
+    attr_field(converter, rb_econv_t*);
 
-    rb_econv_t* get_converter() const {
-      return converter_;
-    }
-
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, Converter* obj);
 
@@ -226,26 +193,19 @@ namespace rubinius {
   public:
     const static object_type type = TranscodingType;
 
-  private:
-    String* source_;  // slot
-    String* target_;  // slot
-
-    OnigTranscodingType* transcoder_;
-
-  public:
     attr_accessor(source, String);
     attr_accessor(target, String);
 
+  private:
+    attr_field(transcoder, OnigTranscodingType*);
+
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, Transcoding* obj);
 
     static Transcoding* create(STATE, OnigTranscodingType* tr);
     static void declare(STATE, const char* from, const char* to, const char* lib);
     static void define(STATE, OnigTranscodingType* tr);
-
-    OnigTranscodingType* get_transcoder() const {
-      return transcoder_;
-    }
 
     class Info : public TypeInfo {
     public:

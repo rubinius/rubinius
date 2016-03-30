@@ -17,12 +17,12 @@ public:
   }
 
   void check_float(Float* f, Float* g) {
-    TS_ASSERT_DELTA(f->val, g->val, TOLERANCE);
+    TS_ASSERT_DELTA(f->value(), g->value(), TOLERANCE);
   }
 
   void test_create() {
     Float* flt = Float::create(state, 1.0);
-    TS_ASSERT_EQUALS(flt->val, 1.0);
+    TS_ASSERT_EQUALS(flt->value(), 1.0);
   }
 
   void test_coerce() {
@@ -37,7 +37,7 @@ public:
     String* str = String::create(state, "blah");
     Float* coercedStr = Float::coerce(state, str);
     TS_ASSERT(kind_of<Float>(coercedStr));
-    TS_ASSERT_EQUALS(coercedStr->val, 0.0);
+    TS_ASSERT_EQUALS(coercedStr->value(), 0.0);
   }
 
   void test_add() {

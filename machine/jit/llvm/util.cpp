@@ -1401,7 +1401,7 @@ extern "C" {
   float rbx_ffi_to_float(STATE, Object* obj, bool* valid) {
     if(Float* i = try_as<Float>(obj)) {
       *valid = true;
-      return i->val;
+      return i->value();
     }
 
     Exception* exc =
@@ -1415,7 +1415,7 @@ extern "C" {
   double rbx_ffi_to_double(STATE, Object* obj, bool* valid) {
     if(Float* i = try_as<Float>(obj)) {
       *valid = true;
-      return i->val;
+      return i->value();
     }
 
     Exception* exc =

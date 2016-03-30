@@ -745,18 +745,18 @@ step2:
     assert(type_id() == other->type_id());
 
     set_age(new_age);
-    klass_ = other->klass_;
-    ivars_ = other->ivars_;
+    klass(other->klass());
+    ivars(other->ivars());
 
-    om->write_barrier(this, klass_);
-    om->write_barrier(this, ivars_);
+    om->write_barrier(this, klass());
+    om->write_barrier(this, ivars());
   }
 
   void ObjectHeader::initialize_full_state(VM* state, Object* other, unsigned int age) {
     assert(type_id() == other->type_id());
     set_age(age);
-    klass_ = other->klass_;
-    ivars_ = other->ivars_;
+    klass(other->klass());
+    ivars(other->ivars());
 
     HeaderWord hdr = other->header;
 
@@ -767,8 +767,8 @@ step2:
 
     copy_body(state, other);
 
-    state->memory()->write_barrier(this, klass_);
-    state->memory()->write_barrier(this, ivars_);
+    state->memory()->write_barrier(this, klass());
+    state->memory()->write_barrier(this, ivars());
 
     // This method is only used by the GC to move an object, so must retain
     // the settings flags.

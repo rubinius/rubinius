@@ -51,7 +51,7 @@ extern "C" {
     } else if(try_as<Bignum>(object)) {
       return rb_big2long(obj);
     } else if(try_as<Float>(object)) {
-      return (long)capi_get_float(env, obj)->val;
+      return (long)capi_get_float(env, obj)->value();
     } else if(object->true_p()) {
       rb_raise(rb_eTypeError, "can't convert true to Integer");
     } else if(object->false_p()) {
@@ -204,7 +204,7 @@ extern "C" {
       val = rb_Float(val);
     }
 
-    return capi_get_float(env, val)->val;
+    return capi_get_float(env, val)->value();
   }
 
   // Imported from MRI

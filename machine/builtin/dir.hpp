@@ -18,22 +18,17 @@ namespace rubinius {
     const static object_type type = DirType;
 
   private:
-    DIR* os_;
-    String* path_; // slot
-    Encoding* encoding_; // slot
+    attr_field(os, DIR*);
 
   public:
-
     attr_accessor(path, String);
     attr_accessor(encoding, Encoding);
 
-    /* interface */
-
     static void bootstrap(STATE);
     static void initialize(STATE, Dir* obj) {
-      obj->os_ = NULL;
-      obj->path_ = nil<String>();
-      obj->encoding_ = nil<Encoding>();
+      obj->os(NULL);
+      obj->path(nil<String>());
+      obj->encoding(nil<Encoding>());
     }
 
     static Dir* create(STATE);

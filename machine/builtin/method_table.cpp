@@ -60,15 +60,15 @@ namespace rubinius {
 
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    size = bins_->to_native();
+    size = bins()->to_native();
     dup = MethodTable::create(state, size);
 
     // Allow for subclassing.
     dup->klass(state, class_object(state));
 
-    size_t num = bins_->to_native();
+    size_t num = bins()->to_native();
     for(i = 0; i < num; i++) {
-      MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
+      MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, i));
 
       while(entry) {
         dup->store(state, entry->name(), entry->method_id(),
@@ -81,11 +81,11 @@ namespace rubinius {
   }
 
   void MethodTable::redistribute(STATE, size_t size) {
-    size_t num = bins_->to_native();
+    size_t num = bins()->to_native();
     Tuple* new_values = Tuple::create(state, size);
 
     for(size_t i = 0; i < num; i++) {
-      MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
+      MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, i));
 
       while(entry) {
         MethodTableBucket* link = try_as<MethodTableBucket>(entry->next());
@@ -127,8 +127,8 @@ namespace rubinius {
       }
     }
 
-    native_int num_entries = entries_->to_native();
-    native_int num_bins = bins_->to_native();
+    native_int num_entries = entries()->to_native();
+    native_int num_bins = bins()->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
@@ -136,7 +136,7 @@ namespace rubinius {
 
     native_int bin = find_bin(key_hash(name), num_bins);
 
-    MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, bin));
+    MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, bin));
     MethodTableBucket* last = NULL;
 
     while(entry) {
@@ -157,7 +157,7 @@ namespace rubinius {
       last->next(state, MethodTableBucket::create(
             state, name, method_id, method, scope, serial, visibility));
     } else {
-      values_->put(state, bin, MethodTableBucket::create(
+      values()->put(state, bin, MethodTableBucket::create(
             state, name, method_id, method, scope, serial, visibility));
     }
 
@@ -188,8 +188,8 @@ namespace rubinius {
 
     Alias* method = Alias::create(state, orig_name, orig_mod, orig_exec);
 
-    native_int num_entries = entries_->to_native();
-    native_int num_bins = bins_->to_native();
+    native_int num_entries = entries()->to_native();
+    native_int num_bins = bins()->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
@@ -197,7 +197,7 @@ namespace rubinius {
 
     native_int bin = find_bin(key_hash(name), num_bins);
 
-    MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, bin));
+    MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, bin));
     MethodTableBucket* last = NULL;
 
     while(entry) {
@@ -218,7 +218,7 @@ namespace rubinius {
       last->next(state, MethodTableBucket::create(
             state, name, nil<String>(), method, cNil, Fixnum::from(0), vis));
     } else {
-      values_->put(state, bin, MethodTableBucket::create(
+      values()->put(state, bin, MethodTableBucket::create(
             state, name, nil<String>(), method, cNil, Fixnum::from(0), vis));
     }
 
@@ -230,8 +230,8 @@ namespace rubinius {
     unsigned int bin;
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    bin = find_bin(key_hash(name), bins_->to_native());
-    MethodTableBucket *entry = try_as<MethodTableBucket>(values_->at(state, bin));
+    bin = find_bin(key_hash(name), bins()->to_native());
+    MethodTableBucket *entry = try_as<MethodTableBucket>(values()->at(state, bin));
 
     while(entry) {
       if(entry->name() == name) {
@@ -247,8 +247,8 @@ namespace rubinius {
     unsigned int bin;
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    bin = find_bin(key_hash(name), bins_->to_native());
-    MethodTableBucket *entry = try_as<MethodTableBucket>(values_->at(bin));
+    bin = find_bin(key_hash(name), bins()->to_native());
+    MethodTableBucket *entry = try_as<MethodTableBucket>(values()->at(bin));
 
     while(entry) {
       if(entry->name() == name) {
@@ -273,8 +273,8 @@ namespace rubinius {
 
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    native_int num_entries = entries_->to_native();
-    native_int num_bins = bins_->to_native();
+    native_int num_entries = entries()->to_native();
+    native_int num_bins = bins()->to_native();
 
     if(min_density_p(num_entries, num_bins) &&
          (num_bins >> 1) >= METHODTABLE_MIN_SIZE) {
@@ -282,7 +282,7 @@ namespace rubinius {
     }
 
     native_int bin = find_bin(key_hash(name), num_bins);
-    MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, bin));
+    MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, bin));
     MethodTableBucket* last = NULL;
 
     while(entry) {
@@ -291,10 +291,10 @@ namespace rubinius {
         if(last) {
           last->next(state, entry->next());
         } else {
-          values_->put(state, bin, entry->next());
+          values()->put(state, bin, entry->next());
         }
 
-        entries(state, Fixnum::from(entries_->to_native() - 1));
+        entries(state, Fixnum::from(entries()->to_native() - 1));
         return val;
       }
 
@@ -367,7 +367,7 @@ namespace rubinius {
     } else {
       code->scope(state, nil<ConstantScope>());
     }
-    code->serial(state, serial_);
+    code->serial(state, serial());
     method(state, code);
 
     return as<Executable>(code);
@@ -387,18 +387,18 @@ namespace rubinius {
   }
 
   bool MethodTableBucket::private_p(STATE) {
-    return visibility_ == G(sym_private);
+    return visibility() == G(sym_private);
   }
 
   bool MethodTableBucket::protected_p(STATE) {
-    return visibility_ == G(sym_protected);
+    return visibility() == G(sym_protected);
   }
 
   bool MethodTableBucket::public_p(STATE) {
-    return visibility_ == G(sym_public);
+    return visibility() == G(sym_public);
   }
 
   bool MethodTableBucket::undef_p(STATE) {
-    return visibility_ == G(sym_undef);
+    return visibility() == G(sym_undef);
   }
 }

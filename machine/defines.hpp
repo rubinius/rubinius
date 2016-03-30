@@ -37,6 +37,80 @@ namespace rubinius {
   #define G(whatever) state->globals().whatever.get()
   #define GO(whatever) state->globals().whatever
 
+/**
+ *  Create a writer method for a slot.
+ *
+ *  For attr_writer(foo, SomeClass), creates void foo(STATE, SomeClass* obj)
+ *  that sets the instance variable foo_ to the object given and runs the write
+ *  barrier.
+ */
+#define attr_writer(name, type) \
+  private: \
+    type* _ ## name ## _; \
+  public: \
+    template <class T> \
+    void name(type* obj) { \
+      _ ## name ## _ = obj; \
+    } \
+    void name(T state, type* obj) { \
+      _ ## name ## _ = obj; \
+      state->memory()->write_barrier(this, obj); \
+    }
+
+/**
+ *  Create a reader method for a slot.
+ *
+ *  For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
+ *  instance variable foo_. A const version is also generated.
+ */
+#define attr_reader(name, type) \
+  private: \
+    type* _ ## name ## _; \
+  public: \
+    type* name() const { return _ ## name ## _; } \
+    void name(type* obj) { \
+      _ ## name ## _ = obj; \
+    } \
+
+/**
+ *  Ruby-like accessor creation for a slot.
+ *
+ *  Both attr_writer and attr_reader.
+ */
+#define attr_accessor(name, type) \
+  private: \
+    type* _ ## name ## _; \
+  public: \
+    type* name() const { return _ ## name ## _; } \
+    void name(type* obj) { \
+      _ ## name ## _ = obj; \
+    } \
+    template <class T> \
+    void name(T state, type* obj) { \
+      _ ## name ## _ = obj; \
+      state->memory()->write_barrier(this, obj); \
+    }
+
+#define attr_slot(name, type) \
+  public: \
+    type* name() const { return _ ## name ## _; } \
+    void name(type* obj) { \
+      _ ## name ## _ = obj; \
+    } \
+    template <class T> \
+    void name(T state, type* obj) { \
+      _ ## name ## _ = obj; \
+      state->memory()->write_barrier(this, obj); \
+    }
+
+#define attr_field(name, type) \
+  private: \
+    type _ ## name ## _; \
+  public: \
+    type name() const { return _ ## name ## _; } \
+    void name(type value) { \
+      _ ## name ## _ = value; \
+    }
 }
 
 #if __GNUC__ >= 4

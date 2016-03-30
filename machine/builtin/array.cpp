@@ -22,15 +22,15 @@ namespace rubinius {
   }
 
   native_int Array::size() {
-    return total_->to_native();
+    return total()->to_native();
   }
 
   void Array::set_size(native_int size) {
-    total_ = Fixnum::from(size);
+    total(Fixnum::from(size));
   }
 
   native_int Array::offset() {
-    return start_->to_native();
+    return start()->to_native();
   }
 
   Array* Array::create(STATE, native_int size) {
@@ -38,7 +38,7 @@ namespace rubinius {
     Tuple* tup = Tuple::create(state, size);
 
     if(ary->young_object_p()) {
-      ary->tuple_ = tup;
+      ary->tuple(tup);
     } else {
       ary->tuple(state, tup);
     }
@@ -51,7 +51,7 @@ namespace rubinius {
     Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), size);
 
     if(ary->young_object_p()) {
-      ary->tuple_ = tup;
+      ary->tuple(tup);
     } else {
       ary->tuple(state, tup);
     }
@@ -95,16 +95,16 @@ namespace rubinius {
 
       if(tup->young_object_p()) {
         for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
-          tup->field[i] = tuple_->field[j];
+          tup->field[i] = tuple()->field[j];
         }
       } else {
         for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
-          tup->put(state, i, tuple_->field[j]);
+          tup->put(state, i, tuple()->field[j]);
         }
       }
 
       if(ary->young_object_p()) {
-        ary->tuple_ = tup;
+        ary->tuple(tup);
       } else {
         ary->tuple(state, tup);
       }
@@ -126,7 +126,7 @@ namespace rubinius {
   Array* Array::from_tuple(STATE, Tuple* tup) {
     native_int length = tup->num_fields();
     Array* ary = Array::create(state, length);
-    ary->tuple_->copy_from(state, tup,
+    ary->tuple()->copy_from(state, tup,
         Fixnum::from(0), Fixnum::from(length),
         Fixnum::from(0));
 
@@ -165,20 +165,20 @@ namespace rubinius {
   // fully handle.
   Object* Array::aref(STATE, Fixnum* idx) {
     native_int index = idx->to_native();
-    const native_int start = start_->to_native();
-    const native_int total = start + total_->to_native();
+    const native_int s = start()->to_native();
+    const native_int t = s + total()->to_native();
 
     // Handle negative indexes
     if(index < 0) {
-      index += total;
+      index += t;
     } else {
-      index += start;
+      index += s;
     }
 
     // Off either end, return nil
-    if(index >= total || index < start) return cNil;
+    if(index >= t || index < s) return cNil;
 
-    return tuple_->at(state, index);
+    return tuple()->at(state, index);
   }
 
   Object* Array::aset(STATE, Fixnum* idx, Object* val) {
@@ -187,7 +187,7 @@ namespace rubinius {
     native_int index = idx->to_native();
 
     if(index < 0) {
-      index += total_->to_native();
+      index += total()->to_native();
       if(index < 0) return Primitives::failure();
     }
 
@@ -208,14 +208,14 @@ namespace rubinius {
     }
 
     native_int new_size = size + osize;
-    if(new_size <= tuple_->num_fields()) {
+    if(new_size <= tuple()->num_fields()) {
       // We have enough space, but may need to shift elements.
-      if(start_->to_native() + new_size <= tuple_->num_fields()) {
-        tuple_->copy_from(state, other->tuple(), other->start(), other->total(),
-            Fixnum::from(start_->to_native() + total_->to_native()));
+      if(start()->to_native() + new_size <= tuple()->num_fields()) {
+        tuple()->copy_from(state, other->tuple(), other->start(), other->total(),
+            Fixnum::from(start()->to_native() + total()->to_native()));
       } else {
-        tuple_->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
-        tuple_->copy_from(state, other->tuple(), other->start(), other->total(), total_);
+        tuple()->copy_from(state, tuple(), start(), total(), Fixnum::from(0));
+        tuple()->copy_from(state, other->tuple(), other->start(), other->total(), total());
         start(state, Fixnum::from(0));
       }
     } else {
@@ -224,46 +224,46 @@ namespace rubinius {
       while(size <= new_size) size *= 2;
 
       Tuple* nt = state->memory()->new_fields<Tuple>(state, G(tuple), size);
-      nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
-      nt->copy_from(state, other->tuple(), other->start(), other->total(), total_);
+      nt->copy_from(state, tuple(), start(), total(), Fixnum::from(0));
+      nt->copy_from(state, other->tuple(), other->start(), other->total(), total());
 
       for(native_int i = new_size; i < size; i++) {
         nt->field[i] = cNil;
       }
 
       if(young_object_p()) {
-        tuple_ = nt;
+        tuple(nt);
       } else {
         tuple(state, nt);
       }
 
-      start_ = Fixnum::from(0);
+      start(Fixnum::from(0));
     }
 
-    total_ = Fixnum::from(new_size);
+    total(Fixnum::from(new_size));
 
     return this;
   }
 
   Object* Array::get(STATE, native_int idx) {
-    if(idx >= total_->to_native()) {
+    if(idx >= total()->to_native()) {
       return cNil;
     }
 
-    idx += start_->to_native();
+    idx += start()->to_native();
 
-    return tuple_->at(state, idx);
+    return tuple()->at(state, idx);
   }
 
   Object* Array::set(STATE, native_int idx, Object* val) {
-    native_int tuple_size = tuple_->num_fields();
+    native_int tuple_size = tuple()->num_fields();
     native_int oidx = idx;
-    idx += start_->to_native();
+    idx += start()->to_native();
 
     if(idx >= tuple_size) {
       if(oidx < tuple_size) {
         // There is enough space in the tuple for this element
-        tuple_->lshift_inplace(state, start_);
+        tuple()->lshift_inplace(state, start());
       } else {
         // Uses the same algo as 1.8 to resize the tuple
         native_int new_size = tuple_size / 2;
@@ -272,61 +272,61 @@ namespace rubinius {
         }
 
         Tuple* nt = Tuple::create(state, new_size+idx);
-        nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
+        nt->copy_from(state, tuple(), start(), total(), Fixnum::from(0));
         tuple(state, nt);
       }
       start(state, Fixnum::from(0));
       idx = oidx;
     }
 
-    tuple_->put(state, idx, val);
-    if(total_->to_native() <= oidx) {
+    tuple()->put(state, idx, val);
+    if(total()->to_native() <= oidx) {
       total(state, Fixnum::from(oidx+1));
     }
     return val;
   }
 
   void Array::unshift(STATE, Object* val) {
-    native_int new_size = total_->to_native() + 1;
-    native_int lend = start_->to_native();
+    native_int new_size = total()->to_native() + 1;
+    native_int lend = start()->to_native();
 
     if(lend > 0) {
-      tuple_->put(state, lend-1, val);
-      start_ = Fixnum::from(lend-1);
-      total_ = Fixnum::from(new_size);
+      tuple()->put(state, lend-1, val);
+      start(Fixnum::from(lend-1));
+      total(Fixnum::from(new_size));
     } else {
       Tuple* nt = state->memory()->new_fields<Tuple>(state, G(tuple), new_size);
 
-      nt->copy_from(state, tuple_, start_, total_, Fixnum::from(1));
+      nt->copy_from(state, tuple(), start(), total(), Fixnum::from(1));
       nt->put(state, 0, val);
 
-      total_ = Fixnum::from(new_size);
-      start_ = Fixnum::from(0);
+      total(Fixnum::from(new_size));
+      start(Fixnum::from(0));
 
       tuple(state, nt);
     }
   }
 
   Object* Array::shift(STATE) {
-    native_int cnt = total_->to_native();
+    native_int cnt = total()->to_native();
 
     if(cnt == 0) return cNil;
 
     Object* obj = get(state, 0);
     set(state, 0, cNil);
-    start_ = Fixnum::from(start_->to_native() + 1);
-    total_ = Fixnum::from(cnt - 1);
+    start(Fixnum::from(start()->to_native() + 1));
+    total(Fixnum::from(cnt - 1));
 
     return obj;
   }
 
   Object* Array::append(STATE, Object* val) {
-    set(state, total_->to_native(), val);
+    set(state, total()->to_native(), val);
     return val;
   }
 
   bool Array::includes_p(STATE, Object* val) {
-    native_int cnt = total_->to_native();
+    native_int cnt = total()->to_native();
 
     for(native_int i = 0; i < cnt; i++) {
       if(get(state, i) == val) return true;
@@ -336,7 +336,7 @@ namespace rubinius {
   }
 
   Object* Array::pop(STATE) {
-    native_int cnt = total_->to_native();
+    native_int cnt = total()->to_native();
 
     if(cnt == 0) return cNil;
     Object *obj = get(state, cnt - 1);

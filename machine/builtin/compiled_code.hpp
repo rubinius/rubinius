@@ -26,50 +26,6 @@ namespace rubinius {
   public:
     const static object_type type = CompiledCodeType;
 
-  private:
-    Object* metadata_;          // slot
-    Symbol* name_;              // slot
-    InstructionSequence* iseq_; // slot
-    Fixnum* stack_size_;        // slot
-    Fixnum* local_count_;       // slot
-    Fixnum* required_args_;     // slot
-    Fixnum* post_args_;         // slot
-    Fixnum* total_args_;        // slot
-    Fixnum* splat_;             // slot
-    Tuple* lines_;              // slot
-    Tuple* local_names_;        // slot
-    Symbol* file_;              // slot
-    ConstantScope* scope_;      // slot
-    Tuple* keywords_;           // slot
-    Fixnum* arity_;             // slot
-    LookupTable* breakpoints_;  // slot
-
-    MachineCode* machine_code_;
-
-    jit::RuntimeDataHolder* jit_data_;
-
-  public:
-    // Access directly from assembly, so has to be public.
-    Tuple* literals_;           // slot
-
-    /* accessors */
-    MachineCode* machine_code() {
-      return machine_code_;
-    }
-
-    jit::RuntimeDataHolder* jit_data() {
-      return jit_data_;
-    }
-
-    void set_jit_data(jit::RuntimeDataHolder* rds) {
-      jit_data_ = rds;
-    }
-
-    bool can_specialize_p();
-    void set_unspecialized(executor exec, jit::RuntimeDataHolder* rd);
-    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec, jit::RuntimeDataHolder* rd);
-    executor find_specialized(Class* cls);
-
     attr_accessor(metadata, Object);
     attr_accessor(name, Symbol);
     attr_accessor(iseq, InstructionSequence);
@@ -79,7 +35,6 @@ namespace rubinius {
     attr_accessor(post_args, Fixnum);
     attr_accessor(total_args, Fixnum);
     attr_accessor(splat, Fixnum);
-    attr_accessor(literals, Tuple);
     attr_accessor(lines, Tuple);
     attr_accessor(local_names, Tuple);
     attr_accessor(file, Symbol);
@@ -88,32 +43,44 @@ namespace rubinius {
     attr_accessor(arity, Fixnum);
     attr_accessor(breakpoints, LookupTable);
 
+  private:
+    attr_field(machine_code, MachineCode*);
+    attr_field(jit_data, jit::RuntimeDataHolder*);
+
+  public:
+    attr_accessor(literals, Tuple)
+
+    bool can_specialize_p();
+    void set_unspecialized(executor exec, jit::RuntimeDataHolder* rd);
+    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec, jit::RuntimeDataHolder* rd);
+    executor find_specialized(Class* cls);
+
     /* interface */
 
     static void bootstrap(STATE);
     static void initialize(STATE, CompiledCode* obj) {
       Executable::initialize(state, obj, CompiledCode::default_executor);
 
-      obj-> metadata_ = nil<Object>();
-      obj-> name_ = nil<Symbol>();
-      obj-> iseq_ = nil<InstructionSequence>();
-      obj-> stack_size_ = nil<Fixnum>();
-      obj-> local_count_ = Fixnum::from(0);
-      obj-> required_args_ = nil<Fixnum>();
-      obj-> post_args_ = nil<Fixnum>();
-      obj-> total_args_ = nil<Fixnum>();
-      obj-> splat_ = nil<Fixnum>();
-      obj-> lines_ = nil<Tuple>();
-      obj-> local_names_ = nil<Tuple>();
-      obj-> file_ = nil<Symbol>();
-      obj-> scope_ = nil<ConstantScope>();
-      obj-> keywords_ = nil<Tuple>();
-      obj-> arity_ = nil<Fixnum>();
-      obj-> breakpoints_ = nil<LookupTable>();
-      obj-> machine_code_ = NULL;
-      obj->jit_data_ = NULL;
+      obj-> metadata(nil<Object>());
+      obj-> name(nil<Symbol>());
+      obj-> iseq(nil<InstructionSequence>());
+      obj-> stack_size(nil<Fixnum>());
+      obj-> local_count(Fixnum::from(0));
+      obj-> required_args(nil<Fixnum>());
+      obj-> post_args(nil<Fixnum>());
+      obj-> total_args(nil<Fixnum>());
+      obj-> splat(nil<Fixnum>());
+      obj-> lines(nil<Tuple>());
+      obj-> local_names(nil<Tuple>());
+      obj-> file(nil<Symbol>());
+      obj-> scope(nil<ConstantScope>());
+      obj-> keywords(nil<Tuple>());
+      obj-> arity(nil<Fixnum>());
+      obj-> breakpoints(nil<LookupTable>());
+      obj-> machine_code(NULL);
+      obj->jit_data(NULL);
 
-      obj->literals_ = nil<Tuple>();
+      obj->literals(nil<Tuple>());
     }
 
     static CompiledCode* create(STATE);

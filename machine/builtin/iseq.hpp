@@ -11,19 +11,13 @@ namespace rubinius {
   public:
     const static object_type type = InstructionSequenceType;
 
-  private:
-    Tuple* opcodes_;     // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(opcodes, Tuple);
 
     /* interface */
 
     static void bootstrap(STATE);
     static void initialize(STATE, InstructionSequence* obj) {
-      obj->opcodes_ = nil<Tuple>();
+      obj->opcodes(nil<Tuple>());
     }
 
     static InstructionSequence* create(STATE, size_t instructions);

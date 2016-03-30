@@ -11,7 +11,7 @@ namespace rubinius {
   CallUnit* CallUnit::create_constant_value(STATE, Object* self, Object* val) {
     CallUnit* pe = state->memory()->new_object<CallUnit>(state, as<Class>(self));
 
-    pe->kind_ = CallUnit::eConstantValue;
+    pe->kind(CallUnit::eConstantValue);
     pe->value(state, val);
     pe->execute = constant_value_executor;
 
@@ -23,7 +23,7 @@ namespace rubinius {
   {
     CallUnit* pe = state->memory()->new_object<CallUnit>(state, as<Class>(self));
 
-    pe->kind_ = CallUnit::eForMethod;
+    pe->kind(CallUnit::eForMethod);
     pe->module(state, mod);
     pe->executable(state, exec);
     pe->name(state, name);
@@ -37,7 +37,7 @@ namespace rubinius {
   {
     CallUnit* pe = state->memory()->new_object<CallUnit>(state, as<Class>(self));
 
-    pe->kind_ = CallUnit::eTest;
+    pe->kind(CallUnit::eTest);
     pe->test_condition(state, cond);
     pe->test_then(state, c_then);
     pe->test_else(state, c_else);
@@ -49,9 +49,9 @@ namespace rubinius {
   CallUnit* CallUnit::create_kind_of(STATE, Object* self, Module* mod, Fixnum* which) {
     CallUnit* pe = state->memory()->new_object<CallUnit>(state, as<Class>(self));
 
-    pe->kind_ = CallUnit::eKindOf;
+    pe->kind(CallUnit::eKindOf);
     pe->value(state, mod);
-    pe->which_ = which->to_native();
+    pe->which(which->to_native());
     pe->execute = kind_of_executor;
 
     return pe;
@@ -88,10 +88,10 @@ namespace rubinius {
       CallUnit* unit, Executable* exec, Module* mod, Arguments& args)
   {
     Object* obj;
-    if(unit->which_ == -1) {
+    if(unit->which() == -1) {
       obj = args.recv();
-    } else if(unit->which_ < (int)args.total()) {
-      obj = args.get_argument(unit->which_);
+    } else if(unit->which() < (int)args.total()) {
+      obj = args.get_argument(unit->which());
     } else {
       return cFalse;
     }

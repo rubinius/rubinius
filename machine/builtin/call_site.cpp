@@ -27,15 +27,15 @@ namespace rubinius {
   CallSite* CallSite::empty(STATE, Symbol* name, Executable* executable, int ip) {
     CallSite* cache = state->memory()->new_object<CallSite>(state, G(call_site));
 
-    cache->name_ = name;
+    cache->name(name);
     cache->executable(state, executable);
-    cache->ip_ = ip;
+    cache->ip(ip);
 
     return cache;
   }
 
   Integer* CallSite::ip_prim(STATE) {
-    return Integer::from(state, ip_);
+    return Integer::from(state, ip());
   }
 
   Object* CallSite::empty_cache_custom(STATE, CallSite* call_site, Arguments& args) {
@@ -43,7 +43,7 @@ namespace rubinius {
 
     Array* ary = Array::create(state, args.total() + 2);
     ary->set(state, 0, recv);
-    ary->set(state, 1, call_site->name_);
+    ary->set(state, 1, call_site->name());
 
     for(size_t i = 0; i < args.total(); i++) {
       ary->set(state, i + 2, args.get_argument(i));
@@ -169,9 +169,9 @@ namespace rubinius {
     CallFrame* call_frame = state->vm()->call_frame();
 
     Symbol* original_name = call_frame->original_name();
-    if(call_site->name_ != original_name) {
-      call_site->name_ = original_name;
-      args.set_name(call_site->name_);
+    if(call_site->name() != original_name) {
+      call_site->name(original_name);
+      args.set_name(call_site->name());
     }
 
     Object* const recv = args.recv();
@@ -244,9 +244,9 @@ namespace rubinius {
 
     LookupData lookup(state->vm()->call_frame()->self(),
         recv->lookup_begin(state), G(sym_public));
-    Dispatch dispatch(name_);
+    Dispatch dispatch(name());
 
-    if(dispatch.resolve(state, name_, lookup)) {
+    if(dispatch.resolve(state, name(), lookup)) {
       update(state, recv_class, dispatch);
       return dispatch.method->serial()->to_native() == serial;
     }

@@ -156,7 +156,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   struct ObjectFlags {
     object_type  obj_type        : 8;
     gc_zone      zone            : 2;
-    unsigned int age             : 4;
+    unsigned int age             : 7;
     aux_meaning  meaning         : 3;
 
     unsigned int Forwarded       : 1;
@@ -164,13 +164,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int Marked          : 3;
 
     unsigned int InImmix         : 1;
+    unsigned int InLarge         : 1;
     unsigned int Pinned          : 1;
 
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
     unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
-    unsigned int unused          : 4;
 
     uint32_t aux_word;
   };
@@ -290,8 +290,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   protected:
 #endif
 
-    Class* klass_;
-    Object* ivars_;
+    attr_accessor(klass, Class);
+    attr_accessor(ivars, Object);
 
   private:
     // Defined so ObjectHeader can easily access the data just beyond
@@ -357,6 +357,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     unsigned int inc_age() {
       return ++header.f.age;
+    }
+
+    void set_cycle(unsigned int cycle) {
+      header.f.age = cycle;
     }
 
     void set_age(unsigned int age);
@@ -451,27 +455,27 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return zone() == MatureObjectZone;
     }
 
+    bool large_object_p() const {
+      return flags().InLarge == 1;
+    }
+
     bool forwarded_p() const {
       return flags().Forwarded == 1;
     }
 
     Object* forward() const {
-      return ivars_;
-    }
-
-    Object* ivars() const {
-      return ivars_;
+      return _ivars_;
     }
 
     Class* reference_class() const {
-      return klass_;
+      return _klass_;
     }
 
     /**
      *  Mark this Object forwarded by the GC.
      *
      *  Sets the forwarded flag and stores the given Object* in
-     *  the klass_ field where it can be reached. This object is
+     *  the _klass_ field where it can be reached. This object is
      *  no longer valid and should be accessed through the new
      *  Object* (but code outside of the GC framework should not
      *  really run into this much if at all.)
@@ -484,7 +488,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
       // DO NOT USE klass() because we need to get around the
       // write barrier!
-      ivars_ = reinterpret_cast<Object*>(fwd);
+      _ivars_ = reinterpret_cast<Object*>(fwd);
     }
 
     bool marked_p(unsigned int which) const {
@@ -525,6 +529,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     // Only called in non contended scenario's
     void set_in_immix() {
       header.f.InImmix = 1;
+    }
+
+    // Only called in non contended scenario's
+    void set_in_large() {
+      header.f.InLarge = 1;
     }
 
     bool remembered_p() const {

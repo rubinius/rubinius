@@ -36,7 +36,7 @@ namespace rubinius {
     rdata->d.untyped.dmark = mark;
     rdata->d.untyped.dfree = free;
 
-    data->internal_ = rdata;
+    data->internal(rdata);
 
     if(mark || free) {
       state->memory()->needs_finalization(state, data,
@@ -70,7 +70,7 @@ namespace rubinius {
     rdata->d.typed.typed = 1;
     rdata->d.typed.type = type;
 
-    data->internal_ = rdata;
+    data->internal(rdata);
 
     if(type->function.dmark || type->function.dfree) {
       state->memory()->needs_finalization(state, data,

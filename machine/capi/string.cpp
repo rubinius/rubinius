@@ -576,7 +576,7 @@ extern "C" {
       str->encoding(env->state(), enc);
     }
 
-    return rb_str_conv_enc(env->get_handle(str), enc->get_encoding(),
+    return rb_str_conv_enc(env->get_handle(str), enc->encoding(),
                            rb_default_internal_encoding());
   }
 

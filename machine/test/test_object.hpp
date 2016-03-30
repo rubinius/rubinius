@@ -92,15 +92,15 @@ public:
     TS_ASSERT_EQUALS(tup2->at(state, 0), cTrue);
     TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
 
-    TS_ASSERT(tup->ivars_ != tup2->ivars_);
+    TS_ASSERT(tup->ivars() != tup2->ivars());
 
     TS_ASSERT_EQUALS(tup2->get_ivar(state, state->symbol("@name")),
         state->symbol("foo"));
 
-    tup->ivars_ = as<CompactLookupTable>(tup->ivars_)->to_lookuptable(state);
+    tup->ivars(as<CompactLookupTable>(tup->ivars())->to_lookuptable(state));
     Tuple* tup3 = as<Tuple>(tup->duplicate(state));
 
-    TS_ASSERT(tup->ivars_ != tup2->ivars_);
+    TS_ASSERT(tup->ivars() != tup2->ivars());
     TS_ASSERT_EQUALS(tup3->get_ivar(state, state->symbol("@name")),
         state->symbol("foo"));
   }
@@ -114,7 +114,7 @@ public:
 
     Tuple* tup2 = as<Tuple>(tup->duplicate(state));
 
-    TS_ASSERT(!try_as<SingletonClass>(tup2->klass_));
+    TS_ASSERT(!try_as<SingletonClass>(tup2->klass()));
 
     TS_ASSERT_DIFFERS(tup->singleton_class(state), tup2->singleton_class(state));
   }

@@ -49,19 +49,19 @@ namespace rubinius {
   }
 
   Object* Proc::call(STATE, Arguments& args) {
-    bool lambda_style = CBOOL(lambda_);
+    bool lambda_style = CBOOL(lambda());
     int flags = 0;
 
     Proc* self = this;
     OnStack<1> os(state, self);
     // Check the arity in lambda mode
-    if(lambda_style && !block_->nil_p()) {
+    if(lambda_style && !block()->nil_p()) {
       flags = CallFrame::cIsLambda;
-      int total = self->block_->compiled_code()->total_args()->to_native();
-      int required = self->block_->compiled_code()->required_args()->to_native();
+      int total = self->block()->compiled_code()->total_args()->to_native();
+      int required = self->block()->compiled_code()->required_args()->to_native();
 
       bool arity_ok = false;
-      if(Fixnum* fix = try_as<Fixnum>(self->block_->compiled_code()->splat())) {
+      if(Fixnum* fix = try_as<Fixnum>(self->block()->compiled_code()->splat())) {
         switch(fix->to_native()) {
         case -2:
           arity_ok = true;
@@ -102,27 +102,27 @@ namespace rubinius {
       if(!arity_ok) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
-              block_->compiled_code()->name());
+              block()->compiled_code()->name());
         exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
         return NULL;
       }
     }
 
-    if(self->bound_method_->nil_p()) {
-      if(self->block_->nil_p()) {
+    if(self->bound_method()->nil_p()) {
+      if(self->block()->nil_p()) {
         Dispatch dispatch(state->symbol("__yield__"));
         return dispatch.send(state, args);
       } else {
-        return self->block_->call(state, args, flags);
+        return self->block()->call(state, args, flags);
       }
-    } else if(NativeMethod* nm = try_as<NativeMethod>(self->bound_method_)) {
+    } else if(NativeMethod* nm = try_as<NativeMethod>(self->bound_method())) {
       return nm->execute(state, nm, G(object), args);
-    } else if(NativeFunction* nf = try_as<NativeFunction>(self->bound_method_)) {
+    } else if(NativeFunction* nf = try_as<NativeFunction>(self->bound_method())) {
       return nf->call(state, args);
     } else {
       Exception* exc =
-        Exception::make_type_error(state, BlockEnvironment::type, self->bound_method_, "NativeMethod nor NativeFunction bound to proc");
+        Exception::make_type_error(state, BlockEnvironment::type, self->bound_method(), "NativeMethod nor NativeFunction bound to proc");
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -130,20 +130,20 @@ namespace rubinius {
   }
 
   Object* Proc::yield(STATE, Arguments& args) {
-    if(bound_method_->nil_p()) {
-      if(block_->nil_p()) {
+    if(bound_method()->nil_p()) {
+      if(block()->nil_p()) {
         return call(state, args);
       } else {
-        int flags = CBOOL(lambda_) ? CallFrame::cIsLambda : 0;
-        return block_->call(state, args, flags);
+        int flags = CBOOL(lambda()) ? CallFrame::cIsLambda : 0;
+        return block()->call(state, args, flags);
       }
-    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
+    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method())) {
       return nm->execute(state, nm, G(object), args);
-    } else if(NativeFunction* nf = try_as<NativeFunction>(bound_method_)) {
+    } else if(NativeFunction* nf = try_as<NativeFunction>(bound_method())) {
       return nf->call(state, args);
     } else {
       Exception* exc =
-        Exception::make_type_error(state, BlockEnvironment::type, bound_method_, "NativeMethod nor NativeFunction bound to proc");
+        Exception::make_type_error(state, BlockEnvironment::type, bound_method(), "NativeMethod nor NativeFunction bound to proc");
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -157,14 +157,14 @@ namespace rubinius {
 
   Object* Proc::call_on_object(STATE,
                                Executable* exec, Module* mod, Arguments& args) {
-    bool lambda_style = !lambda_->nil_p();
+    bool lambda_style = !lambda()->nil_p();
     int flags = 0;
 
     // Since we allow Proc's to be created without setting block_, we need to check
     // it.
-    if(block_->nil_p()) {
+    if(block()->nil_p()) {
       Exception* exc =
-        Exception::make_type_error(state, BlockEnvironment::type, block_, "Invalid proc style");
+        Exception::make_type_error(state, BlockEnvironment::type, block(), "Invalid proc style");
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -173,18 +173,18 @@ namespace rubinius {
     // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
-      int required = block_->compiled_code()->required_args()->to_native();
+      int required = block()->compiled_code()->required_args()->to_native();
 
       if(args.total() < 1 || (required >= 0 && (size_t)required != args.total() - 1)) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
-              block_->compiled_code()->name());
+              block()->compiled_code()->name());
         exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
         return NULL;
       }
     }
 
-    return block_->call_on_object(state, args, flags);
+    return block()->call_on_object(state, args, flags);
   }
 }

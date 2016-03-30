@@ -20,11 +20,11 @@ namespace rubinius {
   public:
     const static object_type type = FloatType;
 
-    double val;
+    attr_field(value, double)
 
     static void bootstrap(STATE);
     static void initialize(STATE, Float* obj) {
-      obj->val = 0.0;
+      obj->value(0.0);
       obj->set_frozen();
     }
 
@@ -32,7 +32,7 @@ namespace rubinius {
     static Float* create(STATE, float val);
     static Float* create(STATE, native_int val);
     static Float* coerce(STATE, Object* value);
-    double to_double(STATE) { return val; }
+    double to_double(STATE) { return value(); }
     void into_string(STATE, char* buf, size_t sz);
 
     static Float* from_cstr(STATE, const char* str, const char* end, Object* strict);

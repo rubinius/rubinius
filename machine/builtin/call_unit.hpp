@@ -24,24 +24,6 @@ namespace rubinius {
     typedef Object* (*Execute)(State*, CallUnit* unit,
                                Executable* exec, Module* mod, Arguments& args);
 
-  private:
-    Kind kind_;
-
-    Object* value_; // slot
-    Module* module_; // slot
-    Executable* executable_; // slot
-    Symbol* name_; // slot
-
-    CallUnit* test_condition_; // slot
-    CallUnit* test_then_; // slot
-    CallUnit* test_else_; // slot
-
-    int which_;
-
-  public:
-    Execute execute;
-
-  public:
     attr_accessor(value, Object);
     attr_accessor(module, Module);
     attr_accessor(executable, Executable);
@@ -51,15 +33,22 @@ namespace rubinius {
     attr_accessor(test_then, CallUnit);
     attr_accessor(test_else, CallUnit);
 
+  private:
+    attr_field(kind, Kind);
+    attr_field(which, int);
+
+  public:
+    Execute execute;
+
     static void initialize(STATE, CallUnit* obj) {
-      obj-> kind_ = eUnset;
-      obj->value_ = nil<Object>();
-      obj->module_ = nil<Module>();
-      obj->executable_ = nil<Executable>();
-      obj->name_ = nil<Symbol>();
-      obj->test_condition_ = nil<CallUnit>();
-      obj->test_then_ = nil<CallUnit>();
-      obj->test_else_ = nil<CallUnit>();
+      obj-> kind(eUnset);
+      obj->value(nil<Object>());
+      obj->module(nil<Module>());
+      obj->executable(nil<Executable>());
+      obj->name(nil<Symbol>());
+      obj->test_condition(nil<CallUnit>());
+      obj->test_then(nil<CallUnit>());
+      obj->test_else(nil<CallUnit>());
     }
 
     // Rubinius.primitive :callunit_constant_value

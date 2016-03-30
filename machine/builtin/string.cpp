@@ -70,7 +70,7 @@ namespace rubinius {
   String* String::create(STATE, Fixnum* size) {
     String *so = state->memory()->new_object<String>(state, G(string));
 
-    so->num_bytes_ = size;
+    so->num_bytes(size);
 
     native_int bytes = size->to_native() + 1;
     so->data(state, ByteArray::create(state, bytes));
@@ -110,7 +110,7 @@ namespace rubinius {
   String* String::create(STATE, const char* str, native_int bytes) {
     String* so = state->memory()->new_object<String>(state, G(string));
 
-    so->num_bytes_ = Fixnum::from(bytes);
+    so->num_bytes(Fixnum::from(bytes));
 
     ByteArray* ba =
       state->memory()->new_bytes<ByteArray>(state, G(bytearray), bytes + 1);
@@ -129,7 +129,7 @@ namespace rubinius {
   String* String::from_bytearray(STATE, ByteArray* ba, native_int size) {
     String* s = state->memory()->new_object<String>(state, G(string));
 
-    s->num_bytes_ = Fixnum::from(size);
+    s->num_bytes(Fixnum::from(size));
     s->data(state, ba);
 
     return s;
@@ -161,13 +161,13 @@ namespace rubinius {
   }
 
   static bool byte_compatible_p(Encoding* enc) {
-    return enc->nil_p() || ONIGENC_MBC_MAXLEN(enc->get_encoding()) == 1;
+    return enc->nil_p() || ONIGENC_MBC_MAXLEN(enc->encoding()) == 1;
   }
 
   static bool fixed_width_p(Encoding* enc) {
     if(enc->nil_p()) return true;
 
-    OnigEncodingType* e = enc->get_encoding();
+    OnigEncodingType* e = enc->encoding();
     return ONIGENC_MBC_MAXLEN(e) == ONIGENC_MBC_MINLEN(e);
   }
 
@@ -260,7 +260,7 @@ namespace rubinius {
         if(!utf8) {
           ascii = false;
           utf8 = true;
-          enc = Encoding::utf8_encoding(state)->get_encoding();
+          enc = Encoding::utf8_encoding(state)->encoding();
         }
 
         int n = ONIGENC_CODE_TO_MBCLEN(enc, value);
@@ -454,7 +454,7 @@ namespace rubinius {
     } else if(enc == Encoding::usascii_encoding(state)) {
       enc = Encoding::ascii8bit_encoding(state);
     }
-    ces.enc = enc->get_encoding();
+    ces.enc = enc->encoding();
 
     while(ces.p < ces.e) {
       int n = Encoding::precise_mbclen(ces.p, ces.e, ces.enc);
@@ -572,11 +572,11 @@ namespace rubinius {
   }
 
   native_int String::char_size(STATE) {
-    if(num_chars_->nil_p()) {
-      OnigEncodingType* enc = encoding(state)->get_encoding();
-      if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
-        num_chars(state, num_bytes_);
-      } else if(fixed_width_p(encoding_)) {
+    if(num_chars()->nil_p()) {
+      OnigEncodingType* enc = encoding(state)->encoding();
+      if(byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
+        num_chars(state, num_bytes());
+      } else if(fixed_width_p(encoding())) {
         num_chars(state, Fixnum::from((byte_size() + ONIGENC_MBC_MINLEN(enc) - 1) / ONIGENC_MBC_MINLEN(enc)));
       } else {
         uint8_t* p = byte_address();
@@ -589,7 +589,7 @@ namespace rubinius {
       }
     }
 
-    return num_chars_->to_native();
+    return num_chars()->to_native();
   }
 
   Fixnum* String::size(STATE) {
@@ -597,15 +597,15 @@ namespace rubinius {
   }
 
   Encoding* String::encoding(STATE) {
-    if(encoding_->nil_p()) {
+    if(encoding()->nil_p()) {
       encoding(state, Encoding::ascii8bit_encoding(state));
     }
-    return encoding_;
+    return encoding();
   }
 
   hashval String::hash_string(STATE) {
-    if(!hash_value_->nil_p()) {
-      return (hashval)as<Fixnum>(hash_value_)->to_native();
+    if(!hash_value()->nil_p()) {
+      return (hashval)as<Fixnum>(hash_value())->to_native();
     }
 
     unsigned char* bp = (unsigned char*)(byte_address());
@@ -649,12 +649,12 @@ namespace rubinius {
      * Therefore we need to guard this case just in case so we don't
      * put the VM in a state with corrupted memory.
      */
-    if(current_size >= as<ByteArray>(data_)->size()) {
+    if(current_size >= as<ByteArray>(data())->size()) {
       ByteArray* ba =
         state->memory()->new_bytes<ByteArray>(state, G(bytearray), current_size + 1);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
-      if(CBOOL(shared_)) shared(state, cFalse);
+      if(CBOOL(shared())) shared(state, cFalse);
       // We need to read it again since we have a new ByteArray
       c_string = (char*)byte_address();
       c_string[current_size] = 0;
@@ -686,8 +686,8 @@ namespace rubinius {
   Object* String::secure_compare(STATE, String* other) {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();
-    native_int d1 = as<ByteArray>(data_)->size();
-    native_int d2 = as<ByteArray>(other->data_)->size();
+    native_int d1 = as<ByteArray>(data())->size();
+    native_int d2 = as<ByteArray>(other->data())->size();
 
     if(unlikely(s1 > d1)) {
       s1 = d1;
@@ -721,7 +721,7 @@ namespace rubinius {
   }
 
   String* String::string_dup_slow(STATE) {
-    Module* mod = klass_;
+    Module* mod = klass();
     Class*  cls = try_as_instance<Class>(mod);
 
     while(!cls) {
@@ -735,17 +735,17 @@ namespace rubinius {
     String* so = state->memory()->new_object<String>(state, cls);
 
     so->copy_object(state, this);
-    so->shared_ = cTrue;
-    shared_ = cTrue;
+    so->shared(cTrue);
+    shared(cTrue);
     infect(state, so);
 
     return so;
   }
 
   void String::unshare(STATE) {
-    if(CBOOL(shared_)) {
-      if(data_->reference_p()) {
-        data(state, as<ByteArray>(data_->duplicate(state)));
+    if(CBOOL(shared())) {
+      if(data()->reference_p()) {
+        data(state, as<ByteArray>(data()->duplicate(state)));
       }
       shared(state, cFalse);
     }
@@ -754,7 +754,7 @@ namespace rubinius {
   String* String::append(STATE, String* other) {
     // Clamp the length of the other string to the maximum byte array size
     native_int length = other->byte_size();
-    native_int data_length = as<ByteArray>(other->data_)->size();
+    native_int data_length = as<ByteArray>(other->data())->size();
 
     if(encoding() != other->encoding()) {
       Encoding* new_encoding = Encoding::compatible_p(state, this, other);
@@ -764,12 +764,12 @@ namespace rubinius {
       encoding(state, new_encoding);
     }
 
-    if(CBOOL(ascii_only_) && !CBOOL(other->ascii_only_p(state))) {
+    if(CBOOL(ascii_only()) && !CBOOL(other->ascii_only_p(state))) {
       ascii_only(state, cFalse);
     }
 
     if(!CBOOL(other->valid_encoding_p(state))) {
-      if(CBOOL(valid_encoding_)) {
+      if(CBOOL(valid_encoding())) {
         valid_encoding(state, cFalse);
       } else {
         valid_encoding(state, cNil);
@@ -790,16 +790,16 @@ namespace rubinius {
 
   String* String::byte_append(STATE, String* other) {
     native_int length = other->byte_size();
-    native_int data_length = as<ByteArray>(other->data_)->size();
+    native_int data_length = as<ByteArray>(other->data())->size();
 
     if(unlikely(length > data_length)) {
       length = data_length;
     }
     if(!other->ascii_only()->true_p()) {
-      ascii_only_ = cNil;
+      ascii_only(cNil);
     }
     if(!other->valid_encoding()->true_p()) {
-      valid_encoding_ = cNil;
+      valid_encoding(cNil);
     }
     return append(state,
                   reinterpret_cast<const char*>(other->byte_address()),
@@ -808,7 +808,7 @@ namespace rubinius {
 
   String* String::append(STATE, const char* other, native_int length) {
     native_int current_size = byte_size();
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<ByteArray>(data())->size();
 
     // Clamp the string size to the maximum underlying byte array size
     if(unlikely(current_size > data_size)) {
@@ -837,7 +837,7 @@ namespace rubinius {
 
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
-      if(CBOOL(shared_)) shared(state, cFalse);
+      if(CBOOL(shared())) shared(state, cFalse);
 
       ByteArray* ba =
         state->memory()->new_bytes<ByteArray>(state, G(bytearray), capacity);
@@ -845,7 +845,7 @@ namespace rubinius {
       memset(ba->raw_bytes() + new_size, 0, capacity - new_size);
       data(state, ba);
     } else {
-      if(CBOOL(shared_)) unshare(state);
+      if(CBOOL(shared())) unshare(state);
     }
 
     // Append on top of the null byte at the end of s1, not after it
@@ -870,7 +870,7 @@ namespace rubinius {
     ByteArray* ba =
       state->memory()->new_bytes<ByteArray>(state, G(bytearray), sz + 1);
     native_int copy_size = sz;
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<ByteArray>(data())->size();
 
     // Check that we don't copy any data outside the existing byte array
     if(unlikely(copy_size > data_size)) {
@@ -914,10 +914,10 @@ namespace rubinius {
   // Character-wise logical AND of two strings. Modifies the receiver.
   String* String::apply_and(STATE, String* other) {
     native_int count;
-    if(num_bytes_ > other->num_bytes()) {
+    if(num_bytes() > other->num_bytes()) {
       count = other->num_bytes()->to_native();
     } else {
-      count = num_bytes_->to_native();
+      count = num_bytes()->to_native();
     }
 
     uint8_t* s = byte_address();
@@ -984,7 +984,7 @@ namespace rubinius {
     native_int added_chars = replace_length - next + start;
     native_int new_size = byte_size() + added_chars + 1;
 
-    if(new_size > byte_size() || shared_->true_p()) {
+    if(new_size > byte_size() || shared()->true_p()) {
       ByteArray* ba = ByteArray::create(state, new_size);
       memcpy(ba->raw_bytes(), byte_address(), byte_size());
 
@@ -1020,7 +1020,7 @@ namespace rubinius {
     uint8_t* in_p = byte_address();
 
     native_int str_size = byte_size();
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<ByteArray>(data())->size();
     if(unlikely(str_size > data_size)) {
       str_size = data_size;
     }
@@ -1141,7 +1141,7 @@ namespace rubinius {
     // This bounds checks on the total capacity rather than the virtual
     // size() of the String. This allows for string adjustment within
     // the capacity without having to change the virtual size first.
-    native_int sz = as<ByteArray>(data_)->size();
+    native_int sz = as<ByteArray>(data())->size();
     if(dst >= sz) return this;
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
@@ -1158,8 +1158,8 @@ namespace rubinius {
     native_int cnt = size->to_native();
     native_int sz = byte_size();
     native_int osz = other->byte_size();
-    native_int dsz = as<ByteArray>(data_)->size();
-    native_int odsz = as<ByteArray>(other->data_)->size();
+    native_int dsz = as<ByteArray>(data())->size();
+    native_int odsz = as<ByteArray>(other->data())->size();
 
     if(unlikely(sz > dsz)) {
       sz = dsz;
@@ -1247,7 +1247,7 @@ namespace rubinius {
     String* s = state->memory()->new_object<String>(state, G(string));
 
     unsigned int c = code->to_uint();
-    int n = ONIGENC_CODE_TO_MBCLEN(enc->get_encoding(), c);
+    int n = ONIGENC_CODE_TO_MBCLEN(enc->encoding(), c);
 
     if(n <= 0) invalid_codepoint_error(state, c);
 
@@ -1257,8 +1257,8 @@ namespace rubinius {
     ByteArray* ba =
       state->memory()->new_bytes<ByteArray>(state, G(bytearray), n + 1);
 
-    n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c, (UChar*)ba->raw_bytes());
-    if(Encoding::precise_mbclen(ba->raw_bytes(), ba->raw_bytes() + n, enc->get_encoding()) != n) {
+    n = ONIGENC_CODE_TO_MBC(enc->encoding(), c, (UChar*)ba->raw_bytes());
+    if(Encoding::precise_mbclen(ba->raw_bytes(), ba->raw_bytes() + n, enc->encoding()) != n) {
       invalid_codepoint_error(state, c);
     }
 
@@ -1308,7 +1308,7 @@ namespace rubinius {
     if(i >= byte_size() || i < 0) return cNil;
 
     native_int len = char_size(state);
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
+    if(byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
       return byte_substring(state, i, 1);
     } else {
       // Assumptions above about size are possibly invalid, recalculate.
@@ -1325,10 +1325,10 @@ namespace rubinius {
    */
   native_int String::find_character_byte_index(STATE, native_int index,
                                                native_int start) {
-    OnigEncodingType* enc = encoding(state)->get_encoding();
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
+    OnigEncodingType* enc = encoding(state)->encoding();
+    if(byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
       return start + index;
-    } else if(fixed_width_p(encoding_)) {
+    } else if(fixed_width_p(encoding())) {
       return start + index * ONIGENC_MBC_MINLEN(enc);
     } else if(enc == ONIG_ENCODING_UTF_8 && CBOOL(valid_encoding_p(state))) {
       native_int offset = Encoding::find_character_byte_index_utf8(byte_address() + start,
@@ -1361,10 +1361,10 @@ namespace rubinius {
    */
   native_int String::find_byte_character_index(STATE, native_int index,
                                                native_int start) {
-    OnigEncodingType* enc = encoding(state)->get_encoding();
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
+    OnigEncodingType* enc = encoding(state)->encoding();
+    if(byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
       return index;
-    } else if(fixed_width_p(encoding_)) {
+    } else if(fixed_width_p(encoding())) {
       return index / ONIGENC_MBC_MINLEN(enc);
     } else if(enc == ONIG_ENCODING_UTF_8 && CBOOL(valid_encoding_p(state))) {
       return Encoding::find_byte_character_index_utf8(byte_address() + start,
@@ -1393,7 +1393,7 @@ namespace rubinius {
    * canonical byte (0 <= index < byte_size) and (0 <= length < byte_size).
    */
   String* String::byte_substring(STATE, native_int index, native_int length) {
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<ByteArray>(data())->size();
 
     // Clamp the range to the underlying byte array size
     if(unlikely(index > data_size)) index = data_size;
@@ -1421,7 +1421,7 @@ namespace rubinius {
     native_int e = find_character_byte_index(state, length - 1, i);
 
     int c = Encoding::precise_mbclen(byte_address() + e, byte_address() + byte_size(),
-                                     encoding(state)->get_encoding());
+                                     encoding(state)->encoding());
 
     if(ONIGENC_MBCLEN_CHARFOUND_P(c)) {
       e += ONIGENC_MBCLEN_CHARFOUND_LEN(c);
@@ -1471,7 +1471,7 @@ namespace rubinius {
       n = size - i;
     }
 
-    if(n == 0 || byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
+    if(n == 0 || byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
       return byte_substring(state, i, n);
     } else {
       return char_substring(state, i, n);
@@ -1553,7 +1553,7 @@ namespace rubinius {
       return nil<Fixnum>();
     }
 
-    OnigEncodingType* enc = encoding(state)->get_encoding();
+    OnigEncodingType* enc = encoding(state)->encoding();
     native_int index = 0;
     int c;
 
@@ -1664,7 +1664,7 @@ namespace rubinius {
         Exception::raise_argument_error(state, "encodings are incompatible");
       }
 
-      OnigEncodingType* enc = encoding->get_encoding();
+      OnigEncodingType* enc = encoding->encoding();
       uint8_t* p = byte_address() + offset;
       uint8_t* e = byte_address() + total;
       uint8_t* pp = pattern->byte_address();
@@ -1700,14 +1700,14 @@ namespace rubinius {
         Exception::raise_argument_error(state, "character index is negative");
       }
 
-      if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
+      if(byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
         if(k > total) {
           return nil<Fixnum>();
         } else {
           return index;
         }
       } else {
-        OnigEncodingType* enc = encoding(state)->get_encoding();
+        OnigEncodingType* enc = encoding(state)->encoding();
         uint8_t* p = byte_address();
         uint8_t* e = p + total;
         native_int i;
@@ -1742,7 +1742,7 @@ namespace rubinius {
       Exception::raise_argument_error(state, "negative index given");
     }
 
-    OnigEncodingType* enc = encoding(state)->get_encoding();
+    OnigEncodingType* enc = encoding(state)->encoding();
 
     uint8_t* s = byte_address();
     uint8_t* p = s + i;
@@ -1764,7 +1764,7 @@ namespace rubinius {
 
     String* output = 0;
 
-    OnigEncodingType* enc = encoding(state)->get_encoding();
+    OnigEncodingType* enc = encoding(state)->encoding();
 
     if(ONIGENC_MBC_MAXLEN(enc) == 1) {
       output = String::create(state, reinterpret_cast<const char*>(cur), 1);
@@ -1843,7 +1843,7 @@ namespace rubinius {
   }
 
   Object* String::ascii_only_p(STATE) {
-    if(ascii_only_->nil_p()) {
+    if(ascii_only()->nil_p()) {
       if(byte_size() == 0) {
         ascii_only(state, encoding(state)->ascii_compatible_p(state));
       } else {
@@ -1857,17 +1857,17 @@ namespace rubinius {
       }
     }
 
-    return ascii_only_;
+    return ascii_only();
   }
 
   Object* String::valid_encoding_p(STATE) {
-    if(valid_encoding_->nil_p()) {
+    if(valid_encoding()->nil_p()) {
       if(encoding(state) == Encoding::ascii8bit_encoding(state) || CBOOL(ascii_only_p(state))) {
         valid_encoding(state, cTrue);
-        return valid_encoding_;
+        return valid_encoding();
       }
 
-      OnigEncodingType* enc = encoding(state)->get_encoding();
+      OnigEncodingType* enc = encoding(state)->encoding();
 
       uint8_t* p = byte_address();
       uint8_t* e = p + byte_size();
@@ -1877,7 +1877,7 @@ namespace rubinius {
 
         if(!ONIGENC_MBCLEN_CHARFOUND_P(n)) {
           valid_encoding(state, cFalse);
-          return valid_encoding_;
+          return valid_encoding();
         }
 
         p += n;
@@ -1886,11 +1886,11 @@ namespace rubinius {
       valid_encoding(state, cTrue);
     }
 
-    return valid_encoding_;
+    return valid_encoding();
   }
 
   int String::codepoint(STATE, bool* found) {
-    OnigEncodingType* enc = encoding(state)->get_encoding();
+    OnigEncodingType* enc = encoding(state)->encoding();
     uint8_t* p = byte_address();
     uint8_t* e = p + byte_size();
 
@@ -1927,10 +1927,11 @@ namespace rubinius {
     unshare(state);
     hash_value(state, nil<Fixnum>());
 
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
-      data_->reverse(state, Fixnum::from(0), num_bytes_);
+    if(byte_compatible_p(encoding()) || CBOOL(ascii_only_p(state))) {
+      data()->reverse(state, Fixnum::from(0), num_bytes());
     } else {
-      Encoding::string_reverse(byte_address(), byte_address() + byte_size(), encoding_->get_encoding());
+      Encoding::string_reverse(byte_address(),
+          byte_address() + byte_size(), encoding()->encoding());
     }
     return this;
   }

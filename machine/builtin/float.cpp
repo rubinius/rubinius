@@ -45,7 +45,8 @@ namespace rubinius {
 
   Float* Float::create(STATE, double val) {
     Float* flt = state->memory()->new_object<Float>(state, G(floatpoint));
-    flt->val = val;
+    flt->value(val);
+
     return flt;
   }
 
@@ -197,57 +198,57 @@ namespace rubinius {
   }
 
   Float* Float::add(STATE, Float* other) {
-    return Float::create(state, this->val + other->val);
+    return Float::create(state, this->value() + other->value());
   }
 
   Float* Float::add(STATE, Integer* other) {
-    return Float::create(state, this->val + Float::coerce(state, other)->val);
+    return Float::create(state, this->value() + Float::coerce(state, other)->value());
   }
 
   Float* Float::sub(STATE, Float* other) {
-    return Float::create(state, this->val - other->val);
+    return Float::create(state, this->value() - other->value());
   }
 
   Float* Float::sub(STATE, Integer* other) {
-    return Float::create(state, this->val - Float::coerce(state, other)->val);
+    return Float::create(state, this->value() - Float::coerce(state, other)->value());
   }
 
   Float* Float::mul(STATE, Float* other) {
-    return Float::create(state, this->val * other->val);
+    return Float::create(state, this->value() * other->value());
   }
 
   Float* Float::mul(STATE, Integer* other) {
-    return Float::create(state, this->val * Float::coerce(state, other)->val);
+    return Float::create(state, this->value() * Float::coerce(state, other)->value());
   }
 
   Object* Float::fpow(STATE, Float* other) {
-    if(this->val < 0 && other->val != round(other->val)) {
+    if(this->value() < 0 && other->value() != round(other->value())) {
       return Primitives::failure();
     }
-    return Float::create(state, pow(this->val, other->val));
+    return Float::create(state, pow(this->value(), other->value()));
   }
 
   Float* Float::fpow(STATE, Integer* other) {
-    return Float::create(state, pow(this->val, Float::coerce(state, other)->val));
+    return Float::create(state, pow(this->value(), Float::coerce(state, other)->value()));
   }
 
   Float* Float::div(STATE, Float* other) {
-    return Float::create(state, this->val / other->val);
+    return Float::create(state, this->value() / other->value());
   }
 
   Float* Float::div(STATE, Integer* other) {
-    return Float::create(state, this->val / Float::coerce(state, other)->val);
+    return Float::create(state, this->value() / Float::coerce(state, other)->value());
   }
 
   Float* Float::mod(STATE, Float* other) {
-    if(other->val == 0.0) {
+    if(other->value() == 0.0) {
       Exception::raise_zero_division_error(state, "divided by 0");
     }
 
-    double res = fmod(this->val, other->val);
-    if((other->val < 0.0 && this->val > 0.0 && res != 0) ||
-       (other->val > 0.0 && this->val < 0.0 && res != 0)) {
-      res += other->val;
+    double res = fmod(this->value(), other->value());
+    if((other->value() < 0.0 && this->value() > 0.0 && res != 0) ||
+       (other->value() > 0.0 && this->value() < 0.0 && res != 0)) {
+      res += other->value();
     }
     return Float::create(state, res);
   }
@@ -257,12 +258,12 @@ namespace rubinius {
   }
 
   Array* Float::divmod(STATE, Float* other) {
-    if(other->val == 0.0) {
+    if(other->value() == 0.0) {
       Exception::raise_zero_division_error(state, "divided by 0");
     }
 
     Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Bignum::from_double(state, floor(this->val / other->val) ));
+    ary->set(state, 0, Bignum::from_double(state, floor(this->value() / other->value()) ));
     ary->set(state, 1, mod(state, other));
     return ary;
   }
@@ -272,20 +273,20 @@ namespace rubinius {
   }
 
   Float* Float::neg(STATE) {
-    return Float::create(state, -this->val);
+    return Float::create(state, -this->value());
   }
 
   Object* Float::equal(STATE, Float* other) {
-    return RBOOL(this->val == other->val);
+    return RBOOL(this->value() == other->value());
   }
 
   Object* Float::equal(STATE, Integer* other) {
     Float* o = Float::coerce(state, other);
-    return RBOOL(this->val == o->val);
+    return RBOOL(this->value() == o->value());
   }
 
   Object* Float::eql(STATE, Float* other) {
-    return RBOOL(this->val == other->val);
+    return RBOOL(this->value() == other->value());
   }
 
   Object* Float::eql(STATE, Integer* other) {
@@ -293,11 +294,11 @@ namespace rubinius {
   }
 
   Object* Float::compare(STATE, Float* other) {
-    if(this->val == other->val) {
+    if(this->value() == other->value()) {
       return Fixnum::from(0);
-    } else if(this->val > other->val) {
+    } else if(this->value() > other->value()) {
       return Fixnum::from(1);
-    } else if(this->val < other->val){
+    } else if(this->value() < other->value()){
       return Fixnum::from(-1);
     } else {
       return cNil;
@@ -305,19 +306,19 @@ namespace rubinius {
   }
 
   Object* Float::compare(STATE, Integer* other) {
-    if(isinf(this->val)) {
-      if(this->val > 0) {
+    if(isinf(this->value())) {
+      if(this->value() > 0) {
         return Fixnum::from(1);
       } else {
         return Fixnum::from(-1);
       }
     }
     Float* o = Float::coerce(state, other);
-    if(this->val == o->val) {
+    if(this->value() == o->value()) {
       return Fixnum::from(0);
-    } else if(this->val > o->val) {
+    } else if(this->value() > o->value()) {
       return Fixnum::from(1);
-    } else if(this->val < o->val){
+    } else if(this->value() < o->value()){
       return Fixnum::from(-1);
     } else {
       return cNil;
@@ -325,70 +326,70 @@ namespace rubinius {
   }
 
   Object* Float::gt(STATE, Float* other) {
-    return RBOOL(this->val > other->val);
+    return RBOOL(this->value() > other->value());
   }
 
   Object* Float::gt(STATE, Integer* other) {
-    return RBOOL(this->val > Float::coerce(state, other)->val);
+    return RBOOL(this->value() > Float::coerce(state, other)->value());
   }
 
   Object* Float::ge(STATE, Float* other) {
-    return RBOOL(this->val >= other->val);
+    return RBOOL(this->value() >= other->value());
   }
 
   Object* Float::ge(STATE, Integer* other) {
-    return RBOOL(this->val >= Float::coerce(state, other)->val);
+    return RBOOL(this->value() >= Float::coerce(state, other)->value());
   }
 
   Object* Float::lt(STATE, Float* other) {
-    return RBOOL(this->val < other->val);
+    return RBOOL(this->value() < other->value());
   }
 
   Object* Float::lt(STATE, Integer* other) {
-    return RBOOL(this->val < Float::coerce(state, other)->val);
+    return RBOOL(this->value() < Float::coerce(state, other)->value());
   }
 
   Object* Float::le(STATE, Float* other) {
-    return RBOOL(this->val <= other->val);
+    return RBOOL(this->value() <= other->value());
   }
 
   Object* Float::le(STATE, Integer* other) {
-    return RBOOL(this->val <= Float::coerce(state, other)->val);
+    return RBOOL(this->value() <= Float::coerce(state, other)->value());
   }
 
   Object* Float::fisinf(STATE) {
-    if(isinf(this->val) != 0) {
-      return this->val < 0 ? Fixnum::from(-1) : Fixnum::from(1);
+    if(isinf(this->value()) != 0) {
+      return this->value() < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     } else {
       return cNil;
     }
   }
 
   Object* Float::fisnan(STATE) {
-    return RBOOL(isnan(this->val));
+    return RBOOL(isnan(this->value()));
   }
 
   Integer* Float::fround(STATE) {
-    double value = this->val;
+    double value = this->value();
     if(value > 0.0) {
       value = floor(value);
-      if(this->val - value >= 0.5) value += 1.0;
+      if(this->value() - value >= 0.5) value += 1.0;
     }
 
     if(value < 0.0) {
       value = ceil(value);
-      if(value - this->val >= 0.5) value -= 1.0;
+      if(value - this->value() >= 0.5) value -= 1.0;
     }
     return Bignum::from_double(state, value);
   }
 
   Integer* Float::to_i(STATE) {
-    if(this->val > 0.0) {
-      return Bignum::from_double(state, floor(this->val));
-    } else if(this->val < 0.0) {
-      return Bignum::from_double(state, ceil(this->val));
+    if(this->value() > 0.0) {
+      return Bignum::from_double(state, floor(this->value()));
+    } else if(this->value() < 0.0) {
+      return Bignum::from_double(state, ceil(this->value()));
     }
-    return Bignum::from_double(state, this->val);
+    return Bignum::from_double(state, this->value());
   }
 
 /* It requires "%.1022f" to print all digits of Float::MIN.
@@ -399,7 +400,7 @@ namespace rubinius {
   String* Float::to_s_formatted(STATE, String* format) {
     char buf[FLOAT_TO_S_STRLEN];
 
-    size_t size = snprintf(buf, FLOAT_TO_S_STRLEN, format->c_str(state), val);
+    size_t size = snprintf(buf, FLOAT_TO_S_STRLEN, format->c_str(state), value());
 
     if(size >= FLOAT_TO_S_STRLEN) {
       std::ostringstream msg;
@@ -417,7 +418,7 @@ namespace rubinius {
   String* Float::to_s_minimal(STATE) {
     char buffer[FLOAT_TO_S_STRLEN];
 
-    int len = double_to_string(buffer, FLOAT_TO_S_STRLEN, val);
+    int len = double_to_string(buffer, FLOAT_TO_S_STRLEN, value());
     String* str = String::create(state, buffer, len);
     infect(state, str);
     str->encoding(state, Encoding::usascii_encoding(state));
@@ -432,7 +433,7 @@ namespace rubinius {
     bool sign;
     char buf[FLOAT_TO_S_STRLEN];
 
-    int length = double_to_ascii(buf, FLOAT_TO_S_STRLEN, val, &sign, &decpt);
+    int length = double_to_ascii(buf, FLOAT_TO_S_STRLEN, value(), &sign, &decpt);
     Tuple* result = state->memory()->new_fields<Tuple>(state, G(tuple), 4);
 
     result->put(state, 0, String::create(state, buf, length));
@@ -449,12 +450,12 @@ namespace rubinius {
 
     if(CBOOL(want_double)) {
       double* p = (double *)str;
-      *p = this->val;
+      *p = this->value();
       sz = 8;
     }
     else {
       float* p = (float *)str;
-      *p = this->val;
+      *p = this->value();
       sz = 4;
     }
 
@@ -462,7 +463,7 @@ namespace rubinius {
   }
 
   Object* Float::signbit_p(STATE) {
-    return signbit(this->val) ? cTrue : cFalse;
+    return signbit(this->value()) ? cTrue : cFalse;
   }
 
   double Float::string_to_double(const char* buf, size_t len, bool strict, char** end) {
@@ -506,14 +507,14 @@ namespace rubinius {
   }
 
   void Float::into_string(STATE, char* buf, size_t sz) {
-    snprintf(buf, sz, "%+.17e", val);
+    snprintf(buf, sz, "%+.17e", value());
   }
 
   void Float::Info::mark(Object* t, memory::ObjectMark& mark) { }
 
   void Float::Info::show(STATE, Object* self, int level) {
     Float* f = as<Float>(self);
-    std::cout << f->val << std::endl;
+    std::cout << f->value() << std::endl;
   }
 
   void Float::Info::show_simple(STATE, Object* self, int level) {

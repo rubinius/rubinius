@@ -17,15 +17,6 @@ namespace rubinius {
   class ConstantScope;
 
   class Location : public Object {
-    Module* method_module_; // slot
-    Object* receiver_; // slot
-    Symbol* name_; // slot
-    Object* method_; // slot
-    Fixnum* ip_; // slot
-    Fixnum* flags_; // slot
-    VariableScope* variables_; // slot
-    ConstantScope* constant_scope_; // slot
-
   public:
     const static object_type type = LocationType;
 
@@ -52,14 +43,14 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, Location* obj) {
-      obj->method_module_ = nil<Module>();
-      obj->receiver_ = nil<Object>();
-      obj->name_ = nil<Symbol>();
-      obj->method_ = nil<Object>();
-      obj->ip_ = nil<Fixnum>();
-      obj->flags_ = nil<Fixnum>();
-      obj->variables_ = nil<VariableScope>();
-      obj->constant_scope_ = nil<ConstantScope>();
+      obj->method_module(nil<Module>());
+      obj->receiver(nil<Object>());
+      obj->name(nil<Symbol>());
+      obj->method(nil<Object>());
+      obj->ip(nil<Fixnum>());
+      obj->flags(nil<Fixnum>());
+      obj->variables(nil<VariableScope>());
+      obj->constant_scope(nil<ConstantScope>());
     }
 
     static Location* create(STATE, NativeMethodFrame* nmf);

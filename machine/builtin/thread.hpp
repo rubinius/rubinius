@@ -21,64 +21,9 @@ namespace rubinius {
    *  Thread execution.
    */
   class Thread : public Object {
-    Array* args_;                     // slot
-    Object* block_;                   // slot
-    Object* alive_;                   // slot
-    Object* sleep_;                   // slot
-    Channel* control_channel_;        // slot
-    LookupTable* recursive_objects_;  // slot
-    Thread* debugger_thread_;         // slot
-    Fixnum* thread_id_;               // slot
-    Randomizer* randomizer_;          // slot
-    LookupTable* locals_;             // slot
-    Object* group_;                   // slot
-    Object* value_;                   // slot
-    Exception* exception_;            // slot
-    Object* critical_;                // slot
-    Fixnum* priority_;                // slot
-    Fixnum* pid_;                     // slot
-    Object* initialized_;             // slot
-
-    utilities::thread::SpinLock init_lock_;
-    utilities::thread::Mutex join_lock_;
-    utilities::thread::Condition join_cond_;
-
-    /// The VM state for this thread and this thread alone
-    VM* vm_;
-
-    typedef Object* (*ThreadFunction)(STATE);
-
-    ThreadFunction function_;
-
   public:
     const static object_type type = ThreadType;
 
-    static void bootstrap(STATE);
-    static void initialize(STATE, Thread* obj) {
-      obj->args_ = nil<Array>();
-      obj->block_ = cNil;
-      obj->alive_ = cTrue;
-      obj->sleep_ = cFalse;
-      obj->control_channel_ = nil<Channel>();
-      obj->recursive_objects(state, LookupTable::create(state));
-      obj->debugger_thread_ = nil<Thread>();
-      obj->thread_id_ = nil<Fixnum>();
-      obj->randomizer_ = nil<Randomizer>();
-      obj->locals(state, LookupTable::create(state));
-      obj->group_ = cNil;
-      obj->value_ = cNil;
-      obj->exception_ = nil<Exception>();
-      obj->critical_ = cFalse;
-      obj->priority_ = Fixnum::from(0);
-      obj->pid_ = Fixnum::from(0);
-      obj->initialized_ = cFalse;
-      obj->init_lock_.init();
-      obj->join_lock_.init();
-      obj->join_cond_.init();
-      obj->vm_ = 0;
-    }
-
-  public:
     attr_accessor(args, Array);
     attr_accessor(block, Object);
     attr_accessor(alive, Object);
@@ -97,8 +42,44 @@ namespace rubinius {
     attr_accessor(pid, Fixnum);
     attr_accessor(initialized, Object);
 
-    VM* vm() const {
-      return vm_;
+  private:
+    utilities::thread::SpinLock init_lock_;
+    utilities::thread::Mutex join_lock_;
+    utilities::thread::Condition join_cond_;
+
+    /// The VM state for this thread and this thread alone
+    attr_field(vm, VM*);
+
+    typedef Object* (*ThreadFunction)(STATE);
+
+    attr_field(function, ThreadFunction);
+
+  public:
+    static void bootstrap(STATE);
+    static void initialize(STATE, Thread* obj) {
+      obj->args(nil<Array>());
+      obj->block(cNil);
+      obj->alive(cTrue);
+      obj->sleep(cFalse);
+      obj->control_channel(nil<Channel>());
+      obj->recursive_objects(state, LookupTable::create(state));
+      obj->debugger_thread(nil<Thread>());
+      obj->thread_id(nil<Fixnum>());
+      obj->randomizer(nil<Randomizer>());
+      obj->locals(state, LookupTable::create(state));
+      obj->group(cNil);
+      obj->value(cNil);
+      obj->exception(nil<Exception>());
+      obj->critical(cFalse);
+      obj->priority(Fixnum::from(0));
+      obj->pid(Fixnum::from(0));
+      obj->initialized(cFalse);
+
+      obj->init_lock_.init();
+      obj->join_lock_.init();
+      obj->join_cond_.init();
+
+      obj->vm(0);
     }
 
   public:

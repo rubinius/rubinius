@@ -9,12 +9,12 @@ namespace rubinius {
 
   /* Returns true if the List is empty, contains no elements. */
   bool List::empty_p() {
-    return count_->to_native() == 0;
+    return count()->to_native() == 0;
   }
 
   /* Returns the number of elements in the List. */
   size_t List::size() {
-    return count_->to_native();
+    return count()->to_native();
   }
 
   /* Register the List and List::Node classes as globals */
@@ -34,8 +34,8 @@ namespace rubinius {
   }
 
   List* List::clear(STATE) {
-    first_ = nil<ListNode>();
-    last_ = nil<ListNode>();
+    first(nil<ListNode>());
+    last(nil<ListNode>());
     count(state, Fixnum::from(0));
 
     return this;
@@ -45,7 +45,7 @@ namespace rubinius {
   void List::append(STATE, Object* obj) {
     ListNode* node = state->memory()->new_object<ListNode>(state, G(list_node));
     node->object(state, obj);
-    ListNode* cur_last = last_;
+    ListNode* cur_last = last();
 
     if(!cur_last->nil_p()) {
       cur_last->next(state, node);
@@ -53,16 +53,16 @@ namespace rubinius {
 
     last(state, node);
 
-    if(first_->nil_p()) {
+    if(first()->nil_p()) {
       first(state, node);
     }
 
-    count(state, Fixnum::from(count_->to_native() + 1));
+    count(state, Fixnum::from(count()->to_native() + 1));
   }
 
   /* Return the +index+ numbered element from the beginning. */
   Object* List::locate(STATE, size_t index) {
-    ListNode* cur = first_;
+    ListNode* cur = first();
 
     while(index > 0) {
       if(cur->nil_p()) return cNil;
@@ -80,11 +80,11 @@ namespace rubinius {
   Object* List::shift(STATE) {
     if(empty_p()) return cNil;
 
-    count(state, Fixnum::from(count_->to_native() - 1));
-    ListNode* n = first_;
-    first(state, first_->next());
+    count(state, Fixnum::from(count()->to_native() - 1));
+    ListNode* n = first();
+    first(state, first()->next());
 
-    if(last_ == n) {
+    if(last() == n) {
       last(state, nil<ListNode>());
     }
 
@@ -99,7 +99,7 @@ namespace rubinius {
 
     size_t deleted = 0, counted = 0;
 
-    ListNode* node = first_;
+    ListNode* node = first();
     ListNode* lst =  nil<ListNode>();
     ListNode* nxt;
 
@@ -114,7 +114,7 @@ namespace rubinius {
           lst->next(state, nxt);
         }
 
-        if(last_ == node) {
+        if(last() == node) {
           last(state, lst);
         }
 

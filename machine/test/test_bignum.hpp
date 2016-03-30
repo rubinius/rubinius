@@ -136,7 +136,7 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
   }
 
   void check_float(Float* f, Float* g) {
-    TS_ASSERT_DELTA(f->val, g->val, TOLERANCE);
+    TS_ASSERT_DELTA(f->value(), g->value(), TOLERANCE);
   }
 
   void test_add_positive_range() {

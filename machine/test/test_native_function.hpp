@@ -534,8 +534,8 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Float>(out));
-    TS_ASSERT(as<Float>(out)->val > 13.19);
-    TS_ASSERT(as<Float>(out)->val < 13.21);
+    TS_ASSERT(as<Float>(out)->value() > 13.19);
+    TS_ASSERT(as<Float>(out)->value() < 13.21);
   }
 
   void test_bind_with_double() {
@@ -558,7 +558,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Float>(out));
-    TS_ASSERT_EQUALS(as<Float>(out)->val, 13.2);
+    TS_ASSERT_EQUALS(as<Float>(out)->value(), 13.2);
   }
 
   void test_bind_with_string_returned() {

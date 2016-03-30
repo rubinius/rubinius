@@ -15,14 +15,14 @@ namespace rubinius {
     CallCustomCache* cache =
       state->memory()->new_object<CallCustomCache>(state, G(call_custom_cache));
 
-    cache->name_      = call_site->name();
+    cache->name(state, call_site->name());
     cache->executable(state, call_site->executable());
-    cache->ip_        = call_site->ip();
-    cache->executor_  = check_cache;
-    cache->fallback_  = call_site->fallback_;
-    cache->updater_   = NULL;
+    cache->ip(call_site->ip());
+    cache->executor(check_cache);
+    cache->fallback(call_site->fallback());
+    cache->updater(NULL);
     cache->call_unit(state, call_unit);
-    cache->hits_      = 0;
+    cache->hits(0);
 
     return cache;
   }
@@ -30,7 +30,7 @@ namespace rubinius {
   Object* CallCustomCache::check_cache(STATE, CallSite* call_site, Arguments& args) {
     CallCustomCache* cache = static_cast<CallCustomCache*>(call_site);
 
-    CallUnit* cu = cache->call_unit_;
+    CallUnit* cu = cache->call_unit();
     return cu->execute(state, cu,
                        cu->executable(), cu->module(), args);
   }
