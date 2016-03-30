@@ -80,7 +80,8 @@ namespace rubinius {
   FSEvent* FSEvent::create(STATE) {
     FSEvent* fsevent = state->memory()->new_object_pinned<FSEvent>(state, G(fsevent));
     fsevent->watch_set(false);
-    if((fsevent->in() = inotify_init()) < 0) {
+    fsevent->in(inotify_init());
+    if(fsevent->in() < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));
     } else {
       state->memory()->needs_finalization(state, fsevent,
