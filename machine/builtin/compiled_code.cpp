@@ -52,7 +52,7 @@ namespace rubinius {
 
     code->copy_object(state, this);
     code->set_executor(CompiledCode::default_executor);
-    code->machine_code_ = NULL;
+    code->machine_code(NULL);
 
     return code;
   }
@@ -61,10 +61,10 @@ namespace rubinius {
     CompiledCode* self = this;
     OnStack<1> os(state, self);
 
-    if(self->machine_code_ == NULL) {
+    if(self->machine_code() == NULL) {
       if(!self->internalize(state)) return force_as<Tuple>(Primitives::failure());
     }
-    MachineCode* mcode = self->machine_code_;
+    MachineCode* mcode = self->machine_code();
     return mcode->call_sites(state);
   }
 
@@ -72,10 +72,10 @@ namespace rubinius {
     CompiledCode* self = this;
     OnStack<1> os(state, self);
 
-    if(self->machine_code_ == NULL) {
+    if(self->machine_code() == NULL) {
       if(!self->internalize(state)) return force_as<Tuple>(Primitives::failure());
     }
-    MachineCode* mcode = self->machine_code_;
+    MachineCode* mcode = self->machine_code();
     return mcode->constant_caches(state);
   }
 
@@ -85,11 +85,11 @@ namespace rubinius {
   }
 
   int CompiledCode::start_line() {
-    if(lines_->nil_p()) return -1;
-    if(lines_->num_fields() < 2) return -1;
+    if(lines()->nil_p()) return -1;
+    if(lines()->num_fields() < 2) return -1;
     // This is fixed as one because entry 0 is always ip = 0 and
     // 1 is the first line
-    return as<Fixnum>(lines_->at(1))->to_native();
+    return as<Fixnum>(lines()->at(1))->to_native();
   }
 
   int CompiledCode::line(STATE, int ip) {
@@ -97,25 +97,25 @@ namespace rubinius {
   }
 
   int CompiledCode::line(int ip) {
-    if(lines_->nil_p()) return -3;
+    if(lines()->nil_p()) return -3;
 
-    native_int fin = lines_->num_fields() - 2;
+    native_int fin = lines()->num_fields() - 2;
     for(native_int i = 0; i < fin; i += 2) {
-      Fixnum* start_ip = as<Fixnum>(lines_->at(i));
-      Fixnum* end_ip   = as<Fixnum>(lines_->at(i+2));
+      Fixnum* start_ip = as<Fixnum>(lines()->at(i));
+      Fixnum* end_ip   = as<Fixnum>(lines()->at(i+2));
 
       if(start_ip->to_native() <= ip && end_ip->to_native() > ip) {
-        return as<Fixnum>(lines_->at(i+1))->to_native();
+        return as<Fixnum>(lines()->at(i+1))->to_native();
       }
     }
 
-    return as<Fixnum>(lines_->at(fin+1))->to_native();
+    return as<Fixnum>(lines()->at(fin+1))->to_native();
   }
 
   MachineCode* CompiledCode::internalize(STATE,
                                         const char** reason, int* ip)
   {
-    MachineCode* mcode = machine_code_;
+    MachineCode* mcode = machine_code();
 
     atomic::memory_barrier();
 
@@ -126,7 +126,7 @@ namespace rubinius {
 
     self->hard_lock(state);
 
-    mcode = self->machine_code_;
+    mcode = self->machine_code();
     if(!mcode) {
       {
         BytecodeVerification bv(self);
@@ -150,7 +150,7 @@ namespace rubinius {
       // be sure that mcode is completely initialized before it's set.
       // Otherwise another thread might see a partially initialized
       // MachineCode.
-      atomic::write(&self->machine_code_, mcode);
+      atomic::write(&self->_machine_code_, mcode);
 
       set_executor(mcode->fallback);
     }
@@ -189,7 +189,7 @@ namespace rubinius {
   }
 
   void CompiledCode::specialize(STATE, TypeInfo* ti) {
-    machine_code_->specialize(state, this, ti);
+    machine_code()->specialize(state, this, ti);
   }
 
   Object* CompiledCode::default_executor(STATE,
@@ -244,28 +244,28 @@ namespace rubinius {
   }
 
   bool CompiledCode::can_specialize_p() {
-    if(!machine_code_) rubinius::bug("specializing with no backend");
+    if(!machine_code()) rubinius::bug("specializing with no backend");
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(machine_code_->specializations[i].class_data.raw == 0) return true;
+      if(machine_code()->specializations[i].class_data.raw == 0) return true;
     }
 
     return false;
   }
 
   void CompiledCode::set_unspecialized(executor exec, jit::RuntimeDataHolder* rd) {
-    if(!machine_code_) rubinius::bug("specializing with no backend");
+    if(!machine_code()) rubinius::bug("specializing with no backend");
 
-    machine_code_->set_execute_status(MachineCode::eJIT);
+    machine_code()->set_execute_status(MachineCode::eJIT);
 
 #ifdef ENABLE_LLVM
-    jit_data_ = rd;
+    jit_data(rd);
 #endif
-    machine_code_->unspecialized = exec;
+    machine_code()->unspecialized = exec;
 
     // See if we can also just make this the normal execute
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(machine_code_->specializations[i].class_data.raw > 0) return;
+      if(machine_code()->specializations[i].class_data.raw > 0) return;
     }
 
     if(primitive()->nil_p()) {
@@ -276,12 +276,12 @@ namespace rubinius {
   void CompiledCode::add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec,
                                        jit::RuntimeDataHolder* rd)
   {
-    if(!machine_code_) {
+    if(!machine_code()) {
       logger::error("specializing with no backend");
       return;
     }
 
-    MachineCode* v = machine_code_;
+    MachineCode* v = machine_code();
 
     int i;
 
@@ -298,7 +298,7 @@ namespace rubinius {
       std::ostringstream msg;
 
       msg << "Specialization space exceeded for " <<
-        machine_code_->name()->cpp_str(state);
+        machine_code()->name()->cpp_str(state);
       logger::warn(msg.str().c_str());
 
       i = 0;
@@ -316,7 +316,7 @@ namespace rubinius {
   }
 
   executor CompiledCode::find_specialized(Class* cls) {
-    MachineCode* v = machine_code_;
+    MachineCode* v = machine_code();
 
     if(!v) return 0;
 
@@ -333,11 +333,11 @@ namespace rubinius {
   }
 
   size_t CompiledCode::number_of_locals() {
-    return local_count_->to_native();
+    return local_count()->to_native();
   }
 
   String* CompiledCode::full_name(STATE) {
-    return name_->to_str(state);
+    return name()->to_str(state);
   }
 
   bool CompiledCode::core_method(STATE) {
@@ -351,36 +351,36 @@ namespace rubinius {
     OnStack<3> os(state, self, ip, bp);
 
     int i = ip->to_native();
-    if(self->machine_code_ == NULL) {
+    if(self->machine_code() == NULL) {
       if(!self->internalize(state)) return Primitives::failure();
     }
 
-    if(!self->machine_code_->validate_ip(state, i)) return Primitives::failure();
+    if(!self->machine_code()->validate_ip(state, i)) return Primitives::failure();
 
-    if(self->breakpoints_->nil_p()) {
+    if(self->breakpoints()->nil_p()) {
       self->breakpoints(state, LookupTable::create(state));
     }
 
-    self->breakpoints_->store(state, ip, bp);
-    self->machine_code_->debugging = 1;
-    self->machine_code_->run = MachineCode::debugger_interpreter;
+    self->breakpoints()->store(state, ip, bp);
+    self->machine_code()->debugging = 1;
+    self->machine_code()->run = MachineCode::debugger_interpreter;
 
     return ip;
   }
 
   Object* CompiledCode::clear_breakpoint(STATE, Fixnum* ip) {
     int i = ip->to_native();
-    if(machine_code_ == NULL) return ip;
-    if(!machine_code_->validate_ip(state, i)) return Primitives::failure();
+    if(machine_code() == NULL) return ip;
+    if(!machine_code()->validate_ip(state, i)) return Primitives::failure();
 
     bool removed = false;
-    if(!breakpoints_->nil_p()) {
-      breakpoints_->remove(state, ip, &removed);
+    if(!breakpoints()->nil_p()) {
+      breakpoints()->remove(state, ip, &removed);
 
       // No more breakpoints, switch back to the normal interpreter
-      if(breakpoints_->entries()->to_native() == 0) {
-        machine_code_->debugging = 0;
-        machine_code_->run = MachineCode::interpreter;
+      if(breakpoints()->entries()->to_native() == 0) {
+        machine_code()->debugging = 0;
+        machine_code()->run = MachineCode::interpreter;
       }
     }
 
@@ -389,12 +389,12 @@ namespace rubinius {
 
   Object* CompiledCode::is_breakpoint(STATE, Fixnum* ip) {
     int i = ip->to_native();
-    if(machine_code_ == NULL) return cFalse;
-    if(!machine_code_->validate_ip(state, i)) return Primitives::failure();
-    if(breakpoints_->nil_p()) return cFalse;
+    if(machine_code() == NULL) return cFalse;
+    if(!machine_code()->validate_ip(state, i)) return Primitives::failure();
+    if(breakpoints()->nil_p()) return cFalse;
 
     bool found = false;
-    breakpoints_->fetch(state, ip, &found);
+    breakpoints()->fetch(state, ip, &found);
 
     return RBOOL(found);
   }
@@ -414,7 +414,7 @@ namespace rubinius {
   }
 
   Object* CompiledCode::jitted_p(STATE) {
-    return RBOOL(machine_code_ && machine_code_->jitted_p());
+    return RBOOL(machine_code() && machine_code()->jitted_p());
   }
 
   Object* CompiledCode::execute_script(STATE) {
@@ -464,9 +464,9 @@ namespace rubinius {
     mark_inliners(obj, mark);
 
     CompiledCode* code = as<CompiledCode>(obj);
-    if(!code->machine_code_) return;
+    if(!code->machine_code()) return;
 
-    MachineCode* mcode = code->machine_code_;
+    MachineCode* mcode = code->machine_code();
     mcode->set_mark();
 
 #ifdef ENABLE_LLVM
@@ -521,7 +521,7 @@ namespace rubinius {
     indent_attribute(level, "total_args"); code->total_args()->show(state, level);
 
     indent_attribute(level, "internalized");
-    if(!code->machine_code_) {
+    if(!code->machine_code()) {
       std::cout << "no\n";
     } else {
       std::cout << "yes\n";

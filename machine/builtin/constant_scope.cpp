@@ -31,31 +31,31 @@ namespace rubinius {
   }
 
   Object* ConstantScope::const_set(STATE, Symbol* name, Object* value) {
-    module_->set_const(state, name, value);
+    module()->set_const(state, name, value);
     return value;
   }
 
   Object* ConstantScope::cvar_get(STATE, Symbol* name) {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
-    return module_->cvar_get(state, name);
+    return module()->cvar_get(state, name);
   }
 
   Object* ConstantScope::cvar_defined(STATE, Symbol* name) {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
-    return module_->cvar_defined(state, name);
+    return module()->cvar_defined(state, name);
   }
 
   Object* ConstantScope::cvar_set(STATE, Symbol* name, Object* value) {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
-    return module_->cvar_set(state, name, value);
+    return module()->cvar_set(state, name, value);
   }
 
   Object* ConstantScope::cvar_get_or_set(STATE, Symbol* name, Object* value) {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
-    return module_->cvar_get_or_set(state, name, value);
+    return module()->cvar_get_or_set(state, name, value);
   }
 
   void ConstantScope::Info::show(STATE, Object* self, int level) {

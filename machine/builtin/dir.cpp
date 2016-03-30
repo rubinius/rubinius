@@ -16,7 +16,7 @@ namespace rubinius {
 
   Dir* Dir::create(STATE) {
     Dir* d = Dir::allocate(state, G(dir));
-    d->os_ = 0;
+    d->os(0);
 
     state->memory()->needs_finalization(state, d,
         (memory::FinalizerFunction)&Dir::finalize,
@@ -30,24 +30,24 @@ namespace rubinius {
   }
 
   void Dir::finalize(STATE, Dir* dir) {
-    if(dir->os_) {
-      closedir(dir->os_);
-      dir->os_ = 0;
+    if(dir->os()) {
+      closedir(dir->os());
+      dir->os(0);
     }
   }
 
   void Dir::guard(STATE) {
-    if(!os_) {
+    if(!os()) {
       Exception::raise_io_error(state, "closed directory");
     }
   }
 
   Object* Dir::open(STATE, String* path, Object* enc) {
-    if(os_) closedir(os_);
+    if(os()) closedir(os());
 
-    os_ = opendir(path->c_str_null_safe(state));
+    os(opendir(path->c_str_null_safe(state)));
 
-    if(!os_) {
+    if(!os()) {
       Exception::raise_errno_error(state, "Unable to open directory", errno, path->c_str_null_safe(state));
       return 0;
     }
@@ -66,22 +66,22 @@ namespace rubinius {
   }
 
   Object* Dir::fileno(STATE) {
-    int fd = dirfd(os_);
+    int fd = dirfd(os());
 
     return Fixnum::from(fd);
   }
 
   Object* Dir::close(STATE) {
-    if(os_) {
-      closedir(os_);
-      os_ = 0;
+    if(os()) {
+      closedir(os());
+      os(0);
     }
 
     return cNil;
   }
 
   Object* Dir::closed_p(STATE) {
-    return RBOOL(!os_);
+    return RBOOL(!os());
   }
 
   Object* Dir::read(STATE) {
@@ -89,7 +89,7 @@ namespace rubinius {
 
     struct dirent ent;
     struct dirent* entp = &ent;
-    if(int erno = readdir_r(os_, entp, &entp)) {
+    if(int erno = readdir_r(os(), entp, &entp)) {
       Exception::raise_errno_error(state, "readdir_r(3) failed", erno);
     }
 
@@ -105,13 +105,13 @@ namespace rubinius {
 
     switch(kind->to_native()) {
     case 0:
-      seekdir(os_, pos->to_native());
+      seekdir(os(), pos->to_native());
       return cTrue;
     case 1:
-      rewinddir(os_);
+      rewinddir(os());
       return cTrue;
     case 2:
-      return Integer::from(state, telldir(os_));
+      return Integer::from(state, telldir(os()));
     }
     return cNil;
   }

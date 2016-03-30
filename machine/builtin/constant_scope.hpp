@@ -15,31 +15,21 @@ namespace rubinius {
   public:
     const static object_type type = ConstantScopeType;
 
-  private:
-    Module* module_;      // slot
-
-    // This is used like the ruby_class MRI variable. It lets
-    // manipulate this aspect of the class lexical enclosure
-    // without having to change module also.
-    Module* current_module_;   // slot
-
-    ConstantScope* parent_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(module, Module);
+
+    /* This is used like the ruby_class MRI variable. It lets us manipulate
+     * this aspect of the class lexical enclosure without having to change
+     * module also.
+     */
     attr_accessor(current_module, Module);
     attr_accessor(parent, ConstantScope);
-
-    /* interface */
 
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
     static void initialize(STATE, ConstantScope* obj) {
-      obj->module_ = nil<Module>();
-      obj->current_module_ = nil<Module>();
-      obj->parent_ = nil<ConstantScope>();
+      obj->module(nil<Module>());
+      obj->current_module(nil<Module>());
+      obj->parent(nil<ConstantScope>());
     }
 
     static ConstantScope* create(STATE);
@@ -52,11 +42,11 @@ namespace rubinius {
 
     // The module to use when adding and removing methods
     Module* for_method_definition() {
-      if(current_module_->nil_p()) {
-        return module_;
+      if(current_module()->nil_p()) {
+        return module();
       }
 
-      return current_module_;
+      return current_module();
     }
 
     // Rubinius.primitive :constant_scope_cvar_defined
@@ -72,7 +62,7 @@ namespace rubinius {
     Object* cvar_get_or_set(STATE, Symbol* name, Object* value);
 
     bool top_level_p(STATE) const {
-      return parent_->nil_p();
+      return parent()->nil_p();
     }
 
     class Info : public TypeInfo {

@@ -5,17 +5,11 @@
 
 namespace rubinius {
   class BasicObject : public Object {
-  public:   /* Slots and bookkeeping */
-
-    /** Class type identifier. */
+  public:
     static const object_type type = BasicObjectType;
 
     static void bootstrap(STATE);
-
-  public:   /* accessors */
-
   };
-
 }
 
 #endif

@@ -31,14 +31,14 @@ namespace rubinius {
     Module::bootstrap_initialize(state, klass, super);
 
     klass->klass(state, G(klass));
-    klass->ivars_ = cNil;
+    klass->ivars(cNil);
 
     // The type of object that this class is (ie Class).
     klass->set_obj_type(ClassType);
 
     // The type of object this class makes (eg Tuple).
-    klass->instance_type_ = Fixnum::from(type);
-    klass->type_info_ = state->memory()->type_info[type];
+    klass->instance_type(Fixnum::from(type));
+    klass->type_info(state->memory()->type_info[type]);
 
     klass->superclass(state, super);
 
@@ -47,11 +47,11 @@ namespace rubinius {
 
   void Class::initialize_data(STATE, Class* klass) {
     uint32_t id = state->shared().inc_class_count(state);
-    klass->data_.f.class_id = id;
-    klass->data_.f.serial_id = 1;
-    klass->set_packed_size(0);
+    klass->_class_data_.f.class_id = id;
+    klass->_class_data_.f.serial_id = 1;
+    klass->packed_size(0);
 
-    klass->packed_ivar_info_ = nil<LookupTable>();
+    klass->packed_ivar_info(nil<LookupTable>());
   }
 
   void Class::initialize_type(STATE, Class* klass, Class* super) {
@@ -59,9 +59,9 @@ namespace rubinius {
     klass->instance_type(state, super->instance_type());
 
     if(super->type_info()->type == PackedObjectType) {
-      klass->set_type_info(state->memory()->type_info[ObjectType]);
+      klass->type_info(state->memory()->type_info[ObjectType]);
     } else {
-      klass->set_type_info(super->type_info());
+      klass->type_info(super->type_info());
     }
 
     SingletonClass::attach(state, klass, super->singleton_class(state));
@@ -71,7 +71,7 @@ namespace rubinius {
     Module::initialize(state, klass);
     Class::initialize_data(state, klass);
 
-    klass->instance_type_ = nil<Fixnum>();
+    klass->instance_type(nil<Fixnum>());
   }
 
   void Class::initialize(STATE, Class* klass, Class* super) {
@@ -103,8 +103,8 @@ namespace rubinius {
     Class::initialize_data(state, klass);
 
     klass->superclass(state, super);
-    klass->instance_type_ = Fixnum::from(type);
-    klass->type_info_ = state->memory()->type_info[type];
+    klass->instance_type(Fixnum::from(type));
+    klass->type_info(state->memory()->type_info[type]);
 
     SingletonClass::attach(state, klass, super->singleton_class(state));
   }
@@ -119,7 +119,7 @@ namespace rubinius {
 
   Class* Class::s_allocate(STATE) {
     Class* klass = as<Class>(state->memory()->new_object<Class>(state, G(klass)));
-    klass->set_type_info(state->memory()->type_info[ObjectType]);
+    klass->type_info(state->memory()->type_info[ObjectType]);
 
     return klass;
   }
@@ -145,11 +145,11 @@ namespace rubinius {
 
   Object* Class::allocate(STATE) {
     Object* obj = cNil;
-    object_type obj_type = type_info_->type;
+    object_type obj_type = type_info()->type;
 
     if(obj_type == PackedObject::type) {
       obj = allocate_packed(state, this);
-    } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
+    } else if(!type_info()->allow_user_allocate || kind_of<SingletonClass>(this)) {
       std::ostringstream msg;
       msg << "direct allocation disabled for ";
       if(kind_of<SingletonClass>(this)) {
@@ -162,10 +162,10 @@ namespace rubinius {
       auto_pack(state);
       obj = allocate_packed(state, this);
     } else {
-      // type_info_->type is neither PackedObject nor Object, so use the
+      // type_info()->type is neither PackedObject nor Object, so use the
       // generic path.
       obj = state->memory()->new_object<Object>(
-          state, this, type_info_->instance_size, obj_type);
+          state, this, type_info()->instance_size, obj_type);
     }
 
 #ifdef RBX_ALLOC_TRACKING
@@ -206,9 +206,9 @@ namespace rubinius {
 
     instance_type(state, sup->instance_type());
     if(sup->type_info()->type == PackedObject::type) {
-      set_type_info(state->memory()->type_info[ObjectType]);
+      type_info(state->memory()->type_info[ObjectType]);
     } else {
-      set_type_info(sup->type_info());
+      type_info(sup->type_info());
     }
 
     SingletonClass::attach(state, this, sup->singleton_class(state));
@@ -220,7 +220,7 @@ namespace rubinius {
 
   void Class::set_object_type(STATE, size_t type) {
     instance_type(state, Fixnum::from(type));
-    type_info_ = state->memory()->type_info[type];
+    type_info(state->memory()->type_info[type]);
   }
 
   /* Look at this class and it's superclass contents (which includes
@@ -236,7 +236,7 @@ namespace rubinius {
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
-    if(self->type_info_->type == PackedObject::type) {
+    if(self->type_info()->type == PackedObject::type) {
       self->hard_unlock(state);
       return;
     }
@@ -281,7 +281,7 @@ namespace rubinius {
       slots = lt->entries()->to_native();
     }
 
-    self->set_packed_size(sizeof(Object) + (slots * sizeof(Object*)));
+    self->packed_size(sizeof(Object) + (slots * sizeof(Object*)));
     self->packed_ivar_info(state, lt);
 
     atomic::memory_barrier();
@@ -317,12 +317,12 @@ namespace rubinius {
     SingletonClass* sc = create(state, obj);
 
     if(kind_of<PackedObject>(obj)) {
-      sc->set_type_info(state->memory()->type_info[ObjectType]);
+      sc->type_info(state->memory()->type_info[ObjectType]);
     } else {
-      sc->set_type_info(obj->klass()->type_info());
+      sc->type_info(obj->klass()->type_info());
     }
 
-    sc->set_packed_size(obj->klass()->packed_size());
+    sc->packed_size(obj->klass()->packed_size());
     sc->packed_ivar_info(state, obj->klass()->packed_ivar_info());
 
     /* The superclass hierarchy for singleton classes lives in parallel to

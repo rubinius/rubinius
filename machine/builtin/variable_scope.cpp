@@ -64,20 +64,20 @@ namespace rubinius {
     scope->heap_locals(state, locals);
 
     scope->self(state, self);
-    scope->number_of_locals_ = locals->num_fields();
+    scope->number_of_locals(locals->num_fields());
 
     return scope;
   }
 
-  Tuple* VariableScope::locals(STATE) {
-    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals_);
+  Tuple* VariableScope::local_variables(STATE) {
+    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals());
 
     if(tup->young_object_p()) {
-      for(int i = 0; i < number_of_locals_; i++) {
+      for(int i = 0; i < number_of_locals(); i++) {
         tup->field[i] = get_local(state, i);
       }
     } else {
-      for(int i = 0; i < number_of_locals_; i++) {
+      for(int i = 0; i < number_of_locals(); i++) {
         tup->put(state, i, get_local(state, i));
       }
     }
@@ -90,7 +90,7 @@ namespace rubinius {
 
     if(num < 0) {
       Exception::raise_argument_error(state, "negative local index");
-    } else if(num >= number_of_locals_) {
+    } else if(num >= number_of_locals()) {
       Exception::raise_argument_error(state, "index larger than number of locals");
     }
 
@@ -108,8 +108,8 @@ namespace rubinius {
   }
 
   Object* VariableScope::set_locked(STATE) {
-    flags_ |= CallFrame::cScopeLocked;
-    VariableScope* parent = parent_;
+    _flags_ |= CallFrame::cScopeLocked;
+    VariableScope* parent = this->parent();
     while(parent && !parent->nil_p()) {
       parent->set_locked(state);
       parent = parent->parent();
@@ -118,8 +118,8 @@ namespace rubinius {
   }
 
   void VariableScope::set_local_internal(STATE, int pos, Object* val) {
-     if(isolated_) {
-       heap_locals_->put(state, pos, val);
+     if(isolated()) {
+       heap_locals()->put(state, pos, val);
      } else {
        set_local(pos, val);
      }
@@ -127,7 +127,7 @@ namespace rubinius {
 
   void VariableScope::set_local(STATE, int pos, Object* val) {
     if(unlikely(locked_p())) {
-      utilities::thread::SpinLock::LockGuard guard(lock_);
+      utilities::thread::SpinLock::LockGuard guard(_lock_);
       set_local_internal(state, pos, val);
     } else {
       set_local_internal(state, pos, val);
@@ -135,9 +135,9 @@ namespace rubinius {
   }
 
   void VariableScope::set_local(int pos, Object* val) {
-    Object** ary = locals_;
+    Object** ary = locals();
 
-    if(Fiber* fib = try_as<Fiber>(fiber_)) {
+    if(Fiber* fib = try_as<Fiber>(fiber())) {
       FiberData* data = fib->data();
       if(data) {
         memory::AddressDisplacement dis(data->data_offset(),
@@ -150,8 +150,8 @@ namespace rubinius {
   }
 
   Object* VariableScope::get_local_internal(STATE, int pos) {
-     if(isolated_) {
-       return heap_locals_->at(pos);
+     if(isolated()) {
+       return heap_locals()->at(pos);
      } else {
        return get_local(pos);
      }
@@ -159,7 +159,7 @@ namespace rubinius {
 
   Object* VariableScope::get_local(STATE, int pos) {
     if(unlikely(locked_p())) {
-      utilities::thread::SpinLock::LockGuard guard(lock_);
+      utilities::thread::SpinLock::LockGuard guard(_lock_);
       return get_local_internal(state, pos);
     } else {
       return get_local_internal(state, pos);
@@ -167,8 +167,8 @@ namespace rubinius {
   }
 
   Object* VariableScope::get_local(int pos) {
-    Object** ary = locals_;
-    if(Fiber* fib = try_as<Fiber>(fiber_)) {
+    Object** ary = locals();
+    if(Fiber* fib = try_as<Fiber>(fiber())) {
       FiberData* data = fib->data();
       if(data) {
         memory::AddressDisplacement dis(data->data_offset(),
@@ -189,30 +189,30 @@ namespace rubinius {
   }
 
   void VariableScope::flush_to_heap_internal(STATE) {
-    if(isolated_) return;
+    if(isolated()) return;
 
    Tuple* new_locals =
-     state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals_);
+     state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals());
 
    if(new_locals->young_object_p()) {
-     for(int i = 0; i < number_of_locals_; i++) {
-       new_locals->field[i] = locals_[i];
+     for(int i = 0; i < number_of_locals(); i++) {
+       new_locals->field[i] = locals()[i];
      }
    } else {
-     for(int i = 0; i < number_of_locals_; i++) {
-       new_locals->put(state, i, locals_[i]);
+     for(int i = 0; i < number_of_locals(); i++) {
+       new_locals->put(state, i, locals()[i]);
      }
    }
 
     heap_locals(state, new_locals);
-    isolated_ = 1;
+    isolated(1);
   }
 
   void VariableScope::flush_to_heap(STATE) {
     if(unlikely(locked_p())) {
-      utilities::thread::SpinLock::LockGuard guard(lock_);
+      utilities::thread::SpinLock::LockGuard guard(_lock_);
       flush_to_heap_internal(state);
-      flags_ &= ~CallFrame::cScopeLocked;
+      _flags_ &= ~CallFrame::cScopeLocked;
     } else {
       flush_to_heap_internal(state);
     }
@@ -223,8 +223,8 @@ namespace rubinius {
 
     VariableScope* vs = as<VariableScope>(obj);
 
-    if(!vs->isolated()) {
-      Object** ary = vs->locals_;
+    if(!vs->isolated_p()) {
+      Object** ary = vs->locals();
 
       if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
         FiberData* data = fib->data();

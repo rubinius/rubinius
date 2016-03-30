@@ -16,15 +16,6 @@ namespace rubinius {
   public:
     const static object_type type = AutoloadType;
 
-  private:
-    Symbol* name_; // slot
-    Module* scope_; // slot
-    Object* path_; // slot
-    Object* constant_; // slot
-    Thread* thread_; // slot
-    Object* loaded_; // slot
-
-  public:
     attr_accessor(name, Symbol);
     attr_accessor(scope, Module);
     attr_accessor(path, Object);
@@ -35,12 +26,12 @@ namespace rubinius {
     /**  Register class with the VM. */
     static void bootstrap(STATE);
     static void initialize(STATE, Autoload* obj) {
-      obj->name_ = nil<Symbol>();
-      obj->scope_ = nil<Module>();
-      obj->path_ = nil<Object>();
-      obj->constant_ = nil<Object>();
-      obj->thread_ = nil<Thread>();
-      obj->loaded_ = nil<Object>();
+      obj->name(nil<Symbol>());
+      obj->scope(nil<Module>());
+      obj->path(nil<Object>());
+      obj->constant(nil<Object>());
+      obj->thread(nil<Thread>());
+      obj->loaded(nil<Object>());
     }
 
     // Rubinius.primitive :autoload_allocate

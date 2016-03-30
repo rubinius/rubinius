@@ -13,13 +13,6 @@ namespace rubinius {
   public:
     const static object_type type = ProcType;
 
-  private:
-    BlockEnvironment* block_; // slot
-    Object* lambda_; // slot
-    Object* bound_method_; // slot
-    Object* ruby_method_; // slot
-
-  public:
     attr_accessor(block, BlockEnvironment);
     attr_accessor(lambda, Object);
     attr_accessor(bound_method, Object);
@@ -27,10 +20,10 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, Proc* obj) {
-      obj->block_ = nil<BlockEnvironment>();
-      obj->lambda_ = nil<Object>();
-      obj->bound_method_ = nil<Object>();
-      obj->ruby_method_ = nil<Object>();
+      obj->block(nil<BlockEnvironment>());
+      obj->lambda(nil<Object>());
+      obj->bound_method(nil<Object>());
+      obj->ruby_method(nil<Object>());
     }
 
     // Rubinius.primitive :proc_allocate

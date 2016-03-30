@@ -29,59 +29,33 @@ namespace rubinius {
   public:
     const static object_type type = ClassType;
 
-  private:
-    Fixnum* instance_type_;   // slot
-    LookupTable* packed_ivar_info_; // slot
-
-    TypeInfo* type_info_;
-
-    ClassData data_;
-    uint32_t packed_size_;
-
-  public:
-    /* accessors */
-
     attr_accessor(packed_ivar_info, LookupTable);
     attr_accessor(instance_type, Fixnum);
 
-    TypeInfo* type_info() const {
-      return type_info_;
-    }
+  private:
+    attr_field(type_info, TypeInfo*);
+    attr_field(class_data, ClassData);
+    attr_field(packed_size, uint32_t);
 
-    void set_type_info(TypeInfo* ti) {
-      type_info_ = ti;
-    }
-
-    ClassData data() const {
-      return data_;
-    }
-
+  public:
     uint64_t data_raw() const {
-      return data_.raw;
+      return class_data().raw;
     }
 
     uint32_t class_id() const {
-      return data_.f.class_id;
+      return class_data().f.class_id;
     }
 
     uint32_t serial_id() const {
-      return data_.f.serial_id;
+      return class_data().f.serial_id;
     }
 
     void increment_serial() {
-      atomic::fetch_and_add(&data_.f.serial_id, 1U);
+      atomic::fetch_and_add(&_class_data_.f.serial_id, 1U);
     }
 
     void set_class_id(uint32_t id) {
-      data_.f.class_id = id;
-    }
-
-    uint32_t packed_size() const {
-      return packed_size_;
-    }
-
-    void set_packed_size(uint32_t s) {
-      packed_size_ = s;
+      _class_data_.f.class_id = id;
     }
 
     /* interface */
@@ -136,12 +110,6 @@ namespace rubinius {
   public:
     const static object_type type = SingletonClassType;
 
-  private:
-    WeakRef* object_reference_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(object_reference, WeakRef);
 
     /* interface */
@@ -151,7 +119,7 @@ namespace rubinius {
     static SingletonClass* attach(STATE, Object* obj, Class* sup);
 
     Object* singleton() {
-      return object_reference_->object();
+      return object_reference()->object();
     }
 
     class Info : public Class::Info {

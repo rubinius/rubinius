@@ -10,7 +10,7 @@ namespace rubinius {
     static uintptr_t bytes_offset;
 
   private:
-    native_int full_size_;
+    attr_field(full_size, native_int);
 
     // Body access
     uint8_t bytes[0];
@@ -27,10 +27,6 @@ namespace rubinius {
         return reinterpret_cast<ByteArray*>(ptr - bytes_offset);
       }
 
-    void set_full_size(native_int size) {
-      full_size_ = size;
-    }
-
     // Rubinius.primitive :bytearray_allocate
     static ByteArray* allocate(STATE, Fixnum* bytes);
 
@@ -39,7 +35,7 @@ namespace rubinius {
 
     // Return the number of bytes this ByteArray contains
     native_int size() const {
-      return full_size_ - bytes_offset;
+      return full_size() - bytes_offset;
     }
 
     uint8_t* raw_bytes() {

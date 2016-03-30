@@ -15,18 +15,18 @@ namespace rubinius {
     const static object_type type = WeakRefType;
 
   private:
-    Object* object_;
+    attr_field(object, Object*);
 
   public:
 
     static void bootstrap(STATE);
     static void initialize(STATE, WeakRef* obj) {
-      obj->object_ = nil<Object>();
+      obj->object(nil<Object>());
     }
 
     // Rubinius.primitive+ :weakref_object
-    Object* object() const {
-      return object_;
+    Object* get_object() const {
+      return object();
     }
 
     void set_object(Memory* om, Object* obj);
@@ -38,7 +38,7 @@ namespace rubinius {
     static WeakRef* create(STATE, Object* obj);
 
     bool alive_p() const {
-      return object_->reference_p();
+      return object()->reference_p();
     }
 
     class Info : public TypeInfo {

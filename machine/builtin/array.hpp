@@ -15,19 +15,9 @@ namespace rubinius {
   public:
     const static object_type type = ArrayType;
 
-  private:
-    Fixnum* total_; // slot
-    Tuple* tuple_;  // slot
-    Fixnum* start_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(total, Fixnum);
     attr_accessor(tuple, Tuple);
     attr_accessor(start, Fixnum);
-
-    /* interface */
 
     native_int size();
     native_int offset();
@@ -35,9 +25,9 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, Array* array) {
-      array->total_ = Fixnum::from(0);
-      array->tuple_ = nil<Tuple>();
-      array->start_ = Fixnum::from(0);
+      array->total(Fixnum::from(0));
+      array->tuple(nil<Tuple>());
+      array->start(Fixnum::from(0));
     }
 
     static Array* create(STATE, native_int size);

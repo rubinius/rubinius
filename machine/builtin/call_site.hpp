@@ -34,30 +34,26 @@ namespace rubinius {
   public:
     const static object_type type = CallSiteType;
 
-    Symbol* name_; // slot
-    CacheExecutor    executor_;
-    FallbackExecutor fallback_;
-    CacheUpdater     updater_;
-
-    Executable* executable_; // slot
-    int ip_;
-
-  public:
     attr_accessor(name, Symbol);
+
+    attr_field(executor, CacheExecutor);
+    attr_field(fallback, FallbackExecutor);
+    attr_field(updater, CacheUpdater);
+
     attr_accessor(executable, Executable);
 
+  private:
+    attr_field(ip, int);
+
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, CallSite* obj) {
-      obj->name_ = nil<Symbol>();
-      obj->executor_ = empty_cache;
-      obj->fallback_ = empty_cache;
-      obj->updater_ = empty_cache_updater;
-      obj->executable_ = nil<Executable>();
-      obj->ip_ = 0;
-    }
-
-    int ip() const {
-      return ip_;
+      obj->name(nil<Symbol>());
+      obj->executor(empty_cache);
+      obj->fallback(empty_cache);
+      obj->updater(empty_cache_updater);
+      obj->executable(nil<Executable>());
+      obj->ip(0);
     }
 
     // Rubinius.primitive+ :call_site_ip
@@ -80,50 +76,51 @@ namespace rubinius {
     bool update_and_validate(STATE, Object* recv, Symbol* vis, int serial);
 
     void set_is_private() {
-      executor_ = empty_cache_private;
-      fallback_ = empty_cache_private;
+      executor(empty_cache_private);
+      fallback(empty_cache_private);
     }
 
     void set_is_super() {
-      executor_ = empty_cache_super;
-      fallback_ = empty_cache_super;
+      executor(empty_cache_super);
+      fallback(empty_cache_super);
     }
 
     void set_is_vcall() {
-      executor_ = empty_cache_vcall;
-      fallback_ = empty_cache_vcall;
+      executor(empty_cache_vcall);
+      fallback(empty_cache_vcall);
     }
 
     void set_call_custom() {
-      executor_ = empty_cache_custom;
-      fallback_ = empty_cache_custom;
+      executor(empty_cache_custom);
+      fallback(empty_cache_custom);
     }
 
     void set_executor(CacheExecutor exec) {
-      executor_ = exec;
-      fallback_ = exec;
+      executor(exec);
+      fallback(exec);
     }
 
     void update_call_site(STATE, CallSite* other) {
       if(this != other) {
-        if(CompiledCode* ccode = try_as<CompiledCode>(executable_)) {
-          ccode->machine_code()->store_call_site(state, ccode, ip_, other);
+        if(CompiledCode* ccode = try_as<CompiledCode>(executable())) {
+          ccode->machine_code()->store_call_site(state, ccode, ip(), other);
         }
       }
     }
 
-    static bool lookup_method_missing(STATE, Arguments& args, Dispatch& dis, Object* self, Module* begin);
+    static bool lookup_method_missing(STATE, Arguments& args,
+        Dispatch& dis, Object* self, Module* begin);
 
     Object* execute(STATE, Arguments& args) {
-      return (*executor_)(state, this, args);
+      return _executor_(state, this, args);
     }
 
     Object* fallback(STATE, Arguments& args) {
-      return (*fallback_)(state, this, args);
+      return _fallback_(state, this, args);
     }
 
     void update(STATE, Class* klass, Dispatch& dispatch) {
-      (*updater_)(state, this, klass, dispatch);
+      _updater_(state, this, klass, dispatch);
     }
 
     class Info : public TypeInfo {

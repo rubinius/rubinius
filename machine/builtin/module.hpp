@@ -14,19 +14,6 @@ namespace rubinius {
   public:
     const static object_type type = ModuleType;
 
-  private:
-    MethodTable* method_table_;     // slot
-    Symbol* module_name_;           // slot
-    ConstantTable* constant_table_; // slot
-    Module* superclass_;            // slot
-    Module* origin_;                // slot
-    Array* seen_ivars_;             // slot
-    Class* mirror_;                 // slot
-    Array* hierarchy_subclasses_;   // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(method_table, MethodTable);
     attr_accessor(module_name, Symbol);
     attr_accessor(constant_table, ConstantTable);
@@ -36,7 +23,6 @@ namespace rubinius {
     attr_accessor(mirror, Class);
     attr_accessor(hierarchy_subclasses, Array);
 
-    /* interface */
     static void bootstrap(STATE);
     static void bootstrap(STATE, Module* mod, Module* under, const char* name);
     static void bootstrap_initialize(STATE, Module* mod, Class* super);
@@ -115,18 +101,12 @@ namespace rubinius {
   public:
     const static object_type type = IncludedModuleType;
 
-  private:
-    Module* module_; // slot
-
-  public:
-    /* accessors */
     attr_accessor(module, Module);
 
-    /* interface */
     static void initialize(STATE, IncludedModule* obj, Module* under, const char* name) {
       Module::initialize(state, obj, under, name);
 
-      obj->module_ = nil<Module>();
+      obj->module(nil<Module>());
     }
 
     static IncludedModule* create(STATE);

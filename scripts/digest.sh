@@ -8,5 +8,5 @@ function rbx_digest_file {
 }
 
 function rbx_base64 {
-  base64 -i "$1"
+  base64 -i "$1" | tr -d '\n'
 }

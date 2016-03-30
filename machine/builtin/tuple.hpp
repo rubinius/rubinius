@@ -11,14 +11,14 @@ namespace rubinius {
     const static object_type type = TupleType;
     static uintptr_t fields_offset;
 
-    native_int full_size_;
+    attr_field(full_size, native_int);
 
     /* Body access */
     Object* field[0];
 
   public:
     native_int num_fields() const {
-      return (full_size_ - fields_offset) / sizeof(Object*);
+      return (full_size() - fields_offset) / sizeof(Object*);
     }
 
     static void bootstrap(STATE);
@@ -35,10 +35,6 @@ namespace rubinius {
     static Tuple* create(STATE, native_int fields);
     static Tuple* create_dirty(STATE, native_int fields);
     static Tuple* from(STATE, native_int fields, ...);
-
-    void set_full_size(native_int size) {
-      full_size_ = size;
-    }
 
     /** Shift all elements leftward, clear old slots. */
     Tuple* lshift_inplace(STATE, Fixnum* shift);
@@ -60,9 +56,7 @@ namespace rubinius {
 
     Object* put(STATE, native_int idx, Object* val) {
       field[idx] = val;
-      if(mature_object_p()) {
-        Tuple::write_barrier(state, this, val);
-      }
+      Tuple::write_barrier(state, this, val);
       return val;
     }
 

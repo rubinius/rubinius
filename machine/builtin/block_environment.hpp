@@ -42,34 +42,25 @@ namespace rubinius {
   public:
     const static object_type type = BlockEnvironmentType;
 
-  private:
-    VariableScope* scope_;          // slot
-    VariableScope* top_scope_;      // slot
-    CompiledCode* compiled_code_;   // slot
-    ConstantScope* constant_scope_; // slot
-    Module* module_;                // slot
-
-    MachineCode* machine_code(STATE);
-
-  public:
-    /* accessors */
     attr_accessor(scope, VariableScope);
     attr_accessor(top_scope, VariableScope);
     attr_accessor(compiled_code, CompiledCode);
     attr_accessor(constant_scope, ConstantScope);
     attr_accessor(module, Module);
 
-    /* interface */
+  private:
+    MachineCode* machine_code(STATE);
 
+  public:
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
 
     static void initialize(STATE, BlockEnvironment* obj) {
-      obj->scope_ = nil<VariableScope>();
-      obj->top_scope_ = nil<VariableScope>();
-      obj->compiled_code_ = nil<CompiledCode>();
-      obj->constant_scope_ = nil<ConstantScope>();
-      obj->module_ = nil<Module>();
+      obj->scope(nil<VariableScope>());
+      obj->top_scope(nil<VariableScope>());
+      obj->compiled_code(nil<CompiledCode>());
+      obj->constant_scope(nil<ConstantScope>());
+      obj->module(nil<Module>());
     }
 
     // Rubinius.primitive :blockenvironment_allocate

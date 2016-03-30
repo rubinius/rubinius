@@ -12,20 +12,13 @@ namespace rubinius {
   public:
     const static object_type type = ListNodeType;
 
-  private:
-    Object* object_;  // slot
-    ListNode* next_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(object, Object);
     attr_accessor(next, ListNode);
 
     /* interface */
     static void initialize(STATE, ListNode* obj) {
-      obj->object_ = nil<Object>();
-      obj->next_ = nil<ListNode>();
+      obj->object(nil<Object>());
+      obj->next(nil<ListNode>());
     }
 
     class Info : public TypeInfo {
@@ -41,23 +34,15 @@ namespace rubinius {
   public:
     const static object_type type = ListType;
 
-  private:
-    Fixnum* count_;   // slot
-    ListNode* first_; // slot
-    ListNode* last_;  // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(count, Fixnum);
     attr_accessor(first, ListNode);
     attr_accessor(last, ListNode);
 
     /* interface */
     static void initialize(STATE, List* obj) {
-      obj->count_ = Fixnum::from(0);
-      obj->first_ = nil<ListNode>();
-      obj->last_ = nil<ListNode>();
+      obj->count(Fixnum::from(0));
+      obj->first(nil<ListNode>());
+      obj->last(nil<ListNode>());
     }
 
     bool empty_p();

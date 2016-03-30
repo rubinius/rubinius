@@ -14,16 +14,12 @@ namespace rubinius {
   public:
     const static object_type type = CallUnitAdapterType;
 
-  private:
-    CallUnit* unit_; // slot
-
-  public:
     attr_accessor(unit, CallUnit);
 
     static void initialize(STATE, CallUnitAdapter* obj) {
       Executable::initialize(state, obj);
 
-      obj->unit_ = nil<CallUnit>();
+      obj->unit(nil<CallUnit>());
     }
 
     // Rubinius.primitive :callunitadapter_create

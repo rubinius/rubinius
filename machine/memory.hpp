@@ -294,7 +294,7 @@ namespace rubinius {
      *  3. LOS (large object space, lock needed)
      *
      * The resulting object is UNINITIALIZED. The caller is responsible for
-     * initializing all reference fields other than klass_ and ivars_.
+     * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object(STATE, Class* klass, native_int bytes, object_type type) {
       // TODO: GC
@@ -328,12 +328,8 @@ namespace rubinius {
       obj->set_obj_type(type);
 
     // set_klass:
-      obj->klass_ = klass;
-      obj->ivars_ = cNil;
-
-      if(obj->mature_object_p()) {
-        write_barrier(obj, klass);
-      }
+      obj->klass(state, klass);
+      obj->ivars(cNil);
 
       obj->set_cycle(cycle_);
 
@@ -346,7 +342,7 @@ namespace rubinius {
      *  2. LOS (large object space, lock needed)
      *
      * The resulting object is UNINITIALIZED. The caller is responsible for
-     * initializing all reference fields other than klass_ and ivars_.
+     * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object_pinned(STATE, Class* klass, native_int bytes, object_type type) {
       Object* obj = new_object(state, bytes);
@@ -359,10 +355,8 @@ namespace rubinius {
       obj->set_pinned();
       obj->set_obj_type(type);
 
-      obj->klass_ = klass;
-      obj->ivars_ = cNil;
-
-      write_barrier(obj, klass);
+      obj->klass(state, klass);
+      obj->ivars(cNil);
 
       return obj;
     }
@@ -393,7 +387,7 @@ namespace rubinius {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = static_cast<T*>(new_object(state, klass, bytes, T::type));
 
-        obj->set_full_size(bytes);
+        obj->full_size(bytes);
 
         return obj;
       }
@@ -403,7 +397,7 @@ namespace rubinius {
         native_int bytes = sizeof(T) + (fields * sizeof(Object*));
         T* obj = static_cast<T*>(new_object(state, klass, bytes, T::type));
 
-        obj->set_full_size(bytes);
+        obj->full_size(bytes);
 
         return obj;
       }
@@ -421,7 +415,7 @@ namespace rubinius {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = static_cast<T*>(new_object_pinned(state, klass, bytes, T::type));
 
-        obj->set_full_size(bytes);
+        obj->full_size(bytes);
 
         return obj;
       }
@@ -431,7 +425,7 @@ namespace rubinius {
         native_int bytes = sizeof(T) + (fields * sizeof(Object*));
         T* obj = static_cast<T*>(new_object_pinned(state, klass, bytes, T::type));
 
-        obj->set_full_size(bytes);
+        obj->full_size(bytes);
 
         return obj;
       }

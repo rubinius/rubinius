@@ -1067,10 +1067,10 @@ namespace rubinius {
       }
       ts.tv_sec = fix->to_native();
     } else if(Float* flt = try_as<Float>(duration)) {
-      if(flt->val < 0.0) {
+      if(flt->value() < 0.0) {
         Exception::raise_argument_error(state, "time interval must be positive");
       }
-      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
+      uint64_t nano = (uint64_t)(flt->value() * NANOSECONDS);
       ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
       ts.tv_nsec =    (long)(nano % NANOSECONDS);
     } else if(duration == G(undefined)) {

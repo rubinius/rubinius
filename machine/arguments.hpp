@@ -58,6 +58,14 @@ namespace rubinius {
       , argument_container_(0)
     {}
 
+    Arguments(Symbol* name, Object* recv, Array* ary)
+      : name_(name)
+      , recv_(recv)
+      , block_(cNil)
+    {
+      use_array(ary);
+    }
+
     Arguments(Symbol* name, Array* ary)
       : name_(name)
       , recv_(cNil)

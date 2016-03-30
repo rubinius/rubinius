@@ -12,18 +12,18 @@ namespace rubinius {
   }
 
   ConstantCache* ConstantCache::create(STATE, ConstantCache* existing,
-      Object* value, Module* under, ConstantScope* scope)
+      Object* value, Module* mod, ConstantScope* scope)
   {
     ConstantCache* cache =
       state->memory()->new_object<ConstantCache>(state, G(constant_cache));
 
     cache->name(state, existing->name());
     cache->executable(state, existing->executable());
-    cache->ip_ = existing->ip();
+    cache->ip(existing->ip());
     cache->value(state, value);
-    cache->under(state, under);
-    cache->scope(state, scope);
-    cache->serial_ = state->shared().global_serial();
+    cache->module(state, mod);
+    cache->constant_scope(state, scope);
+    cache->serial(state->shared().global_serial());
 
     return cache;
   }
@@ -39,21 +39,21 @@ namespace rubinius {
 
     cache->name(state, name);
     cache->executable(state, executable);
-    cache->ip_ = ip;
+    cache->ip(ip);
     cache->value(state, cNil);
-    cache->under(state, nil<Module>());
-    cache->scope(state, nil<ConstantScope>());
-    cache->serial_ = -1;
+    cache->module(state, nil<Module>());
+    cache->constant_scope(state, nil<ConstantScope>());
+    cache->serial(-1);
 
     return cache;
   }
 
   Integer* ConstantCache::ip_prim(STATE) {
-    return Integer::from(state, ip_);
+    return Integer::from(state, ip());
   }
 
   Integer* ConstantCache::serial_prim(STATE) {
-    return Integer::from(state, serial_);
+    return Integer::from(state, serial());
   }
 }
 

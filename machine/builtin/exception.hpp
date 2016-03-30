@@ -15,31 +15,19 @@ namespace rubinius {
   public:
     const static object_type type = ExceptionType;
 
-  private:
-    Object* reason_message_;  // slot
-    Array* locations_; // slot
-    Exception* parent_; // slot
-    Object* backtrace_; // slot
-    Object* custom_backtrace_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(reason_message, Object);
     attr_accessor(locations, Array);
     attr_accessor(parent, Exception);
     attr_accessor(backtrace, Object);
     attr_accessor(custom_backtrace, Object);
 
-    /* interface */
-
     static void bootstrap(STATE);
     static void initialize(STATE, Exception* obj) {
-      obj->reason_message_ = nil<Object>();
-      obj->locations_ = nil<Array>();
-      obj->parent_ = nil<Exception>();
-      obj->backtrace_ = nil<Object>();
-      obj->custom_backtrace_ = nil<Object>();
+      obj->reason_message(nil<Object>());
+      obj->locations(nil<Array>());
+      obj->parent(nil<Exception>());
+      obj->backtrace(nil<Object>());
+      obj->custom_backtrace(nil<Object>());
     }
 
     static Exception* create(STATE);

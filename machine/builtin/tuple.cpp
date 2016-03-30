@@ -309,7 +309,7 @@ namespace rubinius {
   }
 
   size_t Tuple::Info::object_size(const ObjectHeader* obj) {
-    return force_as<Tuple>(obj)->full_size_;
+    return force_as<Tuple>(obj)->full_size();
   }
 
   void Tuple::Info::mark(Object* obj, memory::ObjectMark& mark) {

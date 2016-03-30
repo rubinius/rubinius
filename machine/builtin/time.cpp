@@ -24,8 +24,8 @@ namespace rubinius {
 
     ::clock_gettime(CLOCK_REALTIME, &ts);
 
-    tm->seconds_ = ts.tv_sec;
-    tm->nanoseconds_ = ts.tv_nsec;
+    tm->sec(ts.tv_sec);
+    tm->nsec(ts.tv_nsec);
 #else
     struct timeval tv;
 
@@ -34,8 +34,8 @@ namespace rubinius {
      */
     ::gettimeofday(&tv, NULL);
 
-    tm->seconds_ = tv.tv_sec;
-    tm->nanoseconds_ = tv.tv_usec * 1000;
+    tm->sec(tv.tv_sec);
+    tm->nsec(tv.tv_usec * 1000);
 #endif
 
     return tm;
@@ -44,8 +44,8 @@ namespace rubinius {
   Time* Time::at(STATE, time64_t seconds, long nanoseconds) {
     Time* tm = state->memory()->new_object<Time>(state, G(time_class));
 
-    tm->seconds_ = seconds;
-    tm->nanoseconds_ = nanoseconds;
+    tm->sec(seconds);
+    tm->nsec(nanoseconds);
 
     return tm;
   }
@@ -59,18 +59,18 @@ namespace rubinius {
   {
     Time* tm = state->memory()->new_object<Time>(state, as<Class>(self));
 
-    tm->seconds_ = sec->to_long_long();
-    tm->nanoseconds_ = nsec->to_native();
+    tm->sec(sec->to_long_long());
+    tm->nsec(nsec->to_native());
 
     // Do a little overflow cleanup.
-    if(tm->nanoseconds_ >= 1000000000) {
-      tm->seconds_ += tm->nanoseconds_ / 1000000000;
-      tm->nanoseconds_ %= 1000000000;
+    if(tm->nsec() >= 1000000000) {
+      tm->_sec_ += tm->nsec() / 1000000000;
+      tm->_nsec_ %= 1000000000;
     }
 
-    if(tm->nanoseconds_ < 0) {
-      tm->seconds_ += NDIV(tm->nanoseconds_, 1000000000);
-      tm->nanoseconds_ = NMOD(tm->nanoseconds_, 1000000000);
+    if(tm->nsec() < 0) {
+      tm->_sec_ += NDIV(tm->nsec(), 1000000000);
+      tm->_nsec_ = NMOD(tm->nsec(), 1000000000);
     }
 
     tm->is_gmt(state, RBOOL(CBOOL(gmt)));
@@ -127,18 +127,18 @@ namespace rubinius {
     }
 
     Time* obj = state->memory()->new_object<Time>(state, as<Class>(self));
-    obj->seconds_ = seconds;
-    obj->nanoseconds_ = nsec->to_native();
+    obj->sec(seconds);
+    obj->nsec(nsec->to_native());
     obj->is_gmt(state, RBOOL(CBOOL(from_gmt)));
 
     if(!offset->nil_p()) {
-      obj->seconds_ -= offset_sec->to_long_long();
-      obj->nanoseconds_ -= offset_nsec->to_native();
+      obj->_sec_ -= offset_sec->to_long_long();
+      obj->_nsec_ -= offset_nsec->to_native();
 
       // Deal with underflow wrapping
-      if(obj->nanoseconds_ < 0) {
-        obj->seconds_ += NDIV(obj->nanoseconds_, 1000000000);
-        obj->nanoseconds_ = NMOD(obj->nanoseconds_, 1000000000);
+      if(obj->nsec() < 0) {
+        obj->_sec_ += NDIV(obj->nsec(), 1000000000);
+        obj->_nsec_ = NMOD(obj->nsec(), 1000000000);
       }
 
       obj->offset(state, offset);
@@ -150,24 +150,24 @@ namespace rubinius {
   Time* Time::dup(STATE, Object* self, Time* other) {
     Time* tm = state->memory()->new_object<Time>(state, as<Class>(self));
 
-    tm->seconds_ = other->seconds_;
-    tm->nanoseconds_ = other->nanoseconds_;
-    tm->decomposed(state, other->decomposed_);
-    tm->is_gmt(state, other->is_gmt_);
-    tm->offset(state, other->offset_);
-    tm->zone(state, other->zone_);
+    tm->sec(other->sec());
+    tm->nsec(other->nsec());
+    tm->decomposed(state, other->decomposed());
+    tm->is_gmt(state, other->is_gmt());
+    tm->offset(state, other->offset());
+    tm->zone(state, other->zone());
 
     return tm;
   }
 
   struct tm64 Time::get_tm() {
-    time64_t seconds = seconds_;
+    time64_t seconds = sec();
     struct tm64 tm = {0};
 
-    if(Fixnum* off = try_as<Fixnum>(offset_)) {
+    if(Fixnum* off = try_as<Fixnum>(offset())) {
       seconds += off->to_long_long();
       gmtime64_r(&seconds, &tm);
-    } else if(CBOOL(is_gmt_)) {
+    } else if(gmt_p()) {
       gmtime64_r(&seconds, &tm);
     } else {
       tzset();
@@ -178,10 +178,10 @@ namespace rubinius {
   }
 
   Object* Time::utc_offset(STATE) {
-    if(CBOOL(is_gmt_)) {
+    if(gmt_p()) {
       return Fixnum::from(0);
-    } else if(!offset_->nil_p()) {
-      return offset_;
+    } else if(!offset()->nil_p()) {
+      return offset();
     }
 
     native_int off;
@@ -226,7 +226,7 @@ namespace rubinius {
   }
 
   Array* Time::calculate_decompose(STATE) {
-    if(!decomposed_->nil_p()) return decomposed_;
+    if(!decomposed()->nil_p()) return decomposed();
 
     struct tm64 tm = get_tm();
 
@@ -242,8 +242,8 @@ namespace rubinius {
     ary->set(state, 7, Integer::from(state, tm.tm_yday + 1));
     ary->set(state, 8, RBOOL(tm.tm_isdst));
 
-    if (zone_->nil_p()) {
-      if(offset_->nil_p() && tm.tm_zone) {
+    if (zone()->nil_p()) {
+      if(offset()->nil_p() && tm.tm_zone) {
         zone(state, locale_string(state, tm.tm_zone));
       } else {
         zone(state, nil<String>());
@@ -262,8 +262,8 @@ namespace rubinius {
     struct tm64 tm = get_tm();
 
     struct timespec64 ts;
-    ts.tv_sec = seconds_;
-    ts.tv_nsec = nanoseconds_;
+    ts.tv_sec = sec();
+    ts.tv_nsec = nsec();
 
     int off = 0;
     if(Fixnum* offset = try_as<Fixnum>(utc_offset(state))) {
@@ -275,7 +275,7 @@ namespace rubinius {
     char stack_str[STRFTIME_STACK_BUF];
 
     size_t chars = ::strftime_extended(stack_str, STRFTIME_STACK_BUF,
-                       format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
+                       format->c_str(state), &tm, &ts, gmt_p() ? 1 : 0,
                        off);
 
     size_t buf_size = format->byte_size();
@@ -292,7 +292,7 @@ namespace rubinius {
       }
 
       chars = ::strftime_extended(malloc_str, buf_size,
-                  format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
+                  format->c_str(state), &tm, &ts, gmt_p() ? 1 : 0,
                   off);
       if(chars) {
         result = String::create(state, malloc_str, chars);
@@ -313,7 +313,7 @@ namespace rubinius {
     struct tm64 tm;
 
     tzset();
-    localtime64_r(&seconds_, &tm);
+    localtime64_r(&_sec_, &tm);
 
     if(tm.tm_zone) {
       return locale_string(state, tm.tm_zone);

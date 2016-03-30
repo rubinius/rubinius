@@ -22,25 +22,18 @@ namespace rubinius {
   public:
     const static object_type type = FSEventType;
 
-  private:
-    Fixnum* fileno_;    // slot
-    String* path_;      // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(fileno, Fixnum);
     attr_accessor(path, String);
 
 #ifdef HAVE_KQUEUE
   private:
-    int kq_;
-    struct kevent filter_;
+    attr_field(kq, int);
+    attr_field(filter, struct kevent);
 
 #elif HAVE_INOTIFY
   private:
-    int in_;
-    bool watch_set_;
+    attr_field(in, int);
+    attr_field(watch_set, bool);
 #endif
 
   public:

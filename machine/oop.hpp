@@ -290,8 +290,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   protected:
 #endif
 
-    Class* klass_;
-    Object* ivars_;
+    attr_accessor(klass, Class);
+    attr_accessor(ivars, Object);
 
   private:
     // Defined so ObjectHeader can easily access the data just beyond
@@ -464,22 +464,18 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     Object* forward() const {
-      return ivars_;
-    }
-
-    Object* ivars() const {
-      return ivars_;
+      return _ivars_;
     }
 
     Class* reference_class() const {
-      return klass_;
+      return _klass_;
     }
 
     /**
      *  Mark this Object forwarded by the GC.
      *
      *  Sets the forwarded flag and stores the given Object* in
-     *  the klass_ field where it can be reached. This object is
+     *  the _klass_ field where it can be reached. This object is
      *  no longer valid and should be accessed through the new
      *  Object* (but code outside of the GC framework should not
      *  really run into this much if at all.)
@@ -492,7 +488,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
       // DO NOT USE klass() because we need to get around the
       // write barrier!
-      ivars_ = reinterpret_cast<Object*>(fwd);
+      _ivars_ = reinterpret_cast<Object*>(fwd);
     }
 
     bool marked_p(unsigned int which) const {

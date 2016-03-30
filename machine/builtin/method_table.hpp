@@ -18,16 +18,6 @@ namespace rubinius {
   public:
     const static object_type type = MethodTableBucketType;
 
-  private:
-    Symbol* name_;   // slot
-    Symbol* visibility_; // slot
-    Object* method_id_; // slot
-    Object* method_; // slot
-    Object* scope_; // slot
-    Fixnum* serial_; // slot
-    MethodTableBucket* next_;  // slot
-
-  public:
     attr_accessor(name, Symbol);
     attr_accessor(visibility, Symbol);
     attr_accessor(method_id, Object);
@@ -37,10 +27,13 @@ namespace rubinius {
     attr_accessor(next, MethodTableBucket);
 
     static void initialize(STATE, MethodTableBucket* obj) {
-      obj->name_ = nil<Symbol>();
-      obj->visibility_ = nil<Symbol>();
-      obj->method_ = nil<Executable>();
-      obj->next_ = nil<MethodTableBucket>();
+      obj->name(nil<Symbol>());
+      obj->visibility(nil<Symbol>());
+      obj->method_id(nil<Object>());
+      obj->method(nil<Executable>());
+      obj->scope(nil<Object>());
+      obj->serial(nil<Fixnum>());
+      obj->next(nil<MethodTableBucket>());
     }
 
     static MethodTableBucket* create(STATE, Symbol* name, Object* method_id,
@@ -67,27 +60,21 @@ namespace rubinius {
   public:
     const static object_type type = MethodTableType;
 
+    attr_accessor(values, Tuple);
+    attr_accessor(bins, Fixnum);
+    attr_accessor(entries, Fixnum);
+
   private:
-    Tuple* values_;   // slot
-    Fixnum* bins_;    // slot
-    Fixnum* entries_; // slot
     utilities::thread::SpinLock lock_;
 
     void   redistribute(STATE, size_t size);
 
   public:
-    /* accessors */
-
-    attr_accessor(values, Tuple);
-    attr_accessor(bins, Fixnum);
-    attr_accessor(entries, Fixnum);
-
-    /* interface */
     static void bootstrap(STATE);
     static void initialize(STATE, MethodTable* obj) {
-      obj->values_ = nil<Tuple>();
-      obj->bins_ = Fixnum::from(0);
-      obj->entries_ = Fixnum::from(0);
+      obj->values(nil<Tuple>());
+      obj->bins(Fixnum::from(0));
+      obj->entries(Fixnum::from(0));
       obj->lock_.init();
     }
 

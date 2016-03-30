@@ -13,24 +13,15 @@ namespace rubinius {
   public:
     const static object_type type = AccessVariableType;
 
-  private:
-    Symbol* name_;  // slot
-    Object* write_; // slot
-
-  public:
-    /* accessors */
-
     attr_accessor(name, Symbol);
     attr_accessor(write, Object);
-
-    /* interface */
 
     static void bootstrap(STATE);
     static void initialize(STATE, AccessVariable* av) {
       Executable::initialize(state, av, AccessVariable::access_execute);
 
-      av->name_ = nil<Symbol>();
-      av->write_ = nil<Object>();
+      av->name(nil<Symbol>());
+      av->write(nil<Object>());
     }
 
     // Rubinius.primitive :accessvariable_allocate

@@ -54,17 +54,17 @@ namespace rubinius {
   ConstantTable* ConstantTable::duplicate(STATE) {
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    native_int size = bins_->to_native();
+    native_int size = bins()->to_native();
     ConstantTable* dup = ConstantTable::create(state, size);
 
     // Allow for subclassing.
     dup->klass(state, class_object(state));
 
-    native_int num = bins_->to_native();
+    native_int num = bins()->to_native();
 
     for(native_int i = 0; i < num; i++) {
       ConstantTableBucket* entry = try_as<ConstantTableBucket>(
-          values(state)->at(state, i));
+          table_values(state)->at(state, i));
 
       while(entry) {
         dup->store(state, entry->name(), entry->constant(), entry->visibility());
@@ -76,12 +76,12 @@ namespace rubinius {
   }
 
   void ConstantTable::redistribute(STATE, native_int size) {
-    native_int num = bins_->to_native();
+    native_int num = bins()->to_native();
     Tuple* new_values = Tuple::create(state, size);
 
     for(native_int i = 0; i < num; i++) {
       ConstantTableBucket* entry = try_as<ConstantTableBucket>(
-          values(state)->at(state, i));
+          table_values(state)->at(state, i));
 
       while(entry) {
         ConstantTableBucket* link = try_as<ConstantTableBucket>(entry->next());
@@ -104,13 +104,13 @@ namespace rubinius {
     bins(state, Fixnum::from(size));
   }
 
-  Tuple* ConstantTable::values(STATE) {
-    if(values_->nil_p()) {
+  Tuple* ConstantTable::table_values(STATE) {
+    if(values()->nil_p()) {
       values(state, Tuple::create(state, CONSTANT_TABLE_MIN_SIZE));
       bins(state, Fixnum::from(CONSTANT_TABLE_MIN_SIZE));
     }
 
-    return values_;
+    return values();
   }
 
   Object* ConstantTable::store(STATE, Symbol* name, Object* constant, Symbol* vis) {
@@ -118,14 +118,14 @@ namespace rubinius {
 
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    Tuple* values = this->values(state);
+    Tuple* values = table_values(state);
 
-    native_int num_entries = entries_->to_native();
-    native_int num_bins = bins_->to_native();
+    native_int num_entries = entries()->to_native();
+    native_int num_bins = bins()->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
-      values = this->values(state);
+      values = table_values(state);
     }
 
     native_int bin = find_bin(key_hash(name), num_bins);
@@ -162,11 +162,11 @@ namespace rubinius {
   ConstantTableBucket* ConstantTable::find_entry(STATE, Symbol* name) {
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    if(bins_->to_native() == 0) return 0;
+    if(bins()->to_native() == 0) return 0;
 
-    native_int bin = find_bin(key_hash(name), bins_->to_native());
+    native_int bin = find_bin(key_hash(name), bins()->to_native());
     ConstantTableBucket *entry = try_as<ConstantTableBucket>(
-        values(state)->at(state, bin));
+        table_values(state)->at(state, bin));
 
     while(entry) {
       if(entry->name() == name) {
@@ -191,8 +191,8 @@ namespace rubinius {
 
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    native_int num_entries = entries_->to_native();
-    native_int num_bins = bins_->to_native();
+    native_int num_entries = entries()->to_native();
+    native_int num_bins = bins()->to_native();
 
     if(min_density_p(num_entries, num_bins) &&
          (num_bins >> 1) >= CONSTANT_TABLE_MIN_SIZE) {
@@ -201,7 +201,7 @@ namespace rubinius {
 
     native_int bin = find_bin(key_hash(name), num_bins);
     ConstantTableBucket* entry = try_as<ConstantTableBucket>(
-        values(state)->at(state, bin));
+        table_values(state)->at(state, bin));
     ConstantTableBucket* last = NULL;
 
     while(entry) {
@@ -210,10 +210,10 @@ namespace rubinius {
         if(last) {
           last->next(state, entry->next());
         } else {
-          values(state)->put(state, bin, entry->next());
+          table_values(state)->put(state, bin, entry->next());
         }
 
-        entries(state, Fixnum::from(entries_->to_native() - 1));
+        entries(state, Fixnum::from(entries()->to_native() - 1));
         return val;
       }
 
@@ -234,13 +234,13 @@ namespace rubinius {
   Array* ConstantTable::all_keys(STATE) {
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    Array* ary = Array::create(state, entries_->to_native());
+    Array* ary = Array::create(state, entries()->to_native());
 
-    native_int num_bins = bins_->to_native();
+    native_int num_bins = bins()->to_native();
 
     for(native_int i = 0; i < num_bins; i++) {
       ConstantTableBucket* entry = try_as<ConstantTableBucket>(
-          values(state)->at(state, i));
+          table_values(state)->at(state, i));
 
       while(entry) {
         ary->append(state, entry->name());
@@ -310,19 +310,19 @@ namespace rubinius {
   }
 
   bool ConstantTableBucket::private_p(STATE) {
-    return visibility_ == G(sym_private);
+    return visibility() == G(sym_private);
   }
 
   bool ConstantTableBucket::protected_p(STATE) {
-    return visibility_ == G(sym_protected);
+    return visibility() == G(sym_protected);
   }
 
   bool ConstantTableBucket::public_p(STATE) {
-    return visibility_ == G(sym_public);
+    return visibility() == G(sym_public);
   }
 
   bool ConstantTableBucket::undef_p(STATE) {
-    return visibility_ == G(sym_undef);
+    return visibility() == G(sym_undef);
   }
 }
 

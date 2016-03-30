@@ -31,11 +31,11 @@ namespace rubinius {
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->memory()->new_object<Fiber>(state, G(fiber));
-      fib->root_ = true;
-      fib->status_ = Fiber::eRunning;
+      fib->root(true);
+      fib->status(Fiber::eRunning);
 
-      fib->data_ = state->vm()->new_fiber_data(true);
-      fib->data_->set_call_frame(state->vm()->call_frame());
+      fib->data(state->vm()->new_fiber_data(true));
+      fib->data()->set_call_frame(state->vm()->call_frame());
 
       state->memory()->needs_finalization(state, fib,
           (memory::FinalizerFunction)&Fiber::finalize,
@@ -68,8 +68,8 @@ namespace rubinius {
     // GC has run! Don't use stack vars!
 
     fib = Fiber::current(state);
-    fib->status_ = Fiber::eDead;
-    fib->dead_ = cTrue;
+    fib->status(Fiber::eDead);
+    fib->dead(cTrue);
     fib->set_call_frame(state, 0);
 
     Fiber* dest = fib->prev();
@@ -94,7 +94,7 @@ namespace rubinius {
     dest->run(state);
     dest->value(state, result);
 
-    dest->data_->switch_and_orphan(state, fib->data_);
+    dest->data()->switch_and_orphan(state, fib->data());
 
     // TODO: CallFrame: return from this function
 
@@ -121,19 +121,19 @@ namespace rubinius {
 
   Object* Fiber::resume(STATE, Arguments& args) {
 #ifdef RBX_FIBER_ENABLED
-    if(!data_) {
-      data_ = state->vm()->new_fiber_data();
+    if(!data()) {
+      data(state->vm()->new_fiber_data());
     }
 
-    if(status_ == Fiber::eDead || data_->dead_p()) {
+    if(status() == Fiber::eDead || data()->dead_p()) {
       Exception::raise_fiber_error(state, "dead fiber called");
     }
 
-    if(!prev_->nil_p()) {
+    if(!prev()->nil_p()) {
       Exception::raise_fiber_error(state, "double resume");
     }
 
-    if(data_->thread() && data_->thread() != state->vm()) {
+    if(data()->thread() && data()->thread() != state->vm()) {
       Exception::raise_fiber_error(state, "cross thread fiber resuming is illegal");
     }
 
@@ -147,7 +147,7 @@ namespace rubinius {
 
     run(state);
 
-    data_->switch_to(state, cur->data_);
+    data()->switch_to(state, cur->data());
 
     // Back here when someone yields back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -177,15 +177,15 @@ namespace rubinius {
 
   Object* Fiber::transfer(STATE, Arguments& args) {
 #ifdef RBX_FIBER_ENABLED
-    if(!data_) {
-      data_ = state->vm()->new_fiber_data();
+    if(!data()) {
+      data(state->vm()->new_fiber_data());
     }
 
-    if(status_ == Fiber::eDead || data_->dead_p()) {
+    if(status() == Fiber::eDead || data()->dead_p()) {
       Exception::raise_fiber_error(state, "dead fiber called");
     }
 
-    if(data_->thread() && data_->thread() != state->vm()) {
+    if(data()->thread() && data()->thread() != state->vm()) {
       Exception::raise_fiber_error(state, "cross thread fiber resuming is illegal");
     }
 
@@ -202,7 +202,7 @@ namespace rubinius {
 
     run(state);
 
-    data_->switch_to(state, cur->data_);
+    data()->switch_to(state, cur->data());
 
     // Back here when someone transfers back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -237,7 +237,7 @@ namespace rubinius {
 
     assert(cur != dest_fib);
 
-    if(cur->root_) {
+    if(cur->root()) {
       Exception::raise_fiber_error(state, "can't yield from root fiber");
     }
 
@@ -250,7 +250,7 @@ namespace rubinius {
 
     dest_fib->run(state);
 
-    dest_fib->data_->switch_to(state, cur->data_);
+    dest_fib->data()->switch_to(state, cur->data());
 
     // Back here when someone yields back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -275,18 +275,18 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef RBX_FIBER_ENABLED
-    if(!fib->data_) return;
-    fib->data_->orphan(state);
+    if(!fib->data()) return;
+    fib->data()->orphan(state);
 
-    delete fib->data_;
-    fib->data_ = NULL;
+    delete fib->data();
+    fib->data(NULL);
 #endif
   }
 
   void Fiber::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
     Fiber* fib = force_as<Fiber>(obj);
-    FiberData* data = fib->data_;
+    FiberData* data = fib->data();
     if(!data || data->dead_p()) return;
     data->set_mark();
   }

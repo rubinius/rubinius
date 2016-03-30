@@ -16,48 +16,38 @@ namespace rubinius {
     const static object_type type = MonoInlineCacheType;
 
   private:
-    ClassData receiver_;
-
-    Class*  receiver_class_; // slot
-    Module* stored_module_;  // slot
-    Executable* method_;     // slot
-
-    MethodMissingReason method_missing_;
-    int hits_;
+    attr_field(receiver_data, ClassData);
 
   public:
     attr_accessor(receiver_class, Class);
     attr_accessor(stored_module, Module);
     attr_accessor(method, Executable);
 
+  private:
+    attr_field(method_missing, MethodMissingReason);
+    attr_field(hits, int);
+
+  public:
     static void bootstrap(STATE);
     static void initialize(STATE, MonoInlineCache* obj) {
       CallSite::initialize(state, obj);
 
-      obj->receiver_.raw = 0;
-      obj->receiver_class_ = nil<Class>();
-      obj->stored_module_ = nil<Module>();
-      obj->method_ = nil<Executable>();
-      obj->method_missing_ = eNone;
-      obj->hits_ = 0;
+      obj->_receiver_data_.raw = 0;
+      obj->receiver_class(nil<Class>());
+      obj->stored_module(nil<Module>());
+      obj->method(nil<Executable>());
+      obj->method_missing(eNone);
+      obj->hits(0);
     }
 
     static MonoInlineCache* create(STATE, CallSite* call_site, Class* klass, Dispatch& dis);
 
-    ClassData receiver_data() {
-      return receiver_;
+    void hit() {
+      ++_hits_;
     }
 
     uint64_t receiver_data_raw() {
-      return receiver_.raw;
-    }
-
-    MethodMissingReason method_missing() {
-      return method_missing_;
-    }
-
-    int hits() {
-      return hits_;
+      return _receiver_data_.raw;
     }
 
     // Rubinius.primitive+ :mono_inline_cache_hits

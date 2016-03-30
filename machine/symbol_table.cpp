@@ -33,7 +33,7 @@ namespace rubinius {
     uint8_t* p = reinterpret_cast<uint8_t*>(const_cast<char*>(str.c_str()));
 
     Encoding* e = Encoding::from_index(state, encodings[sym->index()]);
-    OnigEncodingType* enc = e->get_encoding();
+    OnigEncodingType* enc = e->encoding();
 
     // Constants start with A-Z, followed by alphanumeric characters or '_' or
     // non-ascii character.

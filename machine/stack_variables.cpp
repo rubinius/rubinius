@@ -33,20 +33,20 @@ namespace rubinius {
     scope->last_match(state, last_match_);
     scope->fiber(state, state->vm()->current_fiber.get());
 
-    scope->number_of_locals_ = mcode->number_of_locals;
-    scope->isolated_ = 0;
-    scope->flags_ = call_frame->flags;
-    scope->lock_.init();
+    scope->number_of_locals(mcode->number_of_locals);
+    scope->isolated(0);
+    scope->flags(call_frame->flags);
+    scope->_lock_.init();
 
     if(!full) {
-      scope->isolated_ = 1;
+      scope->isolated(1);
       scope->heap_locals(state, Tuple::create(state, mcode->number_of_locals));
-      for(int i = 0; i < scope->number_of_locals_; i++) {
+      for(int i = 0; i < scope->number_of_locals(); i++) {
         scope->set_local(state, i, locals_[i]);
       }
     }
 
-    scope->locals_ = locals_;
+    scope->locals(locals_);
     scope->dynamic_locals(state, nil<LookupTable>());
 
     on_heap_ = scope;

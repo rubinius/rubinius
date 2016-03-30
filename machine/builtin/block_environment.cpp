@@ -42,11 +42,11 @@ namespace rubinius {
   }
 
   void BlockEnvironment::lock_scope(STATE) {
-    if(scope_ && !scope_->nil_p()) {
-      scope_->set_locked(state);
+    if(scope() && !scope()->nil_p()) {
+      scope()->set_locked(state);
     }
-    if(top_scope_ && !top_scope_->nil_p()) {
-      top_scope_->set_locked(state);
+    if(top_scope() && !top_scope()->nil_p()) {
+      top_scope()->set_locked(state);
     }
   }
 
@@ -55,14 +55,14 @@ namespace rubinius {
   }
 
   MachineCode* BlockEnvironment::machine_code(STATE) {
-    return compiled_code_->internalize(state);
+    return compiled_code()->internalize(state);
   }
 
   Object* BlockEnvironment::invoke(STATE,
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation)
   {
-    MachineCode* mcode = env->compiled_code_->machine_code();
+    MachineCode* mcode = env->compiled_code()->machine_code();
 
     if(!mcode) {
       mcode = env->machine_code(state);
@@ -383,7 +383,7 @@ namespace rubinius {
   {
     // Don't use env->machine_code() because it might lock and the work should
     // already be done.
-    MachineCode* const mcode = env->compiled_code_->machine_code();
+    MachineCode* const mcode = env->compiled_code()->machine_code();
 
     if(!mcode) {
       Exception::internal_error(state, "invalid bytecode method");
@@ -409,12 +409,12 @@ namespace rubinius {
     if(!mod) mod = env->module();
 
     Object* block = cNil;
-    if(VariableScope* vs = env->top_scope_) {
+    if(VariableScope* vs = env->top_scope()) {
       if(!vs->nil_p()) block = vs->block();
     }
 
     scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
-    scope->set_parent(env->scope_);
+    scope->set_parent(env->scope());
 
     if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
       if(state->vm()->thread_state()->raise_reason() == cNone) {
@@ -437,10 +437,10 @@ namespace rubinius {
 
     call_frame->arguments = &args;
     call_frame->dispatch_data = env;
-    call_frame->compiled_code = env->compiled_code_;
+    call_frame->compiled_code = env->compiled_code();
     call_frame->scope = scope;
     call_frame->optional_jit_data = NULL;
-    call_frame->top_scope_ = env->top_scope_;
+    call_frame->top_scope_ = env->top_scope();
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
@@ -488,7 +488,7 @@ namespace rubinius {
   Object* BlockEnvironment::call(STATE,
                                  Arguments& args, int flags)
   {
-    BlockInvocation invocation(scope_->self(), constant_scope_, flags);
+    BlockInvocation invocation(scope()->self(), constant_scope(), flags);
     return invoke(state, this, args, invocation);
   }
 
@@ -505,7 +505,7 @@ namespace rubinius {
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(),
-                                       compiled_code_->name());
+                                       compiled_code()->name());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -513,7 +513,7 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    BlockInvocation invocation(recv, constant_scope_, flags);
+    BlockInvocation invocation(recv, constant_scope(), flags);
     return invoke(state, this, args, invocation);
   }
 
@@ -524,7 +524,7 @@ namespace rubinius {
     if(args.total() < 3) {
       Exception* exc =
         Exception::make_argument_error(state, 3, args.total(),
-                                       compiled_code_->name());
+                                       compiled_code()->name());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -572,10 +572,10 @@ namespace rubinius {
     BlockEnvironment* be =
       state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
 
-    be->scope(state, scope_);
-    be->top_scope(state, top_scope_);
-    be->compiled_code(state, compiled_code_);
-    be->constant_scope(state, constant_scope_);
+    be->scope(state, scope());
+    be->top_scope(state, top_scope());
+    be->compiled_code(state, compiled_code());
+    be->constant_scope(state, constant_scope());
     be->module(state, nil<Module>());
 
     return be;

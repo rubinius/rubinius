@@ -33,10 +33,10 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
   }
 
   void check_float(Float* f, Float* g) {
-    TS_ASSERT_RELATION(std::greater<double>, f->val + TOLERANCE, g->val);
-    TS_ASSERT_RELATION(std::greater<double>, f->val, g->val - TOLERANCE);
-    TS_ASSERT_RELATION(std::greater<double>, g->val + TOLERANCE, f->val);
-    TS_ASSERT_RELATION(std::greater<double>, g->val, f->val - TOLERANCE);
+    TS_ASSERT_RELATION(std::greater<double>, f->value() + TOLERANCE, g->value());
+    TS_ASSERT_RELATION(std::greater<double>, f->value(), g->value() - TOLERANCE);
+    TS_ASSERT_RELATION(std::greater<double>, g->value() + TOLERANCE, f->value());
+    TS_ASSERT_RELATION(std::greater<double>, g->value(), f->value() - TOLERANCE);
   }
 
   void test_add() {

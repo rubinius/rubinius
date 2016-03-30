@@ -17,17 +17,16 @@ namespace rubinius {
   public:
     const static object_type type = StatType;
 
+    attr_accessor(path, String);
+
   private:
-    String* path_; // slot
     struct stat st_;
 
   public:
-    attr_accessor(path, String);
-
     static void bootstrap(STATE);
 
     static void initialize(STATE, Stat* obj) {
-      obj->path_ = nil<String>();
+      obj->path(nil<String>());
       memset(&obj->st_, 0, sizeof(struct stat));
     }
 

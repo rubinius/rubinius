@@ -139,7 +139,7 @@ public:
 
     Float* flt = as<Float>(obj);
 
-    TS_ASSERT_EQUALS(flt->val, 1.0 / 6.0);
+    TS_ASSERT_EQUALS(flt->value(), 1.0 / 6.0);
 
     mar->sstream.str(
         std::string("d\n +0.999999999999999888977697537484345957636833190917968750  1024\n"));
@@ -149,7 +149,7 @@ public:
 
     flt = as<Float>(obj);
 
-    double diff = flt->val - DBL_MAX;
+    double diff = flt->value() - DBL_MAX;
     TS_ASSERT(diff < 0.00000001 && diff > - 0.00000001);
   }
 
@@ -162,7 +162,7 @@ public:
 
     Float* flt = as<Float>(obj);
 
-    TS_ASSERT(std::isinf(flt->val));
+    TS_ASSERT(std::isinf(flt->value()));
   }
 
   void test_float_neg_infinity() {
@@ -174,8 +174,8 @@ public:
 
     Float* flt = as<Float>(obj);
 
-    TS_ASSERT(std::isinf(flt->val));
-    TS_ASSERT(flt->val < 0.0);
+    TS_ASSERT(std::isinf(flt->value()));
+    TS_ASSERT(flt->value() < 0.0);
   }
 
   void test_float_nan() {
@@ -187,7 +187,7 @@ public:
 
     Float* flt = as<Float>(obj);
 
-    TS_ASSERT(std::isnan(flt->val));
+    TS_ASSERT(std::isnan(flt->value()));
   }
 
   void test_iseq() {
