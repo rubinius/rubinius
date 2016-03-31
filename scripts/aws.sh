@@ -23,6 +23,7 @@ function rbx_s3_upload {
     -H "Content-Type: $content_type" \
     -H "$acl" \
     -H "Authorization: AWS ${AWS_ACCESS_KEY_ID}:$signature" \
+    --verbose \
     "$url$path$dest"
 }
 
