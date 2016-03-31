@@ -105,8 +105,9 @@ namespace rubinius {
     b = unmarshal();
 
     Symbol* name = state->symbol("unmarshal_rational");
-    Arguments args(name, G(runtime),
-        Array::from_tuple(state, Tuple::from(state, 2, a, b)));
+    Object* objs[2] = { a, b };
+
+    Arguments args(name, G(runtime), 2, objs);
     Dispatch dispatch(name);
 
     if(Object* r = dispatch.send(state, args)) {
@@ -125,8 +126,9 @@ namespace rubinius {
     b = unmarshal();
 
     Symbol* name = state->symbol("unmarshal_complex");
-    Arguments args(name, G(runtime),
-        Array::from_tuple(state, Tuple::from(state, 2, a, b)));
+    Object* objs[2] = { a, b };
+
+    Arguments args(name, G(runtime), 2, objs);
     Dispatch dispatch(name);
 
     if(Object* c = dispatch.send(state, args)) {

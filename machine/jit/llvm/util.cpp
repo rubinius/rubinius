@@ -387,7 +387,7 @@ extern "C" {
         OnStack<1> os(state, cls);
 
         Symbol* name = state->symbol("to_hash");
-        Arguments args(name, obj, 0, 0);
+        Arguments args(name, obj);
         Dispatch dispatch(name);
 
         obj = dispatch.send(state, args);

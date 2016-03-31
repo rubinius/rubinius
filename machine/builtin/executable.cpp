@@ -42,10 +42,7 @@ namespace rubinius {
   Object* Executable::invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* ary,
                              Object* block)
   {
-    Arguments args(name, recv, 0, 0);
-    args.use_array(ary);
-    args.set_block(block);
-
+    Arguments args(name, recv, block, ary);
     return execute(state, this, mod, args);
   }
 

@@ -538,12 +538,8 @@ namespace rubinius {
 
       if(mcode->keywords && N > M) {
         Object* obj = args.get_argument(N - 1);
+        Object* arguments[2] = { obj, RBOOL(O > 0 || RP) };
 
-        OnStack<1> os(state, obj);
-        Object* arguments[2];
-
-        arguments[0] = obj;
-        arguments[1] = RBOOL(O > 0 || RP);
         Arguments args(G(sym_keyword_object), G(runtime), 2, arguments);
         Dispatch dispatch(G(sym_keyword_object));
 

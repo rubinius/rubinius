@@ -41,7 +41,7 @@ namespace rubinius {
 
     state->thread_state()->clear();
 
-    Arguments args(state->symbol("script"), G(main), 0, 0);
+    Arguments args(state->symbol("script"), G(main));
 
     code.get()->scope(state, ConstantScope::create(state));
     code.get()->scope()->module(state, G(object));
