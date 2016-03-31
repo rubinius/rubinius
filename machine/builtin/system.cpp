@@ -1762,7 +1762,7 @@ retry:
 
   Tuple* System::vm_thread_state(STATE) {
     VMThreadState* ts = state->vm()->thread_state();
-    Tuple* tuple = state->memory()->new_fields<Tuple>(state, G(tuple), 5);
+    Tuple* tuple = Tuple::create(state, 5);
 
     Symbol* reason = 0;
     switch(ts->raise_reason()) {

@@ -147,6 +147,7 @@ namespace rubinius {
 
   Thread* Thread::s_new(STATE, Object* self, Array* args, Object* block) {
     Thread* thread = Thread::create(state, self, run_instance);
+    OnStack<1> os(state, thread);
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
@@ -167,6 +168,7 @@ namespace rubinius {
 
   Thread* Thread::s_start(STATE, Object* self, Array* args, Object* block) {
     Thread* thread = Thread::create(state, self, run_instance);
+    OnStack<1> os(state, thread);
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 

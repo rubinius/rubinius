@@ -88,8 +88,8 @@ namespace rubinius {
   }
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {
+    Tuple* tup = Tuple::create(state, fields);
     va_list ar;
-    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), fields);
 
     va_start(ar, fields);
     for(native_int i = 0; i < fields; i++) {
@@ -279,9 +279,7 @@ namespace rubinius {
       tuple->field[i] = val;
     }
 
-    if(!tuple->young_object_p()) {
-      state->memory()->write_barrier(tuple, val);
-    }
+    state->memory()->write_barrier(tuple, val);
 
     return tuple;
   }
@@ -289,18 +287,8 @@ namespace rubinius {
   Tuple* Tuple::tuple_dup(STATE) {
     native_int fields = num_fields();
 
-    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), fields);
+    Tuple* tup = Tuple::create(state, fields);
 
-    if(likely(tup->young_object_p())) {
-      // We have a young object so stores don't need the write barrier
-      for(native_int i = 0; i < fields; i++) {
-        tup->field[i] = field[i];
-      }
-
-      return tup;
-    }
-
-    // Otherwise, we have a mature object
     for(native_int i = 0; i < fields; i++) {
       tup->put(state, i, field[i]);
     }

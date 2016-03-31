@@ -261,16 +261,10 @@ extern "C" {
       }
     }
 
-    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), arg_count);
+    Tuple* tup = Tuple::create(state, arg_count);
 
-    if(tup->young_object_p()) {
-      for(int i = 0; i < v->total_args; i++) {
-        tup->field[i] = scope->get_local(state, i);
-      }
-    } else {
-      for(int i = 0; i < v->total_args; i++) {
-        tup->put(state, i, scope->get_local(state, i));
-      }
+    for(int i = 0; i < v->total_args; i++) {
+      tup->put(state, i, scope->get_local(state, i));
     }
 
     if(splat) {
@@ -411,7 +405,7 @@ extern "C" {
       size_t rest_start, size_t rest_size)
   {
       if(rest_size > 0) {
-        Array* ary = Array::create_dirty(state, rest_size);
+        Array* ary = Array::create(state, rest_size);
 
         for(size_t i = 0, a = rest_start;
             i < rest_size;
@@ -422,13 +416,13 @@ extern "C" {
 
         return ary;
       } else {
-        return Array::create_dirty(state, 0);
+        return Array::create(state, 0);
       }
   }
 
   Object* rbx_cast_array(STATE, Object* top) {
     if(top->nil_p()) {
-      return Array::create_dirty(state, 0);
+      return Array::create(state, 0);
     } else if(Tuple* tup = try_as<Tuple>(top)) {
       return Array::from_tuple(state, tup);
     } else if(kind_of<Array>(top)) {
@@ -536,11 +530,11 @@ extern "C" {
           }
         }
       }
-      Array* ary = Array::create_dirty(state, 1);
+      Array* ary = Array::create(state, 1);
       ary->set(state, 0, obj);
       return ary;
     } else {
-      Array* ary = Array::create_dirty(state, args.total());
+      Array* ary = Array::create(state, args.total());
       for(size_t i = 0; i < args.total(); i++) {
         ary->set(state, i, args.get_argument(i));
       }
@@ -570,7 +564,7 @@ extern "C" {
       // and let it be wrapped in an array.
     }
 
-    Array* ary = Array::create_dirty(state, args.total());
+    Array* ary = Array::create(state, args.total());
 
     for(size_t i = 0; i < args.total(); i++) {
       ary->set(state, i, args.get_argument(i));
@@ -609,7 +603,7 @@ extern "C" {
       }
 
       if(obj) {
-        Array* ary = Array::create_dirty(state, 1);
+        Array* ary = Array::create(state, 1);
         ary->set(state, 0, obj);
         obj = ary;
       }
@@ -618,7 +612,7 @@ extern "C" {
       return obj;
     }
 
-    Array* ary = Array::create_dirty(state, count);
+    Array* ary = Array::create(state, count);
 
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
@@ -649,7 +643,7 @@ extern "C" {
           obj = 0;
         }
       } else {
-        Array* ary = Array::create_dirty(state, 1);
+        Array* ary = Array::create(state, 1);
         ary->set(state, 0, obj);
         obj = ary;
       }
@@ -658,7 +652,7 @@ extern "C" {
       return obj;
     }
 
-    Array* ary = Array::create_dirty(state, count);
+    Array* ary = Array::create(state, count);
 
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
@@ -677,7 +671,7 @@ extern "C" {
       return args.get_argument(0);
     }
 
-    Array* ary = Array::create_dirty(state, k);
+    Array* ary = Array::create(state, k);
     for(int i = 0; i < k; i++) {
       ary->set(state, i, args.get_argument(i));
     }
@@ -763,21 +757,19 @@ extern "C" {
   }
 
   Object* rbx_make_array(STATE, int count, Object** args) {
-    Array* ary = Array::create_dirty(state, count);
-    Tuple* tup = ary->tuple();
+    Tuple* tup = Tuple::create(state, count);
+
     for(int i = 0; i < count; i++) {
       tup->put(state, i, args[i]);
     }
 
-    ary->total(state, Fixnum::from(count));
-    return ary;
+    return Array::from_tuple(state, tup);
   }
 
   Object* rbx_create_array(STATE, int count, ...) {
     va_list ap;
 
-    Array* ary = Array::create_dirty(state, count);
-    Tuple* tup = ary->tuple();
+    Tuple* tup = Tuple::create(state, count);
 
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
@@ -786,9 +778,8 @@ extern "C" {
     }
 
     va_end(ap);
-    ary->total(state, Fixnum::from(count));
 
-    return ary;
+    return Array::from_tuple(state, tup);
   }
 
   Object* rbx_meta_send_call(STATE, CallSite* call_site, int count, Object** args) {
@@ -1145,7 +1136,7 @@ extern "C" {
 
     size_t j = size - 1;
     Object* shifted_value = array->get(state, 0);
-    Array* smaller_array = Array::create_dirty(state, j);
+    Array* smaller_array = Array::create(state, j);
 
     for(size_t i = 0; i < j; i++) {
       smaller_array->set(state, i, array->get(state, i+1));
@@ -1513,7 +1504,7 @@ extern "C" {
       s = p = cNil;
     }
 
-    Array* ary = Array::create_dirty(state, 2);
+    Array* ary = Array::create(state, 2);
     ary->set(state, 0, s);
     ary->set(state, 1, p);
 

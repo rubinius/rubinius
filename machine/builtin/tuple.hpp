@@ -33,7 +33,6 @@ namespace rubinius {
     }
 
     static Tuple* create(STATE, native_int fields);
-    static Tuple* create_dirty(STATE, native_int fields);
     static Tuple* from(STATE, native_int fields, ...);
 
     /** Shift all elements leftward, clear old slots. */

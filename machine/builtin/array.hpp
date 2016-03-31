@@ -31,7 +31,6 @@ namespace rubinius {
     }
 
     static Array* create(STATE, native_int size);
-    static Array* create_dirty(STATE, native_int size);
     static Array* from_tuple(STATE, Tuple* tup);
     static Array* to_ary(STATE, Object* obj);
 

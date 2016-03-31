@@ -194,17 +194,11 @@ namespace rubinius {
     size_t count;
     stream >> count;
 
-    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), count);
+    Tuple* tup = Tuple::create(state, count);
     OnStack<1> os(state, tup);
 
-    if(tup->young_object_p()) {
-      for(size_t i = 0; i < count; i++) {
-        tup->field[i] = unmarshal();
-      }
-    } else {
-      for(size_t i = 0; i < count; i++) {
-        tup->put(state, i, unmarshal());
-      }
+    for(size_t i = 0; i < count; i++) {
+      tup->put(state, i, unmarshal());
     }
 
     return tup;
