@@ -328,12 +328,8 @@ namespace rubinius {
       obj->set_obj_type(type);
 
     // set_klass:
-      obj->klass(klass);
+      obj->klass(state, klass);
       obj->ivars(cNil);
-
-      if(obj->mature_object_p()) {
-        write_barrier(obj, klass);
-      }
 
       obj->set_cycle(cycle_);
 
@@ -359,10 +355,10 @@ namespace rubinius {
       obj->set_pinned();
       obj->set_obj_type(type);
 
-      obj->klass(klass);
+      obj->klass(state, klass);
       obj->ivars(cNil);
 
-      write_barrier(obj, klass);
+      obj->set_cycle(cycle_);
 
       return obj;
     }

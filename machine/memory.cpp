@@ -665,6 +665,8 @@ step1:
   }
 
   void Memory::collect_full_finish(STATE, memory::GCData* data) {
+    cycle_++;
+
     immix_->collect_finish(data);
 
     code_manager_.sweep();

@@ -173,9 +173,4 @@ module Rubinius
       @module.const_set name, value
     end
   end
-
-  # NOTE: Temporary alias for backwards compatibility. StaticScope will
-  # eventually be deprecated in favor of ConstantScope.
-  StaticScope = ConstantScope
 end
-

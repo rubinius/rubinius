@@ -1169,7 +1169,7 @@ class IO
          (@external || Encoding.default_external) == Encoding::ASCII_8BIT
         @internal = nil
       end
-    elsif @mode != RDONLY
+    elsif !mode_read_only?
       if Encoding.default_external != Encoding.default_internal
         @internal = Encoding.default_internal
       end
@@ -1278,7 +1278,7 @@ class IO
   def close_read
     return if closed?
 
-    if @mode == WRONLY || @mode == RDWR
+    if mode_write_only? || mode_read_write?
       raise IOError, 'closing non-duplex IO for reading'
     end
     close
@@ -1300,7 +1300,7 @@ class IO
   def close_write
     return if closed?
 
-    if @mode == RDONLY || @mode == RDWR
+    if mode_read_only? || mode_read_write?
       raise IOError, 'closing non-duplex IO for writing'
     end
     close
@@ -1636,19 +1636,17 @@ class IO
 
   def ensure_open_and_readable
     ensure_open
-    write_only = @mode & ACCMODE == WRONLY
-    raise IOError, "not opened for reading" if write_only
+    raise IOError, "not opened for reading" if mode_write_only?
   end
 
   def ensure_open_and_writable
     ensure_open
-    read_only = @mode & ACCMODE == RDONLY
-    raise IOError, "not opened for writing" if read_only
+    raise IOError, "not opened for writing" if mode_read_only?
   end
 
   def external_encoding
     return @external if @external
-    return Encoding.default_external if @mode == RDONLY
+    return Encoding.default_external if mode_read_only?
   end
 
   ##
@@ -1747,6 +1745,16 @@ class IO
     self
   end
 
+  def force_read_only
+    @mode = (@mode & ~ACCMODE ) | RDONLY
+  end
+  private :force_read_only
+
+  def force_write_only
+    @mode = (@mode & ~ACCMODE) | WRONLY
+  end
+  private :force_write_only
+
   ##
   # Immediately writes all buffered data in ios to disk. Returns
   # nil if the underlying operating system does not support fsync(2).
@@ -1830,6 +1838,21 @@ class IO
 
     @lineno = Integer(line_number)
   end
+
+  def mode_read_only?
+    (@mode & ACCMODE) == RDONLY
+  end
+  private :mode_read_only?
+
+  def mode_read_write?
+   (@mode & ACCMODE) == RDWR
+  end
+  private :mode_read_write?
+
+  def mode_write_only?
+    (@mode & ACCMODE) == WRONLY
+  end
+  private :mode_write_only?
 
   ##
   # FIXME
@@ -2234,7 +2257,7 @@ class IO
         mode = @mode
         # If this IO was already opened for writing, we should
         # create the target file if it doesn't already exist.
-        if (mode & RDWR == RDWR) || (mode & WRONLY == WRONLY)
+        if mode_read_write? || mode_write_only?
           mode |= CREAT
         end
       else
@@ -2301,7 +2324,7 @@ class IO
     when String
       @external = nil
     when nil
-      if @mode == RDONLY || @external
+      if mode_read_only? || @external
         @external = nil
       else
         @external = Encoding.default_external

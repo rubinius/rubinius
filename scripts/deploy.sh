@@ -163,7 +163,7 @@ function rbx_deploy_heroku_binary {
 
   for ext in "${file_exts[@]}"; do
     if [[ -f $name$ext ]]; then
-      rbx_s3_upload "$url" "$bucket" "$name$ext" "$name$ext" "/ubuntu/cedar-14/" ||
+      rbx_s3_upload "$url" "$bucket" "$name$ext" "$name$ext" "/heroku/cedar-14/" ||
         fail "unable to upload file"
     fi
   done

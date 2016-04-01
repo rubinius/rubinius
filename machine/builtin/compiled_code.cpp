@@ -416,7 +416,7 @@ namespace rubinius {
   Object* CompiledCode::execute_script(STATE) {
     state->thread_state()->clear();
 
-    Arguments args(state->symbol("script"), G(main), 0, 0);
+    Arguments args(state->symbol("script"), G(main));
 
     scope(state, ConstantScope::create(state));
     scope()->module(state, G(object));

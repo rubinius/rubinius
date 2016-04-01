@@ -120,17 +120,13 @@ namespace rubinius {
   }
 
   static Tuple* encoding_reference(STATE, int index, const char* alias_name = 0) {
-    Tuple* pair = state->memory()->new_fields<Tuple>(state, G(tuple), 2);
+    Tuple* pair = Tuple::create(state, 2);
 
-    if(!alias_name) {
-      pair->put(state, 0, cNil);
-    } else {
+    if(alias_name) {
       pair->put(state, 0, String::create(state, alias_name));
     }
 
-    if(index < 0) {
-      pair->put(state, 1, cNil);
-    } else {
+    if(index >= 0) {
       pair->put(state, 1, Fixnum::from(index));
     }
 

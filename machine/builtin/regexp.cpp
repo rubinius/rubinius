@@ -336,8 +336,7 @@ namespace rubinius {
   }
 
   static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int pos) {
-    Tuple* tup =
-      state->memory()->new_fields<Tuple>(state, G(tuple), region->num_regs - 1);
+    Tuple* tup = Tuple::create(state, region->num_regs - 1);
 
     for(int i = 1; i < region->num_regs; i++) {
       int beg = region->beg[i];

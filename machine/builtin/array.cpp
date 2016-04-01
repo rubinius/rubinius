@@ -35,26 +35,7 @@ namespace rubinius {
 
   Array* Array::create(STATE, native_int size) {
     Array* ary = state->memory()->new_object<Array>(state, G(array));
-    Tuple* tup = Tuple::create(state, size);
-
-    if(ary->young_object_p()) {
-      ary->tuple(tup);
-    } else {
-      ary->tuple(state, tup);
-    }
-
-    return ary;
-  }
-
-  Array* Array::create_dirty(STATE, native_int size) {
-    Array* ary = state->memory()->new_object<Array>(state, G(array));
-    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), size);
-
-    if(ary->young_object_p()) {
-      ary->tuple(tup);
-    } else {
-      ary->tuple(state, tup);
-    }
+    ary->tuple(state, Tuple::create(state, size));
 
     return ary;
   }
@@ -91,22 +72,21 @@ namespace rubinius {
     } else {
       ary->total(state, count);
 
-      Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), total);
+      /* We must use Tuple::create here and not new_fields<Tuple>, or we must
+       * do two passes, first setting all the fields and second running the
+       * write_barrier on each entry. The reason is that running the
+       * write_barrier via a 'tup->put(state, i, val)' will cause tup to be
+       * scanned when the concurrent marker is running, and it will hit
+       * garbage fields. If we don't run the write_barrier on every entry, we
+       * risk losing track of one. Note that the bugs described here will
+       * happen infrequently depending on the concurrent marker racing the
+       * mutator.
+       */
+      Tuple* tup = Tuple::create(state, total);
+      ary->tuple(state, tup);
 
-      if(tup->young_object_p()) {
-        for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
-          tup->field[i] = tuple()->field[j];
-        }
-      } else {
-        for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
-          tup->put(state, i, tuple()->field[j]);
-        }
-      }
-
-      if(ary->young_object_p()) {
-        ary->tuple(tup);
-      } else {
-        ary->tuple(state, tup);
+      for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
+        tup->put(state, i, tuple()->field[j]);
       }
     }
 
@@ -231,11 +211,7 @@ namespace rubinius {
         nt->field[i] = cNil;
       }
 
-      if(young_object_p()) {
-        tuple(nt);
-      } else {
-        tuple(state, nt);
-      }
+      tuple(state, nt);
 
       start(Fixnum::from(0));
     }

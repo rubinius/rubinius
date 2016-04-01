@@ -70,16 +70,10 @@ namespace rubinius {
   }
 
   Tuple* VariableScope::local_variables(STATE) {
-    Tuple* tup = state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals());
+    Tuple* tup = Tuple::create(state, number_of_locals());
 
-    if(tup->young_object_p()) {
-      for(int i = 0; i < number_of_locals(); i++) {
-        tup->field[i] = get_local(state, i);
-      }
-    } else {
-      for(int i = 0; i < number_of_locals(); i++) {
-        tup->put(state, i, get_local(state, i));
-      }
+    for(int i = 0; i < number_of_locals(); i++) {
+      tup->put(state, i, get_local(state, i));
     }
 
     return tup;
@@ -191,18 +185,11 @@ namespace rubinius {
   void VariableScope::flush_to_heap_internal(STATE) {
     if(isolated()) return;
 
-   Tuple* new_locals =
-     state->memory()->new_fields<Tuple>(state, G(tuple), number_of_locals());
+    Tuple* new_locals = Tuple::create(state, number_of_locals());
 
-   if(new_locals->young_object_p()) {
-     for(int i = 0; i < number_of_locals(); i++) {
-       new_locals->field[i] = locals()[i];
-     }
-   } else {
-     for(int i = 0; i < number_of_locals(); i++) {
-       new_locals->put(state, i, locals()[i]);
-     }
-   }
+    for(int i = 0; i < number_of_locals(); i++) {
+      new_locals->put(state, i, locals()[i]);
+    }
 
     heap_locals(state, new_locals);
     isolated(1);

@@ -33,7 +33,6 @@ namespace rubinius {
     }
 
     static Tuple* create(STATE, native_int fields);
-    static Tuple* create_dirty(STATE, native_int fields);
     static Tuple* from(STATE, native_int fields, ...);
 
     /** Shift all elements leftward, clear old slots. */
@@ -56,9 +55,7 @@ namespace rubinius {
 
     Object* put(STATE, native_int idx, Object* val) {
       field[idx] = val;
-      if(mature_object_p()) {
-        Tuple::write_barrier(state, this, val);
-      }
+      Tuple::write_barrier(state, this, val);
       return val;
     }
 

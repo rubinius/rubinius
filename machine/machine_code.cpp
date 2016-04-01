@@ -299,8 +299,7 @@ namespace rubinius {
   }
 
   Tuple* MachineCode::call_sites(STATE) {
-    Tuple* sites =
-      state->memory()->new_fields<Tuple>(state, G(tuple), number_of_call_sites_);
+    Tuple* sites = Tuple::create(state, number_of_call_sites_);
 
     for(size_t i = 0; i < number_of_call_sites_; ++i) {
       sites->put(state, i, call_site(state, call_site_offsets_[i]));
@@ -310,8 +309,7 @@ namespace rubinius {
   }
 
   Tuple* MachineCode::constant_caches(STATE) {
-    Tuple* caches =
-      state->memory()->new_fields<Tuple>(state, G(tuple), number_of_constant_caches_);
+    Tuple* caches = Tuple::create(state, number_of_constant_caches_);
 
     for(size_t i = 0; i < number_of_constant_caches_; ++i) {
       caches->put(state, i, constant_cache(state, constant_cache_offsets_[i]));
@@ -536,12 +534,8 @@ namespace rubinius {
 
       if(mcode->keywords && N > M) {
         Object* obj = args.get_argument(N - 1);
+        Object* arguments[2] = { obj, RBOOL(O > 0 || RP) };
 
-        OnStack<1> os(state, obj);
-        Object* arguments[2];
-
-        arguments[0] = obj;
-        arguments[1] = RBOOL(O > 0 || RP);
         Arguments args(G(sym_keyword_object), G(runtime), 2, arguments);
         Dispatch dispatch(G(sym_keyword_object));
 
@@ -752,6 +746,7 @@ namespace rubinius {
 
       call_frame->prepare(mcode->stack_size);
 
+      call_frame->previous = NULL;
       call_frame->constant_scope_ = code->scope();
       call_frame->dispatch_data = NULL;
       call_frame->compiled_code = code;
@@ -833,6 +828,7 @@ namespace rubinius {
 
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
+    call_frame->previous = NULL;
     call_frame->constant_scope_ = code->scope();
     call_frame->dispatch_data = 0;
     call_frame->compiled_code = code;
