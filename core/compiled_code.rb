@@ -698,8 +698,4 @@ module Rubinius
       end
     end
   end
-
-  # NOTE: Temporary alias for backwards compatibility. CompiledMethod is
-  # deprecated. Client code should use CompiledCode.
-  CompiledMethod = CompiledCode
 end
