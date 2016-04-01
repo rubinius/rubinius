@@ -748,6 +748,7 @@ namespace rubinius {
 
       call_frame->prepare(mcode->stack_size);
 
+      call_frame->previous = NULL;
       call_frame->constant_scope_ = code->scope();
       call_frame->dispatch_data = NULL;
       call_frame->compiled_code = code;
@@ -831,6 +832,7 @@ namespace rubinius {
 
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
+    call_frame->previous = NULL;
     call_frame->constant_scope_ = code->scope();
     call_frame->dispatch_data = 0;
     call_frame->compiled_code = code;

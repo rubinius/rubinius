@@ -128,6 +128,7 @@ extern "C" {
 
     call_frame->prepare(mcode->stack_size);
 
+    call_frame->previous = NULL;
     call_frame->constant_scope_ = code->scope();
     call_frame->dispatch_data = NULL;
     call_frame->compiled_code = code;
@@ -166,6 +167,7 @@ extern "C" {
 
     call_frame->constant_scope_ = invocation->constant_scope;
 
+    call_frame->previous = NULL;
     call_frame->arguments = args;
     call_frame->dispatch_data = env;
     call_frame->compiled_code = env->compiled_code();

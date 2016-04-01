@@ -435,6 +435,7 @@ namespace rubinius {
 
     call_frame->constant_scope_ = invocation.constant_scope;
 
+    call_frame->previous = NULL;
     call_frame->arguments = &args;
     call_frame->dispatch_data = env;
     call_frame->compiled_code = env->compiled_code();

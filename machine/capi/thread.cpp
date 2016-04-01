@@ -249,23 +249,21 @@ extern "C" {
     thread->locals_remove(state, state->symbol("argument"));
 
     NativeMethodFrame nmf(env, 0, nm);
-    CallFrame* previous_frame = 0;
-    CallFrame cf;
-    cf.constant_scope_ = 0;
-    cf.dispatch_data = (void*)&nmf;
-    cf.compiled_code = 0;
-    cf.flags = CallFrame::cNativeMethod;
-    cf.optional_jit_data = 0;
-    cf.top_scope_ = 0;
-    cf.scope = 0;
-    cf.arguments = 0;
+    CallFrame call_frame;
+    call_frame.previous = NULL;
+    call_frame.constant_scope_ = 0;
+    call_frame.dispatch_data = (void*)&nmf;
+    call_frame.compiled_code = 0;
+    call_frame.flags = CallFrame::cNativeMethod;
+    call_frame.optional_jit_data = 0;
+    call_frame.top_scope_ = 0;
+    call_frame.scope = 0;
+    call_frame.arguments = 0;
 
-    CallFrame* saved_frame = env->current_call_frame();
-    env->set_current_call_frame(&cf);
+    env->set_current_call_frame(&call_frame);
     env->set_current_native_frame(&nmf);
 
-    // Register the CallFrame, because we might GC below this.
-    state->vm()->push_call_frame(&cf, previous_frame);
+    state->vm()->set_call_frame(&call_frame);
 
     nmf.setup(
         env->get_handle(thread),
@@ -293,13 +291,9 @@ extern "C" {
 
     LEAVE_CAPI(state);
 
-    state->vm()->pop_call_frame(previous_frame);
-
-    env->set_current_call_frame(saved_frame);
-    env->set_current_native_frame(nmf.previous());
+    env->set_current_call_frame(NULL);
+    env->set_current_native_frame(NULL);
     ep.pop(env);
-
-    state->vm()->thread.get()->alive(state, cFalse);
 
     return value;
   }
@@ -324,11 +318,6 @@ extern "C" {
 
     VALUE thr_handle = env->get_handle(thr);
     thr->fork(state);
-    // We do a lock and unlock here so we wait until the started
-    // thread is actually ready. This is to prevent we GC stuff on
-    // the stack in the C-API caller that might be stuffed in the void* argument
-    thr->hard_lock(state);
-    thr->hard_unlock(state);
 
     return thr_handle;
   }
