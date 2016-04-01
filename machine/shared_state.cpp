@@ -137,10 +137,12 @@ namespace rubinius {
   }
 
   metrics::Metrics* SharedState::start_metrics(STATE) {
-    if(!metrics_) {
-      metrics_ = new metrics::Metrics(state);
-      metrics_->start(state);
-      metrics_->init_ruby_metrics(state);
+    if(state->shared().config.system_metrics_target.value.compare("none")) {
+      if(!metrics_) {
+        metrics_ = new metrics::Metrics(state);
+        metrics_->start(state);
+        metrics_->init_ruby_metrics(state);
+      }
     }
 
     return metrics_;
