@@ -6,9 +6,7 @@
 #include "memory.hpp"
 
 #include "builtin/class.hpp"
-#include "builtin/call_custom_cache.hpp"
 #include "builtin/call_site.hpp"
-#include "builtin/call_unit.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/mono_inline_cache.hpp"
@@ -38,29 +36,6 @@ namespace rubinius {
     return Integer::from(state, ip());
   }
 
-  Object* CallSite::empty_cache_custom(STATE, CallSite* call_site, Arguments& args) {
-    Object* const recv = args.recv();
-
-    Array* ary = Array::create(state, args.total() + 2);
-    ary->set(state, 0, recv);
-    ary->set(state, 1, call_site->name());
-
-    for(size_t i = 0; i < args.total(); i++) {
-      ary->set(state, i + 2, args.get_argument(i));
-    }
-
-    Object* ret = G(rubinius)->send(state, state->symbol("bind_call"), ary);
-
-    if(CallUnit* cu = try_as<CallUnit>(ret)) {
-      CallCustomCache* cache = CallCustomCache::create(state, call_site, cu);
-      call_site->update_call_site(state, cache);
-      return cu->execute(state, cu, cu->executable(), cu->module(), args);
-    } else {
-      Exception::internal_error(state, "bind_call must return CallUnit");
-      return 0;
-    }
-  }
-
   Object* CallSite::empty_cache(STATE, CallSite* call_site, Arguments& args) {
     Object* const self = state->vm()->call_frame()->self();
     Object* const recv = args.recv();
@@ -83,15 +58,7 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
-    } else {
-      return meth->execute(state, meth, mod, args);
-    }
+    return meth->execute(state, meth, mod, args);
   }
 
   Object* CallSite::empty_cache_private(STATE, CallSite* call_site,
@@ -118,15 +85,7 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
-    } else {
-      return meth->execute(state, meth, mod, args);
-    }
+    return meth->execute(state, meth, mod, args);
   }
 
   Object* CallSite::empty_cache_vcall(STATE, CallSite* call_site, Arguments& args) {
@@ -152,15 +111,7 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
-    } else {
-      return meth->execute(state, meth, mod, args);
-    }
+    return meth->execute(state, meth, mod, args);
   }
 
   Object* CallSite::empty_cache_super(STATE, CallSite* call_site,
@@ -212,15 +163,7 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
-    } else {
-      return meth->execute(state, meth, mod, args);
-    }
+    return meth->execute(state, meth, mod, args);
   }
 
   void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {

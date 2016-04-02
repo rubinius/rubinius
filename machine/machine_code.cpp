@@ -244,15 +244,11 @@ namespace rubinius {
         call_site_offsets_[inline_index] = ip;
         inline_index++;
 
-        if(op == InstructionSequence::insn_call_custom) {
-          call_site->set_call_custom();
-        } else {
-          if(allow_private) call_site->set_is_private();
-          if(is_super) call_site->set_is_super();
+        if(allow_private) call_site->set_is_private();
+        if(is_super) call_site->set_is_super();
 
-          if(op == InstructionSequence::insn_send_method) {
-            call_site->set_is_vcall();
-          }
+        if(op == InstructionSequence::insn_send_method) {
+          call_site->set_is_vcall();
         }
 
         store_call_site(state, original, ip, call_site);

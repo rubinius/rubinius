@@ -65,7 +65,6 @@ namespace rubinius {
     static CacheExecuteFunc empty_cache_private;
     static CacheExecuteFunc empty_cache_vcall;
     static CacheExecuteFunc empty_cache_super;
-    static CacheExecuteFunc empty_cache_custom;
 
     static CacheUpdateFunc empty_cache_updater;
 
@@ -88,11 +87,6 @@ namespace rubinius {
     void set_is_vcall() {
       executor(empty_cache_vcall);
       fallback(empty_cache_vcall);
-    }
-
-    void set_call_custom() {
-      executor(empty_cache_custom);
-      fallback(empty_cache_custom);
     }
 
     void set_executor(CacheExecutor exec) {
