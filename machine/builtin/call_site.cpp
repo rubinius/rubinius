@@ -58,7 +58,15 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    return meth->execute(state, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      CallSiteInformation info(call_site->executable(), call_site->ip());
+      state->set_call_site_information(&info);
+      Object* res = meth->execute(state, meth, mod, args);
+      state->set_call_site_information(NULL);
+      return res;
+    } else {
+      return meth->execute(state, meth, mod, args);
+    }
   }
 
   Object* CallSite::empty_cache_private(STATE, CallSite* call_site,
@@ -85,7 +93,15 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    return meth->execute(state, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      CallSiteInformation info(call_site->executable(), call_site->ip());
+      state->set_call_site_information(&info);
+      Object* res = meth->execute(state, meth, mod, args);
+      state->set_call_site_information(NULL);
+      return res;
+    } else {
+      return meth->execute(state, meth, mod, args);
+    }
   }
 
   Object* CallSite::empty_cache_vcall(STATE, CallSite* call_site, Arguments& args) {
@@ -111,7 +127,15 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    return meth->execute(state, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      CallSiteInformation info(call_site->executable(), call_site->ip());
+      state->set_call_site_information(&info);
+      Object* res = meth->execute(state, meth, mod, args);
+      state->set_call_site_information(NULL);
+      return res;
+    } else {
+      return meth->execute(state, meth, mod, args);
+    }
   }
 
   Object* CallSite::empty_cache_super(STATE, CallSite* call_site,
@@ -163,7 +187,15 @@ namespace rubinius {
     Executable* meth = dispatch.method;
     Module* mod = dispatch.module;
 
-    return meth->execute(state, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      CallSiteInformation info(call_site->executable(), call_site->ip());
+      state->set_call_site_information(&info);
+      Object* res = meth->execute(state, meth, mod, args);
+      state->set_call_site_information(NULL);
+      return res;
+    } else {
+      return meth->execute(state, meth, mod, args);
+    }
   }
 
   void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
