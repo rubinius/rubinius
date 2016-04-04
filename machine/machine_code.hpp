@@ -1,6 +1,7 @@
 #ifndef RBX_VMMETHOD_HPP
 #define RBX_VMMETHOD_HPP
 
+#include "defines.hpp"
 #include "executor.hpp"
 #include "memory/root.hpp"
 #include "primitives.hpp"
@@ -75,11 +76,10 @@ namespace rubinius {
     native_int loop_count;
     native_int uncommon_count;
 
-    size_t number_of_call_sites_;
-    size_t* call_site_offsets_;
-
-    size_t number_of_constant_caches_;
-    size_t* constant_cache_offsets_;
+    attr_field(call_site_count, size_t);
+    attr_field(constant_cache_count, size_t);
+    attr_field(references_count, size_t);
+    attr_field(references, size_t*);
 
     Specialization specializations[cMaxSpecializations];
     executor unspecialized;
@@ -127,22 +127,6 @@ namespace rubinius {
       execute_status_ = s;
     }
 
-    size_t call_site_count() const {
-      return number_of_call_sites_;
-    }
-
-    size_t* call_site_offsets() const {
-      return call_site_offsets_;
-    }
-
-    size_t constant_cache_count() const {
-      return number_of_constant_caches_;
-    }
-
-    size_t* constant_cache_offsets() const {
-      return constant_cache_offsets_;
-    }
-
     Symbol* name() const {
       return name_;
     }
@@ -161,6 +145,12 @@ namespace rubinius {
 
     native_int method_call_count() const {
       return call_count - loop_count;
+    }
+
+    void remove_reference(int ip) {
+      for(int i = 0; i < references_count(); i++) {
+        if(references()[i] == ip) references()[i] = 0;
+      }
     }
 
     CallSite* call_site(STATE, int ip);
@@ -216,8 +206,6 @@ namespace rubinius {
     bool validate_ip(STATE, size_t ip);
 
     void fill_opcodes(STATE, CompiledCode* original);
-    void initialize_call_sites(STATE, CompiledCode* original, int sends);
-    void initialize_constant_caches(STATE, CompiledCode* original, int constants);
 
     void deoptimize(STATE, CompiledCode* original, jit::RuntimeDataHolder* rd,
                     bool disable=false);

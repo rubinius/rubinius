@@ -87,14 +87,18 @@ namespace rubinius {
     state->raise_exception(exc);
   }
 
-  void Exception::bytecode_error(STATE,
-                                 CompiledCode* code, int ip, const char* reason)
-  {
-    Exception* exc = Exception::make_exception(state, G(exc_vm_bad_bytecode), reason);
+  void Exception::bytecode_error(STATE, CompiledCode* code, int ip, const char* reason) {
+    std::ostringstream msg;
+    msg << reason;
+    msg << ": code: " << code->name()->cpp_str(state);
+    msg << ", ip: " << ip;
+
+    Exception* exc = Exception::make_exception(state,
+        G(exc_vm_bad_bytecode), msg.str().c_str());
     exc->set_ivar(state, state->symbol("@compiled_code"), code);
     exc->set_ivar(state, state->symbol("@ip"), Fixnum::from(ip));
     exc->locations(state, Location::from_call_stack(state));
-    state->raise_exception(exc);
+    RubyException::raise(exc);
   }
 
   Exception* Exception::make_frozen_exception(STATE, Object* obj) {

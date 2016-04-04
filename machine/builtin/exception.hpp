@@ -68,6 +68,8 @@ namespace rubinius {
     NORETURN(static void raise_system_call_error(STATE, const char* reason));
     NORETURN(static void raise_system_call_error(STATE, const std::string& reason));
 
+    NORETURN(static void bytecode_error(STATE, CompiledCode* code,
+          int ip, const char* reason));
     NORETURN(static void raise_thread_error(STATE, const char* reason));
     NORETURN(static void raise_fiber_error(STATE, const char* reason));
     NORETURN(static void raise_memory_error(STATE));
@@ -79,14 +81,10 @@ namespace rubinius {
     NORETURN(static void raise_errno_error(STATE, const char* reason = NULL,
           int ern = 0, const char* entity = 0));
 
-
-
     static Exception* make_lje(STATE);
 
     static void type_error(STATE, const char* reason);
     static void internal_error(STATE, const char* reason);
-    static void bytecode_error(STATE, CompiledCode* code,
-                               int ip, const char* reason);
     static void frozen_error(STATE, Object* obj);
 
     static void encoding_compatibility_error(STATE, Object* a, Object* b);

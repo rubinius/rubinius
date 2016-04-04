@@ -328,6 +328,7 @@ extern "C" {
   Object* rbx_create_block(STATE, CallFrame* call_frame, int index) {
     CPP_TRY
 
+    /* TODO: literals
     Object* _lit = call_frame->compiled_code->literals()->at(state, index);
     CompiledCode* code = 0;
 
@@ -338,6 +339,8 @@ extern "C" {
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
     return BlockEnvironment::under_call_frame(state, code, mcode);
+    */
+    return cNil;
 
     CPP_CATCH
   }
@@ -694,6 +697,7 @@ extern "C" {
   Object* rbx_find_const(STATE, int index, Object* top) {
     CPP_TRY
 
+    /* TODO: literals
     ConstantMissingReason reason;
     Module* under = as<Module>(top);
     Symbol* sym = as<Symbol>(
@@ -707,6 +711,8 @@ extern "C" {
     }
 
     return res;
+    */
+    return cNil;
 
     CPP_CATCH
   }
@@ -1123,8 +1129,8 @@ extern "C" {
     return val;
   }
 
-  Object* rbx_set_literal(STATE, int which, Object* val) {
-    state->vm()->call_frame()->compiled_code->literals()->put(state, which, val);
+  Object* rbx_push_memo(STATE, int which, Object* val) {
+    // TODO: literals
     return cNil;
   }
 

@@ -484,21 +484,13 @@ namespace rubinius {
     }
 #endif
 
-    for(size_t i = 0; i < mcode->call_site_count(); i++) {
-      size_t index = mcode->call_site_offsets()[i];
-      Object* old_cache = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
-      if(Object* new_cache = mark.call(old_cache)) {
-        mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-        mark.just_set(code, new_cache);
-      }
-    }
-
-    for(size_t i = 0; i < mcode->constant_cache_count(); i++) {
-      size_t index = mcode->constant_cache_offsets()[i];
-      Object* old_cache = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
-      if(Object* new_cache = mark.call(old_cache)) {
-        mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-        mark.just_set(code, new_cache);
+    for(size_t i = 0; i < mcode->references_count(); i++) {
+      if(size_t ip = mcode->references()[i]) {
+        Object* ref = reinterpret_cast<Object*>(mcode->opcodes[ip]);
+        if(Object* updated_ref = mark.call(ref)) {
+          mcode->opcodes[ip] = reinterpret_cast<intptr_t>(updated_ref);
+          mark.just_set(code, updated_ref);
+        }
       }
     }
   }
@@ -510,7 +502,6 @@ namespace rubinius {
     indent_attribute(++level, "file"); code->file()->show(state, level);
     indent_attribute(level, "iseq"); code->iseq()->show(state, level);
     indent_attribute(level, "lines"); code->lines()->show_simple(state, level);
-    indent_attribute(level, "literals"); code->literals()->show_simple(state, level);
     indent_attribute(level, "local_count"); code->local_count()->show(state, level);
     indent_attribute(level, "local_names"); code->local_names()->show_simple(state, level);
     indent_attribute(level, "name"); code->name()->show(state, level);

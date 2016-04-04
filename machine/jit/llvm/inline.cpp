@@ -333,20 +333,16 @@ remember:
     opcode* stream = mcode->opcodes;
     size_t size_max = 2;
     switch(stream[0]) {
-    case InstructionSequence::insn_push_int:
-      size_max++;
       break;
     case InstructionSequence::insn_push_literal:
+      /* TODO: literals
       if(code && kind_of<Symbol>(code->literals()->at(stream[1]))) {
         size_max++;
       } else {
         return false;
       }
+      */
       break;
-    case InstructionSequence::insn_meta_push_0:
-    case InstructionSequence::insn_meta_push_1:
-    case InstructionSequence::insn_meta_push_2:
-    case InstructionSequence::insn_meta_push_neg_1:
     case InstructionSequence::insn_push_self:
       break;
     default:
@@ -379,35 +375,19 @@ remember:
 
     opcode* stream = mcode->opcodes;
     switch(stream[0]) {
-    case InstructionSequence::insn_push_int:
-      val = ops_.constant(Fixnum::from(stream[1]));
-      break;
     case InstructionSequence::insn_push_literal: {
+      /* TODO: literals
       Symbol* sym = try_as<Symbol>(code->literals()->at(stream[1]));
       assert(sym);
 
       val = ops_.constant(sym);
-      } break;
-    case InstructionSequence::insn_meta_push_0:
-      val = ops_.constant(Fixnum::from(0));
-      break;
-    case InstructionSequence::insn_meta_push_1:
-      val = ops_.constant(Fixnum::from(1));
-      break;
-    case InstructionSequence::insn_meta_push_2:
-      val = ops_.constant(Fixnum::from(2));
-      break;
-    case InstructionSequence::insn_meta_push_neg_1:
-      val = ops_.constant(Fixnum::from(-1));
-      break;
+      */} break;
     case InstructionSequence::insn_push_self:
       val = recv();
       break;
     default:
       assert(0 && "Trivial detection is broken!");
     }
-
-    /////
 
     assert(val);
 

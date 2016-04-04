@@ -1805,7 +1805,7 @@ retry:
 
     OnStack<1> os(state, code);
 
-    code->internalize(state, 0, 0);
+    code->internalize(state);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {

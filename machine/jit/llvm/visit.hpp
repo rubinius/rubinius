@@ -1059,7 +1059,9 @@ namespace rubinius {
     }
 
     Object* literal(opcode which) {
-      return info().method()->literals()->at(which);
+      // TODO: literals
+      // return info().method()->literals()->at(which);
+      return cNil;
     }
 
     Value* get_literal(opcode which) {
@@ -2178,7 +2180,9 @@ use_send:
     }
 
     Object* current_literal(opcode which) {
-      return info().method()->literals()->at(which);
+      // TODO: literals
+      // return info().method()->literals()->at(which);
+      return cNil;
     }
 
     void visit_push_const_fast(opcode& name) {
@@ -2369,7 +2373,7 @@ use_send:
       stack_push(val);
     }
 
-    void visit_set_literal(opcode which) {
+    void visit_push_memo(opcode which) {
       set_has_side_effects();
 
       std::vector<Type*> types;
@@ -2380,7 +2384,7 @@ use_send:
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_set_literal", ft));
+          module_->getOrInsertFunction("rbx_push_memo", ft));
 
       Value* call_args[] = {
         state_,

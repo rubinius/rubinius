@@ -4,8 +4,8 @@ GEM
     daedalus-core (0.5.0)
     rake (10.5.0)
     redcard (1.1.0)
-    rubinius-ast (3.2)
-    rubinius-bridge (1.1.0)
+    rubinius-ast (3.3)
+    rubinius-bridge (2.2)
       redcard (~> 1.0)
     rubinius-code (3.0)
       rubinius-ast (~> 3)
@@ -14,7 +14,7 @@ GEM
       rubinius-melbourne (~> 3)
       rubinius-processor (~> 3)
       rubinius-toolset (~> 3)
-    rubinius-compiler (3.1)
+    rubinius-compiler (3.2)
     rubinius-instructions (3.0)
     rubinius-melbourne (3.5)
     rubinius-processor (3.0)
@@ -27,7 +27,7 @@ DEPENDENCIES
   daedalus-core (~> 0.1)
   rake (~> 10.0)
   redcard (~> 1.0)
-  rubinius-bridge (~> 1.0)
+  rubinius-bridge (~> 2.0)
   rubinius-code (~> 3)
 
 BUNDLED WITH
