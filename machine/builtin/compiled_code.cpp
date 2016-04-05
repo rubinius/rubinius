@@ -1,5 +1,5 @@
 #include "arguments.hpp"
-#include "bytecode_verification.hpp"
+#include "bytecode_verifier.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "instruments/timing.hpp"
@@ -112,9 +112,7 @@ namespace rubinius {
     return as<Fixnum>(lines()->at(fin+1))->to_native();
   }
 
-  MachineCode* CompiledCode::internalize(STATE,
-                                        const char** reason, int* ip)
-  {
+  MachineCode* CompiledCode::internalize(STATE) {
     MachineCode* mcode = machine_code();
 
     atomic::memory_barrier();
@@ -129,13 +127,8 @@ namespace rubinius {
     mcode = self->machine_code();
     if(!mcode) {
       {
-        BytecodeVerification bv(self);
-        if(!bv.verify(state)) {
-          if(reason) *reason = bv.failure_reason();
-          if(ip) *ip = bv.failure_ip();
-          std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
-          return 0;
-        }
+        BytecodeVerifier bytecode_verifier(self);
+        bytecode_verifier.verify(state);
       }
 
       mcode = new MachineCode(state, self);
@@ -197,18 +190,12 @@ namespace rubinius {
   {
     CompiledCode* code = as<CompiledCode>(exec);
     if(code->execute == default_executor) {
-      const char* reason = 0;
-      int ip = -1;
-
       OnStack<5> os(state, code, exec, mod, args.recv_location(), args.block_location());
 
       memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
                              &args.arguments_location(), args.total());
 
-      if(!code->internalize(state, &reason, &ip)) {
-        Exception::bytecode_error(state, code, ip, reason);
-        return 0;
-      }
+      if(!code->internalize(state)) return 0;
     }
 
     return code->execute(state, exec, mod, args);

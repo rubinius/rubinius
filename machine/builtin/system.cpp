@@ -1254,10 +1254,7 @@ namespace rubinius {
     if(Class* cls = try_as<Class>(mod)) {
       OnStack<5> o2(state, mod, cc, scope, vis, cls);
 
-      if(!cc->internalize(state)) {
-        Exception::raise_argument_error(state, "invalid bytecode method");
-        return 0;
-      }
+      if(!cc->internalize(state)) return 0;
 
       object_type type = (object_type)cls->instance_type()->to_native();
       TypeInfo* ti = state->memory()->type_info[type];
