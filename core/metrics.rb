@@ -1,5 +1,11 @@
 module Rubinius
   module Metrics
+    @enabled = false
+
+    def self.enabled?
+      !!@enabled
+    end
+
     def self.data
       @data ||= Data.new
     end

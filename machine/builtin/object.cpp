@@ -514,9 +514,7 @@ namespace rubinius {
         allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dispatch(name);
 
-    Arguments args(name, ary);
-    args.set_block(block);
-    args.set_recv(this);
+    Arguments args(name, this, block, ary);
 
     return dispatch.send(state, lookup, args);
   }
@@ -526,9 +524,7 @@ namespace rubinius {
         allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dispatch(name);
 
-    Arguments args(name);
-    args.set_block(cNil);
-    args.set_recv(this);
+    Arguments args(name, this);
 
     return dispatch.send(state, lookup, args);
   }

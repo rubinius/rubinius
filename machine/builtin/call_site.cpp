@@ -6,9 +6,7 @@
 #include "memory.hpp"
 
 #include "builtin/class.hpp"
-#include "builtin/call_custom_cache.hpp"
 #include "builtin/call_site.hpp"
-#include "builtin/call_unit.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/mono_inline_cache.hpp"
@@ -36,29 +34,6 @@ namespace rubinius {
 
   Integer* CallSite::ip_prim(STATE) {
     return Integer::from(state, ip());
-  }
-
-  Object* CallSite::empty_cache_custom(STATE, CallSite* call_site, Arguments& args) {
-    Object* const recv = args.recv();
-
-    Array* ary = Array::create(state, args.total() + 2);
-    ary->set(state, 0, recv);
-    ary->set(state, 1, call_site->name());
-
-    for(size_t i = 0; i < args.total(); i++) {
-      ary->set(state, i + 2, args.get_argument(i));
-    }
-
-    Object* ret = G(rubinius)->send(state, state->symbol("bind_call"), ary);
-
-    if(CallUnit* cu = try_as<CallUnit>(ret)) {
-      CallCustomCache* cache = CallCustomCache::create(state, call_site, cu);
-      call_site->update_call_site(state, cache);
-      return cu->execute(state, cu, cu->executable(), cu->module(), args);
-    } else {
-      Exception::internal_error(state, "bind_call must return CallUnit");
-      return 0;
-    }
   }
 
   Object* CallSite::empty_cache(STATE, CallSite* call_site, Arguments& args) {

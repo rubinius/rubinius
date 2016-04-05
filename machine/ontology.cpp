@@ -54,7 +54,6 @@
 #include "builtin/location.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/poly_inline_cache.hpp"
-#include "builtin/call_custom_cache.hpp"
 #include "builtin/respond_to_cache.hpp"
 #include "builtin/constant_cache.hpp"
 #include "builtin/weakref.hpp"
@@ -259,7 +258,6 @@ namespace rubinius {
     CallSite::bootstrap(state);
     MonoInlineCache::bootstrap(state);
     PolyInlineCache::bootstrap(state);
-    CallCustomCache::bootstrap(state);
     ConstantCache::bootstrap(state);
     RespondToCache::bootstrap(state);
     Fiber::bootstrap(state);

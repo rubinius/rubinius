@@ -29,7 +29,7 @@ public:
   void test_access_variable_is_slot() {
     AccessVariable* av = AccessVariable::allocate(state);
 
-    Arguments args(state->symbol("blah"), G(object), 0, 0);
+    Arguments args(state->symbol("blah"), G(object));
 
     av->name(state, state->symbol("@module_name"));
 
@@ -58,7 +58,7 @@ public:
   void test_access_variable() {
     AccessVariable* av = AccessVariable::allocate(state);
 
-    Arguments args(state->symbol("blah"), G(object), 0, 0);
+    Arguments args(state->symbol("blah"), G(object));
 
     av->name(state, state->symbol("@blah"));
 

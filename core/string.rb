@@ -1388,7 +1388,7 @@ class String
       ret.append(match.post_match)
       tainted ||= val.tainted?
     else
-      return self
+      ret = dup
     end
 
     ret.taint if tainted

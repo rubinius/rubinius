@@ -6,6 +6,7 @@
 #include "state.hpp"
 #include "thread_phase.hpp"
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <syslog.h>
 #include <unistd.h>

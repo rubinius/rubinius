@@ -358,6 +358,8 @@ namespace rubinius {
       obj->klass(state, klass);
       obj->ivars(cNil);
 
+      obj->set_cycle(cycle_);
+
       return obj;
     }
 

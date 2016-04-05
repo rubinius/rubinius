@@ -43,19 +43,27 @@ module GC
   end
 
   def self.count
-    data = stat
-    data[:"gc.young.count"] + data[:"gc.immix.count"]
+    if data = stat
+      data[:"gc.young.count"] + data[:"gc.immix.count"]
+    else
+      0
+    end
   end
 
   def self.time
-    data = stat
-    data[:"gc.young.ms"] +
-      data[:"gc.immix.stop.ms"] +
-      data[:"gc.large.sweep.us"] * 1_000
+    if data = stat
+      data[:"gc.young.ms"] +
+        data[:"gc.immix.stop.ms"] +
+        data[:"gc.large.sweep.us"] * 1_000
+    else
+      0
+    end
   end
 
   def self.stat
-    Rubinius::Metrics.data.to_hash
+    if Rubinius::Metrics.enabled?
+      return Rubinius::Metrics.data.to_hash
+    end
   end
 
   module Profiler
@@ -90,6 +98,10 @@ module GC
     end
 
     def self.result
+      unless Rubinius::Metrics.enabled?
+        return "Rubinius::Metrics is disabled. GC::Profiler results are unavailable"
+      end
+
       stats = GC.stat
 
       out = <<-OUT

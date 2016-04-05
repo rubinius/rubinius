@@ -31,7 +31,6 @@ namespace rubinius {
     }
 
     static Array* create(STATE, native_int size);
-    static Array* create_dirty(STATE, native_int size);
     static Array* from_tuple(STATE, Tuple* tup);
     static Array* to_ary(STATE, Object* obj);
 
@@ -42,7 +41,7 @@ namespace rubinius {
     static Array* dup_as_array(STATE, Object* obj);
 
     // Rubinius.primitive :array_new_range
-    Array* new_range(STATE, Fixnum* start, Fixnum* count);
+    Array* new_range(STATE, Fixnum* index, Fixnum* count);
 
     // Rubinius.primitive :array_new_reserved
     Array* new_reserved(STATE, Fixnum* count);
