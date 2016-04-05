@@ -41,7 +41,7 @@ namespace rubinius {
     static Array* dup_as_array(STATE, Object* obj);
 
     // Rubinius.primitive :array_new_range
-    Array* new_range(STATE, Fixnum* start, Fixnum* count);
+    Array* new_range(STATE, Fixnum* index, Fixnum* count);
 
     // Rubinius.primitive :array_new_reserved
     Array* new_reserved(STATE, Fixnum* count);
