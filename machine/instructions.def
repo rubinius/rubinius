@@ -2269,7 +2269,7 @@ instruction zsuper(literal) [ block -- value ]
       ary->set(state, 0, as<Symbol>(call_frame->compiled_code->local_names()->at(state, i)));
       ary->set(state, 1, scope->get_local(state, i));
 
-      placeholder->send(state, call_frame, state->symbol("[]="), ary);
+      placeholder->send(state, state->symbol("[]="), ary);
     }
   }
 

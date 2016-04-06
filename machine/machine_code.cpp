@@ -83,7 +83,7 @@ namespace rubinius {
     }
 
     if(keywords) {
-      keywords_count = meth->keywords()->num_fields() / 2;
+      keywords_count = code->keywords()->num_fields() / 2;
     }
 
     opcodes = new opcode[total];
