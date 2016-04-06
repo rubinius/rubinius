@@ -31,6 +31,7 @@ function rbx_package_homebrew {
   rake package:homebrew
 
   rbx_digest_file "$(rbx_release_name)" "sha1"
+  rbx_digest_file "$(rbx_release_name)" "sha256"
 }
 
 function rbx_package_heroku {
