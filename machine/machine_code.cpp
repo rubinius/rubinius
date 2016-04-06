@@ -82,6 +82,10 @@ namespace rubinius {
       run = MachineCode::tooling_interpreter;
     }
 
+    if(keywords) {
+      keywords_count = meth->keywords()->num_fields() / 2;
+    }
+
     opcodes = new opcode[total];
 
     fill_opcodes(state, code);
