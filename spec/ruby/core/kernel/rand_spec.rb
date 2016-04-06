@@ -125,8 +125,12 @@ describe "Kernel.rand" do
     rand(1..0).should be_nil
   end
 
-  it "returns nil when float range is 0" do
-    rand(1.0..1.0).should be_nil
+  it "returns the range start/end when Float range is 0" do
+    rand(1.0..1.0).should eql(1.0)
+  end
+
+  it "returns the range start/end when Integer range is 0" do
+    rand(42..42).should eql(42)
   end
 end
 
