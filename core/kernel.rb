@@ -725,9 +725,29 @@ module Kernel
   end
   private :private_singleton_methods
 
-  def proc(&prc)
-    raise ArgumentError, "block required" unless prc
-    return prc
+  def proc
+    env = nil
+
+    Rubinius.asm do
+      push_block
+      # assign a pushed block to the above local variable "env"
+      set_local 0
+    end
+
+    unless env
+      # Support for ancient pre-block-pass style:
+      # def something
+      #   proc
+      # end
+      # something { a_block } => Proc instance
+      env = Rubinius::BlockEnvironment.of_sender
+
+      unless env
+        raise ArgumentError, "tried to create a Proc object without a block"
+      end
+    end
+
+    Proc.new(&env)
   end
   module_function :proc
 
