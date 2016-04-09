@@ -8,7 +8,7 @@ describe "Rubinius::CompiledCode#locate_line" do
 
   it "finds the ip for a line" do
     _, ip = @line_test.locate_line(7)
-    ip.should == 6
+    ip.should == 8
   end
 
   it "returns the CompiledCode the ip is in" do

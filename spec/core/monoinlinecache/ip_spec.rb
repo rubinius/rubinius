@@ -7,6 +7,6 @@ describe "Rubinius::MonoInlineCache#ip" do
   end
 
   it "returns the IP of the call site" do
-    @cache.ip.should == 1
+    @cache.ip.should == 0
   end
 end
