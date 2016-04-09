@@ -164,7 +164,6 @@ namespace rubinius {
       case InstructionSequence::insn_push_ivar:
       case InstructionSequence::insn_set_const:
       case InstructionSequence::insn_set_const_at:
-      case InstructionSequence::insn_invoke_primitive:
       case InstructionSequence::insn_send_super_stack_with_block:
       case InstructionSequence::insn_send_super_stack_with_splat:
       case InstructionSequence::insn_zsuper:
@@ -226,8 +225,6 @@ namespace rubinius {
         break;
       }
       case InstructionSequence::insn_invoke_primitive: {
-        references()[rindex++] = ip + 1;
-
         Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
 
         InvokePrimitive invoker = Primitives::get_invoke_stub(state, name);
