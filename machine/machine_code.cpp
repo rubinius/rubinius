@@ -259,6 +259,8 @@ namespace rubinius {
         if(op == InstructionSequence::insn_send_vcall) {
           allow_private = true;
           call_site->set_is_vcall();
+        } else if(op == InstructionSequence::insn_object_to_s) {
+          allow_private = true;
         }
 
         if(allow_private) call_site->set_is_private();
@@ -303,11 +305,16 @@ namespace rubinius {
     size_t count = call_site_count();
     Tuple* sites = Tuple::create(state, count);
 
-    /*
-    for(size_t i = 0; i < count; ++i) {
-      sites->put(state, i, call_site(state, call_site_offsets_[i]));
+    for(size_t i = 0, j = 0;
+        i < count && j < references_count();
+        j++)
+    {
+      if(CallSite* site =
+          try_as<CallSite>(reinterpret_cast<Object*>(opcodes[references()[j]])))
+      {
+        sites->put(state, i++, site);
+      }
     }
-    */
 
     return sites;
   }
@@ -316,11 +323,16 @@ namespace rubinius {
     size_t count = constant_cache_count();
     Tuple* caches = Tuple::create(state, count);
 
-    /*
-    for(size_t i = 0; i < number_of_constant_caches_; ++i) {
-      caches->put(state, i, constant_cache(state, constant_cache_offsets_[i]));
+    for(size_t i = 0, j = 0;
+        i < count && j < references_count();
+        j++)
+    {
+      if(ConstantCache* cache =
+          try_as<ConstantCache>(reinterpret_cast<Object*>(opcodes[references()[j]])))
+      {
+        caches->put(state, i++, cache);
+      }
     }
-    */
 
     return caches;
   }
