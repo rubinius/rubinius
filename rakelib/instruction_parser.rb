@@ -205,6 +205,14 @@ class InstructionParser
 
     # Specific instruction methods
 
+    def process_push_literal
+      @method_name = :emit_push_literal
+      method_signature
+      method_append_stream
+      method_stack_effect
+      method_close
+    end
+
     def process_create_block
       method_signature
       @file.puts "        arg1 = add_generator(arg1)"
