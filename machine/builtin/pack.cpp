@@ -643,7 +643,6 @@ namespace rubinius {
     native_int stop = 0;
     bool rest UNUSED = false;
     bool tainted UNUSED = false;
-    bool untrusted UNUSED = false;
     bool ascii_encoding = false;
     bool utf8_encoding = false;
     bool string_encoding = false;
@@ -656,7 +655,6 @@ namespace rubinius {
 
     if(directives->byte_size() == 0) ascii_encoding = true;
     if(CBOOL(directives->tainted_p(state))) tainted = true;
-    if(CBOOL(directives->untrusted_p(state))) untrusted = true;
 
 static const char _actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
@@ -3255,7 +3253,6 @@ _resume:
 	case 32:
 	{
     if(CBOOL(string_value->tainted_p(state))) tainted = true;
-    if(CBOOL(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -3605,7 +3602,6 @@ _again:
 	case 32:
 	{
     if(CBOOL(string_value->tainted_p(state))) tainted = true;
-    if(CBOOL(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -3767,11 +3763,6 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
-    }
-
-    if(untrusted) {
-      result->untrust(state);
-      untrusted = false;
     }
 
     return result;

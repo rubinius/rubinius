@@ -572,7 +572,9 @@ module Marshal
 
       call obj if @proc and call_proc
 
-      @stream.tainted? && !obj.frozen? ? obj.taint : obj
+      Rubinius::Type.infect obj, @stream unless obj.frozen?
+
+      obj
     end
 
     def construct_class

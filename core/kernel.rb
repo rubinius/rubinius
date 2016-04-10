@@ -69,20 +69,9 @@ module Kernel
     raise PrimitiveFailure, "Kernel#untaint primitive failed"
   end
 
-  def trust
-    Rubinius.primitive :object_trust
-    raise PrimitiveFailure, "Kernel#trust primitive failed"
-  end
-
-  def untrust
-    Rubinius.primitive :object_untrust
-    raise PrimitiveFailure, "Kernel#untrust primitive failed"
-  end
-
-  def untrusted?
-    Rubinius.primitive :object_untrusted_p
-    raise PrimitiveFailure, "Kernel#untrusted? primitive failed"
-  end
+  alias_method :untrust, :taint
+  alias_method :trust, :untaint
+  alias_method :untrusted?, :tainted?
 
   # NOTE: The bootstrap method used to add method definitions to the class
   # method_table still returns a CompiledCode instance, so this chaining

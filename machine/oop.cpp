@@ -296,16 +296,6 @@ retry:
     }
   }
 
-  void ObjectHeader::set_untrusted(int val) {
-    for(;;) {
-      HeaderWord orig     = header;
-      HeaderWord new_val  = orig;
-      new_val.f.Untrusted = val;
-
-      if(header.atomic_set(orig, new_val)) return;
-    }
-  }
-
   void ObjectHeader::clear_handle(STATE) {
     for(;;) {
       HeaderWord orig = header;

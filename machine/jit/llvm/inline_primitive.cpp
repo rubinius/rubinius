@@ -1486,14 +1486,6 @@ namespace rubinius {
       i.context()->leave_inline();
     }
 
-    void object_untrusted_p() {
-      log("Object#untrusted?");
-      i.context()->enter_inline();
-      i.set_result(ops.get_header_value(i.recv(), OBJECT_FLAGS_UNTRUSTED, "rbx_is_untrusted"));
-      i.exception_safe();
-      i.context()->leave_inline();
-    }
-
     void proc_call(int count) {
       log("Proc#call");
       i.context()->enter_inline();
@@ -1665,8 +1657,6 @@ namespace rubinius {
       ip.object_frozen_p();
     } else if(prim == Primitives::object_tainted_p && count_ == 0) {
       ip.object_tainted_p();
-    } else if(prim == Primitives::object_untrusted_p && count_ == 0) {
-      ip.object_untrusted_p();
     } else if(prim == Primitives::float_add && count_ == 1) {
       ip.float_op(cAdd);
     } else if(prim == Primitives::float_sub && count_ == 1) {

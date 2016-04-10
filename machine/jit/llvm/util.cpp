@@ -90,10 +90,6 @@ extern "C" {
     return obj->frozen_p(state);
   }
 
-  Object* rbx_is_untrusted(STATE, Object* obj) {
-    return obj->untrusted_p(state);
-  }
-
   Object* rbx_is_tainted(STATE, Object* obj) {
     return obj->tainted_p(state);
   }
@@ -1168,7 +1164,6 @@ extern "C" {
     size_t size = 0;
 
     bool tainted = false;
-    bool untrusted = false;
 
     bool check_encoding = false;
     Encoding* enc = nil<Encoding>();
@@ -1179,7 +1174,6 @@ extern "C" {
 
       if(obj->reference_p()) {
         tainted |= obj->is_tainted_p();
-        untrusted |= obj->is_untrusted_p();
       }
 
       String* str = try_as<String>(obj);
@@ -1200,7 +1194,6 @@ extern "C" {
         str = obj->to_s(state, false);
 
         tainted |= str->is_tainted_p();
-        untrusted |= str->is_untrusted_p();
         native_int cur_size = str->byte_size();
         native_int data_size = as<ByteArray>(str->data())->size();
         if(unlikely(cur_size > data_size)) {
@@ -1270,7 +1263,6 @@ extern "C" {
     if(!enc->nil_p()) str->encoding(state, enc);
 
     if(tainted) str->set_tainted();
-    if(untrusted) str->set_untrusted();
 
     return str;
   }

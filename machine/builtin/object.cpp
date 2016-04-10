@@ -438,10 +438,6 @@ namespace rubinius {
     if(is_tainted_p()) {
       other->taint(state);
     }
-
-    if(is_untrusted_p()) {
-      other->untrust(state);
-    }
   }
 
   bool Object::kind_of_p(STATE, Object* module) {
@@ -827,26 +823,6 @@ namespace rubinius {
 
   Object* Object::tainted_p(STATE) {
     return RBOOL(is_tainted_p());
-  }
-
-  Object* Object::trust(STATE) {
-    if(is_untrusted_p()) {
-      check_frozen(state);
-      set_untrusted(0);
-    }
-    return this;
-  }
-
-  Object* Object::untrust(STATE) {
-    if(!is_untrusted_p()) {
-      check_frozen(state);
-      if(reference_p()) set_untrusted();
-    }
-    return this;
-  }
-
-  Object* Object::untrusted_p(STATE) {
-    return RBOOL(is_untrusted_p());
   }
 
   TypeInfo* Object::type_info(STATE) const {
