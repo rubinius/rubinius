@@ -17,8 +17,14 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 
+#include "instruments/timing.hpp"
+
+
 namespace rubinius {
-  CompiledFile* CompiledFile::load(std::istream& stream) {
+  CompiledFile* CompiledFile::load(STATE, std::istream& stream) {
+    timer::StopWatch<timer::microseconds> timer(
+        state->vm()->metrics().machine.bytecode_load_us);
+
     std::string magic;
     uint64_t signature;
     int version;

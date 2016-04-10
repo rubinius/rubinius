@@ -30,7 +30,7 @@ public:
     std::istringstream stream;
     stream.str("!RBIX\n1\n42\nt");
 
-    CompiledFile* cf = CompiledFile::load(stream);
+    CompiledFile* cf = CompiledFile::load(state, stream);
     TS_ASSERT_EQUALS(cf->magic, std::string("!RBIX"));
     TS_ASSERT_EQUALS(cf->signature, 1ULL);
     TS_ASSERT_EQUALS(cf->version, 42);
@@ -41,7 +41,7 @@ public:
     std::istringstream stream;
     stream.str("!RBIX\n1\n42\nt");
 
-    CompiledFile* cf = CompiledFile::load(stream);
+    CompiledFile* cf = CompiledFile::load(state, stream);
     TS_ASSERT_EQUALS(cf->body(state), cTrue);
   }
 
@@ -49,7 +49,7 @@ public:
     std::fstream stream("machine/test/fixture.rbc_");
     TS_ASSERT(!!stream);
 
-    CompiledFile* cf = CompiledFile::load(stream);
+    CompiledFile* cf = CompiledFile::load(state, stream);
     TS_ASSERT_EQUALS(cf->magic, "!RBIX");
 
     CompiledCode* code = try_as<CompiledCode>(cf->body(state));

@@ -113,6 +113,9 @@ namespace rubinius {
   }
 
   MachineCode* CompiledCode::internalize(STATE) {
+    timer::StopWatch<timer::microseconds> timer(
+        state->vm()->metrics().machine.bytecode_internalizer_us);
+
     MachineCode* mcode = machine_code();
 
     atomic::memory_barrier();

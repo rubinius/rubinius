@@ -167,6 +167,9 @@ namespace rubinius {
       metric backtrace_us;
       metric methods_invoked;
       metric blocks_invoked;
+      metric bytecode_load_us;
+      metric bytecode_verifier_us;
+      metric bytecode_internalizer_us;
 
       MachineMetrics() {
         checkpoints = 0;
@@ -176,6 +179,9 @@ namespace rubinius {
         backtrace_us = 0;
         methods_invoked = 0;
         blocks_invoked = 0;
+        bytecode_load_us = 0;
+        bytecode_verifier_us = 0;
+        bytecode_internalizer_us = 0;
       }
 
       void add(MachineMetrics& data) {
@@ -186,6 +192,9 @@ namespace rubinius {
         backtrace_us += data.backtrace_us;
         methods_invoked += data.methods_invoked;
         blocks_invoked += data.blocks_invoked;
+        bytecode_load_us += data.bytecode_load_us;
+        bytecode_verifier_us += data.bytecode_verifier_us;
+        bytecode_internalizer_us += data.bytecode_internalizer_us;
       }
     };
 

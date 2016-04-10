@@ -5,12 +5,15 @@
 #include "on_stack.hpp"
 #include "ontology.hpp"
 #include "marshal.hpp"
+#include "metrics.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/code_db.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/string.hpp"
+
+#include "instruments/timing.hpp"
 
 #include "util/thread.hpp"
 
@@ -147,6 +150,9 @@ namespace rubinius {
 
   CompiledCode* CodeDB::load(STATE, const char* m_id) {
     MutexLockUnmanaged guard(state, state->shared().codedb_lock());
+
+    timer::StopWatch<timer::microseconds> timer(
+        state->vm()->metrics().codedb.load_us);
 
     CodeDBMap::const_iterator index = codedb_index.find(std::string(m_id));
 

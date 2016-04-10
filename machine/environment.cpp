@@ -528,7 +528,7 @@ namespace rubinius {
       throw std::runtime_error(msg);
     }
 
-    CompiledFile* cf = CompiledFile::load(stream);
+    CompiledFile* cf = CompiledFile::load(state, stream);
     if(cf->magic != "!RBIX") {
       std::ostringstream msg;
       msg << "attempted to open a bytecode file with invalid magic identifier"
