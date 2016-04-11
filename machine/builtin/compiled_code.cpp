@@ -116,43 +116,37 @@ namespace rubinius {
     timer::StopWatch<timer::microseconds> timer(
         state->vm()->metrics().machine.bytecode_internalizer_us);
 
-    MachineCode* mcode = machine_code();
-
     atomic::memory_barrier();
+
+    MachineCode* mcode = machine_code();
 
     if(mcode) return mcode;
 
-    CompiledCode* self = this;
-    OnStack<1> os(state, self);
-
-    self->hard_lock(state);
-
-    mcode = self->machine_code();
-    if(!mcode) {
-      {
-        BytecodeVerifier bytecode_verifier(self);
-        bytecode_verifier.verify(state);
-      }
-
-      mcode = new MachineCode(state, self);
-
-      if(self->resolve_primitive(state)) {
-        mcode->fallback = execute;
-      } else {
-        mcode->setup_argument_handler();
-      }
-
-      // We need to have an explicit memory barrier here, because we need to
-      // be sure that mcode is completely initialized before it's set.
-      // Otherwise another thread might see a partially initialized
-      // MachineCode.
-      atomic::write(&self->_machine_code_, mcode);
-
-      set_executor(mcode->fallback);
+    {
+      BytecodeVerifier bytecode_verifier(this);
+      bytecode_verifier.verify(state);
     }
 
-    self->hard_unlock(state);
-    return mcode;
+    mcode = new MachineCode(state, this);
+
+    if(resolve_primitive(state)) {
+      mcode->fallback = execute;
+    } else {
+      mcode->setup_argument_handler();
+    }
+
+    /* There is a race here because another Thread may have run this
+     * CompiledCode instance and internalized it. We attempt to store our
+     * version assuming that we are the only ones to do so and throw away our
+     * work if someone else has beat us to it.
+     */
+    MachineCode** mcode_ptr = &_machine_code_;
+    if(atomic::compare_and_swap(reinterpret_cast<void**>(mcode_ptr), 0, mcode)) {
+      set_executor(mcode->fallback);
+      return mcode;
+    } else {
+      return machine_code();
+    }
   }
 
   Object* CompiledCode::primitive_failed(STATE,
@@ -192,12 +186,8 @@ namespace rubinius {
                           Executable* exec, Module* mod, Arguments& args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
+
     if(code->execute == default_executor) {
-      OnStack<5> os(state, code, exec, mod, args.recv_location(), args.block_location());
-
-      memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
-                             &args.arguments_location(), args.total());
-
       if(!code->internalize(state)) return 0;
     }
 
