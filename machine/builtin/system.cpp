@@ -418,7 +418,12 @@ namespace rubinius {
   Object* System::vm_spawn(STATE, Object* spawn_state, String* path,
                            Array* args)
   {
-    OnStack<1> os(state, spawn_state);
+    /* TODO: The spawn_state reference is reachable and the GC is not moving
+     * objects right now and there are sporadic failures in the spawn specs
+     * related to corruption of the structure used by OnStack, so this is
+     * temporarily disabled.
+     * OnStack<1> os(state, spawn_state);
+     */
 
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
