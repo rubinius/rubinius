@@ -147,12 +147,6 @@ namespace rubinius {
       return call_count - loop_count;
     }
 
-    void remove_reference(int ip) {
-      for(int i = 0; i < references_count(); i++) {
-        if(references()[i] == ip) references()[i] = 0;
-      }
-    }
-
     CallSite* call_site(STATE, int ip);
     ConstantCache* constant_cache(STATE, int ip);
 

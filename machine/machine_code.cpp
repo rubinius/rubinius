@@ -158,12 +158,10 @@ namespace rubinius {
 
       switch(op) {
       case InstructionSequence::insn_create_block:
-      case InstructionSequence::insn_push_memo:
       case InstructionSequence::insn_push_literal:
-      case InstructionSequence::insn_set_ivar:
-      case InstructionSequence::insn_push_ivar:
-      case InstructionSequence::insn_set_const:
-      case InstructionSequence::insn_set_const_at:
+      case InstructionSequence::insn_push_memo:
+      case InstructionSequence::insn_check_serial:
+      case InstructionSequence::insn_check_serial_private:
       case InstructionSequence::insn_send_super_stack_with_block:
       case InstructionSequence::insn_send_super_stack_with_splat:
       case InstructionSequence::insn_zsuper:
@@ -173,8 +171,6 @@ namespace rubinius {
       case InstructionSequence::insn_send_stack_with_block:
       case InstructionSequence::insn_send_stack_with_splat:
       case InstructionSequence::insn_object_to_s:
-      case InstructionSequence::insn_check_serial:
-      case InstructionSequence::insn_check_serial_private:
       case InstructionSequence::insn_push_const:
       case InstructionSequence::insn_find_const:
         rcount++;
@@ -218,8 +214,6 @@ namespace rubinius {
       case InstructionSequence::insn_push_ivar:
       case InstructionSequence::insn_set_const:
       case InstructionSequence::insn_set_const_at: {
-        references()[rindex++] = ip + 1;
-
         Symbol* sym = as<Symbol>(lits->at(opcodes[ip + 1]));
         opcodes[ip + 1] = reinterpret_cast<opcode>(sym);
         break;
@@ -670,7 +664,6 @@ namespace rubinius {
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_push_my_offset;
           opcodes[i + 1] = ti->slot_locations[it->second];
-          remove_reference(i + 1);
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
@@ -679,7 +672,6 @@ namespace rubinius {
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_store_my_field;
           opcodes[i + 1] = it->second;
-          remove_reference(i + 1);
         }
       }
 
