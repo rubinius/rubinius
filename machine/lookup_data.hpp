@@ -10,11 +10,17 @@ namespace rubinius {
     Module* from;
     Symbol* min_visibility;
 
+    LookupData()
+      : recv(NULL)
+      , from(NULL)
+      , min_visibility(NULL)
+    { }
+
     LookupData(Object* recv, Module* mod, Symbol* min_vis)
       : recv(recv)
       , from(mod)
       , min_visibility(min_vis)
-    {}
+    { }
   };
 }
 

@@ -121,15 +121,16 @@ namespace Float {
 namespace HeaderWord {
   const static int flags64 = 0;
 }
-namespace InlineCacheEntry {
+namespace InlineCache {
   const static int header = 0;
-  const static int stored_module = 1;
-  const static int receiver_class = 2;
-  const static int method = 3;
-  const static int receiver_class_id = 4;
-  const static int receiver_serial_id = 5;
-  const static int method_missing = 6;
-  const static int hits = 7;
+  const static int receiver_class = 1;
+  const static int stored_module = 2;
+  const static int executable = 3;
+  const static int next = 4;
+  const static int receiver_class_id = 5;
+  const static int receiver_serial_id = 6;
+  const static int method_missing = 7;
+  const static int hits = 8;
 }
 namespace Module {
   const static int header = 0;
@@ -141,16 +142,6 @@ namespace Module {
   const static int seen_ivars = 6;
   const static int mirror = 7;
   const static int subclasses = 8;
-}
-namespace MonoInlineCache {
-  const static int header = 0;
-  const static int receiver_class_id = 1;
-  const static int receiver_serial_id = 2;
-  const static int receiver_class = 3;
-  const static int stored_module = 4;
-  const static int method = 5;
-  const static int method_missing = 6;
-  const static int hits = 7;
 }
 namespace Numeric {
   const static int header = 0;
@@ -167,11 +158,6 @@ namespace ObjectHeader {
   const static int klass = 1;
   const static int ivars = 2;
   const static int body = 3;
-}
-namespace PolyInlineCache {
-  const static int header = 0;
-  const static int entries = 1;
-  const static int seen_classes_overflow = 2;
 }
 namespace Proc {
   const static int block = 0;

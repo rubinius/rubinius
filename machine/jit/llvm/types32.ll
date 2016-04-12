@@ -70,45 +70,24 @@ declare void @outputDispatch(%"struct.rubinius::Dispatch"*)
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::Arguments"*)*, ; executor
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::Arguments"*)*, ; fallback
   void (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::Class"*, %"struct.rubinius::Dispatch"*)*, ; updater
-  %"struct.rubinius::Executable"*, ; executable
-                              i32  ; ip
+  %"struct.rubinius::Executable"* ; executable
 }
 
 declare void @outputCallSite(%"struct.rubinius::CallSite"*)
 
-%"struct.rubinius::MonoInlineCache" = type {
-    %"struct.rubinius::CallSite",  ; header
-                              i32, ; receiver_class_id
-                              i32, ; receiver_serial_id
+%"struct.rubinius::InlineCache" = type {
+       %"struct.rubinius::Object", ; header
        %"struct.rubinius::Class"*, ; receiver_class
       %"struct.rubinius::Module"*, ; stored_module
-  %"struct.rubinius::Executable"*, ; method
+  %"struct.rubinius::Executable"*, ; executable
+      %"struct.rubinius::Object"*, ; next
+                              i32, ; receiver_class_id
+                              i32, ; receiver_serial_id
                               i32, ; method_missing
                               i32  ; hits
 }
 
-declare void @outputMonoInlineCache(%"struct.rubinius::MonoInlineCache"*)
-
-%"struct.rubinius::PolyInlineCache" = type {
-             %"struct.rubinius::CallSite",  ; header
-  [3 x %"struct.rubinius::InlineCacheEntry"*], ; entries
-                                       i32  ; seen_classes_overflow
-}
-
-declare void @outputPolyInlineCache(%"struct.rubinius::PolyInlineCache"*)
-
-%"struct.rubinius::InlineCacheEntry" = type {
-   %"struct.rubinius::Object", ; header
-  %"struct.rubinius::Module"*, ; stored_module
-   %"struct.rubinius::Class"*, ; receiver_class
-  %"struct.rubinius::Executable"*, ; method
-                          i32, ; receiver_class_id
-                          i32, ; receiver_serial_id
-                          i32, ; method_missing
-                          i32  ; hits
-}
-
-declare void @outputInlineCacheEntry(%"struct.rubinius::InlineCacheEntry"*)
+declare void @outputInlineCache(%"struct.rubinius::InlineCache"*)
 
 %"struct.rubinius::ConstantCache" = type {
                %"struct.rubinius::Object", ; header

@@ -13,6 +13,7 @@
 #include "builtin/basic_object.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/byte_array.hpp"
+#include "builtin/call_site.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/code_db.hpp"
@@ -52,9 +53,6 @@
 #include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
-#include "builtin/mono_inline_cache.hpp"
-#include "builtin/poly_inline_cache.hpp"
-#include "builtin/respond_to_cache.hpp"
 #include "builtin/constant_cache.hpp"
 #include "builtin/weakref.hpp"
 #include "builtin/fiber.hpp"
@@ -256,10 +254,7 @@ namespace rubinius {
     NativeMethod::bootstrap(state);
 
     CallSite::bootstrap(state);
-    MonoInlineCache::bootstrap(state);
-    PolyInlineCache::bootstrap(state);
     ConstantCache::bootstrap(state);
-    RespondToCache::bootstrap(state);
     Fiber::bootstrap(state);
     Alias::bootstrap(state);
     Randomizer::bootstrap(state);

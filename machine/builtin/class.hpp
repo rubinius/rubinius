@@ -23,6 +23,14 @@ namespace rubinius {
   union ClassData {
     struct ClassFlags f;
     uint64_t raw;
+
+    uint32_t class_id() const {
+      return f.class_id;
+    }
+
+    uint32_t serial_id() const {
+      return f.serial_id;
+    }
   };
 
   class Class : public Module {

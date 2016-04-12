@@ -10,6 +10,7 @@ namespace rubinius {
   class Class;
   class Array;
   class CompiledCode;
+  class Arguments;
 
   class Exception : public Object {
   public:
@@ -47,6 +48,7 @@ namespace rubinius {
     static Exception* make_argument_error(STATE, int expected, int given, Symbol* name=0);
     static Exception* make_encoding_compatibility_error(STATE, Object* a, Object* b);
     static Exception* make_frozen_exception(STATE, Object* obj);
+    static Exception* make_no_method_error(STATE, Arguments& args);
 
     NORETURN(static void raise_argument_error(STATE, int expected, int given));
     NORETURN(static void raise_argument_error(STATE, const char* reason));
@@ -74,6 +76,7 @@ namespace rubinius {
     NORETURN(static void raise_fiber_error(STATE, const char* reason));
     NORETURN(static void raise_memory_error(STATE));
     NORETURN(static void raise_frozen_error(STATE, Object* obj));
+    NORETURN(static void raise_no_method_error(STATE, Arguments& args));
     NORETURN(static void raise_encoding_compatibility_error(STATE, Object* a, Object* b));
     NORETURN(static void raise_not_implemented_error(STATE, const char* feature));
     NORETURN(static void raise_errno_wait_readable(STATE, int error));
@@ -125,6 +128,7 @@ namespace rubinius {
     static Class* get_runtime_error(STATE);
     static Class* get_encoding_compatibility_error(STATE);
     static Class* get_not_implemented_error(STATE);
+    static Class* get_no_method_error(STATE);
 
     class Info : public TypeInfo {
     public:

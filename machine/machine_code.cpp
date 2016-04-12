@@ -248,7 +248,7 @@ namespace rubinius {
         Symbol* name = try_as<Symbol>(lits->at(opcodes[ip + 1]));
         if(!name) name = nil<Symbol>();
 
-        CallSite* call_site = CallSite::empty(state, name, original, ip);
+        CallSite* call_site = CallSite::create(state, name, ip);
 
         if(op == InstructionSequence::insn_send_vcall) {
           allow_private = true;
