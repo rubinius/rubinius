@@ -1943,12 +1943,6 @@ instruction zsuper(literal) [ block -- value ]
     }
   }
 
-  native_int keywords_position, placeholder_position;
-  if(mc->keywords) {
-    placeholder_position = splat_obj ? mc->total_args : mc->total_args - 1;
-    keywords_position = placeholder_position + 1;
-  }
-
   Tuple* tup = Tuple::create(state, arg_count);
   for(int i = 0; i < mc->total_args; i++) {
     tup->put(state, i, scope->get_local(state, i));
@@ -1963,6 +1957,9 @@ instruction zsuper(literal) [ block -- value ]
   }
 
   if(mc->keywords) {
+    native_int placeholder_position = splat_obj ? mc->total_args : mc->total_args - 1;
+    native_int keywords_position = placeholder_position + 1;
+
     Object* placeholder = scope->get_local(state, placeholder_position);
     Array* ary = Array::create(state, 2);
 
