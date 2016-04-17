@@ -29,6 +29,8 @@ namespace rubinius {
     cache->method_missing(dis.method_missing);
     cache->hits(hits);
 
+    state->vm()->metrics().machine.inline_cache_count++;
+
     return cache;
   }
 
@@ -102,10 +104,13 @@ namespace rubinius {
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
       entry->hit();
+      state->vm()->metrics().machine.inline_cache_hits++;
       state->vm()->metrics().machine.methods_invoked++;
 
       return meth->execute(state, meth, mod, args);
     }
+
+    state->vm()->metrics().machine.inline_cache_misses++;
 
     return cache->fallback(state, args);
   }
@@ -126,10 +131,13 @@ namespace rubinius {
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
       entry->hit();
+      state->vm()->metrics().machine.inline_cache_hits++;
       state->vm()->metrics().machine.methods_invoked++;
 
       return meth->execute(state, meth, mod, args);
     }
+
+    state->vm()->metrics().machine.inline_cache_misses++;
 
     return cache->fallback(state, args);
   }

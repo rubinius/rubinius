@@ -162,11 +162,18 @@ namespace rubinius {
     struct MachineMetrics {
       metric checkpoints;
       metric stops;
-      metric inline_cache_resets;
-      metric backtraces;
-      metric backtrace_us;
+      metric global_cache_count;
+      metric global_cache_hits;
+      metric global_cache_misses;
+      metric call_site_count;
+      metric inline_cache_count;
+      metric inline_cache_hits;
+      metric inline_cache_misses;
+      metric cache_resets;
       metric methods_invoked;
       metric blocks_invoked;
+      metric backtraces;
+      metric backtrace_us;
       metric bytecode_load_us;
       metric bytecode_verifier_us;
       metric bytecode_internalizer_us;
@@ -174,11 +181,18 @@ namespace rubinius {
       MachineMetrics() {
         checkpoints = 0;
         stops = 0;
-        inline_cache_resets = 0;
-        backtraces = 0;
-        backtrace_us = 0;
+        global_cache_count = 0;
+        global_cache_hits = 0;
+        global_cache_misses = 0;
+        call_site_count = 0;
+        inline_cache_count = 0;
+        inline_cache_hits = 0;
+        inline_cache_misses = 0;
+        cache_resets = 0;
         methods_invoked = 0;
         blocks_invoked = 0;
+        backtraces = 0;
+        backtrace_us = 0;
         bytecode_load_us = 0;
         bytecode_verifier_us = 0;
         bytecode_internalizer_us = 0;
@@ -187,11 +201,18 @@ namespace rubinius {
       void add(MachineMetrics& data) {
         checkpoints += data.checkpoints;
         stops += data.stops;
-        inline_cache_resets += data.inline_cache_resets;
-        backtraces += data.backtraces;
-        backtrace_us += data.backtrace_us;
+        call_site_count += data.call_site_count;
+        global_cache_count += data.global_cache_count;
+        global_cache_hits += data.global_cache_hits;
+        global_cache_misses += data.global_cache_misses;
+        inline_cache_count += data.inline_cache_count;
+        inline_cache_hits += data.inline_cache_hits;
+        inline_cache_misses += data.inline_cache_misses;
+        cache_resets += data.cache_resets;
         methods_invoked += data.methods_invoked;
         blocks_invoked += data.blocks_invoked;
+        backtraces += data.backtraces;
+        backtrace_us += data.backtrace_us;
         bytecode_load_us += data.bytecode_load_us;
         bytecode_verifier_us += data.bytecode_verifier_us;
         bytecode_internalizer_us += data.bytecode_internalizer_us;

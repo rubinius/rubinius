@@ -29,6 +29,8 @@ namespace rubinius {
     cache->executable(state, executable);
     cache->ip(ip);
 
+    state->vm()->metrics().machine.call_site_count++;
+
     return cache;
   }
 

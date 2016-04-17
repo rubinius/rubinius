@@ -353,15 +353,31 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "machine.checkpoints", metrics_data_.machine.checkpoints));
       metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.resets", metrics_data_.machine.inline_cache_resets));
+            "machine.stops", metrics_data_.machine.stops));
       metrics_map_.push_back(new MetricsItem(
-            "machine.backtraces", metrics_data_.machine.backtraces));
+            "machine.global_cache.count", metrics_data_.machine.global_cache_count));
       metrics_map_.push_back(new MetricsItem(
-            "machine.backtrace.us", metrics_data_.machine.backtrace_us));
+            "machine.global_cache.hits", metrics_data_.machine.global_cache_hits));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.global_cache.misses", metrics_data_.machine.global_cache_misses));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.call_site.count", metrics_data_.machine.call_site_count));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.count", metrics_data_.machine.inline_cache_count));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.hits", metrics_data_.machine.inline_cache_hits));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.misses", metrics_data_.machine.inline_cache_misses));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.cache.resets", metrics_data_.machine.cache_resets));
       metrics_map_.push_back(new MetricsItem(
             "machine.methods.invoked", metrics_data_.machine.methods_invoked));
       metrics_map_.push_back(new MetricsItem(
             "machine.blocks.invoked", metrics_data_.machine.blocks_invoked));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.backtraces", metrics_data_.machine.backtraces));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.backtrace.us", metrics_data_.machine.backtrace_us));
       metrics_map_.push_back(new MetricsItem(
             "machine.bytecode.load.us", metrics_data_.machine.bytecode_load_us));
       metrics_map_.push_back(new MetricsItem(

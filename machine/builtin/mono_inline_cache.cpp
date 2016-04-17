@@ -58,6 +58,8 @@ namespace rubinius {
     cache->method_missing(dis.method_missing);
     cache->hits(1);
 
+    state->vm()->metrics().machine.inline_cache_count++;
+
     return cache;
   }
 
@@ -71,9 +73,12 @@ namespace rubinius {
 
     if(likely(cache->receiver_data().raw == recv_data)) {
       cache->hit();
+      state->vm()->metrics().machine.inline_cache_hits++;
       state->vm()->metrics().machine.methods_invoked++;
       return cache->method()->execute(state, cache->method(), cache->stored_module(), args);
     }
+
+    state->vm()->metrics().machine.inline_cache_misses++;
 
     return call_site->fallback(state, args);
   }
@@ -88,11 +93,14 @@ namespace rubinius {
 
     if(likely(cache->receiver_data().raw == recv_data)) {
       cache->hit();
+      state->vm()->metrics().machine.inline_cache_hits++;
       state->vm()->metrics().machine.methods_invoked++;
       state->vm()->set_method_missing_reason(cache->method_missing());
       args.unshift(state, call_site->name());
       return cache->method()->execute(state, cache->method(), cache->stored_module(), args);
     }
+
+    state->vm()->metrics().machine.inline_cache_misses++;
 
     return call_site->fallback(state, args);
   }
