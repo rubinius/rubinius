@@ -101,6 +101,19 @@ namespace rubinius {
     RubyException::raise(exc);
   }
 
+  Exception* Exception::make_no_method_error(STATE, Arguments& args) {
+    std::ostringstream msg;
+    msg << "undefined method `" << args.name()->cpp_str(state)
+      << "' for " << args.recv()->to_s(state)->c_str(state);
+
+    return Exception::make_exception(state,
+        get_no_method_error(state), msg.str().c_str());
+  }
+
+  void Exception::raise_no_method_error(STATE, Arguments& args) {
+    RubyException::raise(Exception::make_no_method_error(state, args), true);
+  }
+
   Exception* Exception::make_frozen_exception(STATE, Object* obj) {
     std::ostringstream msg;
     msg << "can't modify frozen instance of ";
@@ -470,6 +483,10 @@ namespace rubinius {
 
   Class* Exception::get_not_implemented_error(STATE) {
     return as<Class>(G(object)->get_const(state, "NotImplementedError"));
+  }
+
+  Class* Exception::get_no_method_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "NoMethodError"));
   }
 
   Class* Exception::get_errno_error(STATE, Fixnum* ern) {

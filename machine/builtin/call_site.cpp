@@ -1,7 +1,4 @@
-#include "arguments.hpp"
 #include "call_frame.hpp"
-#include "global_cache.hpp"
-#include "lookup_data.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
 
@@ -9,254 +6,125 @@
 #include "builtin/call_site.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/mono_inline_cache.hpp"
 #include "builtin/object.hpp"
-#include "builtin/poly_inline_cache.hpp"
 
+#include <stdlib.h>
 #include <sstream>
 
 namespace rubinius {
+  int CallSite::max_caches = 0;
+  CallSite::Executor CallSite::default_execute = CallSite::lookup_invoke_cache;
 
   void CallSite::bootstrap(STATE) {
     GO(call_site).set(state->memory()->new_class<Class, CallSite>(
           state, G(rubinius), "CallSite"));
-  }
 
-  CallSite* CallSite::empty(STATE, Symbol* name, Executable* executable, int ip) {
-    CallSite* cache = state->memory()->new_object<CallSite>(state, G(call_site));
-
-    cache->name(name);
-    cache->executable(state, executable);
-    cache->ip(ip);
-
-    state->vm()->metrics().machine.call_site_count++;
-
-    return cache;
-  }
-
-  Integer* CallSite::ip_prim(STATE) {
-    return Integer::from(state, ip());
-  }
-
-  Object* CallSite::empty_cache(STATE, CallSite* call_site, Arguments& args) {
-    Object* const self = state->vm()->call_frame()->self();
-    Object* const recv = args.recv();
-    Class*  const recv_class  = recv->direct_class(state);
-
-    LookupData lookup(self, recv->lookup_begin(state), G(sym_public));
-    Dispatch dispatch(call_site->name());
-
-    if(!dispatch.resolve(state, call_site->name(), lookup)) {
-      if(!lookup_method_missing(state, args,
-          dispatch, self, recv->lookup_begin(state))) {
-        return NULL;
-      }
-    }
-
-    state->vm()->metrics().machine.methods_invoked++;
-
-    call_site->update(state, recv_class, dispatch);
-
-    Executable* meth = dispatch.method;
-    Module* mod = dispatch.module;
-
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
+    if(state->shared().config.machine_call_site_cache.value) {
+      default_execute = lookup_invoke_cache;
     } else {
-      return meth->execute(state, meth, mod, args);
-    }
-  }
-
-  Object* CallSite::empty_cache_private(STATE, CallSite* call_site,
-                                   Arguments& args)
-  {
-    Object* const self = state->vm()->call_frame()->self();
-    Object* const recv = args.recv();
-    Class* const recv_class = recv->direct_class(state);
-
-    LookupData lookup(self, recv->lookup_begin(state), G(sym_private));
-    Dispatch dispatch(call_site->name());
-
-    if(!dispatch.resolve(state, dispatch.name, lookup)) {
-      if(!lookup_method_missing(state, args,
-          dispatch, self, recv->lookup_begin(state))) {
-        return NULL;
-      }
+      default_execute = dispatch;
     }
 
-    state->vm()->metrics().machine.methods_invoked++;
-
-    call_site->update(state, recv_class, dispatch);
-
-    Executable* meth = dispatch.method;
-    Module* mod = dispatch.module;
-
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
-    } else {
-      return meth->execute(state, meth, mod, args);
-    }
-  }
-
-  Object* CallSite::empty_cache_vcall(STATE, CallSite* call_site, Arguments& args) {
-    Object* const self = state->vm()->call_frame()->self();
-    Object* const recv = args.recv();
-    Class* const recv_class = recv->direct_class(state);
-
-    LookupData lookup(self, recv->lookup_begin(state), G(sym_private));
-    Dispatch dispatch(call_site->name());
-
-    if(!dispatch.resolve(state, call_site->name(), lookup)) {
-      dispatch.method_missing = eVCall;
-      if(!lookup_method_missing(state, args,
-          dispatch, self, recv->lookup_begin(state))) {
-        return NULL;
-      }
-    }
-
-    state->vm()->metrics().machine.methods_invoked++;
-
-    call_site->update(state, recv_class, dispatch);
-
-    Executable* meth = dispatch.method;
-    Module* mod = dispatch.module;
-
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
-    } else {
-      return meth->execute(state, meth, mod, args);
-    }
-  }
-
-  Object* CallSite::empty_cache_super(STATE, CallSite* call_site,
-                                   Arguments& args)
-  {
-    CallFrame* call_frame = state->vm()->call_frame();
-
-    Symbol* original_name = call_frame->original_name();
-    if(call_site->name() != original_name) {
-      call_site->name(original_name);
-      args.set_name(call_site->name());
-    }
-
-    Object* const recv = args.recv();
-    Class* const recv_class = recv->direct_class(state);
-    Module* const start = call_frame->module()->superclass();
-
-    LookupData lookup(call_frame->self(), start, G(sym_private));
-    Dispatch dispatch(call_site->name());
-
-    if(start->nil_p() || !dispatch.resolve(state, call_site->name(), lookup)) {
-
-      LookupData missing_lookup(call_frame->self(),
-          recv->lookup_begin(state), G(sym_private));
-      Dispatch missing_dispatch(G(sym_method_missing));
-
-      if(!missing_dispatch.resolve(state, G(sym_method_missing), missing_lookup)) {
-        std::ostringstream msg;
-        msg << "no method_missing for ";
-        msg << recv_class->to_string(state);
-        msg << "#" << call_site->name()->to_string(state);
-
-        Exception::internal_error(state, msg.str().c_str());
-        return 0;
-      }
-
-      args.unshift(state, call_site->name());
-      dispatch.method = missing_dispatch.method;
-      dispatch.module = missing_dispatch.module;
-      dispatch.method_missing = eSuper;
-      state->vm()->set_method_missing_reason(dispatch.method_missing);
-      state->vm()->global_cache()->add_seen(state, call_site->name());
-    }
-
-    state->vm()->metrics().machine.methods_invoked++;
-
-    call_site->update(state, recv_class, dispatch);
-
-    Executable* meth = dispatch.method;
-    Module* mod = dispatch.module;
-
-    if(meth->custom_call_site_p()) {
-      CallSiteInformation info(call_site->executable(), call_site->ip());
-      state->set_call_site_information(&info);
-      Object* res = meth->execute(state, meth, mod, args);
-      state->set_call_site_information(NULL);
-      return res;
-    } else {
-      return meth->execute(state, meth, mod, args);
-    }
-  }
-
-  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
-    MonoInlineCache* cache = MonoInlineCache::create(state, call_site, klass, dispatch);
-    call_site->update_call_site(state, cache);
-  }
-
-  bool CallSite::update_and_validate(STATE, Object* recv, Symbol* vis, int serial) {
-    Class* const recv_class = recv->direct_class(state);
-
-    if(MonoInlineCache* mono = try_as<MonoInlineCache>(this)) {
-      if(recv_class->data_raw() == mono->receiver_data_raw()) {
-        return mono->method()->serial()->to_native() == serial;
-      }
-    }
-
-    if(PolyInlineCache* cache = try_as<PolyInlineCache>(this)) {
-      InlineCacheEntry* ice = cache->get_entry(recv_class);
-      if(likely(ice)) return ice->method()->serial()->to_native() == serial;
-    }
-
-    LookupData lookup(state->vm()->call_frame()->self(),
-        recv->lookup_begin(state), G(sym_public));
-    Dispatch dispatch(name());
-
-    if(dispatch.resolve(state, name(), lookup)) {
-      update(state, recv_class, dispatch);
-      return dispatch.method->serial()->to_native() == serial;
-    }
-    return false;
-  }
-
-  bool CallSite::lookup_method_missing(STATE,
-      Arguments& args, Dispatch& dispatch, Object* self, Module* begin)
-  {
-    LookupData missing_lookup(self, begin, G(sym_private));
-    Dispatch missing_dispatch(G(sym_method_missing));
-
-    if(!missing_dispatch.resolve(state, G(sym_method_missing), missing_lookup)) {
-      std::ostringstream msg;
-      msg << "no method_missing for ";
-      msg << begin->to_string(state);
-      msg << "#" << dispatch.name->to_string(state);
-
-      Exception::internal_error(state, msg.str().c_str());
-      return false;
-    }
-
-    args.unshift(state, dispatch.name);
-    dispatch.method = missing_dispatch.method;
-    dispatch.module = missing_dispatch.module;
-    state->vm()->set_method_missing_reason(dispatch.method_missing);
-    state->vm()->global_cache()->add_seen(state, dispatch.name);
-
-    return true;
+    max_caches = state->shared().config.machine_call_site_limit.value;
   }
 
   void CallSite::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
-  }
 
+    CallSite* call_site = as<CallSite>(obj);
+
+    if(!call_site->caches()) return;
+
+    // 1. Check if individual caches should be evicted.
+    bool evict_p[call_site->depth()];
+
+    for(int i = 0; i < call_site->depth(); i++) {
+      evict_p[i] = call_site->caches()->cache[i].inefficient_p();
+    }
+
+    int evict_count = 0;
+    for(int i = 0; i < call_site->depth(); i++) {
+      if(evict_p[i]) evict_count++;
+    }
+
+    if(evict_count) {
+      VM::current()->metrics().machine.inline_cache_evicted += evict_count;
+
+      int new_size = call_site->depth() - evict_count;
+
+      if(new_size == 0) {
+        call_site->depth(0);
+        delete[] call_site->caches();
+        call_site->caches(NULL);
+
+        call_site->execute(CallSite::default_execute);
+        call_site->cache_miss(CallSite::default_execute);
+
+        return;
+      }
+
+      for(int i = 0, j = 0; i < call_site->depth() && j < new_size; i++) {
+        if(!evict_p[i]) {
+          call_site->caches()->cache[j++] = call_site->caches()->cache[i];
+        }
+      }
+
+      call_site->caches()->depth(new_size);
+    }
+
+    // 2. Attempt to re-order the caches by bubbling most hit forward.
+    bool reorder_p = false;
+    int indexes[call_site->depth()];
+
+    for(int i = 0; i < call_site->depth(); i++) {
+      indexes[i] = i;
+    }
+
+    InlineCaches* caches = call_site->caches();
+
+    for(int i = 0; i < call_site->depth() - 1; i++) {
+      if(caches->cache[i].hits() < caches->cache[i + 1].hits()) {
+        int tmp = indexes[i];
+        indexes[i] = indexes[i + 1];
+        indexes[i + 1] = tmp;
+        reorder_p = true;
+
+        // TODO: pass State through the GC!
+        VM::current()->metrics().machine.inline_cache_reordered++;
+      }
+    }
+
+    if(reorder_p) {
+      InlineCache* inline_caches = static_cast<InlineCache*>(
+          alloca(sizeof(CallSite) * call_site->depth()));
+
+      for(int i = 0; i < call_site->depth(); i++) {
+        inline_caches[i] = caches->cache[i];
+      }
+
+      for(int i = 0; i < call_site->depth(); i++) {
+        caches->cache[i] = inline_caches[indexes[i]];
+      }
+    }
+
+    // 3. Mark remaining caches.
+    for(int i = 0; i < call_site->depth(); i++) {
+      InlineCache* cache = &caches->cache[i];
+
+      if(Object* ref = mark.call(cache->receiver_class())) {
+        cache->receiver_class(as<Class>(ref));
+        mark.just_set(call_site, ref);
+      }
+
+      if(Object* ref = mark.call(cache->stored_module())) {
+        cache->stored_module(as<Module>(ref));
+        mark.just_set(call_site, ref);
+      }
+
+      if(Object* ref = mark.call(cache->executable())) {
+        cache->executable(as<Executable>(ref));
+        mark.just_set(call_site, ref);
+      }
+    }
+  }
 }

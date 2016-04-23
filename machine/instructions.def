@@ -1807,7 +1807,7 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  stack_push(RBOOL(call_site->update_and_validate(state,
+  stack_push(RBOOL(call_site->valid_serial_p(state,
                     recv, G(sym_public), serial)));
 end
 
@@ -1821,7 +1821,7 @@ instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  stack_push(RBOOL(call_site->update_and_validate(state,
+  stack_push(RBOOL(call_site->valid_serial_p(state,
                     recv, G(sym_private), serial)));
 end
 

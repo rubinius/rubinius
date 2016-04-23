@@ -24,7 +24,6 @@
 #include "builtin/method_table.hpp"
 #include "builtin/object.hpp"
 #include "builtin/packed_object.hpp"
-#include "builtin/respond_to_cache.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
@@ -842,26 +841,7 @@ namespace rubinius {
     Object* self = this;
     OnStack<1> os(state, self);
 
-    Object* responds = respond_to(state, name, priv);
-
-    if(!responds) return NULL;
-
-    CompiledCode* code = NULL;
-    CallSiteInformation* info = state->vm()->saved_call_site_information();
-
-    if(info && (code = try_as<CompiledCode>(info->executable))) {
-      CallSite* existing = code->machine_code()->call_site(state, info->ip);
-      if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
-        existing = rct->fallback_call_site();
-      }
-      RespondToCache* cache = RespondToCache::create(state, existing,
-                                self, name, priv, responds, 1);
-      state->vm()->global_cache()->add_seen(state, name);
-      atomic::memory_barrier();
-      existing->update_call_site(state, cache);
-    }
-
-    return responds;
+    return respond_to(state, name, priv);
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {

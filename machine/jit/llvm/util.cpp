@@ -680,14 +680,12 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_check_serial(STATE, CallSite* call_site,
-                           int serial, Object* recv) {
-    return RBOOL(call_site->update_and_validate(state, recv, G(sym_public), serial));
+  Object* rbx_check_serial(STATE, CallSite* call_site, int serial, Object* recv) {
+    return RBOOL(call_site->valid_serial_p(state, recv, G(sym_public), serial));
   }
 
-  Object* rbx_check_serial_private(STATE, CallSite* call_site,
-                           int serial, Object* recv) {
-    return RBOOL(call_site->update_and_validate(state, recv, G(sym_private), serial));
+  Object* rbx_check_serial_private(STATE, CallSite* call_site, int serial, Object* recv) {
+    return RBOOL(call_site->valid_serial_p(state, recv, G(sym_private), serial));
   }
 
   Object* rbx_find_const(STATE, int index, Object* top) {
