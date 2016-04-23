@@ -32,4 +32,6 @@
 
 #define HAVE_RB_INTEGER_PACK               1
 
+#define HAVE_RB_BIG_PACK                   1
+
 #endif
