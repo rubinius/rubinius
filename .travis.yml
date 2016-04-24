@@ -16,7 +16,7 @@ before_install:
 - gem --version
 before_script:
 - travis_retry bundle
-- ./configure
+- "./configure"
 script: rake ci
 after_success:
 - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi
@@ -33,7 +33,7 @@ notifications:
     - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
   webhooks:
     urls:
-    - https://webhooks.gitter.im/e/9502afd22ca6c8e85fb3
+    - $GITTER_IM_URL
     on_success: always
     on_failure: always
     on_start: always
@@ -43,3 +43,4 @@ env:
   - secure: olbok/GN6rOYvPnHBYWGz7giCoCdLFpT/7WSBHukYO3E0uNeqAUOOgW2BFOwCVWdSEJ/iTvJXZQ4qVZHX+6jRfvILZeGv+D2P93VdD8UFQRoTOfFC7esAo525s9fuKm9ehUGWZxlzGOBHHckky1jn6pEf8mlXAVM5e76dlH0fck=
   - secure: aqG9eB/PrzQ7XJQN6YX/00sNVvwSB77saxXQzguL2WFjAXB74h6168Hzq+awHtNX/vfOb6ta7fpWLHrA0D+gmZnvTR29VlP6nd0vs1tkdX1/jWbiBHjamRffp+NWVdKbJKYn5iLOGXcuUMOzY/opLKOdvxKZfkxGMxR2tTNLZUE=
   - secure: eElvNLjuFZAuixJdgom4Kv8RDziE4ArFcSEwYctvprMe/414CAaJcFkjQKg0RrJzAxZ51oGjdcZhEfmjNXcUU1gA5l++IdnlQm0x4kt8r7aql+q2geHzrrjhhwPujT9a8JNtXs6dHnbi+quNlxyVItWzeGJsjyhJzH8hxiFhCYI=
+  - secure: juOX73WNoPzcUm3wxcsEzT9/9wbp8RJT6q9iaox8L/BCTu0EGxuB0zRXmTRk42MsfIiamco/e5H07l66MxArU4fQq3F/gd4fkhmoiL7hS6VqPW4dossM3gqCbKNI01a4JkLo9F06Pe8g2U7w84uWADbTb1euq/shGAaA37obwQs=
