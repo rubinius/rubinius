@@ -33,7 +33,7 @@ notifications:
     - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
   webhooks:
     urls:
-    - https://webhooks.gitter.im/e/9502afd22ca6c8e85fb3
+    - $GITTER_IM_URL
     on_success: always
     on_failure: always
     on_start: always
