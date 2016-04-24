@@ -3,6 +3,11 @@ def git_directory
   File.directory?(git_dir) && git_dir
 end
 
+def in_git?
+  git_dir = File.expand_path "../../.git", __FILE__
+  File.exist?(git_dir) && git_dir
+end
+
 def revision_file
   File.expand_path "../../.revision", __FILE__
 end
