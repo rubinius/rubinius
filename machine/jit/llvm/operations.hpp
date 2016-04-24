@@ -1350,7 +1350,7 @@ namespace rubinius {
        * should be the default fixnum mask for a positive number
        */
       Value* fix_mask = ConstantInt::get(ctx_->IntPtrTy,
-                        (1UL << (FIXNUM_WIDTH + 1)) | TAG_FIXNUM_MASK);
+                        (1UL << (FIXNUM_MAX_WIDTH + 1)) | TAG_FIXNUM_MASK);
       Value* fix_tag  = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
@@ -1378,7 +1378,7 @@ namespace rubinius {
        * should be the default fixnum mask for a positive number
        */
       Value* fix_mask = ConstantInt::get(ctx_->IntPtrTy,
-                        (1UL << (FIXNUM_WIDTH + 1)) | TAG_FIXNUM_MASK);
+                        (1UL << (FIXNUM_MAX_WIDTH + 1)) | TAG_FIXNUM_MASK);
       Value* fix_tag  = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);

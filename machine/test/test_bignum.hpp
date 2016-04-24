@@ -633,60 +633,109 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     check_float(f, Float::create(state, -880872.999999925));
   }
 
-  void test_left_shift() {
+  void test_positive_left_shift_positive() {
     Bignum* one = Bignum::from(state, 1);
-    Bignum* neg_one = Bignum::from(state, -1);
 
-    Fixnum* width_minus1 = Fixnum::from(FIXNUM_WIDTH-1);
-    Fixnum* width = Fixnum::from(FIXNUM_WIDTH);
-
-    Integer* fix = one->left_shift(state, width_minus1);
+    Fixnum* max_width = Fixnum::from(FIXNUM_MAX_WIDTH);
+    Integer* fix = one->left_shift(state, max_width);
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(1L << (FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(1L << (FIXNUM_MAX_WIDTH), fix->to_native());
 
-    fix = neg_one->left_shift(state, width_minus1);
-
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS((0UL - 1L) << (FIXNUM_WIDTH-1), fix->to_native());
-
-    Integer* max_plus1 = one->left_shift(state, width);
+    Integer* max_plus1 = one->left_shift(state, max_width+1);
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
     TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
-
-    Integer* min_minus1 = neg_one->left_shift(state, width);
-
-    TS_ASSERT(kind_of<Bignum>(min_minus1));
-    TS_ASSERT_EQUALS(FIXNUM_MIN - 1, min_minus1->to_native());
   }
 
-  void test_right_shift() {
-    Bignum* one = Bignum::from(state, 1);
+  void test_positive_left_shift_negative() {
+    Bignum* max_plus1 = Bignum::from(state, FIXNUM_MAX+1);
+    Fixnum* neg_one = Fixnum::from(-1);
+
+    Integer* val = max_plus1->left_shift(state, neg_one);
+
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(1L << (FIXNUM_MAX_WIDTH), val->to_native());
+  }
+
+  void test_negative_left_shift_positive() {
     Bignum* neg_one = Bignum::from(state, -1);
+    Fixnum* min_width = Fixnum::from(FIXNUM_MIN_WIDTH);
 
-    Fixnum* neg_width_minus1 = Fixnum::from(-(FIXNUM_WIDTH-1));
-    Fixnum* neg_width = Fixnum::from(-FIXNUM_WIDTH);
+    Integer* val = neg_one->left_shift(state, min_width);
 
-    Integer* fix = one->right_shift(state, neg_width_minus1);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS((0UL - 1L) << (FIXNUM_MIN_WIDTH), val->to_native());
 
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(1L << (FIXNUM_WIDTH-1), fix->to_native());
+    val = neg_one->left_shift(state, min_width+1);
 
-    fix = neg_one->right_shift(state, neg_width_minus1);
+    TS_ASSERT(kind_of<Bignum>(val));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, val->to_native());
+  }
 
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS((0UL - 1L) << (FIXNUM_WIDTH-1), fix->to_native());
+  void test_negative_left_shift_negative() {
+    Fixnum* neg_one = Fixnum::from(-1);
+    Bignum* min_minus1 = Bignum::from(state, FIXNUM_MIN-1);
 
-    Integer* max_plus1 = one->right_shift(state, neg_width);
+    Integer* val = min_minus1->left_shift(state, neg_one);
 
-    TS_ASSERT(kind_of<Bignum>(max_plus1));
-    TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS((0UL - 1L) << (FIXNUM_MIN_WIDTH), val->to_native());
+  }
 
-    Integer* min_minus1 = neg_one->right_shift(state, neg_width);
+  void test_positive_right_shift_positive() {
+    Fixnum* one = Fixnum::from(1);
 
-    TS_ASSERT(kind_of<Bignum>(min_minus1));
-    TS_ASSERT_EQUALS(FIXNUM_MIN - 1, min_minus1->to_native());
+    Bignum* max_plus1 = Bignum::from(state, FIXNUM_MAX+1);
+    Integer* val = max_plus1->right_shift(state, one);
+
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(1L << (FIXNUM_MAX_WIDTH), val->to_native());
+  }
+
+  void test_positive_right_shift_negative() {
+    Fixnum* neg_one = Fixnum::from(-1);
+
+    Bignum* big = Bignum::from(state, 1L << FIXNUM_MAX_WIDTH);
+    Integer* val = big->right_shift(state, neg_one);
+
+    TS_ASSERT(kind_of<Bignum>(val));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, val->to_native());
+
+    Bignum* one = Bignum::from(state, 1);
+    Fixnum* neg_max_width = Fixnum::from(FIXNUM_MAX_WIDTH);
+
+    val = one->right_shift(state, neg_max_width);
+
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(1L << FIXNUM_MAX_WIDTH, val->to_native());
+  }
+
+  void test_negative_right_shift_positive() {
+    Bignum* min_minus1 = Bignum::from(state, FIXNUM_MIN-1);
+    Fixnum* one = Fixnum::from(1);
+
+    Integer* val = min_minus1->right_shift(state, one);
+
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS((0UL - 1L) << FIXNUM_MIN_WIDTH, val->to_native());
+  }
+
+  void test_negative_right_shift_negative() {
+    Bignum* neg_one = Bignum::from(state, -1);
+    Fixnum* neg_min_width = Fixnum::from(-FIXNUM_MIN_WIDTH);
+
+    Integer* val = neg_one->right_shift(state, neg_min_width);
+
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS((0UL - 1L) << FIXNUM_MIN_WIDTH, val->to_native());
+
+    Fixnum* neg_min_width_plus1 = Fixnum::from(-(FIXNUM_MIN_WIDTH+1));
+
+    val = neg_one->right_shift(state, neg_min_width_plus1);
+
+    TS_ASSERT(kind_of<Bignum>(val));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, val->to_native());
   }
 
   void test_pow() {

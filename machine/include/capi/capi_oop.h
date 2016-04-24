@@ -98,8 +98,10 @@
 
 #define CAPI_TAG_FIXNUM(v)  ((VALUE)(((VALUE)(v) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
 
-#define FIXNUM_WIDTH        ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
-#define FIXNUM_MAX          (((native_int)1 << FIXNUM_WIDTH) - 1)
-#define FIXNUM_MIN          (-(FIXNUM_MAX))
+#define FIXNUM_MAX_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
+#define FIXNUM_MIN_WIDTH (FIXNUM_MAX_WIDTH + 1)
+
+#define FIXNUM_MAX (((native_int)1 << FIXNUM_MAX_WIDTH) - 1)
+#define FIXNUM_MIN (-(FIXNUM_MAX) - 1)
 
 #endif

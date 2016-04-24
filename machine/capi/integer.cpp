@@ -19,7 +19,11 @@ extern "C" {
     size_t size = 0;
 
     if(RB_TYPE_P(value, T_FIXNUM)) {
-      size = FIXNUM_WIDTH;
+      if(value > 0) {
+        size = FIXNUM_MAX_WIDTH;
+      } else {
+        size = FIXNUM_MIN_WIDTH;
+      }
     } else if(RB_TYPE_P(value, T_BIGNUM)) {
       Bignum* big = c_as<Bignum>(env->get_object(value));
       size = big->size(env->state())->to_native();
@@ -57,7 +61,7 @@ extern "C" {
 
       if(v == 0) return 0;
 
-      if((numbytes >= FIXNUM_WIDTH / 8) &&
+      if((numbytes >= FIXNUM_MIN_WIDTH / 8) &&
           ((flags & INTEGER_PACK_NATIVE_BYTE_ORDER) ||
 #ifdef RBX_LITTLE_ENDIAN
           ((flags & INTEGER_PACK_LSWORD_FIRST) &&

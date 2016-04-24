@@ -921,7 +921,7 @@ namespace rubinius {
       Value* recv_int = ops.fixnum_strip(recv);
       Value* shift_int = ops.fixnum_strip(shift);
 
-      Value* small_shift = ops.b().CreateICmpSLT(shift_int, ops.clong(FIXNUM_WIDTH), "small_shift");
+      Value* small_shift = ops.b().CreateICmpSLT(shift_int, ops.clong(FIXNUM_MAX_WIDTH), "small_shift");
       ops.create_conditional_branch(left_shift, send, small_shift);
 
       ops.set_block(left_shift);
@@ -980,7 +980,7 @@ namespace rubinius {
       Value* recv_int = ops.fixnum_strip(recv);
       Value* shift_int = ops.fixnum_strip(shift);
 
-      Value* small_shift = ops.b().CreateICmpSLT(shift_int, ops.clong(FIXNUM_WIDTH), "small_shift");
+      Value* small_shift = ops.b().CreateICmpSLT(shift_int, ops.clong(FIXNUM_MAX_WIDTH), "small_shift");
       ops.create_conditional_branch(right_shift, zero, small_shift);
 
       ops.set_block(right_shift);
