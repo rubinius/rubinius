@@ -105,12 +105,9 @@ namespace rubinius {
         return misses() > hits();
       }
 
-      bool valid_serial_p(int serial) {
-        if(executable()->serial()->to_native() == serial) {
-          return true;
-        } else {
-          return false;
-        }
+      bool valid_serial_p(uint64_t class_data_raw, int serial) {
+        return class_data_raw == receiver_data().raw
+          && executable()->serial()->to_native() == serial;
       }
 
       Object* execute(STATE, CallSite* call_site, Arguments& args, bool& valid_p) {
@@ -198,7 +195,7 @@ namespace rubinius {
 
       if(call_site->lookup(state, args, dispatch, lookup_data)) {
         if(Object* value = call_site->invoke(state, args, dispatch)) {
-          call_site->cache(state, args, dispatch);
+          call_site->cache(state, args.recv()->direct_class(state), dispatch);
 
           return value;
         }
@@ -294,11 +291,10 @@ namespace rubinius {
       return true;
     }
 
-    void cache(STATE, Arguments& args, Dispatch& dispatch) {
+    void cache(STATE, Class* klass, Dispatch& dispatch) {
       // 0. Ignore method_missing for now
       if(dispatch.name == G(sym_method_missing)) return;
 
-      Class* klass = args.recv()->direct_class(state);
       ClassData class_data = klass->class_data();
 
       // 1. Attempt to update a cache.
@@ -449,8 +445,23 @@ namespace rubinius {
     }
 
     bool valid_serial_p(STATE, Object* recv, Symbol* vis, int serial) {
+      Class* recv_class = recv->direct_class(state);
+      uint64_t class_data_raw = recv_class->data_raw();
+
       for(int i = 0; i < depth(); i++) {
-        if(caches()->cache[i].valid_serial_p(serial)) {
+        if(caches()->cache[i].valid_serial_p(class_data_raw, serial)) {
+          return true;
+        }
+      }
+
+      Dispatch dispatch(name());
+      LookupData lookup_data(state->vm()->call_frame()->self(),
+          recv->lookup_begin(state), vis);
+
+      if(dispatch.resolve(state, name(), lookup_data)) {
+        if(dispatch.method->serial()->to_native() == serial) {
+          cache(state, recv_class, dispatch);
+
           return true;
         }
       }
