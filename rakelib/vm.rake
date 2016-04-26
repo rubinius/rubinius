@@ -111,15 +111,9 @@ field_extract_headers = %w[
   machine/builtin/location.hpp
   machine/builtin/constant_cache.hpp
   machine/builtin/call_site.hpp
-  machine/builtin/mono_inline_cache.hpp
-  machine/builtin/poly_inline_cache.hpp
-  machine/builtin/call_custom_cache.hpp
-  machine/builtin/respond_to_cache.hpp
   machine/builtin/weakref.hpp
   machine/builtin/fiber.hpp
   machine/builtin/thunk.hpp
-  machine/builtin/call_unit.hpp
-  machine/builtin/call_unit_adapter.hpp
   machine/builtin/atomic.hpp
   machine/builtin/character.hpp
   machine/builtin/thread_state.hpp

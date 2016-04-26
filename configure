@@ -166,7 +166,7 @@ class Configure
     @ruby_libversion = @ruby_version.split(/\./)[0..1].join.to_i
 
     # Configure settings
-    @release_build = !git_directory
+    @release_build = !in_git?
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows

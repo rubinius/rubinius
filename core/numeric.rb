@@ -31,22 +31,26 @@ class Numeric
     return nil
   end
 
-  def step(limit, step=1)
+  def step(limit=nil, step=nil, to: nil, by: nil)
     unless block_given?
-      return to_enum(:step, limit, step) do
-        Rubinius::Mirror::Numeric.reflect(self).step_size(limit, step)
+      return to_enum(:step, limit, step, to: to, by: by) do
+        Rubinius::Mirror::Numeric.reflect(self).step_size(limit, step, to, by)
       end
     end
 
-    raise ArgumentError, "step cannot be 0" if step == 0
-
     m = Rubinius::Mirror::Numeric.reflect(self)
-    values = m.step_fetch_args(limit, step)
+    values = m.step_fetch_args(limit, step, to, by)
     value = values[0]
     limit = values[1]
     step = values[2]
     asc = values[3]
     is_float = values[4]
+
+    if step == 0
+      while true
+        yield value
+      end
+    end
 
     if is_float
       n = m.step_float_size(value, limit, step, asc)

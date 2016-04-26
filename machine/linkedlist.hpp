@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "util/thread.hpp"
+
+namespace rubinius{
 class LinkedList {
 public:
 
@@ -13,7 +16,10 @@ public:
     Node* prev_;
 
   public:
-    Node();
+    Node()
+      : next_(NULL)
+      , prev_(NULL)
+    { }
 
     Node* next() const {
       return next_;
@@ -50,16 +56,28 @@ public:
 private:
   Node* head_;
   size_t count_;
+  utilities::thread::SpinLock lock_;
 
 public:
-  LinkedList();
-  Node* head() const {
+  LinkedList()
+    : head_(NULL)
+    , count_(0)
+    , lock_()
+  { }
+
+  Node* head() {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+
     return head_;
   }
 
-  size_t size() const;
-  void   add(Node*);
-  void   remove(Node*);
+  size_t size() {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+    return count_;
+  }
+
+  void add(Node*);
+  void remove(Node*);
 
   // Utility templates
   template <typename Roots, typename Root>
@@ -101,5 +119,6 @@ public:
 
 
 };
+}
 
 #endif

@@ -19,8 +19,12 @@ module Rubinius
     end
 
     def initialize(format)
-      Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
-        Builder.new(self, format, g).build
+      begin
+        Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
+          Builder.new(self, format, g).build
+        end
+      rescue Rubinius::ToolSets::Runtime::CompileError => e
+        raise RuntimeError, "failed to compile printf format: #{format}", e
       end
     end
 
@@ -281,20 +285,15 @@ module Rubinius
         @g.ret
       end
 
-      def meta_op_minus
-        @op_minus ||= @g.find_literal(:-)
-        @g.meta_send_op_minus @op_minus
-      end
-
       def invert
-        @g.meta_push_0
+        @g.push_int 0
         @g.swap
-        meta_op_minus
+        @g.send :-, 1
       end
 
       def is_negative
-        @g.meta_push_0
-        @g.meta_send_op_lt @g.find_literal(:<)
+        @g.push_int 0
+        @g.send :<, 1
       end
 
       def justify(direction, may_be_negative=true)
@@ -339,7 +338,7 @@ module Rubinius
       end
 
       def append_literal(str)
-        @g.push_unique_literal str
+        @g.push_literal str
         append_str
       end
 
@@ -353,8 +352,8 @@ module Rubinius
       end
 
       def is_zero
-        @g.meta_push_0
-        @g.meta_send_op_equal @g.find_literal(:==)
+        @g.push_int 0
+        @g.send :equal?, 1
       end
 
       class Atom
@@ -410,8 +409,8 @@ module Rubinius
         def push_value
           if @name
             @g.push_local 0
-            @g.push_unique_literal @name
-            @g.send(:fetch, 1)
+            @g.push_literal @name
+            @g.send :fetch, 1
           else
             @g.push_local @field_index
           end
@@ -419,7 +418,7 @@ module Rubinius
 
         def push_width_value
           if @width_static
-            @g.push @width_static
+            @g.push_int @width_static
           elsif
             @g.push_local @width_index
           else
@@ -431,9 +430,9 @@ module Rubinius
           if @width_static
             raise ArgumentError, "width too big" unless @width_static.class == Fixnum
             if adjust && @full_leader_size > 0
-              @g.push(@width_static - @full_leader_size)
+              @g.push_int(@width_static - @full_leader_size)
             else
-              @g.push @width_static
+              @g.push_int @width_static
             end
 
           elsif @width_index
@@ -460,7 +459,7 @@ module Rubinius
 
         def push_precision_value
           if @prec_static
-            @g.push @prec_static
+            @g.push_int @prec_static
           else
             @g.push_local @prec_index
           end
@@ -469,7 +468,7 @@ module Rubinius
         def push_precision
           if @prec_static
             raise ArgumentError, "precision too big" unless @prec_static.class == Fixnum
-            @g.push @prec_static
+            @g.push_int @prec_static
 
           elsif @prec_index
             @g.push_local @prec_index
@@ -599,8 +598,8 @@ module Rubinius
 
           @g.dup
           @g.send :length, 0
-          @g.meta_push_1
-          @g.meta_send_op_equal @g.find_literal(:==)
+          @g.push_int 1
+          @g.send :equal?, 1
           @b.if_false do
             @b.raise_ArgumentError "%c requires a character"
           end
@@ -646,7 +645,7 @@ module Rubinius
 
         def bytecode
           if fast_common_case?
-            @g.push :self
+            @g.push_self
 
             push_value
 
@@ -659,7 +658,7 @@ module Rubinius
 
             @b.append_str
           else
-            @g.push :self
+            @g.push_self
             push_value
             @g.send :as_int, 1
 
@@ -670,19 +669,19 @@ module Rubinius
             # generic case
 
             if @f_space
-              @g.push :self
+              @g.push_self
               @g.push_stack_local val_idx
               @g.send :compute_space, 1
               @b.append_str
             elsif @f_plus
-              @g.push :self
+              @g.push_self
               @g.push_stack_local val_idx
               @g.send :compute_plus, 1
               @b.append_str
             end
 
             if @has_precision
-              @g.push :self
+              @g.push_self
               @g.push_stack_local val_idx
 
               push_precision_value
@@ -690,7 +689,7 @@ module Rubinius
               @g.send :digit_expand_precision, 2
 
               if @has_width
-                @g.push :self
+                @g.push_self
                 @g.swap
                 push_width_value
 
@@ -704,7 +703,7 @@ module Rubinius
               @b.append_str
 
             elsif @has_width
-              @g.push :self
+              @g.push_self
               @g.push_stack_local val_idx
 
               push_width_value
@@ -726,8 +725,8 @@ module Rubinius
         def pad_negative_int(padding)
           zero_pad(padding) do
             # decrease the width by 2 to account for the ".." below
-            @g.meta_push_2
-            @b.meta_op_minus
+            @g.push_int 2
+            @g.send :-, 1
           end
 
           @g.push_literal ".."
@@ -743,7 +742,7 @@ module Rubinius
           if @format_code == 'x' || @format_code == 'X'
             push_value
             @b.is_zero
-            @g.git skip_prefix
+            @g.goto_if_true skip_prefix
           end
 
           prepend_prefix
@@ -753,13 +752,13 @@ module Rubinius
 
         def format_negative_int(radix)
           # (num + radix ** num.to_s(radix).size).to_s(radix)
-          @g.push radix
+          @g.push_int radix
           @g.dup_many 2
           @g.send :to_s, 1
           @g.send :size, 0
           @g.send :**, 1
-          @g.meta_send_op_plus @g.find_literal(:+)
-          @g.push radix
+          @g.send :+, 1
+          @g.push_int radix
           @g.send :to_s, 1
 
           (radix - 1).to_s(radix)
@@ -790,7 +789,7 @@ module Rubinius
               @b.invert
             end
 
-            @g.push radix
+            @g.push_int radix
             @g.send :to_s, 1
           else
             have_formatted = @g.new_label
@@ -799,7 +798,7 @@ module Rubinius
             @b.is_negative
 
             @b.if_false do
-              @g.push radix
+              @g.push_int radix
               @g.send :to_s, 1
               @g.goto have_formatted
             end
@@ -862,7 +861,7 @@ module Rubinius
           justify_width
 
           if @has_precision
-            @g.meta_push_0
+            @g.push_int 0
             push_precision
             @g.send :[], 2
           end
@@ -961,11 +960,9 @@ module Rubinius
       end
 
       def raise_ArgumentError(msg)
-        @lit_new ||= @g.add_literal(:new)
-
         @g.push_const :ArgumentError
-        @g.push_unique_literal msg
-        @g.send_stack @lit_new, 1
+        @g.push_literal msg
+        @g.send :new, 1
         @g.raise_exc
       end
 
@@ -984,9 +981,6 @@ module Rubinius
       end
 
       def try_type(klass, method)
-
-        @lit_check ||= @g.add_literal(:check_convert_type)
-
         @g.dup
         @g.push_const klass
         @g.swap
@@ -995,8 +989,8 @@ module Rubinius
           @g.push_type
           @g.swap
           @g.push_const klass
-          @g.push_unique_literal method
-          @g.send_stack @lit_check, 3
+          @g.push_literal method
+          @g.send :check_convert_type, 3
           @g.dup
           if_false do
             yield if block_given?
@@ -1006,14 +1000,14 @@ module Rubinius
 
       def if_true
         l = @g.new_label
-        @g.gif l
+        @g.goto_if_false l
         yield
         l.set!
       end
 
       def if_false
         l = @g.new_label
-        @g.git l
+        @g.goto_if_true l
         yield
         l.set!
       end
@@ -1094,11 +1088,11 @@ module Rubinius
 
           @arg_count = 1
           @g.passed_arg @arg_count
-          @g.git exception
+          @g.goto_if_true exception
           push_Hash
           @g.push_local 0
           @g.kind_of
-          @g.gif exception
+          @g.goto_if_false exception
           @g.goto continue
 
           exception.set!
@@ -1114,11 +1108,11 @@ module Rubinius
 
           # Check this first; it's much faster, and generally false
           @g.passed_arg @arg_count
-          @g.gif no_exception
+          @g.goto_if_false no_exception
 
           gva = Rubinius::ToolSets::Runtime::AST::GlobalVariableAccess
           gva.new(1, :$DEBUG).bytecode(@g)
-          @g.gif no_exception
+          @g.goto_if_false no_exception
 
           raise_ArgumentError "too many arguments for format string"
 

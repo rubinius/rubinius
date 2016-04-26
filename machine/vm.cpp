@@ -483,10 +483,6 @@ namespace rubinius {
   void VM::gc_scan(memory::GarbageCollector* gc) {
     gc->walk_call_frame(call_frame_);
 
-    if(CallSiteInformation* info = saved_call_site_information()) {
-      info->executable = as<Executable>(gc->mark_object(info->executable));
-    }
-
     State ls(this);
 
     shared.tool_broker()->at_gc(&ls);
@@ -502,9 +498,5 @@ namespace rubinius {
 
   void VM::gc_verify(memory::GarbageCollector* gc) {
     gc->verify_call_frame(call_frame_);
-
-    if(CallSiteInformation* info = saved_call_site_information()) {
-      info->executable->validate();
-    }
   }
 };

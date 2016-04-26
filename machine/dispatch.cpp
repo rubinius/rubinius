@@ -28,13 +28,7 @@ namespace rubinius {
       method_missing = reason;
       lookup.min_visibility = G(sym_private);
       if(!resolve(state, G(sym_method_missing), lookup)) {
-        std::ostringstream msg;
-        msg << "no method_missing for ";
-        msg << lookup.from->to_string(state);
-        msg << "#" << original_name->to_string(state);
-
-        Exception::internal_error(state, msg.str().c_str());
-        return 0;
+        Exception::raise_no_method_error(state, args);
       }
 
       method_missing = reason;

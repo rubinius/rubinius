@@ -81,6 +81,19 @@ class InstructionParser
         @file.puts "      def #{method_name}(arg1)"
       when 2
         @file.puts "      def #{method_name}(arg1, arg2)"
+      when 3
+        @file.puts "      def #{method_name}(arg1, arg2, arg3)"
+      end
+    end
+
+    # Emit find_literal for literal methods.
+    def method_find_literal
+      @opcode.arguments.each_with_index do |arg, index|
+        if arg == "literal"
+          @file.puts "        arg#{index+1} = find_literal(arg#{index+1})"
+        elsif arg == "count"
+          @file.puts "        arg#{index+1} = Integer(arg#{index+1})"
+        end
       end
     end
 
@@ -93,6 +106,8 @@ class InstructionParser
         @file.puts "        @stream << #{@opcode.bytecode} << arg1"
       when 2
         @file.puts "        @stream << #{@opcode.bytecode} << arg1 << arg2"
+      when 3
+        @file.puts "        @stream << #{@opcode.bytecode} << arg1 << arg2 << arg3"
       end
       @file.puts "        @ip += #{@opcode.arguments.size + 1}"
     end
@@ -130,25 +145,13 @@ class InstructionParser
     def method_definition
       method_signature
       @before_stream.call if @before_stream
+      method_find_literal
       method_append_stream
       @after_stream.call if @after_stream
       @before_stack.call if @before_stack
       method_stack_effect
       @after_stack.call if @after_stack
       method_close
-    end
-
-    def literal_method
-      @before_stream = lambda { @file.puts "        arg1 = find_literal arg1" }
-      method_definition
-    end
-
-    def literal_count_method
-      @before_stream = lambda do
-        @file.puts "        arg1 = find_literal arg1"
-        @file.puts "        arg2 = Integer(arg2)"
-      end
-      method_definition
     end
 
     def method_missing(sym, *args)
@@ -201,6 +204,22 @@ class InstructionParser
     end
 
     # Specific instruction methods
+
+    def process_push_literal
+      @method_name = :emit_push_literal
+      method_signature
+      method_append_stream
+      method_stack_effect
+      method_close
+    end
+
+    def process_create_block
+      method_signature
+      @file.puts "        arg1 = add_generator(arg1)"
+      method_append_stream
+      method_stack_effect
+      method_close
+    end
 
     def process_goto
       unconditional_branch
@@ -264,92 +283,6 @@ class InstructionParser
 
     def process_reraise
       unconditional_exit
-    end
-
-    def process_push_int
-      method_signature
-
-      # Integers greater than 256 are stored in the literals tuple.
-      @file.puts <<EOM
-        if arg1 > 2 and arg1 < 256
-          @stream << #{@opcode.bytecode} << arg1
-          @current_block.add_stack(0, 1)
-          @ip += 2
-          @instruction = #{@opcode.bytecode}
-        else
-          case arg1
-          when -1
-            meta_push_neg_1
-          when 0
-            meta_push_0
-          when 1
-            meta_push_1
-          when 2
-            meta_push_2
-          else
-            push_literal arg1
-          end
-        end
-      end
-
-EOM
-    end
-
-    def process_push_literal
-      @method_name = :emit_push_literal
-      method_definition
-    end
-
-    def process_dup_top
-      method_definition
-    end
-
-    def process_swap_stack
-      method_definition
-    end
-
-    def process_push_const
-      # unused right now
-    end
-
-    def process_find_const
-      literal_method
-    end
-
-    def process_push_ivar
-      literal_method
-    end
-
-    def process_set_ivar
-      literal_method
-    end
-
-    def process_check_serial
-      literal_count_method
-    end
-
-    def process_check_serial_private
-      literal_count_method
-    end
-
-    def process_create_block
-      @before_stream = lambda do
-        @file.puts "        arg1 = add_literal arg1"
-        @file.puts "        @generators << arg1"
-      end
-      method_definition
-    end
-
-    def process_invoke_primitive
-      literal_count_method
-    end
-
-    def process_call_custom
-      literal_count_method
-    end
-
-    def process_zsuper
-      literal_method
     end
 
     def process_cast_array
@@ -972,6 +905,7 @@ EOM
       file.puts "static inline int stack_difference(opcode op,"
       file.puts "                                   opcode operand1 = 0,"
       file.puts "                                   opcode operand2 = 0,"
+      file.puts "                                   opcode operand3 = 0,"
       file.puts "                                   int* read_effect = 0, int* write_effect = 0)"
       file.puts "{"
       file.puts "  switch(op) {"

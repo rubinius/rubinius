@@ -1,5 +1,5 @@
 #include "arguments.hpp"
-#include "bytecode_verification.hpp"
+#include "bytecode_verifier.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
@@ -110,51 +110,41 @@ namespace rubinius {
     return as<Fixnum>(lines()->at(fin+1))->to_native();
   }
 
-  MachineCode* CompiledCode::internalize(STATE,
-                                        const char** reason, int* ip)
-  {
-    MachineCode* mcode = machine_code();
+  MachineCode* CompiledCode::internalize(STATE) {
+    timer::StopWatch<timer::microseconds> timer(
+        state->vm()->metrics().machine.bytecode_internalizer_us);
 
     atomic::memory_barrier();
 
+    MachineCode* mcode = machine_code();
+
     if(mcode) return mcode;
 
-    CompiledCode* self = this;
-    OnStack<1> os(state, self);
-
-    self->hard_lock(state);
-
-    mcode = self->machine_code();
-    if(!mcode) {
-      {
-        BytecodeVerification bv(self);
-        if(!bv.verify(state)) {
-          if(reason) *reason = bv.failure_reason();
-          if(ip) *ip = bv.failure_ip();
-          std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
-          return 0;
-        }
-      }
-
-      mcode = new MachineCode(state, self);
-
-      if(self->resolve_primitive(state)) {
-        mcode->fallback = execute;
-      } else {
-        mcode->setup_argument_handler();
-      }
-
-      // We need to have an explicit memory barrier here, because we need to
-      // be sure that mcode is completely initialized before it's set.
-      // Otherwise another thread might see a partially initialized
-      // MachineCode.
-      atomic::write(&self->_machine_code_, mcode);
-
-      set_executor(mcode->fallback);
+    {
+      BytecodeVerifier bytecode_verifier(this);
+      bytecode_verifier.verify(state);
     }
 
-    self->hard_unlock(state);
-    return mcode;
+    mcode = new MachineCode(state, this);
+
+    if(resolve_primitive(state)) {
+      mcode->fallback = execute;
+    } else {
+      mcode->setup_argument_handler();
+    }
+
+    /* There is a race here because another Thread may have run this
+     * CompiledCode instance and internalized it. We attempt to store our
+     * version assuming that we are the only ones to do so and throw away our
+     * work if someone else has beat us to it.
+     */
+    MachineCode** mcode_ptr = &_machine_code_;
+    if(atomic::compare_and_swap(reinterpret_cast<void**>(mcode_ptr), 0, mcode)) {
+      set_executor(mcode->fallback);
+      return mcode;
+    } else {
+      return machine_code();
+    }
   }
 
   Object* CompiledCode::primitive_failed(STATE,
@@ -194,19 +184,9 @@ namespace rubinius {
                           Executable* exec, Module* mod, Arguments& args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
+
     if(code->execute == default_executor) {
-      const char* reason = 0;
-      int ip = -1;
-
-      OnStack<5> os(state, code, exec, mod, args.recv_location(), args.block_location());
-
-      memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
-                             &args.arguments_location(), args.total());
-
-      if(!code->internalize(state, &reason, &ip)) {
-        Exception::bytecode_error(state, code, ip, reason);
-        return 0;
-      }
+      if(!code->internalize(state)) return 0;
     }
 
     return code->execute(state, exec, mod, args);
@@ -478,21 +458,13 @@ namespace rubinius {
       }
     }
 
-    for(size_t i = 0; i < mcode->call_site_count(); i++) {
-      size_t index = mcode->call_site_offsets()[i];
-      Object* old_cache = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
-      if(Object* new_cache = mark.call(old_cache)) {
-        mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-        mark.just_set(code, new_cache);
-      }
-    }
-
-    for(size_t i = 0; i < mcode->constant_cache_count(); i++) {
-      size_t index = mcode->constant_cache_offsets()[i];
-      Object* old_cache = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
-      if(Object* new_cache = mark.call(old_cache)) {
-        mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-        mark.just_set(code, new_cache);
+    for(size_t i = 0; i < mcode->references_count(); i++) {
+      if(size_t ip = mcode->references()[i]) {
+        Object* ref = reinterpret_cast<Object*>(mcode->opcodes[ip]);
+        if(Object* updated_ref = mark.call(ref)) {
+          mcode->opcodes[ip] = reinterpret_cast<intptr_t>(updated_ref);
+          mark.just_set(code, updated_ref);
+        }
       }
     }
   }
@@ -504,7 +476,6 @@ namespace rubinius {
     indent_attribute(++level, "file"); code->file()->show(state, level);
     indent_attribute(level, "iseq"); code->iseq()->show(state, level);
     indent_attribute(level, "lines"); code->lines()->show_simple(state, level);
-    indent_attribute(level, "literals"); code->literals()->show_simple(state, level);
     indent_attribute(level, "local_count"); code->local_count()->show(state, level);
     indent_attribute(level, "local_names"); code->local_names()->show_simple(state, level);
     indent_attribute(level, "name"); code->name()->show(state, level);

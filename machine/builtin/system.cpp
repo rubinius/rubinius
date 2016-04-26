@@ -140,7 +140,7 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    CompiledFile* cf = CompiledFile::load(stream);
+    CompiledFile* cf = CompiledFile::load(state, stream);
     if(cf->magic != "!RBIX") {
       delete cf;
       return Primitives::failure();
@@ -922,7 +922,7 @@ namespace rubinius {
     state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics().machine.inline_cache_resets++;
+    state->vm()->metrics().machine.cache_resets++;
 
     if(state->shared().config.ic_debug) {
       String* mod_name = mod->get_name(state);
@@ -1252,10 +1252,7 @@ namespace rubinius {
     if(Class* cls = try_as<Class>(mod)) {
       OnStack<5> o2(state, mod, cc, scope, vis, cls);
 
-      if(!cc->internalize(state)) {
-        Exception::raise_argument_error(state, "invalid bytecode method");
-        return 0;
-      }
+      if(!cc->internalize(state)) return 0;
 
       object_type type = (object_type)cls->instance_type()->to_native();
       TypeInfo* ti = state->memory()->type_info[type];
@@ -1803,7 +1800,7 @@ retry:
 
     OnStack<1> os(state, code);
 
-    code->internalize(state, 0, 0);
+    code->internalize(state);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {

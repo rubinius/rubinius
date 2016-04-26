@@ -64,10 +64,10 @@ namespace rubinius {
     , call_count(0)
     , loop_count(0)
     , uncommon_count(0)
-    , number_of_call_sites_(0)
-    , call_site_offsets_(0)
-    , number_of_constant_caches_(0)
-    , constant_cache_offsets_(0)
+    , _call_site_count_(0)
+    , _constant_cache_count_(0)
+    , _references_count_(0)
+    , _references_(NULL)
     , unspecialized(NULL)
     , fallback(NULL)
     , execute_status_(eInterpret)
@@ -78,6 +78,10 @@ namespace rubinius {
   {
     if(state->shared().tool_broker()->tooling_interpreter_p()) {
       run = MachineCode::tooling_interpreter;
+    }
+
+    if(keywords) {
+      keywords_count = code->keywords()->num_fields() / 2;
     }
 
     opcodes = new opcode[total];
@@ -109,17 +113,11 @@ namespace rubinius {
 #endif
     delete[] opcodes;
 
-    if(call_site_offsets_) {
+    if(references()) {
 #ifdef RBX_GC_DEBUG
-      memset(call_site_offsets_, 0xFF, number_of_call_sites_ * sizeof(size_t));
+      memset(references(), 0xFF, references_count() * sizeof(size_t));
 #endif
-      delete[] call_site_offsets_;
-    }
-    if(constant_cache_offsets_) {
-#ifdef RBX_GC_DEBUG
-      memset(constant_cache_offsets_, 0xFF, number_of_constant_caches_ * sizeof(size_t));
-#endif
-      delete[] constant_cache_offsets_;
+      delete[] references();
     }
   }
 
@@ -130,79 +128,96 @@ namespace rubinius {
   }
 
   void MachineCode::fill_opcodes(STATE, CompiledCode* original) {
+    Tuple* lits = original->literals();
     Tuple* ops = original->iseq()->opcodes();
 
-    int sends = 0;
-    int constants = 0;
+    size_t rcount = 0;
+    size_t rindex = 0;
+    size_t calls_count = 0;
+    size_t constants_count = 0;
 
-    for(size_t index = 0; index < total;) {
-      Object* val = ops->at(state, index);
-      if(val->nil_p()) {
-        opcodes[index++] = 0;
-      } else {
-        opcodes[index] = as<Fixnum>(val)->to_native();
+    for(size_t width = 0, ip = 0; ip < total; ip += width) {
+      opcode op = opcodes[ip] = as<Fixnum>(ops->at(ip))->to_native();
+      width = InstructionSequence::instruction_width(opcodes[ip]);
 
-        size_t width = InstructionSequence::instruction_width(opcodes[index]);
+      switch(width) {
+      case 4:
+        opcodes[ip + 3] = as<Fixnum>(ops->at(state, ip + 3))->to_native();
+        // fall through
+      case 3:
+        opcodes[ip + 2] = as<Fixnum>(ops->at(state, ip + 2))->to_native();
+        // fall through
+      case 2:
+        opcodes[ip + 1] = as<Fixnum>(ops->at(state, ip + 1))->to_native();
+        break;
+      case 1:
+        continue;
+      }
 
-        switch(width) {
-        case 2:
-          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
-          break;
-        case 3:
-          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
-          opcodes[index + 2] = as<Fixnum>(ops->at(state, index + 2))->to_native();
-          break;
-        }
-
-        switch(opcodes[index]) {
-        case InstructionSequence::insn_send_method:
-        case InstructionSequence::insn_send_stack:
-        case InstructionSequence::insn_send_stack_with_block:
-        case InstructionSequence::insn_send_stack_with_splat:
-        case InstructionSequence::insn_send_super_stack_with_block:
-        case InstructionSequence::insn_send_super_stack_with_splat:
-        case InstructionSequence::insn_zsuper:
-        case InstructionSequence::insn_meta_send_call:
-        case InstructionSequence::insn_meta_send_op_plus:
-        case InstructionSequence::insn_meta_send_op_minus:
-        case InstructionSequence::insn_meta_send_op_equal:
-        case InstructionSequence::insn_meta_send_op_tequal:
-        case InstructionSequence::insn_meta_send_op_lt:
-        case InstructionSequence::insn_meta_send_op_gt:
-        case InstructionSequence::insn_meta_to_s:
-        case InstructionSequence::insn_check_serial:
-        case InstructionSequence::insn_check_serial_private:
-        case InstructionSequence::insn_call_custom:
-          sends++;
-          break;
-        case InstructionSequence::insn_push_const_fast:
-        case InstructionSequence::insn_find_const_fast:
-          constants++;
-          break;
-        }
-
-        index += width;
+      switch(op) {
+      case InstructionSequence::insn_create_block:
+      case InstructionSequence::insn_push_literal:
+      case InstructionSequence::insn_push_memo:
+      case InstructionSequence::insn_check_serial:
+      case InstructionSequence::insn_check_serial_private:
+      case InstructionSequence::insn_send_super_stack_with_block:
+      case InstructionSequence::insn_send_super_stack_with_splat:
+      case InstructionSequence::insn_zsuper:
+      case InstructionSequence::insn_send_vcall:
+      case InstructionSequence::insn_send_method:
+      case InstructionSequence::insn_send_stack:
+      case InstructionSequence::insn_send_stack_with_block:
+      case InstructionSequence::insn_send_stack_with_splat:
+      case InstructionSequence::insn_object_to_s:
+      case InstructionSequence::insn_push_const:
+      case InstructionSequence::insn_find_const:
+        rcount++;
       }
     }
 
-    initialize_call_sites(state, original, sends);
-    initialize_constant_caches(state, original, constants);
-  }
+    references_count(rcount);
+    references(new size_t[rcount]);
 
-  void MachineCode::initialize_call_sites(STATE, CompiledCode* original, int sends) {
-    number_of_call_sites_ = sends;
-    call_site_offsets_ = new size_t[sends];
-
-    int which = 0;
     bool allow_private = false;
     bool is_super = false;
-    int inline_index = 0;
 
-    for(size_t ip = 0; ip < total;) {
-      opcode op = opcodes[ip];
-      switch(op) {
+    for(size_t width = 0, ip = 0; ip < total; ip += width) {
+      width = InstructionSequence::instruction_width(opcodes[ip]);
+
+      switch(opcode op = opcodes[ip]) {
+      case InstructionSequence::insn_push_int:
+        opcodes[ip + 1] = reinterpret_cast<opcode>(Fixnum::from(opcodes[ip + 1]));
+        break;
+      case InstructionSequence::insn_create_block: {
+        references()[rindex++] = ip + 1;
+
+        Object* value = reinterpret_cast<Object*>(lits->at(opcodes[ip + 1]));
+
+        if(CompiledCode* code = try_as<CompiledCode>(value)) {
+          opcodes[ip + 1] = reinterpret_cast<opcode>(code);
+        } else {
+          opcodes[ip + 1] = reinterpret_cast<opcode>(as<String>(value));
+        }
+        break;
+      }
+      case InstructionSequence::insn_push_memo:
+      case InstructionSequence::insn_push_literal: {
+        references()[rindex++] = ip + 1;
+
+        Object* value = as<Object>(lits->at(opcodes[ip + 1]));
+        opcodes[ip + 1] = reinterpret_cast<opcode>(value);
+        break;
+      }
+      case InstructionSequence::insn_set_ivar:
+      case InstructionSequence::insn_push_ivar:
+      case InstructionSequence::insn_set_const:
+      case InstructionSequence::insn_set_const_at: {
+        Symbol* sym = as<Symbol>(lits->at(opcodes[ip + 1]));
+        opcodes[ip + 1] = reinterpret_cast<opcode>(sym);
+        break;
+      }
       case InstructionSequence::insn_invoke_primitive: {
-        Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
 
         InvokePrimitive invoker = Primitives::get_invoke_stub(state, name);
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(invoker);
@@ -210,82 +225,62 @@ namespace rubinius {
       }
       case InstructionSequence::insn_allow_private:
         allow_private = true;
+
         break;
       case InstructionSequence::insn_send_super_stack_with_block:
       case InstructionSequence::insn_send_super_stack_with_splat:
       case InstructionSequence::insn_zsuper:
         is_super = true;
         // fall through
-      case InstructionSequence::insn_check_serial:
-      case InstructionSequence::insn_check_serial_private:
-      case InstructionSequence::insn_call_custom:
+      case InstructionSequence::insn_send_vcall:
       case InstructionSequence::insn_send_method:
       case InstructionSequence::insn_send_stack:
       case InstructionSequence::insn_send_stack_with_block:
       case InstructionSequence::insn_send_stack_with_splat:
-      case InstructionSequence::insn_meta_send_call:
-      case InstructionSequence::insn_meta_send_op_plus:
-      case InstructionSequence::insn_meta_send_op_minus:
-      case InstructionSequence::insn_meta_send_op_equal:
-      case InstructionSequence::insn_meta_send_op_tequal:
-      case InstructionSequence::insn_meta_send_op_lt:
-      case InstructionSequence::insn_meta_send_op_gt:
-      case InstructionSequence::insn_meta_to_s:
-        {
-        assert(which < sends);
+      case InstructionSequence::insn_object_to_s:
+      case InstructionSequence::insn_check_serial:
+      case InstructionSequence::insn_check_serial_private: {
+        references()[rindex++] = ip + 1;
+        calls_count++;
 
-        Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        Symbol* name = try_as<Symbol>(lits->at(opcodes[ip + 1]));
         if(!name) name = nil<Symbol>();
 
-        CallSite* call_site = CallSite::empty(state, name, original, ip);
+        CallSite* call_site = CallSite::create(state, name, ip);
 
-        call_site_offsets_[inline_index] = ip;
-        inline_index++;
-
-        if(op == InstructionSequence::insn_call_custom) {
-          call_site->set_call_custom();
-        } else {
-          if(allow_private) call_site->set_is_private();
-          if(is_super) call_site->set_is_super();
-
-          if(op == InstructionSequence::insn_send_method) {
-            call_site->set_is_vcall();
-          }
+        if(op == InstructionSequence::insn_send_vcall) {
+          allow_private = true;
+          call_site->set_is_vcall();
+        } else if(op == InstructionSequence::insn_object_to_s) {
+          allow_private = true;
         }
+
+        if(allow_private) call_site->set_is_private();
+        if(is_super) call_site->set_is_super();
 
         store_call_site(state, original, ip, call_site);
         is_super = false;
         allow_private = false;
+
+        break;
       }
-      }
+      case InstructionSequence::insn_push_const:
+      case InstructionSequence::insn_find_const: {
+        references()[rindex++] = ip + 1;
+        constants_count++;
 
-      ip += InstructionSequence::instruction_width(op);
-    }
-  }
-
-  void MachineCode::initialize_constant_caches(STATE, CompiledCode* original, int constants) {
-    number_of_constant_caches_ = constants;
-    constant_cache_offsets_ = new size_t[constants];
-
-    int constant_index = 0;
-    for(size_t ip = 0; ip < total;) {
-      opcode op = opcodes[ip];
-      switch(op) {
-      case InstructionSequence::insn_push_const_fast:
-      case InstructionSequence::insn_find_const_fast: {
-        Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
 
         ConstantCache* cache = ConstantCache::empty(state, name, original, ip);
-        constant_cache_offsets_[constant_index] = ip;
-        constant_index++;
         store_constant_cache(state, original, ip, cache);
+
         break;
       }
       }
-
-      ip += InstructionSequence::instruction_width(op);
     }
 
+    call_site_count(calls_count);
+    constant_cache_count(constants_count);
   }
 
   CallSite* MachineCode::call_site(STATE, int ip) {
@@ -299,20 +294,36 @@ namespace rubinius {
   }
 
   Tuple* MachineCode::call_sites(STATE) {
-    Tuple* sites = Tuple::create(state, number_of_call_sites_);
+    size_t count = call_site_count();
+    Tuple* sites = Tuple::create(state, count);
 
-    for(size_t i = 0; i < number_of_call_sites_; ++i) {
-      sites->put(state, i, call_site(state, call_site_offsets_[i]));
+    for(size_t i = 0, j = 0;
+        i < count && j < references_count();
+        j++)
+    {
+      if(CallSite* site =
+          try_as<CallSite>(reinterpret_cast<Object*>(opcodes[references()[j]])))
+      {
+        sites->put(state, i++, site);
+      }
     }
 
     return sites;
   }
 
   Tuple* MachineCode::constant_caches(STATE) {
-    Tuple* caches = Tuple::create(state, number_of_constant_caches_);
+    size_t count = constant_cache_count();
+    Tuple* caches = Tuple::create(state, count);
 
-    for(size_t i = 0; i < number_of_constant_caches_; ++i) {
-      caches->put(state, i, constant_cache(state, constant_cache_offsets_[i]));
+    for(size_t i = 0, j = 0;
+        i < count && j < references_count();
+        j++)
+    {
+      if(ConstantCache* cache =
+          try_as<ConstantCache>(reinterpret_cast<Object*>(opcodes[references()[j]])))
+      {
+        caches->put(state, i++, cache);
+      }
     }
 
     return caches;
@@ -645,8 +656,7 @@ namespace rubinius {
       opcode op = opcodes[i];
 
       if(op == InstructionSequence::insn_push_ivar) {
-        native_int idx = opcodes[i + 1];
-        native_int sym = as<Symbol>(original->literals()->at(state, idx))->index();
+        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
@@ -654,8 +664,7 @@ namespace rubinius {
           opcodes[i + 1] = ti->slot_locations[it->second];
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
-        native_int idx = opcodes[i + 1];
-        native_int sym = as<Symbol>(original->literals()->at(state, idx))->index();
+        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {

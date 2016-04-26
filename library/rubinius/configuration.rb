@@ -168,6 +168,16 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "profiler.threshold", 1000000,
     "The minimum number of nanoseconds a profiler node must have to be reported"
 
+  c.section "machine" do |s|
+    s.section "call_site" do |cs|
+      cs.vm_variable "cache", true,
+        "Cache executables at call sites"
+
+      cs.vm_variable "limit", 3,
+        "Maximum number of caches at call sites"
+    end
+  end
+
   c.section "system" do |s|
     s.vm_variable "tmp", "$TMPDIR",
       "Default temp/fallback directory for the process"

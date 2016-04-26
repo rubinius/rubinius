@@ -2,39 +2,35 @@
 #include <assert.h>
 #include <iostream>
 
-LinkedList::LinkedList() : head_(NULL), count_(0) { }
-LinkedList::Node::Node() : next_(NULL), prev_(NULL) { }
+namespace rubinius {
+  void LinkedList::add(LinkedList::Node* node) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
-size_t LinkedList::size() const {
-  return count_;
-}
+    assert(!node->next() && !node->prev());
 
-void LinkedList::add(LinkedList::Node* node) {
-  assert(!node->next() && !node->prev());
-  // std::cout << "add: " << node << "\n";
+    if(head_) {
+      assert(!head_->prev());
+      head_->set_prev(node);
+    }
 
-  if(head_) {
-    assert(!head_->prev());
-    head_->set_prev(node);
+    node->set_next(head_);
+    head_ = node;
+
+    count_++;
   }
 
-  node->set_next(head_);
-  head_ = node;
+  void LinkedList::remove(LinkedList::Node* node) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
-  count_++;
-}
+    if(node == head_) {
+      head_ = node->next();
+    }
 
-void LinkedList::remove(LinkedList::Node* node) {
-  // std::cout << "remove: " << node << "\n";
+    node->remove_linkage();
+    count_--;
 
-  if(node == head_) {
-    head_ = node->next();
-  }
-
-  node->remove_linkage();
-  count_--;
-
-  if(head_) {
-    assert(!head_->prev());
+    if(head_) {
+      assert(!head_->prev());
+    }
   }
 }

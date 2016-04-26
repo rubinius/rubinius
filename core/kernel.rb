@@ -69,20 +69,9 @@ module Kernel
     raise PrimitiveFailure, "Kernel#untaint primitive failed"
   end
 
-  def trust
-    Rubinius.primitive :object_trust
-    raise PrimitiveFailure, "Kernel#trust primitive failed"
-  end
-
-  def untrust
-    Rubinius.primitive :object_untrust
-    raise PrimitiveFailure, "Kernel#untrust primitive failed"
-  end
-
-  def untrusted?
-    Rubinius.primitive :object_untrusted_p
-    raise PrimitiveFailure, "Kernel#untrusted? primitive failed"
-  end
+  alias_method :untrust, :taint
+  alias_method :trust, :untaint
+  alias_method :untrusted?, :tainted?
 
   # NOTE: The bootstrap method used to add method definitions to the class
   # method_table still returns a CompiledCode instance, so this chaining
@@ -725,9 +714,29 @@ module Kernel
   end
   private :private_singleton_methods
 
-  def proc(&prc)
-    raise ArgumentError, "block required" unless prc
-    return prc
+  def proc
+    env = nil
+
+    Rubinius.asm do
+      push_block
+      # assign a pushed block to the above local variable "env"
+      set_local 0
+    end
+
+    unless env
+      # Support for ancient pre-block-pass style:
+      # def something
+      #   proc
+      # end
+      # something { a_block } => Proc instance
+      env = Rubinius::BlockEnvironment.of_sender
+
+      unless env
+        raise ArgumentError, "tried to create a Proc object without a block"
+      end
+    end
+
+    Proc.new(&env)
   end
   module_function :proc
 

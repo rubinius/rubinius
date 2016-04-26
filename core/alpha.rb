@@ -139,7 +139,7 @@ module Kernel
   #
   # Redefined later.
   #
-  def raise(cls, str, junk=nil)
+  def raise(cls, str="", junk=nil)
     Rubinius::VM.write_error "Fatal error loading core library:\n  "
     Rubinius::VM.write_error str
     Rubinius::VM.write_error "\n"

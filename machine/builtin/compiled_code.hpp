@@ -97,7 +97,7 @@ namespace rubinius {
 
     void post_marshal(STATE);
     size_t number_of_locals();
-    MachineCode* internalize(STATE, const char** failure_reason=0, int* ip=0);
+    MachineCode* internalize(STATE);
     void specialize(STATE, TypeInfo* ti);
 
     static Object* default_executor(STATE, Executable* exec, Module* mod, Arguments& args);

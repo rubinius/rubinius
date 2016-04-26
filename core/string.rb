@@ -224,8 +224,7 @@ class String
     *args = args
     ret = Rubinius::Sprinter.get(self).call(*args)
 
-    ret.taint if tainted?
-    return ret
+    Rubinius::Type.infect ret, self
   end
 
   def *(num)
@@ -413,8 +412,9 @@ class String
     end
 
     hash = __crypt__(other_str)
-    hash.taint if tainted? || other_str.tainted?
-    hash
+
+    Rubinius::Type.infect hash, self
+    Rubinius::Type.infect hash, other_str
   end
 
   def delete(*strings)
@@ -1338,31 +1338,27 @@ class String
       raise ArgumentError, "invalid byte sequence in #{encoding}"
     end
 
+    ret = byteslice(0, 0) # Empty string and string subclass
+
     if undefined.equal? replacement
       unless block_given?
         raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
       use_yield = true
-      tainted = false
     else
-      tainted = replacement.tainted?
-      untrusted = replacement.untrusted?
-
       unless replacement.kind_of?(String)
         hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
-        tainted ||= replacement.tainted?
-        untrusted ||= replacement.untrusted?
       end
       use_yield = false
+
+      Rubinius::Type.infect ret, replacement
     end
 
     pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     match = pattern.match_from(self, 0)
 
     Regexp.last_match = match
-
-    ret = byteslice(0, 0) # Empty string and string subclass
 
     if match
       ret.append match.pre_match
@@ -1375,24 +1371,20 @@ class String
         else
           val = hash[match.to_s]
         end
-        untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
 
-        tainted ||= val.tainted?
+        Rubinius::Type.infect ret, val
 
         ret.append val
       else
         replacement.to_sub_replacement(ret, match)
       end
 
+      Rubinius::Type.infect ret, val
       ret.append(match.post_match)
-      tainted ||= val.tainted?
     else
-      return self
+      ret = dup
     end
-
-    ret.taint if tainted
-    ret.untrust if untrusted
 
     ret
   end
@@ -1405,33 +1397,30 @@ class String
       raise ArgumentError, "invalid byte sequence in #{encoding}"
     end
 
+    ret = byteslice(0, 0) # Empty string and string subclass
+
     if undefined.equal? replacement
       unless block_given?
         raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
       Rubinius.check_frozen
       use_yield = true
-      tainted = false
     else
       Rubinius.check_frozen
-      tainted = replacement.tainted?
-      untrusted = replacement.untrusted?
 
       unless replacement.kind_of?(String)
         hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
-        tainted ||= replacement.tainted?
-        untrusted ||= replacement.untrusted?
       end
       use_yield = false
+
+      Rubinius::Type.infect ret, replacement
     end
 
     pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     match = pattern.match_from(self, 0)
 
     Regexp.last_match = match
-
-    ret = byteslice(0, 0) # Empty string and string subclass
 
     if match
       ret.append match.pre_match
@@ -1444,24 +1433,21 @@ class String
         else
           val = hash[match.to_s]
         end
-        untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
 
-        tainted ||= val.tainted?
+        Rubinius::Type.infect ret, val
 
         ret.append val
       else
         replacement.to_sub_replacement(ret, match)
       end
 
+      Rubinius::Type.infect ret, val
+
       ret.append(match.post_match)
-      tainted ||= val.tainted?
     else
       return nil
     end
-
-    ret.taint if tainted
-    ret.untrust if untrusted
 
     replace(ret)
     self
@@ -1852,23 +1838,21 @@ class String
       raise ArgumentError, "invalid byte sequence in #{encoding}"
     end
 
+    ret = byteslice(0, 0) # Empty string and string subclass
+
     if undefined.equal? replacement
       unless block_given?
         return to_enum(:gsub, pattern, replacement)
       end
       use_yield = true
-      tainted = false
     else
-      tainted = replacement.tainted?
-      untrusted = replacement.untrusted?
-
       unless replacement.kind_of?(String)
         hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
-        tainted ||= replacement.tainted?
-        untrusted ||= replacement.untrusted?
       end
       use_yield = false
+
+      Rubinius::Type.infect ret, replacement
     end
 
     pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
@@ -1886,7 +1870,6 @@ class String
 
     last_match = nil
 
-    ret = byteslice(0, 0) # Empty string and string subclass
     offset = match.full.at(0) if match
 
     while match
@@ -1902,10 +1885,9 @@ class String
         else
           val = hash[match.to_s]
         end
-        untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
 
-        tainted ||= val.tainted?
+        Rubinius::Type.infect ret, val
 
         ret.append val
 
@@ -1916,7 +1898,7 @@ class String
         replacement.to_sub_replacement(ret, match)
       end
 
-      tainted ||= val.tainted?
+      Rubinius::Type.infect ret, val
 
       last_end = match.full.at(1)
 
@@ -1945,9 +1927,6 @@ class String
       ret.append str
     end
 
-    ret.taint if tainted
-    ret.untrust if untrusted
-
     ret
   end
 
@@ -1959,25 +1938,24 @@ class String
       raise ArgumentError, "invalid byte sequence in #{encoding}"
     end
 
+    ret = byteslice(0, 0) # Empty string and string subclass
+
     if undefined.equal? replacement
       unless block_given?
         return to_enum(:gsub, pattern, replacement)
       end
       Rubinius.check_frozen
       use_yield = true
-      tainted = false
     else
       Rubinius.check_frozen
-      tainted = replacement.tainted?
-      untrusted = replacement.untrusted?
 
       unless replacement.kind_of?(String)
         hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
-        tainted ||= replacement.tainted?
-        untrusted ||= replacement.untrusted?
       end
       use_yield = false
+
+      Rubinius::Type.infect ret, replacement
     end
 
     pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
@@ -1996,7 +1974,6 @@ class String
 
     last_match = nil
 
-    ret = byteslice(0, 0) # Empty string and string subclass
     offset = match.full.at(0)
 
     while match
@@ -2012,10 +1989,9 @@ class String
         else
           val = hash[match.to_s]
         end
-        untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
 
-        tainted ||= val.tainted?
+        Rubinius::Type.infect ret, val
 
         ret.append val
 
@@ -2026,7 +2002,7 @@ class String
         replacement.to_sub_replacement(ret, match)
       end
 
-      tainted ||= val.tainted?
+      Rubinius::Type.infect ret, val
 
       last_end = match.full.at(1)
 
@@ -2054,9 +2030,6 @@ class String
     if str
       ret.append str
     end
-
-    ret.taint if tainted
-    ret.untrust if untrusted
 
     replace(ret)
     self
@@ -2314,7 +2287,9 @@ class String
       m.copy_from self, 0, bs, left
     end
 
-    str.taint if tainted? or padding.tainted?
+    Rubinius::Type.infect str, self
+    Rubinius::Type.infect str, padding
+
     str.force_encoding enc
   end
 
@@ -2363,7 +2338,9 @@ class String
       m.copy_from self, 0, bs, 0
     end
 
-    str.taint if tainted? or padding.tainted?
+    Rubinius::Type.infect str, self
+    Rubinius::Type.infect str, padding
+
     str.force_encoding enc
   end
 
@@ -2398,7 +2375,9 @@ class String
 
     m.copy_from self, 0, bs, bytes
 
-    str.taint if tainted? or padding.tainted?
+    Rubinius::Type.infect str, self
+    Rubinius::Type.infect str, padding
+
     str.force_encoding enc
   end
 

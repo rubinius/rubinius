@@ -87,14 +87,31 @@ namespace rubinius {
     state->raise_exception(exc);
   }
 
-  void Exception::bytecode_error(STATE,
-                                 CompiledCode* code, int ip, const char* reason)
-  {
-    Exception* exc = Exception::make_exception(state, G(exc_vm_bad_bytecode), reason);
+  void Exception::bytecode_error(STATE, CompiledCode* code, int ip, const char* reason) {
+    std::ostringstream msg;
+    msg << reason;
+    msg << ": code: " << code->name()->cpp_str(state);
+    msg << ", ip: " << ip;
+
+    Exception* exc = Exception::make_exception(state,
+        G(exc_vm_bad_bytecode), msg.str().c_str());
     exc->set_ivar(state, state->symbol("@compiled_code"), code);
     exc->set_ivar(state, state->symbol("@ip"), Fixnum::from(ip));
     exc->locations(state, Location::from_call_stack(state));
-    state->raise_exception(exc);
+    RubyException::raise(exc);
+  }
+
+  Exception* Exception::make_no_method_error(STATE, Arguments& args) {
+    std::ostringstream msg;
+    msg << "undefined method `" << args.name()->cpp_str(state)
+      << "' for " << args.recv()->to_s(state)->c_str(state);
+
+    return Exception::make_exception(state,
+        get_no_method_error(state), msg.str().c_str());
+  }
+
+  void Exception::raise_no_method_error(STATE, Arguments& args) {
+    RubyException::raise(Exception::make_no_method_error(state, args), true);
   }
 
   Exception* Exception::make_frozen_exception(STATE, Object* obj) {
@@ -466,6 +483,10 @@ namespace rubinius {
 
   Class* Exception::get_not_implemented_error(STATE) {
     return as<Class>(G(object)->get_const(state, "NotImplementedError"));
+  }
+
+  Class* Exception::get_no_method_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "NoMethodError"));
   }
 
   Class* Exception::get_errno_error(STATE, Fixnum* ern) {

@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  CompiledFile* cf = CompiledFile::load(stream);
+  CompiledFile* cf = CompiledFile::load(state, stream);
   if(cf->magic != "!RBIX") {
     cout << "Invalid file.\n";
   }

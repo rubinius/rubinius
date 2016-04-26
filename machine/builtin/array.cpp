@@ -63,13 +63,14 @@ namespace rubinius {
     return ary;
   }
 
-  Array* Array::new_range(STATE, Fixnum* start, Fixnum* count) {
+  Array* Array::new_range(STATE, Fixnum* index, Fixnum* count) {
     Array* ary = state->memory()->new_object<Array>(state, class_object(state));
 
-    native_int total = count->to_native();
-    if(total <= 0) {
+    native_int new_size = count->to_native();
+    if(new_size <= 0) {
       ary->tuple(state, Tuple::create(state, 0));
     } else {
+      ary->start(state, Fixnum::from(0));
       ary->total(state, count);
 
       /* We must use Tuple::create here and not new_fields<Tuple>, or we must
@@ -82,11 +83,19 @@ namespace rubinius {
        * happen infrequently depending on the concurrent marker racing the
        * mutator.
        */
-      Tuple* tup = Tuple::create(state, total);
+      Tuple* tup = Tuple::create(state, new_size);
       ary->tuple(state, tup);
 
-      for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
+      native_int i = 0;
+      native_int j = index->to_native();
+      native_int limit = start()->to_native() + total()->to_native();
+
+      for(; i < new_size && j < limit; i++, j++) {
         tup->put(state, i, tuple()->field[j]);
+      }
+
+      for(; i < new_size; i++) {
+        tup->put_nil(i);
       }
     }
 
