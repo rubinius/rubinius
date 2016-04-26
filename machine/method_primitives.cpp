@@ -12,8 +12,6 @@
 
 #include <iostream>
 
-#include "jit/llvm/state.hpp"
-
 namespace rubinius {
 
   Object* Primitives::unknown_primitive(STATE, Executable* exec, Module* mod, Arguments& args) {

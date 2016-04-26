@@ -21,8 +21,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
 
-#include "jit/llvm/state.hpp"
-
 #include <iostream>
 
 namespace rubinius {
@@ -387,7 +385,8 @@ namespace rubinius {
     }
 
     if(mcode->call_count >= 0) {
-      if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
+      // TODO: JIT
+      if(false /*mcode->call_count >= state->shared().config.jit_threshold_compile*/) {
         OnStack<1> os(state, env);
 
         G(jit)->compile_soon(state, env->compiled_code(),
@@ -434,7 +433,6 @@ namespace rubinius {
     call_frame->dispatch_data = env;
     call_frame->compiled_code = env->compiled_code();
     call_frame->scope = scope;
-    call_frame->optional_jit_data = NULL;
     call_frame->top_scope_ = env->top_scope();
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;

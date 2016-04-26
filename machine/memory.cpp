@@ -19,8 +19,6 @@
 #include "environment.hpp"
 #include "system_diagnostics.hpp"
 
-#include "jit/llvm/state.hpp"
-
 #include "on_stack.hpp"
 
 #include "config_parser.hpp"

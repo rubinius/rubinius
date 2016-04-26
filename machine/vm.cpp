@@ -248,6 +248,7 @@ namespace rubinius {
     G(jit)->available(&state, cTrue);
     G(jit)->properties(&state, ary);
 
+    /* TODO: JIT
     if(!shared.config.jit_disabled) {
       ary->append(&state, state.symbol("usage"));
       if(shared.config.jit_inline_generic) {
@@ -261,6 +262,8 @@ namespace rubinius {
     } else {
       G(jit)->enabled(&state, cFalse);
     }
+    */
+    G(jit)->enabled(&state, cFalse);
   }
 
   /**

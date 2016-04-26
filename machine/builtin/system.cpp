@@ -63,10 +63,6 @@
 #include <dlfcn.h>
 #endif
 
-#include "jit/llvm/state.hpp"
-#include "jit/llvm/context.hpp"
-#include "jit/llvm/compiler.hpp"
-
 #include "missing/setproctitle.h"
 
 namespace rubinius {
@@ -1377,7 +1373,7 @@ namespace rubinius {
     while(obj) {
       if(CompiledCode* code = try_as<CompiledCode>(obj)) {
         if(MachineCode* mcode = code->machine_code()) {
-          mcode->deoptimize(state, code, 0, disable);
+          mcode->deoptimize(state, code, disable);
           if(tooling_interpreter) {
             mcode->run = MachineCode::tooling_interpreter;
           } else {
@@ -1782,8 +1778,6 @@ retry:
     case cThreadKill:
       reason = state->symbol("thread_kill");
       break;
-    default:
-      reason = state->symbol("unknown");
     }
 
     tuple->put(state, 0, reason);

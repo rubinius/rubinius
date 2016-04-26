@@ -752,8 +752,6 @@ namespace rubinius {
       return state->symbol("after_output");
     case econv_incomplete_input:
       return state->symbol("incomplete_input");
-    default:
-      return state->symbol("unknown_converter_error");
     }
   }
 

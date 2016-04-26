@@ -24,9 +24,6 @@
 
 #include "logger.hpp"
 
-#include "jit/llvm/state.hpp"
-#include <llvm/Support/ManagedStatic.h>
-
 #include "memory/immix_marker.hpp"
 #include "memory/finalizer.hpp"
 
@@ -166,11 +163,13 @@ namespace rubinius {
   void Environment::start_jit(STATE) {
     utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
 
+    /* TODO: JIT
     if(state->shared().config.jit_disabled) return;
 
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
+    */
   }
 
   void Environment::stop_logging(STATE) {
@@ -180,13 +179,13 @@ namespace rubinius {
   void Environment::stop_jit(STATE) {
     utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
 
+    /* TODO: JIT
     if(state->shared().config.jit_disabled) return;
 
     if(state->shared().llvm_state) {
       state->shared().llvm_state->stop(state);
     }
-
-    llvm::llvm_shutdown();
+    */
   }
 
   void Environment::start_finalizer(STATE) {

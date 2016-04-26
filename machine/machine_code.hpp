@@ -42,7 +42,6 @@ namespace rubinius {
     struct Specialization {
       ClassData class_data;
       executor execute;
-      jit::RuntimeDataHolder* jit_data;
     };
 
     enum ExecuteStatus {
@@ -187,8 +186,7 @@ namespace rubinius {
 
     static Object* uncommon_interpreter(STATE, MachineCode* const mcode,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,
-      CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
-      UnwindInfoSet& unwinds,
+      CallFrame* const method_call_frame, UnwindInfoSet& unwinds,
       bool force_deoptimization);
 
     static Object* tooling_interpreter(STATE, MachineCode* const mcode);
@@ -199,8 +197,7 @@ namespace rubinius {
 
     void fill_opcodes(STATE, CompiledCode* original);
 
-    void deoptimize(STATE, CompiledCode* original, jit::RuntimeDataHolder* rd,
-                    bool disable=false);
+    void deoptimize(STATE, CompiledCode* original, bool disable=false);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

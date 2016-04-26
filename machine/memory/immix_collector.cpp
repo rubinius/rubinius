@@ -12,8 +12,6 @@
 
 #include "logger.hpp"
 
-#include "jit/llvm/state.hpp"
-
 namespace rubinius {
 namespace memory {
   void ImmixGC::Diagnostics::log() {
@@ -251,7 +249,9 @@ namespace memory {
       }
     }
 
+    /* TODO: JIT
     if(LLVMState* ls = data->llvm_state()) ls->gc_scan(this);
+    */
   }
 
   void ImmixGC::collect_finish(GCData* data) {

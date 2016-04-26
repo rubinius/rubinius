@@ -5,8 +5,6 @@
 #include "builtin/jit.hpp"
 #include "builtin/list.hpp"
 
-#include "jit/llvm/state.hpp"
-
 namespace rubinius {
   void JIT::bootstrap(STATE) {
     Module* jit = state->memory()->new_module<JIT>(state, G(rubinius), "JIT");
@@ -30,30 +28,41 @@ namespace rubinius {
     BlockEnvironment* block_env = try_as<BlockEnvironment>(block_environment);
     if(!block_env) block_env = nil<BlockEnvironment>();
 
+    /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
     ls->compile(state, code, object->direct_class(state),
         block_env, !block_env->nil_p());
+    */
 
     return cTrue;
   }
 
   Object* JIT::compile_threshold(STATE) {
-    return Integer::from(state, state->shared().config.jit_threshold_compile);
+    // TODO: JIT
+    return Integer::from(state, 0 /*state->shared().config.jit_threshold_compile*/);
   }
 
   Object* JIT::sync_set(STATE, Object* flag) {
+    return cFalse;
+    /* TODO: JIT
     state->shared().config.jit_sync.set(CBOOL(flag));
     return sync_get(state);
+    */
   }
 
   Object* JIT::sync_get(STATE) {
+    return cFalse;
+    /* TODO: JIT
     return RBOOL(state->shared().config.jit_sync);
+    */
   }
 
   Object* JIT::enable(STATE) {
     if(!CBOOL(enabled())) return cFalse;
 
+    /* TODO: JIT
     state->shared().llvm_state->enable(state);
+    */
     enabled(state, cTrue);
 
     return cTrue;
@@ -64,8 +73,10 @@ namespace rubinius {
   {
     if(!CBOOL(enabled())) return cFalse;
 
+    /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
     ls->compile_soon(state, code, receiver_class, block_env, is_block);
+    */
 
     return cTrue;
   }
@@ -75,8 +86,10 @@ namespace rubinius {
   {
     if(!CBOOL(enabled())) return cFalse;
 
+    /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
     ls->compile_callframe(state, code, primitive);
+    */
 
     return cTrue;
   }
@@ -84,8 +97,10 @@ namespace rubinius {
   Object* JIT::start_method_update(STATE) {
     if(!CBOOL(enabled())) return cFalse;
 
+    /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
     ls->start_method_update();
+    */
 
     return cTrue;
   }
@@ -93,8 +108,10 @@ namespace rubinius {
   Object* JIT::end_method_update(STATE) {
     if(!CBOOL(enabled())) return cFalse;
 
+    /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
     ls->end_method_update();
+    */
 
     return cTrue;
   }

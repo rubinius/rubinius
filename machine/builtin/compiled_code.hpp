@@ -45,14 +45,12 @@ namespace rubinius {
 
   private:
     attr_field(machine_code, MachineCode*);
-    attr_field(jit_data, jit::RuntimeDataHolder*);
 
   public:
     attr_accessor(literals, Tuple)
 
     bool can_specialize_p();
-    void set_unspecialized(executor exec, jit::RuntimeDataHolder* rd);
-    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec, jit::RuntimeDataHolder* rd);
+    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec);
     executor find_specialized(Class* cls);
 
     /* interface */
@@ -78,7 +76,6 @@ namespace rubinius {
       obj-> arity(nil<Fixnum>());
       obj-> breakpoints(nil<LookupTable>());
       obj-> machine_code(NULL);
-      obj->jit_data(NULL);
 
       obj->literals(nil<Tuple>());
     }
