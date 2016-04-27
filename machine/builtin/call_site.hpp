@@ -358,9 +358,9 @@ namespace rubinius {
         if(atomic::compare_and_swap(reinterpret_cast<void**>(updated_caches),
             previous_caches, inline_caches))
         {
-          if(previous_caches) delete[] previous_caches;
+          if(previous_caches) delete previous_caches;
         } else {
-          delete[] inline_caches;
+          delete inline_caches;
         }
 
         return;
@@ -397,7 +397,7 @@ namespace rubinius {
             execute(CallSite::dispatch);
             cache_miss(CallSite::dispatch);
 
-            delete[] caches();
+            delete caches();
             caches(NULL);
 
             atomic::memory_barrier();
@@ -504,6 +504,18 @@ namespace rubinius {
     // Rubinius.primitive :call_site_misses
     Integer* misses(STATE) {
       return Integer::from(state, misses());
+    }
+
+    // Rubinius.primitive :call_site_reset
+    CallSite* reset(STATE) {
+      if(caches()) delete caches();
+
+      invokes(0);
+      execute(default_execute);
+      cache_miss(default_execute);
+      caches(NULL);
+
+      return this;
     }
 
     class Info : public TypeInfo {
