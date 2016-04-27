@@ -77,7 +77,6 @@ namespace rubinius {
     // bail out destinations
     llvm::BasicBlock* bail_out_;
 
-    Value* method_entry_;
     Value* args_;
 
     Value* ip_pos_;
@@ -112,7 +111,6 @@ namespace rubinius {
       , allow_private_(false)
       , call_flags_(0)
       , bail_out_(NULL)
-      , method_entry_(info.profiling_entry())
       , args_(info.args())
       , ip_pos_(NULL)
       , vars_(info.variables())
@@ -504,30 +502,6 @@ namespace rubinius {
     }
 
     void visit_ret() {
-      if(llvm_state()->include_profiling() && method_entry_) {
-        BasicBlock* end_profiling = new_block("end_profiling");
-        BasicBlock* cont = new_block("continue");
-
-        ctx_->profiling(b(), end_profiling, cont);
-
-        Signature sig(ctx_, ctx_->VoidTy);
-        sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
-
-        Value* call_args[] = {
-          method_entry_
-        };
-
-        sig.call("rbx_end_profiling", call_args, 1, "", b());
-
-        b().CreateBr(cont);
-
-        set_block(cont);
-      }
-
-      if(use_full_scope_) flush_scope_to_heap(vars_);
-
-      info().add_return_value(stack_top(), current_block());
-      b().CreateBr(info().return_pad());
     }
 
     void visit_swap_stack() {

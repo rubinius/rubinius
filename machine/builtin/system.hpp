@@ -129,26 +129,6 @@ namespace rubinius {
     // Rubinius.primitive :vm_mri_backtrace
     static Array* vm_mri_backtrace(STATE, Fixnum* skip);
 
-    // Load a tool into the VM.
-    // Rubinius.primitive :vm_load_tool
-    static Object* vm_load_tool(STATE, String* str);
-
-    /** Return true if tooling is enabled */
-    // Rubinius.primitive+ :vm_tooling_available_p
-    static Object* vm_tooling_available_p(STATE);
-
-    /** Return true if tooling is running. */
-    // Rubinius.primitive+ :vm_tooling_active_p
-    static Object* vm_tooling_active_p(STATE);
-
-    /** Starts tooling. */
-    // Rubinius.primitive+ :vm_tooling_enable
-    static Object* vm_tooling_enable(STATE);
-
-    /** Stops tooling. */
-    // Rubinius.primitive+ :vm_tooling_disable
-    static Object* vm_tooling_disable(STATE);
-
     /**
      *  Writes String to standard error stream.
      */

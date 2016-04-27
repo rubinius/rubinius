@@ -193,8 +193,6 @@ namespace rubinius {
       counter_ = counter;
     }
 
-    void profiling(IRBuilder& b, llvm::BasicBlock* prof, llvm::BasicBlock* cont);
-
     void init_variables(IRBuilder& b);
 
     void add_runtime_data(jit::RuntimeData* rd);

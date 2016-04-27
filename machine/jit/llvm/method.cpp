@@ -7,7 +7,6 @@
 
 #include "call_frame.hpp"
 #include "machine_code.hpp"
-#include "instruments/tooling.hpp"
 
 #include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
@@ -89,36 +88,6 @@ namespace jit {
       sig.call("rbx_pop_call_frame", call_args, 1, "", b());
 
       b().SetInsertPoint(block);
-    }
-
-    if(ctx_->llvm_state()->include_profiling()) {
-      BasicBlock* setup_profiling = info_.new_block("setup_profiling");
-      BasicBlock* cont = info_.new_block("continue");
-
-      ctx_->profiling(b(), setup_profiling, cont);
-
-      Signature sig(ctx_, ctx_->VoidTy);
-      sig << "State";
-      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
-      sig << "Executable";
-      sig << "Module";
-      sig << "Arguments";
-      sig << "CompiledCode";
-
-      Value* call_args[] = {
-        info_.state(),
-        method_entry_,
-        exec,
-        module,
-        info_.args(),
-        method
-      };
-
-      sig.call("rbx_begin_profiling", call_args, 6, "", b());
-
-      b().CreateBr(cont);
-
-      b().SetInsertPoint(cont);
     }
 
     check_arity();

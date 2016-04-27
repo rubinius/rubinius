@@ -19,7 +19,6 @@ namespace rubinius {
     , args_(0)
     , variables_(0)
     , previous_(0)
-    , profiling_entry_(0)
     , parent_info_(parent)
     , creator_info_(0)
     , use_full_scope_(false)

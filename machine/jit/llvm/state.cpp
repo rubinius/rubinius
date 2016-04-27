@@ -96,7 +96,6 @@ namespace rubinius {
     , compile_list_(state)
     , symbols_(state->shared().symbols)
     , shared_(state->shared())
-    , include_profiling_(state->shared().config.jit_profile)
     , log_(NULL)
     , enabled_(false)
     , current_compiler_(0)

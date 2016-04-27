@@ -237,42 +237,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.dtrace_fire primitive failed"
   end
 
-  module Tooling
-    def self.raw_load(str)
-      Rubinius.primitive :vm_load_tool
-      raise PrimitiveFailure, "Tooling.raw_load primitive failed"
-    end
-
-    def self.load(str)
-      error, reason = raw_load(str)
-      unless error == true
-        raise ArgumentError, reason
-      end
-
-      return true
-    end
-
-    def self.available?
-      Rubinius.primitive :vm_tooling_available_p
-      raise PrimitiveFailure, "Tooling.available? primitive failed"
-    end
-
-    def self.active?
-      Rubinius.primitive :vm_tooling_active_p
-      raise PrimitiveFailure, "Tooling.active? primitive failed"
-    end
-
-    def self.enable
-      Rubinius.primitive :vm_tooling_enable
-      raise PrimitiveFailure, "Tooling.enable primitive failed"
-    end
-
-    def self.disable
-      Rubinius.primitive :vm_tooling_disable
-      raise PrimitiveFailure, "Tooling.disable primitive failed"
-    end
-  end
-
   def self.received_signal(sig)
     Signal.run_handler(sig)
   end

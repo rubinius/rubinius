@@ -23,7 +23,6 @@
 
 #include "instructions.hpp"
 
-#include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 
 #include "raise_reason.hpp"
@@ -78,10 +77,6 @@ namespace rubinius {
     , debugging(false)
     , flags(0)
   {
-    if(state->shared().tool_broker()->tooling_interpreter_p()) {
-      run = MachineCode::tooling_interpreter;
-    }
-
     if(keywords) {
       keywords_count = code->keywords()->num_fields() / 2;
     }
@@ -785,32 +780,11 @@ namespace rubinius {
 
       Object* value = 0;
 
-#ifdef RBX_PROFILER
-      if(unlikely(state->vm()->tooling())) {
-        // Check the stack and interrupts here rather than in the interpreter
-        // loop itself.
-        OnStack<2> os(state, exec, code);
-        if(state->check_interrupts(state)) {
-          tooling::MethodEntry method(state, exec, scope->module(), args, code);
-
-          RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-          value = (*mcode->run)(state, mcode);
-          RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
-        }
-      } else {
-        if(state->check_interrupts(state)) {
-          RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-          value = (*mcode->run)(state, mcode);
-          RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
-        }
-      }
-#else
       if(state->check_interrupts(state)) {
         RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
         value = (*mcode->run)(state, mcode);
         RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
       }
-#endif
 
       state->vm()->pop_call_frame(previous_frame);
 

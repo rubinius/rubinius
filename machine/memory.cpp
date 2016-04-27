@@ -47,7 +47,6 @@
 #include "global_cache.hpp"
 
 #include "instruments/timing.hpp"
-#include "instruments/tooling.hpp"
 #include "dtrace/dtrace.h"
 
 #include "logger.hpp"
@@ -546,12 +545,7 @@ step1:
       memory::GCData gc_data(state->vm());
 
       RUBINIUS_GC_BEGIN(0);
-      if(unlikely(state->vm()->tooling())) {
-        tooling::GCEntry method(state, tooling::GCYoung);
-        collect_young(state, &gc_data);
-      } else {
-        collect_young(state, &gc_data);
-      }
+      collect_young(state, &gc_data);
 
       if(!collect_full_flag_) interrupt_flag_ = false;
 
@@ -560,12 +554,7 @@ step1:
 
     if(collect_full_flag_) {
       RUBINIUS_GC_BEGIN(1);
-      if(unlikely(state->vm()->tooling())) {
-        tooling::GCEntry method(state, tooling::GCMature);
-        collect_full(state);
-      } else {
-        collect_full(state);
-      }
+      collect_full(state);
     }
 
     if(state->shared().config.memory_collection_log.value) {

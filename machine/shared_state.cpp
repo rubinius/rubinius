@@ -6,7 +6,6 @@
 #include "config.h"
 #include "memory.hpp"
 #include "environment.hpp"
-#include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "global_cache.hpp"
 
@@ -45,7 +44,6 @@ namespace rubinius {
     , check_gc_(false)
     , root_vm_(0)
     , env_(env)
-    , tool_broker_(new tooling::ToolBroker)
     , codedb_lock_(true)
     , capi_ds_lock_()
     , capi_locks_lock_()
@@ -94,7 +92,6 @@ namespace rubinius {
       metrics_ = 0;
     }
 
-    delete tool_broker_;
     delete global_cache;
     delete om;
     delete internal_threads_;

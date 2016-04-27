@@ -35,10 +35,6 @@ namespace rubinius {
     class GlobalHandle;
   }
 
-  namespace tooling {
-    class ToolBroker;
-  }
-
   namespace console {
     class Console;
   }
@@ -104,7 +100,6 @@ namespace rubinius {
 
     VM* root_vm_;
     Environment* env_;
-    tooling::ToolBroker* tool_broker_;
 
     utilities::thread::Mutex codedb_lock_;
 
@@ -225,10 +220,6 @@ namespace rubinius {
 
     VM* root_vm() const {
       return root_vm_;
-    }
-
-    tooling::ToolBroker* tool_broker() const {
-      return tool_broker_;
     }
 
     Memory* memory() const {

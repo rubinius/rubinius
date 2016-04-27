@@ -32,8 +32,6 @@
 #include "builtin/thread_state.hpp"
 #include "builtin/variable_scope.hpp"
 
-#include "instruments/tooling.hpp"
-
 #include "helpers.hpp"
 
 #include "arguments.hpp"
@@ -92,26 +90,6 @@ extern "C" {
 
   Object* rbx_is_tainted(STATE, Object* obj) {
     return obj->tainted_p(state);
-  }
-
-  void rbx_begin_profiling(STATE, void* data, Executable* exec, Module* mod, Arguments& args,
-                           CompiledCode* code)
-  {
-    // Use placement new to stick the class into data, which is on the callers
-    // stack.
-    new(data) tooling::MethodEntry(state, exec, mod, args, code);
-  }
-
-  void rbx_begin_profiling_block(STATE, void* data, BlockEnvironment* env,
-                                 Module* mod, CompiledCode* code)
-  {
-    // Use placement new to stick the class into data, which is on the callers
-    // stack.
-    new(data) tooling::BlockEntry(state, env, mod);
-  }
-
-  void rbx_end_profiling(tooling::MethodEntry* entry) {
-    entry->~MethodEntry();
   }
 
   void rbx_method_frame_initialize(STATE, CallFrame* call_frame,

@@ -9,8 +9,6 @@
 #include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
 
-#include "instruments/tooling.hpp"
-
 using namespace llvm;
 
 namespace rubinius {
@@ -94,35 +92,6 @@ namespace jit {
     import_args();
 
     import_args_ = b().GetInsertBlock();
-
-    if(ctx_->llvm_state()->include_profiling()) {
-      BasicBlock* setup_profiling = BasicBlock::Create(ctx_->llvm_context(),
-          "setup_profiling", func);
-      BasicBlock* cont = BasicBlock::Create(ctx_->llvm_context(), "continue", func);
-
-      ctx_->profiling(b(), setup_profiling, cont);
-
-      Signature sig(ctx_, ctx_->VoidTy);
-      sig << "State";
-      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
-      sig << "BlockEnvironment";
-      sig << "Module";
-      sig << "CompiledCode";
-
-      Value* call_args[] = {
-        state,
-        method_entry_,
-        block_env,
-        module_,
-        method
-      };
-
-      sig.call("rbx_begin_profiling_block", call_args, 5, "", b());
-
-      b().CreateBr(cont);
-
-      b().SetInsertPoint(cont);
-    }
 
     b().CreateBr(body_);
     b().SetInsertPoint(body_);

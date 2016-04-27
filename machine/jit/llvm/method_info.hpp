@@ -23,7 +23,6 @@ namespace rubinius {
     llvm::Value* args_;
     llvm::Value* variables_;
     llvm::Value* previous_;
-    llvm::Value* profiling_entry_;
 
     JITMethodInfo* parent_info_;
     JITMethodInfo* creator_info_;
@@ -89,14 +88,6 @@ namespace rubinius {
 
     llvm::Value* previous() {
       return previous_;
-    }
-
-    void set_profiling_entry(llvm::Value* val) {
-      profiling_entry_ = val;
-    }
-
-    llvm::Value* profiling_entry() {
-      return profiling_entry_;
     }
 
     void set_entry(llvm::BasicBlock* entry) {

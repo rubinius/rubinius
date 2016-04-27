@@ -178,22 +178,6 @@ namespace rubinius {
     return addr;
   }
 
-  void Context::profiling(IRBuilder& b, BasicBlock* prof, BasicBlock* cont) {
-    Signature sig(this, Int32Ty);
-    sig << "State";
-
-    Value* call_args[] = {
-      state_
-    };
-
-    Value* val = sig.call("rbx_check_tooling", call_args, 1, "tooling_p", b);
-
-    Value* test = b.CreateICmpEQ(val, cint(1), "profiling_p");
-
-    b.CreateCondBr(test, prof, cont);
-    b.SetInsertPoint(prof);
-  }
-
   llvm::Type* Context::ptr_type(llvm::Type* type) {
     return llvm::PointerType::getUnqual(type);
   }

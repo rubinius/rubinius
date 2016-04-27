@@ -9,7 +9,6 @@
 #include "jit/llvm/control_flow.hpp"
 #include "jit/llvm/cfg.hpp"
 
-#include "instruments/tooling.hpp"
 #include <llvm/Analysis/CaptureTracking.h>
 #if RBX_LLVM_API_VER > 304
 #include <llvm/IR/DebugInfo.h>
@@ -695,14 +694,6 @@ namespace jit {
     call_frame = b().CreateBitCast(
         cfstk,
         llvm::PointerType::getUnqual(cf_type), "call_frame");
-
-    if(ctx_->llvm_state()->include_profiling()) {
-      method_entry_ = b().CreateAlloca(ctx_->Int8Ty,
-          cint(sizeof(tooling::MethodEntry)),
-          "method_entry");
-
-      info_.set_profiling_entry(method_entry_);
-    }
 
     info_.set_call_frame(call_frame);
 

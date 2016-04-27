@@ -1,7 +1,6 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-#include "instruments/tooling.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "memory.hpp"
@@ -449,37 +448,11 @@ namespace rubinius {
 
     Object* value = NULL;
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->vm()->tooling())) {
-      Module* mod = scope->module();
-      if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-        if(Module* ma = try_as<Module>(sc->singleton())) {
-          mod = ma;
-        }
-      }
-
-      OnStack<2> os(state, env, mod);
-
-      // Check the stack and interrupts here rather than in the interpreter
-      // loop itself.
-      if(state->check_interrupts(state)) {
-        tooling::BlockEntry method(state, env, mod);
-        value = (*mcode->run)(state, mcode);
-      }
-    } else {
-      // Check the stack and interrupts here rather than in the interpreter
-      // loop itself.
-      if(state->check_interrupts(state)) {
-        value = (*mcode->run)(state, mcode);
-      }
-    }
-#else
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
     if(state->check_interrupts(state)) {
       value = (*mcode->run)(state, mcode);
     }
-#endif
 
     state->vm()->pop_call_frame(previous_frame);
 

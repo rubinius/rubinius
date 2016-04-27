@@ -9,8 +9,6 @@
 
 #include "gen/includes.hpp"
 
-#include "instruments/tooling.hpp"
-
 #include <iostream>
 
 namespace rubinius {

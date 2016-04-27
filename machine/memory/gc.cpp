@@ -24,8 +24,6 @@
 #include "jit/llvm/state.hpp"
 #endif
 
-#include "instruments/tooling.hpp"
-
 #include "arguments.hpp"
 #include "object_watch.hpp"
 #include "thread_nexus.hpp"

@@ -54,22 +54,9 @@ class BasicPrimitive
   def output_call(str, call, args)
     str << "\n"
     str << "  try {\n"
-    str << "#ifdef RBX_PROFILER\n"
-    str << "    if(unlikely(state->vm()->tooling())) {\n"
-    str << "      tooling::MethodEntry method(state, exec, mod, args);\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name());\n"
-    str << "      ret = #{call}(#{args.join(', ')});\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name());\n"
-    str << "    } else {\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name());\n"
-    str << "      ret = #{call}(#{args.join(', ')});\n"
-    str << "      RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name());\n"
-    str << "    }\n"
-    str << "#else\n"
     str << "    RUBINIUS_METHOD_PRIMITIVE_ENTRY_HOOK(state, mod, args.name());\n"
     str << "    ret = #{call}(#{args.join(', ')});\n"
     str << "    RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, mod, args.name());\n"
-    str << "#endif\n"
     str << "  } catch(const RubyException& exc) {\n"
     str << "    exc.exception->locations(state,\n"
     str << "          Location::from_call_stack(state));\n"
@@ -477,16 +464,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
       else
         call = "        ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "#ifdef RBX_PROFILER\n"
-      str << "        if(unlikely(state->vm()->tooling())) {\n"
-      str << "          tooling::MethodEntry method(state, exec, mod, args);\n"
-      str << "  " << call
-      str << "        } else {\n"
-      str << "  " << call
-      str << "        }\n"
-      str << "#else\n"
       str << call
-      str << "#endif\n"
       str << "      } catch(const RubyException& exc) {\n"
       str << "        exc.exception->locations(state,\n"
       str << "              Location::from_call_stack(state));\n"

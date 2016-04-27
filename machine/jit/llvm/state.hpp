@@ -86,8 +86,6 @@ namespace rubinius {
 
     SharedState& shared_;
 
-    bool include_profiling_;
-
     std::ostream* log_;
 
     uint32_t fixnum_class_id_;
@@ -146,10 +144,6 @@ namespace rubinius {
 
     Configuration& config() {
       return config_;
-    }
-
-    bool include_profiling() {
-      return include_profiling_;
     }
 
     jit::RubiniusJITMemoryManager* memory() { return memory_; }
