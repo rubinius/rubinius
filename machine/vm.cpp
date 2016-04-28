@@ -59,18 +59,6 @@
 #define GO(whatever) globals().whatever
 
 namespace rubinius {
-
-  unsigned long VM::cStackDepthMax = 655300;
-
-#ifndef RBX_WINDOWS
-  /**
-   * Maximum amount of stack space to use.
-   * getrlimit can report there is 4G of stack (ie, unlimited).  Even when
-   * there is unlimited stack, we clamp the max to this value (currently 128M).
-   */
-  static rlim_t cMaxStack = (1024 * 1024 * 128);
-#endif
-
   VM::VM(uint32_t id, SharedState& shared, const char* name)
     : memory::ManagedThread(id, shared, memory::ManagedThread::eRuby, name)
     , call_frame_(NULL)
@@ -79,6 +67,10 @@ namespace rubinius {
     , fiber_stacks_(this, shared)
     , park_(new Park)
     , tooling_env_(NULL)
+    , stack_start_(0)
+    , stack_size_(0)
+    , current_stack_start_(0)
+    , current_stack_size_(0)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
@@ -118,10 +110,27 @@ namespace rubinius {
     delete vm;
   }
 
-  void VM::push_call_frame(CallFrame* frame, CallFrame*& previous_frame) {
+  void VM::set_stack_bounds(size_t size) {
+    void* stack_address;
+
+    stack_size_ = size;
+    stack_start_ = &stack_address;
+
+    set_stack_bounds(stack_start_, stack_size_);
+  }
+
+  void VM::raise_stack_error(STATE) {
+    state->raise_stack_error(state);
+  }
+
+  bool VM::push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame) {
+    if(!check_stack(state, frame)) return false;
+
     previous_frame = call_frame_;
     frame->previous = call_frame_;
     call_frame_ = frame;
+
+    return true;
   }
 
   CallFrame* VM::get_call_frame(ssize_t up) {
@@ -292,24 +301,6 @@ namespace rubinius {
     }
   }
 
-  void VM::init_stack_size() {
-#ifndef RBX_WINDOWS
-    struct rlimit rlim;
-    if(getrlimit(RLIMIT_STACK, &rlim) == 0) {
-      rlim_t space = rlim.rlim_cur/5;
-
-      if(space > 1024*1024) space = 1024*1024;
-      rlim_t adjusted = (rlim.rlim_cur - space);
-
-      if(adjusted > cMaxStack) {
-        cStackDepthMax = cMaxStack;
-      } else {
-        cStackDepthMax = adjusted;
-      }
-    }
-#endif
-  }
-
   TypeInfo* VM::find_type(int type) {
     return memory()->type_info[type];
   }
@@ -474,7 +465,12 @@ namespace rubinius {
   }
 
   void VM::set_current_fiber(Fiber* fib) {
-    set_stack_bounds((uintptr_t)fib->stack_start(), fib->stack_size());
+    if(fib->root_p()) {
+      restore_stack_bounds();
+    } else {
+      set_stack_bounds(fib->stack_start(), fib->stack_size());
+    }
+
     current_fiber.set(fib);
   }
 

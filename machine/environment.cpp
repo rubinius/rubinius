@@ -95,8 +95,6 @@ namespace rubinius {
 
     String::init_hash();
 
-    VM::init_stack_size();
-
     copy_argv(argc, argv);
     ruby_init_setproctitle(argc, argv);
 
@@ -110,9 +108,14 @@ namespace rubinius {
     root_vm->set_main_thread();
     shared->set_root_vm(root_vm);
 
-    int stack_address = 0;
-    root_vm->set_root_stack(
-        reinterpret_cast<uintptr_t>(&stack_address), VM::cStackDepthMax);
+    size_t stack_size = THREAD_STACK_SIZE;
+    struct rlimit rlim;
+
+    if(getrlimit(RLIMIT_STACK, &rlim) == 0) {
+      stack_size = rlim.rlim_cur;
+    }
+
+    root_vm->set_stack_bounds(stack_size);
     root_vm->set_current_thread();
 
     state = new State(root_vm);
@@ -822,8 +825,9 @@ namespace rubinius {
 
     // Start signal handling. We don't return until the process is exiting.
     VM* vm = SignalThread::new_vm(state);
-    State main_state(vm);
+    vm->set_stack_bounds(state->vm()->stack_size());
 
+    State main_state(vm);
     state->shared().start_signals(&main_state);
   }
 }

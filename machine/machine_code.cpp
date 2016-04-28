@@ -767,7 +767,9 @@ namespace rubinius {
       call_frame->scope = scope;
       call_frame->arguments = &args;
 
-      state->vm()->push_call_frame(call_frame, previous_frame);
+      if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+        return NULL;
+      }
 
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
@@ -851,7 +853,9 @@ namespace rubinius {
     call_frame->scope = scope;
     call_frame->arguments = &args;
 
-    state->vm()->push_call_frame(call_frame, previous_frame);
+    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      return NULL;
+    }
 
     // Do NOT check if we should JIT this. We NEVER want to jit a script.
 

@@ -213,22 +213,24 @@ namespace memory {
           env->set_current_native_frame(&nmf);
 
           // Register the CallFrame, because we might GC below this.
-          state->vm()->push_call_frame(call_frame, previous_frame);
+          if(state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+            nmf.setup(Qnil, Qnil, Qnil, Qnil);
 
-          nmf.setup(Qnil, Qnil, Qnil, Qnil);
+            PLACE_EXCEPTION_POINT(ep);
 
-          PLACE_EXCEPTION_POINT(ep);
+            if(unlikely(ep.jumped_to())) {
+              logger::warn(
+                  "finalizer: an exception occurred running a NativeMethod finalizer");
+            } else {
+              (*process_item_->finalizer)(state, process_item_->object);
+            }
 
-          if(unlikely(ep.jumped_to())) {
-            logger::warn(
-                "finalizer: an exception occurred running a NativeMethod finalizer");
+            state->vm()->pop_call_frame(previous_frame);
+            env->set_current_call_frame(0);
+            env->set_current_native_frame(0);
           } else {
-            (*process_item_->finalizer)(state, process_item_->object);
+            logger::warn("finalizer: stack error");
           }
-
-          state->vm()->pop_call_frame(previous_frame);
-          env->set_current_call_frame(0);
-          env->set_current_native_frame(0);
         }
       }
       process_item_->status = FinalizeObject::eNativeFinalized;

@@ -98,7 +98,7 @@ namespace rubinius {
 
     // TODO: CallFrame: return from this function
 
-    assert(0 && "fatal start_on_stack error");
+    rubinius::bug("returning from Fiber::start_on_stack");
 #else
     rubinius::bug("Fibers not supported on this platform");
 #endif

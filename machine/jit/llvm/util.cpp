@@ -114,7 +114,7 @@ extern "C" {
     entry->~MethodEntry();
   }
 
-  void rbx_method_frame_initialize(STATE, CallFrame* call_frame,
+  bool rbx_method_frame_initialize(STATE, CallFrame* call_frame,
       StackVariables* scope, Executable* exec, Module* mod, Arguments* args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
@@ -135,10 +135,10 @@ extern "C" {
     call_frame->arguments = args;
 
     CallFrame* previous;
-    state->vm()->push_call_frame(call_frame, previous);
+    return state->vm()->push_call_frame(state, call_frame, previous);
   }
 
-  void rbx_block_frame_initialize(STATE,
+  bool rbx_block_frame_initialize(STATE,
       CallFrame* call_frame, StackVariables* scope,
       BlockEnvironment* env, Arguments* args, BlockInvocation* invocation)
   {
@@ -175,7 +175,7 @@ extern "C" {
                                           | CallFrame::cJITed;
 
     CallFrame* previous;
-    state->vm()->push_call_frame(call_frame, previous);
+    return state->vm()->push_call_frame(state, call_frame, previous);
   }
 
   void rbx_pop_call_frame(STATE) {

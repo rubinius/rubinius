@@ -51,16 +51,6 @@ namespace rubinius {
   }
 
   bool State::check_interrupts(STATE) {
-    // First, we might be here because someone reset the stack_limit_ so that
-    // we'd fall into here to check interrupts even if the stack is fine,
-    //
-    // So fix up the stack_limit_ if thats the case first.
-
-    // If this is true, stack_limit_ was just changed to get our attention, reset
-    // it now.
-    int stack_marker = 0;
-    if(!check_stack(state, &stack_marker)) return false;
-
     if(unlikely(check_local_interrupts())) {
       if(!process_async(state)) return false;
     }

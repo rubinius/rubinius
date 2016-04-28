@@ -676,7 +676,9 @@ namespace rubinius {
     env->set_current_native_frame(&nmf);
 
     // Register the CallFrame, because we might GC below this.
-    state->vm()->push_call_frame(call_frame, previous_frame);
+    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      return NULL;
+    }
 
     // Be sure to do this after installing nmf as the current
     // native frame.

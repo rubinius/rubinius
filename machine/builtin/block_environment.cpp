@@ -445,7 +445,9 @@ namespace rubinius {
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
-    state->vm()->push_call_frame(call_frame, previous_frame);
+    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      return NULL;
+    }
 
     Object* value = NULL;
 
