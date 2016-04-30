@@ -242,11 +242,23 @@ namespace rubinius {
 
     bool push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame);
 
-    void pop_call_frame(CallFrame* frame) {
+    bool pop_call_frame(STATE, CallFrame* frame) {
       call_frame_ = frame;
+
+      return !thread_interrupted_p(state);
     }
 
-    // Do NOT de-deplicate
+    bool thread_interrupted_p(STATE) {
+      if(check_local_interrupts()) {
+        return check_thread_raise_or_kill(state);
+      }
+
+      return false;
+    }
+
+    bool check_thread_raise_or_kill(STATE);
+
+    // Do NOT de-duplicate
     void set_call_frame(CallFrame* frame) {
       call_frame_ = frame;
     }

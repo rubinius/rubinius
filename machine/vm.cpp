@@ -133,6 +133,45 @@ namespace rubinius {
     return true;
   }
 
+  bool VM::check_thread_raise_or_kill(STATE) {
+    Exception* exc = interrupted_exception();
+
+    if(!exc->nil_p()) {
+      clear_interrupted_exception();
+
+      // Only write the locations if there are none.
+      if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
+        exc->locations(this, Location::from_call_stack(state));
+      }
+
+      thread_state_.raise_exception(exc);
+
+      return true;
+    }
+
+    if(interrupt_by_kill()) {
+      Fiber* fib = current_fiber.get();
+
+      if(fib->nil_p() || fib->root_p()) {
+        clear_interrupt_by_kill();
+      } else {
+        set_check_local_interrupts();
+      }
+
+      thread_state_.raise_thread_kill();
+
+      return true;
+    }
+
+    // If the current thread is trying to step, debugger wise, then assist!
+    if(thread_step()) {
+      clear_thread_step();
+      if(!Helpers::yield_debugger(state, cNil)) return true;
+    }
+
+    return false;
+  }
+
   CallFrame* VM::get_call_frame(ssize_t up) {
     CallFrame* frame = call_frame_;
 

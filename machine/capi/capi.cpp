@@ -58,9 +58,10 @@ namespace rubinius {
         return false;
       }
 
-      if(unlikely(state->check_local_interrupts())) {
-        if(!state->process_async(state)) return false;
+      if(unlikely(state->vm()->check_local_interrupts())) {
+        return state->vm()->check_thread_raise_or_kill(state);
       }
+
       return true;
     }
 

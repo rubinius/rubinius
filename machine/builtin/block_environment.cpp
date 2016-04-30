@@ -462,28 +462,18 @@ namespace rubinius {
 
       OnStack<2> os(state, env, mod);
 
-      // Check the stack and interrupts here rather than in the interpreter
-      // loop itself.
-      if(state->check_interrupts(state)) {
-        tooling::BlockEntry method(state, env, mod);
-        value = (*mcode->run)(state, mcode);
-      }
+      tooling::BlockEntry method(state, env, mod);
+      value = (*mcode->run)(state, mcode);
     } else {
-      // Check the stack and interrupts here rather than in the interpreter
-      // loop itself.
-      if(state->check_interrupts(state)) {
-        value = (*mcode->run)(state, mcode);
-      }
-    }
-#else
-    // Check the stack and interrupts here rather than in the interpreter
-    // loop itself.
-    if(state->check_interrupts(state)) {
       value = (*mcode->run)(state, mcode);
     }
+#else
+    value = (*mcode->run)(state, mcode);
 #endif
 
-    state->vm()->pop_call_frame(previous_frame);
+    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+      return NULL;
+    }
 
     return value;
   }

@@ -155,10 +155,15 @@ namespace rubinius {
 
     cur = Fiber::current(state);
 
+    // TODO: clean up this and the following conditional.
+    if(state->vm()->thread_interrupted_p(state)) {
+      return NULL;
+    }
+
     if(!cur->exception()->nil_p()) {
       state->raise_exception(cur->exception());
       cur->exception(state, nil<Exception>());
-      return 0;
+      return NULL;
     }
 
     Array* ret = cur->value();

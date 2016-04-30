@@ -225,7 +225,7 @@ namespace memory {
               (*process_item_->finalizer)(state, process_item_->object);
             }
 
-            state->vm()->pop_call_frame(previous_frame);
+            state->vm()->pop_call_frame(state, previous_frame);
             env->set_current_call_frame(0);
             env->set_current_native_frame(0);
           } else {

@@ -288,7 +288,7 @@ namespace rubinius {
 
     if(events == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(state)) return NULL;
+        if(state->vm()->thread_interrupted_p(state)) return NULL;
 
         // Recalculate the limit and go again.
         if(maybe_limit) {
@@ -678,7 +678,7 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(state)) {
+        if(state->vm()->thread_interrupted_p(state)) {
           if(malloc_buf) free(malloc_buf);
           return NULL;
         }
@@ -967,7 +967,7 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
-        if(!state->check_async(state)) return NULL;
+        if(state->vm()->thread_interrupted_p(state)) return NULL;
         ensure_open(state);
         goto retry;
       } else {
@@ -1321,7 +1321,7 @@ failed: /* try next '*' position */
 
     if(code == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(state)) return NULL;
+        if(state->vm()->thread_interrupted_p(state)) return NULL;
         ensure_open(state);
         goto retry;
       }
@@ -1429,7 +1429,7 @@ failed: /* try next '*' position */
         break;
       case EAGAIN:
       case EINTR:
-        if(!state->check_async(state)) return NULL;
+        if(state->vm()->thread_interrupted_p(state)) return NULL;
         io->ensure_open(state);
         goto retry;
       default:

@@ -741,7 +741,7 @@ namespace rubinius {
     } catch(const RubyException& exc) {
       LEAVE_CAPI(state);
 
-      state->vm()->pop_call_frame(previous_frame);
+      state->vm()->pop_call_frame(state, previous_frame);
       env->set_current_call_frame(saved_frame);
       env->set_current_native_frame(nmf.previous());
       ep.pop(env);
@@ -751,14 +751,13 @@ namespace rubinius {
 
     LEAVE_CAPI(state);
 
-    state->vm()->pop_call_frame(previous_frame);
+    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+      value = NULL;
+    }
+
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
-
-    // Handle any signals that occurred while the native method
-    // was running.
-    if(!state->check_async(state)) return NULL;
 
     return value;
   }

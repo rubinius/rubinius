@@ -97,17 +97,7 @@ namespace rubinius {
       return vm_jit_->check_local_interrupts_;
     }
 
-    bool check_async(STATE) {
-      if(vm_->check_local_interrupts()) {
-        return process_async(state);
-      }
-      return true;
-    }
-
     void raise_stack_error(STATE);
-
-    bool process_async(STATE);
-    bool check_interrupts(STATE);
 
     Object* park(STATE);
     Object* park_timed(STATE, struct timespec* ts);
