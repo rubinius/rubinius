@@ -147,9 +147,6 @@ namespace rubinius {
     // Rubinius.primitive :vm_sleep
     static Object*  vm_sleep(STATE, Object* duration);
 
-    // Rubinius.primitive :vm_check_interrupts
-    static Object*  vm_check_interrupts(STATE);
-
     // Rubinius.primitive :vm_times
     static Array*   vm_times(STATE);
 

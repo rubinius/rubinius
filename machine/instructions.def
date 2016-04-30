@@ -1766,8 +1766,6 @@ instruction check_interrupts() [ -- ]
     mcode->call_count++;
   }
 
-  if(!state->check_async(state)) RUN_EXCEPTION();
-
   state->vm()->checkpoint(state);
 end
 
@@ -1944,16 +1942,33 @@ instruction zsuper(literal) [ block -- value ]
   }
 
   Tuple* tup = Tuple::create(state, arg_count);
-  for(int i = 0; i < mc->total_args; i++) {
-    tup->put(state, i, scope->get_local(state, i));
+  native_int tup_index = 0;
+
+  native_int fixed_args;
+  if(splat) {
+    fixed_args = mc->splat_position;
+  } else if(mc->keywords) {
+    fixed_args = mc->total_args - 1;
+  } else {
+    fixed_args = mc->total_args;
+  }
+  for(native_int i = 0; i < fixed_args; i++) {
+    tup->put(state, tup_index++, scope->get_local(state, i));
   }
 
   if(splat) {
     for(native_int i = 0; i < splat->size(); i++) {
-      tup->put(state, i + mc->total_args, splat->get(state, i));
+      tup->put(state, tup_index++, splat->get(state, i));
     }
   } else if(splat_obj) {
-    tup->put(state, mc->total_args, splat_obj);
+    tup->put(state, tup_index++, splat_obj);
+  }
+
+  if(mc->post_args) {
+    native_int post_position = mc->splat_position + 1;
+    for(native_int i = post_position; i < post_position + mc->post_args; i++) {
+      tup->put(state, tup_index++, scope->get_local(state, i));
+    }
   }
 
   if(mc->keywords) {
@@ -1969,6 +1984,8 @@ instruction zsuper(literal) [ block -- value ]
 
       placeholder->send(state, state->symbol("[]="), ary);
     }
+
+    tup->put(state, tup_index++, scope->get_local(state, placeholder_position));
   }
 
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);

@@ -444,17 +444,17 @@ namespace rubinius {
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
-    state->vm()->push_call_frame(call_frame, previous_frame);
+    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      return NULL;
+    }
 
     Object* value = NULL;
 
-    // Check the stack and interrupts here rather than in the interpreter
-    // loop itself.
-    if(state->check_interrupts(state)) {
-      value = (*mcode->run)(state, mcode);
-    }
+    value = (*mcode->run)(state, mcode);
 
-    state->vm()->pop_call_frame(previous_frame);
+    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+      return NULL;
+    }
 
     return value;
   }

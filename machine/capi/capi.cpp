@@ -51,14 +51,17 @@ namespace rubinius {
       return map[type];
     }
 
-    bool capi_check_interrupts(STATE, void* stack_marker) {
-      if(!state->check_stack(state, stack_marker)) {
+    bool capi_check_interrupts(STATE) {
+      void* stack_address;
+
+      if(!state->vm()->check_stack(state, &stack_address)) {
         return false;
       }
 
-      if(unlikely(state->check_local_interrupts())) {
-        if(!state->process_async(state)) return false;
+      if(unlikely(state->vm()->check_local_interrupts())) {
+        return state->vm()->check_thread_raise_or_kill(state);
       }
+
       return true;
     }
 
@@ -115,8 +118,7 @@ namespace rubinius {
                                       Object** args, Object* block,
                                       bool allow_private)
     {
-      int stack_marker = 0;
-      if(!capi_check_interrupts(env->state(), &stack_marker)) {
+      if(!capi_check_interrupts(env->state())) {
         env->current_ep()->return_to(env);
       }
 
@@ -208,8 +210,7 @@ namespace rubinius {
                               Object* blk,
                               size_t arg_count, Object** arg_vals)
     {
-      int stack_marker = 0;
-      if(!capi_check_interrupts(env->state(), &stack_marker)) {
+      if(!capi_check_interrupts(env->state())) {
         env->current_ep()->return_to(env);
       }
 
@@ -258,8 +259,7 @@ namespace rubinius {
     VALUE capi_call_super_native(NativeMethodEnvironment* env,
                                  size_t arg_count, Object** args)
     {
-      int stack_marker = 0;
-      if(!capi_check_interrupts(env->state(), &stack_marker)) {
+      if(!capi_check_interrupts(env->state())) {
         env->current_ep()->return_to(env);
       }
 

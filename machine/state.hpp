@@ -93,34 +93,11 @@ namespace rubinius {
       return shared_;
     }
 
-    bool detect_stack_condition(void* end) const {
-      return vm_->detect_stack_condition(end);
-    }
-
     bool check_local_interrupts() const {
       return vm_jit_->check_local_interrupts_;
     }
 
-    bool check_async(STATE) {
-      if(vm_->check_local_interrupts()) {
-        return process_async(state);
-      }
-      return true;
-    }
-
     void raise_stack_error(STATE);
-
-    bool check_stack(STATE, void* end) {
-      // @TODO assumes stack growth direction
-      if(unlikely(vm_->detect_stack_condition(end))) {
-        raise_stack_error(state);
-        return false;
-      }
-      return true;
-    }
-
-    bool process_async(STATE);
-    bool check_interrupts(STATE);
 
     Object* park(STATE);
     Object* park_timed(STATE, struct timespec* ts);

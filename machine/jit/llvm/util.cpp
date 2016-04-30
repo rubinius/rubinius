@@ -113,10 +113,10 @@ extern "C" {
     call_frame->arguments = args;
 
     CallFrame* previous;
-    state->vm()->push_call_frame(call_frame, previous);
+    return state->vm()->push_call_frame(state, call_frame, previous);
   }
 
-  void rbx_block_frame_initialize(STATE,
+  bool rbx_block_frame_initialize(STATE,
       CallFrame* call_frame, StackVariables* scope,
       BlockEnvironment* env, Arguments* args, BlockInvocation* invocation)
   {
@@ -153,11 +153,11 @@ extern "C" {
                                           | CallFrame::cJITed;
 
     CallFrame* previous;
-    state->vm()->push_call_frame(call_frame, previous);
+    return state->vm()->push_call_frame(state, call_frame, previous);
   }
 
   void rbx_pop_call_frame(STATE) {
-    state->vm()->pop_call_frame(state->vm()->call_frame()->previous);
+    state->vm()->pop_call_frame(state, state->vm()->call_frame()->previous);
   }
 
   Object* rbx_splat_send(STATE, CallSite* call_site,
@@ -985,20 +985,10 @@ extern "C" {
   }
 
   Object* rbx_prologue_check(STATE) {
-    if(!state->check_interrupts(state)) return NULL;
-
-    // TODO: ensure no stack references exist at this point
-    // state->vm()->checkpoint(state);
-
     return cTrue;
   }
 
   Object* rbx_check_interrupts(STATE) {
-    if(!state->check_async(state)) return NULL;
-
-    // TODO: ensure no stack references exist at this point
-    // state->vm()->checkpoint(state);
-
     return cTrue;
   }
 
