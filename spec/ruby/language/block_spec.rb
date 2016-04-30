@@ -196,6 +196,12 @@ describe "A block" do
     var.should == 1
   end
 
+  it "does not capture a local when the block argument has the same name" do
+    var = 1
+    proc { |&var| var[2] }[&proc { |x| x }].should == 2
+    var.should == 1
+  end
+
   describe "taking zero arguments" do
     it "does not raise an exception when no values are yielded" do
       @y.z { 1 }.should == 1
