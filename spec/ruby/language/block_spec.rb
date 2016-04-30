@@ -704,6 +704,16 @@ describe "Block-local variables" do
       glark.should be_nil
     end
   end
+
+  it "are visible in deeper scopes before initialization" do
+    [1].each {|;glark|
+      [1].each {
+        defined?(glark).should_not be_nil
+        glark = 1
+      }
+      glark.should == 1
+    }
+  end
 end
 
 describe "Post-args" do
