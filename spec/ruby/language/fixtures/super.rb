@@ -347,4 +347,18 @@ module Super
       end
     end
   end
+
+  module SplatAndKeyword
+    class A
+      def foo(*args, **options)
+        [args, options]
+      end
+    end
+
+    class B < A
+      def foo(*args, **options)
+        super
+      end
+    end
+  end
 end
