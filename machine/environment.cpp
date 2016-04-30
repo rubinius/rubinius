@@ -61,6 +61,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/resource.h>
 #include <pwd.h>
 #include <dirent.h>
 
