@@ -92,7 +92,7 @@ extern "C" {
     return obj->tainted_p(state);
   }
 
-  void rbx_method_frame_initialize(STATE, CallFrame* call_frame,
+  bool rbx_method_frame_initialize(STATE, CallFrame* call_frame,
       StackVariables* scope, Executable* exec, Module* mod, Arguments* args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
