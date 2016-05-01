@@ -134,7 +134,7 @@ namespace rubinius {
       ts.tv_nsec  = nano % NANOSECONDS;
     }
 
-    if(!state->check_async(state)) {
+    if(state->vm()->thread_interrupted_p(state)) {
       return NULL;
     }
 
@@ -161,7 +161,7 @@ namespace rubinius {
 
       // or there are values available.
       if(self->semaphore_count() > 0 || !self->value()->empty_p()) break;
-      if(!state->check_async(state)) {
+      if(state->vm()->thread_interrupted_p(state)) {
         exception = true;
         break;
       }
@@ -173,7 +173,7 @@ namespace rubinius {
     self->unpin();
     self->_waiters_--;
 
-    if(exception || !state->check_async(state)) return NULL;
+    if(exception) return NULL;
 
     if(self->semaphore_count() > 0) {
       self->dec_semaphore_count();

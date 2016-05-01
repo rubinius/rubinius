@@ -101,8 +101,11 @@ namespace rubinius {
     Park* park_;
     rbxti::Env* tooling_env_;
 
-    uintptr_t root_stack_start_;
-    uintptr_t root_stack_size_;
+    void* stack_start_;
+    size_t stack_size_;
+
+    void* current_stack_start_;
+    size_t current_stack_size_;
 
     utilities::thread::SpinLock interrupt_lock_;
 
@@ -141,8 +144,6 @@ namespace rubinius {
     void* custom_wakeup_data_;
 
     VMThreadState thread_state_;
-
-    static unsigned long cStackDepthMax;
 
   public: /* Inline methods */
 
@@ -206,13 +207,58 @@ namespace rubinius {
       return shared.memory();
     }
 
-    void push_call_frame(CallFrame* frame, CallFrame*& previous_frame);
+    void raise_stack_error(STATE);
 
-    void pop_call_frame(CallFrame* frame) {
-      call_frame_ = frame;
+    size_t stack_size() {
+      return current_stack_size_;
     }
 
-    // Do NOT de-deplicate
+    void restore_stack_bounds() {
+      current_stack_start_ = stack_start_;
+      current_stack_size_ = stack_size_;
+    }
+
+    void set_stack_bounds(void* start, size_t size) {
+      current_stack_start_ = start;
+      current_stack_size_ = size;
+    }
+
+    void set_stack_bounds(size_t size);
+
+    bool check_stack(STATE, void* stack_address) {
+      ssize_t stack_used =
+        (reinterpret_cast<intptr_t>(current_stack_start_)
+        - reinterpret_cast<intptr_t>(stack_address));
+
+      if(stack_used < 0) stack_used = -stack_used;
+
+      if(stack_used > stack_size_) {
+        raise_stack_error(state);
+        return false;
+      }
+
+      return true;
+    }
+
+    bool push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame);
+
+    bool pop_call_frame(STATE, CallFrame* frame) {
+      call_frame_ = frame;
+
+      return !thread_interrupted_p(state);
+    }
+
+    bool thread_interrupted_p(STATE) {
+      if(check_local_interrupts()) {
+        return check_thread_raise_or_kill(state);
+      }
+
+      return false;
+    }
+
+    bool check_thread_raise_or_kill(STATE);
+
+    // Do NOT de-duplicate
     void set_call_frame(CallFrame* frame) {
       call_frame_ = frame;
     }
@@ -242,42 +288,6 @@ namespace rubinius {
 
     Globals& globals() {
       return shared.globals;
-    }
-
-    void* stack_start() const {
-      return reinterpret_cast<void*>(vm_jit_.stack_start_);
-    }
-
-    int stack_size() const {
-      return vm_jit_.stack_size_;
-    }
-
-    void reset_stack_limit() {
-      // @TODO assumes stack growth direction
-      vm_jit_.stack_limit_ = (vm_jit_.stack_start_ - vm_jit_.stack_size_) + (4096 * 10);
-    }
-
-    void set_stack_bounds(uintptr_t start, int length) {
-      if(start == 0) {
-        start  = root_stack_start_;
-        length = root_stack_size_;
-      }
-
-      vm_jit_.stack_start_ = start;
-      vm_jit_.stack_size_ = length;
-      reset_stack_limit();
-    }
-
-    void set_root_stack(uintptr_t start, int length) {
-      root_stack_start_ = start;
-      root_stack_size_ = length;
-
-      set_stack_bounds(root_stack_start_, root_stack_size_);
-    }
-
-    bool detect_stack_condition(void* end) const {
-      // @TODO assumes stack growth direction
-      return reinterpret_cast<uintptr_t>(end) < vm_jit_.stack_limit_;
     }
 
     MethodMissingReason method_missing_reason() const {
@@ -391,8 +401,6 @@ namespace rubinius {
     memory::VariableRootBuffers& current_root_buffers();
 
   public:
-    static void init_stack_size();
-
     static VM* current();
 
     static void discard(STATE, VM*);

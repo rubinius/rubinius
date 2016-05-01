@@ -326,8 +326,6 @@ namespace rubinius {
     FFIData* stub = reinterpret_cast<FFIData*>(user_data);
 
     bool destroy_vm = false;
-    int stack_address = 0;
-
     if(!env) {
       // TODO: fix this, the threads should *always* be set up correctly
       // Apparently we're running in a new thread here, setup
@@ -336,13 +334,7 @@ namespace rubinius {
 
       VM* vm = stub->shared->thread_nexus()->new_vm(stub->shared, "ruby.ffi");
 
-      // Detect the stack size and set it up in the VM object
-      size_t stack_size;
-      pthread_attr_t attrs;
-      pthread_attr_init(&attrs);
-      pthread_attr_getstacksize (&attrs, &stack_size);
-      pthread_attr_destroy(&attrs);
-      vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), stack_size);
+      vm->set_stack_bounds(THREAD_STACK_SIZE);
 
       // Setup nativemethod handles into thread local
       State state(vm);

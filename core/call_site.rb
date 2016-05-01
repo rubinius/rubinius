@@ -28,6 +28,11 @@ module Rubinius
       raise PrimitiveFailure, "CallSite#misses primitive failed"
     end
 
+    def reset
+      Rubinius.primitive :call_site_reset
+      raise PrimitiveFailure, "CallSite#reset primitive failed"
+    end
+
     def inspect
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} ip=#{ip} depth=#{depth} invokes=#{invokes} hits=#{hits} misses=#{misses}>"
     end

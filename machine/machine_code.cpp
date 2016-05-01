@@ -763,7 +763,9 @@ namespace rubinius {
       call_frame->scope = scope;
       call_frame->arguments = &args;
 
-      state->vm()->push_call_frame(call_frame, previous_frame);
+      if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+        return NULL;
+      }
 
       // A negative call_count means we've disabled usage based JIT
       // for this method.
@@ -787,29 +789,25 @@ namespace rubinius {
         // Check the stack and interrupts here rather than in the interpreter
         // loop itself.
         OnStack<2> os(state, exec, code);
-        if(state->check_interrupts(state)) {
-          tooling::MethodEntry method(state, exec, scope->module(), args, code);
+        tooling::MethodEntry method(state, exec, scope->module(), args, code);
 
-          RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-          value = (*mcode->run)(state, mcode);
-          RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
-        }
+        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
+        value = (*mcode->run)(state, mcode);
+        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
       } else {
-        if(state->check_interrupts(state)) {
-          RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-          value = (*mcode->run)(state, mcode);
-          RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
-        }
-      }
-#else
-      if(state->check_interrupts(state)) {
         RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
         value = (*mcode->run)(state, mcode);
         RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
       }
+#else
+      RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
+      value = (*mcode->run)(state, mcode);
+      RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
 #endif
 
-      state->vm()->pop_call_frame(previous_frame);
+      if(!state->vm()->pop_call_frame(state, previous_frame)) {
+        return NULL;
+      }
 
       return value;
     }
@@ -847,14 +845,9 @@ namespace rubinius {
     call_frame->scope = scope;
     call_frame->arguments = &args;
 
-    state->vm()->push_call_frame(call_frame, previous_frame);
-
-    // Do NOT check if we should JIT this. We NEVER want to jit a script.
-
-    // Check the stack and interrupts here rather than in the interpreter
-    // loop itself.
-
-    if(!state->check_interrupts(state)) return NULL;
+    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      return NULL;
+    }
 
     state->vm()->checkpoint(state);
 
@@ -863,7 +856,9 @@ namespace rubinius {
 
     Object* value = (*mcode->run)(state, mcode);
 
-    state->vm()->pop_call_frame(previous_frame);
+    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+      return NULL;
+    }
 
     return value;
   }

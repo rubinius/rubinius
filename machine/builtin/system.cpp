@@ -651,7 +651,7 @@ namespace rubinius {
         switch(errno) {
           case EAGAIN:
           case EINTR:
-            if(!state->check_async(state)) {
+            if(state->vm()->thread_interrupted_p(state)) {
               close(output[0]);
               return NULL;
             }
@@ -777,7 +777,7 @@ namespace rubinius {
     if(pid == -1) {
       if(errno == ECHILD) return cFalse;
       if(errno == EINTR) {
-        if(!state->check_async(state)) return NULL;
+        if(state->vm()->thread_interrupted_p(state)) return NULL;
         goto retry;
       }
 
@@ -1085,17 +1085,9 @@ namespace rubinius {
       if(!state->park(state)) return NULL;
     }
 
-    if(!state->check_async(state)) return NULL;
+    if(state->vm()->thread_interrupted_p(state)) return NULL;
 
     return Fixnum::from(time(0) - start);
-  }
-
-  Object* System::vm_check_interrupts(STATE) {
-    if(state->check_async(state)) {
-      return cNil;
-    } else {
-      return NULL;
-    }
   }
 
   static inline double tv_to_dbl(struct timeval* tv) {

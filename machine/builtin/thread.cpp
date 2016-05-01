@@ -358,6 +358,7 @@ namespace rubinius {
     VM* vm = reinterpret_cast<VM*>(ptr);
     State state_obj(vm), *state = &state_obj;
 
+    vm->set_stack_bounds(THREAD_STACK_SIZE);
     vm->set_current_thread();
 
     RUBINIUS_THREAD_START(
@@ -368,9 +369,6 @@ namespace rubinius {
     logger::write("start thread: %s, %d, %#x",
         vm->name().c_str(), vm->thread->pid()->to_native(),
         (unsigned int)thread_debug_self());
-
-    int stack_address = 0;
-    vm->set_root_stack(reinterpret_cast<uintptr_t>(&stack_address), THREAD_STACK_SIZE);
 
     NativeMethod::init_thread(state);
 

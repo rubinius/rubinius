@@ -165,14 +165,11 @@ namespace rubinius {
 
     State state_obj(vm), *state = &state_obj;
 
+    vm->set_stack_bounds(THREAD_STACK_SIZE);
     vm->set_current_thread();
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
-
-    int stack_address = 0;
-    vm->set_root_stack(
-        reinterpret_cast<uintptr_t>(&stack_address), SignalThread::stack_size);
 
     NativeMethod::init_thread(state);
 
