@@ -454,8 +454,6 @@ namespace rubinius {
       void init_ruby_metrics(STATE);
       void update_ruby_values(STATE);
 
-      void log_diagnostics(STATE);
-
       void disable(STATE) {
         enabled_ = false;
       }

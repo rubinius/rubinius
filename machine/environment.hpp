@@ -16,7 +16,6 @@
 namespace rubinius {
 
   namespace diagnostics {
-    class SystemDiagnostics;
   }
 
   namespace memory {
@@ -76,7 +75,7 @@ namespace rubinius {
 
     memory::TypedRoot<Object*>* loader_;
 
-    diagnostics::SystemDiagnostics* diagnostics_;
+    diagnostics::Diagnostics* diagnostics_;
 
   public:
     SharedState* shared;
@@ -118,7 +117,7 @@ namespace rubinius {
       return loader_->get();
     }
 
-    diagnostics::SystemDiagnostics* diagnostics() {
+    diagnostics::Diagnostics* diagnostics() {
       return diagnostics_;
     }
 

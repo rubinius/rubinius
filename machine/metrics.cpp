@@ -6,7 +6,6 @@
 #include "object_utils.hpp"
 #include "shared_state.hpp"
 #include "configuration.hpp"
-#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/class.hpp"
@@ -536,10 +535,6 @@ namespace rubinius {
       }
     }
 
-    void Metrics::log_diagnostics(STATE) {
-      state->shared().env()->diagnostics()->log();
-    }
-
     void Metrics::run(STATE) {
       state->vm()->become_unmanaged();
 
@@ -585,7 +580,6 @@ namespace rubinius {
           ManagedPhase managed(state);
 
           update_ruby_values(state);
-          log_diagnostics(state);
         }
 
         if(emitter_) emitter_->send_metrics();

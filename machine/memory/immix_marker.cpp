@@ -4,7 +4,6 @@
 #include "metrics.hpp"
 #include "memory.hpp"
 #include "state.hpp"
-#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 #include "vm.hpp"
 

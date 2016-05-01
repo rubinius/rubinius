@@ -43,7 +43,6 @@ namespace rubinius {
   }
 
   namespace diagnostics {
-    class ObjectDiagnostics;
   }
 
   namespace capi {
@@ -138,7 +137,7 @@ namespace rubinius {
 
     SharedState& shared_;
 
-    diagnostics::ObjectDiagnostics* diagnostics_;
+    diagnostics::Diagnostics* diagnostics_;
 
   public:
     VM* vm_;
@@ -572,7 +571,7 @@ namespace rubinius {
       mature_gc_in_progress_ = false;
     }
 
-    diagnostics::ObjectDiagnostics* diagnostics() {
+    diagnostics::Diagnostics* diagnostics() {
       return diagnostics_;
     }
 
