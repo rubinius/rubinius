@@ -357,7 +357,10 @@ namespace memory {
         (double)diagnostics_.bytes_ / (double)diagnostics_.total_bytes_;
 
       diagnostics_.collections_++;
-      diagnostics_.modify();
+
+      if(memory_->shared().diagnostics()) {
+        memory_->shared().diagnostics()->report(&diagnostics_);
+      }
     }
 
     allocator_.restart(diagnostics_.percentage_,

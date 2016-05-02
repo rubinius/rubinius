@@ -152,6 +152,17 @@ namespace rubinius {
     if(metrics_) metrics_->disable(state);
   }
 
+  diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
+    if(state->shared().config.system_diagnostics_target.value.compare("none")) {
+      if(!diagnostics_) {
+        diagnostics_ = new diagnostics::Diagnostics(state);
+        diagnostics_->start(state);
+      }
+    }
+
+    return diagnostics_;
+  }
+
   void SharedState::after_fork_child(STATE) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.

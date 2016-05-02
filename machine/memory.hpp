@@ -161,6 +161,10 @@ namespace rubinius {
       return vm_;
     }
 
+    SharedState& shared() {
+      return shared_;
+    }
+
     Memory* memory() {
       return this;
     }

@@ -47,6 +47,10 @@ namespace rubinius {
     class Metrics;
   }
 
+  namespace diagnostics_ {
+    class Diagnostics;
+  }
+
   namespace memory {
     class FinalizerThread;
     class ManagedThread;
@@ -90,6 +94,7 @@ namespace rubinius {
     memory::FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
+    diagnostics::Diagnostics* diagnostics_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -214,6 +219,12 @@ namespace rubinius {
 
     metrics::Metrics* start_metrics(STATE);
     void disable_metrics(STATE);
+
+    diagnostics::Diagnostics* diagnostics() const {
+      return diagnostics_;
+    }
+
+    diagnostics::Diagnostics* start_diagnostics(STATE);
 
     Environment* env() const {
       return env_;

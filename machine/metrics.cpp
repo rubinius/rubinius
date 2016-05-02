@@ -78,7 +78,7 @@ namespace rubinius {
     }
 
     void FileEmitter::initialize() {
-      if(!(fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660))) {
+      if((fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660)) < 0) {
         logger::error("%s: unable to open metrics file", strerror(errno));
       }
 
