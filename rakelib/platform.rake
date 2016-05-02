@@ -59,12 +59,15 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :d_name, :char_array
     end.write_config(f)
 
-    Rubinius::FFI::Generators::Structures.new 'timeval' do |s|
+    struct = Rubinius::FFI::Generators::Structures.new 'timeval' do |s|
       s.include "sys/time.h"
       s.name 'struct timeval'
       s.field :tv_sec, :time_t
       s.field :tv_usec, :suseconds_t
-    end.tap { |struct| struct.write_config(f); struct.write_class(f) }
+    end
+
+    struct.write_config(f)
+    struct.write_class(f)
 
     Rubinius::FFI::Generators::Structures.new 'sockaddr_in' do |s|
       if BUILD_CONFIG[:windows]
