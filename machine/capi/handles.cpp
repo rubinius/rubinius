@@ -14,7 +14,7 @@ namespace rubinius {
     void Handles::Diagnostics::log() {
       if(!modified_p()) return;
 
-      diagnostics::Diagnostics::log();
+      diagnostics::DiagnosticsData::log();
 
       logger::write("C-API handles: diagnostics: " \
           "objects: %ld, bytes: %ld, collections: %ld\n",

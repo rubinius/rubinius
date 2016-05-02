@@ -10,7 +10,7 @@ namespace memory {
   void CodeManager::Diagnostics::log() {
     if(!modified_p()) return;
 
-    diagnostics::Diagnostics::log();
+    diagnostics::DiagnosticsData::log();
 
     logger::write("code manager: diagnostics: " \
         "collections: %ld, chunks: %ld, objects: %ld, bytes: %ld",

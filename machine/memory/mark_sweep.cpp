@@ -34,7 +34,7 @@ namespace memory {
   void MarkSweepGC::Diagnostics::log() {
     if(!modified_p()) return;
 
-    diagnostics::Diagnostics::log();
+    diagnostics::DiagnosticsData::log();
 
     logger::write("large objects: diagnostics: objects: %ld, bytes: %ld",
         objects_, bytes_);

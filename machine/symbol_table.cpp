@@ -21,7 +21,7 @@ namespace rubinius {
   void SymbolTable::Diagnostics::log() {
     if(!modified_p()) return;
 
-    diagnostics::Diagnostics::log();
+    diagnostics::DiagnosticsData::log();
 
     logger::write("symbol table: diagnostics: symbols: %ld, bytes: %ld",
         objects_, bytes_);

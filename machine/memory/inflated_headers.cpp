@@ -11,7 +11,7 @@ namespace memory {
   void InflatedHeaders::Diagnostics::log() {
     if(!modified_p()) return;
 
-    diagnostics::Diagnostics::log();
+    diagnostics::DiagnosticsData::log();
 
     logger::write("inflated headers: diagnostics: " \
         "objects: %ld, bytes: %ld, collections: %ld\n",

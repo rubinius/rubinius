@@ -97,7 +97,8 @@ namespace memory {
         state->memory()->collect_full_restart(state, data_);
 
         if(state->shared().config.memory_collection_log.value) {
-          state->shared().env()->diagnostics()->log();
+          // TODO: diagnostics
+          // state->shared().env()->diagnostics()->log();
         }
 
         continue;

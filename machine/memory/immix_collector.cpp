@@ -21,7 +21,7 @@ namespace memory {
   void ImmixGC::Diagnostics::log() {
     if(!modified_p()) return;
 
-    diagnostics::Diagnostics::log();
+    diagnostics::DiagnosticsData::log();
 
     logger::write("immix: diagnostics: " \
         "collections: %ld, " \
