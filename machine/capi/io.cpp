@@ -126,6 +126,8 @@ namespace rubinius {
 
       RIO* rio = as_.rio;
 
+      if(!rio->f) return true; // might be masking bug where finalizer called twice
+
       if(rio->finalize) rio->finalize(rio, true);
 
       bool ok = (fclose(rio->f) == 0);
