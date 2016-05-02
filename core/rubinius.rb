@@ -219,11 +219,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.thread_state primitive failed"
   end
 
-  def self.check_interrupts
-    Rubinius.primitive :vm_check_interrupts
-    raise PrimitiveFailure, "Rubinius.check_interrupts primitive failed"
-  end
-
   # Used to invoke a CompiledCode instance as a script body.  Sets up the MAIN
   # object as self and bypasses JIT'ing (because why JIT a script you only run
   # once).

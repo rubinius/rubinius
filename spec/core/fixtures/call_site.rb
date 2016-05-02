@@ -51,6 +51,10 @@ module CallSiteSpecs
       a B.new
       a BB.new
     end
+
+    def miss(a)
+      a.to_s
+    end
   end
 
   class B

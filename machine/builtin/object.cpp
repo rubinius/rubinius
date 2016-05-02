@@ -24,7 +24,6 @@
 #include "builtin/method_table.hpp"
 #include "builtin/object.hpp"
 #include "builtin/packed_object.hpp"
-#include "builtin/respond_to_cache.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
@@ -438,10 +437,6 @@ namespace rubinius {
     if(is_tainted_p()) {
       other->taint(state);
     }
-
-    if(is_untrusted_p()) {
-      other->untrust(state);
-    }
   }
 
   bool Object::kind_of_p(STATE, Object* module) {
@@ -829,26 +824,6 @@ namespace rubinius {
     return RBOOL(is_tainted_p());
   }
 
-  Object* Object::trust(STATE) {
-    if(is_untrusted_p()) {
-      check_frozen(state);
-      set_untrusted(0);
-    }
-    return this;
-  }
-
-  Object* Object::untrust(STATE) {
-    if(!is_untrusted_p()) {
-      check_frozen(state);
-      if(reference_p()) set_untrusted();
-    }
-    return this;
-  }
-
-  Object* Object::untrusted_p(STATE) {
-    return RBOOL(is_untrusted_p());
-  }
-
   TypeInfo* Object::type_info(STATE) const {
     return state->memory()->type_info[get_type()];
   }
@@ -866,26 +841,7 @@ namespace rubinius {
     Object* self = this;
     OnStack<1> os(state, self);
 
-    Object* responds = respond_to(state, name, priv);
-
-    if(!responds) return NULL;
-
-    CompiledCode* code = NULL;
-    CallSiteInformation* info = state->vm()->saved_call_site_information();
-
-    if(info && (code = try_as<CompiledCode>(info->executable))) {
-      CallSite* existing = code->machine_code()->call_site(state, info->ip);
-      if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
-        existing = rct->fallback_call_site();
-      }
-      RespondToCache* cache = RespondToCache::create(state, existing,
-                                self, name, priv, responds, 1);
-      state->vm()->global_cache()->add_seen(state, name);
-      atomic::memory_barrier();
-      existing->update_call_site(state, cache);
-    }
-
-    return responds;
+    return respond_to(state, name, priv);
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {

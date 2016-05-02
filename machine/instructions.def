@@ -36,18 +36,10 @@ instruction push_false() [ -- false ]
 end
 
 # [Description]
-#   Pushes the value of the integer literal onto the stack.
-# [See Also]
-#   meta_push_0
-#   meta_push_1
-#   meta_push_2
-#   meta_push_neg_1
-# [Notes]
-#   Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the
-#   decoding of the argument.
+#   Pushes the value of the Fixnum literal onto the stack.
 
 instruction push_int(number) [ -- number ]
-  stack_push(Fixnum::from(number));
+  stack_push(reinterpret_cast<Fixnum*>(number));
 end
 
 # [Description]
@@ -60,17 +52,17 @@ end
 section "Manipulate literals"
 
 # [Description]
-#   Used to set the value of a literal. The stack top is set to the literal
-#   indicated by the operand.
-# [Notes]
-#   Unlike other literals such as strings and numbers, creating a Regexp
-#   literal (i.e. via the /regex/ syntax) is a two step process to create the
-#   literal slot for the Regexp, create a literal for the string between the
-#   '/' delimiters and create a new Regexp object passing it the string.  Only
-#   then can the literal value be set, using the set_literal opcode.
+#   If the stack top value is nil, pops the value and pushes the value in the
+#   instruction stream at the literal slot. If the stack top value is not nil,
+#   replaces the value at the literal slot with the value of stack top.
 
-instruction set_literal(literal) [ value -- value ]
-  call_frame->compiled_code->literals()->put(state, literal, stack_top());
+instruction push_memo(literal) [ value -- value ]
+  Object* val = stack_top();
+  if(val->nil_p()) {
+    stack_set_top(reinterpret_cast<Object*>(literal));
+  } else {
+    store_literal(reinterpret_cast<opcode>(val));
+  }
 end
 
 # [Description]
@@ -81,7 +73,7 @@ end
 #   objects defined or used within a particular scope.
 
 instruction push_literal(literal) [ -- literal ]
-  stack_push(call_frame->compiled_code->literals()->at(state, literal));
+  stack_push(reinterpret_cast<Object*>(literal));
 end
 
 section "Flow control"
@@ -295,7 +287,7 @@ section "Stack manipulations"
 #   Swaps the top two values on the stack, so that the second value becomes
 #   the first, and the first value becomes the second.
 
-instruction swap_stack() [ s0 s1 -- s1 s0 ]
+instruction swap() [ s0 s1 -- s1 s0 ]
   Object* t1 = stack_pop();
   Object* t2 = stack_pop();
   stack_push(t1);
@@ -306,7 +298,7 @@ end
 #   Read a value from the top of the stack and push it on the stack again
 #   without removing the original value.
 
-instruction dup_top() [ s0 -- s0 s0 ]
+instruction dup() [ s0 -- s0 s0 ]
   stack_push(stack_top());
 end
 
@@ -852,7 +844,7 @@ instruction set_ivar(literal) [ value -- value ]
     Exception::frozen_error(state, call_frame->self());
     RUN_EXCEPTION();
   }
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
+  Symbol* sym = reinterpret_cast<Symbol*>(literal);
   call_frame->self()->set_ivar(state, sym, stack_top());
 end
 
@@ -860,7 +852,7 @@ end
 #   Pushes the instance variable identified by _literal_ onto the stack.
 
 instruction push_ivar(literal) [ -- value ]
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
+  Symbol* sym = reinterpret_cast<Symbol*>(literal);
   Object* ret = call_frame->self()->get_ivar(state, sym);
 
   CHECK_AND_PUSH(ret);
@@ -869,34 +861,11 @@ end
 section "Manipulate constants"
 
 # [Description]
-#   Locates the constant indicated by the operand _literal_ from the current
-#   context, and pushes it onto the stack. If the constant cannot be found in
-#   the current context, nothing is pushed onto the stack, and a NameError
-#   exception is raised.
-# [Example]
-#     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
-
-instruction push_const(literal) [ -- constant ]
-  ConstantMissingReason reason;
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
-  Object* res = Helpers::const_get(state, sym, &reason);
-  if(reason != vFound) {
-    flush_ip();
-    res = Helpers::const_missing(state, sym);
-  } else if(Autoload* autoload = try_as<Autoload>(res)) {
-    flush_ip();
-    res = autoload->resolve(state);
-  }
-
-  CHECK_AND_PUSH(res);
-end
-
-# [Description]
 #   Pops an object off the stack, and uses value to set a constant named
 #   by the _literal_. The value is pushed back onto the stack.
 
 instruction set_const(literal) [ value -- value ]
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
+  Symbol* sym = reinterpret_cast<Symbol*>(literal);
   call_frame->constant_scope()->module()->set_const(state, sym, stack_top());
 end
 
@@ -913,37 +882,12 @@ end
 #   ...
 
 instruction set_const_at(literal) [ value module -- value ]
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
+  Symbol* sym = reinterpret_cast<Symbol*>(literal);
   Object* val = stack_pop();
   Module* under = as<Module>(stack_pop());
 
   under->set_const(state, sym, val);
   stack_push(val);
-end
-
-# [Description]
-#   Pops _module_ off the stack, and searches within its namespace for the
-#   constant named by the literal specified by the operand _literal_. If found,
-#   it is pushed onto the stack; otherwise, nothing is pushed onto the stack,
-#   and a `NameError` exception is raised.
-# [Example]
-#     str = "abc"
-#     enum = Enumerable::Enumerator(str, :each_byte)
-
-instruction find_const(literal) [ module -- constant ]
-  ConstantMissingReason reason;
-  Module* under = as<Module>(stack_pop());
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
-  Object* res = Helpers::const_get_under(state, under, sym, &reason);
-  if(reason != vFound) {
-    flush_ip();
-    res = Helpers::const_missing_under(state, under, sym);
-  } else if(Autoload* autoload = try_as<Autoload>(res)) {
-    flush_ip();
-    res = autoload->resolve(state, under);
-  }
-
-  CHECK_AND_PUSH(res);
 end
 
 # [Description]
@@ -958,13 +902,10 @@ end
 # [Description]
 #   Pushes a constant onto the stack. Caches the lookup to provide faster
 #   future lookup. This instruction is normally emitted only by the Generator.
-# [See Also]
-#   push_const
 # [Example]
 #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
 
-instruction push_const_fast(literal) [ -- constant ]
-
+instruction push_const(literal) [ -- constant ]
   ConstantCache* cache = reinterpret_cast<ConstantCache*>(literal);
 
   Object* res = cache->retrieve(state, call_frame->constant_scope());
@@ -999,15 +940,11 @@ end
 #   Pushes a constant onto the stack scoped under the module on the top of
 #   the stack. Caches the lookup to provide faster future lookup. This
 #   instruction is normally emitted only by the Generator.
-# [See Also]
-#   find_const
-# [Example]
 # [Example]
 #     str = "abc"
 #     enum = Enumerable::Enumerator(str, :each_byte)
 
-instruction find_const_fast(literal) [ module -- constant ]
-
+instruction find_const(literal) [ module -- constant ]
   Module* under = as<Module>(stack_pop());
 
   ConstantCache* cache = reinterpret_cast<ConstantCache*>(literal);
@@ -1058,6 +995,31 @@ end
 #   Indicate that the next send is allowed to see `private` methods.
 
 instruction allow_private() [ -- ]
+end
+
+# [Description]
+#   Sends a message to _self_ by looking up the object in the CallFrame. This
+#   instruction does not pass any arguments.
+#
+#   When the method returns, the return value is pushed on the stack.
+# [See Also]
+#   send_method
+#   send_stack
+# [Notes]
+#   This form of send is for methods that specify no receiver and take no
+#   arguments.
+
+instruction send_vcall(literal) [ -- value ] => send
+  flush_ip();
+  Object* recv = call_frame->self();
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+
+  Arguments args(call_site->name(), recv, cNil, 0, 0);
+  Object* ret = call_site->execute(state, args);
+
+  CHECK_AND_PUSH(ret);
+
+  state->vm()->checkpoint(state);
 end
 
 # [Description]
@@ -1335,12 +1297,12 @@ end
 #   `BlockEnvironment`.  Push the new `BlockEnvironment` object on the stack.
 
 instruction create_block(literal) [ -- block ]
-  Object* _lit = call_frame->compiled_code->literals()->at(state, literal);
+  Object* code_or_id = reinterpret_cast<Object*>(literal);
   CompiledCode* code = 0;
 
-  if(!(code = try_as<CompiledCode>(_lit))) {
-    code = CodeDB::load(state, as<String>(_lit));
-    call_frame->compiled_code->literals()->put(state, literal, code);
+  if(!(code = try_as<CompiledCode>(code_or_id))) {
+    code = CodeDB::load(state, as<String>(code_or_id));
+    store_literal(reinterpret_cast<opcode>(code));
   }
 
   Object* be = BlockEnvironment::under_call_frame(state, code, mcode);
@@ -1618,7 +1580,6 @@ instruction string_build(count) [ +count -- string ]
   size_t size = 0;
 
   bool tainted = false;
-  bool untrusted = false;
 
   bool check_encoding = false;
   Encoding* enc = nil<Encoding>();
@@ -1629,7 +1590,6 @@ instruction string_build(count) [ +count -- string ]
 
     if(obj->reference_p()) {
       tainted |= obj->is_tainted_p();
-      untrusted |= obj->is_untrusted_p();
     }
 
     String* str = try_as<String>(obj);
@@ -1650,7 +1610,6 @@ instruction string_build(count) [ +count -- string ]
       str = obj->to_s(state, false);
 
       tainted |= str->is_tainted_p();
-      untrusted |= str->is_untrusted_p();
       native_int cur_size = str->byte_size();
       native_int data_size = as<ByteArray>(str->data())->size();
       if(unlikely(cur_size > data_size)) {
@@ -1729,7 +1688,6 @@ instruction string_build(count) [ +count -- string ]
   if(!enc->nil_p()) str->encoding(state, enc);
 
   if(tainted) str->set_tainted();
-  if(untrusted) str->set_untrusted();
 
   stack_clear(count);
   stack_push(str);
@@ -1808,8 +1766,6 @@ instruction check_interrupts() [ -- ]
     mcode->call_count++;
   }
 
-  if(!state->check_async(state)) RUN_EXCEPTION();
-
   state->vm()->checkpoint(state);
 end
 
@@ -1822,14 +1778,6 @@ end
 instruction yield_debugger() [ -- ]
   flush_ip();
   Helpers::yield_debugger(state, cNil);
-end
-
-# [Description]
-#   Pop the _value_ from the stack, and push `true` or `false` depending on
-#   whether the consumed value was the special value `nil`.
-
-instruction is_nil() [ value -- boolean ]
-  stack_push(RBOOL(stack_pop()->nil_p()));
 end
 
 # [Description]
@@ -1857,7 +1805,7 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  stack_push(RBOOL(call_site->update_and_validate(state,
+  stack_push(RBOOL(call_site->valid_serial_p(state,
                     recv, G(sym_public), serial)));
 end
 
@@ -1871,7 +1819,7 @@ instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  stack_push(RBOOL(call_site->update_and_validate(state,
+  stack_push(RBOOL(call_site->valid_serial_p(state,
                     recv, G(sym_private), serial)));
 end
 
@@ -1937,255 +1885,6 @@ instruction instance_of() [ object class -- boolean ]
   stack_push(RBOOL(t1->class_object(state) == cls));
 end
 
-section "Optimizations"
-
-# [Description]
-#   Push `-1` (negative 1) onto the stack.
-# [Notes]
-#   This is an optimisation applied by the compiler.
-
-instruction meta_push_neg_1() [ -- value ]
-  stack_push(Fixnum::from(-1));
-end
-
-# [Description]
-#   Push `0` (zero) onto the stack.
-# [Notes]
-#   This is an optimisation applied by the compiler.
-
-instruction meta_push_0() [ -- value ]
-  stack_push(Fixnum::from(0));
-end
-
-# [Description]
-#   Push `1` (one) onto the stack.
-# [Notes]
-#   This is an optimisation applied by the compiler.
-
-instruction meta_push_1() [ -- value ]
-  stack_push(Fixnum::from(1));
-end
-
-# [Description]
-#   Push `2` (two) onto the stack.
-# [Notes]
-#   This is an optimisation applied by the compiler.
-
-instruction meta_push_2() [ -- value ]
-  stack_push(Fixnum::from(2));
-end
-
-# [Description]
-#   Implementation of `#+` optimised for `Fixnum`.
-#
-#   Pops _value1_ and _value2_ off the stack, and pushes the _sum_ (_value1_
-#   `+` _value2_).  If both values are Fixnums, the addition is done directly
-#   via the `fixnum_add` primitive. Otherwise, the `#+` method is called on
-#   _value1_, passing _value2_ as the argument.
-
-instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
-  Object* left =  stack_back(1);
-  Object* right = stack_back(0);
-
-  if(both_fixnum_p(left, right)) {
-    (void)stack_pop();
-    stack_set_top(force_as<Fixnum>(left)->add(state, force_as<Fixnum>(right)));
-  } else {
-    flush_ip();
-    Arguments out_args(G(sym_plus), left, 1, stack_back_position(1));
-    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Object* ret = call_site->execute(state, out_args);
-    stack_clear(2);
-
-    CHECK_AND_PUSH(ret);
-
-    state->vm()->checkpoint(state);
-  }
-end
-
-# [Description]
-#   Implementation of `#-` optimised for `Fixnum`.
-#
-#   Pops _value1_ and _value2_ off the stack, and pushes the _difference_ (_value1_
-#   `-` _value2_).  If both values are Fixnums, the subtraction is done directly
-#   via the `fixnum_sub` primitive. Otherwise, the `#-` method is called on
-#   _value1_, passing _value2_ as the argument.
-
-instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
-  Object* left =  stack_back(1);
-  Object* right = stack_back(0);
-
-  if(both_fixnum_p(left, right)) {
-    (void)stack_pop();
-    stack_set_top(force_as<Fixnum>(left)->sub(state, force_as<Fixnum>(right)));
-  } else {
-    flush_ip();
-    Arguments out_args(G(sym_minus), left, 1, stack_back_position(1));
-    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Object* ret = call_site->execute(state, out_args);
-    stack_clear(2);
-
-    CHECK_AND_PUSH(ret);
-
-    state->vm()->checkpoint(state);
-  }
-end
-
-# [Description]
-#   Implementation of `#==` optimised for `Fixnum` and `Symbol`.
-#
-#   Pops _value1_ and _value2_ off the stack and pushes the logical result
-#   of (_value1_ `==` _value2_). If _value1_ and _value2_ are both Fixnums or
-#   both Symbols, the comparison is done directly. Otherwise, the `#==` method
-#   is called on _value1_, passing _value2_ as the argument.
-
-instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
-  Object* t1 = stack_back(1);
-  Object* t2 = stack_back(0);
-
-  /* If both are not references, compare them directly. */
-  if(!t1->reference_p() && !t2->reference_p()) {
-    (void)stack_pop();
-    stack_set_top(RBOOL(t1 == t2));
-  } else {
-    flush_ip();
-
-    Arguments out_args(G(sym_equal), t1, 1, stack_back_position(1));
-    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Object* ret = call_site->execute(state, out_args);
-    stack_clear(2);
-
-    CHECK_AND_PUSH(ret);
-
-    state->vm()->checkpoint(state);
-  }
-end
-
-# [Description]
-#   Implementation of `#<` optimised for `Fixnum`.
-#
-#   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-#   of (_value1_ `<` _value2_). If _value1_ and _value2_ are both Fixnums, the
-#   comparison is done directly. Otherwise, the `#<` method is called on
-#   _value1_, passing _value2_ as the argument.
-
-instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
-  Object* t1 = stack_back(1);
-  Object* t2 = stack_back(0);
-  if(both_fixnum_p(t1, t2)) {
-    native_int j = as<Integer>(t1)->to_native();
-    native_int k = as<Integer>(t2)->to_native();
-    (void)stack_pop();
-    stack_set_top(RBOOL(j < k));
-  } else {
-    flush_ip();
-    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
-    Object* ret = call_site->execute(state, out_args);
-    stack_clear(2);
-
-    CHECK_AND_PUSH(ret);
-
-    state->vm()->checkpoint(state);
-  }
-end
-
-# [Description]
-#   Implementation of `#>` optimised for `Fixnum`.
-#
-#   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-#   of (_value1_ `>` _value2_). If _value1_ and _value2_ are both Fixnums, the
-#   comparison is done directly. Otherwise, the `#>` method is called on
-#   _value1_, passing _value2_ as the argument.
-
-instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
-  Object* t1 = stack_back(1);
-  Object* t2 = stack_back(0);
-  if(both_fixnum_p(t1, t2)) {
-    native_int j = as<Integer>(t1)->to_native();
-    native_int k = as<Integer>(t2)->to_native();
-    (void)stack_pop();
-    stack_set_top(RBOOL(j > k));
-  } else {
-    flush_ip();
-    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
-    Object* ret = call_site->execute(state, out_args);
-    stack_clear(2);
-
-    CHECK_AND_PUSH(ret);
-
-    state->vm()->checkpoint(state);
-  }
-end
-
-# [Description]
-#   Implementation of `#===` (triple equal) optimised for `Fixnum` and
-#   `Symbol`.
-#
-#   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-#   of (_value1_ `===` _value2_). If _value1_ and _value2_ are both Fixnums or
-#   both Symbols, the comparison is done directly. Otherwise, the `#===` method
-#   is called on _value1_, passing _value2_ as the argument.
-# [Notes]
-#   Exactly like equal, except calls `#===` if it can't handle it directly.
-
-instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
-  Object* t1 = stack_back(1);
-  Object* t2 = stack_back(0);
-  /* If both are fixnums, or both are symbols, compare the ops directly. */
-  if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
-    (void)stack_pop();
-    stack_set_top(RBOOL(t1 == t2));
-  } else {
-    flush_ip();
-    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
-    Object* ret = call_site->execute(state, out_args);
-    stack_clear(2);
-
-    CHECK_AND_PUSH(ret);
-
-    state->vm()->checkpoint(state);
-  }
-end
-
-# [Description]
-#   Simplified call instruction used for non-dynamic `yield` calls and for
-#   simple calls with static arguments.
-# [Stack Before]
-#   argN
-#   ...
-#   arg1
-#   receiver
-# [Stack After]
-#   retval
-
-instruction meta_send_call(literal count) [ receiver +count -- value ] => send
-  flush_ip();
-  Object* t1 = stack_back(count);
-  Object* ret;
-
-  Arguments out_args(G(sym_call), t1, count, stack_back_position(count));
-
-  if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-    ret = env->call(state, out_args);
-  } else if(Proc* proc = try_as<Proc>(t1)) {
-    ret = proc->call(state, out_args);
-  } else {
-    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-    ret = call_site->execute(state, out_args);
-  }
-
-  stack_clear(count + 1);
-
-  CHECK_AND_PUSH(ret);
-
-  state->vm()->checkpoint(state);
-end
-
-section "More misc"
-
 # [Description]
 #   Pushes a value read directly from within the body of an object.
 # [Notes]
@@ -2243,17 +1942,50 @@ instruction zsuper(literal) [ block -- value ]
   }
 
   Tuple* tup = Tuple::create(state, arg_count);
+  native_int tup_index = 0;
 
-  for(int i = 0; i < mc->total_args; i++) {
-    tup->put(state, i, scope->get_local(state, i));
+  native_int fixed_args;
+  if(splat) {
+    fixed_args = mc->splat_position;
+  } else if(mc->keywords) {
+    fixed_args = mc->total_args - 1;
+  } else {
+    fixed_args = mc->total_args;
+  }
+  for(native_int i = 0; i < fixed_args; i++) {
+    tup->put(state, tup_index++, scope->get_local(state, i));
   }
 
   if(splat) {
     for(native_int i = 0; i < splat->size(); i++) {
-      tup->put(state, i + mc->total_args, splat->get(state, i));
+      tup->put(state, tup_index++, splat->get(state, i));
     }
   } else if(splat_obj) {
-    tup->put(state, mc->total_args, splat_obj);
+    tup->put(state, tup_index++, splat_obj);
+  }
+
+  if(mc->post_args) {
+    native_int post_position = mc->splat_position + 1;
+    for(native_int i = post_position; i < post_position + mc->post_args; i++) {
+      tup->put(state, tup_index++, scope->get_local(state, i));
+    }
+  }
+
+  if(mc->keywords) {
+    native_int placeholder_position = splat_obj ? mc->total_args : mc->total_args - 1;
+    native_int keywords_position = placeholder_position + 1;
+
+    Object* placeholder = scope->get_local(state, placeholder_position);
+    Array* ary = Array::create(state, 2);
+
+    for(native_int i = keywords_position; i <= mc->keywords_count; i++) {
+      ary->set(state, 0, as<Symbol>(call_frame->compiled_code->local_names()->at(state, i)));
+      ary->set(state, 1, scope->get_local(state, i));
+
+      placeholder->send(state, state->symbol("[]="), ary);
+    }
+
+    tup->put(state, tup_index++, scope->get_local(state, placeholder_position));
   }
 
   CallSite* call_site = reinterpret_cast<CallSite*>(literal);
@@ -2428,38 +2160,6 @@ instruction push_rubinius() [ -- constant ]
 end
 
 # [Description]
-#   Invoke a method via the call custom protocol.
-#
-#   Pop the _receiver_ and _count_ values off the stack and begin the call
-#   custom invocation protocol with them as arguments.
-# [Stack Before]
-#   argN
-#   ...
-#   arg2
-#   arg1
-#   receiver
-# [Stack After]
-#   value
-#   ...
-
-instruction call_custom(literal count) [ receiver +count -- value ] => send
-  flush_ip();
-  Object* recv = stack_back(count);
-  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-
-  Arguments args(call_site->name(), recv, cNil, count,
-                 stack_back_position(count));
-
-  Object* ret = call_site->execute(state, args);
-
-  stack_clear(count + 1);
-
-  CHECK_AND_PUSH(ret);
-
-  state->vm()->checkpoint(state);
-end
-
-# [Description]
 #   Pop a value off the stack and if it's not a `String`, call a method
 #   indicated by _literal_ on it.  Push the resulting object back on the
 #   stack.
@@ -2467,7 +2167,7 @@ end
 #   Normally literal is `:to_s`, but this instruction leaves it up to the user
 #   to indicate for flexibility.
 
-instruction meta_to_s(literal) [ object -- string ] => send
+instruction object_to_s(literal) [ object -- string ] => send
   if(!kind_of<String>(stack_top())) {
     flush_ip();
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);

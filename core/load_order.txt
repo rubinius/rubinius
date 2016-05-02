@@ -77,7 +77,6 @@ metrics.rb
 mirror.rb
 missing_method.rb
 module.rb
-mono_inline_cache.rb
 mutex.rb
 native_method.rb
 nil.rb
@@ -88,7 +87,6 @@ options.rb
 pack.rb
 pointer.rb
 pointer_accessors.rb
-poly_inline_cache.rb
 proc.rb
 proc_mirror.rb
 process.rb

@@ -90,10 +90,6 @@ extern "C" {
     return obj->frozen_p(state);
   }
 
-  Object* rbx_is_untrusted(STATE, Object* obj) {
-    return obj->untrusted_p(state);
-  }
-
   Object* rbx_is_tainted(STATE, Object* obj) {
     return obj->tainted_p(state);
   }
@@ -118,7 +114,7 @@ extern "C" {
     entry->~MethodEntry();
   }
 
-  void rbx_method_frame_initialize(STATE, CallFrame* call_frame,
+  bool rbx_method_frame_initialize(STATE, CallFrame* call_frame,
       StackVariables* scope, Executable* exec, Module* mod, Arguments* args)
   {
     CompiledCode* code = as<CompiledCode>(exec);
@@ -139,10 +135,10 @@ extern "C" {
     call_frame->arguments = args;
 
     CallFrame* previous;
-    state->vm()->push_call_frame(call_frame, previous);
+    return state->vm()->push_call_frame(state, call_frame, previous);
   }
 
-  void rbx_block_frame_initialize(STATE,
+  bool rbx_block_frame_initialize(STATE,
       CallFrame* call_frame, StackVariables* scope,
       BlockEnvironment* env, Arguments* args, BlockInvocation* invocation)
   {
@@ -179,11 +175,11 @@ extern "C" {
                                           | CallFrame::cJITed;
 
     CallFrame* previous;
-    state->vm()->push_call_frame(call_frame, previous);
+    return state->vm()->push_call_frame(state, call_frame, previous);
   }
 
   void rbx_pop_call_frame(STATE) {
-    state->vm()->pop_call_frame(state->vm()->call_frame()->previous);
+    state->vm()->pop_call_frame(state, state->vm()->call_frame()->previous);
   }
 
   Object* rbx_splat_send(STATE, CallSite* call_site,
@@ -328,6 +324,7 @@ extern "C" {
   Object* rbx_create_block(STATE, CallFrame* call_frame, int index) {
     CPP_TRY
 
+    /* TODO: literals
     Object* _lit = call_frame->compiled_code->literals()->at(state, index);
     CompiledCode* code = 0;
 
@@ -338,6 +335,8 @@ extern "C" {
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
     return BlockEnvironment::under_call_frame(state, code, mcode);
+    */
+    return cNil;
 
     CPP_CATCH
   }
@@ -681,19 +680,18 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_check_serial(STATE, CallSite* call_site,
-                           int serial, Object* recv) {
-    return RBOOL(call_site->update_and_validate(state, recv, G(sym_public), serial));
+  Object* rbx_check_serial(STATE, CallSite* call_site, int serial, Object* recv) {
+    return RBOOL(call_site->valid_serial_p(state, recv, G(sym_public), serial));
   }
 
-  Object* rbx_check_serial_private(STATE, CallSite* call_site,
-                           int serial, Object* recv) {
-    return RBOOL(call_site->update_and_validate(state, recv, G(sym_private), serial));
+  Object* rbx_check_serial_private(STATE, CallSite* call_site, int serial, Object* recv) {
+    return RBOOL(call_site->valid_serial_p(state, recv, G(sym_private), serial));
   }
 
   Object* rbx_find_const(STATE, int index, Object* top) {
     CPP_TRY
 
+    /* TODO: literals
     ConstantMissingReason reason;
     Module* under = as<Module>(top);
     Symbol* sym = as<Symbol>(
@@ -707,6 +705,8 @@ extern "C" {
     }
 
     return res;
+    */
+    return cNil;
 
     CPP_CATCH
   }
@@ -1007,20 +1007,10 @@ extern "C" {
   }
 
   Object* rbx_prologue_check(STATE) {
-    if(!state->check_interrupts(state)) return NULL;
-
-    // TODO: ensure no stack references exist at this point
-    // state->vm()->checkpoint(state);
-
     return cTrue;
   }
 
   Object* rbx_check_interrupts(STATE) {
-    if(!state->check_async(state)) return NULL;
-
-    // TODO: ensure no stack references exist at this point
-    // state->vm()->checkpoint(state);
-
     return cTrue;
   }
 
@@ -1123,8 +1113,8 @@ extern "C" {
     return val;
   }
 
-  Object* rbx_set_literal(STATE, int which, Object* val) {
-    state->vm()->call_frame()->compiled_code->literals()->put(state, which, val);
+  Object* rbx_push_memo(STATE, int which, Object* val) {
+    // TODO: literals
     return cNil;
   }
 
@@ -1162,7 +1152,6 @@ extern "C" {
     size_t size = 0;
 
     bool tainted = false;
-    bool untrusted = false;
 
     bool check_encoding = false;
     Encoding* enc = nil<Encoding>();
@@ -1173,7 +1162,6 @@ extern "C" {
 
       if(obj->reference_p()) {
         tainted |= obj->is_tainted_p();
-        untrusted |= obj->is_untrusted_p();
       }
 
       String* str = try_as<String>(obj);
@@ -1194,7 +1182,6 @@ extern "C" {
         str = obj->to_s(state, false);
 
         tainted |= str->is_tainted_p();
-        untrusted |= str->is_untrusted_p();
         native_int cur_size = str->byte_size();
         native_int data_size = as<ByteArray>(str->data())->size();
         if(unlikely(cur_size > data_size)) {
@@ -1264,7 +1251,6 @@ extern "C" {
     if(!enc->nil_p()) str->encoding(state, enc);
 
     if(tainted) str->set_tainted();
-    if(untrusted) str->set_untrusted();
 
     return str;
   }

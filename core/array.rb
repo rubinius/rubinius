@@ -570,7 +570,6 @@ class Array
   def compact
     out = dup
     out.untaint if out.tainted?
-    out.trust if out.untrusted?
 
     Array.new(out.compact! || out)
   end

@@ -169,9 +169,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
-    unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
 
+    unsigned int unused          : 1;
     uint32_t aux_word;
   };
 
@@ -558,15 +558,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     void set_tainted(int val=1);
-
-    bool is_untrusted_p() const {
-      if(reference_p()) {
-        return flags().Untrusted == 1;
-      }
-      return false;
-    }
-
-    void set_untrusted(int val=1);
 
     uint32_t object_id(STATE) const {
       // Pull this out into a local so that we don't see any concurrent

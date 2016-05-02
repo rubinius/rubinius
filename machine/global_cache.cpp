@@ -154,11 +154,17 @@ keep_looking:
         msg.module = entry->module;
         msg.visibility = entry->visibility;
 
+        state->vm()->metrics().machine.global_cache_hits++;
+
         return true;
       }
     }
 
+    state->vm()->metrics().machine.global_cache_misses++;
+
     if(hierarchy_resolve(state, name, msg, lookup)) {
+      state->vm()->metrics().machine.global_cache_count++;
+
       retain_i(state, klass, name,
           msg.module, msg.method, msg.visibility);
 

@@ -155,5 +155,29 @@ with_feature :jit do
         end
       end
     end
+
+    context "to m(a:, b: 'b', **) super end" do
+      before :each do
+        parent = Class.new do
+          def m(**args) args end
+        end
+
+        child = Class.new(parent) do
+          def m(a:, b: 'b', **) super end
+        end
+
+        @o = child.new
+
+        jit(@o, :m) { @o.m(a: "a", c: "c") }
+      end
+
+      it "compiles" do
+        @o.method(:m).executable.jitted?.should be_true
+      end
+
+      it "returns all keyword arguments passed including default ones" do
+        @o.m(a: "a", c: "c").should == {a: "a", b: "b", c: "c"}
+      end
+    end
   end
 end

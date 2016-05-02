@@ -1,12 +1,10 @@
 #include "instructions_util.hpp"
 
 #include "builtin/code_db.hpp"
+#include "builtin/call_site.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/constant_cache.hpp"
-#include "builtin/mono_inline_cache.hpp"
-#include "builtin/poly_inline_cache.hpp"
-#include "builtin/respond_to_cache.hpp"
 #include "builtin/lookup_table.hpp"
 
 #include "jit/llvm/operations.hpp"
@@ -1059,7 +1057,9 @@ namespace rubinius {
     }
 
     Object* literal(opcode which) {
-      return info().method()->literals()->at(which);
+      // TODO: literals
+      // return info().method()->literals()->at(which);
+      return cNil;
     }
 
     Value* get_literal(opcode which) {
@@ -1375,6 +1375,7 @@ namespace rubinius {
       b().CreateBr(info().return_pad());
     }
 
+    /* TODO: inline cache
     void emit_respond_to(RespondToCache* cache, opcode& which, opcode args) {
       BasicBlock* cont = new_block("check_class_respond_to");
       BasicBlock* success = new_block("success");
@@ -1431,6 +1432,7 @@ namespace rubinius {
         stack_push(ret);
       }
     }
+    */
 
     void visit_invoke_primitive(opcode which, opcode args) {
       InvokePrimitive invoker = reinterpret_cast<InvokePrimitive>(which);
@@ -1532,8 +1534,9 @@ namespace rubinius {
 
     void visit_send_stack(opcode& which, opcode args) {
       CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
-      CallSite*  call_site = *call_site_ptr;
+      // CallSite*  call_site = *call_site_ptr;
 
+      /* TODO: inline cache
       if(RespondToCache* respond_to = try_as<RespondToCache>(call_site)) {
         emit_respond_to(respond_to, which, args);
         return;
@@ -1543,6 +1546,7 @@ namespace rubinius {
         invoke_call_site(which, args);
         return;
       }
+      */
 
       BasicBlock* class_failure = new_block("class_fallback");
       BasicBlock* serial_failure = new_block("serial_fallback");
@@ -1550,10 +1554,12 @@ namespace rubinius {
 
       Inliner inl(ctx_, *this, call_site_ptr, args, class_failure, serial_failure);
 
+      bool res = false;
+
+      /* TODO: inline cache
       MonoInlineCache* mono = try_as<MonoInlineCache>(call_site);
       PolyInlineCache* poly = try_as<PolyInlineCache>(call_site);
 
-      bool res = false;
       if(mono) {
         res = inl.consider_mono();
       } else if(poly) {
@@ -1566,6 +1572,7 @@ namespace rubinius {
       if(poly && poly->seen_classes_overflow() > llvm_state()->shared().config.jit_limit_deoptimize) {
         inl.use_send_for_failure();
       }
+      */
 
       if(!res) {
         invoke_call_site(which, args);
@@ -1589,7 +1596,8 @@ namespace rubinius {
         }
         stack_push(inl.result());
 
-        if(mono) {
+        // TODO: inline cache; if(mono) {
+        if(false) {
           type::KnownType kt = inl.guarded_type();
 
           if(kt.local_source_p() && kt.known_p()) {
@@ -1793,10 +1801,11 @@ namespace rubinius {
       set_has_side_effects();
 
       CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
-      CallSite*  call_site = *call_site_ptr;
+      // TODO: inline cache
+      // CallSite*  call_site = *call_site_ptr;
       CompiledCode* block_code = 0;
 
-      if(call_site->regular_call() &&
+      if(false /* TODO: inline cache call_site->regular_call() */ &&
           llvm_state()->config().jit_inline_blocks &&
          !ctx_->inlined_block()) {
         if(current_block_) {
@@ -2178,7 +2187,9 @@ use_send:
     }
 
     Object* current_literal(opcode which) {
-      return info().method()->literals()->at(which);
+      // TODO: literals
+      // return info().method()->literals()->at(which);
+      return cNil;
     }
 
     void visit_push_const_fast(opcode& name) {
@@ -2369,7 +2380,7 @@ use_send:
       stack_push(val);
     }
 
-    void visit_set_literal(opcode which) {
+    void visit_push_memo(opcode which) {
       set_has_side_effects();
 
       std::vector<Type*> types;
@@ -2380,7 +2391,7 @@ use_send:
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_set_literal", ft));
+          module_->getOrInsertFunction("rbx_push_memo", ft));
 
       Value* call_args[] = {
         state_,
@@ -3058,7 +3069,7 @@ use_send:
     }
 
     void emit_check_serial(opcode& index, opcode serial, const char* function) {
-
+      /* TODO: inline cache
       CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&index);
       Value* call_site_ptr_const = b().CreateIntToPtr(
           clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
@@ -3209,6 +3220,7 @@ use_send:
       phi->addIncoming(fallback_result, fallback);
 
       stack_push(phi);
+      */
     }
 
     void visit_check_serial(opcode& index, opcode serial) {

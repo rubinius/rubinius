@@ -108,7 +108,7 @@ require 'formula'
 class Rubinius < Formula
   homepage 'http://rubinius.com/'
   url 'https://rubinius-binaries-rubinius-com.s3.amazonaws.com/homebrew/$release'
-  sha1 '$(cat "$release.sha1")'
+  sha256 '$(cat "$release.sha256")'
 
   depends_on 'libyaml'
 

@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 
   ifstream stream(input.c_str());
 
-  CompiledFile* cf = CompiledFile::load(stream);
+  CompiledFile* cf = CompiledFile::load(env.state, stream);
   if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
 
   CompiledCode* meth = as<CompiledCode>(cf->body(env.state));

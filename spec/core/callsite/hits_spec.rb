@@ -1,24 +1,24 @@
-require File.expand_path('../../fixtures/call_site.rb', __FILE__)
-
 describe "Rubinius::CallSite#hits" do
   before :each do
-    @executable = CallSiteSpecs::A.executable(:c)
+    @klass = Class.new do
+      def m(a)
+        a.to_s
+      end
+    end
   end
 
   it "returns 0 before the call site has executed" do
-    @executable.call_sites.first.hits.should == 0
+    @klass.new.method(:m).executable.call_sites.first.hits.should == 0
   end
 
-  it "returns the number of times the call site has executed" do
-    obj = CallSiteSpecs::A.new
-    obj.c
-    obj.c
+  it "returns the call site invocations that have hit the cache entries" do
+    obj = @klass.new
 
-    # needs to retrieve the new call site because it has been replaced
-    @executable.call_sites.first.hits.should == 2
+    obj.m :a
+    obj.m :b
+    obj.m :c
+
+    obj.method(:m).executable.call_sites.first.hits.should == 2
   end
 end
-
-
-
 

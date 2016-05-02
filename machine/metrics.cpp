@@ -353,15 +353,51 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "machine.checkpoints", metrics_data_.machine.checkpoints));
       metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.resets", metrics_data_.machine.inline_cache_resets));
+            "machine.stops", metrics_data_.machine.stops));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.global_cache.count", metrics_data_.machine.global_cache_count));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.global_cache.hits", metrics_data_.machine.global_cache_hits));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.global_cache.misses", metrics_data_.machine.global_cache_misses));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.call_site.count", metrics_data_.machine.call_site_count));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.call_site.full", metrics_data_.machine.call_site_full));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.call_site.polymorphic", metrics_data_.machine.call_site_polymorphic));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.count", metrics_data_.machine.inline_cache_count));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.hits", metrics_data_.machine.inline_cache_hits));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.misses", metrics_data_.machine.inline_cache_misses));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.evicted", metrics_data_.machine.inline_cache_evicted));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.updated", metrics_data_.machine.inline_cache_updated));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.replaced", metrics_data_.machine.inline_cache_replaced));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.reordered", metrics_data_.machine.inline_cache_reordered));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.inline_cache.disabled", metrics_data_.machine.inline_cache_disabled));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.cache.resets", metrics_data_.machine.cache_resets));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.methods.invoked", metrics_data_.machine.methods_invoked));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.blocks.invoked", metrics_data_.machine.blocks_invoked));
       metrics_map_.push_back(new MetricsItem(
             "machine.backtraces", metrics_data_.machine.backtraces));
       metrics_map_.push_back(new MetricsItem(
             "machine.backtrace.us", metrics_data_.machine.backtrace_us));
       metrics_map_.push_back(new MetricsItem(
-            "machine.methods.invoked", metrics_data_.machine.methods_invoked));
+            "machine.bytecode.load.us", metrics_data_.machine.bytecode_load_us));
       metrics_map_.push_back(new MetricsItem(
-            "machine.blocks.invoked", metrics_data_.machine.blocks_invoked));
+            "machine.bytecode.verifier.us", metrics_data_.machine.bytecode_verifier_us));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.bytecode.internalizer.us", metrics_data_.machine.bytecode_internalizer_us));
 
       // Memory metrics
       metrics_map_.push_back(new MetricsItem(

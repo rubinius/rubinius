@@ -69,16 +69,12 @@ namespace rubinius {
       return data()->machine();
     }
 
-    void* stack_region() const {
-      return data()->stack_address();
-    }
-
-    void* stack_end() const {
+    void* stack_address() const {
       return data()->stack_address();
     }
 
     void* stack_start() const {
-      return (void*)((uintptr_t)stack_region() + stack_size());
+      return (void*)((uintptr_t)stack_address() + stack_size());
     }
 
     int stack_size() const {

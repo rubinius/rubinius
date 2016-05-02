@@ -462,7 +462,6 @@ PointerType* PointerTy_39 = PointerType::get(FuncTy_40, 0);
 
 StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_39);
 StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_27);
-StructTy_struct_rubinius__CallSite_fields.push_back(IntegerType::get(mod->getContext(), 32));
 if (StructTy_struct_rubinius__CallSite->isOpaque()) {
 StructTy_struct_rubinius__CallSite->setBody(StructTy_struct_rubinius__CallSite_fields, /*isPacked=*/false);
 }
@@ -475,24 +474,25 @@ FunctionType* FuncTy_35 = FunctionType::get(
  /*isVarArg=*/false);
 
 std::vector<Type*>FuncTy_41_args;
-StructType *StructTy_struct_rubinius__MonoInlineCache = mod->getTypeByName("struct.rubinius::MonoInlineCache");
-if (!StructTy_struct_rubinius__MonoInlineCache) {
-StructTy_struct_rubinius__MonoInlineCache = StructType::create(mod->getContext(), "struct.rubinius::MonoInlineCache");
+StructType *StructTy_struct_rubinius__InlineCache = mod->getTypeByName("struct.rubinius::InlineCache");
+if (!StructTy_struct_rubinius__InlineCache) {
+StructTy_struct_rubinius__InlineCache = StructType::create(mod->getContext(), "struct.rubinius::InlineCache");
 }
-std::vector<Type*>StructTy_struct_rubinius__MonoInlineCache_fields;
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(StructTy_struct_rubinius__CallSite);
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(PointerTy_10);
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(PointerTy_13);
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(PointerTy_27);
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__MonoInlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
-if (StructTy_struct_rubinius__MonoInlineCache->isOpaque()) {
-StructTy_struct_rubinius__MonoInlineCache->setBody(StructTy_struct_rubinius__MonoInlineCache_fields, /*isPacked=*/false);
+std::vector<Type*>StructTy_struct_rubinius__InlineCache_fields;
+StructTy_struct_rubinius__InlineCache_fields.push_back(StructTy_struct_rubinius__Object);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_10);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_13);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_27);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_9);
+StructTy_struct_rubinius__InlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__InlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__InlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__InlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
+if (StructTy_struct_rubinius__InlineCache->isOpaque()) {
+StructTy_struct_rubinius__InlineCache->setBody(StructTy_struct_rubinius__InlineCache_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_42 = PointerType::get(StructTy_struct_rubinius__MonoInlineCache, 0);
+PointerType* PointerTy_42 = PointerType::get(StructTy_struct_rubinius__InlineCache, 0);
 
 FuncTy_41_args.push_back(PointerTy_42);
 FunctionType* FuncTy_41 = FunctionType::get(
@@ -501,55 +501,6 @@ FunctionType* FuncTy_41 = FunctionType::get(
  /*isVarArg=*/false);
 
 std::vector<Type*>FuncTy_43_args;
-StructType *StructTy_struct_rubinius__PolyInlineCache = mod->getTypeByName("struct.rubinius::PolyInlineCache");
-if (!StructTy_struct_rubinius__PolyInlineCache) {
-StructTy_struct_rubinius__PolyInlineCache = StructType::create(mod->getContext(), "struct.rubinius::PolyInlineCache");
-}
-std::vector<Type*>StructTy_struct_rubinius__PolyInlineCache_fields;
-StructTy_struct_rubinius__PolyInlineCache_fields.push_back(StructTy_struct_rubinius__CallSite);
-StructType *StructTy_struct_rubinius__InlineCacheEntry = mod->getTypeByName("struct.rubinius::InlineCacheEntry");
-if (!StructTy_struct_rubinius__InlineCacheEntry) {
-StructTy_struct_rubinius__InlineCacheEntry = StructType::create(mod->getContext(), "struct.rubinius::InlineCacheEntry");
-}
-std::vector<Type*>StructTy_struct_rubinius__InlineCacheEntry_fields;
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(StructTy_struct_rubinius__Object);
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(PointerTy_13);
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(PointerTy_10);
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(PointerTy_27);
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
-if (StructTy_struct_rubinius__InlineCacheEntry->isOpaque()) {
-StructTy_struct_rubinius__InlineCacheEntry->setBody(StructTy_struct_rubinius__InlineCacheEntry_fields, /*isPacked=*/false);
-}
-
-PointerType* PointerTy_46 = PointerType::get(StructTy_struct_rubinius__InlineCacheEntry, 0);
-
-ArrayType* ArrayTy_45 = ArrayType::get(PointerTy_46, 3);
-
-StructTy_struct_rubinius__PolyInlineCache_fields.push_back(ArrayTy_45);
-StructTy_struct_rubinius__PolyInlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
-if (StructTy_struct_rubinius__PolyInlineCache->isOpaque()) {
-StructTy_struct_rubinius__PolyInlineCache->setBody(StructTy_struct_rubinius__PolyInlineCache_fields, /*isPacked=*/false);
-}
-
-PointerType* PointerTy_44 = PointerType::get(StructTy_struct_rubinius__PolyInlineCache, 0);
-
-FuncTy_43_args.push_back(PointerTy_44);
-FunctionType* FuncTy_43 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_43_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_47_args;
-FuncTy_47_args.push_back(PointerTy_46);
-FunctionType* FuncTy_47 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_47_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_48_args;
 StructType *StructTy_struct_rubinius__ConstantCache = mod->getTypeByName("struct.rubinius::ConstantCache");
 if (!StructTy_struct_rubinius__ConstantCache) {
 StructTy_struct_rubinius__ConstantCache = StructType::create(mod->getContext(), "struct.rubinius::ConstantCache");
@@ -567,15 +518,15 @@ if (StructTy_struct_rubinius__ConstantCache->isOpaque()) {
 StructTy_struct_rubinius__ConstantCache->setBody(StructTy_struct_rubinius__ConstantCache_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_49 = PointerType::get(StructTy_struct_rubinius__ConstantCache, 0);
+PointerType* PointerTy_44 = PointerType::get(StructTy_struct_rubinius__ConstantCache, 0);
 
-FuncTy_48_args.push_back(PointerTy_49);
-FunctionType* FuncTy_48 = FunctionType::get(
+FuncTy_43_args.push_back(PointerTy_44);
+FunctionType* FuncTy_43 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_48_args,
+ /*Params=*/FuncTy_43_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_50_args;
+std::vector<Type*>FuncTy_45_args;
 StructType *StructTy_struct_rubinius__StackVariables = mod->getTypeByName("struct.rubinius::StackVariables");
 if (!StructTy_struct_rubinius__StackVariables) {
 StructTy_struct_rubinius__StackVariables = StructType::create(mod->getContext(), "struct.rubinius::StackVariables");
@@ -590,9 +541,9 @@ StructTy_struct_rubinius__VariableScope_fields.push_back(StructTy_struct_rubiniu
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_9);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_24);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_13);
-PointerType* PointerTy_52 = PointerType::get(StructTy_struct_rubinius__VariableScope, 0);
+PointerType* PointerTy_47 = PointerType::get(StructTy_struct_rubinius__VariableScope, 0);
 
-StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_52);
+StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_47);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_16);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_12);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_9);
@@ -605,9 +556,9 @@ if (StructTy_struct_rubinius__Fiber->isOpaque()) {
 StructTy_struct_rubinius__Fiber->setBody(StructTy_struct_rubinius__Fiber_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_53 = PointerType::get(StructTy_struct_rubinius__Fiber, 0);
+PointerType* PointerTy_48 = PointerType::get(StructTy_struct_rubinius__Fiber, 0);
 
-StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_53);
+StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_48);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_9);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_21);
 StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(mod->getContext(), 32));
@@ -618,8 +569,8 @@ StructTy_struct_rubinius__VariableScope->setBody(StructTy_struct_rubinius__Varia
 }
 
 
-StructTy_struct_rubinius__StackVariables_fields.push_back(PointerTy_52);
-StructTy_struct_rubinius__StackVariables_fields.push_back(PointerTy_52);
+StructTy_struct_rubinius__StackVariables_fields.push_back(PointerTy_47);
+StructTy_struct_rubinius__StackVariables_fields.push_back(PointerTy_47);
 StructTy_struct_rubinius__StackVariables_fields.push_back(PointerTy_9);
 StructTy_struct_rubinius__StackVariables_fields.push_back(PointerTy_9);
 StructTy_struct_rubinius__StackVariables_fields.push_back(PointerTy_13);
@@ -629,15 +580,15 @@ if (StructTy_struct_rubinius__StackVariables->isOpaque()) {
 StructTy_struct_rubinius__StackVariables->setBody(StructTy_struct_rubinius__StackVariables_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_51 = PointerType::get(StructTy_struct_rubinius__StackVariables, 0);
+PointerType* PointerTy_46 = PointerType::get(StructTy_struct_rubinius__StackVariables, 0);
 
-FuncTy_50_args.push_back(PointerTy_51);
-FunctionType* FuncTy_50 = FunctionType::get(
+FuncTy_45_args.push_back(PointerTy_46);
+FunctionType* FuncTy_45 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_50_args,
+ /*Params=*/FuncTy_45_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_54_args;
+std::vector<Type*>FuncTy_49_args;
 StructType *StructTy_struct_rubinius__UnwindInfo = mod->getTypeByName("struct.rubinius::UnwindInfo");
 if (!StructTy_struct_rubinius__UnwindInfo) {
 StructTy_struct_rubinius__UnwindInfo = StructType::create(mod->getContext(), "struct.rubinius::UnwindInfo");
@@ -650,31 +601,31 @@ if (StructTy_struct_rubinius__UnwindInfo->isOpaque()) {
 StructTy_struct_rubinius__UnwindInfo->setBody(StructTy_struct_rubinius__UnwindInfo_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_55 = PointerType::get(StructTy_struct_rubinius__UnwindInfo, 0);
+PointerType* PointerTy_50 = PointerType::get(StructTy_struct_rubinius__UnwindInfo, 0);
 
-FuncTy_54_args.push_back(PointerTy_55);
-FunctionType* FuncTy_54 = FunctionType::get(
+FuncTy_49_args.push_back(PointerTy_50);
+FunctionType* FuncTy_49 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_54_args,
+ /*Params=*/FuncTy_49_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_56_args;
-PointerType* PointerTy_57 = PointerType::get(StructTy_union_rubinius__HeaderWord, 0);
+std::vector<Type*>FuncTy_51_args;
+PointerType* PointerTy_52 = PointerType::get(StructTy_union_rubinius__HeaderWord, 0);
 
-FuncTy_56_args.push_back(PointerTy_57);
-FunctionType* FuncTy_56 = FunctionType::get(
+FuncTy_51_args.push_back(PointerTy_52);
+FunctionType* FuncTy_51 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_56_args,
+ /*Params=*/FuncTy_51_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_58_args;
-FuncTy_58_args.push_back(PointerTy_9);
-FunctionType* FuncTy_58 = FunctionType::get(
+std::vector<Type*>FuncTy_53_args;
+FuncTy_53_args.push_back(PointerTy_9);
+FunctionType* FuncTy_53 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_58_args,
+ /*Params=*/FuncTy_53_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_59_args;
+std::vector<Type*>FuncTy_54_args;
 StructType *StructTy_struct_rubinius__ObjectFlags = mod->getTypeByName("struct.rubinius::ObjectFlags");
 if (!StructTy_struct_rubinius__ObjectFlags) {
 StructTy_struct_rubinius__ObjectFlags = StructType::create(mod->getContext(), "struct.rubinius::ObjectFlags");
@@ -686,7 +637,47 @@ if (StructTy_struct_rubinius__ObjectFlags->isOpaque()) {
 StructTy_struct_rubinius__ObjectFlags->setBody(StructTy_struct_rubinius__ObjectFlags_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_60 = PointerType::get(StructTy_struct_rubinius__ObjectFlags, 0);
+PointerType* PointerTy_55 = PointerType::get(StructTy_struct_rubinius__ObjectFlags, 0);
+
+FuncTy_54_args.push_back(PointerTy_55);
+FunctionType* FuncTy_54 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_54_args,
+ /*isVarArg=*/false);
+
+std::vector<Type*>FuncTy_56_args;
+PointerType* PointerTy_57 = PointerType::get(StructTy_struct_rubinius__ObjectHeader, 0);
+
+FuncTy_56_args.push_back(PointerTy_57);
+FunctionType* FuncTy_56 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_56_args,
+ /*isVarArg=*/false);
+
+std::vector<Type*>FuncTy_58_args;
+FuncTy_58_args.push_back(PointerTy_14);
+FunctionType* FuncTy_58 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_58_args,
+ /*isVarArg=*/false);
+
+std::vector<Type*>FuncTy_59_args;
+StructType *StructTy_struct_rubinius__BlockEnvironment = mod->getTypeByName("struct.rubinius::BlockEnvironment");
+if (!StructTy_struct_rubinius__BlockEnvironment) {
+StructTy_struct_rubinius__BlockEnvironment = StructType::create(mod->getContext(), "struct.rubinius::BlockEnvironment");
+}
+std::vector<Type*>StructTy_struct_rubinius__BlockEnvironment_fields;
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(StructTy_struct_rubinius__Object);
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_47);
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_47);
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_24);
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_30);
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_13);
+if (StructTy_struct_rubinius__BlockEnvironment->isOpaque()) {
+StructTy_struct_rubinius__BlockEnvironment->setBody(StructTy_struct_rubinius__BlockEnvironment_fields, /*isPacked=*/false);
+}
+
+PointerType* PointerTy_60 = PointerType::get(StructTy_struct_rubinius__BlockEnvironment, 0);
 
 FuncTy_59_args.push_back(PointerTy_60);
 FunctionType* FuncTy_59 = FunctionType::get(
@@ -695,46 +686,6 @@ FunctionType* FuncTy_59 = FunctionType::get(
  /*isVarArg=*/false);
 
 std::vector<Type*>FuncTy_61_args;
-PointerType* PointerTy_62 = PointerType::get(StructTy_struct_rubinius__ObjectHeader, 0);
-
-FuncTy_61_args.push_back(PointerTy_62);
-FunctionType* FuncTy_61 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_61_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_63_args;
-FuncTy_63_args.push_back(PointerTy_14);
-FunctionType* FuncTy_63 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_63_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_64_args;
-StructType *StructTy_struct_rubinius__BlockEnvironment = mod->getTypeByName("struct.rubinius::BlockEnvironment");
-if (!StructTy_struct_rubinius__BlockEnvironment) {
-StructTy_struct_rubinius__BlockEnvironment = StructType::create(mod->getContext(), "struct.rubinius::BlockEnvironment");
-}
-std::vector<Type*>StructTy_struct_rubinius__BlockEnvironment_fields;
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(StructTy_struct_rubinius__Object);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_52);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_52);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_24);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_30);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_13);
-if (StructTy_struct_rubinius__BlockEnvironment->isOpaque()) {
-StructTy_struct_rubinius__BlockEnvironment->setBody(StructTy_struct_rubinius__BlockEnvironment_fields, /*isPacked=*/false);
-}
-
-PointerType* PointerTy_65 = PointerType::get(StructTy_struct_rubinius__BlockEnvironment, 0);
-
-FuncTy_64_args.push_back(PointerTy_65);
-FunctionType* FuncTy_64 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_64_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_66_args;
 StructType *StructTy_struct_rubinius__BlockInvocation = mod->getTypeByName("struct.rubinius::BlockInvocation");
 if (!StructTy_struct_rubinius__BlockInvocation) {
 StructTy_struct_rubinius__BlockInvocation = StructType::create(mod->getContext(), "struct.rubinius::BlockInvocation");
@@ -748,31 +699,31 @@ if (StructTy_struct_rubinius__BlockInvocation->isOpaque()) {
 StructTy_struct_rubinius__BlockInvocation->setBody(StructTy_struct_rubinius__BlockInvocation_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_67 = PointerType::get(StructTy_struct_rubinius__BlockInvocation, 0);
+PointerType* PointerTy_62 = PointerType::get(StructTy_struct_rubinius__BlockInvocation, 0);
 
-FuncTy_66_args.push_back(PointerTy_67);
-FunctionType* FuncTy_66 = FunctionType::get(
+FuncTy_61_args.push_back(PointerTy_62);
+FunctionType* FuncTy_61 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_66_args,
+ /*Params=*/FuncTy_61_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_68_args;
+std::vector<Type*>FuncTy_63_args;
 StructType *StructTy_struct_rubinius__CallFrame = mod->getTypeByName("struct.rubinius::CallFrame");
 if (!StructTy_struct_rubinius__CallFrame) {
 StructTy_struct_rubinius__CallFrame = StructType::create(mod->getContext(), "struct.rubinius::CallFrame");
 }
 std::vector<Type*>StructTy_struct_rubinius__CallFrame_fields;
-PointerType* PointerTy_69 = PointerType::get(StructTy_struct_rubinius__CallFrame, 0);
+PointerType* PointerTy_64 = PointerType::get(StructTy_struct_rubinius__CallFrame, 0);
 
-StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_69);
+StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_64);
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_30);
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_20);
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_24);
 StructTy_struct_rubinius__CallFrame_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructTy_struct_rubinius__CallFrame_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_20);
-StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_52);
-StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_51);
+StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_47);
+StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_46);
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_7);
 StructTy_struct_rubinius__CallFrame_fields.push_back(ArrayTy_17);
 if (StructTy_struct_rubinius__CallFrame->isOpaque()) {
@@ -780,34 +731,34 @@ StructTy_struct_rubinius__CallFrame->setBody(StructTy_struct_rubinius__CallFrame
 }
 
 
-FuncTy_68_args.push_back(PointerTy_69);
-FunctionType* FuncTy_68 = FunctionType::get(
+FuncTy_63_args.push_back(PointerTy_64);
+FunctionType* FuncTy_63 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_68_args,
+ /*Params=*/FuncTy_63_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_70_args;
-FuncTy_70_args.push_back(PointerTy_10);
-FunctionType* FuncTy_70 = FunctionType::get(
+std::vector<Type*>FuncTy_65_args;
+FuncTy_65_args.push_back(PointerTy_10);
+FunctionType* FuncTy_65 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_70_args,
+ /*Params=*/FuncTy_65_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_71_args;
-FuncTy_71_args.push_back(PointerTy_24);
-FunctionType* FuncTy_71 = FunctionType::get(
+std::vector<Type*>FuncTy_66_args;
+FuncTy_66_args.push_back(PointerTy_24);
+FunctionType* FuncTy_66 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_71_args,
+ /*Params=*/FuncTy_66_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_72_args;
-FuncTy_72_args.push_back(PointerTy_27);
-FunctionType* FuncTy_72 = FunctionType::get(
+std::vector<Type*>FuncTy_67_args;
+FuncTy_67_args.push_back(PointerTy_27);
+FunctionType* FuncTy_67 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_72_args,
+ /*Params=*/FuncTy_67_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_73_args;
+std::vector<Type*>FuncTy_68_args;
 StructType *StructTy_struct_rubinius__Float = mod->getTypeByName("struct.rubinius::Float");
 if (!StructTy_struct_rubinius__Float) {
 StructTy_struct_rubinius__Float = StructType::create(mod->getContext(), "struct.rubinius::Float");
@@ -829,45 +780,45 @@ if (StructTy_struct_rubinius__Float->isOpaque()) {
 StructTy_struct_rubinius__Float->setBody(StructTy_struct_rubinius__Float_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_74 = PointerType::get(StructTy_struct_rubinius__Float, 0);
+PointerType* PointerTy_69 = PointerType::get(StructTy_struct_rubinius__Float, 0);
 
-FuncTy_73_args.push_back(PointerTy_74);
+FuncTy_68_args.push_back(PointerTy_69);
+FunctionType* FuncTy_68 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_68_args,
+ /*isVarArg=*/false);
+
+std::vector<Type*>FuncTy_70_args;
+FuncTy_70_args.push_back(PointerTy_13);
+FunctionType* FuncTy_70 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_70_args,
+ /*isVarArg=*/false);
+
+std::vector<Type*>FuncTy_71_args;
+PointerType* PointerTy_72 = PointerType::get(StructTy_struct_rubinius__Numeric, 0);
+
+FuncTy_71_args.push_back(PointerTy_72);
+FunctionType* FuncTy_71 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_71_args,
+ /*isVarArg=*/false);
+
+std::vector<Type*>FuncTy_73_args;
+FuncTy_73_args.push_back(PointerTy_16);
 FunctionType* FuncTy_73 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
  /*Params=*/FuncTy_73_args,
  /*isVarArg=*/false);
 
+std::vector<Type*>FuncTy_74_args;
+FuncTy_74_args.push_back(PointerTy_47);
+FunctionType* FuncTy_74 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_74_args,
+ /*isVarArg=*/false);
+
 std::vector<Type*>FuncTy_75_args;
-FuncTy_75_args.push_back(PointerTy_13);
-FunctionType* FuncTy_75 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_75_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_76_args;
-PointerType* PointerTy_77 = PointerType::get(StructTy_struct_rubinius__Numeric, 0);
-
-FuncTy_76_args.push_back(PointerTy_77);
-FunctionType* FuncTy_76 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_76_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_78_args;
-FuncTy_78_args.push_back(PointerTy_16);
-FunctionType* FuncTy_78 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_78_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_79_args;
-FuncTy_79_args.push_back(PointerTy_52);
-FunctionType* FuncTy_79 = FunctionType::get(
- /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_79_args,
- /*isVarArg=*/false);
-
-std::vector<Type*>FuncTy_80_args;
 StructType *StructTy_struct_rubinius__ByteArray = mod->getTypeByName("struct.rubinius::ByteArray");
 if (!StructTy_struct_rubinius__ByteArray) {
 StructTy_struct_rubinius__ByteArray = StructType::create(mod->getContext(), "struct.rubinius::ByteArray");
@@ -875,22 +826,22 @@ StructTy_struct_rubinius__ByteArray = StructType::create(mod->getContext(), "str
 std::vector<Type*>StructTy_struct_rubinius__ByteArray_fields;
 StructTy_struct_rubinius__ByteArray_fields.push_back(StructTy_struct_rubinius__Object);
 StructTy_struct_rubinius__ByteArray_fields.push_back(IntegerType::get(mod->getContext(), 32));
-ArrayType* ArrayTy_82 = ArrayType::get(IntegerType::get(mod->getContext(), 8), 0);
+ArrayType* ArrayTy_77 = ArrayType::get(IntegerType::get(mod->getContext(), 8), 0);
 
-StructTy_struct_rubinius__ByteArray_fields.push_back(ArrayTy_82);
+StructTy_struct_rubinius__ByteArray_fields.push_back(ArrayTy_77);
 if (StructTy_struct_rubinius__ByteArray->isOpaque()) {
 StructTy_struct_rubinius__ByteArray->setBody(StructTy_struct_rubinius__ByteArray_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_81 = PointerType::get(StructTy_struct_rubinius__ByteArray, 0);
+PointerType* PointerTy_76 = PointerType::get(StructTy_struct_rubinius__ByteArray, 0);
 
-FuncTy_80_args.push_back(PointerTy_81);
-FunctionType* FuncTy_80 = FunctionType::get(
+FuncTy_75_args.push_back(PointerTy_76);
+FunctionType* FuncTy_75 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_80_args,
+ /*Params=*/FuncTy_75_args,
  /*isVarArg=*/false);
 
-std::vector<Type*>FuncTy_83_args;
+std::vector<Type*>FuncTy_78_args;
 StructType *StructTy_struct_rubinius__Proc = mod->getTypeByName("struct.rubinius::Proc");
 if (!StructTy_struct_rubinius__Proc) {
 StructTy_struct_rubinius__Proc = StructType::create(mod->getContext(), "struct.rubinius::Proc");
@@ -903,12 +854,12 @@ if (StructTy_struct_rubinius__Proc->isOpaque()) {
 StructTy_struct_rubinius__Proc->setBody(StructTy_struct_rubinius__Proc_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_84 = PointerType::get(StructTy_struct_rubinius__Proc, 0);
+PointerType* PointerTy_79 = PointerType::get(StructTy_struct_rubinius__Proc, 0);
 
-FuncTy_83_args.push_back(PointerTy_84);
-FunctionType* FuncTy_83 = FunctionType::get(
+FuncTy_78_args.push_back(PointerTy_79);
+FunctionType* FuncTy_78 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
- /*Params=*/FuncTy_83_args,
+ /*Params=*/FuncTy_78_args,
  /*isVarArg=*/false);
 
 
@@ -980,43 +931,21 @@ func_outputCallSite->setCallingConv(CallingConv::C);
 AttributeSet func_outputCallSite_PAL;
 func_outputCallSite->setAttributes(func_outputCallSite_PAL);
 
-Function* func_outputMonoInlineCache = mod->getFunction("outputMonoInlineCache");
-if (!func_outputMonoInlineCache) {
-func_outputMonoInlineCache = Function::Create(
+Function* func_outputInlineCache = mod->getFunction("outputInlineCache");
+if (!func_outputInlineCache) {
+func_outputInlineCache = Function::Create(
  /*Type=*/FuncTy_41,
  /*Linkage=*/GlobalValue::ExternalLinkage,
- /*Name=*/"outputMonoInlineCache", mod); // (external, no body)
-func_outputMonoInlineCache->setCallingConv(CallingConv::C);
+ /*Name=*/"outputInlineCache", mod); // (external, no body)
+func_outputInlineCache->setCallingConv(CallingConv::C);
 }
-AttributeSet func_outputMonoInlineCache_PAL;
-func_outputMonoInlineCache->setAttributes(func_outputMonoInlineCache_PAL);
-
-Function* func_outputPolyInlineCache = mod->getFunction("outputPolyInlineCache");
-if (!func_outputPolyInlineCache) {
-func_outputPolyInlineCache = Function::Create(
- /*Type=*/FuncTy_43,
- /*Linkage=*/GlobalValue::ExternalLinkage,
- /*Name=*/"outputPolyInlineCache", mod); // (external, no body)
-func_outputPolyInlineCache->setCallingConv(CallingConv::C);
-}
-AttributeSet func_outputPolyInlineCache_PAL;
-func_outputPolyInlineCache->setAttributes(func_outputPolyInlineCache_PAL);
-
-Function* func_outputInlineCacheEntry = mod->getFunction("outputInlineCacheEntry");
-if (!func_outputInlineCacheEntry) {
-func_outputInlineCacheEntry = Function::Create(
- /*Type=*/FuncTy_47,
- /*Linkage=*/GlobalValue::ExternalLinkage,
- /*Name=*/"outputInlineCacheEntry", mod); // (external, no body)
-func_outputInlineCacheEntry->setCallingConv(CallingConv::C);
-}
-AttributeSet func_outputInlineCacheEntry_PAL;
-func_outputInlineCacheEntry->setAttributes(func_outputInlineCacheEntry_PAL);
+AttributeSet func_outputInlineCache_PAL;
+func_outputInlineCache->setAttributes(func_outputInlineCache_PAL);
 
 Function* func_outputConstantCache = mod->getFunction("outputConstantCache");
 if (!func_outputConstantCache) {
 func_outputConstantCache = Function::Create(
- /*Type=*/FuncTy_48,
+ /*Type=*/FuncTy_43,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputConstantCache", mod); // (external, no body)
 func_outputConstantCache->setCallingConv(CallingConv::C);
@@ -1027,7 +956,7 @@ func_outputConstantCache->setAttributes(func_outputConstantCache_PAL);
 Function* func_outputStackVariables = mod->getFunction("outputStackVariables");
 if (!func_outputStackVariables) {
 func_outputStackVariables = Function::Create(
- /*Type=*/FuncTy_50,
+ /*Type=*/FuncTy_45,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputStackVariables", mod); // (external, no body)
 func_outputStackVariables->setCallingConv(CallingConv::C);
@@ -1038,7 +967,7 @@ func_outputStackVariables->setAttributes(func_outputStackVariables_PAL);
 Function* func_outputUnwindInfo = mod->getFunction("outputUnwindInfo");
 if (!func_outputUnwindInfo) {
 func_outputUnwindInfo = Function::Create(
- /*Type=*/FuncTy_54,
+ /*Type=*/FuncTy_49,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputUnwindInfo", mod); // (external, no body)
 func_outputUnwindInfo->setCallingConv(CallingConv::C);
@@ -1049,7 +978,7 @@ func_outputUnwindInfo->setAttributes(func_outputUnwindInfo_PAL);
 Function* func_outputHeaderWord = mod->getFunction("outputHeaderWord");
 if (!func_outputHeaderWord) {
 func_outputHeaderWord = Function::Create(
- /*Type=*/FuncTy_56,
+ /*Type=*/FuncTy_51,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputHeaderWord", mod); // (external, no body)
 func_outputHeaderWord->setCallingConv(CallingConv::C);
@@ -1060,7 +989,7 @@ func_outputHeaderWord->setAttributes(func_outputHeaderWord_PAL);
 Function* func_outputObject = mod->getFunction("outputObject");
 if (!func_outputObject) {
 func_outputObject = Function::Create(
- /*Type=*/FuncTy_58,
+ /*Type=*/FuncTy_53,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputObject", mod); // (external, no body)
 func_outputObject->setCallingConv(CallingConv::C);
@@ -1071,7 +1000,7 @@ func_outputObject->setAttributes(func_outputObject_PAL);
 Function* func_outputObjectFlags = mod->getFunction("outputObjectFlags");
 if (!func_outputObjectFlags) {
 func_outputObjectFlags = Function::Create(
- /*Type=*/FuncTy_59,
+ /*Type=*/FuncTy_54,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputObjectFlags", mod); // (external, no body)
 func_outputObjectFlags->setCallingConv(CallingConv::C);
@@ -1082,7 +1011,7 @@ func_outputObjectFlags->setAttributes(func_outputObjectFlags_PAL);
 Function* func_outputObjectHeader = mod->getFunction("outputObjectHeader");
 if (!func_outputObjectHeader) {
 func_outputObjectHeader = Function::Create(
- /*Type=*/FuncTy_61,
+ /*Type=*/FuncTy_56,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputObjectHeader", mod); // (external, no body)
 func_outputObjectHeader->setCallingConv(CallingConv::C);
@@ -1093,7 +1022,7 @@ func_outputObjectHeader->setAttributes(func_outputObjectHeader_PAL);
 Function* func_outputArray = mod->getFunction("outputArray");
 if (!func_outputArray) {
 func_outputArray = Function::Create(
- /*Type=*/FuncTy_63,
+ /*Type=*/FuncTy_58,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputArray", mod); // (external, no body)
 func_outputArray->setCallingConv(CallingConv::C);
@@ -1104,7 +1033,7 @@ func_outputArray->setAttributes(func_outputArray_PAL);
 Function* func_outputBlockEnvironment = mod->getFunction("outputBlockEnvironment");
 if (!func_outputBlockEnvironment) {
 func_outputBlockEnvironment = Function::Create(
- /*Type=*/FuncTy_64,
+ /*Type=*/FuncTy_59,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputBlockEnvironment", mod); // (external, no body)
 func_outputBlockEnvironment->setCallingConv(CallingConv::C);
@@ -1115,7 +1044,7 @@ func_outputBlockEnvironment->setAttributes(func_outputBlockEnvironment_PAL);
 Function* func_outputBlockInvocation = mod->getFunction("outputBlockInvocation");
 if (!func_outputBlockInvocation) {
 func_outputBlockInvocation = Function::Create(
- /*Type=*/FuncTy_66,
+ /*Type=*/FuncTy_61,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputBlockInvocation", mod); // (external, no body)
 func_outputBlockInvocation->setCallingConv(CallingConv::C);
@@ -1126,7 +1055,7 @@ func_outputBlockInvocation->setAttributes(func_outputBlockInvocation_PAL);
 Function* func_outputCallFrame = mod->getFunction("outputCallFrame");
 if (!func_outputCallFrame) {
 func_outputCallFrame = Function::Create(
- /*Type=*/FuncTy_68,
+ /*Type=*/FuncTy_63,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputCallFrame", mod); // (external, no body)
 func_outputCallFrame->setCallingConv(CallingConv::C);
@@ -1137,7 +1066,7 @@ func_outputCallFrame->setAttributes(func_outputCallFrame_PAL);
 Function* func_outputClass = mod->getFunction("outputClass");
 if (!func_outputClass) {
 func_outputClass = Function::Create(
- /*Type=*/FuncTy_70,
+ /*Type=*/FuncTy_65,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputClass", mod); // (external, no body)
 func_outputClass->setCallingConv(CallingConv::C);
@@ -1148,7 +1077,7 @@ func_outputClass->setAttributes(func_outputClass_PAL);
 Function* func_outputCompiledCode = mod->getFunction("outputCompiledCode");
 if (!func_outputCompiledCode) {
 func_outputCompiledCode = Function::Create(
- /*Type=*/FuncTy_71,
+ /*Type=*/FuncTy_66,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputCompiledCode", mod); // (external, no body)
 func_outputCompiledCode->setCallingConv(CallingConv::C);
@@ -1159,7 +1088,7 @@ func_outputCompiledCode->setAttributes(func_outputCompiledCode_PAL);
 Function* func_outputExecutable = mod->getFunction("outputExecutable");
 if (!func_outputExecutable) {
 func_outputExecutable = Function::Create(
- /*Type=*/FuncTy_72,
+ /*Type=*/FuncTy_67,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputExecutable", mod); // (external, no body)
 func_outputExecutable->setCallingConv(CallingConv::C);
@@ -1170,7 +1099,7 @@ func_outputExecutable->setAttributes(func_outputExecutable_PAL);
 Function* func_outputFloat = mod->getFunction("outputFloat");
 if (!func_outputFloat) {
 func_outputFloat = Function::Create(
- /*Type=*/FuncTy_73,
+ /*Type=*/FuncTy_68,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputFloat", mod); // (external, no body)
 func_outputFloat->setCallingConv(CallingConv::C);
@@ -1181,7 +1110,7 @@ func_outputFloat->setAttributes(func_outputFloat_PAL);
 Function* func_outputModule = mod->getFunction("outputModule");
 if (!func_outputModule) {
 func_outputModule = Function::Create(
- /*Type=*/FuncTy_75,
+ /*Type=*/FuncTy_70,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputModule", mod); // (external, no body)
 func_outputModule->setCallingConv(CallingConv::C);
@@ -1192,7 +1121,7 @@ func_outputModule->setAttributes(func_outputModule_PAL);
 Function* func_outputNumeric = mod->getFunction("outputNumeric");
 if (!func_outputNumeric) {
 func_outputNumeric = Function::Create(
- /*Type=*/FuncTy_76,
+ /*Type=*/FuncTy_71,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputNumeric", mod); // (external, no body)
 func_outputNumeric->setCallingConv(CallingConv::C);
@@ -1203,7 +1132,7 @@ func_outputNumeric->setAttributes(func_outputNumeric_PAL);
 Function* func_outputTuple = mod->getFunction("outputTuple");
 if (!func_outputTuple) {
 func_outputTuple = Function::Create(
- /*Type=*/FuncTy_78,
+ /*Type=*/FuncTy_73,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputTuple", mod); // (external, no body)
 func_outputTuple->setCallingConv(CallingConv::C);
@@ -1214,7 +1143,7 @@ func_outputTuple->setAttributes(func_outputTuple_PAL);
 Function* func_outputVariableScope = mod->getFunction("outputVariableScope");
 if (!func_outputVariableScope) {
 func_outputVariableScope = Function::Create(
- /*Type=*/FuncTy_79,
+ /*Type=*/FuncTy_74,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputVariableScope", mod); // (external, no body)
 func_outputVariableScope->setCallingConv(CallingConv::C);
@@ -1225,7 +1154,7 @@ func_outputVariableScope->setAttributes(func_outputVariableScope_PAL);
 Function* func_outputByteArray = mod->getFunction("outputByteArray");
 if (!func_outputByteArray) {
 func_outputByteArray = Function::Create(
- /*Type=*/FuncTy_80,
+ /*Type=*/FuncTy_75,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputByteArray", mod); // (external, no body)
 func_outputByteArray->setCallingConv(CallingConv::C);
@@ -1236,7 +1165,7 @@ func_outputByteArray->setAttributes(func_outputByteArray_PAL);
 Function* func_outputProc = mod->getFunction("outputProc");
 if (!func_outputProc) {
 func_outputProc = Function::Create(
- /*Type=*/FuncTy_83,
+ /*Type=*/FuncTy_78,
  /*Linkage=*/GlobalValue::ExternalLinkage,
  /*Name=*/"outputProc", mod); // (external, no body)
 func_outputProc->setCallingConv(CallingConv::C);

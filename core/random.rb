@@ -38,17 +38,17 @@ class Rubinius::Randomizer
       elsif limit.kind_of?(Float)
         raise ArgumentError, "invalid argument - #{limit}" if limit <= 0
         random_float * limit
+      elsif limit.is_a?(Integer)
+        raise ArgumentError, "invalid argument - #{limit}" if limit <= 0
+        random_integer(limit - 1)
+      elsif limit.respond_to?(:to_f)
+        raise ArgumentError, "invalid argument - #{limit}" if limit <= 0
+        random_float * limit
       else
         limit_int = Rubinius::Type.coerce_to limit, Integer, :to_int
         raise ArgumentError, "invalid argument - #{limit}" if limit_int <= 0
 
-        if limit.is_a?(Integer)
-          random_integer(limit - 1)
-        elsif limit.respond_to?(:to_f)
-          random_float * limit
-        else
-          random_integer(limit_int - 1)
-        end
+        random_integer(limit_int - 1)
       end
     end
   end
@@ -66,8 +66,14 @@ class Rubinius::Randomizer
   end
 
   def random_range(limit)
+    return nil if limit.first.nil? || limit.last.nil?
+
     min, max = limit.last.coerce(limit.first)
     diff = max - min
+
+    return if diff < 0
+    return min if diff == 0
+
     diff += 1 if max.kind_of?(Integer) && !limit.exclude_end?
     random(diff) + min
   end

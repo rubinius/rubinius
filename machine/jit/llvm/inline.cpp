@@ -9,11 +9,10 @@
 #include "jit/llvm/stack_args.hpp"
 
 #include "builtin/alias.hpp"
+#include "builtin/call_site.hpp"
 #include "builtin/method_table.hpp"
 #include "builtin/native_function.hpp"
 #include "builtin/lookup_table.hpp"
-#include "builtin/mono_inline_cache.hpp"
-#include "builtin/poly_inline_cache.hpp"
 
 #include "ffi_util.hpp"
 
@@ -31,13 +30,18 @@ namespace rubinius {
   }
 
   bool Inliner::consider_mono() {
+    return false;
+    /* TODO: inline cache
     MonoInlineCache* cache = try_as<MonoInlineCache>(call_site_);
     if(!cache) return false;
     int hits = cache->hits();
     return inline_for_class(cache->receiver_class(), cache->receiver_data(), hits);
+    */
   }
 
   bool Inliner::consider_poly() {
+    return false;
+    /* TODO: inline cache
     PolyInlineCache* cache = try_as<PolyInlineCache>(call_site_);
 
     if(!cache) return false;
@@ -142,6 +146,7 @@ namespace rubinius {
     set_result(phi);
 
     return true;
+    */
   }
 
   bool Inliner::inline_for_class(Class* klass, ClassData data, int hits) {
@@ -149,7 +154,7 @@ namespace rubinius {
 
     Module* defined_in = 0;
     Executable* meth = klass->find_method(
-        ops_.llvm_state()->state(),call_site_->name(), &defined_in);
+        ops_.llvm_state()->state(), call_site_->name(), &defined_in);
 
     if(!meth) {
       if(ops_.llvm_state()->config().jit_inline_debug) {
@@ -333,20 +338,16 @@ remember:
     opcode* stream = mcode->opcodes;
     size_t size_max = 2;
     switch(stream[0]) {
-    case InstructionSequence::insn_push_int:
-      size_max++;
       break;
     case InstructionSequence::insn_push_literal:
+      /* TODO: literals
       if(code && kind_of<Symbol>(code->literals()->at(stream[1]))) {
         size_max++;
       } else {
         return false;
       }
+      */
       break;
-    case InstructionSequence::insn_meta_push_0:
-    case InstructionSequence::insn_meta_push_1:
-    case InstructionSequence::insn_meta_push_2:
-    case InstructionSequence::insn_meta_push_neg_1:
     case InstructionSequence::insn_push_self:
       break;
     default:
@@ -379,35 +380,19 @@ remember:
 
     opcode* stream = mcode->opcodes;
     switch(stream[0]) {
-    case InstructionSequence::insn_push_int:
-      val = ops_.constant(Fixnum::from(stream[1]));
-      break;
     case InstructionSequence::insn_push_literal: {
+      /* TODO: literals
       Symbol* sym = try_as<Symbol>(code->literals()->at(stream[1]));
       assert(sym);
 
       val = ops_.constant(sym);
-      } break;
-    case InstructionSequence::insn_meta_push_0:
-      val = ops_.constant(Fixnum::from(0));
-      break;
-    case InstructionSequence::insn_meta_push_1:
-      val = ops_.constant(Fixnum::from(1));
-      break;
-    case InstructionSequence::insn_meta_push_2:
-      val = ops_.constant(Fixnum::from(2));
-      break;
-    case InstructionSequence::insn_meta_push_neg_1:
-      val = ops_.constant(Fixnum::from(-1));
-      break;
+      */} break;
     case InstructionSequence::insn_push_self:
       val = recv();
       break;
     default:
       assert(0 && "Trivial detection is broken!");
     }
-
-    /////
 
     assert(val);
 

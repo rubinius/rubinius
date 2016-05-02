@@ -99,10 +99,12 @@ continue_to_run:
 #undef next_int
 #undef store_ip
 #undef flush_ip
+#undef store_literal
 
 #define next_int ((opcode)(*ip_ptr++))
 #define store_ip(which) ip_ptr = mcode->opcodes + which
 #define flush_ip() call_frame->set_ip(ip_ptr - mcode->opcodes)
+#define store_literal(val) (*(ip_ptr - 1) = static_cast<opcode>(val))
 
 #include "gen/instruction_implementations.hpp"
 
@@ -247,10 +249,12 @@ continue_to_run:
 #undef next_int
 #undef store_ip
 #undef flush_ip
+#undef store_literal
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
+#define store_literal(val) (stream[call_frame->ip() - 1] = static_cast<opcode>(val))
 
 #include "gen/instruction_implementations.hpp"
 
@@ -390,10 +394,12 @@ continue_to_run:
 #undef next_int
 #undef store_ip
 #undef flush_ip
+#undef store_literal
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
+#define store_literal(val) (stream[call_frame->ip() - 1] = static_cast<opcode>(val))
 
 #include "gen/instruction_implementations.hpp"
 
@@ -523,10 +529,12 @@ continue_to_run:
 #undef next_int
 #undef store_ip
 #undef flush_ip
+#undef store_literal
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
+#define store_literal(val) (stream[call_frame->ip() - 1] = static_cast<opcode>(val))
 
 #include "gen/instruction_implementations.hpp"
 
@@ -652,10 +660,12 @@ continue_to_run:
 #undef next_int
 #undef store_ip
 #undef flush_ip
+#undef store_literal
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
+#define store_literal(val) (stream[call_frame->ip() - 1] = static_cast<opcode>(val))
 
 #include "gen/instruction_implementations.hpp"
 

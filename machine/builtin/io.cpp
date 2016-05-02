@@ -196,7 +196,7 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
-        if(!state->check_async(state)) return NULL;
+        if(state->vm()->thread_interrupted_p(state)) return NULL;
         ensure_open(state);
         goto retry;
       } else {
@@ -523,7 +523,7 @@ failed: /* try next '*' position */
 
     if(code == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(state)) return NULL;
+        if(state->vm()->thread_interrupted_p(state)) return NULL;
         ensure_open(state);
         goto retry;
       }
