@@ -179,38 +179,7 @@ class Proc
       return @bound_method.parameters
     end
 
-    code = @block.compiled_code
-
-    params = []
-
-    return params unless code.respond_to? :local_names
-
-    m = code.required_args - code.post_args
-    o = m + code.total_args - code.required_args
-    p = o + code.post_args
-    p += 1 if code.splat
-
-    required_status = self.lambda? ? :req : :opt
-
-    code.local_names.each_with_index do |name, i|
-      if i < m
-        params << [required_status, name]
-      elsif i < o
-        params << [:opt, name]
-      elsif code.splat == i
-        if name == :*
-          params << [:rest]
-        else
-          params << [:rest, name]
-        end
-      elsif i < p
-        params << [required_status, name]
-      elsif code.block_index == i
-        params << [:block, name]
-      end
-    end
-
-    params
+    @block.compiled_code.parameters(self.lambda? ? :req : :opt)
   end
 
 

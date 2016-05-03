@@ -133,7 +133,8 @@ module Rubinius
         @required_args == other.required_args and
         @total_args    == other.total_args    and
         @splat         == other.splat         and
-        block_index   == other.block_index    and
+        block_index    == other.block_index   and
+        kwrest_index   == other.kwrest_index  and
         @literals      == other.literals      and
         @file          == other.file          and
         @local_names   == other.local_names
@@ -151,21 +152,17 @@ module Rubinius
     end
 
     ##
-    # Stores the index of the block argument in the metadata storage.
+    # @return [Fixnum|NilClass]
     #
-    # @param [Fixnum] position
-    #
-    def block_index=(position)
-      if position
-        add_metadata(:block_index, position)
-      end
+    def block_index
+      return get_metadata(:block_index)
     end
 
     ##
     # @return [Fixnum|NilClass]
     #
-    def block_index
-      return get_metadata(:block_index)
+    def kwrest_index
+      return get_metadata(:kwrest_index)
     end
 
     ##
@@ -559,36 +556,55 @@ module Rubinius
 
     ##
     # For Method#parameters
-    def parameters
+    def parameters(requirement = :req)
       params = []
 
       return params unless respond_to?(:local_names)
 
-      m = required_args - post_args
-      o = m + total_args - required_args
-      p = o + post_args
-      p += 1 if splat
+      mandatory = required_args - post_args
+      optional = mandatory + total_args - required_args
+      post = optional + post_args
+      post += 1 if splat
+
+      keys_placeholder = -1
+      keys_end = 0
+      key_count = -1
+
+      if keywords
+        keys_placeholder = total_args
+        keys_end = keys_placeholder + 1 + keywords.length / 2
+        keys_end += 1 if block_index
+      end
+
+      block = nil
 
       local_names.each_with_index do |name, i|
-        if i < m
-          params << parameter(:req, name)
-        elsif i < o
-          params << [:opt, name]
-        elsif splat == i
+        if i < mandatory
+          params << parameter(requirement, name)
+        elsif i == splat
           params << parameter(:rest, name)
-        elsif i < p
-          params << parameter(:req, name)
-        elsif block_index == i
-          params << [:block, name]
+        elsif i < optional
+          params << [:opt, name]
+        elsif i == keys_placeholder
+          next
+        elsif i < post
+          params << parameter(requirement, name)
+        elsif i == block_index
+          block = [:block, name]
+        elsif i < keys_end
+          params << [keywords[key_count += 2] ? :keyreq : :key, name]
+        elsif i == kwrest_index
+          params << [:keyrest, name]
         end
       end
 
+      params << block if block
       params
     end
 
     def parameter(kind, param)
       array = [kind]
-      array << param unless param == :* or param[0, 2] == "_:"
+      array << param unless param == :* || param[0, 2] == '_:'
       array
     end
     private :parameter
