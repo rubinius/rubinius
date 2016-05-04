@@ -1,6 +1,7 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
+#include "diagnostics.hpp"
 #include "metrics.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
@@ -328,6 +329,7 @@ namespace rubinius {
 
     state->shared().start_console(state);
     state->shared().start_metrics(state);
+    state->shared().start_diagnostics(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {

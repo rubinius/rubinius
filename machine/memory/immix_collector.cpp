@@ -19,10 +19,6 @@
 namespace rubinius {
 namespace memory {
   void ImmixGC::Diagnostics::log() {
-    if(!modified_p()) return;
-
-    diagnostics::Diagnostics::log();
-
     logger::write("immix: diagnostics: " \
         "collections: %ld, " \
         "objects: %ld, " \
@@ -357,7 +353,8 @@ namespace memory {
         (double)diagnostics_.bytes_ / (double)diagnostics_.total_bytes_;
 
       diagnostics_.collections_++;
-      diagnostics_.modify();
+
+      memory_->shared().report_diagnostics(&diagnostics_);
     }
 
     allocator_.restart(diagnostics_.percentage_,

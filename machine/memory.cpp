@@ -17,7 +17,6 @@
 #include "memory/walker.hpp"
 
 #include "environment.hpp"
-#include "system_diagnostics.hpp"
 
 #if ENABLE_LLVM
 #include "jit/llvm/state.hpp"
@@ -78,10 +77,7 @@ namespace rubinius {
     , collect_young_flag_(false)
     , collect_full_flag_(false)
     , shared_(vm->shared)
-    , diagnostics_(new diagnostics::ObjectDiagnostics(/* young_->diagnostics(), */
-          immix_->diagnostics(), mark_sweep_->diagnostics(),
-          inflated_headers_->diagnostics(), capi_handles_->diagnostics(),
-          code_manager_.diagnostics(), shared.symbols.diagnostics()))
+    , diagnostics_(NULL)
     , vm_(vm)
     , last_object_id(1)
     , last_snapshot_id(0)
@@ -569,7 +565,7 @@ step1:
     }
 
     if(state->shared().config.memory_collection_log.value) {
-      state->shared().env()->diagnostics()->log();
+      // TODO: memory diagnostics
     }
   }
 

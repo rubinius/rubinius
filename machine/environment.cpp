@@ -7,7 +7,6 @@
 #include "compiled_file.hpp"
 #include "memory.hpp"
 #include "exception.hpp"
-#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
@@ -218,8 +217,6 @@ namespace rubinius {
   }
 
   void Environment::start_diagnostics(STATE) {
-    diagnostics_ = new diagnostics::SystemDiagnostics(
-        state->shared().memory()->diagnostics());
   }
 
   void Environment::start_logging(STATE) {
