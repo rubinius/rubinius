@@ -7,6 +7,7 @@
 #include "memory/root_buffer.hpp"
 
 #include "internal_threads.hpp"
+#include "diagnostics.hpp"
 #include "globals.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
@@ -45,10 +46,6 @@ namespace rubinius {
 
   namespace metrics {
     class Metrics;
-  }
-
-  namespace diagnostics {
-    class Diagnostics;
   }
 
   namespace memory {
@@ -225,6 +222,12 @@ namespace rubinius {
     }
 
     diagnostics::Diagnostics* start_diagnostics(STATE);
+
+    void report_diagnostics(diagnostics::DiagnosticsData* data) {
+      if(diagnostics_) {
+        diagnostics_->report(data);
+      }
+    }
 
     Environment* env() const {
       return env_;

@@ -354,7 +354,7 @@ namespace memory {
 
       diagnostics_.collections_++;
 
-      memory_->shared().diagnostics()->report(&diagnostics_);
+      memory_->shared().report_diagnostics(&diagnostics_);
     }
 
     allocator_.restart(diagnostics_.percentage_,
