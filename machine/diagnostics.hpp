@@ -16,26 +16,11 @@ namespace rubinius {
     class DiagnosticsData {
       rapidjson::Document* document_;
 
-      bool modified_;
-
     public:
       DiagnosticsData()
         : document_(NULL)
-        , modified_(false)
       { }
       virtual ~DiagnosticsData();
-
-
-      bool modified_p() {
-        return modified_;
-      }
-
-      void modify() {
-        modified_ = true;
-      }
-
-      void log() {
-      }
 
       void to_string(rapidjson::StringBuffer buffer);
     };

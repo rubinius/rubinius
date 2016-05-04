@@ -9,10 +9,6 @@
 namespace rubinius {
 namespace memory {
   void InflatedHeaders::Diagnostics::log() {
-    if(!modified_p()) return;
-
-    diagnostics::DiagnosticsData::log();
-
     logger::write("inflated headers: diagnostics: " \
         "objects: %ld, bytes: %ld, collections: %ld\n",
         objects_, bytes_, collections_);
@@ -59,7 +55,6 @@ namespace memory {
     allocator_->rebuild_freelist(&chunk_marks);
 
     diagnostics_.bytes_ = allocator_->in_use_ * sizeof(InflatedHeader);
-    diagnostics_.modify();
   }
 }
 }

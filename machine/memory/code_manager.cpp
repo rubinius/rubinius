@@ -8,10 +8,6 @@
 namespace rubinius {
 namespace memory {
   void CodeManager::Diagnostics::log() {
-    if(!modified_p()) return;
-
-    diagnostics::DiagnosticsData::log();
-
     logger::write("code manager: diagnostics: " \
         "collections: %ld, chunks: %ld, objects: %ld, bytes: %ld",
         collections_, chunks_, objects_, bytes_);
@@ -142,8 +138,6 @@ namespace memory {
         diagnostics_.chunks_++;
       }
     }
-
-    diagnostics_.modify();
   }
 
   void CodeManager::clear_marks() {

@@ -47,7 +47,7 @@ namespace rubinius {
     class Metrics;
   }
 
-  namespace diagnostics_ {
+  namespace diagnostics {
     class Diagnostics;
   }
 

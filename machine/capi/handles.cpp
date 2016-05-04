@@ -12,10 +12,6 @@
 namespace rubinius {
   namespace capi {
     void Handles::Diagnostics::log() {
-      if(!modified_p()) return;
-
-      diagnostics::DiagnosticsData::log();
-
       logger::write("C-API handles: diagnostics: " \
           "objects: %ld, bytes: %ld, collections: %ld\n",
           objects_, bytes_, collections_);
@@ -153,7 +149,6 @@ namespace rubinius {
       allocator_->rebuild_freelist(&chunk_marks);
 
       diagnostics_.bytes_ = allocator_->in_use_ * sizeof(Handle);
-      diagnostics_.modify();
     }
   }
 }

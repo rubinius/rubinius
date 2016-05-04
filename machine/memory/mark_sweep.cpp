@@ -32,10 +32,6 @@ namespace memory {
   MarkSweepGC::~MarkSweepGC() { }
 
   void MarkSweepGC::Diagnostics::log() {
-    if(!modified_p()) return;
-
-    diagnostics::DiagnosticsData::log();
-
     logger::write("large objects: diagnostics: objects: %ld, bytes: %ld",
         objects_, bytes_);
   }
@@ -147,8 +143,6 @@ namespace memory {
         i = entries.erase(i);
       }
     }
-
-    diagnostics_.modify();
   }
 
   ObjectPosition MarkSweepGC::validate_object(Object* obj) {
