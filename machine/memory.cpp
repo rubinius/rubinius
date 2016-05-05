@@ -77,7 +77,6 @@ namespace rubinius {
     , collect_young_flag_(false)
     , collect_full_flag_(false)
     , shared_(vm->shared)
-    , diagnostics_(NULL)
     , vm_(vm)
     , last_object_id(1)
     , last_snapshot_id(0)
@@ -563,19 +562,11 @@ step1:
         collect_full(state);
       }
     }
-
-    if(state->shared().config.memory_collection_log.value) {
-      // TODO: memory diagnostics
-    }
   }
 
   void Memory::collect_young(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
-
-    if(state->shared().config.memory_collection_log.value) {
-      logger::write("memory: young collection");
-    }
 
     /* 
     young_->collect(data);

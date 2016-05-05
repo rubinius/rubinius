@@ -18,9 +18,7 @@
 #include <iomanip>
 
 namespace rubinius {
-  void SymbolTable::Diagnostics::log() {
-    logger::write("symbol table: diagnostics: symbols: %ld, bytes: %ld",
-        objects_, bytes_);
+  void SymbolTable::Diagnostics::update() {
   }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
@@ -91,8 +89,8 @@ namespace rubinius {
 
   size_t SymbolTable::add(STATE, std::string str, int enc) {
     size_t bytes = (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
-    diagnostics_.objects_++;
-    diagnostics_.bytes_ += bytes;
+    diagnostics()->objects_++;
+    diagnostics()->bytes_ += bytes;
 
     strings.push_back(str);
     encodings.push_back(enc);

@@ -225,6 +225,7 @@ namespace rubinius {
 
     void report_diagnostics(diagnostics::DiagnosticsData* data) {
       if(diagnostics_) {
+        data->update();
         diagnostics_->report(data);
       }
     }

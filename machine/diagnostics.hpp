@@ -17,24 +17,26 @@ namespace rubinius {
       rapidjson::Document* document_;
 
     public:
-      DiagnosticsData()
-        : document_(NULL)
-      { }
+      DiagnosticsData();
       virtual ~DiagnosticsData();
 
-      void to_string(rapidjson::StringBuffer buffer);
+      rapidjson::Document* document() {
+        return document_;
+      }
+
+      virtual void update() { }
+
+      void set_type(const char* type);
+      void to_string(rapidjson::StringBuffer& buffer);
     };
 
     class MemoryDiagnostics : public DiagnosticsData {
     public:
-      int64_t objects_;
-      int64_t bytes_;
+      uint64_t objects_;
+      uint64_t bytes_;
 
-      MemoryDiagnostics()
-        : DiagnosticsData()
-        , objects_(0)
-        , bytes_(0)
-      { }
+      MemoryDiagnostics();
+      virtual ~MemoryDiagnostics() { }
     };
 
     class DiagnosticsEmitter {

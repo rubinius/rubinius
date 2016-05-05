@@ -15,9 +15,6 @@
 
 namespace rubinius {
 
-  namespace diagnostics {
-  }
-
   namespace memory {
     class FinalizerThread;
   }
@@ -75,8 +72,6 @@ namespace rubinius {
 
     memory::TypedRoot<Object*>* loader_;
 
-    diagnostics::Diagnostics* diagnostics_;
-
   public:
     SharedState* shared;
     VM* root_vm;
@@ -117,10 +112,6 @@ namespace rubinius {
       return loader_->get();
     }
 
-    diagnostics::Diagnostics* diagnostics() {
-      return diagnostics_;
-    }
-
     void set_root_vm(VM* vm) {
       root_vm = vm;
       state->set_vm(vm);
@@ -158,7 +149,6 @@ namespace rubinius {
     void atexit();
 
     void start_finalizer(STATE);
-    void start_diagnostics(STATE);
 
     void start_logging(STATE);
     void stop_logging(STATE);

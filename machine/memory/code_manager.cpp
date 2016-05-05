@@ -7,10 +7,7 @@
 
 namespace rubinius {
 namespace memory {
-  void CodeManager::Diagnostics::log() {
-    logger::write("code manager: diagnostics: " \
-        "collections: %ld, chunks: %ld, objects: %ld, bytes: %ld",
-        collections_, chunks_, objects_, bytes_);
+  void CodeManager::Diagnostics::update() {
   }
 
   CodeManager::Chunk::Chunk(int size)
@@ -31,7 +28,7 @@ namespace memory {
     , last_chunk_(0)
     , current_chunk_(0)
     , current_index_(0)
-    , diagnostics_(Diagnostics())
+    , diagnostics_(new Diagnostics())
   {
     first_chunk_ = new Chunk(chunk_size_);
     last_chunk_ = first_chunk_;
@@ -82,7 +79,7 @@ namespace memory {
       if(!current_chunk_) {
         add_chunk();
         *collect_now = true;
-        diagnostics_.collections_++;
+        diagnostics()->collections_++;
       }
     }
   }
@@ -90,8 +87,6 @@ namespace memory {
   void CodeManager::sweep() {
     Chunk* chunk = first_chunk_;
     Chunk* prev  = NULL;
-
-    diagnostics_ = Diagnostics(diagnostics_.collections_);
 
     State state(shared_->root_vm());
 
@@ -107,8 +102,8 @@ namespace memory {
             chunk_used = true;
             cr->clear_mark();
 
-            diagnostics_.objects_++;
-            diagnostics_.bytes_ += cr->size();
+            diagnostics()->objects_++;
+            diagnostics()->bytes_ += cr->size();
           }
         }
       }
@@ -135,7 +130,7 @@ namespace memory {
       } else {
         prev = chunk;
         chunk = chunk->next;
-        diagnostics_.chunks_++;
+        diagnostics()->chunks_++;
       }
     }
   }

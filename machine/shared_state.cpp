@@ -155,9 +155,8 @@ namespace rubinius {
 
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
     if(!diagnostics_) {
-      diagnostics_ = new diagnostics::Diagnostics(state);
-
       if(state->shared().config.system_diagnostics_target.value.compare("none")) {
+        diagnostics_ = new diagnostics::Diagnostics(state);
         diagnostics_->start(state);
       }
     }

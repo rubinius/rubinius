@@ -11,14 +11,45 @@
 
 namespace rubinius {
   namespace diagnostics {
+    DiagnosticsData::DiagnosticsData()
+      : document_(new rapidjson::Document())
+    {
+      /*
+      document_->SetObject();
+
+      document_->AddMember("diagnostic_type",
+          rapidjson::Value("DiagnosticsData"), document_->GetAllocator());
+          */
+    }
+
     DiagnosticsData::~DiagnosticsData() {
       if(document_) delete document_;
     }
 
-    void DiagnosticsData::to_string(rapidjson::StringBuffer buffer) {
+    void DiagnosticsData::set_type(const char* type) {
+      (*document_)["diagnostic_type"].SetString(type, document_->GetAllocator());
+    }
+
+    void DiagnosticsData::to_string(rapidjson::StringBuffer& buffer) {
       rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
       document_->Accept(writer);
+    }
+
+    MemoryDiagnostics::MemoryDiagnostics()
+      : DiagnosticsData()
+      , objects_(0)
+      , bytes_(0)
+    {
+      /*
+      set_type("MemoryDiagnostics");
+
+      document()->AddMember("objects",
+          rapidjson::Value(objects_), document()->GetAllocator());
+
+      document()->AddMember("bytes",
+          rapidjson::Value(bytes_), document()->GetAllocator());
+          */
     }
 
     FileEmitter::FileEmitter(STATE, std::string path)
@@ -38,6 +69,9 @@ namespace rubinius {
 
     void FileEmitter::send_diagnostics(DiagnosticsData* data) {
       rapidjson::StringBuffer buffer;
+
+      data->to_string(buffer);
+
       size_t size = buffer.GetSize();
 
       if(::write(fd_, buffer.GetString(), size) < size) {
@@ -52,7 +86,9 @@ namespace rubinius {
       , diagnostics_lock_()
       , diagnostics_condition_()
     {
-      if(state->shared().config.system_diagnostics_target.value.compare("none")) {
+      // TODO: socket target
+      if(false /*state->shared().config.system_diagnostics_target.value.compare("none")*/) {
+      } else {
         emitter_ = new FileEmitter(state,
             state->shared().config.system_diagnostics_target.value);
       }
@@ -100,7 +136,7 @@ namespace rubinius {
         }
 
         // Emit data
-        if(emitter_) emitter_->send_diagnostics(data);
+        if(data) emitter_->send_diagnostics(data);
       }
     }
   }

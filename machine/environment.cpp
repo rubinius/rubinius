@@ -216,9 +216,6 @@ namespace rubinius {
     finalizer_thread_->start(state);
   }
 
-  void Environment::start_diagnostics(STATE) {
-  }
-
   void Environment::start_logging(STATE) {
     logger::logger_level level = logger::eWarn;
 
@@ -803,7 +800,6 @@ namespace rubinius {
 
     state->vm()->bootstrap_ontology(state);
 
-    start_diagnostics(state);
     start_finalizer(state);
 
     load_argv(argc_, argv_);

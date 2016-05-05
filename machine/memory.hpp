@@ -5,7 +5,6 @@
 #include "type_info.hpp"
 #include "object_position.hpp"
 #include "oop.hpp"
-#include "diagnostics.hpp"
 #include "metrics.hpp"
 #include "configuration.hpp"
 
@@ -40,9 +39,6 @@ namespace rubinius {
     class InflatedHeaders;
     class MarkSweepGC;
     class Slab;
-  }
-
-  namespace diagnostics {
   }
 
   namespace capi {
@@ -136,8 +132,6 @@ namespace rubinius {
     utilities::thread::Condition contention_var_;
 
     SharedState& shared_;
-
-    diagnostics::Diagnostics* diagnostics_;
 
   public:
     VM* vm_;
@@ -573,10 +567,6 @@ namespace rubinius {
 
     void clear_mature_mark_in_progress() {
       mature_gc_in_progress_ = false;
-    }
-
-    diagnostics::Diagnostics* diagnostics() {
-      return diagnostics_;
     }
 
     memory::MarkStack& mature_mark_stack();
