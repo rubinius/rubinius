@@ -182,38 +182,49 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "tmp", "$TMPDIR",
       "Default temp/fallback directory for the process"
 
-    s.vm_variable "console.path", "$TMPDIR/$PROGRAM_NAME-$USER-console",
-      "Path for Rubinius Console connection file"
+    s.section "console" do |c|
+      c.vm_variable "path", "$TMPDIR/$PROGRAM_NAME-$USER-console",
+        "Path for Rubinius Console connection file"
 
-    s.vm_variable "console.access", 0660,
-      "Permissions on the Rubinius Console connection file"
+      c.vm_variable "access", 0660,
+        "Permissions on the Rubinius Console connection file"
+    end
 
     s.vm_variable "log", "$TMPDIR/$PROGRAM_NAME-$USER.log",
       "Logging facility to use: 'syslog', 'console', or path"
 
-    s.vm_variable "log.limit", (10 * 1024 * 1024),
-      "The maximum size of the log file before log rotation is performed"
+    s.section "log" do |l|
+      l.vm_variable "limit", (10 * 1024 * 1024),
+        "The maximum size of the log file before log rotation is performed"
 
-    s.vm_variable "log.archives", 5,
-      "The number of prior logs that will be saved as '$(system.log).N.Z' zip files"
+      l.vm_variable "archives", 5,
+        "The number of prior logs that will be saved as '$(system.log).N.Z' zip files"
 
-    s.vm_variable "log.access", 0600,
-      "Permissions on the log file"
+      l.vm_variable "access", 0600,
+        "Permissions on the log file"
 
-    s.vm_variable "log.level", "warn",
-      "Logging level: fatal, error, warn, info, debug"
+      l.vm_variable "level", "warn",
+        "Logging level: fatal, error, warn, info, debug"
+    end
 
-    s.vm_variable "metrics.interval", 10000,
-      "Number of milliseconds between aggregation of VM metrics"
+    s.section "metrics" do |m|
+      m.vm_variable "interval", 10000,
+        "Number of milliseconds between aggregation of VM metrics"
 
-    s.vm_variable "metrics.target", "none",
-      "Location to send metrics every interval: 'statsd', path"
+      m.vm_variable "target", "none",
+        "Location to send metrics every interval: 'statsd', path"
 
-    s.vm_variable "metrics.statsd.server", "localhost:8125",
-      "The [host:]port of the StatsD server"
+      m.vm_variable "statsd.server", "localhost:8125",
+        "The [host:]port of the StatsD server"
 
-    s.vm_variable "metrics.statsd.prefix", "host.$nodename.$pid.app.rbx",
-      "Prefix for StatsD metric names"
+      m.vm_variable "statsd.prefix", "host.$nodename.$pid.app.rbx",
+        "Prefix for StatsD metric names"
+    end
+
+    s.section "diagnostics" do |d|
+      d.vm_variable "target", "none",
+        "Location to send diagnostics: host:port, path"
+    end
   end
 end
 

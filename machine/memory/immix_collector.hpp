@@ -30,25 +30,9 @@ namespace memory {
       int64_t holes_;
       double percentage_;
 
-      Diagnostics()
-        : diagnostics::MemoryDiagnostics()
-        , collections_(0)
-        , total_bytes_(0)
-        , chunks_(0)
-        , holes_(0)
-        , percentage_(0.0)
-      { }
+      Diagnostics();
 
-      Diagnostics(int64_t collections)
-        : diagnostics::MemoryDiagnostics()
-        , collections_(collections)
-        , total_bytes_(0)
-        , chunks_(0)
-        , holes_(0)
-        , percentage_(0.0)
-      { }
-
-      void log();
+      void update();
     };
 
   private:
@@ -130,7 +114,7 @@ namespace memory {
     ImmixMarker* marker_;
     int chunks_left_;
     int chunks_before_collection_;
-    Diagnostics diagnostics_;
+    Diagnostics* diagnostics_;
 
   public:
     ImmixGC(Memory* om);
@@ -168,7 +152,7 @@ namespace memory {
       chunks_left_ = chunks_before_collection_;
     }
 
-    Diagnostics& diagnostics() {
+    Diagnostics* diagnostics() {
       return diagnostics_;
     }
 

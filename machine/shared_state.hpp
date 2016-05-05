@@ -7,6 +7,7 @@
 #include "memory/root_buffer.hpp"
 
 #include "internal_threads.hpp"
+#include "diagnostics.hpp"
 #include "globals.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
@@ -86,6 +87,7 @@ namespace rubinius {
     memory::FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
+    diagnostics::Diagnostics* diagnostics_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -209,6 +211,19 @@ namespace rubinius {
 
     metrics::Metrics* start_metrics(STATE);
     void disable_metrics(STATE);
+
+    diagnostics::Diagnostics* diagnostics() const {
+      return diagnostics_;
+    }
+
+    diagnostics::Diagnostics* start_diagnostics(STATE);
+
+    void report_diagnostics(diagnostics::DiagnosticsData* data) {
+      if(diagnostics_) {
+        data->update();
+        diagnostics_->report(data);
+      }
+    }
 
     Environment* env() const {
       return env_;

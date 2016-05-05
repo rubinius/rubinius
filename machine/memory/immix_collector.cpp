@@ -18,21 +18,43 @@
 
 namespace rubinius {
 namespace memory {
-  void ImmixGC::Diagnostics::log() {
-    if(!modified_p()) return;
+  ImmixGC::Diagnostics::Diagnostics()
+    : diagnostics::MemoryDiagnostics()
+    , collections_(0)
+    , total_bytes_(0)
+    , chunks_(0)
+    , holes_(0)
+    , percentage_(0.0)
+  {
+    /*
+    set_type("ImmixCollector");
 
-    diagnostics::Diagnostics::log();
+    document()->AddMember("collections",
+        rapidjson::Value(collections_), document()->GetAllocator());
 
-    logger::write("immix: diagnostics: " \
-        "collections: %ld, " \
-        "objects: %ld, " \
-        "bytes: %ld, " \
-        "total_bytes: %ld, " \
-        "chunks: %ld, " \
-        "holes: %ld, " \
-        "percentage: %f",
-        collections_, objects_, bytes_, total_bytes_,
-        chunks_, holes_, percentage_);
+    document()->AddMember("total_bytes",
+        rapidjson::Value(total_bytes_), document()->GetAllocator());
+
+    document()->AddMember("chunks",
+        rapidjson::Value(chunks_), document()->GetAllocator());
+
+    document()->AddMember("holes",
+        rapidjson::Value(holes_), document()->GetAllocator());
+
+    document()->AddMember("percentage",
+        rapidjson::Value(percentage_), document()->GetAllocator());
+        */
+  }
+
+
+  void ImmixGC::Diagnostics::update() {
+    (*document())["objects"] = objects_;
+    (*document())["bytes"] = bytes_;
+    (*document())["collections"] = collections_;
+    (*document())["total_bytes"] = total_bytes_;
+    (*document())["chunks"] = chunks_;
+    (*document())["holes"] = holes_;
+    (*document())["percentage"] = percentage_;
   }
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
@@ -57,7 +79,7 @@ namespace memory {
     , marker_(NULL)
     , chunks_left_(0)
     , chunks_before_collection_(10)
-    , diagnostics_(Diagnostics())
+    , diagnostics_(new Diagnostics())
   {
     gc_.describer().set_object_memory(om, this);
     reset_chunks_left();
@@ -338,30 +360,29 @@ namespace memory {
       timer::StopWatch<timer::microseconds> timer(
           vm()->metrics().gc.immix_diagnostics_us);
 
-      diagnostics_ = Diagnostics(diagnostics_.collections_);
-
       // Now, calculate how much space we're still using.
       Chunks& chunks = gc_.block_allocator().chunks();
       AllBlockIterator iter(chunks);
 
-      diagnostics_.chunks_ = chunks.size();
+      diagnostics()->chunks_ = chunks.size();
 
       while(Block* block = iter.next()) {
-        diagnostics_.holes_ += block->holes();
-        diagnostics_.objects_ += block->objects();
-        diagnostics_.bytes_ += block->object_bytes();
-        diagnostics_.total_bytes_ += cBlockSize;
+        diagnostics()->holes_ += block->holes();
+        diagnostics()->objects_ += block->objects();
+        diagnostics()->bytes_ += block->object_bytes();
+        diagnostics()->total_bytes_ += cBlockSize;
       }
 
-      diagnostics_.percentage_ =
-        (double)diagnostics_.bytes_ / (double)diagnostics_.total_bytes_;
+      diagnostics()->percentage_ =
+        (double)diagnostics()->bytes_ / (double)diagnostics()->total_bytes_;
 
-      diagnostics_.collections_++;
-      diagnostics_.modify();
+      diagnostics()->collections_++;
+
+      memory_->shared().report_diagnostics(diagnostics_);
     }
 
-    allocator_.restart(diagnostics_.percentage_,
-        diagnostics_.total_bytes_ - diagnostics_.bytes_);
+    allocator_.restart(diagnostics()->percentage_,
+        diagnostics()->total_bytes_ - diagnostics()->bytes_);
   }
 
   void ImmixGC::start_marker(STATE, GCData* data) {
