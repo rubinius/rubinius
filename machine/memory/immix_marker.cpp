@@ -4,7 +4,6 @@
 #include "metrics.hpp"
 #include "memory.hpp"
 #include "state.hpp"
-#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 #include "vm.hpp"
 
@@ -98,7 +97,8 @@ namespace memory {
         state->memory()->collect_full_restart(state, data_);
 
         if(state->shared().config.memory_collection_log.value) {
-          state->shared().env()->diagnostics()->log();
+          // TODO: diagnostics
+          // state->shared().env()->diagnostics()->log();
         }
 
         continue;

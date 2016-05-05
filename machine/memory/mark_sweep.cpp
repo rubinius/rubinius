@@ -24,20 +24,16 @@ namespace memory {
 
   MarkSweepGC::MarkSweepGC(Memory *om, Configuration& config)
     : GarbageCollector(om)
-    , diagnostics_(Diagnostics())
+    , diagnostics_(new Diagnostics())
     , collection_threshold(config.gc_marksweep_threshold)
     , next_collection_bytes(collection_threshold)
   {}
 
-  MarkSweepGC::~MarkSweepGC() { }
+  MarkSweepGC::~MarkSweepGC() {
+    if(diagnostics()) delete diagnostics();
+  }
 
-  void MarkSweepGC::Diagnostics::log() {
-    if(!modified_p()) return;
-
-    diagnostics::Diagnostics::log();
-
-    logger::write("large objects: diagnostics: objects: %ld, bytes: %ld",
-        objects_, bytes_);
+  void MarkSweepGC::Diagnostics::update() {
   }
 
   void MarkSweepGC::free_objects() {
@@ -54,8 +50,8 @@ namespace memory {
 
     Object* obj = reinterpret_cast<Object*>(mem);
 
-    diagnostics_.objects_++;
-    diagnostics_.bytes_ += bytes;
+    diagnostics()->objects_++;
+    diagnostics()->bytes_ += bytes;
 
     memory_->vm()->metrics().memory.large_objects++;
     memory_->vm()->metrics().memory.large_bytes += bytes;
@@ -76,8 +72,8 @@ namespace memory {
   }
 
   void MarkSweepGC::free_object(Object* obj, bool fast) {
-    diagnostics_.objects_--;
-    diagnostics_.bytes_ -= obj->size_in_bytes(memory_->vm());
+    diagnostics()->objects_--;
+    diagnostics()->bytes_ -= obj->size_in_bytes(memory_->vm());
 
     if(!fast) {
       delete_object(obj);
@@ -147,8 +143,6 @@ namespace memory {
         i = entries.erase(i);
       }
     }
-
-    diagnostics_.modify();
   }
 
   ObjectPosition MarkSweepGC::validate_object(Object* obj) {

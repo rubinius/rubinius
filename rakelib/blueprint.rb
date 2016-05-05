@@ -84,6 +84,8 @@ Daedalus.blueprint do |i|
   src = Rubinius::BUILD_CONFIG[:sourcedir]
 
   # Libraries
+  gcc.cflags << "-I#{src}/vendor/rapidjson"
+
   ltm = i.external_lib "vendor/libtommath" do |l|
     l.cflags = ["-I#{src}/vendor/libtommath"] + gcc.cflags
     l.objects = [l.file("libtommath.a")]

@@ -26,22 +26,23 @@ namespace memory {
         , collections_(0)
       { }
 
-      void log();
+      void update();
     };
 
   private:
     Allocator<InflatedHeader>* allocator_;
 
-    Diagnostics diagnostics_;
+    Diagnostics* diagnostics_;
 
   public:
     InflatedHeaders()
       : allocator_(new Allocator<InflatedHeader>())
-      , diagnostics_(Diagnostics())
+      , diagnostics_(new Diagnostics())
     {}
 
     ~InflatedHeaders() {
       delete allocator_;
+      if(diagnostics()) delete diagnostics();
     }
 
     InflatedHeader* allocate(STATE, ObjectHeader* obj, uint32_t* index);
@@ -56,7 +57,7 @@ namespace memory {
       return allocator_->in_use_;
     }
 
-    Diagnostics& diagnostics() {
+    Diagnostics* diagnostics() {
       return diagnostics_;
     }
   };

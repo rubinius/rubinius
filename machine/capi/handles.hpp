@@ -24,19 +24,19 @@ namespace rubinius {
           , collections_(0)
         { }
 
-        void log();
+        void update();
       };
 
     private:
       memory::Allocator<Handle>* allocator_;
 
-      Diagnostics diagnostics_;
+      Diagnostics* diagnostics_;
 
     public:
 
       Handles()
         : allocator_(new memory::Allocator<Handle>())
-        , diagnostics_(Diagnostics())
+        , diagnostics_(new Diagnostics())
       {}
 
       ~Handles();
@@ -63,7 +63,7 @@ namespace rubinius {
         return allocator_->in_use_;
       }
 
-      Diagnostics& diagnostics() {
+      Diagnostics* diagnostics() {
         return diagnostics_;
       }
     };

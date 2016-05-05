@@ -47,7 +47,7 @@ namespace rubinius {
         : diagnostics::MemoryDiagnostics()
       { }
 
-      void log();
+      void update();
     };
 
   public: // Types
@@ -73,17 +73,21 @@ namespace rubinius {
     SymbolEncodings encodings;
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
-    Diagnostics diagnostics_;
+    Diagnostics* diagnostics_;
 
   public:
 
     SymbolTable()
-      : diagnostics_(Diagnostics())
+      : diagnostics_(new Diagnostics())
     {
       lock_.init();
     }
 
-    Diagnostics& diagnostics() {
+    virtual ~SymbolTable() {
+      if(diagnostics()) delete diagnostics();
+    }
+
+    Diagnostics* diagnostics() {
       return diagnostics_;
     }
 

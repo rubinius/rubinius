@@ -7,7 +7,6 @@
 #include "compiled_file.hpp"
 #include "memory.hpp"
 #include "exception.hpp"
-#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
@@ -195,11 +194,6 @@ namespace rubinius {
   void Environment::start_finalizer(STATE) {
     finalizer_thread_ = new memory::FinalizerThread(state);
     finalizer_thread_->start(state);
-  }
-
-  void Environment::start_diagnostics(STATE) {
-    diagnostics_ = new diagnostics::SystemDiagnostics(
-        state->shared().memory()->diagnostics());
   }
 
   void Environment::start_logging(STATE) {
@@ -786,7 +780,6 @@ namespace rubinius {
 
     state->vm()->bootstrap_ontology(state);
 
-    start_diagnostics(state);
     start_finalizer(state);
 
     load_argv(argc_, argv_);

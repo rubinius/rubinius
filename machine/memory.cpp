@@ -17,7 +17,6 @@
 #include "memory/walker.hpp"
 
 #include "environment.hpp"
-#include "system_diagnostics.hpp"
 
 #include "on_stack.hpp"
 
@@ -74,10 +73,6 @@ namespace rubinius {
     , collect_young_flag_(false)
     , collect_full_flag_(false)
     , shared_(vm->shared)
-    , diagnostics_(new diagnostics::ObjectDiagnostics(/* young_->diagnostics(), */
-          immix_->diagnostics(), mark_sweep_->diagnostics(),
-          inflated_headers_->diagnostics(), capi_handles_->diagnostics(),
-          code_manager_.diagnostics(), shared.symbols.diagnostics()))
     , vm_(vm)
     , last_object_id(1)
     , last_snapshot_id(0)
@@ -563,19 +558,11 @@ step1:
         collect_full(state);
       }
     }
-
-    if(state->shared().config.memory_collection_log.value) {
-      state->shared().env()->diagnostics()->log();
-    }
   }
 
   void Memory::collect_young(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
-
-    if(state->shared().config.memory_collection_log.value) {
-      logger::write("memory: young collection");
-    }
 
     /* 
     young_->collect(data);

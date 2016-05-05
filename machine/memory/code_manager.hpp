@@ -41,13 +41,7 @@ namespace memory {
         , collections_(0)
       { }
 
-      Diagnostics(int64_t collections)
-        : diagnostics::MemoryDiagnostics()
-        , chunks_(0)
-        , collections_(collections)
-      { }
-
-      void log();
+      void update();
     };
 
   private:
@@ -79,14 +73,14 @@ namespace memory {
     Chunk* current_chunk_;
     int current_index_;
 
-    Diagnostics diagnostics_;
+    Diagnostics* diagnostics_;
 
   public:
     SharedState* shared() const {
       return shared_;
     }
 
-    Diagnostics& diagnostics() {
+    Diagnostics* diagnostics() {
       return diagnostics_;
     }
 

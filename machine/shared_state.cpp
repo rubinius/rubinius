@@ -28,18 +28,19 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : thread_nexus_(new ThreadNexus())
-    , internal_threads_(0)
-    , signals_(0)
-    , finalizer_thread_(0)
-    , console_(0)
-    , metrics_(0)
+    , internal_threads_(NULL)
+    , signals_(NULL)
+    , finalizer_thread_(NULL)
+    , console_(NULL)
+    , metrics_(NULL)
+    , diagnostics_(NULL)
     , method_count_(1)
     , class_count_(1)
     , global_serial_(1)
     , initialized_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
-    , root_vm_(0)
+    , root_vm_(NULL)
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
     , codedb_lock_(true)
@@ -52,7 +53,7 @@ namespace rubinius {
     , type_info_lock_()
     , code_resource_lock_()
     , use_capi_lock_(false)
-    , om(0)
+    , om(NULL)
     , global_cache(new GlobalCache)
     , config(config)
     , user_variables(cp)
@@ -144,6 +145,17 @@ namespace rubinius {
 
   void SharedState::disable_metrics(STATE) {
     if(metrics_) metrics_->disable(state);
+  }
+
+  diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
+    if(!diagnostics_) {
+      if(state->shared().config.system_diagnostics_target.value.compare("none")) {
+        diagnostics_ = new diagnostics::Diagnostics(state);
+        diagnostics_->start(state);
+      }
+    }
+
+    return diagnostics_;
   }
 
   void SharedState::after_fork_child(STATE) {
