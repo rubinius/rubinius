@@ -72,7 +72,7 @@ namespace rubinius {
 
       data->to_string(buffer);
 
-      size_t size = buffer.GetSize();
+      ssize_t size = buffer.GetSize();
 
       if(::write(fd_, buffer.GetString(), size) < size) {
         logger::error("%s: writing diagnostics failed", strerror(errno));

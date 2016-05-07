@@ -3,9 +3,7 @@
 
 #include <sys/stat.h>
 
-#ifdef ENABLE_LLVM
 #include <llvm/Support/ManagedStatic.h>
-#endif
 
 #include "environment.hpp"
 #include "oop.hpp"

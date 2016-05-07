@@ -38,9 +38,9 @@ namespace memory {
     GlobalCache* global_cache_;
     ThreadNexus* thread_nexus_;
     std::list<capi::GlobalHandle*>* global_handle_locations_;
-#ifdef ENABLE_LLVM
+    /* TODO: JIT
     LLVMState* llvm_state_;
-#endif
+    */
 
   public:
     GCData(VM*);
@@ -69,11 +69,11 @@ namespace memory {
       return global_handle_locations_;
     }
 
-#ifdef ENABLE_LLVM
+    /* TODO: JIT
     LLVMState* llvm_state() {
       return llvm_state_;
     }
-#endif
+    */
   };
 
   class AddressDisplacement {

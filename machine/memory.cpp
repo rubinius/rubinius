@@ -18,10 +18,6 @@
 
 #include "environment.hpp"
 
-#if ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
-
 #include "on_stack.hpp"
 
 #include "config_parser.hpp"

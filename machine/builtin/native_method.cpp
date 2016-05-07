@@ -665,7 +665,6 @@ namespace rubinius {
     call_frame->dispatch_data = (void*)&nmf;
     call_frame->compiled_code = 0;
     call_frame->flags = CallFrame::cNativeMethod;
-    call_frame->optional_jit_data = 0;
     call_frame->top_scope_ = 0;
     call_frame->scope = 0;
     call_frame->arguments = &args;

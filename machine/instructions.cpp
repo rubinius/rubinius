@@ -208,11 +208,11 @@ Object* MachineCode::uncommon_interpreter(STATE,
                                           int32_t entry_ip,
                                           native_int sp,
                                           CallFrame* const method_call_frame,
-                                          jit::RuntimeDataHolder* rd,
                                           UnwindInfoSet& thread_unwinds,
                                           bool force_deoptimize)
 {
 
+  /* TODO: JIT
   MachineCode* mc = method_call_frame->compiled_code->machine_code();
 
   if(force_deoptimize || ++mc->uncommon_count > state->shared().config.jit_limit_deoptimize) {
@@ -226,8 +226,9 @@ Object* MachineCode::uncommon_interpreter(STATE,
 
     mc->uncommon_count = 0;
     mc->call_count = 1;
-    mc->deoptimize(state, method_call_frame->compiled_code, rd);
+    mc->deoptimize(state, method_call_frame->compiled_code);
   }
+  */
 
 #include "gen/instruction_locations.hpp"
 

@@ -11,12 +11,13 @@ before_install:
 - echo $LANG
 - echo $LC_ALL
 - if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/llvm.sh; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm35 && brew link --force llvm35; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm; fi
 - gem update --system
 - gem --version
 before_script:
 - travis_retry bundle
-- ./configure
+- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=llvm-config-3.6; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
 script: rake ci
 after_success:
 - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi

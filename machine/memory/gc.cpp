@@ -20,10 +20,6 @@
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
-
 #include "arguments.hpp"
 #include "object_watch.hpp"
 #include "thread_nexus.hpp"
@@ -38,9 +34,6 @@ namespace memory {
     , global_cache_(state->shared.global_cache)
     , thread_nexus_(state->shared.thread_nexus())
     , global_handle_locations_(state->memory()->global_capi_handle_locations())
-#ifdef ENABLE_LLVM
-    , llvm_state_(state->shared.llvm_state)
-#endif
   { }
 
   GarbageCollector::GarbageCollector(Memory *om)
@@ -239,21 +232,6 @@ namespace memory {
       if(NativeMethodFrame* nmf = frame->native_method_frame()) {
         nmf->handles().gc_scan(this);
       }
-
-#ifdef ENABLE_LLVM
-      if(jit::RuntimeDataHolder* jd = frame->jit_data()) {
-        jd->set_mark();
-
-        ObjectMark mark(this);
-        jd->mark_all(0, mark);
-      }
-
-      if(jit::RuntimeData* rd = frame->runtime_data()) {
-        rd->method_ = (CompiledCode*)mark_object(rd->method());
-        rd->name_ = (Symbol*)mark_object(rd->name());
-        rd->module_ = (Module*)mark_object(rd->module());
-      }
-#endif
 
       if(frame->scope && frame->compiled_code) {
         saw_variable_scope(frame, displace(frame->scope, offset));

@@ -391,9 +391,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "PROGRAM_NAME", String::create(state, RBX_PROGRAM_NAME));
     G(rubinius)->set_const(state, "RUBY_VERSION", String::create(state, RBX_RUBY_VERSION));
     G(rubinius)->set_const(state, "ENGINE_VERSION", String::create(state, RBX_ENGINE_VERSION));
-#ifdef ENABLE_LLVM
     G(rubinius)->set_const(state, "LLVM_VERSION", String::create(state, RBX_LLVM_VERSION));
-#endif
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));
     G(rubinius)->set_const(state, "LIB_VERSION", String::create(state, RBX_LIB_VERSION));
     G(rubinius)->set_const(state, "BUILD_REV", String::create(state, RBX_BUILD_REV));

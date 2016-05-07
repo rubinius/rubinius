@@ -35,10 +35,6 @@
 #include <malloc.h>
 #endif
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
-
 /*
  * An internalization of a CompiledCode which holds the instructions for the
  * method.
@@ -89,16 +85,17 @@ namespace rubinius {
       splat_position = pos->to_native();
     }
 
+    /* TODO: JIT
     // Disable JIT for large methods
     if(state->shared().config.jit_disabled ||
         total > (size_t)state->shared().config.jit_limit_method_size) {
       call_count = -1;
     }
+    */
 
     for(int i = 0; i < cMaxSpecializations; i++) {
       specializations[i].class_data.raw = 0;
       specializations[i].execute = 0;
-      specializations[i].jit_data = 0;
     }
 
     state->shared().om->add_code_resource(state, this);
@@ -757,7 +754,6 @@ namespace rubinius {
       call_frame->dispatch_data = NULL;
       call_frame->compiled_code = code;
       call_frame->flags = 0;
-      call_frame->optional_jit_data = NULL;
       call_frame->top_scope_ = NULL;
       call_frame->scope = scope;
       call_frame->arguments = &args;
@@ -766,10 +762,10 @@ namespace rubinius {
         return NULL;
       }
 
-#ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
       // for this method.
       if(mcode->call_count >= 0) {
+        /* TODO: JIT
         if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
           OnStack<3> os(state, exec, mod, code);
 
@@ -777,8 +773,9 @@ namespace rubinius {
         } else {
           mcode->call_count++;
         }
+        */
+        mcode->call_count++;
       }
-#endif
 
       Object* value = 0;
 
@@ -822,7 +819,6 @@ namespace rubinius {
     call_frame->dispatch_data = 0;
     call_frame->compiled_code = code;
     call_frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;
-    call_frame->optional_jit_data = 0;
     call_frame->top_scope_ = 0;
     call_frame->scope = scope;
     call_frame->arguments = &args;
@@ -847,15 +843,13 @@ namespace rubinius {
 
   // If +disable+ is set, then the method is tagged as not being
   // available for JIT.
-  void MachineCode::deoptimize(STATE, CompiledCode* original,
-                            jit::RuntimeDataHolder* rd,
-                            bool disable)
+  void MachineCode::deoptimize(STATE, CompiledCode* original, bool disable)
   {
-#ifdef ENABLE_LLVM
     G(jit)->start_method_update(state);
 
     bool still_others = false;
 
+    /* TODO: JIT
     for(int i = 0; i < cMaxSpecializations; i++) {
       if(!rd) {
         specializations[i].class_data.raw = 0;
@@ -876,6 +870,7 @@ namespace rubinius {
     }
 
     if(original->jit_data()) still_others = true;
+    */
 
     if(!still_others) {
       execute_status_ = eInterpret;
@@ -904,7 +899,6 @@ namespace rubinius {
     }
 
     G(jit)->end_method_update(state);
-#endif
   }
 
   /*

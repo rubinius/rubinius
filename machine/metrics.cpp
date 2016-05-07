@@ -15,10 +15,6 @@
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
-
 #include "memory/managed.hpp"
 
 #include "dtrace/dtrace.h"
@@ -564,11 +560,11 @@ namespace rubinius {
           }
         }
 
-#ifdef ENABLE_LLVM
+        /* TODO: JIT
         if(LLVMState* llvm_state = state->shared().llvm_state) {
           metrics_data_.add(llvm_state->vm()->metrics());
         }
-#endif
+        */
 
         {
           utilities::thread::Mutex::LockGuard guard(metrics_lock_);

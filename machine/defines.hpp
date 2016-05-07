@@ -1,8 +1,8 @@
-#ifndef RBX_PRELUDE_HPP
-#define RBX_PRELUDE_HPP
+#ifndef RBX_DEFINES_HPP
+#define RBX_DEFINES_HPP
 
 /**
- *  @file   prelude.hpp
+ *  @file   defines.hpp
  *
  *  Notably here, Symbols, Fixnums and true/false/nil are actually
  *  stored directly in the pointer value (and distinguished by the

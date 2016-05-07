@@ -216,57 +216,55 @@ Daedalus.blueprint do |i|
     files << winp
   end
 
-  if Rubinius::BUILD_CONFIG[:llvm_enabled]
-    conf = Rubinius::BUILD_CONFIG[:llvm_configure]
+  conf = Rubinius::BUILD_CONFIG[:llvm_configure]
 
-    include_dir = `#{conf} --includedir`.chomp
-    gcc.cflags << "-I#{include_dir}"
-    gcc.cxxflags << Rubinius::BUILD_CONFIG[:llvm_cxxflags]
+  include_dir = `#{conf} --includedir`.chomp
+  gcc.cflags << "-I#{include_dir}"
+  gcc.cxxflags << Rubinius::BUILD_CONFIG[:llvm_cxxflags]
 
-    flags = `#{conf} --cflags`.strip.split(/\s+/)
-    flags.delete_if { |x| x.index("-O") == 0 }
-    flags.delete_if { |x| x =~ /-D__STDC/ }
-    flags.delete_if { |x| x == "-DNDEBUG" }
-    flags.delete_if { |x| x == "-fomit-frame-pointer" }
-    flags.delete_if { |x| x == "-pedantic" }
-    flags.delete_if { |x| x == "-W" }
-    flags.delete_if { |x| x == "-Wextra" }
+  flags = `#{conf} --cflags`.strip.split(/\s+/)
+  flags.delete_if { |x| x.index("-O") == 0 }
+  flags.delete_if { |x| x =~ /-D__STDC/ }
+  flags.delete_if { |x| x == "-DNDEBUG" }
+  flags.delete_if { |x| x == "-fomit-frame-pointer" }
+  flags.delete_if { |x| x == "-pedantic" }
+  flags.delete_if { |x| x == "-W" }
+  flags.delete_if { |x| x == "-Wextra" }
 
-    # llvm-config may leak FORTIFY_SOURCE in the CFLAGS list on certain
-    # platforms. If this is the case then debug builds will fail. Sadly there's
-    # no strict guarantee on how LLVM formats this option, hence the Regexp.
-    #
-    # For example, on CentOS the option is added as -Wp,-D_FORTIFY_SOURCE=2.
-    # There's no strict guarantee that I know of that it will always be this
-    # exact format.
-    if Rubinius::BUILD_CONFIG[:debug_build]
-      flags.delete_if { |x| x =~ /_FORTIFY_SOURCE/ }
-    end
-
-    flags << "-DENABLE_LLVM"
-
-    ldflags = Rubinius::BUILD_CONFIG[:llvm_ldflags]
-
-    if Rubinius::BUILD_CONFIG[:llvm_shared_objs]
-      objects = Rubinius::BUILD_CONFIG[:llvm_shared_objs]
-    else
-      objects = `#{conf} --libfiles`.strip.split(/\s+/)
-    end
-
-    if Rubinius::BUILD_CONFIG[:windows]
-      ldflags = ldflags.sub(%r[-L/([a-zA-Z])/], '-L\1:/')
-
-      objects.select do |f|
-        f.sub!(%r[^/([a-zA-Z])/], '\1:/')
-        File.file? f
-      end
-    end
-
-    gcc.cflags.concat flags
-    gcc.ldflags.concat objects
-
-    gcc.ldflags << ldflags
+  # llvm-config may leak FORTIFY_SOURCE in the CFLAGS list on certain
+  # platforms. If this is the case then debug builds will fail. Sadly there's
+  # no strict guarantee on how LLVM formats this option, hence the Regexp.
+  #
+  # For example, on CentOS the option is added as -Wp,-D_FORTIFY_SOURCE=2.
+  # There's no strict guarantee that I know of that it will always be this
+  # exact format.
+  if Rubinius::BUILD_CONFIG[:debug_build]
+    flags.delete_if { |x| x =~ /_FORTIFY_SOURCE/ }
   end
+
+  flags << "-DENABLE_LLVM"
+
+  ldflags = Rubinius::BUILD_CONFIG[:llvm_ldflags]
+
+  if Rubinius::BUILD_CONFIG[:llvm_shared_objs]
+    objects = Rubinius::BUILD_CONFIG[:llvm_shared_objs]
+  else
+    objects = `#{conf} --libfiles`.strip.split(/\s+/)
+  end
+
+  if Rubinius::BUILD_CONFIG[:windows]
+    ldflags = ldflags.sub(%r[-L/([a-zA-Z])/], '-L\1:/')
+
+    objects.select do |f|
+      f.sub!(%r[^/([a-zA-Z])/], '\1:/')
+      File.file? f
+    end
+  end
+
+  gcc.cflags.concat flags
+  gcc.ldflags.concat objects
+
+  gcc.ldflags << ldflags
 
   # Make sure to push these up front so machine/ stuff has priority
   dirs = %w[ /machine /machine/include /machine/builtin ]

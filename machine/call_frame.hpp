@@ -11,10 +11,6 @@
 
 #include <ostream>
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/runtime.hpp"
-#endif
-
 namespace rubinius {
   class Module;
   class VariableScope;
@@ -51,7 +47,6 @@ namespace rubinius {
     int flags;
     int ip_;
 
-    void* optional_jit_data;
     VariableScope* top_scope_;
     StackVariables* scope;
 
@@ -82,10 +77,10 @@ namespace rubinius {
       }
     }
 
-#ifdef ENABLE_LLVM
     Symbol* name() const {
       if(inline_method_p() && dispatch_data) {
-        return reinterpret_cast<jit::RuntimeData*>(dispatch_data)->name();
+        // TODO: JIT
+        return nil<Symbol>();
       } else if(block_p()) {
         return nil<Symbol>();
       } else if(arguments) {
@@ -94,43 +89,6 @@ namespace rubinius {
 
       return nil<Symbol>();
     }
-#else
-    Symbol* name() const {
-      if(arguments && !block_p()) {
-        return arguments->name();
-      }
-
-      return nil<Symbol>();
-    }
-#endif
-
-#ifdef ENABLE_LLVM
-    jit::RuntimeData* runtime_data() const {
-      if(dispatch_data) {
-        if(inline_method_p()) {
-          return reinterpret_cast<jit::RuntimeData*>(dispatch_data);
-        }
-      }
-
-      return NULL;
-    }
-
-    jit::RuntimeDataHolder* jit_data() const {
-      if(jitted_p()) {
-        return reinterpret_cast<jit::RuntimeDataHolder*>(optional_jit_data);
-      }
-
-      return NULL;
-    }
-#else
-    jit::RuntimeData* runtime_data() const {
-      return NULL;
-    }
-
-    jit::RuntimeDataHolder* jit_data() const {
-      return NULL;
-    }
-#endif
 
     Symbol* original_name() const {
       return compiled_code->name();

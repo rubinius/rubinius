@@ -232,7 +232,7 @@ namespace rubinius {
 
       if(stack_used < 0) stack_used = -stack_used;
 
-      if(stack_used > stack_size_) {
+      if(static_cast<size_t>(stack_used) > stack_size_) {
         raise_stack_error(state);
         return false;
       }
@@ -463,10 +463,8 @@ namespace rubinius {
 
     Object* path2class(const char* name);
 
-#ifdef ENABLE_LLVM
     llvm::Module* llvm_module();
     void llvm_cleanup();
-#endif
 
     void print_backtrace();
 

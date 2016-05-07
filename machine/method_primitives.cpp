@@ -11,10 +11,6 @@
 
 #include <iostream>
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
-
 namespace rubinius {
 
   Object* Primitives::unknown_primitive(STATE, Executable* exec, Module* mod, Arguments& args) {

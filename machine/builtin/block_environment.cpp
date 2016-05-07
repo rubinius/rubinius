@@ -20,10 +20,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
-
 #include <iostream>
 
 namespace rubinius {
@@ -74,11 +70,9 @@ namespace rubinius {
 
     state->vm()->metrics().machine.blocks_invoked++;
 
-#ifdef ENABLE_LLVM
     if(executor ptr = mcode->unspecialized) {
       return (*((BlockExecutor)ptr))(state, env, args, invocation);
     }
-#endif
 
     return execute_interpreter(state, env, args, invocation);
   }
@@ -389,9 +383,9 @@ namespace rubinius {
       return 0;
     }
 
-#ifdef ENABLE_LLVM
     if(mcode->call_count >= 0) {
-      if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
+      // TODO: JIT
+      if(false /*mcode->call_count >= state->shared().config.jit_threshold_compile*/) {
         OnStack<1> os(state, env);
 
         G(jit)->compile_soon(state, env->compiled_code(),
@@ -400,7 +394,6 @@ namespace rubinius {
         mcode->call_count++;
       }
     }
-#endif
 
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
 
@@ -439,7 +432,6 @@ namespace rubinius {
     call_frame->dispatch_data = env;
     call_frame->compiled_code = env->compiled_code();
     call_frame->scope = scope;
-    call_frame->optional_jit_data = NULL;
     call_frame->top_scope_ = env->top_scope();
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;

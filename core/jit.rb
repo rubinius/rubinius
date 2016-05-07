@@ -5,6 +5,8 @@ module Rubinius
       attr_accessor :enabled
       attr_accessor :properties
 
+      @enabled = false
+
       alias_method :available?, :available
       alias_method :enabled?, :enabled
 

@@ -23,10 +23,6 @@
 #include <iostream>
 #include <iomanip>
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
-
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
@@ -51,7 +47,6 @@ namespace rubinius {
     , capi_constant_lock_()
     , global_capi_handle_lock_()
     , capi_handle_cache_lock_()
-    , llvm_state_lock_()
     , wait_lock_()
     , type_info_lock_()
     , code_resource_lock_()
@@ -60,7 +55,6 @@ namespace rubinius {
     , global_cache(new GlobalCache)
     , config(config)
     , user_variables(cp)
-    , llvm_state(NULL)
     , username("")
     , pid("")
   {
@@ -77,11 +71,11 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-#ifdef ENABLE_LLVM
+    /* TODO: JIT
     if(llvm_state) {
       delete llvm_state;
     }
-#endif
+    */
 
     if(console_) {
       delete console_;
@@ -164,7 +158,8 @@ namespace rubinius {
   void SharedState::after_fork_child(STATE) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
-    config.jit_inline_debug.set("no");
+    // TODO: JIT
+    // config.jit_inline_debug.set("no");
 
     disable_metrics(state);
 
@@ -176,7 +171,6 @@ namespace rubinius {
     capi_constant_lock_.init();
     global_capi_handle_lock_.init();
     capi_handle_cache_lock_.init();
-    llvm_state_lock_.init();
     wait_lock_.init();
     type_info_lock_.init();
     code_resource_lock_.init();
