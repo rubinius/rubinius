@@ -753,6 +753,11 @@ namespace rubinius {
     case econv_incomplete_input:
       return state->symbol("incomplete_input");
     }
+
+    /* Satisfy GCC 5. Somehow clang knows this switch statement covers the
+     * possible values. Somehow GCC doesn't even at version 5.
+     */
+    return state->symbol("unknown converter status");
   }
 
   Symbol* Converter::primitive_convert(STATE, Object* source, String* target,
