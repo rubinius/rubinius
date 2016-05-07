@@ -325,11 +325,11 @@ class Configure
 
     o.doc "\n Compiler settings"
 
-    o.on "--cc", "COMPILER", "Compiler to use for C code (eg gcc, clang)" do |cc|
+    o.on "--cc", "COMPILER", "Compiler to use for C code (NOTE only versions of clang are supported)" do |cc|
       @cc = cc
     end
 
-    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg g++, clang++)" do |cxx|
+    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (NOTE only versions of clang++ are supported)" do |cxx|
       @cxx = cxx
     end
 
@@ -689,12 +689,12 @@ int main() { LLVMContext &Context = getGlobalContext(); }
 
   def default_cc
     return 'clang' if `clang --version > /dev/null 2>&1` && $?.success?
-    return 'gcc'
+    failure "Unable to find default C compiler: clang. Use CC= or pass --cc"
   end
 
   def default_cxx
     return 'clang++' if `clang++ --version > /dev/null 2>&1` && $?.success?
-    return 'g++'
+    failure "Unable to find default C++ compiler: clang++. Use CXX= or pass --cxx"
   end
 
   def check_tools
@@ -704,11 +704,13 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
 
-    unless @cc =~ /clang/ and @cxx =~ /clang\+\+/
-      @log.deprecated <<-EOM
-Support for compilers other than clang/clang++ is deprecated and will be
-removed soon. If your platform does not have support for clang/clang++,
-please notify us.
+    unless File.basename(@cc) =~ /^clang/ and File.basename(@cxx) =~ /^clang\+\+/
+      failure <<-EOM
+The #{@cc} and #{@cxx} compilers are not supported for building Rubinius.
+Only clang/clang++ compilers are supported. If your platform does not have
+support for clang/clang++, please notify us by opening an issue at:
+
+https://github.com/rubinius/rubinius/issues
       EOM
     end
 
@@ -717,13 +719,6 @@ please notify us.
     @tar ||= ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @perl ||= ENV['PERL'] || 'perl'
     @gem ||= ENV['GEM'] || 'gem'
-
-    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
-    if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
-      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
-    else
-      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
-    end
 
     @system_cflags =   ""
     @system_cxxflags = ""
@@ -1540,7 +1535,6 @@ int main() { return tgetnum(""); }
       :cxx                => @cxx,
       :ldshared           => @ldshared,
       :ldsharedxx         => @ldsharedxx,
-      :gcc_major          => @gcc_major,
       :user_cflags        => "#{@user_cflags}",
       :user_cxxflags      => "#{@user_cxxflags}",
       :user_cppflags      => "#{@user_cppflags}",
