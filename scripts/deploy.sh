@@ -352,7 +352,7 @@ EOF
 
 function rbx_deploy_usage {
   cat >&2 <<-EOM
-Usage: ${0##*/} [release github travis heroku homebrew website docker trigger-heroku trigger-homebrew trigger-travis-osx trigger-travis-12.04 trigger-travis-14.04 triggers]
+Usage: ${0##*/} [release github travis heroku homebrew website docker trigger-heroku trigger-homebrew trigger-travis-osx trigger-travis-14.04 triggers]
 EOM
   exit 1
 }
@@ -394,9 +394,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       "trigger-travis-osx")
         rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-osx
         ;;
-      "trigger-travis-12.04")
-        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-12.04
-        ;;
       "trigger-travis-14.04")
         rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-14.04
         ;;
@@ -404,7 +401,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         rbx_trigger_deploy "$TRAVIS_OS_NAME" heroku
         rbx_trigger_deploy "$TRAVIS_OS_NAME" homebrew
         rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-osx
-        rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-12.04
         rbx_trigger_deploy "$TRAVIS_OS_NAME" travis-14.04
         ;;
       "-h"|"--help"|*)
