@@ -744,8 +744,6 @@ namespace rubinius {
 
     state->vm()->initialize_config();
 
-    load_tool();
-
     start_jit(state);
 
     // Start the main Ruby thread.

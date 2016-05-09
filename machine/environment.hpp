@@ -139,7 +139,6 @@ namespace rubinius {
     void set_codedb_paths();
     void set_pid();
     void set_console_path();
-    void load_tool();
     void boot();
 
     void after_exec(STATE);

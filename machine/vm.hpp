@@ -3,7 +3,6 @@
 
 #include "missing/time.h"
 
-#include "vm_jit.hpp"
 #include "globals.hpp"
 #include "memory/object_mark.hpp"
 #include "memory/managed.hpp"
@@ -22,8 +21,11 @@
 #include "unwind_info.hpp"
 #include "fiber_stack.hpp"
 
+#include "sodium/randombytes.h"
+
 #include <vector>
 #include <setjmp.h>
+#include <stdint.h>
 
 namespace llvm {
   class Module;
@@ -89,7 +91,6 @@ namespace rubinius {
 
   class VM : public memory::ManagedThread {
     friend class State;
-    friend class VMJIT;
 
   private:
     UnwindInfoSet unwinds_;
@@ -106,9 +107,12 @@ namespace rubinius {
     void* current_stack_start_;
     size_t current_stack_size_;
 
-    utilities::thread::SpinLock interrupt_lock_;
+    bool interrupt_with_signal_;
+    bool interrupt_by_kill_;
+    bool check_local_interrupts_;
+    bool thread_step_;
 
-    VMJIT vm_jit_;
+    utilities::thread::SpinLock interrupt_lock_;
 
     MethodMissingReason method_missing_reason_;
     ConstantMissingReason constant_missing_reason_;
@@ -118,6 +122,9 @@ namespace rubinius {
     bool main_thread_;
 
     ThreadNexus::Phase thread_phase_;
+
+    uint32_t profile_interval_;
+    uint32_t profile_counter_;
 
   public:
     /* Data members */
@@ -307,41 +314,41 @@ namespace rubinius {
     void after_fork_child(STATE);
 
     bool thread_step() const {
-      return vm_jit_.thread_step_;
+      return thread_step_;
     }
 
     void clear_thread_step() {
       clear_check_local_interrupts();
-      vm_jit_.thread_step_ = false;
+      thread_step_ = false;
     }
 
     void set_thread_step() {
       set_check_local_interrupts();
-      vm_jit_.thread_step_ = true;
+      thread_step_ = true;
     }
 
     bool check_local_interrupts() const {
-      return vm_jit_.check_local_interrupts_;
+      return check_local_interrupts_;
     }
 
     void clear_check_local_interrupts() {
-      vm_jit_.check_local_interrupts_ = false;
+      check_local_interrupts_ = false;
     }
 
     void set_check_local_interrupts() {
-      vm_jit_.check_local_interrupts_ = true;
+      check_local_interrupts_ = true;
     }
 
     bool interrupt_by_kill() const {
-      return vm_jit_.interrupt_by_kill_;
+      return interrupt_by_kill_;
     }
 
     void clear_interrupt_by_kill() {
-      vm_jit_.interrupt_by_kill_ = false;
+      interrupt_by_kill_ = false;
     }
 
     void set_interrupt_by_kill() {
-      vm_jit_.interrupt_by_kill_ = true;
+      interrupt_by_kill_ = true;
     }
 
     Exception* interrupted_exception() const {
@@ -400,15 +407,29 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
+#define RBX_PROFILE_MAX_SHIFT     0xf
+#define RBX_PROFILE_MAX_INTERVAL  0x1fff
+
+    void set_profile_interval() {
+      profile_interval_ = randombytes_random();
+      profile_interval_ >>= (profile_interval_ & RBX_PROFILE_MAX_SHIFT);
+      profile_interval_ &= RBX_PROFILE_MAX_INTERVAL;
+      profile_counter_ = 0;
+    }
+
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
-      if(thread_nexus_->stop_lock(this)) {
-        metrics().machine.stops++;
+      if(profile_counter_++ >= profile_interval_) {
+        if(thread_nexus_->stop_lock(this)) {
+          metrics().machine.stops++;
 
-        collect_maybe(state);
+          collect_maybe(state);
 
-        thread_nexus_->unlock();
+          thread_nexus_->unlock();
+        }
+
+        set_profile_interval();
       }
     }
 
@@ -461,9 +482,8 @@ namespace rubinius {
     void set_sleeping();
     void clear_sleeping();
 
-    void interrupt_with_signal();
-    bool should_interrupt_with_signal() const {
-      return vm_jit_.interrupt_with_signal_;
+    void interrupt_with_signal() {
+      interrupt_with_signal_ = true;
     }
 
     void register_raise(STATE, Exception* exc);

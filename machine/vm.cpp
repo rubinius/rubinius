@@ -68,12 +68,18 @@ namespace rubinius {
     , stack_size_(0)
     , current_stack_start_(0)
     , current_stack_size_(0)
+    , interrupt_with_signal_(false)
+    , interrupt_by_kill_(false)
+    , check_local_interrupts_(false)
+    , thread_step_(false)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
     , zombie_(false)
     , main_thread_(false)
     , thread_phase_(ThreadNexus::cUnmanaged)
+    , profile_interval_(0)
+    , profile_counter_(0)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -89,6 +95,8 @@ namespace rubinius {
     if(memory()) {
       local_slab_.refill(0, 0);
     }
+
+    set_profile_interval();
 
     allocation_tracking_ = shared.config.allocation_tracking;
   }
@@ -390,10 +398,6 @@ namespace rubinius {
     abort();
   }
 
-  void VM::interrupt_with_signal() {
-    vm_jit_.interrupt_with_signal_ = true;
-  }
-
   bool VM::wakeup(STATE) {
     utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
 
@@ -403,7 +407,7 @@ namespace rubinius {
     if(park_->parked_p()) {
       park_->unpark();
       return true;
-    } else if(vm_jit_.interrupt_with_signal_) {
+    } else if(interrupt_with_signal_) {
 #ifdef RBX_WINDOWS
       // TODO: wake up the thread
 #else
@@ -442,7 +446,7 @@ namespace rubinius {
   void VM::clear_waiter() {
     utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
 
-    vm_jit_.interrupt_with_signal_ = false;
+    interrupt_with_signal_ = false;
     waiting_channel_.set(nil<Channel>());
     waiting_object_.set(cNil);
     custom_wakeup_ = 0;
