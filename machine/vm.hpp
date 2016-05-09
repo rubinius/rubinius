@@ -99,7 +99,6 @@ namespace rubinius {
     CallSiteInformation* saved_call_site_information_;
     FiberStacks fiber_stacks_;
     Park* park_;
-    rbxti::Env* tooling_env_;
 
     void* stack_start_;
     size_t stack_size_;
@@ -115,7 +114,6 @@ namespace rubinius {
     ConstantMissingReason constant_missing_reason_;
 
     bool zombie_;
-    bool tooling_;
     bool allocation_tracking_;
     bool main_thread_;
 
@@ -352,22 +350,6 @@ namespace rubinius {
 
     void clear_interrupted_exception() {
       interrupted_exception_.set(cNil);
-    }
-
-    rbxti::Env* tooling_env() const {
-      return tooling_env_;
-    }
-
-    bool tooling() const {
-      return tooling_;
-    }
-
-    void enable_tooling() {
-      tooling_ = true;
-    }
-
-    void disable_tooling() {
-      tooling_ = false;
     }
 
     bool allocation_tracking() const {

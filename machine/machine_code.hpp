@@ -184,8 +184,6 @@ namespace rubinius {
       CallFrame* const method_call_frame, UnwindInfoSet& unwinds,
       bool force_deoptimization);
 
-    static Object* tooling_interpreter(STATE, MachineCode* const mcode);
-
     void setup_argument_handler();
 
     bool validate_ip(STATE, size_t ip);
