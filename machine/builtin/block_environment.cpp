@@ -1,7 +1,6 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-#include "instruments/tooling.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "memory.hpp"
@@ -384,17 +383,7 @@ namespace rubinius {
       return 0;
     }
 
-    if(mcode->call_count >= 0) {
-      // TODO: JIT
-      if(false /*mcode->call_count >= state->shared().config.jit_threshold_compile*/) {
-        OnStack<1> os(state, env);
-
-        G(jit)->compile_soon(state, env->compiled_code(),
-            invocation.self->direct_class(state), env, true);
-      } else {
-        mcode->call_count++;
-      }
-    }
+    mcode->call_count++;
 
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
 
@@ -443,25 +432,7 @@ namespace rubinius {
 
     Object* value = NULL;
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->vm()->tooling())) {
-      Module* mod = scope->module();
-      if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-        if(Module* ma = try_as<Module>(sc->singleton())) {
-          mod = ma;
-        }
-      }
-
-      OnStack<2> os(state, env, mod);
-
-      tooling::BlockEntry method(state, env, mod);
-      value = (*mcode->run)(state, mcode);
-    } else {
-      value = (*mcode->run)(state, mcode);
-    }
-#else
     value = (*mcode->run)(state, mcode);
-#endif
 
     if(!state->vm()->pop_call_frame(state, previous_frame)) {
       return NULL;

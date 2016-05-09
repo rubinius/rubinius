@@ -29,8 +29,6 @@
 #include "signal.hpp"
 #include "object_utils.hpp"
 
-#include "instruments/tooling.hpp"
-
 #include "on_stack.hpp"
 
 #include <iostream>
@@ -562,8 +560,6 @@ namespace rubinius {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
     logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
-
-    state->shared().tool_broker()->shutdown(state);
 
     if(Memory* om = state->memory()) {
       if(memory::ImmixMarker* im = om->immix_marker()) {

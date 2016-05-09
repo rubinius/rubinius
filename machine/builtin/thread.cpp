@@ -25,8 +25,6 @@
 
 #include "dtrace/dtrace.h"
 
-#include "instruments/tooling.hpp"
-
 #include "logger.hpp"
 
 #include "missing/gettid.h"
@@ -376,10 +374,8 @@ namespace rubinius {
 
     state->vm()->become_managed();
 
-    vm->shared.tool_broker()->thread_start(state);
     Object* value = vm->thread->function()(state);
     vm->set_call_frame(NULL);
-    vm->shared.tool_broker()->thread_stop(state);
 
     vm->thread->join_lock_.lock();
     vm->thread->stopped();

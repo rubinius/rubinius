@@ -3,7 +3,6 @@
 #include "configuration.hpp"
 #include "exception.hpp"
 #include "exception_point.hpp"
-#include "instruments/tooling.hpp"
 #include "memory.hpp"
 #include "on_stack.hpp"
 
@@ -695,37 +694,6 @@ namespace rubinius {
     ExceptionPoint ep(env);
 
     try {
-#ifdef RBX_PROFILER
-      // This is organized like this so that we don't jump past the destructor of
-      // MethodEntry. It's duplicated, but it's much easier to understand than
-      // trying to de-dup it.
-
-      OnStack<2> os(state, exec, mod);
-      if(unlikely(state->vm()->tooling())) {
-        tooling::MethodEntry method(state, exec, mod, args);
-        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name());
-
-        PLACE_EXCEPTION_POINT(ep);
-
-        if(unlikely(ep.jumped_to())) {
-          value = NULL;
-        } else {
-          value = ArgumentHandler::invoke(state, nm, env, args);
-        }
-        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
-      } else {
-        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name());
-
-        PLACE_EXCEPTION_POINT(ep);
-
-        if(unlikely(ep.jumped_to())) {
-          value = NULL;
-        } else {
-          value = ArgumentHandler::invoke(state, nm, env, args);
-        }
-        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
-      }
-#else
       RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name());
 
       PLACE_EXCEPTION_POINT(ep);
@@ -736,7 +704,6 @@ namespace rubinius {
         value = ArgumentHandler::invoke(state, nm, env, args);
       }
       RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name());
-#endif
     } catch(const RubyException& exc) {
       LEAVE_CAPI(state);
 

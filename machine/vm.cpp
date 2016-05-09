@@ -29,8 +29,6 @@
 #include "builtin/jit.hpp"
 #include "variable_scope.hpp"
 
-#include "instruments/tooling.hpp"
-#include "instruments/rbxti-internal.hpp"
 #include "instruments/timing.hpp"
 
 #include "config_parser.hpp"
@@ -66,7 +64,6 @@ namespace rubinius {
     , saved_call_site_information_(NULL)
     , fiber_stacks_(this, shared)
     , park_(new Park)
-    , tooling_env_(NULL)
     , stack_start_(0)
     , stack_size_(0)
     , current_stack_start_(0)
@@ -93,14 +90,10 @@ namespace rubinius {
       local_slab_.refill(0, 0);
     }
 
-    tooling_env_ = rbxti::create_env(this);
-    tooling_ = false;
-
     allocation_tracking_ = shared.config.allocation_tracking;
   }
 
   VM::~VM() {
-    rbxti::destroy_env(tooling_env_);
     delete park_;
   }
 
@@ -520,10 +513,6 @@ namespace rubinius {
 
   void VM::gc_scan(memory::GarbageCollector* gc) {
     gc->walk_call_frame(call_frame_);
-
-    State ls(this);
-
-    shared.tool_broker()->at_gc(&ls);
   }
 
   void VM::gc_fiber_clear_mark() {

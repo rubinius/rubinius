@@ -20,8 +20,6 @@
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
-#include "instruments/tooling.hpp"
-
 #include "arguments.hpp"
 #include "object_watch.hpp"
 #include "thread_nexus.hpp"
