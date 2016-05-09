@@ -70,7 +70,6 @@ namespace rubinius {
     native_int number_of_locals;
 
     native_int call_count;
-    native_int loop_count;
     native_int uncommon_count;
 
     attr_field(call_site_count, size_t);
@@ -138,10 +137,6 @@ namespace rubinius {
 
     void set_no_inline() {
       flags |= eNoInline;
-    }
-
-    native_int method_call_count() const {
-      return call_count - loop_count;
     }
 
     CallSite* call_site(STATE, int ip);

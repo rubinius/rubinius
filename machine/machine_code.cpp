@@ -59,7 +59,6 @@ namespace rubinius {
     , stack_size(code->stack_size()->to_native())
     , number_of_locals(code->number_of_locals())
     , call_count(0)
-    , loop_count(0)
     , uncommon_count(0)
     , _call_site_count_(0)
     , _constant_cache_count_(0)
@@ -84,14 +83,6 @@ namespace rubinius {
     if(Fixnum* pos = try_as<Fixnum>(code->splat())) {
       splat_position = pos->to_native();
     }
-
-    /* TODO: JIT
-    // Disable JIT for large methods
-    if(state->shared().config.jit_disabled ||
-        total > (size_t)state->shared().config.jit_limit_method_size) {
-      call_count = -1;
-    }
-    */
 
     for(int i = 0; i < cMaxSpecializations; i++) {
       specializations[i].class_data.raw = 0;
@@ -762,20 +753,7 @@ namespace rubinius {
         return NULL;
       }
 
-      // A negative call_count means we've disabled usage based JIT
-      // for this method.
-      if(mcode->call_count >= 0) {
-        /* TODO: JIT
-        if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
-          OnStack<3> os(state, exec, mod, code);
-
-          G(jit)->compile_callframe(state, code);
-        } else {
-          mcode->call_count++;
-        }
-        */
-        mcode->call_count++;
-      }
+      mcode->call_count++;
 
       Object* value = 0;
 

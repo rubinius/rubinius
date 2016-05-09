@@ -383,17 +383,7 @@ namespace rubinius {
       return 0;
     }
 
-    if(mcode->call_count >= 0) {
-      // TODO: JIT
-      if(false /*mcode->call_count >= state->shared().config.jit_threshold_compile*/) {
-        OnStack<1> os(state, env);
-
-        G(jit)->compile_soon(state, env->compiled_code(),
-            invocation.self->direct_class(state), env, true);
-      } else {
-        mcode->call_count++;
-      }
-    }
+    mcode->call_count++;
 
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
 
