@@ -1,4 +1,4 @@
-bundler-1.11.2.gem
+bundler-1.12.3.gem
 daedalus-core-0.5.0.gem
 ffi2-generators-0.1.1.gem
 json-1.8.3.gem
@@ -19,7 +19,7 @@ rubinius-developer_tools-2.0.0.gem
 rubinius-instructions-3.0.gem
 rubinius-melbourne-3.5.gem
 rubinius-processor-3.0.gem
-rubinius-profiler-2.0.2.gem
+rubinius-profiler-2.1.gem
 rubinius-toolset-3.0.gem
 rubysl-2.2.0.gem
 rubysl-abbrev-2.0.4.gem
@@ -80,7 +80,7 @@ rubysl-pathname-2.3.gem
 rubysl-prettyprint-2.0.3.gem
 rubysl-prime-2.0.1.gem
 rubysl-profile-2.0.0.gem
-rubysl-profiler-2.0.1.gem
+rubysl-profiler-2.1.gem
 rubysl-pstore-2.0.0.gem
 rubysl-pty-2.0.3.gem
 rubysl-rational-2.0.1.gem

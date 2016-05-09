@@ -31,4 +31,4 @@ DEPENDENCIES
   rubinius-code (~> 3)
 
 BUNDLED WITH
-   1.11.2
+   1.12.3
