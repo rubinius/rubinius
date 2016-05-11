@@ -92,6 +92,9 @@ namespace rubinius {
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
 
+    std::string profiler_path_;
+    bool profiler_enabled_;
+    uint64_t start_time_;
     uint64_t method_count_;
     unsigned int class_count_;
     int global_serial_;
@@ -146,6 +149,8 @@ namespace rubinius {
       setup_capi_constant_names();
       initialized_ = true;
     }
+
+    double run_time();
 
     ThreadNexus* thread_nexus() {
       return thread_nexus_;
@@ -225,6 +230,16 @@ namespace rubinius {
         data->update();
         diagnostics_->report(data);
       }
+    }
+
+    void start_profiler(STATE);
+    void set_profiler_path();
+    std::string& profiler_path() {
+      return profiler_path_;
+    }
+
+    bool profiler_enabled_p() {
+      return profiler_enabled_;
     }
 
     Environment* env() const {

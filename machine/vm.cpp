@@ -29,8 +29,6 @@
 #include "builtin/jit.hpp"
 #include "variable_scope.hpp"
 
-#include "instruments/timing.hpp"
-
 #include "config_parser.hpp"
 #include "config.h"
 
@@ -38,13 +36,15 @@
 #include "signal.hpp"
 #include "configuration.hpp"
 #include "helpers.hpp"
+#include "park.hpp"
 
 #include "util/thread.hpp"
 
-#include "park.hpp"
+#include "instruments/timing.hpp"
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <signal.h>
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
@@ -89,8 +89,9 @@ namespace rubinius {
     , waiting_object_(this, cNil)
     , profile_(this, nil<Tuple>())
     , profile_sample_count_(0)
-    , max_profile_entries_(15)
-    , min_profile_call_count_(0)
+    , max_profile_entries_(25)
+    , min_profile_sample_count_(0)
+    , start_time_(0)
     , native_method_environment(NULL)
     , custom_wakeup_(NULL)
     , custom_wakeup_data_(NULL)
@@ -113,6 +114,14 @@ namespace rubinius {
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
+  }
+
+  void VM::set_start_time() {
+    start_time_ = get_current_time();
+  }
+
+  double VM::run_time() {
+    return timer::time_elapsed_seconds(start_time_);
   }
 
   void VM::set_stack_bounds(size_t size) {
@@ -261,7 +270,7 @@ namespace rubinius {
     const CompiledCode* c_b = try_as<CompiledCode>(*(const Object**)(b));
 
     if(c_a && c_b) {
-      return c_a->machine_code()->call_count - c_b->machine_code()->call_count;
+      return c_b->machine_code()->sample_count - c_a->machine_code()->sample_count;
     } else if(c_a) {
       return 1;
     } else if(c_b) {
@@ -280,6 +289,10 @@ namespace rubinius {
     CompiledCode* code = state->vm()->call_frame()->compiled_code;
     code->machine_code()->sample_count++;
 
+    if(code->machine_code()->sample_count < min_profile_sample_count_) {
+      return;
+    }
+
     Tuple* profile = profile_.get();
 
     if(profile->nil_p()) {
@@ -296,11 +309,54 @@ namespace rubinius {
 
     CompiledCode* pcode = try_as<CompiledCode>(profile->at(0));
     if(!pcode || (pcode &&
-          code->machine_code()->call_count > pcode->machine_code()->call_count))
+          code->machine_code()->sample_count > pcode->machine_code()->sample_count))
     {
       profile->put(state, 0, code);
-      min_profile_call_count_ = code->machine_code()->call_count;
+      min_profile_sample_count_ = code->machine_code()->sample_count;
     }
+  }
+
+  void VM::report_profile(STATE) {
+    if(!state->shared().profiler_enabled_p()) return;
+
+    Tuple* profile = profile_.get();
+    if(profile->nil_p()) return;
+
+    std::ofstream file;
+    file.open(state->shared().profiler_path());
+
+    double total_time = run_time();
+
+    file << "Profile: thread: " << thread_id()
+      << ", samples: " << profile_sample_count_
+      << ", sample avg time: " << (total_time / profile_sample_count_)
+      << ", total time: " << total_time << "s" << std::endl;
+
+    ::qsort(reinterpret_cast<void*>(profile->field), profile->num_fields(),
+        sizeof(intptr_t), profile_compare);
+
+    file << std::endl
+      << std::setw(5) << "%"
+      << std::setw(10) << "Samples"
+      << "  Method"
+      << std::endl
+      << "------------------------------------------------------------"
+      << std::endl;
+
+    for(native_int i = 0; i < profile->num_fields(); i++) {
+      if(CompiledCode* code = try_as<CompiledCode>(profile->at(i))) {
+        file << std::setw(5) << std::setprecision(1) << std::fixed
+          << ((double)code->machine_code()->sample_count / profile_sample_count_ * 100)
+          << std::setw(10)
+          << code->machine_code()->sample_count
+          << "  "
+          << code->name()->debug_str(state)
+          << std::endl;
+      }
+    }
+
+    file << std::endl;
+    file.close();
   }
 
   static void suspend_thread() {

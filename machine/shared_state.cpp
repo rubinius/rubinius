@@ -6,7 +6,6 @@
 #include "config.h"
 #include "memory.hpp"
 #include "environment.hpp"
-#include "instruments/timing.hpp"
 #include "global_cache.hpp"
 
 #include "util/thread.hpp"
@@ -19,8 +18,12 @@
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/native_method.hpp"
+#include "builtin/system.hpp"
+
+#include "instruments/timing.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 
 namespace rubinius {
@@ -33,6 +36,9 @@ namespace rubinius {
     , console_(NULL)
     , metrics_(NULL)
     , diagnostics_(NULL)
+    , profiler_path_()
+    , profiler_enabled_(false)
+    , start_time_(get_current_time())
     , method_count_(1)
     , class_count_(1)
     , global_serial_(1)
@@ -112,6 +118,10 @@ namespace rubinius {
     return threads;
   }
 
+  double SharedState::run_time() {
+    return timer::time_elapsed_seconds(start_time_);
+  }
+
   SignalThread* SharedState::start_signals(STATE) {
     signals_ = new SignalThread(state, state->vm());
     signals_->start(state);
@@ -155,12 +165,21 @@ namespace rubinius {
     return diagnostics_;
   }
 
-  void SharedState::after_fork_child(STATE) {
-    // For now, we disable inline debugging here. This makes inspecting
-    // it much less confusing.
-    // TODO: JIT
-    // config.jit_inline_debug.set("no");
+  void SharedState::set_profiler_path() {
+    profiler_path_ = config.system_profiler_target.value;
+    env()->expand_config_value(profiler_path_, "$PID", pid.c_str());
+  }
 
+  void SharedState::start_profiler(STATE) {
+    profiler_enabled_ =
+      !!config.system_profiler_target.value.compare("none");
+
+    if(profiler_enabled_) {
+      set_profiler_path();
+    }
+  }
+
+  void SharedState::after_fork_child(STATE) {
     disable_metrics(state);
 
     // Reinit the locks for this object
@@ -178,6 +197,8 @@ namespace rubinius {
     om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
+
+    if(profiler_enabled_p()) set_profiler_path();
   }
 
   const unsigned int* SharedState::object_memory_mark_address() const {

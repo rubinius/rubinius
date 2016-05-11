@@ -142,6 +142,11 @@ Rubinius::ConfigurationVariables.define do |c|
       d.vm_variable "target", "none",
         "Location to send diagnostics: host:port, path"
     end
+
+    s.section "profiler" do |p|
+      p.vm_variable "target", "none",
+        "Location to send profiler output: path"
+    end
   end
 end
 

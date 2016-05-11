@@ -147,7 +147,9 @@ namespace rubinius {
     memory::TypedRoot<Tuple*> profile_;
     uint64_t profile_sample_count_;
     native_int max_profile_entries_;
-    native_int min_profile_call_count_;
+    native_int min_profile_sample_count_;
+
+    uint64_t start_time_;
 
     NativeMethodEnvironment* native_method_environment;
 
@@ -217,6 +219,9 @@ namespace rubinius {
     Memory* memory() {
       return shared.memory();
     }
+
+    void set_start_time();
+    double run_time();
 
     void raise_stack_error(STATE);
 
@@ -414,6 +419,7 @@ namespace rubinius {
     void collect_maybe(STATE);
 
     void update_profile(STATE);
+    void report_profile(STATE);
 
 #define RBX_PROFILE_MAX_SHIFT     0xf
 #define RBX_PROFILE_MAX_INTERVAL  0x1fff

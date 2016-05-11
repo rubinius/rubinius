@@ -559,7 +559,8 @@ namespace rubinius {
   void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-    logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
+    logger::write("exit process: %s %d %fs",
+        shared->pid.c_str(), exit_code, shared->run_time());
 
     if(Memory* om = state->memory()) {
       if(memory::ImmixMarker* im = om->immix_marker()) {

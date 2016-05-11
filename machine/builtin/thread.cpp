@@ -328,6 +328,7 @@ namespace rubinius {
     state->shared().start_console(state);
     state->shared().start_metrics(state);
     state->shared().start_diagnostics(state);
+    state->shared().start_profiler(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
@@ -360,6 +361,7 @@ namespace rubinius {
 
     vm->set_stack_bounds(THREAD_STACK_SIZE);
     vm->set_current_thread();
+    vm->set_start_time();
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
@@ -380,6 +382,8 @@ namespace rubinius {
     vm->thread->join_lock_.lock();
     vm->thread->stopped();
 
+    vm->report_profile(state);
+
     memory::LockedObjects& locked_objects = state->vm()->locked_objects();
     for(memory::LockedObjects::iterator i = locked_objects.begin();
         i != locked_objects.end();
@@ -394,7 +398,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    logger::write("exit thread: %s", vm->name().c_str());
+    logger::write("exit thread: %s %fs", vm->name().c_str(), vm->run_time());
 
     vm->become_unmanaged();
 
