@@ -428,17 +428,16 @@ namespace rubinius {
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
+      if(thread_nexus_->stop_lock(this)) {
+        metrics().machine.stops++;
+
+        collect_maybe(state);
+
+        thread_nexus_->unlock();
+      }
+
       if(profile_counter_++ >= profile_interval_) {
-        if(thread_nexus_->stop_lock(this)) {
-          metrics().machine.stops++;
-
-          collect_maybe(state);
-
-          thread_nexus_->unlock();
-        }
-
         update_profile(state);
-
         set_profile_interval();
       }
     }

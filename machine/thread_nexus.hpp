@@ -102,7 +102,25 @@ namespace rubinius {
     void waiting_lock(VM* vm);
     void managed_lock(VM* vm);
     void sleep_lock(VM* vm);
-    bool stop_lock(VM* vm);
+
+    bool stop_lock(VM* vm) {
+      if(!stop_) return false;
+
+      waiting_lock(vm);
+
+      // Assumption about stop_ may change while we progress.
+      if(stop_) {
+        if(serialized_p(vm)) {
+          if(stop_) {
+            return true;
+          }
+        }
+      }
+
+      // Either we're not stop_'ing or something blocked us from serializing.
+      unlock();
+      return false;
+    }
 
     void wait_till_alone(VM* vm);
   };
