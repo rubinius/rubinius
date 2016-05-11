@@ -127,6 +127,9 @@ namespace rubinius {
     // Rubinius.primitive :compiledcode_jitted_p
     Object* jitted_p(STATE);
 
+    // Rubinius.primitive :compiledcode_sample_count
+    Fixnum* sample_count(STATE);
+
     String* full_name(STATE);
 
     bool core_method(STATE);

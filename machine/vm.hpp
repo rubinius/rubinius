@@ -58,6 +58,7 @@ namespace rubinius {
   class Symbol;
   class ConfigParser;
   class TypeError;
+  class Tuple;
   class Assertion;
   struct CallFrame;
   class CallSiteInformation;
@@ -142,6 +143,11 @@ namespace rubinius {
 
     /// Object that waits for inflation
     memory::TypedRoot<Object*> waiting_object_;
+
+    memory::TypedRoot<Tuple*> profile_;
+    uint64_t profile_sample_count_;
+    native_int max_profile_entries_;
+    native_int min_profile_call_count_;
 
     NativeMethodEnvironment* native_method_environment;
 
@@ -407,6 +413,8 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
+    void update_profile(STATE);
+
 #define RBX_PROFILE_MAX_SHIFT     0xf
 #define RBX_PROFILE_MAX_INTERVAL  0x1fff
 
@@ -428,6 +436,8 @@ namespace rubinius {
 
           thread_nexus_->unlock();
         }
+
+        update_profile(state);
 
         set_profile_interval();
       }

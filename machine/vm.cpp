@@ -87,6 +87,10 @@ namespace rubinius {
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
     , waiting_object_(this, cNil)
+    , profile_(this, nil<Tuple>())
+    , profile_sample_count_(0)
+    , max_profile_entries_(15)
+    , min_profile_call_count_(0)
     , native_method_environment(NULL)
     , custom_wakeup_(NULL)
     , custom_wakeup_data_(NULL)
@@ -250,6 +254,50 @@ namespace rubinius {
 
   void VM::collect_maybe(STATE) {
     memory()->collect_maybe(state);
+  }
+
+  static int profile_compare(const void* a, const void* b) {
+    const CompiledCode* c_a = try_as<CompiledCode>(*(const Object**)(a));
+    const CompiledCode* c_b = try_as<CompiledCode>(*(const Object**)(b));
+
+    if(c_a && c_b) {
+      return c_a->machine_code()->call_count - c_b->machine_code()->call_count;
+    } else if(c_a) {
+      return 1;
+    } else if(c_b) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
+
+  void VM::update_profile(STATE) {
+    profile_sample_count_++;
+
+    CompiledCode* code = state->vm()->call_frame()->compiled_code;
+    code->machine_code()->sample_count++;
+
+    Tuple* profile = profile_.get();
+
+    if(profile->nil_p()) {
+      profile = Tuple::create(state, max_profile_entries_);
+      profile_.set(profile);
+    }
+
+    ::qsort(reinterpret_cast<void*>(profile->field), profile->num_fields(),
+        sizeof(intptr_t), profile_compare);
+
+    for(native_int i = 0; i < profile->num_fields(); i++) {
+      if(code == profile->at(i)) return;
+    }
+
+    CompiledCode* pcode = try_as<CompiledCode>(profile->at(0));
+    if(!pcode || (pcode &&
+          code->machine_code()->call_count > pcode->machine_code()->call_count))
+    {
+      profile->put(state, 0, code);
+      min_profile_call_count_ = code->machine_code()->call_count;
+    }
   }
 
   static void suspend_thread() {

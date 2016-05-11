@@ -370,6 +370,10 @@ namespace rubinius {
     return RBOOL(machine_code() && machine_code()->jitted_p());
   }
 
+  Fixnum* CompiledCode::sample_count(STATE) {
+    return Fixnum::from(machine_code()->sample_count);
+  }
+
   Object* CompiledCode::execute_script(STATE) {
     state->thread_state()->clear();
 
