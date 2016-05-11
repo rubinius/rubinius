@@ -272,6 +272,9 @@ namespace rubinius {
   }
 
   void VM::update_profile(STATE) {
+    timer::StopWatch<timer::nanoseconds> timer(metrics().machine.profile_ns);
+
+    metrics().machine.profiles++;
     profile_sample_count_++;
 
     CompiledCode* code = state->vm()->call_frame()->compiled_code;

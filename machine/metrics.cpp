@@ -393,6 +393,10 @@ namespace rubinius {
             "machine.bytecode.verifier.us", metrics_data_.machine.bytecode_verifier_us));
       metrics_map_.push_back(new MetricsItem(
             "machine.bytecode.internalizer.us", metrics_data_.machine.bytecode_internalizer_us));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.profiles", metrics_data_.machine.profiles));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.profile.ns", metrics_data_.machine.profile_ns));
 
       // Memory metrics
       metrics_map_.push_back(new MetricsItem(
