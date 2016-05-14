@@ -77,6 +77,7 @@ namespace rubinius {
     attr_field(constant_cache_count, size_t);
     attr_field(references_count, size_t);
     attr_field(references, size_t*);
+    attr_field(description, std::string*);
 
     Specialization specializations[cMaxSpecializations];
     executor unspecialized;
@@ -148,6 +149,8 @@ namespace rubinius {
 
     void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
+
+    void set_description(STATE);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     static Object* execute(STATE, Executable* exec, Module* mod, Arguments& args);

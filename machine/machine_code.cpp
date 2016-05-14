@@ -65,6 +65,7 @@ namespace rubinius {
     , _constant_cache_count_(0)
     , _references_count_(0)
     , _references_(NULL)
+    , _description_(NULL)
     , unspecialized(NULL)
     , fallback(NULL)
     , execute_status_(eInterpret)
@@ -105,6 +106,8 @@ namespace rubinius {
 #endif
       delete[] references();
     }
+
+    if(description()) delete description();
   }
 
   int MachineCode::size() {
@@ -325,6 +328,34 @@ namespace rubinius {
     atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
     state->memory()->write_barrier(code, constant_cache);
+  }
+
+  void MachineCode::set_description(STATE) {
+    if(description()) return;
+
+    CallFrame* call_frame = state->vm()->call_frame();
+
+    Class* klass = call_frame->self()->class_object(state);
+    Module* method_module = call_frame->module();
+
+    std::string* desc = new std::string();
+
+    if(kind_of<SingletonClass>(method_module)) {
+      desc->append(method_module->debug_str(state));
+      desc->append(".");
+    } else if(method_module != klass) {
+      desc->append(method_module->debug_str(state));
+      desc->append("(");
+      desc->append(klass->debug_str(state));
+      desc->append(")");
+    } else {
+      desc->append(klass->debug_str(state));
+      desc->append("#");
+    }
+
+    desc->append(name()->cpp_str(state));
+
+    description(desc);
   }
 
   // Argument handler implementations

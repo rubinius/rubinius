@@ -311,6 +311,7 @@ namespace rubinius {
     if(!pcode || (pcode &&
           code->machine_code()->sample_count > pcode->machine_code()->sample_count))
     {
+      code->machine_code()->set_description(state);
       profile->put(state, 0, code);
       min_profile_sample_count_ = code->machine_code()->sample_count;
     }
@@ -350,7 +351,7 @@ namespace rubinius {
           << std::setw(10)
           << code->machine_code()->sample_count
           << "  "
-          << code->name()->debug_str(state)
+          << *code->machine_code()->description()
           << std::endl;
       }
     }
