@@ -198,7 +198,13 @@ namespace rubinius {
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
 
-    if(profiler_enabled_p()) set_profiler_path();
+    if(profiler_enabled_p()) {
+      if(config.system_profiler_subprocess.value) {
+        set_profiler_path();
+      } else {
+        profiler_enabled_ = false;
+      }
+    }
   }
 
   const unsigned int* SharedState::object_memory_mark_address() const {

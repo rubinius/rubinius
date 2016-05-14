@@ -146,6 +146,9 @@ Rubinius::ConfigurationVariables.define do |c|
     s.section "profiler" do |p|
       p.vm_variable "target", "none",
         "Location to send profiler output: path"
+
+      p.vm_variable "subprocess", false,
+        "Enable profiling in subprocesses created by fork"
     end
   end
 end
