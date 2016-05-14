@@ -300,12 +300,12 @@ namespace rubinius {
       profile_.set(profile);
     }
 
-    ::qsort(reinterpret_cast<void*>(profile->field), profile->num_fields(),
-        sizeof(intptr_t), profile_compare);
-
     for(native_int i = 0; i < profile->num_fields(); i++) {
       if(code == profile->at(i)) return;
     }
+
+    ::qsort(reinterpret_cast<void*>(profile->field), profile->num_fields(),
+        sizeof(intptr_t), profile_compare);
 
     CompiledCode* pcode = try_as<CompiledCode>(profile->at(0));
     if(!pcode || (pcode &&
