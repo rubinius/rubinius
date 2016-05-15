@@ -6,7 +6,7 @@ class Rubinius::VM
   # running information like locals, self, etc.
   #
   def self.backtrace(frames_to_skip, *args)
-    Rubinius.invoke_primitive :vm_backtrace, Integer(frames_to_skip)
+    Rubinius.invoke_primitive :vm_backtrace, Integer(frames_to_skip) + 1
   end
 
   def self.stats
