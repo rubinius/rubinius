@@ -22,35 +22,24 @@ namespace memory {
     , holes_(0)
     , percentage_(0.0)
   {
-    /*
     set_type("ImmixCollector");
 
-    document()->AddMember("collections",
-        rapidjson::Value(collections_), document()->GetAllocator());
-
-    document()->AddMember("total_bytes",
-        rapidjson::Value(total_bytes_), document()->GetAllocator());
-
-    document()->AddMember("chunks",
-        rapidjson::Value(chunks_), document()->GetAllocator());
-
-    document()->AddMember("holes",
-        rapidjson::Value(holes_), document()->GetAllocator());
-
-    document()->AddMember("percentage",
-        rapidjson::Value(percentage_), document()->GetAllocator());
-        */
+    document.AddMember("collections", collections_, document.GetAllocator());
+    document.AddMember("total_bytes", total_bytes_, document.GetAllocator());
+    document.AddMember("chunks", chunks_, document.GetAllocator());
+    document.AddMember("holes", holes_, document.GetAllocator());
+    document.AddMember("percentage", percentage_, document.GetAllocator());
   }
 
 
   void ImmixGC::Diagnostics::update() {
-    (*document())["objects"] = objects_;
-    (*document())["bytes"] = bytes_;
-    (*document())["collections"] = collections_;
-    (*document())["total_bytes"] = total_bytes_;
-    (*document())["chunks"] = chunks_;
-    (*document())["holes"] = holes_;
-    (*document())["percentage"] = percentage_;
+    document["objects"] = objects_;
+    document["bytes"] = bytes_;
+    document["collections"] = collections_;
+    document["total_bytes"] = total_bytes_;
+    document["chunks"] = chunks_;
+    document["holes"] = holes_;
+    document["percentage"] = percentage_;
   }
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {

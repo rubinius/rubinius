@@ -12,28 +12,21 @@
 namespace rubinius {
   namespace diagnostics {
     DiagnosticsData::DiagnosticsData()
-      : document_(new rapidjson::Document())
+      : document()
     {
-      /*
-      document_->SetObject();
+      document.SetObject();
 
-      document_->AddMember("diagnostic_type",
-          rapidjson::Value("DiagnosticsData"), document_->GetAllocator());
-          */
-    }
-
-    DiagnosticsData::~DiagnosticsData() {
-      if(document_) delete document_;
+      document.AddMember("diagnostic_type", "DiagnosticsData", document.GetAllocator());
     }
 
     void DiagnosticsData::set_type(const char* type) {
-      (*document_)["diagnostic_type"].SetString(type, document_->GetAllocator());
+      document["diagnostic_type"].SetString(type, document.GetAllocator());
     }
 
     void DiagnosticsData::to_string(rapidjson::StringBuffer& buffer) {
       rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
-      document_->Accept(writer);
+      document.Accept(writer);
     }
 
     MemoryDiagnostics::MemoryDiagnostics()
@@ -41,15 +34,10 @@ namespace rubinius {
       , objects_(0)
       , bytes_(0)
     {
-      /*
       set_type("MemoryDiagnostics");
 
-      document()->AddMember("objects",
-          rapidjson::Value(objects_), document()->GetAllocator());
-
-      document()->AddMember("bytes",
-          rapidjson::Value(bytes_), document()->GetAllocator());
-          */
+      document.AddMember("objects", objects_, document.GetAllocator());
+      document.AddMember("bytes", bytes_, document.GetAllocator());
     }
 
     FileEmitter::FileEmitter(STATE, std::string path)

@@ -14,15 +14,11 @@
 namespace rubinius {
   namespace diagnostics {
     class DiagnosticsData {
-      rapidjson::Document* document_;
-
     public:
-      DiagnosticsData();
-      virtual ~DiagnosticsData();
+      rapidjson::Document document;
 
-      rapidjson::Document* document() {
-        return document_;
-      }
+      DiagnosticsData();
+      virtual ~DiagnosticsData() { }
 
       virtual void update() { }
 
