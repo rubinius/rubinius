@@ -37,6 +37,7 @@ namespace rubinius {
     , metrics_(NULL)
     , diagnostics_(NULL)
     , profiler_path_()
+    , profiler_target_(eNone)
     , profiler_enabled_(false)
     , start_time_(get_current_time())
     , method_count_(1)
@@ -171,10 +172,14 @@ namespace rubinius {
   }
 
   void SharedState::start_profiler(STATE) {
-    profiler_enabled_ =
-      !!config.system_profiler_target.value.compare("none");
+    profiler_enabled_ = true;
 
-    if(profiler_enabled_) {
+    if(!config.system_profiler_target.value.compare("none")) {
+      profiler_enabled_ = false;
+    } else if(!config.system_profiler_target.value.compare("diagnostics")) {
+      profiler_target_ = eDiagnostics;
+    } else {
+      profiler_target_ = ePath;
       set_profiler_path();
     }
   }

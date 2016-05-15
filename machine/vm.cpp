@@ -89,6 +89,7 @@ namespace rubinius {
     , waiting_object_(this, cNil)
     , profile_(this, nil<Tuple>())
     , profile_sample_count_(0)
+    , profile_sample_interval_(shared.config.system_profiler_interval.value)
     , max_profile_entries_(25)
     , min_profile_sample_count_(0)
     , start_time_(0)
@@ -286,6 +287,11 @@ namespace rubinius {
     metrics().machine.profiles++;
     profile_sample_count_++;
 
+    if(profile_sample_count_ > profile_sample_interval_) {
+      profile_sample_interval_ += state->shared().config.system_profiler_interval.value;
+      report_profile(state);
+    }
+
     CompiledCode* code = state->vm()->call_frame()->compiled_code;
     code->machine_code()->sample_count++;
 
@@ -317,16 +323,9 @@ namespace rubinius {
     }
   }
 
-  void VM::report_profile(STATE) {
-    if(!state->shared().profiler_enabled_p()) return;
-
-    Tuple* profile = profile_.get();
-    if(profile->nil_p()) return;
-
+  void VM::report_profile_file(STATE, Tuple* profile, double total_time) {
     std::ofstream file;
-    file.open(state->shared().profiler_path());
-
-    double total_time = run_time();
+    file.open(state->shared().profiler_path(), std::fstream::out | std::fstream::app);
 
     file << "Profile: thread: " << thread_id()
       << ", samples: " << profile_sample_count_
@@ -358,6 +357,30 @@ namespace rubinius {
 
     file << std::endl;
     file.close();
+  }
+
+  void VM::report_profile_diagnostics(STATE, Tuple* profile, double total_time) {
+
+  }
+
+  void VM::report_profile(STATE) {
+    if(!state->shared().profiler_enabled_p()) return;
+
+    Tuple* profile = profile_.get();
+    if(profile->nil_p()) return;
+
+    double total_time = run_time();
+
+    switch(state->shared().profiler_target()) {
+    case SharedState::ePath:
+      report_profile_file(state, profile, total_time);
+      break;
+    case SharedState::eDiagnostics:
+      report_profile_diagnostics(state, profile, total_time);
+      break;
+    default:
+      return;
+    }
   }
 
   static void suspend_thread() {

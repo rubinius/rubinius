@@ -80,6 +80,13 @@ namespace rubinius {
    */
 
   class SharedState {
+  public:
+    enum ProfilerTarget {
+      eNone,
+      ePath,
+      eDiagnostics
+    };
+
   private:
     ThreadNexus* thread_nexus_;
     InternalThreads* internal_threads_;
@@ -93,7 +100,9 @@ namespace rubinius {
     CApiConstantHandleMap capi_constant_handle_map_;
 
     std::string profiler_path_;
+    ProfilerTarget profiler_target_;
     bool profiler_enabled_;
+
     uint64_t start_time_;
     uint64_t method_count_;
     unsigned int class_count_;
@@ -240,6 +249,10 @@ namespace rubinius {
 
     bool profiler_enabled_p() {
       return profiler_enabled_;
+    }
+
+    ProfilerTarget profiler_target() {
+      return profiler_target_;
     }
 
     Environment* env() const {

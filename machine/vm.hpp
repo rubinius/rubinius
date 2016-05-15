@@ -146,6 +146,7 @@ namespace rubinius {
 
     memory::TypedRoot<Tuple*> profile_;
     uint64_t profile_sample_count_;
+    uint64_t profile_sample_interval_;
     native_int max_profile_entries_;
     native_int min_profile_sample_count_;
 
@@ -420,6 +421,8 @@ namespace rubinius {
 
     void update_profile(STATE);
     void report_profile(STATE);
+    void report_profile_file(STATE, Tuple* profile, double total_time);
+    void report_profile_diagnostics(STATE, Tuple* profile, double total_time);
 
 #define RBX_PROFILE_MAX_SHIFT     0xf
 #define RBX_PROFILE_MAX_INTERVAL  0x1fff
