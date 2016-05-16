@@ -239,7 +239,7 @@ namespace rubinius {
     }
 
     void report_profile(STATE) {
-      if(profiler_) profiler_->report(STATE);
+      if(profiler_) profiler_->report(state);
     }
 
     Environment* env() const {

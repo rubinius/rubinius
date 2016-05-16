@@ -1,48 +1,88 @@
+#include "environment.hpp"
+#include "machine_code.hpp"
 #include "profiler.hpp"
+
+#include "builtin/compiled_code.hpp"
+
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 
 namespace rubinius {
   namespace profiler {
+    ProfilerDiagnostics::ProfilerDiagnostics()
+      : diagnostics::DiagnosticsData()
+    {
+      set_type("Profiler");
 
-    void SharedState::set_profiler_path() {
-      profiler_path_ = config.system_profiler_target.value;
-      env()->expand_config_value(profiler_path_, "$PID", pid.c_str());
+      document.AddMember("thread", 0, document.GetAllocator());
+      document.AddMember("samples", 0, document.GetAllocator());
+      document.AddMember("sample_average_time", 0.0, document.GetAllocator());
+      document.AddMember("total_time", 0.0, document.GetAllocator());
+      document.AddMember("entries", 0, document.GetAllocator());
     }
 
     Profiler::Profiler(STATE)
+      : path_()
+      , target_(eNone)
+      , diagnostics_data_(NULL)
     {
-      profiler_enabled_ = true;
+      std::string& target = state->shared().config.system_profiler_target.value;
 
-      if(!config.system_profiler_target.value.compare("none")) {
-        profiler_enabled_ = false;
-      } else if(!config.system_profiler_target.value.compare("diagnostics")) {
-        profiler_target_ = eDiagnostics;
+      if(!target.compare("none")) {
+        // target_(eNone)
+      } else if(!target.compare("diagnostics")) {
+        target_ = eDiagnostics;
       } else {
-        profiler_target_ = ePath;
-        set_profiler_path();
+        target_ = ePath;
+        set_profiler_path(state);
       }
     }
 
+    void Profiler::set_profiler_path(STATE) {
+      path_ = state->shared().config.system_profiler_target.value;
+      state->shared().env()->expand_config_value(
+          path_, "$PID", state->shared().pid.c_str());
+    }
+
     void Profiler::after_fork_child(STATE) {
-      if(profiler_enabled_p()) {
-        if(config.system_profiler_subprocess.value) {
-          set_profiler_path();
+      if(target_ != eNone) {
+        if(state->shared().config.system_profiler_subprocess.value) {
+          set_profiler_path(state);
         } else {
-          profiler_enabled_ = false;
+          target_ = eNone;
         }
       }
     }
 
-    void VM::report_profile_file(STATE, Tuple* profile, double total_time) {
-      std::ofstream file;
-      file.open(state->shared().profiler_path(), std::fstream::out | std::fstream::app);
+    void Profiler::report(STATE) {
+      switch(target_) {
+      case ePath:
+        report_to_file(state);
+        break;
+      case eDiagnostics:
+        report_to_diagnostics(state);
+        break;
+      default:
+        return;
+      }
+    }
 
-      file << "Profile: thread: " << thread_id()
-        << ", samples: " << profile_sample_count_
-        << ", sample avg time: " << (total_time / profile_sample_count_)
+    void Profiler::report_to_file(STATE) {
+      state->vm()->sort_profile();
+      CompiledCode** profile = state->vm()->profile();
+
+      double total_time = state->vm()->run_time();
+
+      std::ofstream file;
+      file.open(path_, std::fstream::out | std::fstream::app);
+
+      file << "Profile: thread: " << state->vm()->thread_id()
+        << ", samples: " << state->vm()->profile_sample_count()
+        << ", sample avg time: " << (total_time / state->vm()->profile_sample_count()) << "s"
         << ", total time: " << total_time << "s" << std::endl;
 
-      ::qsort(reinterpret_cast<void*>(profile->field), profile->num_fields(),
-          sizeof(intptr_t), profile_compare);
+      state->vm()->sort_profile();
 
       file << std::endl
         << std::setw(5) << "%"
@@ -52,10 +92,13 @@ namespace rubinius {
         << "------------------------------------------------------------"
         << std::endl;
 
-      for(native_int i = 0; i < profile->num_fields(); i++) {
-        if(CompiledCode* code = try_as<CompiledCode>(profile->at(i))) {
+      for(native_int i = 0; i < state->vm()->max_profile_entries(); i++) {
+        if(CompiledCode* code = try_as<CompiledCode>(profile[i])) {
+          double percentage = (double)code->machine_code()->sample_count
+            / state->vm()->profile_sample_count() * 100;
+
           file << std::setw(5) << std::setprecision(1) << std::fixed
-            << ((double)code->machine_code()->sample_count / profile_sample_count_ * 100)
+            << percentage
             << std::setw(10)
             << code->machine_code()->sample_count
             << "  "
@@ -68,29 +111,48 @@ namespace rubinius {
       file.close();
     }
 
-    void VM::report_profile_diagnostics(STATE, Tuple* profile, double total_time) {
+    void Profiler::report_to_diagnostics(STATE) {
+      ProfilerDiagnostics* data = diagnostics_data();
 
-    }
+      state->vm()->sort_profile();
+      CompiledCode** profile = state->vm()->profile();
 
-    void VM::report_profile(STATE) {
-      if(!state->shared().profiler_enabled_p()) return;
+      double total_time = state->vm()->run_time();
+      double sample_avg = total_time / state->vm()->profile_sample_count();
 
-      Tuple* profile = profile_.get();
-      if(profile->nil_p()) return;
+      data->document["thread"] = state->vm()->thread_id();
+      data->document["samples"] = state->vm()->profile_sample_count();
+      data->document["sample_average_time"] = sample_avg;
+      data->document["total_time"] = total_time;
 
-      double total_time = run_time();
+      rapidjson::Value& entries = data->document["entries"];
+      entries.SetArray();
 
-      switch(state->shared().profiler_target()) {
-      case SharedState::ePath:
-        report_profile_file(state, profile, total_time);
-        break;
-      case SharedState::eDiagnostics:
-        report_profile_diagnostics(state, profile, total_time);
-        break;
-      default:
-        return;
+      rapidjson::Document::AllocatorType& allocator = data->document.GetAllocator();
+
+      for(native_int i = 0; i < state->vm()->max_profile_entries(); i++) {
+        if(CompiledCode* code = try_as<CompiledCode>(profile[i])) {
+          rapidjson::Value percentage(
+              (double)code->machine_code()->sample_count
+              / state->vm()->profile_sample_count() * 100);
+
+          rapidjson::Value samples((uint64_t)code->machine_code()->sample_count);
+
+          rapidjson::Value description;
+          description.SetString(code->machine_code()->description()->c_str(), allocator);
+
+          rapidjson::Value row = rapidjson::Value();
+          row.SetArray();
+
+          row.PushBack(percentage, allocator);
+          row.PushBack(samples, allocator);
+          row.PushBack(description, allocator);
+
+          data->document["entries"].PushBack(row, allocator);
+        }
       }
+
+      state->shared().report_diagnostics(data);
     }
-    
   }
 }

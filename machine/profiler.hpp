@@ -1,9 +1,13 @@
 #ifndef RBX_PROFILER_H
 #define RBX_PROFILER_H
 
+#include "defines.hpp"
+#include "diagnostics.hpp"
+
 namespace rubinius {
   namespace profiler {
     class ProfilerDiagnostics : public diagnostics::DiagnosticsData {
+    public:
       ProfilerDiagnostics();
       virtual ~ProfilerDiagnostics() { }
     };
@@ -17,26 +21,29 @@ namespace rubinius {
     class Profiler {
       std::string path_;
       ProfilerTarget target_;
-      bool report_;
+      ProfilerDiagnostics* diagnostics_data_;
 
     public:
+      Profiler(STATE);
 
-    void report_profile(STATE);
-    void report_profile_file(STATE, Tuple* profile, double total_time);
-    void report_profile_diagnostics(STATE, Tuple* profile, double total_time);
+      virtual ~Profiler() {
+        if(diagnostics_data_) delete diagnostics_data_;
+      }
 
-    std::string& profiler_path() {
-      return profiler_path_;
-    }
+      ProfilerDiagnostics* diagnostics_data() {
+        if(!diagnostics_data_) {
+          diagnostics_data_ = new ProfilerDiagnostics();
+        }
 
-    bool profiler_enabled_p() {
-      return profiler_enabled_;
-    }
+        return diagnostics_data_;
+      }
 
-    ProfilerTarget profiler_target() {
-      return profiler_target_;
-    }
-    void set_profiler_path();
+      void set_profiler_path(STATE);
+
+      void report(STATE);
+      void report_to_file(STATE);
+      void report_to_diagnostics(STATE);
+
       void after_fork_child(STATE);
     };
   }

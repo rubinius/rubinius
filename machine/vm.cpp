@@ -80,7 +80,7 @@ namespace rubinius {
     , thread_phase_(ThreadNexus::cUnmanaged)
     , profile_interval_(0)
     , profile_counter_(0)
-    , profile_(this, nil<Tuple>())
+    , profile_(NULL)
     , profile_sample_count_(0)
     , profile_report_interval_(shared.config.system_profiler_interval.value)
     , max_profile_entries_(25)
@@ -102,12 +102,19 @@ namespace rubinius {
       local_slab_.refill(0, 0);
     }
 
+    profile_ = new CompiledCode*[max_profile_entries_];
+    for(native_int i = 0; i < max_profile_entries_; i++) {
+      profile_[i] = nil<CompiledCode>();
+    }
+
     set_profile_interval();
 
     allocation_tracking_ = shared.config.allocation_tracking;
   }
 
   VM::~VM() {
+    if(profile_) delete[] profile_;
+
     delete park_;
   }
 
@@ -281,6 +288,11 @@ namespace rubinius {
     }
   }
 
+  void VM::sort_profile() {
+    ::qsort(reinterpret_cast<void*>(profile_), max_profile_entries_,
+        sizeof(intptr_t), profile_compare);
+  }
+
   void VM::update_profile(STATE) {
     timer::StopWatch<timer::nanoseconds> timer(metrics().machine.profile_ns);
 
@@ -299,26 +311,18 @@ namespace rubinius {
       return;
     }
 
-    Tuple* profile = profile_.get();
-
-    if(profile->nil_p()) {
-      profile = Tuple::create(state, max_profile_entries_);
-      profile_.set(profile);
+    for(native_int i = 0; i < max_profile_entries_; i++) {
+      if(code == profile_[i]) return;
     }
 
-    for(native_int i = 0; i < profile->num_fields(); i++) {
-      if(code == profile->at(i)) return;
-    }
+    sort_profile();
 
-    ::qsort(reinterpret_cast<void*>(profile->field), profile->num_fields(),
-        sizeof(intptr_t), profile_compare);
-
-    CompiledCode* pcode = try_as<CompiledCode>(profile->at(0));
+    CompiledCode* pcode = try_as<CompiledCode>(profile_[0]);
     if(!pcode || (pcode &&
           code->machine_code()->sample_count > pcode->machine_code()->sample_count))
     {
       code->machine_code()->set_description(state);
-      profile->put(state, 0, code);
+      profile_[0] = code;
       min_profile_sample_count_ = code->machine_code()->sample_count;
     }
   }
@@ -588,6 +592,12 @@ namespace rubinius {
 
   void VM::gc_scan(memory::GarbageCollector* gc) {
     gc->walk_call_frame(call_frame_);
+
+    for(native_int i = 0; i < max_profile_entries_; i++) {
+      if(!profile_[i]->nil_p()) {
+        profile_[i] = force_as<CompiledCode>(gc->mark_object(profile_[i]));
+      }
+    }
   }
 
   void VM::gc_fiber_clear_mark() {

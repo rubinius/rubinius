@@ -49,29 +49,30 @@ namespace rubinius {
     class WriteBarrier;
   }
 
+  class Assertion;
+  class CallSiteInformation;
   class Channel;
+  class CompiledCode;
+  class ConfigParser;
+  class Configuration;
+  class Fiber;
   class GlobalCache;
-  class Primitives;
+  class LookupTable;
   class Memory;
-  class TypeInfo;
+  class NativeMethodEnvironment;
+  class Object;
+  class Park;
+  class Primitives;
+  class SharedState;
   class String;
   class Symbol;
-  class ConfigParser;
-  class TypeError;
-  class Tuple;
-  class Assertion;
-  struct CallFrame;
-  class CallSiteInformation;
-  class Object;
-  class Configuration;
-  class VMManager;
-  class LookupTable;
   class SymbolTable;
-  class SharedState;
-  class Fiber;
-  class Park;
-  class NativeMethodEnvironment;
+  class Tuple;
+  class TypeError;
+  class TypeInfo;
   class VariableScope;
+
+  struct CallFrame;
 
   enum MethodMissingReason {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
@@ -126,7 +127,7 @@ namespace rubinius {
 
     uint32_t profile_interval_;
     uint32_t profile_counter_;
-    memory::TypedRoot<Tuple*> profile_;
+    CompiledCode** profile_;
     uint64_t profile_sample_count_;
     uint64_t profile_report_interval_;
     native_int max_profile_entries_;
@@ -418,7 +419,20 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
+    native_int max_profile_entries() {
+      return max_profile_entries_;
+    }
+
+    uint64_t profile_sample_count() {
+      return profile_sample_count_;
+    }
+
+    CompiledCode** profile() {
+      return profile_;
+    }
+
     void update_profile(STATE);
+    void sort_profile();
 
 #define RBX_PROFILE_MAX_SHIFT     0xf
 #define RBX_PROFILE_MAX_INTERVAL  0x1fff
