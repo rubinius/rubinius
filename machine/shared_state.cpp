@@ -36,9 +36,7 @@ namespace rubinius {
     , console_(NULL)
     , metrics_(NULL)
     , diagnostics_(NULL)
-    , profiler_path_()
-    , profiler_target_(eNone)
-    , profiler_enabled_(false)
+    , profiler_(NULL)
     , start_time_(get_current_time())
     , method_count_(1)
     , class_count_(1)
@@ -92,6 +90,16 @@ namespace rubinius {
     if(metrics_) {
       delete metrics_;
       metrics_ = 0;
+    }
+
+    if(profiler_) {
+      delete profiler_;
+      profiler_ = 0;
+    }
+
+    if(diagnostics_) {
+      delete diagnostics_;
+      diagnostics_ = 0;
     }
 
     delete global_cache;
@@ -166,22 +174,12 @@ namespace rubinius {
     return diagnostics_;
   }
 
-  void SharedState::set_profiler_path() {
-    profiler_path_ = config.system_profiler_target.value;
-    env()->expand_config_value(profiler_path_, "$PID", pid.c_str());
-  }
-
-  void SharedState::start_profiler(STATE) {
-    profiler_enabled_ = true;
-
-    if(!config.system_profiler_target.value.compare("none")) {
-      profiler_enabled_ = false;
-    } else if(!config.system_profiler_target.value.compare("diagnostics")) {
-      profiler_target_ = eDiagnostics;
-    } else {
-      profiler_target_ = ePath;
-      set_profiler_path();
+  profiler::Profiler* SharedState::start_profiler(STATE) {
+    if(!profiler_) {
+      profiler_ = new profiler::Profiler(state);
     }
+
+    return profiler_;
   }
 
   void SharedState::after_fork_child(STATE) {
@@ -202,14 +200,7 @@ namespace rubinius {
     om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
-
-    if(profiler_enabled_p()) {
-      if(config.system_profiler_subprocess.value) {
-        set_profiler_path();
-      } else {
-        profiler_enabled_ = false;
-      }
-    }
+    profiler_->after_fork_child(state);
   }
 
   const unsigned int* SharedState::object_memory_mark_address() const {

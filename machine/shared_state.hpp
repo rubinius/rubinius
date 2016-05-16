@@ -9,6 +9,7 @@
 #include "internal_threads.hpp"
 #include "diagnostics.hpp"
 #include "globals.hpp"
+#include "profiler.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
 
@@ -80,13 +81,6 @@ namespace rubinius {
    */
 
   class SharedState {
-  public:
-    enum ProfilerTarget {
-      eNone,
-      ePath,
-      eDiagnostics
-    };
-
   private:
     ThreadNexus* thread_nexus_;
     InternalThreads* internal_threads_;
@@ -95,13 +89,10 @@ namespace rubinius {
     console::Console* console_;
     metrics::Metrics* metrics_;
     diagnostics::Diagnostics* diagnostics_;
+    profiler::Profiler* profiler_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
-
-    std::string profiler_path_;
-    ProfilerTarget profiler_target_;
-    bool profiler_enabled_;
 
     uint64_t start_time_;
     uint64_t method_count_;
@@ -241,18 +232,14 @@ namespace rubinius {
       }
     }
 
-    void start_profiler(STATE);
-    void set_profiler_path();
-    std::string& profiler_path() {
-      return profiler_path_;
+    profiler::Profiler* start_profiler(STATE);
+
+    profiler::Profiler* profiler() const {
+      return profiler_;
     }
 
-    bool profiler_enabled_p() {
-      return profiler_enabled_;
-    }
-
-    ProfilerTarget profiler_target() {
-      return profiler_target_;
+    void report_profile(STATE) {
+      if(profiler_) profiler_->report(STATE);
     }
 
     Environment* env() const {

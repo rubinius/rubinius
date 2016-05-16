@@ -126,6 +126,11 @@ namespace rubinius {
 
     uint32_t profile_interval_;
     uint32_t profile_counter_;
+    memory::TypedRoot<Tuple*> profile_;
+    uint64_t profile_sample_count_;
+    uint64_t profile_report_interval_;
+    native_int max_profile_entries_;
+    native_int min_profile_sample_count_;
 
   public:
     /* Data members */
@@ -143,12 +148,6 @@ namespace rubinius {
 
     /// Object that waits for inflation
     memory::TypedRoot<Object*> waiting_object_;
-
-    memory::TypedRoot<Tuple*> profile_;
-    uint64_t profile_sample_count_;
-    uint64_t profile_sample_interval_;
-    native_int max_profile_entries_;
-    native_int min_profile_sample_count_;
 
     uint64_t start_time_;
 
@@ -420,9 +419,6 @@ namespace rubinius {
     void collect_maybe(STATE);
 
     void update_profile(STATE);
-    void report_profile(STATE);
-    void report_profile_file(STATE, Tuple* profile, double total_time);
-    void report_profile_diagnostics(STATE, Tuple* profile, double total_time);
 
 #define RBX_PROFILE_MAX_SHIFT     0xf
 #define RBX_PROFILE_MAX_INTERVAL  0x1fff
