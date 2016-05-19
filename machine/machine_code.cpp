@@ -23,7 +23,6 @@
 
 #include "instructions.hpp"
 
-#include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 
 #include "raise_reason.hpp"
@@ -34,10 +33,6 @@
 
 #ifdef RBX_WINDOWS
 #include <malloc.h>
-#endif
-
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
 #endif
 
 /*
@@ -63,13 +58,14 @@ namespace rubinius {
     , splat_position(-1)
     , stack_size(code->stack_size()->to_native())
     , number_of_locals(code->number_of_locals())
+    , sample_count(0)
     , call_count(0)
-    , loop_count(0)
     , uncommon_count(0)
     , _call_site_count_(0)
     , _constant_cache_count_(0)
     , _references_count_(0)
     , _references_(NULL)
+    , _description_(NULL)
     , unspecialized(NULL)
     , fallback(NULL)
     , execute_status_(eInterpret)
@@ -78,10 +74,6 @@ namespace rubinius {
     , debugging(false)
     , flags(0)
   {
-    if(state->shared().tool_broker()->tooling_interpreter_p()) {
-      run = MachineCode::tooling_interpreter;
-    }
-
     if(keywords) {
       keywords_count = code->keywords()->num_fields() / 2;
     }
@@ -94,16 +86,9 @@ namespace rubinius {
       splat_position = pos->to_native();
     }
 
-    // Disable JIT for large methods
-    if(state->shared().config.jit_disabled ||
-        total > (size_t)state->shared().config.jit_limit_method_size) {
-      call_count = -1;
-    }
-
     for(int i = 0; i < cMaxSpecializations; i++) {
       specializations[i].class_data.raw = 0;
       specializations[i].execute = 0;
-      specializations[i].jit_data = 0;
     }
 
     state->shared().om->add_code_resource(state, this);
@@ -121,6 +106,8 @@ namespace rubinius {
 #endif
       delete[] references();
     }
+
+    if(description()) delete description();
   }
 
   int MachineCode::size() {
@@ -341,6 +328,34 @@ namespace rubinius {
     atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
     state->memory()->write_barrier(code, constant_cache);
+  }
+
+  void MachineCode::set_description(STATE) {
+    if(description()) return;
+
+    CallFrame* call_frame = state->vm()->call_frame();
+
+    Class* klass = call_frame->self()->class_object(state);
+    Module* method_module = call_frame->module();
+
+    std::string* desc = new std::string();
+
+    if(kind_of<SingletonClass>(method_module)) {
+      desc->append(method_module->debug_str(state));
+      desc->append(".");
+    } else if(method_module != klass) {
+      desc->append(method_module->debug_str(state));
+      desc->append("(");
+      desc->append(klass->debug_str(state));
+      desc->append(")");
+    } else {
+      desc->append(klass->debug_str(state));
+      desc->append("#");
+    }
+
+    desc->append(name()->cpp_str(state));
+
+    description(desc);
   }
 
   // Argument handler implementations
@@ -762,7 +777,6 @@ namespace rubinius {
       call_frame->dispatch_data = NULL;
       call_frame->compiled_code = code;
       call_frame->flags = 0;
-      call_frame->optional_jit_data = NULL;
       call_frame->top_scope_ = NULL;
       call_frame->scope = scope;
       call_frame->arguments = &args;
@@ -771,42 +785,13 @@ namespace rubinius {
         return NULL;
       }
 
-#ifdef ENABLE_LLVM
-      // A negative call_count means we've disabled usage based JIT
-      // for this method.
-      if(mcode->call_count >= 0) {
-        if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
-          OnStack<3> os(state, exec, mod, code);
-
-          G(jit)->compile_callframe(state, code);
-        } else {
-          mcode->call_count++;
-        }
-      }
-#endif
+      mcode->call_count++;
 
       Object* value = 0;
 
-#ifdef RBX_PROFILER
-      if(unlikely(state->vm()->tooling())) {
-        // Check the stack and interrupts here rather than in the interpreter
-        // loop itself.
-        OnStack<2> os(state, exec, code);
-        tooling::MethodEntry method(state, exec, scope->module(), args, code);
-
-        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-        value = (*mcode->run)(state, mcode);
-        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
-      } else {
-        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
-        value = (*mcode->run)(state, mcode);
-        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
-      }
-#else
       RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name());
       value = (*mcode->run)(state, mcode);
       RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
-#endif
 
       if(!state->vm()->pop_call_frame(state, previous_frame)) {
         return NULL;
@@ -844,7 +829,6 @@ namespace rubinius {
     call_frame->dispatch_data = 0;
     call_frame->compiled_code = code;
     call_frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;
-    call_frame->optional_jit_data = 0;
     call_frame->top_scope_ = 0;
     call_frame->scope = scope;
     call_frame->arguments = &args;
@@ -869,15 +853,13 @@ namespace rubinius {
 
   // If +disable+ is set, then the method is tagged as not being
   // available for JIT.
-  void MachineCode::deoptimize(STATE, CompiledCode* original,
-                            jit::RuntimeDataHolder* rd,
-                            bool disable)
+  void MachineCode::deoptimize(STATE, CompiledCode* original, bool disable)
   {
-#ifdef ENABLE_LLVM
     G(jit)->start_method_update(state);
 
     bool still_others = false;
 
+    /* TODO: JIT
     for(int i = 0; i < cMaxSpecializations; i++) {
       if(!rd) {
         specializations[i].class_data.raw = 0;
@@ -898,6 +880,7 @@ namespace rubinius {
     }
 
     if(original->jit_data()) still_others = true;
+    */
 
     if(!still_others) {
       execute_status_ = eInterpret;
@@ -926,7 +909,6 @@ namespace rubinius {
     }
 
     G(jit)->end_method_update(state);
-#endif
   }
 
   /*

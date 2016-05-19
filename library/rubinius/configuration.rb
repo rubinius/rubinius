@@ -46,85 +46,6 @@ Rubinius::ConfigurationVariables.define do |c|
       "How many bytes allocated by C extensions til the GC is run"
   end
 
-  c.section "jit" do |s|
-    s.vm_variable "dump_code", 0,
-      "1 == show simple IR, 2 == show optimized IR, 4 == show machine code"
-
-    s.section "threshold" do |t|
-      t.vm_variable "compile", 32000,
-        "Number of method calls that trigger the JIT compiler"
-
-      t.vm_variable "inline", 8000,
-        "Number of method calls that trigger inlining the method"
-    end
-
-    s.section "limit" do |l|
-      l.vm_variable "deoptimize", 500,
-        "Number of times the JIT assumptions are false before a method is deoptimized"
-
-      l.vm_variable "overflow", 5000,
-        "Number of times the inline cache overflows before emitting a send from the JIT to call the method"
-
-      l.vm_variable "method_size", 5000,
-        "The maximum size of a method that will be JIT compiled"
-
-      l.vm_variable "search", 5,
-        "The maximum depth to search for an inlininging target"
-
-      l.section "inline" do |i|
-        i.vm_variable "method", 200,
-          "The maximum size of a method to be considered for inlining"
-
-        i.vm_variable "small", 2000,
-          "The maximum total inlining budget size for a small method"
-
-        i.vm_variable "normal", 3000,
-          "The maximum total inlining budget for a normal method"
-
-        i.vm_variable "large", 5000,
-          "The maximum total inlining budget for a large method"
-      end
-    end
-
-    s.vm_variable "show", false,
-      :as => "jit_show_compiling",
-      :description => "Print out a status message when the JIT is operating"
-
-    s.vm_variable "profile", false,
-      "The JIT will emit code to be sure JITd methods can be profiled"
-
-    s.section "inline" do |i|
-      i.vm_variable "generic", false, "Have the JIT inline generic methods"
-
-      i.vm_variable "blocks", false,
-        "Have the JIT try to inline methods and their literal blocks"
-
-      i.vm_variable "debug", false,
-        "Have the JIT print out information about inlining"
-    end
-
-    s.vm_variable "log", :string,
-      "Send JIT debugging output to this file rather than stdout"
-
-    s.vm_variable "debug", false,
-      "Have the JIT print debugging information"
-
-    s.vm_variable "sync", false,
-      "Wait for the JIT to finish compiling each method"
-
-    s.vm_variable "uncommon.print", false,
-      "Print out information on when methods are deoptimized due to uncommon traps"
-
-    s.vm_variable "removal.print", false,
-      "Print out whenever the JIT is removing unused code"
-
-    s.vm_variable "check_debugging", false,
-      "Allow JITd methods to deoptimize if there is a debugging request"
-
-    s.vm_variable "type.optz", true,
-      "Enable optimizations based on type flow"
-  end
-
   c.section "fiber" do |s|
     s.vm_variable "stacks", 10,
       "The number of stacks in each Threads stack pool"
@@ -144,10 +65,6 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "lock", false,
       "Lock around using CAPI methods"
   end
-
-  c.vm_variable "int", true,
-    :as => "jit_disabled",
-    :description => "Force the JIT to never turn on"
 
   c.vm_variable "config.print", 0,
     :as => "print_config",
@@ -182,38 +99,60 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "tmp", "$TMPDIR",
       "Default temp/fallback directory for the process"
 
-    s.vm_variable "console.path", "$TMPDIR/$PROGRAM_NAME-$USER-console",
-      "Path for Rubinius Console connection file"
+    s.section "console" do |c|
+      c.vm_variable "path", "$TMPDIR/$PROGRAM_NAME-$USER-console",
+        "Path for Rubinius Console connection file"
 
-    s.vm_variable "console.access", 0660,
-      "Permissions on the Rubinius Console connection file"
+      c.vm_variable "access", 0660,
+        "Permissions on the Rubinius Console connection file"
+    end
 
     s.vm_variable "log", "$TMPDIR/$PROGRAM_NAME-$USER.log",
       "Logging facility to use: 'syslog', 'console', or path"
 
-    s.vm_variable "log.limit", (10 * 1024 * 1024),
-      "The maximum size of the log file before log rotation is performed"
+    s.section "log" do |l|
+      l.vm_variable "limit", (10 * 1024 * 1024),
+        "The maximum size of the log file before log rotation is performed"
 
-    s.vm_variable "log.archives", 5,
-      "The number of prior logs that will be saved as '$(system.log).N.Z' zip files"
+      l.vm_variable "archives", 5,
+        "The number of prior logs that will be saved as '$(system.log).N.Z' zip files"
 
-    s.vm_variable "log.access", 0600,
-      "Permissions on the log file"
+      l.vm_variable "access", 0600,
+        "Permissions on the log file"
 
-    s.vm_variable "log.level", "warn",
-      "Logging level: fatal, error, warn, info, debug"
+      l.vm_variable "level", "warn",
+        "Logging level: fatal, error, warn, info, debug"
+    end
 
-    s.vm_variable "metrics.interval", 10000,
-      "Number of milliseconds between aggregation of VM metrics"
+    s.section "metrics" do |m|
+      m.vm_variable "interval", 10000,
+        "Number of milliseconds between aggregation of VM metrics"
 
-    s.vm_variable "metrics.target", "none",
-      "Location to send metrics every interval: 'statsd', path"
+      m.vm_variable "target", "none",
+        "Location to send metrics every interval: 'statsd', path"
 
-    s.vm_variable "metrics.statsd.server", "localhost:8125",
-      "The [host:]port of the StatsD server"
+      m.vm_variable "statsd.server", "localhost:8125",
+        "The [host:]port of the StatsD server"
 
-    s.vm_variable "metrics.statsd.prefix", "host.$nodename.$pid.app.rbx",
-      "Prefix for StatsD metric names"
+      m.vm_variable "statsd.prefix", "host.$nodename.$pid.app.rbx",
+        "Prefix for StatsD metric names"
+    end
+
+    s.section "diagnostics" do |d|
+      d.vm_variable "target", "none",
+        "Location to send diagnostics: host:port, path"
+    end
+
+    s.section "profiler" do |p|
+      p.vm_variable "target", "none",
+        "Location to send profiler output: 'diagnostics', path"
+
+      p.vm_variable "interval", 10000,
+        "Report profiler results every N samples"
+
+      p.vm_variable "subprocess", false,
+        "Enable profiling in subprocesses created by fork"
+    end
   end
 end
 

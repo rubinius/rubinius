@@ -1,6 +1,7 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
+#include "diagnostics.hpp"
 #include "metrics.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
@@ -23,8 +24,6 @@
 #include "builtin/tuple.hpp"
 
 #include "dtrace/dtrace.h"
-
-#include "instruments/tooling.hpp"
 
 #include "logger.hpp"
 
@@ -328,6 +327,8 @@ namespace rubinius {
 
     state->shared().start_console(state);
     state->shared().start_metrics(state);
+    state->shared().start_diagnostics(state);
+    state->shared().start_profiler(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
@@ -360,6 +361,7 @@ namespace rubinius {
 
     vm->set_stack_bounds(THREAD_STACK_SIZE);
     vm->set_current_thread();
+    vm->set_start_time();
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
@@ -374,13 +376,13 @@ namespace rubinius {
 
     state->vm()->become_managed();
 
-    vm->shared.tool_broker()->thread_start(state);
     Object* value = vm->thread->function()(state);
     vm->set_call_frame(NULL);
-    vm->shared.tool_broker()->thread_stop(state);
 
     vm->thread->join_lock_.lock();
     vm->thread->stopped();
+
+    state->shared().report_profile(state);
 
     memory::LockedObjects& locked_objects = state->vm()->locked_objects();
     for(memory::LockedObjects::iterator i = locked_objects.begin();
@@ -396,7 +398,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    logger::write("exit thread: %s", vm->name().c_str());
+    logger::write("exit thread: %s %fs", vm->name().c_str(), vm->run_time());
 
     vm->become_unmanaged();
 

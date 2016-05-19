@@ -46,16 +46,11 @@ namespace rubinius {
   private:
     attr_field(machine_code, MachineCode*);
 
-#ifdef ENABLE_LLVM
-    attr_field(jit_data, jit::RuntimeDataHolder*);
-#endif
-
   public:
     attr_accessor(literals, Tuple)
 
     bool can_specialize_p();
-    void set_unspecialized(executor exec, jit::RuntimeDataHolder* rd);
-    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec, jit::RuntimeDataHolder* rd);
+    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec);
     executor find_specialized(Class* cls);
 
     /* interface */
@@ -81,10 +76,6 @@ namespace rubinius {
       obj-> arity(nil<Fixnum>());
       obj-> breakpoints(nil<LookupTable>());
       obj-> machine_code(NULL);
-
-#ifdef ENABLE_LLVM
-      obj->jit_data(NULL);
-#endif
 
       obj->literals(nil<Tuple>());
     }
@@ -135,6 +126,9 @@ namespace rubinius {
 
     // Rubinius.primitive :compiledcode_jitted_p
     Object* jitted_p(STATE);
+
+    // Rubinius.primitive :compiledcode_sample_count
+    Fixnum* sample_count(STATE);
 
     String* full_name(STATE);
 

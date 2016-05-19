@@ -24,8 +24,6 @@
 
 #include "dtrace/dtrace.h"
 
-#include "instruments/tooling.hpp"
-
 namespace rubinius {
 
   void NativeFunction::bootstrap(STATE) {
@@ -70,26 +68,10 @@ namespace rubinius {
 
     try {
       OnStack<2> os(state, exec, mod);
-#ifdef RBX_PROFILER
-      if(unlikely(state->vm()->tooling())) {
-        tooling::MethodEntry method(state, exec, mod, args);
-        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name());
-        Object* ret = nfunc->call(state, args);
-        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name());
-        return ret;
-      } else {
-        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name());
-        Object* ret = nfunc->call(state, args);
-        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name());
-        return ret;
-      }
-#else
       RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name());
       Object* ret = nfunc->call(state, args);
       RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name());
       return ret;
-#endif
-
     } catch(TypeError &e) {
       Exception* exc =
         Exception::make_type_error(state, e.type, e.object, e.reason);

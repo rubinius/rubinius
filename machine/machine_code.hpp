@@ -13,11 +13,9 @@
 #include "builtin/compiled_code.hpp"
 #include "memory/code_resource.hpp"
 
-#ifdef ENABLE_LLVM
 namespace llvm {
   class Function;
 }
-#endif
 
 namespace rubinius {
   typedef uintptr_t opcode;
@@ -44,7 +42,6 @@ namespace rubinius {
     struct Specialization {
       ClassData class_data;
       executor execute;
-      jit::RuntimeDataHolder* jit_data;
     };
 
     enum ExecuteStatus {
@@ -72,14 +69,15 @@ namespace rubinius {
     native_int stack_size;
     native_int number_of_locals;
 
+    native_int sample_count;
     native_int call_count;
-    native_int loop_count;
     native_int uncommon_count;
 
     attr_field(call_site_count, size_t);
     attr_field(constant_cache_count, size_t);
     attr_field(references_count, size_t);
     attr_field(references, size_t*);
+    attr_field(description, std::string*);
 
     Specialization specializations[cMaxSpecializations];
     executor unspecialized;
@@ -143,10 +141,6 @@ namespace rubinius {
       flags |= eNoInline;
     }
 
-    native_int method_call_count() const {
-      return call_count - loop_count;
-    }
-
     CallSite* call_site(STATE, int ip);
     ConstantCache* constant_cache(STATE, int ip);
 
@@ -155,6 +149,8 @@ namespace rubinius {
 
     void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
+
+    void set_description(STATE);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     static Object* execute(STATE, Executable* exec, Module* mod, Arguments& args);
@@ -189,11 +185,8 @@ namespace rubinius {
 
     static Object* uncommon_interpreter(STATE, MachineCode* const mcode,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,
-      CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
-      UnwindInfoSet& unwinds,
+      CallFrame* const method_call_frame, UnwindInfoSet& unwinds,
       bool force_deoptimization);
-
-    static Object* tooling_interpreter(STATE, MachineCode* const mcode);
 
     void setup_argument_handler();
 
@@ -201,8 +194,7 @@ namespace rubinius {
 
     void fill_opcodes(STATE, CompiledCode* original);
 
-    void deoptimize(STATE, CompiledCode* original, jit::RuntimeDataHolder* rd,
-                    bool disable=false);
+    void deoptimize(STATE, CompiledCode* original, bool disable=false);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

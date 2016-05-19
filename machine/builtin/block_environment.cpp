@@ -1,7 +1,6 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-#include "instruments/tooling.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "memory.hpp"
@@ -20,10 +19,6 @@
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
-
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
 
 #include <iostream>
 
@@ -75,11 +70,9 @@ namespace rubinius {
 
     state->vm()->metrics().machine.blocks_invoked++;
 
-#ifdef ENABLE_LLVM
     if(executor ptr = mcode->unspecialized) {
       return (*((BlockExecutor)ptr))(state, env, args, invocation);
     }
-#endif
 
     return execute_interpreter(state, env, args, invocation);
   }
@@ -390,18 +383,7 @@ namespace rubinius {
       return 0;
     }
 
-#ifdef ENABLE_LLVM
-    if(mcode->call_count >= 0) {
-      if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
-        OnStack<1> os(state, env);
-
-        G(jit)->compile_soon(state, env->compiled_code(),
-            invocation.self->direct_class(state), env, true);
-      } else {
-        mcode->call_count++;
-      }
-    }
-#endif
+    mcode->call_count++;
 
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
 
@@ -440,7 +422,6 @@ namespace rubinius {
     call_frame->dispatch_data = env;
     call_frame->compiled_code = env->compiled_code();
     call_frame->scope = scope;
-    call_frame->optional_jit_data = NULL;
     call_frame->top_scope_ = env->top_scope();
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
@@ -451,25 +432,7 @@ namespace rubinius {
 
     Object* value = NULL;
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->vm()->tooling())) {
-      Module* mod = scope->module();
-      if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-        if(Module* ma = try_as<Module>(sc->singleton())) {
-          mod = ma;
-        }
-      }
-
-      OnStack<2> os(state, env, mod);
-
-      tooling::BlockEntry method(state, env, mod);
-      value = (*mcode->run)(state, mcode);
-    } else {
-      value = (*mcode->run)(state, mcode);
-    }
-#else
     value = (*mcode->run)(state, mcode);
-#endif
 
     if(!state->vm()->pop_call_frame(state, previous_frame)) {
       return NULL;

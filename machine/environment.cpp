@@ -7,7 +7,6 @@
 #include "compiled_file.hpp"
 #include "memory.hpp"
 #include "exception.hpp"
-#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
@@ -24,23 +23,11 @@
 
 #include "logger.hpp"
 
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#if RBX_LLVM_API_VER == 208
-#include <llvm/System/Threading.h>
-#elif RBX_LLVM_API_VER == 209
-#include <llvm/Support/Threading.h>
-#endif
-#include <llvm/Support/ManagedStatic.h>
-#endif
-
 #include "memory/immix_marker.hpp"
 #include "memory/finalizer.hpp"
 
 #include "signal.hpp"
 #include "object_utils.hpp"
-
-#include "instruments/tooling.hpp"
 
 #include "on_stack.hpp"
 
@@ -86,14 +73,6 @@ namespace rubinius {
     , finalizer_thread_(NULL)
     , loader_(NULL)
   {
-#ifdef ENABLE_LLVM
-#if RBX_LLVM_API_VER < 305
-    if(!llvm::llvm_start_multithreaded()) {
-      assert(0 && "llvm doesn't support threading!");
-    }
-#endif
-#endif
-
     String::init_hash();
 
     copy_argv(argc, argv);
@@ -185,13 +164,13 @@ namespace rubinius {
   void Environment::start_jit(STATE) {
     utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
 
+    /* TODO: JIT
     if(state->shared().config.jit_disabled) return;
 
-#ifdef ENABLE_LLVM
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
-#endif
+    */
   }
 
   void Environment::stop_logging(STATE) {
@@ -201,25 +180,18 @@ namespace rubinius {
   void Environment::stop_jit(STATE) {
     utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
 
+    /* TODO: JIT
     if(state->shared().config.jit_disabled) return;
 
-#ifdef ENABLE_LLVM
     if(state->shared().llvm_state) {
       state->shared().llvm_state->stop(state);
     }
-
-    llvm::llvm_shutdown();
-#endif
+    */
   }
 
   void Environment::start_finalizer(STATE) {
     finalizer_thread_ = new memory::FinalizerThread(state);
     finalizer_thread_->start(state);
-  }
-
-  void Environment::start_diagnostics(STATE) {
-    diagnostics_ = new diagnostics::SystemDiagnostics(
-        state->shared().memory()->diagnostics());
   }
 
   void Environment::start_logging(STATE) {
@@ -587,9 +559,8 @@ namespace rubinius {
   void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-    logger::write("exit process: %s %d", shared->pid.c_str(), exit_code);
-
-    state->shared().tool_broker()->shutdown(state);
+    logger::write("exit process: %s %d %fs",
+        shared->pid.c_str(), exit_code, shared->run_time());
 
     if(Memory* om = state->memory()) {
       if(memory::ImmixMarker* im = om->immix_marker()) {
@@ -637,44 +608,6 @@ namespace rubinius {
     } catch(RubyException& exc) {
       exc.show(state);
       exit(1);
-    }
-  }
-
-  void Environment::load_tool() {
-    if(!state->shared().config.tool_to_load.set_p()) return;
-    std::string path = std::string(state->shared().config.tool_to_load.value) + ".";
-
-#ifdef _WIN32
-    path += "dll";
-#else
-  #ifdef __APPLE_CC__
-    path += "bundle";
-  #else
-    path += "so";
-  #endif
-#endif
-
-    void* handle = dlopen(path.c_str(), RTLD_NOW);
-    if(!handle) {
-      path = std::string(RBX_LIB_PATH) + "/" + path;
-
-      handle = dlopen(path.c_str(), RTLD_NOW);
-      if(!handle) {
-        std::cerr << "Unable to load tool '" << path << "': " << dlerror() << "\n";
-        return;
-      }
-    }
-
-    void* sym = dlsym(handle, "Tool_Init");
-    if(!sym) {
-      std::cerr << "Failed to initialize tool '" << path << "': " << dlerror() << "\n";
-    } else {
-      typedef int (*init_func)(rbxti::Env* env);
-      init_func init = (init_func)sym;
-
-      if(!init(state->vm()->tooling_env())) {
-        std::cerr << "Tool '" << path << "' reported failure to init.\n";
-      }
     }
   }
 
@@ -806,14 +739,11 @@ namespace rubinius {
 
     state->vm()->bootstrap_ontology(state);
 
-    start_diagnostics(state);
     start_finalizer(state);
 
     load_argv(argc_, argv_);
 
     state->vm()->initialize_config();
-
-    load_tool();
 
     start_jit(state);
 

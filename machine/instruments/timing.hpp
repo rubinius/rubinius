@@ -53,14 +53,18 @@ static inline uint64_t get_current_time() {
 
 namespace timer {
 
-  static inline double time_as_double() {
-    return (double)get_current_time() * 1000000000;
-  }
-
   const int nanoseconds = 1;
   const int microseconds = 1000;
   const int milliseconds = 1000000;
   const int seconds = 1000000000;
+
+  static inline double time_elapsed_seconds(uint64_t start_time) {
+    return (double)(get_current_time() - start_time) / seconds;
+  }
+
+  static inline double time_as_double() {
+    return (double)get_current_time() * 1000000000;
+  }
 
   template <int factor=milliseconds>
   class StopWatch {

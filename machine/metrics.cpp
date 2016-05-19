@@ -6,7 +6,6 @@
 #include "object_utils.hpp"
 #include "shared_state.hpp"
 #include "configuration.hpp"
-#include "system_diagnostics.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/class.hpp"
@@ -15,10 +14,6 @@
 #include "builtin/lookup_table.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
-
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
 
 #include "memory/managed.hpp"
 
@@ -79,7 +74,7 @@ namespace rubinius {
     }
 
     void FileEmitter::initialize() {
-      if(!(fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660))) {
+      if((fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660)) < 0) {
         logger::error("%s: unable to open metrics file", strerror(errno));
       }
 
@@ -398,6 +393,10 @@ namespace rubinius {
             "machine.bytecode.verifier.us", metrics_data_.machine.bytecode_verifier_us));
       metrics_map_.push_back(new MetricsItem(
             "machine.bytecode.internalizer.us", metrics_data_.machine.bytecode_internalizer_us));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.profiles", metrics_data_.machine.profiles));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.profile.ns", metrics_data_.machine.profile_ns));
 
       // Memory metrics
       metrics_map_.push_back(new MetricsItem(
@@ -536,10 +535,6 @@ namespace rubinius {
       }
     }
 
-    void Metrics::log_diagnostics(STATE) {
-      state->shared().env()->diagnostics()->log();
-    }
-
     void Metrics::run(STATE) {
       state->vm()->become_unmanaged();
 
@@ -569,11 +564,11 @@ namespace rubinius {
           }
         }
 
-#ifdef ENABLE_LLVM
+        /* TODO: JIT
         if(LLVMState* llvm_state = state->shared().llvm_state) {
           metrics_data_.add(llvm_state->vm()->metrics());
         }
-#endif
+        */
 
         {
           utilities::thread::Mutex::LockGuard guard(metrics_lock_);
@@ -585,7 +580,6 @@ namespace rubinius {
           ManagedPhase managed(state);
 
           update_ruby_values(state);
-          log_diagnostics(state);
         }
 
         if(emitter_) emitter_->send_metrics();

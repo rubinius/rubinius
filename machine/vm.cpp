@@ -29,10 +29,6 @@
 #include "builtin/jit.hpp"
 #include "variable_scope.hpp"
 
-#include "instruments/tooling.hpp"
-#include "instruments/rbxti-internal.hpp"
-#include "instruments/timing.hpp"
-
 #include "config_parser.hpp"
 #include "config.h"
 
@@ -40,13 +36,15 @@
 #include "signal.hpp"
 #include "configuration.hpp"
 #include "helpers.hpp"
+#include "park.hpp"
 
 #include "util/thread.hpp"
 
-#include "park.hpp"
+#include "instruments/timing.hpp"
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <signal.h>
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
@@ -66,17 +64,27 @@ namespace rubinius {
     , saved_call_site_information_(NULL)
     , fiber_stacks_(this, shared)
     , park_(new Park)
-    , tooling_env_(NULL)
     , stack_start_(0)
     , stack_size_(0)
     , current_stack_start_(0)
     , current_stack_size_(0)
+    , interrupt_with_signal_(false)
+    , interrupt_by_kill_(false)
+    , check_local_interrupts_(false)
+    , thread_step_(false)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
     , zombie_(false)
     , main_thread_(false)
     , thread_phase_(ThreadNexus::cUnmanaged)
+    , profile_interval_(0)
+    , profile_counter_(0)
+    , profile_(NULL)
+    , profile_sample_count_(0)
+    , profile_report_interval_(shared.config.system_profiler_interval.value)
+    , max_profile_entries_(25)
+    , min_profile_sample_count_(0)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -84,6 +92,7 @@ namespace rubinius {
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
     , waiting_object_(this, cNil)
+    , start_time_(0)
     , native_method_environment(NULL)
     , custom_wakeup_(NULL)
     , custom_wakeup_data_(NULL)
@@ -93,14 +102,19 @@ namespace rubinius {
       local_slab_.refill(0, 0);
     }
 
-    tooling_env_ = rbxti::create_env(this);
-    tooling_ = false;
+    profile_ = new CompiledCode*[max_profile_entries_];
+    for(native_int i = 0; i < max_profile_entries_; i++) {
+      profile_[i] = nil<CompiledCode>();
+    }
+
+    set_profile_interval();
 
     allocation_tracking_ = shared.config.allocation_tracking;
   }
 
   VM::~VM() {
-    rbxti::destroy_env(tooling_env_);
+    if(profile_) delete[] profile_;
+
     delete park_;
   }
 
@@ -108,6 +122,14 @@ namespace rubinius {
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
+  }
+
+  void VM::set_start_time() {
+    start_time_ = get_current_time();
+  }
+
+  double VM::run_time() {
+    return timer::time_elapsed_seconds(start_time_);
   }
 
   void VM::set_stack_bounds(size_t size) {
@@ -251,6 +273,60 @@ namespace rubinius {
     memory()->collect_maybe(state);
   }
 
+  static int profile_compare(const void* a, const void* b) {
+    const CompiledCode* c_a = try_as<CompiledCode>(*(const Object**)(a));
+    const CompiledCode* c_b = try_as<CompiledCode>(*(const Object**)(b));
+
+    if(c_a && c_b) {
+      return c_b->machine_code()->sample_count - c_a->machine_code()->sample_count;
+    } else if(c_a) {
+      return 1;
+    } else if(c_b) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
+
+  void VM::sort_profile() {
+    ::qsort(reinterpret_cast<void*>(profile_), max_profile_entries_,
+        sizeof(intptr_t), profile_compare);
+  }
+
+  void VM::update_profile(STATE) {
+    timer::StopWatch<timer::nanoseconds> timer(metrics().machine.profile_ns);
+
+    metrics().machine.profiles++;
+    profile_sample_count_++;
+
+    if(profile_sample_count_ > profile_report_interval_) {
+      profile_report_interval_ += state->shared().config.system_profiler_interval.value;
+      state->shared().report_profile(state);
+    }
+
+    CompiledCode* code = state->vm()->call_frame()->compiled_code;
+    code->machine_code()->sample_count++;
+
+    if(code->machine_code()->sample_count < min_profile_sample_count_) {
+      return;
+    }
+
+    for(native_int i = 0; i < max_profile_entries_; i++) {
+      if(code == profile_[i]) return;
+    }
+
+    sort_profile();
+
+    CompiledCode* pcode = try_as<CompiledCode>(profile_[0]);
+    if(!pcode || (pcode &&
+          code->machine_code()->sample_count > pcode->machine_code()->sample_count))
+    {
+      code->machine_code()->set_description(state);
+      profile_[0] = code;
+      min_profile_sample_count_ = code->machine_code()->sample_count;
+    }
+  }
+
   static void suspend_thread() {
     static int i = 0;
     static int delay[] = {
@@ -291,12 +367,12 @@ namespace rubinius {
   void VM::initialize_config() {
     State state(this);
 
-#ifdef ENABLE_LLVM
     Array* ary = Array::create(&state, 3);
 
     G(jit)->available(&state, cTrue);
     G(jit)->properties(&state, ary);
 
+    /* TODO: JIT
     if(!shared.config.jit_disabled) {
       ary->append(&state, state.symbol("usage"));
       if(shared.config.jit_inline_generic) {
@@ -310,11 +386,8 @@ namespace rubinius {
     } else {
       G(jit)->enabled(&state, cFalse);
     }
-#else
-    G(jit)->available(&state, cFalse);
-    G(jit)->properties(&state, nil<Array>());
+    */
     G(jit)->enabled(&state, cFalse);
-#endif
   }
 
   /**
@@ -400,10 +473,6 @@ namespace rubinius {
     abort();
   }
 
-  void VM::interrupt_with_signal() {
-    vm_jit_.interrupt_with_signal_ = true;
-  }
-
   bool VM::wakeup(STATE) {
     utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
 
@@ -413,7 +482,7 @@ namespace rubinius {
     if(park_->parked_p()) {
       park_->unpark();
       return true;
-    } else if(vm_jit_.interrupt_with_signal_) {
+    } else if(interrupt_with_signal_) {
 #ifdef RBX_WINDOWS
       // TODO: wake up the thread
 #else
@@ -452,7 +521,7 @@ namespace rubinius {
   void VM::clear_waiter() {
     utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
 
-    vm_jit_.interrupt_with_signal_ = false;
+    interrupt_with_signal_ = false;
     waiting_channel_.set(nil<Channel>());
     waiting_object_.set(cNil);
     custom_wakeup_ = 0;
@@ -524,9 +593,11 @@ namespace rubinius {
   void VM::gc_scan(memory::GarbageCollector* gc) {
     gc->walk_call_frame(call_frame_);
 
-    State ls(this);
-
-    shared.tool_broker()->at_gc(&ls);
+    for(native_int i = 0; i < max_profile_entries_; i++) {
+      if(!profile_[i]->nil_p()) {
+        profile_[i] = force_as<CompiledCode>(gc->mark_object(profile_[i]));
+      }
+    }
   }
 
   void VM::gc_fiber_clear_mark() {

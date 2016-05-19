@@ -162,7 +162,7 @@ namespace rubinius {
 
   struct tm64 Time::get_tm() {
     time64_t seconds = sec();
-    struct tm64 tm = {0};
+    struct tm64 tm;
 
     if(Fixnum* off = try_as<Fixnum>(offset())) {
       seconds += off->to_long_long();

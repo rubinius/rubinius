@@ -30,7 +30,6 @@
 #include "memory/walker.hpp"
 #include "global_cache.hpp"
 #include "helpers.hpp"
-#include "instruments/tooling.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
@@ -62,12 +61,6 @@
 #include <sys/wait.h>
 #include <pwd.h>
 #include <dlfcn.h>
-#endif
-
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#include "jit/llvm/context.hpp"
-#include "jit/llvm/compiler.hpp"
 #endif
 
 #include "missing/setproctitle.h"
@@ -968,67 +961,6 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* System::vm_tooling_available_p(STATE) {
-#ifdef RBX_PROFILER
-    return RBOOL(state->shared().tool_broker()->available(state));
-#else
-    return cFalse;
-#endif
-  }
-
-  Object* System::vm_tooling_active_p(STATE) {
-    return RBOOL(state->vm()->tooling());
-  }
-
-  Object* System::vm_tooling_enable(STATE) {
-    state->shared().tool_broker()->enable(state);
-    return cTrue;
-  }
-
-  Object* System::vm_tooling_disable(STATE) {
-    return state->shared().tool_broker()->results(state);
-  }
-
-  Object* System::vm_load_tool(STATE, String* str) {
-    std::string path = std::string(str->c_str(state)) + ".";
-
-#ifdef _WIN32
-    path += "dll";
-#else
-  #ifdef __APPLE_CC__
-    path += "bundle";
-  #else
-    path += "so";
-  #endif
-#endif
-
-    void* handle = dlopen(path.c_str(), RTLD_NOW);
-    if(!handle) {
-      path = std::string(RBX_LIB_PATH) + "/" + path;
-
-      handle = dlopen(path.c_str(), RTLD_NOW);
-      if(!handle) {
-        return Tuple::from(state, 2, cFalse, String::create(state, dlerror()));
-      }
-    }
-
-    void* sym = dlsym(handle, "Tool_Init");
-    if(!sym) {
-      dlclose(handle);
-      return Tuple::from(state, 2, cFalse, String::create(state, dlerror()));
-    } else {
-      typedef int (*init_func)(rbxti::Env* env);
-      init_func init = (init_func)sym;
-
-      if(!init(state->vm()->tooling_env())) {
-        dlclose(handle);
-        return Tuple::from(state, 2, cFalse, String::create(state, path.c_str(), path.size()));
-      }
-    }
-
-    return Tuple::from(state, 1, cTrue);
-  }
-
   Object* System::vm_write_error(STATE, String* str) {
     std::cerr << str->c_str(state) << std::endl;
     return cNil;
@@ -1368,18 +1300,10 @@ namespace rubinius {
 
     bool disable = CBOOL(o_disable);
 
-    // TODO: this should be inside tooling
-    bool tooling_interpreter = state->shared().tool_broker()->tooling_interpreter_p();
-
     while(obj) {
       if(CompiledCode* code = try_as<CompiledCode>(obj)) {
         if(MachineCode* mcode = code->machine_code()) {
-          mcode->deoptimize(state, code, 0, disable);
-          if(tooling_interpreter) {
-            mcode->run = MachineCode::tooling_interpreter;
-          } else {
-            mcode->run = MachineCode::interpreter;
-          }
+          mcode->deoptimize(state, code, disable);
         }
         total++;
       }
@@ -1779,8 +1703,6 @@ retry:
     case cThreadKill:
       reason = state->symbol("thread_kill");
       break;
-    default:
-      reason = state->symbol("unknown");
     }
 
     tuple->put(state, 0, reason);
@@ -1799,16 +1721,7 @@ retry:
 
     code->internalize(state);
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->vm()->tooling())) {
-      tooling::ScriptEntry me(state, code);
-      return code->machine_code()->execute_as_script(state, code);
-    } else {
-      return code->machine_code()->execute_as_script(state, code);
-    }
-#else
     return code->machine_code()->execute_as_script(state, code);
-#endif
   }
 
 #define HASH_TRIE_BASE_SHIFT  6

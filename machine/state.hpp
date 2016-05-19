@@ -17,7 +17,6 @@ namespace rubinius {
   class String;
   class Symbol;
   class VM;
-  class VMJIT;
   class VMThreadState;
 
   namespace memory {
@@ -26,13 +25,11 @@ namespace rubinius {
 
   class State {
     VM* vm_;
-    VMJIT* vm_jit_;
     SharedState& shared_;
 
   public:
     State(VM* vm)
       : vm_(vm)
-      , vm_jit_(&vm->vm_jit_)
       , shared_(vm->shared)
     {}
 
@@ -94,7 +91,7 @@ namespace rubinius {
     }
 
     bool check_local_interrupts() const {
-      return vm_jit_->check_local_interrupts_;
+      return vm_->check_local_interrupts();
     }
 
     void raise_stack_error(STATE);

@@ -6,8 +6,6 @@
 #include "config.h"
 #include "memory.hpp"
 #include "environment.hpp"
-#include "instruments/tooling.hpp"
-#include "instruments/timing.hpp"
 #include "global_cache.hpp"
 
 #include "util/thread.hpp"
@@ -20,48 +18,48 @@
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/native_method.hpp"
+#include "builtin/system.hpp"
+
+#include "instruments/timing.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
-
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
 
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : thread_nexus_(new ThreadNexus())
-    , internal_threads_(0)
-    , signals_(0)
-    , finalizer_thread_(0)
-    , console_(0)
-    , metrics_(0)
+    , internal_threads_(NULL)
+    , signals_(NULL)
+    , finalizer_thread_(NULL)
+    , console_(NULL)
+    , metrics_(NULL)
+    , diagnostics_(NULL)
+    , profiler_(NULL)
+    , start_time_(get_current_time())
     , method_count_(1)
     , class_count_(1)
     , global_serial_(1)
     , initialized_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
-    , root_vm_(0)
+    , root_vm_(NULL)
     , env_(env)
-    , tool_broker_(new tooling::ToolBroker)
     , codedb_lock_(true)
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
     , global_capi_handle_lock_()
     , capi_handle_cache_lock_()
-    , llvm_state_lock_()
     , wait_lock_()
     , type_info_lock_()
     , code_resource_lock_()
     , use_capi_lock_(false)
-    , om(0)
+    , om(NULL)
     , global_cache(new GlobalCache)
     , config(config)
     , user_variables(cp)
-    , llvm_state(0)
     , username("")
     , pid("")
   {
@@ -78,11 +76,11 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-#ifdef ENABLE_LLVM
+    /* TODO: JIT
     if(llvm_state) {
       delete llvm_state;
     }
-#endif
+    */
 
     if(console_) {
       delete console_;
@@ -94,7 +92,16 @@ namespace rubinius {
       metrics_ = 0;
     }
 
-    delete tool_broker_;
+    if(profiler_) {
+      delete profiler_;
+      profiler_ = 0;
+    }
+
+    if(diagnostics_) {
+      delete diagnostics_;
+      diagnostics_ = 0;
+    }
+
     delete global_cache;
     delete om;
     delete internal_threads_;
@@ -118,6 +125,10 @@ namespace rubinius {
     }
 
     return threads;
+  }
+
+  double SharedState::run_time() {
+    return timer::time_elapsed_seconds(start_time_);
   }
 
   SignalThread* SharedState::start_signals(STATE) {
@@ -152,11 +163,26 @@ namespace rubinius {
     if(metrics_) metrics_->disable(state);
   }
 
-  void SharedState::after_fork_child(STATE) {
-    // For now, we disable inline debugging here. This makes inspecting
-    // it much less confusing.
-    config.jit_inline_debug.set("no");
+  diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
+    if(!diagnostics_) {
+      if(state->shared().config.system_diagnostics_target.value.compare("none")) {
+        diagnostics_ = new diagnostics::Diagnostics(state);
+        diagnostics_->start(state);
+      }
+    }
 
+    return diagnostics_;
+  }
+
+  profiler::Profiler* SharedState::start_profiler(STATE) {
+    if(!profiler_) {
+      profiler_ = new profiler::Profiler(state);
+    }
+
+    return profiler_;
+  }
+
+  void SharedState::after_fork_child(STATE) {
     disable_metrics(state);
 
     // Reinit the locks for this object
@@ -167,7 +193,6 @@ namespace rubinius {
     capi_constant_lock_.init();
     global_capi_handle_lock_.init();
     capi_handle_cache_lock_.init();
-    llvm_state_lock_.init();
     wait_lock_.init();
     type_info_lock_.init();
     code_resource_lock_.init();
@@ -175,6 +200,7 @@ namespace rubinius {
     om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
+    profiler_->after_fork_child(state);
   }
 
   const unsigned int* SharedState::object_memory_mark_address() const {

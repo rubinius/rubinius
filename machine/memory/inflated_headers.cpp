@@ -8,14 +8,7 @@
 
 namespace rubinius {
 namespace memory {
-  void InflatedHeaders::Diagnostics::log() {
-    if(!modified_p()) return;
-
-    diagnostics::Diagnostics::log();
-
-    logger::write("inflated headers: diagnostics: " \
-        "objects: %ld, bytes: %ld, collections: %ld\n",
-        objects_, bytes_, collections_);
+  void InflatedHeaders::Diagnostics::update() {
   }
 
   InflatedHeader* InflatedHeaders::allocate(STATE, ObjectHeader* obj, uint32_t* index) {
@@ -27,7 +20,7 @@ namespace memory {
     *index = (uint32_t)header_index;
     InflatedHeader* header = allocator_->from_index(header_index);
     if(needs_gc) {
-      diagnostics_.collections_++;
+      diagnostics()->collections_++;
       state->memory()->schedule_full_collection(
           "Inflated headers",
           state->vm()->metrics().gc.headers_set);
@@ -39,7 +32,7 @@ namespace memory {
   void InflatedHeaders::deallocate_headers(unsigned int mark) {
     std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
-    diagnostics_.objects_ = 0;
+    diagnostics()->objects_ = 0;
 
     for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
       InflatedHeader* chunk = allocator_->chunks_[i];
@@ -49,7 +42,7 @@ namespace memory {
 
         if(header->marked_p(mark)) {
           chunk_marks[i] = true;
-          diagnostics_.objects_++;
+          diagnostics()->objects_++;
         } else {
           header->clear();
         }
@@ -58,8 +51,7 @@ namespace memory {
 
     allocator_->rebuild_freelist(&chunk_marks);
 
-    diagnostics_.bytes_ = allocator_->in_use_ * sizeof(InflatedHeader);
-    diagnostics_.modify();
+    diagnostics()->bytes_ = allocator_->in_use_ * sizeof(InflatedHeader);
   }
 }
 }

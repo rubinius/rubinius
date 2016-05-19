@@ -26,7 +26,7 @@ namespace memory {
         : diagnostics::MemoryDiagnostics()
       { }
 
-      void log();
+      void update();
     };
 
   public:
@@ -35,7 +35,7 @@ namespace memory {
   private:
       MarkStack mark_stack_;
 
-      Diagnostics diagnostics_;
+      Diagnostics* diagnostics_;
 
   public:
     /* Data members */
@@ -62,7 +62,7 @@ namespace memory {
 
     ObjectPosition validate_object(Object* obj);
 
-    Diagnostics& diagnostics() {
+    Diagnostics* diagnostics() {
       return diagnostics_;
     }
   };

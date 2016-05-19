@@ -2,10 +2,10 @@
 #include "bytecode_verifier.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-#include "instruments/timing.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
 #include "on_stack.hpp"
+#include "logger.hpp"
 
 #include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
@@ -21,15 +21,9 @@
 
 #include "memory/object_mark.hpp"
 
-#include "logger.hpp"
+#include "instruments/timing.hpp"
 
 #include <ostream>
-
-#ifdef ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#include "jit/llvm/compiler.hpp"
-#include "jit/llvm/runtime.hpp"
-#endif
 
 namespace rubinius {
 
@@ -233,28 +227,8 @@ namespace rubinius {
     return false;
   }
 
-  void CompiledCode::set_unspecialized(executor exec, jit::RuntimeDataHolder* rd) {
-    if(!machine_code()) rubinius::bug("specializing with no backend");
-
-    machine_code()->set_execute_status(MachineCode::eJIT);
-
-#ifdef ENABLE_LLVM
-    jit_data(rd);
-#endif
-    machine_code()->unspecialized = exec;
-
-    // See if we can also just make this the normal execute
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(machine_code()->specializations[i].class_data.raw > 0) return;
-    }
-
-    if(primitive()->nil_p()) {
-      execute = exec;
-    }
-  }
-
-  void CompiledCode::add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec,
-                                       jit::RuntimeDataHolder* rd)
+  void CompiledCode::add_specialized(STATE,
+      uint32_t class_id, uint32_t serial_id, executor exec)
   {
     if(!machine_code()) {
       logger::error("specializing with no backend");
@@ -287,7 +261,6 @@ namespace rubinius {
     v->specializations[i].class_data.f.class_id = class_id;
     v->specializations[i].class_data.f.serial_id = serial_id;
     v->specializations[i].execute = exec;
-    v->specializations[i].jit_data = rd;
 
     v->set_execute_status(MachineCode::eJIT);
     if(primitive()->nil_p()) {
@@ -397,6 +370,10 @@ namespace rubinius {
     return RBOOL(machine_code() && machine_code()->jitted_p());
   }
 
+  Fixnum* CompiledCode::sample_count(STATE) {
+    return Fixnum::from(machine_code()->sample_count);
+  }
+
   Object* CompiledCode::execute_script(STATE) {
     state->thread_state()->clear();
 
@@ -449,20 +426,9 @@ namespace rubinius {
     MachineCode* mcode = code->machine_code();
     mcode->set_mark();
 
-#ifdef ENABLE_LLVM
-    if(code->jit_data()) {
-      code->jit_data()->set_mark();
-      code->jit_data()->mark_all(code, mark);
-    }
-
-
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(mcode->specializations[i].jit_data) {
-        mcode->specializations[i].jit_data->set_mark();
-        mcode->specializations[i].jit_data->mark_all(code, mark);
-      }
+      // TODO: JIT
     }
-#endif
 
     for(size_t i = 0; i < mcode->references_count(); i++) {
       if(size_t ip = mcode->references()[i]) {
@@ -497,7 +463,7 @@ namespace rubinius {
     } else {
       std::cout << "yes\n";
 
-#ifdef ENABLE_LLVM
+      /* TODO: JIT
       MachineCode* v = code->machine_code();
 
       for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
@@ -509,7 +475,7 @@ namespace rubinius {
             v->specializations[i].jit_data->native_size());
         llvm::outs() << "</MachineCode>\n";
       }
-#endif
+      */
     }
 
     close_body(level);

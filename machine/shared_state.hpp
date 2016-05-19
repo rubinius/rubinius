@@ -7,7 +7,9 @@
 #include "memory/root_buffer.hpp"
 
 #include "internal_threads.hpp"
+#include "diagnostics.hpp"
 #include "globals.hpp"
+#include "profiler.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
 
@@ -33,10 +35,6 @@ namespace rubinius {
     class Handle;
     class Handles;
     class GlobalHandle;
-  }
-
-  namespace tooling {
-    class ToolBroker;
   }
 
   namespace console {
@@ -90,10 +88,13 @@ namespace rubinius {
     memory::FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
+    diagnostics::Diagnostics* diagnostics_;
+    profiler::Profiler* profiler_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
 
+    uint64_t start_time_;
     uint64_t method_count_;
     unsigned int class_count_;
     int global_serial_;
@@ -104,7 +105,6 @@ namespace rubinius {
 
     VM* root_vm_;
     Environment* env_;
-    tooling::ToolBroker* tool_broker_;
 
     utilities::thread::Mutex codedb_lock_;
 
@@ -132,7 +132,9 @@ namespace rubinius {
     Configuration& config;
     ConfigParser& user_variables;
     SymbolTable symbols;
+    /* TODO: JIT
     LLVMState* llvm_state;
+    */
     std::string username;
     std::string pid;
     uint32_t hash_seed;
@@ -147,6 +149,8 @@ namespace rubinius {
       setup_capi_constant_names();
       initialized_ = true;
     }
+
+    double run_time();
 
     ThreadNexus* thread_nexus() {
       return thread_nexus_;
@@ -215,6 +219,29 @@ namespace rubinius {
     metrics::Metrics* start_metrics(STATE);
     void disable_metrics(STATE);
 
+    diagnostics::Diagnostics* diagnostics() const {
+      return diagnostics_;
+    }
+
+    diagnostics::Diagnostics* start_diagnostics(STATE);
+
+    void report_diagnostics(diagnostics::DiagnosticsData* data) {
+      if(diagnostics_) {
+        data->update();
+        diagnostics_->report(data);
+      }
+    }
+
+    profiler::Profiler* start_profiler(STATE);
+
+    profiler::Profiler* profiler() const {
+      return profiler_;
+    }
+
+    void report_profile(STATE) {
+      if(profiler_) profiler_->report(state);
+    }
+
     Environment* env() const {
       return env_;
     }
@@ -225,10 +252,6 @@ namespace rubinius {
 
     VM* root_vm() const {
       return root_vm_;
-    }
-
-    tooling::ToolBroker* tool_broker() const {
-      return tool_broker_;
     }
 
     Memory* memory() const {

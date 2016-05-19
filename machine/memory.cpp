@@ -17,11 +17,6 @@
 #include "memory/walker.hpp"
 
 #include "environment.hpp"
-#include "system_diagnostics.hpp"
-
-#if ENABLE_LLVM
-#include "jit/llvm/state.hpp"
-#endif
 
 #include "on_stack.hpp"
 
@@ -47,7 +42,6 @@
 #include "global_cache.hpp"
 
 #include "instruments/timing.hpp"
-#include "instruments/tooling.hpp"
 #include "dtrace/dtrace.h"
 
 #include "logger.hpp"
@@ -78,10 +72,6 @@ namespace rubinius {
     , collect_young_flag_(false)
     , collect_full_flag_(false)
     , shared_(vm->shared)
-    , diagnostics_(new diagnostics::ObjectDiagnostics(/* young_->diagnostics(), */
-          immix_->diagnostics(), mark_sweep_->diagnostics(),
-          inflated_headers_->diagnostics(), capi_handles_->diagnostics(),
-          code_manager_.diagnostics(), shared.symbols.diagnostics()))
     , vm_(vm)
     , last_object_id(1)
     , last_snapshot_id(0)
@@ -546,12 +536,7 @@ step1:
       memory::GCData gc_data(state->vm());
 
       RUBINIUS_GC_BEGIN(0);
-      if(unlikely(state->vm()->tooling())) {
-        tooling::GCEntry method(state, tooling::GCYoung);
-        collect_young(state, &gc_data);
-      } else {
-        collect_young(state, &gc_data);
-      }
+      collect_young(state, &gc_data);
 
       if(!collect_full_flag_) interrupt_flag_ = false;
 
@@ -560,26 +545,13 @@ step1:
 
     if(collect_full_flag_) {
       RUBINIUS_GC_BEGIN(1);
-      if(unlikely(state->vm()->tooling())) {
-        tooling::GCEntry method(state, tooling::GCMature);
-        collect_full(state);
-      } else {
-        collect_full(state);
-      }
-    }
-
-    if(state->shared().config.memory_collection_log.value) {
-      state->shared().env()->diagnostics()->log();
+      collect_full(state);
     }
   }
 
   void Memory::collect_young(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.young_ms);
-
-    if(state->shared().config.memory_collection_log.value) {
-      logger::write("memory: young collection");
-    }
 
     /* 
     young_->collect(data);

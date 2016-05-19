@@ -44,7 +44,12 @@ module Rubinius
 
     def jitted?
       Rubinius.primitive :compiledcode_jitted_p
-      raise PrimitiveFailure, "CompiledCode.jitted? primitive failed"
+      raise PrimitiveFailure, "CompiledCode#jitted? primitive failed"
+    end
+
+    def sample_count
+      Rubinius.primitive :compiledcode_sample_count
+      raise PrimitiveFailure, "CompiledCode#sample_count primitive failed"
     end
 
     # Returns the CompiledCode object for the currently executing Ruby

@@ -96,7 +96,12 @@ class Proc
       return arity < 0 ? -1 : arity
     end
 
-    @block.arity
+    arity = @block.arity
+    return arity if self.lambda? ||
+                    @block.compiled_code.splat ||
+                    @block.compiled_code.total_args == arity
+
+    -arity - 1
   end
 
   alias_method :===, :call

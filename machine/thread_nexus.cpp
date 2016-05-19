@@ -238,25 +238,6 @@ namespace rubinius {
     }
   }
 
-  bool ThreadNexus::stop_lock(VM* vm) {
-    if(!stop_) return false;
-
-    waiting_lock(vm);
-
-    // Assumption about stop_ may change while we progress.
-    if(stop_) {
-      if(serialized_p(vm)) {
-        if(stop_) {
-          return true;
-        }
-      }
-    }
-
-    // Either we're not stop_'ing or something blocked us from serializing.
-    unlock();
-    return false;
-  }
-
   void ThreadNexus::wait_till_alone(VM* vm) {
     /* We block acquiring the sleep lock so that any waking thread that raced
      * us to it will finish waking up. Any sleeping thread that wakes up after

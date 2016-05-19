@@ -5,7 +5,6 @@
 #include "type_info.hpp"
 #include "object_position.hpp"
 #include "oop.hpp"
-#include "diagnostics.hpp"
 #include "metrics.hpp"
 #include "configuration.hpp"
 
@@ -40,10 +39,6 @@ namespace rubinius {
     class InflatedHeaders;
     class MarkSweepGC;
     class Slab;
-  }
-
-  namespace diagnostics {
-    class ObjectDiagnostics;
   }
 
   namespace capi {
@@ -138,8 +133,6 @@ namespace rubinius {
 
     SharedState& shared_;
 
-    diagnostics::ObjectDiagnostics* diagnostics_;
-
   public:
     VM* vm_;
     /// Counter used for issuing object ids when #object_id is called on a
@@ -160,6 +153,10 @@ namespace rubinius {
 
     VM* vm() {
       return vm_;
+    }
+
+    SharedState& shared() {
+      return shared_;
     }
 
     Memory* memory() {
@@ -570,10 +567,6 @@ namespace rubinius {
 
     void clear_mature_mark_in_progress() {
       mature_gc_in_progress_ = false;
-    }
-
-    diagnostics::ObjectDiagnostics* diagnostics() {
-      return diagnostics_;
     }
 
     memory::MarkStack& mature_mark_stack();

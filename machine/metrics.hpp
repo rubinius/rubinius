@@ -184,6 +184,8 @@ namespace rubinius {
       metric bytecode_load_us;
       metric bytecode_verifier_us;
       metric bytecode_internalizer_us;
+      metric profiles;
+      metric profile_ns;
 
       MachineMetrics() {
         checkpoints = 0;
@@ -210,6 +212,8 @@ namespace rubinius {
         bytecode_load_us = 0;
         bytecode_verifier_us = 0;
         bytecode_internalizer_us = 0;
+        profiles = 0;
+        profile_ns = 0;
       }
 
       void add(MachineMetrics& data) {
@@ -237,6 +241,8 @@ namespace rubinius {
         bytecode_load_us += data.bytecode_load_us;
         bytecode_verifier_us += data.bytecode_verifier_us;
         bytecode_internalizer_us += data.bytecode_internalizer_us;
+        profiles += data.profiles;
+        profile_ns += data.profile_ns;
       }
     };
 
@@ -453,8 +459,6 @@ namespace rubinius {
 
       void init_ruby_metrics(STATE);
       void update_ruby_values(STATE);
-
-      void log_diagnostics(STATE);
 
       void disable(STATE) {
         enabled_ = false;

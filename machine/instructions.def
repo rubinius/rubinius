@@ -1760,12 +1760,6 @@ section "Miscellaneous. TODO: better categorize these"
 instruction check_interrupts() [ -- ]
   flush_ip();
 
-  // This is used in loops, and allows loops to heat a method up.
-  if(mcode->call_count >= 0) {
-    mcode->loop_count++;
-    mcode->call_count++;
-  }
-
   state->vm()->checkpoint(state);
 end
 
