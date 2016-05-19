@@ -113,7 +113,7 @@ module RbConfig
   CONFIG["CFLAGS"]             = "-g"
   CONFIG["CXXFLAGS"]           = "-g"
   CONFIG["LDFLAGS"]            = ""
-  if ENV['DEV']
+  if Rubinius::BUILD_CONFIG[:debug_build]
     CONFIG["CFLAGS"] << " -O0 "
     CONFIG["CXXFLAGS"] << " -O0 "
   else
