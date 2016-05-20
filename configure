@@ -166,6 +166,7 @@ class Configure
     @ruby_libversion = @ruby_version.split(/\./)[0..1].join.to_i
 
     @build_bin = "#{@sourcedir}/build/bin"
+    @scriptsdir = "#{@sourcedir}/scripts"
 
     # Configure settings
     @release_build = !in_git?
@@ -1779,6 +1780,24 @@ int main() { return tgetnum(""); }
     end
   end
 
+  def fetch_core
+    @log.write "\nFetching runtime core..."
+
+    unless File.directory? "#{@sourcedir}/runtime/core"
+      system("#{@scriptsdir}/build_support.sh fetch_core")
+
+      failure "Unable to fetch runtime core" unless $?.success?
+    end
+  end
+
+  def setup_core
+    @log.write "\nSetting up runtime core..."
+
+    system("#{@scriptsdir}/build_support.sh setup_core")
+
+    failure "Unable to setup runtime core from archive" unless $?.success?
+  end
+
   def fetch_gems
     @log.write "\nFetching gems..."
     failed = false
@@ -1884,8 +1903,10 @@ int main() { return tgetnum(""); }
       verify_gems
     else
       fetch_gems
+      fetch_core
     end
     setup_gems
+    setup_core
     write_configure_files
     write_build_signature
 

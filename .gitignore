@@ -95,3 +95,6 @@ vendor/cache/*
 
 .build_ruby
 .build_signature
+
+rubinius-runtime-core.tar.bz2
+rubinius-runtime-core.tar.bz2.sha512

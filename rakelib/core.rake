@@ -95,6 +95,8 @@ end
 # Generate a digest of the Rubinius runtime files
 signature_file = "core/signature.rb"
 
+runtime_signature_file = "runtime/core/signature"
+
 runtime_gems_dir = BUILD_CONFIG[:runtime_gems_dir]
 bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
 
@@ -176,7 +178,7 @@ bootstrap_gem_files.each do |name|
 end
 
 namespace :compiler do
-  task :load => ['compiler:generate'] do
+  task :load do
     require "rubinius/bridge"
     require "rubinius/code/toolset"
 
@@ -189,8 +191,6 @@ namespace :compiler do
 
     require File.expand_path("../../core/signature", __FILE__)
   end
-
-  task :generate => [signature_file]
 end
 
 directory "runtime/core"
@@ -287,11 +287,11 @@ file "runtime/core/initialize" => "runtime/core/data" do |t|
   end
 end
 
-file "runtime/core/signature" => signature_file do |t|
+file runtime_signature_file => signature_file do |t|
   puts "CodeDB: writing signature..."
 
   File.open t.name, "wb" do |f|
-    f.puts Rubinius::Signature
+    f.puts SIGNATURE_HASH
   end
 end
 
@@ -301,6 +301,12 @@ task :core => 'core:build'
 namespace :core do
   desc "Build all core library files"
   task :build => ['compiler:load'] + runtime_files + code_db_files
+
+  desc "Create runtime core signature"
+  task :signature => [signature_file, signature_header, runtime_signature_file]
+
+  desc "Create platform configuration"
+  task :platform => "runtime/platform.conf"
 
   desc "Delete all .rbc files"
   task :clean do

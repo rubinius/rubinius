@@ -153,11 +153,11 @@ namespace :build do
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => %W[
     #{VM_EXE}
-    compiler:generate
+    core:signature
+    core:platform
     stage:bin
     stage:extra_bins
     stage:capi_include
-    core:build
     stage:core
     stage:runtime
     stage:lib

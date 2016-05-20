@@ -61,6 +61,10 @@ function rbx_runtime_core_name {
   echo "rubinius-runtime-core.tar.bz2"
 }
 
+function rbx_runtime_core_path {
+  echo "/runtime/"
+}
+
 function rbx_release_bucket {
   echo "rubinius-releases-rubinius-com"
 }

@@ -656,7 +656,7 @@ namespace rubinius {
   bool Environment::load_signature(std::string runtime) {
     std::string path = runtime;
 
-    path += "/signature";
+    path += "/core/signature";
 
     std::ifstream signature(path.c_str());
     if(signature) {
