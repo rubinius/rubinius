@@ -13,23 +13,6 @@ source "$__dir__/aws.sh"
 # shellcheck source=scripts/io.sh
 source "$__dir__/io.sh"
 
-function rbx_release_bucket {
-  echo "rubinius-releases-rubinius-com"
-}
-
-function rbx_binary_bucket {
-  echo "rubinius-binaries-rubinius-com"
-}
-
-function rbx_url_prefix {
-  local bucket=$1
-  echo "https://${bucket}.s3-us-west-2.amazonaws.com"
-}
-
-function rbx_dist_version {
-  egrep -o '[[:digit:]]+\.[[:digit:]]+' /etc/issue
-}
-
 function rbx_upload_files {
   local bucket dest src path url name index
   local -a file_exts

@@ -42,6 +42,16 @@ function rbx_package_heroku {
   rbx_digest_file "$(rbx_heroku_release_name)" "sha1"
 }
 
+function rbx_package_core {
+  echo "Packaging runtime/core..."
+
+  rm -rf "$(rbx_runtime_core_name)"
+
+  tar -c -f - runtime/core | bzip2 > "$(rbx_runtime_core_name)"
+
+  rbx_digest_file "$(rbx_runtime_core_name)" "sha512"
+}
+
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   case "$1" in
     "tar")
@@ -55,6 +65,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       ;;
     "heroku")
       rbx_package_heroku
+      ;;
+    "core")
+      rbx_package_core
       ;;
     *)
       echo "Usage: ${0##*/} package_type"
