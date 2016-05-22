@@ -9,6 +9,7 @@
 #include "internal_threads.hpp"
 #include "diagnostics.hpp"
 #include "globals.hpp"
+#include "jit.hpp"
 #include "profiler.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
@@ -90,6 +91,7 @@ namespace rubinius {
     metrics::Metrics* metrics_;
     diagnostics::Diagnostics* diagnostics_;
     profiler::Profiler* profiler_;
+    jit::JIT* jit_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -240,6 +242,12 @@ namespace rubinius {
 
     void report_profile(STATE) {
       if(profiler_) profiler_->report(state);
+    }
+
+    jit::JIT* start_jit(STATE);
+
+    jit::JIT* jit() const {
+      return jit_;
     }
 
     Environment* env() const {

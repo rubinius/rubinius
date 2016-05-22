@@ -37,6 +37,7 @@ namespace rubinius {
     , metrics_(NULL)
     , diagnostics_(NULL)
     , profiler_(NULL)
+    , jit_(NULL)
     , start_time_(get_current_time())
     , method_count_(1)
     , class_count_(1)
@@ -76,30 +77,29 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-    /* TODO: JIT
-    if(llvm_state) {
-      delete llvm_state;
-    }
-    */
-
     if(console_) {
       delete console_;
-      console_ = 0;
+      console_ = NULL;
     }
 
     if(metrics_) {
       delete metrics_;
-      metrics_ = 0;
+      metrics_ = NULL;
     }
 
     if(profiler_) {
       delete profiler_;
-      profiler_ = 0;
+      profiler_ = NULL;
+    }
+
+    if(jit_) {
+      delete jit_;
+      jit_ = NULL;
     }
 
     if(diagnostics_) {
       delete diagnostics_;
-      diagnostics_ = 0;
+      diagnostics_ = NULL;
     }
 
     delete global_cache;
@@ -180,6 +180,16 @@ namespace rubinius {
     }
 
     return profiler_;
+  }
+
+  jit::JIT* SharedState::start_jit(STATE) {
+    if(!jit_) {
+      if(config.jit_enabled.value) {
+        jit_ = new jit::JIT(state);
+      }
+    }
+
+    return jit_;
   }
 
   void SharedState::after_fork_child(STATE) {

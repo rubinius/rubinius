@@ -26,8 +26,9 @@ namespace rubinius {
   public:
 
     enum StackSize {
-      eSmall = 0x10000,
-      eLarge = 0x100000,
+      eSmall  = 0x10000,
+      eLarge  = 0x100000,
+      eXLarge = 0x400000,
     };
 
     InternalThread(STATE, std::string name, StackSize stack_size=eLarge);

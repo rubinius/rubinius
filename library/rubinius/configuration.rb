@@ -76,6 +76,11 @@ Rubinius::ConfigurationVariables.define do |c|
     end
   end
 
+  c.section "jit" do |j|
+    j.vm_variable "enabled", true,
+      "Just-in-time compile managed code to native code"
+  end
+
   c.section "system" do |s|
     s.vm_variable "tmp", "$TMPDIR",
       "Default temp/fallback directory for the process"

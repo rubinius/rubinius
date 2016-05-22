@@ -86,6 +86,7 @@ namespace rubinius {
       InternalThread::initialize(state);
 
       diagnostics_lock_.init();
+      diagnostics_condition_.init();
     }
 
     void Diagnostics::wakeup(STATE) {

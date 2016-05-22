@@ -329,6 +329,7 @@ namespace rubinius {
     state->shared().start_metrics(state);
     state->shared().start_diagnostics(state);
     state->shared().start_profiler(state);
+    state->shared().start_jit(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
