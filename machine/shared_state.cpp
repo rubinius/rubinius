@@ -30,7 +30,7 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : thread_nexus_(new ThreadNexus())
-    , internal_threads_(NULL)
+    , machine_threads_(NULL)
     , signals_(NULL)
     , finalizer_thread_(NULL)
     , console_(NULL)
@@ -64,7 +64,7 @@ namespace rubinius {
     , username("")
     , pid("")
   {
-    internal_threads_ = new InternalThreads();
+    machine_threads_ = new MachineThreads();
 
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
       primitive_hits_[i] = 0;
@@ -104,7 +104,7 @@ namespace rubinius {
 
     delete global_cache;
     delete om;
-    delete internal_threads_;
+    delete machine_threads_;
   }
 
   Array* SharedState::vm_threads(STATE) {

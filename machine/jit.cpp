@@ -7,7 +7,7 @@
 namespace rubinius {
   namespace jit {
     JIT::JIT(STATE)
-      : InternalThread(state, "rbx.jit", InternalThread::eXLarge)
+      : MachineThread(state, "rbx.jit", MachineThread::eXLarge)
       , list_()
       , jit_lock_()
       , jit_condition_()
@@ -15,20 +15,20 @@ namespace rubinius {
     }
 
     void JIT::initialize(STATE) {
-      InternalThread::initialize(state);
+      MachineThread::initialize(state);
 
       jit_lock_.init();
       jit_condition_.init();
     }
 
     void JIT::wakeup(STATE) {
-      InternalThread::wakeup(state);
+      MachineThread::wakeup(state);
 
       jit_condition_.signal();
     }
 
     void JIT::after_fork_child(STATE) {
-      InternalThread::after_fork_child(state);
+      MachineThread::after_fork_child(state);
 
       list_.clear();
     }

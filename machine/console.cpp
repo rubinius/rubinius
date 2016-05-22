@@ -59,7 +59,7 @@ namespace rubinius {
     }
 
     Request::Request(STATE, Console* console, Response* response)
-      : InternalThread(state, "rbx.console.request", InternalThread::eSmall)
+      : MachineThread(state, "rbx.console.request", MachineThread::eSmall)
       , console_(console)
       , response_(response)
       , enabled_(false)
@@ -84,11 +84,11 @@ namespace rubinius {
     void Request::start_thread(STATE) {
       if(!enabled_) return;
 
-      InternalThread::start_thread(state);
+      MachineThread::start_thread(state);
     }
 
     void Request::wakeup(STATE) {
-      InternalThread::wakeup(state);
+      MachineThread::wakeup(state);
 
       if(write(fd_, "\0", 1) < 0) {
         logger::error("%s: console: unable to wake request thread", strerror(errno));
@@ -103,7 +103,7 @@ namespace rubinius {
     }
 
     void Request::stop_thread(STATE) {
-      InternalThread::stop_thread(state);
+      MachineThread::stop_thread(state);
 
       close_request();
     }
@@ -168,7 +168,7 @@ namespace rubinius {
     }
 
     Response::Response(STATE, Console* console)
-      : InternalThread(state, "rbx.console.response", InternalThread::eSmall)
+      : MachineThread(state, "rbx.console.response", MachineThread::eSmall)
       , console_(console)
       , inbox_(state)
       , outbox_(state)
@@ -202,11 +202,11 @@ namespace rubinius {
 
       request_list_ = new RequestList;
 
-      InternalThread::start_thread(state);
+      MachineThread::start_thread(state);
     }
 
     void Response::wakeup(STATE) {
-      InternalThread::wakeup(state);
+      MachineThread::wakeup(state);
 
       inbox_.get()->send(state, String::create(state, ""));
 
@@ -234,7 +234,7 @@ namespace rubinius {
     }
 
     void Response::stop_thread(STATE) {
-      InternalThread::stop_thread(state);
+      MachineThread::stop_thread(state);
 
       close_response();
     }
@@ -328,7 +328,7 @@ namespace rubinius {
     }
 
     Listener::Listener(STATE, Console* console)
-      : InternalThread(state, "rbx.console.listener", InternalThread::eSmall)
+      : MachineThread(state, "rbx.console.listener", MachineThread::eSmall)
       , console_(console)
       , fsevent_(state)
       , fd_(-1)
@@ -362,11 +362,11 @@ namespace rubinius {
     }
 
     void Listener::start_thread(STATE) {
-      InternalThread::start_thread(state);
+      MachineThread::start_thread(state);
     }
 
     void Listener::wakeup(STATE) {
-      InternalThread::wakeup(state);
+      MachineThread::wakeup(state);
 
       if(write(fd_, "\0", 1) < 0) {
         logger::error("%s: console: unable to wake listener thread", strerror(errno));

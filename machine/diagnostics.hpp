@@ -1,7 +1,7 @@
 #ifndef RBX_DIAGNOSTICS_HPP
 #define RBX_DIAGNOSTICS_HPP
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 
 #include "util/thread.hpp"
 
@@ -52,7 +52,7 @@ namespace rubinius {
 
     typedef std::list<DiagnosticsData*> DiagnosticsList;
 
-    class Diagnostics : public InternalThread {
+    class Diagnostics : public MachineThread {
       DiagnosticsList list_;
 
       DiagnosticsEmitter* emitter_;

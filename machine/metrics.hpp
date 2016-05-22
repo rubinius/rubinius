@@ -1,7 +1,7 @@
 #ifndef RBX_METRICS_HPP
 #define RBX_METRICS_HPP
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 
 #include "memory/root.hpp"
 
@@ -433,7 +433,7 @@ namespace rubinius {
       void reinit();
     };
 
-    class Metrics : public InternalThread {
+    class Metrics : public MachineThread {
       bool enabled_;
 
       memory::TypedRoot<Tuple*> values_;

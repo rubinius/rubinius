@@ -1,7 +1,7 @@
 #ifndef RBX_GC_IMMIX_MARKER_HPP
 #define RBX_GC_IMMIX_MARKER_HPP
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 
 #include "memory/root.hpp"
 
@@ -14,7 +14,7 @@ namespace memory {
   class ImmixGC;
   class GCData;
 
-  class ImmixMarker : public InternalThread {
+  class ImmixMarker : public MachineThread {
     ImmixGC* immix_;
     GCData* data_;
 

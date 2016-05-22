@@ -1,7 +1,7 @@
 #ifndef RBX_JIT_H
 #define RBX_JIT_H
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 
 #include "util/thread.hpp"
 
@@ -13,7 +13,7 @@ namespace rubinius {
 
     typedef std::list<CompileRequest*> CompileList;
 
-    class JIT : public InternalThread {
+    class JIT : public MachineThread {
       CompileList list_;
 
       utilities::thread::Mutex jit_lock_;

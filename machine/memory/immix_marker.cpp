@@ -21,7 +21,7 @@ namespace rubinius {
 namespace memory {
 
   ImmixMarker::ImmixMarker(STATE, ImmixGC* immix, GCData* data)
-    : InternalThread(state, "rbx.immix")
+    : MachineThread(state, "rbx.immix")
     , immix_(immix)
     , data_(data)
   {
@@ -36,7 +36,7 @@ namespace memory {
   }
 
   void ImmixMarker::initialize(STATE) {
-    InternalThread::initialize(state);
+    MachineThread::initialize(state);
 
     Thread::create(state, vm());
   }
@@ -46,7 +46,7 @@ namespace memory {
 
     state->memory()->clear_mature_mark_in_progress();
 
-    InternalThread::after_fork_child(state);
+    MachineThread::after_fork_child(state);
   }
 
   void ImmixMarker::cleanup() {
@@ -57,7 +57,7 @@ namespace memory {
   }
 
   void ImmixMarker::stop(STATE) {
-    InternalThread::stop(state);
+    MachineThread::stop(state);
   }
 
   void ImmixMarker::run(STATE) {

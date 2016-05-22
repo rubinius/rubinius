@@ -381,7 +381,7 @@ namespace rubinius {
   static int fork_exec(STATE, int errors_fd) {
     utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
-    state->shared().internal_threads()->before_fork_exec(state);
+    state->shared().machine_threads()->before_fork_exec(state);
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
@@ -402,7 +402,7 @@ namespace rubinius {
     state->vm()->become_unmanaged();
 
     if(pid > 0) {
-      state->shared().internal_threads()->after_fork_exec_parent(state);
+      state->shared().machine_threads()->after_fork_exec_parent(state);
     }
 
     return pid;
@@ -446,7 +446,7 @@ namespace rubinius {
       close(errors[0]);
 
       state->vm()->thread->init_lock();
-      state->shared().internal_threads()->after_fork_exec_child(state);
+      state->shared().machine_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       vm_spawn_setup(state, spawn_state);
@@ -566,7 +566,7 @@ namespace rubinius {
 
     if(pid == 0) {
       state->vm()->thread->init_lock();
-      state->shared().internal_threads()->after_fork_exec_child(state);
+      state->shared().machine_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
       close(output[0]);
@@ -690,7 +690,7 @@ namespace rubinius {
     // From this point, we are serialized.
     utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
-    state->shared().internal_threads()->before_exec(state);
+    state->shared().machine_threads()->before_exec(state);
 
     void* old_handlers[NSIG];
 
@@ -731,7 +731,7 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
-    state->shared().internal_threads()->after_exec(state);
+    state->shared().machine_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::raise_errno_error(state, "execvp(2) failed", erno);
@@ -820,7 +820,7 @@ namespace rubinius {
     {
       utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
-      state->shared().internal_threads()->before_fork(state);
+      state->shared().machine_threads()->before_fork(state);
       state->memory()->set_interrupt();
 
       LockPhase locked(state);
@@ -830,7 +830,7 @@ namespace rubinius {
       if(pid == 0) {
         state->vm()->after_fork_child(state);
       } else if(pid > 0) {
-        state->shared().internal_threads()->after_fork_parent(state);
+        state->shared().machine_threads()->after_fork_parent(state);
       }
     }
 
@@ -850,7 +850,7 @@ namespace rubinius {
 
       state->vm()->thread->init_lock();
       state->shared().after_fork_child(state);
-      state->shared().internal_threads()->after_fork_child(state);
+      state->shared().machine_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();

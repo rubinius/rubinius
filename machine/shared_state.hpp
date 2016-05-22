@@ -6,7 +6,7 @@
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 #include "diagnostics.hpp"
 #include "globals.hpp"
 #include "jit.hpp"
@@ -84,7 +84,7 @@ namespace rubinius {
   class SharedState {
   private:
     ThreadNexus* thread_nexus_;
-    InternalThreads* internal_threads_;
+    MachineThreads* machine_threads_;
     SignalThread* signals_;
     memory::FinalizerThread* finalizer_thread_;
     console::Console* console_;
@@ -158,8 +158,8 @@ namespace rubinius {
       return thread_nexus_;
     }
 
-    InternalThreads* internal_threads() const {
-      return internal_threads_;
+    MachineThreads* machine_threads() const {
+      return machine_threads_;
     }
 
     memory::FinalizerThread* finalizer_handler() const {

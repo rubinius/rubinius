@@ -572,7 +572,7 @@ namespace rubinius {
 
     {
       UnmanagedPhase unmanaged(state);
-      shared->internal_threads()->shutdown(state);
+      shared->machine_threads()->shutdown(state);
     }
 
     shared->thread_nexus()->wait_till_alone(state->vm());
