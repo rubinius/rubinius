@@ -250,7 +250,9 @@ namespace rubinius {
 
     llvm_version = RBX_LLVM_VERSION;
 
-    if(CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())) {
+    if(CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled_p(
+            signal_thread_->shared().env()->state)))
+    {
       jit_status = "JIT";
     } else {
       jit_status = "JIT disabled";

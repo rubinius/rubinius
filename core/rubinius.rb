@@ -239,12 +239,12 @@ module Rubinius
   def self.version
     extra = ""
 
-    if Rubinius::JIT.enabled? and jit = Rubinius::JIT.properties
+    if Rubinius::JIT.enabled? # and jit = Rubinius::JIT.properties
       extra << "J"
 
-      if jit.include? :inline_generic
-        extra << "I"
-      end
+      # if jit.include? :inline_generic
+      #   extra << "I"
+      # end
     end
 
     extra << "P" if Rubinius::PROFILER != "none"

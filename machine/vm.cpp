@@ -364,32 +364,6 @@ namespace rubinius {
     zombie_ = true;
   }
 
-  void VM::initialize_config() {
-    State state(this);
-
-    Array* ary = Array::create(&state, 3);
-
-    G(jit)->available(&state, cTrue);
-    G(jit)->properties(&state, ary);
-
-    /* TODO: JIT
-    if(!shared.config.jit_disabled) {
-      ary->append(&state, state.symbol("usage"));
-      if(shared.config.jit_inline_generic) {
-        ary->append(&state, state.symbol("inline_generic"));
-      }
-
-      if(shared.config.jit_inline_blocks) {
-        ary->append(&state, state.symbol("inline_blocks"));
-      }
-      G(jit)->enabled(&state, cTrue);
-    } else {
-      G(jit)->enabled(&state, cFalse);
-    }
-    */
-    G(jit)->enabled(&state, cFalse);
-  }
-
   /**
    * Returns the current VM executing on this pthread.
    */

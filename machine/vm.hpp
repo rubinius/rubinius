@@ -415,7 +415,6 @@ namespace rubinius {
     void bootstrap_class(STATE);
     void bootstrap_ontology(STATE);
     void bootstrap_symbol(STATE);
-    void initialize_config();
 
     void collect_maybe(STATE);
 

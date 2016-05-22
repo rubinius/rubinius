@@ -115,7 +115,6 @@ namespace rubinius {
     utilities::thread::SpinLock capi_constant_lock_;
     utilities::thread::SpinLock global_capi_handle_lock_;
     utilities::thread::SpinLock capi_handle_cache_lock_;
-    utilities::thread::SpinLock llvm_state_lock_;
     utilities::thread::SpinLock wait_lock_;
     utilities::thread::SpinLock type_info_lock_;
     utilities::thread::SpinLock code_resource_lock_;
@@ -134,9 +133,6 @@ namespace rubinius {
     Configuration& config;
     ConfigParser& user_variables;
     SymbolTable symbols;
-    /* TODO: JIT
-    LLVMState* llvm_state;
-    */
     std::string username;
     std::string pid;
     uint32_t hash_seed;
@@ -323,10 +319,6 @@ namespace rubinius {
     }
 
     int capi_lock_index(std::string name);
-
-    utilities::thread::SpinLock& llvm_state_lock() {
-      return llvm_state_lock_;
-    }
 
     utilities::thread::SpinLock& wait_lock() {
       return wait_lock_;

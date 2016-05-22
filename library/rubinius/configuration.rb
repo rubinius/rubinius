@@ -77,7 +77,7 @@ Rubinius::ConfigurationVariables.define do |c|
   end
 
   c.section "jit" do |j|
-    j.vm_variable "enabled", true,
+    j.vm_variable "enabled", false,
       "Just-in-time compile managed code to native code"
   end
 

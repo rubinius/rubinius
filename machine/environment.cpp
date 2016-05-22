@@ -161,32 +161,8 @@ namespace rubinius {
     }
   }
 
-  void Environment::start_jit(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
-
-    /* TODO: JIT
-    if(state->shared().config.jit_disabled) return;
-
-    if(!state->shared().llvm_state) {
-      state->shared().llvm_state = new LLVMState(state);
-    }
-    */
-  }
-
   void Environment::stop_logging(STATE) {
     logger::close();
-  }
-
-  void Environment::stop_jit(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
-
-    /* TODO: JIT
-    if(state->shared().config.jit_disabled) return;
-
-    if(state->shared().llvm_state) {
-      state->shared().llvm_state->stop(state);
-    }
-    */
   }
 
   void Environment::start_finalizer(STATE) {
@@ -568,8 +544,6 @@ namespace rubinius {
       }
     }
 
-    stop_jit(state);
-
     {
       UnmanagedPhase unmanaged(state);
       shared->machine_threads()->shutdown(state);
@@ -742,10 +716,6 @@ namespace rubinius {
     start_finalizer(state);
 
     load_argv(argc_, argv_);
-
-    state->vm()->initialize_config();
-
-    start_jit(state);
 
     // Start the main Ruby thread.
     Thread* main = 0;
