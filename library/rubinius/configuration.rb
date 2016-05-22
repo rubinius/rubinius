@@ -18,12 +18,6 @@ Rubinius::ConfigurationVariables.define do |c|
   end
 
   c.section "gc" do |s|
-    s.vm_variable "young_bytes", (30 * 1024 * 1024),
-      "The number of bytes the young generation of the GC should use"
-
-    s.vm_variable "young_lifetime", 2,
-      "How many young GC cycles an object lives before promotion"
-
     s.vm_variable "large_object", (1024 * 1024),
       "The size (in bytes) of the large object threshold"
 
@@ -54,10 +48,6 @@ Rubinius::ConfigurationVariables.define do |c|
       "The size of each stack"
   end
 
-  c.vm_variable "tool", :string,
-    :as => "tool_to_load",
-    :description => "Load a VM tool from a shared library"
-
   c.section "capi" do |s|
     s.vm_variable "global_flush", false,
       "Flush all CAPI handles at CAPI call boundaries"
@@ -70,20 +60,11 @@ Rubinius::ConfigurationVariables.define do |c|
     :as => "print_config",
     :description => "blank or 1 == names and values, 2 == description as well"
 
-  c.vm_variable "ic.debug", false,
-    "Print out when inline caches are reset"
-
   c.vm_variable "serial.debug", false,
     "Print out when the global serial increases"
 
   c.vm_variable "allocation_tracking", false,
     "Enable allocation tracking for new objects"
-
-  c.vm_variable "profile", false,
-    "Configure the system to profile ruby code"
-
-  c.vm_variable "profiler.threshold", 1000000,
-    "The minimum number of nanoseconds a profiler node must have to be reported"
 
   c.section "machine" do |s|
     s.section "call_site" do |cs|

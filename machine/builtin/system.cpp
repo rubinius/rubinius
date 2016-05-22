@@ -919,25 +919,6 @@ namespace rubinius {
 
     state->vm()->metrics().machine.cache_resets++;
 
-    if(state->shared().config.ic_debug) {
-      String* mod_name = mod->get_name(state);
-
-      if(mod_name->nil_p()) {
-        mod_name = String::create(state, "<unknown>");
-      }
-
-      std::cerr << std::endl
-                << "reset global/method cache for "
-                << mod_name->c_str(state)
-                << "#"
-                << name->debug_str(state).c_str()
-                << std::endl;
-
-      if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
-        frame->print_backtrace(state, std::cerr, 6, true);
-      }
-    }
-
     return cTrue;
   }
 
