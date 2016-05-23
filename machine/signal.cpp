@@ -134,7 +134,7 @@ namespace rubinius {
 
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
+    pthread_attr_setstacksize(&attrs, state->shared().config.machine_thread_stack_size);
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
     if(int error = pthread_create(&vm_->os_thread(), &attrs,
@@ -165,7 +165,7 @@ namespace rubinius {
 
     State state_obj(vm), *state = &state_obj;
 
-    vm->set_stack_bounds(THREAD_STACK_SIZE);
+    vm->set_stack_bounds(state->shared().config.machine_thread_stack_size.value);
     vm->set_current_thread();
 
     RUBINIUS_THREAD_START(

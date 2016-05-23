@@ -304,24 +304,11 @@ namespace rubinius {
   static void invoke_callback(ffi_cif* cif, void* retval,
       void** parameters, void* user_data)
   {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     FFIData* stub = reinterpret_cast<FFIData*>(user_data);
 
-    bool destroy_vm = false;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     if(!env) {
-      // TODO: fix this, the threads should *always* be set up correctly
-      // Apparently we're running in a new thread here, setup
-      // everything we need here.
-      destroy_vm = true;
-
-      VM* vm = stub->shared->thread_nexus()->new_vm(stub->shared, "ruby.ffi");
-
-      vm->set_stack_bounds(THREAD_STACK_SIZE);
-
-      // Setup nativemethod handles into thread local
-      State state(vm);
-      NativeMethod::init_thread(&state);
-      env = NativeMethodEnvironment::get();
+      rubinius::bug("attempted to run native code from an incorrectly initialized Thread");
     }
 
     State* state = env->state();
@@ -557,11 +544,6 @@ namespace rubinius {
     }
 
     state->vm()->become_unmanaged();
-
-    if(destroy_vm) {
-      NativeMethod::cleanup_thread(state);
-      VM::discard(state, state->vm());
-    }
   }
 
 

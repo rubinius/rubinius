@@ -40,14 +40,6 @@ Rubinius::ConfigurationVariables.define do |c|
       "How many bytes allocated by C extensions til the GC is run"
   end
 
-  c.section "fiber" do |s|
-    s.vm_variable "stacks", 10,
-      "The number of stacks in each Threads stack pool"
-
-    s.vm_variable "stack_size", 512 * 1024,
-      "The size of each stack"
-  end
-
   c.section "capi" do |s|
     s.vm_variable "global_flush", false,
       "Flush all CAPI handles at CAPI call boundaries"
@@ -66,19 +58,35 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "allocation_tracking", false,
     "Enable allocation tracking for new objects"
 
-  c.section "machine" do |s|
-    s.section "call_site" do |cs|
+  c.section "machine" do |m|
+    m.section "fiber" do |f|
+      f.vm_variable "stacks", 10,
+        "The number of stacks in each Threads stack pool"
+
+      f.vm_variable "stack_size", 512 * 1024,
+        "The size in bytes of the Fiber's stack"
+    end
+
+    m.section "thread" do |t|
+      t.vm_variable "stack_size", 4 * 1024 * 1024,
+        "The size in bytes of the Thread's stack"
+    end
+
+    m.vm_variable "stack_cushion", 4096,
+      "Size in bytes to reserve when checking stack overflow"
+
+    m.section "call_site" do |cs|
       cs.vm_variable "cache", true,
         "Cache executables at call sites"
 
       cs.vm_variable "limit", 3,
         "Maximum number of caches at call sites"
     end
-  end
 
-  c.section "jit" do |j|
-    j.vm_variable "enabled", false,
-      "Just-in-time compile managed code to native code"
+    m.section "jit" do |j|
+      j.vm_variable "enabled", false,
+        "Just-in-time compile managed code to native code"
+    end
   end
 
   c.section "system" do |s|

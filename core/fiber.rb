@@ -1,16 +1,15 @@
 module Rubinius
   class Fiber
-    def self.create(callable)
-      Rubinius.primitive :fiber_new
-      raise NotImplementedError, "Fibers not supported on this platform"
-    end
+    attr_reader :stack_size
 
-    def self.new(size=0, &block)
+    def self.new(**kw, &block)
       if block.nil?
         raise ArgumentError, "Fiber.new requires a block"
       end
 
-      create(block)
+      stack_size = Rubinius::Type.try_convert kw[:stack_size], Fixnum, :to_int
+
+      Rubinius.invoke_primitive :fiber_new, stack_size, block, self
     end
 
     def self.current

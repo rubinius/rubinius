@@ -81,7 +81,6 @@ namespace rubinius {
     typedef std_unordered_set<FiberData*> Datas;
 
     size_t max_stacks_;
-    size_t stack_size_;
 
     VM* thread_;
     Stacks stacks_;
@@ -93,11 +92,11 @@ namespace rubinius {
     FiberStacks(VM* thread, SharedState& shared);
     ~FiberStacks();
 
-    FiberStack* allocate();
+    FiberStack* allocate(size_t stack_size);
 
     void remove_data(FiberData* data);
 
-    FiberData* new_data(bool root=false);
+    FiberData* new_data(size_t stack_size, bool root=false);
 
     void* trampoline();
 

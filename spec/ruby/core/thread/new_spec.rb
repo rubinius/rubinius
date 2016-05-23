@@ -2,6 +2,20 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Thread.new" do
+  it "accepts an optional keyword argument to set the Thread's stack size" do
+    size = 8192
+    t = Thread.new(stack_size: size) { }
+    t.stack_size.should == size
+  end
+
+  it "calls #to_int to covert the stack size to a Fixnum" do
+    size = mock("Thread stack size")
+    size.should_receive(:to_int).and_return(8192)
+
+    t = Thread.new(stack_size: size) { }
+    t.stack_size.should == 8192
+  end
+
   it "creates a thread executing the given block" do
     c = Channel.new
     Thread.new { c << true }.join

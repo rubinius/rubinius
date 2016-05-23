@@ -184,7 +184,7 @@ namespace rubinius {
 
   jit::JIT* SharedState::start_jit(STATE) {
     if(!jit_) {
-      if(config.jit_enabled.value) {
+      if(config.machine_jit_enabled.value) {
         jit_ = new jit::JIT(state);
       }
     }

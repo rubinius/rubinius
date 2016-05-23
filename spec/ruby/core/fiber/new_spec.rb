@@ -2,6 +2,20 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 with_feature :fiber do
   describe "Fiber.new" do
+    it "accepts an optional keyword argument to set the Fiber's stack size" do
+      size = 8192
+      f = Fiber.new(stack_size: size) { }
+      f.stack_size.should == size
+    end
+
+    it "calls #to_int to covert the stack size to a Fixnum" do
+      size = mock("Fiber stack size")
+      size.should_receive(:to_int).and_return(8192)
+
+      f = Fiber.new(stack_size: size) { }
+      f.stack_size.should == 8192
+    end
+
     it "creates a fiber from the given block" do
       fiber = Fiber.new {}
       fiber.should be_an_instance_of(Fiber)

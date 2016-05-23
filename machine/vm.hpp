@@ -105,6 +105,7 @@ namespace rubinius {
 
     void* stack_start_;
     size_t stack_size_;
+    size_t stack_cushion_;
 
     void* current_stack_start_;
     size_t current_stack_size_;
@@ -225,6 +226,7 @@ namespace rubinius {
     double run_time();
 
     void raise_stack_error(STATE);
+    void validate_stack_size(STATE, size_t size);
 
     size_t stack_size() {
       return current_stack_size_;
@@ -237,7 +239,7 @@ namespace rubinius {
 
     void set_stack_bounds(void* start, size_t size) {
       current_stack_start_ = start;
-      current_stack_size_ = size;
+      current_stack_size_ = size - stack_cushion_;
     }
 
     void set_stack_bounds(size_t size);
@@ -383,16 +385,16 @@ namespace rubinius {
       allocation_tracking_ = false;
     }
 
-    FiberStack* allocate_fiber_stack() {
-      return fiber_stacks_.allocate();
+    FiberStack* allocate_fiber_stack(size_t stack_size) {
+      return fiber_stacks_.allocate(stack_size);
     }
 
     void* fiber_trampoline() {
       return fiber_stacks_.trampoline();
     }
 
-    FiberData* new_fiber_data(bool root=false) {
-      return fiber_stacks_.new_data(root);
+    FiberData* new_fiber_data(size_t stack_size, bool root=false) {
+      return fiber_stacks_.new_data(stack_size, root);
     }
 
     void remove_fiber_data(FiberData* data) {

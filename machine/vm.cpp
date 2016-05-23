@@ -66,6 +66,7 @@ namespace rubinius {
     , park_(new Park)
     , stack_start_(0)
     , stack_size_(0)
+    , stack_cushion_(shared.config.machine_stack_cushion.value)
     , current_stack_start_(0)
     , current_stack_size_(0)
     , interrupt_with_signal_(false)
@@ -143,6 +144,12 @@ namespace rubinius {
 
   void VM::raise_stack_error(STATE) {
     state->raise_stack_error(state);
+  }
+
+  void VM::validate_stack_size(STATE, size_t size) {
+    if(stack_cushion_ > size) {
+      Exception::raise_runtime_error(state, "requested stack size is invalid");
+    }
   }
 
   bool VM::push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame) {
@@ -550,7 +557,7 @@ namespace rubinius {
     if(fib->root_p()) {
       restore_stack_bounds();
     } else {
-      set_stack_bounds(fib->stack_start(), fib->stack_size());
+      set_stack_bounds(fib->data()->stack_start(), fib->data()->stack_size());
     }
 
     current_fiber.set(fib);

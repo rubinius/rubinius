@@ -41,6 +41,7 @@ namespace rubinius {
     attr_accessor(priority, Fixnum);
     attr_accessor(pid, Fixnum);
     attr_accessor(initialized, Object);
+    attr_accessor(stack_size, Fixnum);
 
   private:
     utilities::thread::SpinLock init_lock_;
@@ -74,6 +75,7 @@ namespace rubinius {
       obj->priority(Fixnum::from(0));
       obj->pid(Fixnum::from(0));
       obj->initialized(cFalse);
+      obj->stack_size(Fixnum::from(state->shared().config.machine_thread_stack_size.value));
 
       obj->init_lock_.init();
       obj->join_lock_.init();
@@ -85,10 +87,10 @@ namespace rubinius {
   public:
 
     // Rubinius.primitive :thread_s_new
-    static Thread* s_new(STATE, Object* self, Array* args, Object* block);
+    static Thread* s_new(STATE, Object* self, Array* args, Object* kw, Object* block);
 
     // Rubinius.primitive :thread_s_start
-    static Thread* s_start(STATE, Object* self, Array* args, Object* block);
+    static Thread* s_start(STATE, Object* self, Array* args, Object* kw, Object* block);
 
     /**
      *  Returns the Thread object for the state.

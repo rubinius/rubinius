@@ -88,7 +88,7 @@ namespace rubinius {
     root_vm->set_main_thread();
     shared->set_root_vm(root_vm);
 
-    size_t stack_size = THREAD_STACK_SIZE;
+    size_t stack_size = 0;
     struct rlimit rlim;
 
     if(getrlimit(RLIMIT_STACK, &rlim) == 0) {
