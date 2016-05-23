@@ -461,7 +461,10 @@ namespace rubinius {
             "system.threads.created", metrics_data_.system.threads_created));
       metrics_map_.push_back(new MetricsItem(
             "system.threads.destroyed", metrics_data_.system.threads_destroyed));
-
+      metrics_map_.push_back(new MetricsItem(
+            "system.fibers.created", metrics_data_.system.fibers_created));
+      metrics_map_.push_back(new MetricsItem(
+            "system.fibers.destroyed", metrics_data_.system.fibers_destroyed));
     }
 
     void Metrics::init_ruby_metrics(STATE) {

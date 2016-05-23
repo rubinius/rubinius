@@ -1,6 +1,7 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "memory.hpp"
+#include "metrics.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -91,6 +92,8 @@ namespace rubinius {
       }
     }
 
+    vm->metrics().system.fibers_destroyed++;
+
     dest->run(state);
     dest->value(state, result);
 
@@ -108,6 +111,8 @@ namespace rubinius {
 #ifdef RBX_FIBER_ENABLED
     Fiber* fib = state->memory()->new_object<Fiber>(state, as<Class>(self));
     fib->starter(state, callable);
+
+    state->vm()->metrics().system.fibers_created++;
 
     state->memory()->needs_finalization(state, fib,
         (memory::FinalizerFunction)&Fiber::finalize,
