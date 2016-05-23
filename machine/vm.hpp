@@ -249,7 +249,7 @@ namespace rubinius {
 
       if(stack_used < 0) stack_used = -stack_used;
 
-      if(static_cast<size_t>(stack_used) > stack_size_) {
+      if(static_cast<size_t>(stack_used) > current_stack_size_) {
         raise_stack_error(state);
         return false;
       }
