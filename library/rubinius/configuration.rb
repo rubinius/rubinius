@@ -24,7 +24,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "immix.concurrent", false,
       "Set whether we want the Immix mark phase to run concurrently"
 
-    s.vm_variable "immix.debug", :bool,
+    s.vm_variable "immix.debug", false,
       "Print out collection stats when the Immix collector finishes"
 
     s.vm_variable "honor_start", false,
@@ -128,7 +128,7 @@ Rubinius::ConfigurationVariables.define do |c|
       m.vm_variable "statsd.server", "localhost:8125",
         "The [host:]port of the StatsD server"
 
-      m.vm_variable "statsd.prefix", "host.$nodename.$pid.app.rbx",
+      m.vm_variable "statsd.prefix", "host.$NODENAME.$PID.app.rbx",
         "Prefix for StatsD metric names"
     end
 
