@@ -413,10 +413,9 @@ module Rubinius
     Available subcommands:
 
       compile       Run the bytecode compiler
-      console       Run the Agent CLI
-      docs          Run a local HTTP documentation server
       gem           Run RubyGems 'gem' command
-      report        Create a gist of the last Rubinius toplevel exception
+      irb           Run IRB
+      erb           Run ERb
     DOC
 
       options.doc <<-DOC
