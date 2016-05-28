@@ -741,8 +741,8 @@ namespace rubinius {
    */
   template <typename ArgumentHandler>
     Object* MachineCode::execute_specialized(STATE,
-        Executable* exec, Module* mod, Arguments& args) {
-
+        Executable* exec, Module* mod, Arguments& args)
+    {
       CompiledCode* code = as<CompiledCode>(exec);
       MachineCode* mcode = code->machine_code();
 

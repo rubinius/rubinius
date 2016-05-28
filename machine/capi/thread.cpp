@@ -226,11 +226,11 @@ extern "C" {
 
     State* state = env->state();
     ENTER_CAPI(state);
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     void* ret = (*func)(data);
 
-    env->state()->vm()->become_unmanaged();
+    env->state()->vm()->unmanaged_phase();
     LEAVE_CAPI(env->state());
 
     return ret;

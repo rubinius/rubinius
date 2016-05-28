@@ -23,6 +23,7 @@
 
 #include "sodium/randombytes.h"
 
+#include <atomic>
 #include <vector>
 #include <setjmp.h>
 #include <stdint.h>
@@ -124,7 +125,7 @@ namespace rubinius {
     bool allocation_tracking_;
     bool main_thread_;
 
-    ThreadNexus::Phase thread_phase_;
+    std::atomic<ThreadNexus::Phase> thread_phase_;
 
     uint32_t profile_interval_;
     uint32_t profile_counter_;
@@ -180,20 +181,6 @@ namespace rubinius {
 
     void set_thread_phase(ThreadNexus::Phase thread_phase) {
       thread_phase_ = thread_phase;
-    }
-
-    void restore_thread_phase(ThreadNexus::Phase thread_phase) {
-      switch(thread_phase) {
-      case ThreadNexus::cManaged:
-        become_managed();
-        break;
-      case ThreadNexus::cBlocking:
-      case ThreadNexus::cUnmanaged:
-      case ThreadNexus::cWaiting:
-      case ThreadNexus::cSleeping:
-      default:
-        thread_phase_ = thread_phase;
-      }
     }
 
     utilities::thread::SpinLock& interrupt_lock() {
@@ -448,7 +435,7 @@ namespace rubinius {
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
-      if(thread_nexus_->stop_lock(this)) {
+      if(thread_nexus_->try_lock(this)) {
         metrics().machine.stops++;
 
         collect_maybe(state);
@@ -465,9 +452,16 @@ namespace rubinius {
     void blocking_suspend(STATE, metrics::metric& counter);
     void sleeping_suspend(STATE, metrics::metric& counter);
 
-    void become_managed();
-    void become_unmanaged() {
-      thread_phase_ = ThreadNexus::cUnmanaged;
+    void blocking_phase() {
+      thread_nexus_->blocking_phase(this);
+    }
+
+    void managed_phase() {
+      thread_nexus_->managed_phase(this);
+    }
+
+    void unmanaged_phase() {
+      thread_nexus_->unmanaged_phase(this);
     }
 
     void set_current_thread();

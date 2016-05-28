@@ -169,7 +169,7 @@ namespace rubinius {
     OnStack<1> os(state, obj);
 
     {
-      MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
+      MutexLockWaiting lock_waiting(state, contention_lock_);
 
       // We want to lock obj, but someone else has it locked.
       //
@@ -289,7 +289,7 @@ step1:
   }
 
   void Memory::release_contention(STATE) {
-    MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
+    MutexLockWaiting lock_waiting(state, contention_lock_);
     contention_var_.broadcast();
   }
 

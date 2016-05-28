@@ -78,7 +78,7 @@ namespace rubinius {
     , constant_missing_reason_(vFound)
     , zombie_(false)
     , main_thread_(false)
-    , thread_phase_(ThreadNexus::cUnmanaged)
+    , thread_phase_(ThreadNexus::eUnmanaged)
     , profile_interval_(0)
     , profile_counter_(0)
     , profile_(NULL)
@@ -357,12 +357,8 @@ namespace rubinius {
   void VM::sleeping_suspend(STATE, metrics::metric& counter) {
     timer::StopWatch<timer::milliseconds> timer(counter);
 
-    SleepPhase sleeping(state);
+    UnmanagedPhase sleeping(state);
     suspend_thread();
-  }
-
-  void VM::become_managed() {
-    thread_nexus_->managed_lock(this);
   }
 
   void VM::set_zombie(STATE) {
@@ -403,7 +399,7 @@ namespace rubinius {
 
     interrupt_lock_.init();
     set_main_thread();
-    become_managed();
+    managed_phase();
 
     // TODO: Remove need for root_vm.
     state->shared().env()->set_root_vm(state->vm());

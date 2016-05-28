@@ -34,7 +34,7 @@ namespace rubinius {
     }
 
     void JIT::run(STATE) {
-      state->vm()->become_unmanaged();
+      state->vm()->unmanaged_phase();
 
       while(!thread_exit_) {
         CompileRequest* request = 0;

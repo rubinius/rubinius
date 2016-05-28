@@ -388,7 +388,7 @@ namespace rubinius {
 
     int pid;
 
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
     state->memory()->set_interrupt();
 
     {
@@ -399,7 +399,7 @@ namespace rubinius {
       if(pid == 0) state->vm()->after_fork_child(state);
     }
 
-    state->vm()->become_unmanaged();
+    state->vm()->unmanaged_phase();
 
     if(pid > 0) {
       state->shared().machine_threads()->after_fork_exec_parent(state);

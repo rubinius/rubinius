@@ -182,7 +182,7 @@ namespace rubinius {
   }
 
   void SignalThread::run(STATE) {
-    state->vm()->become_unmanaged();
+    state->vm()->unmanaged_phase();
 
 #ifndef RBX_WINDOWS
     sigset_t set;

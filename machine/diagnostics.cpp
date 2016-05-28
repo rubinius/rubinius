@@ -108,7 +108,7 @@ namespace rubinius {
     }
 
     void Diagnostics::run(STATE) {
-      state->vm()->become_unmanaged();
+      state->vm()->unmanaged_phase();
 
       while(!thread_exit_) {
         DiagnosticsData* data = 0;

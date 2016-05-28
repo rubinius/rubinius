@@ -800,7 +800,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockWaiting lock_waiting(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -888,7 +888,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockWaiting lock_waiting(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -930,7 +930,7 @@ step2:
     // Gain exclusive access to the insides of the InflatedHeader.
     OnStack<1> os(state, obj);
 
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockWaiting lock_waiting(state, mutex_);
 
     return owner_id_ != 0;
   }
@@ -939,7 +939,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockWaiting lock_waiting(state, mutex_);
 
     // Sanity check.
     if(owner_id_ != state->vm()->thread_id()) {
@@ -976,7 +976,7 @@ step2:
     OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockWaiting lock_waiting(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
 
@@ -1005,7 +1005,7 @@ step2:
 
   void InflatedHeader::wakeup(STATE, ObjectHeader* obj) {
     OnStack<1> os(state, obj);
-    MutexLockUnmanaged lock_unmanaged(state, mutex_);
+    MutexLockWaiting lock_waiting(state, mutex_);
     condition_.signal();
 
     if(cDebugThreading) {

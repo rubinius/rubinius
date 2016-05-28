@@ -321,6 +321,8 @@ namespace rubinius {
   }
 
   Object* Thread::main_thread(STATE) {
+    state->vm()->managed_phase();
+
     std::string& runtime = state->shared().env()->runtime_path();
 
     G(rubinius)->set_const(state, "Signature",
@@ -385,7 +387,7 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     Object* value = vm->thread->function()(state);
     vm->set_call_frame(NULL);
@@ -411,7 +413,7 @@ namespace rubinius {
 
     logger::write("exit thread: %s %fs", vm->name().c_str(), vm->run_time());
 
-    vm->become_unmanaged();
+    vm->unmanaged_phase();
 
     if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {
       state->shared().signals()->system_exit(vm->thread_state()->raise_value());
@@ -523,11 +525,11 @@ namespace rubinius {
     Thread* self = this;
     OnStack<2> os(state, self, timeout);
 
-    state->vm()->become_unmanaged();
+    state->vm()->unmanaged_phase();
 
     {
       utilities::thread::Mutex::LockGuard guard(self->join_lock_);
-      state->vm()->become_managed();
+      state->vm()->managed_phase();
       atomic::memory_barrier();
 
       if(self->alive()->true_p()) {

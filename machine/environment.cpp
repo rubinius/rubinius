@@ -549,7 +549,7 @@ namespace rubinius {
       shared->machine_threads()->shutdown(state);
     }
 
-    shared->thread_nexus()->wait_till_alone(state->vm());
+    shared->thread_nexus()->halt_lock(state->vm());
 
     shared->finalizer_handler()->finish(state);
 
@@ -707,7 +707,7 @@ namespace rubinius {
 
     shared->set_initialized();
 
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     TypeInfo::auto_learn_fields(state);
 

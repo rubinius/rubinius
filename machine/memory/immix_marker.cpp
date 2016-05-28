@@ -61,26 +61,26 @@ namespace memory {
   }
 
   void ImmixMarker::run(STATE) {
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     while(!thread_exit_) {
       timer::StopWatch<timer::milliseconds> timer(
           state->vm()->metrics().gc.immix_concurrent_ms);
 
-      state->shared().thread_nexus()->blocking(state->vm());
+      state->shared().thread_nexus()->blocking_phase(state->vm());
 
       while(immix_->process_mark_stack(immix_->memory()->interrupt_p())) {
         if(thread_exit_ || immix_->memory()->collect_full_p()) {
           break;
         } else if(immix_->memory()->collect_young_p()) {
-          state->shared().thread_nexus()->yielding(state->vm());
+          state->vm()->checkpoint(state);
         } else if(immix_->memory()->interrupt_p()) {
           // We may be trying to fork or otherwise checkpoint
-          state->shared().thread_nexus()->yielding(state->vm());
+          state->vm()->checkpoint(state);
           immix_->memory()->reset_interrupt();
         }
 
-        state->shared().thread_nexus()->blocking(state->vm());
+        state->shared().thread_nexus()->blocking_phase(state->vm());
       }
 
       if(thread_exit_) break;

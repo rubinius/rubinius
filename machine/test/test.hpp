@@ -33,7 +33,7 @@ public:
     vm->shared.set_initialized();
     vm->shared.set_root_vm(vm);
 
-    vm->become_managed();
+    vm->managed_phase();
 
     State state(vm);
 

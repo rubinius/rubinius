@@ -130,7 +130,7 @@ namespace memory {
   }
 
   void FinalizerThread::run(STATE) {
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     while(!thread_exit_) {
       if(!process_list_) first_process_item();
@@ -142,13 +142,13 @@ namespace memory {
           // exit_ might have been set after we grabbed the worker_lock
           if(thread_exit_) break;
 
-          state->vm()->become_unmanaged();
+          state->vm()->unmanaged_phase();
           worker_wait();
 
           if(thread_exit_) break;
         }
 
-        state->vm()->become_managed();
+        state->vm()->managed_phase();
 
         {
           utilities::thread::Mutex::LockGuard lg(worker_lock_);
