@@ -171,16 +171,16 @@ namespace rubinius {
       return id_;
     }
 
-    ThreadNexus::Phase thread_phase() {
-      return thread_phase_;
-    }
-
     ThreadNexus* thread_nexus() {
       return thread_nexus_;
     }
 
+    ThreadNexus::Phase thread_phase() {
+      return thread_phase_.load(std::memory_order_acquire);
+    }
+
     void set_thread_phase(ThreadNexus::Phase thread_phase) {
-      thread_phase_ = thread_phase;
+      thread_phase_.store(thread_phase, std::memory_order_release);
     }
 
     utilities::thread::SpinLock& interrupt_lock() {
