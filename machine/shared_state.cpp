@@ -108,7 +108,7 @@ namespace rubinius {
   }
 
   Array* SharedState::vm_threads(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(thread_nexus_->threads_lock());
+    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
 
     Array* threads = Array::create(state, 0);
 

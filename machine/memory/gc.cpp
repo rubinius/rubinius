@@ -24,6 +24,8 @@
 #include "object_watch.hpp"
 #include "thread_nexus.hpp"
 
+#include <mutex>
+
 namespace rubinius {
 namespace memory {
 
@@ -314,21 +316,19 @@ namespace memory {
   }
 
   void GarbageCollector::verify(GCData* data) {
+    std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
+
+    for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+        i != data->thread_nexus()->threads()->end();
+        ++i)
     {
-      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+      ManagedThread* thr = *i;
+      for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
+        ri->get()->validate();
+      }
 
-      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
-          i != data->thread_nexus()->threads()->end();
-          ++i)
-      {
-        ManagedThread* thr = *i;
-        for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
-          ri->get()->validate();
-        }
-
-        if(VM* vm = thr->as_vm()) {
-          vm->gc_verify(this);
-        }
+      if(VM* vm = thr->as_vm()) {
+        vm->gc_verify(this);
       }
     }
   }
@@ -374,16 +374,14 @@ namespace memory {
   }
 
   void GarbageCollector::scan_fibers(GCData* data, bool marked_only) {
-    {
-      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+    std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
-      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
-          i != data->thread_nexus()->threads()->end();
-          ++i)
-      {
-        if(VM* vm = (*i)->as_vm()) {
-          vm->gc_fiber_scan(this, marked_only);
-        }
+    for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
+        i != data->thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        vm->gc_fiber_scan(this, marked_only);
       }
     }
   }

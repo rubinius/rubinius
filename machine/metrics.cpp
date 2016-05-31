@@ -555,7 +555,7 @@ namespace rubinius {
         ThreadNexus* thread_nexus = state->shared().thread_nexus();
 
         {
-          utilities::thread::SpinLock::LockGuard guard(thread_nexus->threads_lock());
+          std::lock_guard<std::mutex> guard(thread_nexus->threads_mutex());
 
           for(ThreadList::iterator i = thread_nexus->threads()->begin();
               i != thread_nexus->threads()->end();

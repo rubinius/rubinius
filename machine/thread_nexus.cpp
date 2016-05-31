@@ -16,7 +16,7 @@ namespace rubinius {
   void ThreadNexus::blocking_phase(VM* vm) {
     vm->set_thread_phase(eWaiting);
 
-    utilities::thread::Mutex::LockGuard phase_guard(phase_lock_);
+    std::lock_guard<std::recursive_mutex> guard(phase_mutex_);
 
     vm->set_thread_phase(eBlocking);
   }
@@ -24,7 +24,7 @@ namespace rubinius {
   void ThreadNexus::managed_phase(VM* vm) {
     vm->set_thread_phase(eWaiting);
 
-    utilities::thread::Mutex::LockGuard phase_guard(phase_lock_);
+    std::lock_guard<std::recursive_mutex> guard(phase_mutex_);
 
     vm->set_thread_phase(eManaged);
   }
@@ -68,7 +68,7 @@ namespace rubinius {
   }
 
   VM* ThreadNexus::new_vm(SharedState* shared, const char* name) {
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint32_t max_id = thread_ids_;
     uint32_t id = ++thread_ids_;
@@ -85,15 +85,13 @@ namespace rubinius {
   }
 
   void ThreadNexus::delete_vm(VM* vm) {
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     threads_.remove(vm);
   }
 
   void ThreadNexus::after_fork_child(STATE) {
     unset_stop();
-    threads_lock_.init();
-    phase_lock_.init(true);
 
     VM* current = state->vm();
 
@@ -179,7 +177,7 @@ namespace rubinius {
     timer::StopWatch<timer::nanoseconds> timer(
         vm->metrics().lock.stop_the_world_ns);
 
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint64_t ns = 0;
 
@@ -211,7 +209,7 @@ namespace rubinius {
     timer::StopWatch<timer::nanoseconds> timer(
         vm->metrics().lock.stop_the_world_ns);
 
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint64_t ns = 0;
 
@@ -237,7 +235,7 @@ namespace rubinius {
 
   void ThreadNexus::waiting_lock(VM* vm) {
     vm->set_thread_phase(eWaiting);
-    phase_lock_.lock();
+    phase_mutex_.lock();
     vm->set_thread_phase(eManaged);
   }
 }

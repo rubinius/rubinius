@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <list>
+#include <mutex>
 
 #include <stdint.h>
 
@@ -25,8 +26,8 @@ namespace rubinius {
 
   class ThreadNexus {
     std::atomic<bool> stop_;
-    utilities::thread::SpinLock threads_lock_;
-    utilities::thread::Mutex phase_lock_;
+    std::mutex threads_mutex_;
+    std::recursive_mutex phase_mutex_;
     ThreadList threads_;
     uint32_t thread_ids_;
 
@@ -45,8 +46,8 @@ namespace rubinius {
 
     ThreadNexus()
       : stop_(false)
-      , threads_lock_()
-      , phase_lock_(true)
+      , threads_mutex_()
+      , phase_mutex_()
       , threads_()
       , thread_ids_(0)
     { }
@@ -59,8 +60,8 @@ namespace rubinius {
       return &threads_;
     }
 
-    utilities::thread::SpinLock& threads_lock() {
-      return threads_lock_;
+    std::mutex& threads_mutex() {
+      return threads_mutex_;
     }
 
     bool stop_p() {
@@ -112,14 +113,14 @@ namespace rubinius {
 
     void halt_lock(VM* vm) {
       waiting_lock(vm);
-      phase_lock_.lock();
+      phase_mutex_.lock();
       set_stop();
       checkpoint(vm);
     }
 
     void unlock() {
       stop_.store(false, std::memory_order_release);
-      phase_lock_.unlock();
+      phase_mutex_.unlock();
     }
 
     bool try_checkpoint(VM* vm);

@@ -564,7 +564,7 @@ step1:
     data->global_cache()->prune_young();
 
     {
-      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+      std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
       for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
           i != data->thread_nexus()->threads()->end();
@@ -745,7 +745,7 @@ step1:
   }
 
   void Memory::clear_fiber_marks(memory::GCData* data) {
-    utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+    std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
     for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
         i != data->thread_nexus()->threads()->end();
