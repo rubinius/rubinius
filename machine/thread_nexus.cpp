@@ -13,14 +13,9 @@
 #include <time.h>
 
 namespace rubinius {
-  void ThreadNexus::set_halt(VM* vm) {
-    halt_ = vm->thread_id();
-  }
-
   void ThreadNexus::blocking_phase(VM* vm) {
     vm->set_thread_phase(eWaiting);
 
-    utilities::thread::Mutex::LockGuard halt_guard(halt_lock_);
     utilities::thread::Mutex::LockGuard phase_guard(phase_lock_);
 
     vm->set_thread_phase(eBlocking);
@@ -29,21 +24,9 @@ namespace rubinius {
   void ThreadNexus::managed_phase(VM* vm) {
     vm->set_thread_phase(eWaiting);
 
-    if(halt_) {
-      halt_lock_.lock();
-
-      if(halt_ != vm->thread_id()) {
-        rubinius::bug("thread should NOT be able to acquire halt lock");
-      }
-    }
-
     utilities::thread::Mutex::LockGuard phase_guard(phase_lock_);
 
     vm->set_thread_phase(eManaged);
-
-    if(halt_) {
-      halt_lock_.unlock();
-    }
   }
 
   void ThreadNexus::unmanaged_phase(VM* vm) {
@@ -109,10 +92,8 @@ namespace rubinius {
 
   void ThreadNexus::after_fork_child(STATE) {
     stop_ = false;
-    halt_ = false;
     threads_lock_.init();
     phase_lock_.init(true);
-    halt_lock_.init(true);
 
     VM* current = state->vm();
 

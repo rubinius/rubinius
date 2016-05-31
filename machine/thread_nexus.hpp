@@ -24,10 +24,8 @@ namespace rubinius {
 
   class ThreadNexus {
     bool stop_;
-    uint32_t halt_;
     utilities::thread::SpinLock threads_lock_;
     utilities::thread::Mutex phase_lock_;
-    utilities::thread::Mutex halt_lock_;
     ThreadList threads_;
     uint32_t thread_ids_;
 
@@ -46,10 +44,8 @@ namespace rubinius {
 
     ThreadNexus()
       : stop_(false)
-      , halt_(0)
       , threads_lock_()
       , phase_lock_(true)
-      , halt_lock_(true)
       , threads_()
       , thread_ids_(0)
     { }
@@ -85,6 +81,8 @@ namespace rubinius {
     bool blocking_p(VM* vm);
     bool yielding_p(VM* vm);
 
+    void waiting_lock(VM* vm);
+
     bool try_lock(VM* vm) {
       if(!stop_) return false;
 
@@ -112,16 +110,10 @@ namespace rubinius {
 
     void halt_lock(VM* vm) {
       waiting_lock(vm);
-
-      halt_lock_.lock();
-
-      set_halt(vm);
+      phase_lock_.lock();
       set_stop();
-
       checkpoint(vm);
     }
-
-    void waiting_lock(VM* vm);
 
     void unlock() {
       stop_ = false;
