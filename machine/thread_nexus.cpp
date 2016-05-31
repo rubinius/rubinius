@@ -91,7 +91,7 @@ namespace rubinius {
   }
 
   void ThreadNexus::after_fork_child(STATE) {
-    stop_ = false;
+    unset_stop();
     threads_lock_.init();
     phase_lock_.init(true);
 

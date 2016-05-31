@@ -7,6 +7,7 @@
 #include "util/thread.hpp"
 #include "util/atomic.hpp"
 
+#include <atomic>
 #include <list>
 
 #include <stdint.h>
@@ -23,7 +24,7 @@ namespace rubinius {
   typedef std::list<memory::ManagedThread*> ThreadList;
 
   class ThreadNexus {
-    bool stop_;
+    std::atomic<bool> stop_;
     utilities::thread::SpinLock threads_lock_;
     utilities::thread::Mutex phase_lock_;
     ThreadList threads_;
@@ -63,15 +64,16 @@ namespace rubinius {
     }
 
     bool stop_p() {
-      return stop_;
+      return stop_.load(std::memory_order_acquire);
     }
 
     void set_stop() {
-      stop_ = true;
-      atomic::memory_barrier();
+      stop_.store(true, std::memory_order_release);
     }
 
-    void set_halt(VM* vm);
+    void unset_stop() {
+      stop_.store(false, std::memory_order_release);
+    }
 
     void blocking_phase(VM* vm);
     void managed_phase(VM* vm);
@@ -84,14 +86,14 @@ namespace rubinius {
     void waiting_lock(VM* vm);
 
     bool try_lock(VM* vm) {
-      if(!stop_) return false;
+      if(!stop_p()) return false;
 
       waiting_lock(vm);
 
       // Assumption about stop_ may change while we progress.
-      if(stop_) {
+      if(stop_p()) {
         if(try_checkpoint(vm)) {
-          if(stop_) {
+          if(stop_p()) {
             return true;
           }
         }
@@ -116,7 +118,7 @@ namespace rubinius {
     }
 
     void unlock() {
-      stop_ = false;
+      stop_.store(false, std::memory_order_release);
       phase_lock_.unlock();
     }
 
