@@ -549,7 +549,7 @@ namespace rubinius {
       shared->machine_threads()->shutdown(state);
     }
 
-    shared->thread_nexus()->halt_lock(state->vm());
+    shared->thread_nexus()->lock(state->vm());
 
     shared->finalizer_handler()->finish(state);
 

@@ -379,31 +379,28 @@ namespace rubinius {
   }
 
   static int fork_exec(STATE, int errors_fd) {
-    utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
+    state->vm()->thread_nexus()->waiting_phase(state->vm());
+
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
+    state->vm()->thread_nexus()->lock(state->vm());
 
     state->shared().machine_threads()->before_fork_exec(state);
+    state->memory()->set_interrupt();
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
-    int pid;
+    int pid = ::fork();
 
-    state->vm()->managed_phase();
-    state->memory()->set_interrupt();
+    state->vm()->thread_nexus()->unlock();
 
-    {
-      LockPhase locked(state);
-
-      pid = ::fork();
-
-      if(pid == 0) state->vm()->after_fork_child(state);
-    }
-
-    state->vm()->unmanaged_phase();
-
-    if(pid > 0) {
+    if(pid == 0) {
+      state->vm()->after_fork_child(state);
+    } else if(pid > 0) {
       state->shared().machine_threads()->after_fork_exec_parent(state);
     }
+
+    state->vm()->thread_nexus()->fork_mutex().unlock();
 
     return pid;
   }
@@ -425,13 +422,7 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid;
-
-    {
-      UnmanagedPhase unmanaged(state);
-
-      pid = fork_exec(state, errors[1]);
-    }
+    int pid = fork_exec(state, errors[1]);
 
     // error
     if(pid == -1) {
@@ -545,13 +536,7 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid;
-
-    {
-      UnmanagedPhase unmanaged(state);
-
-      pid = fork_exec(state, errors[1]);
-    }
+    int pid = fork_exec(state, errors[1]);
 
     // error
     if(pid == -1) {
@@ -815,38 +800,31 @@ namespace rubinius {
     // TODO: Windows
     return force_as<Fixnum>(Primitives::failure());
 #else
-    int pid = -1;
+    state->vm()->thread_nexus()->waiting_phase(state->vm());
 
-    {
-      utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
+    state->vm()->thread_nexus()->lock(state->vm());
 
-      state->shared().machine_threads()->before_fork(state);
-      state->memory()->set_interrupt();
+    state->shared().machine_threads()->before_fork(state);
+    state->memory()->set_interrupt();
 
-      LockPhase locked(state);
+    int pid = ::fork();
 
-      pid = ::fork();
+    state->vm()->thread_nexus()->unlock();
 
-      if(pid == 0) {
-        state->vm()->after_fork_child(state);
-      } else if(pid > 0) {
-        state->shared().machine_threads()->after_fork_parent(state);
-      }
-    }
-
-    // We're in the parent...
     if(pid > 0) {
+      // We're in the parent...
+      state->shared().machine_threads()->after_fork_parent(state);
+
       CallFrame* call_frame = state->vm()->get_ruby_frame(2);
 
       logger::write("fork: child: %d, %s, %s:%d", pid,
           state->vm()->name().c_str(),
           call_frame->file(state)->cpp_str(state).c_str(),
           call_frame->line(state));
-    }
-
-    // We're in the child...
-    if(pid == 0) {
-      /*  @todo any other re-initialisation needed? */
+    } else if(pid == 0) {
+      // We're in the child...
+      state->vm()->after_fork_child(state);
 
       state->vm()->thread->init_lock();
       state->shared().after_fork_child(state);
@@ -854,13 +832,13 @@ namespace rubinius {
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();
-    }
-
-    if(pid == -1) {
+    } else if(pid < 0) {
+      // We errored...
       Exception::raise_errno_error(state, "fork(2) failed");
       return NULL;
     }
 
+    // The compiler can't understand the covering above, so...
     return Fixnum::from(pid);
 #endif
   }

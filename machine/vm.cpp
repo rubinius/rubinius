@@ -399,7 +399,6 @@ namespace rubinius {
 
     interrupt_lock_.init();
     set_main_thread();
-    managed_phase();
 
     // TODO: Remove need for root_vm.
     state->shared().env()->set_root_vm(state->vm());

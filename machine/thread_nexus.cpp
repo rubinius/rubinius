@@ -14,19 +14,13 @@
 
 namespace rubinius {
   void ThreadNexus::blocking_phase(VM* vm) {
-    vm->set_thread_phase(eWaiting);
-
-    std::lock_guard<std::recursive_mutex> guard(phase_mutex_);
-
+    bool held = waiting_lock(vm);
     vm->set_thread_phase(eBlocking);
+    if(!held) unlock();
   }
 
   void ThreadNexus::managed_phase(VM* vm) {
-    vm->set_thread_phase(eWaiting);
-
-    std::lock_guard<std::recursive_mutex> guard(phase_mutex_);
-
-    vm->set_thread_phase(eManaged);
+    if(!waiting_lock(vm)) unlock();
   }
 
   void ThreadNexus::unmanaged_phase(VM* vm) {
@@ -91,8 +85,6 @@ namespace rubinius {
   }
 
   void ThreadNexus::after_fork_child(STATE) {
-    unset_stop();
-
     VM* current = state->vm();
 
     for(ThreadList::iterator i = threads_.begin();
@@ -233,9 +225,33 @@ namespace rubinius {
     }
   }
 
-  void ThreadNexus::waiting_lock(VM* vm) {
+  bool ThreadNexus::waiting_lock(VM* vm) {
+    uint32_t id = 0;
+
     vm->set_thread_phase(eWaiting);
-    phase_mutex_.lock();
+
+    while(!phase_flag_.compare_exchange_strong(id, vm->thread_id(),
+          std::memory_order_acq_rel))
+    {
+      if(id == vm->thread_id()) {
+        /* The exchange failed, but it was because the value was already set
+         * to our id, so we hold the "lock".
+         */
+        vm->set_thread_phase(eManaged);
+        return true;
+      }
+
+      {
+        std::unique_lock<std::mutex> lk(wait_mutex_);
+        while(phase_flag_.load(std::memory_order_acquire) != 0) {
+          wait_condition_.wait(lk);
+        }
+      }
+
+      id = 0;
+    }
+
     vm->set_thread_phase(eManaged);
+    return false;
   }
 }

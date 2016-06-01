@@ -8,6 +8,7 @@
 #include "util/atomic.hpp"
 
 #include <atomic>
+#include <condition_variable>
 #include <list>
 #include <mutex>
 
@@ -26,8 +27,13 @@ namespace rubinius {
 
   class ThreadNexus {
     std::atomic<bool> stop_;
+    std::mutex fork_mutex_;
     std::mutex threads_mutex_;
-    std::recursive_mutex phase_mutex_;
+    std::mutex wait_mutex_;
+    std::condition_variable wait_condition_;
+
+    std::atomic<uint32_t> phase_flag_;
+
     ThreadList threads_;
     uint32_t thread_ids_;
 
@@ -46,14 +52,21 @@ namespace rubinius {
 
     ThreadNexus()
       : stop_(false)
+      , fork_mutex_()
       , threads_mutex_()
-      , phase_mutex_()
+      , wait_mutex_()
+      , wait_condition_()
+      , phase_flag_(0)
       , threads_()
       , thread_ids_(0)
     { }
 
     ~ThreadNexus() {
       rubinius::bug("attempt to destroy ThreadNexus");
+    }
+
+    std::mutex& fork_mutex() {
+      return fork_mutex_;
     }
 
     ThreadList* threads() {
@@ -84,24 +97,26 @@ namespace rubinius {
     bool blocking_p(VM* vm);
     bool yielding_p(VM* vm);
 
-    void waiting_lock(VM* vm);
+    bool waiting_lock(VM* vm);
 
     bool try_lock(VM* vm) {
-      if(!stop_p()) return false;
+      while(stop_p()) {
+        bool held = waiting_lock(vm);
 
-      waiting_lock(vm);
-
-      // Assumption about stop_ may change while we progress.
-      if(stop_p()) {
-        if(try_checkpoint(vm)) {
-          if(stop_p()) {
-            return true;
+        // Assumption about stop_ may change while we progress.
+        if(stop_p()) {
+          if(try_checkpoint(vm)) {
+            if(stop_p()) {
+              unset_stop();
+              return true;
+            }
           }
         }
+
+        // Either we're not stop_'ing or something blocked us from serializing.
+        if(!held) unlock();
       }
 
-      // Either we're not stop_'ing or something blocked us from serializing.
-      unlock();
       return false;
     }
 
@@ -109,18 +124,13 @@ namespace rubinius {
       waiting_lock(vm);
       set_stop();
       checkpoint(vm);
-    }
-
-    void halt_lock(VM* vm) {
-      waiting_lock(vm);
-      phase_mutex_.lock();
-      set_stop();
-      checkpoint(vm);
+      unset_stop();
     }
 
     void unlock() {
-      stop_.store(false, std::memory_order_release);
-      phase_mutex_.unlock();
+      std::lock_guard<std::mutex> guard(wait_mutex_);
+      phase_flag_.store(0, std::memory_order_release);
+      wait_condition_.notify_all();
     }
 
     bool try_checkpoint(VM* vm);
