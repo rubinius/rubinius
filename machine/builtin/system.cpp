@@ -393,6 +393,7 @@ namespace rubinius {
 
     int pid = ::fork();
 
+    logger::reset_lock();
     state->vm()->thread_nexus()->unlock();
 
     if(pid == 0) {
@@ -825,6 +826,7 @@ namespace rubinius {
 
     int pid = ::fork();
 
+    logger::reset_lock();
     state->vm()->thread_nexus()->unlock();
 
     if(pid > 0) {

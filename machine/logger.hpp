@@ -60,6 +60,8 @@ namespace rubinius {
     void set_label();
     void set_loglevel(logger_level level);
 
+    void reset_lock();
+
     class Logger {
       utilities::thread::SpinLock& lock_;
 
@@ -84,6 +86,7 @@ namespace rubinius {
 
       virtual void set_label() = 0;
 
+      void reset_lock();
       char* timestamp();
 
       utilities::thread::SpinLock& lock() {
