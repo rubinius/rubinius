@@ -57,6 +57,7 @@
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <dlfcn.h>
@@ -491,7 +492,7 @@ namespace rubinius {
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
 
-    int error_no;
+    int error_no = 0;
     ssize_t size;
 
     while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
@@ -507,6 +508,13 @@ namespace rubinius {
     close(errors[0]);
 
     if(size != 0) {
+      {
+        UnmanagedPhase unmanaged(state);
+        int status, options = WNOHANG;
+
+        waitpid(pid, &status, options);
+      }
+
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
     }
@@ -600,7 +608,7 @@ namespace rubinius {
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
 
-    int error_no;
+    int error_no = 0;
     ssize_t size;
 
     while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
@@ -616,6 +624,13 @@ namespace rubinius {
     close(errors[0]);
 
     if(size != 0) {
+      {
+        UnmanagedPhase unmanaged(state);
+        int status, options = WNOHANG;
+
+        waitpid(pid, &status, options);
+      }
+
       close(output[0]);
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
