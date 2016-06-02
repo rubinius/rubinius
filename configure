@@ -165,6 +165,8 @@ class Configure
     @ruby_version = "2.2.2"
     @ruby_libversion = @ruby_version.split(/\./)[0..1].join.to_i
 
+    @build_bin = "#{@sourcedir}/build/bin"
+
     # Configure settings
     @release_build = !in_git?
   end
@@ -325,11 +327,11 @@ class Configure
 
     o.doc "\n Compiler settings"
 
-    o.on "--cc", "COMPILER", "Compiler to use for C code (eg gcc, clang)" do |cc|
+    o.on "--cc", "COMPILER", "Compiler to use for C code (eg clang)" do |cc|
       @cc = cc
     end
 
-    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg g++, clang++)" do |cxx|
+    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg clang++)" do |cxx|
       @cxx = cxx
     end
 
@@ -710,6 +712,24 @@ Support for compilers other than clang/clang++ is deprecated and will be
 removed soon. If your platform does not have support for clang/clang++,
 please notify us.
       EOM
+    end
+
+    if File.exist? @build_bin
+      if !File.directory? @build_bin
+        fail "#{@build_bin} already exists and is not a directory"
+      end
+    else
+      FileUtils.mkdir_p @build_bin
+    end
+
+    if @cc != "cc"
+      cc = "#{@build_bin}/cc"
+      File.symlink `which #{@cc}`.chomp, cc unless File.exist? cc
+    end
+
+    if @cxx != "c++"
+      cxx = "#{@build_bin}/c++"
+      File.symlink `which #{@cxx}`.chomp, cxx unless File.exist? cxx
     end
 
     @make ||= ENV['MAKE'] || 'make'
@@ -1572,6 +1592,7 @@ int main() { return tgetnum(""); }
       :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
       :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
+      :build_bin          => @build_bin,
       :prefixdir          => @prefixdir,
       :bindir             => @bindir,
       :libdir             => @libdir,

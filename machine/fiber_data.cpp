@@ -156,7 +156,7 @@ namespace rubinius {
 
   FiberStack* FiberData::allocate_stack(STATE) {
     assert(!stack_);
-    stack_ = state->vm()->allocate_fiber_stack();
+    stack_ = state->vm()->allocate_fiber_stack(stack_size_);
     return stack_;
   }
 

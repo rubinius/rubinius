@@ -23,7 +23,7 @@ namespace rubinius {
   Object* JIT::compile(STATE, Object* object, CompiledCode* code,
                        Object* block_environment)
   {
-    if(!CBOOL(enabled())) return cFalse;
+    if(!CBOOL(enabled_p(state))) return cFalse;
 
     BlockEnvironment* block_env = try_as<BlockEnvironment>(block_environment);
     if(!block_env) block_env = nil<BlockEnvironment>();
@@ -35,6 +35,10 @@ namespace rubinius {
     */
 
     return cTrue;
+  }
+
+  Object* JIT::enabled_p(STATE) {
+    return RBOOL(state->shared().config.machine_jit_enabled.value);
   }
 
   Object* JIT::compile_threshold(STATE) {
@@ -58,12 +62,11 @@ namespace rubinius {
   }
 
   Object* JIT::enable(STATE) {
-    if(!CBOOL(enabled())) return cFalse;
+    if(!CBOOL(enabled_p(state))) return cFalse;
 
     /* TODO: JIT
     state->shared().llvm_state->enable(state);
     */
-    enabled(state, cTrue);
 
     return cTrue;
   }
@@ -71,7 +74,7 @@ namespace rubinius {
   Object* JIT::compile_soon(STATE, CompiledCode* code,
       Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
-    if(!CBOOL(enabled())) return cFalse;
+    if(!CBOOL(enabled_p(state))) return cFalse;
 
     /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
@@ -84,7 +87,7 @@ namespace rubinius {
   Object* JIT::compile_callframe(STATE, CompiledCode* code,
       int primitive)
   {
-    if(!CBOOL(enabled())) return cFalse;
+    if(!CBOOL(enabled_p(state))) return cFalse;
 
     /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
@@ -95,7 +98,7 @@ namespace rubinius {
   }
 
   Object* JIT::start_method_update(STATE) {
-    if(!CBOOL(enabled())) return cFalse;
+    if(!CBOOL(enabled_p(state))) return cFalse;
 
     /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;
@@ -106,7 +109,7 @@ namespace rubinius {
   }
 
   Object* JIT::end_method_update(STATE) {
-    if(!CBOOL(enabled())) return cFalse;
+    if(!CBOOL(enabled_p(state))) return cFalse;
 
     /* TODO: JIT
     LLVMState* ls = state->shared().llvm_state;

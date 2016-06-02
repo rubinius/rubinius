@@ -68,7 +68,7 @@ namespace rubinius {
     }
 
     Diagnostics::Diagnostics(STATE)
-      : InternalThread(state, "rbx.diagnostics", InternalThread::eSmall)
+      : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
       , list_()
       , emitter_(NULL)
       , diagnostics_lock_()
@@ -83,19 +83,20 @@ namespace rubinius {
     }
 
     void Diagnostics::initialize(STATE) {
-      InternalThread::initialize(state);
+      MachineThread::initialize(state);
 
       diagnostics_lock_.init();
+      diagnostics_condition_.init();
     }
 
     void Diagnostics::wakeup(STATE) {
-      InternalThread::wakeup(state);
+      MachineThread::wakeup(state);
 
       diagnostics_condition_.signal();
     }
 
     void Diagnostics::after_fork_child(STATE) {
-      InternalThread::after_fork_child(state);
+      MachineThread::after_fork_child(state);
     }
 
     void Diagnostics::report(DiagnosticsData* data) {
@@ -107,7 +108,7 @@ namespace rubinius {
     }
 
     void Diagnostics::run(STATE) {
-      state->vm()->become_unmanaged();
+      state->vm()->unmanaged_phase();
 
       while(!thread_exit_) {
         DiagnosticsData* data = 0;

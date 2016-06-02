@@ -26,6 +26,7 @@ namespace rubinius {
     attr_accessor(exception, Exception);
     attr_accessor(locals, LookupTable);
     attr_accessor(dead, Object);
+    attr_accessor(stack_size, Fixnum);
 
   private:
     attr_field(status, Status);
@@ -69,18 +70,6 @@ namespace rubinius {
       return data()->machine();
     }
 
-    void* stack_address() const {
-      return data()->stack_address();
-    }
-
-    void* stack_start() const {
-      return (void*)((uintptr_t)stack_address() + stack_size());
-    }
-
-    int stack_size() const {
-      return data()->stack_size();
-    }
-
     memory::VariableRootBuffers& variable_root_buffers() {
       return data()->variable_root_buffers();
     }
@@ -94,13 +83,14 @@ namespace rubinius {
       obj->exception(nil<Exception>());
       obj->locals(nil<LookupTable>());
       obj->dead(nil<Object>());
+      obj->stack_size(Fixnum::from(state->shared().config.machine_fiber_stack_size.value));
       obj->status(eNotStarted);
       obj->root(false);
       obj->data(NULL);
     }
 
     // Rubinius.primitive :fiber_new
-    static Fiber* create(STATE, Object* self, Object* callable);
+    static Fiber* create(STATE, Object* self, Object* stack_size, Object* callable);
     static void start_on_stack();
 
     // Rubinius.primitive :fiber_s_current

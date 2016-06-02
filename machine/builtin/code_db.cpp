@@ -60,7 +60,7 @@ namespace rubinius {
   }
 
   CodeDB* CodeDB::open(STATE, const char* path) {
-    MutexLockUnmanaged guard(state, state->shared().codedb_lock());
+    MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
     CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
     codedb->path(state, String::create(state, path));
@@ -149,10 +149,10 @@ namespace rubinius {
   }
 
   CompiledCode* CodeDB::load(STATE, const char* m_id) {
-    MutexLockUnmanaged guard(state, state->shared().codedb_lock());
-
     timer::StopWatch<timer::microseconds> timer(
         state->vm()->metrics().codedb.load_us);
+
+    MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
     CodeDBMap::const_iterator index = codedb_index.find(std::string(m_id));
 

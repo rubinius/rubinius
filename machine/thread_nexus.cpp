@@ -13,27 +13,56 @@
 #include <time.h>
 
 namespace rubinius {
-  void ThreadNexus::blocking(VM* vm) {
-    vm->set_thread_phase(cBlocking);
+  void ThreadNexus::blocking_phase(VM* vm) {
+    bool held = waiting_lock(vm);
+    vm->set_thread_phase(eBlocking);
+    if(!held) unlock();
+  }
+
+  void ThreadNexus::managed_phase(VM* vm) {
+    if(!waiting_lock(vm)) unlock();
+  }
+
+  void ThreadNexus::unmanaged_phase(VM* vm) {
+    vm->set_thread_phase(eUnmanaged);
+  }
+
+  void ThreadNexus::waiting_phase(VM* vm) {
+    vm->set_thread_phase(eWaiting);
+  }
+
+  void ThreadNexus::restore_phase(VM* vm, Phase phase) {
+    switch(phase) {
+    case eManaged:
+      managed_phase(vm);
+      break;
+    case eBlocking:
+      blocking_phase(vm);
+      break;
+    case eUnmanaged:
+      unmanaged_phase(vm);
+      break;
+    case eWaiting:
+      waiting_phase(vm);
+      break;
+    }
   }
 
   bool ThreadNexus::blocking_p(VM* vm) {
     atomic::memory_barrier();
-    return (vm->thread_phase() & cBlocking) == cBlocking;
-  }
-
-  bool ThreadNexus::sleeping_p(VM* vm) {
-    atomic::memory_barrier();
-    return (vm->thread_phase() & cSleeping) == cSleeping;
+    return (vm->thread_phase() & eBlocking) == eBlocking;
   }
 
   bool ThreadNexus::yielding_p(VM* vm) {
     atomic::memory_barrier();
-    return (vm->thread_phase() & cYielding) == cYielding;
+
+    int phase = static_cast<int>(vm->thread_phase());
+
+    return (phase & cYieldingPhase) == cYieldingPhase;
   }
 
   VM* ThreadNexus::new_vm(SharedState* shared, const char* name) {
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint32_t max_id = thread_ids_;
     uint32_t id = ++thread_ids_;
@@ -50,19 +79,12 @@ namespace rubinius {
   }
 
   void ThreadNexus::delete_vm(VM* vm) {
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     threads_.remove(vm);
   }
 
   void ThreadNexus::after_fork_child(STATE) {
-    stop_ = false;
-    threads_lock_.init();
-    lock_.init(true);
-    sleep_lock_.init();
-    wait_mutex_.init();
-    wait_condition_.init();
-
     VM* current = state->vm();
 
     for(ThreadList::iterator i = threads_.begin();
@@ -90,20 +112,14 @@ namespace rubinius {
 
   static const char* phase_name(VM* vm) {
     switch(vm->thread_phase()) {
-      case ThreadNexus::cStop:
-        return "cStop";
-      case ThreadNexus::cManaged:
-        return "cManaged";
-      case ThreadNexus::cUnmanaged:
-        return "cUnmanaged";
-      case ThreadNexus::cWaiting:
-        return "cWaiting";
-      case ThreadNexus::cSleeping:
-        return "cSleeping";
-      case ThreadNexus::cYielding:
-        return "cYielding";
-      case ThreadNexus::cBlocking:
-        return "cBlocking";
+      case ThreadNexus::eManaged:
+        return "eManaged";
+      case ThreadNexus::eBlocking:
+        return "eBlocking";
+      case ThreadNexus::eUnmanaged:
+        return "eUnmanaged";
+      case ThreadNexus::eWaiting:
+        return "eWaiting";
     }
 
     return "cUnknown";
@@ -121,21 +137,8 @@ namespace rubinius {
     }
   }
 
-#define RBX_MAX_STOP_NANOSECONDS 5000000000
-
-  void ThreadNexus::detect_lock_deadlock(uint64_t nanoseconds, VM* vm) {
-    if(nanoseconds > RBX_MAX_STOP_NANOSECONDS) {
-      logger::fatal("thread nexus: thread will not yield: %s, %s",
-          vm->name().c_str(), phase_name(vm));
-
-      list_threads();
-
-      rubinius::abort();
-    }
-  }
-
-  void ThreadNexus::detect_halt_deadlock(uint64_t nanoseconds, VM* vm) {
-    if(nanoseconds > RBX_MAX_STOP_NANOSECONDS) {
+  void ThreadNexus::detect_deadlock(uint64_t nanoseconds, uint64_t limit, VM* vm) {
+    if(nanoseconds > limit) {
       logger::fatal("thread nexus: thread will not yield: %s, %s",
           vm->name().c_str(), phase_name(vm));
 
@@ -162,11 +165,11 @@ namespace rubinius {
     return ns;
   }
 
-  bool ThreadNexus::serialized_p(VM* vm) {
+  bool ThreadNexus::try_checkpoint(VM* vm) {
     timer::StopWatch<timer::nanoseconds> timer(
         vm->metrics().lock.stop_the_world_ns);
 
-    utilities::thread::SpinLock::LockGuard guard(threads_lock_);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint64_t ns = 0;
 
@@ -186,10 +189,7 @@ namespace rubinius {
 
           ns += delay();
 
-          // This thread never yielded; we could be deadlocked.
-          if(vm->memory()->can_gc()) {
-            detect_lock_deadlock(ns, other_vm);
-          }
+          detect_deadlock(ns, try_lock_limit, other_vm);
         }
       }
     }
@@ -197,84 +197,61 @@ namespace rubinius {
     return true;
   }
 
-  void ThreadNexus::yielding(VM* vm) {
-    vm->set_thread_phase(cWaiting);
+  void ThreadNexus::checkpoint(VM* vm) {
+    timer::StopWatch<timer::nanoseconds> timer(
+        vm->metrics().lock.stop_the_world_ns);
 
-    {
-      utilities::thread::Mutex::LockGuard guard(wait_mutex_);
-
-      if(stop_) {
-        wait_condition_.wait(wait_mutex_);
-      }
-    }
-
-    managed_lock(vm);
-  }
-
-  void ThreadNexus::managed_lock(VM* vm) {
-    vm->set_thread_phase(cWaiting);
-
-    utilities::thread::Mutex::LockGuard guard(lock_);
-
-    vm->set_thread_phase(cManaged);
-  }
-
-  void ThreadNexus::waiting_lock(VM* vm) {
-    vm->set_thread_phase(cWaiting);
-    lock_.lock();
-    vm->set_thread_phase(cManaged);
-  }
-
-  void ThreadNexus::sleep_lock(VM* vm) {
-    utilities::thread::Mutex::LockGuard guard(sleep_lock_);
-    vm->become_managed();
-  }
-
-  void ThreadNexus::lock(VM* vm) {
-    waiting_lock(vm);
-
-    while(!serialized_p(vm)) {
-      ; // wait until serialized or abort with deadlock
-    }
-  }
-
-  void ThreadNexus::wait_till_alone(VM* vm) {
-    /* We block acquiring the sleep lock so that any waking thread that raced
-     * us to it will finish waking up. Any sleeping thread that wakes up after
-     * we get the lock will block until the process exits because once we
-     * acquire the sleep lock, we never unlock it.
-     */
-    sleep_lock_.lock();
-
-    vm->set_thread_phase(cWaiting);
+    std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint64_t ns = 0;
 
-    // TODO: add thread_stop signalling
-    while(true) {
-      bool blocking = false;
+    for(ThreadList::iterator i = threads_.begin();
+           i != threads_.end();
+           ++i)
+    {
+      if(VM* other_vm = (*i)->as_vm()) {
+        if(vm == other_vm || yielding_p(other_vm)) continue;
 
-      {
-        utilities::thread::SpinLock::LockGuard guard(threads_lock_);
-
-        for(ThreadList::iterator i = threads_.begin();
-               i != threads_.end();
-               ++i)
-        {
-          if(VM* other_vm = (*i)->as_vm()) {
-            if(vm == other_vm || yielding_p(other_vm)) continue;
-
-            blocking = true;
+        while(true) {
+          if(yielding_p(other_vm)) {
             break;
           }
+
+          ns += delay();
+
+          detect_deadlock(ns, lock_limit, other_vm);
+        }
+      }
+    }
+  }
+
+  bool ThreadNexus::waiting_lock(VM* vm) {
+    uint32_t id = 0;
+
+    vm->set_thread_phase(eWaiting);
+
+    while(!phase_flag_.compare_exchange_strong(id, vm->thread_id(),
+          std::memory_order_acq_rel))
+    {
+      if(id == vm->thread_id()) {
+        /* The exchange failed, but it was because the value was already set
+         * to our id, so we hold the "lock".
+         */
+        vm->set_thread_phase(eManaged);
+        return true;
+      }
+
+      {
+        std::unique_lock<std::mutex> lk(wait_mutex_);
+        while(phase_flag_.load(std::memory_order_acquire) != 0) {
+          wait_condition_.wait(lk);
         }
       }
 
-      if(!blocking) return;
-
-      ns += delay();
-
-      detect_halt_deadlock(ns, vm);
+      id = 0;
     }
+
+    vm->set_thread_phase(eManaged);
+    return false;
   }
 }

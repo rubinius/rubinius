@@ -1,17 +1,15 @@
 module Rubinius
   module JIT
     class << self
-      attr_accessor :available
-      attr_accessor :enabled
       attr_accessor :properties
-
-      @enabled = false
-
-      alias_method :available?, :available
-      alias_method :enabled?, :enabled
 
       def compile(object, compiled_code, block_environment=nil)
         Rubinius.invoke_primitive :jit_compile, self, object, compiled_code, block_environment
+      end
+
+      def enabled?
+        Rubinius.primitive :jit_enabled_p
+        raise PrimitiveFailure, "Rubinius::JIT.enabled? primitive failed"
       end
 
       # TODO: Fix configuration

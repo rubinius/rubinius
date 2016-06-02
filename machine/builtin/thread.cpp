@@ -144,9 +144,14 @@ namespace rubinius {
     return value;
   }
 
-  Thread* Thread::s_new(STATE, Object* self, Array* args, Object* block) {
+  Thread* Thread::s_new(STATE, Object* self, Array* args, Object* stack_size, Object* block) {
     Thread* thread = Thread::create(state, self, run_instance);
     OnStack<1> os(state, thread);
+
+    if(Fixnum* size = try_as<Fixnum>(stack_size)) {
+      state->vm()->validate_stack_size(state, size->to_native());
+      thread->stack_size(state, size);
+    }
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
@@ -165,9 +170,14 @@ namespace rubinius {
     return thread;
   }
 
-  Thread* Thread::s_start(STATE, Object* self, Array* args, Object* block) {
+  Thread* Thread::s_start(STATE, Object* self, Array* args, Object* stack_size, Object* block) {
     Thread* thread = Thread::create(state, self, run_instance);
     OnStack<1> os(state, thread);
+
+    if(Fixnum* size = try_as<Fixnum>(stack_size)) {
+      state->vm()->validate_stack_size(state, size->to_native());
+      thread->stack_size(state, size);
+    }
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
@@ -299,7 +309,7 @@ namespace rubinius {
 
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
+    pthread_attr_setstacksize(&attrs, self->stack_size()->to_native());
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
     int status = pthread_create(&self->vm()->os_thread(), &attrs,
@@ -311,6 +321,8 @@ namespace rubinius {
   }
 
   Object* Thread::main_thread(STATE) {
+    state->vm()->managed_phase();
+
     std::string& runtime = state->shared().env()->runtime_path();
 
     G(rubinius)->set_const(state, "Signature",
@@ -329,6 +341,7 @@ namespace rubinius {
     state->shared().start_metrics(state);
     state->shared().start_diagnostics(state);
     state->shared().start_profiler(state);
+    state->shared().start_jit(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
@@ -359,7 +372,7 @@ namespace rubinius {
     VM* vm = reinterpret_cast<VM*>(ptr);
     State state_obj(vm), *state = &state_obj;
 
-    vm->set_stack_bounds(THREAD_STACK_SIZE);
+    vm->set_stack_bounds(vm->thread->stack_size()->to_native());
     vm->set_current_thread();
     vm->set_start_time();
 
@@ -374,7 +387,7 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     Object* value = vm->thread->function()(state);
     vm->set_call_frame(NULL);
@@ -400,7 +413,7 @@ namespace rubinius {
 
     logger::write("exit thread: %s %fs", vm->name().c_str(), vm->run_time());
 
-    vm->become_unmanaged();
+    vm->unmanaged_phase();
 
     if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {
       state->shared().signals()->system_exit(vm->thread_state()->raise_value());
@@ -512,11 +525,11 @@ namespace rubinius {
     Thread* self = this;
     OnStack<2> os(state, self, timeout);
 
-    state->vm()->become_unmanaged();
+    state->vm()->unmanaged_phase();
 
     {
       utilities::thread::Mutex::LockGuard guard(self->join_lock_);
-      state->vm()->become_managed();
+      state->vm()->managed_phase();
       atomic::memory_barrier();
 
       if(self->alive()->true_p()) {

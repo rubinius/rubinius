@@ -56,3 +56,24 @@ function rbx_release_name {
 function rbx_heroku_release_name {
   echo "ruby-2.2.2-rbx-$(rbx_revision_version).tar.bz2"
 }
+
+function rbx_runtime_core_name {
+  echo "rubinius-runtime-core.tar.bz2"
+}
+
+function rbx_release_bucket {
+  echo "rubinius-releases-rubinius-com"
+}
+
+function rbx_binary_bucket {
+  echo "rubinius-binaries-rubinius-com"
+}
+
+function rbx_url_prefix {
+  local bucket=$1
+  echo "https://${bucket}.s3-us-west-2.amazonaws.com"
+}
+
+function rbx_dist_version {
+  egrep -o '[[:digit:]]+\.[[:digit:]]+' /etc/issue
+}

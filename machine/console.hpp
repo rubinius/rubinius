@@ -1,7 +1,7 @@
 #ifndef RBX_CONSOLE_HPP
 #define RBX_CONSOLE_HPP
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 
 #include "memory/root.hpp"
 
@@ -65,7 +65,7 @@ namespace rubinius {
       Class* server_class(STATE);
     };
 
-    class Listener : public InternalThread {
+    class Listener : public MachineThread {
       Console* console_;
 
       memory::TypedRoot<FSEvent*> fsevent_;
@@ -87,7 +87,7 @@ namespace rubinius {
 
     typedef std::list<char*> RequestList;
 
-    class Response : public InternalThread {
+    class Response : public MachineThread {
       Console* console_;
 
       memory::TypedRoot<Channel*> inbox_;
@@ -121,7 +121,7 @@ namespace rubinius {
       void write_response(STATE, const char* response, native_int size);
     };
 
-    class Request : public InternalThread {
+    class Request : public MachineThread {
       Console* console_;
       Response* response_;
 

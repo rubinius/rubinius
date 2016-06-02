@@ -6,9 +6,10 @@
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 #include "diagnostics.hpp"
 #include "globals.hpp"
+#include "jit.hpp"
 #include "profiler.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
@@ -83,13 +84,14 @@ namespace rubinius {
   class SharedState {
   private:
     ThreadNexus* thread_nexus_;
-    InternalThreads* internal_threads_;
+    MachineThreads* machine_threads_;
     SignalThread* signals_;
     memory::FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
     diagnostics::Diagnostics* diagnostics_;
     profiler::Profiler* profiler_;
+    jit::JIT* jit_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -113,7 +115,6 @@ namespace rubinius {
     utilities::thread::SpinLock capi_constant_lock_;
     utilities::thread::SpinLock global_capi_handle_lock_;
     utilities::thread::SpinLock capi_handle_cache_lock_;
-    utilities::thread::SpinLock llvm_state_lock_;
     utilities::thread::SpinLock wait_lock_;
     utilities::thread::SpinLock type_info_lock_;
     utilities::thread::SpinLock code_resource_lock_;
@@ -132,9 +133,6 @@ namespace rubinius {
     Configuration& config;
     ConfigParser& user_variables;
     SymbolTable symbols;
-    /* TODO: JIT
-    LLVMState* llvm_state;
-    */
     std::string username;
     std::string pid;
     uint32_t hash_seed;
@@ -156,8 +154,8 @@ namespace rubinius {
       return thread_nexus_;
     }
 
-    InternalThreads* internal_threads() const {
-      return internal_threads_;
+    MachineThreads* machine_threads() const {
+      return machine_threads_;
     }
 
     memory::FinalizerThread* finalizer_handler() const {
@@ -242,6 +240,12 @@ namespace rubinius {
       if(profiler_) profiler_->report(state);
     }
 
+    jit::JIT* start_jit(STATE);
+
+    jit::JIT* jit() const {
+      return jit_;
+    }
+
     Environment* env() const {
       return env_;
     }
@@ -315,10 +319,6 @@ namespace rubinius {
     }
 
     int capi_lock_index(std::string name);
-
-    utilities::thread::SpinLock& llvm_state_lock() {
-      return llvm_state_lock_;
-    }
 
     utilities::thread::SpinLock& wait_lock() {
       return wait_lock_;

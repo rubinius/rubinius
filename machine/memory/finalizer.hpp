@@ -1,7 +1,7 @@
 #ifndef RBX_GC_FINALIZE_HPP
 #define RBX_GC_FINALIZE_HPP
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 
 #include "memory/root.hpp"
 
@@ -58,7 +58,7 @@ namespace memory {
   typedef std::list<FinalizeObject> FinalizeObjects;
   typedef std::list<FinalizeObjects*> FinalizeObjectsList;
 
-  class FinalizerThread : public InternalThread {
+  class FinalizerThread : public MachineThread {
   public:
     class iterator {
       FinalizerThread* handler_;

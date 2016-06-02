@@ -169,7 +169,7 @@ namespace rubinius {
     OnStack<1> os(state, obj);
 
     {
-      MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
+      MutexLockWaiting lock_waiting(state, contention_lock_);
 
       // We want to lock obj, but someone else has it locked.
       //
@@ -289,7 +289,7 @@ step1:
   }
 
   void Memory::release_contention(STATE) {
-    MutexLockUnmanaged lock_unmanaged(state, contention_lock_);
+    MutexLockWaiting lock_waiting(state, contention_lock_);
     contention_var_.broadcast();
   }
 
@@ -564,7 +564,7 @@ step1:
     data->global_cache()->prune_young();
 
     {
-      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+      std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
       for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
           i != data->thread_nexus()->threads()->end();
@@ -745,7 +745,7 @@ step1:
   }
 
   void Memory::clear_fiber_marks(memory::GCData* data) {
-    utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+    std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
     for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
         i != data->thread_nexus()->threads()->end();

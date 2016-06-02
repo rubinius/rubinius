@@ -219,7 +219,7 @@ namespace memory {
     }
 
     {
-      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+      std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
       for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
           i != data->thread_nexus()->threads()->end();
@@ -319,7 +319,7 @@ namespace memory {
 
     // Remove unreachable locked objects still in the list
     {
-      utilities::thread::SpinLock::LockGuard guard(data->thread_nexus()->threads_lock());
+      std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
       for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
           i != data->thread_nexus()->threads()->end();

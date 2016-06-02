@@ -30,13 +30,14 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : thread_nexus_(new ThreadNexus())
-    , internal_threads_(NULL)
+    , machine_threads_(NULL)
     , signals_(NULL)
     , finalizer_thread_(NULL)
     , console_(NULL)
     , metrics_(NULL)
     , diagnostics_(NULL)
     , profiler_(NULL)
+    , jit_(NULL)
     , start_time_(get_current_time())
     , method_count_(1)
     , class_count_(1)
@@ -63,7 +64,7 @@ namespace rubinius {
     , username("")
     , pid("")
   {
-    internal_threads_ = new InternalThreads();
+    machine_threads_ = new MachineThreads();
 
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
       primitive_hits_[i] = 0;
@@ -76,39 +77,38 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-    /* TODO: JIT
-    if(llvm_state) {
-      delete llvm_state;
-    }
-    */
-
     if(console_) {
       delete console_;
-      console_ = 0;
+      console_ = NULL;
     }
 
     if(metrics_) {
       delete metrics_;
-      metrics_ = 0;
+      metrics_ = NULL;
     }
 
     if(profiler_) {
       delete profiler_;
-      profiler_ = 0;
+      profiler_ = NULL;
+    }
+
+    if(jit_) {
+      delete jit_;
+      jit_ = NULL;
     }
 
     if(diagnostics_) {
       delete diagnostics_;
-      diagnostics_ = 0;
+      diagnostics_ = NULL;
     }
 
     delete global_cache;
     delete om;
-    delete internal_threads_;
+    delete machine_threads_;
   }
 
   Array* SharedState::vm_threads(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(thread_nexus_->threads_lock());
+    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
 
     Array* threads = Array::create(state, 0);
 
@@ -180,6 +180,16 @@ namespace rubinius {
     }
 
     return profiler_;
+  }
+
+  jit::JIT* SharedState::start_jit(STATE) {
+    if(!jit_) {
+      if(config.machine_jit_enabled.value) {
+        jit_ = new jit::JIT(state);
+      }
+    }
+
+    return jit_;
   }
 
   void SharedState::after_fork_child(STATE) {

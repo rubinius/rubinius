@@ -1,6 +1,7 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "memory.hpp"
+#include "metrics.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -34,7 +35,7 @@ namespace rubinius {
       fib->root(true);
       fib->status(Fiber::eRunning);
 
-      fib->data(state->vm()->new_fiber_data(true));
+      fib->data(state->vm()->new_fiber_data(true, fib->stack_size()->to_native()));
       fib->data()->set_call_frame(state->vm()->call_frame());
 
       state->memory()->needs_finalization(state, fib,
@@ -91,6 +92,8 @@ namespace rubinius {
       }
     }
 
+    vm->metrics().system.fibers_destroyed++;
+
     dest->run(state);
     dest->value(state, result);
 
@@ -104,10 +107,17 @@ namespace rubinius {
 #endif
   }
 
-  Fiber* Fiber::create(STATE, Object* self, Object* callable) {
+  Fiber* Fiber::create(STATE, Object* self, Object* stack_size, Object* callable) {
 #ifdef RBX_FIBER_ENABLED
     Fiber* fib = state->memory()->new_object<Fiber>(state, as<Class>(self));
     fib->starter(state, callable);
+
+    if(Fixnum* size = try_as<Fixnum>(stack_size)) {
+      state->vm()->validate_stack_size(state, size->to_native());
+      fib->stack_size(state, size);
+    }
+
+    state->vm()->metrics().system.fibers_created++;
 
     state->memory()->needs_finalization(state, fib,
         (memory::FinalizerFunction)&Fiber::finalize,
@@ -122,7 +132,7 @@ namespace rubinius {
   Object* Fiber::resume(STATE, Arguments& args) {
 #ifdef RBX_FIBER_ENABLED
     if(!data()) {
-      data(state->vm()->new_fiber_data());
+      data(state->vm()->new_fiber_data(stack_size()->to_native()));
     }
 
     if(status() == Fiber::eDead || data()->dead_p()) {
@@ -183,7 +193,7 @@ namespace rubinius {
   Object* Fiber::transfer(STATE, Arguments& args) {
 #ifdef RBX_FIBER_ENABLED
     if(!data()) {
-      data(state->vm()->new_fiber_data());
+      data(state->vm()->new_fiber_data(stack_size()->to_native()));
     }
 
     if(status() == Fiber::eDead || data()->dead_p()) {

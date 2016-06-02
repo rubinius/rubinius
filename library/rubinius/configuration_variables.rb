@@ -78,10 +78,19 @@ class ConfigurationVariables
         default = @options[:default]
 
         "default: #{default}, possible: #{possible.map { |x| x[0] }.join(", ")}"
-      elsif @default
-        "default: #{@default}"
       else
-        nil
+        value = case @default
+        when true
+          "yes (Bool)"
+        when false
+          "no (Bool)"
+        when nil
+          "none (Nil)"
+        else
+          "#{@default} (#{@default.class})"
+        end
+
+        "default: #{value}"
       end
     end
 

@@ -58,6 +58,7 @@
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <dlfcn.h>
@@ -382,31 +383,28 @@ namespace rubinius {
   }
 
   static int fork_exec(STATE, int errors_fd) {
-    utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
+    state->vm()->thread_nexus()->waiting_phase(state->vm());
 
-    state->shared().internal_threads()->before_fork_exec(state);
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
+    state->vm()->thread_nexus()->lock(state->vm());
+
+    state->shared().machine_threads()->before_fork_exec(state);
+    state->memory()->set_interrupt();
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
-    int pid;
+    int pid = ::fork();
 
-    state->vm()->become_managed();
-    state->memory()->set_interrupt();
+    state->vm()->thread_nexus()->unlock();
 
-    {
-      LockPhase locked(state);
-
-      pid = ::fork();
-
-      if(pid == 0) state->vm()->after_fork_child(state);
+    if(pid == 0) {
+      state->vm()->after_fork_child(state);
+    } else if(pid > 0) {
+      state->shared().machine_threads()->after_fork_exec_parent(state);
     }
 
-    state->vm()->become_unmanaged();
-
-    if(pid > 0) {
-      state->shared().internal_threads()->after_fork_exec_parent(state);
-    }
+    state->vm()->thread_nexus()->fork_mutex().unlock();
 
     return pid;
   }
@@ -428,13 +426,7 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid;
-
-    {
-      UnmanagedPhase unmanaged(state);
-
-      pid = fork_exec(state, errors[1]);
-    }
+    int pid = fork_exec(state, errors[1]);
 
     // error
     if(pid == -1) {
@@ -449,7 +441,7 @@ namespace rubinius {
       close(errors[0]);
 
       state->vm()->thread->init_lock();
-      state->shared().internal_threads()->after_fork_exec_child(state);
+      state->shared().machine_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       vm_spawn_setup(state, spawn_state);
@@ -503,7 +495,7 @@ namespace rubinius {
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
 
-    int error_no;
+    int error_no = 0;
     ssize_t size;
 
     while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
@@ -519,6 +511,13 @@ namespace rubinius {
     close(errors[0]);
 
     if(size != 0) {
+      {
+        UnmanagedPhase unmanaged(state);
+        int status, options = WNOHANG;
+
+        waitpid(pid, &status, options);
+      }
+
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
     }
@@ -548,13 +547,7 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid;
-
-    {
-      UnmanagedPhase unmanaged(state);
-
-      pid = fork_exec(state, errors[1]);
-    }
+    int pid = fork_exec(state, errors[1]);
 
     // error
     if(pid == -1) {
@@ -569,7 +562,7 @@ namespace rubinius {
 
     if(pid == 0) {
       state->vm()->thread->init_lock();
-      state->shared().internal_threads()->after_fork_exec_child(state);
+      state->shared().machine_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
       close(output[0]);
@@ -618,7 +611,7 @@ namespace rubinius {
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
 
-    int error_no;
+    int error_no = 0;
     ssize_t size;
 
     while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
@@ -634,6 +627,13 @@ namespace rubinius {
     close(errors[0]);
 
     if(size != 0) {
+      {
+        UnmanagedPhase unmanaged(state);
+        int status, options = WNOHANG;
+
+        waitpid(pid, &status, options);
+      }
+
       close(output[0]);
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
@@ -693,7 +693,7 @@ namespace rubinius {
     // From this point, we are serialized.
     utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
 
-    state->shared().internal_threads()->before_exec(state);
+    state->shared().machine_threads()->before_exec(state);
 
     void* old_handlers[NSIG];
 
@@ -734,7 +734,7 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
-    state->shared().internal_threads()->after_exec(state);
+    state->shared().machine_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::raise_errno_error(state, "execvp(2) failed", erno);
@@ -818,52 +818,45 @@ namespace rubinius {
     // TODO: Windows
     return force_as<Fixnum>(Primitives::failure());
 #else
-    int pid = -1;
+    state->vm()->thread_nexus()->waiting_phase(state->vm());
 
-    {
-      utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
+    state->vm()->thread_nexus()->lock(state->vm());
 
-      state->shared().internal_threads()->before_fork(state);
-      state->memory()->set_interrupt();
+    state->shared().machine_threads()->before_fork(state);
+    state->memory()->set_interrupt();
 
-      LockPhase locked(state);
+    int pid = ::fork();
 
-      pid = ::fork();
+    state->vm()->thread_nexus()->unlock();
 
-      if(pid == 0) {
-        state->vm()->after_fork_child(state);
-      } else if(pid > 0) {
-        state->shared().internal_threads()->after_fork_parent(state);
-      }
-    }
-
-    // We're in the parent...
     if(pid > 0) {
+      // We're in the parent...
+      state->shared().machine_threads()->after_fork_parent(state);
+
       CallFrame* call_frame = state->vm()->get_ruby_frame(2);
 
       logger::write("fork: child: %d, %s, %s:%d", pid,
           state->vm()->name().c_str(),
           call_frame->file(state)->cpp_str(state).c_str(),
           call_frame->line(state));
-    }
-
-    // We're in the child...
-    if(pid == 0) {
-      /*  @todo any other re-initialisation needed? */
+    } else if(pid == 0) {
+      // We're in the child...
+      state->vm()->after_fork_child(state);
 
       state->vm()->thread->init_lock();
       state->shared().after_fork_child(state);
-      state->shared().internal_threads()->after_fork_child(state);
+      state->shared().machine_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();
-    }
-
-    if(pid == -1) {
+    } else if(pid < 0) {
+      // We errored...
       Exception::raise_errno_error(state, "fork(2) failed");
       return NULL;
     }
 
+    // The compiler can't understand the covering above, so...
     return Fixnum::from(pid);
 #endif
   }
@@ -921,25 +914,6 @@ namespace rubinius {
     mod->reset_method_cache(state, name);
 
     state->vm()->metrics().machine.cache_resets++;
-
-    if(state->shared().config.ic_debug) {
-      String* mod_name = mod->get_name(state);
-
-      if(mod_name->nil_p()) {
-        mod_name = String::create(state, "<unknown>");
-      }
-
-      std::cerr << std::endl
-                << "reset global/method cache for "
-                << mod_name->c_str(state)
-                << "#"
-                << name->debug_str(state).c_str()
-                << std::endl;
-
-      if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
-        frame->print_backtrace(state, std::cerr, 6, true);
-      }
-    }
 
     return cTrue;
   }

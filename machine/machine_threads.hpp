@@ -9,12 +9,12 @@
 #include <list>
 
 namespace rubinius {
-  class InternalThread;
+  class MachineThread;
   class VM;
 
-  typedef std::list<InternalThread*> InternalThreadList;
+  typedef std::list<MachineThread*> MachineThreadList;
 
-  class InternalThread {
+  class MachineThread {
     VM* vm_;
     bool thread_running_;
     uint32_t stack_size_;
@@ -26,12 +26,13 @@ namespace rubinius {
   public:
 
     enum StackSize {
-      eSmall = 0x10000,
-      eLarge = 0x100000,
+      eSmall  = 0x10000,
+      eLarge  = 0x100000,
+      eXLarge = 0x400000,
     };
 
-    InternalThread(STATE, std::string name, StackSize stack_size=eLarge);
-    virtual ~InternalThread() { };
+    MachineThread(STATE, std::string name, StackSize stack_size=eLarge);
+    virtual ~MachineThread() { };
 
     // OS thread trampoline
     static void* run(void*);
@@ -60,17 +61,17 @@ namespace rubinius {
     virtual void stop(STATE);
   };
 
-  class InternalThreads {
+  class MachineThreads {
   private:
     bool fork_in_progress_;
     bool exec_in_progress_;
     bool fork_exec_in_progress_;
     bool shutdown_in_progress_;
     utilities::thread::Mutex mutex_;
-    InternalThreadList threads_;
+    MachineThreadList threads_;
 
   public:
-    InternalThreads()
+    MachineThreads()
       : fork_in_progress_(false)
       , exec_in_progress_(false)
       , fork_exec_in_progress_(false)
@@ -80,8 +81,8 @@ namespace rubinius {
     {
     }
 
-    void register_thread(InternalThread* thread);
-    void unregister_thread(InternalThread* thread);
+    void register_thread(MachineThread* thread);
+    void unregister_thread(MachineThread* thread);
 
     void shutdown(STATE);
     void before_exec(STATE);

@@ -449,6 +449,8 @@ module Enumerable
 
     if Rubinius::Fiber::ENABLED
       class FiberGenerator
+        STACK_SIZE = 163_840
+
         attr_reader :result
 
         def initialize(obj)
@@ -477,7 +479,7 @@ module Enumerable
 
         def reset
           @done = false
-          @fiber = Rubinius::Fiber.new(0) do
+          @fiber = Rubinius::Fiber.new stack_size: STACK_SIZE do
             obj = @object
             @result = obj.each do |*val|
               Rubinius::Fiber.yield *val

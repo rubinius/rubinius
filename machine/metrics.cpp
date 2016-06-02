@@ -236,7 +236,7 @@ namespace rubinius {
     }
 
     Metrics::Metrics(STATE)
-      : InternalThread(state, "rbx.metrics", InternalThread::eSmall)
+      : MachineThread(state, "rbx.metrics", MachineThread::eSmall)
       , enabled_(true)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
@@ -461,7 +461,10 @@ namespace rubinius {
             "system.threads.created", metrics_data_.system.threads_created));
       metrics_map_.push_back(new MetricsItem(
             "system.threads.destroyed", metrics_data_.system.threads_destroyed));
-
+      metrics_map_.push_back(new MetricsItem(
+            "system.fibers.created", metrics_data_.system.fibers_created));
+      metrics_map_.push_back(new MetricsItem(
+            "system.fibers.destroyed", metrics_data_.system.fibers_destroyed));
     }
 
     void Metrics::init_ruby_metrics(STATE) {
@@ -499,7 +502,7 @@ namespace rubinius {
     }
 
     void Metrics::initialize(STATE) {
-      InternalThread::initialize(state);
+      MachineThread::initialize(state);
 
       enabled_ = true;
 
@@ -511,7 +514,7 @@ namespace rubinius {
     }
 
     void Metrics::wakeup(STATE) {
-      InternalThread::wakeup(state);
+      MachineThread::wakeup(state);
 
       if(timer_) {
         timer_->clear();
@@ -522,7 +525,7 @@ namespace rubinius {
     void Metrics::after_fork_child(STATE) {
       if(emitter_) emitter_->reinit();
 
-      InternalThread::after_fork_child(state);
+      MachineThread::after_fork_child(state);
     }
 
     void Metrics::add_historical_metrics(MetricsData& metrics) {
@@ -536,7 +539,7 @@ namespace rubinius {
     }
 
     void Metrics::run(STATE) {
-      state->vm()->become_unmanaged();
+      state->vm()->unmanaged_phase();
 
       timer_->set(interval_);
 
@@ -552,7 +555,7 @@ namespace rubinius {
         ThreadNexus* thread_nexus = state->shared().thread_nexus();
 
         {
-          utilities::thread::SpinLock::LockGuard guard(thread_nexus->threads_lock());
+          std::lock_guard<std::mutex> guard(thread_nexus->threads_mutex());
 
           for(ThreadList::iterator i = thread_nexus->threads()->begin();
               i != thread_nexus->threads()->end();

@@ -23,6 +23,7 @@
 
 #include "sodium/randombytes.h"
 
+#include <atomic>
 #include <vector>
 #include <setjmp.h>
 #include <stdint.h>
@@ -105,6 +106,7 @@ namespace rubinius {
 
     void* stack_start_;
     size_t stack_size_;
+    size_t stack_cushion_;
 
     void* current_stack_start_;
     size_t current_stack_size_;
@@ -123,7 +125,7 @@ namespace rubinius {
     bool allocation_tracking_;
     bool main_thread_;
 
-    ThreadNexus::Phase thread_phase_;
+    std::atomic<ThreadNexus::Phase> thread_phase_;
 
     uint32_t profile_interval_;
     uint32_t profile_counter_;
@@ -169,30 +171,16 @@ namespace rubinius {
       return id_;
     }
 
-    ThreadNexus::Phase thread_phase() {
-      return thread_phase_;
-    }
-
     ThreadNexus* thread_nexus() {
       return thread_nexus_;
     }
 
-    void set_thread_phase(ThreadNexus::Phase thread_phase) {
-      thread_phase_ = thread_phase;
+    ThreadNexus::Phase thread_phase() {
+      return thread_phase_.load(std::memory_order_acquire);
     }
 
-    void restore_thread_phase(ThreadNexus::Phase thread_phase) {
-      switch(thread_phase) {
-      case ThreadNexus::cManaged:
-        become_managed();
-        break;
-      case ThreadNexus::cBlocking:
-      case ThreadNexus::cUnmanaged:
-      case ThreadNexus::cWaiting:
-      case ThreadNexus::cSleeping:
-      default:
-        thread_phase_ = thread_phase;
-      }
+    void set_thread_phase(ThreadNexus::Phase thread_phase) {
+      thread_phase_.store(thread_phase, std::memory_order_release);
     }
 
     utilities::thread::SpinLock& interrupt_lock() {
@@ -225,6 +213,7 @@ namespace rubinius {
     double run_time();
 
     void raise_stack_error(STATE);
+    void validate_stack_size(STATE, size_t size);
 
     size_t stack_size() {
       return current_stack_size_;
@@ -237,7 +226,7 @@ namespace rubinius {
 
     void set_stack_bounds(void* start, size_t size) {
       current_stack_start_ = start;
-      current_stack_size_ = size;
+      current_stack_size_ = size - stack_cushion_;
     }
 
     void set_stack_bounds(size_t size);
@@ -249,7 +238,7 @@ namespace rubinius {
 
       if(stack_used < 0) stack_used = -stack_used;
 
-      if(static_cast<size_t>(stack_used) > stack_size_) {
+      if(static_cast<size_t>(stack_used) > current_stack_size_) {
         raise_stack_error(state);
         return false;
       }
@@ -383,16 +372,16 @@ namespace rubinius {
       allocation_tracking_ = false;
     }
 
-    FiberStack* allocate_fiber_stack() {
-      return fiber_stacks_.allocate();
+    FiberStack* allocate_fiber_stack(size_t stack_size) {
+      return fiber_stacks_.allocate(stack_size);
     }
 
     void* fiber_trampoline() {
       return fiber_stacks_.trampoline();
     }
 
-    FiberData* new_fiber_data(bool root=false) {
-      return fiber_stacks_.new_data(root);
+    FiberData* new_fiber_data(size_t stack_size, bool root=false) {
+      return fiber_stacks_.new_data(stack_size, root);
     }
 
     void remove_fiber_data(FiberData* data) {
@@ -415,7 +404,6 @@ namespace rubinius {
     void bootstrap_class(STATE);
     void bootstrap_ontology(STATE);
     void bootstrap_symbol(STATE);
-    void initialize_config();
 
     void collect_maybe(STATE);
 
@@ -447,7 +435,7 @@ namespace rubinius {
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
-      if(thread_nexus_->stop_lock(this)) {
+      if(thread_nexus_->try_lock(this)) {
         metrics().machine.stops++;
 
         collect_maybe(state);
@@ -464,9 +452,16 @@ namespace rubinius {
     void blocking_suspend(STATE, metrics::metric& counter);
     void sleeping_suspend(STATE, metrics::metric& counter);
 
-    void become_managed();
-    void become_unmanaged() {
-      thread_phase_ = ThreadNexus::cUnmanaged;
+    void blocking_phase() {
+      thread_nexus_->blocking_phase(this);
+    }
+
+    void managed_phase() {
+      thread_nexus_->managed_phase(this);
+    }
+
+    void unmanaged_phase() {
+      thread_nexus_->unmanaged_phase(this);
     }
 
     void set_current_thread();

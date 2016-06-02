@@ -19,11 +19,11 @@ namespace rubinius {
     LockPhase(STATE)
       : state_(state)
     {
-      state->shared().thread_nexus()->lock(state->vm());
+      state->vm()->thread_nexus()->lock(state->vm());
     }
 
     ~LockPhase() {
-      state_->shared().thread_nexus()->unlock();
+      state_->vm()->thread_nexus()->unlock();
     }
   };
 
@@ -34,26 +34,11 @@ namespace rubinius {
     BlockPhase(STATE)
       : state_(state)
     {
-      state->shared().thread_nexus()->blocking(state->vm());
+      state->vm()->blocking_phase();
     }
 
     ~BlockPhase() {
-      state_->vm()->become_managed();
-    }
-  };
-
-  class SleepPhase {
-    State* state_;
-
-  public:
-    SleepPhase(STATE)
-      : state_(state)
-    {
-      state->vm()->set_thread_phase(ThreadNexus::cSleeping);
-    }
-
-    ~SleepPhase() {
-      state_->shared().thread_nexus()->sleep_lock(state_->vm());
+      state_->vm()->managed_phase();
     }
   };
 
@@ -64,11 +49,11 @@ namespace rubinius {
     ManagedPhase(STATE)
       : state_(state)
     {
-      state_->vm()->become_managed();
+      state_->vm()->managed_phase();
     }
 
     ~ManagedPhase() {
-      state_->vm()->become_unmanaged();
+      state_->vm()->unmanaged_phase();
     }
 
   };
@@ -80,34 +65,13 @@ namespace rubinius {
     UnmanagedPhase(STATE)
       : state_(state)
     {
-      state_->vm()->become_unmanaged();
+      state_->vm()->unmanaged_phase();
     }
 
     ~UnmanagedPhase() {
-      state_->vm()->become_managed();
+      state_->vm()->managed_phase();
     }
   };
-
-  template <class T>
-  class LockUnmanaged : public utilities::thread::LockGuardTemplate<T> {
-    State* state_;
-
-  public:
-    LockUnmanaged(STATE, T& in_lock)
-      : utilities::thread::LockGuardTemplate<T>(in_lock, false)
-      , state_(state)
-    {
-      state_->vm()->become_unmanaged();
-      this->lock();
-      state_->vm()->become_managed();
-    }
-
-    ~LockUnmanaged() {
-      this->unlock();
-    }
-  };
-
-  typedef LockUnmanaged<utilities::thread::Mutex> MutexLockUnmanaged;
 
   template <class T>
   class LockWaiting : public utilities::thread::LockGuardTemplate<T> {
@@ -119,18 +83,20 @@ namespace rubinius {
       : utilities::thread::LockGuardTemplate<T>(in_lock, false)
       , state_(state)
     {
-      phase_ = state->vm()->thread_phase();
-      state->vm()->set_thread_phase(ThreadNexus::cWaiting);
+      phase_ = state_->vm()->thread_phase();
+      state_->vm()->thread_nexus()->waiting_phase(state_->vm());
 
       this->lock();
+
+      state_->vm()->thread_nexus()->restore_phase(state_->vm(), phase_);
     }
 
     ~LockWaiting() {
       this->unlock();
-      state_->vm()->restore_thread_phase(phase_);
     }
   };
 
+  typedef LockWaiting<utilities::thread::Mutex> MutexLockWaiting;
   typedef LockWaiting<utilities::thread::SpinLock> SpinLockWaiting;
 }
 

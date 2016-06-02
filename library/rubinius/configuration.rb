@@ -18,19 +18,13 @@ Rubinius::ConfigurationVariables.define do |c|
   end
 
   c.section "gc" do |s|
-    s.vm_variable "young_bytes", (30 * 1024 * 1024),
-      "The number of bytes the young generation of the GC should use"
-
-    s.vm_variable "young_lifetime", 2,
-      "How many young GC cycles an object lives before promotion"
-
     s.vm_variable "large_object", (1024 * 1024),
       "The size (in bytes) of the large object threshold"
 
     s.vm_variable "immix.concurrent", false,
       "Set whether we want the Immix mark phase to run concurrently"
 
-    s.vm_variable "immix.debug", :bool,
+    s.vm_variable "immix.debug", false,
       "Print out collection stats when the Immix collector finishes"
 
     s.vm_variable "honor_start", false,
@@ -46,18 +40,6 @@ Rubinius::ConfigurationVariables.define do |c|
       "How many bytes allocated by C extensions til the GC is run"
   end
 
-  c.section "fiber" do |s|
-    s.vm_variable "stacks", 10,
-      "The number of stacks in each Threads stack pool"
-
-    s.vm_variable "stack_size", 512 * 1024,
-      "The size of each stack"
-  end
-
-  c.vm_variable "tool", :string,
-    :as => "tool_to_load",
-    :description => "Load a VM tool from a shared library"
-
   c.section "capi" do |s|
     s.vm_variable "global_flush", false,
       "Flush all CAPI handles at CAPI call boundaries"
@@ -70,28 +52,40 @@ Rubinius::ConfigurationVariables.define do |c|
     :as => "print_config",
     :description => "blank or 1 == names and values, 2 == description as well"
 
-  c.vm_variable "ic.debug", false,
-    "Print out when inline caches are reset"
-
   c.vm_variable "serial.debug", false,
     "Print out when the global serial increases"
 
   c.vm_variable "allocation_tracking", false,
     "Enable allocation tracking for new objects"
 
-  c.vm_variable "profile", false,
-    "Configure the system to profile ruby code"
+  c.section "machine" do |m|
+    m.section "fiber" do |f|
+      f.vm_variable "stacks", 10,
+        "The number of stacks in each Threads stack pool"
 
-  c.vm_variable "profiler.threshold", 1000000,
-    "The minimum number of nanoseconds a profiler node must have to be reported"
+      f.vm_variable "stack_size", 512 * 1024,
+        "The size in bytes of the Fiber's stack"
+    end
 
-  c.section "machine" do |s|
-    s.section "call_site" do |cs|
+    m.section "thread" do |t|
+      t.vm_variable "stack_size", 4 * 1024 * 1024,
+        "The size in bytes of the Thread's stack"
+    end
+
+    m.vm_variable "stack_cushion", 4096,
+      "Size in bytes to reserve when checking stack overflow"
+
+    m.section "call_site" do |cs|
       cs.vm_variable "cache", true,
         "Cache executables at call sites"
 
       cs.vm_variable "limit", 3,
         "Maximum number of caches at call sites"
+    end
+
+    m.section "jit" do |j|
+      j.vm_variable "enabled", false,
+        "Just-in-time compile managed code to native code"
     end
   end
 
@@ -134,7 +128,7 @@ Rubinius::ConfigurationVariables.define do |c|
       m.vm_variable "statsd.server", "localhost:8125",
         "The [host:]port of the StatsD server"
 
-      m.vm_variable "statsd.prefix", "host.$nodename.$pid.app.rbx",
+      m.vm_variable "statsd.prefix", "host.$NODENAME.$PID.app.rbx",
         "Prefix for StatsD metric names"
     end
 

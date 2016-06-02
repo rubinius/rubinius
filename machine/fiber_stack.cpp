@@ -60,8 +60,7 @@ namespace rubinius {
   }
 
   FiberStacks::FiberStacks(VM* thread, SharedState& shared)
-    : max_stacks_(shared.config.fiber_stacks)
-    , stack_size_(shared.config.fiber_stack_size)
+    : max_stacks_(shared.config.machine_fiber_stacks)
     , thread_(thread)
     , trampoline_(0)
   {
@@ -100,9 +99,9 @@ namespace rubinius {
     }
   }
 
-  FiberData* FiberStacks::new_data(bool root) {
+  FiberData* FiberStacks::new_data(size_t stack_size, bool root) {
     utilities::thread::SpinLock::LockGuard guard(lock_);
-    FiberData* data = new FiberData(thread_, root);
+    FiberData* data = new FiberData(thread_, stack_size, root);
     datas_.insert(data);
     return data;
   }
@@ -112,12 +111,12 @@ namespace rubinius {
     datas_.erase(data);
   }
 
-  FiberStack* FiberStacks::allocate() {
+  FiberStack* FiberStacks::allocate(size_t stack_size) {
     for(Stacks::iterator i = stacks_.begin();
         i != stacks_.end();
         ++i)
     {
-      if(i->unused_p()) {
+      if(i->unused_p() && i->size() >= stack_size) {
         i->inc_ref();
         return &*i;
       }
@@ -126,7 +125,7 @@ namespace rubinius {
     FiberStack* stack = 0;
 
     if(stacks_.size() < max_stacks_) {
-      stacks_.push_back(FiberStack(stack_size_));
+      stacks_.push_back(FiberStack(stack_size));
       stack = &stacks_.back();
 
       stack->allocate();
@@ -142,6 +141,8 @@ namespace rubinius {
 
       assert(stack);
     }
+
+    assert(stack);
 
     stack->inc_ref();
 

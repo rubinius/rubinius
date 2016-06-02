@@ -54,6 +54,8 @@ tmtags
 /work
 /staging
 /bootstrap
+/build/bin/cc
+/build/bin/c++
 Gemfile.installed.lock
 
 # .revision tracks configure and code revision consistency

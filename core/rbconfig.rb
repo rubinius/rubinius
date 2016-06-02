@@ -85,9 +85,9 @@ module RbConfig
   CONFIG["NROFF"]              = "/usr/bin/nroff"
   CONFIG["MAKEDIRS"]           = "mkdir -p"
   # compile tools
-  CONFIG["CC"]                 = (ENV["CC"] || Rubinius::BUILD_CONFIG[:cc].sub(/^(gcc|clang)/, "cc")).dup
-  CONFIG["CXX"]                = (ENV["CXX"] || Rubinius::BUILD_CONFIG[:cxx].sub(/^(g|clang)\+\+/, "c++")).dup
-  CONFIG["CPP"]                = "#{(ENV["CPP"] || Rubinius::BUILD_CONFIG[:cc].sub(/^(gcc|clang)/, "cc"))} -E"
+  CONFIG["CC"]                 = (ENV["CC"] || Rubinius::BUILD_CONFIG[:cc].sub(/^((gcc|clang)[-.0-9]*)/, "cc")).dup
+  CONFIG["CXX"]                = (ENV["CXX"] || Rubinius::BUILD_CONFIG[:cxx].sub(/^((g|clang)\+\+[-.0-9]*)/, "c++")).dup
+  CONFIG["CPP"]                = "#{(ENV["CPP"] || Rubinius::BUILD_CONFIG[:cc].sub(/^((gcc|clang)[-.0-9]*)/, "cc"))} -E"
   CONFIG["YACC"]               = "bison -y"
   CONFIG["RANLIB"]             = "ranlib"
   CONFIG["AR"]                 = "ar"
@@ -113,7 +113,7 @@ module RbConfig
   CONFIG["CFLAGS"]             = "-g"
   CONFIG["CXXFLAGS"]           = "-g"
   CONFIG["LDFLAGS"]            = ""
-  if ENV['DEV']
+  if Rubinius::BUILD_CONFIG[:debug_build]
     CONFIG["CFLAGS"] << " -O0 "
     CONFIG["CXXFLAGS"] << " -O0 "
   else
@@ -210,8 +210,8 @@ module RbConfig
   CONFIG["PACKAGE_STRING"]     = ""
   CONFIG["PACKAGE_BUGREPORT"]  = ""
 
-  ldshared = (ENV["LDSHARED"] || Rubinius::LDSHARED.sub(/^(gcc|clang)/, "cc")).dup
-  ldsharedxx = (ENV["LDSHAREDXX"] || Rubinius::LDSHAREDXX.sub(/^(g|clang)\+\+/, "c++")).dup
+  ldshared = (ENV["LDSHARED"] || Rubinius::LDSHARED.sub(/^((gcc|clang)[-.0-9]*)/, "cc")).dup
+  ldsharedxx = (ENV["LDSHAREDXX"] || Rubinius::LDSHAREDXX.sub(/^((g|clang)\+\+[-.0-9]*)/, "c++")).dup
 
   CONFIG["LDSHARED"]           = ldshared
   CONFIG["LIBRUBY_LDSHARED"]   = ldshared

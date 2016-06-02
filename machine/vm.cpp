@@ -66,6 +66,7 @@ namespace rubinius {
     , park_(new Park)
     , stack_start_(0)
     , stack_size_(0)
+    , stack_cushion_(shared.config.machine_stack_cushion.value)
     , current_stack_start_(0)
     , current_stack_size_(0)
     , interrupt_with_signal_(false)
@@ -77,7 +78,7 @@ namespace rubinius {
     , constant_missing_reason_(vFound)
     , zombie_(false)
     , main_thread_(false)
-    , thread_phase_(ThreadNexus::cUnmanaged)
+    , thread_phase_(ThreadNexus::eUnmanaged)
     , profile_interval_(0)
     , profile_counter_(0)
     , profile_(NULL)
@@ -143,6 +144,12 @@ namespace rubinius {
 
   void VM::raise_stack_error(STATE) {
     state->raise_stack_error(state);
+  }
+
+  void VM::validate_stack_size(STATE, size_t size) {
+    if(stack_cushion_ > size) {
+      Exception::raise_runtime_error(state, "requested stack size is invalid");
+    }
   }
 
   bool VM::push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame) {
@@ -350,44 +357,14 @@ namespace rubinius {
   void VM::sleeping_suspend(STATE, metrics::metric& counter) {
     timer::StopWatch<timer::milliseconds> timer(counter);
 
-    SleepPhase sleeping(state);
+    UnmanagedPhase sleeping(state);
     suspend_thread();
-  }
-
-  void VM::become_managed() {
-    thread_nexus_->managed_lock(this);
   }
 
   void VM::set_zombie(STATE) {
     state->shared().thread_nexus()->delete_vm(this);
     thread.set(nil<Thread>());
     zombie_ = true;
-  }
-
-  void VM::initialize_config() {
-    State state(this);
-
-    Array* ary = Array::create(&state, 3);
-
-    G(jit)->available(&state, cTrue);
-    G(jit)->properties(&state, ary);
-
-    /* TODO: JIT
-    if(!shared.config.jit_disabled) {
-      ary->append(&state, state.symbol("usage"));
-      if(shared.config.jit_inline_generic) {
-        ary->append(&state, state.symbol("inline_generic"));
-      }
-
-      if(shared.config.jit_inline_blocks) {
-        ary->append(&state, state.symbol("inline_blocks"));
-      }
-      G(jit)->enabled(&state, cTrue);
-    } else {
-      G(jit)->enabled(&state, cFalse);
-    }
-    */
-    G(jit)->enabled(&state, cFalse);
   }
 
   /**
@@ -422,7 +399,6 @@ namespace rubinius {
 
     interrupt_lock_.init();
     set_main_thread();
-    become_managed();
 
     // TODO: Remove need for root_vm.
     state->shared().env()->set_root_vm(state->vm());
@@ -576,7 +552,7 @@ namespace rubinius {
     if(fib->root_p()) {
       restore_stack_bounds();
     } else {
-      set_stack_bounds(fib->stack_start(), fib->stack_size());
+      set_stack_bounds(fib->data()->stack_start(), fib->data()->stack_size());
     }
 
     current_fiber.set(fib);

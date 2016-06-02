@@ -76,7 +76,7 @@ namespace memory {
   }
 
   FinalizerThread::FinalizerThread(STATE)
-    : InternalThread(state, "rbx.finalizer", InternalThread::eLarge)
+    : MachineThread(state, "rbx.finalizer", MachineThread::eLarge)
     , lists_(NULL)
     , live_list_(NULL)
     , process_list_(NULL)
@@ -103,7 +103,7 @@ namespace memory {
   }
 
   void FinalizerThread::initialize(STATE) {
-    InternalThread::initialize(state);
+    MachineThread::initialize(state);
 
     Thread::create(state, vm());
 
@@ -118,19 +118,19 @@ namespace memory {
   void FinalizerThread::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
-    InternalThread::wakeup(state);
+    MachineThread::wakeup(state);
 
     worker_signal();
   }
 
   void FinalizerThread::stop(STATE) {
-    state->shared().internal_threads()->unregister_thread(this);
+    state->shared().machine_threads()->unregister_thread(this);
 
     stop_thread(state);
   }
 
   void FinalizerThread::run(STATE) {
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     while(!thread_exit_) {
       if(!process_list_) first_process_item();
@@ -142,13 +142,13 @@ namespace memory {
           // exit_ might have been set after we grabbed the worker_lock
           if(thread_exit_) break;
 
-          state->vm()->become_unmanaged();
+          state->vm()->unmanaged_phase();
           worker_wait();
 
           if(thread_exit_) break;
         }
 
-        state->vm()->become_managed();
+        state->vm()->managed_phase();
 
         {
           utilities::thread::Mutex::LockGuard lg(worker_lock_);

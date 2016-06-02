@@ -88,7 +88,7 @@ namespace rubinius {
     root_vm->set_main_thread();
     shared->set_root_vm(root_vm);
 
-    size_t stack_size = THREAD_STACK_SIZE;
+    size_t stack_size = 0;
     struct rlimit rlim;
 
     if(getrlimit(RLIMIT_STACK, &rlim) == 0) {
@@ -161,32 +161,8 @@ namespace rubinius {
     }
   }
 
-  void Environment::start_jit(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
-
-    /* TODO: JIT
-    if(state->shared().config.jit_disabled) return;
-
-    if(!state->shared().llvm_state) {
-      state->shared().llvm_state = new LLVMState(state);
-    }
-    */
-  }
-
   void Environment::stop_logging(STATE) {
     logger::close();
-  }
-
-  void Environment::stop_jit(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
-
-    /* TODO: JIT
-    if(state->shared().config.jit_disabled) return;
-
-    if(state->shared().llvm_state) {
-      state->shared().llvm_state->stop(state);
-    }
-    */
   }
 
   void Environment::start_finalizer(STATE) {
@@ -568,14 +544,12 @@ namespace rubinius {
       }
     }
 
-    stop_jit(state);
-
     {
       UnmanagedPhase unmanaged(state);
-      shared->internal_threads()->shutdown(state);
+      shared->machine_threads()->shutdown(state);
     }
 
-    shared->thread_nexus()->wait_till_alone(state->vm());
+    shared->thread_nexus()->lock(state->vm());
 
     shared->finalizer_handler()->finish(state);
 
@@ -733,7 +707,7 @@ namespace rubinius {
 
     shared->set_initialized();
 
-    state->vm()->become_managed();
+    state->vm()->managed_phase();
 
     TypeInfo::auto_learn_fields(state);
 
@@ -742,10 +716,6 @@ namespace rubinius {
     start_finalizer(state);
 
     load_argv(argc_, argv_);
-
-    state->vm()->initialize_config();
-
-    start_jit(state);
 
     // Start the main Ruby thread.
     Thread* main = 0;

@@ -56,17 +56,11 @@ namespace rubinius {
 
     attr_accessor(compile_class, Class);
     attr_accessor(compile_list, List);
-    attr_accessor(available, Object);
-    attr_accessor(enabled, Object);
-    attr_accessor(properties, Array);
 
     static void bootstrap(STATE);
     static void initialize(STATE, JIT* obj) {
       obj->compile_class(nil<Class>());
       obj->compile_list(nil<List>());
-      obj->available(nil<Object>());
-      obj->enabled(nil<Object>());
-      obj->properties(nil<Array>());
     }
 
     static void initialize(STATE, JIT* obj, Module* under, const char* name);
@@ -82,6 +76,9 @@ namespace rubinius {
 
     // Rubinius.primitive :jit_compile
     Object* compile(STATE, Object* object, CompiledCode* code, Object* block_environment);
+
+    // Rubinius.primitive :jit_enabled_p
+    Object* enabled_p(STATE);
 
     // Rubinius.primitive :jit_compile_threshold
     Object* compile_threshold(STATE);

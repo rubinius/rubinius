@@ -7,9 +7,12 @@ class Thread
   attr_reader :recursive_objects
   attr_reader :pid
   attr_reader :exception
+  attr_reader :stack_size
 
-  def self.new(*args, &block)
-    thr = Rubinius.invoke_primitive :thread_s_new, args, block, self
+  def self.new(*args, **kw, &block)
+    stack_size = Rubinius::Type.try_convert kw[:stack_size], Fixnum, :to_int
+
+    thr = Rubinius.invoke_primitive :thread_s_new, args, stack_size, block, self
 
     Rubinius::VariableScope.of_sender.locked!
 
@@ -20,10 +23,12 @@ class Thread
     return thr
   end
 
-  def self.start(*args, &block)
+  def self.start(*args, **kw, &block)
     raise ArgumentError.new("no block passed to Thread.start") unless block
 
-    Rubinius.invoke_primitive :thread_s_start, args, block, self
+    stack_size = Rubinius::Type.try_convert kw[:stack_size], Fixnum, :to_int
+
+    Rubinius.invoke_primitive :thread_s_start, args, stack_size, block, self
   end
 
   class << self

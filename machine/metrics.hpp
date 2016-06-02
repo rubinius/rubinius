@@ -1,7 +1,7 @@
 #ifndef RBX_METRICS_HPP
 #define RBX_METRICS_HPP
 
-#include "internal_threads.hpp"
+#include "machine_threads.hpp"
 
 #include "memory/root.hpp"
 
@@ -324,6 +324,8 @@ namespace rubinius {
       metric signals_processed;
       metric threads_created;
       metric threads_destroyed;
+      metric fibers_created;
+      metric fibers_destroyed;
 
       SystemMetrics() {
         allocated_bytes = 0;
@@ -337,6 +339,8 @@ namespace rubinius {
         signals_processed = 0;
         threads_created = 0;
         threads_destroyed = 0;
+        fibers_created = 0;
+        fibers_destroyed = 0;
       }
 
       void add(SystemMetrics& data) {
@@ -351,6 +355,8 @@ namespace rubinius {
         signals_processed += data.signals_processed;
         threads_created += data.threads_created;
         threads_destroyed += data.threads_destroyed;
+        fibers_created += data.fibers_created;
+        fibers_destroyed += data.fibers_destroyed;
       }
     };
 
@@ -433,7 +439,7 @@ namespace rubinius {
       void reinit();
     };
 
-    class Metrics : public InternalThread {
+    class Metrics : public MachineThread {
       bool enabled_;
 
       memory::TypedRoot<Tuple*> values_;

@@ -40,7 +40,7 @@ namespace rubinius {
 
     OnStack<2> os(state, val, self);
 
-    MutexLockUnmanaged lock_unmanaged(state, _mutex_);
+    MutexLockWaiting lock_waiting(state, _mutex_);
 
     if(val->nil_p()) {
       self->inc_semaphore_count();
@@ -66,7 +66,7 @@ namespace rubinius {
     Channel* self = this;
     OnStack<1> os(state, self);
 
-    MutexLockUnmanaged lock_unmanaged(state, _mutex_);
+    MutexLockWaiting lock_waiting(state, _mutex_);
 
     if(self->semaphore_count() > 0) {
       self->dec_semaphore_count();
@@ -95,7 +95,7 @@ namespace rubinius {
     Channel* self = this;
     OnStack<2> os(state, self, duration);
 
-    MutexLockUnmanaged lock_unmanaged(state, _mutex_);
+    MutexLockWaiting lock_waiting(state, _mutex_);
 
     if(self->semaphore_count() > 0) {
       self->dec_semaphore_count();

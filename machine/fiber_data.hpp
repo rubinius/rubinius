@@ -56,6 +56,7 @@ namespace rubinius {
 
     VM* thread_;
     FiberStack* stack_;
+    size_t stack_size_;
 
     void* heap_;
     size_t heap_size_;
@@ -67,11 +68,12 @@ namespace rubinius {
 
     // Private constructor so only FiberStack can use it.
 
-    FiberData(VM* thread, bool root=false)
+    FiberData(VM* thread, size_t stack_size, bool root=false)
       : status_(root ? eOnStack : eInitial)
       , mark_(true)
       , thread_(thread)
       , stack_(0)
+      , stack_size_(stack_size)
       , heap_(0)
       , heap_size_(0)
       , heap_capacity_(0)
@@ -125,6 +127,14 @@ namespace rubinius {
 
     void* stack_address() const {
       return stack_ ? stack_->address() : 0;
+    }
+
+    void* stack_start() const {
+      if(stack_) {
+        return (void*)((uintptr_t)(stack_->address()) + stack_size());
+      } else {
+        return 0;
+      }
     }
 
     size_t stack_size() const {

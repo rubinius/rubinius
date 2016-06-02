@@ -60,6 +60,10 @@ unless RedCard.check :ruby, :rubinius
   exit 1
 end
 
+if BUILD_CONFIG[:build_bin]
+  ENV["PATH"] = "#{BUILD_CONFIG[:build_bin]}:#{ENV["PATH"]}"
+end
+
 def libprefixdir
   if BUILD_CONFIG[:stagingdir]
     "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:libdir]}"
