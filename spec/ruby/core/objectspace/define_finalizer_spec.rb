@@ -6,15 +6,45 @@ require File.expand_path('../fixtures', __FILE__)
 # It is highly questionable whether these aspects of ObjectSpace
 # should be spec'd at all.
 describe "ObjectSpace.define_finalizer" do
-  it "raises a RuntimeError if the object is not garbage collectable" do
-    lambda {
+  it "raises an ArgumentError if the object is a Symbol" do
+    lambda do
       ObjectSpace.define_finalizer(:symbol, lambda { })
-    }.should raise_error(RuntimeError)
+    end.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if the object is a Fixnum" do
+    lambda do
+      ObjectSpace.define_finalizer(1, lambda { })
+    end.should raise_error(ArgumentError)
+  end
+
+  it "raises an RuntimeError if the object is a Bignum" do
+    lambda do
+      ObjectSpace.define_finalizer(bignum_value(), lambda { })
+    end.should raise_error(RuntimeError)
+  end
+
+  it "raises an ArgumentError if the object is a Float" do
+    lambda do
+      ObjectSpace.define_finalizer(3.5, lambda { })
+    end.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if the object is a nil" do
+    lambda do
+      ObjectSpace.define_finalizer(nil, lambda { })
+    end.should raise_error(ArgumentError)
+  end
+
+  it "raises a RuntimeError if the object is frozen" do
+    lambda do
+      ObjectSpace.define_finalizer("abc".freeze, lambda { })
+    end.should raise_error(RuntimeError)
   end
 
   it "raises an ArgumentError if the action does not respond to call" do
     lambda {
-      ObjectSpace.define_finalizer("", 3)
+      ObjectSpace.define_finalizer("", mock("ObjectSpace.define_finalizer no #call"))
     }.should raise_error(ArgumentError)
   end
 
@@ -57,6 +87,34 @@ describe "ObjectSpace.define_finalizer" do
         obj = "Test"
         handler = Proc.new { wr.write "finalized"; wr.close }
         ObjectSpace.define_finalizer(obj, handler)
+        exit 0
+      end
+    end
+
+    # These specs are defined under the fork specs because there is no
+    # deterministic way to force finalizers to be run, except process exit, so
+    # we rely on that.
+    it "allows multiple finalizers with different 'callables' to be defined" do
+      rd1, wr1 = IO.pipe
+      rd2, wr2 = IO.pipe
+
+      if Kernel::fork then
+        wr1.close
+        wr2.close
+
+        rd1.read.should == "finalized1"
+        rd2.read.should == "finalized2"
+
+        rd1.close
+        rd2.close
+      else
+        rd1.close
+        rd2.close
+        obj = mock("ObjectSpace.define_finalizer multiple")
+
+        ObjectSpace.define_finalizer(obj, Proc.new { wr1.write "finalized1"; wr1.close })
+        ObjectSpace.define_finalizer(obj, Proc.new { wr2.write "finalized2"; wr2.close })
+
         exit 0
       end
     end
