@@ -277,6 +277,7 @@ namespace rubinius {
     CallFrame* get_ruby_frame(ssize_t up=0);
     CallFrame* get_variables_frame(ssize_t up=0);
     CallFrame* get_scope_frame(ssize_t up=0);
+    CallFrame* get_noncore_frame(STATE);
 
     bool scope_valid_p(VariableScope* scope);
 

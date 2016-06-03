@@ -485,13 +485,17 @@ namespace rubinius {
 
     close(errors[1]);
 
-    CallFrame* call_frame = state->vm()->get_ruby_frame(3);
-
-    logger::write("spawn: %d: %s, %s, %s:%d",
-        pid, exe.command(),
-        state->vm()->name().c_str(),
-        call_frame->file(state)->cpp_str(state).c_str(),
-        call_frame->line(state));
+    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      logger::write("spawn: %d: %s, %s, %s:%d",
+          pid, exe.command(),
+          state->vm()->name().c_str(),
+          call_frame->file(state)->cpp_str(state).c_str(),
+          call_frame->line(state));
+    } else {
+      logger::write("spawn: %d: %s, %s",
+          pid, exe.command(),
+          state->vm()->name().c_str());
+    }
 
     int error_no = 0;
     ssize_t size;
@@ -601,13 +605,17 @@ namespace rubinius {
     close(errors[1]);
     close(output[1]);
 
-    CallFrame* call_frame = state->vm()->get_ruby_frame(1);
-
-    logger::write("backtick: %d: %s, %s, %s:%d",
-        pid, exe.command(),
-        state->vm()->name().c_str(),
-        call_frame->file(state)->cpp_str(state).c_str(),
-        call_frame->line(state));
+    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      logger::write("backtick: %d: %s, %s, %s:%d",
+          pid, exe.command(),
+          state->vm()->name().c_str(),
+          call_frame->file(state)->cpp_str(state).c_str(),
+          call_frame->line(state));
+    } else {
+      logger::write("backtick: %d: %s, %s",
+          pid, exe.command(),
+          state->vm()->name().c_str());
+    }
 
     int error_no = 0;
     ssize_t size;
@@ -681,12 +689,15 @@ namespace rubinius {
      */
     ExecCommand exe(state, path, args);
 
-    CallFrame* call_frame = state->vm()->get_ruby_frame(3);
-
-    logger::write("exec: %s, %s, %s:%d", exe.command(),
-        state->vm()->name().c_str(),
-        call_frame->file(state)->cpp_str(state).c_str(),
-        call_frame->line(state));
+    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      logger::write("exec: %s, %s, %s:%d", exe.command(),
+          state->vm()->name().c_str(),
+          call_frame->file(state)->cpp_str(state).c_str(),
+          call_frame->line(state));
+    } else {
+      logger::write("exec: %s, %s", exe.command(),
+          state->vm()->name().c_str());
+    }
 
     // From this point, we are serialized.
     utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
@@ -833,12 +844,15 @@ namespace rubinius {
       // We're in the parent...
       state->shared().machine_threads()->after_fork_parent(state);
 
-      CallFrame* call_frame = state->vm()->get_ruby_frame(2);
-
-      logger::write("fork: child: %d, %s, %s:%d", pid,
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
+      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        logger::write("fork: child: %d, %s, %s:%d", pid,
+            state->vm()->name().c_str(),
+            call_frame->file(state)->cpp_str(state).c_str(),
+            call_frame->line(state));
+      } else {
+        logger::write("fork: child: %d, %s", pid,
+            state->vm()->name().c_str());
+      }
     } else if(pid == 0) {
       // We're in the child...
       state->vm()->after_fork_child(state);

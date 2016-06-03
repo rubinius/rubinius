@@ -226,6 +226,19 @@ namespace rubinius {
     return NULL;
   }
 
+  CallFrame* VM::get_noncore_frame(STATE) {
+    for(CallFrame* frame = call_frame_; frame; frame = frame->previous) {
+      if(frame->native_method_p()) continue;
+
+      CompiledCode* code = frame->compiled_code;
+      if(code && !code->nil_p()) {
+        if(!code->core_method(state)) return frame;
+      }
+    }
+
+    return NULL;
+  }
+
   CallFrame* VM::get_variables_frame(ssize_t up) {
     CallFrame* frame = call_frame_;
 
