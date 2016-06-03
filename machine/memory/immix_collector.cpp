@@ -390,28 +390,8 @@ namespace memory {
   }
 
   void ImmixGC::walk_finalizers() {
-    FinalizerThread* fh = memory_->finalizer_handler();
-    if(!fh) return;
-
-    for(FinalizerThread::iterator i = fh->begin();
-        !i.end();
-        /* advance is handled in the loop */)
-    {
-      FinalizeObject& fi = i.current();
-
-      bool live = fi.object->marked_p(memory_->mark());
-
-      if(fi.ruby_finalizer) {
-        if(Object* fwd = saw_object(fi.ruby_finalizer)) {
-          fi.ruby_finalizer = fwd;
-        }
-      }
-
-      if(Object* fwd = saw_object(fi.object)) {
-        fi.object = fwd;
-      }
-
-      i.next(live);
+    if(FinalizerThread* f = memory_->finalizer()) {
+      f->gc_scan(this, memory_);
     }
   }
 }

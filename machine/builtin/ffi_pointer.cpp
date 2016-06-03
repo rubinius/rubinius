@@ -115,14 +115,13 @@ namespace rubinius {
 
     if(autorelease) {
       if(!set_finalizer) {
-        state->memory()->needs_finalization(state, this,
-            (memory::FinalizerFunction)&Pointer::finalize,
-            memory::FinalizeObject::eUnmanaged);
+        state->memory()->native_finalizer(state, this,
+            (memory::FinalizerFunction)&Pointer::finalize);
         set_finalizer = true;
       }
     } else {
       if(set_finalizer) {
-        state->memory()->set_ruby_finalizer(this, cNil);
+        state->memory()->managed_finalizer(state, this, cNil);
         set_finalizer = false;
       }
     }

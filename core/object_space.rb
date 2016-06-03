@@ -52,6 +52,14 @@ module ObjectSpace
   def self.define_finalizer(obj, prc=nil, &block)
     prc ||= block
 
+    if obj.kind_of? ImmediateValue or obj.kind_of? Float
+      raise ArgumentError, "can't define finalizer for #{obj.class}"
+    end
+
+    if obj.frozen?
+      raise RuntimeError, "can't modify frozen #{obj.class}"
+    end
+
     if obj.equal? prc
       # This is allowed. This is the Rubinius specific API that calls
       # __finalize__ when the object is finalized.
@@ -72,9 +80,6 @@ module ObjectSpace
   def self.undefine_finalizer(obj)
     Rubinius.invoke_primitive :vm_set_finalizer, obj, nil
     return obj
-  end
-
-  def self.run_finalizers
   end
 
   def self.garbage_collect

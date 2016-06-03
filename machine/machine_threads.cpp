@@ -15,8 +15,8 @@ namespace rubinius {
 
   MachineThread::MachineThread(STATE, std::string name, StackSize stack_size)
     : vm_(state->shared().thread_nexus()->new_vm(&state->shared(), name.c_str()))
-    , thread_running_(false)
     , stack_size_(stack_size)
+    , thread_running_(false)
     , thread_exit_(false)
   {
     state->shared().machine_threads()->register_thread(this);

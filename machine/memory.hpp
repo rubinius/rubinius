@@ -223,8 +223,8 @@ namespace rubinius {
       }
     }
 
-    memory::FinalizerThread* finalizer_handler() const {
-      return shared_.finalizer_handler();
+    memory::FinalizerThread* finalizer() const {
+      return shared_.finalizer();
     }
 
     memory::InflatedHeaders* inflated_headers() const {
@@ -550,9 +550,23 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
-    void needs_finalization(STATE, Object* obj, memory::FinalizerFunction func,
-        memory::FinalizeObject::FinalizeKind kind = memory::FinalizeObject::eManaged);
-    void set_ruby_finalizer(Object* obj, Object* finalizer);
+    void native_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
+      if(memory::FinalizerThread* f = this->finalizer()) {
+        f->native_finalizer(state, obj, func);
+      }
+    }
+
+    void extension_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
+      if(memory::FinalizerThread* f = this->finalizer()) {
+        f->extension_finalizer(state, obj, func);
+      }
+    }
+
+    void managed_finalizer(STATE, Object* obj, Object* finalizer) {
+      if(memory::FinalizerThread* f = this->finalizer()) {
+        f->managed_finalizer(state, obj, finalizer);
+      }
+    }
 
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);

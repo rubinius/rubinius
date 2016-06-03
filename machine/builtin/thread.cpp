@@ -90,9 +90,8 @@ namespace rubinius {
 
     thr->function(function);
 
-    state->memory()->needs_finalization(state, thr,
-        (memory::FinalizerFunction)&Thread::finalize,
-        memory::FinalizeObject::eUnmanaged);
+    state->memory()->native_finalizer(state, thr,
+        (memory::FinalizerFunction)&Thread::finalize);
 
     state->vm()->metrics().system.threads_created++;
 
