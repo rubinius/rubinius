@@ -1510,7 +1510,7 @@ retry:
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
     if(!obj->reference_p()) return cFalse;
-    state->memory()->set_ruby_finalizer(obj, fin);
+    state->memory()->managed_finalizer(state, obj, fin);
     return cTrue;
   }
 

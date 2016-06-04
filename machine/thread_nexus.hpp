@@ -97,6 +97,20 @@ namespace rubinius {
     bool blocking_p(VM* vm);
     bool yielding_p(VM* vm);
 
+    void yield(VM* vm) {
+      while(stop_p()) {
+        waiting_phase(vm);
+
+        {
+          std::unique_lock<std::mutex> lk(wait_mutex_);
+          wait_condition_.wait(lk,
+              [this]{ return !stop_.load(std::memory_order_acquire); });
+        }
+
+        managed_phase(vm);
+      }
+    }
+
     bool waiting_lock(VM* vm);
 
     bool try_lock(VM* vm) {

@@ -181,7 +181,7 @@ namespace rubinius {
       cache->name(name);
       cache->ip(ip);
 
-      state->memory()->needs_finalization(state, cache,
+      state->memory()->native_finalizer(state, cache,
           (memory::FinalizerFunction)&CallSite::finalize);
 
       state->vm()->metrics().machine.call_site_count++;

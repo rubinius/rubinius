@@ -5,6 +5,7 @@
 
 #include "util/thread.hpp"
 
+#include <atomic>
 #include <string>
 #include <list>
 
@@ -16,12 +17,12 @@ namespace rubinius {
 
   class MachineThread {
     VM* vm_;
-    bool thread_running_;
     uint32_t stack_size_;
 
   protected:
 
-    bool thread_exit_;
+    std::atomic<bool> thread_running_;
+    std::atomic<bool> thread_exit_;
 
   public:
 

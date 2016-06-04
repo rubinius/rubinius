@@ -729,9 +729,8 @@ namespace rubinius {
 
     c->converter(NULL);
 
-    state->memory()->needs_finalization(state, c,
-        (memory::FinalizerFunction)&Converter::finalize,
-        memory::FinalizeObject::eUnmanaged);
+    state->memory()->native_finalizer(state, c,
+        (memory::FinalizerFunction)&Converter::finalize);
 
     return c;
   }

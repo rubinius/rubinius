@@ -5,131 +5,139 @@
 
 #include "memory/root.hpp"
 
+#include <atomic>
+#include <condition_variable>
 #include <list>
+#include <mutex>
 
 namespace rubinius {
   class VM;
   class State;
-  struct CallFrame;
+  class Memory;
   class Object;
+  struct CallFrame;
 
-namespace memory {
-  typedef void (*FinalizerFunction)(STATE, Object*);
+  namespace memory {
+    class ImmixGC;
 
-  struct FinalizeObject {
-  public:
-    enum FinalizeKind {
-      eManaged,
-      eUnmanaged
-    };
+    typedef void (*FinalizerFunction)(STATE, Object*);
 
-    enum FinalizationStatus {
-      eLive,
-      eQueued,
-      eRubyFinalized,
-      eNativeFinalized,
-      eReleased
-    };
-
-  public:
-    FinalizeObject()
-      : object(NULL)
-      , kind(eManaged)
-      , status(eLive)
-      , finalizer(0)
-      , ruby_finalizer(0)
-    {}
-
-    Object* object;
-    FinalizeKind kind;
-    FinalizationStatus status;
-    FinalizerFunction finalizer;
-    Object* ruby_finalizer;
-
-    void queued() {
-      status = eQueued;
-    }
-
-    bool queued_p() const {
-      return status == eQueued;
-    }
-  };
-
-  typedef std::list<FinalizeObject> FinalizeObjects;
-  typedef std::list<FinalizeObjects*> FinalizeObjectsList;
-
-  class FinalizerThread : public MachineThread {
-  public:
-    class iterator {
-      FinalizerThread* handler_;
-      FinalizeObjects* current_list_;
-      FinalizeObjects::iterator end_;
-      FinalizeObjects::iterator current_;
-      FinalizeObjectsList::iterator lists_iterator_;
+    class FinalizerObject {
+      Object* object_;
 
     public:
-      iterator(FinalizerThread* fh);
-      ~iterator() {}
+      FinalizerObject(STATE, Object* object)
+        : object_(object)
+      { }
+      virtual ~FinalizerObject() { }
 
-      void next(bool live);
-      bool end();
-      FinalizeObject& current() { return *current_; }
+      Object* object() const {
+        return object_;
+      }
+
+      void object(Object* obj) {
+        object_ = obj;
+      }
+
+      virtual void finalize(STATE) = 0;
+      virtual void mark(ImmixGC* gc) = 0;
+      virtual bool match_p(STATE, Object* object, Object* finalizer) = 0;
     };
 
-    friend class iterator;
+    class NativeFinalizer : public FinalizerObject {
+      FinalizerFunction finalizer_;
 
-    enum ProcessItemKind {
-      eRuby,
-      eNative,
-      eRelease
+    public:
+      NativeFinalizer(STATE, Object* object, FinalizerFunction finalizer)
+        : FinalizerObject(state, object)
+        , finalizer_(finalizer)
+      { }
+
+      void finalize(STATE);
+      void mark(ImmixGC* gc);
+      bool match_p(STATE, Object* object, Object* finalizer) { return false; }
     };
 
-  private:
-    FinalizeObjectsList* lists_;
-    FinalizeObjects* live_list_;
-    FinalizeObjects* process_list_;
-    FinalizeObjects::iterator process_item_;
-    FinalizerThread::iterator* iterator_;
-    ProcessItemKind process_item_kind_;
-    utilities::thread::Mutex live_guard_;
-    utilities::thread::Mutex worker_lock_;
-    utilities::thread::Condition worker_cond_;
-    utilities::thread::Mutex supervisor_lock_;
-    utilities::thread::Condition supervisor_cond_;
-    bool finishing_;
+    class ExtensionFinalizer : public FinalizerObject {
+      FinalizerFunction finalizer_;
 
-  public:
+    public:
+      ExtensionFinalizer(STATE, Object* object, FinalizerFunction finalizer)
+        : FinalizerObject(state, object)
+        , finalizer_(finalizer)
+      { }
 
-    FinalizerThread(STATE);
-    virtual ~FinalizerThread();
+      void finalize(STATE);
+      void mark(ImmixGC* gc);
+      bool match_p(STATE, Object* object, Object* finalizer) { return false; }
+    };
 
-    void finalize(STATE);
-    void first_process_item();
-    void next_process_item();
-    void finish(STATE);
+    class ManagedFinalizer : public FinalizerObject {
+      Object* finalizer_;
 
-    void record(STATE, Object* obj, FinalizerFunction func,
-        FinalizeObject::FinalizeKind kind);
-    void set_ruby_finalizer(Object* obj, Object* finalizer);
+    public:
+      ManagedFinalizer(STATE, Object* object, Object* finalizer)
+        : FinalizerObject(state, object)
+        , finalizer_(finalizer)
+      { }
 
-    void queue_objects(STATE);
+      void finalize(STATE);
+      void mark(ImmixGC* gc);
+      bool match_p(STATE, Object* object, Object* finalizer);
+    };
 
-    void start_collection(STATE);
-    void finish_collection(STATE);
+    typedef std::list<FinalizerObject*> FinalizerObjects;
 
-    FinalizerThread::iterator& begin();
+    class FinalizerThread : public MachineThread {
+      class Synchronization {
+        std::mutex list_mutex_;
+        std::condition_variable list_condition_;
 
-    void worker_signal();
-    void worker_wait();
-    void supervisor_signal();
-    void supervisor_wait();
+      public:
+        Synchronization()
+          : list_mutex_()
+          , list_condition_()
+        { }
 
-    void initialize(STATE);
-    void run(STATE);
-    void stop(STATE);
-    void wakeup(STATE);
-  };
-}
+        std::mutex& list_mutex() {
+          return list_mutex_;
+        }
+
+        std::condition_variable& list_condition() {
+          return list_condition_;
+        }
+      };
+
+      FinalizerObjects live_list_;
+      FinalizerObjects process_list_;
+
+      Synchronization* synchronization_;
+
+      std::atomic<bool> finishing_;
+
+    public:
+      FinalizerThread(STATE);
+      virtual ~FinalizerThread();
+
+      void finish(STATE);
+
+      void native_finalizer(STATE, Object* obj, FinalizerFunction func);
+      void extension_finalizer(STATE, Object* obj, FinalizerFunction func);
+      void managed_finalizer(STATE, Object* obj, Object* finalizer);
+
+      void add_finalizer(STATE, FinalizerObject* obj);
+
+      void gc_scan(ImmixGC* gc, Memory* memory);
+
+      void initialize(STATE);
+      void run(STATE);
+      void stop(STATE);
+      void wakeup(STATE);
+      void after_fork_child(STATE);
+
+      void cleanup();
+    };
+  }
 }
 
 #endif

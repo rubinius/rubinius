@@ -86,7 +86,7 @@ namespace rubinius {
     ThreadNexus* thread_nexus_;
     MachineThreads* machine_threads_;
     SignalThread* signals_;
-    memory::FinalizerThread* finalizer_thread_;
+    memory::FinalizerThread* finalizer_;
     console::Console* console_;
     metrics::Metrics* metrics_;
     diagnostics::Diagnostics* diagnostics_;
@@ -158,12 +158,12 @@ namespace rubinius {
       return machine_threads_;
     }
 
-    memory::FinalizerThread* finalizer_handler() const {
-      return finalizer_thread_;
+    memory::FinalizerThread* finalizer() const {
+      return finalizer_;
     }
 
-    void set_finalizer_handler(memory::FinalizerThread* thr) {
-      finalizer_thread_ = thr;
+    void set_finalizer(memory::FinalizerThread* thr) {
+      finalizer_ = thr;
     }
 
     Array* vm_threads(STATE);

@@ -83,8 +83,6 @@ module Process
         end
       end
 
-      ObjectSpace.run_finalizers
-
       # Do not use Kernel.exit. This raises a SystemExit exception, which
       # will run ensure blocks. This is not what MRI does and causes bugs
       # in programs. See issue http://github.com/rubinius/rubinius/issues#issue/289 for
