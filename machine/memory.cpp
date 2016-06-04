@@ -523,10 +523,6 @@ step1:
 
     if(!collect_young_flag_ && !collect_full_flag_) return;
 
-    if(memory::FinalizerThread* finalizer = state->shared().finalizer_handler()) {
-      finalizer->start_collection(state);
-    }
-
     if(cDebugThreading) {
       std::cerr << std::endl << "[" << state
                 << " WORLD beginning GC.]" << std::endl;
@@ -584,10 +580,6 @@ step1:
 #ifdef RBX_GC_DEBUG
     young_->verify(data);
 #endif
-
-    if(memory::FinalizerThread* finalizer = state->shared().finalizer_handler()) {
-      finalizer->finish_collection(state);
-    }
     */
 
     collect_young_flag_ = false;
@@ -665,10 +657,6 @@ step1:
     metrics::MetricsData& metrics = state->vm()->metrics();
     metrics.gc.immix_count++;
     metrics.gc.large_count++;
-
-    if(memory::FinalizerThread* finalizer = state->shared().finalizer_handler()) {
-      finalizer->finish_collection(state);
-    }
 
     collect_full_flag_ = false;
     interrupt_flag_ = false;
@@ -844,18 +832,6 @@ step1:
           "add code resource",
           state->vm()->metrics().gc.resource_set);
     }
-  }
-
-  void Memory::needs_finalization(STATE, Object* obj, memory::FinalizerFunction func,
-      memory::FinalizeObject::FinalizeKind kind)
-  {
-    if(memory::FinalizerThread* finalizer = shared_.finalizer_handler()) {
-      finalizer->record(state, obj, func, kind);
-    }
-  }
-
-  void Memory::set_ruby_finalizer(Object* obj, Object* finalizer) {
-    shared_.finalizer_handler()->set_ruby_finalizer(obj, finalizer);
   }
 
   capi::Handle* Memory::add_capi_handle(STATE, Object* obj) {

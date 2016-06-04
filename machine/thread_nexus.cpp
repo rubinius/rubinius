@@ -243,9 +243,8 @@ namespace rubinius {
 
       {
         std::unique_lock<std::mutex> lk(wait_mutex_);
-        while(phase_flag_.load(std::memory_order_acquire) != 0) {
-          wait_condition_.wait(lk);
-        }
+        wait_condition_.wait(lk,
+            [this]{ return phase_flag_.load(std::memory_order_acquire) == 0; });
       }
 
       id = 0;

@@ -55,6 +55,11 @@ namespace rubinius {
     void set_label() {
       if(logger_) logger_->set_label();
     }
+
+    void reset_lock() {
+      if(logger_) logger_->reset_lock();
+    }
+
 #define LOGGER_MSG_SIZE   1024
 
     static int append_newline(char* message) {
@@ -253,6 +258,10 @@ namespace rubinius {
 
         logger_->debug(buf, append_newline(buf));
       }
+    }
+
+    void Logger::reset_lock() {
+      lock_.init();
     }
 
     char* Logger::timestamp() {

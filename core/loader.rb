@@ -758,10 +758,6 @@ Alternative: #{alt}
 
       run_at_exits
 
-      @stage = "running object finalizers"
-      ::GC.start
-      ObjectSpace.run_finalizers
-
       flush_stdio
 
     rescue Object => e

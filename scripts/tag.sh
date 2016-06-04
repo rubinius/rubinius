@@ -18,6 +18,7 @@ function rbx_tag_release {
 
   echo Tagging "v$version" as "$message"
   git tag -a -m "$message" "v$version"
+  echo After a successful tag, push tags with 'git push origin master --tags'
 }
 
 function rbx_untag_release {
@@ -56,7 +57,7 @@ function rbx_tag_usage {
   cat >&2 <<-EOM
 Usage: ${0##*/} option
   where option is
-    tag              Tags a release at the current release + 1
+    tag              Tags a release at the current release + 1. Remember to "git push origin master --tags" afterward.
     untag VERSION    Untags VERSION if it is the current release
 EOM
   exit 1

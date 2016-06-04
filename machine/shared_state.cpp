@@ -32,7 +32,7 @@ namespace rubinius {
     : thread_nexus_(new ThreadNexus())
     , machine_threads_(NULL)
     , signals_(NULL)
-    , finalizer_thread_(NULL)
+    , finalizer_(NULL)
     , console_(NULL)
     , metrics_(NULL)
     , diagnostics_(NULL)

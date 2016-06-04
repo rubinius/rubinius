@@ -34,9 +34,8 @@ namespace rubinius {
     if(fsevent->kq() < 0) {
       logger::error("%s: unable to create kqueue", strerror(errno));
     } else {
-      state->memory()->needs_finalization(state, fsevent,
-          (memory::FinalizerFunction)&FSEvent::finalize,
-          memory::FinalizeObject::eUnmanaged);
+      state->memory()->native_finalizer(state, fsevent,
+          (memory::FinalizerFunction)&FSEvent::finalize);
     }
 
     return fsevent;
@@ -84,9 +83,8 @@ namespace rubinius {
     if(fsevent->in() < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));
     } else {
-      state->memory()->needs_finalization(state, fsevent,
-          (memory::FinalizerFunction)&FSEvent::finalize,
-          memory::FinalizeObject::eUnmanaged);
+      state->memory()->native_finalizer(state, fsevent,
+          (memory::FinalizerFunction)&FSEvent::finalize);
     }
 
     return fsevent;

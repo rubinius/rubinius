@@ -551,7 +551,7 @@ namespace rubinius {
 
     shared->thread_nexus()->lock(state->vm());
 
-    shared->finalizer_handler()->finish(state);
+    shared->finalizer()->finish(state);
 
     NativeMethod::cleanup_thread(state);
 
