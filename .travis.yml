@@ -13,8 +13,8 @@ ruby: 2.2.0
 before_install:
 - echo $LANG
 - echo $LC_ALL
-- if [ $TRAVIS_OS_NAME == linux ]; then ccache -s; ./scripts/llvm.sh; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm ccache; ccache -s; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then ccache -s; export CC="ccache clang"; export CXX="ccache clang++"; ./scripts/llvm.sh; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm ccache; ccache -s; export CC="ccache clang"; export CXX="ccache clang++"; fi
 - gem update --system
 - gem --version
 before_script:
