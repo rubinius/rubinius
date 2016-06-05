@@ -1,7 +1,8 @@
 language: cpp
 cache: 
-  - ccache
-  - bundler
+  ccache: true
+  directories:
+    - $HOME/vendor/bundle
 sudo: required
 dist: trusty
 compiler:
