@@ -293,7 +293,12 @@ namespace rubinius {
         }
       }
 
-      add_finalizer(state, new ManagedFinalizer(state, obj, finalizer));
+      /* Rubinius specific API. If the finalizer is the object, we're going to
+       * send the object __finalize__. We mark that the user wants this by
+       * putting cTrue as the ruby_finalizer.
+       */
+      add_finalizer(state, new ManagedFinalizer(state, obj,
+            obj == finalizer ? cTrue : finalizer));
     }
 
     void FinalizerThread::add_finalizer(STATE, FinalizerObject* obj) {
