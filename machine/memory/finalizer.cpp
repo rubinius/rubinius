@@ -263,7 +263,7 @@ namespace rubinius {
 
         for(FinalizerObjects::iterator i = live_list_.begin();
             i != live_list_.end();
-            ++i)
+            /* advance is handled in the loop */)
         {
           FinalizerObject* fo = *i;
 
@@ -282,7 +282,8 @@ namespace rubinius {
 
           if(fo->match_p(state, obj, finalizer)) {
             if(finalizer->nil_p()) {
-              live_list_.erase(i);
+              i = live_list_.erase(i);
+              continue;
             } else {
               synchronization_->list_mutex().lock();
               return;
@@ -290,8 +291,11 @@ namespace rubinius {
           }
 
           synchronization_->list_mutex().lock();
+          ++i;
         }
       }
+
+      if(finalizer->nil_p()) return;
 
       /* Rubinius specific API. If the finalizer is the object, we're going to
        * send the object __finalize__. We mark that the user wants this by
