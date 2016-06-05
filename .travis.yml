@@ -27,6 +27,7 @@ script: rake ci
 after_success:
 - if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/build_support.sh archive_core; fi
 - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi
+- ccache -s
 branches:
   only:
   - master
