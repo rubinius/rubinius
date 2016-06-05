@@ -15,7 +15,7 @@ before_install:
 - echo $LANG
 - echo $LC_ALL
 - if [ $TRAVIS_OS_NAME == linux ]; then ccache -s; export CC="ccache clang -Qunused-arguments -fcolor-diagnostics"; export CXX="ccache clang++ -Qunused-arguments -fcolor-diagnostics"; ./scripts/llvm.sh; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm ccache; ccache -s; export CC="ccache clang -Qunused-arguments -fcolor-diagnostics"; export CXX="ccache clang++ -Qunused-arguments -fcolor-diagnostics"; export PATH="/usr/local/opt/ccache/libexec:$PATH" fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm ccache; ccache -s; export CC="ccache clang -Qunused-arguments -fcolor-diagnostics"; export CXX="ccache clang++ -Qunused-arguments -fcolor-diagnostics"; export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
 - gem update --system
 - gem --version
 before_script:
