@@ -1,5 +1,7 @@
 language: cpp
-cache: ccache
+cache: 
+  - ccache
+  - bundler
 sudo: required
 dist: trusty
 compiler:
