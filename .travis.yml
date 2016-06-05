@@ -11,11 +11,10 @@ os:
 - osx
 ruby: 2.2.0
 before_install:
-- ccache -s
 - echo $LANG
 - echo $LC_ALL
-- if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/llvm.sh; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then ccache -s; ./scripts/llvm.sh; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm ccache; ccache -s; fi
 - gem update --system
 - gem --version
 before_script:
