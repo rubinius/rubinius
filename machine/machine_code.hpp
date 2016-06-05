@@ -141,6 +141,8 @@ namespace rubinius {
       flags |= eNoInline;
     }
 
+    void finalize(STATE);
+
     CallSite* call_site(STATE, int ip);
     ConstantCache* constant_cache(STATE, int ip);
 

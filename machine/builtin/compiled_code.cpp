@@ -32,17 +32,28 @@ namespace rubinius {
           state, G(executable), G(rubinius), "CompiledCode"));
   }
 
+  void CompiledCode::finalize(STATE, CompiledCode* code) {
+    if(MachineCode* machine_code = code->machine_code()) {
+      machine_code->finalize(state);
+    }
+  }
+
   CompiledCode* CompiledCode::create(STATE) {
     return CompiledCode::allocate(state, G(compiled_code));
   }
 
   CompiledCode* CompiledCode::allocate(STATE, Object* self) {
-    return state->memory()->new_object<CompiledCode>(state, as<Class>(self));
+    CompiledCode* code =
+      state->memory()->new_object<CompiledCode>(state, as<Class>(self));
+
+    state->memory()->native_finalizer(state, code,
+        (memory::FinalizerFunction)&CompiledCode::finalize);
+
+    return code;
   }
 
   CompiledCode* CompiledCode::dup(STATE) {
-    CompiledCode* code =
-      state->memory()->new_object<CompiledCode>(state, G(compiled_code));
+    CompiledCode* code = allocate(state, G(compiled_code));
 
     code->copy_object(state, this);
     code->set_executor(CompiledCode::default_executor);
