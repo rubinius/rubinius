@@ -3,6 +3,7 @@ cache:
   ccache: true
   directories:
     - $HOME/vendor/bundle
+    - $HOME/.rvm/archives/
 sudo: required
 dist: trusty
 compiler:
@@ -11,7 +12,7 @@ os:
 - linux
 - osx
 before_install:
-- rvm use 2.2.0
+- rvm install 2.2.0 && rvm use 2.2.0
 - echo $LANG
 - echo $LC_ALL
 - if [ $TRAVIS_OS_NAME == linux ]; then ccache -s; export CC="ccache clang -Qunused-arguments -fcolor-diagnostics"; export CXX="ccache clang++ -Qunused-arguments -fcolor-diagnostics"; ./scripts/llvm.sh; fi
@@ -45,6 +46,7 @@ notifications:
     on_start: always
 env:
   global:
+  - CCACHE_CPP2=yes
   - LANG="en_US.UTF-8"
   - secure: olbok/GN6rOYvPnHBYWGz7giCoCdLFpT/7WSBHukYO3E0uNeqAUOOgW2BFOwCVWdSEJ/iTvJXZQ4qVZHX+6jRfvILZeGv+D2P93VdD8UFQRoTOfFC7esAo525s9fuKm9ehUGWZxlzGOBHHckky1jn6pEf8mlXAVM5e76dlH0fck=
   - secure: aqG9eB/PrzQ7XJQN6YX/00sNVvwSB77saxXQzguL2WFjAXB74h6168Hzq+awHtNX/vfOb6ta7fpWLHrA0D+gmZnvTR29VlP6nd0vs1tkdX1/jWbiBHjamRffp+NWVdKbJKYn5iLOGXcuUMOzY/opLKOdvxKZfkxGMxR2tTNLZUE=
