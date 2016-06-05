@@ -1,4 +1,9 @@
 language: cpp
+cache: 
+  ccache: true
+  directories:
+    - $HOME/vendor/bundle
+    - $HOME/.rvm/archives/
 sudo: required
 dist: trusty
 compiler:
@@ -6,22 +11,23 @@ compiler:
 os:
 - linux
 - osx
-ruby: 2.2.0
 before_install:
+- rvm install 2.2.0 && rvm use 2.2.0
 - echo $LANG
 - echo $LC_ALL
-- if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/llvm.sh; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then ccache -s; export CC="ccache clang -Qunused-arguments -fcolor-diagnostics"; export CXX="ccache clang++ -Qunused-arguments -fcolor-diagnostics"; ./scripts/llvm.sh; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm ccache; ccache -s; export CC="ccache clang -Qunused-arguments -fcolor-diagnostics"; export CXX="ccache clang++ -Qunused-arguments -fcolor-diagnostics"; export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
 - gem update --system
 - gem --version
 before_script:
-- travis_retry bundle
+- travis_retry bundle -j 2
 - if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=llvm-config-3.6; fi
 - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
 script: rake ci
 after_success:
 - if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/build_support.sh archive_core; fi
 - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi
+- ccache -s
 branches:
   only:
   - master
@@ -41,6 +47,7 @@ notifications:
     on_start: always
 env:
   global:
+  - CCACHE_CPP2=yes
   - LANG="en_US.UTF-8"
   - secure: olbok/GN6rOYvPnHBYWGz7giCoCdLFpT/7WSBHukYO3E0uNeqAUOOgW2BFOwCVWdSEJ/iTvJXZQ4qVZHX+6jRfvILZeGv+D2P93VdD8UFQRoTOfFC7esAo525s9fuKm9ehUGWZxlzGOBHHckky1jn6pEf8mlXAVM5e76dlH0fck=
   - secure: aqG9eB/PrzQ7XJQN6YX/00sNVvwSB77saxXQzguL2WFjAXB74h6168Hzq+awHtNX/vfOb6ta7fpWLHrA0D+gmZnvTR29VlP6nd0vs1tkdX1/jWbiBHjamRffp+NWVdKbJKYn5iLOGXcuUMOzY/opLKOdvxKZfkxGMxR2tTNLZUE=
