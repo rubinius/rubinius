@@ -542,10 +542,13 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
 
     void collect(STATE) {
-      collect_young_flag_ = true;
-      collect_full_flag_ = true;
-      interrupt_flag_ = true;
-      collect_maybe(state);
+      if(can_gc()) {
+        collect_young_flag_ = true;
+        collect_full_flag_ = true;
+        interrupt_flag_ = true;
+        state->vm()->thread_nexus()->set_stop();
+        state->vm()->checkpoint(state);
+      }
     }
 
     void collect_maybe(STATE);
