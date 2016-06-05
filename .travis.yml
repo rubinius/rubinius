@@ -10,8 +10,8 @@ compiler:
 os:
 - linux
 - osx
-ruby: 2.2.0
 before_install:
+- rvm use 2.2.0
 - echo $LANG
 - echo $LC_ALL
 - if [ $TRAVIS_OS_NAME == linux ]; then ccache -s; export CC="ccache clang -Qunused-arguments -fcolor-diagnostics"; export CXX="ccache clang++ -Qunused-arguments -fcolor-diagnostics"; ./scripts/llvm.sh; fi
