@@ -110,6 +110,18 @@ namespace rubinius {
     if(description()) delete description();
   }
 
+  void MachineCode::finalize(STATE) {
+    for(size_t i = 0; i < references_count(); i++) {
+      if(size_t ip = references()[i]) {
+        if(CallSite* call_site = try_as<CallSite>(
+              reinterpret_cast<Object*>(opcodes[ip])))
+        {
+          call_site->finalize(state);
+        }
+      }
+    }
+  }
+
   int MachineCode::size() {
     return sizeof(MachineCode) +
       (total * sizeof(opcode)) + // opcodes

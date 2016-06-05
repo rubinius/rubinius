@@ -56,6 +56,7 @@ namespace rubinius {
     /* interface */
 
     static void bootstrap(STATE);
+    static void finalize(STATE, CompiledCode* code);
     static void initialize(STATE, CompiledCode* obj) {
       Executable::initialize(state, obj, CompiledCode::default_executor);
 

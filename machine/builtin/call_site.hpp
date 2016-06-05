@@ -171,8 +171,8 @@ namespace rubinius {
       obj->caches(NULL);
     }
 
-    static void finalize(STATE, CallSite* call_site) {
-      if(call_site->caches()) free(call_site->caches());
+    void finalize(STATE) {
+      if(caches()) free(caches());
     }
 
     static CallSite* create(STATE, Symbol* name, int ip) {
@@ -180,9 +180,6 @@ namespace rubinius {
 
       cache->name(name);
       cache->ip(ip);
-
-      state->memory()->native_finalizer(state, cache,
-          (memory::FinalizerFunction)&CallSite::finalize);
 
       state->vm()->metrics().machine.call_site_count++;
 
