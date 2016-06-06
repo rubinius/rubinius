@@ -3,7 +3,6 @@
 #include "logger.hpp"
 #include "vm.hpp"
 #include "spinlock.hpp"
-#include "state.hpp"
 #include "thread_phase.hpp"
 
 #include <stdarg.h>
@@ -56,7 +55,7 @@ namespace rubinius {
     }
 
     void reset_lock() {
-      if(logger_) logger_->reset_lock();
+      logger_lock_.unlock();
     }
 
 #define LOGGER_MSG_SIZE   1024
@@ -82,102 +81,48 @@ namespace rubinius {
     }
 
     void write(const char* message, ...) {
-      State state(VM::current());
-      va_list varargs;
-
-      va_start(varargs, message);
-      write(&state, message, varargs);
-      va_end(varargs);
+      va_list args;
+      va_start(args, message);
+      write(message, args);
+      va_end(args);
     }
 
     void fatal(const char* message, ...) {
-      State state(VM::current());
-      va_list varargs;
-
-      va_start(varargs, message);
-      fatal(&state, message, varargs);
-      va_end(varargs);
+      va_list args;
+      va_start(args, message);
+      fatal(message, args);
+      va_end(args);
     }
 
     void error(const char* message, ...) {
-      State state(VM::current());
-      va_list varargs;
-
-      va_start(varargs, message);
-      error(&state, message, varargs);
-      va_end(varargs);
+      va_list args;
+      va_start(args, message);
+      error(message, args);
+      va_end(args);
     }
 
     void warn(const char* message, ...) {
-      State state(VM::current());
-      va_list varargs;
-
-      va_start(varargs, message);
-      warn(&state, message, varargs);
-      va_end(varargs);
+      va_list args;
+      va_start(args, message);
+      warn(message, args);
+      va_end(args);
     }
 
     void info(const char* message, ...) {
-      State state(VM::current());
-      va_list varargs;
-
-      va_start(varargs, message);
-      info(&state, message, varargs);
-      va_end(varargs);
+      va_list args;
+      va_start(args, message);
+      info(message, args);
+      va_end(args);
     }
 
     void debug(const char* message, ...) {
-      State state(VM::current());
-      va_list varargs;
-
-      va_start(varargs, message);
-      debug(&state, message, varargs);
-      va_end(varargs);
-    }
-
-    void write(STATE, const char* message, ...) {
       va_list args;
       va_start(args, message);
-      write(state, message, args);
+      debug(message, args);
       va_end(args);
     }
 
-    void fatal(STATE, const char* message, ...) {
-      va_list args;
-      va_start(args, message);
-      fatal(state, message, args);
-      va_end(args);
-    }
-
-    void error(STATE, const char* message, ...) {
-      va_list args;
-      va_start(args, message);
-      error(state, message, args);
-      va_end(args);
-    }
-
-    void warn(STATE, const char* message, ...) {
-      va_list args;
-      va_start(args, message);
-      warn(state, message, args);
-      va_end(args);
-    }
-
-    void info(STATE, const char* message, ...) {
-      va_list args;
-      va_start(args, message);
-      info(state, message, args);
-      va_end(args);
-    }
-
-    void debug(STATE, const char* message, ...) {
-      va_list args;
-      va_start(args, message);
-      debug(state, message, args);
-      va_end(args);
-    }
-
-    void write(STATE, const char* message, va_list args) {
+    void write(const char* message, va_list args) {
       if(logger_) {
         std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
@@ -189,7 +134,7 @@ namespace rubinius {
       }
     }
 
-    void fatal(STATE, const char* message, va_list args) {
+    void fatal(const char* message, va_list args) {
       if(logger_) {
         std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
@@ -203,7 +148,7 @@ namespace rubinius {
       }
     }
 
-    void error(STATE, const char* message, va_list args) {
+    void error(const char* message, va_list args) {
       if(logger_) {
         std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
@@ -217,7 +162,7 @@ namespace rubinius {
       }
     }
 
-    void warn(STATE, const char* message, va_list args) {
+    void warn(const char* message, va_list args) {
       if(logger_) {
         std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
@@ -231,7 +176,7 @@ namespace rubinius {
       }
     }
 
-    void info(STATE, const char* message, va_list args) {
+    void info(const char* message, va_list args) {
       if(logger_) {
         std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
@@ -245,7 +190,7 @@ namespace rubinius {
       }
     }
 
-    void debug(STATE, const char* message, va_list args) {
+    void debug(const char* message, va_list args) {
       if(logger_) {
         std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
@@ -257,10 +202,6 @@ namespace rubinius {
 
         logger_->debug(buf, append_newline(buf));
       }
-    }
-
-    void Logger::reset_lock() {
-      logger_lock_.unlock();
     }
 
     char* Logger::timestamp() {

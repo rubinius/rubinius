@@ -26,9 +26,6 @@ namespace rubinius {
     void open(logger_type type, const char* identifier, logger_level level=eWarn, ...);
     void close();
 
-    /* The API without passing STATE as the first argument must retrieve the
-     * current thread's VM* from a thread local variable.
-     */
     void write(const char* message, ...);
     void fatal(const char* message, ...);
     void error(const char* message, ...);
@@ -36,19 +33,12 @@ namespace rubinius {
     void info(const char* message, ...);
     void debug(const char* message, ...);
 
-    void write(STATE, const char* message, ...);
-    void fatal(STATE, const char* message, ...);
-    void error(STATE, const char* message, ...);
-    void warn(STATE, const char* message, ...);
-    void info(STATE, const char* message, ...);
-    void debug(STATE, const char* message, ...);
-
-    void write(STATE, const char* message, va_list args);
-    void fatal(STATE, const char* message, va_list args);
-    void error(STATE, const char* message, va_list args);
-    void warn(STATE, const char* message, va_list args);
-    void info(STATE, const char* message, va_list args);
-    void debug(STATE, const char* message, va_list args);
+    void write(const char* message, va_list args);
+    void fatal(const char* message, va_list args);
+    void error(const char* message, va_list args);
+    void warn(const char* message, va_list args);
+    void info(const char* message, va_list args);
+    void debug(const char* message, va_list args);
 
     void set_label();
     void set_loglevel(logger_level level);
@@ -73,7 +63,6 @@ namespace rubinius {
 
       virtual void set_label() = 0;
 
-      void reset_lock();
       char* timestamp();
     };
 
