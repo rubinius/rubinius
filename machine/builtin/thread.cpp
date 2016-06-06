@@ -154,7 +154,7 @@ namespace rubinius {
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
-    logger::write("new thread: %s, %s:%d",
+    logger::write("thread: create: %s, %s:%d",
         thread->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
@@ -180,7 +180,7 @@ namespace rubinius {
 
     CallFrame* call_frame = state->vm()->get_ruby_frame(1);
 
-    logger::write("start thread: %s, %s:%d",
+    logger::write("thread: start: %s, %s:%d",
         thread->vm()->name().c_str(),
         call_frame->file(state)->cpp_str(state).c_str(),
         call_frame->line(state));
@@ -380,7 +380,7 @@ namespace rubinius {
 
     vm->thread->pid(state, Fixnum::from(gettid()));
 
-    logger::write("start thread: %s, %d, %#x",
+    logger::write("thread: run: %s, %d, %#x",
         vm->name().c_str(), vm->thread->pid()->to_native(),
         (unsigned int)thread_debug_self());
 
@@ -410,7 +410,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    logger::write("exit thread: %s %fs", vm->name().c_str(), vm->run_time());
+    logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());
 
     vm->unmanaged_phase();
 
