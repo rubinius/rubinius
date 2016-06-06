@@ -288,12 +288,9 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef RBX_FIBER_ENABLED
-    if(!fib->data()) {
-      logger::fatal("finalizer: Fiber finalize called on instance with NULL data");
-      return;
-    }
+    logger::write("finalizer: fiber: %ld", (intptr_t)fib);
 
-    logger::fatal("finalizer: Fiber finalize");
+    if(!fib->data()) return;
     fib->data()->orphan(state);
 
     delete fib->data();

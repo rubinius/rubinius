@@ -25,7 +25,9 @@ namespace rubinius {
     // the handle and populate it as an RData now.
     capi::Handle* handle = data->handle(state);
 
-    assert(!handle && "can't already have a handle, it's brand new!");
+    if(handle) {
+      Exception::raise_runtime_error(state, "new Data instance already has C-API handle");
+    }
 
     handle = state->memory()->add_capi_handle(state, data);
 
@@ -59,7 +61,9 @@ namespace rubinius {
     // the handle and populate it as an RData now.
     capi::Handle* handle = data->handle(state);
 
-    assert(!handle && "can't already have a handle, it's brand new!");
+    if(handle) {
+      Exception::raise_runtime_error(state, "new Data instance already has C-API handle");
+    }
 
     handle = state->memory()->add_capi_handle(state, data);
 
@@ -110,17 +114,17 @@ namespace rubinius {
     capi::Handle* handle = data->handle(state);
 
     if(!handle->valid_p()) {
-      logger::fatal("finalizer: Data object has invalid handle");
+      logger::error("finalizer: Data object has invalid handle");
       return;
     }
 
     if(handle->object() != data) {
-      logger::fatal("finalizer: Data object handle does not reference the object");
+      logger::error("finalizer: Data object handle does not reference the object");
       return;
     }
 
     if(data->freed_p()) {
-      logger::fatal("finalizer: Data finalize called for already freed object");
+      logger::error("finalizer: Data finalize called for already freed object");
       return;
     }
     data->set_freed();
@@ -156,7 +160,7 @@ namespace rubinius {
     }
 
     if(data->freed_p()) {
-      logger::fatal("finalizer: Data mark called for already freed object");
+      logger::error("finalizer: Data mark called for already freed object");
       return;
     }
 
