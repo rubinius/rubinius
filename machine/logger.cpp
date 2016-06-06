@@ -1,8 +1,8 @@
 #include "util/file.hpp"
-#include "util/thread.hpp"
 
 #include "logger.hpp"
 #include "vm.hpp"
+#include "spinlock.hpp"
 #include "state.hpp"
 #include "thread_phase.hpp"
 
@@ -25,22 +25,21 @@ namespace rubinius {
   namespace logger {
     static Logger* logger_ = 0;
     static logger_level loglevel_ = eWarn;
+    static locks::spinlock_mutex logger_lock_;
 
-    void open(utilities::thread::SpinLock& lock, logger_type type,
-        const char* identifier, logger_level level, ...)
-    {
+    void open(logger_type type, const char* identifier, logger_level level, ...) {
       va_list varargs;
 
       switch(type) {
       case eSyslog:
-        logger_ = new Syslog(lock, identifier);
+        logger_ = new Syslog(identifier);
         break;
       case eConsoleLogger:
-        logger_ = new ConsoleLogger(lock, identifier);
+        logger_ = new ConsoleLogger(identifier);
         break;
       case eFileLogger:
         va_start(varargs, level);
-        logger_ = new FileLogger(lock, identifier, varargs);
+        logger_ = new FileLogger(identifier, varargs);
         va_end(varargs);
         break;
       }
@@ -180,7 +179,7 @@ namespace rubinius {
 
     void write(STATE, const char* message, va_list args) {
       if(logger_) {
-        SpinLockWaiting guard(state, logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
         char buf[LOGGER_MSG_SIZE];
 
@@ -192,7 +191,7 @@ namespace rubinius {
 
     void fatal(STATE, const char* message, va_list args) {
       if(logger_) {
-        SpinLockWaiting guard(state, logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
         if(loglevel_ < eFatal) return;
 
@@ -206,7 +205,7 @@ namespace rubinius {
 
     void error(STATE, const char* message, va_list args) {
       if(logger_) {
-        SpinLockWaiting guard(state, logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
         if(loglevel_ < eError) return;
 
@@ -220,7 +219,7 @@ namespace rubinius {
 
     void warn(STATE, const char* message, va_list args) {
       if(logger_) {
-        SpinLockWaiting guard(state, logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
         if(loglevel_ < eWarn) return;
 
@@ -234,7 +233,7 @@ namespace rubinius {
 
     void info(STATE, const char* message, va_list args) {
       if(logger_) {
-        SpinLockWaiting guard(state, logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
         if(loglevel_ < eInfo) return;
 
@@ -248,7 +247,7 @@ namespace rubinius {
 
     void debug(STATE, const char* message, va_list args) {
       if(logger_) {
-        SpinLockWaiting guard(state, logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
 
         if(loglevel_ < eDebug) return;
 
@@ -261,7 +260,7 @@ namespace rubinius {
     }
 
     void Logger::reset_lock() {
-      lock_.init();
+      logger_lock_.unlock();
     }
 
     char* Logger::timestamp() {
@@ -273,8 +272,8 @@ namespace rubinius {
       return formatted_time_;
     }
 
-    Syslog::Syslog(utilities::thread::SpinLock& lock, const char* identifier)
-      : Logger(lock)
+    Syslog::Syslog(const char* identifier)
+      : Logger()
     {
       openlog(identifier, LOG_CONS | LOG_PID, LOG_LOCAL7);
 
@@ -336,8 +335,8 @@ namespace rubinius {
       syslog(LOG_DEBUG, "%s", message);
     }
 
-    ConsoleLogger::ConsoleLogger(utilities::thread::SpinLock& lock, const char* identifier)
-      : Logger(lock)
+    ConsoleLogger::ConsoleLogger(const char* identifier)
+      : Logger()
       , identifier_(identifier)
     {
       set_label();
@@ -390,9 +389,8 @@ namespace rubinius {
 #define LOGGER_FROM_FLAGS   (O_RDONLY | O_CLOEXEC)
 #define LOGGER_TO_FLAGS     (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 
-    FileLogger::FileLogger(utilities::thread::SpinLock& lock,
-        const char* path, va_list varargs)
-      : Logger(lock)
+    FileLogger::FileLogger(const char* path, va_list varargs)
+      : Logger()
       , path_(path)
     {
       set_label();

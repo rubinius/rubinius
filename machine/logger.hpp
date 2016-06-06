@@ -7,12 +7,6 @@
 #include <stdarg.h>
 
 namespace rubinius {
-  namespace utilities {
-    namespace thread {
-      class SpinLock;
-    }
-  }
-
   namespace logger {
     enum logger_type {
       eSyslog,
@@ -29,8 +23,7 @@ namespace rubinius {
     };
 
 
-    void open(utilities::thread::SpinLock& lock, logger_type type,
-        const char* identifier, logger_level level=eWarn, ...);
+    void open(logger_type type, const char* identifier, logger_level level=eWarn, ...);
     void close();
 
     /* The API without passing STATE as the first argument must retrieve the
@@ -63,17 +56,11 @@ namespace rubinius {
     void reset_lock();
 
     class Logger {
-      utilities::thread::SpinLock& lock_;
-
 #define LOGGER_TIME_SIZE    16
 
       char formatted_time_[LOGGER_TIME_SIZE];
 
     public:
-
-      Logger(utilities::thread::SpinLock& lock)
-        : lock_(lock)
-      { }
 
       virtual ~Logger() { }
 
@@ -88,16 +75,12 @@ namespace rubinius {
 
       void reset_lock();
       char* timestamp();
-
-      utilities::thread::SpinLock& lock() {
-        return lock_;
-      }
     };
 
     class Syslog : public Logger {
     public:
 
-      Syslog(utilities::thread::SpinLock& lock, const char* identifier);
+      Syslog(const char* identifier);
       ~Syslog();
 
       void write(const char* message, int size);
@@ -118,7 +101,7 @@ namespace rubinius {
 
     public:
 
-      ConsoleLogger(utilities::thread::SpinLock& lock, const char* identifier);
+      ConsoleLogger(const char* identifier);
 
       void write(const char* message, int size);
       void fatal(const char* message, int size);
@@ -145,7 +128,7 @@ namespace rubinius {
 
     public:
 
-      FileLogger(utilities::thread::SpinLock& lock, const char* path, va_list varargs);
+      FileLogger(const char* path, va_list varargs);
       ~FileLogger();
 
       void write(const char* message, int size);
