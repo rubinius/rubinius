@@ -136,7 +136,7 @@ namespace rubinius {
   }
 
   void FiberData::copy_to_heap(STATE) {
-    assert(status_ != eDead);
+    if(status_ == eDead) return;
     assert(stack_);
 
     heap_size_ = (uintptr_t)stack_->top_address() - (uintptr_t)stack_bottom();

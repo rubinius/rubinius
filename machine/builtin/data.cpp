@@ -1,7 +1,9 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
+#include "logger.hpp"
 #include "memory.hpp"
 #include "on_stack.hpp"
+
 
 #include "builtin/data.hpp"
 #include "builtin/class.hpp"
@@ -108,18 +110,17 @@ namespace rubinius {
     capi::Handle* handle = data->handle(state);
 
     if(!handle->valid_p()) {
-      std::cerr << "Data::finalize: object has invalid handle!" << std::endl;
+      logger::fatal("finalizer: Data object has invalid handle");
       return;
     }
 
     if(handle->object() != data) {
-      std::cerr << "Data::finalize: handle does not reference object!" << std::endl;
+      logger::fatal("finalizer: Data object handle does not reference the object");
       return;
     }
 
     if(data->freed_p()) {
-      // TODO: Fix the issue of finalizer ordering.
-      // std::cerr << "Data::finalize called for already freed object" << std::endl;
+      logger::fatal("finalizer: Data finalize called for already freed object");
       return;
     }
     data->set_freed();
@@ -155,8 +156,7 @@ namespace rubinius {
     }
 
     if(data->freed_p()) {
-      // TODO: Fix the issue of finalizer ordering.
-      // std::cerr << "Data::Info::mark called for already freed object" << std::endl;
+      logger::fatal("finalizer: Data mark called for already freed object");
       return;
     }
 
