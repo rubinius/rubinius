@@ -61,9 +61,16 @@ describe "ObjectSpace.define_finalizer" do
 
   # see [ruby-core:24095]
   with_feature :fork do
-    it "calls finalizer on process termination" do
+    before :each do
       @fname = tmp("finalizer_test.txt")
       @contents = "finalized"
+    end
+
+    after :each do
+      rm_r @fname
+    end
+
+    it "calls finalizer on process termination" do
       if Kernel::fork then
         loop { break if File.exists?(@fname) }
         IO.read(@fname).should == @contents
@@ -78,8 +85,6 @@ describe "ObjectSpace.define_finalizer" do
     end
 
     it "calls finalizer at exit even if it is self-referencing" do
-      @fname = tmp("finalizer_test.txt")
-      @contents = "finalized"
       if Kernel::fork then
         loop { break if File.exists?(@fname) }
         IO.read(@fname).should == @contents
