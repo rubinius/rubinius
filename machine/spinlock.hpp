@@ -14,13 +14,13 @@ namespace rubinius {
       }
 
       void lock() {
-        while(flag.test_and_set(std::memory_order_acquire)) {
+        while(flag.test_and_set(std::memory_order_seq_cst)) {
           ; // spin
         }
       }
 
       void unlock() {
-        flag.clear(std::memory_order_release);
+        flag.clear(std::memory_order_seq_cst);
       }
     };
   }
