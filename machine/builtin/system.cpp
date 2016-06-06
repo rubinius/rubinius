@@ -393,10 +393,10 @@ namespace rubinius {
 
     int pid = ::fork();
 
-    logger::reset_lock();
     state->vm()->thread_nexus()->unlock();
 
     if(pid == 0) {
+      logger::reset_lock();
       state->vm()->after_fork_child(state);
     } else if(pid > 0) {
       state->shared().machine_threads()->after_fork_exec_parent(state);
@@ -837,7 +837,6 @@ namespace rubinius {
 
     int pid = ::fork();
 
-    logger::reset_lock();
     state->vm()->thread_nexus()->unlock();
 
     if(pid > 0) {
@@ -855,6 +854,8 @@ namespace rubinius {
       }
     } else if(pid == 0) {
       // We're in the child...
+      logger::reset_lock();
+
       state->vm()->after_fork_child(state);
 
       state->vm()->thread->init_lock();
