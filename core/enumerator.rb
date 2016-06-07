@@ -449,7 +449,7 @@ module Enumerable
 
     if Rubinius::Fiber::ENABLED
       class FiberGenerator
-        STACK_SIZE = 163_840
+        STACK_SIZE = 1_048_576
 
         attr_reader :result
 
