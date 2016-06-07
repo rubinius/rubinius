@@ -513,7 +513,7 @@ namespace rubinius {
     if(size != 0) {
       {
         UnmanagedPhase unmanaged(state);
-        int status, options = WNOHANG;
+        int status, options = 0;
 
         waitpid(pid, &status, options);
       }
@@ -633,7 +633,7 @@ namespace rubinius {
     if(size != 0) {
       {
         UnmanagedPhase unmanaged(state);
-        int status, options = WNOHANG;
+        int status, options = 0;
 
         waitpid(pid, &status, options);
       }
