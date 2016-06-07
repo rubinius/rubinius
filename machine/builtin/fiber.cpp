@@ -82,9 +82,11 @@ namespace rubinius {
     fib->dead(cTrue);
     fib->set_call_frame(state, 0);
 
-    logger::write("fiber: exit: %s, %d, %fs",
-        fib->thread_name()->c_str(state),
-        fib->fiber_id()->to_native(), fib->run_time());
+    if(state->shared().config.machine_fiber_log_lifetime.value) {
+      logger::write("fiber: exit: %s, %d, %fs",
+          fib->thread_name()->c_str(state),
+          fib->fiber_id()->to_native(), fib->run_time());
+    }
 
     Fiber* dest = fib->prev();
 
@@ -130,20 +132,22 @@ namespace rubinius {
       fib->stack_size(state, size);
     }
 
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      std::ostringstream source;
+    if(state->shared().config.machine_fiber_log_lifetime.value) {
+      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        std::ostringstream source;
 
-      source << call_frame->file(state)->cpp_str(state).c_str()
-        << ":" << call_frame->line(state);
+        source << call_frame->file(state)->cpp_str(state).c_str()
+          << ":" << call_frame->line(state);
 
-      logger::write("fiber: new: %s, %d, %s",
-          fib->thread_name()->c_str(state),
-          fib->fiber_id()->to_native(), source.str().c_str());
+        logger::write("fiber: new: %s, %d, %s",
+            fib->thread_name()->c_str(state),
+            fib->fiber_id()->to_native(), source.str().c_str());
 
-      fib->source(state, String::create(state, source.str().c_str()));
-    } else {
-      logger::write("fiber: new: %s, %d",
-          fib->thread_name()->c_str(state), fib->fiber_id()->to_native());
+        fib->source(state, String::create(state, source.str().c_str()));
+      } else {
+        logger::write("fiber: new: %s, %d",
+            fib->thread_name()->c_str(state), fib->fiber_id()->to_native());
+      }
     }
 
     state->vm()->metrics().system.fibers_created++;
@@ -318,7 +322,10 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef RBX_FIBER_ENABLED
-    logger::write("finalizer: fiber: %ld", (intptr_t)fib);
+    if(state->shared().config.machine_fiber_log_finalizer.value) {
+      logger::write("fiber: finalizer: %s, %d",
+          fib->thread_name()->c_str(state), fib->fiber_id()->to_native());
+    }
 
     if(!fib->data()) return;
     fib->data()->orphan(state);
