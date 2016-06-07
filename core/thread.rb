@@ -8,6 +8,7 @@ class Thread
   attr_reader :pid
   attr_reader :exception
   attr_reader :stack_size
+  attr_reader :source
 
   def self.new(*args, **kw, &block)
     stack_size = Rubinius::Type.try_convert kw[:stack_size], Fixnum, :to_int
@@ -132,7 +133,10 @@ class Thread
     stat = status()
     stat = "dead" unless stat
 
-    "#<#{self.class}:0x#{object_id.to_s(16)} id=#{@thread_id} #{stat}>"
+    str = "#<#{self.class}:0x#{object_id.to_s(16)} id=#{@thread_id} pid=#{@pid}"
+    str << " source=#{@source}" if @source
+    str << " status=#{stat || "dead"}"
+    str << ">"
   end
 
   alias_method :to_s, :inspect
