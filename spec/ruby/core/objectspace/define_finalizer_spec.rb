@@ -63,32 +63,38 @@ describe "ObjectSpace.define_finalizer" do
   with_feature :fork do
     it "calls finalizer on process termination" do
       rd, wr = IO.pipe
-      if Kernel::fork then
-        wr.close
-        rd.read.should == "finalized"
-        rd.close
-      else
+
+      pid = Kernel::fork do
         rd.close
         handler = ObjectSpaceFixtures.scoped(wr)
         obj = "Test"
         ObjectSpace.define_finalizer(obj, handler)
         exit 0
       end
+
+      wr.close
+      Process.waitpid pid
+
+      rd.read.should == "finalized"
+      rd.close
     end
 
     it "calls finalizer at exit even if it is self-referencing" do
       rd, wr = IO.pipe
-      if Kernel::fork then
-        wr.close
-        rd.read.should == "finalized"
-        rd.close
-      else
+
+      pid = Kernel::fork do
         rd.close
         obj = "Test"
         handler = Proc.new { wr.write "finalized"; wr.close }
         ObjectSpace.define_finalizer(obj, handler)
         exit 0
       end
+
+      wr.close
+      Process.waitpid pid
+
+      rd.read.should == "finalized"
+      rd.close
     end
 
     # These specs are defined under the fork specs because there is no
@@ -98,16 +104,7 @@ describe "ObjectSpace.define_finalizer" do
       rd1, wr1 = IO.pipe
       rd2, wr2 = IO.pipe
 
-      if Kernel::fork then
-        wr1.close
-        wr2.close
-
-        rd1.read.should == "finalized1"
-        rd2.read.should == "finalized2"
-
-        rd1.close
-        rd2.close
-      else
+      pid = Kernel::fork do
         rd1.close
         rd2.close
         obj = mock("ObjectSpace.define_finalizer multiple")
@@ -117,6 +114,16 @@ describe "ObjectSpace.define_finalizer" do
 
         exit 0
       end
+
+      wr1.close
+      wr2.close
+      Process.waitpid pid
+
+      rd1.read.should == "finalized1"
+      rd2.read.should == "finalized2"
+
+      rd1.close
+      rd2.close
     end
   end
 end

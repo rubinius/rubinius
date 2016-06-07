@@ -10,6 +10,7 @@ describe "Process.setpgrp and Process.getpgrp" do
       # and another for the parent to let the child know that it's ok to die.
       read1, write1 = IO.pipe
       read2, write2 = IO.pipe
+
       pid = Process.fork do
         read1.close
         write2.close
@@ -20,8 +21,11 @@ describe "Process.setpgrp and Process.getpgrp" do
         read2.close
         Process.exit!
       end
+
+
       write1.close
       read2.close
+
       pgid = read1.read # wait for child to change process groups
       read1.close
 
@@ -29,6 +33,8 @@ describe "Process.setpgrp and Process.getpgrp" do
 
       write2 << "!"
       write2.close
+
+      Process.waitpid pid
     end
 
   end
