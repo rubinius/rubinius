@@ -318,9 +318,6 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef RBX_FIBER_ENABLED
-    // Debugging Travis CI run.
-    return;
-
     logger::write("finalizer: fiber: %ld", (intptr_t)fib);
 
     if(!fib->data()) return;
