@@ -8,6 +8,12 @@
 #include "builtin/exception.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
+#include "builtin/string.hpp"
+
+#include "instruments/timing.hpp"
+
+#include <stdint.h>
+#include <atomic>
 
 namespace rubinius {
   class LookupTable;
@@ -15,6 +21,8 @@ namespace rubinius {
   class Fiber : public Object {
   public:
     const static object_type type = FiberType;
+
+    static std::atomic<uint32_t> fiber_ids_;
 
     enum Status {
       eNotStarted, eSleeping, eRunning, eDead
@@ -27,11 +35,15 @@ namespace rubinius {
     attr_accessor(locals, LookupTable);
     attr_accessor(dead, Object);
     attr_accessor(stack_size, Fixnum);
+    attr_accessor(thread_name, String);
+    attr_accessor(fiber_id, Fixnum);
+    attr_accessor(source, String);
 
   private:
     attr_field(status, Status);
     attr_field(root, bool);
     attr_field(data, FiberData*);
+    attr_field(start_time, uint64_t);
 
   public:
     bool root_p() const {
@@ -84,14 +96,20 @@ namespace rubinius {
       obj->locals(nil<LookupTable>());
       obj->dead(nil<Object>());
       obj->stack_size(Fixnum::from(state->shared().config.machine_fiber_stack_size.value));
+      obj->thread_name(String::create(state, state->vm()->name().c_str()));
+      obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
+      obj->source(nil<String>());
       obj->status(eNotStarted);
       obj->root(false);
       obj->data(NULL);
+      obj->start_time(get_current_time());
     }
 
     // Rubinius.primitive :fiber_new
     static Fiber* create(STATE, Object* self, Object* stack_size, Object* callable);
     static void start_on_stack();
+
+    double run_time();
 
     // Rubinius.primitive :fiber_s_current
     static Fiber* current(STATE);
