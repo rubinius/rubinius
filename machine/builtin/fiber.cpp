@@ -12,17 +12,27 @@
 
 #include "memory/gc.hpp"
 
+#include <ostream>
+#include <string>
+
 namespace rubinius {
+  std::atomic<uint32_t> Fiber::fiber_ids_;
 
   void Fiber::bootstrap(STATE) {
     GO(fiber).set(state->memory()->new_class<Class, Fiber>(
           state, G(rubinius), "Fiber"));
+
+    fiber_ids_.store(0);
 
 #ifdef RBX_FIBER_ENABLED
     G(fiber)->set_const(state, "ENABLED", cTrue);
 #else
     G(fiber)->set_const(state, "ENABLED", cFalse);
 #endif
+  }
+
+  double Fiber::run_time() {
+    return timer::time_elapsed_seconds(start_time());
   }
 
   Fiber* Fiber::current(STATE) {
@@ -72,6 +82,10 @@ namespace rubinius {
     fib->dead(cTrue);
     fib->set_call_frame(state, 0);
 
+    logger::write("fiber: exit: %s, %d, %fs",
+        fib->thread_name()->c_str(state),
+        fib->fiber_id()->to_native(), fib->run_time());
+
     Fiber* dest = fib->prev();
 
     // If this fiber has already been cleaned up, just ignore this
@@ -114,6 +128,22 @@ namespace rubinius {
     if(Fixnum* size = try_as<Fixnum>(stack_size)) {
       state->vm()->validate_stack_size(state, size->to_native());
       fib->stack_size(state, size);
+    }
+
+    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      std::ostringstream source;
+
+      source << call_frame->file(state)->cpp_str(state).c_str()
+        << ":" << call_frame->line(state);
+
+      logger::write("fiber: new: %s, %d, %s",
+          fib->thread_name()->c_str(state),
+          fib->fiber_id()->to_native(), source.str().c_str());
+
+      fib->source(state, String::create(state, source.str().c_str()));
+    } else {
+      logger::write("fiber: new: %s, %d",
+          fib->thread_name()->c_str(state), fib->fiber_id()->to_native());
     }
 
     state->vm()->metrics().system.fibers_created++;
@@ -288,12 +318,9 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef RBX_FIBER_ENABLED
-    if(!fib->data()) {
-      logger::fatal("finalizer: Fiber finalize called on instance with NULL data");
-      return;
-    }
+    logger::write("finalizer: fiber: %ld", (intptr_t)fib);
 
-    logger::fatal("finalizer: Fiber finalize");
+    if(!fib->data()) return;
     fib->data()->orphan(state);
 
     delete fib->data();

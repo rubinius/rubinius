@@ -29,6 +29,9 @@
 
 #include "missing/gettid.h"
 
+#include <ostream>
+#include <string>
+
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
  * defines pthread_t to be a structure not a pointer.
@@ -152,12 +155,19 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    CallFrame* call_frame = state->vm()->get_ruby_frame(1);
+    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      std::ostringstream source;
 
-    logger::write("new thread: %s, %s:%d",
-        thread->vm()->name().c_str(),
-        call_frame->file(state)->cpp_str(state).c_str(),
-        call_frame->line(state));
+      source << call_frame->file(state)->cpp_str(state).c_str()
+        << ":" << call_frame->line(state);
+
+      logger::write("thread: new: %s, %s",
+          thread->vm()->name().c_str(), source.str().c_str());
+
+      thread->source(state, String::create(state, source.str().c_str()));
+    } else {
+      logger::write("thread: new: %s", thread->vm()->name().c_str());
+    }
 
     if(!thread->send(state, state->symbol("initialize"), args, block, true)) {
       thread->vm()->set_zombie(state);
@@ -178,12 +188,19 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    CallFrame* call_frame = state->vm()->get_ruby_frame(1);
+    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      std::ostringstream source;
 
-    logger::write("start thread: %s, %s:%d",
-        thread->vm()->name().c_str(),
-        call_frame->file(state)->cpp_str(state).c_str(),
-        call_frame->line(state));
+      source << call_frame->file(state)->cpp_str(state).c_str()
+        << ":" << call_frame->line(state);
+
+      logger::write("thread: start: %s, %s",
+          thread->vm()->name().c_str(), source.str().c_str());
+
+      thread->source(state, String::create(state, source.str().c_str()));
+    } else {
+      logger::write("thread: start: %s", thread->vm()->name().c_str());
+    }
 
     if(!thread->send(state, state->symbol("__thread_initialize__"), args, block, true)) {
       thread->vm()->set_zombie(state);
@@ -380,7 +397,7 @@ namespace rubinius {
 
     vm->thread->pid(state, Fixnum::from(gettid()));
 
-    logger::write("start thread: %s, %d, %#x",
+    logger::write("thread: run: %s, %d, %#x",
         vm->name().c_str(), vm->thread->pid()->to_native(),
         (unsigned int)thread_debug_self());
 
@@ -410,7 +427,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    logger::write("exit thread: %s %fs", vm->name().c_str(), vm->run_time());
+    logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());
 
     vm->unmanaged_phase();
 

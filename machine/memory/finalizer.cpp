@@ -175,6 +175,7 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_) {
+        std::lock_guard<std::mutex> guard(synchronization_->list_mutex());
         synchronization_->list_condition().notify_one();
       }
     }
@@ -336,6 +337,7 @@ namespace rubinius {
         fo->mark(gc);
       }
 
+      std::lock_guard<std::mutex> guard(synchronization_->list_mutex());
       synchronization_->list_condition().notify_one();
     }
   }

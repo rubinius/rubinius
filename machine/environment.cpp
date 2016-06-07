@@ -532,7 +532,7 @@ namespace rubinius {
   void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-    logger::write("exit process: %s %d %fs",
+    logger::write("process: exit: %s %d %fs",
         shared->pid.c_str(), exit_code, shared->run_time());
 
     if(Memory* om = state->memory()) {
@@ -568,12 +568,12 @@ namespace rubinius {
   void Environment::load_core(STATE, std::string root) {
     try {
       if(CodeDB::valid_database_p(state, config.codedb_core_path.value)) {
-        logger::write("loading CodeDB: %s", config.codedb_core_path.value.c_str());
+        logger::write("codedb: loading: %s", config.codedb_core_path.value.c_str());
         CodeDB::open(state, config.codedb_core_path.value.c_str());
       } else {
         std::string core = root + "/core";
 
-        logger::write("loading CodeDB: %s", core.c_str());
+        logger::write("codedb: loading: %s", core.c_str());
         CodeDB::open(state, core.c_str());
       }
     } catch(RubyException& exc) {

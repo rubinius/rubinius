@@ -1,6 +1,9 @@
 module Rubinius
   class Fiber
     attr_reader :stack_size
+    attr_reader :thread_name
+    attr_reader :fiber_id
+    attr_reader :source
 
     def self.new(**kw, &block)
       if block.nil?
@@ -34,6 +37,12 @@ module Rubinius
 
     def alive?
       !@dead
+    end
+
+    def inspect
+      str = "#<#{self.class}:0x#{object_id.to_s(16)} thread_name=#{@thread_name} fiber_id=#{@fiber_id} status=#{alive? ? "alive" : "dead"}"
+      str << " source=#{@source}" if @source
+      str << ">"
     end
   end
 end

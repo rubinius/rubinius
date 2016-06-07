@@ -42,6 +42,7 @@ namespace rubinius {
     attr_accessor(pid, Fixnum);
     attr_accessor(initialized, Object);
     attr_accessor(stack_size, Fixnum);
+    attr_accessor(source, String);
 
   private:
     utilities::thread::SpinLock init_lock_;
@@ -76,6 +77,7 @@ namespace rubinius {
       obj->pid(Fixnum::from(0));
       obj->initialized(cFalse);
       obj->stack_size(Fixnum::from(state->shared().config.machine_thread_stack_size.value));
+      obj->source(nil<String>());
 
       obj->init_lock_.init();
       obj->join_lock_.init();
