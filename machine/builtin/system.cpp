@@ -402,8 +402,6 @@ namespace rubinius {
       state->shared().machine_threads()->after_fork_exec_parent(state);
     }
 
-    state->vm()->thread_nexus()->fork_mutex().unlock();
-
     return pid;
   }
 
