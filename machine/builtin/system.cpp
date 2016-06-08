@@ -484,16 +484,18 @@ namespace rubinius {
 
     close(errors[1]);
 
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      logger::write("process: spawn: %d: %s, %s, %s:%d",
-          pid, exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-    } else {
-      logger::write("process: spawn: %d: %s, %s",
-          pid, exe.command(),
-          state->vm()->name().c_str());
+    if(state->shared().config.system_log_lifetime.value) {
+      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        logger::write("process: spawn: %d: %s, %s, %s:%d",
+            pid, exe.command(),
+            state->vm()->name().c_str(),
+            call_frame->file(state)->cpp_str(state).c_str(),
+            call_frame->line(state));
+      } else {
+        logger::write("process: spawn: %d: %s, %s",
+            pid, exe.command(),
+            state->vm()->name().c_str());
+      }
     }
 
     int error_no = 0;
@@ -604,16 +606,18 @@ namespace rubinius {
     close(errors[1]);
     close(output[1]);
 
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      logger::write("process: backtick: %d: %s, %s, %s:%d",
-          pid, exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-    } else {
-      logger::write("process: backtick: %d: %s, %s",
-          pid, exe.command(),
-          state->vm()->name().c_str());
+    if(state->shared().config.system_log_lifetime.value) {
+      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        logger::write("process: backtick: %d: %s, %s, %s:%d",
+            pid, exe.command(),
+            state->vm()->name().c_str(),
+            call_frame->file(state)->cpp_str(state).c_str(),
+            call_frame->line(state));
+      } else {
+        logger::write("process: backtick: %d: %s, %s",
+            pid, exe.command(),
+            state->vm()->name().c_str());
+      }
     }
 
     int error_no = 0;
@@ -691,14 +695,16 @@ namespace rubinius {
      */
     ExecCommand exe(state, path, args);
 
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      logger::write("process: exec: %s, %s, %s:%d", exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-    } else {
-      logger::write("process: exec: %s, %s", exe.command(),
-          state->vm()->name().c_str());
+    if(state->shared().config.system_log_lifetime.value) {
+      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        logger::write("process: exec: %s, %s, %s:%d", exe.command(),
+            state->vm()->name().c_str(),
+            call_frame->file(state)->cpp_str(state).c_str(),
+            call_frame->line(state));
+      } else {
+        logger::write("process: exec: %s, %s", exe.command(),
+            state->vm()->name().c_str());
+      }
     }
 
     state->shared().machine_threads()->before_exec(state);
@@ -847,14 +853,16 @@ namespace rubinius {
       // We're in the parent...
       state->shared().machine_threads()->after_fork_parent(state);
 
-      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-        logger::write("process: fork: child: %d, %s, %s:%d", pid,
-            state->vm()->name().c_str(),
-            call_frame->file(state)->cpp_str(state).c_str(),
-            call_frame->line(state));
-      } else {
-        logger::write("process: fork: child: %d, %s", pid,
-            state->vm()->name().c_str());
+      if(state->shared().config.system_log_lifetime.value) {
+        if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+          logger::write("process: fork: child: %d, %s, %s:%d", pid,
+              state->vm()->name().c_str(),
+              call_frame->file(state)->cpp_str(state).c_str(),
+              call_frame->line(state));
+        } else {
+          logger::write("process: fork: child: %d, %s", pid,
+              state->vm()->name().c_str());
+        }
       }
     } else if(pid == 0) {
       // We're in the child...
