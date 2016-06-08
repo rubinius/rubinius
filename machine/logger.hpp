@@ -45,11 +45,15 @@ namespace rubinius {
 
     class Logger {
       rubinius::locks::spinlock_mutex lock_;
+
 #define LOGGER_TIME_SIZE    16
 
       char formatted_time_[LOGGER_TIME_SIZE];
 
     public:
+      Logger()
+        : lock_()
+      { }
 
       virtual ~Logger() { }
 
