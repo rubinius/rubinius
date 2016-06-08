@@ -381,12 +381,12 @@ namespace rubinius {
 
   static int fork_exec(STATE, int errors_fd) {
     state->vm()->thread_nexus()->waiting_phase(state->vm());
-
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
-    state->vm()->thread_nexus()->lock(state->vm());
 
     state->shared().machine_threads()->before_fork_exec(state);
     state->memory()->set_interrupt();
+
+    state->vm()->thread_nexus()->lock(state->vm());
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
@@ -396,9 +396,10 @@ namespace rubinius {
     state->vm()->thread_nexus()->unlock();
 
     if(pid == 0) {
-      logger::reset_lock();
+      // We're in the child...
       state->vm()->after_fork_child(state);
     } else if(pid > 0) {
+      // We're in the parent...
       state->shared().machine_threads()->after_fork_exec_parent(state);
     }
 
@@ -682,6 +683,9 @@ namespace rubinius {
   }
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
+    state->vm()->thread_nexus()->waiting_phase(state->vm());
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->exec_mutex());
+
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
      */
@@ -697,10 +701,9 @@ namespace rubinius {
           state->vm()->name().c_str());
     }
 
-    // From this point, we are serialized.
-    utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
-
     state->shared().machine_threads()->before_exec(state);
+
+    state->vm()->thread_nexus()->lock(state->vm());
 
     void* old_handlers[NSIG];
 
@@ -741,10 +744,13 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
+    state->vm()->thread_nexus()->unlock();
+
     state->shared().machine_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::raise_errno_error(state, "execvp(2) failed", erno);
+
     return NULL;
   }
 
@@ -826,12 +832,12 @@ namespace rubinius {
     return force_as<Fixnum>(Primitives::failure());
 #else
     state->vm()->thread_nexus()->waiting_phase(state->vm());
-
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
-    state->vm()->thread_nexus()->lock(state->vm());
 
     state->shared().machine_threads()->before_fork(state);
     state->memory()->set_interrupt();
+
+    state->vm()->thread_nexus()->lock(state->vm());
 
     int pid = ::fork();
 
@@ -852,8 +858,6 @@ namespace rubinius {
       }
     } else if(pid == 0) {
       // We're in the child...
-      logger::reset_lock();
-
       state->vm()->after_fork_child(state);
 
       state->vm()->thread->init_lock();

@@ -28,6 +28,7 @@ namespace rubinius {
   class ThreadNexus {
     std::atomic<bool> stop_;
     std::mutex fork_mutex_;
+    std::mutex exec_mutex_;
     std::mutex threads_mutex_;
     std::mutex wait_mutex_;
     std::condition_variable wait_condition_;
@@ -53,6 +54,7 @@ namespace rubinius {
     ThreadNexus()
       : stop_(false)
       , fork_mutex_()
+      , exec_mutex_()
       , threads_mutex_()
       , wait_mutex_()
       , wait_condition_()
@@ -67,6 +69,10 @@ namespace rubinius {
 
     std::mutex& fork_mutex() {
       return fork_mutex_;
+    }
+
+    std::mutex& exec_mutex() {
+      return exec_mutex_;
     }
 
     ThreadList* threads() {

@@ -2,6 +2,7 @@
 #define RBX_LOGGER_HPP
 
 #include "defines.hpp"
+#include "spinlock.hpp"
 
 #include <string>
 #include <stdarg.h>
@@ -40,12 +41,10 @@ namespace rubinius {
     void info(const char* message, va_list args);
     void debug(const char* message, va_list args);
 
-    void set_label();
     void set_loglevel(logger_level level);
 
-    void reset_lock();
-
     class Logger {
+      rubinius::locks::spinlock_mutex lock_;
 #define LOGGER_TIME_SIZE    16
 
       char formatted_time_[LOGGER_TIME_SIZE];
@@ -61,9 +60,11 @@ namespace rubinius {
       virtual void info(const char* message, int size) = 0;
       virtual void debug(const char* message, int size) = 0;
 
-      virtual void set_label() = 0;
-
       char* timestamp();
+
+      rubinius::locks::spinlock_mutex& lock() {
+        return lock_;
+      }
     };
 
     class Syslog : public Logger {
@@ -78,8 +79,6 @@ namespace rubinius {
       void warn(const char* message, int size);
       void info(const char* message, int size);
       void debug(const char* message, int size);
-
-      void set_label();
     };
 
     class ConsoleLogger : public Logger {
@@ -98,8 +97,6 @@ namespace rubinius {
       void warn(const char* message, int size);
       void info(const char* message, int size);
       void debug(const char* message, int size);
-
-      void set_label();
     };
 
     class FileLogger : public Logger {
@@ -126,8 +123,6 @@ namespace rubinius {
       void warn(const char* message, int size);
       void info(const char* message, int size);
       void debug(const char* message, int size);
-
-      void set_label();
     };
   }
 }

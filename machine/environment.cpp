@@ -202,6 +202,11 @@ namespace rubinius {
     }
   }
 
+  void Environment::restart_logging(STATE) {
+    logger::close();
+    start_logging(state);
+  }
+
   void Environment::copy_argv(int argc, char** argv) {
     argv_ = new char* [argc+1];
     argv_[argc] = 0;
@@ -526,7 +531,7 @@ namespace rubinius {
 
     set_pid();
 
-    logger::set_label();
+    restart_logging(state);
   }
 
   void Environment::halt(STATE, int exit_code) {

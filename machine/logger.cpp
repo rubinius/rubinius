@@ -2,7 +2,6 @@
 
 #include "logger.hpp"
 #include "vm.hpp"
-#include "spinlock.hpp"
 #include "thread_phase.hpp"
 
 #include <stdarg.h>
@@ -24,7 +23,6 @@ namespace rubinius {
   namespace logger {
     static Logger* logger_ = 0;
     static logger_level loglevel_ = eWarn;
-    static locks::spinlock_mutex logger_lock_;
 
     void open(logger_type type, const char* identifier, logger_level level, ...) {
       va_list varargs;
@@ -48,14 +46,6 @@ namespace rubinius {
 
     void close() {
       delete logger_;
-    }
-
-    void set_label() {
-      if(logger_) logger_->set_label();
-    }
-
-    void reset_lock() {
-      logger_lock_.unlock();
     }
 
 #define LOGGER_MSG_SIZE   1024
@@ -124,7 +114,7 @@ namespace rubinius {
 
     void write(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
 
         char buf[LOGGER_MSG_SIZE];
 
@@ -136,7 +126,7 @@ namespace rubinius {
 
     void fatal(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
 
         if(loglevel_ < eFatal) return;
 
@@ -150,7 +140,7 @@ namespace rubinius {
 
     void error(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
 
         if(loglevel_ < eError) return;
 
@@ -164,7 +154,7 @@ namespace rubinius {
 
     void warn(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
 
         if(loglevel_ < eWarn) return;
 
@@ -178,7 +168,7 @@ namespace rubinius {
 
     void info(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
 
         if(loglevel_ < eInfo) return;
 
@@ -192,7 +182,7 @@ namespace rubinius {
 
     void debug(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_lock_);
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
 
         if(loglevel_ < eDebug) return;
 
@@ -245,10 +235,6 @@ namespace rubinius {
       closelog();
     }
 
-    void Syslog::set_label() {
-      if(logger_) logger_->set_label();
-    }
-
     // Syslog doesn't give us the ability to write a message to the log
     // independent of a priority. Bummer.
     void Syslog::write(const char* message, int size) {
@@ -280,13 +266,8 @@ namespace rubinius {
       : Logger()
       , identifier_(identifier)
     {
-      set_label();
-    }
-
-    void ConsoleLogger::set_label() {
       std::ostringstream label;
       label << identifier_ << "[" << getpid() << "]";
-
       label_ = std::string(label.str());
     }
 
@@ -334,7 +315,9 @@ namespace rubinius {
       : Logger()
       , path_(path)
     {
-      set_label();
+      std::ostringstream label;
+      label << " [" << getpid() << "] ";
+      label_ = label.str();
 
       limit_ = va_arg(varargs, long);
       archives_ = va_arg(varargs, long);
@@ -350,13 +333,6 @@ namespace rubinius {
 
     FileLogger::~FileLogger() {
       cleanup();
-    }
-
-    void FileLogger::set_label() {
-      std::ostringstream label;
-      label << " [" << getpid() << "] ";
-
-      label_ = label.str();
     }
 
     void FileLogger::cleanup() {
