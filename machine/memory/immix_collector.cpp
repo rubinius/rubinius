@@ -310,12 +310,17 @@ namespace memory {
     // objects through weakrefs.
     clean_weakrefs();
 
-    // Marking objects to be Finalized can cause more things to continue to
-    // live, so we must check the mark_stack again.
-    do {
-      walk_finalizers();
-      scan_fibers(data, true);
-    } while(process_mark_stack());
+    scan_fibers(data, true);
+    process_mark_stack();
+
+    if(FinalizerThread* finalizer = memory_->finalizer()) {
+      std::lock_guard<std::mutex> guard(finalizer->list_mutex());
+
+      finalizer->gc_scan(this, memory_);
+      process_mark_stack();
+
+      finalizer->list_condition().notify_one();
+    }
 
     // Remove unreachable locked objects still in the list
     {
@@ -387,12 +392,6 @@ namespace memory {
 
   MarkStack& ImmixGC::mark_stack() {
     return gc_.mark_stack();
-  }
-
-  void ImmixGC::walk_finalizers() {
-    if(FinalizerThread* f = memory_->finalizer()) {
-      f->gc_scan(this, memory_);
-    }
   }
 }
 }

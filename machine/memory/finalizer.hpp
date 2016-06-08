@@ -119,6 +119,14 @@ namespace rubinius {
       FinalizerThread(STATE);
       virtual ~FinalizerThread();
 
+      std::mutex& list_mutex() {
+        return synchronization_->list_mutex();
+      }
+
+      std::condition_variable& list_condition() {
+        return synchronization_->list_condition();
+      }
+
       void finish(STATE);
 
       void native_finalizer(STATE, Object* obj, FinalizerFunction func);
