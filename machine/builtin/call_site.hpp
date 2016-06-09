@@ -7,6 +7,7 @@
 #include "global_cache.hpp"
 #include "lookup_data.hpp"
 #include "object_utils.hpp"
+#include "spinlock.hpp"
 #include "vm.hpp"
 
 #include "builtin/integer.hpp"
@@ -41,6 +42,8 @@ namespace rubinius {
     attr_field(cache_miss, Executor);
 
     attr_field(caches, InlineCaches*);
+
+    locks::spinlock_mutex cache_mutex_;
 
   public:
     static int max_caches;
@@ -169,6 +172,7 @@ namespace rubinius {
       obj->execute(default_execute);
       obj->cache_miss(default_execute);
       obj->caches(NULL);
+      obj->cache_mutex_.unlock();
     }
 
     void finalize(STATE) {
@@ -292,6 +296,8 @@ namespace rubinius {
       // 0. Ignore method_missing for now
       if(dispatch.name == G(sym_method_missing)) return;
 
+      if(cache_mutex_.try_lock()) return;
+
       ClassData class_data = klass->class_data();
 
       // 1. Attempt to update a cache.
@@ -301,10 +307,10 @@ namespace rubinius {
         // We know that nothing matched the cache, so we only need this test
         if(cache->receiver_data().class_id() == class_data.class_id()) {
           cache->update(dispatch, class_data);
-          atomic::memory_barrier();
 
           state->vm()->metrics().machine.inline_cache_updated++;
 
+          cache_mutex_.unlock();
           return;
         }
       }
@@ -315,10 +321,10 @@ namespace rubinius {
 
         if(cache->inefficient_p()) {
           cache->update(klass, dispatch);
-          atomic::memory_barrier();
 
           state->vm()->metrics().machine.inline_cache_replaced++;
 
+          cache_mutex_.unlock();
           return;
         }
       }
@@ -332,6 +338,8 @@ namespace rubinius {
           inline_caches = InlineCaches::allocate(1);
           execute(invoke_cached);
         } else {
+        cache_mutex_.unlock();
+        return;
           inline_caches = InlineCaches::allocate(CallSite::max_caches);
           state->vm()->metrics().machine.call_site_polymorphic++;
         }
@@ -345,23 +353,13 @@ namespace rubinius {
           inline_caches->cache[i] = caches()->cache[i - 1];
         }
 
-        /* We CAS here because under concurrency, we don't know who may have
-         * beat us here and whether those caches are in use. We know that our
-         * caches are not in use, so if we fail to CAS, we simply discard our
-         * work and eventually the executable will cache again if it is used.
-         */
-        InlineCaches* previous_caches = caches();
-        InlineCaches** updated_caches = &_caches_;
-        if(atomic::compare_and_swap(reinterpret_cast<void**>(updated_caches),
-            previous_caches, inline_caches))
-        {
-          if(previous_caches) delete previous_caches;
-        } else {
-          delete inline_caches;
-        }
+        caches(inline_caches);
 
+        cache_mutex_.unlock();
         return;
       }
+
+      cache_mutex_.unlock();
 
       // 4. Check if we should stop trying to cache.
       if(invokes() > CallSite::max_caches) {
@@ -376,6 +374,8 @@ namespace rubinius {
 
     Object* cache_miss(STATE, Arguments& args) {
       Object* value = _cache_miss_(state, this, args);
+
+      if(cache_mutex_.try_lock()) return value;
 
       // Check if all caching should be disabled.
       if(invokes() > CallSite::max_caches) {
@@ -394,17 +394,15 @@ namespace rubinius {
             execute(CallSite::dispatch);
             cache_miss(CallSite::dispatch);
 
-            delete caches();
+            free(caches());
             caches(NULL);
 
-            atomic::memory_barrier();
-
             state->vm()->metrics().machine.inline_cache_disabled++;
-
-            return value;
           }
         }
       }
+
+      cache_mutex_.unlock();
 
       return value;
     }
@@ -505,7 +503,9 @@ namespace rubinius {
 
     // Rubinius.primitive :call_site_reset
     CallSite* reset(STATE) {
-      if(caches()) delete caches();
+      std::lock_guard<locks::spinlock_mutex> guard(cache_mutex_);
+
+      if(caches()) free(caches());
 
       invokes(0);
       execute(default_execute);
