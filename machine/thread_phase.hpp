@@ -14,16 +14,19 @@ namespace rubinius {
    */
   class LockPhase {
     State* state_;
+    ThreadNexus::LockStatus status_;
 
   public:
     LockPhase(STATE)
       : state_(state)
     {
-      state->vm()->thread_nexus()->lock(state->vm());
+      status_ = state->vm()->thread_nexus()->lock(state->vm());
     }
 
     ~LockPhase() {
-      state_->vm()->thread_nexus()->unlock();
+      if(status_ == ThreadNexus::eLocked) {
+        state_->vm()->thread_nexus()->unlock();
+      }
     }
   };
 

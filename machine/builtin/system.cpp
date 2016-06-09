@@ -386,14 +386,16 @@ namespace rubinius {
     state->shared().machine_threads()->before_fork_exec(state);
     state->memory()->set_interrupt();
 
-    state->vm()->thread_nexus()->lock(state->vm());
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
     int pid = ::fork();
 
-    state->vm()->thread_nexus()->unlock();
+    if(status == ThreadNexus::eLocked) {
+      state->vm()->thread_nexus()->unlock();
+    }
 
     if(pid == 0) {
       // We're in the child...
@@ -721,7 +723,7 @@ namespace rubinius {
 
     state->shared().machine_threads()->before_exec(state);
 
-    state->vm()->thread_nexus()->lock(state->vm());
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
 
     void* old_handlers[NSIG];
 
@@ -762,7 +764,9 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
-    state->vm()->thread_nexus()->unlock();
+    if(status == ThreadNexus::eLocked) {
+      state->vm()->thread_nexus()->unlock();
+    }
 
     state->shared().machine_threads()->after_exec(state);
 
@@ -855,11 +859,13 @@ namespace rubinius {
     state->shared().machine_threads()->before_fork(state);
     state->memory()->set_interrupt();
 
-    state->vm()->thread_nexus()->lock(state->vm());
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
 
     int pid = ::fork();
 
-    state->vm()->thread_nexus()->unlock();
+    if(status == ThreadNexus::eLocked) {
+      state->vm()->thread_nexus()->unlock();
+    }
 
     if(pid > 0) {
       // We're in the parent...
