@@ -175,7 +175,7 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_) {
-        std::lock_guard<std::mutex> guard(list_mutex());
+        LockWaiting<std::mutex> guard(state, list_mutex());
         list_condition().notify_one();
       }
     }
@@ -253,7 +253,7 @@ namespace rubinius {
       if(finishing_) return;
 
       {
-        std::lock_guard<std::mutex> guard(list_mutex());
+        LockWaiting<std::mutex> guard(state, list_mutex());
 
         for(FinalizerObjects::iterator i = live_list_.begin();
             i != live_list_.end();
@@ -300,7 +300,7 @@ namespace rubinius {
     }
 
     void FinalizerThread::add_finalizer(STATE, FinalizerObject* obj) {
-      std::lock_guard<std::mutex> guard(list_mutex());
+      LockWaiting<std::mutex> guard(state, list_mutex());
 
       live_list_.push_back(obj);
       vm()->metrics().gc.objects_queued++;
