@@ -493,7 +493,9 @@ namespace rubinius {
       close(errors[1]);
 
       if(state->shared().config.system_log_lifetime.value) {
-        if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        std::string& filter = state->shared().config.system_log_filter.value;
+
+        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: spawn: %d: %s, %s, %s:%d",
               pid, exe.command(),
               state->vm()->name().c_str(),
@@ -618,7 +620,9 @@ namespace rubinius {
       close(output[1]);
 
       if(state->shared().config.system_log_lifetime.value) {
-        if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        std::string& filter = state->shared().config.system_log_filter.value;
+
+        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: backtick: %d: %s, %s, %s:%d",
               pid, exe.command(),
               state->vm()->name().c_str(),
@@ -710,7 +714,9 @@ namespace rubinius {
     ExecCommand exe(state, path, args);
 
     if(state->shared().config.system_log_lifetime.value) {
-      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      std::string& filter = state->shared().config.system_log_filter.value;
+
+      if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         logger::write("process: exec: %s, %s, %s:%d", exe.command(),
             state->vm()->name().c_str(),
             call_frame->file(state)->cpp_str(state).c_str(),
@@ -872,7 +878,9 @@ namespace rubinius {
       state->shared().machine_threads()->after_fork_parent(state);
 
       if(state->shared().config.system_log_lifetime.value) {
-        if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+        std::string& filter = state->shared().config.system_log_filter.value;
+
+        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: fork: child: %d, %s, %s:%d", pid,
               state->vm()->name().c_str(),
               call_frame->file(state)->cpp_str(state).c_str(),

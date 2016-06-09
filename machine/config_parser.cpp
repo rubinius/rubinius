@@ -21,12 +21,11 @@ namespace rubinius {
   }
 
   static bool valid_char(char c) {
-    return isalnum(c) || c == '-' || c == '.' || c == '/';
+    return isgraph(c);
   }
 
-
   /* utility: strips trailing non-alnum chars from string */
-  static char *trim_str(char *str) {
+  static char *trim_whitespace(char *str) {
     int i;
     while(*str && !valid_char(*str)) str++;
 
@@ -77,12 +76,12 @@ namespace rubinius {
       *equals++ = 0;
     }
 
-    std::string variable = std::string(trim_str(var));
+    std::string variable = std::string(trim_whitespace(var));
 
     std::string value;
     // Just the variable name means true, as in enable
     if(equals) {
-      value = std::string(trim_str(equals));
+      value = std::string(trim_whitespace(equals));
     } else {
       value = std::string("true");
     }

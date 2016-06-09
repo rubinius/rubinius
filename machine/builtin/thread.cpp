@@ -160,7 +160,9 @@ namespace rubinius {
     }
 
     if(state->shared().config.machine_thread_log_lifetime.value) {
-      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      std::string& filter = state->shared().config.machine_thread_log_filter.value;
+
+      if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;
 
         source << call_frame->file(state)->cpp_str(state).c_str()
@@ -195,7 +197,9 @@ namespace rubinius {
     }
 
     if(state->shared().config.machine_thread_log_lifetime.value) {
-      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+      std::string& filter = state->shared().config.machine_thread_log_filter.value;
+
+      if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;
 
         source << call_frame->file(state)->cpp_str(state).c_str()
