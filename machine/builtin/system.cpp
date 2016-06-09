@@ -482,45 +482,48 @@ namespace rubinius {
       exit(1);
     }
 
-    close(errors[1]);
-
-    if(state->shared().config.system_log_lifetime.value) {
-      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-        logger::write("process: spawn: %d: %s, %s, %s:%d",
-            pid, exe.command(),
-            state->vm()->name().c_str(),
-            call_frame->file(state)->cpp_str(state).c_str(),
-            call_frame->line(state));
-      } else {
-        logger::write("process: spawn: %d: %s, %s",
-            pid, exe.command(),
-            state->vm()->name().c_str());
-      }
-    }
-
     int error_no = 0;
     ssize_t size;
 
-    while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
-      switch(errno) {
-      case EAGAIN:
-      case EINTR:
-        continue;
-      default:
-        logger::error("%s: spawn: reading error status", strerror(errno));
-        break;
-      }
-    }
-    close(errors[0]);
+    {
+      UnmanagedPhase unmanaged(state);
 
-    if(size != 0) {
-      {
-        UnmanagedPhase unmanaged(state);
+      close(errors[1]);
+
+      if(state->shared().config.system_log_lifetime.value) {
+        if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+          logger::write("process: spawn: %d: %s, %s, %s:%d",
+              pid, exe.command(),
+              state->vm()->name().c_str(),
+              call_frame->file(state)->cpp_str(state).c_str(),
+              call_frame->line(state));
+        } else {
+          logger::write("process: spawn: %d: %s, %s",
+              pid, exe.command(),
+              state->vm()->name().c_str());
+        }
+      }
+
+      while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
+        switch(errno) {
+        case EAGAIN:
+        case EINTR:
+          continue;
+        default:
+          logger::error("%s: spawn: reading error status", strerror(errno));
+          break;
+        }
+      }
+      close(errors[0]);
+
+      if(size != 0) {
         int status, options = 0;
 
         waitpid(pid, &status, options);
       }
+    }
 
+    if(size != 0) {
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
     }
@@ -603,83 +606,92 @@ namespace rubinius {
       exit(1);
     }
 
-    close(errors[1]);
-    close(output[1]);
-
-    if(state->shared().config.system_log_lifetime.value) {
-      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-        logger::write("process: backtick: %d: %s, %s, %s:%d",
-            pid, exe.command(),
-            state->vm()->name().c_str(),
-            call_frame->file(state)->cpp_str(state).c_str(),
-            call_frame->line(state));
-      } else {
-        logger::write("process: backtick: %d: %s, %s",
-            pid, exe.command(),
-            state->vm()->name().c_str());
-      }
-    }
-
     int error_no = 0;
     ssize_t size;
 
-    while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
-      switch(errno) {
-      case EAGAIN:
-      case EINTR:
-        continue;
-      default:
-        logger::error("%s: backtick: reading error status", strerror(errno));
-        break;
-      }
-    }
-    close(errors[0]);
+    {
+      UnmanagedPhase unmanaged(state);
 
-    if(size != 0) {
-      {
-        UnmanagedPhase unmanaged(state);
+      close(errors[1]);
+      close(output[1]);
+
+      if(state->shared().config.system_log_lifetime.value) {
+        if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
+          logger::write("process: backtick: %d: %s, %s, %s:%d",
+              pid, exe.command(),
+              state->vm()->name().c_str(),
+              call_frame->file(state)->cpp_str(state).c_str(),
+              call_frame->line(state));
+        } else {
+          logger::write("process: backtick: %d: %s, %s",
+              pid, exe.command(),
+              state->vm()->name().c_str());
+        }
+      }
+
+      while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
+        switch(errno) {
+        case EAGAIN:
+        case EINTR:
+          continue;
+        default:
+          logger::error("%s: backtick: reading error status", strerror(errno));
+          break;
+        }
+      }
+      close(errors[0]);
+
+      if(size != 0) {
         int status, options = 0;
 
         waitpid(pid, &status, options);
+        close(output[0]);
       }
+    }
 
-      close(output[0]);
+    if(size != 0) {
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
     }
 
     std::string buf;
-    for(;;) {
 
-      ssize_t bytes = 0;
-      char raw_buf[1024];
-      {
-        UnmanagedPhase unmanaged(state);
-        bytes = read(output[0], raw_buf, 1023);
-      }
+    {
+      UnmanagedPhase unmanaged(state);
 
-      if(bytes < 0) {
-        switch(errno) {
-          case EAGAIN:
-          case EINTR:
-            if(state->vm()->thread_interrupted_p(state)) {
+      for(;;) {
+        char raw_buf[1024];
+        ssize_t bytes = read(output[0], raw_buf, 1023);
+
+        if(bytes < 0) {
+          switch(errno) {
+            case EAGAIN:
+            case EINTR:
+              {
+                ManagedPhase managed(state);
+                if(state->vm()->thread_interrupted_p(state)) {
+                  close(output[0]);
+                  return NULL;
+                }
+              }
+              continue;
+            default:
               close(output[0]);
-              return NULL;
-            }
-            continue;
-          default:
-            close(output[0]);
-            Exception::raise_errno_error(state, "reading child data", errno, "read(2)");
+              {
+                ManagedPhase managed(state);
+                Exception::raise_errno_error(state, "reading child data", errno, "read(2)");
+              }
+          }
         }
+
+        if(bytes == 0) {
+          break;
+        }
+        buf.append(raw_buf, bytes);
       }
 
-      if(bytes == 0) {
-        break;
-      }
-      buf.append(raw_buf, bytes);
+      close(output[0]);
     }
-
-    close(output[0]);
 
     return Tuple::from(state, 2, Fixnum::from(pid),
                        String::create(state, buf.c_str(), buf.size()));
