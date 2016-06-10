@@ -65,11 +65,33 @@ Rubinius::ConfigurationVariables.define do |c|
 
       f.vm_variable "stack_size", 512 * 1024,
         "The size in bytes of the Fiber's stack"
+
+      f.section "log" do |l|
+        l.vm_variable "lifetime", true,
+          "Log events during the Fiber's lifetime"
+
+        l.vm_variable "finalizer", false,
+          "Log finalizer execution"
+
+        l.vm_variable "filter", "^core/.*$",
+          "Filter paths matching pattern when logging events"
+      end
     end
 
     m.section "thread" do |t|
       t.vm_variable "stack_size", 4 * 1024 * 1024,
         "The size in bytes of the Thread's stack"
+
+      t.section "log" do |l|
+        l.vm_variable "lifetime", true,
+          "Log events during the Thread's lifetime"
+
+        l.vm_variable "finalizer", false,
+          "Log finalizer execution"
+
+        l.vm_variable "filter", "^core/.*$",
+          "Filter paths matching pattern when logging events"
+      end
     end
 
     m.vm_variable "stack_cushion", 4096,
@@ -116,6 +138,15 @@ Rubinius::ConfigurationVariables.define do |c|
 
       l.vm_variable "level", "warn",
         "Logging level: fatal, error, warn, info, debug"
+
+      l.vm_variable "config", true,
+        "Log configuration options"
+
+      l.vm_variable "lifetime", true,
+        "Log events during the process lifetime"
+
+      l.vm_variable "filter", "^core/.*$",
+        "Filter paths matching pattern when logging events"
     end
 
     s.section "metrics" do |m|

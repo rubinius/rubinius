@@ -54,7 +54,7 @@ namespace rubinius {
 
       if(new_size == 0) {
         call_site->depth(0);
-        delete[] call_site->caches();
+        free(call_site->caches());
         call_site->caches(NULL);
 
         call_site->execute(CallSite::default_execute);

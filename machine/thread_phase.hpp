@@ -14,16 +14,19 @@ namespace rubinius {
    */
   class LockPhase {
     State* state_;
+    ThreadNexus::LockStatus status_;
 
   public:
     LockPhase(STATE)
       : state_(state)
     {
-      state->vm()->thread_nexus()->lock(state->vm());
+      status_ = state->vm()->thread_nexus()->lock(state->vm());
     }
 
     ~LockPhase() {
-      state_->vm()->thread_nexus()->unlock();
+      if(status_ == ThreadNexus::eLocked) {
+        state_->vm()->thread_nexus()->unlock();
+      }
     }
   };
 
@@ -73,26 +76,24 @@ namespace rubinius {
     }
   };
 
-  template <class T>
-  class LockWaiting : public utilities::thread::LockGuardTemplate<T> {
-    State* state_;
-    ThreadNexus::Phase phase_;
+  template <typename T>
+  class LockWaiting {
+    T& lock_;
 
   public:
     LockWaiting(STATE, T& in_lock)
-      : utilities::thread::LockGuardTemplate<T>(in_lock, false)
-      , state_(state)
+      : lock_(in_lock)
     {
-      phase_ = state_->vm()->thread_phase();
-      state_->vm()->thread_nexus()->waiting_phase(state_->vm());
+      ThreadNexus::Phase phase = state->vm()->thread_phase();
+      state->vm()->thread_nexus()->waiting_phase(state->vm());
 
-      this->lock();
+      lock_.lock();
 
-      state_->vm()->thread_nexus()->restore_phase(state_->vm(), phase_);
+      state->vm()->thread_nexus()->restore_phase(state->vm(), phase);
     }
 
     ~LockWaiting() {
-      this->unlock();
+      lock_.unlock();
     }
   };
 

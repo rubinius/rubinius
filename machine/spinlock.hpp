@@ -1,3 +1,6 @@
+#ifndef RBX_LOCKS_SPINLOCK_MUTEX_HPP
+#define RBX_LOCKS_SPINLOCK_MUTEX_HPP
+
 #include <atomic>
 
 namespace rubinius {
@@ -19,9 +22,15 @@ namespace rubinius {
         }
       }
 
+      bool try_lock() {
+        return flag.test_and_set(std::memory_order_seq_cst);
+      }
+
       void unlock() {
         flag.clear(std::memory_order_seq_cst);
       }
     };
   }
 }
+
+#endif

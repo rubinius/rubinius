@@ -38,6 +38,7 @@ namespace rubinius {
     EntryList* get_section(std::string prefix);
 
     void   update_configuration(Configuration&);
+    void parsed_options(std::string& str);
 
   private:
     bool   process_internal(std::string key, std::string val);

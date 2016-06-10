@@ -24,6 +24,7 @@
 #include "sodium/randombytes.h"
 
 #include <atomic>
+#include <string>
 #include <vector>
 #include <setjmp.h>
 #include <stdint.h>
@@ -278,6 +279,7 @@ namespace rubinius {
     CallFrame* get_variables_frame(ssize_t up=0);
     CallFrame* get_scope_frame(ssize_t up=0);
     CallFrame* get_noncore_frame(STATE);
+    CallFrame* get_filtered_frame(STATE, std::string& filter);
 
     bool scope_valid_p(VariableScope* scope);
 
@@ -436,12 +438,13 @@ namespace rubinius {
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
-      if(thread_nexus_->try_lock(this)) {
+      ThreadNexus::LockStatus status = thread_nexus_->try_lock(this);
+      if(status != ThreadNexus::eNotLocked) {
         metrics().machine.stops++;
 
         collect_maybe(state);
 
-        thread_nexus_->unlock();
+        if(status == ThreadNexus::eLocked) thread_nexus_->unlock();
       }
 
       if(profile_counter_++ >= profile_interval_) {

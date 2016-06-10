@@ -20,6 +20,8 @@ describe "Process.setpgid" do
 
       wr.write ' '
       wr.close
+
+      Process.waitpid pid
     end
   end
 end

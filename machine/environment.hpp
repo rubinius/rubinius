@@ -150,6 +150,7 @@ namespace rubinius {
     void start_finalizer(STATE);
 
     void start_logging(STATE);
+    void restart_logging(STATE);
     void stop_logging(STATE);
   };
 }

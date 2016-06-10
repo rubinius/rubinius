@@ -384,28 +384,29 @@ namespace rubinius {
 
   static int fork_exec(STATE, int errors_fd) {
     state->vm()->thread_nexus()->waiting_phase(state->vm());
-
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
-    state->vm()->thread_nexus()->lock(state->vm());
 
     state->shared().machine_threads()->before_fork_exec(state);
     state->memory()->set_interrupt();
+
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
     int pid = ::fork();
 
-    state->vm()->thread_nexus()->unlock();
-
-    if(pid == 0) {
-      logger::reset_lock();
-      state->vm()->after_fork_child(state);
-    } else if(pid > 0) {
-      state->shared().machine_threads()->after_fork_exec_parent(state);
+    if(status == ThreadNexus::eLocked) {
+      state->vm()->thread_nexus()->unlock();
     }
 
-    state->vm()->thread_nexus()->fork_mutex().unlock();
+    if(pid == 0) {
+      // We're in the child...
+      state->vm()->after_fork_child(state);
+    } else if(pid > 0) {
+      // We're in the parent...
+      state->shared().machine_threads()->after_fork_exec_parent(state);
+    }
 
     return pid;
   }
@@ -486,43 +487,50 @@ namespace rubinius {
       exit(1);
     }
 
-    close(errors[1]);
-
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      logger::write("process: spawn: %d: %s, %s, %s:%d",
-          pid, exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-    } else {
-      logger::write("process: spawn: %d: %s, %s",
-          pid, exe.command(),
-          state->vm()->name().c_str());
-    }
-
     int error_no = 0;
     ssize_t size;
 
-    while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
-      switch(errno) {
-      case EAGAIN:
-      case EINTR:
-        continue;
-      default:
-        logger::error("%s: spawn: reading error status", strerror(errno));
-        break;
-      }
-    }
-    close(errors[0]);
+    {
+      UnmanagedPhase unmanaged(state);
 
-    if(size != 0) {
-      {
-        UnmanagedPhase unmanaged(state);
-        int status, options = WNOHANG;
+      close(errors[1]);
+
+      if(state->shared().config.system_log_lifetime.value) {
+        std::string& filter = state->shared().config.system_log_filter.value;
+
+        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+          logger::write("process: spawn: %d: %s, %s, %s:%d",
+              pid, exe.command(),
+              state->vm()->name().c_str(),
+              call_frame->file(state)->cpp_str(state).c_str(),
+              call_frame->line(state));
+        } else {
+          logger::write("process: spawn: %d: %s, %s",
+              pid, exe.command(),
+              state->vm()->name().c_str());
+        }
+      }
+
+      while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
+        switch(errno) {
+        case EAGAIN:
+        case EINTR:
+          continue;
+        default:
+          logger::error("%s: spawn: reading error status", strerror(errno));
+          break;
+        }
+      }
+      close(errors[0]);
+
+      if(size != 0) {
+        int status, options = 0;
 
         waitpid(pid, &status, options);
       }
+    }
 
+    if(size != 0) {
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
     }
@@ -605,81 +613,94 @@ namespace rubinius {
       exit(1);
     }
 
-    close(errors[1]);
-    close(output[1]);
-
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      logger::write("process: backtick: %d: %s, %s, %s:%d",
-          pid, exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-    } else {
-      logger::write("process: backtick: %d: %s, %s",
-          pid, exe.command(),
-          state->vm()->name().c_str());
-    }
-
     int error_no = 0;
     ssize_t size;
 
-    while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
-      switch(errno) {
-      case EAGAIN:
-      case EINTR:
-        continue;
-      default:
-        logger::error("%s: backtick: reading error status", strerror(errno));
-        break;
-      }
-    }
-    close(errors[0]);
+    {
+      UnmanagedPhase unmanaged(state);
 
-    if(size != 0) {
-      {
-        UnmanagedPhase unmanaged(state);
-        int status, options = WNOHANG;
+      close(errors[1]);
+      close(output[1]);
+
+      if(state->shared().config.system_log_lifetime.value) {
+        std::string& filter = state->shared().config.system_log_filter.value;
+
+        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+          logger::write("process: backtick: %d: %s, %s, %s:%d",
+              pid, exe.command(),
+              state->vm()->name().c_str(),
+              call_frame->file(state)->cpp_str(state).c_str(),
+              call_frame->line(state));
+        } else {
+          logger::write("process: backtick: %d: %s, %s",
+              pid, exe.command(),
+              state->vm()->name().c_str());
+        }
+      }
+
+      while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
+        switch(errno) {
+        case EAGAIN:
+        case EINTR:
+          continue;
+        default:
+          logger::error("%s: backtick: reading error status", strerror(errno));
+          break;
+        }
+      }
+      close(errors[0]);
+
+      if(size != 0) {
+        int status, options = 0;
 
         waitpid(pid, &status, options);
+        close(output[0]);
       }
+    }
 
-      close(output[0]);
+    if(size != 0) {
       Exception::raise_errno_error(state, "execvp(2) failed", error_no);
       return NULL;
     }
 
     std::string buf;
-    for(;;) {
 
-      ssize_t bytes = 0;
-      char raw_buf[1024];
-      {
-        UnmanagedPhase unmanaged(state);
-        bytes = read(output[0], raw_buf, 1023);
-      }
+    {
+      UnmanagedPhase unmanaged(state);
 
-      if(bytes < 0) {
-        switch(errno) {
-          case EAGAIN:
-          case EINTR:
-            if(state->vm()->thread_interrupted_p(state)) {
+      for(;;) {
+        char raw_buf[1024];
+        ssize_t bytes = read(output[0], raw_buf, 1023);
+
+        if(bytes < 0) {
+          switch(errno) {
+            case EAGAIN:
+            case EINTR:
+              {
+                ManagedPhase managed(state);
+                if(state->vm()->thread_interrupted_p(state)) {
+                  close(output[0]);
+                  return NULL;
+                }
+              }
+              continue;
+            default:
               close(output[0]);
-              return NULL;
-            }
-            continue;
-          default:
-            close(output[0]);
-            Exception::raise_errno_error(state, "reading child data", errno, "read(2)");
+              {
+                ManagedPhase managed(state);
+                Exception::raise_errno_error(state, "reading child data", errno, "read(2)");
+              }
+          }
         }
+
+        if(bytes == 0) {
+          break;
+        }
+        buf.append(raw_buf, bytes);
       }
 
-      if(bytes == 0) {
-        break;
-      }
-      buf.append(raw_buf, bytes);
+      close(output[0]);
     }
-
-    close(output[0]);
 
     return Tuple::from(state, 2, Fixnum::from(pid),
                        String::create(state, buf.c_str(), buf.size()));
@@ -687,25 +708,31 @@ namespace rubinius {
   }
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
+    state->vm()->thread_nexus()->waiting_phase(state->vm());
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->exec_mutex());
+
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
      */
     ExecCommand exe(state, path, args);
 
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      logger::write("process: exec: %s, %s, %s:%d", exe.command(),
-          state->vm()->name().c_str(),
-          call_frame->file(state)->cpp_str(state).c_str(),
-          call_frame->line(state));
-    } else {
-      logger::write("process: exec: %s, %s", exe.command(),
-          state->vm()->name().c_str());
+    if(state->shared().config.system_log_lifetime.value) {
+      std::string& filter = state->shared().config.system_log_filter.value;
+
+      if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+        logger::write("process: exec: %s, %s, %s:%d", exe.command(),
+            state->vm()->name().c_str(),
+            call_frame->file(state)->cpp_str(state).c_str(),
+            call_frame->line(state));
+      } else {
+        logger::write("process: exec: %s, %s", exe.command(),
+            state->vm()->name().c_str());
+      }
     }
 
-    // From this point, we are serialized.
-    utilities::thread::SpinLock::LockGuard guard(state->shared().env()->fork_exec_lock());
-
     state->shared().machine_threads()->before_exec(state);
+
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
 
     void* old_handlers[NSIG];
 
@@ -746,10 +773,15 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
+    if(status == ThreadNexus::eLocked) {
+      state->vm()->thread_nexus()->unlock();
+    }
+
     state->shared().machine_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::raise_errno_error(state, "execvp(2) failed", erno);
+
     return NULL;
   }
 
@@ -831,34 +863,38 @@ namespace rubinius {
     return force_as<Fixnum>(Primitives::failure());
 #else
     state->vm()->thread_nexus()->waiting_phase(state->vm());
-
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
-    state->vm()->thread_nexus()->lock(state->vm());
 
     state->shared().machine_threads()->before_fork(state);
     state->memory()->set_interrupt();
 
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
+
     int pid = ::fork();
 
-    state->vm()->thread_nexus()->unlock();
+    if(status == ThreadNexus::eLocked) {
+      state->vm()->thread_nexus()->unlock();
+    }
 
     if(pid > 0) {
       // We're in the parent...
       state->shared().machine_threads()->after_fork_parent(state);
 
-      if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-        logger::write("process: fork: child: %d, %s, %s:%d", pid,
-            state->vm()->name().c_str(),
-            call_frame->file(state)->cpp_str(state).c_str(),
-            call_frame->line(state));
-      } else {
-        logger::write("process: fork: child: %d, %s", pid,
-            state->vm()->name().c_str());
+      if(state->shared().config.system_log_lifetime.value) {
+        std::string& filter = state->shared().config.system_log_filter.value;
+
+        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+          logger::write("process: fork: child: %d, %s, %s:%d", pid,
+              state->vm()->name().c_str(),
+              call_frame->file(state)->cpp_str(state).c_str(),
+              call_frame->line(state));
+        } else {
+          logger::write("process: fork: child: %d, %s", pid,
+              state->vm()->name().c_str());
+        }
       }
     } else if(pid == 0) {
       // We're in the child...
-      logger::reset_lock();
-
       state->vm()->after_fork_child(state);
 
       state->vm()->thread->init_lock();

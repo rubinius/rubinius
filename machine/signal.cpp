@@ -121,8 +121,10 @@ namespace rubinius {
   void SignalThread::start(STATE) {
     initialize(state);
 
-    state->shared().signals()->print_machine_info(logger::write);
-    state->shared().signals()->print_process_info(logger::write);
+    if(state->shared().config.system_log_lifetime.value) {
+      state->shared().signals()->print_machine_info(logger::write);
+      state->shared().signals()->print_process_info(logger::write);
+    }
 
     run(state);
   }

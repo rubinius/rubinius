@@ -106,6 +106,15 @@ namespace rubinius {
 
     start_logging(state);
     log_argv();
+
+    if(config.system_log_config.value) {
+      std::string options;
+
+      config_parser.parsed_options(options);
+      if(options.size()) {
+        logger::write("config: %s", options.c_str());
+      }
+    }
   }
 
   Environment::~Environment() {
@@ -200,6 +209,11 @@ namespace rubinius {
           config.system_log_archives.value,
           config.system_log_access.value);
     }
+  }
+
+  void Environment::restart_logging(STATE) {
+    logger::close();
+    start_logging(state);
   }
 
   void Environment::copy_argv(int argc, char** argv) {
@@ -526,14 +540,16 @@ namespace rubinius {
 
     set_pid();
 
-    logger::set_label();
+    restart_logging(state);
   }
 
   void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
-    logger::write("process: exit: %s %d %fs",
-        shared->pid.c_str(), exit_code, shared->run_time());
+    if(state->shared().config.system_log_lifetime.value) {
+      logger::write("process: exit: %s %d %fs",
+          shared->pid.c_str(), exit_code, shared->run_time());
+    }
 
     if(Memory* om = state->memory()) {
       if(memory::ImmixMarker* im = om->immix_marker()) {

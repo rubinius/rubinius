@@ -28,6 +28,7 @@ namespace rubinius {
   class ThreadNexus {
     std::atomic<bool> stop_;
     std::mutex fork_mutex_;
+    std::mutex exec_mutex_;
     std::mutex threads_mutex_;
     std::mutex wait_mutex_;
     std::condition_variable wait_condition_;
@@ -48,11 +49,18 @@ namespace rubinius {
       eWaiting    = 0x82,
     };
 
+    enum LockStatus {
+      eNotLocked  = 0x0,
+      eHeldLock   = 0x1,
+      eLocked     = 0x2,
+    };
+
     const static int cYieldingPhase = 0x80;
 
     ThreadNexus()
       : stop_(false)
       , fork_mutex_()
+      , exec_mutex_()
       , threads_mutex_()
       , wait_mutex_()
       , wait_condition_()
@@ -65,8 +73,18 @@ namespace rubinius {
       rubinius::bug("attempt to destroy ThreadNexus");
     }
 
+  private:
+    LockStatus to_lock_status(bool flag) {
+      return flag ? eHeldLock : eLocked;
+    }
+
+  public:
     std::mutex& fork_mutex() {
       return fork_mutex_;
+    }
+
+    std::mutex& exec_mutex() {
+      return exec_mutex_;
     }
 
     ThreadList* threads() {
@@ -113,7 +131,7 @@ namespace rubinius {
 
     bool waiting_lock(VM* vm);
 
-    bool try_lock(VM* vm) {
+    LockStatus try_lock(VM* vm) {
       while(stop_p()) {
         bool held = waiting_lock(vm);
 
@@ -122,7 +140,7 @@ namespace rubinius {
           if(try_checkpoint(vm)) {
             if(stop_p()) {
               unset_stop();
-              return true;
+              return to_lock_status(held);
             }
           }
         }
@@ -131,14 +149,15 @@ namespace rubinius {
         if(!held) unlock();
       }
 
-      return false;
+      return eNotLocked;
     }
 
-    void lock(VM* vm) {
-      waiting_lock(vm);
+    LockStatus lock(VM* vm) {
+      bool held = waiting_lock(vm);
       set_stop();
       checkpoint(vm);
       unset_stop();
+      return to_lock_status(held);
     }
 
     void unlock() {

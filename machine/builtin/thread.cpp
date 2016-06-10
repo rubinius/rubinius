@@ -102,6 +102,10 @@ namespace rubinius {
   }
 
   void Thread::finalize(STATE, Thread* thread) {
+    if(state->shared().config.machine_thread_log_finalizer.value) {
+      logger::write("thread: finalizer: %s", thread->vm()->name().c_str());
+    }
+
     thread->finalize_instance(state);
   }
 
@@ -155,18 +159,22 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      std::ostringstream source;
+    if(state->shared().config.machine_thread_log_lifetime.value) {
+      std::string& filter = state->shared().config.machine_thread_log_filter.value;
 
-      source << call_frame->file(state)->cpp_str(state).c_str()
-        << ":" << call_frame->line(state);
+      if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+        std::ostringstream source;
 
-      logger::write("thread: new: %s, %s",
-          thread->vm()->name().c_str(), source.str().c_str());
+        source << call_frame->file(state)->cpp_str(state).c_str()
+          << ":" << call_frame->line(state);
 
-      thread->source(state, String::create(state, source.str().c_str()));
-    } else {
-      logger::write("thread: new: %s", thread->vm()->name().c_str());
+        logger::write("thread: new: %s, %s",
+            thread->vm()->name().c_str(), source.str().c_str());
+
+        thread->source(state, String::create(state, source.str().c_str()));
+      } else {
+        logger::write("thread: new: %s", thread->vm()->name().c_str());
+      }
     }
 
     if(!thread->send(state, state->symbol("initialize"), args, block, true)) {
@@ -188,18 +196,22 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    if(CallFrame* call_frame = state->vm()->get_noncore_frame(state)) {
-      std::ostringstream source;
+    if(state->shared().config.machine_thread_log_lifetime.value) {
+      std::string& filter = state->shared().config.machine_thread_log_filter.value;
 
-      source << call_frame->file(state)->cpp_str(state).c_str()
-        << ":" << call_frame->line(state);
+      if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+        std::ostringstream source;
 
-      logger::write("thread: start: %s, %s",
-          thread->vm()->name().c_str(), source.str().c_str());
+        source << call_frame->file(state)->cpp_str(state).c_str()
+          << ":" << call_frame->line(state);
 
-      thread->source(state, String::create(state, source.str().c_str()));
-    } else {
-      logger::write("thread: start: %s", thread->vm()->name().c_str());
+        logger::write("thread: start: %s, %s",
+            thread->vm()->name().c_str(), source.str().c_str());
+
+        thread->source(state, String::create(state, source.str().c_str()));
+      } else {
+        logger::write("thread: start: %s", thread->vm()->name().c_str());
+      }
     }
 
     if(!thread->send(state, state->symbol("__thread_initialize__"), args, block, true)) {
@@ -397,9 +409,11 @@ namespace rubinius {
 
     vm->thread->pid(state, Fixnum::from(gettid()));
 
-    logger::write("thread: run: %s, %d, %#x",
-        vm->name().c_str(), vm->thread->pid()->to_native(),
-        (unsigned int)thread_debug_self());
+    if(state->shared().config.machine_thread_log_lifetime.value) {
+      logger::write("thread: run: %s, %d, %#x",
+          vm->name().c_str(), vm->thread->pid()->to_native(),
+          (unsigned int)thread_debug_self());
+    }
 
     NativeMethod::init_thread(state);
 
@@ -427,7 +441,9 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());
+    if(state->shared().config.machine_thread_log_lifetime.value) {
+      logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());
+    }
 
     vm->unmanaged_phase();
 

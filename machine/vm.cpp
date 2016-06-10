@@ -45,6 +45,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <regex>
 #include <signal.h>
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
@@ -233,6 +234,23 @@ namespace rubinius {
       CompiledCode* code = frame->compiled_code;
       if(code && !code->nil_p()) {
         if(!code->core_method(state)) return frame;
+      }
+    }
+
+    return NULL;
+  }
+
+  CallFrame* VM::get_filtered_frame(STATE, std::string& filter) {
+    std::regex re(filter, std::regex::ECMAScript);
+
+    for(CallFrame* frame = call_frame_; frame; frame = frame->previous) {
+      if(frame->native_method_p()) continue;
+
+      CompiledCode* code = frame->compiled_code;
+      if(code && !code->nil_p() && !code->file()->nil_p()) {
+        if(!std::regex_match(code->file()->cpp_str(state), re)) {
+          return frame;
+        }
       }
     }
 

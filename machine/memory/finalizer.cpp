@@ -175,8 +175,8 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_) {
-        std::lock_guard<std::mutex> guard(synchronization_->list_mutex());
-        synchronization_->list_condition().notify_one();
+        LockWaiting<std::mutex> guard(state, list_mutex());
+        list_condition().notify_one();
       }
     }
 
@@ -187,28 +187,21 @@ namespace rubinius {
     }
 
     void FinalizerThread::run(STATE) {
-      state->vm()->managed_phase();
-
       while(true) {
         FinalizerObject* object = 0;
 
         {
-          std::unique_lock<std::mutex> lk(synchronization_->list_mutex());
+          std::unique_lock<std::mutex> lk(list_mutex());
+          list_condition().wait(lk,
+              [this]{ return thread_exit_ || !process_list_.empty(); });
 
-          while(!thread_exit_ && process_list_.empty()) {
-            UnmanagedPhase unmanaged(state);
-            synchronization_->list_condition().wait(lk);
-          }
-
-          if(thread_exit_) return;
-
-          if(!process_list_.empty()) {
+          if(thread_exit_) {
+            return;
+          } else {
             object = process_list_.back();
             process_list_.pop_back();
           }
         }
-
-        state->vm()->thread_nexus()->yield(state->vm());
 
         if(object) {
           object->finalize(state);
@@ -260,7 +253,7 @@ namespace rubinius {
       if(finishing_) return;
 
       {
-        std::lock_guard<std::mutex> guard(synchronization_->list_mutex());
+        LockWaiting<std::mutex> guard(state, list_mutex());
 
         for(FinalizerObjects::iterator i = live_list_.begin();
             i != live_list_.end();
@@ -279,19 +272,19 @@ namespace rubinius {
            * .define_finalizer method or locking handled differently on this
            * list.
            */
-          synchronization_->list_mutex().unlock();
+          list_mutex().unlock();
 
           if(fo->match_p(state, obj, finalizer)) {
             if(finalizer->nil_p()) {
               i = live_list_.erase(i);
               continue;
             } else {
-              synchronization_->list_mutex().lock();
+              list_mutex().lock();
               return;
             }
           }
 
-          synchronization_->list_mutex().lock();
+          list_mutex().lock();
           ++i;
         }
       }
@@ -307,7 +300,7 @@ namespace rubinius {
     }
 
     void FinalizerThread::add_finalizer(STATE, FinalizerObject* obj) {
-      std::lock_guard<std::mutex> guard(synchronization_->list_mutex());
+      LockWaiting<std::mutex> guard(state, list_mutex());
 
       live_list_.push_back(obj);
       vm()->metrics().gc.objects_queued++;
@@ -336,9 +329,6 @@ namespace rubinius {
 
         fo->mark(gc);
       }
-
-      std::lock_guard<std::mutex> guard(synchronization_->list_mutex());
-      synchronization_->list_condition().notify_one();
     }
   }
 }
