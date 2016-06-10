@@ -139,6 +139,9 @@ Rubinius::ConfigurationVariables.define do |c|
       l.vm_variable "level", "warn",
         "Logging level: fatal, error, warn, info, debug"
 
+      l.vm_variable "config", true,
+        "Log configuration options"
+
       l.vm_variable "lifetime", true,
         "Log events during the process lifetime"
 

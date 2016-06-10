@@ -203,4 +203,17 @@ namespace rubinius {
 
     config.finalize();
   }
+
+  void ConfigParser::parsed_options(std::string& str) {
+    for(ConfigParser::ConfigVector::iterator i = variables.begin();
+        i != variables.end();
+        ++i)
+    {
+      if(i != variables.begin()) str += " ";
+
+      str += i->first.c_str();
+      str += "=";
+      str += i->second->value.c_str();
+    }
+  }
 }

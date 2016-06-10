@@ -106,6 +106,15 @@ namespace rubinius {
 
     start_logging(state);
     log_argv();
+
+    if(config.system_log_config.value) {
+      std::string options;
+
+      config_parser.parsed_options(options);
+      if(options.size()) {
+        logger::write("config: %s", options.c_str());
+      }
+    }
   }
 
   Environment::~Environment() {
