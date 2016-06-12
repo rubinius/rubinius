@@ -189,7 +189,7 @@ namespace rubinius {
 
           ns += delay();
 
-          detect_deadlock(ns, try_lock_limit, other_vm);
+          detect_deadlock(ns, lock_limit, other_vm);
         }
       }
     }

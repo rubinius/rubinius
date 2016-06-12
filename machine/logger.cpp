@@ -9,11 +9,14 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <semaphore.h>
 #include <string.h>
 #include <time.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <sys/mman.h>
+#include <sys/types.h>
 
 #include <zlib.h>
 
@@ -112,6 +115,13 @@ namespace rubinius {
       va_end(args);
     }
 
+    void abort(const char* message, ...) {
+      va_list args;
+      va_start(args, message);
+      abort(message, args);
+      va_end(args);
+    }
+
     void write(const char* message, va_list args) {
       if(logger_) {
         std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
@@ -192,6 +202,15 @@ namespace rubinius {
 
         logger_->debug(buf, append_newline(buf));
       }
+    }
+
+    void abort(const char* message, va_list args) {
+      char buf[LOGGER_MSG_SIZE];
+
+      (void) vsnprintf(buf, LOGGER_MSG_SIZE, message, args);
+
+      std::cerr << "logger: abort: " << buf << std::endl;
+      ::abort();
     }
 
     char* Logger::timestamp() {
@@ -305,15 +324,70 @@ namespace rubinius {
       write_log(LOGGER_LEVEL_DEBUG, message, size);
     }
 
+    void FileLogger::SemaphoreLock::lock() {
+      uint64_t nanoseconds = 0;
+
+      while(sem_trywait(semaphore_) != 0) {
+        switch(errno) {
+          case EAGAIN:
+          case EINTR:
+            break;
+          case EINVAL:
+            logger::abort("%s: unable to lock semaphore", strerror(errno));
+          case EDEADLK:
+            logger::abort("%s: unable to lock semaphore", strerror(errno));
+          default:
+            logger::abort("%s: unable to lock semaphore", strerror(errno));
+        }
+
+        {
+          static int i = 0;
+          static int delay[] = {
+            133, 464, 254, 306, 549, 287, 358, 638, 496, 81,
+            472, 288, 131, 31, 435, 258, 221, 73, 537, 854
+          };
+          static int modulo = sizeof(delay) / sizeof(int);
+          static struct timespec ts = {0, 0};
+
+          nanoseconds += ts.tv_nsec = delay[i++ % modulo];
+          nanosleep(&ts, NULL);
+
+          if(nanoseconds > cLockLimit * 2) {
+            logger::abort("logger: possible invalid semaphore state detected, unable to reset");
+          } else if(nanoseconds > cLockLimit) {
+            std::cerr << "logger: possible invalid semaphore state detected, forcibly resetting semaphore" << std::endl;
+            sem_post(semaphore_);
+          }
+        }
+      }
+    }
+
+    void FileLogger::SemaphoreLock::unlock() {
+      sem_post(semaphore_);
+    }
+
 #define LOGGER_MAX_COPY_BUF 1048576
 #define LOGGER_OPEN_FLAGS   (O_CREAT | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_REOPEN_FLAGS (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_FROM_FLAGS   (O_RDONLY | O_CLOEXEC)
 #define LOGGER_TO_FLAGS     (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 
+#define LOGGER_SEM_OPEN_FLAGS   (O_CREAT | O_RDWR)
+#define LOGGER_SEM_OPEN_PERMS   (S_IRUSR | S_IWUSR)
+
+#define LOGGER_SHM_OPEN_FLAGS   (O_CREAT | O_RDWR)
+#define LOGGER_SHM_OPEN_PERMS   (S_IRUSR | S_IWUSR)
+
     FileLogger::FileLogger(const char* path, va_list varargs)
       : Logger()
       , path_(path)
+      , label_()
+      , logger_fd_(-1)
+      , ipc_handle_()
+      , shm_size_(sizeof(uint64_t))
+      , rotate_shm_(NULL)
+      , rotate_flag_(0)
+      , semaphore_(NULL)
     {
       std::ostringstream label;
       label << " [" << getpid() << "] ";
@@ -323,27 +397,86 @@ namespace rubinius {
       archives_ = va_arg(varargs, long);
       perms_ = va_arg(varargs, int);
 
-      logger_fd_ = ::open(path, LOGGER_OPEN_FLAGS, perms_);
+      if(char* str = strrchr(path, '/')) {
+        ipc_handle_.assign(str);
+      } else {
+        ipc_handle_.assign(path);
+      }
+
+      if((semaphore_ = ::sem_open(ipc_handle_.c_str(),
+              LOGGER_SEM_OPEN_FLAGS, LOGGER_SEM_OPEN_PERMS, 1)) == SEM_FAILED)
+      {
+        logger::abort("%s: logger: unable to open semaphore", strerror(errno));
+      }
+
+      int fd = 0;
+      if((fd = ::shm_open(ipc_handle_.c_str(),
+              LOGGER_SHM_OPEN_FLAGS, LOGGER_SHM_OPEN_PERMS)) < 0) {
+        logger::abort("%s: logger: unable to open shared memory", strerror(errno));
+      }
+
+      /* This call is necessary on a newly opened shared memory region file
+       * descriptor, but will fail if the region is already allocated. So, we
+       * make the call and ignore any failure.
+       */
+      ftruncate(fd, shm_size_);
+
+      if((rotate_shm_ = ::mmap(NULL, shm_size_,
+                PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED)
+      {
+        logger::abort("%s: logger: unable to map shared memory", strerror(errno));
+      }
+
+      rotate_flag_ = *((uint64_t*)rotate_shm_);
+      ::close(fd);
+
+      if((logger_fd_ = ::open(path, LOGGER_OPEN_FLAGS, perms_)) < 0) {
+        logger::abort("%s: logger: unable to open %s", strerror(errno), path);
+      }
 
       // The umask setting will override our permissions for open().
       if(chmod(path, perms_) < 0) {
-        logger::warn("%s: logger: unable to set mode: %s", strerror(errno), path);
+        logger::abort("%s: logger: unable to set mode %s", strerror(errno), path);
       }
     }
 
     FileLogger::~FileLogger() {
+      if(semaphore_ != NULL) {
+        if(sem_close(semaphore_) < 0) {
+          std::cerr << strerror(errno) << ": logger: failed closing semaphore" << std::endl;
+        }
+      }
+
+      if(rotate_shm_ != NULL) {
+        if(munmap(rotate_shm_, shm_size_) < 0) {
+          std::cerr << strerror(errno) << ": logger: failed unmapping memory" << std::endl;
+        }
+      }
+
       cleanup();
     }
 
     void FileLogger::cleanup() {
-      ::close(logger_fd_);
-      logger_fd_ = -1;
+      if(logger_fd_ > 0) {
+        ::close(logger_fd_);
+        logger_fd_ = -1;
+      }
+    }
+
+    void FileLogger::signal_reopen() {
+      ((uint64_t*)rotate_shm_)[0] = ++rotate_flag_;
+    }
+
+    bool FileLogger::reopen_p() {
+      return rotate_flag_ < *((uint64_t*)rotate_shm_);
+    }
+
+    void FileLogger::reopen() {
+      logger_fd_ = ::open(path_.c_str(), LOGGER_REOPEN_FLAGS, perms_);
     }
 
     void FileLogger::rotate() {
       struct stat st;
-
-      cleanup();
 
       void* buf = malloc(LOGGER_MAX_COPY_BUF);
       if(!buf) return;
@@ -401,11 +534,19 @@ namespace rubinius {
       free(from);
       free(to);
 
-      logger_fd_ = ::open(path_.c_str(), LOGGER_REOPEN_FLAGS, perms_);
+      reopen();
     }
 
     void FileLogger::write_log(const char* level, const char* message, int size) {
-      utilities::file::LockGuard guard(logger_fd_, LOCK_EX);
+      SemaphoreLock guard(semaphore_);
+
+      if(lseek(logger_fd_, 0, SEEK_END) > limit_) {
+        cleanup();
+        rotate();
+      } else if(reopen_p()) {
+        cleanup();
+        reopen();
+      }
 
       const char* time = timestamp();
       write_status_ = ::write(logger_fd_, time, strlen(time));
@@ -415,10 +556,6 @@ namespace rubinius {
         write_status_ = ::write(logger_fd_, " ", 1);
       }
       write_status_ = ::write(logger_fd_, message, size);
-
-      if(lseek(logger_fd_, 0, SEEK_END) > limit_) {
-        rotate();
-      }
     }
 
     void FileLogger::write(const char* message, int size) {

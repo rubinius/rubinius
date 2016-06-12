@@ -38,7 +38,6 @@ namespace rubinius {
     ThreadList threads_;
     uint32_t thread_ids_;
 
-    const static uint64_t try_lock_limit = 500000000;
     const static uint64_t lock_limit = 5000000000;
 
   public:

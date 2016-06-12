@@ -5,6 +5,7 @@
 #include "spinlock.hpp"
 
 #include <string>
+#include <semaphore.h>
 #include <stdarg.h>
 
 namespace rubinius {
@@ -40,6 +41,9 @@ namespace rubinius {
     void warn(const char* message, va_list args);
     void info(const char* message, va_list args);
     void debug(const char* message, va_list args);
+
+    NORETURN(void abort(const char* message, ...));
+    NORETURN(void abort(const char* message, va_list args));
 
     void set_loglevel(logger_level level);
 
@@ -104,9 +108,36 @@ namespace rubinius {
     };
 
     class FileLogger : public Logger {
+      class SemaphoreLock {
+        sem_t* semaphore_;
+
+        const static uint64_t cLockLimit = 500000000;
+
+      public:
+        SemaphoreLock(sem_t* semaphore)
+          : semaphore_(semaphore)
+        {
+          lock();
+        }
+
+        virtual ~SemaphoreLock() {
+          unlock();
+        }
+
+        void lock();
+        void unlock();
+      };
+
       std::string path_;
       std::string label_;
       int logger_fd_;
+
+      std::string ipc_handle_;
+      long shm_size_;
+      void* rotate_shm_;
+      uint64_t rotate_flag_;
+      sem_t* semaphore_;
+
       long limit_;
       long archives_;
       int perms_;
@@ -115,6 +146,13 @@ namespace rubinius {
       void write_log(const char* level, const char* message, int size);
       void rotate();
       void cleanup();
+      void reopen();
+      void signal_reopen();
+
+      bool reopen_p();
+
+      bool try_lock();
+      void unlock();
 
     public:
 
