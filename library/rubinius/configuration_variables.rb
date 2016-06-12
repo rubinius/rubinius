@@ -26,7 +26,7 @@ class ConfigurationVariables
 
     io.puts "Configuration() :"
     all = @variables.map { |v| v.initializer }.compact
-    
+
     io.puts all.join(",\n")
     io.puts "{"
 
@@ -106,7 +106,12 @@ class ConfigurationVariables
       return nil unless @vm
 
       if @default
-        "#{@vm_name}(this, \"#{@name}\", #{@default.inspect})"
+        case @default
+        when Regexp
+          "#{@vm_name}(this, \"#{@name}\", #{@default.source.inspect})"
+        else
+          "#{@vm_name}(this, \"#{@name}\", #{@default.inspect})"
+        end
       else
         "#{@vm_name}(this, \"#{@name}\")"
       end
@@ -169,6 +174,12 @@ class ConfigurationVariables
         var.type = "config::String"
       when :string
         var.type = "config::String"
+
+      when Regexp
+        var.default = default.source
+        var.type = "config::Regexp"
+      when :regexp
+        var.type = "config::Regexp"
 
       when true, false
         var.default = default

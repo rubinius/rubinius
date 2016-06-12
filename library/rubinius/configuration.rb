@@ -73,7 +73,7 @@ Rubinius::ConfigurationVariables.define do |c|
         l.vm_variable "finalizer", false,
           "Log finalizer execution"
 
-        l.vm_variable "filter", "^core/.*$",
+        l.vm_variable "filter", /^core\/.*$/,
           "Filter paths matching pattern when logging events"
       end
     end
@@ -89,7 +89,7 @@ Rubinius::ConfigurationVariables.define do |c|
         l.vm_variable "finalizer", false,
           "Log finalizer execution"
 
-        l.vm_variable "filter", "^core/.*$",
+        l.vm_variable "filter", /^core\/.*$/,
           "Filter paths matching pattern when logging events"
       end
     end
@@ -145,7 +145,7 @@ Rubinius::ConfigurationVariables.define do |c|
       l.vm_variable "lifetime", true,
         "Log events during the process lifetime"
 
-      l.vm_variable "filter", "^core/.*$",
+      l.vm_variable "filter", /^core\/.*$/,
         "Filter paths matching pattern when logging events"
     end
 

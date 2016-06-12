@@ -13,6 +13,7 @@
 #include "memory/gc.hpp"
 
 #include <ostream>
+#include <regex>
 #include <string>
 
 namespace rubinius {
@@ -133,7 +134,7 @@ namespace rubinius {
     }
 
     if(state->shared().config.machine_fiber_log_lifetime.value) {
-      std::string& filter = state->shared().config.machine_fiber_log_filter.value;
+      const std::regex& filter = state->shared().config.machine_fiber_log_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;

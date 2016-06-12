@@ -240,15 +240,13 @@ namespace rubinius {
     return NULL;
   }
 
-  CallFrame* VM::get_filtered_frame(STATE, std::string& filter) {
-    std::regex re(filter, std::regex::ECMAScript);
-
+  CallFrame* VM::get_filtered_frame(STATE, const std::regex& filter) {
     for(CallFrame* frame = call_frame_; frame; frame = frame->previous) {
       if(frame->native_method_p()) continue;
 
       CompiledCode* code = frame->compiled_code;
       if(code && !code->nil_p() && !code->file()->nil_p()) {
-        if(!std::regex_match(code->file()->cpp_str(state), re)) {
+        if(!std::regex_match(code->file()->cpp_str(state), filter)) {
           return frame;
         }
       }

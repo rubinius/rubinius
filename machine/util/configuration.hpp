@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include <list>
+#include <regex>
 #include <string.h>
 #include <vector>
 #include <iostream>
@@ -181,8 +182,43 @@ namespace config {
       }
     }
 
+    operator const std::string&() const {
+      return value;
+    }
+
     operator const char*() const {
       return value.c_str();
+    }
+  };
+
+  class Regexp : public ConfigItem {
+    std::string source;
+  public:
+    std::regex value;
+
+    Regexp(Configuration* config, const char* name, const char* def = "")
+      : ConfigItem(config, name)
+      , source(def)
+    {
+      set(def);
+    }
+
+    virtual void set(const char* str) {
+      set_ = true;
+      source.assign(str);
+      try {
+        value = std::regex(str, std::regex::ECMAScript);
+      } catch(std::regex_error) {
+        value = std::regex("");
+      }
+    }
+
+    virtual void print_value(std::ostream& stream) {
+      stream << source;
+    }
+
+    const std::regex& operator()() const {
+      return value;
     }
   };
 

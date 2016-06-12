@@ -24,6 +24,7 @@
 #include "sodium/randombytes.h"
 
 #include <atomic>
+#include <regex>
 #include <string>
 #include <vector>
 #include <setjmp.h>
@@ -279,7 +280,7 @@ namespace rubinius {
     CallFrame* get_variables_frame(ssize_t up=0);
     CallFrame* get_scope_frame(ssize_t up=0);
     CallFrame* get_noncore_frame(STATE);
-    CallFrame* get_filtered_frame(STATE, std::string& filter);
+    CallFrame* get_filtered_frame(STATE, const std::regex& filter);
 
     bool scope_valid_p(VariableScope* scope);
 
