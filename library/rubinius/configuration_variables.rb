@@ -78,6 +78,8 @@ class ConfigurationVariables
         default = @options[:default]
 
         "default: #{default}, possible: #{possible.map { |x| x[0] }.join(", ")}"
+      elsif @type == "config::Regexp"
+        "#{@default} (Regexp)"
       else
         value = case @default
         when true
