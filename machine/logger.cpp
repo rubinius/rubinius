@@ -397,7 +397,7 @@ namespace rubinius {
       archives_ = va_arg(varargs, long);
       perms_ = va_arg(varargs, int);
 
-      if(char* str = strrchr(path, '/')) {
+      if(const char* str = strrchr(path, '/')) {
         ipc_handle_.assign(str);
       } else {
         ipc_handle_.assign(path);
