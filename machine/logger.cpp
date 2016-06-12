@@ -509,7 +509,7 @@ namespace rubinius {
 
         int bytes;
 
-        if(i > 0) {
+        if(i > 1) {
           while((bytes = ::read(from_fd, buf, LOGGER_MAX_COPY_BUF)) > 0) {
             if(::write(to_fd, buf, bytes) < 0) break;
           }
