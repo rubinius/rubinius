@@ -175,7 +175,7 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_) {
-        LockWaiting<std::mutex> guard(state, list_mutex());
+        LockUnmanaged<std::mutex> guard(state, list_mutex());
         list_condition().notify_one();
       }
     }
@@ -240,11 +240,15 @@ namespace rubinius {
     void FinalizerThread::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
+      LockUnmanaged<std::mutex> guard(state, list_mutex());
+
       add_finalizer(state, new NativeFinalizer(state, obj, func));
     }
 
     void FinalizerThread::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
+
+      LockUnmanaged<std::mutex> guard(state, list_mutex());
 
       add_finalizer(state, new ExtensionFinalizer(state, obj, func));
     }
@@ -252,41 +256,35 @@ namespace rubinius {
     void FinalizerThread::managed_finalizer(STATE, Object* obj, Object* finalizer) {
       if(finishing_) return;
 
+      /* This method will be called by a managed thread during a managed
+       * phase. We acquire this list mutex *while managed* to prevent
+       * garbage collection from running, since that is the only place that
+       * the inversion of managed phase and locking this mutex can occur.
+       *
+       * Since Ruby allows any number of finalizers on a single object as
+       * long as the finalizer "callable" is different, we have to do a
+       * complex comparison to determine if the "callable" is different.
+       * This must be done during a managed phase even if it were not a
+       * method send because it works with managed objects.
+       */
+      std::lock_guard<std::mutex> guard(list_mutex());
+
+      for(FinalizerObjects::iterator i = live_list_.begin();
+          i != live_list_.end();
+          /* advance is handled in the loop */)
       {
-        LockWaiting<std::mutex> guard(state, list_mutex());
+        FinalizerObject* fo = *i;
 
-        for(FinalizerObjects::iterator i = live_list_.begin();
-            i != live_list_.end();
-            /* advance is handled in the loop */)
-        {
-          FinalizerObject* fo = *i;
-
-          /* TODO: Since Ruby allows any number of finalizers on a single
-           * object as long as the finalizer "callable" is different, we have
-           * to do a complex comparison to determine if the "callable" is
-           * different. This results in a method send, which can cause a
-           * CompiledCode instance to be internalized, adding CallSite object
-           * finalizers, so we cannot keep this locked across this call.
-           *
-           * This is an utter mess and either needs to be moved into the Ruby
-           * .define_finalizer method or locking handled differently on this
-           * list.
-           */
-          list_mutex().unlock();
-
-          if(fo->match_p(state, obj, finalizer)) {
-            if(finalizer->nil_p()) {
-              i = live_list_.erase(i);
-              continue;
-            } else {
-              list_mutex().lock();
-              return;
-            }
+        if(fo->match_p(state, obj, finalizer)) {
+          if(finalizer->nil_p()) {
+            i = live_list_.erase(i);
+            continue;
+          } else {
+            return;
           }
-
-          list_mutex().lock();
-          ++i;
         }
+
+        ++i;
       }
 
       if(finalizer->nil_p()) return;
@@ -300,8 +298,6 @@ namespace rubinius {
     }
 
     void FinalizerThread::add_finalizer(STATE, FinalizerObject* obj) {
-      LockWaiting<std::mutex> guard(state, list_mutex());
-
       live_list_.push_back(obj);
       vm()->metrics().gc.objects_queued++;
     }
