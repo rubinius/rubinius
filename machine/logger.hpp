@@ -111,7 +111,7 @@ namespace rubinius {
       class SemaphoreLock {
         sem_t* semaphore_;
 
-        const static uint64_t cLockLimit = 500000000;
+        const static uint64_t cLockLimit = 1000000000;
 
       public:
         SemaphoreLock(sem_t* semaphore)
