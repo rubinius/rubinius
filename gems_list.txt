@@ -59,7 +59,7 @@ rubysl-irb-2.1.1.gem
 rubysl-logger-2.1.0.gem
 rubysl-mathn-2.0.0.gem
 rubysl-matrix-2.1.0.gem
-rubysl-mkmf-2.0.1.gem
+rubysl-mkmf-2.1.gem
 rubysl-monitor-2.0.0.gem
 rubysl-mutex_m-2.0.0.gem
 rubysl-net-ftp-2.0.1.gem
