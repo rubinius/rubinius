@@ -98,7 +98,7 @@ extern "C" {
 
   VALUE rb_thread_current(void) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Thread* thread = env->state()->vm()->thread.get();
+    Thread* thread = env->state()->vm()->thread();
 
     return env->get_handle(thread);
   }
@@ -239,7 +239,7 @@ extern "C" {
   Object* run_function(STATE) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Thread* thread = state->vm()->thread.get();
+    Thread* thread = state->vm()->thread();
 
     NativeMethod* nm = capi::c_as<NativeMethod>(
         thread->locals_aref(state, state->symbol("function")));
@@ -282,7 +282,7 @@ extern "C" {
       LEAVE_CAPI(state);
 
       // Set exception in thread so it's raised when joining.
-      state->vm()->thread.get()->exception(state,
+      state->vm()->thread()->exception(state,
           capi::c_as<Exception>(state->vm()->thread_state()->current_exception()));
     } else {
       value = env->get_object(nm->func()(ptr->pointer));
@@ -313,7 +313,7 @@ extern "C" {
     thr->locals_store(state, state->symbol("function"), nm);
     thr->locals_store(state, state->symbol("argument"), ptr);
 
-    thr->group(state, state->vm()->thread.get()->group());
+    thr->group(state, state->vm()->thread()->group());
 
     VALUE thr_handle = env->get_handle(thr);
     thr->fork(state);

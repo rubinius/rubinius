@@ -10,24 +10,25 @@
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/class.hpp"
-#include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
+#include "builtin/call_site.hpp"
+#include "builtin/channel.hpp"
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fiber.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/list.hpp"
+#include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"
+#include "builtin/native_method.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/string.hpp"
-#include "builtin/system.hpp"
-#include "builtin/location.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/channel.hpp"
-#include "builtin/call_site.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/jit.hpp"
-#include "variable_scope.hpp"
 
+#include "variable_scope.hpp"
 #include "config_parser.hpp"
 #include "config.h"
 
@@ -69,6 +70,9 @@ namespace rubinius {
     , interrupt_by_kill_(false)
     , check_local_interrupts_(false)
     , thread_step_(false)
+    , wait_mutex_()
+    , wait_condition_()
+    , wait_flag_(false)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
@@ -85,7 +89,9 @@ namespace rubinius {
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
-    , thread(this, nil<Thread>())
+    , thread_(this, nil<Thread>())
+    , fiber_(this, nil<Fiber>())
+    , current_fiber_(NULL)
     , waiting_object_(this, cNil)
     , start_time_(0)
     , native_method_environment(NULL)
@@ -117,6 +123,14 @@ namespace rubinius {
     state->vm()->metrics().system.threads_destroyed++;
 
     delete vm;
+  }
+
+  void VM::set_thread(Thread* thread) {
+    thread_.set(thread);
+  }
+
+  void VM::set_fiber(Fiber* fiber) {
+    fiber_.set(fiber);
   }
 
   void VM::set_start_time() {
@@ -378,7 +392,8 @@ namespace rubinius {
 
   void VM::set_zombie(STATE) {
     state->shared().thread_nexus()->delete_vm(this);
-    thread.set(nil<Thread>());
+    set_thread(nil<Thread>());
+    set_fiber(nil<Fiber>());
     zombie_ = true;
   }
 
@@ -522,7 +537,7 @@ namespace rubinius {
   void VM::wait_on_channel(Channel* chan) {
     utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
 
-    thread->sleep(this, cTrue);
+    thread()->sleep(this, cTrue);
     waiting_channel_.set(chan);
   }
 
@@ -540,11 +555,11 @@ namespace rubinius {
   }
 
   void VM::set_sleeping() {
-    thread->sleep(this, cTrue);
+    thread()->sleep(this, cTrue);
   }
 
   void VM::clear_sleeping() {
-    thread->sleep(this, cFalse);
+    thread()->sleep(this, cFalse);
   }
 
   void VM::reset_parked() {

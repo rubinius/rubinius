@@ -23,20 +23,17 @@
 #include "sodium/randombytes.h"
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <regex>
 #include <string>
 #include <vector>
 #include <setjmp.h>
 #include <stdint.h>
 
-namespace llvm {
-  class Module;
-}
-
 namespace rubinius {
-
+  class Fiber;
   class Exception;
-  class LLVMState;
 
   namespace event {
     class Loop;
@@ -107,6 +104,10 @@ namespace rubinius {
     bool check_local_interrupts_;
     bool thread_step_;
 
+    std::mutex wait_mutex_;
+    std::condition_variable wait_condition_;
+    std::atomic<bool> wait_flag_;
+
     utilities::thread::SpinLock interrupt_lock_;
 
     MethodMissingReason method_missing_reason_;
@@ -132,7 +133,10 @@ namespace rubinius {
     memory::TypedRoot<Channel*> waiting_channel_;
     memory::TypedRoot<Exception*> interrupted_exception_;
     /// The Thread object for this VM state
-    memory::TypedRoot<Thread*> thread;
+    memory::TypedRoot<Thread*> thread_;
+    memory::TypedRoot<Fiber*> fiber_;
+
+    VM* current_fiber_;
 
     /// Object that waits for inflation
     memory::TypedRoot<Object*> waiting_object_;
@@ -172,6 +176,41 @@ namespace rubinius {
       return interrupt_lock_;
     }
 
+    std::mutex& wait_mutex() {
+      return wait_mutex_;
+    }
+
+    std::condition_variable& wait_condition() {
+      return wait_condition_;
+    }
+
+    std::atomic<bool>& wait_flag() {
+      return wait_flag_;
+    }
+
+    void set_wait_flag(bool wait) {
+      wait_flag_ = wait;
+    }
+
+    void set_current_fiber(VM* vm) {
+      current_fiber_ = vm;
+    }
+
+    VM* current_fiber() {
+      return current_fiber_;
+    }
+
+    void set_thread(Thread* thread);
+    void set_fiber(Fiber* fiber);
+
+    Thread* thread() {
+      return thread_.get();
+    }
+
+    Fiber* fiber() {
+      return fiber_.get();
+    }
+
     void set_zombie(STATE);
 
     bool zombie_p() {
@@ -188,6 +227,10 @@ namespace rubinius {
 
     VMThreadState* thread_state() {
       return &thread_state_;
+    }
+
+    void set_thread_state(VMThreadState* thread_state) {
+      thread_state_ = *thread_state;
     }
 
     Memory* memory() {
@@ -445,9 +488,6 @@ namespace rubinius {
     void set_const(Module* mod, const char* name, Object* val);
 
     Object* path2class(const char* name);
-
-    llvm::Module* llvm_module();
-    void llvm_cleanup();
 
     void print_backtrace();
 

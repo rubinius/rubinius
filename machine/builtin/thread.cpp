@@ -74,7 +74,10 @@ namespace rubinius {
     thr->vm(vm);
     thr->thread_id(state, Fixnum::from(vm->thread_id()));
 
-    vm->thread.set(thr);
+    vm->set_thread(thr);
+
+    Fiber::create(state, vm);
+    vm->set_current_fiber(vm->fiber()->vm());
 
     return thr;
   }
@@ -121,7 +124,7 @@ namespace rubinius {
     /* These are all referenced, so OnStack is not necessary. Additionally,
      * thread is pinned, so we do not need to worry about it moving.
      */
-    Thread* thread = state->vm()->thread.get();
+    Thread* thread = state->vm()->thread();
     Array* args = thread->args();
     Object* block = thread->block();
 
@@ -226,7 +229,7 @@ namespace rubinius {
   }
 
   Thread* Thread::current(STATE) {
-    return state->vm()->thread.get();
+    return state->vm()->thread();
   }
 
   void Thread::unlock_after_fork(STATE) {
@@ -372,7 +375,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
                            runtime.c_str(), runtime.size()));
 
-    state->vm()->thread->pid(state, Fixnum::from(gettid()));
+    state->vm()->thread()->pid(state, Fixnum::from(gettid()));
 
     state->shared().env()->load_core(state, runtime);
 
@@ -413,18 +416,18 @@ namespace rubinius {
     VM* vm = reinterpret_cast<VM*>(ptr);
     State state_obj(vm), *state = &state_obj;
 
-    vm->set_stack_bounds(vm->thread->stack_size()->to_native());
+    vm->set_stack_bounds(vm->thread()->stack_size()->to_native());
     vm->set_current_thread();
     vm->set_start_time();
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
 
-    vm->thread->pid(state, Fixnum::from(gettid()));
+    vm->thread()->pid(state, Fixnum::from(gettid()));
 
     if(state->shared().config.machine_thread_log_lifetime.value) {
       logger::write("thread: run: %s, %d, %#x",
-          vm->name().c_str(), vm->thread->pid()->to_native(),
+          vm->name().c_str(), vm->thread()->pid()->to_native(),
           (unsigned int)thread_debug_self());
     }
 
@@ -432,11 +435,11 @@ namespace rubinius {
 
     state->vm()->managed_phase();
 
-    Object* value = vm->thread->function()(state);
+    Object* value = vm->thread()->function()(state);
     vm->set_call_frame(NULL);
 
-    vm->thread->join_lock_.lock();
-    vm->thread->stopped();
+    vm->thread()->join_lock_.lock();
+    vm->thread()->stopped();
 
     state->shared().report_profile(state);
 
@@ -449,8 +452,8 @@ namespace rubinius {
     }
     locked_objects.clear();
 
-    vm->thread->join_cond_.broadcast();
-    vm->thread->join_lock_.unlock();
+    vm->thread()->join_cond_.broadcast();
+    vm->thread()->join_lock_.unlock();
 
     NativeMethod::cleanup_thread(state);
 
@@ -514,7 +517,7 @@ namespace rubinius {
 
     if(!vm()) return cNil;
 
-    if(state->vm()->thread.get() == this) {
+    if(state->vm()->thread() == this) {
       vm()->thread_state_.raise_thread_kill();
       return NULL;
     } else {

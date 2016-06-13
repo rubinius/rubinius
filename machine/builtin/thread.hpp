@@ -5,10 +5,13 @@
 
 #include "builtin/channel.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/fiber.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
 #include "builtin/randomizer.hpp"
+
+#include <list>
 
 namespace rubinius {
   class Array;
@@ -43,6 +46,7 @@ namespace rubinius {
     attr_accessor(initialized, Object);
     attr_accessor(stack_size, Fixnum);
     attr_accessor(source, String);
+    attr_accessor(fiber, Fiber);
 
   private:
     utilities::thread::SpinLock init_lock_;
@@ -51,6 +55,10 @@ namespace rubinius {
 
     /// The VM state for this thread and this thread alone
     attr_field(vm, VM*);
+
+    typedef std::list<Fiber*> FibersList;
+
+    attr_field(fibers, FibersList);
 
     typedef Object* (*ThreadFunction)(STATE);
 
@@ -78,6 +86,7 @@ namespace rubinius {
       obj->initialized(cFalse);
       obj->stack_size(Fixnum::from(state->shared().config.machine_thread_stack_size.value));
       obj->source(nil<String>());
+      obj->fiber(nil<Fiber>());
 
       obj->init_lock_.init();
       obj->join_lock_.init();

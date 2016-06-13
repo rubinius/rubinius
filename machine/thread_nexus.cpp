@@ -93,7 +93,7 @@ namespace rubinius {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) continue;
 
-        if(Thread* thread = vm->thread.get()) {
+        if(Thread* thread = vm->thread()) {
           if(!thread->nil_p()) {
             thread->unlock_after_fork(state);
             thread->stopped();

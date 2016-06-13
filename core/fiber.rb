@@ -16,31 +16,38 @@ class Fiber
 
   def self.current
     Rubinius.primitive :fiber_s_current
-    raise PrimitiveFailure, "Rubinius::Fiber.current failed"
+    raise PrimitiveFailure, "Fiber.current primitive failed"
   end
 
   def self.yield(*args)
     Rubinius.primitive :fiber_s_yield
-    raise PrimitiveFailure, "Rubinius::Fiber.yield failed"
+    raise PrimitiveFailure, "Fiber.yield primitive failed"
+  end
+
+  def status
+    Rubinius.primitive :fiber_status
+    raise PrimitiveFailure, "Fiber#status primitive failed"
   end
 
   def resume(*args)
     Rubinius.primitive :fiber_resume
-    raise PrimitiveFailure, "Rubinius::Fiber#resume failed"
+    raise PrimitiveFailure, "Fiber#resume primitive failed"
   end
 
   def transfer(*args)
     Rubinius.primitive :fiber_transfer
-    raise PrimitiveFailure, "Rubinius::Fiber#transfer failed"
+    raise PrimitiveFailure, "Fiber#transfer primitive failed"
   end
 
   def alive?
-    !@dead
+    status != "dead"
   end
 
   def inspect
-    str = "#<#{self.class}:0x#{object_id.to_s(16)} thread_name=#{@thread_name} fiber_id=#{@fiber_id} status=#{alive? ? "alive" : "dead"}"
+    str = "#<#{self.class}:0x#{object_id.to_s(16)} thread_name=#{@thread_name} fiber_id=#{@fiber_id} status=#{status}"
     str << " source=#{@source}" if @source
     str << ">"
   end
+
+  alias_method :to_s, :inspect
 end

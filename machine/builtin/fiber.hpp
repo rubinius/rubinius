@@ -16,6 +16,7 @@
 
 namespace rubinius {
   class LookupTable;
+  class VM;
 
   class Fiber : public Object {
   public:
@@ -24,69 +25,93 @@ namespace rubinius {
     static std::atomic<uint32_t> fiber_ids_;
 
     enum Status {
-      eNotStarted,
-      eSleeping,
+      eCreated,
       eRunning,
+      eYielding,
+      eTransfer,
       eDead
     };
 
-    attr_accessor(starter, Object);
-    attr_accessor(value, Array);
-    attr_accessor(prev, Fiber);
+    attr_accessor(block, Object);
+    attr_accessor(arguments, Array);
+    attr_accessor(value, Object);
     attr_accessor(exception, Exception);
     attr_accessor(locals, LookupTable);
-    attr_accessor(dead, Object);
+    attr_accessor(pid, Fixnum);
     attr_accessor(stack_size, Fixnum);
     attr_accessor(thread_name, String);
     attr_accessor(fiber_id, Fixnum);
     attr_accessor(source, String);
 
   private:
-    attr_field(status, Status);
-    attr_field(root, bool);
     attr_field(start_time, uint64_t);
 
-  public:
-    bool root_p() const {
-      return root();
-    }
+    typedef Object* (*FiberFunction)(STATE, Fiber* fiber, Arguments& args);
+
+    attr_field(function, FiberFunction);
+
+    attr_field(vm, VM*);
+    attr_field(resume_context, VM*);
+
+    std::atomic<Status> status_;
 
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, Fiber* obj) {
-      obj->starter(nil<Object>());
-      obj->value(nil<Array>());
-      obj->prev(nil<Fiber>());
+      obj->block(nil<Object>());
+      obj->arguments(nil<Array>());
+      obj->value(nil<Object>());
       obj->exception(nil<Exception>());
       obj->locals(nil<LookupTable>());
-      obj->dead(nil<Object>());
+      obj->pid(Fixnum::from(0));
       obj->stack_size(Fixnum::from(state->shared().config.machine_fiber_stack_size.value));
       obj->thread_name(String::create(state, state->vm()->name().c_str()));
       obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
       obj->source(nil<String>());
-      obj->status(eNotStarted);
-      obj->root(false);
+      obj->status(eCreated);
       obj->start_time(get_current_time());
+      obj->function(Fiber::start_fiber);
+      obj->vm(NULL);
+      obj->resume_context(NULL);
     }
 
-    // Rubinius.primitive :fiber_new
-    static Fiber* create(STATE, Object* self, Object* stack_size, Object* callable);
+    static void finalize(STATE, Fiber* fib);
+    static Object* unpack_arguments(STATE, Arguments& args);
 
-    double run_time();
+    static void* run(void*);
+
+    static Object* start_fiber(STATE, Fiber* fiber, Arguments& args);
+    static Object* continue_fiber(STATE, Fiber* fiber, Arguments& args);
+
+    static Fiber* create(STATE, VM* vm);
+
+    // Rubinius.primitive :fiber_new
+    static Fiber* create(STATE, Object* self, Object* stack_size, Object* block);
 
     // Rubinius.primitive :fiber_s_current
     static Fiber* current(STATE);
+
+    // Rubinius.primitive :fiber_s_yield
+    static Object* s_yield(STATE, Arguments& args);
+
+    Status status() {
+      return status_;
+    }
+
+    void status(Status status) {
+      status_ = status;
+    }
+
+    bool root_p();
+
+    // Rubinius.primitive :fiber_status
+    String* status(STATE);
 
     // Rubinius.primitive :fiber_resume
     Object* resume(STATE, Arguments& args);
 
     // Rubinius.primitive :fiber_transfer
     Object* transfer(STATE, Arguments& args);
-
-    // Rubinius.primitive :fiber_s_yield
-    static Object* s_yield(STATE, Arguments& args);
-
-    static void finalize(STATE, Fiber* fib);
 
   public:   /* TypeInfo */
 

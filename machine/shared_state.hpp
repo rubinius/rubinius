@@ -58,7 +58,6 @@ namespace rubinius {
   class State;
   class VM;
   class Configuration;
-  class LLVMState;
   class QueryAgent;
   class Environment;
 

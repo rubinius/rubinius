@@ -440,7 +440,7 @@ namespace rubinius {
     if(pid == 0) {
       close(errors[0]);
 
-      state->vm()->thread->init_lock();
+      state->vm()->thread()->init_lock();
       state->shared().machine_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
@@ -572,7 +572,7 @@ namespace rubinius {
     }
 
     if(pid == 0) {
-      state->vm()->thread->init_lock();
+      state->vm()->thread()->init_lock();
       state->shared().machine_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
@@ -895,7 +895,7 @@ namespace rubinius {
       // We're in the child...
       state->vm()->after_fork_child(state);
 
-      state->vm()->thread->init_lock();
+      state->vm()->thread()->init_lock();
       state->shared().after_fork_child(state);
       state->shared().machine_threads()->after_fork_child(state);
 
