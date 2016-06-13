@@ -29,7 +29,7 @@ module Enumerable
           size = receiver_or_size
         end
 
-        receiver = Generator.new(&block)
+        receiver = EnumeratorObject.new(&block)
       else
         if undefined.equal? receiver_or_size
           raise ArgumentError, "Enumerator#initialize requires a block when called without arguments"
@@ -98,19 +98,7 @@ module Enumerable
     def next
       return @lookahead.shift unless @lookahead.empty?
 
-      unless @generator
-        # Allow #to_generator to return nil, indicating it has none for
-        # this method.
-        if @object.respond_to? :to_generator
-          @generator = @object.to_generator(@iter)
-        end
-
-        if !@generator and gen = FiberGenerator
-          @generator = gen.new(self)
-        else
-          @generator = ThreadGenerator.new(self, @object, @iter, @args)
-        end
-      end
+      @generator ||= Iterator.new self
 
       begin
         return @generator.next if @generator.next?
@@ -196,8 +184,9 @@ module Enumerable
       end
     end
 
-    class Generator
+    class EnumeratorObject
       include Enumerable
+
       def initialize(&block)
         raise LocalJumpError, "Expected a block to be given" unless block_given?
 
@@ -447,7 +436,7 @@ module Enumerable
       end
     end
 
-    class FiberGenerator
+    class Iterator
       STACK_SIZE = 1_048_576
 
       attr_reader :result
@@ -478,11 +467,9 @@ module Enumerable
 
       def reset
         @done = false
-        @fiber = Rubinius::Fiber.new stack_size: STACK_SIZE do
+        @fiber = Fiber.new stack_size: STACK_SIZE do
           obj = @object
-          @result = obj.each do |*val|
-            Rubinius::Fiber.yield *val
-          end
+          @result = obj.each { |*val| Fiber.yield *val }
           @done = true
         end
       end
