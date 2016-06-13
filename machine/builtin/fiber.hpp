@@ -1,7 +1,6 @@
 #ifndef RBX_BUILTIN_FIBER
 #define RBX_BUILTIN_FIBER
 
-#include "fiber_data.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
@@ -25,7 +24,10 @@ namespace rubinius {
     static std::atomic<uint32_t> fiber_ids_;
 
     enum Status {
-      eNotStarted, eSleeping, eRunning, eDead
+      eNotStarted,
+      eSleeping,
+      eRunning,
+      eDead
     };
 
     attr_accessor(starter, Object);
@@ -42,48 +44,11 @@ namespace rubinius {
   private:
     attr_field(status, Status);
     attr_field(root, bool);
-    attr_field(data, FiberData*);
     attr_field(start_time, uint64_t);
 
   public:
     bool root_p() const {
       return root();
-    }
-
-    CallFrame* call_frame(STATE) const {
-      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
-
-      return data()->call_frame();
-    }
-
-    void set_call_frame(STATE, CallFrame* call_frame) {
-      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
-
-      data()->set_call_frame(call_frame);
-    }
-
-    void sleep(STATE) {
-      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
-
-      data()->set_call_frame(state->vm()->call_frame());
-      status(eSleeping);
-    }
-
-    void run(STATE) {
-      if(!data()) Exception::raise_fiber_error(state, "corrupt Fiber");
-
-      state->vm()->set_current_fiber(this);
-      state->vm()->set_call_frame(data()->call_frame());
-      data()->set_call_frame(NULL);
-      status(eRunning);
-    }
-
-    fiber_context_t* ucontext() const {
-      return data()->machine();
-    }
-
-    memory::VariableRootBuffers& variable_root_buffers() {
-      return data()->variable_root_buffers();
     }
 
   public:
@@ -101,13 +66,11 @@ namespace rubinius {
       obj->source(nil<String>());
       obj->status(eNotStarted);
       obj->root(false);
-      obj->data(NULL);
       obj->start_time(get_current_time());
     }
 
     // Rubinius.primitive :fiber_new
     static Fiber* create(STATE, Object* self, Object* stack_size, Object* callable);
-    static void start_on_stack();
 
     double run_time();
 

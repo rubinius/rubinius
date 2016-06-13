@@ -603,7 +603,6 @@ step1:
     {
       memory::GCData data(state->vm());
 
-      clear_fiber_marks(&data);
       immix_->collect(&data);
       collect_full_finish(state, &data);
     }
@@ -730,18 +729,6 @@ step1:
 
   void Memory::prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young) {
     handles->deallocate_handles(cached, mark(), young);
-  }
-
-  void Memory::clear_fiber_marks(memory::GCData* data) {
-    std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
-
-    for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
-        i != data->thread_nexus()->threads()->end();
-        ++i) {
-      if(VM* vm = (*i)->as_vm()) {
-        vm->gc_fiber_clear_mark();
-      }
-    }
   }
 
   void Memory::add_type_info(TypeInfo* ti) {

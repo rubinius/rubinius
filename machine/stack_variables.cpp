@@ -31,7 +31,9 @@ namespace rubinius {
     scope->method(state, call_frame->compiled_code);
     scope->heap_locals(state, nil<Tuple>());
     scope->last_match(state, last_match_);
+    /* TODO: Fiber
     scope->fiber(state, state->vm()->current_fiber.get());
+    */
 
     scope->number_of_locals(mcode->number_of_locals);
     scope->isolated(0);

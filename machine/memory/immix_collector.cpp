@@ -310,9 +310,6 @@ namespace memory {
     // objects through weakrefs.
     clean_weakrefs();
 
-    scan_fibers(data, true);
-    process_mark_stack();
-
     if(FinalizerThread* finalizer = memory_->finalizer()) {
       std::lock_guard<std::mutex> guard(finalizer->list_mutex());
 

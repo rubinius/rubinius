@@ -252,6 +252,7 @@ namespace rubinius {
     if(state->vm() != vm()) {
       return locals()->aref(state, key);
     }
+    /* TODO: Fiber
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->aref(state, key);
@@ -259,6 +260,7 @@ namespace rubinius {
     if(try_as<LookupTable>(fib->locals())) {
       return fib->locals()->aref(state, key);
     }
+    */
     return cNil;
   }
 
@@ -271,6 +273,7 @@ namespace rubinius {
     if(state->vm() != vm()) {
       return locals()->store(state, key, value);
     }
+    /* TODO: Fiber
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->store(state, key, value);
@@ -279,6 +282,8 @@ namespace rubinius {
       fib->locals(state, LookupTable::create(state));
     }
     return fib->locals()->store(state, key, value);
+    */
+    return value;
   }
 
   Object* Thread::locals_remove(STATE, Symbol* key) {
@@ -286,6 +291,7 @@ namespace rubinius {
     if(state->vm() != vm()) {
       return locals()->remove(state, key);
     }
+    /* TODO: Fiber
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->remove(state, key);
@@ -294,6 +300,8 @@ namespace rubinius {
       return cNil;
     }
     return fib->locals()->remove(state, key);
+    */
+    return cNil;
   }
 
   Array* Thread::locals_keys(STATE) {
@@ -304,6 +312,7 @@ namespace rubinius {
     if(state->vm() != vm()) {
       return locals()->all_keys(state);
     }
+    /* TODO: Fiber
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->all_keys(state);
@@ -311,6 +320,7 @@ namespace rubinius {
     if(try_as<LookupTable>(fib->locals())) {
       return fib->locals()->all_keys(state);
     }
+    */
     return Array::create(state, 0);
   }
 
@@ -322,6 +332,7 @@ namespace rubinius {
     if(state->vm() != vm()) {
       return locals()->has_key(state, key);
     }
+    /* TODO: Fiber
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->has_key(state, key);
@@ -329,6 +340,7 @@ namespace rubinius {
     if(try_as<LookupTable>(fib->locals())) {
       return fib->locals()->has_key(state, key);
     }
+    */
     return cFalse;
   }
 

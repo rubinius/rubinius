@@ -20,7 +20,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
-#include "builtin/fiber.hpp"
 #include "builtin/location.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/channel.hpp"
@@ -62,14 +61,10 @@ namespace rubinius {
     : memory::ManagedThread(id, shared, memory::ManagedThread::eRuby, name)
     , call_frame_(NULL)
     , thread_nexus_(shared.thread_nexus())
-    , saved_call_site_information_(NULL)
-    , fiber_stacks_(this, shared)
     , park_(new Park)
     , stack_start_(0)
     , stack_size_(0)
     , stack_cushion_(shared.config.machine_stack_cushion.value)
-    , current_stack_start_(0)
-    , current_stack_size_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
     , check_local_interrupts_(false)
@@ -91,8 +86,6 @@ namespace rubinius {
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
     , thread(this, nil<Thread>())
-    , current_fiber(this, nil<Fiber>())
-    , root_fiber(this, nil<Fiber>())
     , waiting_object_(this, cNil)
     , start_time_(0)
     , native_method_environment(NULL)
@@ -134,15 +127,6 @@ namespace rubinius {
     return timer::time_elapsed_seconds(start_time_);
   }
 
-  void VM::set_stack_bounds(size_t size) {
-    void* stack_address;
-
-    stack_size_ = size;
-    stack_start_ = &stack_address;
-
-    set_stack_bounds(stack_start_, stack_size_);
-  }
-
   void VM::raise_stack_error(STATE) {
     state->raise_stack_error(state);
   }
@@ -180,6 +164,7 @@ namespace rubinius {
     }
 
     if(interrupt_by_kill()) {
+      /* TODO: Fiber
       Fiber* fib = current_fiber.get();
 
       if(fib->nil_p() || fib->root_p()) {
@@ -187,6 +172,7 @@ namespace rubinius {
       } else {
         set_check_local_interrupts();
       }
+      */
 
       thread_state_.raise_thread_kill();
 
@@ -577,22 +563,8 @@ namespace rubinius {
     set_check_local_interrupts();
   }
 
-  void VM::set_current_fiber(Fiber* fib) {
-    if(fib->root_p()) {
-      restore_stack_bounds();
-    } else {
-      set_stack_bounds(fib->data()->stack_start(), fib->data()->stack_size());
-    }
-
-    current_fiber.set(fib);
-  }
-
   memory::VariableRootBuffers& VM::current_root_buffers() {
-    if(current_fiber->nil_p() || current_fiber->root_p()) {
-      return variable_root_buffers();
-    }
-
-    return current_fiber->variable_root_buffers();
+    return variable_root_buffers();
   }
 
   void VM::gc_scan(memory::GarbageCollector* gc) {
@@ -603,14 +575,6 @@ namespace rubinius {
         profile_[i] = force_as<CompiledCode>(gc->mark_object(profile_[i]));
       }
     }
-  }
-
-  void VM::gc_fiber_clear_mark() {
-    fiber_stacks_.gc_clear_mark();
-  }
-
-  void VM::gc_fiber_scan(memory::GarbageCollector* gc, bool only_marked) {
-    fiber_stacks_.gc_scan(gc, only_marked);
   }
 
   void VM::gc_verify(memory::GarbageCollector* gc) {

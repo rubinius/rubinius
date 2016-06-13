@@ -1062,8 +1062,6 @@ module Errno
   FFI = Rubinius::FFI
 end
 
-Fiber = Rubinius::Fiber
-
 class File < IO
   # these will be necessary when we run on Windows
   DOSISH = false # !!(RUBY_PLATFORM =~ /mswin/)
