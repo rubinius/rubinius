@@ -1,8 +1,4 @@
-# Configuration file for Ruby 2.1-compatible Ruby implementations.
-#
-# Unless you passed to --config (or -B) to MSpec, MSpec will automatically
-# use this config file if the Ruby interpreter with which MSpec advertises
-# itself with RUBY_VERSION =~ /2.1/
+# Configuration file for Ruby 2.3.
 
 class MSpecScript
   # Language features specs
@@ -44,9 +40,6 @@ class MSpecScript
   MSpec.enable_feature :continuation_library
   MSpec.enable_feature :fork
   MSpec.enable_feature :encoding
-
-  # These are encoding-aware methods backported to 1.8.7+ (eg String#bytes)
-  MSpec.enable_feature :encoding_transition
 
   # The Readline specs are not enabled by default because the functionality
   # depends heavily on the underlying library, including whether certain
