@@ -182,45 +182,29 @@ namespace rubinius {
     // thread.
     void unlock_after_fork(STATE);
 
-    /**
-     * Retrieve a value store in the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive+ :thread_locals_aref
-    Object* locals_aref(STATE, Symbol* key);
+    // Rubinius.primitive :thread_fiber_variable_get
+    Object* fiber_variable_get(STATE, Symbol* key);
 
-    /**
-     * Store a value in the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive :thread_locals_store
-    Object* locals_store(STATE, Symbol* key, Object* value);
+    // Rubinius.primitive :thread_fiber_variable_set
+    Object* fiber_variable_set(STATE, Symbol* key, Object* value);
 
-    /**
-     * Remove a value from the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive :thread_locals_remove
-    Object* locals_remove(STATE, Symbol* key);
+    // Rubinius.primitive :thread_fiber_variable_key_p
+    Object* fiber_variable_key_p(STATE, Symbol* key);
 
-    /**
-     * Retrieve the keys for all thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive :thread_locals_keys
-    Array* locals_keys(STATE);
+    // Rubinius.primitive :thread_fiber_variables
+    Array* fiber_variables(STATE);
 
-    /**
-     * Check whether a given key has a value store in the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive+ :thread_locals_has_key
-    Object* locals_has_key(STATE, Symbol* key);
+    // Rubinius.primitive :thread_variable_get
+    Object* variable_get(STATE, Symbol* key);
+
+    // Rubinius.primitive :thread_variable_set
+    Object* variable_set(STATE, Symbol* key, Object* value);
+
+    // Rubinius.primitive :thread_variable_key_p
+    Object* variable_key_p(STATE, Symbol* key);
+
+    // Rubinius.primitive :thread_variables
+    Array* variables(STATE);
 
     void init_lock();
     void stopped();

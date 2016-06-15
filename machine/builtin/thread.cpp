@@ -247,104 +247,37 @@ namespace rubinius {
     los.clear();
   }
 
-  Object* Thread::locals_aref(STATE, Symbol* key) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
-    if(state->vm() != vm()) {
-      return locals()->aref(state, key);
-    }
-    /* TODO: Fiber
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->aref(state, key);
-    }
-    if(try_as<LookupTable>(fib->locals())) {
-      return fib->locals()->aref(state, key);
-    }
-    */
-    return cNil;
+  Object* Thread::variable_get(STATE, Symbol* key) {
+    return locals()->aref(state, key);
   }
 
-  Object* Thread::locals_store(STATE, Symbol* key, Object* value) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
+  Object* Thread::variable_set(STATE, Symbol* key, Object* value) {
+    return locals()->store(state, key, value);
+  }
+
+  Object* Thread::variable_key_p(STATE, Symbol* key) {
+    return locals()->has_key(state, key);
+  }
+
+  Array* Thread::variables(STATE) {
+    return locals()->all_keys(state);
+  }
+
+  Object* Thread::fiber_variable_get(STATE, Symbol* key) {
+    return state->vm()->fiber()->locals()->aref(state, key);
+  }
+
+  Object* Thread::fiber_variable_set(STATE, Symbol* key, Object* value) {
     check_frozen(state);
-    if(state->vm() != vm()) {
-      return locals()->store(state, key, value);
-    }
-    /* TODO: Fiber
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->store(state, key, value);
-    }
-    if(fib->locals()->nil_p()) {
-      fib->locals(state, LookupTable::create(state));
-    }
-    return fib->locals()->store(state, key, value);
-    */
-    return value;
+    return state->vm()->fiber()->locals()->store(state, key, value);
   }
 
-  Object* Thread::locals_remove(STATE, Symbol* key) {
-    check_frozen(state);
-    if(state->vm() != vm()) {
-      return locals()->remove(state, key);
-    }
-    /* TODO: Fiber
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->remove(state, key);
-    }
-    if(fib->locals()->nil_p()) {
-      return cNil;
-    }
-    return fib->locals()->remove(state, key);
-    */
-    return cNil;
+  Object* Thread::fiber_variable_key_p(STATE, Symbol* key) {
+    return state->vm()->fiber()->locals()->has_key(state, key);
   }
 
-  Array* Thread::locals_keys(STATE) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
-    if(state->vm() != vm()) {
-      return locals()->all_keys(state);
-    }
-    /* TODO: Fiber
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->all_keys(state);
-    }
-    if(try_as<LookupTable>(fib->locals())) {
-      return fib->locals()->all_keys(state);
-    }
-    */
-    return Array::create(state, 0);
-  }
-
-  Object* Thread::locals_has_key(STATE, Symbol* key) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
-    if(state->vm() != vm()) {
-      return locals()->has_key(state, key);
-    }
-    /* TODO: Fiber
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->has_key(state, key);
-    }
-    if(try_as<LookupTable>(fib->locals())) {
-      return fib->locals()->has_key(state, key);
-    }
-    */
-    return cFalse;
+  Array* Thread::fiber_variables(STATE) {
+    return state->vm()->fiber()->locals()->all_keys(state);
   }
 
   int Thread::start_thread(STATE, void* (*function)(void*)) {
