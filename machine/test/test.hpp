@@ -44,8 +44,8 @@ public:
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
     Thread::create(&state, vm);
-    vm->thread->alive(&state, cTrue);
-    vm->thread->sleep(&state, cFalse);
+    vm->thread()->alive(&state, cTrue);
+    vm->thread()->sleep(&state, cFalse);
   }
 
   void create() {
