@@ -12,6 +12,7 @@
 #include "builtin/randomizer.hpp"
 
 #include <list>
+#include <mutex>
 
 namespace rubinius {
   class Array;
@@ -52,6 +53,7 @@ namespace rubinius {
     utilities::thread::SpinLock init_lock_;
     utilities::thread::Mutex join_lock_;
     utilities::thread::Condition join_cond_;
+    std::mutex fiber_mutex_;
 
     /// The VM state for this thread and this thread alone
     attr_field(vm, VM*);
@@ -92,7 +94,13 @@ namespace rubinius {
       obj->join_lock_.init();
       obj->join_cond_.init();
 
+      new(&obj->fiber_mutex_) std::mutex;
+
       obj->vm(0);
+    }
+
+    std::mutex& fiber_mutex() {
+      return fiber_mutex_;
     }
 
   public:

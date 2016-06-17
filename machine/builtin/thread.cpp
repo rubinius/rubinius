@@ -115,6 +115,7 @@ namespace rubinius {
 
   void Thread::finalize_instance(STATE) {
     if(vm() && vm()->zombie_p()) {
+      fiber_mutex_.std::mutex::~mutex();
       VM::discard(state, vm());
       vm(NULL);
     }

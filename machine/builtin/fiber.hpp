@@ -46,12 +46,8 @@ namespace rubinius {
   private:
     attr_field(start_time, uint64_t);
 
-    typedef Object* (*FiberFunction)(STATE, Fiber* fiber, Arguments& args);
-
-    attr_field(function, FiberFunction);
-
     attr_field(vm, VM*);
-    attr_field(resume_context, VM*);
+    attr_field(invoke_context, VM*);
 
     std::atomic<Status> status_;
 
@@ -70,18 +66,12 @@ namespace rubinius {
       obj->source(nil<String>());
       obj->status(eCreated);
       obj->start_time(get_current_time());
-      obj->function(Fiber::start_fiber);
       obj->vm(NULL);
-      obj->resume_context(NULL);
+      obj->invoke_context(state->vm());
     }
 
     static void finalize(STATE, Fiber* fib);
-    static Object* unpack_arguments(STATE, Arguments& args);
-
     static void* run(void*);
-
-    static Object* start_fiber(STATE, Fiber* fiber, Arguments& args);
-    static Object* continue_fiber(STATE, Fiber* fiber, Arguments& args);
 
     static Fiber* create(STATE, VM* vm);
 
@@ -104,6 +94,13 @@ namespace rubinius {
 
     bool root_p();
 
+    void unpack_arguments(STATE, Arguments& args);
+    Object* return_value(STATE);
+
+    void start(STATE, Arguments& args);
+    void restart(STATE);
+    void suspend(STATE);
+
     // Rubinius.primitive :fiber_status
     String* status(STATE);
 
@@ -118,7 +115,6 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void mark(Object* t, memory::ObjectMark& mark);
     };
   };
 }
