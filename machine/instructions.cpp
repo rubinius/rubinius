@@ -116,8 +116,9 @@ continue_to_run:
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
-    exc.exception->locations(state,
-          Location::from_call_stack(state));
+    if(exc.exception->locations()->nil_p()) {
+      exc.exception->locations(state, Location::from_call_stack(state));
+    }
     state->raise_exception(exc.exception);
     return NULL;
   }
@@ -267,8 +268,9 @@ continue_to_run:
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
-    exc.exception->locations(state,
-          Location::from_call_stack(state));
+    if(exc.exception->locations()->nil_p()) {
+      exc.exception->locations(state, Location::from_call_stack(state));
+    }
     state->raise_exception(exc.exception);
     return NULL;
   }
@@ -412,8 +414,9 @@ continue_to_run:
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
-    exc.exception->locations(state,
-          Location::from_call_stack(state));
+    if(exc.exception->locations()->nil_p()) {
+      exc.exception->locations(state, Location::from_call_stack(state));
+    }
     state->raise_exception(exc.exception);
     return NULL;
   }
@@ -547,8 +550,9 @@ continue_to_run:
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
-    exc.exception->locations(state,
-          Location::from_call_stack(state));
+    if(exc.exception->locations()->nil_p()) {
+      exc.exception->locations(state, Location::from_call_stack(state));
+    }
     state->raise_exception(exc.exception);
     return NULL;
   }

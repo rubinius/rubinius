@@ -245,7 +245,10 @@ namespace rubinius {
   }
 
   void Exception::raise_fiber_error(STATE, const char* reason) {
-    RubyException::raise(make_exception(state, get_fiber_error(state), reason));
+    Exception* exc = make_exception(state, get_fiber_error(state), reason);
+    exc->locations(state, Location::from_call_stack(state, 0));
+
+    RubyException::raise(exc);
   }
 
   void Exception::raise_memory_error(STATE) {

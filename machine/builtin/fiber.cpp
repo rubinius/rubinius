@@ -57,6 +57,7 @@ namespace rubinius {
     OnStack<1> os(state, fiber);
 
     fiber->arguments(state, args.as_array(state));
+    fiber->function(Fiber::continue_fiber);
 
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
@@ -71,8 +72,6 @@ namespace rubinius {
     // Wait for Fiber thread to start up and pause.
     while(!fiber->vm()->wait_flag());
 
-    fiber->function(Fiber::continue_fiber);
-
     return continue_fiber(state, fiber, args);
   }
 
@@ -80,10 +79,16 @@ namespace rubinius {
     Fiber* fiber = f;
     OnStack<1> os(state, fiber);
 
-    fiber->value(state, unpack_arguments(state, args));
+    {
+      std::lock_guard<std::mutex> guard(fiber->vm()->wait_mutex());
 
-    state->vm()->unmanaged_phase();
-    state->vm()->set_wait_flag(true);
+      fiber->value(state, unpack_arguments(state, args));
+
+      state->vm()->unmanaged_phase();
+      state->vm()->set_wait_flag(true);
+
+      state->vm()->thread()->vm()->set_current_fiber(fiber->vm());
+    }
 
     while(fiber->vm()->wait_flag()) {
       std::lock_guard<std::mutex> guard(fiber->vm()->wait_mutex());
@@ -92,18 +97,19 @@ namespace rubinius {
 
     {
       std::unique_lock<std::mutex> lk(state->vm()->wait_mutex());
+
+      // Through the worm hole...
       while(!fiber->vm()->wait_flag()) {
         state->vm()->wait_condition().wait(lk);
       }
-      if(state->vm()->fiber()->status() != eTransfer) {
-        state->vm()->fiber()->status(eRunning);
-      }
+
+      // We're back...
       state->vm()->set_wait_flag(false);
     }
 
     state->vm()->managed_phase();
 
-    if(state->vm()->thread()->vm()->thread_state()->current_exception()->nil_p()) {
+    if(state->vm()->thread_state()->current_exception()->nil_p()) {
       return fiber->value();
     } else {
       return NULL;
@@ -132,44 +138,49 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
-    vm->set_wait_flag(true);
-
     {
       std::unique_lock<std::mutex> lk(vm->wait_mutex());
+
+      vm->set_wait_flag(true);
+
+      // Through the worm hole...
       while(!vm->fiber()->resume_context()->wait_flag()) {
         vm->wait_condition().wait(lk);
       }
+
+      // We're back...
       if(vm->fiber()->status() != eTransfer) {
         vm->fiber()->status(eRunning);
       }
       vm->set_wait_flag(false);
     }
 
-    state->vm()->managed_phase();
+    vm->managed_phase();
 
     Object* value = vm->fiber()->block()->send(state, G(sym_call),
         vm->fiber()->arguments(), vm->fiber()->block());
     vm->set_call_frame(NULL);
 
-    vm->fiber()->status(eDead);
+    {
+      std::lock_guard<std::mutex> guard(vm->fiber()->resume_context()->wait_mutex());
 
-    VM* resume_context = 0;
+      if(value) {
+        vm->fiber()->value(state, value);
+      } else {
+        vm->fiber()->resume_context()->thread_state()->set_state(vm->thread_state());
+      }
 
-    if(value) {
-      vm->fiber()->value(state, value);
-      resume_context = vm->fiber()->resume_context();
-    } else {
-      vm->thread()->vm()->set_thread_state(vm->thread_state());
-      // Usurp whatever Fiber the Thread had invoked.
-      resume_context = vm->thread()->vm();
+      vm->fiber()->status(eDead);
+
+      vm->unmanaged_phase();
+      vm->fiber()->vm()->set_wait_flag(true);
+
+      state->vm()->thread()->vm()->set_current_fiber(vm->fiber()->resume_context());
     }
 
-    vm->unmanaged_phase();
-    vm->set_wait_flag(true);
-
-    while(resume_context->wait_flag()) {
-      std::lock_guard<std::mutex> guard(resume_context->wait_mutex());
-      resume_context->wait_condition().notify_one();
+    while(vm->fiber()->resume_context()->wait_flag()) {
+      std::lock_guard<std::mutex> guard(vm->fiber()->resume_context()->wait_mutex());
+      vm->fiber()->resume_context()->wait_condition().notify_one();
     }
 
     state->shared().report_profile(state);
@@ -207,6 +218,7 @@ namespace rubinius {
     fiber->thread_name(state, String::create(state, vm->name().c_str()));
     fiber->fiber_id(Fixnum::from(0));
     fiber->status(eRunning);
+    fiber->function(Fiber::continue_fiber);
 
     return fiber;
   }
@@ -289,8 +301,8 @@ namespace rubinius {
       Exception::raise_fiber_error(state, "attempt to resume root fiber");
     }
 
+    status(eRunning);
     resume_context(state->vm());
-    state->vm()->thread()->vm()->set_current_fiber(vm());
 
     return _function_(state, this, args);
   }
@@ -306,7 +318,6 @@ namespace rubinius {
 
     status(eTransfer);
     resume_context(state->vm()->thread()->vm());
-    state->vm()->thread()->vm()->set_current_fiber(vm());
 
     return _function_(state, this, args);
   }
@@ -321,34 +332,43 @@ namespace rubinius {
       Exception::raise_fiber_error(state, "can't yield from transferred fiber");
     }
 
-    fiber->value(state, unpack_arguments(state, args));
+    {
+      std::lock_guard<std::mutex> guard(fiber->resume_context()->wait_mutex());
 
-    state->vm()->unmanaged_phase();
-    fiber->vm()->set_wait_flag(true);
+      fiber->value(state, unpack_arguments(state, args));
+      fiber->status(eYielding);
+
+      state->vm()->unmanaged_phase();
+      fiber->vm()->set_wait_flag(true);
+
+      state->vm()->thread()->vm()->set_current_fiber(fiber->resume_context());
+    }
 
     while(fiber->resume_context()->wait_flag()) {
       std::lock_guard<std::mutex> guard(fiber->resume_context()->wait_mutex());
       fiber->resume_context()->wait_condition().notify_one();
     }
 
-    fiber->status(eYielding);
-    state->vm()->thread()->vm()->set_current_fiber(fiber->resume_context());
-
     {
       std::unique_lock<std::mutex> lk(state->vm()->wait_mutex());
+
+      // Through the worm hole...
       while(!fiber->resume_context()->wait_flag()) {
         state->vm()->wait_condition().wait(lk);
       }
-      state->vm()->set_wait_flag(false);
-    }
 
-    if(fiber->status() != eTransfer) {
+      // We're back...
       fiber->status(eRunning);
+      state->vm()->set_wait_flag(false);
     }
 
     state->vm()->managed_phase();
 
-    return fiber->resume_context()->fiber()->value();
+    if(state->vm()->thread_state()->current_exception()->nil_p()) {
+      return fiber->value();
+    } else {
+      return NULL;
+    }
   }
 
   void Fiber::finalize(STATE, Fiber* fib) {

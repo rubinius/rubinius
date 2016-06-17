@@ -229,10 +229,6 @@ namespace rubinius {
       return &thread_state_;
     }
 
-    void set_thread_state(VMThreadState* thread_state) {
-      thread_state_ = *thread_state;
-    }
-
     Memory* memory() {
       return shared.memory();
     }

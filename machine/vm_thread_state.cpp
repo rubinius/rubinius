@@ -36,6 +36,14 @@ namespace rubinius {
     throw_dest_.set(thread_state->throw_dest());
   }
 
+  void VMThreadState::set_state(VMThreadState* thread_state) {
+    raise_reason_ = thread_state->raise_reason();
+    current_exception_.set(thread_state->current_exception());
+    raise_value_.set(thread_state->raise_value());
+    destination_scope_.set(thread_state->destination_scope());
+    throw_dest_.set(thread_state->throw_dest());
+  }
+
   void VMThreadState::clear() {
     raise_value_.set(cNil);
     raise_reason_ = cNone;
