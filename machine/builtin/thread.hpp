@@ -48,6 +48,7 @@ namespace rubinius {
     attr_accessor(stack_size, Fixnum);
     attr_accessor(source, String);
     attr_accessor(fiber, Fiber);
+    attr_accessor(current_fiber, Fiber);
 
   private:
     utilities::thread::SpinLock init_lock_;
@@ -57,10 +58,6 @@ namespace rubinius {
 
     /// The VM state for this thread and this thread alone
     attr_field(vm, VM*);
-
-    typedef std::list<Fiber*> FibersList;
-
-    attr_field(fibers, FibersList);
 
     typedef Object* (*ThreadFunction)(STATE);
 
@@ -89,6 +86,7 @@ namespace rubinius {
       obj->stack_size(Fixnum::from(state->shared().config.machine_thread_stack_size.value));
       obj->source(nil<String>());
       obj->fiber(nil<Fiber>());
+      obj->current_fiber(nil<Fiber>());
 
       obj->init_lock_.init();
       obj->join_lock_.init();

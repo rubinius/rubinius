@@ -76,8 +76,8 @@ namespace rubinius {
 
     vm->set_thread(thr);
 
-    Fiber::create(state, vm);
-    vm->set_current_fiber(vm->fiber()->vm());
+    thr->fiber(state, Fiber::create(state, vm));
+    thr->current_fiber(state, thr->fiber());
 
     return thr;
   }
@@ -265,20 +265,20 @@ namespace rubinius {
   }
 
   Object* Thread::fiber_variable_get(STATE, Symbol* key) {
-    return state->vm()->fiber()->locals()->aref(state, key);
+    return current_fiber()->locals()->aref(state, key);
   }
 
   Object* Thread::fiber_variable_set(STATE, Symbol* key, Object* value) {
     check_frozen(state);
-    return state->vm()->fiber()->locals()->store(state, key, value);
+    return current_fiber()->locals()->store(state, key, value);
   }
 
   Object* Thread::fiber_variable_key_p(STATE, Symbol* key) {
-    return state->vm()->fiber()->locals()->has_key(state, key);
+    return current_fiber()->locals()->has_key(state, key);
   }
 
   Array* Thread::fiber_variables(STATE) {
-    return state->vm()->fiber()->locals()->all_keys(state);
+    return current_fiber()->locals()->all_keys(state);
   }
 
   int Thread::start_thread(STATE, void* (*function)(void*)) {
@@ -440,8 +440,8 @@ namespace rubinius {
 
     if(!vm()) return cNil;
 
-    vm()->current_fiber()->register_kill(state);
-    vm()->current_fiber()->wakeup(state);
+    current_fiber()->vm()->register_kill(state);
+    current_fiber()->vm()->wakeup(state);
 
     return exc;
   }
@@ -452,11 +452,11 @@ namespace rubinius {
     if(!vm()) return cNil;
 
     if(state->vm()->thread() == this) {
-      vm()->current_fiber()->thread_state()->raise_thread_kill();
+      current_fiber()->vm()->thread_state()->raise_thread_kill();
       return NULL;
     } else {
-      vm()->current_fiber()->register_kill(state);
-      vm()->current_fiber()->wakeup(state);
+      current_fiber()->vm()->register_kill(state);
+      current_fiber()->vm()->wakeup(state);
       return this;
     }
   }
@@ -468,7 +468,7 @@ namespace rubinius {
       return force_as<Thread>(Primitives::failure());
     }
 
-    vm()->current_fiber()->wakeup(state);
+    current_fiber()->vm()->wakeup(state);
 
     return this;
   }

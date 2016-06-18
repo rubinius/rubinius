@@ -74,7 +74,7 @@ namespace rubinius {
   void Fiber::restart(STATE) {
     std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
-    state->vm()->thread()->vm()->set_current_fiber(vm());
+    state->vm()->thread()->current_fiber(state, this);
 
     while(vm()->wait_flag()) {
       std::lock_guard<std::mutex> guard(vm()->wait_mutex());

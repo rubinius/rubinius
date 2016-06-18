@@ -91,7 +91,6 @@ namespace rubinius {
     , interrupted_exception_(this, nil<Exception>())
     , thread_(this, nil<Thread>())
     , fiber_(this, nil<Fiber>())
-    , current_fiber_(NULL)
     , waiting_object_(this, cNil)
     , start_time_(0)
     , native_method_environment(NULL)

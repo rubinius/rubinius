@@ -136,8 +136,6 @@ namespace rubinius {
     memory::TypedRoot<Thread*> thread_;
     memory::TypedRoot<Fiber*> fiber_;
 
-    VM* current_fiber_;
-
     /// Object that waits for inflation
     memory::TypedRoot<Object*> waiting_object_;
 
@@ -190,14 +188,6 @@ namespace rubinius {
 
     void set_wait_flag(bool wait) {
       wait_flag_ = wait;
-    }
-
-    void set_current_fiber(VM* vm) {
-      current_fiber_ = vm;
-    }
-
-    VM* current_fiber() {
-      return current_fiber_;
     }
 
     void set_thread(Thread* thread);
