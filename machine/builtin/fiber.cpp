@@ -3,6 +3,7 @@
 #include "on_stack.hpp"
 #include "memory.hpp"
 #include "metrics.hpp"
+#include "raise_reason.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
@@ -98,7 +99,7 @@ namespace rubinius {
   }
 
   Object* Fiber::return_value(STATE) {
-    if(vm()->thread_state()->current_exception()->nil_p()) {
+    if(vm()->thread_state()->raise_reason() == cNone) {
       return value();
     } else {
       invoke_context()->thread_state()->set_state(vm()->thread_state());

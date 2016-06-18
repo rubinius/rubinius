@@ -178,16 +178,7 @@ namespace rubinius {
     }
 
     if(interrupt_by_kill()) {
-      /* TODO: Fiber
-      Fiber* fib = current_fiber.get();
-
-      if(fib->nil_p() || fib->root_p()) {
-        clear_interrupt_by_kill();
-      } else {
-        set_check_local_interrupts();
-      }
-      */
-
+      set_check_local_interrupts();
       thread_state_.raise_thread_kill();
 
       return true;

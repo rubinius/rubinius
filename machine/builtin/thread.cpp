@@ -440,8 +440,8 @@ namespace rubinius {
 
     if(!vm()) return cNil;
 
-    vm()->register_raise(state, exc);
-    vm()->wakeup(state);
+    vm()->current_fiber()->register_kill(state);
+    vm()->current_fiber()->wakeup(state);
 
     return exc;
   }
@@ -452,11 +452,11 @@ namespace rubinius {
     if(!vm()) return cNil;
 
     if(state->vm()->thread() == this) {
-      vm()->thread_state_.raise_thread_kill();
+      vm()->current_fiber()->thread_state()->raise_thread_kill();
       return NULL;
     } else {
-      vm()->register_kill(state);
-      vm()->wakeup(state);
+      vm()->current_fiber()->register_kill(state);
+      vm()->current_fiber()->wakeup(state);
       return this;
     }
   }
@@ -468,7 +468,7 @@ namespace rubinius {
       return force_as<Thread>(Primitives::failure());
     }
 
-    vm()->wakeup(state);
+    vm()->current_fiber()->wakeup(state);
 
     return this;
   }
