@@ -135,7 +135,11 @@ namespace rubinius {
         vm->fiber()->arguments(), vm->fiber()->block());
     vm->set_call_frame(NULL);
 
-    value = vm->fiber()->return_value(state);
+    if(value) {
+      vm->fiber()->value(state, value);
+    } else {
+      vm->fiber()->value(state, cNil);
+    }
 
     vm->fiber()->invoke_context()->fiber()->restart(state);
 
@@ -321,7 +325,7 @@ namespace rubinius {
     fiber->suspend(state);
 
     // We're back...
-    return fiber->invoke_context()->fiber()->return_value(state);
+    return fiber->return_value(state);
   }
 
   void Fiber::finalize(STATE, Fiber* fib) {
