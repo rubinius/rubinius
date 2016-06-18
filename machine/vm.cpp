@@ -177,7 +177,12 @@ namespace rubinius {
     }
 
     if(interrupt_by_kill()) {
-      set_check_local_interrupts();
+      if(state->vm()->thread()->current_fiber()->root_p()) {
+        clear_interrupt_by_kill();
+      } else {
+        set_check_local_interrupts();
+      }
+
       thread_state_.raise_thread_kill();
 
       return true;
