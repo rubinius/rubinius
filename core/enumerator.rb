@@ -29,7 +29,7 @@ module Enumerable
           size = receiver_or_size
         end
 
-        receiver = EnumeratorObject.new(&block)
+        receiver = Generator.new(&block)
       else
         if undefined.equal? receiver_or_size
           raise ArgumentError, "Enumerator#initialize requires a block when called without arguments"
@@ -184,7 +184,7 @@ module Enumerable
       end
     end
 
-    class EnumeratorObject
+    class Generator
       include Enumerable
 
       def initialize(&block)
