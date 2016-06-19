@@ -8,6 +8,7 @@
 #include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
+#include "builtin/thread.hpp"
 
 #include "instruments/timing.hpp"
 
@@ -42,6 +43,7 @@ namespace rubinius {
     attr_accessor(thread_name, String);
     attr_accessor(fiber_id, Fixnum);
     attr_accessor(source, String);
+    attr_accessor(thread, Thread);
 
   private:
     attr_field(start_time, uint64_t);
@@ -64,6 +66,7 @@ namespace rubinius {
       obj->thread_name(String::create(state, state->vm()->name().c_str()));
       obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
       obj->source(nil<String>());
+      obj->thread(state->vm()->thread());
       obj->status(eCreated);
       obj->start_time(get_current_time());
       obj->vm(NULL);
@@ -83,6 +86,12 @@ namespace rubinius {
 
     // Rubinius.primitive :fiber_s_yield
     static Object* s_yield(STATE, Arguments& args);
+
+    // Rubinius.primitive :fiber_s_list
+    static Array* s_list(STATE);
+
+    // Rubinius.primitive :fiber_s_main
+    static Fiber* s_main(STATE);
 
     Status status() {
       return status_;

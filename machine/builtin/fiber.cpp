@@ -196,6 +196,7 @@ namespace rubinius {
     name << "fiber." << fiber->fiber_id()->to_native();
 
     fiber->vm(state->vm()->thread_nexus()->new_vm(&state->shared(), name.str().c_str()));
+    fiber->vm()->set_kind(memory::ManagedThread::eFiber);
 
     if(Fixnum* size = try_as<Fixnum>(stack_size)) {
       fiber->vm()->validate_stack_size(state, size->to_native());
@@ -326,6 +327,14 @@ namespace rubinius {
 
     // We're back...
     return fiber->return_value(state);
+  }
+
+  Array* Fiber::s_list(STATE) {
+    return state->shared().vm_fibers(state);
+  }
+
+  Fiber* Fiber::s_main(STATE) {
+    return state->vm()->thread()->fiber();
   }
 
   void Fiber::finalize(STATE, Fiber* fib) {

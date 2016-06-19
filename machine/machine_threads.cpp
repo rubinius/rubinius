@@ -19,6 +19,7 @@ namespace rubinius {
     , thread_running_(false)
     , thread_exit_(false)
   {
+    vm_->set_kind(memory::ManagedThread::eSystem);
     state->shared().machine_threads()->register_thread(this);
   }
 

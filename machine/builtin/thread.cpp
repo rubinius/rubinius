@@ -264,6 +264,10 @@ namespace rubinius {
     return locals()->all_keys(state);
   }
 
+  Array* Thread::fiber_list(STATE) {
+    return state->shared().vm_thread_fibers(state, this);
+  }
+
   Object* Thread::fiber_variable_get(STATE, Symbol* key) {
     return current_fiber()->locals()->aref(state, key);
   }

@@ -70,7 +70,9 @@ namespace rubinius {
   }
 
   VM* SignalThread::new_vm(STATE) {
-    return state->shared().thread_nexus()->new_vm(&state->shared(), "rbx.system");
+    VM* vm = state->shared().thread_nexus()->new_vm(&state->shared(), "rbx.system");
+    vm->set_kind(memory::ManagedThread::eSystem);
+    return vm;
   }
 
   void SignalThread::set_exit_code(Object* exit_code) {

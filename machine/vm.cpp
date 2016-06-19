@@ -59,7 +59,7 @@
 
 namespace rubinius {
   VM::VM(uint32_t id, SharedState& shared, const char* name)
-    : memory::ManagedThread(id, shared, memory::ManagedThread::eRuby, name)
+    : memory::ManagedThread(id, shared, memory::ManagedThread::eThread, name)
     , call_frame_(NULL)
     , thread_nexus_(shared.thread_nexus())
     , park_(new Park)

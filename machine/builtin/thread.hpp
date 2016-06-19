@@ -188,6 +188,9 @@ namespace rubinius {
     // thread.
     void unlock_after_fork(STATE);
 
+    // Rubinius.primitive :thread_fiber_list
+    Array* fiber_list(STATE);
+
     // Rubinius.primitive :thread_fiber_variable_get
     Object* fiber_variable_get(STATE, Symbol* key);
 

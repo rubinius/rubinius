@@ -84,6 +84,11 @@ class Thread
     nil
   end
 
+  def fiber_list
+    Rubinius.primitive :thread_fiber_list
+    Kernel.raise PrimitiveFailure, "Thread.fiber_list primitive failed"
+  end
+
   def wakeup
     Rubinius.primitive :thread_wakeup
     Kernel.raise ThreadError, "Thread#wakeup primitive failed, thread may be dead"

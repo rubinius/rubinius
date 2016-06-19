@@ -24,6 +24,16 @@ class Fiber
     raise PrimitiveFailure, "Fiber.yield primitive failed"
   end
 
+  def self.list
+    Rubinius.primitive :fiber_s_list
+    raise PrimitiveFailure, "Fiber.list primitive failed"
+  end
+
+  def self.main
+    Rubinius.primitive :fiber_s_main
+    raise PrimitiveFailure, "Fiber.main primitive failed"
+  end
+
   def status
     Rubinius.primitive :fiber_status
     raise PrimitiveFailure, "Fiber#status primitive failed"
