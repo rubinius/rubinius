@@ -34,8 +34,6 @@ namespace rubinius {
     };
 
     attr_accessor(block, Object);
-    attr_accessor(arguments, Array);
-    attr_accessor(value, Object);
     attr_accessor(exception, Exception);
     attr_accessor(locals, LookupTable);
     attr_accessor(pid, Fixnum);
@@ -57,8 +55,6 @@ namespace rubinius {
     static void bootstrap(STATE);
     static void initialize(STATE, Fiber* obj) {
       obj->block(nil<Object>());
-      obj->arguments(nil<Array>());
-      obj->value(nil<Object>());
       obj->exception(nil<Exception>());
       obj->locals(LookupTable::create(state));
       obj->pid(Fixnum::from(0));

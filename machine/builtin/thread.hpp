@@ -49,6 +49,7 @@ namespace rubinius {
     attr_accessor(source, String);
     attr_accessor(fiber, Fiber);
     attr_accessor(current_fiber, Fiber);
+    attr_accessor(fiber_value, Object);
 
   private:
     utilities::thread::SpinLock init_lock_;
@@ -87,6 +88,7 @@ namespace rubinius {
       obj->source(nil<String>());
       obj->fiber(nil<Fiber>());
       obj->current_fiber(nil<Fiber>());
+      obj->fiber_value(nil<Object>());
 
       obj->init_lock_.init();
       obj->join_lock_.init();

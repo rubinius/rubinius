@@ -43,19 +43,19 @@ namespace rubinius {
   void Fiber::unpack_arguments(STATE, Arguments& args) {
     switch(args.total()) {
       case 0:
-        value(state, cNil);
+        state->vm()->thread()->fiber_value(state, cNil);
         break;
       case 1:
-        value(state, args.get_argument(0));
+        state->vm()->thread()->fiber_value(state, args.get_argument(0));
         break;
       default:
-        value(state,  args.as_array(state));
+        state->vm()->thread()->fiber_value(state,  args.as_array(state));
         break;
     }
   }
 
   void Fiber::start(STATE, Arguments& args) {
-    arguments(state, args.as_array(state));
+    state->vm()->thread()->fiber_value(state, args.as_array(state));
 
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
@@ -92,6 +92,8 @@ namespace rubinius {
     while(!vm()->running_p()) {
       ; // spin wait
     }
+
+    state->vm()->thread()->current_fiber(state, this);
   }
 
   void Fiber::suspend(STATE) {
@@ -125,7 +127,7 @@ namespace rubinius {
 
   Object* Fiber::return_value(STATE) {
     if(vm()->thread_state()->raise_reason() == cNone) {
-      return value();
+      return state->vm()->thread()->fiber_value();
     } else {
       invoke_context()->thread_state()->set_state(vm()->thread_state());
       return NULL;
@@ -157,18 +159,19 @@ namespace rubinius {
     vm->fiber()->suspend(state);
 
     Object* value = vm->fiber()->block()->send(state, G(sym_call),
-        vm->fiber()->arguments(), vm->fiber()->block());
+        as<Array>(vm->thread()->fiber_value()), vm->fiber()->block());
     vm->set_call_frame(NULL);
 
     if(value) {
-      vm->fiber()->value(state, value);
+      vm->thread()->fiber_value(state, value);
     } else {
-      vm->fiber()->value(state, cNil);
+      vm->thread()->fiber_value(state, cNil);
     }
 
     if(vm->fiber()->status() == eTransfer) {
       // restart the root Fiber
-      vm->thread()->vm()->fiber()->restart(state);
+      vm->thread()->fiber()->invoke_context(vm);
+      vm->thread()->fiber()->restart(state);
     } else {
       vm->fiber()->invoke_context()->fiber()->restart(state);
     }
@@ -289,6 +292,12 @@ namespace rubinius {
   }
 
   Object* Fiber::resume(STATE, Arguments& args) {
+    if(state->vm()->thread() != thread()) {
+      Exception::raise_fiber_error(state, "attempt to resume fiber across threads");
+    }
+
+    unpack_arguments(state, args);
+
     if(status() == eCreated) {
       start(state, args);
     } else if(status() == eTransfer) {
@@ -302,7 +311,6 @@ namespace rubinius {
     }
 
     status(eRunning);
-    unpack_arguments(state, args);
     invoke_context(state->vm());
 
     // Being cooperative...
@@ -316,6 +324,12 @@ namespace rubinius {
   }
 
   Object* Fiber::transfer(STATE, Arguments& args) {
+    if(state->vm()->thread() != thread()) {
+      Exception::raise_fiber_error(state, "attempt to transfer fiber across threads");
+    }
+
+    unpack_arguments(state, args);
+
     if(status() == eCreated) {
       start(state, args);
     } else if(state->vm()->fiber() == this) {
@@ -325,7 +339,6 @@ namespace rubinius {
     }
 
     status(eTransfer);
-    unpack_arguments(state, args);
     invoke_context(state->vm());
 
     // Being cooperative...
