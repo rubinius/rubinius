@@ -440,7 +440,7 @@ namespace rubinius {
 
     if(!vm()) return cNil;
 
-    current_fiber()->vm()->register_kill(state);
+    current_fiber()->vm()->register_raise(state, exc);
     current_fiber()->vm()->wakeup(state);
 
     return exc;
