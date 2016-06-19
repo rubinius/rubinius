@@ -106,7 +106,16 @@ namespace rubinius {
 
     std::mutex wait_mutex_;
     std::condition_variable wait_condition_;
-    std::atomic<bool> wait_flag_;
+
+    enum FiberTransition {
+      eSuspending,
+      eSuspended,
+      eResuming,
+      eRunning,
+      eFinished
+    };
+
+    std::atomic<FiberTransition> transition_flag_;
 
     utilities::thread::SpinLock interrupt_lock_;
 
@@ -182,12 +191,40 @@ namespace rubinius {
       return wait_condition_;
     }
 
-    std::atomic<bool>& wait_flag() {
-      return wait_flag_;
+    bool suspending_p() const {
+      return transition_flag_ == eSuspending;
     }
 
-    void set_wait_flag(bool wait) {
-      wait_flag_ = wait;
+    bool suspended_p() const {
+      return transition_flag_ == eSuspended;
+    }
+
+    bool resuming_p() const {
+      return transition_flag_ == eResuming;
+    }
+
+    bool running_p() const {
+      return transition_flag_ == eRunning;
+    }
+
+    void set_suspending() {
+      transition_flag_ = eSuspending;
+    }
+
+    void set_suspended() {
+      transition_flag_ = eSuspended;
+    }
+
+    void set_resuming() {
+      transition_flag_ = eResuming;
+    }
+
+    void set_running() {
+      transition_flag_ = eRunning;
+    }
+
+    void set_finished() {
+      transition_flag_ = eFinished;
     }
 
     void set_thread(Thread* thread);

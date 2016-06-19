@@ -72,7 +72,7 @@ namespace rubinius {
     , thread_step_(false)
     , wait_mutex_()
     , wait_condition_()
-    , wait_flag_(false)
+    , transition_flag_(eSuspending)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)

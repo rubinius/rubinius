@@ -68,34 +68,59 @@ namespace rubinius {
     pthread_attr_destroy(&attrs);
 
     // Wait for Fiber thread to start up and pause.
-    while(!vm()->wait_flag());
+    while(!vm()->suspended_p()) {
+      ; // spin wait
+    }
   }
 
   void Fiber::restart(STATE) {
-    std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+    if(!vm()->suspended_p()) {
+      Exception::raise_fiber_error(state, "attempt to restart non-suspended fiber");
+    }
 
-    state->vm()->thread()->current_fiber(state, this);
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
-    while(vm()->wait_flag()) {
-      std::lock_guard<std::mutex> guard(vm()->wait_mutex());
-      vm()->wait_condition().notify_one();
+      while(vm()->suspended_p()) {
+        std::lock_guard<std::mutex> guard(vm()->wait_mutex());
+        vm()->wait_condition().notify_one();
+      }
+
+      state->vm()->set_suspending();
+    }
+
+    while(!vm()->running_p()) {
+      ; // spin wait
     }
   }
 
   void Fiber::suspend(STATE) {
     {
       std::unique_lock<std::mutex> lk(vm()->wait_mutex());
-      vm()->set_wait_flag(true);
+      vm()->set_suspended();
 
       {
         UnmanagedPhase unmanaged(state);
         vm()->wait_condition().wait(lk);
       }
 
-      vm()->set_wait_flag(false);
+      vm()->set_resuming();
     }
 
-    std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+    while(invoke_context()->running_p()) {
+      ; // spin wait
+    }
+
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+      vm()->set_running();
+
+      while(invoke_context()->suspending_p()) {
+        ; // spin wait
+      }
+
+      state->vm()->thread()->current_fiber(state, this);
+    }
   }
 
   Object* Fiber::return_value(STATE) {
@@ -141,10 +166,15 @@ namespace rubinius {
       vm->fiber()->value(state, cNil);
     }
 
-    vm->fiber()->invoke_context()->fiber()->restart(state);
+    if(vm->fiber()->status() == eTransfer) {
+      // restart the root Fiber
+      vm->thread()->vm()->fiber()->restart(state);
+    } else {
+      vm->fiber()->invoke_context()->fiber()->restart(state);
+    }
 
     vm->fiber()->status(eDead);
-    vm->fiber()->vm()->set_wait_flag(true);
+    vm->fiber()->vm()->set_finished();
 
     vm->unmanaged_phase();
 
@@ -176,8 +206,9 @@ namespace rubinius {
     Fiber* fiber = state->memory()->new_object<Fiber>(state, G(fiber));
 
     vm->set_fiber(fiber);
-    fiber->vm(vm);
+    vm->set_running();
 
+    fiber->vm(vm);
     fiber->pid(vm->thread()->pid());
     fiber->stack_size(vm->thread()->stack_size());
     fiber->thread_name(state, String::create(state, vm->name().c_str()));
@@ -197,6 +228,7 @@ namespace rubinius {
 
     fiber->vm(state->vm()->thread_nexus()->new_vm(&state->shared(), name.str().c_str()));
     fiber->vm()->set_kind(memory::ManagedThread::eFiber);
+    fiber->vm()->set_suspending();
 
     if(Fixnum* size = try_as<Fixnum>(stack_size)) {
       fiber->vm()->validate_stack_size(state, size->to_native());
@@ -294,7 +326,7 @@ namespace rubinius {
 
     status(eTransfer);
     unpack_arguments(state, args);
-    invoke_context(state->vm()->thread()->vm());
+    invoke_context(state->vm());
 
     // Being cooperative...
     restart(state);
