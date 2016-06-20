@@ -48,8 +48,10 @@ namespace rubinius {
 
     attr_field(vm, VM*);
     attr_field(invoke_context, VM*);
+    attr_field(restart_context, VM*);
 
     std::atomic<Status> status_;
+    std::atomic<bool> wakeup_;
 
   public:
     static void bootstrap(STATE);
@@ -63,10 +65,12 @@ namespace rubinius {
       obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
       obj->source(nil<String>());
       obj->thread(state->vm()->thread());
-      obj->status(eCreated);
       obj->start_time(get_current_time());
       obj->vm(NULL);
       obj->invoke_context(state->vm());
+      obj->restart_context(state->vm());
+      obj->status(eCreated);
+      obj->clear_wakeup();
     }
 
     static void finalize(STATE, Fiber* fib);
@@ -89,6 +93,8 @@ namespace rubinius {
     // Rubinius.primitive :fiber_s_main
     static Fiber* s_main(STATE);
 
+    bool root_p();
+
     Status status() {
       return status_;
     }
@@ -97,14 +103,24 @@ namespace rubinius {
       status_ = status;
     }
 
-    bool root_p();
+    void wakeup() {
+      wakeup_ = true;
+    }
+
+    void clear_wakeup() {
+      wakeup_ = false;
+    }
+
+    bool wakeup_p() {
+      return wakeup_;
+    }
 
     void unpack_arguments(STATE, Arguments& args);
     Object* return_value(STATE);
 
     void start(STATE, Arguments& args);
     void restart(STATE);
-    void suspend(STATE);
+    void suspend_and_continue(STATE);
 
     // Rubinius.primitive :fiber_status
     String* status(STATE);

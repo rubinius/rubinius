@@ -191,6 +191,10 @@ namespace rubinius {
       return wait_condition_;
     }
 
+    FiberTransition transition_flag() {
+      return transition_flag_;
+    }
+
     bool suspending_p() const {
       return transition_flag_ == eSuspending;
     }
@@ -205,6 +209,10 @@ namespace rubinius {
 
     bool running_p() const {
       return transition_flag_ == eRunning;
+    }
+
+    bool finished_p() const {
+      return transition_flag_ == eFinished;
     }
 
     void set_suspending() {

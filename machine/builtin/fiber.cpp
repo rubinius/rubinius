@@ -78,49 +78,53 @@ namespace rubinius {
       std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
       if(!vm()->suspended_p()) {
-        Exception::raise_fiber_error(state, "attempt to restart non-suspended fiber");
-      }
-
-      while(vm()->suspended_p()) {
-        std::lock_guard<std::mutex> guard(vm()->wait_mutex());
-        vm()->wait_condition().notify_one();
+        std::ostringstream msg;
+        msg << "attempt to restart non-suspended (" << vm()->transition_flag() << ") fiber";
+        Exception::raise_fiber_error(state, msg.str().c_str());
       }
 
       state->vm()->set_suspending();
+
+      restart_context(state->vm());
+      wakeup();
+
+      {
+        UnmanagedPhase unmanaged(state);
+
+        while(vm()->suspended_p()) {
+          std::lock_guard<std::mutex> guard(vm()->wait_mutex());
+          vm()->wait_condition().notify_one();
+        }
+      }
     }
 
     while(!vm()->running_p()) {
       ; // spin wait
     }
-
-    {
-      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
-      state->vm()->thread()->current_fiber(state, this);
-    }
   }
 
-  void Fiber::suspend(STATE) {
+  void Fiber::suspend_and_continue(STATE) {
     {
       std::unique_lock<std::mutex> lk(vm()->wait_mutex());
-      vm()->set_suspended();
 
+      vm()->set_suspended();
       {
         UnmanagedPhase unmanaged(state);
-        vm()->wait_condition().wait(lk);
-      }
 
+        while(!wakeup_p()) {
+          vm()->wait_condition().wait(lk);
+        }
+      }
+      clear_wakeup();
       vm()->set_resuming();
     }
 
-    while(invoke_context()->running_p()) {
-      ; // spin wait
-    }
-
     {
       std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
       vm()->set_running();
 
-      while(invoke_context()->suspending_p()) {
+      while(!restart_context()->suspended_p()) {
         ; // spin wait
       }
 
@@ -159,7 +163,7 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
-    vm->fiber()->suspend(state);
+    vm->fiber()->suspend_and_continue(state);
 
     Object* value = vm->fiber()->block()->send(state, G(sym_call),
         as<Array>(vm->thread()->fiber_value()), vm->fiber()->block());
@@ -179,8 +183,12 @@ namespace rubinius {
       vm->fiber()->invoke_context()->fiber()->restart(state);
     }
 
-    vm->fiber()->status(eDead);
-    vm->fiber()->vm()->set_finished();
+    {
+      std::lock_guard<std::mutex> guard(vm->wait_mutex());
+
+      vm->fiber()->status(eDead);
+      vm->set_suspended();
+    }
 
     vm->unmanaged_phase();
 
@@ -295,60 +303,69 @@ namespace rubinius {
   }
 
   Object* Fiber::resume(STATE, Arguments& args) {
-    if(state->vm()->thread() != thread()) {
-      Exception::raise_fiber_error(state, "attempt to resume fiber across threads");
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
+      if(state->vm()->thread() != thread()) {
+        Exception::raise_fiber_error(state, "attempt to resume fiber across threads");
+      } else if(status() == eTransfer) {
+        Exception::raise_fiber_error(state, "attempt to resume transfered fiber");
+      } else if(status() == eRunning) {
+        Exception::raise_fiber_error(state, "attempt to resume running fiber");
+      } else if(status() == eDead) {
+        Exception::raise_fiber_error(state, "attempt to resume dead fiber");
+      } else if(root_p()) {
+        Exception::raise_fiber_error(state, "attempt to resume root fiber");
+      }
+
+      unpack_arguments(state, args);
+      invoke_context(state->vm());
+
+      if(status() == eCreated) {
+        start(state, args);
+      }
+
+      status(eRunning);
     }
-
-    unpack_arguments(state, args);
-
-    if(status() == eCreated) {
-      start(state, args);
-    } else if(status() == eTransfer) {
-      Exception::raise_fiber_error(state, "attempt to resume transfered fiber");
-    } else if(status() == eRunning) {
-      Exception::raise_fiber_error(state, "attempt to resume running fiber");
-    } else if(status() == eDead) {
-      Exception::raise_fiber_error(state, "attempt to resume dead fiber");
-    } else if(root_p()) {
-      Exception::raise_fiber_error(state, "attempt to resume root fiber");
-    }
-
-    status(eRunning);
-    invoke_context(state->vm());
 
     // Being cooperative...
     restart(state);
 
     // Through the worm hole...
-    state->vm()->fiber()->suspend(state);
+    state->vm()->fiber()->suspend_and_continue(state);
 
     // We're back...
     return return_value(state);
   }
 
   Object* Fiber::transfer(STATE, Arguments& args) {
-    if(state->vm()->thread() != thread()) {
-      Exception::raise_fiber_error(state, "attempt to transfer fiber across threads");
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
+      if(state->vm()->thread() != thread()) {
+        Exception::raise_fiber_error(state, "attempt to transfer fiber across threads");
+      } else if(status() == eDead) {
+        Exception::raise_fiber_error(state, "attempt to transfer to dead fiber");
+      } else if(state->vm()->fiber() == this) {
+        // This should arguably be a FiberError
+        return args.as_array(state);
+      }
+
+      unpack_arguments(state, args);
+      invoke_context(state->vm());
+
+      if(status() == eCreated) {
+        start(state, args);
+      }
+
+      status(eTransfer);
     }
-
-    unpack_arguments(state, args);
-
-    if(status() == eCreated) {
-      start(state, args);
-    } else if(state->vm()->fiber() == this) {
-      return args.as_array(state);
-    } else if(status() == eDead) {
-      Exception::raise_fiber_error(state, "attempt to transfer to dead fiber");
-    }
-
-    status(eTransfer);
-    invoke_context(state->vm());
 
     // Being cooperative...
     restart(state);
 
     // Through the worm hole...
-    state->vm()->fiber()->suspend(state);
+    state->vm()->fiber()->suspend_and_continue(state);
 
     // We're back...
     return return_value(state);
@@ -358,20 +375,24 @@ namespace rubinius {
     Fiber* fiber = state->vm()->fiber();
     OnStack<1> os(state, fiber);
 
-    if(fiber->root_p()) {
-      Exception::raise_fiber_error(state, "can't yield from root fiber");
-    } else if(fiber->status() == eTransfer) {
-      Exception::raise_fiber_error(state, "can't yield from transferred fiber");
-    }
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
-    fiber->unpack_arguments(state, args);
-    fiber->status(eYielding);
+      if(fiber->root_p()) {
+        Exception::raise_fiber_error(state, "can't yield from root fiber");
+      } else if(fiber->status() == eTransfer) {
+        Exception::raise_fiber_error(state, "can't yield from transferred fiber");
+      }
+
+      fiber->unpack_arguments(state, args);
+      fiber->status(eYielding);
+    }
 
     // Being cooperative...
     fiber->invoke_context()->fiber()->restart(state);
 
     // Through the worm hole...
-    fiber->suspend(state);
+    fiber->suspend_and_continue(state);
 
     // We're back...
     return fiber->return_value(state);
