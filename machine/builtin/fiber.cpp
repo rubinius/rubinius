@@ -74,6 +74,8 @@ namespace rubinius {
   }
 
   void Fiber::restart(STATE) {
+    UnmanagedPhase unmanaged(state);
+
     {
       std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
@@ -88,13 +90,9 @@ namespace rubinius {
       restart_context(state->vm());
       wakeup();
 
-      {
-        UnmanagedPhase unmanaged(state);
-
-        while(vm()->suspended_p()) {
-          std::lock_guard<std::mutex> guard(vm()->wait_mutex());
-          vm()->wait_condition().notify_one();
-        }
+      while(vm()->suspended_p()) {
+        std::lock_guard<std::mutex> guard(vm()->wait_mutex());
+        vm()->wait_condition().notify_one();
       }
     }
 
@@ -104,16 +102,14 @@ namespace rubinius {
   }
 
   void Fiber::suspend_and_continue(STATE) {
+    UnmanagedPhase unmanaged(state);
+
     {
       std::unique_lock<std::mutex> lk(vm()->wait_mutex());
 
       vm()->set_suspended();
-      {
-        UnmanagedPhase unmanaged(state);
-
-        while(!wakeup_p()) {
-          vm()->wait_condition().wait(lk);
-        }
+      while(!wakeup_p()) {
+        vm()->wait_condition().wait(lk);
       }
       clear_wakeup();
       vm()->set_resuming();
@@ -217,7 +213,7 @@ namespace rubinius {
    * means of expressing things like Fiber.current.
    */
   Fiber* Fiber::create(STATE, VM* vm) {
-    Fiber* fiber = state->memory()->new_object<Fiber>(state, G(fiber));
+    Fiber* fiber = state->memory()->new_object_pinned<Fiber>(state, G(fiber));
 
     vm->set_fiber(fiber);
     vm->set_running();
@@ -234,7 +230,7 @@ namespace rubinius {
   }
 
   Fiber* Fiber::create(STATE, Object* self, Object* stack_size, Object* block) {
-    Fiber* fiber = state->memory()->new_object<Fiber>(state, as<Class>(self));
+    Fiber* fiber = state->memory()->new_object_pinned<Fiber>(state, as<Class>(self));
     fiber->block(state, block);
 
     std::ostringstream name;
