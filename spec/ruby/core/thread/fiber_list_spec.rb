@@ -6,7 +6,11 @@ describe "Thread.fiber_list" do
   end
 
   it "returns Fibers only for the Thread" do
+    start = false
+
     t1 = Thread.new do
+      Thread.pass until start
+
       f1 = Fiber.new {}
       f2 = Fiber.new {}
 
@@ -17,9 +21,12 @@ describe "Thread.fiber_list" do
     end
 
     t2 = Thread.new do
+      Thread.pass until start
+
       t2.fiber_list.size.should == 0
     end
 
+    start = true
     t1.join
     t2.join
   end
