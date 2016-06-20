@@ -1,16 +1,27 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
+#include "on_stack.hpp"
 #include "memory.hpp"
 #include "metrics.hpp"
+#include "raise_reason.hpp"
+#include "thread_phase.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/lookup_table.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/object.hpp"
+#include "builtin/thread.hpp"
 
 #include "memory/gc.hpp"
+
+#include "dtrace/dtrace.h"
+
+#include "logger.hpp"
+
+#include "missing/gettid.h"
 
 #include <ostream>
 #include <regex>
@@ -20,118 +31,229 @@ namespace rubinius {
   std::atomic<uint32_t> Fiber::fiber_ids_;
 
   void Fiber::bootstrap(STATE) {
-    GO(fiber).set(state->memory()->new_class<Class, Fiber>(
-          state, G(rubinius), "Fiber"));
+    GO(fiber).set(state->memory()->new_class<Class, Fiber>(state, "Fiber"));
 
     fiber_ids_.store(0);
-
-#ifdef RBX_FIBER_ENABLED
-    G(fiber)->set_const(state, "ENABLED", cTrue);
-#else
-    G(fiber)->set_const(state, "ENABLED", cFalse);
-#endif
   }
 
-  double Fiber::run_time() {
-    return timer::time_elapsed_seconds(start_time());
+  bool Fiber::root_p() {
+    return vm()->fiber()->vm() == vm()->thread()->vm();
   }
 
-  Fiber* Fiber::current(STATE) {
-#ifdef RBX_FIBER_ENABLED
-    Fiber* fib = state->vm()->current_fiber.get();
-
-    // Lazily allocate a root fiber.
-    if(fib->nil_p()) {
-      fib = state->memory()->new_object<Fiber>(state, G(fiber));
-      fib->root(true);
-      fib->status(Fiber::eRunning);
-
-      fib->data(state->vm()->new_fiber_data(true, fib->stack_size()->to_native()));
-      fib->data()->set_call_frame(state->vm()->call_frame());
-
-      state->memory()->native_finalizer(state, fib,
-          (memory::FinalizerFunction)&Fiber::finalize);
-
-      state->vm()->current_fiber.set(fib);
-      state->vm()->root_fiber.set(fib);
+  void Fiber::unpack_arguments(STATE, Arguments& args) {
+    switch(args.total()) {
+      case 0:
+        state->vm()->thread()->fiber_value(state, cNil);
+        break;
+      case 1:
+        state->vm()->thread()->fiber_value(state, args.get_argument(0));
+        break;
+      default:
+        state->vm()->thread()->fiber_value(state,  args.as_array(state));
+        break;
     }
-
-    return fib;
-#else
-    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
-#endif
   }
 
-  void Fiber::start_on_stack() {
-#ifdef RBX_FIBER_ENABLED
-    VM* vm = VM::current();
-    State state_obj(vm), *state = &state_obj;
+  void Fiber::start(STATE, Arguments& args) {
+    state->vm()->thread()->fiber_value(state, args.as_array(state));
 
-    Fiber* fib = Fiber::current(state);
+    pthread_attr_t attrs;
+    pthread_attr_init(&attrs);
+    pthread_attr_setstacksize(&attrs, stack_size()->to_native());
+    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
-    // Reset the current fiber again to reset the stack limits so
-    // we can properly detect stack overflows
-    vm->set_current_fiber(fib);
+    pthread_create(&vm()->os_thread(), &attrs,
+        Fiber::run, (void*)vm());
 
-    Array* result = nil<Array>();
-    Object* obj = fib->starter()->send(state, G(sym_call), fib->value(), cNil, false);
+    pthread_attr_destroy(&attrs);
 
-    // GC has run! Don't use stack vars!
-
-    fib = Fiber::current(state);
-    fib->status(Fiber::eDead);
-    fib->dead(cTrue);
-    fib->set_call_frame(state, 0);
-
-    if(state->shared().config.machine_fiber_log_lifetime.value) {
-      logger::write("fiber: exit: %s, %d, %fs",
-          fib->thread_name()->c_str(state),
-          fib->fiber_id()->to_native(), fib->run_time());
+    // Wait for Fiber thread to start up and pause.
+    while(!vm()->suspended_p()) {
+      ; // spin wait
     }
+  }
 
-    Fiber* dest = fib->prev();
+  void Fiber::restart(STATE) {
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
-    // If this fiber has already been cleaned up, just ignore this
-    if(!dest->data()) return;
+      if(!vm()->suspended_p()) {
+        std::ostringstream msg;
+        msg << "attempt to restart non-suspended (" << vm()->transition_flag() << ") fiber";
+        Exception::raise_fiber_error(state, msg.str().c_str());
+      }
 
-    assert(!dest->nil_p());
+      state->vm()->set_suspending();
 
-    // Box this up so it's in a standard format at the point
-    // of returning, so we can deal with it in the same way
-    // as *args from #yield, #resume, and #transfer
-    if(obj) {
-      result = Array::create(state, 1);
-      result->set(state, 0, obj);
-    } else {
-      if(state->vm()->thread_state()->raise_reason() == cException) {
-        dest->exception(state, state->vm()->thread_state()->current_exception());
+      restart_context(state->vm());
+      wakeup();
+
+      {
+        UnmanagedPhase unmanaged(state);
+
+        while(vm()->suspended_p()) {
+          std::lock_guard<std::mutex> guard(vm()->wait_mutex());
+          vm()->wait_condition().notify_one();
+        }
       }
     }
 
-    vm->metrics().system.fibers_destroyed++;
-
-    dest->run(state);
-    dest->value(state, result);
-
-    dest->data()->switch_and_orphan(state, fib->data());
-
-    // TODO: CallFrame: return from this function
-
-    rubinius::bug("returning from Fiber::start_on_stack");
-#else
-    rubinius::bug("Fibers not supported on this platform");
-#endif
+    while(!vm()->running_p()) {
+      ; // spin wait
+    }
   }
 
-  Fiber* Fiber::create(STATE, Object* self, Object* stack_size, Object* callable) {
-#ifdef RBX_FIBER_ENABLED
-    Fiber* fib = state->memory()->new_object<Fiber>(state, as<Class>(self));
-    fib->starter(state, callable);
+  void Fiber::suspend_and_continue(STATE) {
+    {
+      std::unique_lock<std::mutex> lk(vm()->wait_mutex());
+
+      vm()->set_suspended();
+      {
+        UnmanagedPhase unmanaged(state);
+
+        while(!wakeup_p()) {
+          vm()->wait_condition().wait(lk);
+        }
+      }
+      clear_wakeup();
+      vm()->set_resuming();
+    }
+
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
+      vm()->set_running();
+
+      while(!restart_context()->suspended_p()) {
+        ; // spin wait
+      }
+
+      state->vm()->thread()->current_fiber(state, this);
+    }
+  }
+
+  Object* Fiber::return_value(STATE) {
+    if(vm()->thread_state()->raise_reason() == cNone) {
+      return state->vm()->thread()->fiber_value();
+    } else {
+      invoke_context()->thread_state()->set_state(vm()->thread_state());
+      return NULL;
+    }
+  }
+
+  void* Fiber::run(void* ptr) {
+    VM* vm = reinterpret_cast<VM*>(ptr);
+    State state_obj(vm), *state = &state_obj;
+
+    vm->set_stack_bounds(vm->fiber()->stack_size()->to_native());
+    vm->set_current_thread();
+    vm->set_start_time();
+
+    RUBINIUS_THREAD_START(
+        const_cast<RBX_DTRACE_CHAR_P>(
+          vm->name().c_str()), vm->fiber()->fiber_id()->to_native(), 0);
+
+    vm->fiber()->pid(state, Fixnum::from(gettid()));
+
+    if(state->shared().config.machine_thread_log_lifetime.value) {
+      logger::write("fiber: run: %s, %d, %#x",
+          vm->name().c_str(), vm->fiber()->pid()->to_native(),
+          (intptr_t)pthread_self());
+    }
+
+    NativeMethod::init_thread(state);
+
+    vm->fiber()->suspend_and_continue(state);
+
+    Object* value = vm->fiber()->block()->send(state, G(sym_call),
+        as<Array>(vm->thread()->fiber_value()), vm->fiber()->block());
+    vm->set_call_frame(NULL);
+
+    if(value) {
+      vm->thread()->fiber_value(state, value);
+    } else {
+      vm->thread()->fiber_value(state, cNil);
+    }
+
+    if(vm->fiber()->status() == eTransfer) {
+      // restart the root Fiber
+      vm->thread()->fiber()->invoke_context(vm);
+      vm->thread()->fiber()->restart(state);
+    } else {
+      vm->fiber()->invoke_context()->fiber()->restart(state);
+    }
+
+    {
+      std::lock_guard<std::mutex> guard(vm->wait_mutex());
+
+      vm->fiber()->status(eDead);
+      vm->set_suspended();
+    }
+
+    vm->unmanaged_phase();
+
+    state->shared().report_profile(state);
+
+    NativeMethod::cleanup_thread(state);
+
+    if(state->shared().config.machine_fiber_log_lifetime.value) {
+      logger::write("fiber: exit: %s %fs", vm->name().c_str(), vm->run_time());
+    }
+
+    vm->set_zombie(state);
+
+    RUBINIUS_THREAD_STOP(
+        const_cast<RBX_DTRACE_CHAR_P>(
+          vm->name().c_str()), vm->fiber()->fiber_id()->to_native(), 0);
+
+    return 0;
+  }
+
+  Fiber* Fiber::current(STATE) {
+    return state->vm()->fiber();
+  }
+
+  /* This creates the pseudo-Fiber for the Thread. This provides a uniform
+   * means of expressing things like Fiber.current.
+   */
+  Fiber* Fiber::create(STATE, VM* vm) {
+    Fiber* fiber = state->memory()->new_object<Fiber>(state, G(fiber));
+
+    vm->set_fiber(fiber);
+    vm->set_running();
+
+    fiber->vm(vm);
+    fiber->pid(vm->thread()->pid());
+    fiber->stack_size(vm->thread()->stack_size());
+    fiber->thread_name(state, String::create(state, vm->name().c_str()));
+    fiber->fiber_id(Fixnum::from(0));
+    fiber->status(eRunning);
+    fiber->invoke_context(vm);
+
+    return fiber;
+  }
+
+  Fiber* Fiber::create(STATE, Object* self, Object* stack_size, Object* block) {
+    Fiber* fiber = state->memory()->new_object<Fiber>(state, as<Class>(self));
+    fiber->block(state, block);
+
+    std::ostringstream name;
+    name << "fiber." << fiber->fiber_id()->to_native();
+
+    fiber->vm(state->vm()->thread_nexus()->new_vm(&state->shared(), name.str().c_str()));
+    fiber->vm()->set_kind(memory::ManagedThread::eFiber);
+    fiber->vm()->set_suspending();
 
     if(Fixnum* size = try_as<Fixnum>(stack_size)) {
-      state->vm()->validate_stack_size(state, size->to_native());
-      fib->stack_size(state, size);
+      fiber->vm()->validate_stack_size(state, size->to_native());
+      fiber->stack_size(state, size);
     }
+
+    fiber->vm()->set_thread(state->vm()->thread());
+    fiber->vm()->set_fiber(fiber);
+
+    state->memory()->native_finalizer(state, fiber,
+        (memory::FinalizerFunction)&Fiber::finalize);
 
     if(state->shared().config.machine_fiber_log_lifetime.value) {
       const std::regex& filter = state->shared().config.machine_fiber_log_filter();
@@ -143,207 +265,151 @@ namespace rubinius {
           << ":" << call_frame->line(state);
 
         logger::write("fiber: new: %s, %d, %s",
-            fib->thread_name()->c_str(state),
-            fib->fiber_id()->to_native(), source.str().c_str());
+            fiber->thread_name()->c_str(state),
+            fiber->fiber_id()->to_native(), source.str().c_str());
 
-        fib->source(state, String::create(state, source.str().c_str()));
+        fiber->source(state, String::create(state, source.str().c_str()));
       } else {
         logger::write("fiber: new: %s, %d",
-            fib->thread_name()->c_str(state), fib->fiber_id()->to_native());
+            fiber->thread_name()->c_str(state), fiber->fiber_id()->to_native());
       }
     }
 
     state->vm()->metrics().system.fibers_created++;
 
-    state->memory()->native_finalizer(state, fib,
-        (memory::FinalizerFunction)&Fiber::finalize);
+    return fiber;
+  }
 
-    return fib;
-#else
-    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
-#endif
+  String* Fiber::status(STATE) {
+    switch(status()) {
+      case eCreated:
+        return String::create(state, "created");
+        break;
+      case eRunning:
+        return String::create(state, "run");
+        break;
+      case eYielding:
+        return String::create(state, "yield");
+        break;
+      case eTransfer:
+        return String::create(state, "transfer");
+        break;
+      case eDead:
+        return String::create(state, "dead");
+        break;
+    }
+
+    return String::create(state, "unknown");
   }
 
   Object* Fiber::resume(STATE, Arguments& args) {
-#ifdef RBX_FIBER_ENABLED
-    if(!data()) {
-      data(state->vm()->new_fiber_data(stack_size()->to_native()));
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
+      if(state->vm()->thread() != thread()) {
+        Exception::raise_fiber_error(state, "attempt to resume fiber across threads");
+      } else if(status() == eTransfer) {
+        Exception::raise_fiber_error(state, "attempt to resume transfered fiber");
+      } else if(status() == eRunning) {
+        Exception::raise_fiber_error(state, "attempt to resume running fiber");
+      } else if(status() == eDead) {
+        Exception::raise_fiber_error(state, "attempt to resume dead fiber");
+      } else if(root_p()) {
+        Exception::raise_fiber_error(state, "attempt to resume root fiber");
+      }
+
+      unpack_arguments(state, args);
+      invoke_context(state->vm());
+
+      if(status() == eCreated) {
+        start(state, args);
+      }
+
+      status(eRunning);
     }
 
-    if(status() == Fiber::eDead || data()->dead_p()) {
-      Exception::raise_fiber_error(state, "dead fiber called");
-    }
+    // Being cooperative...
+    restart(state);
 
-    if(!prev()->nil_p()) {
-      Exception::raise_fiber_error(state, "double resume");
-    }
+    // Through the worm hole...
+    state->vm()->fiber()->suspend_and_continue(state);
 
-    if(data()->thread() && data()->thread() != state->vm()) {
-      Exception::raise_fiber_error(state, "cross thread fiber resuming is illegal");
-    }
-
-    Array* val = args.as_array(state);
-    value(state, val);
-
-    Fiber* cur = Fiber::current(state);
-    prev(state, cur);
-
-    cur->sleep(state);
-
-    run(state);
-
-    data()->switch_to(state, cur->data());
-
-    // Back here when someone yields back to us!
-    // Beware here, because the GC has probably run so GC pointers on the C++ stack
-    // can't be accessed.
-
-    cur = Fiber::current(state);
-
-    // TODO: clean up this and the following conditional.
-    if(state->vm()->thread_interrupted_p(state)) {
-      return NULL;
-    }
-
-    if(!cur->exception()->nil_p()) {
-      state->raise_exception(cur->exception());
-      cur->exception(state, nil<Exception>());
-      return NULL;
-    }
-
-    Array* ret = cur->value();
-
-    if(ret->nil_p()) return cNil;
-
-    switch(ret->size()) {
-    case 0:  return cNil;
-    case 1:  return ret->get(state, 0);
-    default: return ret;
-    }
-#else
-    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
-#endif
+    // We're back...
+    return return_value(state);
   }
 
   Object* Fiber::transfer(STATE, Arguments& args) {
-#ifdef RBX_FIBER_ENABLED
-    if(!data()) {
-      data(state->vm()->new_fiber_data(stack_size()->to_native()));
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
+      if(state->vm()->thread() != thread()) {
+        Exception::raise_fiber_error(state, "attempt to transfer fiber across threads");
+      } else if(status() == eDead) {
+        Exception::raise_fiber_error(state, "attempt to transfer to dead fiber");
+      } else if(state->vm()->fiber() == this) {
+        // This should arguably be a FiberError
+        return args.as_array(state);
+      }
+
+      unpack_arguments(state, args);
+      invoke_context(state->vm());
+
+      if(status() == eCreated) {
+        start(state, args);
+      }
+
+      status(eTransfer);
     }
 
-    if(status() == Fiber::eDead || data()->dead_p()) {
-      Exception::raise_fiber_error(state, "dead fiber called");
-    }
+    // Being cooperative...
+    restart(state);
 
-    if(data()->thread() && data()->thread() != state->vm()) {
-      Exception::raise_fiber_error(state, "cross thread fiber resuming is illegal");
-    }
+    // Through the worm hole...
+    state->vm()->fiber()->suspend_and_continue(state);
 
-    Array* val = args.as_array(state);
-    value(state, val);
-
-    Fiber* cur = Fiber::current(state);
-    Fiber* root = state->vm()->root_fiber.get();
-    assert(root);
-
-    prev(state, root);
-
-    cur->sleep(state);
-
-    run(state);
-
-    data()->switch_to(state, cur->data());
-
-    // Back here when someone transfers back to us!
-    // Beware here, because the GC has probably run so GC pointers on the C++ stack
-    // can't be accessed.
-
-    cur = Fiber::current(state);
-
-    if(!cur->exception()->nil_p()) {
-      state->raise_exception(cur->exception());
-      cur->exception(state, nil<Exception>());
-      return 0;
-    }
-
-    Array* ret = cur->value();
-
-    if(ret->nil_p()) return cNil;
-
-    switch(ret->size()) {
-    case 0:  return cNil;
-    case 1:  return ret->get(state, 0);
-    default: return ret;
-    }
-#else
-    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
-#endif
+    // We're back...
+    return return_value(state);
   }
 
   Object* Fiber::s_yield(STATE, Arguments& args) {
-#ifdef RBX_FIBER_ENABLED
-    Fiber* cur = Fiber::current(state);
-    Fiber* dest_fib = cur->prev();
+    Fiber* fiber = state->vm()->fiber();
+    OnStack<1> os(state, fiber);
 
-    assert(cur != dest_fib);
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
-    if(cur->root()) {
-      Exception::raise_fiber_error(state, "can't yield from root fiber");
+      if(fiber->root_p()) {
+        Exception::raise_fiber_error(state, "can't yield from root fiber");
+      } else if(fiber->status() == eTransfer) {
+        Exception::raise_fiber_error(state, "can't yield from transferred fiber");
+      }
+
+      fiber->unpack_arguments(state, args);
+      fiber->status(eYielding);
     }
 
-    cur->prev(state, nil<Fiber>());
+    // Being cooperative...
+    fiber->invoke_context()->fiber()->restart(state);
 
-    Array* val = args.as_array(state);
-    dest_fib->value(state, val);
+    // Through the worm hole...
+    fiber->suspend_and_continue(state);
 
-    cur->sleep(state);
-
-    dest_fib->run(state);
-
-    dest_fib->data()->switch_to(state, cur->data());
-
-    // Back here when someone yields back to us!
-    // Beware here, because the GC has probably run so GC pointers on the C++ stack
-    // can't be accessed.
-
-    cur = Fiber::current(state);
-
-    Array* ret = cur->value();
-
-    if(ret->nil_p()) return cNil;
-
-    switch(ret->size()) {
-    case 0:  return cNil;
-    case 1:  return ret->get(state, 0);
-    default: return ret;
-    }
-#else
-    Exception::raise_not_implemented_error(state, "Fibers not supported on this platform");
-#endif
+    // We're back...
+    return fiber->return_value(state);
   }
 
+  Array* Fiber::s_list(STATE) {
+    return state->shared().vm_fibers(state);
+  }
+
+  Fiber* Fiber::s_main(STATE) {
+    return state->vm()->thread()->fiber();
+  }
 
   void Fiber::finalize(STATE, Fiber* fib) {
-#ifdef RBX_FIBER_ENABLED
     if(state->shared().config.machine_fiber_log_finalizer.value) {
       logger::write("fiber: finalizer: %s, %d",
           fib->thread_name()->c_str(state), fib->fiber_id()->to_native());
     }
-
-    if(!fib->data()) return;
-    fib->data()->orphan(state);
-
-    delete fib->data();
-    fib->data(NULL);
-#endif
-  }
-
-  void Fiber::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
-    Fiber* fib = force_as<Fiber>(obj);
-    FiberData* data = fib->data();
-    if(!data || data->dead_p()) return;
-    data->set_mark();
   }
 }
-

@@ -6,6 +6,7 @@
 
 #include "builtin/fiber.hpp"
 #include "builtin/lookup_table.hpp"
+#include "builtin/thread.hpp"
 #include "builtin/variable_scope.hpp"
 
 namespace rubinius {
@@ -31,7 +32,7 @@ namespace rubinius {
     scope->method(state, call_frame->compiled_code);
     scope->heap_locals(state, nil<Tuple>());
     scope->last_match(state, last_match_);
-    scope->fiber(state, state->vm()->current_fiber.get());
+    scope->fiber(state, state->vm()->thread()->current_fiber());
 
     scope->number_of_locals(mcode->number_of_locals);
     scope->isolated(0);

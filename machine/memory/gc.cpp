@@ -373,19 +373,6 @@ namespace memory {
     }
   }
 
-  void GarbageCollector::scan_fibers(GCData* data, bool marked_only) {
-    std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
-
-    for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
-        i != data->thread_nexus()->threads()->end();
-        ++i)
-    {
-      if(VM* vm = (*i)->as_vm()) {
-        vm->gc_fiber_scan(this, marked_only);
-      }
-    }
-  }
-
   void GarbageCollector::clean_weakrefs(bool check_forwards) {
     if(!weak_refs_) return;
 

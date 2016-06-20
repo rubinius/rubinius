@@ -15,7 +15,7 @@ namespace rubinius {
 
     wake_ = false;
     sleeping_ = true;
-    state->vm()->thread->sleep(state, cTrue);
+    state->vm()->thread()->sleep(state, cTrue);
 
     Object* result = cNil;
     while(!wake_) {
@@ -34,7 +34,7 @@ namespace rubinius {
     }
 
     sleeping_ = false;
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
     return result;
   }
 
@@ -44,7 +44,7 @@ namespace rubinius {
 
     wake_ = false;
     sleeping_ = true;
-    state->vm()->thread->sleep(state, cTrue);
+    state->vm()->thread()->sleep(state, cTrue);
 
     Object* timeout = cFalse;
 
@@ -68,7 +68,7 @@ namespace rubinius {
     }
 
     sleeping_ = false;
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
 
     return timeout;
   }

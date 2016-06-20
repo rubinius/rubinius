@@ -273,7 +273,7 @@ namespace rubinius {
     /* And the main event, pun intended */
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, cTrue);
+    state->vm()->thread()->sleep(state, cTrue);
 
     {
       UnmanagedPhase unmanaged(state);
@@ -283,7 +283,7 @@ namespace rubinius {
                                                   maybe_limit);
     }
 
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(events == -1) {
@@ -666,14 +666,14 @@ namespace rubinius {
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, cTrue);
+    state->vm()->thread()->sleep(state, cTrue);
 
     {
       UnmanagedPhase unmanaged(state);
       bytes_read = ::read(fd, buf, count);
     }
 
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(bytes_read == -1) {
@@ -950,7 +950,7 @@ namespace rubinius {
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, cTrue);
+    state->vm()->thread()->sleep(state, cTrue);
 
     {
       UnmanagedPhase unmanaged(state);
@@ -960,7 +960,7 @@ namespace rubinius {
                             (struct sockaddr*)buf, &alen);
     }
 
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     buffer->unpin();
@@ -1309,14 +1309,14 @@ failed: /* try next '*' position */
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, cTrue);
+    state->vm()->thread()->sleep(state, cTrue);
 
     {
       UnmanagedPhase unmanaged(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(code == -1) {
@@ -1410,14 +1410,14 @@ failed: /* try next '*' position */
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, cTrue);
+    state->vm()->thread()->sleep(state, cTrue);
 
     {
       UnmanagedPhase unmanaged(state);
       bytes_read = ::read(fd, temp_buffer, count);
     }
 
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(bytes_read == -1) {

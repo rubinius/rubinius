@@ -16,7 +16,7 @@ public:
   }
 
   void test_current() {
-    TS_ASSERT_EQUALS(Thread::current(state), state->vm()->thread.get());
+    TS_ASSERT_EQUALS(Thread::current(state), state->vm()->thread());
   }
 
   void test_create() {

@@ -10,25 +10,25 @@
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/class.hpp"
-#include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
+#include "builtin/call_site.hpp"
+#include "builtin/channel.hpp"
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fiber.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/list.hpp"
+#include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"
+#include "builtin/native_method.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/string.hpp"
-#include "builtin/system.hpp"
-#include "builtin/fiber.hpp"
-#include "builtin/location.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/channel.hpp"
-#include "builtin/call_site.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/jit.hpp"
-#include "variable_scope.hpp"
 
+#include "variable_scope.hpp"
 #include "config_parser.hpp"
 #include "config.h"
 
@@ -59,21 +59,20 @@
 
 namespace rubinius {
   VM::VM(uint32_t id, SharedState& shared, const char* name)
-    : memory::ManagedThread(id, shared, memory::ManagedThread::eRuby, name)
+    : memory::ManagedThread(id, shared, memory::ManagedThread::eThread, name)
     , call_frame_(NULL)
     , thread_nexus_(shared.thread_nexus())
-    , saved_call_site_information_(NULL)
-    , fiber_stacks_(this, shared)
     , park_(new Park)
     , stack_start_(0)
     , stack_size_(0)
     , stack_cushion_(shared.config.machine_stack_cushion.value)
-    , current_stack_start_(0)
-    , current_stack_size_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
     , check_local_interrupts_(false)
     , thread_step_(false)
+    , wait_mutex_()
+    , wait_condition_()
+    , transition_flag_(eSuspending)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
@@ -90,9 +89,8 @@ namespace rubinius {
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
-    , thread(this, nil<Thread>())
-    , current_fiber(this, nil<Fiber>())
-    , root_fiber(this, nil<Fiber>())
+    , thread_(this, nil<Thread>())
+    , fiber_(this, nil<Fiber>())
     , waiting_object_(this, cNil)
     , start_time_(0)
     , native_method_environment(NULL)
@@ -126,21 +124,20 @@ namespace rubinius {
     delete vm;
   }
 
+  void VM::set_thread(Thread* thread) {
+    thread_.set(thread);
+  }
+
+  void VM::set_fiber(Fiber* fiber) {
+    fiber_.set(fiber);
+  }
+
   void VM::set_start_time() {
     start_time_ = get_current_time();
   }
 
   double VM::run_time() {
     return timer::time_elapsed_seconds(start_time_);
-  }
-
-  void VM::set_stack_bounds(size_t size) {
-    void* stack_address;
-
-    stack_size_ = size;
-    stack_start_ = &stack_address;
-
-    set_stack_bounds(stack_start_, stack_size_);
   }
 
   void VM::raise_stack_error(STATE) {
@@ -180,9 +177,7 @@ namespace rubinius {
     }
 
     if(interrupt_by_kill()) {
-      Fiber* fib = current_fiber.get();
-
-      if(fib->nil_p() || fib->root_p()) {
+      if(state->vm()->thread()->current_fiber()->root_p()) {
         clear_interrupt_by_kill();
       } else {
         set_check_local_interrupts();
@@ -392,7 +387,8 @@ namespace rubinius {
 
   void VM::set_zombie(STATE) {
     state->shared().thread_nexus()->delete_vm(this);
-    thread.set(nil<Thread>());
+    set_thread(nil<Thread>());
+    set_fiber(nil<Fiber>());
     zombie_ = true;
   }
 
@@ -536,7 +532,7 @@ namespace rubinius {
   void VM::wait_on_channel(Channel* chan) {
     utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
 
-    thread->sleep(this, cTrue);
+    thread()->sleep(this, cTrue);
     waiting_channel_.set(chan);
   }
 
@@ -554,11 +550,11 @@ namespace rubinius {
   }
 
   void VM::set_sleeping() {
-    thread->sleep(this, cTrue);
+    thread()->sleep(this, cTrue);
   }
 
   void VM::clear_sleeping() {
-    thread->sleep(this, cFalse);
+    thread()->sleep(this, cFalse);
   }
 
   void VM::reset_parked() {
@@ -577,22 +573,8 @@ namespace rubinius {
     set_check_local_interrupts();
   }
 
-  void VM::set_current_fiber(Fiber* fib) {
-    if(fib->root_p()) {
-      restore_stack_bounds();
-    } else {
-      set_stack_bounds(fib->data()->stack_start(), fib->data()->stack_size());
-    }
-
-    current_fiber.set(fib);
-  }
-
   memory::VariableRootBuffers& VM::current_root_buffers() {
-    if(current_fiber->nil_p() || current_fiber->root_p()) {
-      return variable_root_buffers();
-    }
-
-    return current_fiber->variable_root_buffers();
+    return variable_root_buffers();
   }
 
   void VM::gc_scan(memory::GarbageCollector* gc) {
@@ -603,14 +585,6 @@ namespace rubinius {
         profile_[i] = force_as<CompiledCode>(gc->mark_object(profile_[i]));
       }
     }
-  }
-
-  void VM::gc_fiber_clear_mark() {
-    fiber_stacks_.gc_clear_mark();
-  }
-
-  void VM::gc_fiber_scan(memory::GarbageCollector* gc, bool only_marked) {
-    fiber_stacks_.gc_scan(gc, only_marked);
   }
 
   void VM::gc_verify(memory::GarbageCollector* gc) {

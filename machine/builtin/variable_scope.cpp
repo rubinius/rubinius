@@ -1,6 +1,5 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
-#include "fiber_data.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
@@ -131,15 +130,6 @@ namespace rubinius {
   void VariableScope::set_local(int pos, Object* val) {
     Object** ary = locals();
 
-    if(Fiber* fib = try_as<Fiber>(fiber())) {
-      FiberData* data = fib->data();
-      if(data) {
-        memory::AddressDisplacement dis(data->data_offset(),
-            data->data_lower_bound(), data->data_upper_bound());
-
-        ary = dis.displace(ary);
-      }
-    }
     ary[pos] = val;
   }
 
@@ -162,15 +152,7 @@ namespace rubinius {
 
   Object* VariableScope::get_local(int pos) {
     Object** ary = locals();
-    if(Fiber* fib = try_as<Fiber>(fiber())) {
-      FiberData* data = fib->data();
-      if(data) {
-        memory::AddressDisplacement dis(data->data_offset(),
-            data->data_lower_bound(), data->data_upper_bound());
 
-        ary = dis.displace(ary);
-      }
-    }
     return ary[pos];
   }
 
@@ -212,17 +194,6 @@ namespace rubinius {
 
     if(!vs->isolated_p()) {
       Object** ary = vs->locals();
-
-      if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
-        FiberData* data = fib->data();
-
-        if(data) {
-          memory::AddressDisplacement dis(data->data_offset(),
-              data->data_lower_bound(), data->data_upper_bound());
-
-          ary = dis.displace(ary);
-        }
-      }
 
       size_t locals = vs->number_of_locals();
 

@@ -98,7 +98,7 @@ extern "C" {
 
   VALUE rb_thread_current(void) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Thread* thread = env->state()->vm()->thread.get();
+    Thread* thread = env->state()->vm()->thread();
 
     return env->get_handle(thread);
   }
@@ -114,14 +114,16 @@ extern "C" {
   VALUE rb_thread_local_aref(VALUE thread, ID id) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Thread* thr = capi::c_as<Thread>(env->get_object(thread));
-    return env->get_handle(thr->locals_aref(env->state(), reinterpret_cast<Symbol*>(id)));
+    return env->get_handle(
+        thr->fiber_variable_get(env->state(), reinterpret_cast<Symbol*>(id)));
   }
 
   VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Thread* thr = capi::c_as<Thread>(env->get_object(thread));
-    return env->get_handle(thr->locals_store(env->state(), reinterpret_cast<Symbol*>(id),
-                                             env->get_object(value)));
+    return env->get_handle(
+        thr->fiber_variable_set(
+          env->state(), reinterpret_cast<Symbol*>(id), env->get_object(value)));
   }
 
   VALUE rb_thread_wakeup(VALUE thread) {
@@ -239,14 +241,12 @@ extern "C" {
   Object* run_function(STATE) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Thread* thread = state->vm()->thread.get();
+    Thread* thread = state->vm()->thread();
 
     NativeMethod* nm = capi::c_as<NativeMethod>(
-        thread->locals_aref(state, state->symbol("function")));
-    Pointer* ptr = capi::c_as<Pointer>(thread->locals_aref(state, state->symbol("argument")));
-
-    thread->locals_remove(state, state->symbol("function"));
-    thread->locals_remove(state, state->symbol("argument"));
+        thread->variable_get(state, state->symbol("function")));
+    Pointer* ptr = capi::c_as<Pointer>(
+        thread->variable_get(state, state->symbol("argument")));
 
     NativeMethodFrame nmf(env, 0, nm);
     CallFrame call_frame;
@@ -282,7 +282,7 @@ extern "C" {
       LEAVE_CAPI(state);
 
       // Set exception in thread so it's raised when joining.
-      state->vm()->thread.get()->exception(state,
+      state->vm()->thread()->exception(state,
           capi::c_as<Exception>(state->vm()->thread_state()->current_exception()));
     } else {
       value = env->get_object(nm->func()(ptr->pointer));
@@ -310,10 +310,10 @@ extern "C" {
 
     Thread* thr = Thread::create(env->state(), G(thread), run_function);
 
-    thr->locals_store(state, state->symbol("function"), nm);
-    thr->locals_store(state, state->symbol("argument"), ptr);
+    thr->variable_set(state, state->symbol("function"), nm);
+    thr->variable_set(state, state->symbol("argument"), ptr);
 
-    thr->group(state, state->vm()->thread.get()->group());
+    thr->group(state, state->vm()->thread()->group());
 
     VALUE thr_handle = env->get_handle(thr);
     thr->fork(state);

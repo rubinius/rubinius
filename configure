@@ -72,7 +72,6 @@ class Configure
     @libc         = nil
     @x86_32       = false
     @x86_64       = false
-    @fibers       = false
     @dtrace       = false
     @dtrace_const = false
     @have_lchmod  = false
@@ -458,7 +457,6 @@ class Configure
     feature "vendor-zlib", false
     feature "vendor-libsodium", true
     feature "alloc-tracking", false
-    feature "fibers", true
     feature "dtrace", false
     feature "rpath", true
 
@@ -1198,10 +1196,6 @@ int main() { return tgetnum(""); }
       @defines << "RBX_ALLOC_TRACKING"
     end
 
-    if @features["fibers"].value
-      @fibers = true if @x86_32 or @x86_64
-    end
-
     if @features["dtrace"].value and has_dtrace
       @defines << "HAVE_DTRACE"
     end
@@ -1583,7 +1577,6 @@ int main() { return tgetnum(""); }
       :x86_64             => @x86_64,
       :dtrace             => @dtrace,
       :dtrace_const       => @dtrace_const,
-      :fibers             => @fibers,
       :debug_build        => @debug_build,
       :sourcedir          => @sourcedir,
       :stagingdir         => @stagingdir,
@@ -1688,10 +1681,6 @@ int main() { return tgetnum(""); }
         if instance_variable_get(:"@#{platform}")
           f.puts "#define RBX_#{platform.to_s.upcase}           1"
         end
-      end
-
-      if @fibers
-        f.puts "#define RBX_FIBER_ENABLED    1"
       end
 
       f.puts "#define RBX_DTRACE_CONST     #{@dtrace_const ? "const" : ""}"

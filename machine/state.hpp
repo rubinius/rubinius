@@ -50,10 +50,6 @@ namespace rubinius {
       vm_ = vm;
     }
 
-    void set_call_site_information(CallSiteInformation* info) {
-      vm_->set_call_site_information(info);
-    }
-
     Globals& globals() {
       return shared_.globals;
     }

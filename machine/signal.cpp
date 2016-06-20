@@ -70,7 +70,9 @@ namespace rubinius {
   }
 
   VM* SignalThread::new_vm(STATE) {
-    return state->shared().thread_nexus()->new_vm(&state->shared(), "rbx.system");
+    VM* vm = state->shared().thread_nexus()->new_vm(&state->shared(), "rbx.system");
+    vm->set_kind(memory::ManagedThread::eSystem);
+    return vm;
   }
 
   void SignalThread::set_exit_code(Object* exit_code) {
@@ -308,7 +310,7 @@ namespace rubinius {
 
       while(frame) {
         if(first) {
-          logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
+          logger::fatal("--- %s %d backtrace ---", vm->kind_name(), vm->thread_id());
           first = false;
         }
 

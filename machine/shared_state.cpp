@@ -117,14 +117,58 @@ namespace rubinius {
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
-        Thread *thread = vm->thread.get();
-        if(!thread->nil_p() && CBOOL(thread->alive())) {
+        Thread *thread = vm->thread();
+        if(vm->kind() == memory::ManagedThread::eThread
+            &&!thread->nil_p() && CBOOL(thread->alive())) {
           threads->append(state, thread);
         }
       }
     }
 
     return threads;
+  }
+
+  Array* SharedState::vm_fibers(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+
+    Array* fibers = Array::create(state, 0);
+
+    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
+        i != thread_nexus_->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead) {
+          fibers->append(state, vm->fiber());
+        }
+      }
+    }
+
+    return fibers;
+  }
+
+  Array* SharedState::vm_thread_fibers(STATE, Thread* thread) {
+    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+
+    Array* fibers = Array::create(state, 0);
+
+    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
+        i != thread_nexus_->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead
+            && vm->fiber()->thread() == thread) {
+          fibers->append(state, vm->fiber());
+        }
+      }
+    }
+
+    return fibers;
   }
 
   double SharedState::run_time() {

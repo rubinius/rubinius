@@ -74,7 +74,10 @@ namespace rubinius {
     thr->vm(vm);
     thr->thread_id(state, Fixnum::from(vm->thread_id()));
 
-    vm->thread.set(thr);
+    vm->set_thread(thr);
+
+    thr->fiber(state, Fiber::create(state, vm));
+    thr->current_fiber(state, thr->fiber());
 
     return thr;
   }
@@ -112,6 +115,7 @@ namespace rubinius {
 
   void Thread::finalize_instance(STATE) {
     if(vm() && vm()->zombie_p()) {
+      fiber_mutex_.std::mutex::~mutex();
       VM::discard(state, vm());
       vm(NULL);
     }
@@ -121,7 +125,7 @@ namespace rubinius {
     /* These are all referenced, so OnStack is not necessary. Additionally,
      * thread is pinned, so we do not need to worry about it moving.
      */
-    Thread* thread = state->vm()->thread.get();
+    Thread* thread = state->vm()->thread();
     Array* args = thread->args();
     Object* block = thread->block();
 
@@ -226,7 +230,7 @@ namespace rubinius {
   }
 
   Thread* Thread::current(STATE) {
-    return state->vm()->thread.get();
+    return state->vm()->thread();
   }
 
   void Thread::unlock_after_fork(STATE) {
@@ -244,92 +248,41 @@ namespace rubinius {
     los.clear();
   }
 
-  Object* Thread::locals_aref(STATE, Symbol* key) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
-    if(state->vm() != vm()) {
-      return locals()->aref(state, key);
-    }
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->aref(state, key);
-    }
-    if(try_as<LookupTable>(fib->locals())) {
-      return fib->locals()->aref(state, key);
-    }
-    return cNil;
+  Object* Thread::variable_get(STATE, Symbol* key) {
+    return locals()->aref(state, key);
   }
 
-  Object* Thread::locals_store(STATE, Symbol* key, Object* value) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
+  Object* Thread::variable_set(STATE, Symbol* key, Object* value) {
+    return locals()->store(state, key, value);
+  }
+
+  Object* Thread::variable_key_p(STATE, Symbol* key) {
+    return locals()->has_key(state, key);
+  }
+
+  Array* Thread::variables(STATE) {
+    return locals()->all_keys(state);
+  }
+
+  Array* Thread::fiber_list(STATE) {
+    return state->shared().vm_thread_fibers(state, this);
+  }
+
+  Object* Thread::fiber_variable_get(STATE, Symbol* key) {
+    return current_fiber()->locals()->aref(state, key);
+  }
+
+  Object* Thread::fiber_variable_set(STATE, Symbol* key, Object* value) {
     check_frozen(state);
-    if(state->vm() != vm()) {
-      return locals()->store(state, key, value);
-    }
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->store(state, key, value);
-    }
-    if(fib->locals()->nil_p()) {
-      fib->locals(state, LookupTable::create(state));
-    }
-    return fib->locals()->store(state, key, value);
+    return current_fiber()->locals()->store(state, key, value);
   }
 
-  Object* Thread::locals_remove(STATE, Symbol* key) {
-    check_frozen(state);
-    if(state->vm() != vm()) {
-      return locals()->remove(state, key);
-    }
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->remove(state, key);
-    }
-    if(fib->locals()->nil_p()) {
-      return cNil;
-    }
-    return fib->locals()->remove(state, key);
+  Object* Thread::fiber_variable_key_p(STATE, Symbol* key) {
+    return current_fiber()->locals()->has_key(state, key);
   }
 
-  Array* Thread::locals_keys(STATE) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
-    if(state->vm() != vm()) {
-      return locals()->all_keys(state);
-    }
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->all_keys(state);
-    }
-    if(try_as<LookupTable>(fib->locals())) {
-      return fib->locals()->all_keys(state);
-    }
-    return Array::create(state, 0);
-  }
-
-  Object* Thread::locals_has_key(STATE, Symbol* key) {
-    /*
-     * If we're not trying to set values on the current thread,
-     * we will set thread locals anyway and not use fiber locals.
-     */
-    if(state->vm() != vm()) {
-      return locals()->has_key(state, key);
-    }
-    Fiber* fib = state->vm()->current_fiber.get();
-    if(fib->nil_p() || fib->root_p()) {
-      return locals()->has_key(state, key);
-    }
-    if(try_as<LookupTable>(fib->locals())) {
-      return fib->locals()->has_key(state, key);
-    }
-    return cFalse;
+  Array* Thread::fiber_variables(STATE) {
+    return current_fiber()->locals()->all_keys(state);
   }
 
   int Thread::start_thread(STATE, void* (*function)(void*)) {
@@ -360,7 +313,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
                            runtime.c_str(), runtime.size()));
 
-    state->vm()->thread->pid(state, Fixnum::from(gettid()));
+    state->vm()->thread()->pid(state, Fixnum::from(gettid()));
 
     state->shared().env()->load_core(state, runtime);
 
@@ -401,18 +354,18 @@ namespace rubinius {
     VM* vm = reinterpret_cast<VM*>(ptr);
     State state_obj(vm), *state = &state_obj;
 
-    vm->set_stack_bounds(vm->thread->stack_size()->to_native());
+    vm->set_stack_bounds(vm->thread()->stack_size()->to_native());
     vm->set_current_thread();
     vm->set_start_time();
 
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 0);
 
-    vm->thread->pid(state, Fixnum::from(gettid()));
+    vm->thread()->pid(state, Fixnum::from(gettid()));
 
     if(state->shared().config.machine_thread_log_lifetime.value) {
       logger::write("thread: run: %s, %d, %#x",
-          vm->name().c_str(), vm->thread->pid()->to_native(),
+          vm->name().c_str(), vm->thread()->pid()->to_native(),
           (unsigned int)thread_debug_self());
     }
 
@@ -420,11 +373,11 @@ namespace rubinius {
 
     state->vm()->managed_phase();
 
-    Object* value = vm->thread->function()(state);
+    Object* value = vm->thread()->function()(state);
     vm->set_call_frame(NULL);
 
-    vm->thread->join_lock_.lock();
-    vm->thread->stopped();
+    vm->thread()->join_lock_.lock();
+    vm->thread()->stopped();
 
     state->shared().report_profile(state);
 
@@ -437,8 +390,8 @@ namespace rubinius {
     }
     locked_objects.clear();
 
-    vm->thread->join_cond_.broadcast();
-    vm->thread->join_lock_.unlock();
+    vm->thread()->join_cond_.broadcast();
+    vm->thread()->join_lock_.unlock();
 
     NativeMethod::cleanup_thread(state);
 
@@ -491,8 +444,8 @@ namespace rubinius {
 
     if(!vm()) return cNil;
 
-    vm()->register_raise(state, exc);
-    vm()->wakeup(state);
+    current_fiber()->vm()->register_raise(state, exc);
+    current_fiber()->vm()->wakeup(state);
 
     return exc;
   }
@@ -502,12 +455,12 @@ namespace rubinius {
 
     if(!vm()) return cNil;
 
-    if(state->vm()->thread.get() == this) {
-      vm()->thread_state_.raise_thread_kill();
+    if(state->vm()->thread() == this) {
+      current_fiber()->vm()->thread_state()->raise_thread_kill();
       return NULL;
     } else {
-      vm()->register_kill(state);
-      vm()->wakeup(state);
+      current_fiber()->vm()->register_kill(state);
+      current_fiber()->vm()->wakeup(state);
       return this;
     }
   }
@@ -519,7 +472,7 @@ namespace rubinius {
       return force_as<Thread>(Primitives::failure());
     }
 
-    vm()->wakeup(state);
+    current_fiber()->vm()->wakeup(state);
 
     return this;
   }

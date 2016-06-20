@@ -5,10 +5,14 @@
 
 #include "builtin/channel.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/fiber.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
 #include "builtin/randomizer.hpp"
+
+#include <list>
+#include <mutex>
 
 namespace rubinius {
   class Array;
@@ -43,11 +47,15 @@ namespace rubinius {
     attr_accessor(initialized, Object);
     attr_accessor(stack_size, Fixnum);
     attr_accessor(source, String);
+    attr_accessor(fiber, Fiber);
+    attr_accessor(current_fiber, Fiber);
+    attr_accessor(fiber_value, Object);
 
   private:
     utilities::thread::SpinLock init_lock_;
     utilities::thread::Mutex join_lock_;
     utilities::thread::Condition join_cond_;
+    std::mutex fiber_mutex_;
 
     /// The VM state for this thread and this thread alone
     attr_field(vm, VM*);
@@ -78,12 +86,21 @@ namespace rubinius {
       obj->initialized(cFalse);
       obj->stack_size(Fixnum::from(state->shared().config.machine_thread_stack_size.value));
       obj->source(nil<String>());
+      obj->fiber(nil<Fiber>());
+      obj->current_fiber(nil<Fiber>());
+      obj->fiber_value(nil<Object>());
 
       obj->init_lock_.init();
       obj->join_lock_.init();
       obj->join_cond_.init();
 
+      new(&obj->fiber_mutex_) std::mutex;
+
       obj->vm(0);
+    }
+
+    std::mutex& fiber_mutex() {
+      return fiber_mutex_;
     }
 
   public:
@@ -173,45 +190,32 @@ namespace rubinius {
     // thread.
     void unlock_after_fork(STATE);
 
-    /**
-     * Retrieve a value store in the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive+ :thread_locals_aref
-    Object* locals_aref(STATE, Symbol* key);
+    // Rubinius.primitive :thread_fiber_list
+    Array* fiber_list(STATE);
 
-    /**
-     * Store a value in the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive :thread_locals_store
-    Object* locals_store(STATE, Symbol* key, Object* value);
+    // Rubinius.primitive :thread_fiber_variable_get
+    Object* fiber_variable_get(STATE, Symbol* key);
 
-    /**
-     * Remove a value from the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive :thread_locals_remove
-    Object* locals_remove(STATE, Symbol* key);
+    // Rubinius.primitive :thread_fiber_variable_set
+    Object* fiber_variable_set(STATE, Symbol* key, Object* value);
 
-    /**
-     * Retrieve the keys for all thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive :thread_locals_keys
-    Array* locals_keys(STATE);
+    // Rubinius.primitive :thread_fiber_variable_key_p
+    Object* fiber_variable_key_p(STATE, Symbol* key);
 
-    /**
-     * Check whether a given key has a value store in the thread locals.
-     * This is done in a primitive because it also has
-     * to consider any running fibers.
-     */
-    // Rubinius.primitive+ :thread_locals_has_key
-    Object* locals_has_key(STATE, Symbol* key);
+    // Rubinius.primitive :thread_fiber_variables
+    Array* fiber_variables(STATE);
+
+    // Rubinius.primitive :thread_variable_get
+    Object* variable_get(STATE, Symbol* key);
+
+    // Rubinius.primitive :thread_variable_set
+    Object* variable_set(STATE, Symbol* key, Object* value);
+
+    // Rubinius.primitive :thread_variable_key_p
+    Object* variable_key_p(STATE, Symbol* key);
+
+    // Rubinius.primitive :thread_variables
+    Array* variables(STATE);
 
     void init_lock();
     void stopped();
