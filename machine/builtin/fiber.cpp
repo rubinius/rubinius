@@ -74,12 +74,12 @@ namespace rubinius {
   }
 
   void Fiber::restart(STATE) {
-    if(!vm()->suspended_p()) {
-      Exception::raise_fiber_error(state, "attempt to restart non-suspended fiber");
-    }
-
     {
       std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
+      if(!vm()->suspended_p()) {
+        Exception::raise_fiber_error(state, "attempt to restart non-suspended fiber");
+      }
 
       while(vm()->suspended_p()) {
         std::lock_guard<std::mutex> guard(vm()->wait_mutex());
@@ -93,7 +93,10 @@ namespace rubinius {
       ; // spin wait
     }
 
-    state->vm()->thread()->current_fiber(state, this);
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+      state->vm()->thread()->current_fiber(state, this);
+    }
   }
 
   void Fiber::suspend(STATE) {
