@@ -310,7 +310,7 @@ namespace rubinius {
 
       while(frame) {
         if(first) {
-          logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
+          logger::fatal("--- %s %d backtrace ---", vm->kind_name(), vm->thread_id());
           first = false;
         }
 

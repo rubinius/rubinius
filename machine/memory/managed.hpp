@@ -88,6 +88,17 @@ namespace memory {
       }
     }
 
+    const char* kind_name() const {
+      switch(kind_) {
+        case eThread:
+          return "Thread";
+        case eFiber:
+          return "Fiber";
+        case eSystem:
+          return "MachineThread";
+      }
+    }
+
     Kind kind() const {
       return kind_;
     }
