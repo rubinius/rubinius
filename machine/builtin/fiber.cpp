@@ -62,10 +62,16 @@ namespace rubinius {
     pthread_attr_setstacksize(&attrs, stack_size()->to_native());
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
-    pthread_create(&vm()->os_thread(), &attrs,
+    int status = pthread_create(&vm()->os_thread(), &attrs,
         Fiber::run, (void*)vm());
 
     pthread_attr_destroy(&attrs);
+
+    if(status != 0) {
+      char buf[RBX_STRERROR_BUFSIZE];
+      char* err = RBX_STRERROR(status, buf, RBX_STRERROR_BUFSIZE);
+      Exception::raise_fiber_error(state, err);
+    }
 
     // Wait for Fiber thread to start up and pause.
     while(!vm()->suspended_p()) {
