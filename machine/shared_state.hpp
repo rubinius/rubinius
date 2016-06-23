@@ -51,6 +51,7 @@ namespace rubinius {
     class ManagedThread;
   }
 
+  class Fixnum;
   class SignalThread;
   class Memory;
   class GlobalCache;
@@ -166,7 +167,9 @@ namespace rubinius {
     }
 
     Array* vm_threads(STATE);
+    Fixnum* vm_threads_count(STATE);
     Array* vm_fibers(STATE);
+    Fixnum* vm_fibers_count(STATE);
     Array* vm_thread_fibers(STATE, Thread* thread);
 
     int global_serial() const {

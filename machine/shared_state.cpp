@@ -16,6 +16,7 @@
 #include "signal.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
+#include "builtin/fixnum.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/system.hpp"
@@ -128,6 +129,27 @@ namespace rubinius {
     return threads;
   }
 
+  Fixnum* SharedState::vm_threads_count(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+
+    native_int count = 0;
+
+    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
+        i != thread_nexus_->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        Thread *thread = vm->thread();
+        if(vm->kind() == memory::ManagedThread::eThread
+            &&!thread->nil_p() && CBOOL(thread->alive())) {
+          count++;
+        }
+      }
+    }
+
+    return Fixnum::from(count);
+  }
+
   Array* SharedState::vm_fibers(STATE) {
     std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
 
@@ -147,6 +169,27 @@ namespace rubinius {
     }
 
     return fibers;
+  }
+
+  Fixnum* SharedState::vm_fibers_count(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+
+    native_int count = 0;
+
+    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
+        i != thread_nexus_->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead) {
+          count++;
+        }
+      }
+    }
+
+    return Fixnum::from(count);
   }
 
   Array* SharedState::vm_thread_fibers(STATE, Thread* thread) {

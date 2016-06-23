@@ -79,6 +79,11 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread.list primitive failed"
   end
 
+  def self.count
+    Rubinius.primitive :thread_count
+    Kernel.raise PrimitiveFailure, "Thread.count primitive failed"
+  end
+
   def self.stop
     sleep
     nil

@@ -432,6 +432,10 @@ namespace rubinius {
     return state->shared().vm_threads(state);
   }
 
+  Fixnum* Thread::count(STATE) {
+    return state->shared().vm_threads_count(state);
+  }
+
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {
     priority(state, new_priority);
     return new_priority;

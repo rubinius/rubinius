@@ -34,6 +34,11 @@ class Fiber
     raise PrimitiveFailure, "Fiber.main primitive failed"
   end
 
+  def self.count
+    Rubinius.primitive :fiber_s_count
+    raise PrimitiveFailure, "Fiber.count primitive failed"
+  end
+
   def status
     Rubinius.primitive :fiber_status
     raise PrimitiveFailure, "Fiber#status primitive failed"

@@ -412,6 +412,10 @@ namespace rubinius {
     return state->vm()->thread()->fiber();
   }
 
+  Fixnum* Fiber::s_count(STATE) {
+    return state->shared().vm_fibers_count(state);
+  }
+
   void Fiber::finalize(STATE, Fiber* fib) {
     if(state->shared().config.machine_fiber_log_finalizer.value) {
       logger::write("fiber: finalizer: %s, %d",

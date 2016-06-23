@@ -131,6 +131,9 @@ namespace rubinius {
     // Rubinius.primitive :thread_list
     static Array* list(STATE);
 
+    // Rubinius.primitive :thread_count
+    static Fixnum* count(STATE);
+
   public:   /* Instance primitives */
 
     void fork(STATE);

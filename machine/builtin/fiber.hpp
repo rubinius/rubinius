@@ -93,6 +93,9 @@ namespace rubinius {
     // Rubinius.primitive :fiber_s_main
     static Fiber* s_main(STATE);
 
+    // Rubinius.primitive :fiber_s_count
+    static Fixnum* s_count(STATE);
+
     bool root_p();
 
     Status status() {
