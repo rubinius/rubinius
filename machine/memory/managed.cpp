@@ -17,7 +17,7 @@ namespace memory {
     : shared_(ss)
     , kind_(kind)
     , metrics_()
-    , os_thread_(pthread_self())
+    , os_thread_(0)
     , id_(id)
   {
     if(name) {

@@ -121,5 +121,9 @@ namespace rubinius {
 #define UNUSED
 #endif
 
+#ifndef NORETURN
+#define NORETURN(x) __attribute__ ((noreturn)) x
+#endif
+
 #endif
 

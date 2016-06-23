@@ -168,7 +168,7 @@ namespace rubinius {
     }
 
     state->vm()->clear_waiter();
-    state->vm()->thread->sleep(state, cFalse);
+    state->vm()->thread()->sleep(state, cFalse);
 
     self->unpin();
     self->_waiters_--;

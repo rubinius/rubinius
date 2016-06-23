@@ -10,6 +10,7 @@
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/thread.hpp"
 
 #include "capi/handles.hpp"
 #include "memory/inflated_headers.hpp"
@@ -351,7 +352,7 @@ step1:
       }
 
       // wonderful! Locked! weeeee!
-      state->vm()->add_locked_object(self);
+      state->vm()->thread()->vm()->add_locked_object(self);
       return eLocked;
     }
 
@@ -425,7 +426,7 @@ step2:
       // the whole locking procedure again.
       OnStack<1> os(state, self);
       if(!state->memory()->inflate_and_lock(state, self)) goto step1;
-      state->vm()->add_locked_object(self);
+      state->vm()->thread()->vm()->add_locked_object(self);
       return eLocked;
     }
     case eAuxWordInflated: {
@@ -468,7 +469,7 @@ step1:
 
     if(self->header.atomic_set(orig, new_val)) {
       // wonderful! Locked! weeeee!
-      state->vm()->add_locked_object(self);
+      state->vm()->thread()->vm()->add_locked_object(self);
       return eLocked;
     }
 
@@ -574,7 +575,7 @@ step2:
       unsigned int locker_tid = header.f.aux_word >> cAuxLockTIDShift;
 
       if(locker_tid == state->vm()->thread_id()) {
-        state->vm()->del_locked_object(this);
+        state->vm()->thread()->vm()->del_locked_object(this);
       }
     }
       // Fall through
@@ -623,7 +624,7 @@ step2:
             // consistent.
             if(!state->memory()->inflate_for_contention(state, this)) continue;
 
-            state->vm()->del_locked_object(this);
+            state->vm()->thread()->vm()->del_locked_object(this);
             state->memory()->release_contention(state);
 
             return eUnlocked;
@@ -641,7 +642,7 @@ step2:
         if(new_val.f.meaning == eAuxWordEmpty) {
           // Since we no longer have any association with this lock,
           // remove it from the current threads lock list
-          state->vm()->del_locked_object(this);
+          state->vm()->thread()->vm()->del_locked_object(this);
 
           if(cDebugThreading) {
             if(new_val.f.LockContended == 1) {
@@ -875,7 +876,7 @@ step2:
     // OWNED.
 
     owner_id_ = state->vm()->thread_id();
-    state->vm()->add_locked_object(obj);
+    state->vm()->thread()->vm()->add_locked_object(obj);
 
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->vm()->thread_id() << " locked inflated header: " << this << "]\n";
@@ -914,7 +915,7 @@ step2:
     } else if(owner_id_ == 0) {
       owner_id_ = state->vm()->thread_id();
       locked = true;
-      state->vm()->add_locked_object(obj);
+      state->vm()->thread()->vm()->add_locked_object(obj);
 
       // OWNED.
 
@@ -952,7 +953,7 @@ step2:
     // If the count has dropped to 0, we're truly done, so tell anyone
     // blocking on mutex_.
     if(rec_lock_count_ == 0) {
-      state->vm()->del_locked_object(obj);
+      state->vm()->thread()->vm()->del_locked_object(obj);
 
       owner_id_ = 0;
       if(cDebugThreading) {

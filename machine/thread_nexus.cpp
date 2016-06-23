@@ -93,10 +93,12 @@ namespace rubinius {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) continue;
 
-        if(Thread* thread = vm->thread.get()) {
-          if(!thread->nil_p()) {
-            thread->unlock_after_fork(state);
-            thread->stopped();
+        if(vm->kind() == memory::ManagedThread::eThread) {
+          if(Thread* thread = vm->thread()) {
+            if(!thread->nil_p()) {
+              thread->unlock_after_fork(state);
+              thread->stopped();
+            }
           }
         }
 
@@ -189,7 +191,7 @@ namespace rubinius {
 
           ns += delay();
 
-          detect_deadlock(ns, try_lock_limit, other_vm);
+          detect_deadlock(ns, lock_limit, other_vm);
         }
       }
     }

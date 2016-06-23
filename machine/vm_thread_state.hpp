@@ -53,6 +53,7 @@ namespace rubinius {
 
     ThreadState* state_as_object(STATE);
     void set_state(STATE, ThreadState* obj);
+    void set_state(VMThreadState* thread_state);
 
     void raise_exception(Exception* exc);
     void raise_return(Object* value, VariableScope* dest);

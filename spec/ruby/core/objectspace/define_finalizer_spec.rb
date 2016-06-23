@@ -94,10 +94,7 @@ describe "ObjectSpace.define_finalizer" do
       pid = Kernel::fork do
         rd.close
         obj = "Test"
-        handler = Proc.new do
-          obj
-          File.open(@fname, "w") { |f| f.write(@contents) }
-        end
+        handler = Proc.new { wr.write(@contents); wr.close }
         ObjectSpace.define_finalizer(obj, handler)
         exit 0
       end
@@ -105,7 +102,7 @@ describe "ObjectSpace.define_finalizer" do
       wr.close
       Process.waitpid pid
 
-      rd.read.should == "finalized"
+      rd.read.should == @contents
       rd.close
     end
 

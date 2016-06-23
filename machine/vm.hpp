@@ -19,28 +19,21 @@
 #include "shared_state.hpp"
 
 #include "unwind_info.hpp"
-#include "fiber_stack.hpp"
 
 #include "sodium/randombytes.h"
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <regex>
 #include <string>
 #include <vector>
 #include <setjmp.h>
 #include <stdint.h>
 
-namespace llvm {
-  class Module;
-}
-
-namespace rbxti {
-  class Env;
-}
-
 namespace rubinius {
-
+  class Fiber;
   class Exception;
-  class LLVMState;
 
   namespace event {
     class Loop;
@@ -57,7 +50,6 @@ namespace rubinius {
   class CompiledCode;
   class ConfigParser;
   class Configuration;
-  class Fiber;
   class GlobalCache;
   class LookupTable;
   class Memory;
@@ -101,21 +93,29 @@ namespace rubinius {
 
     CallFrame* call_frame_;
     ThreadNexus* thread_nexus_;
-    CallSiteInformation* saved_call_site_information_;
-    FiberStacks fiber_stacks_;
     Park* park_;
 
     void* stack_start_;
     size_t stack_size_;
     size_t stack_cushion_;
 
-    void* current_stack_start_;
-    size_t current_stack_size_;
-
     bool interrupt_with_signal_;
     bool interrupt_by_kill_;
     bool check_local_interrupts_;
     bool thread_step_;
+
+    std::mutex wait_mutex_;
+    std::condition_variable wait_condition_;
+
+    enum FiberTransition {
+      eSuspending,
+      eSuspended,
+      eResuming,
+      eRunning,
+      eFinished
+    };
+
+    std::atomic<FiberTransition> transition_flag_;
 
     utilities::thread::SpinLock interrupt_lock_;
 
@@ -142,13 +142,8 @@ namespace rubinius {
     memory::TypedRoot<Channel*> waiting_channel_;
     memory::TypedRoot<Exception*> interrupted_exception_;
     /// The Thread object for this VM state
-    memory::TypedRoot<Thread*> thread;
-
-    /// The current fiber running on this thread
-    memory::TypedRoot<Fiber*> current_fiber;
-
-    /// Root fiber, if any (lazily initialized)
-    memory::TypedRoot<Fiber*> root_fiber;
+    memory::TypedRoot<Thread*> thread_;
+    memory::TypedRoot<Fiber*> fiber_;
 
     /// Object that waits for inflation
     memory::TypedRoot<Object*> waiting_object_;
@@ -188,6 +183,69 @@ namespace rubinius {
       return interrupt_lock_;
     }
 
+    std::mutex& wait_mutex() {
+      return wait_mutex_;
+    }
+
+    std::condition_variable& wait_condition() {
+      return wait_condition_;
+    }
+
+    FiberTransition transition_flag() {
+      return transition_flag_;
+    }
+
+    bool suspending_p() const {
+      return transition_flag_ == eSuspending;
+    }
+
+    bool suspended_p() const {
+      return transition_flag_ == eSuspended;
+    }
+
+    bool resuming_p() const {
+      return transition_flag_ == eResuming;
+    }
+
+    bool running_p() const {
+      return transition_flag_ == eRunning;
+    }
+
+    bool finished_p() const {
+      return transition_flag_ == eFinished;
+    }
+
+    void set_suspending() {
+      transition_flag_ = eSuspending;
+    }
+
+    void set_suspended() {
+      transition_flag_ = eSuspended;
+    }
+
+    void set_resuming() {
+      transition_flag_ = eResuming;
+    }
+
+    void set_running() {
+      transition_flag_ = eRunning;
+    }
+
+    void set_finished() {
+      transition_flag_ = eFinished;
+    }
+
+    void set_thread(Thread* thread);
+    void set_fiber(Fiber* fiber);
+
+    Thread* thread() {
+      return thread_.get();
+    }
+
+    Fiber* fiber() {
+      return fiber_.get();
+    }
+
     void set_zombie(STATE);
 
     bool zombie_p() {
@@ -217,29 +275,24 @@ namespace rubinius {
     void validate_stack_size(STATE, size_t size);
 
     size_t stack_size() {
-      return current_stack_size_;
+      return stack_size_;
     }
 
-    void restore_stack_bounds() {
-      current_stack_start_ = stack_start_;
-      current_stack_size_ = stack_size_;
-    }
+    void set_stack_bounds(size_t size) {
+      void* stack_address;
 
-    void set_stack_bounds(void* start, size_t size) {
-      current_stack_start_ = start;
-      current_stack_size_ = size - stack_cushion_;
+      stack_size_ = size - stack_cushion_;
+      stack_start_ = &stack_address;
     }
-
-    void set_stack_bounds(size_t size);
 
     bool check_stack(STATE, void* stack_address) {
       ssize_t stack_used =
-        (reinterpret_cast<intptr_t>(current_stack_start_)
+        (reinterpret_cast<intptr_t>(stack_start_)
         - reinterpret_cast<intptr_t>(stack_address));
 
       if(stack_used < 0) stack_used = -stack_used;
 
-      if(static_cast<size_t>(stack_used) > current_stack_size_) {
+      if(static_cast<size_t>(stack_used) > stack_size_) {
         raise_stack_error(state);
         return false;
       }
@@ -279,17 +332,9 @@ namespace rubinius {
     CallFrame* get_variables_frame(ssize_t up=0);
     CallFrame* get_scope_frame(ssize_t up=0);
     CallFrame* get_noncore_frame(STATE);
-    CallFrame* get_filtered_frame(STATE, std::string& filter);
+    CallFrame* get_filtered_frame(STATE, const std::regex& filter);
 
     bool scope_valid_p(VariableScope* scope);
-
-    void set_call_site_information(CallSiteInformation* info) {
-      saved_call_site_information_ = info;
-    }
-
-    CallSiteInformation* saved_call_site_information() {
-      return saved_call_site_information_;
-    }
 
     GlobalCache* global_cache() const {
       return shared.global_cache;
@@ -373,22 +418,6 @@ namespace rubinius {
 
     void disable_allocation_tracking() {
       allocation_tracking_ = false;
-    }
-
-    FiberStack* allocate_fiber_stack(size_t stack_size) {
-      return fiber_stacks_.allocate(stack_size);
-    }
-
-    void* fiber_trampoline() {
-      return fiber_stacks_.trampoline();
-    }
-
-    FiberData* new_fiber_data(size_t stack_size, bool root=false) {
-      return fiber_stacks_.new_data(stack_size, root);
-    }
-
-    void remove_fiber_data(FiberData* data) {
-      fiber_stacks_.remove_data(data);
     }
 
     memory::VariableRootBuffers& current_root_buffers();
@@ -477,8 +506,6 @@ namespace rubinius {
     void initialize_platform_data(STATE);
     Object* ruby_lib_version();
 
-    void set_current_fiber(Fiber* fib);
-
     TypeInfo* find_type(int type);
 
     static void init_ffi(STATE);
@@ -492,9 +519,6 @@ namespace rubinius {
     void set_const(Module* mod, const char* name, Object* val);
 
     Object* path2class(const char* name);
-
-    llvm::Module* llvm_module();
-    void llvm_cleanup();
 
     void print_backtrace();
 
@@ -517,8 +541,6 @@ namespace rubinius {
     void register_kill(STATE);
 
     void gc_scan(memory::GarbageCollector* gc);
-    void gc_fiber_clear_mark();
-    void gc_fiber_scan(memory::GarbageCollector* gc, bool only_marked = true);
     void gc_verify(memory::GarbageCollector* gc);
   };
 }

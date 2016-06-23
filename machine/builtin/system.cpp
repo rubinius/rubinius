@@ -49,6 +49,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include <fstream>
+#include <regex>
 #include <stdarg.h>
 #include <string.h>
 #include <sstream>
@@ -442,7 +443,7 @@ namespace rubinius {
     if(pid == 0) {
       close(errors[0]);
 
-      state->vm()->thread->init_lock();
+      state->vm()->thread()->init_lock();
       state->shared().machine_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
@@ -496,7 +497,7 @@ namespace rubinius {
       close(errors[1]);
 
       if(state->shared().config.system_log_lifetime.value) {
-        std::string& filter = state->shared().config.system_log_filter.value;
+        const std::regex& filter = state->shared().config.system_log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: spawn: %d: %s, %s, %s:%d",
@@ -574,7 +575,7 @@ namespace rubinius {
     }
 
     if(pid == 0) {
-      state->vm()->thread->init_lock();
+      state->vm()->thread()->init_lock();
       state->shared().machine_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
@@ -623,7 +624,7 @@ namespace rubinius {
       close(output[1]);
 
       if(state->shared().config.system_log_lifetime.value) {
-        std::string& filter = state->shared().config.system_log_filter.value;
+        const std::regex& filter = state->shared().config.system_log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: backtick: %d: %s, %s, %s:%d",
@@ -717,7 +718,7 @@ namespace rubinius {
     ExecCommand exe(state, path, args);
 
     if(state->shared().config.system_log_lifetime.value) {
-      std::string& filter = state->shared().config.system_log_filter.value;
+      const std::regex& filter = state->shared().config.system_log_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         logger::write("process: exec: %s, %s, %s:%d", exe.command(),
@@ -881,7 +882,7 @@ namespace rubinius {
       state->shared().machine_threads()->after_fork_parent(state);
 
       if(state->shared().config.system_log_lifetime.value) {
-        std::string& filter = state->shared().config.system_log_filter.value;
+        const std::regex& filter = state->shared().config.system_log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: fork: child: %d, %s, %s:%d", pid,
@@ -897,7 +898,7 @@ namespace rubinius {
       // We're in the child...
       state->vm()->after_fork_child(state);
 
-      state->vm()->thread->init_lock();
+      state->vm()->thread()->init_lock();
       state->shared().after_fork_child(state);
       state->shared().machine_threads()->after_fork_child(state);
 

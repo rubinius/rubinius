@@ -58,7 +58,6 @@ namespace rubinius {
   class State;
   class VM;
   class Configuration;
-  class LLVMState;
   class QueryAgent;
   class Environment;
 
@@ -167,6 +166,8 @@ namespace rubinius {
     }
 
     Array* vm_threads(STATE);
+    Array* vm_fibers(STATE);
+    Array* vm_thread_fibers(STATE, Thread* thread);
 
     int global_serial() const {
       return global_serial_;

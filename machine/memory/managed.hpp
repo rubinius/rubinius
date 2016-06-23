@@ -21,7 +21,8 @@ namespace memory {
   class ManagedThread {
   public:
     enum Kind {
-      eRuby,
+      eThread,
+      eFiber,
       eSystem
     };
 
@@ -87,8 +88,23 @@ namespace memory {
       }
     }
 
+    const char* kind_name() const {
+      switch(kind_) {
+        case eThread:
+          return "Thread";
+        case eFiber:
+          return "Fiber";
+        case eSystem:
+          return "MachineThread";
+      }
+    }
+
     Kind kind() const {
       return kind_;
+    }
+
+    void set_kind(Kind kind) {
+      kind_ = kind;
     }
 
     VM* as_vm() {

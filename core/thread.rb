@@ -84,6 +84,11 @@ class Thread
     nil
   end
 
+  def fiber_list
+    Rubinius.primitive :thread_fiber_list
+    Kernel.raise PrimitiveFailure, "Thread.fiber_list primitive failed"
+  end
+
   def wakeup
     Rubinius.primitive :thread_wakeup
     Kernel.raise ThreadError, "Thread#wakeup primitive failed, thread may be dead"
@@ -224,40 +229,45 @@ class Thread
     end
   end
 
-  def [](key)
-    locals_aref(Rubinius::Type.coerce_to_symbol(key))
+  def thread_variable_get(key)
+    key = Rubinius::Type.coerce_to_symbol key
+    Rubinius.invoke_primitive :thread_variable_get, self, key
   end
 
-  def locals_aref(key)
-    Rubinius.primitive :thread_locals_aref
-    raise PrimitiveFailure, "Thread#locals_aref primitive failed"
+  def thread_variable_set(key, value)
+    key = Rubinius::Type.coerce_to_symbol key
+    Rubinius.invoke_primitive :thread_variable_set, self, key, value
   end
-  private :locals_aref
+
+  def thread_variable?(key)
+    key = Rubinius::Type.coerce_to_symbol key
+    Rubinius.invoke_primitive :thread_variable_key_p, self, key
+  end
+
+  def thread_variables
+    Rubinius.primitive :thread_variables
+    raise PrimitiveFailure, "Thread#thread_variables primitive failed"
+  end
+
+  def [](key)
+    key = Rubinius::Type.coerce_to_symbol key
+    Rubinius.invoke_primitive :thread_fiber_variable_get, self, key
+  end
 
   def []=(key, value)
-    locals_store(Rubinius::Type.coerce_to_symbol(key), value)
-  end
-
-  def locals_store(key, value)
-    Rubinius.primitive :thread_locals_store
-    raise PrimitiveFailure, "Thread#locals_store primitive failed"
-  end
-  private :locals_store
-
-  def keys
-    Rubinius.primitive :thread_locals_keys
-    raise PrimitiveFailure, "Thread#keys primitive failed"
+    key = Rubinius::Type.coerce_to_symbol key
+    Rubinius.invoke_primitive :thread_fiber_variable_set, self, key, value
   end
 
   def key?(key)
-    locals_key?(Rubinius::Type.coerce_to_symbol(key))
+    key = Rubinius::Type.coerce_to_symbol key
+    Rubinius.invoke_primitive :thread_fiber_variable_key_p, self, key
   end
 
-  def locals_key?(key)
-    Rubinius.primitive :thread_locals_has_key
-    raise PrimitiveFailure, "Thread#locals_key? primitive failed"
+  def keys
+    Rubinius.primitive :thread_fiber_variables
+    raise PrimitiveFailure, "Thread#keys primitive failed"
   end
-  private :locals_key?
 
   # Register another Thread object +thr+ as the Thread where the debugger
   # is running. When the current thread hits a breakpoint, it uses this
