@@ -104,8 +104,8 @@ namespace rubinius {
     bool check_local_interrupts_;
     bool thread_step_;
 
-    std::mutex wait_mutex_;
-    std::condition_variable wait_condition_;
+    std::mutex fiber_wait_mutex_;
+    std::condition_variable fiber_wait_condition_;
 
     enum FiberTransition {
       eSuspending,
@@ -115,7 +115,7 @@ namespace rubinius {
       eFinished
     };
 
-    std::atomic<FiberTransition> transition_flag_;
+    std::atomic<FiberTransition> fiber_transition_flag_;
 
     utilities::thread::SpinLock interrupt_lock_;
 
@@ -183,56 +183,56 @@ namespace rubinius {
       return interrupt_lock_;
     }
 
-    std::mutex& wait_mutex() {
-      return wait_mutex_;
+    std::mutex& fiber_wait_mutex() {
+      return fiber_wait_mutex_;
     }
 
-    std::condition_variable& wait_condition() {
-      return wait_condition_;
+    std::condition_variable& fiber_wait_condition() {
+      return fiber_wait_condition_;
     }
 
-    FiberTransition transition_flag() {
-      return transition_flag_;
+    FiberTransition fiber_transition_flag() {
+      return fiber_transition_flag_;
     }
 
     bool suspending_p() const {
-      return transition_flag_ == eSuspending;
+      return fiber_transition_flag_ == eSuspending;
     }
 
     bool suspended_p() const {
-      return transition_flag_ == eSuspended;
+      return fiber_transition_flag_ == eSuspended;
     }
 
     bool resuming_p() const {
-      return transition_flag_ == eResuming;
+      return fiber_transition_flag_ == eResuming;
     }
 
     bool running_p() const {
-      return transition_flag_ == eRunning;
+      return fiber_transition_flag_ == eRunning;
     }
 
     bool finished_p() const {
-      return transition_flag_ == eFinished;
+      return fiber_transition_flag_ == eFinished;
     }
 
     void set_suspending() {
-      transition_flag_ = eSuspending;
+      fiber_transition_flag_ = eSuspending;
     }
 
     void set_suspended() {
-      transition_flag_ = eSuspended;
+      fiber_transition_flag_ = eSuspended;
     }
 
     void set_resuming() {
-      transition_flag_ = eResuming;
+      fiber_transition_flag_ = eResuming;
     }
 
     void set_running() {
-      transition_flag_ = eRunning;
+      fiber_transition_flag_ = eRunning;
     }
 
     void set_finished() {
-      transition_flag_ = eFinished;
+      fiber_transition_flag_ = eFinished;
     }
 
     void set_thread(Thread* thread);

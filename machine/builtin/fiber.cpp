@@ -87,7 +87,8 @@ namespace rubinius {
 
       if(!vm()->suspended_p()) {
         std::ostringstream msg;
-        msg << "attempt to restart non-suspended (" << vm()->transition_flag() << ") fiber";
+        msg << "attempt to restart non-suspended ("
+          << vm()->fiber_transition_flag() << ") fiber";
         Exception::raise_fiber_error(state, msg.str().c_str());
       }
 
@@ -97,8 +98,8 @@ namespace rubinius {
       wakeup();
 
       while(vm()->suspended_p()) {
-        std::lock_guard<std::mutex> guard(vm()->wait_mutex());
-        vm()->wait_condition().notify_one();
+        std::lock_guard<std::mutex> guard(vm()->fiber_wait_mutex());
+        vm()->fiber_wait_condition().notify_one();
       }
     }
 
@@ -111,11 +112,11 @@ namespace rubinius {
     UnmanagedPhase unmanaged(state);
 
     {
-      std::unique_lock<std::mutex> lk(vm()->wait_mutex());
+      std::unique_lock<std::mutex> lk(vm()->fiber_wait_mutex());
 
       vm()->set_suspended();
       while(!wakeup_p()) {
-        vm()->wait_condition().wait(lk);
+        vm()->fiber_wait_condition().wait(lk);
       }
       clear_wakeup();
       vm()->set_resuming();
@@ -186,7 +187,7 @@ namespace rubinius {
     }
 
     {
-      std::lock_guard<std::mutex> guard(vm->wait_mutex());
+      std::lock_guard<std::mutex> guard(vm->fiber_wait_mutex());
 
       vm->fiber()->status(eDead);
       vm->set_suspended();

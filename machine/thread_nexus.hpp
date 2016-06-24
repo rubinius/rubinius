@@ -27,11 +27,10 @@ namespace rubinius {
 
   class ThreadNexus {
     std::atomic<bool> stop_;
-    std::mutex fork_mutex_;
-    std::mutex exec_mutex_;
+    std::mutex process_mutex_;
     std::mutex threads_mutex_;
-    std::mutex wait_mutex_;
-    std::condition_variable wait_condition_;
+    std::mutex waiting_mutex_;
+    std::condition_variable waiting_condition_;
 
     std::atomic<uint32_t> phase_flag_;
 
@@ -58,11 +57,10 @@ namespace rubinius {
 
     ThreadNexus()
       : stop_(false)
-      , fork_mutex_()
-      , exec_mutex_()
+      , process_mutex_()
       , threads_mutex_()
-      , wait_mutex_()
-      , wait_condition_()
+      , waiting_mutex_()
+      , waiting_condition_()
       , phase_flag_(0)
       , threads_()
       , thread_ids_(0)
@@ -78,12 +76,8 @@ namespace rubinius {
     }
 
   public:
-    std::mutex& fork_mutex() {
-      return fork_mutex_;
-    }
-
-    std::mutex& exec_mutex() {
-      return exec_mutex_;
+    std::mutex& process_mutex() {
+      return process_mutex_;
     }
 
     ThreadList* threads() {
@@ -119,8 +113,8 @@ namespace rubinius {
         waiting_phase(vm);
 
         {
-          std::unique_lock<std::mutex> lk(wait_mutex_);
-          wait_condition_.wait(lk,
+          std::unique_lock<std::mutex> lk(waiting_mutex_);
+          waiting_condition_.wait(lk,
               [this]{ return !stop_.load(std::memory_order_acquire); });
         }
 
@@ -129,6 +123,8 @@ namespace rubinius {
     }
 
     bool waiting_lock(VM* vm);
+    LockStatus fork_lock(VM* vm);
+    void fork_unlock(LockStatus status);
 
     LockStatus try_lock(VM* vm) {
       while(stop_p()) {
@@ -160,9 +156,9 @@ namespace rubinius {
     }
 
     void unlock() {
-      std::lock_guard<std::mutex> guard(wait_mutex_);
-      phase_flag_.store(0, std::memory_order_release);
-      wait_condition_.notify_all();
+      std::lock_guard<std::mutex> guard(waiting_mutex_);
+      phase_flag_ = 0;
+      waiting_condition_.notify_all();
     }
 
     bool try_checkpoint(VM* vm);
@@ -170,6 +166,7 @@ namespace rubinius {
 
     uint64_t delay();
     void detect_deadlock(uint64_t nanoseconds, uint64_t limit, VM* vm);
+    void detect_deadlock(uint64_t nanoseconds, uint64_t limit);
 
     void list_threads();
 

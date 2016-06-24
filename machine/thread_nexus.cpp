@@ -1,3 +1,4 @@
+#include "logger.hpp"
 #include "shared_state.hpp"
 #include "thread_nexus.hpp"
 #include "vm.hpp"
@@ -150,6 +151,16 @@ namespace rubinius {
     }
   }
 
+  void ThreadNexus::detect_deadlock(uint64_t nanoseconds, uint64_t limit) {
+    if(nanoseconds > limit) {
+      logger::fatal("thread nexus: unable to lock, possible deadlock");
+
+      list_threads();
+
+      rubinius::abort();
+    }
+  }
+
   uint64_t ThreadNexus::delay() {
     static int i = 0;
     static int delay[] = {
@@ -165,6 +176,76 @@ namespace rubinius {
     nanosleep(&ts, NULL);
 
     return ns;
+  }
+
+  ThreadNexus::LockStatus ThreadNexus::fork_lock(VM* vm) {
+    waiting_phase(vm);
+
+    /* Preserve the state of the phase_flag_ in situations where we have the
+     * entire system serialized.
+     */
+    uint32_t id = 0;
+    bool held = false;
+    uint64_t ns = 0;
+
+    while(!phase_flag_.compare_exchange_strong(id, vm->thread_id())) {
+      if(id == vm->thread_id()) {
+        /* The exchange failed, but it was because the value was already set
+         * to our id, so we hold the "lock".
+         */
+        vm->set_thread_phase(eManaged);
+        held = true;
+        break;
+      }
+
+      ns += delay();
+
+      detect_deadlock(ns, lock_limit);
+
+      id = 0;
+    }
+
+    /* Lock and hold the waiting_mutex to prevent any other thread from
+     * holding it across a fork() call.
+     */
+    ns = 0;
+
+    while(!waiting_mutex_.try_lock()) {
+      ns += delay();
+
+      detect_deadlock(ns, lock_limit);
+    }
+
+    // Checkpoint all the other threads.
+    ns = 0;
+
+    while(!try_checkpoint(vm)) {
+      ns += delay();
+
+      detect_deadlock(ns, lock_limit);
+    }
+
+    /* Hold the logger lock so that the multi-process semaphore that the
+     * logger depends on is not held across fork() calls.
+     */
+    ns = 0;
+
+    while(!logger::try_lock()) {
+      ns += delay();
+
+      detect_deadlock(ns, lock_limit);
+    }
+
+    return to_lock_status(held);
+  }
+
+  void ThreadNexus::fork_unlock(LockStatus status) {
+    if(status == eLocked) {
+      phase_flag_ = 0;
+    }
+
+    logger::unlock();
+    waiting_mutex_.unlock();
   }
 
   bool ThreadNexus::try_checkpoint(VM* vm) {
@@ -232,9 +313,7 @@ namespace rubinius {
 
     vm->set_thread_phase(eWaiting);
 
-    while(!phase_flag_.compare_exchange_strong(id, vm->thread_id(),
-          std::memory_order_acq_rel))
-    {
+    while(!phase_flag_.compare_exchange_strong(id, vm->thread_id())) {
       if(id == vm->thread_id()) {
         /* The exchange failed, but it was because the value was already set
          * to our id, so we hold the "lock".
@@ -244,9 +323,9 @@ namespace rubinius {
       }
 
       {
-        std::unique_lock<std::mutex> lk(wait_mutex_);
-        wait_condition_.wait(lk,
-            [this]{ return phase_flag_.load(std::memory_order_acquire) == 0; });
+        std::unique_lock<std::mutex> lk(waiting_mutex_);
+        waiting_condition_.wait(lk,
+            [this]{ return phase_flag_ == 0; });
       }
 
       id = 0;

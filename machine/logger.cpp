@@ -47,6 +47,26 @@ namespace rubinius {
       loglevel_ = level;
     }
 
+    void lock() {
+      if(logger_) {
+        logger_->lock();
+      }
+    }
+
+    bool try_lock() {
+      if(logger_) {
+        return logger_->try_lock();
+      } else {
+        return false;
+      }
+    }
+
+    void unlock() {
+      if(logger_) {
+        logger_->unlock();
+      }
+    }
+
     void close() {
       delete logger_;
     }
@@ -124,7 +144,7 @@ namespace rubinius {
 
     void write(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         char buf[LOGGER_MSG_SIZE];
 
@@ -136,7 +156,7 @@ namespace rubinius {
 
     void fatal(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         if(loglevel_ < eFatal) return;
 
@@ -150,7 +170,7 @@ namespace rubinius {
 
     void error(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         if(loglevel_ < eError) return;
 
@@ -164,7 +184,7 @@ namespace rubinius {
 
     void warn(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         if(loglevel_ < eWarn) return;
 
@@ -178,7 +198,7 @@ namespace rubinius {
 
     void info(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         if(loglevel_ < eInfo) return;
 
@@ -192,7 +212,7 @@ namespace rubinius {
 
     void debug(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->lock());
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         if(loglevel_ < eDebug) return;
 
@@ -215,10 +235,13 @@ namespace rubinius {
 
     char* Logger::timestamp() {
       time_t clock;
+      struct tm lt;
 
       time(&clock);
-      strftime(formatted_time_, LOGGER_TIME_SIZE, "%b %e %H:%M:%S",
-          localtime(&clock));
+      localtime_r(&clock, &lt);
+
+      strftime(formatted_time_, LOGGER_TIME_SIZE, "%b %e %H:%M:%S", &lt);
+
       return formatted_time_;
     }
 
