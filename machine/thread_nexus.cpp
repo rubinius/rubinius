@@ -206,8 +206,9 @@ namespace rubinius {
     }
 
     // Checkpoint all the other threads.
-    ns = 0;
+    set_stop();
 
+    ns = 0;
     while(!try_checkpoint(vm)) {
       ns += delay();
 
@@ -218,7 +219,6 @@ namespace rubinius {
      * holding it across a fork() call.
      */
     ns = 0;
-
     while(!waiting_mutex_.try_lock()) {
       ns += delay();
 
@@ -229,7 +229,6 @@ namespace rubinius {
      * logger depends on is not held across fork() calls.
      */
     ns = 0;
-
     while(!logger::try_lock()) {
       ns += delay();
 
@@ -240,12 +239,14 @@ namespace rubinius {
   }
 
   void ThreadNexus::fork_unlock(LockStatus status) {
+    logger::unlock();
+
+    waiting_condition_.notify_all();
+    waiting_mutex_.unlock();
+
     if(status == eLocked) {
       phase_flag_ = 0;
     }
-
-    logger::unlock();
-    waiting_mutex_.unlock();
   }
 
   bool ThreadNexus::try_checkpoint(VM* vm) {
