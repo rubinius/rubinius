@@ -205,7 +205,14 @@ namespace rubinius {
       args[idx] = 0;
 
       // If we added anything, then exec, otherwise fall through and fail.
-      if(idx > 0) execvp(args[0], args);
+      if(idx > 0) {
+        for(int i = 0; i < 5; i++) {
+          if(::execvp(args[0], args) < 0) {
+            if(errno != EAGAIN) break;
+          }
+        }
+      }
+
       // If we failed, clean up the args.
       delete[] args;
     }
@@ -460,7 +467,11 @@ namespace rubinius {
       }
 
       if(exe.argc()) {
-        (void)::execvp(exe.command(), exe.argv());
+        for(int i = 0; i < 5; i++) {
+          if(::execvp(exe.command(), exe.argv()) < 0) {
+            if(errno != EAGAIN) break;
+          }
+        }
       } else {
         exec_sh_fallback(state, exe.command(), exe.command_size());
       }
@@ -750,7 +761,11 @@ namespace rubinius {
     }
 
     if(exe.argc()) {
-      (void)::execvp(exe.command(), exe.argv());
+      for(int i = 0; i < 5; i++) {
+        if(::execvp(exe.command(), exe.argv()) < 0) {
+          if(errno != EAGAIN) break;
+        }
+      }
     } else {
       exec_sh_fallback(state, exe.command(), exe.command_size());
     }
