@@ -205,21 +205,21 @@ namespace rubinius {
       id = 0;
     }
 
+    // Checkpoint all the other threads.
+    ns = 0;
+
+    while(!try_checkpoint(vm)) {
+      ns += delay();
+
+      detect_deadlock(ns, lock_limit);
+    }
+
     /* Lock and hold the waiting_mutex to prevent any other thread from
      * holding it across a fork() call.
      */
     ns = 0;
 
     while(!waiting_mutex_.try_lock()) {
-      ns += delay();
-
-      detect_deadlock(ns, lock_limit);
-    }
-
-    // Checkpoint all the other threads.
-    ns = 0;
-
-    while(!try_checkpoint(vm)) {
       ns += delay();
 
       detect_deadlock(ns, lock_limit);

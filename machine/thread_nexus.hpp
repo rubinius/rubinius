@@ -157,8 +157,8 @@ namespace rubinius {
 
     void unlock() {
       std::lock_guard<std::mutex> guard(waiting_mutex_);
-      phase_flag_ = 0;
       waiting_condition_.notify_all();
+      phase_flag_ = 0;
     }
 
     bool try_checkpoint(VM* vm);
