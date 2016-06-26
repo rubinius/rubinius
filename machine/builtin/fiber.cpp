@@ -417,10 +417,20 @@ namespace rubinius {
     return state->shared().vm_fibers_count(state);
   }
 
-  void Fiber::finalize(STATE, Fiber* fib) {
+  void Fiber::finalize(STATE, Fiber* fiber) {
     if(state->shared().config.machine_fiber_log_finalizer.value) {
       logger::write("fiber: finalizer: %s, %d",
-          fib->thread_name()->c_str(state), fib->fiber_id()->to_native());
+          fiber->thread_name()->c_str(state), fiber->fiber_id()->to_native());
+    }
+
+    if(fiber->vm()) {
+      if(fiber->vm()->zombie_p()) {
+        VM::discard(state, fiber->vm());
+        fiber->vm(NULL);
+      } else {
+        logger::write("fiber: finalizer: fiber not completed: %s, %d",
+            fiber->thread_name()->c_str(state), fiber->fiber_id()->to_native());
+      }
     }
   }
 }

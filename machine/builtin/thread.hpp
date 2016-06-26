@@ -240,7 +240,6 @@ namespace rubinius {
     static Thread* create(STATE, Class* klass, VM* vm);
 
     static void finalize(STATE, Thread* thread);
-    void finalize_instance(STATE);
 
     int start_thread(STATE, void* (*function)(void*));
     static void* run(void*);
