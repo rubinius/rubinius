@@ -467,14 +467,10 @@ namespace rubinius {
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
-      ThreadNexus::LockStatus status = thread_nexus_->try_lock(this);
-      if(status != ThreadNexus::eNotLocked) {
-        metrics().machine.stops++;
-
-        collect_maybe(state);
-
-        if(status == ThreadNexus::eLocked) thread_nexus_->unlock();
-      }
+      thread_nexus_->check_stop(this, [this, state]{
+          metrics().machine.stops++;
+          collect_maybe(state);
+        });
 
       if(profile_counter_++ >= profile_interval_) {
         update_profile(state);

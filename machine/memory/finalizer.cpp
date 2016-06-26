@@ -175,7 +175,9 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_) {
-        LockUnmanaged<std::mutex> guard(state, list_mutex());
+        UnmanagedPhase unmanaged(state);
+        std::lock_guard<std::mutex> guard(list_mutex());
+
         list_condition().notify_one();
       }
     }
@@ -240,7 +242,8 @@ namespace rubinius {
     void FinalizerThread::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
-      LockUnmanaged<std::mutex> guard(state, list_mutex());
+      UnmanagedPhase unmanaged(state);
+      std::lock_guard<std::mutex> guard(list_mutex());
 
       add_finalizer(state, new NativeFinalizer(state, obj, func));
     }
@@ -248,7 +251,8 @@ namespace rubinius {
     void FinalizerThread::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
-      LockUnmanaged<std::mutex> guard(state, list_mutex());
+      UnmanagedPhase unmanaged(state);
+      std::lock_guard<std::mutex> guard(list_mutex());
 
       add_finalizer(state, new ExtensionFinalizer(state, obj, func));
     }

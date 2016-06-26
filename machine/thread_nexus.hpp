@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <functional>
 #include <list>
 #include <mutex>
 
@@ -37,7 +38,9 @@ namespace rubinius {
     ThreadList threads_;
     uint32_t thread_ids_;
 
-    const static uint64_t lock_limit = 5000000000;
+    const static uint64_t cLockLimit = 5000000000;
+    const static int cSpinLimit = 10000;
+
 
   public:
     enum Phase {
@@ -123,28 +126,15 @@ namespace rubinius {
     }
 
     bool waiting_lock(VM* vm);
+    void spinning_lock(VM* vm, std::function<void ()> f);
+
     LockStatus fork_lock(VM* vm);
     void fork_unlock(LockStatus status);
 
-    LockStatus try_lock(VM* vm) {
+    void check_stop(VM* vm, std::function<void ()> f) {
       while(stop_p()) {
-        bool held = waiting_lock(vm);
-
-        // Assumption about stop_ may change while we progress.
-        if(stop_p()) {
-          if(try_checkpoint(vm)) {
-            if(stop_p()) {
-              unset_stop();
-              return to_lock_status(held);
-            }
-          }
-        }
-
-        // Either we're not stop_'ing or something blocked us from serializing.
-        if(!held) unlock();
+        spinning_lock(vm, [&, this]{ f(); unset_stop(); });
       }
-
-      return eNotLocked;
     }
 
     LockStatus lock(VM* vm) {
@@ -173,8 +163,6 @@ namespace rubinius {
     void delete_vm(VM* vm);
 
     void after_fork_child(STATE);
-
-    void restore_phase(VM* vm, Phase phase);
   };
 }
 

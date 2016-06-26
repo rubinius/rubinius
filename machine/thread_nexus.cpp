@@ -15,13 +15,11 @@
 
 namespace rubinius {
   void ThreadNexus::blocking_phase(VM* vm) {
-    bool held = waiting_lock(vm);
-    vm->set_thread_phase(eBlocking);
-    if(!held) unlock();
+    spinning_lock(vm, [vm]{ vm->set_thread_phase(eBlocking); });
   }
 
   void ThreadNexus::managed_phase(VM* vm) {
-    if(!waiting_lock(vm)) unlock();
+    spinning_lock(vm, [vm]{ vm->set_thread_phase(eManaged); });
   }
 
   void ThreadNexus::unmanaged_phase(VM* vm) {
@@ -30,23 +28,6 @@ namespace rubinius {
 
   void ThreadNexus::waiting_phase(VM* vm) {
     vm->set_thread_phase(eWaiting);
-  }
-
-  void ThreadNexus::restore_phase(VM* vm, Phase phase) {
-    switch(phase) {
-    case eManaged:
-      managed_phase(vm);
-      break;
-    case eBlocking:
-      blocking_phase(vm);
-      break;
-    case eUnmanaged:
-      unmanaged_phase(vm);
-      break;
-    case eWaiting:
-      waiting_phase(vm);
-      break;
-    }
   }
 
   bool ThreadNexus::blocking_p(VM* vm) {
@@ -200,7 +181,7 @@ namespace rubinius {
 
       ns += delay();
 
-      detect_deadlock(ns, lock_limit);
+      detect_deadlock(ns, cLockLimit);
 
       id = 0;
     }
@@ -212,7 +193,7 @@ namespace rubinius {
     while(!try_checkpoint(vm)) {
       ns += delay();
 
-      detect_deadlock(ns, lock_limit);
+      detect_deadlock(ns, cLockLimit);
     }
 
     /* Lock and hold the waiting_mutex to prevent any other thread from
@@ -222,7 +203,7 @@ namespace rubinius {
     while(!waiting_mutex_.try_lock()) {
       ns += delay();
 
-      detect_deadlock(ns, lock_limit);
+      detect_deadlock(ns, cLockLimit);
     }
 
     /* Hold the logger lock so that the multi-process semaphore that the
@@ -232,7 +213,7 @@ namespace rubinius {
     while(!logger::try_lock()) {
       ns += delay();
 
-      detect_deadlock(ns, lock_limit);
+      detect_deadlock(ns, cLockLimit);
     }
 
     return to_lock_status(held);
@@ -273,7 +254,7 @@ namespace rubinius {
 
           ns += delay();
 
-          detect_deadlock(ns, lock_limit, other_vm);
+          detect_deadlock(ns, cLockLimit, other_vm);
         }
       }
     }
@@ -303,7 +284,7 @@ namespace rubinius {
 
           ns += delay();
 
-          detect_deadlock(ns, lock_limit, other_vm);
+          detect_deadlock(ns, cLockLimit, other_vm);
         }
       }
     }
@@ -334,5 +315,38 @@ namespace rubinius {
 
     vm->set_thread_phase(eManaged);
     return false;
+  }
+
+  void ThreadNexus::spinning_lock(VM* vm, std::function<void ()> f) {
+    uint32_t id = 0;
+    int spin = 0;
+    bool held = false;
+    uint64_t ns = 0;
+
+    vm->set_thread_phase(eWaiting);
+
+    while(!phase_flag_.compare_exchange_strong(id, vm->thread_id())) {
+      if(id == vm->thread_id()) {
+        /* The exchange failed, but it was because the value was already set
+         * to our id, so we hold the "lock".
+         */
+        held = true;
+        break;
+      }
+
+      if(++spin > cSpinLimit) {
+        ns += delay();
+
+        detect_deadlock(ns, cLockLimit);
+      }
+
+      id = 0;
+    }
+
+    // Call the provided function while holding the lock.
+    f();
+
+    // Release the lock unless we already held it.
+    if(!held) phase_flag_ = 0;
   }
 }
