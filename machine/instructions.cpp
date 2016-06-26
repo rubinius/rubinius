@@ -195,6 +195,8 @@ exception:
   case cExit:
     call_frame->scope->flush_to_heap(state);
     return NULL;
+  case cFiberCancel:
+    return NULL;
   default:
     break;
   } // switch

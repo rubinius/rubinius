@@ -21,6 +21,7 @@
 #include "capi/capi_constants.h"
 
 #include <unistd.h>
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -82,6 +83,13 @@ namespace rubinius {
    */
 
   class SharedState {
+  public:
+    enum Phase {
+      eBooting,
+      eRunning,
+      eHalting,
+    };
+
   private:
     ThreadNexus* thread_nexus_;
     MachineThreads* machine_threads_;
@@ -126,6 +134,8 @@ namespace rubinius {
     bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
 
+    std::atomic<Phase> phase_;
+
   public:
     Globals globals;
     Memory* om;
@@ -140,6 +150,30 @@ namespace rubinius {
   public:
     SharedState(Environment* env, Configuration& config, ConfigParser& cp);
     ~SharedState();
+
+    bool booting_p() {
+      return phase_ == eBooting;
+    }
+
+    void set_booting() {
+      phase_ = eBooting;
+    }
+
+    bool running_p() {
+      return phase_ == eRunning;
+    }
+
+    void set_running() {
+      phase_ = eRunning;
+    }
+
+    bool halting_p() {
+      return phase_ == eHalting;
+    }
+
+    void set_halting() {
+      phase_ = eHalting;
+    }
 
     int size();
 

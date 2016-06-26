@@ -108,6 +108,35 @@ namespace rubinius {
     }
   }
 
+  void Fiber::cancel(STATE) {
+    {
+      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
+
+      vm()->thread_state()->raise_fiber_cancel();
+
+      state->vm()->set_suspending();
+
+      restart_context(state->vm());
+      wakeup();
+
+      while(vm()->suspended_p()) {
+        std::lock_guard<std::mutex> guard(vm()->fiber_wait_mutex());
+        vm()->fiber_wait_condition().notify_one();
+      }
+    }
+
+    vm()->limited_wait_for([this]{ return vm()->running_p(); });
+
+    // Release the canceled Fiber.
+    state->vm()->set_suspended();
+
+    vm()->limited_wait_for([this]{ return vm()->zombie_p(); });
+
+    vm()->set_canceled();
+
+    state->vm()->set_running();
+  }
+
   void Fiber::suspend_and_continue(STATE) {
     UnmanagedPhase unmanaged(state);
 
@@ -138,6 +167,8 @@ namespace rubinius {
   Object* Fiber::return_value(STATE) {
     if(vm()->thread_state()->raise_reason() == cNone) {
       return state->vm()->thread()->fiber_value();
+    } else if(vm()->thread_state()->raise_reason() == cFiberCancel) {
+      return NULL;
     } else {
       invoke_context()->thread_state()->set_state(vm()->thread_state());
       return NULL;
@@ -178,12 +209,14 @@ namespace rubinius {
       vm->thread()->fiber_value(state, cNil);
     }
 
-    if(vm->fiber()->status() == eTransfer) {
-      // restart the root Fiber
-      vm->thread()->fiber()->invoke_context(vm);
-      vm->thread()->fiber()->restart(state);
-    } else {
-      vm->fiber()->invoke_context()->fiber()->restart(state);
+    if(vm->thread_state()->raise_reason() != cFiberCancel) {
+      if(vm->fiber()->status() == eTransfer) {
+        // restart the root Fiber
+        vm->thread()->fiber()->invoke_context(vm);
+        vm->thread()->fiber()->restart(state);
+      } else {
+        vm->fiber()->invoke_context()->fiber()->restart(state);
+      }
     }
 
     {
@@ -378,6 +411,12 @@ namespace rubinius {
     return return_value(state);
   }
 
+  Object* Fiber::dispose(STATE) {
+    cancel(state);
+
+    return this;
+  }
+
   Object* Fiber::s_yield(STATE, Arguments& args) {
     Fiber* fiber = state->vm()->fiber();
     OnStack<1> os(state, fiber);
@@ -424,6 +463,12 @@ namespace rubinius {
     }
 
     if(fiber->vm()) {
+      if(!state->shared().halting_p()) {
+        if(!fiber->vm()->zombie_p()) {
+          fiber->cancel(state);
+        }
+      }
+
       if(fiber->vm()->zombie_p()) {
         VM::discard(state, fiber->vm());
         fiber->vm(NULL);

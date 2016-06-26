@@ -23,10 +23,12 @@
 #include "sodium/randombytes.h"
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <regex>
 #include <string>
+#include <thread>
 #include <vector>
 #include <setjmp.h>
 #include <stdint.h>
@@ -89,6 +91,8 @@ namespace rubinius {
     friend class State;
 
   private:
+    static const int cWaitLimit = 100;
+
     UnwindInfoSet unwinds_;
 
     CallFrame* call_frame_;
@@ -112,6 +116,7 @@ namespace rubinius {
       eSuspended,
       eResuming,
       eRunning,
+      eCanceled,
       eFinished
     };
 
@@ -211,6 +216,10 @@ namespace rubinius {
       return fiber_transition_flag_ == eRunning;
     }
 
+    bool canceled_p() const {
+      return fiber_transition_flag_ == eCanceled;
+    }
+
     bool finished_p() const {
       return fiber_transition_flag_ == eFinished;
     }
@@ -231,6 +240,10 @@ namespace rubinius {
       fiber_transition_flag_ = eRunning;
     }
 
+    void set_canceled() {
+      fiber_transition_flag_ = eCanceled;
+    }
+
     void set_finished() {
       fiber_transition_flag_ = eFinished;
     }
@@ -247,6 +260,7 @@ namespace rubinius {
     }
 
     void set_zombie(STATE);
+    void set_zombie();
 
     bool zombie_p() {
       return zombie_;
@@ -266,6 +280,17 @@ namespace rubinius {
 
     Memory* memory() {
       return shared.memory();
+    }
+
+    bool limited_wait_for(std::function<bool ()> f) {
+      bool status = false;
+
+      // TODO: randomize wait interval
+      for(int i = 0; i < cWaitLimit && !(status = f()); i++) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+      }
+
+      return status;
     }
 
     void set_start_time();

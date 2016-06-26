@@ -54,6 +54,11 @@ class Fiber
     raise PrimitiveFailure, "Fiber#transfer primitive failed"
   end
 
+  def dispose
+    Rubinius.primitive :fiber_dispose
+    raise PrimitiveFailure, "Fiber#dispose primitive failed"
+  end
+
   def alive?
     status != "dead"
   end

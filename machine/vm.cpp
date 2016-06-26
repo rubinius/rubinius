@@ -387,6 +387,10 @@ namespace rubinius {
 
   void VM::set_zombie(STATE) {
     state->shared().thread_nexus()->delete_vm(this);
+    set_zombie();
+  }
+
+  void VM::set_zombie() {
     set_thread(nil<Thread>());
     set_fiber(nil<Fiber>());
     zombie_ = true;

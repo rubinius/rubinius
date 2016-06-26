@@ -69,28 +69,47 @@ namespace rubinius {
   void ThreadNexus::after_fork_child(STATE) {
     VM* current = state->vm();
 
-    for(ThreadList::iterator i = threads_.begin();
-           i != threads_.end();
-           ++i) {
-      if(VM* vm = (*i)->as_vm()) {
-        if(vm == current) continue;
+    while(!threads_.empty()) {
+      VM* vm = threads_.back()->as_vm();
+      threads_.pop_back();
 
-        if(vm->kind() == memory::ManagedThread::eThread) {
+      if(!vm) continue;
+
+      switch(vm->kind()) {
+        case memory::ManagedThread::eThread: {
           if(Thread* thread = vm->thread()) {
             if(!thread->nil_p()) {
+              if(vm == current) {
+                thread->current_fiber(state, thread->fiber());
+                continue;
+              }
+
               thread->unlock_after_fork(state);
               thread->stopped();
             }
           }
-        }
 
-        vm->reset_parked();
+          vm->reset_parked();
+          vm->set_zombie();
+
+          break;
+        }
+        case memory::ManagedThread::eFiber: {
+          if(Fiber* fiber = vm->fiber()) {
+            fiber->status(Fiber::eDead);
+            vm->set_canceled();
+            vm->set_zombie();
+          }
+
+          break;
+        }
+        case memory::ManagedThread::eSystem:
+          VM::discard(state, vm);
+          break;
       }
     }
 
-    threads_.clear();
     threads_.push_back(current);
-
     state->shared().set_root_vm(current);
   }
 

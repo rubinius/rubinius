@@ -58,6 +58,7 @@ namespace rubinius {
     , type_info_lock_()
     , code_resource_lock_()
     , use_capi_lock_(false)
+    , phase_(eBooting)
     , om(NULL)
     , global_cache(new GlobalCache)
     , config(config)

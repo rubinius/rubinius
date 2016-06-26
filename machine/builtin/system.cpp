@@ -1739,6 +1739,9 @@ retry:
     case cThreadKill:
       reason = state->symbol("thread_kill");
       break;
+    case cFiberCancel:
+      reason = state->symbol("fiber_cancel");
+      break;
     }
 
     tuple->put(state, 0, reason);
