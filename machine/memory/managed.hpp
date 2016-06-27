@@ -97,6 +97,11 @@ namespace memory {
         case eSystem:
           return "MachineThread";
       }
+
+      /* GCC cannot determine that the above switch covers the enum and hence
+       * every exit from this function is covered.
+       */
+      return "unknown kind";
     }
 
     Kind kind() const {
