@@ -206,7 +206,14 @@ namespace rubinius {
       args[idx] = 0;
 
       // If we added anything, then exec, otherwise fall through and fail.
-      if(idx > 0) execvp(args[0], args);
+      if(idx > 0) {
+        for(int i = 0; i < 5; i++) {
+          if(::execvp(args[0], args) < 0) {
+            if(errno != EAGAIN) break;
+          }
+        }
+      }
+
       // If we failed, clean up the args.
       delete[] args;
     }
@@ -385,21 +392,19 @@ namespace rubinius {
 
   static int fork_exec(STATE, int errors_fd) {
     state->vm()->thread_nexus()->waiting_phase(state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
     state->shared().machine_threads()->before_fork_exec(state);
     state->memory()->set_interrupt();
 
-    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->fork_lock(state->vm());
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
     int pid = ::fork();
 
-    if(status == ThreadNexus::eLocked) {
-      state->vm()->thread_nexus()->unlock();
-    }
+    state->vm()->thread_nexus()->fork_unlock(status);
 
     if(pid == 0) {
       // We're in the child...
@@ -465,7 +470,11 @@ namespace rubinius {
       }
 
       if(exe.argc()) {
-        (void)::execvp(exe.command(), exe.argv());
+        for(int i = 0; i < 5; i++) {
+          if(::execvp(exe.command(), exe.argv()) < 0) {
+            if(errno != EAGAIN) break;
+          }
+        }
       } else {
         exec_sh_fallback(state, exe.command(), exe.command_size());
       }
@@ -710,7 +719,7 @@ namespace rubinius {
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
     state->vm()->thread_nexus()->waiting_phase(state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->exec_mutex());
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
@@ -755,7 +764,11 @@ namespace rubinius {
     }
 
     if(exe.argc()) {
-      (void)::execvp(exe.command(), exe.argv());
+      for(int i = 0; i < 5; i++) {
+        if(::execvp(exe.command(), exe.argv()) < 0) {
+          if(errno != EAGAIN) break;
+        }
+      }
     } else {
       exec_sh_fallback(state, exe.command(), exe.command_size());
     }
@@ -864,18 +877,16 @@ namespace rubinius {
     return force_as<Fixnum>(Primitives::failure());
 #else
     state->vm()->thread_nexus()->waiting_phase(state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->fork_mutex());
+    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
     state->shared().machine_threads()->before_fork(state);
     state->memory()->set_interrupt();
 
-    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
+    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->fork_lock(state->vm());
 
     int pid = ::fork();
 
-    if(status == ThreadNexus::eLocked) {
-      state->vm()->thread_nexus()->unlock();
-    }
+    state->vm()->thread_nexus()->fork_unlock(status);
 
     if(pid > 0) {
       // We're in the parent...
@@ -1730,6 +1741,9 @@ retry:
       break;
     case cThreadKill:
       reason = state->symbol("thread_kill");
+      break;
+    case cFiberCancel:
+      reason = state->symbol("fiber_cancel");
       break;
     }
 

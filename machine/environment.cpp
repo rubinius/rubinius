@@ -546,6 +546,8 @@ namespace rubinius {
   void Environment::halt(STATE, int exit_code) {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
+    state->shared().set_halting();
+
     if(state->shared().config.system_log_lifetime.value) {
       logger::write("process: exit: %s %d %fs",
           shared->pid.c_str(), exit_code, shared->run_time());
@@ -561,6 +563,8 @@ namespace rubinius {
       UnmanagedPhase unmanaged(state);
       shared->machine_threads()->shutdown(state);
     }
+
+    shared->finalizer()->dispose(state);
 
     shared->thread_nexus()->lock(state->vm());
 
@@ -743,5 +747,7 @@ namespace rubinius {
 
     State main_state(vm);
     state->shared().start_signals(&main_state);
+
+    state->shared().set_running();
   }
 }

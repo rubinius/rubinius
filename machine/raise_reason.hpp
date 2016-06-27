@@ -10,6 +10,7 @@ namespace rubinius {
     cExit,
     cCatchThrow,
     cThreadKill,
+    cFiberCancel,
   };
 }
 

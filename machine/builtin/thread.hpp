@@ -131,6 +131,9 @@ namespace rubinius {
     // Rubinius.primitive :thread_list
     static Array* list(STATE);
 
+    // Rubinius.primitive :thread_count
+    static Fixnum* count(STATE);
+
   public:   /* Instance primitives */
 
     void fork(STATE);
@@ -237,7 +240,6 @@ namespace rubinius {
     static Thread* create(STATE, Class* klass, VM* vm);
 
     static void finalize(STATE, Thread* thread);
-    void finalize_instance(STATE);
 
     int start_thread(STATE, void* (*function)(void*));
     static void* run(void*);

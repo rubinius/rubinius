@@ -112,14 +112,10 @@ namespace rubinius {
       logger::write("thread: finalizer: %s", thread->vm()->name().c_str());
     }
 
-    thread->finalize_instance(state);
-  }
-
-  void Thread::finalize_instance(STATE) {
-    if(vm() && vm()->zombie_p()) {
-      fiber_mutex_.std::mutex::~mutex();
-      VM::discard(state, vm());
-      vm(NULL);
+    if(thread->vm() && thread->vm()->zombie_p()) {
+      thread->fiber_mutex().std::mutex::~mutex();
+      VM::discard(state, thread->vm());
+      thread->vm(NULL);
     }
   }
 
@@ -430,6 +426,10 @@ namespace rubinius {
 
   Array* Thread::list(STATE) {
     return state->shared().vm_threads(state);
+  }
+
+  Fixnum* Thread::count(STATE) {
+    return state->shared().vm_threads_count(state);
   }
 
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {

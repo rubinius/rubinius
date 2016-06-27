@@ -23,10 +23,12 @@
 #include "sodium/randombytes.h"
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <regex>
 #include <string>
+#include <thread>
 #include <vector>
 #include <setjmp.h>
 #include <stdint.h>
@@ -89,6 +91,8 @@ namespace rubinius {
     friend class State;
 
   private:
+    static const int cWaitLimit = 100;
+
     UnwindInfoSet unwinds_;
 
     CallFrame* call_frame_;
@@ -104,18 +108,19 @@ namespace rubinius {
     bool check_local_interrupts_;
     bool thread_step_;
 
-    std::mutex wait_mutex_;
-    std::condition_variable wait_condition_;
+    std::mutex fiber_wait_mutex_;
+    std::condition_variable fiber_wait_condition_;
 
     enum FiberTransition {
       eSuspending,
       eSuspended,
       eResuming,
       eRunning,
+      eCanceled,
       eFinished
     };
 
-    std::atomic<FiberTransition> transition_flag_;
+    std::atomic<FiberTransition> fiber_transition_flag_;
 
     utilities::thread::SpinLock interrupt_lock_;
 
@@ -183,56 +188,64 @@ namespace rubinius {
       return interrupt_lock_;
     }
 
-    std::mutex& wait_mutex() {
-      return wait_mutex_;
+    std::mutex& fiber_wait_mutex() {
+      return fiber_wait_mutex_;
     }
 
-    std::condition_variable& wait_condition() {
-      return wait_condition_;
+    std::condition_variable& fiber_wait_condition() {
+      return fiber_wait_condition_;
     }
 
-    FiberTransition transition_flag() {
-      return transition_flag_;
+    FiberTransition fiber_transition_flag() {
+      return fiber_transition_flag_;
     }
 
     bool suspending_p() const {
-      return transition_flag_ == eSuspending;
+      return fiber_transition_flag_ == eSuspending;
     }
 
     bool suspended_p() const {
-      return transition_flag_ == eSuspended;
+      return fiber_transition_flag_ == eSuspended;
     }
 
     bool resuming_p() const {
-      return transition_flag_ == eResuming;
+      return fiber_transition_flag_ == eResuming;
     }
 
     bool running_p() const {
-      return transition_flag_ == eRunning;
+      return fiber_transition_flag_ == eRunning;
+    }
+
+    bool canceled_p() const {
+      return fiber_transition_flag_ == eCanceled;
     }
 
     bool finished_p() const {
-      return transition_flag_ == eFinished;
+      return fiber_transition_flag_ == eFinished;
     }
 
     void set_suspending() {
-      transition_flag_ = eSuspending;
+      fiber_transition_flag_ = eSuspending;
     }
 
     void set_suspended() {
-      transition_flag_ = eSuspended;
+      fiber_transition_flag_ = eSuspended;
     }
 
     void set_resuming() {
-      transition_flag_ = eResuming;
+      fiber_transition_flag_ = eResuming;
     }
 
     void set_running() {
-      transition_flag_ = eRunning;
+      fiber_transition_flag_ = eRunning;
+    }
+
+    void set_canceled() {
+      fiber_transition_flag_ = eCanceled;
     }
 
     void set_finished() {
-      transition_flag_ = eFinished;
+      fiber_transition_flag_ = eFinished;
     }
 
     void set_thread(Thread* thread);
@@ -247,6 +260,7 @@ namespace rubinius {
     }
 
     void set_zombie(STATE);
+    void set_zombie();
 
     bool zombie_p() {
       return zombie_;
@@ -266,6 +280,17 @@ namespace rubinius {
 
     Memory* memory() {
       return shared.memory();
+    }
+
+    bool limited_wait_for(std::function<bool ()> f) {
+      bool status = false;
+
+      // TODO: randomize wait interval
+      for(int i = 0; i < cWaitLimit && !(status = f()); i++) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+      }
+
+      return status;
     }
 
     void set_start_time();
@@ -467,14 +492,10 @@ namespace rubinius {
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
-      ThreadNexus::LockStatus status = thread_nexus_->try_lock(this);
-      if(status != ThreadNexus::eNotLocked) {
-        metrics().machine.stops++;
-
-        collect_maybe(state);
-
-        if(status == ThreadNexus::eLocked) thread_nexus_->unlock();
-      }
+      thread_nexus_->check_stop(this, [this, state]{
+          metrics().machine.stops++;
+          collect_maybe(state);
+        });
 
       if(profile_counter_++ >= profile_interval_) {
         update_profile(state);

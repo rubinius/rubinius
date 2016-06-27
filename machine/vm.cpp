@@ -70,9 +70,9 @@ namespace rubinius {
     , interrupt_by_kill_(false)
     , check_local_interrupts_(false)
     , thread_step_(false)
-    , wait_mutex_()
-    , wait_condition_()
-    , transition_flag_(eSuspending)
+    , fiber_wait_mutex_()
+    , fiber_wait_condition_()
+    , fiber_transition_flag_(eSuspending)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
@@ -387,6 +387,10 @@ namespace rubinius {
 
   void VM::set_zombie(STATE) {
     state->shared().thread_nexus()->delete_vm(this);
+    set_zombie();
+  }
+
+  void VM::set_zombie() {
     set_thread(nil<Thread>());
     set_fiber(nil<Fiber>());
     zombie_ = true;

@@ -34,6 +34,11 @@ class Fiber
     raise PrimitiveFailure, "Fiber.main primitive failed"
   end
 
+  def self.count
+    Rubinius.primitive :fiber_s_count
+    raise PrimitiveFailure, "Fiber.count primitive failed"
+  end
+
   def status
     Rubinius.primitive :fiber_status
     raise PrimitiveFailure, "Fiber#status primitive failed"
@@ -47,6 +52,11 @@ class Fiber
   def transfer(*args)
     Rubinius.primitive :fiber_transfer
     raise PrimitiveFailure, "Fiber#transfer primitive failed"
+  end
+
+  def dispose
+    Rubinius.primitive :fiber_dispose
+    raise PrimitiveFailure, "Fiber#dispose primitive failed"
   end
 
   def alive?

@@ -103,4 +103,8 @@ namespace rubinius {
   void VMThreadState::raise_thread_kill() {
     raise_reason_ = cThreadKill;
   }
+
+  void VMThreadState::raise_fiber_cancel() {
+    raise_reason_ = cFiberCancel;
+  }
 }

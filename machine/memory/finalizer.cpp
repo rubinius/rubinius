@@ -25,6 +25,13 @@
 
 namespace rubinius {
   namespace memory {
+    void NativeFinalizer::dispose(STATE) {
+      // TODO: consider building this on the TypeInfo structure.
+      if(Fiber* fiber = try_as<Fiber>(object())) {
+        if(!fiber->vm()->zombie_p()) fiber->cancel(state);
+      }
+    }
+
     void NativeFinalizer::finalize(STATE) {
       (*finalizer_)(state, object());
     }
@@ -33,6 +40,9 @@ namespace rubinius {
       if(Object* fwd = gc->saw_object(object())) {
         object(fwd);
       }
+    }
+
+    void ExtensionFinalizer::dispose(STATE) {
     }
 
     void ExtensionFinalizer::finalize(STATE) {
@@ -82,6 +92,9 @@ namespace rubinius {
       if(Object* fwd = gc->saw_object(object())) {
         object(fwd);
       }
+    }
+
+    void ManagedFinalizer::dispose(STATE) {
     }
 
     void ManagedFinalizer::finalize(STATE) {
@@ -168,6 +181,7 @@ namespace rubinius {
     }
 
     void FinalizerThread::initialize(STATE) {
+      Thread::create(state, vm());
       synchronization_ = new Synchronization();
     }
 
@@ -175,7 +189,9 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_) {
-        LockUnmanaged<std::mutex> guard(state, list_mutex());
+        UnmanagedPhase unmanaged(state);
+        std::lock_guard<std::mutex> guard(list_mutex());
+
         list_condition().notify_one();
       }
     }
@@ -210,12 +226,35 @@ namespace rubinius {
           vm()->metrics().gc.objects_finalized++;
         }
       }
+
+      state->vm()->thread()->vm()->set_zombie(state);
+    }
+
+    void FinalizerThread::dispose(STATE) {
+      finishing_ = true;
+
+      std::lock_guard<std::mutex> guard(list_mutex());
+
+      for(FinalizerObjects::iterator i = process_list_.begin();
+          i != process_list_.end();
+          ++i)
+      {
+        FinalizerObject* fo = *i;
+        fo->dispose(state);
+      }
+
+      for(FinalizerObjects::iterator i = live_list_.begin();
+          i != live_list_.end();
+          ++i)
+      {
+        FinalizerObject* fo = *i;
+        fo->dispose(state);
+      }
     }
 
     void FinalizerThread::finish(STATE) {
       finishing_ = true;
 
-      // TODO: cleanup
       while(!process_list_.empty()) {
         FinalizerObject* fo = process_list_.back();
         process_list_.pop_back();
@@ -240,7 +279,8 @@ namespace rubinius {
     void FinalizerThread::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
-      LockUnmanaged<std::mutex> guard(state, list_mutex());
+      UnmanagedPhase unmanaged(state);
+      std::lock_guard<std::mutex> guard(list_mutex());
 
       add_finalizer(state, new NativeFinalizer(state, obj, func));
     }
@@ -248,7 +288,8 @@ namespace rubinius {
     void FinalizerThread::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
-      LockUnmanaged<std::mutex> guard(state, list_mutex());
+      UnmanagedPhase unmanaged(state);
+      std::lock_guard<std::mutex> guard(list_mutex());
 
       add_finalizer(state, new ExtensionFinalizer(state, obj, func));
     }

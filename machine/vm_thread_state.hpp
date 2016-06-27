@@ -61,6 +61,7 @@ namespace rubinius {
     void raise_exit(Object* code);
     void raise_throw(Object* dest, Object* value);
     void raise_thread_kill();
+    void raise_fiber_cancel();
   };
 };
 

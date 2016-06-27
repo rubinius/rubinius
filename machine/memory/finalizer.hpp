@@ -39,6 +39,7 @@ namespace rubinius {
         object_ = obj;
       }
 
+      virtual void dispose(STATE) = 0;
       virtual void finalize(STATE) = 0;
       virtual void mark(ImmixGC* gc) = 0;
       virtual bool match_p(STATE, Object* object, Object* finalizer) = 0;
@@ -53,6 +54,7 @@ namespace rubinius {
         , finalizer_(finalizer)
       { }
 
+      void dispose(STATE);
       void finalize(STATE);
       void mark(ImmixGC* gc);
       bool match_p(STATE, Object* object, Object* finalizer) { return false; }
@@ -67,6 +69,7 @@ namespace rubinius {
         , finalizer_(finalizer)
       { }
 
+      void dispose(STATE);
       void finalize(STATE);
       void mark(ImmixGC* gc);
       bool match_p(STATE, Object* object, Object* finalizer) { return false; }
@@ -81,6 +84,7 @@ namespace rubinius {
         , finalizer_(finalizer)
       { }
 
+      void dispose(STATE);
       void finalize(STATE);
       void mark(ImmixGC* gc);
       bool match_p(STATE, Object* object, Object* finalizer);
@@ -128,6 +132,7 @@ namespace rubinius {
       }
 
       void finish(STATE);
+      void dispose(STATE);
 
       void native_finalizer(STATE, Object* obj, FinalizerFunction func);
       void extension_finalizer(STATE, Object* obj, FinalizerFunction func);

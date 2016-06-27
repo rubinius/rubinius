@@ -93,6 +93,9 @@ namespace rubinius {
     // Rubinius.primitive :fiber_s_main
     static Fiber* s_main(STATE);
 
+    // Rubinius.primitive :fiber_s_count
+    static Fixnum* s_count(STATE);
+
     bool root_p();
 
     Status status() {
@@ -120,6 +123,7 @@ namespace rubinius {
 
     void start(STATE, Arguments& args);
     void restart(STATE);
+    void cancel(STATE);
     void suspend_and_continue(STATE);
 
     // Rubinius.primitive :fiber_status
@@ -130,6 +134,9 @@ namespace rubinius {
 
     // Rubinius.primitive :fiber_transfer
     Object* transfer(STATE, Arguments& args);
+
+    // Rubinius.primitive :fiber_dispose
+    Object* dispose(STATE);
 
   public:   /* TypeInfo */
 

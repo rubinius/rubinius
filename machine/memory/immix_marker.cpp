@@ -108,6 +108,8 @@ namespace memory {
     }
 
     state->memory()->clear_mature_mark_in_progress();
+
+    state->vm()->thread()->vm()->set_zombie(state);
   }
 }
 }

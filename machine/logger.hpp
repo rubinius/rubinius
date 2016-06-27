@@ -26,6 +26,9 @@ namespace rubinius {
 
 
     void open(logger_type type, const char* identifier, logger_level level=eWarn, ...);
+    void lock();
+    bool try_lock();
+    void unlock();
     void close();
 
     void write(const char* message, ...);
@@ -70,8 +73,20 @@ namespace rubinius {
 
       char* timestamp();
 
-      rubinius::locks::spinlock_mutex& lock() {
+      rubinius::locks::spinlock_mutex& spinlock() {
         return lock_;
+      }
+
+      void lock() {
+        lock_.lock();
+      }
+
+      bool try_lock() {
+        return lock_.try_lock();
+      }
+
+      void unlock() {
+        lock_.unlock();
       }
     };
 

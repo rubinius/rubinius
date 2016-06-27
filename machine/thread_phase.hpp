@@ -77,29 +77,6 @@ namespace rubinius {
   };
 
   template <typename T>
-  class LockUnmanaged {
-    T& lock_;
-    State* state_;
-    ThreadNexus::Phase phase_;
-
-  public:
-    LockUnmanaged(STATE, T& in_lock)
-      : lock_(in_lock)
-      , state_(state)
-      , phase_(state->vm()->thread_phase())
-    {
-      state_->vm()->thread_nexus()->waiting_phase(state_->vm());
-
-      lock_.lock();
-    }
-
-    ~LockUnmanaged() {
-      lock_.unlock();
-      state_->vm()->thread_nexus()->restore_phase(state_->vm(), phase_);
-    }
-  };
-
-  template <typename T>
   class LockWaiting {
     T& lock_;
 
@@ -107,12 +84,11 @@ namespace rubinius {
     LockWaiting(STATE, T& in_lock)
       : lock_(in_lock)
     {
-      ThreadNexus::Phase phase = state->vm()->thread_phase();
       state->vm()->thread_nexus()->waiting_phase(state->vm());
 
       lock_.lock();
 
-      state->vm()->thread_nexus()->restore_phase(state->vm(), phase);
+      state->vm()->thread_nexus()->managed_phase(state->vm());
     }
 
     ~LockWaiting() {
