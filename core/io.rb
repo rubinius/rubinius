@@ -1838,8 +1838,14 @@ class IO
     offset = Rubinius::Type.coerce_to offset, Integer, :to_int
     len = Rubinius::Type.coerce_to len, Integer, :to_int
 
-    if FFI.call_failed?(FFI::Platform::POSIX.posix_fadvise(descriptor, offset, len, advice))
-      Errno.handle("posix_fadvise(2) failed")
+    begin
+      if FFI.call_failed?(FFI::Platform::POSIX.posix_fadvise(descriptor, offset, len, advice))
+        Errno.handle("posix_fadvise(2) failed")
+      end
+    rescue NotImplementedError
+      # MRI thinks platforms that don't support #advise should silently fail.
+      # See https://bugs.ruby-lang.org/issues/11806
+      nil
     end
 
     nil
