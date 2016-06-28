@@ -21,7 +21,7 @@ describe "IO.popen" do
     lambda { @io.write('foo') }.should raise_error(IOError)
   end
 
-  it "forces an infinitely looping subprocess to close" do
+  it "sees an infinitely looping subprocess exit when read pipe is closed" do
     io = IO.popen "#{RUBY_EXE} -e 'r = loop{puts \"y\"; 0} rescue 1; exit r'", 'r'
     io.close
 
