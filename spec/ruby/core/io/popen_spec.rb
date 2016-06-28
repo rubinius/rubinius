@@ -21,6 +21,13 @@ describe "IO.popen" do
     lambda { @io.write('foo') }.should raise_error(IOError)
   end
 
+  it "forces an infinitely looping subprocess to close" do
+    io = IO.popen "#{RUBY_EXE} -e 'r = loop{puts \"y\"; 0} rescue 1; exit r'", 'r'
+    io.close
+
+    $?.exitstatus.should_not == 0
+  end
+
   platform_is_not :windows do
     before :each do
       @fname = tmp("IO_popen_spec")
