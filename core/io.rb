@@ -318,10 +318,6 @@ class IO
             else
               break
             end
-          elsif errno == Errno::EPIPE::Errno
-            if @descriptor == 1 || @descriptor == 2
-              return(buf_size)
-            end
           end
 
           error = true
