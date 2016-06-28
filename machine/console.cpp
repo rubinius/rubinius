@@ -368,8 +368,10 @@ namespace rubinius {
     void Listener::wakeup(STATE) {
       MachineThread::wakeup(state);
 
-      if(write(fd_, "\0", 1) < 0) {
-        logger::error("%s: console: unable to wake listener thread", strerror(errno));
+      while(thread_running_p()) {
+        if(write(fd_, "\0", 1) < 0) {
+          logger::error("%s: console: unable to wake listener thread", strerror(errno));
+        }
       }
     }
 

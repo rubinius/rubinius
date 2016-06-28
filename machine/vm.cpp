@@ -113,9 +113,15 @@ namespace rubinius {
   }
 
   VM::~VM() {
-    if(profile_) delete[] profile_;
+    if(profile_) {
+      delete[] profile_;
+      profile_ = NULL;
+    }
 
-    delete park_;
+    if(park_) {
+      delete park_;
+      park_ = NULL;
+    }
   }
 
   void VM::discard(STATE, VM* vm) {
