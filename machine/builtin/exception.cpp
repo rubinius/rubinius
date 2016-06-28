@@ -114,6 +114,28 @@ namespace rubinius {
     RubyException::raise(Exception::make_no_method_error(state, args), true);
   }
 
+  Exception* Exception::make_interpreter_error(STATE, const char* reason) {
+    return Exception::make_exception(state,
+        get_interpreter_error(state), reason);
+  }
+
+  void Exception::interpreter_error(STATE, const char* reason) {
+    Exception* exc = Exception::make_interpreter_error(state, reason);
+    exc->locations(state, Location::from_call_stack(state));
+    state->raise_exception(exc);
+  }
+
+  Exception* Exception::make_deadlock_error(STATE, const char* reason) {
+    return Exception::make_exception(state,
+        get_deadlock_error(state), reason);
+  }
+
+  void Exception::deadlock_error(STATE, const char* reason) {
+    Exception* exc = Exception::make_deadlock_error(state, reason);
+    exc->locations(state, Location::from_call_stack(state));
+    state->raise_exception(exc);
+  }
+
   Exception* Exception::make_frozen_exception(STATE, Object* obj) {
     std::ostringstream msg;
     msg << "can't modify frozen instance of ";
@@ -502,6 +524,14 @@ namespace rubinius {
 
   Class* Exception::get_io_error(STATE) {
     return as<Class>(G(object)->get_const(state, "IOError"));
+  }
+
+  Class* Exception::get_interpreter_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "InterpreterError"));
+  }
+
+  Class* Exception::get_deadlock_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "DeadlockError"));
   }
 
   void Exception::Info::show(STATE, Object* self, int level) {

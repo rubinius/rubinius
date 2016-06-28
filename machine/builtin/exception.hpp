@@ -49,6 +49,8 @@ namespace rubinius {
     static Exception* make_encoding_compatibility_error(STATE, Object* a, Object* b);
     static Exception* make_frozen_exception(STATE, Object* obj);
     static Exception* make_no_method_error(STATE, Arguments& args);
+    static Exception* make_interpreter_error(STATE, const char* reason);
+    static Exception* make_deadlock_error(STATE, const char* reason);
 
     NORETURN(static void raise_argument_error(STATE, int expected, int given));
     NORETURN(static void raise_argument_error(STATE, const char* reason));
@@ -89,6 +91,8 @@ namespace rubinius {
     static void type_error(STATE, const char* reason);
     static void internal_error(STATE, const char* reason);
     static void frozen_error(STATE, Object* obj);
+    static void interpreter_error(STATE, const char* reason);
+    static void deadlock_error(STATE, const char* reason);
 
     static void encoding_compatibility_error(STATE, Object* a, Object* b);
 
@@ -129,6 +133,8 @@ namespace rubinius {
     static Class* get_encoding_compatibility_error(STATE);
     static Class* get_not_implemented_error(STATE);
     static Class* get_no_method_error(STATE);
+    static Class* get_interpreter_error(STATE);
+    static Class* get_deadlock_error(STATE);
 
     class Info : public TypeInfo {
     public:
