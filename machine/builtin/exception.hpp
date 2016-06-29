@@ -85,6 +85,7 @@ namespace rubinius {
     NORETURN(static void raise_errno_wait_writable(STATE, int error));
     NORETURN(static void raise_errno_error(STATE, const char* reason = NULL,
           int ern = 0, const char* entity = 0));
+    NORETURN(static void raise_deadlock_error(STATE, const char* reason));
 
     static Exception* make_lje(STATE);
 

@@ -31,6 +31,8 @@ namespace rubinius {
     void unlock();
     void close();
 
+    typedef void (*PrintFunction)(const char* message, ...);
+
     void write(const char* message, ...);
     void fatal(const char* message, ...);
     void error(const char* message, ...);

@@ -1,6 +1,7 @@
 #ifndef RBX_SIGNAL_HPP
 #define RBX_SIGNAL_HPP
 
+#include "logger.hpp"
 #include "memory/root.hpp"
 
 #include "util/thread.hpp"
@@ -83,10 +84,8 @@ namespace rubinius {
 
     void print_backtraces();
 
-    typedef void (*PrintFunction)(const char* message, ...);
-
-    void print_machine_info(PrintFunction function);
-    void print_process_info(PrintFunction function);
+    void print_machine_info(logger::PrintFunction function);
+    void print_process_info(logger::PrintFunction function);
   };
 }
 

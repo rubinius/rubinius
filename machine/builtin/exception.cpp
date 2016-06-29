@@ -136,6 +136,10 @@ namespace rubinius {
     state->raise_exception(exc);
   }
 
+  void Exception::raise_deadlock_error(STATE, const char* reason) {
+    RubyException::raise(Exception::make_deadlock_error(state, reason), true);
+  }
+
   Exception* Exception::make_frozen_exception(STATE, Object* obj) {
     std::ostringstream msg;
     msg << "can't modify frozen instance of ";

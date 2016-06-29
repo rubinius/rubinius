@@ -186,7 +186,7 @@ namespace rubinius {
   }
 
   void SignalThread::run(STATE) {
-    state->vm()->unmanaged_phase();
+    state->vm()->unmanaged_phase(state);
 
 #ifndef RBX_WINDOWS
     sigset_t set;
@@ -242,13 +242,13 @@ namespace rubinius {
     state->shared().env()->halt(state, exit_code_);
   }
 
-  void SignalThread::print_machine_info(PrintFunction function) {
+  void SignalThread::print_machine_info(logger::PrintFunction function) {
     function("node info: %s %s", machine_info.nodename, machine_info.version);
   }
 
 #define RBX_PROCESS_INFO_LEN    256
 
-  void SignalThread::print_process_info(PrintFunction function) {
+  void SignalThread::print_process_info(logger::PrintFunction function) {
     const char* llvm_version;
     const char* jit_status;
 

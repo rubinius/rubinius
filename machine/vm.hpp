@@ -492,7 +492,7 @@ namespace rubinius {
     void checkpoint(STATE) {
       metrics().machine.checkpoints++;
 
-      thread_nexus_->check_stop(this, [this, state]{
+      thread_nexus_->check_stop(state, this, [this, state]{
           metrics().machine.stops++;
           collect_maybe(state);
         });
@@ -506,16 +506,16 @@ namespace rubinius {
     void blocking_suspend(STATE, metrics::metric& counter);
     void sleeping_suspend(STATE, metrics::metric& counter);
 
-    void blocking_phase() {
-      thread_nexus_->blocking_phase(this);
+    void blocking_phase(STATE) {
+      thread_nexus_->blocking_phase(state, this);
     }
 
-    void managed_phase() {
-      thread_nexus_->managed_phase(this);
+    void managed_phase(STATE) {
+      thread_nexus_->managed_phase(state, this);
     }
 
-    void unmanaged_phase() {
-      thread_nexus_->unmanaged_phase(this);
+    void unmanaged_phase(STATE) {
+      thread_nexus_->unmanaged_phase(state, this);
     }
 
     void set_current_thread();

@@ -20,7 +20,7 @@ namespace rubinius {
     LockPhase(STATE)
       : state_(state)
     {
-      status_ = state->vm()->thread_nexus()->lock(state->vm());
+      status_ = state->vm()->thread_nexus()->lock(state, state->vm());
     }
 
     ~LockPhase() {
@@ -37,11 +37,11 @@ namespace rubinius {
     BlockPhase(STATE)
       : state_(state)
     {
-      state->vm()->blocking_phase();
+      state->vm()->blocking_phase(state_);
     }
 
     ~BlockPhase() {
-      state_->vm()->managed_phase();
+      state_->vm()->managed_phase(state_);
     }
   };
 
@@ -52,11 +52,11 @@ namespace rubinius {
     ManagedPhase(STATE)
       : state_(state)
     {
-      state_->vm()->managed_phase();
+      state_->vm()->managed_phase(state_);
     }
 
     ~ManagedPhase() {
-      state_->vm()->unmanaged_phase();
+      state_->vm()->unmanaged_phase(state_);
     }
 
   };
@@ -68,11 +68,11 @@ namespace rubinius {
     UnmanagedPhase(STATE)
       : state_(state)
     {
-      state_->vm()->unmanaged_phase();
+      state_->vm()->unmanaged_phase(state_);
     }
 
     ~UnmanagedPhase() {
-      state_->vm()->managed_phase();
+      state_->vm()->managed_phase(state_);
     }
   };
 
@@ -84,11 +84,11 @@ namespace rubinius {
     LockWaiting(STATE, T& in_lock)
       : lock_(in_lock)
     {
-      state->vm()->thread_nexus()->waiting_phase(state->vm());
+      state->vm()->thread_nexus()->waiting_phase(state, state->vm());
 
       lock_.lock();
 
-      state->vm()->thread_nexus()->managed_phase(state->vm());
+      state->vm()->thread_nexus()->managed_phase(state, state->vm());
     }
 
     ~LockWaiting() {

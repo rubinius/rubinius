@@ -103,17 +103,17 @@ namespace rubinius {
       stop_.store(false, std::memory_order_release);
     }
 
-    void blocking_phase(VM* vm);
-    void managed_phase(VM* vm);
-    void unmanaged_phase(VM* vm);
-    void waiting_phase(VM* vm);
+    void blocking_phase(STATE, VM* vm);
+    void managed_phase(STATE, VM* vm);
+    void unmanaged_phase(STATE, VM* vm);
+    void waiting_phase(STATE, VM* vm);
 
     bool blocking_p(VM* vm);
     bool yielding_p(VM* vm);
 
-    void yield(VM* vm) {
+    void yield(STATE, VM* vm) {
       while(stop_p()) {
-        waiting_phase(vm);
+        waiting_phase(state, vm);
 
         {
           std::unique_lock<std::mutex> lk(waiting_mutex_);
@@ -121,26 +121,26 @@ namespace rubinius {
               [this]{ return !stop_.load(std::memory_order_acquire); });
         }
 
-        managed_phase(vm);
+        managed_phase(state, vm);
       }
     }
 
-    bool waiting_lock(VM* vm);
-    void spinning_lock(VM* vm, std::function<void ()> f);
+    bool waiting_lock(STATE, VM* vm);
+    void spinning_lock(STATE, VM* vm, std::function<void ()> f);
 
-    LockStatus fork_lock(VM* vm);
+    LockStatus fork_lock(STATE, VM* vm);
     void fork_unlock(LockStatus status);
 
-    void check_stop(VM* vm, std::function<void ()> f) {
+    void check_stop(STATE, VM* vm, std::function<void ()> f) {
       while(stop_p()) {
-        spinning_lock(vm, [&, this]{ f(); unset_stop(); });
+        spinning_lock(state, vm, [&, this]{ f(); unset_stop(); });
       }
     }
 
-    LockStatus lock(VM* vm) {
-      bool held = waiting_lock(vm);
+    LockStatus lock(STATE, VM* vm) {
+      bool held = waiting_lock(state, vm);
       set_stop();
-      checkpoint(vm);
+      checkpoint(state, vm);
       unset_stop();
       return to_lock_status(held);
     }
@@ -150,14 +150,14 @@ namespace rubinius {
       phase_flag_ = 0;
     }
 
-    bool try_checkpoint(VM* vm);
-    void checkpoint(VM* vm);
+    bool try_checkpoint(STATE, VM* vm);
+    void checkpoint(STATE, VM* vm);
 
     uint64_t delay();
-    void detect_deadlock(uint64_t nanoseconds, uint64_t limit, VM* vm);
-    void detect_deadlock(uint64_t nanoseconds, uint64_t limit);
+    void detect_deadlock(STATE, uint64_t nanoseconds, uint64_t limit, VM* vm);
+    void detect_deadlock(STATE, uint64_t nanoseconds, uint64_t limit);
 
-    void list_threads();
+    void list_threads(logger::PrintFunction function);
 
     VM* new_vm(SharedState* shared, const char* name = NULL);
     void delete_vm(VM* vm);

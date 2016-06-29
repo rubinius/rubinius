@@ -539,7 +539,7 @@ namespace rubinius {
     }
 
     void Metrics::run(STATE) {
-      state->vm()->unmanaged_phase();
+      state->vm()->unmanaged_phase(state);
 
       timer_->set(interval_);
 
