@@ -7,7 +7,6 @@
 #include "global_cache.hpp"
 #include "lookup_data.hpp"
 #include "object_utils.hpp"
-#include "spinlock.hpp"
 #include "vm.hpp"
 
 #include "builtin/integer.hpp"
@@ -16,6 +15,7 @@
 
 #include "util/atomic.hpp"
 
+#include <atomic>
 #include <stdint.h>
 
 namespace rubinius {
@@ -24,7 +24,6 @@ namespace rubinius {
   class CallSite : public Object {
   public:
     struct InlineCache;
-    struct InlineCaches;
 
     const static object_type type = CallSiteType;
 
@@ -35,18 +34,25 @@ namespace rubinius {
     attr_accessor(name, Symbol);
 
     attr_field(invokes, int);
+    attr_field(hits, int);
+    attr_field(misses, int);
+    attr_field(evictions, int);
     attr_field(ip, int);
     attr_field(kind, MethodMissingReason);
 
     attr_field(execute, Executor);
     attr_field(cache_miss, Executor);
 
-    attr_field(caches, InlineCaches*);
+    std::list<InlineCache*>* _dead_list_;
+    locks::spinlock_mutex _dead_list_mutex_;
 
-    locks::spinlock_mutex cache_mutex_;
+    typedef std::atomic<InlineCache*> InlineCachePtr;
+
+    InlineCachePtr* _caches_;
 
   public:
     static int max_caches;
+    static int max_evictions;
     static Executor default_execute;
 
     struct InlineCache {
@@ -64,9 +70,23 @@ namespace rubinius {
 
       attr_field(execute, Executor);
 
-      InlineCache() { };
+      InlineCache(InlineCache* cache, Dispatch& dispatch, ClassData class_data)
+        : _receiver_class_(cache->receiver_class())
+        , _stored_module_(dispatch.module)
+        , _executable_(dispatch.method)
+        , _receiver_data_(class_data)
+        , _method_missing_(cache->method_missing())
+        , _hits_(0)
+        , _misses_(0)
+      {
+        if(dispatch.method_missing == eNone) {
+          execute(invoke);
+        } else {
+          execute(invoke_method_missing);
+        }
+      }
 
-      InlineCache(STATE, Class* klass, Dispatch& dispatch)
+      InlineCache(Class* klass, Dispatch& dispatch)
         : _receiver_class_(klass)
         , _stored_module_(dispatch.module)
         , _executable_(dispatch.method)
@@ -80,20 +100,6 @@ namespace rubinius {
         } else {
           execute(invoke_method_missing);
         }
-      }
-
-      void update(Class* klass, Dispatch& dispatch) {
-        receiver_class(klass);
-        stored_module(dispatch.module);
-        executable(dispatch.method);
-        receiver_data(klass->class_data());
-        method_missing(dispatch.method_missing);
-      }
-
-      void update(Dispatch& dispatch, ClassData& class_data) {
-        stored_module(dispatch.module);
-        executable(dispatch.method);
-        receiver_data(class_data);
       }
 
       void hit() {
@@ -117,14 +123,16 @@ namespace rubinius {
         uint64_t raw_data = args.recv()->direct_class(state)->data_raw();
 
         if(likely(receiver_data().raw == raw_data)) {
+          call_site->hit();
           hit();
           valid_p = true;
           return _execute_(state, call_site, this, args);
         }
 
+        call_site->miss();
         miss();
 
-        return NULL;
+        return nullptr;
       }
 
       static Object* invoke(STATE, CallSite* call_site,
@@ -151,36 +159,128 @@ namespace rubinius {
       }
     };
 
-    struct InlineCaches {
-      attr_field(depth, int);
-
-      InlineCache cache[0];
-
-      static InlineCaches* allocate(int size) {
-        return static_cast<InlineCaches*>(
-            malloc(sizeof(int) + size * sizeof(InlineCache)));
-      }
-    };
-
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, CallSite* obj) {
       obj->name(nil<Symbol>());
       obj->invokes(0);
+      obj->hits(0);
+      obj->misses(0);
+      obj->evictions(0);
       obj->ip(0);
       obj->kind(eNone);
       obj->execute(default_execute);
       obj->cache_miss(default_execute);
-      obj->caches(NULL);
-      obj->cache_mutex_.unlock();
+
+      obj->_dead_list_ = new std::list<InlineCache*>();
+      obj->_dead_list_mutex_.unlock();
+
+      obj->_caches_ = new InlineCachePtr[max_caches];
+
+      for(int i = 0; i < max_caches; i++) {
+        obj->_caches_[i] = nullptr;
+      }
+    }
+
+    void dead_cache(InlineCache* cache) {
+      std::lock_guard<locks::spinlock_mutex> guard(_dead_list_mutex_);
+      if(cache) _dead_list_->push_back(cache);
+    }
+
+    void clear_dead_list() {
+      while(!_dead_list_->empty()) {
+        InlineCache* cache = _dead_list_->back();
+        _dead_list_->pop_back();
+        delete cache;
+      }
+    }
+
+    void hit() {
+      ++_hits_;
+    }
+
+    void miss() {
+      ++_misses_;
+    }
+
+    void evict() {
+      ++_evictions_;
+    }
+
+    int depth() {
+      for(int i = 0; i < max_caches; i++) {
+        if(!_caches_[i]) return i;
+      }
+
+      return max_caches;
+    }
+
+    void invoked() {
+      ++_invokes_;
+    }
+
+    bool valid_serial_p(STATE, Object* recv, Symbol* vis, int serial) {
+      Class* recv_class = recv->direct_class(state);
+      uint64_t class_data_raw = recv_class->data_raw();
+
+      for(int i = 0; i < max_caches; i++) {
+        if(InlineCache* cache = _caches_[i]) {
+          if(cache->valid_serial_p(class_data_raw, serial)) {
+            return true;
+          }
+        } else {
+          break;
+        }
+      }
+
+      Dispatch dispatch(name());
+      LookupData lookup_data(state->vm()->call_frame()->self(),
+          recv->lookup_begin(state), vis);
+
+      if(dispatch.resolve(state, name(), lookup_data)) {
+        if(dispatch.method->serial()->to_native() == serial) {
+          cache(state, recv_class, dispatch);
+
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    void set_is_private() {
+      kind(ePrivate);
+    }
+
+    void set_is_super() {
+      kind(eSuper);
+    }
+
+    void set_is_vcall() {
+      kind(eVCall);
     }
 
     void finalize(STATE) {
-      if(caches()) free(caches());
+      if(_dead_list_) {
+        clear_dead_list();
+
+        delete _dead_list_;
+        _dead_list_ = nullptr;
+      }
+
+      for(int i = 0; i < max_caches; i++) {
+        if(InlineCache* cache = _caches_[i]) {
+          delete cache;
+          _caches_[i] = nullptr;
+        }
+      }
+
+      delete[] _caches_;
     }
 
     static CallSite* create(STATE, Symbol* name, int ip) {
-      CallSite* cache = state->memory()->new_object<CallSite>(state, G(call_site));
+      CallSite* cache =
+        state->memory()->new_variable_object<CallSite>(state, G(call_site));
 
       cache->name(name);
       cache->ip(ip);
@@ -202,15 +302,15 @@ namespace rubinius {
         }
       }
 
-      return NULL;
+      return nullptr;
     }
 
     static Object* invoke_cached(STATE, CallSite* call_site, Arguments& args) {
       bool valid_p = false;
+      InlineCache* cache = 0;
 
-      for(int i = 0; i < call_site->depth(); i++) {
-        Object* value =
-          call_site->caches()->cache[i].execute(state, call_site, args, valid_p);
+      for(int i = 0; i < max_caches && (cache = call_site->_caches_[i]); i++) {
+        Object* value = cache->execute(state, call_site, args, valid_p);
 
         if(valid_p) return value;
       }
@@ -226,7 +326,7 @@ namespace rubinius {
         return call_site->invoke(state, args, dispatch);
       }
 
-      return NULL;
+      return nullptr;
     }
 
     Object* invoke(STATE, Arguments& args, Dispatch& dispatch) {
@@ -296,70 +396,64 @@ namespace rubinius {
       // 0. Ignore method_missing for now
       if(dispatch.name == G(sym_method_missing)) return;
 
-      if(cache_mutex_.try_lock()) return;
-
       ClassData class_data = klass->class_data();
+      InlineCache* cache = 0;
 
       // 1. Attempt to update a cache.
-      for(int i = 0; i < depth(); i++) {
-        InlineCache* cache = &caches()->cache[i];
-
+      for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
         // We know that nothing matched the cache, so we only need this test
         if(cache->receiver_data().class_id() == class_data.class_id()) {
-          cache->update(dispatch, class_data);
+          InlineCache* new_cache = new InlineCache(cache, dispatch, class_data);
+          InlineCache* old_cache = cache;
 
-          state->vm()->metrics().machine.inline_cache_updated++;
-
-          cache_mutex_.unlock();
-          return;
+          if(_caches_[i].compare_exchange_strong(cache, new_cache)) {
+            dead_cache(old_cache);
+            state->vm()->metrics().machine.inline_cache_updated++;
+            return;
+          } else {
+            delete new_cache;
+          }
         }
       }
 
       // 2. Attempt to replace a cache.
-      for(int i = 0; i < depth(); i++) {
-        InlineCache* cache = &caches()->cache[i];
-
+      for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
         if(cache->inefficient_p()) {
-          cache->update(klass, dispatch);
+          InlineCache* new_cache = new InlineCache(klass, dispatch);
+          InlineCache* old_cache = cache;
 
-          state->vm()->metrics().machine.inline_cache_replaced++;
-
-          cache_mutex_.unlock();
-          return;
+          if(_caches_[i].compare_exchange_strong(cache, new_cache)) {
+            dead_cache(old_cache);
+            state->vm()->metrics().machine.inline_cache_replaced++;
+            return;
+          } else {
+            delete new_cache;
+          }
         }
       }
 
       // 3. Attempt to add a cache
-      if(depth() < max_caches) {
-        InlineCaches* inline_caches = 0;
-        int size = depth() + 1;
+      for(int i = 0; i < max_caches; i++) {
+        InlineCache* cache = _caches_[i];
 
-        if(!caches()) {
-          inline_caches = InlineCaches::allocate(1);
+        if(cache) continue;
+
+        InlineCache* new_cache = new InlineCache(klass, dispatch);
+
+        if(_caches_[i].compare_exchange_strong(cache, new_cache)) {
+          if(i == 0) {
+            state->vm()->metrics().machine.inline_cache_count++;
+          } else {
+            state->vm()->metrics().machine.call_site_polymorphic++;
+          }
+
           execute(invoke_cached);
+
+          return;
         } else {
-        cache_mutex_.unlock();
-        return;
-          inline_caches = InlineCaches::allocate(CallSite::max_caches);
-          state->vm()->metrics().machine.call_site_polymorphic++;
+          delete new_cache;
         }
-
-        inline_caches->depth(size);
-        new(inline_caches->cache) InlineCache(state, klass, dispatch);
-
-        state->vm()->metrics().machine.inline_cache_count++;
-
-        for(int i = 1; i < size; i++) {
-          inline_caches->cache[i] = caches()->cache[i - 1];
-        }
-
-        caches(inline_caches);
-
-        cache_mutex_.unlock();
-        return;
       }
-
-      cache_mutex_.unlock();
 
       // 4. Check if we should stop trying to cache.
       if(invokes() > CallSite::max_caches) {
@@ -373,107 +467,70 @@ namespace rubinius {
     }
 
     Object* cache_miss(STATE, Arguments& args) {
-      Object* value = _cache_miss_(state, this, args);
+      return _cache_miss_(state, this, args);
+    }
 
-      if(cache_mutex_.try_lock()) return value;
+    void evict_and_mark(memory::ObjectMark& mark) {
+      // 0. Evict inefficient caches.
+      for(int i = 0; i < max_caches; i++) {
+        if(InlineCache* cache = _caches_[i]) {
+          if(cache->inefficient_p()) {
+            evict();
 
-      // Check if all caching should be disabled.
-      if(invokes() > CallSite::max_caches) {
-        if(depth() == CallSite::max_caches) {
-          int disable = 0;
+            delete cache;
+            _caches_[i] = nullptr;
 
-          for(int i = 0; i < depth(); i++) {
-            InlineCache* cache = &caches()->cache[i];
-
-            if(cache->inefficient_p()) {
-              disable++;
-            }
-          }
-
-          if(disable == depth()) {
-            execute(CallSite::dispatch);
-            cache_miss(CallSite::dispatch);
-
-            free(caches());
-            caches(NULL);
-
-            state->vm()->metrics().machine.inline_cache_disabled++;
+            // TODO: pass State into GC!
+            VM::current()->metrics().machine.inline_cache_evicted++;
           }
         }
       }
 
-      cache_mutex_.unlock();
+      // 1. Compact if there were evictions.
+      for(int i = 0; i < max_caches - 1; i++) {
+        InlineCache* a = _caches_[i];
+        InlineCache* b = _caches_[i+1];
 
-      return value;
-    }
+        if(a == nullptr && b != nullptr) {
+          _caches_[i] = b;
+          _caches_[i+1] = nullptr;
 
-    void invoked() {
-      ++_invokes_;
-    }
-
-    int depth() {
-      if(caches()) {
-        return caches()->depth();
-      } else {
-        return 0;
-      }
-    }
-
-    int hits() {
-      int hits = 0;
-
-      for(int i = 0; i < depth(); i++) {
-        hits += caches()->cache[i].hits();
-      }
-
-      return hits;
-    }
-
-    int misses() {
-      int misses = 0;
-
-      for(int i = 0; i < depth(); i++) {
-        misses += caches()->cache[i].misses();
-      }
-
-      return misses;
-    }
-
-    bool valid_serial_p(STATE, Object* recv, Symbol* vis, int serial) {
-      Class* recv_class = recv->direct_class(state);
-      uint64_t class_data_raw = recv_class->data_raw();
-
-      for(int i = 0; i < depth(); i++) {
-        if(caches()->cache[i].valid_serial_p(class_data_raw, serial)) {
-          return true;
+          // TODO: pass State into GC!
+          VM::current()->metrics().machine.inline_cache_reordered++;
         }
       }
 
-      Dispatch dispatch(name());
-      LookupData lookup_data(state->vm()->call_frame()->self(),
-          recv->lookup_begin(state), vis);
+      // 2. Check if all caching should be disabled.
+      if(depth() == 0 && evictions() > max_evictions) {
+        execute(CallSite::dispatch);
+        cache_miss(CallSite::dispatch);
 
-      if(dispatch.resolve(state, name(), lookup_data)) {
-        if(dispatch.method->serial()->to_native() == serial) {
-          cache(state, recv_class, dispatch);
+        // TODO: pass State into GC!
+        VM::current()->metrics().machine.inline_cache_disabled++;
+      }
 
-          return true;
+      // 3. Mark remaining caches.
+      for(int i = 0; i < max_caches; i++) {
+        if(InlineCache* cache = _caches_[i]) {
+          if(Object* ref = mark.call(cache->receiver_class())) {
+            cache->receiver_class(as<Class>(ref));
+            mark.just_set(this, ref);
+          }
+
+          if(Object* ref = mark.call(cache->stored_module())) {
+            cache->stored_module(as<Module>(ref));
+            mark.just_set(this, ref);
+          }
+
+          if(Object* ref = mark.call(cache->executable())) {
+            cache->executable(as<Executable>(ref));
+            mark.just_set(this, ref);
+          }
         }
       }
 
-      return false;
-    }
-
-    void set_is_private() {
-      kind(ePrivate);
-    }
-
-    void set_is_super() {
-      kind(eSuper);
-    }
-
-    void set_is_vcall() {
-      kind(eVCall);
+      // 4. Clear dead list
+      clear_dead_list();
     }
 
     // Rubinius.primitive :call_site_ip
@@ -503,14 +560,16 @@ namespace rubinius {
 
     // Rubinius.primitive :call_site_reset
     CallSite* reset(STATE) {
-      std::lock_guard<locks::spinlock_mutex> guard(cache_mutex_);
-
-      if(caches()) free(caches());
-
       invokes(0);
       execute(default_execute);
       cache_miss(default_execute);
-      caches(NULL);
+
+      for(int i = 0; i < max_caches; i++) {
+        if(InlineCache* cache = _caches_[i]) {
+          _caches_[i] = nullptr;
+          dead_cache(cache);
+        }
+      }
 
       return this;
     }

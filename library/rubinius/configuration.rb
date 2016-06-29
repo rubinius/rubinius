@@ -103,6 +103,9 @@ Rubinius::ConfigurationVariables.define do |c|
 
       cs.vm_variable "limit", 3,
         "Maximum number of caches at call sites"
+
+      cs.vm_variable "evictions", 10,
+        "Maximum number of cache evictions before disabling caching at the call site"
     end
 
     m.section "jit" do |j|
