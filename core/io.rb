@@ -1025,12 +1025,12 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, binary, external, internal, autoclose = IO.normalize_options(nil, opts)
+    mode, binary, external, internal, autoclose, encoding_options = IO.normalize_options(nil, opts)
     unless mode
       mode = File::CREAT | File::RDWR | File::BINARY
       mode |= File::TRUNC unless offset
     end
-    File.open(file, mode, :encoding => (external || "ASCII-8BIT")) do |f|
+    File.open(file, mode, encoding_options.merge(:encoding => (external || "ASCII-8BIT"))) do |f|
       f.seek(offset || 0)
       f.write(string)
     end
@@ -1200,14 +1200,14 @@ class IO
     lines
   end
 
-  def self.read_encode(io, str)
+  def self.read_encode(io, str, encoding_options)
     internal = io.internal_encoding
     external = io.external_encoding || Encoding.default_external
 
     if external.equal? Encoding::ASCII_8BIT
       str.force_encoding external
     elsif internal and external
-      ec = Encoding::Converter.new external, internal
+      ec = Encoding::Converter.new(external, internal, (encoding_options || {}))
       ec.convert str
     else
       str.force_encoding external
@@ -1225,13 +1225,14 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, binary, external, internal, autoclose = IO.normalize_options(nil, opts)
+    mode, binary, external, internal, autoclose, encoding_options = IO.normalize_options(nil, opts)
     unless mode
       mode = File::CREAT | File::WRONLY
       mode |= File::TRUNC unless offset
     end
 
     open_args = opts[:open_args] || [mode, :encoding => (external || "ASCII-8BIT")]
+    open_args.merge!(encoding_options)
     File.open(file, *open_args) do |f|
       f.seek(offset) if offset
       f.write(string)
@@ -1297,6 +1298,7 @@ class IO
   def self.normalize_options(mode, options)
     mode = nil if undefined.equal?(mode)
     autoclose = true
+    encoding_options = {}
 
     if undefined.equal?(options)
       options = Rubinius::Type.try_convert(mode, Hash, :to_hash)
@@ -1364,9 +1366,16 @@ class IO
           external, internal = encoding.split(':')
         end
       end
+
+      [
+       :invalid, :undef, :replace, :newline, :universal_newline, :crlf_newline,
+       :cr_newline, :xml
+      ].each do |options_key|
+        encoding_options[options_key] = options[options_key] if options.has_key?(options_key)
+      end
     end
 
-    [mode, binary, external, internal, autoclose]
+    [mode, binary, external, internal, autoclose, encoding_options]
   end
 
   def self.open(*args)
@@ -1489,7 +1498,7 @@ class IO
       end
     end
 
-    mode, binary, external, internal, autoclose =
+    mode, binary, external, internal, autoclose, encoding_options =
       IO.normalize_options(mode, io_options || {})
     mode_int = parse_mode mode
 
@@ -1705,7 +1714,8 @@ class IO
       warn 'IO::new() does not take block; use IO::open() instead'
     end
 
-    mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
+    mode, binary, external, internal, @autoclose, @encoding_options =
+      IO.normalize_options(mode, options)
 
     fd = Rubinius::Type.coerce_to fd, Integer, :to_int
     autoclose = @autoclose
@@ -1973,10 +1983,11 @@ class IO
   class EachReader
     READ_SIZE = 512 # bytes
 
-    def initialize(io, separator, limit)
+    def initialize(io, separator, limit, encoding_options)
       @io = io
       @separator = separator ? separator.force_encoding("ASCII-8BIT") : separator
       @limit = limit
+      @encoding_options = encoding_options
       @skip = nil
     end
 
@@ -2011,7 +2022,7 @@ class IO
         str, bytes_read = read_to_char_boundary(@io, str, buffer)
       else
         # We are confident that our +str+ ends on a char boundary
-        str = IO.read_encode(@io, str)
+        str = IO.read_encode(@io, str, @encoding_options)
       end
 
       str.taint
@@ -2030,7 +2041,7 @@ class IO
     end
 
     def read_and_yield_entire_string(str, &block)
-      str = IO.read_encode(@io, str)
+      str = IO.read_encode(@io, str, @encoding_options)
       str.taint
       $. = @io.increment_lineno
       yield str
@@ -2145,14 +2156,14 @@ class IO
     def try_to_force_encoding(io, str)
       str.force_encoding(io.external_encoding || Encoding.default_external)
 
-      IO.read_encode io, str
+      IO.read_encode(io, str, @encoding_options)
     end
 
     PEEK_AHEAD_LIMIT = 16
 
     def read_to_char_boundary(io, str, buffer)
       str.force_encoding(io.external_encoding || Encoding.default_external)
-      return [IO.read_encode(io, str), 0] if str.valid_encoding?
+      return [IO.read_encode(io, str, @encoding_options), 0] if str.valid_encoding?
 
       peek_ahead = 0
       while buffer.size > 0 and peek_ahead < PEEK_AHEAD_LIMIT
@@ -2163,11 +2174,11 @@ class IO
 
         str.force_encoding(io.external_encoding || Encoding.default_external)
         if str.valid_encoding?
-          return [IO.read_encode(io, str), peek_ahead]
+          return [IO.read_encode(io, str, @encoding_options), peek_ahead]
         end
       end
 
-      [IO.read_encode(io, str), peek_ahead]
+      [IO.read_encode(io, str, @encoding_options), peek_ahead]
     end
 
     # Advances the buffer index past any number of contiguous
@@ -2240,7 +2251,7 @@ class IO
     raise ArgumentError, "limit of 0 is invalid" if limit && limit.zero?
     return if eof?
 
-    EachReader.new(self, sep, limit).each(&block)
+    EachReader.new(self, sep, limit, @encoding_options).each(&block)
 
     self
   end
@@ -2501,7 +2512,7 @@ class IO
 
       char.force_encoding(self.external_encoding || Encoding.default_external)
       if char.chr_at(0)
-        return IO.read_encode self, char
+        return IO.read_encode(self, char, @encoding_options)
       end
     end until eof?
 
@@ -2718,7 +2729,7 @@ class IO
     buffer = StringValue(buffer) if buffer
 
     unless length
-      str = IO.read_encode self, read_all
+      str = IO.read_encode(self, read_all, @encoding_options)
       return str unless buffer
 
       return buffer.replace(str)
@@ -2832,9 +2843,9 @@ class IO
     if str
       if buffer
         buffer.replace(str)
-        IO.read_encode(self, buffer)
+        IO.read_encode(self, buffer, @encoding_options)
       else
-        IO.read_encode(self, str)
+        IO.read_encode(self, str, @encoding_options)
       end
     else
       raise EOFError, "stream closed" if exception
@@ -3132,7 +3143,7 @@ class IO
     unless undefined.equal? options
       # TODO: set the encoding options on the IO instance
       if options and not options.kind_of? Hash
-        options = Rubinius::Type.coerce_to options, Hash, :to_hash
+        @encoding_options = Rubinius::Type.coerce_to options, Hash, :to_hash
       end
     end
 
@@ -3382,6 +3393,7 @@ class IO
         data.encode!(external_encoding)
       end
     end
+    data.encode!(@encoding_options) unless @encoding_options.empty?
 
     #    if @sync
     @fd.write(data)

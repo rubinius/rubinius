@@ -1122,9 +1122,18 @@ class String
         raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
       end
 
-      if options[:universal_newline]
-        gsub!(/\r\n|\r/, "\r\n" => "\n", "\r" => "\n")
+      if new_to = options[:universal_newline] || options[:crlf_newline] || options[:cr_newline] || options[:newline]
+        STDERR.puts "String.encode!, new_to #{new_to.inspect}, from_enc #{from_enc.inspect}, to_enc #{to_enc.inspect}"
+        #raise ArgumentError, "unexpected value, from: #{from_enc.inspect}, to: #{to_enc.inspect}, options: #{options.inspect}"
+        ec = Encoding::Converter.new(from_enc, (to_enc || from_enc), options)
+        dest = ""
+        status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
+        raise ec.last_error unless status == :finished
+        replace dest
       end
+#      if options[:universal_newline]
+#        gsub!(/\r\n|\r/, "\r\n" => "\n", "\r" => "\n")
+#      end
     end
 
     self
