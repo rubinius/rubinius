@@ -42,6 +42,8 @@ namespace rubinius {
     attr_accessor(keywords, Tuple);
     attr_accessor(arity, Fixnum);
     attr_accessor(breakpoints, LookupTable);
+    attr_accessor(iregisters, Fixnum);
+    attr_accessor(dregisters, Fixnum);
 
   private:
     attr_field(machine_code, MachineCode*);
@@ -60,23 +62,25 @@ namespace rubinius {
     static void initialize(STATE, CompiledCode* obj) {
       Executable::initialize(state, obj, CompiledCode::default_executor);
 
-      obj-> metadata(nil<Object>());
-      obj-> name(nil<Symbol>());
-      obj-> iseq(nil<InstructionSequence>());
-      obj-> stack_size(nil<Fixnum>());
-      obj-> local_count(Fixnum::from(0));
-      obj-> required_args(nil<Fixnum>());
-      obj-> post_args(nil<Fixnum>());
-      obj-> total_args(nil<Fixnum>());
-      obj-> splat(nil<Fixnum>());
-      obj-> lines(nil<Tuple>());
-      obj-> local_names(nil<Tuple>());
-      obj-> file(nil<Symbol>());
-      obj-> scope(nil<ConstantScope>());
-      obj-> keywords(nil<Tuple>());
-      obj-> arity(nil<Fixnum>());
-      obj-> breakpoints(nil<LookupTable>());
-      obj-> machine_code(NULL);
+      obj->metadata(nil<Object>());
+      obj->name(nil<Symbol>());
+      obj->iseq(nil<InstructionSequence>());
+      obj->stack_size(nil<Fixnum>());
+      obj->local_count(Fixnum::from(0));
+      obj->required_args(nil<Fixnum>());
+      obj->post_args(nil<Fixnum>());
+      obj->total_args(nil<Fixnum>());
+      obj->splat(nil<Fixnum>());
+      obj->lines(nil<Tuple>());
+      obj->local_names(nil<Tuple>());
+      obj->file(nil<Symbol>());
+      obj->scope(nil<ConstantScope>());
+      obj->keywords(nil<Tuple>());
+      obj->arity(nil<Fixnum>());
+      obj->breakpoints(nil<LookupTable>());
+      obj->iregisters(Fixnum::from(0));
+      obj->dregisters(Fixnum::from(0));
+      obj->machine_code(NULL);
 
       obj->literals(nil<Tuple>());
     }
