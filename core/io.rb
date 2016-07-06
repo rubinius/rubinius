@@ -3393,7 +3393,7 @@ class IO
         data.encode!(external_encoding)
       end
     end
-    data.encode!(@encoding_options) unless @encoding_options.empty?
+    data.encode!(@encoding_options) unless (@encoding_options || {}).empty?
 
     #    if @sync
     @fd.write(data)
