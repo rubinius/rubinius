@@ -129,15 +129,6 @@ class Encoding
 
       unless source_name == dest_name
         @convpath, @converters = TranscodingPath[source_name, dest_name]
-      else
-        # they are the same encoding so let's check for newline transcoding and override it
-        if new_to = options[:newline] || options[:universal_newline] || options[:cr_newline] || options[:crlf_newline]
-          new_to = "#{new_to}_newline" if [:cr, :crlf, :universal].include?(new_to)
-
-          @source_encoding = Rubinius::Type.coerce_to_encoding(from)
-          @destination_encoding = Rubinius::Type.coerce_to_encoding(new_to)
-          @convpath, @converters = TranscodingPath[@source_encoding.name.upcase.to_sym, @destination_encoding.name.to_sym]
-        end
       end
 
       unless @convpath
@@ -574,7 +565,7 @@ class Encoding
     enc = Rubinius::Type.try_convert_to_encoding name
     return enc unless undefined.equal? enc
 
-    raise ArgumentError, "unknown encoding name - #{name}, list #{list.inspect}"
+    raise ArgumentError, "unknown encoding name - #{name}"
   end
 
   def self.list
