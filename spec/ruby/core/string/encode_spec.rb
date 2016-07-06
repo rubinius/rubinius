@@ -60,20 +60,6 @@ with_feature :encoding do
 
         "\rfoo".encode(:universal_newline => true).should == "\nfoo"
       end
-
-      it "crlf_newline replaces lf with crlf" do
-        #"\r\nfoo".encode(crlf_newline: true).should == "\r\r\nfoo"
-
-        "\nfoo".encode(crlf_newline: true).should == "\r\nfoo"
-
-        "\rfoo".encode(crlf_newline: true).should == "\rfoo"
-      end
-
-      it "cr_newline replaces cr with lf" do
-        #"\r\nfoo".encode(cr_newline: true).should == "\r\rfoo"
-
-        "\nfoo".encode(cr_newline: true).should == "\rfoo"
-      end
     end
 
     describe "when passed to, from" do
