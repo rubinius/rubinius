@@ -1232,7 +1232,7 @@ class IO
     end
 
     open_args = opts[:open_args] || [mode, :encoding => (external || "ASCII-8BIT")]
-    open_args.merge!(encoding_options)
+    open_args[1].merge!(encoding_options) if open_args[1].kind_of?(Hash)
     File.open(file, *open_args) do |f|
       f.seek(offset) if offset
       f.write(string)
@@ -3393,7 +3393,7 @@ class IO
         data.encode!(external_encoding)
       end
     end
-    data.encode!(@encoding_options) unless @encoding_options.empty?
+    data.encode!(@encoding_options) unless (@encoding_options || {}).empty?
 
     #    if @sync
     @fd.write(data)
