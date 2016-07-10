@@ -1,6 +1,14 @@
 #ifndef RBX_CAPI_MRI_OOP_H
 #define RBX_CAPI_MRI_OOP_H
 
+#ifndef native_int
+  typedef intptr_t native_int;
+#endif
+
+#ifndef native_uint
+  typedef uintptr_t native_uint;
+#endif
+
 /*
  *  In MRI, VALUE represents an object.
  *
