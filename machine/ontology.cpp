@@ -515,6 +515,8 @@ namespace rubinius {
     dexc(FloatDomainError, rng);
     dexc(ZeroDivisionError, std);
     dexc(IOError, std);
+    dexc(InterpreterError, exc);
+    dexc(DeadlockError, exc);
 
     GO(jump_error).set(lje);
 

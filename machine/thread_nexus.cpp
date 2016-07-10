@@ -11,33 +11,32 @@
 
 #include "instruments/timing.hpp"
 
+#include <ostream>
+#include <string>
 #include <time.h>
 
 namespace rubinius {
-  void ThreadNexus::blocking_phase(VM* vm) {
-    spinning_lock(vm, [vm]{ vm->set_thread_phase(eBlocking); });
+  void ThreadNexus::blocking_phase(STATE, VM* vm) {
+    spinning_lock(state, vm, [vm]{ vm->set_thread_phase(eBlocking); });
   }
 
-  void ThreadNexus::managed_phase(VM* vm) {
-    spinning_lock(vm, [vm]{ vm->set_thread_phase(eManaged); });
+  void ThreadNexus::managed_phase(STATE, VM* vm) {
+    spinning_lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
   }
 
-  void ThreadNexus::unmanaged_phase(VM* vm) {
+  void ThreadNexus::unmanaged_phase(STATE, VM* vm) {
     vm->set_thread_phase(eUnmanaged);
   }
 
-  void ThreadNexus::waiting_phase(VM* vm) {
+  void ThreadNexus::waiting_phase(STATE, VM* vm) {
     vm->set_thread_phase(eWaiting);
   }
 
   bool ThreadNexus::blocking_p(VM* vm) {
-    atomic::memory_barrier();
     return (vm->thread_phase() & eBlocking) == eBlocking;
   }
 
   bool ThreadNexus::yielding_p(VM* vm) {
-    atomic::memory_barrier();
-
     int phase = static_cast<int>(vm->thread_phase());
 
     return (phase & cYieldingPhase) == cYieldingPhase;
@@ -128,36 +127,40 @@ namespace rubinius {
     return "cUnknown";
   }
 
-  void ThreadNexus::list_threads() {
+  void ThreadNexus::list_threads(logger::PrintFunction function) {
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
            ++i)
     {
       if(VM* other_vm = (*i)->as_vm()) {
-        logger::fatal("thread %d: %s, %s",
+        function("thread %d: %s, %s",
             other_vm->thread_id(), other_vm->name().c_str(), phase_name(other_vm));
       }
     }
   }
 
-  void ThreadNexus::detect_deadlock(uint64_t nanoseconds, uint64_t limit, VM* vm) {
+  void ThreadNexus::detect_deadlock(STATE, uint64_t nanoseconds, uint64_t limit, VM* vm) {
     if(nanoseconds > limit) {
-      logger::fatal("thread nexus: thread will not yield: %s, %s",
+      logger::error("thread nexus: thread will not yield: %s, %s",
           vm->name().c_str(), phase_name(vm));
 
-      list_threads();
+      list_threads(logger::error);
 
-      rubinius::abort();
+      std::ostringstream msg;
+      msg << "thread will not yield: " << vm->name().c_str() << phase_name(vm);
+
+      Exception::raise_deadlock_error(state, msg.str().c_str());
     }
   }
 
-  void ThreadNexus::detect_deadlock(uint64_t nanoseconds, uint64_t limit) {
+  void ThreadNexus::detect_deadlock(STATE, uint64_t nanoseconds, uint64_t limit) {
     if(nanoseconds > limit) {
-      logger::fatal("thread nexus: unable to lock, possible deadlock");
+      logger::error("thread nexus: unable to lock, possible deadlock");
 
-      list_threads();
+      list_threads(logger::error);
 
-      rubinius::abort();
+      Exception::raise_deadlock_error(state,
+          "thread nexus: unable to lock, possible deadlock");
     }
   }
 
@@ -178,8 +181,8 @@ namespace rubinius {
     return ns;
   }
 
-  ThreadNexus::LockStatus ThreadNexus::fork_lock(VM* vm) {
-    waiting_phase(vm);
+  ThreadNexus::LockStatus ThreadNexus::fork_lock(STATE, VM* vm) {
+    waiting_phase(state, vm);
 
     /* Preserve the state of the phase_flag_ in situations where we have the
      * entire system serialized.
@@ -200,7 +203,7 @@ namespace rubinius {
 
       ns += delay();
 
-      detect_deadlock(ns, cLockLimit);
+      detect_deadlock(state, ns, cLockLimit);
 
       id = 0;
     }
@@ -209,10 +212,10 @@ namespace rubinius {
     set_stop();
 
     ns = 0;
-    while(!try_checkpoint(vm)) {
+    while(!try_checkpoint(state, vm)) {
       ns += delay();
 
-      detect_deadlock(ns, cLockLimit);
+      detect_deadlock(state, ns, cLockLimit);
     }
 
     /* Lock and hold the waiting_mutex to prevent any other thread from
@@ -222,7 +225,7 @@ namespace rubinius {
     while(!waiting_mutex_.try_lock()) {
       ns += delay();
 
-      detect_deadlock(ns, cLockLimit);
+      detect_deadlock(state, ns, cLockLimit);
     }
 
     /* Hold the logger lock so that the multi-process semaphore that the
@@ -232,7 +235,7 @@ namespace rubinius {
     while(!logger::try_lock()) {
       ns += delay();
 
-      detect_deadlock(ns, cLockLimit);
+      detect_deadlock(state, ns, cLockLimit);
     }
 
     return to_lock_status(held);
@@ -249,7 +252,7 @@ namespace rubinius {
     }
   }
 
-  bool ThreadNexus::try_checkpoint(VM* vm) {
+  bool ThreadNexus::try_checkpoint(STATE, VM* vm) {
     timer::StopWatch<timer::nanoseconds> timer(
         vm->metrics().lock.stop_the_world_ns);
 
@@ -273,7 +276,7 @@ namespace rubinius {
 
           ns += delay();
 
-          detect_deadlock(ns, cLockLimit, other_vm);
+          detect_deadlock(state, ns, cLockLimit, other_vm);
         }
       }
     }
@@ -281,7 +284,7 @@ namespace rubinius {
     return true;
   }
 
-  void ThreadNexus::checkpoint(VM* vm) {
+  void ThreadNexus::checkpoint(STATE, VM* vm) {
     timer::StopWatch<timer::nanoseconds> timer(
         vm->metrics().lock.stop_the_world_ns);
 
@@ -303,13 +306,13 @@ namespace rubinius {
 
           ns += delay();
 
-          detect_deadlock(ns, cLockLimit, other_vm);
+          detect_deadlock(state, ns, cLockLimit, other_vm);
         }
       }
     }
   }
 
-  bool ThreadNexus::waiting_lock(VM* vm) {
+  bool ThreadNexus::waiting_lock(STATE, VM* vm) {
     uint32_t id = 0;
 
     vm->set_thread_phase(eWaiting);
@@ -336,7 +339,7 @@ namespace rubinius {
     return false;
   }
 
-  void ThreadNexus::spinning_lock(VM* vm, std::function<void ()> f) {
+  void ThreadNexus::spinning_lock(STATE, VM* vm, std::function<void ()> f) {
     uint32_t id = 0;
     int spin = 0;
     bool held = false;
@@ -356,7 +359,7 @@ namespace rubinius {
       if(++spin > cSpinLimit) {
         ns += delay();
 
-        detect_deadlock(ns, cLockLimit);
+        detect_deadlock(state, ns, cLockLimit);
       }
 
       id = 0;

@@ -125,7 +125,8 @@ continue_to_run:
 
   // There is no reason to be here. Either the bytecode loop exits,
   // or it jumps to exception;
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state, "interpreter failed to dispatch");
+  return NULL;
 
   // If control finds it's way down here, there is an exception.
 exception:
@@ -201,7 +202,8 @@ exception:
     break;
   } // switch
 
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state,
+      "interpreter exception handler failed to dispatch");
   return NULL;
 }
 
@@ -278,7 +280,8 @@ continue_to_run:
   }
 
   // No reason to be here!
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state, "interpreter failed to dispatch");
+  return NULL;
 
 exception:
   VMThreadState* th = state->vm()->thread_state();
@@ -351,7 +354,8 @@ exception:
     break;
   } // switch
 
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state,
+      "interpreter exception handler failed to dispatch");
   return NULL;
 }
 
@@ -424,7 +428,8 @@ continue_to_run:
   }
 
   // no reason to be here!
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state, "interpreter failed to dispatch");
+  return NULL;
 
   // If control finds it's way down here, there is an exception.
 exception:
@@ -500,7 +505,8 @@ exception:
     break;
   } // switch
 
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state,
+      "interpreter exception handler failed to dispatch");
   return NULL;
 }
 
@@ -560,7 +566,8 @@ continue_to_run:
   }
 
   // No reason to be here!
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state, "interpreter failed to dispatch");
+  return NULL;
 
 exception:
   VMThreadState* th = state->vm()->thread_state();
@@ -633,6 +640,7 @@ exception:
     break;
   } // switch
 
-  rubinius::bug("Control flow error in interpreter");
+  Exception::interpreter_error(state,
+      "interpreter exception handler failed to dispatch");
   return NULL;
 }

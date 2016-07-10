@@ -226,7 +226,7 @@ namespace rubinius {
       vm->set_suspended();
     }
 
-    vm->unmanaged_phase();
+    vm->unmanaged_phase(state);
 
     state->shared().report_profile(state);
 

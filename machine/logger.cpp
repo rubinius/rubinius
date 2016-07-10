@@ -395,7 +395,11 @@ namespace rubinius {
 #define LOGGER_FROM_FLAGS   (O_RDONLY | O_CLOEXEC)
 #define LOGGER_TO_FLAGS     (O_CREAT | O_TRUNC | O_APPEND | O_WRONLY | O_CLOEXEC)
 
+#ifdef __FreeBSD__
+#define LOGGER_SEM_OPEN_FLAGS   (O_CREAT)
+#else
 #define LOGGER_SEM_OPEN_FLAGS   (O_CREAT | O_RDWR)
+#endif
 #define LOGGER_SEM_OPEN_PERMS   (S_IRUSR | S_IWUSR)
 
 #define LOGGER_SHM_OPEN_FLAGS   (O_CREAT | O_RDWR)

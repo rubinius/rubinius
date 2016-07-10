@@ -566,7 +566,7 @@ namespace rubinius {
 
     shared->finalizer()->dispose(state);
 
-    shared->thread_nexus()->lock(state->vm());
+    shared->thread_nexus()->lock(state, state->vm());
 
     shared->finalizer()->finish(state);
 
@@ -724,7 +724,7 @@ namespace rubinius {
 
     shared->set_initialized();
 
-    state->vm()->managed_phase();
+    state->vm()->managed_phase(state);
 
     TypeInfo::auto_learn_fields(state);
 

@@ -382,6 +382,15 @@ namespace rubinius {
       }
 
     template <class T>
+      T* new_variable_object(STATE, Class *klass) {
+        T* obj = static_cast<T*>(new_object(
+              state, klass, TypeInfo::instance_sizes[T::type], T::type));
+        T::initialize(state, obj);
+
+        return obj;
+      }
+
+    template <class T>
       T* new_bytes(STATE, Class* klass, native_int bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = static_cast<T*>(new_object(state, klass, bytes, T::type));

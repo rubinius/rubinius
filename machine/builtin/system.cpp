@@ -391,13 +391,14 @@ namespace rubinius {
   }
 
   static int fork_exec(STATE, int errors_fd) {
-    state->vm()->thread_nexus()->waiting_phase(state->vm());
+    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
     state->shared().machine_threads()->before_fork_exec(state);
     state->memory()->set_interrupt();
 
-    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->fork_lock(state->vm());
+    ThreadNexus::LockStatus status =
+      state->vm()->thread_nexus()->fork_lock(state, state->vm());
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
@@ -718,7 +719,7 @@ namespace rubinius {
   }
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
-    state->vm()->thread_nexus()->waiting_phase(state->vm());
+    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
     /* Setting up the command and arguments may raise an exception so do it
@@ -742,7 +743,8 @@ namespace rubinius {
 
     state->shared().machine_threads()->before_exec(state);
 
-    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->lock(state->vm());
+    ThreadNexus::LockStatus status =
+      state->vm()->thread_nexus()->lock(state, state->vm());
 
     void* old_handlers[NSIG];
 
@@ -876,13 +878,14 @@ namespace rubinius {
     // TODO: Windows
     return force_as<Fixnum>(Primitives::failure());
 #else
-    state->vm()->thread_nexus()->waiting_phase(state->vm());
+    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
     state->shared().machine_threads()->before_fork(state);
     state->memory()->set_interrupt();
 
-    ThreadNexus::LockStatus status = state->vm()->thread_nexus()->fork_lock(state->vm());
+    ThreadNexus::LockStatus status =
+      state->vm()->thread_nexus()->fork_lock(state, state->vm());
 
     int pid = ::fork();
 

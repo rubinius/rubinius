@@ -228,11 +228,11 @@ extern "C" {
 
     State* state = env->state();
     ENTER_CAPI(state);
-    state->vm()->managed_phase();
+    state->vm()->managed_phase(state);
 
     void* ret = (*func)(data);
 
-    env->state()->vm()->unmanaged_phase();
+    env->state()->vm()->unmanaged_phase(state);
     LEAVE_CAPI(env->state());
 
     return ret;

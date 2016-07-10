@@ -54,6 +54,10 @@ namespace rubinius {
       return vm_;
     }
 
+    bool thread_running_p() {
+      return thread_running_;
+    }
+
     virtual void initialize(STATE);
     virtual void start(STATE);
     virtual void start_thread(STATE);

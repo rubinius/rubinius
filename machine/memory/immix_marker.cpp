@@ -61,13 +61,13 @@ namespace memory {
   }
 
   void ImmixMarker::run(STATE) {
-    state->vm()->managed_phase();
+    state->vm()->managed_phase(state);
 
     while(!thread_exit_) {
       timer::StopWatch<timer::milliseconds> timer(
           state->vm()->metrics().gc.immix_concurrent_ms);
 
-      state->shared().thread_nexus()->blocking_phase(state->vm());
+      state->shared().thread_nexus()->blocking_phase(state, state->vm());
 
       while(immix_->process_mark_stack(immix_->memory()->interrupt_p())) {
         if(thread_exit_ || immix_->memory()->collect_full_p()) {
@@ -80,7 +80,7 @@ namespace memory {
           immix_->memory()->reset_interrupt();
         }
 
-        state->shared().thread_nexus()->blocking_phase(state->vm());
+        state->shared().thread_nexus()->blocking_phase(state, state->vm());
       }
 
       if(thread_exit_) break;

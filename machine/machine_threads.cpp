@@ -50,7 +50,7 @@ namespace rubinius {
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
     vm->set_call_frame(NULL);
-    vm->unmanaged_phase();
+    vm->unmanaged_phase(state);
 
     vm->set_zombie(state);
 

@@ -301,7 +301,7 @@ namespace rubinius {
   }
 
   Object* Thread::main_thread(STATE) {
-    state->vm()->managed_phase();
+    state->vm()->managed_phase(state);
 
     std::string& runtime = state->shared().env()->runtime_path();
 
@@ -369,7 +369,7 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
-    state->vm()->managed_phase();
+    state->vm()->managed_phase(state);
 
     Object* value = vm->thread()->function()(state);
     vm->set_call_frame(NULL);
@@ -397,7 +397,7 @@ namespace rubinius {
       logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());
     }
 
-    vm->unmanaged_phase();
+    vm->unmanaged_phase(state);
 
     if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {
       state->shared().signals()->system_exit(vm->thread_state()->raise_value());
@@ -513,11 +513,11 @@ namespace rubinius {
     Thread* self = this;
     OnStack<2> os(state, self, timeout);
 
-    state->vm()->unmanaged_phase();
+    state->vm()->unmanaged_phase(state);
 
     {
       utilities::thread::Mutex::LockGuard guard(self->join_lock_);
-      state->vm()->managed_phase();
+      state->vm()->managed_phase(state);
       atomic::memory_barrier();
 
       if(self->alive()->true_p()) {

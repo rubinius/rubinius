@@ -188,7 +188,7 @@ namespace rubinius {
     void FinalizerThread::wakeup(STATE) {
       MachineThread::wakeup(state);
 
-      while(thread_running_) {
+      while(thread_running_p()) {
         UnmanagedPhase unmanaged(state);
         std::lock_guard<std::mutex> guard(list_mutex());
 

@@ -58,6 +58,8 @@ namespace rubinius {
     , splat_position(-1)
     , stack_size(code->stack_size()->to_native())
     , number_of_locals(code->number_of_locals())
+    , iregisters(0)
+    , dregisters(0)
     , sample_count(0)
     , call_count(0)
     , uncommon_count(0)
