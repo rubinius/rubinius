@@ -595,15 +595,23 @@ module Rubinius
 
     # Converts an unsigned short
     add_typedef TYPE_USHORT,  :ushort
+    add_typedef TYPE_USHORT,  :mode_t
+    add_typedef TYPE_USHORT,  :nlink_t
 
     # Converts an int
     add_typedef TYPE_INT,     :int
+    add_typedef TYPE_INT,     :dev_t
+    add_typedef TYPE_INT,     :blksize_t
+    add_typedef TYPE_INT,     :time_t
 
     # Converts an unsigned int
     add_typedef TYPE_UINT,    :uint
+    add_typedef TYPE_UINT,    :uid_t
+    add_typedef TYPE_UINT,    :gid_t
 
     # Converts a long
     add_typedef TYPE_LONG,    :long
+    add_typedef TYPE_LONG,    :ssize_t
 
     # Converts an unsigned long
     add_typedef TYPE_ULONG,   :ulong
@@ -613,9 +621,12 @@ module Rubinius
 
     # Converts a long long
     add_typedef TYPE_LL,      :long_long
+    add_typedef TYPE_LL,      :blkcnt_t
+    add_typedef TYPE_LL,      :off_t
 
     # Converts an unsigned long long
     add_typedef TYPE_ULL,     :ulong_long
+    add_typedef TYPE_ULL,     :ino64_t
 
     # Converts a float
     add_typedef TYPE_FLOAT,   :float
@@ -855,14 +866,32 @@ module Rubinius
         attach_function :chroot,    [:string], :int
 
         # File/IO
-        attach_function :fcntl,    [:int, :int, :long], :int
-        attach_function :ioctl,    [:int, :ulong, :long], :int
-        attach_function :fsync,    [:int], :int
-        attach_function :dup,      [:int], :int
-        attach_function :dup2,     [:int, :int], :int
+        attach_function :fcntl,       [:int, :int, :long], :int
+        attach_function :ioctl,       [:int, :ulong, :long], :int
+        attach_function :fsync,       [:int], :int
+        attach_function :dup,         [:int], :int
+        attach_function :dup2,        [:int, :int], :int
+        attach_function :open,        [:string, :int, :mode_t], :int
+        attach_function :close,       [:int], :int
+        attach_function :lseek,       [:int, :off_t, :int], :off_t
+        attach_function :read,        [:int, :pointer, :size_t], :ssize_t
+        attach_function :ftruncate,   [:int, :off_t], :int
+        attach_function :truncate,    [:string, :off_t], :int
+        attach_function :write,       [:int, :pointer, :size_t], :ssize_t
+        attach_function :select,      [:int, :pointer, :pointer, :pointer, :pointer], :int
+
+        # Other I/O
+        attach_function :pipe,        [:pointer], :int
+        attach_function :mmap,        [:pointer, :size_t, :int, :int, :int, :off_t], :pointer
+        attach_function :msync,       [:pointer, :size_t, :int], :int
+        attach_function :munmap,      [:pointer, :size_t], :int
+        attach_function :getpagesize, [], :int
+        attach_function :shutdown,    [:int, :int], :int
+        attach_function :posix_fadvise, [:int, :off_t, :off_t, :int], :int
 
         #   inspecting
         attach_function :isatty,   [:int], :int
+        attach_function :ttyname,  [:int], :string
 
         #   locking
         attach_function :flock, [:int, :int], :int
@@ -919,6 +948,9 @@ module Rubinius
         # related to stat()
         attach_function :major, 'ffi_major', [:dev_t], :dev_t
         attach_function :minor, 'ffi_minor', [:dev_t], :dev_t
+
+        # time
+        attach_function :gettimeofday, [:pointer, :pointer], :int
 
         #--
         # Internal class for accessing timevals
@@ -1074,10 +1106,13 @@ class File < IO
 
     # O_ACCMODE is /undocumented/ for fcntl() on some platforms
     ACCMODE  = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
+    O_ACCMODE = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
 
     F_GETFD  = Rubinius::Config['rbx.platform.fcntl.F_GETFD']
     F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
     FD_CLOEXEC = Rubinius::Config['rbx.platform.fcntl.FD_CLOEXEC']
+    O_CLOEXEC = Rubinius::Config['rbx.platform.file.O_CLOEXEC']
+    O_NONBLOCK = Rubinius::Config['rbx.platform.file.O_NONBLOCK']
 
     RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
     WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
@@ -1159,6 +1194,28 @@ class IO
   SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
   SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
   SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
+
+  # Not available on all platforms, so these constants may be nil
+  POSIX_FADV_NORMAL     = Rubinius::Config['rbx.platform.advise.POSIX_FADV_NORMAL']
+  POSIX_FADV_SEQUENTIAL = Rubinius::Config['rbx.platform.advise.POSIX_FADV_SEQUENTIAL']
+  POSIX_FADV_RANDOM     = Rubinius::Config['rbx.platform.advise.POSIX_FADV_RANDOM']
+  POSIX_FADV_WILLNEED   = Rubinius::Config['rbx.platform.advise.POSIX_FADV_WILLNEED']
+  POSIX_FADV_DONTNEED   = Rubinius::Config['rbx.platform.advise.POSIX_FADV_DONTNEED']
+  POSIX_FADV_NOREUSE    = Rubinius::Config['rbx.platform.advise.POSIX_FADV_NOREUSE']
+
+  class FileDescriptor
+    @@max_descriptors = Rubinius::AtomicReference.new(2)
+
+    include File::Constants
+
+    O_RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
+    O_WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
+    O_RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']
+  end
+
+  class Select
+    FD_SETSIZE = Rubinius::Config['rbx.platform.select.FD_SETSIZE']
+  end
 end
 
 class NilClass
@@ -1598,6 +1655,15 @@ module Process
   Rubinius::Globals.read_only :$?
   Rubinius::Globals.set_hook(:$?) { Thread.current[:$?] }
 end
+
+
+STDIN  = Rubinius::IOUtility.redefine_io(0, :read_only)
+STDOUT = Rubinius::IOUtility.redefine_io(1, :write_only)
+STDERR = Rubinius::IOUtility.redefine_io(2, :write_only)
+
+Rubinius::Globals.set!(:$stdin, STDIN)
+Rubinius::Globals.set!(:$stdout, STDOUT)
+Rubinius::Globals.set!(:$stderr, STDERR)
 
 module Rubinius
   begin

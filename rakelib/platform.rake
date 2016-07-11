@@ -59,12 +59,15 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :d_name, :char_array
     end.write_config(f)
 
-    Rubinius::FFI::Generators::Structures.new 'timeval' do |s|
+    struct = Rubinius::FFI::Generators::Structures.new 'timeval' do |s|
       s.include "sys/time.h"
       s.name 'struct timeval'
       s.field :tv_sec, :time_t
       s.field :tv_usec, :suseconds_t
-    end.write_config(f)
+    end
+
+    struct.write_config(f)
+    struct.write_class(f)
 
     Rubinius::FFI::Generators::Structures.new 'sockaddr_in' do |s|
       if BUILD_CONFIG[:windows]
@@ -236,6 +239,7 @@ file 'runtime/platform.conf' => deps do |task|
         O_APPEND
         O_NONBLOCK
         O_SYNC
+        O_CLOEXEC
         S_IRUSR
         S_IWUSR
         S_IXUSR
@@ -272,6 +276,32 @@ file 'runtime/platform.conf' => deps do |task|
       ]
 
       io_constants.each { |c| cg.const c }
+    end.write_constants(f)
+    
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.select' do |cg|
+      cg.include 'sys/select.h'
+      
+      select_constants = %w[
+        FD_SETSIZE
+      ]
+      
+      select_constants.each { |c| cg.const c }
+    end.write_constants(f)
+
+    # Not available on all platforms. Try to load these constants anyway.
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.advise' do |cg|
+      cg.include 'fcntl.h'
+      
+      advise_constants = %w[
+        POSIX_FADV_NORMAL
+        POSIX_FADV_SEQUENTIAL
+        POSIX_FADV_RANDOM
+        POSIX_FADV_WILLNEED
+        POSIX_FADV_DONTNEED
+        POSIX_FADV_NOREUSE
+      ]
+      
+      advise_constants.each { |c| cg.const c }
     end.write_constants(f)
 
     # Only constants needed by core are added here

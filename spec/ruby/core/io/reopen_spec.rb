@@ -21,12 +21,14 @@ describe "IO#reopen" do
   it "calls #to_io to convert an object" do
     obj = mock("io")
     obj.should_receive(:to_io).and_return(@other_io)
+    obj.stub!(:pos).and_return(0)
     @io.reopen obj
   end
 
   it "changes the class of the instance to the class of the object returned by #to_io" do
     obj = mock("io")
     obj.should_receive(:to_io).and_return(@other_io)
+    obj.stub!(:pos).and_return(0)
     @io.reopen(obj).should be_an_instance_of(File)
   end
 
@@ -188,6 +190,34 @@ describe "IO#reopen with a String" do
   it "raises an Errno::ENOENT if the file does not exist and the IO is not opened in write mode" do
     @io = new_io @name, "r"
     lambda { @io.reopen(@other_name) }.should raise_error(Errno::ENOENT)
+  end
+end
+
+describe "IO#reopen with an IO at EOF" do
+  before :each do
+    @name = tmp("io_reopen.txt")
+    touch(@name) { |f| f.puts "a line" }
+    @other_name = tmp("io_reopen_other.txt")
+    touch(@other_name) do |f|
+      f.puts "Line 1"
+      f.puts "Line 2"
+    end
+
+    @io = new_io @name, "r"
+    @other_io = new_io @other_name, "r"
+    @io.read
+  end
+
+  after :each do
+    @io.close unless @io.closed?
+    @other_io.close unless @other_io.closed?
+    rm_r @name, @other_name
+  end
+  
+  it "resets the EOF status to false" do
+    @io.eof?.should be_true    
+    @io.reopen @other_io
+    @io.eof?.should be_false
   end
 end
 

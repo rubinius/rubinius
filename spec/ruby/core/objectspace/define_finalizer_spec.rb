@@ -61,6 +61,15 @@ describe "ObjectSpace.define_finalizer" do
 
   # see [ruby-core:24095]
   with_feature :fork do
+    before :each do
+      @fname = tmp("finalizer_test.txt")
+      @contents = "finalized"
+    end
+
+    after :each do
+      rm_r @fname
+    end
+
     it "calls finalizer on process termination" do
       rd, wr = IO.pipe
 
@@ -85,7 +94,7 @@ describe "ObjectSpace.define_finalizer" do
       pid = Kernel::fork do
         rd.close
         obj = "Test"
-        handler = Proc.new { wr.write "finalized"; wr.close }
+        handler = Proc.new { wr.write(@contents); wr.close }
         ObjectSpace.define_finalizer(obj, handler)
         exit 0
       end
@@ -93,7 +102,7 @@ describe "ObjectSpace.define_finalizer" do
       wr.close
       Process.waitpid pid
 
-      rd.read.should == "finalized"
+      rd.read.should == @contents
       rd.close
     end
 

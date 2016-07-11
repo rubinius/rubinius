@@ -4,3 +4,10 @@ require File.expand_path('../shared/tty', __FILE__)
 describe "IO#tty?" do
   it_behaves_like :io_tty, :tty?
 end
+
+describe "IO#ttyname" do
+  it "returns the name of the STDOUT tty" do
+    io = $stdout
+    io.ttyname.should =~ Regexp.new('/dev/')
+  end
+end

@@ -24,17 +24,4 @@ describe "IO buffer" do
     @io.read(4)
     @io.read(4).should == @contents.slice(8, 2)
   end
-
-  it "doesn't confuse IO.select" do
-    read, write = @read, @write
-
-    write << "data"
-
-    IO.select([read],nil,nil,3).should == [[read],[],[]]
-
-    read.getc
-    read.buffer_empty?.should be_false
-
-    IO.select([read],nil,nil,3).should == [[read],[],[]]
-  end
 end

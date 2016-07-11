@@ -13,6 +13,7 @@
 #include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/method_table.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
@@ -346,7 +347,9 @@ namespace rubinius {
       }
 
       if(CBOOL(table->has_key(state, state->symbol("close_others")))) {
-        int max = IO::max_descriptors();
+        Class* fd_class = (Class*) G(io)->get_const(state, "FileDescriptor");
+        Fixnum* max_fd = (Fixnum*)fd_class->send(state, state->symbol("max_fd"));
+        int max = max_fd->to_native();
         int flags;
 
         for(int fd = STDERR_FILENO + 1; fd < max; fd++) {
@@ -362,11 +365,11 @@ namespace rubinius {
         native_int size = assign->size();
         for(native_int i = 0; i < size; i += 4) {
           int from = as<Fixnum>(assign->get(state, i))->to_native();
-          int mode = as<Fixnum>(assign->get(state, i + 2))->to_native();
-          int perm = as<Fixnum>(assign->get(state, i + 3))->to_native();
-          const char* name = as<String>(assign->get(state, i + 1))->c_str_null_safe(state);
+          int to = IO::open_with_cloexec(state,
+              as<String>(assign->get(state, i + 1))->c_str(state),
+              as<Fixnum>(assign->get(state, i + 2))->to_native(),
+              as<Fixnum>(assign->get(state, i + 3))->to_native());
 
-          int to = IO::open_with_cloexec(state, name, mode, perm);
           redirect_file_descriptor(from, to);
         }
       }

@@ -16,7 +16,7 @@ module Rubinius
     def self.fstat(fd)
       stat = allocate
       result = Rubinius.privately { stat.fsetup fd }
-      Errno.handle "file descriptor #{descriptor}" unless result == 0
+      Errno.handle "file descriptor #{fd}" unless result == 0
       stat
     end
 

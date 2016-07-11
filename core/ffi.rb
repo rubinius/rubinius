@@ -72,6 +72,10 @@ module Rubinius
         FFI::Platform::POSIX.errno
       end
 
+      # Convenience method for determining if a function call succeeded or failed
+      def call_failed?(return_code)
+        return_code == -1
+      end
     end
 
     # Represents a C enum.
@@ -318,7 +322,7 @@ module Rubinius
             element_size = type_size = f.size
           else
             if @enclosing_module
-              type_code = @enclosing_module.find_type(f)
+              type_code = @enclosing_module.find_type(f) rescue nil
             end
 
             type_code ||= FFI.find_type(f)

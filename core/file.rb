@@ -250,7 +250,7 @@ class File < IO
 
   def chmod(mode)
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
-    n = POSIX.fchmod @descriptor, clamp_short(mode)
+    n = POSIX.fchmod descriptor, clamp_short(mode)
     Errno.handle if n == -1
     n
   end
@@ -268,7 +268,7 @@ class File < IO
       group = -1
     end
 
-    n = POSIX.fchown @descriptor, owner, group
+    n = POSIX.fchown descriptor, owner, group
     Errno.handle if n == -1
     n
   end
@@ -1018,7 +1018,7 @@ class File < IO
 
     length = Rubinius::Type.coerce_to length, Integer, :to_int
 
-    prim_truncate(path, length)
+    FileDescriptor.truncate(path, length)
   end
 
   ##
@@ -1189,6 +1189,7 @@ class File < IO
       Errno.handle path if fd < 0
 
       @path = path
+      
       super(fd, mode, options)
     end
   end
@@ -1230,7 +1231,7 @@ class File < IO
   def flock(const)
     const = Rubinius::Type.coerce_to const, Integer, :to_int
 
-    result = POSIX.flock @descriptor, const
+    result = POSIX.flock descriptor, const
 
     return false if result == -1
     result
@@ -1241,7 +1242,7 @@ class File < IO
   end
 
   def stat
-    Stat.fstat @descriptor
+    Stat.fstat descriptor
   end
 
   alias_method :to_path, :path
@@ -1254,7 +1255,7 @@ class File < IO
 
     flush
     reset_buffering
-    prim_ftruncate(length)
+    @fd.ftruncate(length)
   end
 
   def inspect

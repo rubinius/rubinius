@@ -56,7 +56,8 @@ namespace rubinius {
     memory::TypedRoot<Class*> floatpoint, nmc, list, list_node;
     memory::TypedRoot<Class*> channel, thread, thread_state, constantscope;
     memory::TypedRoot<Class*> constant_table, lookup_table;
-    memory::TypedRoot<Class*> iseq, executable, native_function, iobuffer;
+    memory::TypedRoot<Class*> iseq, executable, native_function;
+    memory::TypedRoot<Class*> select, fdset, rio_stream;
     memory::TypedRoot<Class*> included_module;
 
     /* the primary symbol table */
@@ -174,7 +175,9 @@ namespace rubinius {
       iseq(&roots),
       executable(&roots),
       native_function(&roots),
-      iobuffer(&roots),
+      select(&roots),
+      fdset(&roots),
+      rio_stream(&roots),
       included_module(&roots),
       sym_method_missing(&roots),
       sym_respond_to_missing(&roots),

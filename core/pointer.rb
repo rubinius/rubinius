@@ -315,6 +315,8 @@ module Rubinius
           total = size
         end
 
+        return NULL if total < 0
+
         ptr = malloc total
         ptr.total = total
         ptr.type_size = size

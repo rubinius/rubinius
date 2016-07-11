@@ -260,6 +260,8 @@ namespace rubinius {
     Randomizer::bootstrap(state);
     Encoding::bootstrap(state);
     FSEvent::bootstrap(state);
+    FDSet::bootstrap(state);
+    RIOStream::bootstrap(state);
     Logger::bootstrap(state);
     JIT::bootstrap(state);
     CodeDB::bootstrap(state);
@@ -335,17 +337,12 @@ namespace rubinius {
   }
 
   void VM::initialize_platform_data(STATE) {
-    // HACK test hooking up IO
+    /* Hook up stub IO class so we can begin bootstrapping. STDIN/OUT/ERR will be
+     * replaced in core/zed.rb with the pure Ruby IO objects.
+     */
     IO* in_io  = IO::create(state, STDIN_FILENO);
     IO* out_io = IO::create(state, STDOUT_FILENO);
     IO* err_io = IO::create(state, STDERR_FILENO);
-
-    out_io->sync(state, cTrue);
-    err_io->sync(state, cTrue);
-
-    in_io->force_read_only(state);
-    out_io->force_write_only(state);
-    err_io->force_write_only(state);
 
     G(object)->set_const(state, "STDIN",  in_io);
     G(object)->set_const(state, "STDOUT", out_io);
