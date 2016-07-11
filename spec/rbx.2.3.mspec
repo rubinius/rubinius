@@ -60,12 +60,6 @@ class MSpecScript
   # These are encoding-aware methods backported to 1.8.7+ (eg String#bytes)
   MSpec.enable_feature :encoding_transition
 
-  if Rubinius::Config["hash.hamt"]
-    MSpec.enable_feature :hash_hamt
-  else
-    MSpec.enable_feature :hash_bucket
-  end
-
   if Rubinius::JIT.enabled?
     MSpec.enable_feature :jit
   end

@@ -1,24 +1,12 @@
 class Hash
   include Enumerable
 
-  attr_reader :size
-  attr_reader :capacity
-  attr_reader :max_entries
-
-  alias_method :length, :size
-
-  Entries = Rubinius::Tuple
-
-  # Initial size of Hash. MUST be a power of 2.
-  MIN_SIZE = 16
-
-  # Allocate more storage when this full. This value grows with
-  # the size of the Hash so that the max load factor is 0.75.
-  MAX_ENTRIES = 12
+  Vector = Rubinius::Tuple
 
   class State
     attr_accessor :head
     attr_accessor :tail
+    attr_accessor :size
 
     def self.from(state)
       new_state = new
@@ -27,9 +15,10 @@ class Hash
     end
 
     def initialize
-      @compare_by_identity = false
+      @size = 0
       @head = nil
       @tail = nil
+      @compare_by_identity = false
     end
 
     def compare_by_identity?
@@ -38,40 +27,38 @@ class Hash
 
     def compare_by_identity
       @compare_by_identity = true
-
       class << self
         def match?(this_key, this_hash, other_key, other_hash)
           Rubinius::Type.object_equal other_key, this_key
         end
       end
-
-      self
     end
 
     def match?(this_key, this_hash, other_key, other_hash)
-      other_hash == this_hash and (Rubinius::Type::object_equal(other_key, this_key) or other_key.eql?(this_key))
+      other_hash == this_hash and
+        (Rubinius::Type::object_equal(other_key, this_key) or
+          other_key.eql?(this_key))
     end
   end
 
-  # Bucket stores key, value pairs in Hash. The key's hash
-  # is also cached in the item and recalculated when the
-  # Hash#rehash method is called.
-
-  class Bucket
+  class Item
+    attr_accessor :state
+    attr_accessor :previous
+    attr_accessor :next
     attr_accessor :key
     attr_accessor :key_hash
     attr_accessor :value
-    attr_accessor :link
-    attr_accessor :previous
-    attr_accessor :next
-    attr_accessor :state
 
     def initialize(key, key_hash, value, state)
-      @key      = key
+      if key.kind_of?(String) and !key.frozen? and !state.compare_by_identity?
+        key = key.dup
+        key.freeze
+      end
+
+      @key = key
       @key_hash = key_hash
-      @value    = value
-      @link     = nil
-      @state    = state
+      @value = value
+      @state = state
 
       if tail = state.tail
         @previous = tail
@@ -79,26 +66,227 @@ class Hash
       else
         state.head = state.tail = self
       end
+
+      state.size += 1
+    end
+
+    def empty?
+      not @state
+    end
+
+    def lookup(key, key_hash)
+      return self if @state.match? @key, @key_hash, key, key_hash
+    end
+
+    def insert(key, key_hash, value)
+      return unless @state.match? @key, @key_hash, key, key_hash
+      @value = value
+      self
     end
 
     def delete(key, key_hash)
       if @state.match? @key, @key_hash, key, key_hash
-        remove
+
+        if @previous
+          @previous.next = @next
+        else
+          @state.head = @next
+        end
+
+        if @next
+          @next.previous = @previous
+        else
+          @state.tail = @previous
+        end
+
+        @state.size -= 1
+        @state = nil
+
         self
       end
     end
+  end
 
-    def remove
-      if @previous
-        @previous.next = @next
-      else
-        @state.head = @next
+  class List
+    attr_accessor :state
+    attr_accessor :key_hash
+    attr_accessor :entries
+
+    def initialize(state, key_hash)
+      @state = state
+      @key_hash = key_hash
+      @entries = Vector.new 2
+    end
+
+    def empty?
+      not @entries
+    end
+
+    def lookup(key, key_hash)
+      @entries.each { |e| return e if e.lookup(key, key_hash) }
+      nil
+    end
+
+    def insert(key, key_hash, value)
+      @entries.each { |e| return e if e.insert(key, key_hash, value) }
+
+      item = Item.new key, key_hash, value, @state
+      @entries = @entries.insert_at_index @entries.size, item
+
+      item
+    end
+
+    def add(item, key, key_hash, value)
+      @entries[0] = item
+      @entries[1] = Item.new key, key_hash, value, @state
+    end
+
+    def delete(key, key_hash)
+      @entries.each_with_index do |e, i|
+        if e.delete key, key_hash
+          @entries = @entries.delete_at_index i
+          return e
+        end
       end
+      nil
+    end
+  end
 
-      if @next
-        @next.previous = @previous
+  # An Array Mapped Trie
+  class Trie
+    attr_accessor :bmp
+    attr_accessor :entries
+    attr_accessor :level
+    attr_accessor :state
+
+    def initialize(state, level)
+      @state = state
+      @level = level
+      @bmp = 0
+      @entries = nil
+    end
+
+    def empty?
+      not @entries
+    end
+
+    def lookup(key, key_hash)
+      return unless index = item_index(key_hash)
+      @entries[index].lookup key, key_hash
+    end
+
+    def insert(key, key_hash, value)
+      if index = item_index(key_hash)
+        item = @entries[index]
+        unless item.insert key, key_hash, value
+          trie = Trie.new @state, @level + 1
+          trie.add item, key, key_hash, value
+          @entries[index] = trie
+          return trie
+        else
+          return item
+        end
       else
-        @state.tail = @previous
+        @bmp = set_bitmap key_hash
+        index = item_index key_hash
+        item = Item.new key, key_hash, value, @state
+        @entries = @entries.insert_at_index index, item
+        return item
+      end
+    end
+
+    def add(item, key, key_hash, value)
+      item_hash = item.key_hash
+      bmp = @bmp = set_bitmap(item_hash)
+      @bmp = set_bitmap key_hash
+
+      if bmp == @bmp
+        if item_hash == key_hash
+          list = List.new @state, key_hash
+          list.add item, key, key_hash, value
+          @entries = Vector[list]
+        else
+          trie = Trie.new @state, @level + 1
+          trie.add item, key, key_hash, value
+          @entries = Vector[trie]
+        end
+      else
+        @entries = Vector.new 2
+        @entries[item_index(item_hash)] = item
+        @entries[item_index(key_hash)] = Item.new key, key_hash, value, @state
+      end
+    end
+
+    def delete(key, key_hash)
+      return unless index = item_index(key_hash)
+
+      item = @entries[index]
+      if de = item.delete(key, key_hash)
+        if item.empty?
+          @bmp = unset_bitmap key_hash
+
+          @entries = @entries.delete_at_index index
+        end
+
+        return de
+      end
+    end
+
+    def item_index(key_hash)
+      Rubinius.invoke_primitive :vm_hash_trie_item_index, key_hash, @level, @bmp
+    end
+
+    def set_bitmap(key_hash)
+      Rubinius.invoke_primitive :vm_hash_trie_set_bitmap, key_hash, @level, @bmp
+    end
+
+    def unset_bitmap(key_hash)
+      Rubinius.invoke_primitive :vm_hash_trie_unset_bitmap, key_hash, @level, @bmp
+    end
+  end
+
+  class Table
+    attr_accessor :entries
+    attr_accessor :state
+
+    def initialize(state)
+      @state = state
+      @entries = Vector.new 64
+    end
+
+    def item_index(key_hash)
+      key_hash & 0b111111
+    end
+
+    def lookup(key, key_hash)
+      if item = @entries[item_index(key_hash)]
+        item.lookup key, key_hash
+      end
+    end
+
+    def insert(key, key_hash, value)
+      index = item_index key_hash
+      if item = @entries[index]
+        unless item.insert key, key_hash, value
+          trie = Trie.new @state, 0
+          trie.add item, key, key_hash, value
+          @entries[index] = trie
+        end
+      else
+        item = Item.new key, key_hash, value, @state
+        @entries[index] = item
+      end
+    end
+
+    def delete(key, key_hash)
+      index = item_index key_hash
+      return unless item = @entries[index]
+
+      if de = item.delete(key, key_hash)
+        if item.empty?
+          @entries[index] = nil
+        end
+        return de
       end
     end
   end
@@ -123,63 +311,41 @@ class Hash
     end
   end
 
-  def self.new_from_literal(size)
-    allocate
-  end
-
-  # Creates a fully-formed instance of Hash.
-  def self.allocate
-    hash = super()
-    Rubinius.privately { hash.__setup__ }
-    hash
-  end
-
-  def self.new_from_associate_array(associate_array)
-    hash = new
-    associate_array.each do |array|
-      next unless array.respond_to? :to_ary
-      array = array.to_ary
-      unless (1..2).cover? array.size
-        raise ArgumentError, "invalid number of elements (#{array.size} for 1..2)"
-      end
-      hash[array.at(0)] = array.at(1)
-    end
-    hash
-  end
-
-  class << self
-    private :new_from_associate_array
-  end
-
-  def self.try_convert(obj)
-    Rubinius::Type.try_convert obj, Hash, :to_hash
-  end
-
-  # #entries is a method provided by Enumerable which calls #to_a,
-  # so we have to not collide with that.
-  attr_reader_specific :entries, :__entries__
+  # Hash methods
 
   def self.[](*args)
-    if args.size == 1
+    total = args.size
+    if total == 1
       obj = args.first
       if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
         new_hash = allocate.replace(hash)
         new_hash.default = nil
         return new_hash
-      elsif associate_array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
-        return new_from_associate_array(associate_array)
+      elsif array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
+        hash = allocate
+        array.each do |a|
+          a = Rubinius::Type.check_convert_type a, Array, :to_ary
+          next unless a
+
+          size = a.size
+          unless size >= 1 and size <= 2
+            raise ArgumentError, "invalid number of elements (#{size} for 1..2)"
+          end
+          hash[a[0]] = a[1]
+        end
+
+        return hash
       end
     end
 
-    return new if args.empty?
+    return allocate if total == 0
 
-    if args.size & 1 == 1
-      raise ArgumentError, "Expected an even number, got #{args.length}"
+    if total & 1 == 1
+      raise ArgumentError, "Expected an even number, got #{total}"
     end
 
-    hash = new
+    hash = allocate
     i = 0
-    total = args.size
 
     while i < total
       hash[args[i]] = args[i+1]
@@ -189,70 +355,74 @@ class Hash
     hash
   end
 
+  def self.try_convert(obj)
+    Rubinius::Type.try_convert obj, Hash, :to_hash
+  end
+
+  def self.new_from_literal(size)
+    allocate
+  end
+
+  def initialize(default=undefined, &block)
+    Rubinius.check_frozen
+
+    if !undefined.equal?(default) and block
+      raise ArgumentError, "Specify a default value or a block, not both"
+    end
+
+    if block
+      @default = nil
+      @default_proc = block
+    elsif !undefined.equal?(default)
+      @default = default
+      @default_proc = nil
+    end
+
+    self
+  end
+  private :initialize
+
+  def hash
+    val = size
+    Thread.detect_outermost_recursion self do
+      each_item do |item|
+        Rubinius.privately { val ^= item.key.hash }
+        Rubinius.privately { val ^= item.value.hash }
+      end
+    end
+
+    return val
+  end
+
+  def initialize_copy(other)
+    replace other
+  end
+  private :initialize_copy
+
+  def [](key)
+    Rubinius.privately { key_hash = key.hash }
+    if @table and item = @table.lookup(key, key_hash)
+      return item.value
+    end
+
+    default key
+  end
+
   def []=(key, value)
     Rubinius.check_frozen
 
-    redistribute @entries if @size > @max_entries
-
-    key_hash = Rubinius.privately { key.hash }
-    index = key_hash & @mask
-
-    item = @entries[index]
-    unless item
-      @entries[index] = new_bucket key, key_hash, value
-      return value
+    unless @table
+      @state = State.new unless @state
+      @table = Table.new @state
     end
 
-    if @state.match? item.key, item.key_hash, key, key_hash
-      return item.value = value
-    end
-
-    last = item
-    item = item.link
-    while item
-      if @state.match? item.key, item.key_hash, key, key_hash
-        return item.value = value
-      end
-
-      last = item
-      item = item.link
-    end
-    last.link = new_bucket key, key_hash, value
+    Rubinius.privately { key_hash = key.hash }
+    @table.insert key, key_hash, value
 
     value
   end
 
   alias_method :store, :[]=
-
-  # Used internally to get around subclasses redefining #[]=
-  alias_method :__store__, :[]=
-
-  def ==(other)
-    return true if self.equal? other
-    unless other.kind_of? Hash
-      return false unless other.respond_to? :to_hash
-      return other == self
-    end
-
-    return false unless other.size == size
-
-    Thread.detect_recursion self, other do
-      each_item do |item|
-        other_item = other.find_item(item.key)
-
-        # Other doesn't even have this key
-        return false unless other_item
-
-        # Order of the comparison matters! We must compare our value with
-        # the other Hash's value and not the other way around.
-        unless Rubinius::Type::object_equal(item.value, other_item.value) or
-               item.value == other_item.value
-          return false
-        end
-      end
-    end
-    true
-  end
 
   def <(other)
     other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
@@ -287,6 +457,13 @@ class Hash
 
   def assoc(key)
     each_item { |e| return e.key, e.value if key == e.key }
+    nil
+  end
+
+  def clear
+    @state = State.from @state
+    @table = nil
+    self
   end
 
   def compare_by_identity
@@ -310,11 +487,15 @@ class Hash
     end
   end
 
+  def default=(value)
+    @default_proc = nil
+    @default = value
+  end
+
   def default_proc
     @default_proc
   end
 
-  # Sets the default proc to be executed on each key lookup
   def default_proc=(prc)
     Rubinius.check_frozen
     unless prc.nil?
@@ -331,28 +512,27 @@ class Hash
 
   def delete(key)
     Rubinius.check_frozen
-    key_hash = Rubinius.privately { key.hash }
 
-    index = key_index key_hash
-    if item = @entries[index]
-      if item.delete key, key_hash
-        @entries[index] = item.link
-        @size -= 1
+    if @table
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.delete(key, key_hash)
         return item.value
-      end
-
-      last = item
-      while item = item.link
-        if item.delete key, key_hash
-          last.link = item.link
-          @size -= 1
-          return item.value
-        end
-        last = item
       end
     end
 
     return yield(key) if block_given?
+
+    nil
+  end
+
+  def delete_if
+    return to_enum(:delete_if) { size } unless block_given?
+
+    Rubinius.check_frozen
+
+    each_item { |e| delete e.key if yield(e.key, e.value) }
+
+    self
   end
 
   def dig(key, *remaining_keys)
@@ -364,6 +544,22 @@ class Hash
     item.dig(*remaining_keys)
   end
 
+  def each
+    return to_enum(:each) { size } unless block_given?
+
+    if @state
+      item = @state.head
+      while item
+        yield [item.key, item.value]
+        item = item.next
+      end
+    end
+
+    self
+  end
+
+  alias_method :each_pair, :each
+
   def each_item
     return unless @state
 
@@ -374,256 +570,29 @@ class Hash
     end
   end
 
-  def each
-    return to_enum(:each) { size } unless block_given?
+  def each_key
+    return to_enum(:each_key) { size } unless block_given?
 
-    return unless @state
-
-    item = @state.head
-    while item
-      yield [item.key, item.value]
-      item = item.next
-    end
+    each_item { |e| yield e.key }
 
     self
   end
 
-  alias_method :each_pair, :each
+  def each_value
+    return to_enum(:each_value) { size } unless block_given?
 
-  def fetch(key, default=undefined)
-    if item = find_item(key)
-      return item.value
-    end
-
-    return yield(key) if block_given?
-    return default unless undefined.equal?(default)
-    raise KeyError, "key #{key} not found"
-  end
-
-  def fetch_values(*keys, &block)
-    keys.map { |key| fetch(key, &block) }
-  end
-
-  # Searches for an item matching +key+. Returns the item
-  # if found. Otherwise returns +nil+.
-  def find_item(key)
-    key_hash = Rubinius.privately { key.hash }
-
-    item = @entries[key_index(key_hash)]
-    while item
-      if @state.match? item.key, item.key_hash, key, key_hash
-        return item
-      end
-      item = item.link
-    end
-  end
-
-  def flatten(level=1)
-    to_a.flatten(level)
-  end
-
-  def keep_if
-    return to_enum(:keep_if) { size } unless block_given?
-
-    Rubinius.check_frozen
-
-    each_item { |e| delete e.key unless yield(e.key, e.value) }
+    each_item { |e| yield e.value }
 
     self
   end
 
-  def initialize(default=undefined, &block)
-    Rubinius.check_frozen
-
-    if !undefined.equal?(default) and block
-      raise ArgumentError, "Specify a default or a block, not both"
-    end
-
-    if block
-      @default = nil
-      @default_proc = block
-    elsif !undefined.equal?(default)
-      @default = default
-      @default_proc = nil
-    end
-
-    self
-  end
-  private :initialize
-
-  def merge!(other)
-    Rubinius.check_frozen
-
-    other = Rubinius::Type.coerce_to other, Hash, :to_hash
-
-    if block_given?
-      other.each_item do |item|
-        key = item.key
-        if key? key
-          __store__ key, yield(key, self[key], item.value)
-        else
-          __store__ key, item.value
-        end
-      end
-    else
-      other.each_item do |item|
-        __store__ item.key, item.value
-      end
-    end
-    self
+  def empty?
+    size == 0
   end
 
-  alias_method :update, :merge!
-
-  # Returns a new +Bucket+ instance having +key+, +key_hash+,
-  # and +value+. If +key+ is a kind of +String+, +key+ is
-  # duped and frozen.
-  def new_bucket(key, key_hash, value)
-    if key.kind_of?(String) and !key.frozen? and !compare_by_identity?
-      key = key.dup
-      key.freeze
-    end
-
-    @size += 1
-    Bucket.new key, key_hash, value, @state
-  end
-  private :new_bucket
-
-  # Adjusts the hash storage and redistributes the entries among
-  # the new bins. Any Iterator instance will be invalid after a
-  # call to #redistribute. Does not recalculate the cached key_hash
-  # values. See +#rehash+.
-  def redistribute(entries)
-    capacity = @capacity
-
-    # Rather than using __setup__, initialize the specific values we need to
-    # change so we don't eg overwrite @state.
-    @capacity    = capacity * 2
-    @entries     = Entries.new @capacity
-    @mask        = @capacity - 1
-    @max_entries = @max_entries * 2
-
-    i = -1
-    while (i += 1) < capacity
-      next unless old = entries[i]
-      while old
-        old.link = nil if nxt = old.link
-
-        index = key_index old.key_hash
-        if item = @entries[index]
-          old.link = item
-        end
-        @entries[index] = old
-
-        old = nxt
-      end
-    end
-  end
-
-  def rassoc(value)
-    each_item { |e| return e.key, e.value if value == e.value }
-  end
-
-  def replace(other)
-    Rubinius.check_frozen
-
-    other = Rubinius::Type.coerce_to other, Hash, :to_hash
-    return self if self.equal? other
-
-    # Normally this would be a call to __setup__, but that will create a new
-    # unused Tuple that we would wind up replacing anyways.
-    @capacity = other.capacity
-    @entries  = Entries.new @capacity
-    @mask     = @capacity - 1
-    @size     = 0
-    @max_entries = other.max_entries
-
-    @state = State.new
-    @state.compare_by_identity if other.compare_by_identity?
-
-    other.each_item do |item|
-      __store__ item.key, item.value
-    end
-
-    @default = other.default
-    @default_proc = other.default_proc
-
-    self
-  end
-
-  alias_method :initialize_copy, :replace
-  private :initialize_copy
-
-  def select
-    return to_enum(:select) { size } unless block_given?
-
-    selected = Hash.allocate
-
-    each_item do |item|
-      if yield(item.key, item.value)
-        selected[item.key] = item.value
-      end
-    end
-
-    selected
-  end
-
-  def select!
-    return to_enum(:select!) { size } unless block_given?
-
-    Rubinius.check_frozen
-
-    return nil if empty?
-
-    size = @size
-    each_item { |e| delete e.key unless yield(e.key, e.value) }
-    return nil if size == @size
-
-    self
-  end
-
-  def shift
-    Rubinius.check_frozen
-
-    return default(nil) if empty?
-
-    item = @state.head
-    delete item.key
-
-    return item.key, item.value
-  end
-
-  # Sets the underlying data structures.
-  #
-  # @capacity is the maximum number of +@entries+.
-  # @max_entries is the maximum number of entries before redistributing.
-  # @size is the number of pairs, equivalent to <code>hsh.size</code>.
-  # @entrien is the vector of storage for the item chains.
-  def __setup__(capacity=MIN_SIZE, max=MAX_ENTRIES, size=0)
-    @capacity = capacity
-    @mask     = capacity - 1
-    @max_entries = max
-    @size     = size
-    @entries  = Entries.new capacity
-    @state    = State.new
-  end
-  private :__setup__
-
-  def to_h
-    if instance_of? Hash
-      self
-    else
-      Hash.allocate.replace(to_hash)
-    end
-  end
-
-  # Returns an external iterator for the bins. See +Iterator+
-  def to_iter
-    Iterator.new @state
-  end
   def eql?(other)
-    # Just like ==, but uses eql? to compare values.
     return true if self.equal? other
+
     unless other.kind_of? Hash
       return false unless other.respond_to? :to_hash
       return other.eql?(self)
@@ -632,97 +601,96 @@ class Hash
     return false unless other.size == size
 
     Thread.detect_recursion self, other do
-      each_item do |item|
-        other_item = other.find_item(item.key)
+      other.each_item do |e|
 
-        # Other doesn't even have this key
-        return false unless other_item
+        Rubinius.privately { key_hash = e.key.hash }
+        return false unless item = @table.lookup(e.key, key_hash)
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Rubinius::Type::object_equal(item.value, other_item.value) or
-               item.value.eql?(other_item.value)
+        return false unless item.value.eql?(e.value)
+      end
+    end
+
+    true
+  end
+
+  def ==(other)
+    return true if self.equal? other
+
+    unless other.kind_of? Hash
+      return false unless other.respond_to? :to_hash
+      return other == self
+    end
+
+    return false unless other.size == size
+
+    Thread.detect_recursion self, other do
+      other.each_item do |e|
+
+        Rubinius.privately { key_hash = e.key.hash }
+        item = @table.lookup(e.key, key_hash)
+
+        return false unless item
+
+        # Order of the comparison matters! We must compare our value with
+        # the other Hash's value and not the other way around.
+        unless Rubinius::Type::object_equal(item.value, e.value) or
+               item.value == e.value
           return false
         end
       end
     end
+
     true
   end
 
-  def hash
-    val = size
-    Thread.detect_outermost_recursion self do
-      each_item do |item|
-        val ^= item.key.hash
-        val ^= item.value.hash
+  def fetch(key, default=undefined)
+    unless empty?
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.lookup(key, key_hash)
+        return item.value
       end
     end
 
-    val
+    return yield(key) if block_given?
+    return default unless undefined.equal?(default)
+    raise KeyError, 'key #{key} not found'
   end
 
-  def [](key)
-    if item = find_item(key)
-      item.value
-    else
-      default key
+  def fetch_values(*keys, &block)
+    keys.map { |key| fetch(key, &block) }
+  end
+
+  # Searches for an item matching +key+. Returns the item
+  # if found. Otherwise returns +nil+. Called from the C-API.
+  def find_item(key)
+    unless empty?
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.lookup(key, key_hash)
+        return item
+      end
     end
+
+    nil
   end
 
-  def clear
-    Rubinius.check_frozen
-    __setup__
-    self
+  def flatten(level=1)
+    to_a.flatten(level)
   end
 
-  def default=(value)
-    @default_proc = nil
-    @default = value
+  def initialize_copy(other)
+    replace other
   end
-
-  def delete_if(&block)
-    return to_enum(:delete_if) { size } unless block_given?
-
-    Rubinius.check_frozen
-
-    select(&block).each { |k, v| delete k }
-    self
-  end
-
-  def each_key
-    return to_enum(:each_key) { size } unless block_given?
-
-    each_item { |item| yield item.key }
-    self
-  end
-
-  def each_value
-    return to_enum(:each_value) { size } unless block_given?
-
-    each_item { |item| yield item.value }
-    self
-  end
-
-  # Returns true if there are no entries.
-  def empty?
-    @size == 0
-  end
-
-  def index(value)
-    each_item do |item|
-      return item.key if item.value == value
-    end
-  end
-
-  alias_method :key, :index
+  private :initialize_copy
 
   def inspect
     out = []
     return '{...}' if Thread.detect_recursion self do
-      each_item do |item|
-        str =  item.key.inspect
+      each_item do |e|
+        str =  e.key.inspect
         str << '=>'
-        str << item.value.inspect
+        str << e.value.inspect
         out << str
       end
     end
@@ -735,32 +703,45 @@ class Hash
   alias_method :to_s, :inspect
 
   def invert
-    inverted = {}
-    each_item do |item|
-      inverted[item.value] = item.key
-    end
-    inverted
+    h = Hash.allocate
+    each_item { |e| h[e.value] = e.key }
+    h
   end
 
+  def keep_if
+    return to_enum(:keep_if) { size } unless block_given?
+
+    Rubinius.check_frozen
+
+    each_item { |e| delete e.key unless yield(e.key, e.value) }
+
+    self
+  end
+
+  def key(value)
+    each_item { |e| return e.key if e.value == value }
+
+    nil
+  end
+
+  alias_method :index, :key
+
   def key?(key)
-    find_item(key) != nil
+    Rubinius.privately { key_hash = key.hash }
+    if @table and @table.lookup(key, key_hash)
+      true
+    else
+      false
+    end
   end
 
   alias_method :has_key?, :key?
   alias_method :include?, :key?
   alias_method :member?, :key?
 
-  # Calculates the +@entries+ slot given a key_hash value.
-  def key_index(key_hash)
-    key_hash & @mask
-  end
-  private :key_index
-
   def keys
     ary = []
-    each_item do |item|
-      ary << item.key
-    end
+    each_item { |e| ary << e.key }
     ary
   end
 
@@ -768,30 +749,62 @@ class Hash
     dup.merge!(other, &block)
   end
 
-  # Recalculates the cached key_hash values and reorders the entries
-  # into a new +@entries+ vector. Does NOT change the size of the
-  # hash. See +#redistribute+.
-  def rehash
-    capacity = @capacity
-    entries  = @entries
+  def merge!(other)
+    Rubinius.check_frozen
 
-    @entries = Entries.new @capacity
+    other = Rubinius::Type.coerce_to other, Hash, :to_hash
 
-    i = -1
-    while (i += 1) < capacity
-      next unless old = entries[i]
-      while old
-        old.link = nil if nxt = old.link
+    return self if other.empty?
 
-        index = key_index(old.key_hash = old.key.hash)
-        if item = @entries[index]
-          old.link = item
+    unless @table
+      @state = State.new unless @state
+      @table = Table.new @state
+    end
+
+    if block_given?
+      other.each_item do |e|
+        key = e.key
+        Rubinius.privately { key_hash = key.hash }
+        if item = @table.lookup(key, key_hash)
+          item.value = yield(key, item.value, e.value)
+        else
+          @table.insert key, key_hash, e.value
         end
-        @entries[index] = old
-
-        old = nxt
+      end
+    else
+      other.each_item do |e|
+        key = e.key
+        Rubinius.privately { key_hash = key.hash }
+        @table.insert key, key_hash, e.value
       end
     end
+
+    self
+  end
+
+  alias_method :update, :merge!
+
+  def rassoc(value)
+    each_item { |e| return e.key, e.value if value == e.value }
+    nil
+  end
+
+  def rehash
+    Rubinius.check_frozen
+
+    return if empty?
+
+    item = @state.head
+    @state = State.from @state
+    table = Table.new @state
+
+    while item
+      Rubinius.privately { key_hash = item.key.hash }
+      table.insert item.key, key_hash, item.value
+      item = item.next
+    end
+
+    @table = table
 
     self
   end
@@ -810,27 +823,102 @@ class Hash
     Rubinius.check_frozen
 
     unless empty?
-      size = @size
+      size = @state.size
       delete_if(&block)
-      return self if size != @size
+      return self if size != @state.size
     end
 
     nil
   end
 
-  def sort(&block)
-    to_a.sort(&block)
+  def replace(other)
+    Rubinius.check_frozen
+
+    unless other.kind_of? Hash
+      other = Rubinius::Type.coerce_to other, Hash, :to_hash
+    end
+    return self if self.equal? other
+
+    @state = State.from @state
+    @state.compare_by_identity if other.compare_by_identity?
+    @table = Table.new @state
+
+    other.each_item do |e|
+      Rubinius.privately { key_hash = e.key.hash }
+      @table.insert e.key, key_hash, e.value
+    end
+
+    @default = other.default
+    @default_proc = other.default_proc
+
+    self
   end
+
+  def select
+    return to_enum(:select) { size } unless block_given?
+
+    hsh = Hash.allocate
+
+    each_item do |e|
+      key = e.key
+      value = e.value
+      hsh[key] = value if yield(key, value)
+    end
+
+    hsh
+  end
+
+  def select!
+    return to_enum(:select!) { size } unless block_given?
+
+    Rubinius.check_frozen
+
+    return nil if empty?
+
+    size = @state.size
+    each_item { |e| delete e.key unless yield(e.key, e.value) }
+    return nil if size == @state.size
+
+    self
+  end
+
+  def shift
+    Rubinius.check_frozen
+
+    return default(nil) if empty?
+
+    item = @state.head
+    Rubinius.privately { key_hash = item.key.hash }
+    @table.delete item.key, key_hash
+
+    return item.key, item.value
+  end
+
+  def size
+    @state ? @state.size : 0
+  end
+
+  alias_method :length, :size
 
   def to_a
     ary = []
-
-    each_item do |item|
-      ary << [item.key, item.value]
-    end
+    each_item { |e| ary << [e.key, e.value] }
 
     Rubinius::Type.infect ary, self
     ary
+  end
+
+  # Returns an external iterator for the bins. See +Iterator+
+  def to_iter
+    Iterator.new @state
+  end
+
+  def to_h
+    if instance_of? Hash
+      self
+    else
+      Hash.allocate.replace(to_hash)
+    end
   end
 
   def to_hash
@@ -842,9 +930,7 @@ class Hash
   end
 
   def value?(value)
-    each_item do |item|
-      return true if item.value == value
-    end
+    each_item { |e| return true if value == e.value }
     false
   end
 
@@ -852,24 +938,25 @@ class Hash
 
   def values
     ary = []
-
-    each_item do |item|
-      ary << item.value
-    end
-
+    each_item { |e| ary << e.value }
     ary
   end
 
   def values_at(*args)
-    args.map do |key|
-      if item = find_item(key)
-        item.value
-      else
-        default key
+    if empty?
+      args.map { |key| default key }
+    else
+      args.map do |key|
+        Rubinius.privately { key_hash = key.hash }
+        if item = @table.lookup(key, key_hash)
+          item.value
+        else
+          default key
+        end
       end
     end
   end
 
-  alias_method :indices, :values_at
-  alias_method :indexes, :values_at
+  # Used internally in Rubinius to get around subclasses redefining #[]=
+  alias_method :__store__, :[]=
 end
