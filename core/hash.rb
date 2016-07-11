@@ -42,14 +42,13 @@ class Hash
   end
 
   class Item
-    attr_accessor :state
     attr_accessor :previous
     attr_accessor :next
     attr_accessor :key
     attr_accessor :key_hash
     attr_accessor :value
 
-    def initialize(key, key_hash, value, state)
+    def initialize(state, key, key_hash, value)
       if key.kind_of?(String) and !key.frozen? and !state.compare_by_identity?
         key = key.dup
         key.freeze
@@ -58,7 +57,6 @@ class Hash
       @key = key
       @key_hash = key_hash
       @value = value
-      @state = state
 
       if tail = state.tail
         @previous = tail
@@ -71,49 +69,51 @@ class Hash
     end
 
     def empty?
-      not @state
+      not @key_hash
     end
 
-    def lookup(key, key_hash)
-      return self if @state.match? @key, @key_hash, key, key_hash
+    def lookup(state, key, key_hash)
+      return self if state.match? @key, @key_hash, key, key_hash
     end
 
-    def insert(key, key_hash, value)
-      return unless @state.match? @key, @key_hash, key, key_hash
+    def insert(state, key, key_hash, value)
+      return unless state.match? @key, @key_hash, key, key_hash
       @value = value
       self
     end
 
-    def delete(key, key_hash)
-      if @state.match? @key, @key_hash, key, key_hash
+    def delete(state, key, key_hash)
+      if state.match? @key, @key_hash, key, key_hash
 
         if @previous
           @previous.next = @next
         else
-          @state.head = @next
+          state.head = @next
         end
 
         if @next
           @next.previous = @previous
         else
-          @state.tail = @previous
+          state.tail = @previous
         end
 
-        @state.size -= 1
-        @state = nil
+        state.size -= 1
+        @key_hash = nil
 
         self
       end
     end
+
+    def inspect
+      "\#<#{self.class}:0x#{object_id.to_s(16)} @key=#{@key} @key_hash=#{@key_hash} @value=#{@value} @previous=\#<#{@previous.class}:0x#{@previous.object_id.to_s(16)}> @next=\#<#{@next.class}:0x#{@next.object_id.to_s(16)}>>"
+    end
   end
 
   class List
-    attr_accessor :state
     attr_accessor :key_hash
     attr_accessor :entries
 
-    def initialize(state, key_hash)
-      @state = state
+    def initialize(key_hash)
       @key_hash = key_hash
       @entries = Vector.new 2
     end
@@ -122,28 +122,28 @@ class Hash
       not @entries
     end
 
-    def lookup(key, key_hash)
-      @entries.each { |e| return e if e.lookup(key, key_hash) }
+    def lookup(state, key, key_hash)
+      @entries.each { |e| return e if e.lookup(state, key, key_hash) }
       nil
     end
 
-    def insert(key, key_hash, value)
-      @entries.each { |e| return e if e.insert(key, key_hash, value) }
+    def insert(state, key, key_hash, value)
+      @entries.each { |e| return e if e.insert(state, key, key_hash, value) }
 
-      item = Item.new key, key_hash, value, @state
+      item = Item.new state, key, key_hash, value
       @entries = @entries.insert_at_index @entries.size, item
 
       item
     end
 
-    def add(item, key, key_hash, value)
+    def add(state, item, key, key_hash, value)
       @entries[0] = item
-      @entries[1] = Item.new key, key_hash, value, @state
+      @entries[1] = Item.new state, key, key_hash, value
     end
 
-    def delete(key, key_hash)
+    def delete(state, key, key_hash)
       @entries.each_with_index do |e, i|
-        if e.delete key, key_hash
+        if e.delete state, key, key_hash
           @entries = @entries.delete_at_index i
           return e
         end
@@ -154,13 +154,37 @@ class Hash
 
   # An Array Mapped Trie
   class Trie
+    MAX_LEVELS = 10
+
     attr_accessor :bmp
     attr_accessor :entries
     attr_accessor :level
-    attr_accessor :state
 
-    def initialize(state, level)
-      @state = state
+    def self.from_key(state, key, key_hash, value)
+      trie = new 0
+      trie.add_key state, key, key_hash, value
+      trie
+    end
+
+    def self.from_item(state, level, item, key, key_hash, value)
+      if level < MAX_LEVELS
+        trie = new level + 1
+        trie.add_item state, item, key, key_hash, value
+        trie
+      else
+        list = List.new key_hash
+        list.add state, item, key, key_hash, value
+        list
+      end
+    end
+
+    def self.from_none
+      trie = new 0
+      trie.entries = Vector[]
+      trie
+    end
+
+    def initialize(level)
       @level = level
       @bmp = 0
       @entries = nil
@@ -170,58 +194,62 @@ class Hash
       not @entries
     end
 
-    def lookup(key, key_hash)
+    def lookup(state, key, key_hash)
       return unless index = item_index(key_hash)
-      @entries[index].lookup key, key_hash
+      @entries[index].lookup state, key, key_hash
     end
 
-    def insert(key, key_hash, value)
+    def insert(state, key, key_hash, value)
       if index = item_index(key_hash)
         item = @entries[index]
-        unless item.insert key, key_hash, value
-          trie = Trie.new @state, @level + 1
-          trie.add item, key, key_hash, value
-          @entries[index] = trie
-          return trie
-        else
+        if item.insert state, key, key_hash, value
           return item
+        else
+          obj = Trie.from_item state, @level, item, key, key_hash, value
+          @entries[index] = obj
+          return obj
         end
       else
         @bmp = set_bitmap key_hash
         index = item_index key_hash
-        item = Item.new key, key_hash, value, @state
+        item = Item.new state, key, key_hash, value
         @entries = @entries.insert_at_index index, item
         return item
       end
     end
 
-    def add(item, key, key_hash, value)
+    def add_key(state, key, key_hash, value)
+      @bmp = set_bitmap key_hash
+      item = Item.new state, key, key_hash, value
+      @entries = Vector[item]
+    end
+
+    def add_item(state, item, key, key_hash, value)
       item_hash = item.key_hash
       bmp = @bmp = set_bitmap(item_hash)
       @bmp = set_bitmap key_hash
 
       if bmp == @bmp
         if item_hash == key_hash
-          list = List.new @state, key_hash
-          list.add item, key, key_hash, value
+          list = List.new key_hash
+          list.add state, item, key, key_hash, value
           @entries = Vector[list]
         else
-          trie = Trie.new @state, @level + 1
-          trie.add item, key, key_hash, value
-          @entries = Vector[trie]
+          obj = Trie.from_item state, @level, item, key, key_hash, value
+          @entries = Vector[obj]
         end
       else
         @entries = Vector.new 2
         @entries[item_index(item_hash)] = item
-        @entries[item_index(key_hash)] = Item.new key, key_hash, value, @state
+        @entries[item_index(key_hash)] = Item.new state, key, key_hash, value
       end
     end
 
-    def delete(key, key_hash)
+    def delete(state, key, key_hash)
       return unless index = item_index(key_hash)
 
       item = @entries[index]
-      if de = item.delete(key, key_hash)
+      if de = item.delete(state, key, key_hash)
         if item.empty?
           @bmp = unset_bitmap key_hash
 
@@ -230,6 +258,16 @@ class Hash
 
         return de
       end
+    end
+
+    def inspect
+      s = "\#<#{self.class}:0x#{object_id.to_s(16)} @bmp=#{@bmp} @level=#{@level} @entries="
+      if @entries.size > 0
+        s << "[ "
+        s << @entries.map { |e| "\#<#{e.class}:0x#{e.object_id.to_s(16)}>" }.join(", ")
+        s << " ]"
+      end
+      s << ">"
     end
 
     def item_index(key_hash)
@@ -242,52 +280,6 @@ class Hash
 
     def unset_bitmap(key_hash)
       Rubinius.invoke_primitive :vm_hash_trie_unset_bitmap, key_hash, @level, @bmp
-    end
-  end
-
-  class Table
-    attr_accessor :entries
-    attr_accessor :state
-
-    def initialize(state)
-      @state = state
-      @entries = Vector.new 64
-    end
-
-    def item_index(key_hash)
-      key_hash & 0b111111
-    end
-
-    def lookup(key, key_hash)
-      if item = @entries[item_index(key_hash)]
-        item.lookup key, key_hash
-      end
-    end
-
-    def insert(key, key_hash, value)
-      index = item_index key_hash
-      if item = @entries[index]
-        unless item.insert key, key_hash, value
-          trie = Trie.new @state, 0
-          trie.add item, key, key_hash, value
-          @entries[index] = trie
-        end
-      else
-        item = Item.new key, key_hash, value, @state
-        @entries[index] = item
-      end
-    end
-
-    def delete(key, key_hash)
-      index = item_index key_hash
-      return unless item = @entries[index]
-
-      if de = item.delete(key, key_hash)
-        if item.empty?
-          @entries[index] = nil
-        end
-        return de
-      end
     end
   end
 
@@ -400,9 +392,11 @@ class Hash
   private :initialize_copy
 
   def [](key)
-    Rubinius.privately { key_hash = key.hash }
-    if @table and item = @table.lookup(key, key_hash)
-      return item.value
+    if @trie
+      Rubinius.privately { key_hash = key.hash }
+      if item = @trie.lookup(@state, key, key_hash)
+        return item.value
+      end
     end
 
     default key
@@ -411,13 +405,14 @@ class Hash
   def []=(key, value)
     Rubinius.check_frozen
 
-    unless @table
-      @state = State.new unless @state
-      @table = Table.new @state
-    end
-
     Rubinius.privately { key_hash = key.hash }
-    @table.insert key, key_hash, value
+
+    if @trie
+      @trie.insert @state, key, key_hash, value
+    else
+      @state = State.new unless @state
+      @trie = Trie.from_key @state, key, key_hash, value
+    end
 
     value
   end
@@ -462,7 +457,7 @@ class Hash
 
   def clear
     @state = State.from @state
-    @table = nil
+    @trie = nil
     self
   end
 
@@ -513,9 +508,10 @@ class Hash
   def delete(key)
     Rubinius.check_frozen
 
-    if @table
+    if @trie
       Rubinius.privately { key_hash = key.hash }
-      if item = @table.delete(key, key_hash)
+      if item = @trie.delete(@state, key, key_hash)
+        @trie = nil if @trie.empty?
         return item.value
       end
     end
@@ -604,7 +600,7 @@ class Hash
       other.each_item do |e|
 
         Rubinius.privately { key_hash = e.key.hash }
-        return false unless item = @table.lookup(e.key, key_hash)
+        return false unless item = @trie.lookup(@state, e.key, key_hash)
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
@@ -629,7 +625,7 @@ class Hash
       other.each_item do |e|
 
         Rubinius.privately { key_hash = e.key.hash }
-        item = @table.lookup(e.key, key_hash)
+        item = @trie.lookup(@state, e.key, key_hash)
 
         return false unless item
 
@@ -646,9 +642,9 @@ class Hash
   end
 
   def fetch(key, default=undefined)
-    unless empty?
+    if @trie
       Rubinius.privately { key_hash = key.hash }
-      if item = @table.lookup(key, key_hash)
+      if item = @trie.lookup(@state, key, key_hash)
         return item.value
       end
     end
@@ -665,9 +661,9 @@ class Hash
   # Searches for an item matching +key+. Returns the item
   # if found. Otherwise returns +nil+. Called from the C-API.
   def find_item(key)
-    unless empty?
+    if @trie
       Rubinius.privately { key_hash = key.hash }
-      if item = @table.lookup(key, key_hash)
+      if item = @trie.lookup(@state, key, key_hash)
         return item
       end
     end
@@ -727,12 +723,14 @@ class Hash
   alias_method :index, :key
 
   def key?(key)
-    Rubinius.privately { key_hash = key.hash }
-    if @table and @table.lookup(key, key_hash)
-      true
-    else
-      false
+    if @trie
+      Rubinius.privately { key_hash = key.hash }
+      if @trie.lookup(@state, key, key_hash)
+        return true
+      end
     end
+
+    false
   end
 
   alias_method :has_key?, :key?
@@ -740,8 +738,19 @@ class Hash
   alias_method :member?, :key?
 
   def keys
-    ary = []
-    each_item { |e| ary << e.key }
+    return [] unless @state
+
+    ary = Array.new @state.size
+
+    i = 0
+    item = @state.head
+
+    while item
+      ary[i] = item.key
+      i += 1
+      item = item.next
+    end
+
     ary
   end
 
@@ -756,26 +765,27 @@ class Hash
 
     return self if other.empty?
 
-    unless @table
+    unless @trie
       @state = State.new unless @state
-      @table = Table.new @state
+      @trie = Trie.from_none
     end
 
     if block_given?
       other.each_item do |e|
         key = e.key
         Rubinius.privately { key_hash = key.hash }
-        if item = @table.lookup(key, key_hash)
+
+        if item = @trie.lookup(@state, key, key_hash)
           item.value = yield(key, item.value, e.value)
         else
-          @table.insert key, key_hash, e.value
+          @trie.insert @state, key, key_hash, e.value
         end
       end
     else
       other.each_item do |e|
         key = e.key
         Rubinius.privately { key_hash = key.hash }
-        @table.insert key, key_hash, e.value
+        @trie.insert @state, key, key_hash, e.value
       end
     end
 
@@ -796,15 +806,13 @@ class Hash
 
     item = @state.head
     @state = State.from @state
-    table = Table.new @state
+    @trie = Trie.from_none
 
     while item
       Rubinius.privately { key_hash = item.key.hash }
-      table.insert item.key, key_hash, item.value
+      @trie.insert @state, item.key, key_hash, item.value
       item = item.next
     end
-
-    @table = table
 
     self
   end
@@ -841,11 +849,11 @@ class Hash
 
     @state = State.from @state
     @state.compare_by_identity if other.compare_by_identity?
-    @table = Table.new @state
+    @trie = Trie.from_none
 
     other.each_item do |e|
       Rubinius.privately { key_hash = e.key.hash }
-      @table.insert e.key, key_hash, e.value
+      @trie.insert @state, e.key, key_hash, e.value
     end
 
     @default = other.default
@@ -873,11 +881,11 @@ class Hash
 
     Rubinius.check_frozen
 
-    return nil if empty?
+    return if empty?
 
     size = @state.size
     each_item { |e| delete e.key unless yield(e.key, e.value) }
-    return nil if size == @state.size
+    return if size == @state.size
 
     self
   end
@@ -889,7 +897,8 @@ class Hash
 
     item = @state.head
     Rubinius.privately { key_hash = item.key.hash }
-    @table.delete item.key, key_hash
+    @trie.delete @state, item.key, key_hash
+    @trie = nil if @trie.empty?
 
     return item.key, item.value
   end
@@ -901,8 +910,20 @@ class Hash
   alias_method :length, :size
 
   def to_a
-    ary = []
-    each_item { |e| ary << [e.key, e.value] }
+    if @state
+      ary = Array.new size
+
+      i = 0
+      item = @state.head
+
+      while item
+        ary[i] = [item.key, item.value]
+        i += 1
+        item = item.next
+      end
+    else
+      ary = []
+    end
 
     Rubinius::Type.infect ary, self
     ary
@@ -937,8 +958,19 @@ class Hash
   alias_method :has_value?, :value?
 
   def values
-    ary = []
-    each_item { |e| ary << e.value }
+    return [] unless @state
+
+    ary = Array.new size
+
+    i = 0
+    item = @state.head
+
+    while item
+      ary[i] = item.value
+      i += 1
+      item = item.next
+    end
+
     ary
   end
 
@@ -948,7 +980,7 @@ class Hash
     else
       args.map do |key|
         Rubinius.privately { key_hash = key.hash }
-        if item = @table.lookup(key, key_hash)
+        if item = @trie.lookup(@state, key, key_hash)
           item.value
         else
           default key

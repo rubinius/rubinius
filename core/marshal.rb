@@ -307,8 +307,9 @@ class Hash
     raise TypeError, "can't dump hash with default proc" if default_proc
 
     excluded_ivars = %w[
-      @capacity @mask @max_entries @size @entries @default_proc @default
-      @state @compare_by_identity @head @tail @table
+      @head @tail @size @previous @next @key @key_hash @value
+      @key_hash @entries @bmp @entries @level @state @trie
+      @compare_by_identity @default @default_proc
     ].map { |a| a.to_sym }
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
