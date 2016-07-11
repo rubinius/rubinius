@@ -128,8 +128,15 @@ namespace rubinius {
 
       if(rio->finalize) rio->finalize(rio, true);
 
-      bool ok = (fclose(rio->f) == 0);
-      rio->f = NULL;
+      bool ok = true;
+
+      /* This field is publicly accessible in the C-API structure so we need
+       * to guard against the possibility that it is NULL;
+       */
+      if(rio->f) {
+        ok = (fclose(rio->f) == 0);
+        rio->f = NULL;
+      }
 
       return ok;
     }
