@@ -686,14 +686,22 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     exit 1
   end
 
+  def supported_compiler(name)
+    failure <<-EOM
+Unable to find #{name} compiler. Support for compilers other than #{name}
+compiler was deprecated 1 Jun 2016 and has been removed. If your platform does
+not support #{name} compiler, please email contact@rubinius.com
+    EOM
+  end
+
   def default_cc
     return 'clang' if `clang --version > /dev/null 2>&1` && $?.success?
-    return 'gcc'
+    supported_compiler "clang C"
   end
 
   def default_cxx
     return 'clang++' if `clang++ --version > /dev/null 2>&1` && $?.success?
-    return 'g++'
+    supported_compiler "clang++ C++"
   end
 
   def check_tools
@@ -703,13 +711,8 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
 
-    unless @cc =~ /clang/ and @cxx =~ /clang\+\+/
-      @log.deprecated <<-EOM
-Support for compilers other than clang/clang++ is deprecated and will be
-removed soon. If your platform does not have support for clang/clang++,
-please notify us.
-      EOM
-    end
+    supported_compiler "clang C" unless @cc =~ /clang/
+    supported_compiler "clang++ C++" unless @cxx =~ /clang\+\+/
 
     if File.exist? @build_bin
       if !File.directory? @build_bin
