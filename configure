@@ -70,7 +70,6 @@ class Configure
 
     # System settings
     @libc         = nil
-    @x86_32       = false
     @x86_64       = false
     @dtrace       = false
     @dtrace_const = false
@@ -973,30 +972,6 @@ int main() { X x; return 0; }
   end
 
   def detect_x86
-    print "Checking for x86_32: "
-
-    if sizeof("long") == 4
-      status = check_program do |f|
-        src = <<-EOP
-int main() {
-#if defined(i386) || defined(__i386__) || defined(__i386)
-  return 1;
-#else
-  return 0;
-#endif
-}
-        EOP
-
-        f.puts src
-        @log.log src
-      end
-      @x86_32 = (status == 1)
-    end
-
-    puts @x86_32 ? "yes" : "no"
-
-    return if @x86_32
-
     print "Checking for x86_64: "
 
     status = check_program do |f|
@@ -1573,7 +1548,6 @@ int main() { return tgetnum(""); }
       :os                 => @os,
       :little_endian      => @little_endian,
       :sizeof_long        => sizeof("long"),
-      :x86_32             => @x86_32,
       :x86_64             => @x86_64,
       :dtrace             => @dtrace,
       :dtrace_const       => @dtrace_const,
@@ -1869,6 +1843,11 @@ int main() { return tgetnum(""); }
     set_filesystem_paths
 
     process
+
+    unless sizeof("long") == 8
+      failure "Support for non-64bit platforms was deprecated 1 Jun 2016 and has now been removed. If non-64bit support is a critical feature for your application, please email contact@rubinius.com"
+    end
+
     if @release_build
       verify_gems
     else
