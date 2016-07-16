@@ -674,7 +674,7 @@ namespace rubinius {
     dir = prefix + RBX_BIN_PATH;
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
-    dir = prefix + RBX_KERNEL_PATH;
+    dir = prefix + RBX_CORE_PATH;
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
     dir = prefix + RBX_LIB_PATH;
