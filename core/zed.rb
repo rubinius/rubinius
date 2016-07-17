@@ -1427,30 +1427,32 @@ module Kernel
 
   private :method_missing
 
-  def raise(exc=undefined, msg=undefined, ctx=nil)
-    skip = false
+  def raise(exc=undefined, msg=undefined, ctx=nil, cause: nil)
     if undefined.equal? exc
       exc = $!
-      if exc
-        skip = true
-      else
-        exc = RuntimeError.new("No current exception")
-      end
-    elsif exc.respond_to? :exception
-      if undefined.equal? msg
-        exc = exc.exception
-      else
-        exc = exc.exception msg
-      end
-      raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
-    elsif exc.kind_of? String
-      exc = ::RuntimeError.exception exc
+      exc = RuntimeError.new("No current exception") unless exc
+      exc.cause = cause unless exc.cause
     else
-      raise ::TypeError, 'exception class/object expected'
+      if exc.respond_to? :exception
+        if undefined.equal? msg
+          exc = exc.exception
+        else
+          exc = exc.exception msg
+        end
+        raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
+      elsif exc.kind_of? String
+        exc = ::RuntimeError.exception exc
+      else
+        raise ::TypeError, 'exception class/object expected'
+      end
+
+      exc.cause = cause unless exc.cause
+      exc.cause = $! unless exc.cause
     end
 
-    unless skip
-      exc.set_context ctx if ctx
+    if ctx.kind_of? Array
+      exc.set_backtrace ctx
+    else
       exc.capture_backtrace!(2) unless exc.backtrace?
     end
 

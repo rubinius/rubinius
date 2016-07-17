@@ -1,6 +1,6 @@
 class Exception
   attr_accessor :locations
-  attr_accessor :parent
+  attr_accessor :cause
   attr_accessor :custom_backtrace
 
   def initialize(message = nil)
@@ -88,9 +88,9 @@ class Exception
     io.puts
     io.puts awesome_backtrace.show("\n", color)
 
-    extra = @parent
-    while extra
-      io.puts "\nCaused by: #{extra.message} (#{extra.class})"
+    cause = @cause
+    while cause
+      io.puts "\nCaused by: #{cause.message} (#{cause.class})"
 
       if @custom_backtrace
         io.puts "\nUser defined backtrace:"
@@ -102,9 +102,9 @@ class Exception
 
       io.puts "\nBacktrace:"
       io.puts
-      io.puts extra.awesome_backtrace.show
+      io.puts cause.awesome_backtrace.show
 
-      extra = extra.parent
+      cause = cause.cause
     end
 
   end
@@ -133,14 +133,6 @@ class Exception
           raise type_error
         end
       end
-    end
-  end
-
-  def set_context(ctx)
-    if ctx.kind_of? Exception
-      @parent = ctx
-    else
-      set_backtrace(ctx)
     end
   end
 

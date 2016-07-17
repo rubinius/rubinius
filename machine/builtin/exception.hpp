@@ -18,7 +18,7 @@ namespace rubinius {
 
     attr_accessor(reason_message, Object);
     attr_accessor(locations, Array);
-    attr_accessor(parent, Exception);
+    attr_accessor(cause, Exception);
     attr_accessor(backtrace, Object);
     attr_accessor(custom_backtrace, Object);
 
@@ -26,7 +26,7 @@ namespace rubinius {
     static void initialize(STATE, Exception* obj) {
       obj->reason_message(nil<Object>());
       obj->locations(nil<Array>());
-      obj->parent(nil<Exception>());
+      obj->cause(nil<Exception>());
       obj->backtrace(nil<Object>());
       obj->custom_backtrace(nil<Object>());
     }

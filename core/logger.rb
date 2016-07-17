@@ -36,7 +36,7 @@ module Rubinius
         exception.backtrace.each { |line| log.error line }
         STDERR.puts exception.awesome_backtrace.show("\n", color)
 
-        if exception = exception.parent
+        if exception = exception.cause
           msg = "Caused by: #{exception.message} (#{exception.class})"
           log.error msg
           STDERR.puts "\n", msg, "\n"
