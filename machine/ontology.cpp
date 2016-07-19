@@ -40,7 +40,7 @@
 #include "builtin/native_function.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/regexp.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/constant_table.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -228,7 +228,7 @@ namespace rubinius {
     AtomicReference::bootstrap(state);
     IO::bootstrap(state);
     BlockEnvironment::bootstrap(state);
-    ConstantScope::bootstrap(state);
+    LexicalScope::bootstrap(state);
     Dir::bootstrap(state);
     Time::bootstrap(state);
     Stat::bootstrap(state);
@@ -313,7 +313,7 @@ namespace rubinius {
 
     System::bootstrap_methods(state);
     Module::bootstrap_methods(state);
-    ConstantScope::bootstrap_methods(state);
+    LexicalScope::bootstrap_methods(state);
     VariableScope::bootstrap_methods(state);
     BlockEnvironment::bootstrap_methods(state);
 

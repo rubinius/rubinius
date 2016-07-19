@@ -5,7 +5,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compact_lookup_table.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
@@ -122,7 +122,7 @@ namespace rubinius {
     oc->primitive(state, prim);
     oc->resolve_primitive(state);
 
-    tbl->store(state, name, nil<String>(), oc, nil<ConstantScope>(),
+    tbl->store(state, name, nil<String>(), oc, nil<LexicalScope>(),
         Fixnum::from(0), G(sym_public));
   }
 
@@ -1106,7 +1106,7 @@ namespace rubinius {
   }
 
   Class* System::vm_open_class(STATE, Symbol* name, Object* sup,
-                               ConstantScope* scope)
+                               LexicalScope* scope)
   {
     Module* under;
 
@@ -1153,7 +1153,7 @@ namespace rubinius {
     return Class::create(state, as<Class>(super), under, name);
   }
 
-  Module* System::vm_open_module(STATE, Symbol* name, ConstantScope* scope) {
+  Module* System::vm_open_module(STATE, Symbol* name, LexicalScope* scope) {
     Module* under = G(object);
 
     if(!scope->nil_p()) {
@@ -1203,7 +1203,7 @@ namespace rubinius {
 
   Object* System::vm_add_method(STATE, Symbol* name,
                                 Object* method,
-                                ConstantScope* scope, Object* vis)
+                                LexicalScope* scope, Object* vis)
   {
     Module* mod = scope->for_method_definition();
 
@@ -1263,7 +1263,7 @@ namespace rubinius {
 
   Object* System::vm_attach_method(STATE, Symbol* name,
                                    Object* method,
-                                   ConstantScope* scope, Object* recv)
+                                   LexicalScope* scope, Object* recv)
   {
     Module* mod = recv->singleton_class(state);
 

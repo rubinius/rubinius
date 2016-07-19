@@ -94,7 +94,7 @@ field_extract_headers = %w[
   machine/builtin/packed_object.hpp
   machine/builtin/randomizer.hpp
   machine/builtin/regexp.hpp
-  machine/builtin/constant_scope.hpp
+  machine/builtin/lexical_scope.hpp
   machine/builtin/encoding.hpp
   machine/builtin/string.hpp
   machine/builtin/symbol.hpp

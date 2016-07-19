@@ -10,7 +10,7 @@
 #include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
@@ -390,7 +390,7 @@ namespace rubinius {
 
     Arguments args(state->symbol("script"), G(main));
 
-    scope(state, ConstantScope::create(state));
+    scope(state, LexicalScope::create(state));
     scope()->module(state, G(object));
 
     execute(state, this, G(object), args);

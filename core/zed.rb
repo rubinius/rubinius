@@ -436,7 +436,7 @@ module Rubinius
     return obj
   end
 
-  def self.add_defn_method(name, executable, constant_scope, vis)
+  def self.add_defn_method(name, executable, lexical_scope, vis)
     # TODO: puts serial on MethodTable entry
     unless Type.object_kind_of? executable, String
     executable.serial = 1
@@ -444,16 +444,16 @@ module Rubinius
       # If we're adding a method inside ane eval, dup it so that
       # we don't share the CompiledCode with the eval, since
       # we're going to mutate it.
-      if constant_scope and script = constant_scope.current_script
+      if lexical_scope and script = lexical_scope.current_script
         if script.eval?
           executable = executable.dup
         end
       end
-      executable.scope = constant_scope
+      executable.scope = lexical_scope
     end
     end
 
-    mod = constant_scope.for_method_definition
+    mod = lexical_scope.for_method_definition
 
     if ai = Type.singleton_class_object(mod)
       if Type.object_kind_of? ai, Numeric
@@ -466,13 +466,13 @@ module Rubinius
       end
     end
 
-    add_method name, executable, mod, constant_scope, 1, vis
+    add_method name, executable, mod, lexical_scope, 1, vis
     name
   end
 
   # Must be AFTER add_method, because otherwise we'll run this attach_method to add
   # add_method itself and fail.
-  def self.attach_method(name, executable, constant_scope, recv)
+  def self.attach_method(name, executable, lexical_scope, recv)
     # TODO: puts serial on MethodTable entry
     unless Type.object_kind_of? executable, String
     executable.serial = 1
@@ -480,18 +480,18 @@ module Rubinius
       # If we're adding a method inside ane eval, dup it so that
       # we don't share the CompiledCode with the eval, since
       # we're going to mutate it.
-      if constant_scope and script = constant_scope.current_script
+      if lexical_scope and script = lexical_scope.current_script
         if script.eval?
           executable = executable.dup
         end
       end
-      executable.scope = constant_scope
+      executable.scope = lexical_scope
     end
     end
 
     mod = Rubinius::Type.object_singleton_class recv
 
-    add_method name, executable, mod, constant_scope, 1, :public
+    add_method name, executable, mod, lexical_scope, 1, :public
     name
   end
 
@@ -1880,4 +1880,6 @@ module Rubinius
       end
     end
   end
+
+  ConstantScope = LexicalScope
 end

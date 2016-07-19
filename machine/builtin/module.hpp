@@ -6,7 +6,7 @@
 #include "builtin/object.hpp"
 
 namespace rubinius {
-  class ConstantScope;
+  class LexicalScope;
   class ConstantTable;
   class MethodTable;
 
@@ -81,7 +81,7 @@ namespace rubinius {
     void del_const(STATE, Symbol* sym);
 
     void add_method(STATE, Symbol* name, String* method_id, Object* exec,
-        ConstantScope* scope, Symbol* vis = 0);
+        LexicalScope* scope, Symbol* vis = 0);
 
     Object* reset_method_cache(STATE, Symbol* name);
 

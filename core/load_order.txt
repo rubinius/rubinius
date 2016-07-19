@@ -26,7 +26,7 @@ complexifier.rb
 configuration.rb
 console.rb
 constant_cache.rb
-constant_scope.rb
+lexical_scope.rb
 constant_table.rb
 continuation.rb
 ctype.rb

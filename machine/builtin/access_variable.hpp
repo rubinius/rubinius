@@ -7,7 +7,7 @@ namespace rubinius {
 
   class InstructionSequence;
   class MachineCode;
-  class ConstantScope;
+  class LexicalScope;
 
   class AccessVariable : public Executable {
   public:

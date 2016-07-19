@@ -5,32 +5,32 @@
 # TODO: document
 
 module Rubinius
-  class ConstantScope
+  class LexicalScope
     def self.of_sender
-      Rubinius.primitive :constant_scope_of_sender
+      Rubinius.primitive :lexical_scope_of_sender
       raise PrimitiveFailure, "primitive failed"
     end
 
     def class_variable_get(sym)
-      Rubinius.primitive :constant_scope_cvar_get
+      Rubinius.primitive :lexical_scope_cvar_get
 
       raise NameError, "Invalid class variable name '#{sym}'"
     end
 
     def class_variable_set(sym, val)
-      Rubinius.primitive :constant_scope_cvar_set
+      Rubinius.primitive :lexical_scope_cvar_set
 
       raise NameError, "Invalid class variable name '#{sym}'"
     end
 
     def class_variable_defined?(sym)
-      Rubinius.primitive :constant_scope_cvar_defined
+      Rubinius.primitive :lexical_scope_cvar_defined
 
       raise NameError, "Invalid class variable name '#{sym}'"
     end
 
     def class_variable_get_or_set(sym, val)
-      Rubinius.primitive :constant_scope_cvar_get_or_set
+      Rubinius.primitive :lexical_scope_cvar_get_or_set
 
       raise NameError, "Invalid class variable name '#{sym}'"
     end
@@ -87,14 +87,14 @@ module Rubinius
       !@parent
     end
 
-    # Use the same info as the current ConstantScope, but set current_module to
-    # +mod+. Chains off the current ConstantScope.
+    # Use the same info as the current LexicalScope, but set current_module to
+    # +mod+. Chains off the current LexicalScope.
     def using_current_as(mod)
       if top_level?
         # Don't chain up if this is a toplevel, create a new one.
         cs = dup
       else
-        cs = ConstantScope.new @module, self
+        cs = LexicalScope.new @module, self
       end
 
       cs.current_module = mod

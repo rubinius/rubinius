@@ -4,7 +4,7 @@
 
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
@@ -101,12 +101,12 @@ namespace rubinius {
           std::string mod_name;
 
           if(cf->module()->nil_p()) {
-            mod_name = cf->constant_scope()->module()->debug_str(state);
+            mod_name = cf->lexical_scope()->module()->debug_str(state);
           } else {
             if((name = try_as<Symbol>(cf->module()->module_name()))) {
               mod_name = name->debug_str(state);
             } else if((name = try_as<Symbol>(
-                      cf->constant_scope()->module()->module_name()))) {
+                      cf->lexical_scope()->module()->module_name()))) {
               mod_name = name->debug_str(state);
             } else {
               mod_name = "<anonymous module>";

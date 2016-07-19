@@ -16,7 +16,7 @@
 #include "builtin/native_method.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
@@ -187,10 +187,10 @@ namespace memory {
     while(frame) {
       frame = displace(frame, offset);
 
-      if(frame->constant_scope_ &&
-          frame->constant_scope_->reference_p()) {
-        frame->constant_scope_ =
-          (ConstantScope*)mark_object(frame->constant_scope_);
+      if(frame->lexical_scope_ &&
+          frame->lexical_scope_->reference_p()) {
+        frame->lexical_scope_ =
+          (LexicalScope*)mark_object(frame->lexical_scope_);
       }
 
       if(frame->compiled_code && frame->compiled_code->reference_p()) {
@@ -254,8 +254,8 @@ namespace memory {
     while(frame) {
       frame = displace(frame, offset);
 
-      if(frame->constant_scope_) {
-        frame->constant_scope_->validate();
+      if(frame->lexical_scope_) {
+        frame->lexical_scope_->validate();
       }
 
       if(frame->compiled_code) {

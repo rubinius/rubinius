@@ -309,7 +309,7 @@ module Rubinius
   # Returns nil if there is no file, such as inside eval.
   #
   def self.current_file
-    cs = Rubinius::ConstantScope.of_sender
+    cs = Rubinius::LexicalScope.of_sender
     return cs.absolute_active_path
   end
 

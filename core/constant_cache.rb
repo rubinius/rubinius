@@ -3,7 +3,7 @@ module Rubinius
     attr_reader :name
     attr_reader :value
     attr_reader :module
-    attr_reader :constant_scope
+    attr_reader :lexical_scope
     attr_reader :executable
 
     def ip
@@ -21,7 +21,7 @@ module Rubinius
     end
 
     def inspect
-      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} #{location}##{@name} constant=#{@value} module=#{@module} constant_scope=#{@constant_scope}>"
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} #{location}##{@name} constant=#{@value} module=#{@module} lexical_scope=#{@lexical_scope}>"
     end
   end
 end

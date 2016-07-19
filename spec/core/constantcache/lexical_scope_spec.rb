@@ -6,7 +6,7 @@ describe "Rubinius::ConstantCache#scope" do
     @cache = CallSiteSpecs::C.constant_caches(:c).first
   end
 
-  it "returns the ConstantScope instance for the cache's scope" do
-    @cache.constant_scope.should be_an_instance_of(Rubinius::ConstantScope)
+  it "returns the LexicalScope instance for the cache's scope" do
+    @cache.lexical_scope.should be_an_instance_of(Rubinius::LexicalScope)
   end
 end

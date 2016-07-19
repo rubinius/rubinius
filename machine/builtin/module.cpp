@@ -8,7 +8,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compact_lookup_table.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/constant_table.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/lookup_table.hpp"
@@ -199,7 +199,7 @@ namespace rubinius {
   }
 
   void Module::add_method(STATE, Symbol* name,
-      String* method_id, Object* exec, ConstantScope* scope, Symbol* vis)
+      String* method_id, Object* exec, LexicalScope* scope, Symbol* vis)
   {
     if(!vis) vis = G(sym_public);
     method_table()->store(state, name, method_id, exec, scope, Fixnum::from(0), vis);

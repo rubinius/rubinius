@@ -11,9 +11,9 @@ namespace rubinius {
 
   class Module;
 
-  class ConstantScope : public Object {
+  class LexicalScope : public Object {
   public:
-    const static object_type type = ConstantScopeType;
+    const static object_type type = LexicalScopeType;
 
     attr_accessor(module, Module);
 
@@ -22,22 +22,22 @@ namespace rubinius {
      * module also.
      */
     attr_accessor(current_module, Module);
-    attr_accessor(parent, ConstantScope);
+    attr_accessor(parent, LexicalScope);
 
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
-    static void initialize(STATE, ConstantScope* obj) {
+    static void initialize(STATE, LexicalScope* obj) {
       obj->module(nil<Module>());
       obj->current_module(nil<Module>());
-      obj->parent(nil<ConstantScope>());
+      obj->parent(nil<LexicalScope>());
     }
 
-    static ConstantScope* create(STATE);
+    static LexicalScope* create(STATE);
 
-    // Rubinius.primitive+ :constant_scope_of_sender
-    static ConstantScope* of_sender(STATE);
+    // Rubinius.primitive+ :lexical_scope_of_sender
+    static LexicalScope* of_sender(STATE);
 
-    // Rubinius.primitive :constant_scope_const_set
+    // Rubinius.primitive :lexical_scope_const_set
     Object* const_set(STATE, Symbol* name, Object* value);
 
     // The module to use when adding and removing methods
@@ -49,16 +49,16 @@ namespace rubinius {
       return current_module();
     }
 
-    // Rubinius.primitive :constant_scope_cvar_defined
+    // Rubinius.primitive :lexical_scope_cvar_defined
     Object* cvar_defined(STATE, Symbol* name);
 
-    // Rubinius.primitive :constant_scope_cvar_get
+    // Rubinius.primitive :lexical_scope_cvar_get
     Object* cvar_get(STATE, Symbol* name);
 
-    // Rubinius.primitive :constant_scope_cvar_set
+    // Rubinius.primitive :lexical_scope_cvar_set
     Object* cvar_set(STATE, Symbol* name, Object* value);
 
-    // Rubinius.primitive :constant_scope_cvar_get_or_set
+    // Rubinius.primitive :lexical_scope_cvar_get_or_set
     Object* cvar_get_or_set(STATE, Symbol* name, Object* value);
 
     bool top_level_p(STATE) const {

@@ -91,7 +91,7 @@ module Rubinius
     attr_accessor :lines         # [Tuple]   tuple of the lines where its found
     attr_accessor :file          # [Symbol]  the file where this comes from
     attr_accessor :local_names   # [Array<Symbol>] names of the local vars
-    attr_accessor :scope         # [ConstantScope] scope for looking up constants
+    attr_accessor :scope         # [LexicalScope] scope for looking up constants
     attr_accessor :keywords      # [Tuple] pairs of Symbol name, required flag
     attr_accessor :arity         # [Integer] number of arguments, negative if variadic.
 
@@ -249,11 +249,11 @@ module Rubinius
       script = CompiledCode::Script.new(self)
 
       # Setup the scoping.
-      cs = ConstantScope.new(Object)
+      cs = LexicalScope.new(Object)
       cs.script = script
 
       if wrap
-        @scope = ConstantScope.new(Module.new, cs)
+        @scope = LexicalScope.new(Module.new, cs)
       else
         @scope = cs
       end

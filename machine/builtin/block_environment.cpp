@@ -8,7 +8,7 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/jit.hpp"
@@ -415,7 +415,7 @@ namespace rubinius {
 
     call_frame->prepare(mcode->stack_size);
 
-    call_frame->constant_scope_ = invocation.constant_scope;
+    call_frame->lexical_scope_ = invocation.lexical_scope;
 
     call_frame->previous = NULL;
     call_frame->arguments = &args;
@@ -444,7 +444,7 @@ namespace rubinius {
   Object* BlockEnvironment::call(STATE,
                                  Arguments& args, int flags)
   {
-    BlockInvocation invocation(scope()->self(), constant_scope(), flags);
+    BlockInvocation invocation(scope()->self(), lexical_scope(), flags);
     return invoke(state, this, args, invocation);
   }
 
@@ -469,7 +469,7 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    BlockInvocation invocation(recv, constant_scope(), flags);
+    BlockInvocation invocation(recv, lexical_scope(), flags);
     return invoke(state, this, args, invocation);
   }
 
@@ -487,11 +487,11 @@ namespace rubinius {
     }
 
     Object* recv = args.shift(state);
-    ConstantScope* constant_scope = as<ConstantScope>(args.shift(state));
+    LexicalScope* lexical_scope = as<LexicalScope>(args.shift(state));
     Object* visibility_scope = args.shift(state);
 
     int flags = CBOOL(visibility_scope) ? CallFrame::cTopLevelVisibility : 0;
-    BlockInvocation invocation(recv, constant_scope, flags);
+    BlockInvocation invocation(recv, lexical_scope, flags);
     return invoke(state, this, args, invocation);
   }
 
@@ -518,7 +518,7 @@ namespace rubinius {
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->compiled_code(state, ccode);
-    be->constant_scope(state, call_frame->constant_scope());
+    be->lexical_scope(state, call_frame->lexical_scope());
     be->module(state, call_frame->module());
 
     return be;
@@ -531,7 +531,7 @@ namespace rubinius {
     be->scope(state, scope());
     be->top_scope(state, top_scope());
     be->compiled_code(state, compiled_code());
-    be->constant_scope(state, constant_scope());
+    be->lexical_scope(state, lexical_scope());
     be->module(state, nil<Module>());
 
     return be;

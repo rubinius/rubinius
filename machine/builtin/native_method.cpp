@@ -661,7 +661,7 @@ namespace rubinius {
     CallFrame* previous_frame = 0;
     CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
     call_frame->previous = NULL;
-    call_frame->constant_scope_ = 0;
+    call_frame->lexical_scope_ = 0;
     call_frame->dispatch_data = (void*)&nmf;
     call_frame->compiled_code = 0;
     call_frame->flags = CallFrame::cNativeMethod;

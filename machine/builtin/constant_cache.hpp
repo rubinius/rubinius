@@ -5,14 +5,14 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 
 namespace rubinius {
-  class ConstantScope;
+  class LexicalScope;
 
   class ConstantCache : public Object {
   public:
@@ -21,7 +21,7 @@ namespace rubinius {
     attr_accessor(name, Symbol);
     attr_accessor(value, Object);
     attr_accessor(module, Module);
-    attr_accessor(constant_scope, ConstantScope);
+    attr_accessor(lexical_scope, LexicalScope);
     attr_accessor(executable, Executable);
 
   private:
@@ -40,27 +40,27 @@ namespace rubinius {
       obj->name(nil<Symbol>());
       obj->value(nil<Object>());
       obj->module(nil<Module>());
-      obj->constant_scope(nil<ConstantScope>());
+      obj->lexical_scope(nil<LexicalScope>());
       obj->executable(nil<Executable>());
       obj->ip(0);
       obj->serial(0);
     }
 
-    static ConstantCache* create(STATE, ConstantCache* cache, Object* value, ConstantScope* scope);
-    static ConstantCache* create(STATE, ConstantCache* cache, Object* value, Module* mod, ConstantScope* scope);
+    static ConstantCache* create(STATE, ConstantCache* cache, Object* value, LexicalScope* scope);
+    static ConstantCache* create(STATE, ConstantCache* cache, Object* value, Module* mod, LexicalScope* scope);
     static ConstantCache* empty(STATE, Symbol* name, Executable* executable, int ip);
 
-    Object* retrieve(STATE, ConstantScope* scope) {
+    Object* retrieve(STATE, LexicalScope* scope) {
       if(serial() == state->shared().global_serial() &&
-         constant_scope() == scope) {
+         lexical_scope() == scope) {
         return value();
       }
       return NULL;
     }
 
-    Object* retrieve(STATE, Module* mod, ConstantScope* scope) {
+    Object* retrieve(STATE, Module* mod, LexicalScope* scope) {
       if(serial() == state->shared().global_serial() &&
-         constant_scope() == scope &&
+         lexical_scope() == scope &&
          module() == mod) {
         return value();
       }

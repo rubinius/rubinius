@@ -10,7 +10,7 @@ module Rubinius
 
     # The CompiledCode that implements the code for the block
     attr_reader :compiled_code
-    attr_reader :constant_scope
+    attr_reader :lexical_scope
 
     attr_accessor :proc_environment
 
@@ -24,7 +24,7 @@ module Rubinius
       raise PrimitiveFailure, "BlockEnvironment#call primitive failed"
     end
 
-    def call_under(recv, constant_scope, visibility_scope, *args)
+    def call_under(recv, lexical_scope, visibility_scope, *args)
       Rubinius.primitive :block_call_under
       raise PrimitiveFailure, "BlockEnvironment#call_under primitive failed"
     end
@@ -116,7 +116,7 @@ module Rubinius
       @top_scope = scope
       @scope = scope
       @compiled_code = code
-      @constant_scope = code.scope
+      @lexical_scope = code.scope
       @module = code.scope.module
 
       return self
@@ -127,15 +127,15 @@ module Rubinius
     end
 
     def repoint_scope(where)
-      @constant_scope.using_current_as where
+      @lexical_scope.using_current_as where
     end
 
     def disable_scope!
-      @constant_scope.using_disabled_scope
+      @lexical_scope.using_disabled_scope
     end
 
     def to_binding
-      Binding.setup @scope, @compiled_code, @constant_scope
+      Binding.setup @scope, @compiled_code, @lexical_scope
     end
 
     def make_independent
@@ -144,7 +144,7 @@ module Rubinius
     end
 
     def call_on_instance(obj, *args)
-      call_under obj, @constant_scope, false, *args
+      call_under obj, @lexical_scope, false, *args
     end
 
     def arity
@@ -177,7 +177,7 @@ module Rubinius
     end
 
     def inspect
-      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} scope=#{@scope.inspect} top_scope=#{@top_scope.inspect} module=#{@module.inspect} compiled_code=#{@compiled_code.inspect} constant_scope=#{@constant_scope.inspect}>"
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} scope=#{@scope.inspect} top_scope=#{@top_scope.inspect} module=#{@module.inspect} compiled_code=#{@compiled_code.inspect} lexical_scope=#{@lexical_scope.inspect}>"
     end
   end
 end

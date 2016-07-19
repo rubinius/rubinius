@@ -60,7 +60,7 @@ namespace rubinius {
       loc->variables(state, nil<VariableScope>());
     }
 
-    loc->constant_scope(state, call_frame->constant_scope());
+    loc->lexical_scope(state, call_frame->lexical_scope());
 
     return loc;
   }

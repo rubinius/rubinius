@@ -75,7 +75,7 @@ namespace rubinius {
     }
 
     BlockInvocation invocation(args.recv(),
-        bm->block_env()->constant_scope(),
+        bm->block_env()->lexical_scope(),
         CallFrame::cIsLambda | CallFrame::cBlockAsMethod);
 
     invocation.module = mod;

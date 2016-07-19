@@ -15,7 +15,7 @@
 #include "builtin/module.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/class.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/system.hpp"
@@ -48,7 +48,7 @@ namespace rubinius {
     }
 
     Object* const_get(STATE, Symbol* name, ConstantMissingReason* reason, Object* filter, bool replace_autoload) {
-      ConstantScope *cur;
+      LexicalScope *cur;
       Object* result;
 
       *reason = vNonExistent;
@@ -93,7 +93,7 @@ namespace rubinius {
       // chain. If Object isn't seen, this means we are directly deriving from
       // BasicObject.
 
-      cur = frame->constant_scope();
+      cur = frame->lexical_scope();
       while(!cur->nil_p()) {
         // Detect the toplevel scope (the default) and get outta dodge.
         if(cur->top_level_p(state)) break;
@@ -110,7 +110,7 @@ namespace rubinius {
       // Now look up the superclass chain.
       Module *fallback = G(object);
 
-      cur = frame->constant_scope();
+      cur = frame->lexical_scope();
       if(!cur->nil_p()) {
         bool object_seen = false;
         Module* mod = cur->module();
@@ -155,7 +155,7 @@ namespace rubinius {
 
       CallFrame* call_frame = state->vm()->get_ruby_frame();
 
-      ConstantScope* scope = call_frame->constant_scope();
+      LexicalScope* scope = call_frame->lexical_scope();
       if(scope->nil_p()) {
         under = G(object);
       } else {
@@ -172,10 +172,10 @@ namespace rubinius {
 
       CallFrame* call_frame = state->vm()->get_ruby_frame();
 
-      if(call_frame->constant_scope()->nil_p()) {
+      if(call_frame->lexical_scope()->nil_p()) {
         under = G(object);
       } else {
-        under = call_frame->constant_scope()->module();
+        under = call_frame->lexical_scope()->module();
       }
 
       return open_class(state, under, super, name, created);
@@ -242,8 +242,8 @@ namespace rubinius {
 
       CallFrame* call_frame = state->vm()->get_ruby_frame();
 
-      if(!call_frame->constant_scope()->nil_p()) {
-        under = call_frame->constant_scope()->module();
+      if(!call_frame->lexical_scope()->nil_p()) {
+        under = call_frame->lexical_scope()->module();
       }
 
       return open_module(state, under, name);

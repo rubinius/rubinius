@@ -4,7 +4,7 @@
 #include "object_utils.hpp"
 #include "memory.hpp"
 
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
@@ -15,7 +15,7 @@ namespace rubinius {
 
   class InstructionSequence;
   class MachineCode;
-  class ConstantScope;
+  class LexicalScope;
   class CallSite;
 
   namespace jit {
@@ -38,7 +38,7 @@ namespace rubinius {
     attr_accessor(lines, Tuple);
     attr_accessor(local_names, Tuple);
     attr_accessor(file, Symbol);
-    attr_accessor(scope, ConstantScope);
+    attr_accessor(scope, LexicalScope);
     attr_accessor(keywords, Tuple);
     attr_accessor(arity, Fixnum);
     attr_accessor(breakpoints, LookupTable);
@@ -74,7 +74,7 @@ namespace rubinius {
       obj->lines(nil<Tuple>());
       obj->local_names(nil<Tuple>());
       obj->file(nil<Symbol>());
-      obj->scope(nil<ConstantScope>());
+      obj->scope(nil<LexicalScope>());
       obj->keywords(nil<Tuple>());
       obj->arity(nil<Fixnum>());
       obj->breakpoints(nil<LookupTable>());

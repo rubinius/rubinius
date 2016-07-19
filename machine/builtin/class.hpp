@@ -112,7 +112,7 @@ namespace rubinius {
   };
 
   class CompiledCode;
-  class ConstantScope;
+  class LexicalScope;
 
   class SingletonClass : public Class {
   public:

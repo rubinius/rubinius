@@ -5,7 +5,7 @@
 #include "builtin/class.hpp"
 #include "builtin/code_db.hpp"
 #include "builtin/compiled_code.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/method_table.hpp"
@@ -362,10 +362,10 @@ namespace rubinius {
     if(method_id()->nil_p()) return nil<Executable>();
 
     CompiledCode* code = CodeDB::load(state, as<String>(method_id()));
-    if(ConstantScope* cs = try_as<ConstantScope>(scope())) {
+    if(LexicalScope* cs = try_as<LexicalScope>(scope())) {
       code->scope(state, cs);
     } else {
-      code->scope(state, nil<ConstantScope>());
+      code->scope(state, nil<LexicalScope>());
     }
     code->serial(state, serial());
     method(state, code);

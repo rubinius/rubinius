@@ -18,7 +18,7 @@ class Module
   private :included
 
   def self.nesting
-    scope = Rubinius::ConstantScope.of_sender
+    scope = Rubinius::LexicalScope.of_sender
     nesting = []
     while scope and scope.module != Object
       nesting << scope.module
@@ -137,7 +137,7 @@ class Module
 
   def module_eval(string=undefined, filename="(eval)", line=1, &prc)
     # we have a custom version with the prc, rather than using instance_exec
-    # so that we can setup the ConstantScope properly.
+    # so that we can setup the LexicalScope properly.
     if prc
       unless undefined.equal?(string)
         raise ArgumentError, "cannot pass both string and proc"
@@ -145,8 +145,8 @@ class Module
 
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
-      constant_scope = env.repoint_scope self
-      return env.call_under(self, constant_scope, true, self)
+      lexical_scope = env.repoint_scope self
+      return env.call_under(self, lexical_scope, true, self)
     elsif undefined.equal?(string)
       raise ArgumentError, 'block not supplied'
     end
@@ -155,7 +155,7 @@ class Module
     filename = StringValue(filename)
 
     # The constantscope of a module_eval CM is the receiver of module_eval
-    cs = Rubinius::ConstantScope.new self, Rubinius::ConstantScope.of_sender
+    cs = Rubinius::LexicalScope.new self, Rubinius::LexicalScope.of_sender
 
     binding = Binding.setup(Rubinius::VariableScope.of_sender,
                             Rubinius::CompiledCode.of_sender,
@@ -521,8 +521,8 @@ class Module
     raise LocalJumpError, "Missing block" unless block_given?
 
     env = prc.block
-    constant_scope = env.repoint_scope self
-    return env.call_under(self, constant_scope, true, *args)
+    lexical_scope = env.repoint_scope self
+    return env.call_under(self, lexical_scope, true, *args)
   end
   alias_method :class_exec, :module_exec
 
@@ -724,7 +724,7 @@ class Module
 
     code = g.package Rubinius::CompiledCode
 
-    scope = Rubinius::ConstantScope.new(self, Rubinius::ConstantScope.new(Object))
+    scope = Rubinius::LexicalScope.new(self, Rubinius::LexicalScope.new(Object))
     code.scope = scope
 
     Rubinius.add_method name, code, self, scope, 0, :public

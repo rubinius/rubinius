@@ -261,7 +261,7 @@ module Kernel
   module_function :__callee__
 
   def __dir__
-    scope = Rubinius::ConstantScope.of_sender
+    scope = Rubinius::LexicalScope.of_sender
     script = scope.current_script
     basepath = script.file_path
     fullpath = nil
@@ -858,7 +858,7 @@ module Kernel
   module_function :require
 
   def require_relative(name)
-    scope = Rubinius::ConstantScope.of_sender
+    scope = Rubinius::LexicalScope.of_sender
     Rubinius::CodeLoader.require_relative(name, scope)
   end
   module_function :require_relative
@@ -1097,7 +1097,7 @@ module Kernel
     return Binding.setup(
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledCode.of_sender,
-      Rubinius::ConstantScope.of_sender,
+      Rubinius::LexicalScope.of_sender,
       Rubinius::VariableScope.of_sender.self,
       Rubinius::Location.of_closest_ruby_method
     )
@@ -1114,11 +1114,11 @@ module Kernel
 
     if binding
       binding = Rubinius::Type.coerce_to_binding binding
-      filename ||= binding.constant_scope.active_path
+      filename ||= binding.lexical_scope.active_path
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledCode.of_sender,
-                              Rubinius::ConstantScope.of_sender,
+                              Rubinius::LexicalScope.of_sender,
                               self)
 
       filename ||= "(eval)"
@@ -1126,14 +1126,14 @@ module Kernel
 
     lineno ||= binding.line_number
 
-    existing_scope = binding.constant_scope
-    binding.constant_scope = existing_scope.dup
+    existing_scope = binding.lexical_scope
+    binding.lexical_scope = existing_scope.dup
 
     c = Rubinius::ToolSets::Runtime::Compiler
     be = c.construct_block string, binding, filename, lineno
 
     result = be.call_on_instance(binding.receiver)
-    binding.constant_scope = existing_scope
+    binding.lexical_scope = existing_scope
     result
   end
   module_function :eval

@@ -110,26 +110,26 @@ class BasicObject
       env = prc.block
 
       if sc
-        constant_scope = env.repoint_scope sc
+        lexical_scope = env.repoint_scope sc
       else
-        constant_scope = env.disable_scope!
+        lexical_scope = env.disable_scope!
       end
 
-      return env.call_under(self, constant_scope, true, self)
+      return env.call_under(self, lexical_scope, true, self)
     elsif string
       string = ::Kernel.StringValue(string)
 
-      constant_scope = ::Rubinius::ConstantScope.of_sender
+      lexical_scope = ::Rubinius::LexicalScope.of_sender
 
       if sc
-        constant_scope = ::Rubinius::ConstantScope.new(sc, constant_scope)
+        lexical_scope = ::Rubinius::LexicalScope.new(sc, lexical_scope)
       else
-        constant_scope = constant_scope.using_disabled_scope
+        lexical_scope = lexical_scope.using_disabled_scope
       end
 
       binding = ::Binding.setup(::Rubinius::VariableScope.of_sender,
                                 ::Rubinius::CompiledCode.of_sender,
-                                constant_scope)
+                                lexical_scope)
 
       c = ::Rubinius::ToolSets::Runtime::Compiler
       be = c.construct_block string, binding, filename, line
@@ -165,14 +165,14 @@ class BasicObject
 
     return prc.ruby_method.call(*args) if prc.ruby_method
 
-    constant_scope = env.constant_scope
+    lexical_scope = env.lexical_scope
     if ::ImmediateValue === self
-      constant_scope = constant_scope.using_disabled_scope
+      lexical_scope = lexical_scope.using_disabled_scope
     else
       sc = ::Rubinius::Type.object_singleton_class(self)
-      constant_scope = constant_scope.using_current_as(sc)
+      lexical_scope = lexical_scope.using_current_as(sc)
     end
 
-    return env.call_under(self, constant_scope, true, *args)
+    return env.call_under(self, lexical_scope, true, *args)
   end
 end

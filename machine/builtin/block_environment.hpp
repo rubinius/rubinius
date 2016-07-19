@@ -5,7 +5,7 @@
 #include "object_utils.hpp"
 
 #include "builtin/compiled_code.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
@@ -19,18 +19,18 @@ namespace rubinius {
   class VMExecutable;
 
   class BlockEnvironment;
-  class ConstantScope;
+  class LexicalScope;
 
   struct BlockInvocation {
     int flags;
     Object* self;
-    ConstantScope* constant_scope;
+    LexicalScope* lexical_scope;
     Module* module;
 
-    BlockInvocation(Object* self, ConstantScope* constant_scope, int flags)
+    BlockInvocation(Object* self, LexicalScope* lexical_scope, int flags)
       : flags(flags)
       , self(self)
-      , constant_scope(constant_scope)
+      , lexical_scope(lexical_scope)
       , module(0)
     {}
   };
@@ -45,7 +45,7 @@ namespace rubinius {
     attr_accessor(scope, VariableScope);
     attr_accessor(top_scope, VariableScope);
     attr_accessor(compiled_code, CompiledCode);
-    attr_accessor(constant_scope, ConstantScope);
+    attr_accessor(lexical_scope, LexicalScope);
     attr_accessor(module, Module);
 
   private:
@@ -59,7 +59,7 @@ namespace rubinius {
       obj->scope(nil<VariableScope>());
       obj->top_scope(nil<VariableScope>());
       obj->compiled_code(nil<CompiledCode>());
-      obj->constant_scope(nil<ConstantScope>());
+      obj->lexical_scope(nil<LexicalScope>());
       obj->module(nil<Module>());
     }
 

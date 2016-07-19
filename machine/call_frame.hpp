@@ -39,7 +39,7 @@ namespace rubinius {
     };
 
     CallFrame* previous;
-    ConstantScope* constant_scope_;
+    LexicalScope* lexical_scope_;
 
     void* dispatch_data;
     CompiledCode* compiled_code;
@@ -106,8 +106,8 @@ namespace rubinius {
       return flags & cBlock;
     }
 
-    ConstantScope* constant_scope() const {
-      return constant_scope_;
+    LexicalScope* lexical_scope() const {
+      return lexical_scope_;
     }
 
     bool is_block_p(STATE) const {

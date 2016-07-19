@@ -12,7 +12,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/proc.hpp"

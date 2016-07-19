@@ -10,7 +10,7 @@ namespace rubinius {
   class String;
   class BlockEnvironment;
   class CompiledCode;
-  class ConstantScope;
+  class LexicalScope;
   class IO;
 
   struct CallFrame;
@@ -151,13 +151,13 @@ namespace rubinius {
     static Array*   vm_times(STATE);
 
     // Rubinius.primitive :vm_open_class
-    static Class* vm_open_class(STATE, Symbol* name, Object* super, ConstantScope* scope);
+    static Class* vm_open_class(STATE, Symbol* name, Object* super, LexicalScope* scope);
 
     // Rubinius.primitive :vm_open_class_under
     static Class* vm_open_class_under(STATE, Symbol* name, Object* super, Module* under);
 
     // Rubinius.primitive :vm_open_module
-    static Module* vm_open_module(STATE, Symbol* name, ConstantScope* scope);
+    static Module* vm_open_module(STATE, Symbol* name, LexicalScope* scope);
 
     // Rubinius.primitive :vm_open_module_under
     static Module* vm_open_module_under(STATE, Symbol* name, Module* under);
@@ -169,10 +169,10 @@ namespace rubinius {
     static Tuple* vm_find_public_method(STATE, Object* recv, Symbol* name);
 
     // Rubinius.primitive :vm_add_method
-    static Object* vm_add_method(STATE, Symbol* name, Object* method, ConstantScope* scope, Object* vis);
+    static Object* vm_add_method(STATE, Symbol* name, Object* method, LexicalScope* scope, Object* vis);
 
     // Rubinius.primitive :vm_attach_method
-    static Object* vm_attach_method(STATE, Symbol* name, Object* method, ConstantScope* scope, Object* recv);
+    static Object* vm_attach_method(STATE, Symbol* name, Object* method, LexicalScope* scope, Object* recv);
 
     // A robust way to get the class of an object, since Object#class can be redefined.
     // Rubinius.primitive+ :vm_object_class

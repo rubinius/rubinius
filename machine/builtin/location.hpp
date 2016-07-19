@@ -4,7 +4,7 @@
 #include "object_utils.hpp"
 #include "memory.hpp"
 
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"
@@ -14,7 +14,7 @@
 namespace rubinius {
 
   class NativeMethodFrame;
-  class ConstantScope;
+  class LexicalScope;
 
   class Location : public Object {
   public:
@@ -27,7 +27,7 @@ namespace rubinius {
     attr_accessor(ip, Fixnum);
     attr_accessor(flags, Fixnum);
     attr_accessor(variables, VariableScope);
-    attr_accessor(constant_scope, ConstantScope);
+    attr_accessor(lexical_scope, LexicalScope);
 
     void set_is_block(STATE) {
       flags(state, Fixnum::from(flags()->to_native() | 1));
@@ -50,7 +50,7 @@ namespace rubinius {
       obj->ip(nil<Fixnum>());
       obj->flags(nil<Fixnum>());
       obj->variables(nil<VariableScope>());
-      obj->constant_scope(nil<ConstantScope>());
+      obj->lexical_scope(nil<LexicalScope>());
     }
 
     static Location* create(STATE, NativeMethodFrame* nmf);

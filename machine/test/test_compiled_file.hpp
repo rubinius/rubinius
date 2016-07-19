@@ -4,7 +4,7 @@
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/lookup_table.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/symbol.hpp"
 
 #include <cxxtest/TestSuite.h>

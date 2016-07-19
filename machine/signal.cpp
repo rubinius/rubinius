@@ -10,7 +10,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/jit.hpp"
 #include "builtin/module.hpp"
@@ -349,12 +349,12 @@ namespace rubinius {
               std::string mod_name;
 
               if(frame->module()->nil_p()) {
-                mod_name = frame->constant_scope()->module()->debug_str(state);
+                mod_name = frame->lexical_scope()->module()->debug_str(state);
               } else {
                 if((name = try_as<Symbol>(frame->module()->module_name()))) {
                   mod_name = name->debug_str(state);
                 } else if((name = try_as<Symbol>(
-                          frame->constant_scope()->module()->module_name()))) {
+                          frame->lexical_scope()->module()->module_name()))) {
                   mod_name = name->debug_str(state);
                 } else {
                   mod_name = "<anonymous module>";

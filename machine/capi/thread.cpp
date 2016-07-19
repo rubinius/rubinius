@@ -251,7 +251,7 @@ extern "C" {
     NativeMethodFrame nmf(env, 0, nm);
     CallFrame call_frame;
     call_frame.previous = NULL;
-    call_frame.constant_scope_ = 0;
+    call_frame.lexical_scope_ = 0;
     call_frame.dispatch_data = (void*)&nmf;
     call_frame.compiled_code = 0;
     call_frame.flags = CallFrame::cNativeMethod;

@@ -3,7 +3,7 @@
 
 #include "builtin/constant_cache.hpp"
 #include "builtin/class.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 
 namespace rubinius {
   void ConstantCache::bootstrap(STATE) {
@@ -12,7 +12,7 @@ namespace rubinius {
   }
 
   ConstantCache* ConstantCache::create(STATE, ConstantCache* existing,
-      Object* value, Module* mod, ConstantScope* scope)
+      Object* value, Module* mod, LexicalScope* scope)
   {
     ConstantCache* cache =
       state->memory()->new_object<ConstantCache>(state, G(constant_cache));
@@ -22,14 +22,14 @@ namespace rubinius {
     cache->ip(existing->ip());
     cache->value(state, value);
     cache->module(state, mod);
-    cache->constant_scope(state, scope);
+    cache->lexical_scope(state, scope);
     cache->serial(state->shared().global_serial());
 
     return cache;
   }
 
   ConstantCache* ConstantCache::create(STATE, ConstantCache* existing, Object* value,
-                                             ConstantScope* scope) {
+                                             LexicalScope* scope) {
     return create(state, existing, value, nil<Module>(), scope);
   }
 
@@ -42,7 +42,7 @@ namespace rubinius {
     cache->ip(ip);
     cache->value(state, cNil);
     cache->module(state, nil<Module>());
-    cache->constant_scope(state, nil<ConstantScope>());
+    cache->lexical_scope(state, nil<LexicalScope>());
     cache->serial(-1);
 
     return cache;

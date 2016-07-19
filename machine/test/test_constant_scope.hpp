@@ -1,4 +1,4 @@
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "memory.hpp"
@@ -7,7 +7,7 @@
 
 using namespace rubinius;
 
-class TestConstantScope : public CxxTest::TestSuite {
+class TestLexicalScope : public CxxTest::TestSuite {
   public:
 
   VM *state;

@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include "builtin/array.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/data.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookup_table.hpp"
@@ -731,7 +731,7 @@ extern "C" {
     }
 
     module->add_method(state, method_name, nil<String>(), method,
-        nil<ConstantScope>(), visibility);
+        nil<LexicalScope>(), visibility);
     System::vm_reset_method_cache(env->state(), module, method_name);
   }
 

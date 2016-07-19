@@ -7,7 +7,7 @@
  * it. */
 
 #include "arguments.hpp"
-#include "builtin/constant_scope.hpp"
+#include "builtin/lexical_scope.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
@@ -49,7 +49,7 @@ namespace rubinius {
 
     Arguments args(state->symbol("script"), G(main));
 
-    code.get()->scope(state, ConstantScope::create(state));
+    code.get()->scope(state, LexicalScope::create(state));
     code.get()->scope()->module(state, G(object));
 
     code->execute(state, code.get(), G(object), args);

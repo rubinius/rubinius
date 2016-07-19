@@ -1,7 +1,7 @@
 class Binding
   attr_accessor :variables
   attr_accessor :compiled_code
-  attr_accessor :constant_scope
+  attr_accessor :lexical_scope
   attr_accessor :proc_environment
   attr_accessor :location
   attr_accessor :receiver
@@ -21,18 +21,18 @@ class Binding
   #
   # +variables+ is a Rubinius::VariableScope object
   # +code+ is a Rubinius::CompiledCode object
-  # +constant_scope+ is a Rubinius::ConstantScope object
+  # +lexical_scope+ is a Rubinius::LexicalScope object
   #
   # See Kernel#binding in core/eval.rb for a simple example of creating a
   # Binding object.
   #
-  def self.setup(variables, code, constant_scope, recv=nil, location=nil)
+  def self.setup(variables, code, lexical_scope, recv=nil, location=nil)
     bind = allocate()
 
     bind.receiver = self_context(recv, variables)
     bind.variables = variables
     bind.compiled_code = code
-    bind.constant_scope = constant_scope
+    bind.lexical_scope = lexical_scope
     bind.location = location
 
     return bind
