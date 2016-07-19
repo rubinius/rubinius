@@ -1,6 +1,7 @@
 #ifndef RBX_VM_TYPE_INFO_HPP
 #define RBX_VM_TYPE_INFO_HPP
 
+#include <stdlib.h>
 #include <map>
 #include <stdexcept>
 #include <vector>
@@ -15,6 +16,7 @@ namespace rubinius {
   class Class;
   class Object;
   class Memory;
+  class DataHeader;
   class ObjectHeader;
 
   namespace memory {
@@ -94,9 +96,18 @@ namespace rubinius {
     virtual void populate_slot_locations() { }
 
     /**
-     * Slow case, should be called only if instance_size is zero
+     * Objects whose size is static generate a entry in the types data
+     * structure for that size, which is accessed directly via the data
+     * structure instead of via a method call. Objects whose size is defined
+     * at runtime must implement this method.
      */
-    virtual size_t object_size(const ObjectHeader * obj);
+    virtual size_t object_size(const ObjectHeader* obj) {
+      ::abort();
+    }
+
+    virtual size_t object_size(const DataHeader* obj) {
+      ::abort();
+    }
 
     /**
      * Currently prints the same output as show_simple. Is specialized by

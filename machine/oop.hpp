@@ -280,6 +280,42 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     private:
   };
 
+  class DataHeader {
+    HeaderWord header;
+    void* __body__[0];
+
+  public:
+
+    ObjectFlags flags() const {
+      return header.f;
+    }
+
+    object_type type_id() const {
+      return flags().obj_type;
+    }
+
+    /* It's the slow case, should be called only if there's no cached
+     * instance size. */
+    size_t slow_size_in_bytes(VM* vm) const;
+
+    size_t size_in_bytes(VM* vm) const {
+      size_t size = TypeInfo::instance_sizes[type_id()];
+      if(size != 0) {
+        return size;
+      } else {
+        return slow_size_in_bytes(vm);
+      }
+    }
+
+    size_t body_in_bytes(VM* state) const {
+      return size_in_bytes(state) - sizeof(DataHeader);
+    }
+
+    void** pointer_to_body() {
+      return __body__;
+    }
+  };
+
   class ObjectHeader {
   private:
     HeaderWord header;

@@ -48,6 +48,7 @@
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
 #include "builtin/stat.hpp"
+#include "builtin/trie.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/proc.hpp"
@@ -266,6 +267,7 @@ namespace rubinius {
     JIT::bootstrap(state);
     CodeDB::bootstrap(state);
     Diagnostics::bootstrap(state);
+    Trie::bootstrap(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

@@ -120,6 +120,7 @@ field_extract_headers = %w[
   machine/builtin/jit.hpp
   machine/builtin/code_db.hpp
   machine/builtin/diagnostics.hpp
+  machine/builtin/trie.hpp
 ]
 
 transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__

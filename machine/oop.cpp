@@ -26,6 +26,10 @@ namespace rubinius {
                                      nw.flags64);
   }
 
+  size_t DataHeader::slow_size_in_bytes(VM* vm) const {
+    return vm->memory()->type_info[type_id()]->object_size(this);
+  }
+
   bool ObjectHeader::set_inflated_header(STATE, uint32_t ih_index, HeaderWord orig) {
 
     if(orig.f.meaning == eAuxWordInflated) return false;

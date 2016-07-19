@@ -808,7 +808,8 @@ class CPPParser
       "Float" => :Float,
       "Bignum" => :Bignum,
       "Hash" => :Hash,
-      "Channel" => :Channel
+      "Channel" => :Channel,
+      "DataHeader" => :DataHeader,
     }
 
   end
@@ -840,7 +841,9 @@ class CPPParser
 
     while l = f.gets
       next unless m = class_pattern.match(l)
-      if m[2] != "Object" and m[2] != "ObjectHeader"
+      if m[2] == "DataHeader"
+        cpp = CPPClass.new(m[1])
+      elsif m[2] != "Object" and m[2] != "ObjectHeader"
         # We've found a class definition that doesn't extend Object.
         # If we recognize the superclass, make a new CPPClass instance
         # for this class definition.
