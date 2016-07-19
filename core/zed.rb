@@ -1431,7 +1431,7 @@ module Kernel
     if undefined.equal? exc
       exc = $!
       exc = RuntimeError.new("No current exception") unless exc
-      exc.cause = cause unless exc.cause
+      exc.cause = cause unless exc.cause or exc == cause
     else
       if exc.respond_to? :exception
         if undefined.equal? msg
@@ -1446,8 +1446,8 @@ module Kernel
         raise ::TypeError, 'exception class/object expected'
       end
 
-      exc.cause = cause unless exc.cause
-      exc.cause = $! unless exc.cause
+      exc.cause = cause unless exc.cause or exc == cause
+      exc.cause = $! unless exc.cause or exc == $!
     end
 
     if ctx.kind_of? Array
