@@ -6,6 +6,7 @@
 #include "shared_state.hpp"
 #include "metrics.hpp"
 
+#include <thread>
 #include <sstream>
 
 namespace rubinius {
@@ -33,6 +34,13 @@ namespace memory {
     if(metrics::Metrics* metrics = shared_.metrics()) {
       metrics->add_historical_metrics(metrics_);
     }
+  }
+
+  void ManagedThread::set_name(STATE, const char* name) {
+    if(pthread_self() == os_thread_) {
+      utilities::thread::Thread::set_os_name(name);
+    }
+    name_.assign(name);
   }
 
   ManagedThread* ManagedThread::current() {

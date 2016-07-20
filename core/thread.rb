@@ -89,6 +89,24 @@ class Thread
     nil
   end
 
+  def name
+    Rubinius.primitive :thread_name
+    Kernel.raise PrimitiveFailure, "Thread#name primitive failed"
+  end
+
+  def name=(name)
+    return unless name
+
+    thread_name = StringValue(name)
+    unless thread_name.ascii_only?
+      Kernel.raise ArgumentError, "name must be ASCII only"
+    end
+
+    Rubinius.invoke_primitive :thread_set_name, self, thread_name
+
+    name
+  end
+
   def fiber_list
     Rubinius.primitive :thread_fiber_list
     Kernel.raise PrimitiveFailure, "Thread.fiber_list primitive failed"

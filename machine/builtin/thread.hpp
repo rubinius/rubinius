@@ -138,6 +138,12 @@ namespace rubinius {
 
     void fork(STATE);
 
+    // Rubinius.primitive :thread_name
+    Object* name(STATE);
+
+    // Rubinius.primitive :thread_set_name
+    Object* set_name(STATE, String* name);
+
     /**
      *  Retrieve the priority set for this Thread.
      *

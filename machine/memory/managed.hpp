@@ -1,6 +1,7 @@
 #ifndef RBX_GC_MANAGED_THREAD
 #define RBX_GC_MANAGED_THREAD
 
+#include "defines.hpp"
 #include "memory/slab.hpp"
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
@@ -119,6 +120,8 @@ namespace memory {
     std::string name() const {
       return name_;
     }
+
+    void set_name(STATE, const char* name);
 
     uint32_t thread_id() const {
       return id_;

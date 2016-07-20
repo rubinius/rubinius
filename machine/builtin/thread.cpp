@@ -411,6 +411,16 @@ namespace rubinius {
     return 0;
   }
 
+  Object* Thread::name(STATE) {
+    return String::create(state, vm()->name().c_str());
+  }
+
+  Object* Thread::set_name(STATE, String* name) {
+    vm()->set_name(state, name->c_str(state));
+
+    return name;
+  }
+
   void Thread::fork(STATE) {
     if(int error = start_thread(state, Thread::run)) {
       char buf[RBX_STRERROR_BUFSIZE];
