@@ -1692,6 +1692,7 @@ class IO
 
     io.mode       = mode || cur_mode
     io.sync       = !!sync
+    io.lineno     = 0 if io.lineno.nil?
 
     # FIXME - re-enable this somehow. Right now this breaks kernel/delta/io.rb when it
     # redefines STDIN/STDOUT/STDERR from the IO.open call. The new IO code has already
@@ -1720,7 +1721,6 @@ class IO
     fd = Rubinius::Type.coerce_to fd, Integer, :to_int
     autoclose = @autoclose
     IO.setup self, fd, mode
-    @lineno = 0
 
     binmode if binary
     set_encoding external, internal
