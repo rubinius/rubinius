@@ -186,6 +186,75 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     class Handle;
   }
 
+  struct MemoryFlags {
+#ifdef RBX_LITTLE_ENDIAN
+    // Header status flags
+    unsigned int forwarded        : 1;
+    unsigned int inflated         : 1;
+
+    // Memory flags
+    unsigned int thread_id        : 12;
+    unsigned int region           : 2;
+
+    // Garbage collector flags
+    unsigned int marked           : 2;
+    unsigned int scanned          : 1;
+
+    // Data type flags
+     object_type type_id          : 15;
+    unsigned int data             : 1;
+
+    // Memory object flags
+    unsigned int frozen           : 1;
+    unsigned int tainted          : 1;
+    unsigned int locked           : 1;
+    unsigned int inflated_lock    : 1;
+    unsigned int object_id        : 20;
+    unsigned int reserved         : 3;
+
+    // Graph flags
+    unsigned int visited          : 2;
+#else
+    // Graph flags
+    unsigned int visited          : 2;
+
+    unsigned int reserved         : 3;
+    unsigned int object_id        : 20;
+    unsigned int inflated_lock    : 1;
+    unsigned int locked           : 1;
+    unsigned int tainted          : 1;
+    unsigned int frozen           : 1;
+
+    // Data type flags
+    unsigned int data             : 1;
+     object_type type_id          : 15;
+
+    // Garbage collector flags
+    unsigned int scanned          : 1;
+    unsigned int marked           : 2;
+
+    // Memory flags
+    unsigned int region           : 2;
+    unsigned int thread_id        : 12;
+
+    // Header status flags
+    unsigned int inflated         : 1;
+    unsigned int forwarded        : 1;
+#endif
+  };
+
+  class MemoryHeader {
+    union {
+      struct MemoryFlags f;
+      uint64_t flags;
+    } header;
+
+  public:
+
+    object_type type_id() const {
+      return header.f.type_id;
+    }
+  };
 
   /**
    * An InflatedHeader is used on the infrequent occasions when an Object needs
@@ -280,20 +349,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     private:
   };
 
-  class DataHeader {
-    HeaderWord header;
+  class DataHeader : public MemoryHeader {
     void* __body__[0];
 
   public:
-
-    ObjectFlags flags() const {
-      return header.f;
-    }
-
-    object_type type_id() const {
-      return flags().obj_type;
-    }
-
     /* It's the slow case, should be called only if there's no cached
      * instance size. */
     size_t slow_size_in_bytes(VM* vm) const;
