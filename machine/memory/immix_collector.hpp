@@ -120,8 +120,8 @@ namespace memory {
     ImmixGC(Memory* om);
     virtual ~ImmixGC();
 
-    Object* allocate(uint32_t bytes, bool& collect_now);
-    Object* move_object(Object* orig, uint32_t bytes, bool& collect_now);
+    Object* allocate(size_t bytes, bool& collect_now);
+    Object* move_object(Object* orig, size_t bytes, bool& collect_now);
 
     virtual Object* saw_object(Object*);
     virtual void scanned_object(Object*);

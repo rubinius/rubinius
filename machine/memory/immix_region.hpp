@@ -16,7 +16,7 @@ namespace rubinius {
 namespace memory {
 
   /// Size of a Block; 32K, to match the size of a page of virtual memory
-  const uint32_t cBlockSize = 32768;
+  const size_t cBlockSize = 32768;
 
   /// Mask bits, used to align blocks at cBlockSize boundaries
   const uintptr_t cBlockMask = cBlockSize - 1;
@@ -24,12 +24,12 @@ namespace memory {
   /// Number of bits needed to hold the line size; used to derive cLineSize,
   /// and to calculate the number of lines an object of a given size would
   /// occupy.
-  const uint32_t cLineBits  = 7;
+  const size_t cLineBits  = 7;
 
   /// The size of a Line; should be a multiple of the processor cache line size,
   /// and sufficient to hold several typical objects; we use 128 bytes.
   /// @todo Check impact of different line sizes
-  const uint32_t cLineSize  = 1 << cLineBits;
+  const size_t cLineSize  = 1 << cLineBits;
 
   /// Line mask used to convert an objects Address to the Address of the start
   /// of the line.
@@ -37,16 +37,16 @@ namespace memory {
 
   /// Each block consists of an array of lines, known as the line table.
   /// The line table array is sized to fill the Block.
-  const uint32_t cLineTableSize = cBlockSize / cLineSize;
+  const size_t cLineTableSize = cBlockSize / cLineSize;
 
   /// Memory for blocks is allocated in chunks; these are set to be 10 MB, thus
   /// each chunk has space for 320 blocks.
-  const uint32_t cChunkSize = 10 * 1024 * 1024;
+  const size_t cChunkSize = 10 * 1024 * 1024;
 
   /// Number of Blocks that fit within a Chunk
-  const uint32_t cBlocksPerChunk = cChunkSize / cBlockSize;
+  const size_t cBlocksPerChunk = cChunkSize / cBlockSize;
 
-  const uint32_t cMaxObjectSize = cBlockSize - cLineSize; // one reserved line
+  const size_t cMaxObjectSize = cBlockSize - cLineSize; // one reserved line
 
   /// Objects above a certain number of lines in size are considered to be
   /// medium sized objects, which should be allocated only in free blocks.
@@ -54,7 +54,7 @@ namespace memory {
   /// recycled block rapidly diminishes as the number of lines increases,
   /// we don't bother searching partially free blocks if the size of the
   /// object is at or above this number of lines.
-  const uint32_t cMediumObjectLimit = cLineSize * 4; //< @todo calculate this
+  const size_t cMediumObjectLimit = cLineSize * 4; //< @todo calculate this
 
   /**
    * Enumeration of possible block states.
@@ -106,16 +106,16 @@ namespace memory {
 
     /// Number of holes in the block from which allocations can be made.
     /// A Block starts with one hole the size of the free memory in the block.
-    uint32_t holes_;
+    size_t holes_;
 
     /// Number of lines used in this Block
-    uint32_t lines_used_;
+    size_t lines_used_;
 
     /// Number of objects stored in this Blocks memory
-    uint32_t objects_;
+    size_t objects_;
 
     /// Number of bytes used by objects stored in this Blocks memory
-    uint32_t object_bytes_;
+    size_t object_bytes_;
 
     /// Map of in-use lines in the Block
     LineEntry lines_[cLineTableSize];
@@ -161,7 +161,7 @@ namespace memory {
      */
     void clear_memory() {
       Address start = address_;
-      for(uint32_t i = 0; i < cLineTableSize; ++i) {
+      for(size_t i = 0; i < cLineTableSize; ++i) {
         if(!lines_[i]) {
           memset((void*)start.address_, 0xFF, cLineSize);
         }
@@ -180,14 +180,14 @@ namespace memory {
      * Returns the size of the memory managed by this Block. All Blocks have
      * a fixed size.
      */
-    static uint32_t size() {
+    static size_t size() {
       return cBlockSize;
     }
 
     /**
      * Returns the number of holes in the Blocks memory.
      */
-    uint32_t holes() const {
+    size_t holes() const {
       return holes_;
     }
 
@@ -224,7 +224,7 @@ namespace memory {
     /**
      * Returns the number of lines in use in the Block.
      */
-    uint32_t lines_used() const {
+    size_t lines_used() const {
       return lines_used_;
     }
 
@@ -232,35 +232,35 @@ namespace memory {
      * Returns a count of the number of objects currently allocated in the
      * memory managed by this Block.
      */
-    uint32_t objects() const {
+    size_t objects() const {
       return objects_;
     }
 
     /**
      * Returns the number of bytes allocated to objects in this Block.
      */
-    uint32_t object_bytes() const {
+    size_t object_bytes() const {
       return object_bytes_;
     }
 
     /**
      * Marks a line of memory as in use.
      */
-    void mark_line(uint32_t line) {
+    void mark_line(size_t line) {
       marks_[line] = 1;
     }
 
     /**
      * Marks a line of memory as free.
      */
-    void free_line(uint32_t line) {
+    void free_line(size_t line) {
       marks_[line] = 0;
     }
 
     /**
      * Returns true if +line+ is currently free.
      */
-    bool is_line_free(uint32_t line) const {
+    bool is_line_free(size_t line) const {
       return lines_[line] == 0;
     }
 
@@ -268,14 +268,14 @@ namespace memory {
      * Returns the offset in bytes from the start of the block to the start of
      * the specified +line+.
      */
-    static uint32_t offset_of_line(uint32_t line) {
+    static size_t offset_of_line(size_t line) {
       return line * cLineSize;
     }
 
     /**
      * Returns the memory Address of the start of the specified line.
      */
-    Address address_of_line(uint32_t line) const {
+    Address address_of_line(size_t line) const {
       return address_ + (line * cLineSize);
     }
 
@@ -306,10 +306,10 @@ namespace memory {
      * bytes as being in use. This involves ensuring the line map records each
      * line occupied by the range as in use.
      */
-    void mark_address(Address addr, uint32_t size) {
+    void mark_address(Address addr, size_t size) {
       // Mark the line containing +addr+ as in use
       size_t offset = addr - address_;
-      uint32_t line = offset / cLineSize;
+      size_t line = offset / cLineSize;
       mark_line(line);
 
       // Next, determine how many lines this object is occupying.
@@ -320,10 +320,10 @@ namespace memory {
       if(size <= cLineSize) {
         if(line + 1 < cLineTableSize) mark_line(line + 1);
       } else {
-        uint32_t line_offset = (addr & cLineMask).as_int();
-        uint32_t additional_lines = ((line_offset + size - 1) >> cLineBits);
+        size_t line_offset = (addr & cLineMask).as_int();
+        size_t additional_lines = ((line_offset + size - 1) >> cLineBits);
 
-        for(uint32_t i = 1; i <= additional_lines; i++) {
+        for(size_t i = 1; i <= additional_lines; i++) {
           mark_line(line + i);
         }
       }
@@ -343,7 +343,7 @@ namespace memory {
       holes_ = 0;
       lines_used_ = 0;
       bool in_hole = false;
-      for(uint32_t i = 0; i < cLineTableSize; i++) {
+      for(size_t i = 0; i < cLineTableSize; i++) {
         if(marks_[i] == 0) {
           if(!in_hole) holes_++;
           in_hole = true;
@@ -368,7 +368,7 @@ namespace memory {
      * unavailable. This differs from object_bytes in that it includes the
      * cost of wasted bytes in lines that are only partially filled.
      */
-    uint32_t bytes_from_lines() const {
+    size_t bytes_from_lines() const {
       return lines_used_ * cLineSize;
     }
 
@@ -486,7 +486,7 @@ namespace memory {
 
       Address current = base_;
 
-      for(uint32_t index = 0; index < cBlocksPerChunk; index++) {
+      for(size_t index = 0; index < cBlocksPerChunk; index++) {
         Block& block = blocks_[index];
         block.set_address(current);
         BlockHeader* header = current.as<BlockHeader>();
@@ -498,7 +498,7 @@ namespace memory {
     /**
      * Returns a reference to the +index+-th block.
      */
-    Block& get_block(uint32_t index) {
+    Block& get_block(size_t index) {
       return blocks_[index];
     }
 
@@ -506,7 +506,7 @@ namespace memory {
      * Updates the stats (and status) for all Blocks in this Chunk.
      */
     void update_stats() {
-      for(uint32_t i = 0; i < cBlocksPerChunk; i++) {
+      for(size_t i = 0; i < cBlocksPerChunk; i++) {
         blocks_[i].update_stats();
       }
     }
@@ -565,7 +565,7 @@ namespace memory {
      * Callback called when the BlockAllocator allocates a new Chunk.
      * /param count The total number of chunks currently allocated.
      */
-    virtual void added_chunk(uint32_t count) = 0;
+    virtual void added_chunk(size_t count) = 0;
 
     /**
      * Callback called when the BlockAllocator is approaching the end of the
@@ -691,7 +691,7 @@ namespace memory {
         return current_chunk_->get_block(0);
       }
 
-      for(uint32_t i = block_cursor_; i < cBlocksPerChunk; i++) {
+      for(size_t i = block_cursor_; i < cBlocksPerChunk; i++) {
         Block& block = current_chunk_->get_block(i);
         if(block.status() == cFree) return block;
       }
@@ -769,7 +769,7 @@ namespace memory {
   protected:
     Address cursor_;
     Address limit_;
-    uint32_t hole_start_line_;
+    size_t hole_start_line_;
     Block* block_;
 
   public:
@@ -798,7 +798,7 @@ namespace memory {
      * Returns the current line the seach is at.
      * Used for testing.
      */
-    uint32_t hole_start_line() const {
+    size_t hole_start_line() const {
       return hole_start_line_;
     }
 
@@ -853,7 +853,7 @@ namespace memory {
      * Note: Relies on caller to determine that +size+ is valid, and will fit
      * the current hole.
      */
-    Address bump(uint32_t size) {
+    Address bump(size_t size) {
       Address alloc = cursor_;
       cursor_ += size;
       return alloc;
@@ -870,7 +870,7 @@ namespace memory {
   class ImmixAllocator {
   public:
     virtual ~ImmixAllocator() {}
-    virtual Address allocate(uint32_t bytes, bool& collect_now) = 0;
+    virtual Address allocate(size_t bytes, bool& collect_now) = 0;
   };
 
 
@@ -896,7 +896,7 @@ namespace memory {
      * @returns the Address allocated, or a null address if no space is
      * available.
      */
-    Address allocate(uint32_t size, bool& collect_now) {
+    Address allocate(size_t size, bool& collect_now) {
       while(cursor_ + size > limit_) {
         if(!find_hole()) {
           collect_now = true;
@@ -1002,7 +1002,7 @@ namespace memory {
      * If unsuccessful at finding space in the current Block memory, a new
      * Block is obtained from the BlockAllocator.
      */
-    Address allocate(uint32_t size, bool& collect_now) {
+    Address allocate(size_t size, bool& collect_now) {
       if(size > cMediumObjectLimit) {
         declines_++;
         return Address::null();
@@ -1205,7 +1205,7 @@ namespace memory {
     /**
      * Notify the garbage collector that we have added a new Chunk.
      */
-    void added_chunk(uint32_t count) {
+    void added_chunk(size_t count) {
       desc.added_chunk(count);
     }
 

@@ -130,7 +130,7 @@ namespace memory {
     return obj->in_immix_p();
   }
 
-  Object* ImmixGC::allocate(uint32_t bytes, bool& collect_now) {
+  Object* ImmixGC::allocate(size_t bytes, bool& collect_now) {
     if(bytes > cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
@@ -142,7 +142,7 @@ namespace memory {
     return obj;
   }
 
-  Object* ImmixGC::move_object(Object* orig, uint32_t bytes, bool& collect_now) {
+  Object* ImmixGC::move_object(Object* orig, size_t bytes, bool& collect_now) {
     if(bytes > cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
