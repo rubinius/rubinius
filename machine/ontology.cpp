@@ -998,6 +998,9 @@ namespace rubinius {
 #ifdef ERFKILL
     set_syserr(ERFKILL, "ERFKILL");
 #endif
+#ifdef ENOTSUP
+    set_syserr(ENOTSUP, "ENOTSUP");
+#endif
 
   }
 };
