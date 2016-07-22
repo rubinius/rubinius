@@ -26,7 +26,7 @@ namespace rubinius {
                                      nw.flags64);
   }
 
-  size_t DataHeader::slow_size_in_bytes(VM* vm) const {
+  size_t DataHeader::compute_size_in_bytes(VM* vm) const {
     return vm->memory()->type_info[type_id()]->object_size(this);
   }
 

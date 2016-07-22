@@ -186,7 +186,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     class Handle;
   }
 
-  struct MemoryFlags {
+  typedef struct MemoryFlags {
 #ifdef RBX_LITTLE_ENDIAN
     // Header status flags
     unsigned int forwarded        : 1;
@@ -208,8 +208,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int frozen           : 1;
     unsigned int tainted          : 1;
     unsigned int locked           : 1;
-    unsigned int inflated_lock    : 1;
-    unsigned int object_id        : 20;
+    unsigned int locked_count     : 4;
+    unsigned int lock_inflated    : 1;
+    unsigned int object_id        : 16;
     unsigned int reserved         : 3;
 
     // Graph flags
@@ -219,8 +220,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int visited          : 2;
 
     unsigned int reserved         : 3;
-    unsigned int object_id        : 20;
-    unsigned int inflated_lock    : 1;
+    unsigned int object_id        : 16;
+    unsigned int lock_inflated    : 1;
+    unsigned int locked_count     : 4;
     unsigned int locked           : 1;
     unsigned int tainted          : 1;
     unsigned int frozen           : 1;
@@ -241,18 +243,132 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int inflated         : 1;
     unsigned int forwarded        : 1;
 #endif
+  } MemoryFlags;
+
+  class InflatedHeaderWord {
+  };
+
+  struct InflatedHeaderNg {
+    MemoryFlags header;
+    int size;
+    InflatedHeaderWord words[0];
+
+    /*
+      use lowest 3 bits (7 total) as tag for kind of object at that slot:
+      A - object_id
+      B - graph_id
+      C - recursive mutex
+      D - C-API handle
+      */
   };
 
   class MemoryHeader {
     union {
-      struct MemoryFlags f;
-      uint64_t flags;
+      MemoryFlags f;
+      uintptr_t flags;
     } header;
 
   public:
 
+    static void initialize(MemoryHeader* obj) {
+      obj->header.flags = 0;
+    }
+
+    bool forwarded_p() const {
+      return header.f.forwarded;
+    }
+
+    bool inflated_p() const {
+      return header.f.inflated;
+    }
+
+#define RBX_INFLATED_HEADER_MASK    0x7L
+#define RBX_INFLATED_HEADER_BIT     0x2L
+
+    MemoryFlags& inflated_header() const {
+      return reinterpret_cast<InflatedHeaderNg*>(
+          header.flags & ~RBX_INFLATED_HEADER_MASK)->header;
+    }
+
+    int thread_id() const {
+      if(inflated_p()) return inflated_header().thread_id;
+      return header.f.thread_id;
+    }
+
+    int region() const {
+      if(inflated_p()) return inflated_header().region;
+      return header.f.region;
+    }
+
+    bool marked_p(unsigned int mark) const {
+      if(inflated_p()) return inflated_header().marked == mark;
+      return header.f.marked == mark;
+    }
+
+    void mark(unsigned int mark) {
+      if(inflated_p()) {
+        inflated_header().marked = mark;
+      } else {
+        header.f.marked = mark;
+      }
+    }
+
+    void mark_ts(unsigned int mark) {
+    }
+
+    bool scanned_p() const {
+      if(inflated_p()) return inflated_header().scanned;
+      return header.f.scanned;
+    }
+
     object_type type_id() const {
+      if(inflated_p()) return inflated_header().type_id;
       return header.f.type_id;
+    }
+
+    void type_id(object_type type) {
+      header.f.type_id = type;
+    }
+
+    bool data_p() const {
+      if(inflated_p()) return inflated_header().data;
+      return header.f.data;
+    }
+
+    bool object_p() const {
+      if(inflated_p()) return !inflated_header().data;
+      return !header.f.data;
+    }
+
+    bool reference_p() const {
+      return __REFERENCE_P__(this);
+    }
+
+    bool frozen_p() const {
+      if(inflated_p()) return inflated_header().frozen;
+      return header.f.frozen;
+    }
+
+    bool tainted_p() const {
+      if(inflated_p()) return inflated_header().tainted;
+      return header.f.tainted;
+    }
+
+    bool locked_p(STATE) const {
+      if(inflated_p()) return inflated_header().locked;
+      // TODO: MemoryHeader
+      return false;
+    }
+
+    bool lock_inflated_p() const {
+      if(inflated_p()) return inflated_header().lock_inflated;
+      return header.f.lock_inflated;
+    }
+
+    uint64_t object_id() const {
+      if(inflated_p()) return inflated_header().object_id;
+      // TODO: MemoryHeader
+      return header.f.object_id;
     }
   };
 
@@ -350,19 +466,47 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   };
 
   class DataHeader : public MemoryHeader {
+    // Provides access to bytes beyond the header without reserving memory.
     void* __body__[0];
 
   public:
-    /* It's the slow case, should be called only if there's no cached
-     * instance size. */
-    size_t slow_size_in_bytes(VM* vm) const;
+
+    DataHeader() = delete;
+    DataHeader(const DataHeader&) = delete;
+    DataHeader& operator= (const DataHeader&) = delete;
+
+    ~DataHeader() = delete;
+
+    static void initialize(DataHeader* obj) {
+      MemoryHeader::initialize(obj);
+    }
+
+    static size_t align(size_t bytes) {
+      return (bytes + (sizeof(MemoryHeader*) - 1)) & ~(sizeof(MemoryHeader*) - 1);
+    }
+
+    static size_t bytes_to_fields(size_t bytes) {
+      return (bytes - sizeof(DataHeader)) / sizeof(Object*);
+    }
+
+    // Called when the memory size is not static.
+    size_t compute_size_in_bytes(VM* vm) const;
 
     size_t size_in_bytes(VM* vm) const {
       size_t size = TypeInfo::instance_sizes[type_id()];
       if(size != 0) {
         return size;
       } else {
-        return slow_size_in_bytes(vm);
+        return compute_size_in_bytes(vm);
+      }
+    }
+
+    void initialize_fields(native_int bytes) {
+      void** fields = __body__;
+      native_int field_count = bytes_to_fields(bytes);
+
+      for(native_int i = 0; i < field_count; i++) {
+        fields[i] = cNil;
       }
     }
 
@@ -389,9 +533,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     attr_accessor(ivars, Object);
 
   private:
-    // Defined so ObjectHeader can easily access the data just beyond
-    // it.
+    // Provides access to bytes beyond the header without reserving memory.
     void* __body__[0];
+
+  public:
+    ObjectHeader() = delete;
+    ObjectHeader(const ObjectHeader&) = delete;
+    ObjectHeader& operator= (const ObjectHeader&) = delete;
+
+    ~ObjectHeader() = delete;
 
   public:
 
@@ -716,14 +866,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     friend class TypeInfo;
     friend class Memory;
-
-  private:
-    // Define these as private and without implementation so we
-    // don't accidently let C++ create them.
-    ObjectHeader();
-    ~ObjectHeader();
-    ObjectHeader(const ObjectHeader&);
-    ObjectHeader& operator= (const ObjectHeader&);
   };
 }
 
