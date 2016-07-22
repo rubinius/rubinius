@@ -29,6 +29,14 @@ module Rubinius
         asc = values[3]
         is_float = values[4]
 
+        if limit == Float::INFINITY
+          if step == Float::INFINITY
+            return 1
+          else
+            return Float::INFINITY
+          end
+        end
+
         return Float::INFINITY if step == 0
 
         if is_float
