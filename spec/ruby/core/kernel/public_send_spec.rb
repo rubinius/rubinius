@@ -70,11 +70,11 @@ describe "Kernel#public_send" do
     end
 
     it "raises a NoMethodError if the method is protected" do
-      -> { @receiver.call_protected_method }.should raise_error(NoMethodError)
+      lambda { @receiver.call_protected_method }.should raise_error(NoMethodError)
     end
 
     it "raises a NoMethodError if the method is private" do
-      -> { @receiver.call_private_method }.should raise_error(NoMethodError)
+      lambda { @receiver.call_private_method }.should raise_error(NoMethodError)
     end
   end
 
