@@ -1,6 +1,7 @@
 #ifndef RBX_VM_OOP_HPP
 #define RBX_VM_OOP_HPP
 
+#include <atomic>
 #include <stddef.h>
 #include <stdint.h>
 #include <assert.h>
@@ -186,70 +187,193 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     class Handle;
   }
 
-  typedef struct MemoryFlags {
-#ifdef RBX_LITTLE_ENDIAN
-    // Header status flags
-    unsigned int forwarded        : 1;
-    unsigned int inflated         : 1;
+  /* For clarity, using a struct of bitfields is desirable. However, there are
+   * two critical downsides: 1. the C/C++ standards leave packing of struct
+   * elements to the implementation of the C/C++ compiler; and 2. endianness
+   * requires either mirroring the bitfield layout, or using endian-specific
+   * constant values.
+   *
+   * The latter is a significant nuisance, while the former is fatal. We must
+   * both be able to ensure that the bitfields fit into a defined amount of
+   * memory and we need that to fit into a machine word so that
+   * compare_exchange operations are lock-free.
+   *
+   * The following struct with bitfields is provided for clarity and assumes
+   * little endian architecture. The macros that implement the header
+   * operations use simple integral values and are the same regardless of
+   * endianness (but obviously, the actual memory layout of these values would
+   * depend on the endianness of the particular platform).
+   *
+   * This ordering of fields is rather arbitrary. They are grouped by function
+   * to provide clarity.
+   *
+   *   typedef struct MemoryFlags {
+   *     // Header status flags
+   *     unsigned int forwarded        : 1;
+   *     unsigned int inflated         : 1;
+   *
+   *     // Memory flags
+   *     unsigned int thread_id        : 12;
+   *     unsigned int region           : 2;
+   *
+   *     // Garbage collector flags
+   *     unsigned int marked           : 2;
+   *     unsigned int scanned          : 1;
+   *
+   *     // Data type flags
+   *      object_type type_id          : 15;
+   *     unsigned int data             : 1;
+   *
+   *     // Memory object flags
+   *     unsigned int frozen           : 1;
+   *     unsigned int tainted          : 1;
+   *     unsigned int bias_locked      : 1;
+   *     unsigned int locked_count     : 4;
+   *     unsigned int lock_inflated    : 1;
+   *     unsigned int object_id        : 16;
+   *     unsigned int reserved         : 3;
+   *
+   *     // Graph flags
+   *     unsigned int visited          : 2;
+   *   } MemoryFlags;
+   */
 
-    // Memory flags
-    unsigned int thread_id        : 12;
-    unsigned int region           : 2;
+#define RBX_MEMORY_UNSET_BIT(b,f)           (f & ~(RBX_MEMORY_ ## b ## _MASK))
+#define RBX_MEMORY_SET_BIT(b,f)             (f | RBX_MEMORY_ ## b ## _BIT)
+#define RBX_MEMORY_GET_BIT(b,f)             (!!(f & RBX_MEMORY_ ## b ## _BIT))
 
-    // Garbage collector flags
-    unsigned int marked           : 2;
-    unsigned int scanned          : 1;
+#define RBX_MEMORY_SET_FIELD(b,f,v)         (f | (((v & RBX_MEMORY_ ## b ## _VALUE_MASK) \
+                                              << RBX_MEMORY_ ## b ## _SHIFT) \
+                                              & RBX_MEMORY_ ## b ## _BIT_MASK))
+#define RBX_MEMORY_GET_FIELD(b,f)           (((f & RBX_MEMORY_ ## b ## _BIT_MASK) \
+                                              >> RBX_MEMORY_ ## b ## _SHIFT) \
+                                              & RBX_MEMORY_ ## b ## _VALUE_MASK)
 
-    // Data type flags
-     object_type type_id          : 15;
-    unsigned int data             : 1;
+#define RBX_MEMORY_FORWARDED_BIT            1L
+#define RBX_MEMORY_FORWARDED_MASK           1L
 
-    // Memory object flags
-    unsigned int frozen           : 1;
-    unsigned int tainted          : 1;
-    unsigned int locked           : 1;
-    unsigned int locked_count     : 4;
-    unsigned int lock_inflated    : 1;
-    unsigned int object_id        : 16;
-    unsigned int reserved         : 3;
+#define RBX_MEMORY_FORWARDED_P(f)           RBX_MEMORY_GET_BIT(FORWARDED,f)
+#define RBX_MEMORY_SET_FORWARDED(f)         RBX_MEMORY_SET_BIT(FORWARDED,f)
+#define RBX_MEMORY_UNSET_FORWARDED(f)       RBX_MEMORY_UNSET_BIT(FORWARDED,f)
 
-    // Graph flags
-    unsigned int visited          : 2;
-#else
-    // Graph flags
-    unsigned int visited          : 2;
+#define RBX_MEMORY_INFLATED_BIT             (1L << 1)
+#define RBX_MEMORY_INFLATED_MASK            (1L << 1)
 
-    unsigned int reserved         : 3;
-    unsigned int object_id        : 16;
-    unsigned int lock_inflated    : 1;
-    unsigned int locked_count     : 4;
-    unsigned int locked           : 1;
-    unsigned int tainted          : 1;
-    unsigned int frozen           : 1;
+#define RBX_MEMORY_INFLATED_P(f)            RBX_MEMORY_GET_BIT(INFLATED,f)
+#define RBX_MEMORY_SET_INFLATED(f)          RBX_MEMORY_SET_BIT(INFLATED,f)
+#define RBX_MEMORY_UNSET_INFLATED(f)        RBX_MEMORY_UNSET_BIT(INFLATED,f)
 
-    // Data type flags
-    unsigned int data             : 1;
-     object_type type_id          : 15;
+#define RBX_MEMORY_HEADER_MASK              (~0x7L)
 
-    // Garbage collector flags
-    unsigned int scanned          : 1;
-    unsigned int marked           : 2;
+#define RBX_MEMORY_HEADER_PTR(f)            (f & RBX_MEMORY_HEADER_MASK)
 
-    // Memory flags
-    unsigned int region           : 2;
-    unsigned int thread_id        : 12;
+#define RBX_MEMORY_THREAD_ID_SHIFT          2
+#define RBX_MEMORY_THREAD_ID_VALUE_MASK     0xfffL
+#define RBX_MEMORY_THREAD_ID_BIT_MASK       (((1L << 12) - 1) << RBX_MEMORY_THREAD_ID_SHIFT)
 
-    // Header status flags
-    unsigned int inflated         : 1;
-    unsigned int forwarded        : 1;
-#endif
-  } MemoryFlags;
+#define RBX_MEMORY_SET_THREAD_ID(f,v)       RBX_MEMORY_SET_FIELD(THREAD_ID,f,v)
+#define RBX_MEMORY_GET_THREAD_ID(f)         RBX_MEMORY_GET_FIELD(THREAD_ID,f)
+
+#define RBX_MEMORY_REGION_SHIFT             14
+#define RBX_MEMORY_REGION_VALUE_MASK        0x3L
+#define RBX_MEMORY_REGION_BIT_MASK          (((1L << 2) - 1) << RBX_MEMORY_REGION_SHIFT)
+
+#define RBX_MEMORY_SET_REGION(f,v)          RBX_MEMORY_SET_FIELD(REGION,f,v)
+#define RBX_MEMORY_GET_REGION(f)            RBX_MEMORY_GET_FIELD(REGION,f)
+
+#define RBX_MEMORY_MARKED_SHIFT             16
+#define RBX_MEMORY_MARKED_VALUE_MASK        0x3L
+#define RBX_MEMORY_MARKED_BIT_MASK          (((1L << 2) - 1) << RBX_MEMORY_MARKED_SHIFT)
+
+#define RBX_MEMORY_SET_MARKED(f,v)          RBX_MEMORY_SET_FIELD(MARKED,f,v)
+#define RBX_MEMORY_GET_MARKED(f)            RBX_MEMORY_GET_FIELD(MARKED,f)
+
+#define RBX_MEMORY_SCANNED_BIT              (1L << 18)
+#define RBX_MEMORY_SCANNED_MASK             (1L << 18)
+
+#define RBX_MEMORY_SCANNED_P(f)             RBX_MEMORY_GET_BIT(SCANNED,f)
+#define RBX_MEMORY_SET_SCANNED(f)           RBX_MEMORY_SET_BIT(SCANNED,f)
+#define RBX_MEMORY_UNSET_SCANNED(f)         RBX_MEMORY_UNSET_BIT(SCANNED,f)
+
+#define RBX_MEMORY_TYPE_ID_SHIFT            19
+#define RBX_MEMORY_TYPE_ID_VALUE_MASK       0x7fffL
+#define RBX_MEMORY_TYPE_ID_BIT_MASK         (((1L << 15) - 1) << RBX_MEMORY_TYPE_ID_SHIFT)
+
+#define RBX_MEMORY_SET_TYPE_ID(f,v)         RBX_MEMORY_SET_FIELD(TYPE_ID,f,v)
+#define RBX_MEMORY_GET_TYPE_ID(f)           RBX_MEMORY_GET_FIELD(TYPE_ID,f)
+
+#define RBX_MEMORY_DATA_BIT                 (1L << 34)
+#define RBX_MEMORY_DATA_MASK                (1L << 34)
+
+#define RBX_MEMORY_DATA_P(f)                RBX_MEMORY_GET_BIT(DATA,f)
+#define RBX_MEMORY_SET_DATA(f)              RBX_MEMORY_SET_BIT(DATA,f)
+#define RBX_MEMORY_UNSET_DATA(f)            RBX_MEMORY_UNSET_BIT(DATA,f)
+
+#define RBX_MEMORY_FROZEN_BIT               (1L << 35)
+#define RBX_MEMORY_FROZEN_MASK              (1L << 35)
+
+#define RBX_MEMORY_FROZEN_P(f)              RBX_MEMORY_GET_BIT(FROZEN,f)
+#define RBX_MEMORY_SET_FROZEN(f)            RBX_MEMORY_SET_BIT(FROZEN,f)
+#define RBX_MEMORY_UNSET_FROZEN(f)          RBX_MEMORY_UNSET_BIT(FROZEN,f)
+
+#define RBX_MEMORY_TAINTED_BIT              (1L << 36)
+#define RBX_MEMORY_TAINTED_MASK             (1L << 36)
+
+#define RBX_MEMORY_TAINTED_P(f)              RBX_MEMORY_GET_BIT(TAINTED,f)
+#define RBX_MEMORY_SET_TAINTED(f)            RBX_MEMORY_SET_BIT(TAINTED,f)
+#define RBX_MEMORY_UNSET_TAINTED(f)          RBX_MEMORY_UNSET_BIT(TAINTED,f)
+
+#define RBX_MEMORY_BIAS_LOCKED_BIT          (1L << 37)
+#define RBX_MEMORY_BIAS_LOCKED_MASK         (1L << 37)
+
+#define RBX_MEMORY_BIAS_LOCKED_P(f)         RBX_MEMORY_GET_BIT(BIAS_LOCKED,f)
+#define RBX_MEMORY_SET_BIAS_LOCKED(f)       RBX_MEMORY_SET_BIT(BIAS_LOCKED,f)
+#define RBX_MEMORY_UNSET_BIAS_LOCKED(f)     RBX_MEMORY_UNSET_BIT(BIAS_LOCKED,f)
+
+#define RBX_MEMORY_LOCKED_COUNT_SHIFT       38
+#define RBX_MEMORY_LOCKED_COUNT_VALUE_MASK  0xfL
+#define RBX_MEMORY_LOCKED_COUNT_BIT_MASK    (((1L << 4) - 1) << RBX_MEMORY_LOCKED_COUNT_SHIFT)
+
+#define RBX_MEMORY_SET_LOCKED_COUNT(f,v)    RBX_MEMORY_SET_FIELD(LOCKED_COUNT,f,v)
+#define RBX_MEMORY_GET_LOCKED_COUNT(f)      RBX_MEMORY_GET_FIELD(LOCKED_COUNT,f)
+
+#define RBX_MEMORY_LOCK_INFLATED_BIT        (1L << 42)
+#define RBX_MEMORY_LOCK_INFLATED_MASK       (1L << 42)
+
+#define RBX_MEMORY_LOCK_INFLATED_P(f)       RBX_MEMORY_GET_BIT(LOCK_INFLATED,f)
+#define RBX_MEMORY_SET_LOCK_INFLATED(f)     RBX_MEMORY_SET_BIT(LOCK_INFLATED,f)
+#define RBX_MEMORY_UNSET_LOCK_INFLATED(f)   RBX_MEMORY_UNSET_BIT(LOCK_INFLATED,f)
+
+#define RBX_MEMORY_OBJECT_ID_SHIFT          43
+#define RBX_MEMORY_OBJECT_ID_VALUE_MASK     0xffffL
+#define RBX_MEMORY_OBJECT_ID_BIT_MASK       (((1L << 16) - 1) << RBX_MEMORY_OBJECT_ID_SHIFT)
+
+#define RBX_MEMORY_SET_OBJECT_ID(f,v)       RBX_MEMORY_SET_FIELD(OBJECT_ID,f,v)
+#define RBX_MEMORY_GET_OBJECT_ID(f)         RBX_MEMORY_GET_FIELD(OBJECT_ID,f)
+
+#define RBX_MEMORY_RESERVED_SHIFT           59
+#define RBX_MEMORY_RESERVED_VALUE_MASK      0x7L
+#define RBX_MEMORY_RESERVED_BIT_MASK        (((1L << 3) - 1) << RBX_MEMORY_RESERVED_SHIFT)
+
+#define RBX_MEMORY_SET_RESERVED(f,v)        RBX_MEMORY_SET_FIELD(RESERVED,f,v)
+#define RBX_MEMORY_GET_RESERVED(f)          RBX_MEMORY_GET_FIELD(RESERVED,f)
+
+#define RBX_MEMORY_VISITED_SHIFT            62
+#define RBX_MEMORY_VISITED_VALUE_MASK       0x3L
+#define RBX_MEMORY_VISITED_BIT_MASK         (((1L << 2) - 1) << RBX_MEMORY_VISITED_SHIFT)
+
+#define RBX_MEMORY_SET_VISITED(f,v)         RBX_MEMORY_SET_FIELD(VISITED,f,v)
+#define RBX_MEMORY_GET_VISITED(f)           RBX_MEMORY_GET_FIELD(VISITED,f)
+
+
+  // A machine word so that compare_exchange is lock-free. We assume 64-bit;
+  typedef uintptr_t MemoryFlags;
 
   class InflatedHeaderWord {
   };
 
   struct InflatedHeaderNg {
-    MemoryFlags header;
+    MemoryFlags flags;
     int size;
     InflatedHeaderWord words[0];
 
@@ -260,84 +384,105 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       C - recursive mutex
       D - C-API handle
       */
+    size_t object_id() {
+      // TODO: check object_id overflow
+      return RBX_MEMORY_GET_OBJECT_ID(flags);
+    }
   };
 
   class MemoryHeader {
-    union {
-      MemoryFlags f;
-      uintptr_t flags;
-    } header;
-
   public:
+    std::atomic<MemoryFlags> header;
 
-    static void initialize(MemoryHeader* obj) {
-      obj->header.flags = 0;
+    static void initialize(STATE, MemoryHeader* obj) {
+      obj->header.store(0L);
+    }
+
+    InflatedHeaderNg* inflated_header() const {
+      return const_cast<InflatedHeaderNg*>(
+          reinterpret_cast<const InflatedHeaderNg*>(RBX_MEMORY_HEADER_PTR(header.load())));
     }
 
     bool forwarded_p() const {
-      return header.f.forwarded;
+      return RBX_MEMORY_FORWARDED_P(header.load());
     }
 
     bool inflated_p() const {
-      return header.f.inflated;
-    }
-
-#define RBX_INFLATED_HEADER_MASK    0x7L
-#define RBX_INFLATED_HEADER_BIT     0x2L
-
-    MemoryFlags& inflated_header() const {
-      return reinterpret_cast<InflatedHeaderNg*>(
-          header.flags & ~RBX_INFLATED_HEADER_MASK)->header;
+      return RBX_MEMORY_INFLATED_P(header.load());
     }
 
     int thread_id() const {
-      if(inflated_p()) return inflated_header().thread_id;
-      return header.f.thread_id;
+      if(inflated_p()) {
+        return RBX_MEMORY_GET_THREAD_ID(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_GET_THREAD_ID(header.load());
     }
 
     int region() const {
-      if(inflated_p()) return inflated_header().region;
-      return header.f.region;
+      if(inflated_p()) {
+        return RBX_MEMORY_GET_REGION(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_GET_REGION(header.load());
     }
 
     bool marked_p(unsigned int mark) const {
-      if(inflated_p()) return inflated_header().marked == mark;
-      return header.f.marked == mark;
+      if(inflated_p()) {
+        return RBX_MEMORY_GET_MARKED(inflated_header()->flags) == mark;
+      }
+
+      return RBX_MEMORY_GET_MARKED(header.load()) == mark;
     }
 
     void mark(unsigned int mark) {
       if(inflated_p()) {
-        inflated_header().marked = mark;
+          RBX_MEMORY_SET_MARKED(inflated_header()->flags, mark);
       } else {
-        header.f.marked = mark;
+        header.store(RBX_MEMORY_SET_MARKED(header.load(), mark));
       }
     }
 
-    void mark_ts(unsigned int mark) {
-    }
-
     bool scanned_p() const {
-      if(inflated_p()) return inflated_header().scanned;
-      return header.f.scanned;
+      if(inflated_p()) {
+        return RBX_MEMORY_SCANNED_P(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_SCANNED_P(header.load());
     }
 
     object_type type_id() const {
-      if(inflated_p()) return inflated_header().type_id;
-      return header.f.type_id;
+      if(inflated_p()) {
+        return static_cast<object_type>(
+            RBX_MEMORY_GET_TYPE_ID(inflated_header()->flags));
+      }
+
+      return static_cast<object_type>(RBX_MEMORY_GET_TYPE_ID(header.load()));
     }
 
     void type_id(object_type type) {
-      header.f.type_id = type;
+      if(inflated_p()) {
+        inflated_header()->flags =
+          RBX_MEMORY_SET_TYPE_ID(inflated_header()->flags, type);
+      } else {
+        header.store(RBX_MEMORY_SET_TYPE_ID(header.load(), type));
+      }
     }
 
     bool data_p() const {
-      if(inflated_p()) return inflated_header().data;
-      return header.f.data;
+      if(inflated_p()) {
+        return RBX_MEMORY_DATA_P(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_DATA_P(header.load());
     }
 
     bool object_p() const {
-      if(inflated_p()) return !inflated_header().data;
-      return !header.f.data;
+      if(inflated_p()) {
+        return !RBX_MEMORY_DATA_P(inflated_header()->flags);
+      }
+
+      return !RBX_MEMORY_DATA_P(header.load());
     }
 
     bool reference_p() const {
@@ -345,30 +490,67 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool frozen_p() const {
-      if(inflated_p()) return inflated_header().frozen;
-      return header.f.frozen;
+      if(inflated_p()) {
+        return RBX_MEMORY_FROZEN_P(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_FROZEN_P(header.load());
     }
 
     bool tainted_p() const {
-      if(inflated_p()) return inflated_header().tainted;
-      return header.f.tainted;
-    }
+      if(inflated_p()) {
+        return RBX_MEMORY_TAINTED_P(inflated_header()->flags);
+      }
 
-    bool locked_p(STATE) const {
-      if(inflated_p()) return inflated_header().locked;
-      // TODO: MemoryHeader
-      return false;
+      return RBX_MEMORY_TAINTED_P(header.load());
     }
 
     bool lock_inflated_p() const {
-      if(inflated_p()) return inflated_header().lock_inflated;
-      return header.f.lock_inflated;
+      if(inflated_p()) {
+        return RBX_MEMORY_LOCK_INFLATED_P(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_LOCK_INFLATED_P(header.load());
     }
 
-    uint64_t object_id() const {
-      if(inflated_p()) return inflated_header().object_id;
-      // TODO: MemoryHeader
-      return header.f.object_id;
+    size_t object_id() const {
+      if(inflated_p()) return inflated_header()->object_id();
+
+      return RBX_MEMORY_GET_OBJECT_ID(header.load());
+    }
+
+    unsigned int reserved() {
+      if(inflated_p()) {
+        return RBX_MEMORY_GET_RESERVED(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_GET_RESERVED(header.load());
+    }
+
+    void reserved(unsigned int value) {
+      if(inflated_p()) {
+        inflated_header()->flags =
+          RBX_MEMORY_SET_RESERVED(inflated_header()->flags, value);
+      } else {
+        header.store(RBX_MEMORY_SET_RESERVED(header.load(), value));
+      }
+    }
+
+    void visited(int flag) {
+      if(inflated_p()) {
+        inflated_header()->flags =
+          RBX_MEMORY_SET_VISITED(inflated_header()->flags, flag);
+      } else {
+        header.store(RBX_MEMORY_SET_VISITED(header.load(), flag));
+      }
+    }
+
+    bool visited_p(int flag) {
+      if(inflated_p()) {
+        return RBX_MEMORY_GET_VISITED(inflated_header()->flags) == flag;
+      }
+
+      return RBX_MEMORY_GET_VISITED(header.load()) == flag;
     }
   };
 
@@ -477,8 +659,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     ~DataHeader() = delete;
 
-    static void initialize(DataHeader* obj) {
-      MemoryHeader::initialize(obj);
+    static void initialize(STATE, DataHeader* obj) {
+      MemoryHeader::initialize(state, obj);
     }
 
     static size_t align(size_t bytes) {
