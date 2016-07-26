@@ -18,9 +18,8 @@
 
 namespace rubinius {
 
-/* We use a variable length OOP tag system:
- * The tag represents 1 to 3 bits which uniquely
- * identify a data type.
+/* We use a variable length pointer tag system: The tag represents 1 to 3 bits
+ * which uniquely identify a data type.
  *
  *   1 == rest is a fixnum
  *  00 == rest is an object reference
@@ -31,17 +30,17 @@ namespace rubinius {
  * updated in the configure script.
 */
 
-#define TAG_REF          0x0
+#define TAG_REF          0x0L
 #define TAG_REF_MASK     3
 #define TAG_REF_WIDTH    2
 
-#define TAG_FIXNUM       0x1
+#define TAG_FIXNUM       0x1L
 #define TAG_FIXNUM_SHIFT 1
 #define TAG_FIXNUM_MASK  1
 
-#define TAG_BOOL         0x2
+#define TAG_BOOL         0x2L
 
-#define TAG_SYMBOL       0x6
+#define TAG_SYMBOL       0x6L
 #define TAG_SYMBOL_SHIFT 3
 #define TAG_SYMBOL_MASK  7
 
@@ -319,9 +318,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define RBX_MEMORY_TAINTED_BIT              (1L << 36)
 #define RBX_MEMORY_TAINTED_MASK             (1L << 36)
 
-#define RBX_MEMORY_TAINTED_P(f)              RBX_MEMORY_GET_BIT(TAINTED,f)
-#define RBX_MEMORY_SET_TAINTED(f)            RBX_MEMORY_SET_BIT(TAINTED,f)
-#define RBX_MEMORY_UNSET_TAINTED(f)          RBX_MEMORY_UNSET_BIT(TAINTED,f)
+#define RBX_MEMORY_TAINTED_P(f)             RBX_MEMORY_GET_BIT(TAINTED,f)
+#define RBX_MEMORY_SET_TAINTED(f)           RBX_MEMORY_SET_BIT(TAINTED,f)
+#define RBX_MEMORY_UNSET_TAINTED(f)         RBX_MEMORY_UNSET_BIT(TAINTED,f)
 
 #define RBX_MEMORY_BIAS_LOCKED_BIT          (1L << 37)
 #define RBX_MEMORY_BIAS_LOCKED_MASK         (1L << 37)
@@ -394,13 +393,34 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   public:
     std::atomic<MemoryFlags> header;
 
-    static void initialize(STATE, MemoryHeader* obj) {
-      obj->header.store(0L);
+    enum MemoryRegion {
+      eFirstRegion = 0,
+      eSecondRegion,
+      eThirdRegion,
+      eLargeRegion,
+    };
+
+    static void initialize(
+        MemoryHeader* obj, int thread_id, MemoryRegion region, object_type type)
+    {
+      MemoryFlags flags = 0;
+
+      /* When an object is created, its three fundamental fields are:
+       *  1. thread ID
+       *  2. memory region
+       *  3. type ID
+       */
+      RBX_MEMORY_SET_THREAD_ID(flags, thread_id);
+      RBX_MEMORY_SET_REGION(flags, region);
+      RBX_MEMORY_SET_TYPE_ID(flags, type);
+
+      obj->header.store(flags);
     }
 
     InflatedHeaderNg* inflated_header() const {
       return const_cast<InflatedHeaderNg*>(
-          reinterpret_cast<const InflatedHeaderNg*>(RBX_MEMORY_HEADER_PTR(header.load())));
+          reinterpret_cast<const InflatedHeaderNg*>(
+            RBX_MEMORY_HEADER_PTR(header.load())));
     }
 
     bool forwarded_p() const {
@@ -419,12 +439,22 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return RBX_MEMORY_GET_THREAD_ID(header.load());
     }
 
-    int region() const {
+    MemoryRegion region() const {
       if(inflated_p()) {
-        return RBX_MEMORY_GET_REGION(inflated_header()->flags);
+        return static_cast<MemoryRegion>(
+            RBX_MEMORY_GET_REGION(inflated_header()->flags));
       }
 
-      return RBX_MEMORY_GET_REGION(header.load());
+      return static_cast<MemoryRegion>(RBX_MEMORY_GET_REGION(header.load()));
+    }
+
+    void region(MemoryRegion region) {
+      if(inflated_p()) {
+        inflated_header()->flags =
+          RBX_MEMORY_SET_REGION(inflated_header()->flags, region);
+      } else {
+        header.store(RBX_MEMORY_SET_REGION(header.load(), region));
+      }
     }
 
     bool marked_p(unsigned int mark) const {
@@ -437,7 +467,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void mark(unsigned int mark) {
       if(inflated_p()) {
-          RBX_MEMORY_SET_MARKED(inflated_header()->flags, mark);
+        RBX_MEMORY_SET_MARKED(inflated_header()->flags, mark);
       } else {
         header.store(RBX_MEMORY_SET_MARKED(header.load(), mark));
       }
@@ -659,8 +689,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     ~DataHeader() = delete;
 
-    static void initialize(STATE, DataHeader* obj) {
-      MemoryHeader::initialize(state, obj);
+    static void initialize(
+        MemoryHeader* obj, int thread_id, MemoryRegion region, object_type type)
+    {
+      MemoryHeader::initialize(obj, thread_id, region, type);
     }
 
     static size_t align(size_t bytes) {

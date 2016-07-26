@@ -12,7 +12,7 @@ public:
   MemoryHeader h;
 
   void setUp() {
-    MemoryHeader::initialize(state, &h);
+    MemoryHeader::initialize(&h, 0, MemoryHeader::eFirstRegion, InvalidType);
   }
 
   void test_memory_flag_is_64bit_machine_word() {
