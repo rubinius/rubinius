@@ -180,6 +180,23 @@ describe "Module#define_method" do
     lambda{o.other_inspect}.should raise_error(NoMethodError)
   end
 
+  it "accepts an UnboundMethod from an attr_accessor method" do
+    class DefineMethodSpecClass
+      attr_accessor :accessor_method
+    end
+
+    m = DefineMethodSpecClass.instance_method(:accessor_method)
+    o = DefineMethodSpecClass.new
+
+    DefineMethodSpecClass.send(:undef_method, :accessor_method)
+    lambda { o.accessor_method }.should raise_error(NoMethodError)
+
+    DefineMethodSpecClass.send(:define_method, :accessor_method, m)
+
+    o.accessor_method = :abc
+    o.accessor_method.should == :abc
+  end
+
   it "accepts a proc from a method" do
     class ProcFromMethod
       attr_accessor :data
