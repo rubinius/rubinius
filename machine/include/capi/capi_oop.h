@@ -41,7 +41,7 @@
  * value. Passing Fixnums through means that all the Fixnum conversions
  * do not have to be reimplemented for the C-API.
  *
- * The tags break down as follows (@see machine/oop.hpp for more details):
+ * The tags break down as follows (@see machine/memory/header.hpp for more details):
  *
  *   00 0 0000   Qfalse
  *   xx x xxx1   Fixnum

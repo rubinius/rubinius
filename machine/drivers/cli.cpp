@@ -6,9 +6,10 @@
 #include <llvm/Support/ManagedStatic.h>
 
 #include "environment.hpp"
-#include "oop.hpp"
 #include "type_info.hpp"
 #include "exception.hpp"
+
+#include "memory/header.hpp"
 
 #include "config.h"
 #include "paths.h"

@@ -4,8 +4,9 @@
 
 #include <stdexcept>
 
+#include "memory/header.hpp"
+
 #include "linkedlist.hpp"
-#include "oop.hpp"
 #include "defines.hpp"
 
 #include "util/thread.hpp"

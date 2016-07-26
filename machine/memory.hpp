@@ -2,9 +2,10 @@
 #define RBX_OBJECTMEMORY_H
 
 #include "defines.hpp"
+#include "memory/header.hpp"
+
 #include "type_info.hpp"
 #include "object_position.hpp"
-#include "oop.hpp"
 #include "metrics.hpp"
 #include "configuration.hpp"
 

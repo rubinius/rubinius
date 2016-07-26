@@ -1,7 +1,8 @@
 #ifndef RBX_VM_GLOBAL_CACHE_HPP
 #define RBX_VM_GLOBAL_CACHE_HPP
 
-#include "oop.hpp"
+#include "memory/header.hpp"
+
 #include "object_utils.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/symbol.hpp"

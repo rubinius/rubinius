@@ -4,16 +4,15 @@
 /**
  *  @file   defines.hpp
  *
- *  Notably here, Symbols, Fixnums and true/false/nil are actually
- *  stored directly in the pointer value (and distinguished by the
- *  tag, see oop.hpp) but provided we do not attempt to dereference
- *  it, we can ALSO define a class and treat the pointer values as
- *  if they were real pointers to real objects of that class where
- *  typing is concerned. In the "instance methods", the this pointer
- *  is still the correct pointer value and can thus be used for the
- *  calculations needed.
+ *  Notably here, Symbols, Fixnums and true/false/nil are actually stored
+ *  directly in the pointer value (and distinguished by the tag, see
+ *  memory/header.hpp) but provided we do not attempt to dereference it, we
+ *  can ALSO define a class and treat the pointer values as if they were real
+ *  pointers to real objects of that class where typing is concerned. In the
+ *  "instance methods", the this pointer is still the correct pointer value
+ *  and can thus be used for the calculations needed.
  *
- *  @see   oop.hpp
+ *  @see   memory/header.hpp
  */
 
 #include <stdint.h>

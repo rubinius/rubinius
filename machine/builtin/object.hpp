@@ -4,9 +4,10 @@
 #include <vector>
 
 #include "defines.hpp"
+#include "memory/header.hpp"
+
 #include "vm.hpp"
 #include "state.hpp"
-#include "oop.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"
 

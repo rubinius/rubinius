@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "oop.hpp"
+#include "memory/header.hpp"
 
 #include <cxxtest/TestSuite.h>
 

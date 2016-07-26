@@ -1,10 +1,11 @@
 #include "util/atomic.hpp"
 
+#include "memory/header.hpp"
+
 #include "bug.hpp"
 #include "configuration.hpp"
 #include "memory.hpp"
 #include "on_stack.hpp"
-#include "oop.hpp"
 #include "thread_phase.hpp"
 
 #include "builtin/object.hpp"

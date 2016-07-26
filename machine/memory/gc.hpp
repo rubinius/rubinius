@@ -3,7 +3,8 @@
 
 #include <list>
 
-#include "oop.hpp"
+#include "memory/header.hpp"
+
 #include "shared_state.hpp"
 
 #include "builtin/object.hpp"

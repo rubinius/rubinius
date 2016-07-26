@@ -1,7 +1,8 @@
 #ifndef RBX_SYMBOLTABLE_HPP
 #define RBX_SYMBOLTABLE_HPP
 
-#include "oop.hpp"
+#include "memory/header.hpp"
+
 #include "defines.hpp"
 #include "diagnostics.hpp"
 

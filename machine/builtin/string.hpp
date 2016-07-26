@@ -9,7 +9,7 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
-#include "oop.hpp"
+#include "memory/header.hpp"
 
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
