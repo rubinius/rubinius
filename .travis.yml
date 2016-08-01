@@ -17,7 +17,7 @@ before_install:
 before_script:
 - travis_retry bundle
 - if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=llvm-config-3.6; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure --cc=clang --cxx=clang++; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure --llvm-config=llvm-config-3.8 --cc=clang --cxx=clang++; fi
 script: rake ci
 after_success:
 - if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/build_support.sh archive_core; fi
