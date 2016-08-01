@@ -648,6 +648,16 @@ class InstructionParser
       end
     end
 
+    def instruction_implementation(file)
+      @arguments.each do |arg|
+        file.puts "  intptr_t #{arg} = next_int;"
+      end
+
+      @body.each do |line|
+        file.puts line.rstrip
+      end
+    end
+
     def opcode_visitor
       "HANDLE_INST#{@arguments.size}(#{@bytecode}, #{@name});"
     end
@@ -918,6 +928,33 @@ class InstructionParser
       file.puts "  abort();"
       file.puts "  return 0;"
       file.puts "}"
+    end
+  end
+
+  def generate_instructions(filename)
+    tailcall = "  return ((Instruction)opcodes[ip])(state, ip, opcodes);"
+    File.open filename, "wb" do |file|
+      file.puts '#include "insns.hpp"'
+      file.puts ""
+
+      objects.each do |obj|
+        if obj.kind_of? Instruction
+          file.puts "intptr_t instruction_#{obj.name}(STATE, int ip, intptr_t const opcodes[]) {"
+          obj.instruction_implementation file
+          file.puts "" if obj.name != "noop"
+          file.puts tailcall if obj.name != "ret"
+          file.puts "}"
+        end
+      end
+
+      file.puts ""
+      file.puts "const intptr_t rubinius::Interpreter::instruction_addresses[] = {"
+      objects.each do |obj|
+        if obj.kind_of? Instruction
+          file.puts "  (intptr_t)instruction_#{obj.name},"
+        end
+      end
+      file.puts "};"
     end
   end
 

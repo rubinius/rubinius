@@ -61,7 +61,8 @@ instruction push_memo(literal) [ value -- value ]
   if(val->nil_p()) {
     stack_set_top(reinterpret_cast<Object*>(literal));
   } else {
-    store_literal(reinterpret_cast<opcode>(val));
+    // TODO: instructions
+    // store_literal(reinterpret_cast<opcode>(val));
   }
 end
 
@@ -278,7 +279,7 @@ instruction ret() [ value -- value ] => return
   if(call_frame->scope->made_alias_p()) {
     call_frame->scope->flush_to_heap(state);
   }
-  return stack_top();
+  return (intptr_t)stack_top();
 end
 
 section "Stack manipulations"
@@ -537,7 +538,7 @@ instruction passed_arg(index) [ -- boolean ]
     RUN_EXCEPTION();
   }
 
-  stack_push(RBOOL(index < (int)call_frame->arguments->total() - mcode->post_args));
+  stack_push(RBOOL(index < (int)call_frame->arguments->total() - call_frame->machine_code->post_args));
 end
 
 section "Manipulate exceptions"
@@ -624,8 +625,8 @@ end
 # [See Also]
 #   pop_unwind
 
-instruction setup_unwind(ip type) [ -- ] => handler
-  unwinds.push(ip, stack_calculate_sp(), (UnwindType)type);
+instruction setup_unwind(ip_ type) [ -- ] => handler
+  unwinds.push(ip_, stack_calculate_sp(), (UnwindType)type);
 end
 
 # [Description]
@@ -693,7 +694,7 @@ end
 instruction raise_break() [ value -- value ] => raise
   flush_ip();
   if(call_frame->flags & CallFrame::cIsLambda) {
-    return stack_top();
+    return (intptr_t)stack_top();
   } else if(state->vm()->scope_valid_p(call_frame->scope->parent())) {
     state->vm()->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
   } else {
@@ -987,8 +988,10 @@ section "Send messages"
 #   checks if flags is set to CALL_FLAG_CONCAT which indicates that
 #   the splat represents arguments at the beginning rather than the end.
 
-instruction set_call_flags(flags) [ -- ]
-  SET_CALL_FLAGS(flags);
+instruction set_call_flags() [ -- ]
+  // TODO: instructions
+  // instruction set_call_flags(flags) [ -- ]
+  // SET_CALL_FLAGS(flags);
 end
 
 # [Description]
@@ -1175,7 +1178,8 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
     }
   }
 
-  SET_CALL_FLAGS(0);
+  // TODO: instructions
+  // SET_CALL_FLAGS(0);
 
   Object* ret = call_site->execute(state, args);
 
@@ -1254,7 +1258,8 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
     }
   }
 
-  SET_CALL_FLAGS(0);
+  // TODO: instructions
+  // SET_CALL_FLAGS(0);
 
   Object* ret = call_site->execute(state, new_args);
 
@@ -1302,10 +1307,11 @@ instruction create_block(literal) [ -- block ]
 
   if(!(code = try_as<CompiledCode>(code_or_id))) {
     code = CodeDB::load(state, as<String>(code_or_id));
-    store_literal(reinterpret_cast<opcode>(code));
+    // TODO: instructions
+    // store_literal(reinterpret_cast<opcode>(code));
   }
 
-  Object* be = BlockEnvironment::under_call_frame(state, code, mcode);
+  Object* be = BlockEnvironment::under_call_frame(state, code, call_frame->machine_code);
 
   CHECK_AND_PUSH(be);
 end
@@ -2136,9 +2142,9 @@ end
 
 instruction invoke_primitive(literal count) [ +count -- value ]
   flush_ip();
-  InvokePrimitive ip = reinterpret_cast<InvokePrimitive>(literal);
+  InvokePrimitive invoke_primitive = reinterpret_cast<InvokePrimitive>(literal);
 
-  Object* ret = (*ip)(state, stack_back_position(count), count);
+  Object* ret = (*invoke_primitive)(state, stack_back_position(count), count);
 
   stack_clear(count);
 

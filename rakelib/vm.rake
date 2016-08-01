@@ -34,6 +34,7 @@ INSN_GEN    = %w[ machine/gen/instruction_names.cpp
                   machine/gen/instruction_implementations.hpp
                   machine/gen/instruction_visitors.hpp
                   machine/gen/instruction_effects.hpp
+                  machine/gen/instructions.cpp
                 ]
 TYPE_GEN    = %w[ machine/gen/includes.hpp
                   machine/gen/kind_of.hpp
@@ -247,6 +248,7 @@ file "gen/method_resolver.cpp" => field_extract_headers
 file "gen/invoke_resolver.cpp" => field_extract_headers
 
 iparser = InstructionParser.new "machine/instructions.def"
+niparser = InstructionParser.new "machine/insns.def"
 
 def generate_instruction_file(parser, generator, name)
   puts "GEN #{name}"
@@ -258,6 +260,11 @@ insn_deps = %w[  machine/gen
                  machine/instructions.def
                  rakelib/instruction_parser.rb
               ]
+
+ninsn_deps = %w[  machine/gen
+                  machine/insns.def
+                  rakelib/instruction_parser.rb
+               ]
 
 file "lib/compiler/opcodes.rb" => insn_deps do |t|
   generate_instruction_file iparser, :generate_opcodes, t.name
@@ -301,6 +308,10 @@ end
 
 file "machine/gen/instruction_effects.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_stack_effects, t.name
+end
+
+file "machine/gen/instructions.cpp" => ninsn_deps do |t|
+  generate_instruction_file niparser, :generate_instructions, t.name
 end
 
 namespace :vm do

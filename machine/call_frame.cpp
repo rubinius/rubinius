@@ -1,6 +1,7 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 #include "object_utils.hpp"
+#include "machine_code.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"

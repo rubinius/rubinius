@@ -16,6 +16,7 @@ namespace rubinius {
   class VariableScope;
   class NativeMethodFrame;
   class BlockEnvironment;
+  class MachineCode;
 
   namespace jit {
     class RuntimeData;
@@ -51,6 +52,8 @@ namespace rubinius {
     StackVariables* scope;
 
     Arguments* arguments;
+    Object** stack_ptr_;
+    MachineCode* machine_code;
 
     // Stack
     Object* stk[0];
