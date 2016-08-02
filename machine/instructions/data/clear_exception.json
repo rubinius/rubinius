@@ -1,0 +1,16 @@
+{
+  "name": "clear_exception",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Clears any exceptions from the current thread.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

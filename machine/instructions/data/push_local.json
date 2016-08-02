@@ -1,0 +1,16 @@
+{
+  "name": "push_local",
+  "arguments": "[\"local\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Retrieves the current value of the local variable referenced by operand\n   _local_ and push it onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": "   set_local\n"
+}

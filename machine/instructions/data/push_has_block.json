@@ -1,0 +1,16 @@
+{
+  "name": "push_has_block",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Push `true` or `false` based on whether there is a current block.\n",
+  "notes": "   Used to implement `block_given?` without having to directly expose\n   the block object itself. This simplifies JIT inlining.\n",
+  "example": "",
+  "related": ""
+}

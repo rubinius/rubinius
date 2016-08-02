@@ -1,0 +1,16 @@
+{
+  "name": "set_stack_local",
+  "arguments": "[\"which\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Set the stack local identified by operand _which_ using the value on the\n   top of the stack.\n",
+  "notes": "   Stack locals differ from normal locals in that they are not viewable by\n   closures.\n",
+  "example": "",
+  "related": ""
+}

@@ -1,0 +1,16 @@
+{
+  "name": "set_local_depth",
+  "arguments": "[\"depth\", \"index\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Updates the value of a local variable contained in an enclosing scope\n\n   Read a value from the top of the stack and use it to update a local\n   variable in an enclosing scope. The _depth_ and _index_ operands\n   identify the specific local the same as in `push_local_depth`.\n",
+  "notes": "",
+  "example": "     foo.each do |i|\n       bar.each do |j|\n         i = i + j  # i is a local variable from enclosing scope at depth 1\n       end\n     end\n",
+  "related": "   push_local_depth\n"
+}

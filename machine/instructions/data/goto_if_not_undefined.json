@@ -1,0 +1,16 @@
+{
+  "name": "goto_if_not_undefined",
+  "arguments": "[\"location\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Remove the top value on the stack, and if not the special value `undefined`,\n   set the instruction pointer to the value specified by _location_.\n",
+  "notes": "",
+  "example": "",
+  "related": "   goto\n   goto_if_false\n   goto_if_true\n   goto_if_nil\n   goto_if_not_nil\n   goto_if_undefined\n   goto_if_equal\n   goto_if_not_equal\n"
+}

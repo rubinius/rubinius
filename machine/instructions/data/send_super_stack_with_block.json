@@ -1,0 +1,21 @@
+{
+  "name": "send_super_stack_with_block",
+  "arguments": "[\"literal\", \"count\"]",
+  "stack": {
+    "before": [
+      "   block\n",
+      "   argN\n",
+      "   ...\n",
+      "   arg2\n",
+      "   arg1\n"
+    ],
+    "after": [
+      "   retval\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Call a method on the superclass with a block\n\n   The same as `send_stack_with_block`, but receiver is the current self\n   instead of being read from the stack, and the method to call is looked up\n   starting with the receiver superclass.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

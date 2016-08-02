@@ -1,0 +1,17 @@
+{
+  "name": "instance_of",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "object",
+      "class"
+    ],
+    "after": [
+      "boolean"
+    ]
+  },
+  "description": "   Evaluate if _object_ is an instance of _class_. If so, push `true`, else\n   push `false`.\n\n   The equivalent of `object.instance_of?(klass)` in Ruby.\n",
+  "notes": "",
+  "example": "",
+  "related": "   kind_of\n"
+}

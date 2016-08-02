@@ -1,0 +1,20 @@
+{
+  "name": "invoke_primitive",
+  "arguments": "[\"literal\", \"count\"]",
+  "stack": {
+    "before": [
+      "   argN\n",
+      "   ...\n",
+      "   arg2\n",
+      "   arg1\n"
+    ],
+    "after": [
+      "   value\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Directly invoke a primitive by name.\n\n   Pop _count_ values off the stack and pass them directly to the primitive\n   operation named by the operand _literal_.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

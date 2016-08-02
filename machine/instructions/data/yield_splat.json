@@ -1,0 +1,22 @@
+{
+  "name": "yield_splat",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+      "   array\n",
+      "   argN\n",
+      "   ...\n",
+      "   arg2\n",
+      "   arg1\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   value\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Invoke the current block, passing _count_ arguments to it in\n   addition to the values in the `Array` _array_.\n",
+  "notes": "",
+  "example": "",
+  "related": "   send_stack_with_splat\n"
+}

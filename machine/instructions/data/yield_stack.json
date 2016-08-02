@@ -1,0 +1,21 @@
+{
+  "name": "yield_stack",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+      "   argN\n",
+      "   ...\n",
+      "   arg2\n",
+      "   arg1\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   value\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Invoke the current block, passing _count_ arguments to it.\n",
+  "notes": "",
+  "example": "",
+  "related": "   send_stack\n"
+}

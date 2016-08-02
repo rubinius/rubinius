@@ -1,0 +1,16 @@
+{
+  "name": "push_false",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "false"
+    ]
+  },
+  "description": "   The special object `false` is pushed onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

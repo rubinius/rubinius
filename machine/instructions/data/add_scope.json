@@ -1,0 +1,16 @@
+{
+  "name": "add_scope",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "module"
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Create a new `LexicalScope` object for the given Module on the stack.\n   This scope is chained off the current scope of the method.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

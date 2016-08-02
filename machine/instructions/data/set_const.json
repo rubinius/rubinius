@@ -1,0 +1,16 @@
+{
+  "name": "set_const",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Pops an object off the stack, and uses value to set a constant named\n   by the _literal_. The value is pushed back onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

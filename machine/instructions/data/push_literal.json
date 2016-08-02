@@ -1,0 +1,16 @@
+{
+  "name": "push_literal",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "literal"
+    ]
+  },
+  "description": "   The value identified by the operand _literal_ in the current state\n   literals tuple is retrieved and placed onto the stack.\n",
+  "notes": "   The literals tuple is part of the machine state, and holds all literal\n   objects defined or used within a particular scope.\n",
+  "example": "",
+  "related": ""
+}

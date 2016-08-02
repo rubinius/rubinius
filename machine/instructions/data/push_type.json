@@ -1,0 +1,16 @@
+{
+  "name": "push_type",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "constant"
+    ]
+  },
+  "description": "   Pushes the distinguished module `Rubinius::Type` onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

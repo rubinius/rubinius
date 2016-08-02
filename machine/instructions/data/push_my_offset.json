@@ -1,0 +1,16 @@
+{
+  "name": "push_my_offset",
+  "arguments": "[\"index\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "offset"
+    ]
+  },
+  "description": "   Pushes a value read directly from within the body of an object.\n",
+  "notes": "   This instruction must never be used directly. The VM will specialize\n   `push_my_field` instructions into this.\n",
+  "example": "",
+  "related": "   push_my_field\n"
+}

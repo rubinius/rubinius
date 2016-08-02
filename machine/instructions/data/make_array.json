@@ -1,0 +1,21 @@
+{
+  "name": "make_array",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+      "   valueN\n",
+      "   ...\n",
+      "   value2\n",
+      "   value1\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   [value1, value2, ..., valueN]\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Create an array and populate with values on the stack\n\n   Creates a new array, populating its contents by remove the number of\n   values specified by operand _count_ and putting them into the array in the\n   order they were on the stack. The resulting array is pushed onto the\n   stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

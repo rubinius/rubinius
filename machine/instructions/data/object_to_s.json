@@ -1,0 +1,16 @@
+{
+  "name": "object_to_s",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "object"
+    ],
+    "after": [
+      "string"
+    ]
+  },
+  "description": "   Pop a value off the stack and if it's not a `String`, call a method\n   indicated by _literal_ on it.  Push the resulting object back on the\n   stack.\n",
+  "notes": "   Normally literal is `:to_s`, but this instruction leaves it up to the user\n   to indicate for flexibility.\n",
+  "example": "",
+  "related": ""
+}

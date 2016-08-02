@@ -1,0 +1,16 @@
+{
+  "name": "raise_return",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Cause the toplevel enclosing scope to return\n\n   Only used in a block, pop a value from the stack and raise a special\n   internal exception and begin unwinding the stack. The toplevel method\n   scope will rescue the exception and return the value.\n",
+  "notes": "",
+  "example": "",
+  "related": "   ret\n"
+}

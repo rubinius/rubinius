@@ -1,0 +1,19 @@
+{
+  "name": "set_const_at",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "   value\n",
+      "   module\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   value\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Pop a value from the literals table specified by the operand _literal_ and\n   use it as the value of a constant named inside a Module object popped from\n   the stack.  The _value_ is pushed back on the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

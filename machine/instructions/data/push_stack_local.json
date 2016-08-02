@@ -1,0 +1,16 @@
+{
+  "name": "push_stack_local",
+  "arguments": "[\"which\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Push the stack local identified by operand _which_.\n",
+  "notes": "   Stack locals differ from normal locals in that they are not viewable by\n   closures.\n",
+  "example": "",
+  "related": ""
+}

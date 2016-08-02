@@ -1,0 +1,16 @@
+{
+  "name": "set_ivar",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Pops a value off the stack, and uses it to set the value of the instance\n   variable identifies by the literal specified by operand _literal_.  The\n   value popped off the stack is then pushed back on again.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

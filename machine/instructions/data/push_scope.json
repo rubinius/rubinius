@@ -1,0 +1,16 @@
+{
+  "name": "push_scope",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "scope"
+    ]
+  },
+  "description": "   Pushes the current `LexicalScope` object on the stack. Many operations are\n   defered to the current scope. This operation retrieves the current scope\n   so methods can be called on it.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

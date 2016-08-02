@@ -1,0 +1,16 @@
+{
+  "name": "push_undef",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Push the special undefined value on the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

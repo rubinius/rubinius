@@ -1,0 +1,19 @@
+{
+  "name": "shift_array",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "   [value1, value2, ..., valueN]\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   value1\n",
+      "   [value2, ..., valueN]\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Pops an array off the top of the stack. If the array is empty, it is\n   pushed back onto the stack, followed by `nil`.\n\n   Otherwise, the array is shifted, then pushed back onto the stack,\n   followed by the object that was shifted from the front of the array.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

@@ -1,0 +1,16 @@
+{
+  "name": "restore_exception_state",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "exception"
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Pops a value off the stack and set the threads exception state from it.\n   This instruction is only to be used with a value pushed on the stack\n   by the push_exception_state instruction.\n",
+  "notes": "",
+  "example": "",
+  "related": "   push_exception_state\n"
+}

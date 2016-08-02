@@ -1,0 +1,16 @@
+{
+  "name": "passed_blockarg",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "boolean"
+    ]
+  },
+  "description": "   Check if exactly _count_ arguments were passed to the current invocation.\n",
+  "notes": "   _This instruction is deprecated and no longer used._\n",
+  "example": "",
+  "related": ""
+}

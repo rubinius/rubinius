@@ -1,0 +1,16 @@
+{
+  "name": "push_const",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "constant"
+    ]
+  },
+  "description": "   Pushes a constant onto the stack. Caches the lookup to provide faster\n   future lookup. This instruction is normally emitted only by the Generator.\n",
+  "notes": "",
+  "example": "     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius\n",
+  "related": ""
+}

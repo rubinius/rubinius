@@ -1,0 +1,16 @@
+{
+  "name": "ret",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Return a value to the direct caller\n\n   Pops the top value from the stack, and returns to the direct caller of the\n   current invocation.\n",
+  "notes": "   In a method, the `return` keyword uses this instruction. In a block\n   though, `return` uses the raise_return instruction and `next` uses this\n   instruction.\n",
+  "example": "",
+  "related": "   raise_return\n   raise_exc\n"
+}

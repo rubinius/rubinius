@@ -1,0 +1,17 @@
+{
+  "name": "dup",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "s0"
+    ],
+    "after": [
+      "s0",
+      "s0"
+    ]
+  },
+  "description": "   Read a value from the top of the stack and push it on the stack again\n   without removing the original value.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

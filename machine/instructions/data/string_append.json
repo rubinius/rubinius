@@ -1,0 +1,17 @@
+{
+  "name": "string_append",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "prefix",
+      "suffix"
+    ],
+    "after": [
+      "string"
+    ]
+  },
+  "description": "   Pops two strings off the stack, appends the second to the first, and\n   then pushes the combined string back onto the stack.\n",
+  "notes": "   The original string is modified by the append.\n",
+  "example": "",
+  "related": ""
+}

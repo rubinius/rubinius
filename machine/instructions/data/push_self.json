@@ -1,0 +1,16 @@
+{
+  "name": "push_self",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "self"
+    ]
+  },
+  "description": "   The current `self` object is pushed onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

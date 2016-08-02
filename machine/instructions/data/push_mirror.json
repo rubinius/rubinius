@@ -1,0 +1,16 @@
+{
+  "name": "push_mirror",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "constant"
+    ]
+  },
+  "description": "   Pushes the distinguished class `Rubinius::Mirror` onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

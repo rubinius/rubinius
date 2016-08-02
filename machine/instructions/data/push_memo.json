@@ -1,0 +1,16 @@
+{
+  "name": "push_memo",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   If the stack top value is nil, pops the value and pushes the value in the\n   instruction stream at the literal slot. If the stack top value is not nil,\n   replaces the value at the literal slot with the value of stack top.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

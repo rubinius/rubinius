@@ -1,0 +1,16 @@
+{
+  "name": "cast_array",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "array"
+    ]
+  },
+  "description": "   Removes the object on the top of the stack, and:\n\n   1. If the input is a tuple, a new array object is created based on the\n      tuple data.\n   2. If the input is an array, it is unmodified.\n   3. If in 1.9 mode and the input is nil, an empty Array is returned\n\n   If the input is any other type, call `Rubinius::Type.coerce_to_array(value)`.\n   If the return value of the method call is an `Array`, make it the result.\n   Otherwise make the result an 1 element `Array` contain the original value.\n\n   The resulting array is then pushed back onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

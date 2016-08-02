@@ -1,0 +1,19 @@
+{
+  "name": "cast_for_multi_block_arg",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "   value1\n",
+      "   value2\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   array[value1,..] | value1\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Converts a block argument single-valued tuple into multiple arguments if\n   the arg is an array.\n\n   If the Proc invoked from was in lambda mode, and one argument is passed:\n     * and it's an Array, push it.\n     * and it responds to `#to_ary`, try and convert it and push it.\n     * otherwise wrap it in a one element Array and push it.\n\n   Otherwise:\n     Package up the arguments into an `Array` and push it onto the stack.\n",
+  "notes": "   This is a single use instruction, only used to simplify how to handle a\n   block that accepts 2 or more arguments. The semantics for this instruction\n   change depending on if the current block invocation is from a Proc with\n   lambda semantics or not.\n",
+  "example": "     [[1,2,3]].each do |i,j,k|\n       # do something\n     end\n",
+  "related": ""
+}

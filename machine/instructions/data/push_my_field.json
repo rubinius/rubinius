@@ -1,0 +1,16 @@
+{
+  "name": "push_my_field",
+  "arguments": "[\"index\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Pushes the value of the specified field in the current object onto the\n   stack.\n",
+  "notes": "   Fields are similar to instance variables, but have dedicated storage\n   allocated. They are primarily used on core or bootstrap classes.\n   This instruction should not be used directly. The VM will specialize\n   push_ivar instructions into this.\n",
+  "example": "",
+  "related": ""
+}

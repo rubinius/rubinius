@@ -1,0 +1,16 @@
+{
+  "name": "ensure_return",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Return from a scope but run ensures first\n\n   A one use instruction, used only in a method toplevel within a begin\n   that has an ensure. Use the same internal exception as `raise_return`\n   which will coax the ensure registration to run.\n",
+  "notes": "",
+  "example": "",
+  "related": "   ret\n   raise_return\n"
+}

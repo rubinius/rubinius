@@ -1,0 +1,16 @@
+{
+  "name": "push_cpath_top",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "constant"
+    ]
+  },
+  "description": "   Pushes the top-level global object that represents the top-level namespace\n   for constants. Used to find constants relative to the toplevel. In Ruby,\n   this is the class `Object`.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

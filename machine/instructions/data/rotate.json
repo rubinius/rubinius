@@ -1,0 +1,22 @@
+{
+  "name": "rotate",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+      "   obj1\n",
+      "   obj2\n",
+      "   obj3\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   obj3\n",
+      "   obj2\n",
+      "   obj1\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Reverses the order on the stack of the top _count_ values.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

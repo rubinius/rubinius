@@ -1,0 +1,17 @@
+{
+  "name": "kind_of",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "object",
+      "class"
+    ],
+    "after": [
+      "boolean"
+    ]
+  },
+  "description": "   Evaluate if _object_ is an instance of _class_ or of an ancestor of\n   _class_. If so, push `true`, else push `false`.\n\n   The equivalent of `object.kind_of?(klass)` in Ruby.\n",
+  "notes": "",
+  "example": "",
+  "related": "   instance_of\n"
+}

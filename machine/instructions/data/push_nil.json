@@ -1,0 +1,16 @@
+{
+  "name": "push_nil",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "nil"
+    ]
+  },
+  "description": "   The special object `nil` is pushed onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

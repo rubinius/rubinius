@@ -1,0 +1,16 @@
+{
+  "name": "push_current_exception",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "exception"
+    ]
+  },
+  "description": "   Pushes the current exception onto the stack, so that it can be used for\n   some purpose, such as checking the exception type, setting an exception\n   variable in a rescue clause, etc.\n",
+  "notes": "",
+  "example": "     begin\n       foo = BAR        # BAR is not defined\n     rescue NameError   # push_exception used to check type of exception (via ===)\n       puts \"No BAR\"\n     end\n",
+  "related": "   raise_exc\n"
+}

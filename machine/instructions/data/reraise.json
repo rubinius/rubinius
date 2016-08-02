@@ -1,0 +1,16 @@
+{
+  "name": "reraise",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Continue unwinding the stack with the current exception. Verify that there\n   is a current exception, then begin the unwinding process again.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

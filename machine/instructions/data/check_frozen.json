@@ -1,0 +1,16 @@
+{
+  "name": "check_frozen",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Check if the value on the top of the stack is frozen.  If so, raise a\n   `TypeError` indicating so.\n",
+  "notes": "   An optimization to deal with check for frozen.\n",
+  "example": "",
+  "related": ""
+}

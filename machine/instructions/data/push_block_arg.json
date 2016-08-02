@@ -1,0 +1,16 @@
+{
+  "name": "push_block_arg",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "block"
+    ]
+  },
+  "description": "   Push the block passed as an argument to the current invocation.\n   This differs from `push_block` in that in is not the block for the\n   current scope because of how the current block is seen within\n   an existing block.\n",
+  "notes": "",
+  "example": "",
+  "related": "   push_block\n"
+}

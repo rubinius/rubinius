@@ -1,0 +1,16 @@
+{
+  "name": "raise_exc",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Raises an exception\n\n   Pops a value off the stack and make it the current exception.\n   If the value is not an instance of Exception, a TypeError is raised.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

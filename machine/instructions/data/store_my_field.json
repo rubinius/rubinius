@@ -1,0 +1,16 @@
+{
+  "name": "store_my_field",
+  "arguments": "[\"index\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Stores the value at the top of the stack into the field specified by\n   _index_ on `self`.\n\n   The stack is left unmodified.\n",
+  "notes": "   This instruction should not be used directly. The VM will specialize\n   push_ivar instructions into this.\n",
+  "example": "",
+  "related": ""
+}

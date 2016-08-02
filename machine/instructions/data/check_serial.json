@@ -1,0 +1,16 @@
+{
+  "name": "check_serial",
+  "arguments": "[\"literal\", \"serial\"]",
+  "stack": {
+    "before": [
+      "receiver"
+    ],
+    "after": [
+      "boolean"
+    ]
+  },
+  "description": "   Checks if the specified method serial number matches an expected value.\n\n   Pops the _receiver_ object from the stack and checks if it responds to the\n   message specified by the operand _literal_ and the target method has\n   serial number _serial_. If so, push `true`, else push `false`.\n",
+  "notes": "   This opcode is typically used to determine at runtime whether an\n   optimisation can be performed. At compile time, two code paths are\n   generated: a slow, but guaranteed correct path, and a fast path that uses\n   certain optimisations. The serial number check is then performed at\n   runtime to determine which code path is executed.\n\n   For example, a method such as `Fixnum#times` can be optimised at compile\n   time, but we can't know until runtime whether or not the `Fixnum#times`\n   method has been overridden. The serial number check is used to determine\n   each time the code is executed, whether or not the standard `Fixnum#times`\n   has been overridden. It leverages the serial number field on a\n   `CompiledCode`, is initialised to either 0 (for kernel land methods) or\n   1 (for user land methods).\n",
+  "example": "",
+  "related": ""
+}

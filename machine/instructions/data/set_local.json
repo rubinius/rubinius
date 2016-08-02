@@ -1,0 +1,16 @@
+{
+  "name": "set_local",
+  "arguments": "[\"local\"]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Read the top of the stack and set the local variable identified by operand\n   _local_ to it. The stack is not modified by this instruction.\n",
+  "notes": "",
+  "example": "",
+  "related": "   push_local\n"
+}

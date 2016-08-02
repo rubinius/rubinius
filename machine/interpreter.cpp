@@ -2,6 +2,8 @@
 #include "interpreter.hpp"
 #include "machine_code.hpp"
 
+#include "interpreter/addresses.hpp"
+
 namespace rubinius {
   void Interpreter::prepare(STATE, MachineCode* machine_code) {
   }

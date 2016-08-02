@@ -1,0 +1,18 @@
+{
+  "name": "pop_many",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+      "   value1\n",
+      "   value2\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   ...\n"
+    ]
+  },
+  "description": "   Removes _count_ values from the stack and discard them.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

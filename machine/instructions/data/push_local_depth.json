@@ -1,0 +1,16 @@
+{
+  "name": "push_local_depth",
+  "arguments": "[\"depth\", \"index\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Pushes the value of a local from an enclosing scope onto the stack\n\n   Retrieves the value of a local variable. Operand _depth_ indicates how many\n   upward enclosing scopes to walk up and then operand _index_ indicates which\n   local in that context to read. The value is then pushed on the stack.\n",
+  "notes": "",
+  "example": "     k = 0\n     foo.each do |i|\n       bar.each do |j|\n         # i is a local variable from enclosing scope at depth 1\n         # k is a local variable from enclosing scope at depth 2\n         i = i + j + k\n       end\n     end\n",
+  "related": "   set_local_depth\n"
+}

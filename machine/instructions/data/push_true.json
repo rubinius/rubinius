@@ -1,0 +1,16 @@
+{
+  "name": "push_true",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "true"
+    ]
+  },
+  "description": "   The special value `true` is pushed onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

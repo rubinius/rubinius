@@ -1,0 +1,16 @@
+{
+  "name": "find_const",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "module"
+    ],
+    "after": [
+      "constant"
+    ]
+  },
+  "description": "   Pushes a constant onto the stack scoped under the module on the top of\n   the stack. Caches the lookup to provide faster future lookup. This\n   instruction is normally emitted only by the Generator.\n",
+  "notes": "",
+  "example": "     str = \"abc\"\n     enum = Enumerable::Enumerator(str, :each_byte)\n",
+  "related": ""
+}

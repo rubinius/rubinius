@@ -1,0 +1,16 @@
+{
+  "name": "push_block",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "block"
+    ]
+  },
+  "description": "   Pushes the current block onto the stack. The value is not wrapped in a\n   `Proc` if it is a `BlockEnvironment`.\n",
+  "notes": "",
+  "example": "",
+  "related": "   push_proc\n"
+}

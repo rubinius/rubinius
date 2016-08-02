@@ -1,0 +1,16 @@
+{
+  "name": "cast_for_single_block_arg",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "argument"
+    ]
+  },
+  "description": "   Converts the value on the top of the stack into an argument for a block\n   taking one argument.\n\n   The value on the top of the stack is popped, and:\n\n   If it has no fields, the result is `nil`.\n\n   If the value contains a single field, the result is the value in the\n   first field.\n\n   Otherwise, package up all the arguments in an `Array` as the result.\n\n   The result is then pushed onto the stack.\n",
+  "notes": "   This is a single use instruction, only used to simplify how to handle a\n   block that accepts one argument.\n",
+  "example": "",
+  "related": ""
+}

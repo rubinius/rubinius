@@ -1,0 +1,16 @@
+{
+  "name": "create_block",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "block"
+    ]
+  },
+  "description": "   Read a CompiledCode specified by the operand +literal+ and create a\n   `BlockEnvironment`.  Push the new `BlockEnvironment` object on the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

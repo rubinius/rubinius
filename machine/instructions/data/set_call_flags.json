@@ -1,0 +1,16 @@
+{
+  "name": "set_call_flags",
+  "arguments": "[\"flags\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   The call flags on the current execution context are set to the opcode\n   argument _flags_.\n",
+  "notes": "   Currently this only has one use, which is that send_stack_with_splat\n   checks if flags is set to CALL_FLAG_CONCAT which indicates that\n   the splat represents arguments at the beginning rather than the end.\n",
+  "example": "",
+  "related": ""
+}

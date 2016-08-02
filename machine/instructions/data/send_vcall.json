@@ -1,0 +1,16 @@
+{
+  "name": "send_vcall",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Sends a message to _self_ by looking up the object in the CallFrame. This\n   instruction does not pass any arguments.\n\n   When the method returns, the return value is pushed on the stack.\n",
+  "notes": "   This form of send is for methods that specify no receiver and take no\n   arguments.\n",
+  "example": "",
+  "related": "   send_method\n   send_stack\n"
+}

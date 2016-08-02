@@ -1,0 +1,22 @@
+{
+  "name": "dup_many",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+      "   value1\n",
+      "   value2\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   value1\n",
+      "   value2\n",
+      "   value1\n",
+      "   value2\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Duplicate multiple values on the stack\n\n   Read _count_ values from the stack and push them onto the stack again\n   in order without removing the original values.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

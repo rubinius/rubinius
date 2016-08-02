@@ -1,0 +1,16 @@
+{
+  "name": "check_interrupts",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Perform required occasional checks that must be done.  This instruction is\n   used by loops to allow them to be interrupted externally, and thus also\n   cause the current method to heat up.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

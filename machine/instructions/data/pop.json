@@ -1,0 +1,16 @@
+{
+  "name": "pop",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Removes the top value from the stack, discarding it.\n",
+  "notes": "   Pop is typically used when the return value of another opcode is not\n   required.\n",
+  "example": "",
+  "related": ""
+}

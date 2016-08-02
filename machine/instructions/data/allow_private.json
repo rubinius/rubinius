@@ -1,0 +1,16 @@
+{
+  "name": "allow_private",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Indicate that the next send is allowed to see `private` methods.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

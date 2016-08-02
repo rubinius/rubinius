@@ -1,0 +1,16 @@
+{
+  "name": "pop_unwind",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Remove the next unused unwind registration from the current invocation.\n   This instruction is paired with `setup_unwind` to remove registrations\n   when control exits a section of code that registered a handler but didn't\n   use it. For example, exiting a begin that had a rescue expression.\n",
+  "notes": "",
+  "example": "",
+  "related": "   setup_unwind\n"
+}

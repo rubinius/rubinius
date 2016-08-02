@@ -5,6 +5,8 @@
 
 #include "defines.hpp"
 
+#include "interpreter/prototypes.hpp"
+
 namespace rubinius {
   struct CallFrame;
   class MachineCode;

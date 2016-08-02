@@ -1,0 +1,16 @@
+{
+  "name": "push_rubinius",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "constant"
+    ]
+  },
+  "description": "   Pushes the top-level global `Rubinius` constant onto the stack. Generally\n   this is done to call a utility method.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

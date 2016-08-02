@@ -1,0 +1,16 @@
+{
+  "name": "passed_arg",
+  "arguments": "[\"index\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "boolean"
+    ]
+  },
+  "description": "   Checks if the argument specified by the operand _index_ was passed to\n   the current invocation. If so, push true, otherwise false.\n",
+  "notes": "   Arguments are specified via a zero-index, so the first argument is 0.\n",
+  "example": "",
+  "related": ""
+}

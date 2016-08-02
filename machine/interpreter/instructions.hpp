@@ -1,6 +1,7 @@
 #ifndef RBX_INSNS_HPP
 #define RBX_INSNS_HPP
 
+/*
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
 #include "builtin/autoload.hpp"
@@ -38,21 +39,19 @@
 #include "on_stack.hpp"
 
 #include "helpers.hpp"
+*/
 
-#include "gen/instruction_defines.hpp"
+#include "interpreter/prototypes.hpp"
 
 using namespace rubinius;
 
-UnwindInfoSet unwinds;
+typedef intptr_t (*Instruction)(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
-typedef intptr_t (*Instruction)(STATE, int ip, intptr_t const opcodes[]);
+#define CALL_FLAG_CONCAT 2
 
-#define next_int          opcodes[ip++]
+#define next_int          opcodes[call_frame->inc_ip()]
 #define store_ip(ip)      (call_frame->set_ip(ip))
-#define flush_ip()        (call_frame->set_ip(ip))
 #define store_literal(x)  (x)
-
-#define call_frame  state->vm()->call_frame()
 
 #define STACK_PTR call_frame->stack_ptr_
 

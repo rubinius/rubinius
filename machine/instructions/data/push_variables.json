@@ -1,0 +1,16 @@
+{
+  "name": "push_variables",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "scope"
+    ]
+  },
+  "description": "   Push the `VariableScope` for the current method/block invocation on the\n   stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

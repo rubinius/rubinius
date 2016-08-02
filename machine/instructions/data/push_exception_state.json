@@ -1,0 +1,16 @@
+{
+  "name": "push_exception_state",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "exc_state"
+    ]
+  },
+  "description": "   Package up the current exception state into an object and push it. This\n   is used to preserve the exception state around code that might mutate it.\n   For instance, when handling an ensure while an exception is being raised\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

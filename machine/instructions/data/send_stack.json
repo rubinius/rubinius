@@ -1,0 +1,21 @@
+{
+  "name": "send_stack",
+  "arguments": "[\"literal\", \"count\"]",
+  "stack": {
+    "before": [
+      "   argN\n",
+      "   ...\n",
+      "   arg2\n",
+      "   arg1\n",
+      "   receiver\n"
+    ],
+    "after": [
+      "   value\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Sends a message with arguments on the stack\n\n   Pops the _receiver_ of the message off the stack and sends the message\n   specified by the operand _literal_ with _count_ arguments. The arguments\n   are removed from the stack also.\n\n   When the method returns, the return value is pushed on the stack.\n",
+  "notes": "   This opcode does not pass a block to the receiver; see\n   `send_stack_with_block` for the equivalent op code used when a block is to\n   be passed.\n",
+  "example": "",
+  "related": "   send_stack_with_block\n"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "move_down",
+  "arguments": "[\"positions\"]",
+  "stack": {
+    "before": [
+      "   obj1\n",
+      "   obj2\n",
+      "   ...\n",
+      "   objn\n"
+    ],
+    "after": [
+      "   obj2\n",
+      "   ...\n",
+      "   objn\n",
+      "   obj1\n"
+    ]
+  },
+  "description": "   The top value on the stack is moved down by the specified number of\n   _positions_, with all values above that position shuffling up by one.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

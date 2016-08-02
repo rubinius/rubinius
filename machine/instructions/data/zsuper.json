@@ -1,0 +1,21 @@
+{
+  "name": "zsuper",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "   argN\n",
+      "   ...\n",
+      "   arg2\n",
+      "   arg1\n",
+      "   ...\n"
+    ],
+    "after": [
+      "   value\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Call a superclass method on the current, passing the arguments\n   passed to the current invocation.\n",
+  "notes": "   This is a specialization of `send_super_with_stack` that is necessary for\n   Ruby semantics regarding how to read the original arguments.\n",
+  "example": "",
+  "related": "   send_super_with_stack\n"
+}

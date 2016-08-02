@@ -1,0 +1,16 @@
+{
+  "name": "push_proc",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Wrap the current block in a `Proc` and push it onto the stack.  If there\n   is no current block, push `nil`.\n",
+  "notes": "   Used to implement `&block` in a method signature.\n",
+  "example": "",
+  "related": "   push_block\n"
+}

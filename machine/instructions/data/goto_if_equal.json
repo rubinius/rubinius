@@ -1,0 +1,17 @@
+{
+  "name": "goto_if_equal",
+  "arguments": "[\"location\"]",
+  "stack": {
+    "before": [
+      "value1",
+      "value2"
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Remove the top two values on the stack, and if they are C `==`, set the\n   instruction pointer to the value specified by _location_.\n",
+  "notes": "",
+  "example": "",
+  "related": "   goto\n   goto_if_false\n   goto_if_true\n   goto_if_nil\n   goto_if_not_nil\n   goto_if_undefined\n   goto_if_not_undefined\n   goto_if_not_equal\n"
+}

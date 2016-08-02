@@ -1,0 +1,16 @@
+{
+  "name": "raise_break",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Cause the method that yielded the current block to return. Used to\n   implement the `break` keyword in a block.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

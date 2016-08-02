@@ -1,0 +1,16 @@
+{
+  "name": "send_method",
+  "arguments": "[\"literal\"]",
+  "stack": {
+    "before": [
+      "receiver"
+    ],
+    "after": [
+      "value"
+    ]
+  },
+  "description": "   Pops a _receiver_ object off the top of the stack and sends it the\n   message specified by the operand _literal_ with zero arguments.\n\n   When the method returns, the return value is pushed on the stack.\n",
+  "notes": "   This form of send is for methods that take no arguments.\n",
+  "example": "",
+  "related": "   send_stack\n"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "push_int",
+  "arguments": "[\"number\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "number"
+    ]
+  },
+  "description": "   Pushes the value of the Fixnum literal onto the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

@@ -1,0 +1,16 @@
+{
+  "name": "goto",
+  "arguments": "[\"location\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Unconditionally moves the instruction pointer to the position specified by\n   _location_.\n",
+  "notes": "   All goto instructions use absolute addressing. This is absolute movement\n   rather than a relative one, so the operand must specify the ip starting\n   from 0 to move to.\n",
+  "example": "",
+  "related": "   goto_if_true\n   goto_if_false\n   goto_if_nil\n   goto_if_not_nil\n   goto_if_undefined\n   goto_if_not_undefined\n   goto_if_equal\n   goto_if_not_equal\n"
+}

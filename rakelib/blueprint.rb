@@ -74,6 +74,10 @@ Daedalus.blueprint do |i|
 
   files = i.source_files "machine/*.{cpp,c}", *subdirs
 
+  Dir["machine/instructions/int/*.cpp"].each do |name|
+    files << InstructionSourceFile.new(name)
+  end
+
   perl = Rubinius::BUILD_CONFIG[:build_perl] || "perl"
 
   src = Rubinius::BUILD_CONFIG[:sourcedir]
@@ -271,36 +275,6 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"
   gcc.cflags << "-D_FILE_OFFSET_BITS=64"
-
-  # Generate interpreter instructions files with LLVM musttail optimization
-  insns = i.external_lib "." do |l|
-    obj_file = "machine/artifacts/instructions.ll.o"
-    l.objects = [l.file(obj_file)]
-    l.to_build do |x|
-      clang = BUILD_CONFIG[:cxx]
-      cflags = gcc.cflags.join(" ")
-      llcflags = gcc.cflags.reject { |flag| flag.start_with? "-I" }.join(" ")
-      ll = "machine/gen/instructions.ll"
-      x.command "sh -c '#{clang} -S -emit-llvm #{cflags} -fvisibility=hidden -std=c++11 -O3 -o #{ll} -c machine/gen/instructions.cpp'"
-
-      re = %r[tail call i64 %\d+\(%"class.rubinius::State"\* %state, i32 %ip, i64\* %opcodes\)]
-
-      insns = File.readlines ll
-      insns.each do |line|
-        if re =~ line
-          line.sub!(/tail call/, "musttail call")
-        end
-      end
-
-      File.open ll, "w" do |insn_file|
-        insns.each { |line| insn_file.print line }
-      end
-
-      x.command "sh -c '#{clang} #{llcflags} -fvisibility=hidden -std=c++11 -O3 -o #{obj_file} -c #{ll}'"
-    end
-  end
-  gcc.add_library insns
-  files << insns
 
   cli = files.dup
   cli << i.source_file("machine/drivers/cli.cpp")

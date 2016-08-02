@@ -1,0 +1,16 @@
+{
+  "name": "cast_for_splat_block_arg",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "arguments"
+    ]
+  },
+  "description": "   Take all arguments passed to the current invocation and package\n   them into an `Array`, which is then pushed on the stack.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

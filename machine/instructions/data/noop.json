@@ -1,0 +1,16 @@
+{
+  "name": "noop",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   The classic no-op operator. It performs no actions and does not modify the\n   stack.\n",
+  "notes": "",
+  "example": "",
+  "related": "   pop\n"
+}

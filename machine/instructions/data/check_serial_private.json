@@ -1,0 +1,16 @@
+{
+  "name": "check_serial_private",
+  "arguments": "[\"literal\", \"serial\"]",
+  "stack": {
+    "before": [
+      "receiver"
+    ],
+    "after": [
+      "boolean"
+    ]
+  },
+  "description": "   Checks if the specified method's serial number matches an expected value.\n   Considers `private` methods too.\n",
+  "notes": "",
+  "example": "",
+  "related": "   check_serial\n"
+}

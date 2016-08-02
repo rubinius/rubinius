@@ -1,0 +1,16 @@
+{
+  "name": "cast_multi_value",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "value"
+    ],
+    "after": [
+      "array"
+    ]
+  },
+  "description": "   Convert a value into an Array\n\n   Pop _value_. If it is an `Array`, push it back on the stack.  Otherwise,\n   attempt to convert it to an `Array` using `#to_ary` and push the result.\n   If the value can not be converted to an array, it is wrapped in a one\n   element `Array`.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

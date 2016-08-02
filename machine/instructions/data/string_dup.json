@@ -1,0 +1,16 @@
+{
+  "name": "string_dup",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+      "string"
+    ],
+    "after": [
+      "string"
+    ]
+  },
+  "description": "   Consume the string on the stack, replacing it with a duplicate. Mutating\n   operations on the original string will not affect the duplicate, and\n   vice-versa.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

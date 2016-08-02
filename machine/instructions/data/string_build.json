@@ -1,0 +1,20 @@
+{
+  "name": "string_build",
+  "arguments": "[\"count\"]",
+  "stack": {
+    "before": [
+      "   stringN\n",
+      "   ...\n",
+      "   string2\n",
+      "   string1\n"
+    ],
+    "after": [
+      "   string1string2..stringN\n",
+      "   ...\n"
+    ]
+  },
+  "description": "   Build a new string using many substrings\n\n   Remove _count_ elements from the stack and interpret each as a `String`.\n   Build a new string which is all the removed elements concatenated together in\n   the order they were on the stack.\n\n   Push the resulting string.\n",
+  "notes": "",
+  "example": "",
+  "related": ""
+}

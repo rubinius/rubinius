@@ -1,0 +1,16 @@
+{
+  "name": "setup_unwind",
+  "arguments": "[\"ip\", \"type\"]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Register an unwind handler\n\n   Registers what to happen when an exception wants to unwind through the\n   current invocation. Operand _ip_ specifies where to set the instruction\n   pointer if used. Operand _type_ is either 0 for if the value should be\n   used in rescue style (not run when unwinding because of a return caused by\n   `raise_return`) or 1 for ensure style (always used). The registrations are\n   nested within the current invocation and are automatically removed from\n   the registry when they are used. The `pop_unwind` instruction can be used\n   to remove an unused registration.\n",
+  "notes": "   The registration also contains the value of the stack depth when\n   created. If the registration is used, then the stack depth is\n   restored to the value contained in the registration\n",
+  "example": "",
+  "related": "   pop_unwind\n"
+}

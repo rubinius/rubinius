@@ -1,0 +1,16 @@
+{
+  "name": "yield_debugger",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+
+    ]
+  },
+  "description": "   Pauses virtual machine execution and yields control to the debugger on the\n   debug channel. If no debugger is registered, an error is raised.\n",
+  "notes": "   _This instruction is deprecated and should not be used._\n",
+  "example": "",
+  "related": ""
+}
