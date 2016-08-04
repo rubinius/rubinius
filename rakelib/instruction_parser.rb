@@ -1,3 +1,5 @@
+require 'json'
+
 # A simple parser to transform a description of the VM instructions into
 # various implementation files.
 #
@@ -413,11 +415,36 @@ class InstructionParser
       @produced || @instruction.produced + ["..."]
     end
 
-    def format(file)
+    def description
+      @description.join.gsub(/\n +/, " ").gsub(/\n +/, "\n").strip
+    end
+
+    def notes
+      @notes.join.gsub(/\n +/, " ").gsub(/\n +/, "\n").strip
+    end
+
+    def see_also
+      @see_also.map(&:strip)
+    end
+
+    def example
+      indent = @example.map { |str| str[/\A\s*/].size }.sort.first
+      @example.map { |str| str[indent..-1] }.join
+    end
+
+    def stack_before
+      @consumed && @consumed.map(&:strip)
+    end
+
+    def stack_after
+      @produced && @produced.map(&:strip)
+    end
+
+    def render_format(file)
       file.puts %[<h3><a class="instruction" name="#{name}">#{name}(#{arguments})</a></h3>]
     end
 
-    def stack_effect(file)
+    def render_stack_effect(file)
       c = consumed
       p = produced
       n = c.size > p.size ? c.size : p.size
@@ -434,13 +461,13 @@ class InstructionParser
       file.puts "</table>"
     end
 
-    def description(file)
+    def render_description(file)
       file.puts ""
       file.puts @description
       file.puts ""
     end
 
-    def example(file)
+    def render_example(file)
       return if @example.empty?
 
       file.puts ""
@@ -449,7 +476,7 @@ class InstructionParser
       file.puts ""
     end
 
-    def see_also(file)
+    def render_see_also(file)
       return if @see_also.empty?
 
       file.puts "\n<h4>See Also</h4>"
@@ -461,7 +488,7 @@ class InstructionParser
       file.puts "</ul>"
     end
 
-    def notes(file)
+    def render_notes(file)
       return if @notes.empty?
 
       file.puts ""
@@ -479,12 +506,12 @@ class InstructionParser
     end
 
     def render(file)
-      format file
-      description file
-      stack_effect file
-      example file
-      notes file
-      see_also file
+      render_format file
+      render_description file
+      render_stack_effect file
+      render_example file
+      render_notes file
+      render_see_also file
     end
   end
 
@@ -510,8 +537,37 @@ class InstructionParser
       @doc = InstructionDocumentation.new(self).parse(doc)
       @extra = nil
       @produced_extra = nil
+      @produced_times = nil
       @bytecode = self.class.bytecode
       @control_flow = :next
+    end
+
+    def representation(section)
+      doc = { section: section, description: @doc.description }
+      doc[:stack_before] = @doc.stack_before if @doc.stack_before
+      doc[:stack_after]  = @doc.stack_after  if @doc.stack_after
+      doc[:notes]        = @doc.notes        if @doc.notes    && !@doc.notes.empty?
+      doc[:see_also]     = @doc.see_also     if @doc.see_also && !@doc.see_also.empty?
+      doc[:example]      = @doc.example      if @doc.example  && !@doc.example.empty?
+
+      consume = { static: static_read_effect }
+      consume[:extra] = @extra if @extra && @extra != 0
+
+      produce = { static: static_write_effect }
+      produce[:extra] = @produced_extra if @produced_extra && @produced_extra != 0
+      produce[:times] = @produced_times if @produced_times && @produced_times != 0
+
+      spec = {}
+      spec[:arguments] = @arguments if @arguments.any?
+      spec[:stack_effect] = { consume: consume, produce: produce }
+      spec[:control_flow] = @control_flow
+
+      {
+        opcode: bytecode,
+        name:   name,
+        doc:    doc,
+        spec:   spec,
+      }
     end
 
     def parse
@@ -936,6 +992,26 @@ class InstructionParser
       objects.each do |obj|
         obj.opcode_documentation file
       end
+    end
+  end
+
+  def generate_json(filename)
+    File.open filename, "wb" do |file|
+      result = { defines: {}, instructions: [] }
+      current_section = nil
+
+      objects.each do |obj|
+        case obj
+        when Define
+          result[:defines][obj.name] = obj.value
+        when Section
+          current_section = obj.heading
+        when Instruction
+          result[:instructions] << obj.representation(current_section)
+        end
+      end
+
+      file.puts JSON.pretty_generate result
     end
   end
 end
