@@ -1,4 +1,9 @@
-  intptr_t literal = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "builtin/call_site.hpp"
+#include "builtin/variable_scope.hpp"
+
+inline bool rubinius::instruction_zsuper(STATE, CallFrame* call_frame, intptr_t literal) {
   Object* block = stack_pop();
   Object* const recv = call_frame->self();
 
@@ -82,6 +87,7 @@
 
   ret = call_site->execute(state, new_args);
 
-  CHECK_AND_PUSH(ret);
-
   state->vm()->checkpoint(state);
+
+  CHECK_AND_PUSH(ret);
+}

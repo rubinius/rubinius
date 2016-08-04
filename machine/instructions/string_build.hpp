@@ -1,4 +1,8 @@
-  intptr_t count = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "builtin/string.hpp"
+
+inline bool rubinius::instruction_string_build(STATE, CallFrame* call_frame, intptr_t count) {
   size_t size = 0;
 
   bool tainted = false;
@@ -87,7 +91,7 @@
 
         if(enc->nil_p()) {
           Exception::encoding_compatibility_error(state, str, sub);
-          RUN_EXCEPTION();
+          return false;
         } else {
           str->encoding(state, enc);
         }
@@ -113,3 +117,5 @@
 
   stack_clear(count);
   stack_push(str);
+  return true;
+}

@@ -169,6 +169,12 @@ namespace rubinius {
       return ip_++;
     }
 
+    void next_ip() {
+    }
+
+    void exception_ip() {
+    }
+
     /**
      *  Initialize frame for the given stack size.
      */

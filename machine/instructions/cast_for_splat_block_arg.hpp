@@ -1,7 +1,11 @@
+#include "interpreter/instructions.hpp"
+
+#include "on_stack.hpp"
+
+inline bool rubinius::instruction_cast_for_splat_block_arg(STATE, CallFrame* call_frame) {
   if(!call_frame->arguments) {
-    Exception::internal_error(state,
-                              "no arguments object");
-    RUN_EXCEPTION();
+    Exception::internal_error(state, "no arguments object");
+    return false;
   }
 
   if(call_frame->arguments->total() == 1) {
@@ -16,10 +20,10 @@
       if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
         OnStack<1> os(state, obj);
         Object* ignored = obj->send(state, G(sym_to_ary));
-        if(!ignored) RUN_EXCEPTION();
+        if(!ignored) return false;
         if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
           Exception::type_error(state, "to_ary must return an Array");
-          RUN_EXCEPTION();
+          return false;
         }
       }
     }
@@ -33,3 +37,6 @@
     }
     stack_push(ary);
   }
+
+  return true;
+}

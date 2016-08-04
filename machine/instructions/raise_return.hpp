@@ -1,3 +1,8 @@
+#include "interpreter/instructions.hpp"
+
+#include "builtin/location.hpp"
+
+inline void rubinius::instruction_raise_return(STATE, CallFrame* call_frame) {
   if(!(call_frame->flags & CallFrame::cIsLambda) &&
      !state->vm()->scope_valid_p(call_frame->top_scope(state))) {
     Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
@@ -10,5 +15,4 @@
       state->vm()->thread_state()->raise_return(stack_top(), call_frame->top_scope(state));
     }
   }
-
-  return NULL;
+}

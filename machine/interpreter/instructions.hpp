@@ -1,45 +1,10 @@
-#ifndef RBX_INSNS_HPP
-#define RBX_INSNS_HPP
+#ifndef RBX_INTERPRETER_INSTRUCTIONS_HPP
+#define RBX_INTERPRETER_INSTRUCTIONS_HPP
 
-/*
-#include "builtin/object.hpp"
-#include "builtin/array.hpp"
-#include "builtin/autoload.hpp"
-#include "builtin/block_environment.hpp"
-#include "builtin/class.hpp"
-#include "builtin/code_db.hpp"
-#include "builtin/compiled_code.hpp"
-#include "builtin/encoding.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/iseq.hpp"
-#include "builtin/lexical_scope.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/lookup_table.hpp"
-#include "builtin/proc.hpp"
-#include "builtin/thread.hpp"
-#include "builtin/system.hpp"
-#include "builtin/constant_cache.hpp"
-#include "builtin/location.hpp"
-#include "builtin/thread_state.hpp"
-#include "builtin/call_site.hpp"
-#include "builtin/variable_scope.hpp"
+#include <stdint.h>
 
+#include "defines.hpp"
 #include "call_frame.hpp"
-
-#include "memory.hpp"
-#include "arguments.hpp"
-#include "dispatch.hpp"
-#include "instructions.hpp"
-#include "interpreter.hpp"
-#include "configuration.hpp"
-#include "on_stack.hpp"
-
-#include "helpers.hpp"
-*/
 
 #include "interpreter/prototypes.hpp"
 
@@ -49,6 +14,7 @@ typedef intptr_t (*Instruction)(STATE, CallFrame* call_frame, intptr_t const opc
 
 #define CALL_FLAG_CONCAT 2
 
+#define argument(n)       opcodes[call_frame->ip() + n]
 #define next_int          opcodes[call_frame->inc_ip()]
 #define store_ip(ip)      (call_frame->set_ip(ip))
 #define store_literal(x)  (x)
@@ -75,12 +41,16 @@ typedef intptr_t (*Instruction)(STATE, CallFrame* call_frame, intptr_t const opc
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 #define CHECK_AND_PUSH(val) \
-   if(val == NULL) { return NULL; } \
-   else { stack_push(val); }
+  if(val == NULL) { \
+    return false; \
+  } else { \
+    stack_push(val); \
+    return true; \
+  }
 
-#define interp_assert(code) if(!(code)) { Exception::internal_error(state, "assertion failed: " #code); RUN_EXCEPTION(); }
-
-#define RUN_EXCEPTION() (1)
+#define interp_assert(code) if(!(code)) { \
+  Exception::internal_error(state, "assertion failed: " #code); \
+}
 
 #define SET_CALL_FLAGS(val) (val) // is.call_flags = (val)
 #define CALL_FLAGS()        (1) // is.call_flags

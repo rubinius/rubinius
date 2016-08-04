@@ -1,15 +1,10 @@
-#include <stdint.h>
-
-#include "defines.hpp"
-#include "call_frame.hpp"
-
-#include "interpreter/instructions.hpp"
-
-#include "builtin/call_site.hpp"
-#include "builtin/object.hpp"
+#include "instructions/send_super_stack_with_splat.hpp"
 
 intptr_t rubinius::int_send_super_stack_with_splat(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
-#include "instructions/send_super_stack_with_splat.hpp"
+  intptr_t literal = argument(0);
+  intptr_t count = argument(1);
+
+  instruction_send_super_stack_with_splat(state, call_frame, literal, count);
 
   return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
 }

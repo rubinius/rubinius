@@ -1,3 +1,6 @@
+#include "interpreter/instructions.hpp"
+
+inline bool rubinius::instruction_cast_array(STATE, CallFrame* call_frame) {
   // Use stack_top and not stack_pop because we may need
   // to preserve and reread the value from the stack below.
   Object* t1 = stack_top();
@@ -26,4 +29,6 @@
   }
 
   (void)stack_pop(); // Remove original value
+
   CHECK_AND_PUSH(t1);
+}

@@ -1,4 +1,13 @@
-  intptr_t literal = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "helpers.hpp"
+#include "on_stack.hpp"
+
+#include "builtin/autoload.hpp"
+#include "builtin/constant_cache.hpp"
+#include "builtin/object.hpp"
+
+inline bool rubinius::instruction_push_const(STATE, CallFrame* call_frame, intptr_t literal) {
   ConstantCache* cache = reinterpret_cast<ConstantCache*>(literal);
 
   Object* res = cache->retrieve(state, call_frame->lexical_scope());
@@ -25,3 +34,4 @@
   }
 
   CHECK_AND_PUSH(res);
+}

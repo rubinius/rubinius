@@ -1,4 +1,12 @@
-  intptr_t literal = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "helpers.hpp"
+#include "on_stack.hpp"
+
+#include "builtin/autoload.hpp"
+#include "builtin/constant_cache.hpp"
+
+inline bool rubinius::instruction_find_const(STATE, CallFrame* call_frame, intptr_t literal) {
   Module* under = as<Module>(stack_pop());
 
   ConstantCache* cache = reinterpret_cast<ConstantCache*>(literal);
@@ -27,3 +35,4 @@
   }
 
   CHECK_AND_PUSH(res);
+}

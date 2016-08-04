@@ -1,4 +1,6 @@
-  intptr_t positions = next_int;
+#include "interpreter/instructions.hpp"
+
+inline void rubinius::instruction_move_down(CallFrame* call_frame, intptr_t positions) {
   Object* val = stack_top();
   for(int i = 0; i < positions; i++) {
     int target = -i;
@@ -6,3 +8,4 @@
     STACK_PTR[target] = STACK_PTR[current];
   }
   STACK_PTR[-positions] = val;
+}

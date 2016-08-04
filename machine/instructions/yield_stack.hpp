@@ -1,4 +1,9 @@
-  intptr_t count = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "builtin/block_environment.hpp"
+#include "builtin/proc.hpp"
+
+inline bool rubinius::instruction_yield_stack(STATE, CallFrame* call_frame, intptr_t count) {
   Object* t1 = call_frame->scope->block();
   Object* ret;
   Arguments args(G(sym_call), t1, count, stack_back_position(count));
@@ -17,6 +22,7 @@
 
   stack_clear(count);
 
-  CHECK_AND_PUSH(ret);
-
   state->vm()->checkpoint(state);
+
+  CHECK_AND_PUSH(ret);
+}

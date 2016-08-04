@@ -1,5 +1,8 @@
-  intptr_t literal = next_int;
-  intptr_t count = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "builtin/call_site.hpp"
+
+inline bool rubinius::instruction_send_super_stack_with_splat(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count) {
   Object* block = stack_pop();
   Object* ary   = stack_pop();
   Object* const recv = call_frame->self();
@@ -23,6 +26,7 @@
 
   stack_clear(count);
 
-  CHECK_AND_PUSH(ret);
-
   state->vm()->checkpoint(state);
+
+  CHECK_AND_PUSH(ret);
+}

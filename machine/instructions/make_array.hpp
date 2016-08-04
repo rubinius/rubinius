@@ -1,4 +1,6 @@
-  intptr_t count = next_int;
+#include "interpreter/instructions.hpp"
+
+inline void rubinius::instruction_make_array(STATE, CallFrame* call_frame, intptr_t count) {
   Object* t2;
   Array* ary = Array::create(state, count);
   Tuple* tup = ary->tuple();
@@ -15,3 +17,4 @@
   }
   ary->total(state, Fixnum::from(count));
   stack_push(ary);
+}

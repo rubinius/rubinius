@@ -1,14 +1,11 @@
-#include <stdint.h>
-
-#include "defines.hpp"
-#include "call_frame.hpp"
-
-#include "interpreter/instructions.hpp"
-
-#include "builtin/object.hpp"
+#include "instructions/cast_for_multi_block_arg.hpp"
 
 intptr_t rubinius::int_cast_for_multi_block_arg(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
-#include "instructions/cast_for_multi_block_arg.hpp"
+  if(instruction_cast_for_multi_block_arg(state, call_frame)) {
+    call_frame->next_ip();
+  } else {
+    call_frame->exception_ip();
+  }
 
   return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
 }

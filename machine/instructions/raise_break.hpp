@@ -1,3 +1,8 @@
+#include "interpreter/instructions.hpp"
+
+#include "builtin/location.hpp"
+
+inline intptr_t rubinius::instruction_raise_break(STATE, CallFrame* call_frame) {
   if(call_frame->flags & CallFrame::cIsLambda) {
     return (intptr_t)stack_top();
   } else if(state->vm()->scope_valid_p(call_frame->scope->parent())) {
@@ -10,4 +15,5 @@
     return NULL;
   }
   // TODO: instruction exceptions
-  // RUN_EXCEPTION();
+  // return false;
+}

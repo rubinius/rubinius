@@ -1,4 +1,9 @@
-  intptr_t literal = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "builtin/block_environment.hpp"
+#include "builtin/code_db.hpp"
+
+inline bool rubinius::instruction_create_block(STATE, CallFrame* call_frame, intptr_t literal) {
   Object* code_or_id = reinterpret_cast<Object*>(literal);
   CompiledCode* code = 0;
 
@@ -9,6 +14,6 @@
   }
 
   Object* be = BlockEnvironment::under_call_frame(state, code, call_frame->machine_code);
-  if(!be) return static_cast<intptr_t>(NULL);
 
-  stack_push(be);
+  CHECK_AND_PUSH(be);
+}

@@ -1,7 +1,9 @@
+#include "interpreter/instructions.hpp"
+
+inline bool rubinius::instruction_cast_for_single_block_arg(STATE, CallFrame* call_frame) {
   if(!call_frame->arguments) {
-    Exception::internal_error(state,
-                              "no arguments object");
-    RUN_EXCEPTION();
+    Exception::internal_error(state, "no arguments object");
+    return false;
   }
 
   int k = call_frame->arguments->total();
@@ -16,3 +18,6 @@
     }
     stack_push(ary);
   }
+
+  return true;
+}

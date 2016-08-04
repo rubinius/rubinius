@@ -1,7 +1,9 @@
+#include "interpreter/instructions.hpp"
+
+inline bool rubinius::instruction_cast_for_multi_block_arg(STATE, CallFrame* call_frame) {
   if(!call_frame->arguments) {
-    Exception::internal_error(state,
-                              "no arguments object");
-    RUN_EXCEPTION();
+    Exception::internal_error(state, "no arguments object");
+    return false;
   }
 
   /* If there is only one argument and that thing is an array...
@@ -13,12 +15,12 @@
       stack_push(obj);
     } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
       obj = obj->send(state, G(sym_to_ary));
-      if(!obj) RUN_EXCEPTION();
+      if(!obj) return false;
       if(kind_of<Array>(obj)) {
         stack_push(obj);
       } else {
         Exception::type_error(state, "to_ary must return an Array");
-        RUN_EXCEPTION();
+        return false;
       }
     } else {
       Array* ary = Array::create(state, 1);
@@ -32,3 +34,6 @@
     }
     stack_push(ary);
   }
+
+  return true;
+}

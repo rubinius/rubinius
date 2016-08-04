@@ -1,4 +1,9 @@
-  intptr_t literal = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "builtin/call_site.hpp"
+#include "builtin/string.hpp"
+
+inline bool rubinius::instruction_object_to_s(STATE, CallFrame* call_frame, intptr_t literal) {
   if(!kind_of<String>(stack_top())) {
     CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
@@ -9,7 +14,9 @@
     }
 
     (void)stack_pop();
-    CHECK_AND_PUSH(ret);
 
-    state->vm()->checkpoint(state);
+    CHECK_AND_PUSH(ret);
   }
+
+  return true;
+}

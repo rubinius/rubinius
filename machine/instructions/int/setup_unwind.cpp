@@ -1,17 +1,10 @@
-#include <stdint.h>
-
-#include "defines.hpp"
-#include "call_frame.hpp"
-
-#include "interpreter/instructions.hpp"
-
-#include "builtin/object.hpp"
+#include "instructions/setup_unwind.hpp"
 
 intptr_t rubinius::int_setup_unwind(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
-  // TODO: needs to be in CallFrame
-  UnwindInfoSet unwinds;
+  intptr_t ip = argument(0);
+  intptr_t type = argument(1);
 
-#include "instructions/setup_unwind.hpp"
+  instruction_setup_unwind(call_frame, ip, type);
 
   return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
 }

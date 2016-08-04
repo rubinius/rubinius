@@ -1,4 +1,9 @@
-  intptr_t count = next_int;
+#include "interpreter/instructions.hpp"
+
+#include "builtin/block_environment.hpp"
+#include "builtin/proc.hpp"
+
+inline bool rubinius::instruction_yield_splat(STATE, CallFrame* call_frame, intptr_t count) {
   Object* ary = stack_pop();
   Object* t1 = call_frame->scope->block();
 
@@ -23,6 +28,7 @@
 
   stack_clear(count);
 
-  CHECK_AND_PUSH(ret);
-
   state->vm()->checkpoint(state);
+
+  CHECK_AND_PUSH(ret);
+}
