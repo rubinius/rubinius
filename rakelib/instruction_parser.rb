@@ -489,9 +489,10 @@ class InstructionParser
   end
 
   class Instruction < Definition
-    attr_reader :name, :bytecode, :arguments, :consumed, :extra,
+    attr_reader :name, :arguments, :consumed, :extra,
                 :produced, :produced_extra, :effect, :body, :control_flow,
                 :produced_times
+    attr_accessor :bytecode
 
     def self.bytecodes
       @bytecodes
@@ -766,7 +767,15 @@ class InstructionParser
       file.puts "module Rubinius"
       file.puts "  class InstructionSet"
 
-      objects.each { |obj| obj.opcode_definition file }
+      insns = objects.inject([]) do |a, obj|
+        a << obj if obj.kind_of? Instruction
+        a
+      end.sort { |a, b| a.name <=> b.name }
+
+      insns.each.with_index do |obj, i|
+        obj.bytecode = i
+        obj.opcode_definition file
+      end
 
       file.puts "  end"
       file.puts "end"
