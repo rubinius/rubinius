@@ -1,5 +1,8 @@
 #include "interpreter/instructions.hpp"
 
-inline void rubinius::instruction_goto(CallFrame* call_frame, intptr_t location) {
-  store_ip(location);
+namespace rubinius {
+  namespace instructions {
+    inline void goto_(CallFrame* call_frame) {
+    }
+  }
 }

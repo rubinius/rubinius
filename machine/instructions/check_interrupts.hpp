@@ -1,5 +1,9 @@
 #include "interpreter/instructions.hpp"
 
-inline void rubinius::instruction_check_interrupts(STATE) {
-  state->vm()->checkpoint(state);
+namespace rubinius {
+  namespace instructions {
+    inline void check_interrupts(STATE) {
+      state->vm()->checkpoint(state);
+    }
+  }
 }

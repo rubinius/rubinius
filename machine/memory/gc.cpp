@@ -3,6 +3,7 @@
 #include "memory/gc.hpp"
 
 #include "memory.hpp"
+#include "machine_code.hpp"
 
 #include "memory/object_mark.hpp"
 

@@ -1,12 +1,13 @@
 #ifndef RBX_CALL_FRAME_HPP
 #define RBX_CALL_FRAME_HPP
 
-#include "machine_code.hpp"
 #include "unwind_info.hpp"
 #include "stack_variables.hpp"
 #include "dispatch.hpp"
 #include "arguments.hpp"
 #include "object_utils.hpp"
+
+#include "builtin/compiled_code.hpp"
 #include "builtin/symbol.hpp"
 
 #include <ostream>
@@ -22,6 +23,14 @@ namespace rubinius {
     class RuntimeData;
     class RuntimeDataHolder;
   }
+
+  struct InterpreterState {
+    int call_flags;
+
+    InterpreterState()
+      : call_flags(0)
+    {}
+  };
 
   struct CallFrame {
     enum Flags {
@@ -47,6 +56,8 @@ namespace rubinius {
 
     int flags;
     int ip_;
+    int ret_ip_;
+    int exception_ip_;
 
     VariableScope* top_scope_;
     StackVariables* scope;
@@ -54,6 +65,8 @@ namespace rubinius {
     Arguments* arguments;
     Object** stack_ptr_;
     MachineCode* machine_code;
+    InterpreterState* is;
+    UnwindInfoSet* unwinds;
 
     // Stack
     Object* stk[0];
@@ -169,10 +182,18 @@ namespace rubinius {
       return ip_++;
     }
 
+    // TODO: instructions
+    // void next_ip(int width) {
+    //  ip_ += width;
     void next_ip() {
     }
 
+    void ret_ip() {
+      ip_ = ret_ip_;
+    }
+
     void exception_ip() {
+      ip_ = exception_ip_;
     }
 
     /**

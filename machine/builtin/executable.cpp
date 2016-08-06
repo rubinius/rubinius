@@ -2,6 +2,7 @@
 #include "call_frame.hpp"
 #include "dispatch.hpp"
 #include "memory.hpp"
+#include "machine_code.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/class.hpp"

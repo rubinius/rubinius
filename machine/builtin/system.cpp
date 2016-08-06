@@ -1,4 +1,5 @@
 #include "arguments.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/block_environment.hpp"
@@ -32,6 +33,7 @@
 #include "helpers.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
+#include "machine_code.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"

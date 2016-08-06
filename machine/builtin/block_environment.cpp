@@ -4,6 +4,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "memory.hpp"
+#include "machine_code.hpp"
 
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"

@@ -4,6 +4,7 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
+#include "machine_code.hpp"
 #include "on_stack.hpp"
 #include "logger.hpp"
 

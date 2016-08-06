@@ -15,8 +15,6 @@ typedef intptr_t (*Instruction)(STATE, CallFrame* call_frame, intptr_t const opc
 #define CALL_FLAG_CONCAT 2
 
 #define argument(n)       opcodes[call_frame->ip() + n]
-#define next_int          opcodes[call_frame->inc_ip()]
-#define store_ip(ip)      (call_frame->set_ip(ip))
 #define store_literal(x)  (x)
 
 #define STACK_PTR call_frame->stack_ptr_

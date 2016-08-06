@@ -2,6 +2,7 @@
 #define RBX_VMMETHOD_HPP
 
 #include "defines.hpp"
+#include "call_frame.hpp"
 #include "executor.hpp"
 #include "memory/root.hpp"
 #include "primitives.hpp"
@@ -164,14 +165,6 @@ namespace rubinius {
       static Object* execute_specialized(STATE, Executable* exec, Module* mod, Arguments& args);
 
     Object* execute_as_script(STATE, CompiledCode* code);
-
-    struct InterpreterState {
-      int call_flags;
-
-      InterpreterState()
-        : call_flags(0)
-      {}
-    };
 
     /**
      *  Interpreting implementation.

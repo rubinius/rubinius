@@ -1,4 +1,8 @@
 #include "interpreter/instructions.hpp"
 
-inline void rubinius::instruction_allow_private() {
+namespace rubinius {
+  namespace instructions {
+    inline void allow_private() {
+    }
+  }
 }

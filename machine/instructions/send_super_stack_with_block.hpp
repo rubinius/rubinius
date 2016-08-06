@@ -2,19 +2,23 @@
 
 #include "builtin/call_site.hpp"
 
-inline bool rubinius::instruction_send_super_stack_with_block(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count) {
-  Object* block = stack_pop();
-  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
-  Object* const recv = call_frame->self();
+namespace rubinius {
+  namespace instructions {
+    inline bool send_super_stack_with_block(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count) {
+      Object* block = stack_pop();
+      CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+      Object* const recv = call_frame->self();
 
-  Arguments new_args(call_site->name(), recv, block, count,
-                     stack_back_position(count));
+      Arguments new_args(call_site->name(), recv, block, count,
+                         stack_back_position(count));
 
-  Object* ret = call_site->execute(state, new_args);
+      Object* ret = call_site->execute(state, new_args);
 
-  stack_clear(count);
+      stack_clear(count);
 
-  state->vm()->checkpoint(state);
+      state->vm()->checkpoint(state);
 
-  CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(ret);
+    }
+  }
 }

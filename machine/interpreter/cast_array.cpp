@@ -1,0 +1,15 @@
+#include "instructions/cast_array.hpp"
+
+namespace rubinius {
+  namespace interpreter {
+    intptr_t cast_array(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
+      if(instructions::cast_array(state, call_frame)) {
+        call_frame->next_ip();
+      } else {
+        call_frame->exception_ip();
+      }
+
+      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+    }
+  }
+}

@@ -1,5 +1,9 @@
 #include "interpreter/instructions.hpp"
 
-inline void rubinius::instruction_clear_exception(STATE) {
-  state->vm()->thread_state()->clear_raise();
+namespace rubinius {
+  namespace instructions {
+    inline void clear_exception(STATE) {
+      state->vm()->thread_state()->clear_raise();
+    }
+  }
 }

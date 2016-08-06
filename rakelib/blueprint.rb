@@ -74,7 +74,7 @@ Daedalus.blueprint do |i|
 
   files = i.source_files "machine/*.{cpp,c}", *subdirs
 
-  Dir["machine/instructions/int/*.cpp"].each do |name|
+  Dir["machine/interpreter/*.cpp"].each do |name|
     files << InstructionSourceFile.new(name)
   end
 

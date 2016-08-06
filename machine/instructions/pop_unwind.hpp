@@ -1,14 +1,15 @@
 #include "interpreter/instructions.hpp"
 
-inline bool rubinius::instruction_pop_unwind(STATE, CallFrame* call_frame) {
-  // TODO: needs to be in CallFrame
-  UnwindInfoSet unwinds;
+namespace rubinius {
+  namespace instructions {
+    inline bool pop_unwind(STATE, CallFrame* call_frame) {
+      if(!call_frame->unwinds->has_unwinds()) {
+        Exception::internal_error(state, "unbalanced pop_unwind");
+        return false;
+      }
 
-  if(!unwinds.has_unwinds()) {
-    Exception::internal_error(state, "unbalanced pop_unwind");
-    return false;
+      call_frame->unwinds->drop();
+      return true;
+    }
   }
-
-  unwinds.drop();
-  return true;
 }

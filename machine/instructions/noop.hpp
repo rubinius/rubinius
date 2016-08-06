@@ -1,4 +1,8 @@
 #include "interpreter/instructions.hpp"
 
-inline void rubinius::instruction_noop() {
+namespace rubinius {
+  namespace instructions {
+    inline void noop() {
+    }
+  }
 }

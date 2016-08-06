@@ -1,4 +1,5 @@
 #include "memory.hpp"
+#include "machine_code.hpp"
 #include "call_frame.hpp"
 #include "on_stack.hpp"
 

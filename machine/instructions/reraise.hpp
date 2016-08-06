@@ -1,5 +1,9 @@
 #include "interpreter/instructions.hpp"
 
-inline void rubinius::instruction_reraise(STATE, CallFrame* call_frame) {
-  interp_assert(state->vm()->thread_state()->raise_reason() != cNone);
+namespace rubinius {
+  namespace instructions {
+    inline void reraise(STATE, CallFrame* call_frame) {
+      interp_assert(state->vm()->thread_state()->raise_reason() != cNone);
+    }
+  }
 }
