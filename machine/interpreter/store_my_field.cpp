@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::store_my_field(state, call_frame, index);
 
+      call_frame->next_ip(instructions::data_store_my_field.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

@@ -8,7 +8,7 @@ namespace rubinius {
       if(instructions::goto_if_false(call_frame)) {
         call_frame->set_ip(location);
       } else {
-        call_frame->next_ip();
+        call_frame->next_ip(instructions::data_goto_if_false.width);
       }
 
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);

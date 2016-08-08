@@ -8,6 +8,7 @@ namespace rubinius {
 
       instructions::send_super_stack_with_block(state, call_frame, literal, count);
 
+      call_frame->next_ip(instructions::data_send_super_stack_with_block.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

@@ -182,9 +182,10 @@ namespace rubinius {
       return ip_++;
     }
 
-    // TODO: instructions
-    // void next_ip(int width) {
-    //  ip_ += width;
+    void next_ip(int width) {
+     ip_ += width;
+    }
+
     void next_ip() {
     }
 

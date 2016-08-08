@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::object_to_s(state, call_frame, literal);
 
+      call_frame->next_ip(instructions::data_object_to_s.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

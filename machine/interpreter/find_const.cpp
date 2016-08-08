@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::find_const(state, call_frame, literal);
 
+      call_frame->next_ip(instructions::data_find_const.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

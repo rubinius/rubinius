@@ -10,6 +10,8 @@ namespace rubinius {
         call_frame->ret_ip();
       }
 
+      // TODO: instructions, add instruction
+      // call_frame->next_ip(instructions::data_run_exception.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

@@ -8,6 +8,7 @@ namespace rubinius {
 
       instructions::setup_unwind(call_frame, ip, type);
 
+      call_frame->next_ip(instructions::data_setup_unwind.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::pop_many(call_frame, count);
 
+      call_frame->next_ip(instructions::data_pop_many.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

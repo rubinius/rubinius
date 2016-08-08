@@ -9,6 +9,7 @@ namespace rubinius {
         call_frame->exception_ip();
       }
 
+      call_frame->next_ip(instructions::data_cast_for_single_block_arg.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

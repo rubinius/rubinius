@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::send_vcall(state, call_frame, literal);
 
+      call_frame->next_ip(instructions::data_send_vcall.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

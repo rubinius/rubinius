@@ -855,6 +855,36 @@ class InstructionParser
     end
   end
 
+  def generate_structs(filename)
+    insns = objects.inject([]) do |a, obj|
+      a << obj if obj.kind_of? Instruction
+      a
+    end
+
+    File.open filename, "wb" do |file|
+      file.puts "namespace rubinius {"
+      file.puts "  namespace instructions {"
+
+      insns.each.with_index do |obj, i|
+        file.puts "    InstructionData data_#{obj.name} = {"
+        file.puts %[      #{obj.name.inspect}, #{i}, #{obj.opcode_width}, #{obj.static_read_effect}, #{obj.extra == 0 ? 1 : 0}, #{obj.extra == 1 ? 1 : 0}, #{obj.extra == 2 ? 1 : 0}, #{obj.static_write_effect}, (#{obj.produced_extra == 0 ? 1 : 0} * #{obj.produced_times || 0}), (#{obj.produced_extra == 1 ? 1 : 0} * #{obj.produced_times || 0}), (#{obj.produced_extra == 2 ? 1 : 0} * #{obj.produced_extra || 0}), (intptr_t)rubinius::interpreter::#{obj.name}]
+        file.puts "    };"
+      end
+
+      file.puts "  }"
+      file.puts ""
+      file.puts "  const instructions::InstructionData Interpreter::instruction_data[] = {"
+
+      insns.each do |obj|
+        file.puts "    rubinius::instructions::data_#{obj.name},"
+
+      end
+
+      file.puts "  }"
+      file.puts "}"
+    end
+  end
+
   def generate_sizes(filename)
     File.open filename, "wb" do |file|
       file.puts "size_t width = 0;"

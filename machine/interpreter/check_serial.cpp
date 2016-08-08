@@ -8,6 +8,7 @@ namespace rubinius {
 
       instructions::check_serial(state, call_frame, literal, serial);
 
+      call_frame->next_ip(instructions::data_check_serial.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

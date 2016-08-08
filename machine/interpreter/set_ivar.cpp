@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::set_ivar(state, call_frame, literal);
 
+      call_frame->next_ip(instructions::data_set_ivar.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

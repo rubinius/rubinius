@@ -5,6 +5,7 @@ namespace rubinius {
     intptr_t allow_private(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
       instructions::allow_private();
 
+      call_frame->next_ip(instructions::data_allow_private.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

@@ -5,6 +5,7 @@ namespace rubinius {
     intptr_t noop(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
       instructions::noop();
 
+      call_frame->next_ip(instructions::data_noop.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::passed_blockarg(state, call_frame, count);
 
+      call_frame->next_ip(instructions::data_passed_blockarg.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

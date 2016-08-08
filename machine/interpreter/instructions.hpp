@@ -7,6 +7,7 @@
 #include "call_frame.hpp"
 
 #include "interpreter/prototypes.hpp"
+#include "instructions/data.hpp"
 
 using namespace rubinius;
 

@@ -7,6 +7,7 @@ namespace rubinius {
 
       instructions::yield_stack(state, call_frame, count);
 
+      call_frame->next_ip(instructions::data_yield_stack.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

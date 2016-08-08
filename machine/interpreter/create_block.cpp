@@ -13,6 +13,7 @@ namespace rubinius {
 
       instructions::create_block(state, call_frame, literal);
 
+      call_frame->next_ip(instructions::data_create_block.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
