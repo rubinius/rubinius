@@ -6,8 +6,8 @@
 #include "defines.hpp"
 #include "call_frame.hpp"
 
+#include "interpreter/instructions.hpp"
 #include "interpreter/prototypes.hpp"
-#include "instructions/data.hpp"
 
 namespace rubinius {
   struct CallFrame;
@@ -19,7 +19,9 @@ namespace rubinius {
 
   public:
 
-    typedef intptr_t (*Instruction)(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    static const instructions::InstructionData& instruction_data_(int index) {
+      return instruction_data[index];
+    }
 
     static void prepare(STATE, MachineCode* machine_code);
     static intptr_t execute(STATE, MachineCode* const machine_code);

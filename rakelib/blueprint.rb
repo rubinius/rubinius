@@ -68,7 +68,7 @@ Daedalus.blueprint do |i|
   gcc.ldflags << Rubinius::BUILD_CONFIG[:user_ldflags]
 
   # Files
-  subdirs = %w[ builtin capi util instruments memory jit missing ].map do |x|
+  subdirs = %w[ builtin capi util instruments instructions memory jit missing ].map do |x|
     "machine/#{x}/**/*.{cpp,c}"
   end
 

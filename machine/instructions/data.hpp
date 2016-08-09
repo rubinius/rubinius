@@ -1,3 +1,6 @@
+#ifndef RBX_INSTRUCTIONS_DATA_HPP
+#define RBX_INSTRUCTIONS_DATA_HPP
+
 namespace rubinius {
   namespace instructions {
     struct InstructionData {
@@ -14,15 +17,15 @@ namespace rubinius {
       const int write_arg2;
       const intptr_t interpreter_address;
 
-      int consumed(intptr_t arg0, intptr_t arg1, intptr_t arg2) {
+      int consumed(intptr_t arg0, intptr_t arg1, intptr_t arg2) const {
         return read + (arg0*read_arg0) + (arg1*read_arg1) + (arg2*read_arg2);
       }
 
-      int produced(intptr_t arg0, intptr_t arg1, intptr_t arg2) {
+      int produced(intptr_t arg0, intptr_t arg1, intptr_t arg2) const {
         return write + (arg0*write_arg0) + (arg1*write_arg1) + (arg2*write_arg2);
       }
 
-      int stack_effect(intptr_t arg0, intptr_t arg1, intptr_t arg2) {
+      int stack_effect(intptr_t arg0, intptr_t arg1, intptr_t arg2) const {
         return produced(arg0, arg1, arg2) - consumed(arg0, arg1, arg2);
       }
     };
@@ -421,3 +424,5 @@ namespace rubinius {
     };
   }
 }
+
+#endif

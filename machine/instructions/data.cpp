@@ -1,3 +1,5 @@
+#include "interpreter.hpp"
+
 namespace rubinius {
   const instructions::InstructionData Interpreter::instruction_data[] = {
     rubinius::instructions::data_add_scope,
@@ -98,5 +100,5 @@ namespace rubinius {
     rubinius::instructions::data_yield_splat,
     rubinius::instructions::data_yield_stack,
     rubinius::instructions::data_zsuper,
-  }
+  };
 }

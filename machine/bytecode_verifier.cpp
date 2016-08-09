@@ -10,6 +10,7 @@
 #include "configuration.hpp"
 #include "machine_code.hpp"
 #include "object_utils.hpp"
+#include "interpreter.hpp"
 
 #include "instruments/timing.hpp"
 
@@ -275,6 +276,8 @@ namespace rubinius {
       int read = 0, write = 0;
 
       int effect = stack_difference(op, arg1, arg2, arg3, &read, &write);
+      // TODO: instructions
+      // int effect = Interpreter::instruction_data_(op).stack_effect(arg1, arg2, arg3);
 
       // Check for under read
       if(sp - read < 0) {
