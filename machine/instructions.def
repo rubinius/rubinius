@@ -2192,3 +2192,7 @@ end
 instruction push_mirror() [ -- constant ]
   stack_push(G(mirror));
 end
+
+instruction run_exception() [ -- ]
+  // place holder for transitioning to new interpreter
+end
