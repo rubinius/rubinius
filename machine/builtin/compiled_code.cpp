@@ -474,20 +474,6 @@ namespace rubinius {
       std::cout << "no\n";
     } else {
       std::cout << "yes\n";
-
-      /* TODO: JIT
-      MachineCode* v = code->machine_code();
-
-      for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-        if(!v->specializations[i].jit_data) continue;
-        llvm::outs() << "<MachineCode>\n";
-
-        LLVMState::show_machine_code(
-            v->specializations[i].jit_data->native_func(),
-            v->specializations[i].jit_data->native_size());
-        llvm::outs() << "</MachineCode>\n";
-      }
-      */
     }
 
     close_body(level);

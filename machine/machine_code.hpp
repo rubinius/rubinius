@@ -16,10 +16,6 @@
 
 #include <stdint.h>
 
-namespace llvm {
-  class Function;
-}
-
 namespace rubinius {
   typedef uintptr_t opcode;
 

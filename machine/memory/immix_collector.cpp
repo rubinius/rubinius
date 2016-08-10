@@ -259,10 +259,6 @@ namespace memory {
         }
       }
     }
-
-    /* TODO: JIT
-    if(LLVMState* ls = data->llvm_state()) ls->gc_scan(this);
-    */
   }
 
   void ImmixGC::collect_finish(GCData* data) {
