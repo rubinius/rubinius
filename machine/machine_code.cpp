@@ -5,6 +5,7 @@
 #include "memory.hpp"
 #include "defines.hpp"
 #include "machine_code.hpp"
+#include "interpreter.hpp"
 
 #include "object_utils.hpp"
 
@@ -82,7 +83,12 @@ namespace rubinius {
 
     opcodes = new opcode[total];
 
-    fill_opcodes(state, code);
+    if(!name_->cpp_str(state).compare("a_very_special_method")) {
+      run = (InterpreterRunner)Interpreter::execute;
+      Interpreter::prepare(state, code, this);
+    } else {
+      fill_opcodes(state, code);
+    }
 
     if(Fixnum* pos = try_as<Fixnum>(code->splat())) {
       splat_position = pos->to_native();

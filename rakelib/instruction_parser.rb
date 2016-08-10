@@ -879,26 +879,26 @@ class InstructionParser
       const int write_arg0;
       const int write_arg1;
       const int write_arg2;
-      const intptr_t interpreter_address;
+      intptr_t (*interpreter_address)(STATE, CallFrame*, intptr_t const[]);
 
-      int consumed(intptr_t arg0, intptr_t arg1, intptr_t arg2) {
+      int consumed(intptr_t arg0, intptr_t arg1, intptr_t arg2) const {
         return read + (arg0*read_arg0) + (arg1*read_arg1) + (arg2*read_arg2);
       }
 
-      int produced(intptr_t arg0, intptr_t arg1, intptr_t arg2) {
+      int produced(intptr_t arg0, intptr_t arg1, intptr_t arg2) const {
         return write + (arg0*write_arg0) + (arg1*write_arg1) + (arg2*write_arg2);
       }
 
-      int stack_effect(intptr_t arg0, intptr_t arg1, intptr_t arg2) {
+      int stack_effect(intptr_t arg0, intptr_t arg1, intptr_t arg2) const {
         return produced(arg0, arg1, arg2) - consumed(arg0, arg1, arg2);
       }
     };
 
       EOD
 
-      objects.each do |obj|
-        file.puts "    const InstructionData data_#{obj.name} = {"
-        file.puts %[      #{obj.name.inspect}, #{i}, #{obj.opcode_width}, #{obj.static_read_effect}, #{obj.extra == 0 ? 1 : 0}, #{obj.extra == 1 ? 1 : 0}, #{obj.extra == 2 ? 1 : 0}, #{obj.static_write_effect}, (#{obj.produced_extra == 0 ? 1 : 0} * #{obj.produced_times || 0}), (#{obj.produced_extra == 1 ? 1 : 0} * #{obj.produced_times || 0}), (#{obj.produced_extra == 2 ? 1 : 0} * #{obj.produced_extra || 0}),\n      (intptr_t)rubinius::interpreter::#{obj.name}]
+      objects.select { |x| x.kind_of? Instruction }.each do |obj|
+        file.puts "    const InstructionData constexpr data_#{obj.name} = {"
+        file.puts %[      #{obj.name.inspect}, #{obj.bytecode}, #{obj.opcode_width}, #{obj.static_read_effect}, #{obj.extra == 0 ? 1 : 0}, #{obj.extra == 1 ? 1 : 0}, #{obj.extra == 2 ? 1 : 0}, #{obj.static_write_effect}, (#{obj.produced_extra == 0 ? 1 : 0} * #{obj.produced_times || 0}), (#{obj.produced_extra == 1 ? 1 : 0} * #{obj.produced_times || 0}), (#{obj.produced_extra == 2 ? 1 : 0} * #{obj.produced_extra || 0}),\n      rubinius::interpreter::#{obj.name}]
         file.puts "    };"
       end
 

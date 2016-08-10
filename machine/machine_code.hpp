@@ -14,6 +14,8 @@
 #include "builtin/compiled_code.hpp"
 #include "memory/code_resource.hpp"
 
+#include <stdint.h>
+
 namespace llvm {
   class Function;
 }
@@ -56,7 +58,7 @@ namespace rubinius {
 
     opcode* opcodes;
 
-    std::size_t total;
+    size_t total;
     TypeInfo* type;
 
     bool keywords;

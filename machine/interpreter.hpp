@@ -11,6 +11,7 @@
 
 namespace rubinius {
   struct CallFrame;
+  class CompiledCode;
   class MachineCode;
 
   class Interpreter {
@@ -23,7 +24,7 @@ namespace rubinius {
       return instruction_data[index];
     }
 
-    static void prepare(STATE, MachineCode* machine_code);
+    static void prepare(STATE, CompiledCode* compiled_code, MachineCode* machine_code);
     static intptr_t execute(STATE, MachineCode* const machine_code);
   };
 }
