@@ -21,9 +21,16 @@ namespace rubinius {
     size_t calls_count = 0;
     size_t constants_count = 0;
 
+    // Set exception handler IP
+    opcodes[total-1] =
+      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
+
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
-      opcode op = opcodes[ip] = as<Fixnum>(ops->at(ip))->to_native();
-      width = Interpreter::instruction_data_(opcodes[ip]).width;
+      opcode op = as<Fixnum>(ops->at(ip))->to_native();
+      width = Interpreter::instruction_data_(op).width;
+
+      opcodes[ip] =
+        reinterpret_cast<intptr_t>(Interpreter::instruction_data_(op).interpreter_address);
 
       switch(width) {
       case 4:
@@ -67,9 +74,10 @@ namespace rubinius {
     bool is_super = false;
 
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
-      width = InstructionSequence::instruction_width(opcodes[ip]);
+      opcode op = as<Fixnum>(ops->at(ip))->to_native();
+      width = Interpreter::instruction_data_(op).width;
 
-      switch(opcode op = opcodes[ip]) {
+      switch(op) {
       case instructions::data_push_int.id:
         opcodes[ip + 1] = reinterpret_cast<opcode>(Fixnum::from(opcodes[ip + 1]));
         break;
@@ -133,10 +141,10 @@ namespace rubinius {
 
         CallSite* call_site = CallSite::create(state, name, ip);
 
-        if(op == InstructionSequence::insn_send_vcall) {
+        if(op == instructions::data_send_vcall.id) {
           allow_private = true;
           call_site->set_is_vcall();
-        } else if(op == InstructionSequence::insn_object_to_s) {
+        } else if(op == instructions::data_object_to_s.id) {
           allow_private = true;
         }
 
@@ -173,10 +181,14 @@ namespace rubinius {
     UnwindInfoSet unwinds;
     Exception* exception = 0;
     intptr_t* opcodes = (intptr_t*)machine_code->opcodes;
-    CallFrame* call_frame = state->vm()->call_frame();
 
-    state->vm()->call_frame()->is = &is;
-    state->vm()->call_frame()->unwinds = &unwinds;
+    CallFrame* call_frame = state->vm()->call_frame();
+    call_frame->ret_ip_ = machine_code->total - 2;
+    call_frame->exception_ip_ = machine_code->total - 1;
+    call_frame->stack_ptr_ = call_frame->stk - 1;
+    call_frame->machine_code = machine_code;
+    call_frame->is = &is;
+    call_frame->unwinds = &unwinds;
 
     try {
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);

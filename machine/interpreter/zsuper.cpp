@@ -5,9 +5,12 @@ namespace rubinius {
     intptr_t zsuper(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
       intptr_t literal = argument(0);
 
-      instructions::zsuper(state, call_frame, literal);
+      if(instructions::zsuper(state, call_frame, literal)) {
+        call_frame->next_ip(instructions::data_zsuper.width);
+      } else {
+        call_frame->exception_ip();
+      }
 
-      call_frame->next_ip(instructions::data_zsuper.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

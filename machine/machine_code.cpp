@@ -81,12 +81,14 @@ namespace rubinius {
       keywords_count = code->keywords()->num_fields() / 2;
     }
 
-    opcodes = new opcode[total];
-
     if(!name_->cpp_str(state).compare("a_very_special_method")) {
+      opcodes = new opcode[total+1];
+
       run = (InterpreterRunner)Interpreter::execute;
       Interpreter::prepare(state, code, this);
     } else {
+      opcodes = new opcode[total];
+
       fill_opcodes(state, code);
     }
 

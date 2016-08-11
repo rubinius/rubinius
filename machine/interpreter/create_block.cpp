@@ -11,9 +11,12 @@ namespace rubinius {
     intptr_t create_block(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
       intptr_t literal = argument(0);
 
-      instructions::create_block(state, call_frame, literal);
+      if(instructions::create_block(state, call_frame, literal)) {
+        call_frame->next_ip(instructions::data_create_block.width);
+      } else {
+        call_frame->exception_ip();
+      }
 
-      call_frame->next_ip(instructions::data_create_block.width);
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }

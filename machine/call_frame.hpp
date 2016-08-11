@@ -67,6 +67,7 @@ namespace rubinius {
     MachineCode* machine_code;
     InterpreterState* is;
     UnwindInfoSet* unwinds;
+    UnwindInfo unwind_info;
 
     // Stack
     Object* stk[0];
@@ -184,9 +185,6 @@ namespace rubinius {
 
     void next_ip(int width) {
      ip_ += width;
-    }
-
-    void next_ip() {
     }
 
     void ret_ip() {

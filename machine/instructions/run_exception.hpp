@@ -2,20 +2,17 @@
 
 namespace rubinius {
   namespace instructions {
-    inline bool run_exception(STATE, CallFrame* call_frame) {
+    inline ExceptionContinuation run_exception(STATE, CallFrame* call_frame) {
       VMThreadState* th = state->vm()->thread_state();
 
       switch(th->raise_reason()) {
       case cException:
         if(call_frame->unwinds->has_unwinds()) {
           // TODO: instructions, set this in call_frame
-          UnwindInfo info = call_frame->unwinds->pop();
-          stack_position(info.stack_depth);
-          call_frame->set_ip(info.target_ip);
-          return true;
+          call_frame->unwind_info = call_frame->unwinds->pop();
+          return cExceptionUnwind;
         } else {
           call_frame->scope->flush_to_heap(state);
-          return false;
         }
 
       case cBreak:
@@ -27,9 +24,7 @@ namespace rubinius {
           /* Don't return here, because we want to loop back to the top and keep
            * running this method.
            */
-          // TODO: instructions
-          call_frame->next_ip();
-          return true;
+          return cExceptionContinue;
         }
 
         // Otherwise, fall through and run the unwinds
@@ -39,14 +34,10 @@ namespace rubinius {
         // Otherwise, we're doing a long return/break unwind through
         // here. We need to run ensure blocks.
         while(call_frame->unwinds->has_unwinds()) {
-          // TODO: instructions, set this in call_frame
-          UnwindInfo info = call_frame->unwinds->pop();
-          if(info.for_ensure()) {
-            stack_position(info.stack_depth);
-
+          call_frame->unwind_info = call_frame->unwinds->pop();
+          if(call_frame->unwind_info.for_ensure()) {
             // Don't reset ep here, we're still handling the return/break.
-            call_frame->set_ip(info.target_ip);
-            return true;
+            return cExceptionUnwind;
           }
         }
 
@@ -59,48 +50,33 @@ namespace rubinius {
             Object* val = th->raise_value();
             th->clear_return();
             stack_push(val);
-            call_frame->ret_ip();
-            // TODO: instructions
-            return true;
+            return cExceptionReturn;
           } else {
             // Give control of this exception to the caller.
-            stack_push(NULL);
-            call_frame->ret_ip();
-            // TODO: instructions
-            return false;
+            stack_push(nullptr);
           }
 
         } else { // Not for us!
           call_frame->scope->flush_to_heap(state);
 
           // Give control of this exception to the caller.
-          stack_push(NULL);
-          call_frame->ret_ip();
-          // TODO: instructions
-          return false;
+          stack_push(nullptr);
         }
 
       case cExit:
         call_frame->scope->flush_to_heap(state);
-        stack_push(NULL);
-        call_frame->ret_ip();
-        // TODO: instructions
-        return false;
+        stack_push(nullptr);
         break;
       case cFiberCancel:
-        stack_push(NULL);
-        call_frame->ret_ip();
-        // TODO: instructions
-        return false;
+        stack_push(nullptr);
         break;
       default:
         Exception::interpreter_error(state, "exception handler failed to dispatch");
-        stack_push(NULL);
-        call_frame->ret_ip();
-        // TODO: instructions
-        return false;
+        stack_push(nullptr);
         break;
       } // switch
+
+      return cExceptionReturn;
     }
   }
 }
