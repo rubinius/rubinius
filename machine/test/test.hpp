@@ -3,6 +3,7 @@
 
 #include "vm.hpp"
 #include "state.hpp"
+#include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "machine/object_utils.hpp"
 #include "memory.hpp"
@@ -22,6 +23,20 @@ public:
   State* state;
   ConfigParser* config_parser;
   Configuration config;
+
+
+  void setup_call_frame(CallFrame* cf, int size) {
+    cf->prepare(size);
+    cf->stack_ptr_ = cf->stk - 1;
+    cf->previous = NULL;
+    cf->lexical_scope_ = nil<LexicalScope>();
+    cf->dispatch_data = NULL;
+    cf->compiled_code = nil<CompiledCode>();
+    cf->flags = 0;
+    cf->top_scope_ = NULL;
+    cf->scope = NULL;
+    cf->arguments = NULL;
+  }
 
   // TODO: Fix this
   void initialize_as_root(VM* vm) {
