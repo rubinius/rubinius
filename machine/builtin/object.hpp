@@ -202,8 +202,11 @@ namespace rubinius {
     // Rubinius.primitive :object_ivar_defined
     Object*   ivar_defined_prim(STATE, Symbol* sym);
 
+    // Rubinius.primitive :object_instance_fields
+    Array* instance_fields(STATE);
+
     /** Returns the structure containing this object's instance variables. */
-    // Rubinius.primitive :object_ivar_names
+    // Rubinius.primitive :object_instance_variables
     Array*   ivar_names(STATE);
 
     Array*   ivar_names(STATE, Array* ary);

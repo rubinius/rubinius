@@ -23,6 +23,14 @@ module Rubinius
       self.subject = ::Object
     end
 
+    def instance_fields
+      Rubinius.invoke_primitive :object_instance_fields, @object
+    end
+
+    def instance_variables
+      Rubinius.invoke_primitive :object_instance_variables, @object
+    end
+
     def inspect
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} object=#{@object.inspect}>"
     end

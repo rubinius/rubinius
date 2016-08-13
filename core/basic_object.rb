@@ -55,22 +55,6 @@ class BasicObject
   def singleton_method_undefined(name) end
   private :singleton_method_undefined
 
-  def __all_instance_variables__
-    Rubinius.primitive :object_ivar_names
-
-    raise PrimitiveFailure, "BasicObject#__instance_variables__ failed"
-  end
-  private :__all_instance_variables__
-
-  def __instance_variables__
-    ary = []
-    __all_instance_variables__.each do |sym|
-      ary << sym if sym.is_ivar?
-    end
-
-    ary
-  end
-
   ##
   # :call-seq:
   #   obj.instance_eval(string [, filename [, lineno]] )   => obj

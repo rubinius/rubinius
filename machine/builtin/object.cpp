@@ -312,13 +312,31 @@ namespace rubinius {
     return table_ivar_defined(state, sym);
   }
 
+  Array* Object::instance_fields(STATE) {
+    if(!reference_p()) return Array::create(state, 0);
+
+    TypeInfo* ti = state->memory()->type_info[type_id()];
+
+    Array* fields = Array::create(state, ti->slots.size());
+    int index = 0;
+
+    for(TypeInfo::Slots::iterator i = ti->slots.begin();
+        i != ti->slots.end();
+        ++i) {
+      Symbol* sym = Symbol::from_index(i->first);
+      if(sym->is_ivar_p(state)->true_p()) {
+        fields->set(state, index++, sym);
+      }
+    }
+
+    return fields;
+  }
+
   Array* Object::ivar_names(STATE) {
     return ivar_names(state, Array::create(state, 3));
   }
 
   Array* Object::ivar_names(STATE, Array* ary) {
-    // We don't check slots, because we don't advertise them
-    // as normal ivars.
     class ivar_match : public ObjectMatcher {
     public:
       virtual bool match_p(STATE, Object* match) {

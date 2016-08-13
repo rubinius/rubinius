@@ -460,7 +460,7 @@ module Kernel
     # method is overridden, the new Ruby method is never called. So, we inline
     # the code for Kernel#to_s here because we simply dispatch to Ruby
     # methods.
-    ivars = __instance_variables__
+    ivars = Rubinius.invoke_primitive :object_instance_variables, self
 
     if ivars.empty?
       return Rubinius::Type.infect "#{prefix}>", self
@@ -527,12 +527,7 @@ module Kernel
   alias_method :__instance_variable_set__, :instance_variable_set
 
   def instance_variables
-    ary = []
-    __all_instance_variables__.each do |sym|
-      ary << sym if sym.is_ivar?
-    end
-
-    ary
+    Rubinius.invoke_primitive :object_instance_variables, self
   end
 
   def instance_variable_defined?(name)
