@@ -859,6 +859,56 @@ class InstructionParser
     end
   end
 
+  def generate_interpreter_tests(filename)
+    insns = objects.select { |x| x.kind_of? Instruction }
+    File.open filename, "wb" do |file|
+      file.puts <<-EOD
+\#include "machine/test/test.hpp"
+
+\#include "call_frame.hpp"
+\#include "object_utils.hpp"
+
+\#include "interpreter.hpp"
+
+class TestInterpreter : public CxxTest::TestSuite, public VMTest {
+public:
+
+  void setUp() {
+    create();
+  }
+
+  void tearDown() {
+    destroy();
+  }
+      EOD
+
+      insns.each do |obj|
+        file.puts <<-EOD
+
+  void test_interpreter_#{obj.name}() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    intptr_t opcodes[#{obj.arguments.size+2}];
+    opcodes[0] =
+      reinterpret_cast<intptr_t>(instructions::data_#{obj.name}.interpreter_address);#{obj.arguments.map.with_index { |x, i| "\n    opcodes[#{i+1}] = 0; // #{x}" }.join}
+    opcodes[#{obj.arguments.size+1}] =
+      reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
+
+    // TODO: instructions
+    // interpreter::#{obj.name}(state, call_frame, opcodes);
+
+    TS_ASSERT(true);
+    // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_#{obj.name}.width);
+  }
+        EOD
+      end
+
+      file.puts "};"
+    end
+  end
+
   def generate_instruction_data(filename)
     File.open filename, "wb" do |file|
       file.puts '#ifndef RBX_INSTRUCTIONS_DATA_HPP'

@@ -25,7 +25,9 @@ public:
   Configuration config;
 
 
-  void setup_call_frame(CallFrame* cf, int size) {
+  void setup_call_frame(CallFrame* cf, StackVariables* scope, int size) {
+    scope->initialize(cNil, cNil, Module::create(state), 0);
+
     cf->prepare(size);
     cf->stack_ptr_ = cf->stk - 1;
     cf->previous = NULL;
@@ -34,7 +36,7 @@ public:
     cf->compiled_code = nil<CompiledCode>();
     cf->flags = 0;
     cf->top_scope_ = NULL;
-    cf->scope = NULL;
+    cf->scope = scope;
     cf->arguments = NULL;
   }
 

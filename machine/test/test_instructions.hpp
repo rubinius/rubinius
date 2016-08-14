@@ -3,9 +3,6 @@
 #include "call_frame.hpp"
 #include "object_utils.hpp"
 
-#include "builtin/lexical_scope.hpp"
-#include "builtin/module.hpp"
-
 #include "instructions/add_scope.hpp"
 #include "instructions/allow_private.hpp"
 #include "instructions/cast_array.hpp"
@@ -118,7 +115,8 @@ public:
 
   void test_add_scope() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(Module::create(state));
 
@@ -129,7 +127,8 @@ public:
 
   void test_allow_private() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -141,7 +140,8 @@ public:
 
   void test_cast_array() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -153,7 +153,8 @@ public:
 
   void test_cast_for_multi_block_arg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -165,7 +166,8 @@ public:
 
   void test_cast_for_single_block_arg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -177,7 +179,8 @@ public:
 
   void test_cast_for_splat_block_arg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -189,7 +192,8 @@ public:
 
   void test_cast_multi_value() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -201,7 +205,8 @@ public:
 
   void test_check_frozen() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -213,7 +218,8 @@ public:
 
   void test_check_interrupts() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -225,7 +231,8 @@ public:
 
   void test_check_serial() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -240,7 +247,8 @@ public:
 
   void test_check_serial_private() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -255,7 +263,8 @@ public:
 
   void test_clear_exception() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -267,7 +276,8 @@ public:
 
   void test_create_block() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -280,7 +290,8 @@ public:
 
   void test_dup() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -292,7 +303,8 @@ public:
 
   void test_dup_many() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = reinterpret_cast<intptr_t>(cNil);
@@ -305,7 +317,8 @@ public:
 
   void test_ensure_return() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -317,7 +330,8 @@ public:
 
   void test_find_const() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -330,7 +344,8 @@ public:
 
   void test_goto() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -342,7 +357,8 @@ public:
 
   void test_goto_if_equal() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -354,7 +370,8 @@ public:
 
   void test_goto_if_false() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -366,7 +383,8 @@ public:
 
   void test_goto_if_nil() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -378,7 +396,8 @@ public:
 
   void test_goto_if_not_equal() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -390,7 +409,8 @@ public:
 
   void test_goto_if_not_nil() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -402,7 +422,8 @@ public:
 
   void test_goto_if_not_undefined() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -414,7 +435,8 @@ public:
 
   void test_goto_if_true() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -426,7 +448,8 @@ public:
 
   void test_goto_if_undefined() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -438,7 +461,8 @@ public:
 
   void test_instance_of() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -450,7 +474,8 @@ public:
 
   void test_invoke_primitive() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -465,7 +490,8 @@ public:
 
   void test_kind_of() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -477,7 +503,8 @@ public:
 
   void test_make_array() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = 2;
@@ -490,7 +517,8 @@ public:
 
   void test_move_down() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t positions = reinterpret_cast<intptr_t>(cNil);
@@ -503,7 +531,8 @@ public:
 
   void test_noop() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -515,7 +544,8 @@ public:
 
   void test_object_to_s() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -528,7 +558,8 @@ public:
 
   void test_passed_arg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t index = reinterpret_cast<intptr_t>(cNil);
@@ -541,7 +572,8 @@ public:
 
   void test_passed_blockarg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = reinterpret_cast<intptr_t>(cNil);
@@ -554,7 +586,8 @@ public:
 
   void test_pop() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -566,7 +599,8 @@ public:
 
   void test_pop_many() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = reinterpret_cast<intptr_t>(cNil);
@@ -579,7 +613,8 @@ public:
 
   void test_pop_unwind() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -591,7 +626,8 @@ public:
 
   void test_push_block() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -603,7 +639,8 @@ public:
 
   void test_push_block_arg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -615,7 +652,8 @@ public:
 
   void test_push_const() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -628,7 +666,8 @@ public:
 
   void test_push_cpath_top() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -640,7 +679,8 @@ public:
 
   void test_push_current_exception() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -652,7 +692,8 @@ public:
 
   void test_push_exception_state() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -664,7 +705,8 @@ public:
 
   void test_push_false() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     instructions::push_false(call_frame);
 
@@ -673,7 +715,8 @@ public:
 
   void test_push_has_block() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -685,7 +728,8 @@ public:
 
   void test_push_int() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     intptr_t number = reinterpret_cast<intptr_t>(Fixnum::from(42));
 
@@ -696,7 +740,8 @@ public:
 
   void test_push_ivar() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -709,7 +754,8 @@ public:
 
   void test_push_literal() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -722,7 +768,8 @@ public:
 
   void test_push_local() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t local = 0;
@@ -735,7 +782,8 @@ public:
 
   void test_push_local_depth() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t depth = 0;
@@ -750,7 +798,8 @@ public:
 
   void test_push_memo() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -763,7 +812,8 @@ public:
 
   void test_push_mirror() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -775,7 +825,8 @@ public:
 
   void test_push_my_field() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t index = 0;
@@ -788,7 +839,8 @@ public:
 
   void test_push_my_offset() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t index = 0;
@@ -801,7 +853,8 @@ public:
 
   void test_push_nil() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     instructions::push_nil(call_frame);
 
@@ -810,7 +863,8 @@ public:
 
   void test_push_proc() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -822,7 +876,8 @@ public:
 
   void test_push_rubinius() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -834,7 +889,8 @@ public:
 
   void test_push_scope() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -846,7 +902,8 @@ public:
 
   void test_push_self() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -858,7 +915,8 @@ public:
 
   void test_push_stack_local() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t which = 0;
@@ -871,7 +929,8 @@ public:
 
   void test_push_true() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     instructions::push_true(call_frame);
 
@@ -880,7 +939,8 @@ public:
 
   void test_push_type() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -892,7 +952,8 @@ public:
 
   void test_push_undef() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     instructions::push_undef(state, call_frame);
 
@@ -901,7 +962,8 @@ public:
 
   void test_push_variables() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -913,7 +975,8 @@ public:
 
   void test_raise_break() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -925,7 +988,8 @@ public:
 
   void test_raise_exc() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -937,7 +1001,8 @@ public:
 
   void test_raise_return() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -949,7 +1014,8 @@ public:
 
   void test_reraise() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -961,7 +1027,8 @@ public:
 
   void test_restore_exception_state() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -973,7 +1040,8 @@ public:
 
   void test_ret() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -985,7 +1053,8 @@ public:
 
   void test_rotate() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = 2;
@@ -998,7 +1067,8 @@ public:
 
   void test_run_exception() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -1010,7 +1080,8 @@ public:
 
   void test_send_method() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1023,7 +1094,8 @@ public:
 
   void test_send_stack() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1038,7 +1110,8 @@ public:
 
   void test_send_stack_with_block() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1053,7 +1126,8 @@ public:
 
   void test_send_stack_with_splat() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1068,7 +1142,8 @@ public:
 
   void test_send_super_stack_with_block() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1083,7 +1158,8 @@ public:
 
   void test_send_super_stack_with_splat() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1098,7 +1174,8 @@ public:
 
   void test_send_vcall() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1111,7 +1188,8 @@ public:
 
   void test_set_call_flags() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t flags = 0;
@@ -1124,7 +1202,8 @@ public:
 
   void test_set_const() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1137,7 +1216,8 @@ public:
 
   void test_set_const_at() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1150,7 +1230,8 @@ public:
 
   void test_set_ivar() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
@@ -1163,7 +1244,8 @@ public:
 
   void test_set_local() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t local = 0;
@@ -1176,7 +1258,8 @@ public:
 
   void test_set_local_depth() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t depth = 0;
@@ -1191,7 +1274,8 @@ public:
 
   void test_set_stack_local() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t which = 0;
@@ -1204,7 +1288,8 @@ public:
 
   void test_setup_unwind() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t ip = 0;
@@ -1219,7 +1304,8 @@ public:
 
   void test_shift_array() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -1231,7 +1317,8 @@ public:
 
   void test_store_my_field() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t index = 0;
@@ -1244,7 +1331,8 @@ public:
 
   void test_string_append() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -1256,7 +1344,8 @@ public:
 
   void test_string_build() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = 2;
@@ -1269,7 +1358,8 @@ public:
 
   void test_string_dup() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -1281,7 +1371,8 @@ public:
 
   void test_swap() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -1293,7 +1384,8 @@ public:
 
   void test_yield_debugger() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
@@ -1305,7 +1397,8 @@ public:
 
   void test_yield_splat() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = 1;
@@ -1318,7 +1411,8 @@ public:
 
   void test_yield_stack() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t count = 1;
@@ -1331,7 +1425,8 @@ public:
 
   void test_zsuper() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    setup_call_frame(call_frame, 1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
     intptr_t literal = reinterpret_cast<intptr_t>(cNil);
