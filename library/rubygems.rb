@@ -10,7 +10,7 @@ require 'rbconfig'
 require 'thread'
 
 module Gem
-  VERSION = '2.6.2'
+  VERSION = '2.6.6'
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -154,6 +154,26 @@ module Gem
     specifications/default
   ]
 
+  ##
+  # Exception classes used in a Gem.read_binary +rescue+ statement. Not all of
+  # these are defined in Ruby 1.8.7, hence the need for this convoluted setup.
+
+  READ_BINARY_ERRORS = begin
+    read_binary_errors = [Errno::EACCES]
+    read_binary_errors << Errno::ENOTSUP if Errno.const_defined?(:ENOTSUP)
+    read_binary_errors
+  end.freeze
+
+  ##
+  # Exception classes used in Gem.write_binary +rescue+ statement. Not all of
+  # these are defined in Ruby 1.8.7.
+
+  WRITE_BINARY_ERRORS = begin
+    write_binary_errors = []
+    write_binary_errors << Errno::ENOTSUP if Errno.const_defined?(:ENOTSUP)
+    write_binary_errors
+  end.freeze
+
   @@win_platform = nil
 
   @configuration = nil
@@ -254,7 +274,7 @@ module Gem
       spec.executables.include? exec_name
     } if exec_name
 
-    unless spec = specs.last
+    unless spec = specs.first
       msg = "can't find gem #{name} (#{requirements}) with executable #{exec_name}"
       raise Gem::GemNotFoundException, msg
     end
@@ -374,8 +394,9 @@ module Gem
         when Array
           unless Gem::Deprecate.skip
             warn <<-eowarn
-Array values in the parameter are deprecated. Please use a String or nil.
-An Array was passed in from #{caller[3]}
+Array values in the parameter to `Gem.paths=` are deprecated.
+Please use a String or nil.
+An Array (#{env.inspect}) was passed in from #{caller[3]}
             eowarn
           end
           target[k] = v.join File::PATH_SEPARATOR
@@ -828,7 +849,7 @@ An Array was passed in from #{caller[3]}
       f.flock(File::LOCK_EX)
       f.read
     end
-  rescue Errno::EACCES
+  rescue *READ_BINARY_ERRORS
     open path, 'rb' do |f|
       f.read
     end
@@ -838,6 +859,26 @@ An Array was passed in from #{caller[3]}
     else
       open path, 'rb' do |f|
         f.read
+      end
+    end
+  end
+
+  ##
+  # Safely write a file in binary mode on all platforms.
+  def self.write_binary(path, data)
+    open(path, 'wb') do |io|
+      begin
+        io.flock(File::LOCK_EX)
+      rescue *WRITE_BINARY_ERRORS
+      end
+      io.write data
+    end
+  rescue Errno::ENOLCK # NFS
+    if Thread.main != Thread.current
+      raise
+    else
+      open(path, 'wb') do |io|
+        io.write data
       end
     end
   end

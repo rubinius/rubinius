@@ -27,7 +27,13 @@ class Gem::RemoteFetcher
 
     def initialize(message, uri)
       super message
-      @uri = uri
+      begin
+        uri = URI(uri)
+        uri.password = 'REDACTED' if uri.password
+        @uri = uri.to_s
+      rescue URI::InvalidURIError, ArgumentError
+        @uri = uri
+      end
     end
 
     def to_s # :nodoc:
@@ -322,20 +328,7 @@ class Gem::RemoteFetcher
     end
 
     if update and path
-      begin
-        open(path, 'wb') do |io|
-          io.flock(File::LOCK_EX)
-          io.write data
-        end
-      rescue Errno::ENOLCK # NFS
-        if Thread.main != Thread.current
-          raise
-        else
-          open(path, 'wb') do |io|
-            io.write data
-          end
-        end
-      end
+      Gem.write_binary(path, data)
     end
 
     data
@@ -421,4 +414,3 @@ class Gem::RemoteFetcher
     end
   end
 end
-

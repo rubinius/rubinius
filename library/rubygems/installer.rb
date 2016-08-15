@@ -231,7 +231,7 @@ class Gem::Installer
     question = "#{spec.name}'s executable \"#{filename}\" conflicts with ".dup
 
     if ruby_executable then
-      question << existing
+      question << (existing || 'an unknown executable')
 
       return if ask_yes_no "#{question}\nOverwrite the executable?", false
 
@@ -284,6 +284,7 @@ class Gem::Installer
 
     # Completely remove any previous gem files
     FileUtils.rm_rf gem_dir
+    FileUtils.rm_rf spec.extension_dir
 
     FileUtils.mkdir_p gem_dir
 
@@ -509,12 +510,6 @@ class Gem::Installer
   # the symlink if the gem being installed has a newer version.
 
   def generate_bin_symlink(filename, bindir)
-    if Gem.win_platform? then
-      alert_warning "Unable to use symlinks on Windows, installing wrapper"
-      generate_bin_script filename, bindir
-      return
-    end
-
     src = File.join gem_dir, spec.bindir, filename
     dst = File.join bindir, formatted_program_filename(filename)
 
@@ -528,6 +523,9 @@ class Gem::Installer
     end
 
     FileUtils.symlink src, dst, :verbose => Gem.configuration.really_verbose
+  rescue NotImplementedError, SystemCallError
+    alert_warning "Unable to use symlinks, installing wrapper"
+    generate_bin_script filename, bindir
   end
 
   ##
