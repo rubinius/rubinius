@@ -88,12 +88,22 @@ public:
     TS_ASSERT_EQUALS(h.header.load(), 0x40000L);
   }
 
+  void test_memory_flag_referenced() {
+    TS_ASSERT_EQUALS(RBX_MEMORY_GET_REFERENCED(h.header.load()), 0);
+
+    h.referenced(static_cast<object_type>((1L << 4) - 1));
+
+    TS_ASSERT_EQUALS(h.header.load(), 0x780000L);
+    TS_ASSERT_EQUALS(h.referenced(), 0xf);
+    TS_ASSERT_EQUALS(RBX_MEMORY_GET_REFERENCED(h.header.load()), 0xf);
+  }
+
   void test_memory_flag_type_id() {
     TS_ASSERT_EQUALS(RBX_MEMORY_GET_TYPE_ID(h.header.load()), 0);
 
     h.type_id(static_cast<object_type>((1L << 16) - 1));
 
-    TS_ASSERT_EQUALS(h.header.load(), 0x3fff80000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x3fff800000L);
     TS_ASSERT_EQUALS(h.type_id(), 0x7fff);
     TS_ASSERT_EQUALS(RBX_MEMORY_GET_TYPE_ID(h.header.load()), 0x7fff);
   }
@@ -105,7 +115,7 @@ public:
     h.header.store(RBX_MEMORY_SET_DATA(h.header.load()));
     TS_ASSERT_EQUALS(RBX_MEMORY_DATA_P(h.header.load()), true);
     TS_ASSERT_EQUALS(h.data_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x400000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x4000000000L);
 
     h.header.store(RBX_MEMORY_UNSET_DATA(h.header.load()));
     TS_ASSERT_EQUALS(h.header.load(), 0);
@@ -119,7 +129,7 @@ public:
     h.header.store(RBX_MEMORY_SET_FROZEN(h.header.load()));
     TS_ASSERT_EQUALS(RBX_MEMORY_FROZEN_P(h.header.load()), true);
     TS_ASSERT_EQUALS(h.frozen_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x800000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x8000000000L);
 
     h.header.store(RBX_MEMORY_UNSET_FROZEN(h.header.load()));
     TS_ASSERT_EQUALS(h.header.load(), 0);
@@ -132,7 +142,7 @@ public:
 
     h.header.store(RBX_MEMORY_SET_TAINTED(h.header.load()));
     TS_ASSERT_EQUALS(h.tainted_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x1000000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x10000000000L);
 
     h.header.store(RBX_MEMORY_UNSET_TAINTED(h.header.load()));
     TS_ASSERT_EQUALS(h.header.load(), 0);
@@ -144,7 +154,7 @@ public:
 
     h.header.store(RBX_MEMORY_SET_BIAS_LOCKED(h.header.load()));
 
-    TS_ASSERT_EQUALS(h.header.load(), 0x2000000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x20000000000L);
   }
 
   void test_memory_flag_locked_count() {
@@ -152,7 +162,7 @@ public:
 
     h.header.store(RBX_MEMORY_SET_LOCKED_COUNT(h.header.load(), 0xffff));
 
-    TS_ASSERT_EQUALS(h.header.load(), 0x3c000000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x3c0000000000L);
   }
 
   void test_memory_flag_lock_inflated() {
@@ -160,16 +170,16 @@ public:
 
     h.header.store(RBX_MEMORY_SET_LOCK_INFLATED(h.header.load()));
 
-    TS_ASSERT_EQUALS(h.header.load(), 0x40000000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x400000000000L);
   }
 
   void test_memory_flag_object_id() {
     TS_ASSERT_EQUALS(h.object_id(), 0);
 
-    h.header.store(RBX_MEMORY_SET_OBJECT_ID(h.header.load(), 0xfffff));
-    TS_ASSERT_EQUALS(h.object_id(), 0xffff);
+    h.header.store(RBX_MEMORY_SET_OBJECT_ID(h.header.load(), 0xffff));
+    TS_ASSERT_EQUALS(h.object_id(), 0xfff);
 
-    TS_ASSERT_EQUALS(h.header.load(), 0x7fff80000000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x7ff800000000000L);
   }
 
   void test_memory_flag_reserved() {

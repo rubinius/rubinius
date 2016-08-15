@@ -218,6 +218,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
    *     // Garbage collector flags
    *     unsigned int marked           : 2;
    *     unsigned int scanned          : 1;
+   *     unsigned int referenced       : 4;
    *
    *     // Data type flags
    *      object_type type_id          : 15;
@@ -229,7 +230,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
    *     unsigned int bias_locked      : 1;
    *     unsigned int locked_count     : 4;
    *     unsigned int lock_inflated    : 1;
-   *     unsigned int object_id        : 16;
+   *     unsigned int object_id        : 12;
    *     unsigned int reserved         : 3;
    *
    *     // Graph flags
@@ -294,58 +295,65 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define RBX_MEMORY_SET_SCANNED(f)           RBX_MEMORY_SET_BIT(SCANNED,f)
 #define RBX_MEMORY_UNSET_SCANNED(f)         RBX_MEMORY_UNSET_BIT(SCANNED,f)
 
-#define RBX_MEMORY_TYPE_ID_SHIFT            19
+#define RBX_MEMORY_REFERENCED_SHIFT         19
+#define RBX_MEMORY_REFERENCED_VALUE_MASK    0xfL
+#define RBX_MEMORY_REFERENCED_BIT_MASK      (((1L << 4) - 1) << RBX_MEMORY_REFERENCED_SHIFT)
+
+#define RBX_MEMORY_SET_REFERENCED(f,v)      RBX_MEMORY_SET_FIELD(REFERENCED,f,v)
+#define RBX_MEMORY_GET_REFERENCED(f)        RBX_MEMORY_GET_FIELD(REFERENCED,f)
+
+#define RBX_MEMORY_TYPE_ID_SHIFT            23
 #define RBX_MEMORY_TYPE_ID_VALUE_MASK       0x7fffL
 #define RBX_MEMORY_TYPE_ID_BIT_MASK         (((1L << 15) - 1) << RBX_MEMORY_TYPE_ID_SHIFT)
 
 #define RBX_MEMORY_SET_TYPE_ID(f,v)         RBX_MEMORY_SET_FIELD(TYPE_ID,f,v)
 #define RBX_MEMORY_GET_TYPE_ID(f)           RBX_MEMORY_GET_FIELD(TYPE_ID,f)
 
-#define RBX_MEMORY_DATA_BIT                 (1L << 34)
-#define RBX_MEMORY_DATA_MASK                (1L << 34)
+#define RBX_MEMORY_DATA_BIT                 (1L << 38)
+#define RBX_MEMORY_DATA_MASK                (1L << 38)
 
 #define RBX_MEMORY_DATA_P(f)                RBX_MEMORY_GET_BIT(DATA,f)
 #define RBX_MEMORY_SET_DATA(f)              RBX_MEMORY_SET_BIT(DATA,f)
 #define RBX_MEMORY_UNSET_DATA(f)            RBX_MEMORY_UNSET_BIT(DATA,f)
 
-#define RBX_MEMORY_FROZEN_BIT               (1L << 35)
-#define RBX_MEMORY_FROZEN_MASK              (1L << 35)
+#define RBX_MEMORY_FROZEN_BIT               (1L << 39)
+#define RBX_MEMORY_FROZEN_MASK              (1L << 39)
 
 #define RBX_MEMORY_FROZEN_P(f)              RBX_MEMORY_GET_BIT(FROZEN,f)
 #define RBX_MEMORY_SET_FROZEN(f)            RBX_MEMORY_SET_BIT(FROZEN,f)
 #define RBX_MEMORY_UNSET_FROZEN(f)          RBX_MEMORY_UNSET_BIT(FROZEN,f)
 
-#define RBX_MEMORY_TAINTED_BIT              (1L << 36)
-#define RBX_MEMORY_TAINTED_MASK             (1L << 36)
+#define RBX_MEMORY_TAINTED_BIT              (1L << 40)
+#define RBX_MEMORY_TAINTED_MASK             (1L << 40)
 
 #define RBX_MEMORY_TAINTED_P(f)             RBX_MEMORY_GET_BIT(TAINTED,f)
 #define RBX_MEMORY_SET_TAINTED(f)           RBX_MEMORY_SET_BIT(TAINTED,f)
 #define RBX_MEMORY_UNSET_TAINTED(f)         RBX_MEMORY_UNSET_BIT(TAINTED,f)
 
-#define RBX_MEMORY_BIAS_LOCKED_BIT          (1L << 37)
-#define RBX_MEMORY_BIAS_LOCKED_MASK         (1L << 37)
+#define RBX_MEMORY_BIAS_LOCKED_BIT          (1L << 41)
+#define RBX_MEMORY_BIAS_LOCKED_MASK         (1L << 41)
 
 #define RBX_MEMORY_BIAS_LOCKED_P(f)         RBX_MEMORY_GET_BIT(BIAS_LOCKED,f)
 #define RBX_MEMORY_SET_BIAS_LOCKED(f)       RBX_MEMORY_SET_BIT(BIAS_LOCKED,f)
 #define RBX_MEMORY_UNSET_BIAS_LOCKED(f)     RBX_MEMORY_UNSET_BIT(BIAS_LOCKED,f)
 
-#define RBX_MEMORY_LOCKED_COUNT_SHIFT       38
+#define RBX_MEMORY_LOCKED_COUNT_SHIFT       42
 #define RBX_MEMORY_LOCKED_COUNT_VALUE_MASK  0xfL
 #define RBX_MEMORY_LOCKED_COUNT_BIT_MASK    (((1L << 4) - 1) << RBX_MEMORY_LOCKED_COUNT_SHIFT)
 
 #define RBX_MEMORY_SET_LOCKED_COUNT(f,v)    RBX_MEMORY_SET_FIELD(LOCKED_COUNT,f,v)
 #define RBX_MEMORY_GET_LOCKED_COUNT(f)      RBX_MEMORY_GET_FIELD(LOCKED_COUNT,f)
 
-#define RBX_MEMORY_LOCK_INFLATED_BIT        (1L << 42)
-#define RBX_MEMORY_LOCK_INFLATED_MASK       (1L << 42)
+#define RBX_MEMORY_LOCK_INFLATED_BIT        (1L << 46)
+#define RBX_MEMORY_LOCK_INFLATED_MASK       (1L << 46)
 
 #define RBX_MEMORY_LOCK_INFLATED_P(f)       RBX_MEMORY_GET_BIT(LOCK_INFLATED,f)
 #define RBX_MEMORY_SET_LOCK_INFLATED(f)     RBX_MEMORY_SET_BIT(LOCK_INFLATED,f)
 #define RBX_MEMORY_UNSET_LOCK_INFLATED(f)   RBX_MEMORY_UNSET_BIT(LOCK_INFLATED,f)
 
-#define RBX_MEMORY_OBJECT_ID_SHIFT          43
-#define RBX_MEMORY_OBJECT_ID_VALUE_MASK     0xffffL
-#define RBX_MEMORY_OBJECT_ID_BIT_MASK       (((1L << 16) - 1) << RBX_MEMORY_OBJECT_ID_SHIFT)
+#define RBX_MEMORY_OBJECT_ID_SHIFT          47
+#define RBX_MEMORY_OBJECT_ID_VALUE_MASK     0xfffL
+#define RBX_MEMORY_OBJECT_ID_BIT_MASK       (((1L << 12) - 1) << RBX_MEMORY_OBJECT_ID_SHIFT)
 
 #define RBX_MEMORY_SET_OBJECT_ID(f,v)       RBX_MEMORY_SET_FIELD(OBJECT_ID,f,v)
 #define RBX_MEMORY_GET_OBJECT_ID(f)         RBX_MEMORY_GET_FIELD(OBJECT_ID,f)
@@ -479,6 +487,22 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
 
       return RBX_MEMORY_SCANNED_P(header.load());
+    }
+
+    unsigned int referenced() const {
+      if(inflated_p()) {
+        return RBX_MEMORY_GET_REFERENCED(inflated_header()->flags);
+      }
+
+      return RBX_MEMORY_GET_REFERENCED(header.load());
+    }
+
+    void referenced(unsigned int count) {
+      if(inflated_p()) {
+        RBX_MEMORY_SET_REFERENCED(inflated_header()->flags, count);
+      } else {
+        header.store(RBX_MEMORY_SET_REFERENCED(header.load(), count));
+      }
     }
 
     object_type type_id() const {
