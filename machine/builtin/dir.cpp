@@ -10,6 +10,8 @@
 #include "builtin/string.hpp"
 
 namespace rubinius {
+  rubinius::locks::spinlock_mutex Dir::readdir_lock_;
+
   void Dir::bootstrap(STATE) {
     GO(dir).set(state->memory()->new_class<Class, Dir>(state, "Dir"));
   }
@@ -86,16 +88,19 @@ namespace rubinius {
   Object* Dir::read(STATE) {
     guard(state);
 
-    struct dirent ent;
-    struct dirent* entp = &ent;
-    if(int erno = readdir_r(os(), entp, &entp)) {
-      Exception::raise_errno_error(state, "readdir_r(3) failed", erno);
+    struct dirent* entp = nullptr;
+
+    {
+      std::lock_guard<locks::spinlock_mutex> guard(readdir_lock_);
+
+      entp = readdir(os());
     }
 
     if(!entp) return cNil;
 
-    String* str = String::create(state, ent.d_name);
+    String* str = String::create(state, entp->d_name);
     str->encoding(state, encoding());
+
     return str;
   }
 

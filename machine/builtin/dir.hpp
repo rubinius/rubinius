@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_DIR_HPP
 
 #include "object_utils.hpp"
+#include "spinlock.hpp"
 
 #include "builtin/encoding.hpp"
 #include "builtin/object.hpp"
@@ -14,6 +15,8 @@ namespace rubinius {
   class Encoding;
 
   class Dir : public Object {
+    static rubinius::locks::spinlock_mutex readdir_lock_;
+
   public:
     const static object_type type = DirType;
 
