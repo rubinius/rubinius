@@ -89,16 +89,16 @@ namespace rubinius {
     guard(state);
 
     struct dirent* entp = nullptr;
+    String* str = nullptr;
 
     {
       std::lock_guard<locks::spinlock_mutex> guard(readdir_lock_);
 
-      entp = readdir(os());
+      if(!(entp = readdir(os()))) return cNil;
+
+      str = String::create(state, entp->d_name);
     }
 
-    if(!entp) return cNil;
-
-    String* str = String::create(state, entp->d_name);
     str->encoding(state, encoding());
 
     return str;
