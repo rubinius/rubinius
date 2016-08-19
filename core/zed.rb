@@ -608,6 +608,7 @@ module Rubinius
     add_typedef TYPE_UINT,    :uint
     add_typedef TYPE_UINT,    :uid_t
     add_typedef TYPE_UINT,    :gid_t
+    add_typedef TYPE_UINT,    :id_t
 
     # Converts a long
     add_typedef TYPE_LONG,    :long
