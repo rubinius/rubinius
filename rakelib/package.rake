@@ -49,7 +49,8 @@ namespace :package do
     homebrew_package = "rubinius-#{rbx_version}"
     prefix = "/#{homebrew_package}"
     lib = "lib/rubinius/#{rbx_version}"
-    config = "'--bindir=#{prefix}/bin --appdir=#{prefix}/#{lib} " \
+    config = "'--llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8 " \
+             "--bindir=#{prefix}/bin --appdir=#{prefix}/#{lib} " \
              "--includedir=#{prefix}/include/rubinius " \
              "--gemsdir=#{prefix}/#{lib}/gems " \
              "--mandir=#{prefix}/man'"
