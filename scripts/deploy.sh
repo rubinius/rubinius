@@ -165,6 +165,8 @@ function rbx_deploy_travis_binary {
     if [[ -f "$vendor_llvm" ]]; then
       export RBX_BINARY_CONFIG="--llvm-config=$vendor_llvm"
     fi
+  elif [[ $os_name == osx ]]; then
+    export RBX_BINARY_CONFIG="'--llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8'"
   fi
 
   "$__dir__/package.sh" binary || fail "unable to build binary"
