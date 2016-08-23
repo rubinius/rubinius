@@ -205,6 +205,6 @@ namespace rubinius {
     }
 
     state->raise_exception(exception);
-    return NULL;
+    return 0;
   }
 }
