@@ -1378,7 +1378,7 @@ int main() { return tgetnum(""); }
     @log.print "Checking -latomic: "
 
     saved_ldflags = @system_ldflags.dup
-    @system_ldflags << "-latomic "
+    @system_ldflags << " -latomic "
 
     begin
       status = check_program() do |src|
