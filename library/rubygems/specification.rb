@@ -2168,6 +2168,8 @@ class Gem::Specification < Gem::BasicSpecification
   # probably want to build_extensions
 
   def missing_extensions?
+    return false
+
     return false if default_gem?
     return false if extensions.empty?
     return false if installed_by_version < Gem::Version.new('2.2.0.preview.2')
