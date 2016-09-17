@@ -1,31 +1,11 @@
-#include "api.h"
-#include "crypto_uint64.h"
-#include "crypto_uint32.h"
-#include "crypto_uint8.h"
+#include "crypto_shorthash_siphash24.h"
+#include "private/common.h"
 
-typedef crypto_uint64 u64;
-typedef crypto_uint32 u32;
-typedef crypto_uint8   u8;
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint8_t   u8;
 
 #define ROTL(x,b) (u64)( ((x) << (b)) | ( (x) >> (64 - (b))) )
-
-#define U32TO8_LE(p, v)         \
-    (p)[0] = (u8)((v)      ); (p)[1] = (u8)((v) >>  8); \
-    (p)[2] = (u8)((v) >> 16); (p)[3] = (u8)((v) >> 24);
-
-#define U64TO8_LE(p, v)         \
-  U32TO8_LE((p),     (u32)((v)      ));   \
-  U32TO8_LE((p) + 4, (u32)((v) >> 32));
-
-#define U8TO64_LE(p) \
-  (((u64)((p)[0])      ) | \
-   ((u64)((p)[1]) <<  8) | \
-   ((u64)((p)[2]) << 16) | \
-   ((u64)((p)[3]) << 24) | \
-   ((u64)((p)[4]) << 32) | \
-   ((u64)((p)[5]) << 40) | \
-   ((u64)((p)[6]) << 48) | \
-   ((u64)((p)[7]) << 56))
 
 #define SIPROUND            \
   do {              \
@@ -35,7 +15,8 @@ typedef crypto_uint8   u8;
     v2 += v1; v1=ROTL(v1,17); v1 ^= v2; v2=ROTL(v2,32); \
   } while(0)
 
-int crypto_shorthash(unsigned char *out,const unsigned char *in,unsigned long long inlen,const unsigned char *k)
+int crypto_shorthash_siphash24(unsigned char *out, const unsigned char *in,
+                               unsigned long long inlen, const unsigned char *k)
 {
   /* "somepseudorandomlygeneratedbytes" */
   u64 v0 = 0x736f6d6570736575ULL;
@@ -43,8 +24,8 @@ int crypto_shorthash(unsigned char *out,const unsigned char *in,unsigned long lo
   u64 v2 = 0x6c7967656e657261ULL;
   u64 v3 = 0x7465646279746573ULL;
   u64 b;
-  u64 k0 = U8TO64_LE( k );
-  u64 k1 = U8TO64_LE( k + 8 );
+  u64 k0 = LOAD64_LE( k );
+  u64 k1 = LOAD64_LE( k + 8 );
   u64 m;
   const u8 *end = in + inlen - ( inlen % sizeof( u64 ) );
   const int left = inlen & 7;
@@ -56,7 +37,7 @@ int crypto_shorthash(unsigned char *out,const unsigned char *in,unsigned long lo
 
   for ( ; in != end; in += 8 )
   {
-    m = U8TO64_LE( in );
+    m = LOAD64_LE( in );
     v3 ^= m;
     SIPROUND;
     SIPROUND;
@@ -85,7 +66,7 @@ int crypto_shorthash(unsigned char *out,const unsigned char *in,unsigned long lo
   SIPROUND;
   SIPROUND;
   b = v0 ^ v1 ^ v2  ^ v3;
-  U64TO8_LE( out, b );
+  STORE64_LE( out, b );
   return 0;
 }
 

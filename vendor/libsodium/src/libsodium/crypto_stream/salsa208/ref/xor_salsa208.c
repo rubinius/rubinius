@@ -4,17 +4,11 @@ D. J. Bernstein
 Public domain.
 */
 
-#include "api.h"
 #include "crypto_core_salsa208.h"
+#include "crypto_stream_salsa208.h"
 #include "utils.h"
 
-typedef unsigned int uint32;
-
-static const unsigned char sigma[16] = {
-    'e', 'x', 'p', 'a', 'n', 'd', ' ', '3', '2', '-', 'b', 'y', 't', 'e', ' ', 'k'
-};
-
-int crypto_stream_xor(
+int crypto_stream_salsa208_xor(
         unsigned char *c,
   const unsigned char *m,unsigned long long mlen,
   const unsigned char *n,
@@ -34,7 +28,7 @@ int crypto_stream_xor(
   for (i = 8;i < 16;++i) in[i] = 0;
 
   while (mlen >= 64) {
-    crypto_core_salsa208(block,in,kcopy,sigma);
+    crypto_core_salsa208(block,in,kcopy,NULL);
     for (i = 0;i < 64;++i) c[i] = m[i] ^ block[i];
 
     u = 1;
@@ -50,7 +44,7 @@ int crypto_stream_xor(
   }
 
   if (mlen) {
-    crypto_core_salsa208(block,in,kcopy,sigma);
+    crypto_core_salsa208(block,in,kcopy,NULL);
     for (i = 0;i < (unsigned int) mlen;++i) c[i] = m[i] ^ block[i];
   }
   sodium_memzero(block, sizeof block);

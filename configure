@@ -1872,6 +1872,7 @@ int main(int argc, char* argv[]) {
     set_host
     parse ARGV
     detect_homebrew_openssl_lib
+    detect_homebrew_libtool
     create_directories
     check_tools
     check_force_clean
@@ -2102,6 +2103,13 @@ Available commands are:
   def detect_homebrew_openssl_lib
     if @darwin && homebrew? && (`brew list`.split("\n").include? 'openssl')
       add_opt_dir(`brew --prefix openssl`.chomp)
+    end
+  end
+
+  def detect_homebrew_libtool
+    if @darwin && homebrew?
+      `brew unlink libtool`
+      `brew install libtool`
     end
   end
 
