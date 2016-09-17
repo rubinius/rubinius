@@ -177,6 +177,7 @@ Daedalus.blueprint do |i|
       l.objects = [l.file("src/libsodium/.libs/libsodium.a")]
       l.to_build do |x|
         unless File.exist?("Makefile")
+          x.command "sh -c ./autogen.sh"
           x.command "sh -c ./configure"
         end
 
