@@ -1079,6 +1079,11 @@ int main(void)
 
     memset(sig, 0, sizeof sig);
     for (i = 0U; i < (sizeof test_data) / (sizeof test_data[0]); i++) {
+#ifdef BROWSER_TESTS
+        if (i % 128U != 127U) {
+            continue;
+        }
+#endif
         memcpy(skpk, test_data[i].sk, crypto_sign_SEEDBYTES);
         memcpy(skpk + crypto_sign_SEEDBYTES, test_data[i].pk,
                crypto_sign_PUBLICKEYBYTES);
@@ -1096,10 +1101,17 @@ int main(void)
             continue;
         }
         add_l(sm + 32);
+#ifndef ED25519_COMPAT
+        if (crypto_sign_open(m, &mlen, sm, smlen, test_data[i].pk) != -1) {
+            printf("crypto_sign_open(): signature [%u] is malleable\n", i);
+            continue;
+        }
+#else
         if (crypto_sign_open(m, &mlen, sm, smlen, test_data[i].pk) != 0) {
             printf("crypto_sign_open(): signature [%u] is not malleable\n", i);
             continue;
         }
+#endif
         if (memcmp(test_data[i].m, m, (size_t)mlen) != 0) {
             printf("message verification failure: [%u]\n", i);
             continue;
@@ -1163,6 +1175,14 @@ int main(void)
     }
 
     memset(pk, 0, sizeof pk);
+    if (crypto_sign_verify_detached(sig,
+                                    (const unsigned char *)test_data[i].m,
+                                    i, pk) != -1) {
+        printf("detached signature verification should have failed\n");
+    }
+
+    memset(sig, 0xff, 32);
+    sig[0] = 0xdb;
     if (crypto_sign_verify_detached(sig,
                                     (const unsigned char *)test_data[i].m,
                                     i, pk) != -1) {

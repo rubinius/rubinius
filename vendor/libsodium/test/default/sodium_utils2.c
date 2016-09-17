@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include <sys/types.h>
 
 #include <limits.h>
@@ -11,8 +12,10 @@
 # warning The sodium_utils2 test is expected to fail with address sanitizer
 #endif
 
-static void segv_handler(int sig)
+__attribute__ ((noreturn)) static void segv_handler(int sig)
 {
+    (void) sig;
+
     printf("Intentional segfault / bus error caught\n");
     printf("OK\n");
 #ifdef SIGSEGV
@@ -36,6 +39,9 @@ int main(void)
     if (sodium_malloc(SIZE_MAX - 1U) != NULL) {
         return 1;
     }
+    if (sodium_malloc(0U) == NULL) {
+        return 1;
+    }
     if (sodium_allocarray(SIZE_MAX / 2U + 1U, SIZE_MAX / 2U) != NULL) {
         return 1;
     }
@@ -50,7 +56,7 @@ int main(void)
     sodium_free(sodium_malloc(0U));
     sodium_free(NULL);
     for (i = 0U; i < 10000U; i++) {
-        size = randombytes_uniform(100000U);
+        size = 1U + randombytes_uniform(100000U);
         buf = sodium_malloc(size);
         assert(buf != NULL);
         memset(buf, i, size);
@@ -68,7 +74,7 @@ int main(void)
 #ifdef SIGABRT
     signal(SIGABRT, segv_handler);
 #endif
-    size = randombytes_uniform(100000U);
+    size = 1U + randombytes_uniform(100000U);
     buf = sodium_malloc(size);
     assert(buf != NULL);
     sodium_mprotect_readonly(buf);

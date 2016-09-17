@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/jedisct1/libsodium.png?branch=master)](https://travis-ci.org/jedisct1/libsodium?branch=master)
+[![Build Status](https://travis-ci.org/jedisct1/libsodium.svg?branch=master)](https://travis-ci.org/jedisct1/libsodium?branch=master)
+[![Windows build status](https://ci.appveyor.com/api/projects/status/fu8s2elx25il98hj?svg=true)](https://ci.appveyor.com/project/jedisct1/libsodium)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/2397/badge.svg)](https://scan.coverity.com/projects/2397)
 
 ![libsodium](https://raw.github.com/jedisct1/libsodium/master/logo.png)
@@ -22,7 +23,16 @@ including Windows (with MingW or Visual Studio, x86 and x64), iOS and Android.
 The documentation is a work-in-progress, and is being written using
 Gitbook:
 
-[libsodium documentation](https://download.libsodium.org/doc/)
+* [libsodium documentation](https://download.libsodium.org/doc/) -
+online, requires Javascript.
+* [offline documentation](https://www.gitbook.com/book/jedisct1/libsodium/details)
+in PDF, MOBI and ePUB formats.
+
+## Integrity Checking
+
+The integrity checking instructions (including the signing key for libsodium)
+are available in the [installation](https://download.libsodium.org/doc/installation/index.html#integrity-checking)
+section of the documentation.
 
 ## Community
 
