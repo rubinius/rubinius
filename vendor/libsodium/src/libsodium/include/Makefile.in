@@ -88,17 +88,23 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@NATIVECLIENT_TRUE@am__append_1 = \
+@NATIVECLIENT_TRUE@	sodium/randombytes_nativeclient.h
+
 subdir = src/libsodium/include
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_compile_flag.m4 \
+	$(top_srcdir)/m4/ax_check_define.m4 \
 	$(top_srcdir)/m4/ax_check_link_flag.m4 \
+	$(top_srcdir)/m4/ax_pthread.m4 \
+	$(top_srcdir)/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/m4/ld-output-def.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(nobase_include_HEADERS) \
+DIST_COMMON = $(srcdir)/Makefile.am $(am__nobase_include_HEADERS_DIST) \
 	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
@@ -122,6 +128,42 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+am__nobase_include_HEADERS_DIST = sodium.h sodium/core.h \
+	sodium/crypto_aead_aes256gcm.h \
+	sodium/crypto_aead_chacha20poly1305.h sodium/crypto_auth.h \
+	sodium/crypto_auth_hmacsha256.h \
+	sodium/crypto_auth_hmacsha512.h \
+	sodium/crypto_auth_hmacsha512256.h sodium/crypto_box.h \
+	sodium/crypto_box_curve25519xsalsa20poly1305.h \
+	sodium/crypto_core_hchacha20.h sodium/crypto_core_hsalsa20.h \
+	sodium/crypto_core_salsa20.h sodium/crypto_core_salsa2012.h \
+	sodium/crypto_core_salsa208.h sodium/crypto_generichash.h \
+	sodium/crypto_generichash_blake2b.h sodium/crypto_hash.h \
+	sodium/crypto_hash_sha256.h sodium/crypto_hash_sha512.h \
+	sodium/crypto_onetimeauth.h \
+	sodium/crypto_onetimeauth_poly1305.h sodium/crypto_pwhash.h \
+	sodium/crypto_pwhash_argon2i.h \
+	sodium/crypto_pwhash_scryptsalsa208sha256.h \
+	sodium/crypto_scalarmult.h \
+	sodium/crypto_scalarmult_curve25519.h \
+	sodium/crypto_secretbox.h \
+	sodium/crypto_secretbox_xsalsa20poly1305.h \
+	sodium/crypto_shorthash.h sodium/crypto_shorthash_siphash24.h \
+	sodium/crypto_sign.h sodium/crypto_sign_ed25519.h \
+	sodium/crypto_sign_edwards25519sha512batch.h \
+	sodium/crypto_stream.h sodium/crypto_stream_aes128ctr.h \
+	sodium/crypto_stream_chacha20.h sodium/crypto_stream_salsa20.h \
+	sodium/crypto_stream_salsa2012.h \
+	sodium/crypto_stream_salsa208.h \
+	sodium/crypto_stream_xsalsa20.h sodium/crypto_int32.h \
+	sodium/crypto_int64.h sodium/crypto_uint16.h \
+	sodium/crypto_uint32.h sodium/crypto_uint64.h \
+	sodium/crypto_uint8.h sodium/crypto_verify_16.h \
+	sodium/crypto_verify_32.h sodium/crypto_verify_64.h \
+	sodium/export.h sodium/randombytes.h \
+	sodium/randombytes_salsa20_random.h \
+	sodium/randombytes_sysrandom.h sodium/runtime.h sodium/utils.h \
+	sodium/randombytes_nativeclient.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -187,6 +229,15 @@ CCASDEPMODE = @CCASDEPMODE@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CFLAGS_AESNI = @CFLAGS_AESNI@
+CFLAGS_AVX = @CFLAGS_AVX@
+CFLAGS_AVX2 = @CFLAGS_AVX2@
+CFLAGS_MMX = @CFLAGS_MMX@
+CFLAGS_PCLMUL = @CFLAGS_PCLMUL@
+CFLAGS_SSE2 = @CFLAGS_SSE2@
+CFLAGS_SSE3 = @CFLAGS_SSE3@
+CFLAGS_SSE41 = @CFLAGS_SSE41@
+CFLAGS_SSSE3 = @CFLAGS_SSSE3@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAGS = @CWFLAGS@
@@ -205,6 +256,7 @@ EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
 HAVE_AMD64_ASM_V = @HAVE_AMD64_ASM_V@
+HAVE_AVX_ASM_V = @HAVE_AVX_ASM_V@
 HAVE_CPUID_V = @HAVE_CPUID_V@
 HAVE_TI_MODE_V = @HAVE_TI_MODE_V@
 INSTALL = @INSTALL@
@@ -242,6 +294,9 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 SAFECODE_HOME = @SAFECODE_HOME@
 SED = @SED@
@@ -252,6 +307,12 @@ SODIUM_LIBRARY_VERSION_MAJOR = @SODIUM_LIBRARY_VERSION_MAJOR@
 SODIUM_LIBRARY_VERSION_MINOR = @SODIUM_LIBRARY_VERSION_MINOR@
 STRIP = @STRIP@
 TEST_LDFLAGS = @TEST_LDFLAGS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
+VALGRIND_HAVE_TOOL_drd = @VALGRIND_HAVE_TOOL_drd@
+VALGRIND_HAVE_TOOL_exp_sgcheck = @VALGRIND_HAVE_TOOL_exp_sgcheck@
+VALGRIND_HAVE_TOOL_helgrind = @VALGRIND_HAVE_TOOL_helgrind@
+VALGRIND_HAVE_TOOL_memcheck = @VALGRIND_HAVE_TOOL_memcheck@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -265,6 +326,7 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
+ax_pthread_config = @ax_pthread_config@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -305,60 +367,41 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SODIUM_EXPORT = \
-	sodium.h \
-	sodium/core.h \
-	sodium/crypto_aead_chacha20poly1305.h \
-	sodium/crypto_auth.h \
+SODIUM_EXPORT = sodium.h sodium/core.h sodium/crypto_aead_aes256gcm.h \
+	sodium/crypto_aead_chacha20poly1305.h sodium/crypto_auth.h \
 	sodium/crypto_auth_hmacsha256.h \
 	sodium/crypto_auth_hmacsha512.h \
-	sodium/crypto_auth_hmacsha512256.h \
-	sodium/crypto_box.h \
+	sodium/crypto_auth_hmacsha512256.h sodium/crypto_box.h \
 	sodium/crypto_box_curve25519xsalsa20poly1305.h \
-	sodium/crypto_core_hsalsa20.h \
-	sodium/crypto_core_salsa20.h \
-	sodium/crypto_core_salsa2012.h \
-	sodium/crypto_core_salsa208.h \
-	sodium/crypto_generichash.h \
-	sodium/crypto_generichash_blake2b.h \
-	sodium/crypto_hash.h \
-	sodium/crypto_hash_sha256.h \
-	sodium/crypto_hash_sha512.h \
+	sodium/crypto_core_hchacha20.h sodium/crypto_core_hsalsa20.h \
+	sodium/crypto_core_salsa20.h sodium/crypto_core_salsa2012.h \
+	sodium/crypto_core_salsa208.h sodium/crypto_generichash.h \
+	sodium/crypto_generichash_blake2b.h sodium/crypto_hash.h \
+	sodium/crypto_hash_sha256.h sodium/crypto_hash_sha512.h \
 	sodium/crypto_onetimeauth.h \
-	sodium/crypto_onetimeauth_poly1305.h \
+	sodium/crypto_onetimeauth_poly1305.h sodium/crypto_pwhash.h \
+	sodium/crypto_pwhash_argon2i.h \
 	sodium/crypto_pwhash_scryptsalsa208sha256.h \
 	sodium/crypto_scalarmult.h \
 	sodium/crypto_scalarmult_curve25519.h \
 	sodium/crypto_secretbox.h \
 	sodium/crypto_secretbox_xsalsa20poly1305.h \
-	sodium/crypto_shorthash.h \
-	sodium/crypto_shorthash_siphash24.h \
-	sodium/crypto_sign.h \
-	sodium/crypto_sign_ed25519.h \
+	sodium/crypto_shorthash.h sodium/crypto_shorthash_siphash24.h \
+	sodium/crypto_sign.h sodium/crypto_sign_ed25519.h \
 	sodium/crypto_sign_edwards25519sha512batch.h \
-	sodium/crypto_stream.h \
-	sodium/crypto_stream_aes128ctr.h \
-	sodium/crypto_stream_chacha20.h \
-	sodium/crypto_stream_salsa20.h \
+	sodium/crypto_stream.h sodium/crypto_stream_aes128ctr.h \
+	sodium/crypto_stream_chacha20.h sodium/crypto_stream_salsa20.h \
 	sodium/crypto_stream_salsa2012.h \
 	sodium/crypto_stream_salsa208.h \
-	sodium/crypto_stream_xsalsa20.h \
-	sodium/crypto_int32.h \
-	sodium/crypto_int64.h \
-	sodium/crypto_uint16.h \
-	sodium/crypto_uint32.h \
-	sodium/crypto_uint64.h \
-	sodium/crypto_uint8.h \
-	sodium/crypto_verify_16.h \
-	sodium/crypto_verify_32.h \
-	sodium/crypto_verify_64.h \
-	sodium/export.h \
-	sodium/randombytes.h \
+	sodium/crypto_stream_xsalsa20.h sodium/crypto_int32.h \
+	sodium/crypto_int64.h sodium/crypto_uint16.h \
+	sodium/crypto_uint32.h sodium/crypto_uint64.h \
+	sodium/crypto_uint8.h sodium/crypto_verify_16.h \
+	sodium/crypto_verify_32.h sodium/crypto_verify_64.h \
+	sodium/export.h sodium/randombytes.h \
 	sodium/randombytes_salsa20_random.h \
-	sodium/randombytes_sysrandom.h \
-	sodium/runtime.h \
-	sodium/utils.h
-
+	sodium/randombytes_sysrandom.h sodium/runtime.h sodium/utils.h \
+	$(am__append_1)
 EXTRA_SRC = $(SODIUM_EXPORT) \
 	sodium/version.h.in
 

@@ -1207,7 +1207,10 @@ AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
 m4_include([m4/ax_check_compile_flag.m4])
+m4_include([m4/ax_check_define.m4])
 m4_include([m4/ax_check_link_flag.m4])
+m4_include([m4/ax_pthread.m4])
+m4_include([m4/ax_valgrind_check.m4])
 m4_include([m4/ld-output-def.m4])
 m4_include([m4/libtool.m4])
 m4_include([m4/ltoptions.m4])

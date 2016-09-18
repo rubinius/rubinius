@@ -2,8 +2,8 @@
 #define TEST_NAME "randombytes"
 #include "cmptest.h"
 
-unsigned char x[65536];
-unsigned long long freq[256];
+static unsigned char x[65536];
+static unsigned long long freq[256];
 
 static int compat_tests(void)
 {
@@ -32,9 +32,11 @@ static int randombytes_tests(void)
     uint32_t     n;
 
 #ifdef __EMSCRIPTEN__
-    assert(strcmp(randombytes_implementation_name(), "sysrandom"));
+    assert(strcmp(randombytes_implementation_name(), "js") == 0);
+#elif defined(__native_client__)
+    assert(strcmp(randombytes_implementation_name(), "nativeclient") == 0);
 #else
-    assert(strcmp(randombytes_implementation_name(), "js"));
+    assert(strcmp(randombytes_implementation_name(), "sysrandom") == 0);
 #endif
     randombytes(x, 1U);
     do {
@@ -105,7 +107,11 @@ static uint32_t randombytes_uniform_impl(const uint32_t upper_bound)
 
 static int impl_tests(void)
 {
+#ifndef __native_client__
     randombytes_implementation impl = randombytes_sysrandom_implementation;
+#else
+    randombytes_implementation impl = randombytes_nativeclient_implementation;
+#endif
     uint32_t                   v = randombytes_random();
 
     impl.uniform = randombytes_uniform_impl;
