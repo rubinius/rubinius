@@ -90,7 +90,10 @@ host_triplet = @host@
 subdir = dist-build
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_compile_flag.m4 \
+	$(top_srcdir)/m4/ax_check_define.m4 \
 	$(top_srcdir)/m4/ax_check_link_flag.m4 \
+	$(top_srcdir)/m4/ax_pthread.m4 \
+	$(top_srcdir)/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/m4/ld-output-def.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
@@ -138,6 +141,15 @@ CCASDEPMODE = @CCASDEPMODE@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CFLAGS_AESNI = @CFLAGS_AESNI@
+CFLAGS_AVX = @CFLAGS_AVX@
+CFLAGS_AVX2 = @CFLAGS_AVX2@
+CFLAGS_MMX = @CFLAGS_MMX@
+CFLAGS_PCLMUL = @CFLAGS_PCLMUL@
+CFLAGS_SSE2 = @CFLAGS_SSE2@
+CFLAGS_SSE3 = @CFLAGS_SSE3@
+CFLAGS_SSE41 = @CFLAGS_SSE41@
+CFLAGS_SSSE3 = @CFLAGS_SSSE3@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAGS = @CWFLAGS@
@@ -156,6 +168,7 @@ EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
 HAVE_AMD64_ASM_V = @HAVE_AMD64_ASM_V@
+HAVE_AVX_ASM_V = @HAVE_AVX_ASM_V@
 HAVE_CPUID_V = @HAVE_CPUID_V@
 HAVE_TI_MODE_V = @HAVE_TI_MODE_V@
 INSTALL = @INSTALL@
@@ -193,6 +206,9 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 SAFECODE_HOME = @SAFECODE_HOME@
 SED = @SED@
@@ -203,6 +219,12 @@ SODIUM_LIBRARY_VERSION_MAJOR = @SODIUM_LIBRARY_VERSION_MAJOR@
 SODIUM_LIBRARY_VERSION_MINOR = @SODIUM_LIBRARY_VERSION_MINOR@
 STRIP = @STRIP@
 TEST_LDFLAGS = @TEST_LDFLAGS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
+VALGRIND_HAVE_TOOL_drd = @VALGRIND_HAVE_TOOL_drd@
+VALGRIND_HAVE_TOOL_exp_sgcheck = @VALGRIND_HAVE_TOOL_exp_sgcheck@
+VALGRIND_HAVE_TOOL_helgrind = @VALGRIND_HAVE_TOOL_helgrind@
+VALGRIND_HAVE_TOOL_memcheck = @VALGRIND_HAVE_TOOL_memcheck@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -216,6 +238,7 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
+ax_pthread_config = @ax_pthread_config@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -260,12 +283,18 @@ EXTRA_DIST = \
 	android-build.sh \
 	android-arm.sh \
 	android-armv7-a.sh \
-	android-x86.sh \
+	android-armv8-a.sh \
 	android-mips32.sh \
+	android-mips64.sh \
+	android-x86.sh \
+	android-x86_64.sh \
 	emscripten.sh \
 	ios.sh \
 	msys2-win32.sh \
-	msys2-win64.sh
+	msys2-win64.sh \
+	nativeclient-pnacl.sh \
+	nativeclient-x86.sh \
+	nativeclient-x86_64.sh
 
 all: all-am
 

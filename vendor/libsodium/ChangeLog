@@ -1,4 +1,134 @@
 
+* Version 1.0.11
+ - sodium_init() is now thread-safe, and can be safely called multiple
+times.
+ - Android binaries now properly support 64-bit Android, targeting
+platform 24, but without breaking compatibility with platforms 16 and
+21.
+ - Better support for old gcc versions.
+ - On FreeBSD, core dumps are disabled on regions allocated with
+sodium allocation functions.
+ - AVX2 detection was fixed, resulting in faster Blake2b hashing on
+platforms where it was not properly detected.
+ - The Sandy2x Curve25519 implementation was not as fast as expected
+on some platforms. This has been fixed.
+ - The NativeClient target was improved. Most notably, it now supports
+optimized implementations, and uses pepper_49 by default.
+ - The library can be compiled with recent Emscripten versions.
+Changes have been made to produce smaller code, and the default heap
+size was reduced in the standard version.
+ - The code can now be compiled on SLES11 service pack 4.
+ - Decryption functions can now accept a NULL pointer for the output.
+This checks the MAC without writing the decrypted message.
+ - crypto_generichash_final() now returns -1 if called twice.
+ - Support for Visual Studio 2008 was improved.
+
+* Version 1.0.10
+ - This release only fixes a compilation issue reported with some older
+gcc versions. There are no functional changes over the previous release.
+
+* Version 1.0.9
+ - The Javascript target now includes a `--sumo` option to include all
+the symbols of the original C library.
+ - A detached API was added to the ChaCha20-Poly1305 and AES256-GCM
+implementations.
+ - The Argon2i password hashing function was added, and is accessible
+directly and through a new, high-level `crypto_pwhash` API. The scrypt
+function remains available as well.
+ - A speed-record AVX2 implementation of BLAKE2b was added (thanks to
+Samuel Neves).
+ - The library can now be compiled using C++Builder (thanks to @jcolli44)
+ - Countermeasures for Ed25519 signatures malleability have been added
+to match the irtf-cfrg-eddsa draft (note that malleability is irrelevant to
+the standard definition of signature security). Signatures with a small-order
+`R` point are now also rejected.
+ - Some implementations are now slightly faster when using the Clang
+compiler.
+ - The HChaCha20 core function was implemented (`crypto_core_hchacha20()`).
+ - No-op stubs were added for all AES256-GCM public functions even when
+compiled on non-Intel platforms.
+ - `crypt_generichash_blake2b_statebytes()` was added.
+ - New macros were added for the IETF variant of the ChaCha20-Poly1305
+construction.
+ - The library can now be compiled on Minix.
+ - HEASLR is now enabled on MinGW builds.
+
+* Version 1.0.8
+ - Handle the case where the CPU supports AVX, but we are running
+on an hypervisor with AVX disabled/not supported.
+ - Faster (2x) scalarmult_base() when using the ref10 implementation.
+
+* Version 1.0.7
+ - More functions whose return value should be checked have been
+tagged with `__attribute__ ((warn_unused_result))`: `crypto_box_easy()`,
+`crypto_box_detached()`, `crypto_box_beforenm()`, `crypto_box()`, and
+`crypto_scalarmult()`.
+ - Sandy2x, the fastest Curve25519 implementation ever, has been
+merged in, and is automatically used on CPUs supporting the AVX
+instructions set.
+ - An SSE2 optimized implementation of Poly1305 was added, and is
+twice as fast as the portable one.
+ - An SSSE3 optimized implementation of ChaCha20 was added, and is
+twice as fast as the portable one.
+ - Faster `sodium_increment()` for common nonce sizes.
+ - New helper functions have been added: `sodium_is_zero()` and
+ `sodium_add()`.
+ - `sodium_runtime_has_aesni()` now properly detects the CPU flag when
+ compiled using Visual Studio.
+
+* Version 1.0.6
+ - Optimized implementations of Blake2 have been added for modern
+Intel platforms. `crypto_generichash()` is now faster than MD5 and SHA1
+implementations while being far more secure.
+ - Functions for which the return value should be checked have been
+tagged with `__attribute__ ((warn_unused_result))`. This will
+intentionally break code compiled with `-Werror` that didn't bother
+checking critical return values.
+ - The `crypto_sign_edwards25519sha512batch_*()` functions have been
+tagged as deprecated.
+ - Undocumented symbols that were exported, but were only useful for
+internal purposes have been removed or made private:
+`sodium_runtime_get_cpu_features()`, the implementation-specific
+`crypto_onetimeauth_poly1305_donna()` symbols,
+`crypto_onetimeauth_poly1305_set_implementation()`,
+`crypto_onetimeauth_poly1305_implementation_name()` and
+`crypto_onetimeauth_pick_best_implementation()`.
+ - `sodium_compare()` now works as documented, and compares numbers
+in little-endian format instead of behaving like `memcmp()`.
+ - The previous changes should not break actual applications, but to be
+safe, the library version major was incremented.
+ - `sodium_runtime_has_ssse3()` and `sodium_runtime_has_sse41()` have
+been added.
+ - The library can now be compiled with the CompCert compiler.
+
+* Version 1.0.5
+ - Compilation issues on some platforms were fixed: missing alignment
+directives were added (required at least on RHEL-6/i386), a workaround
+for a VRP bug on gcc/armv7 was added, and the library can now be compiled
+with the SunPro compiler.
+ - Javascript target: io.js is not supported any more. Use nodejs.
+
+* Version 1.0.4
+ - Support for AES256-GCM has been added. This requires
+a CPU with the aesni and pclmul extensions, and is accessible via the
+crypto_aead_aes256gcm_*() functions.
+ - The Javascript target doesn't use eval() any more, so that the
+library can be used in Chrome packaged applications.
+ - QNX and CloudABI are now supported.
+ - Support for NaCl has finally been added.
+ - ChaCha20 with an extended (96 bit) nonce and a 32-bit counter has
+been implemented as crypto_stream_chacha20_ietf(),
+crypto_stream_chacha20_ietf_xor() and crypto_stream_chacha20_ietf_xor_ic().
+An IETF-compatible version of ChaCha20Poly1305 is available as
+crypto_aead_chacha20poly1305_ietf_npubbytes(),
+crypto_aead_chacha20poly1305_ietf_encrypt() and
+crypto_aead_chacha20poly1305_ietf_decrypt().
+ - The sodium_increment() helper function has been added, to increment
+an arbitrary large number (such as a nonce).
+ - The sodium_compare() helper function has been added, to compare
+arbitrary large numbers (such as nonces, in order to prevent replay
+attacks).
+
 * Version 1.0.3
  - In addition to sodium_bin2hex(), sodium_hex2bin() is now a
 constant-time function.

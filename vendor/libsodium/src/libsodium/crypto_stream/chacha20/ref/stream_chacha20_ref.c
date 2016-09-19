@@ -1,6 +1,4 @@
 
-/* $OpenBSD: chacha.c,v 1.1 2013/11/21 00:45:44 djm Exp $ */
-
 /*
  chacha-merged.c version 20080118
  D. J. Bernstein
@@ -8,11 +6,14 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "api.h"
-#include "crypto_stream_chacha20.h"
 #include "utils.h"
+#include "crypto_stream_chacha20.h"
+#include "stream_chacha20_ref.h"
+#include "../stream_chacha20.h"
+#include "private/common.h"
 
 struct chacha_ctx {
     uint32_t input[16];
@@ -32,20 +33,6 @@ typedef struct chacha_ctx chacha_ctx;
 #define ROTL32(v, n) \
   (U32V((v) << (n)) | ((v) >> (32 - (n))))
 
-#define U8TO32_LITTLE(p) \
-  (((u32)((p)[0])      ) | \
-   ((u32)((p)[1]) <<  8) | \
-   ((u32)((p)[2]) << 16) | \
-   ((u32)((p)[3]) << 24))
-
-#define U32TO8_LITTLE(p, v) \
-  do { \
-    (p)[0] = U8V((v)      ); \
-    (p)[1] = U8V((v) >>  8); \
-    (p)[2] = U8V((v) >> 16); \
-    (p)[3] = U8V((v) >> 24); \
-  } while (0)
-
 #define ROTATE(v,c) (ROTL32(v,c))
 #define XOR(v,w) ((v) ^ (w))
 #define PLUS(v,w) (U32V((v) + (w)))
@@ -57,42 +44,43 @@ typedef struct chacha_ctx chacha_ctx;
   a = PLUS(a,b); d = ROTATE(XOR(d,a), 8); \
   c = PLUS(c,d); b = ROTATE(XOR(b,c), 7);
 
-static const unsigned char sigma[16] = {
-    'e', 'x', 'p', 'a', 'n', 'd', ' ', '3', '2', '-', 'b', 'y', 't', 'e', ' ', 'k'
-};
-
 static void
-chacha_keysetup(chacha_ctx *x, const u8 *k)
+chacha_keysetup(chacha_ctx *ctx, const u8 *k)
 {
-    const unsigned char *constants;
-
-    x->input[4] = U8TO32_LITTLE(k + 0);
-    x->input[5] = U8TO32_LITTLE(k + 4);
-    x->input[6] = U8TO32_LITTLE(k + 8);
-    x->input[7] = U8TO32_LITTLE(k + 12);
-    k += 16;
-    constants = sigma;
-    x->input[8] = U8TO32_LITTLE(k + 0);
-    x->input[9] = U8TO32_LITTLE(k + 4);
-    x->input[10] = U8TO32_LITTLE(k + 8);
-    x->input[11] = U8TO32_LITTLE(k + 12);
-    x->input[0] = U8TO32_LITTLE(constants + 0);
-    x->input[1] = U8TO32_LITTLE(constants + 4);
-    x->input[2] = U8TO32_LITTLE(constants + 8);
-    x->input[3] = U8TO32_LITTLE(constants + 12);
+    ctx->input[0]  = U32C(0x61707865);
+    ctx->input[1]  = U32C(0x3320646e);
+    ctx->input[2]  = U32C(0x79622d32);
+    ctx->input[3]  = U32C(0x6b206574);
+    ctx->input[4]  = LOAD32_LE(k +  0);
+    ctx->input[5]  = LOAD32_LE(k +  4);
+    ctx->input[6]  = LOAD32_LE(k +  8);
+    ctx->input[7]  = LOAD32_LE(k + 12);
+    ctx->input[8]  = LOAD32_LE(k + 16);
+    ctx->input[9]  = LOAD32_LE(k + 20);
+    ctx->input[10] = LOAD32_LE(k + 24);
+    ctx->input[11] = LOAD32_LE(k + 28);
 }
 
 static void
-chacha_ivsetup(chacha_ctx *x, const u8 *iv, const u8 *counter)
+chacha_ivsetup(chacha_ctx *ctx, const u8 *iv, const u8 *counter)
 {
-    x->input[12] = counter == NULL ? 0 : U8TO32_LITTLE(counter + 0);
-    x->input[13] = counter == NULL ? 0 : U8TO32_LITTLE(counter + 4);
-    x->input[14] = U8TO32_LITTLE(iv + 0);
-    x->input[15] = U8TO32_LITTLE(iv + 4);
+    ctx->input[12] = counter == NULL ? 0 : LOAD32_LE(counter + 0);
+    ctx->input[13] = counter == NULL ? 0 : LOAD32_LE(counter + 4);
+    ctx->input[14] = LOAD32_LE(iv + 0);
+    ctx->input[15] = LOAD32_LE(iv + 4);
 }
 
 static void
-chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, unsigned long long bytes)
+chacha_ietf_ivsetup(chacha_ctx *ctx, const u8 *iv, const u8 *counter)
+{
+    ctx->input[12] = counter == NULL ? 0 : LOAD32_LE(counter);
+    ctx->input[13] = LOAD32_LE(iv + 0);
+    ctx->input[14] = LOAD32_LE(iv + 4);
+    ctx->input[15] = LOAD32_LE(iv + 8);
+}
+
+static void
+chacha_encrypt_bytes(chacha_ctx *ctx, const u8 *m, u8 *c, unsigned long long bytes)
 {
     u32 x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15;
     u32 j0, j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14, j15;
@@ -103,25 +91,29 @@ chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, unsigned long long bytes
     if (!bytes) {
         return; /* LCOV_EXCL_LINE */
     }
-    j0 = x->input[0];
-    j1 = x->input[1];
-    j2 = x->input[2];
-    j3 = x->input[3];
-    j4 = x->input[4];
-    j5 = x->input[5];
-    j6 = x->input[6];
-    j7 = x->input[7];
-    j8 = x->input[8];
-    j9 = x->input[9];
-    j10 = x->input[10];
-    j11 = x->input[11];
-    j12 = x->input[12];
-    j13 = x->input[13];
-    j14 = x->input[14];
-    j15 = x->input[15];
+    if (bytes > 64ULL * (1ULL << 32) - 64ULL) {
+        abort();
+    }
+    j0 = ctx->input[0];
+    j1 = ctx->input[1];
+    j2 = ctx->input[2];
+    j3 = ctx->input[3];
+    j4 = ctx->input[4];
+    j5 = ctx->input[5];
+    j6 = ctx->input[6];
+    j7 = ctx->input[7];
+    j8 = ctx->input[8];
+    j9 = ctx->input[9];
+    j10 = ctx->input[10];
+    j11 = ctx->input[11];
+    j12 = ctx->input[12];
+    j13 = ctx->input[13];
+    j14 = ctx->input[14];
+    j15 = ctx->input[15];
 
     for (;;) {
         if (bytes < 64) {
+            memset(tmp, 0, 64);
             for (i = 0; i < bytes; ++i) {
                 tmp[i] = m[i];
             }
@@ -172,22 +164,22 @@ chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, unsigned long long bytes
         x14 = PLUS(x14, j14);
         x15 = PLUS(x15, j15);
 
-        x0 = XOR(x0, U8TO32_LITTLE(m + 0));
-        x1 = XOR(x1, U8TO32_LITTLE(m + 4));
-        x2 = XOR(x2, U8TO32_LITTLE(m + 8));
-        x3 = XOR(x3, U8TO32_LITTLE(m + 12));
-        x4 = XOR(x4, U8TO32_LITTLE(m + 16));
-        x5 = XOR(x5, U8TO32_LITTLE(m + 20));
-        x6 = XOR(x6, U8TO32_LITTLE(m + 24));
-        x7 = XOR(x7, U8TO32_LITTLE(m + 28));
-        x8 = XOR(x8, U8TO32_LITTLE(m + 32));
-        x9 = XOR(x9, U8TO32_LITTLE(m + 36));
-        x10 = XOR(x10, U8TO32_LITTLE(m + 40));
-        x11 = XOR(x11, U8TO32_LITTLE(m + 44));
-        x12 = XOR(x12, U8TO32_LITTLE(m + 48));
-        x13 = XOR(x13, U8TO32_LITTLE(m + 52));
-        x14 = XOR(x14, U8TO32_LITTLE(m + 56));
-        x15 = XOR(x15, U8TO32_LITTLE(m + 60));
+        x0 = XOR(x0, LOAD32_LE(m + 0));
+        x1 = XOR(x1, LOAD32_LE(m + 4));
+        x2 = XOR(x2, LOAD32_LE(m + 8));
+        x3 = XOR(x3, LOAD32_LE(m + 12));
+        x4 = XOR(x4, LOAD32_LE(m + 16));
+        x5 = XOR(x5, LOAD32_LE(m + 20));
+        x6 = XOR(x6, LOAD32_LE(m + 24));
+        x7 = XOR(x7, LOAD32_LE(m + 28));
+        x8 = XOR(x8, LOAD32_LE(m + 32));
+        x9 = XOR(x9, LOAD32_LE(m + 36));
+        x10 = XOR(x10, LOAD32_LE(m + 40));
+        x11 = XOR(x11, LOAD32_LE(m + 44));
+        x12 = XOR(x12, LOAD32_LE(m + 48));
+        x13 = XOR(x13, LOAD32_LE(m + 52));
+        x14 = XOR(x14, LOAD32_LE(m + 56));
+        x15 = XOR(x15, LOAD32_LE(m + 60));
 
         j12 = PLUSONE(j12);
         /* LCOV_EXCL_START */
@@ -196,31 +188,31 @@ chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, unsigned long long bytes
         }
         /* LCOV_EXCL_STOP */
 
-        U32TO8_LITTLE(c + 0, x0);
-        U32TO8_LITTLE(c + 4, x1);
-        U32TO8_LITTLE(c + 8, x2);
-        U32TO8_LITTLE(c + 12, x3);
-        U32TO8_LITTLE(c + 16, x4);
-        U32TO8_LITTLE(c + 20, x5);
-        U32TO8_LITTLE(c + 24, x6);
-        U32TO8_LITTLE(c + 28, x7);
-        U32TO8_LITTLE(c + 32, x8);
-        U32TO8_LITTLE(c + 36, x9);
-        U32TO8_LITTLE(c + 40, x10);
-        U32TO8_LITTLE(c + 44, x11);
-        U32TO8_LITTLE(c + 48, x12);
-        U32TO8_LITTLE(c + 52, x13);
-        U32TO8_LITTLE(c + 56, x14);
-        U32TO8_LITTLE(c + 60, x15);
+        STORE32_LE(c + 0, x0);
+        STORE32_LE(c + 4, x1);
+        STORE32_LE(c + 8, x2);
+        STORE32_LE(c + 12, x3);
+        STORE32_LE(c + 16, x4);
+        STORE32_LE(c + 20, x5);
+        STORE32_LE(c + 24, x6);
+        STORE32_LE(c + 28, x7);
+        STORE32_LE(c + 32, x8);
+        STORE32_LE(c + 36, x9);
+        STORE32_LE(c + 40, x10);
+        STORE32_LE(c + 44, x11);
+        STORE32_LE(c + 48, x12);
+        STORE32_LE(c + 52, x13);
+        STORE32_LE(c + 56, x14);
+        STORE32_LE(c + 60, x15);
 
         if (bytes <= 64) {
             if (bytes < 64) {
                 for (i = 0; i < (unsigned int) bytes; ++i) {
-                    ctarget[i] = c[i];
+                    ctarget[i] = c[i]; /* ctarget cannot be NULL */
                 }
             }
-            x->input[12] = j12;
-            x->input[13] = j13;
+            ctx->input[12] = j12;
+            ctx->input[13] = j13;
             return;
         }
         bytes -= 64;
@@ -229,9 +221,9 @@ chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, unsigned long long bytes
     }
 }
 
-int
-crypto_stream_chacha20_ref(unsigned char *c, unsigned long long clen,
-                           const unsigned char *n, const unsigned char *k)
+static int
+stream_ref(unsigned char *c, unsigned long long clen,
+           const unsigned char *n, const unsigned char *k)
 {
     struct chacha_ctx ctx;
 
@@ -248,11 +240,30 @@ crypto_stream_chacha20_ref(unsigned char *c, unsigned long long clen,
     return 0;
 }
 
-int
-crypto_stream_chacha20_ref_xor_ic(unsigned char *c, const unsigned char *m,
-                                  unsigned long long mlen,
-                                  const unsigned char *n, uint64_t ic,
-                                  const unsigned char *k)
+static int
+stream_ietf_ref(unsigned char *c, unsigned long long clen,
+                const unsigned char *n, const unsigned char *k)
+{
+    struct chacha_ctx ctx;
+
+    if (!clen) {
+        return 0;
+    }
+    (void) sizeof(int[crypto_stream_chacha20_KEYBYTES == 256 / 8 ? 1 : -1]);
+    chacha_keysetup(&ctx, k);
+    chacha_ietf_ivsetup(&ctx, n, NULL);
+    memset(c, 0, clen);
+    chacha_encrypt_bytes(&ctx, c, c, clen);
+    sodium_memzero(&ctx, sizeof ctx);
+
+    return 0;
+}
+
+static int
+stream_ref_xor_ic(unsigned char *c, const unsigned char *m,
+                  unsigned long long mlen,
+                  const unsigned char *n, uint64_t ic,
+                  const unsigned char *k)
 {
     struct chacha_ctx ctx;
     uint8_t           ic_bytes[8];
@@ -264,13 +275,41 @@ crypto_stream_chacha20_ref_xor_ic(unsigned char *c, const unsigned char *m,
     }
     ic_high = U32V(ic >> 32);
     ic_low = U32V(ic);
-    U32TO8_LITTLE(&ic_bytes[0], ic_low);
-    U32TO8_LITTLE(&ic_bytes[4], ic_high);
+    STORE32_LE(&ic_bytes[0], ic_low);
+    STORE32_LE(&ic_bytes[4], ic_high);
     chacha_keysetup(&ctx, k);
     chacha_ivsetup(&ctx, n, ic_bytes);
     chacha_encrypt_bytes(&ctx, m, c, mlen);
     sodium_memzero(&ctx, sizeof ctx);
-    sodium_memzero(ic_bytes, sizeof ic_bytes);
 
     return 0;
 }
+
+static int
+stream_ietf_ref_xor_ic(unsigned char *c, const unsigned char *m,
+                       unsigned long long mlen,
+                       const unsigned char *n, uint32_t ic,
+                       const unsigned char *k)
+{
+    struct chacha_ctx ctx;
+    uint8_t           ic_bytes[4];
+
+    if (!mlen) {
+        return 0;
+    }
+    STORE32_LE(ic_bytes, ic);
+    chacha_keysetup(&ctx, k);
+    chacha_ietf_ivsetup(&ctx, n, ic_bytes);
+    chacha_encrypt_bytes(&ctx, m, c, mlen);
+    sodium_memzero(&ctx, sizeof ctx);
+
+    return 0;
+}
+
+struct crypto_stream_chacha20_implementation
+crypto_stream_chacha20_ref_implementation = {
+    SODIUM_C99(.stream =) stream_ref,
+    SODIUM_C99(.stream_ietf =) stream_ietf_ref,
+    SODIUM_C99(.stream_xor_ic =) stream_ref_xor_ic,
+    SODIUM_C99(.stream_ietf_xor_ic =) stream_ietf_ref_xor_ic
+};

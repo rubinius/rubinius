@@ -10,22 +10,46 @@
 extern "C" {
 #endif
 
-#if defined(__cplusplus) || !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
-# define SODIUM_C99(X)
-#else
-# define SODIUM_C99(X) X
+#ifndef SODIUM_C99
+# if defined(__cplusplus) || !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
+#  define SODIUM_C99(X)
+# else
+#  define SODIUM_C99(X) X
+# endif
 #endif
 
 SODIUM_EXPORT
 void sodium_memzero(void * const pnt, const size_t len);
 
-/* WARNING: sodium_memcmp() must be used to verify if two secret keys
+/*
+ * WARNING: sodium_memcmp() must be used to verify if two secret keys
  * are equal, in constant time.
  * It returns 0 if the keys are equal, and -1 if they differ.
  * This function is not designed for lexicographical comparisons.
  */
 SODIUM_EXPORT
-int sodium_memcmp(const void * const b1_, const void * const b2_, size_t len);
+int sodium_memcmp(const void * const b1_, const void * const b2_, size_t len)
+            __attribute__ ((warn_unused_result));
+
+/*
+ * sodium_compare() returns -1 if b1_ < b2_, 1 if b1_ > b2_ and 0 if b1_ == b2_
+ * It is suitable for lexicographical comparisons, or to compare nonces
+ * and counters stored in little-endian format.
+ * However, it is slower than sodium_memcmp().
+ */
+SODIUM_EXPORT
+int sodium_compare(const unsigned char *b1_, const unsigned char *b2_,
+                   size_t len)
+            __attribute__ ((warn_unused_result));
+
+SODIUM_EXPORT
+int sodium_is_zero(const unsigned char *n, const size_t nlen);
+
+SODIUM_EXPORT
+void sodium_increment(unsigned char *n, const size_t nlen);
+
+SODIUM_EXPORT
+void sodium_add(unsigned char *a, const unsigned char *b, const size_t len);
 
 SODIUM_EXPORT
 char *sodium_bin2hex(char * const hex, const size_t hex_maxlen,
@@ -78,10 +102,12 @@ int sodium_munlock(void * const addr, const size_t len);
  */
 
 SODIUM_EXPORT
-void *sodium_malloc(const size_t size);
+void *sodium_malloc(const size_t size)
+            __attribute__ ((malloc));
 
 SODIUM_EXPORT
-void *sodium_allocarray(size_t count, size_t size);
+void *sodium_allocarray(size_t count, size_t size)
+            __attribute__ ((malloc));
 
 SODIUM_EXPORT
 void sodium_free(void *ptr);

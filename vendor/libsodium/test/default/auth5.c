@@ -2,15 +2,15 @@
 #define TEST_NAME "auth5"
 #include "cmptest.h"
 
-unsigned char key[32];
-unsigned char c[10000];
-unsigned char a[32];
+static unsigned char key[32];
+static unsigned char c[1000];
+static unsigned char a[32];
 
 int main(void)
 {
     size_t clen;
 
-    for (clen = 0; clen < 10000; ++clen) {
+    for (clen = 0; clen < 1000; ++clen) {
         randombytes_buf(key, sizeof key);
         randombytes_buf(c, clen);
         crypto_auth(a, c, clen, key);

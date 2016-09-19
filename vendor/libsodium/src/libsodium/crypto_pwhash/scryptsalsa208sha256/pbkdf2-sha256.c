@@ -24,16 +24,16 @@
  * SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <sys/types.h>
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "crypto_auth_hmacsha256.h"
 #include "pbkdf2-sha256.h"
-#include "sysendian.h"
 #include "utils.h"
+#include "private/common.h"
 
 /**
  * PBKDF2_SHA256(passwd, passwdlen, salt, saltlen, c, buf, dkLen):
@@ -53,11 +53,14 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
     int             k;
     size_t          clen;
 
+    if (dkLen > 0x1fffffffe0ULL) {
+        abort();
+    }
     crypto_auth_hmacsha256_init(&PShctx, passwd, passwdlen);
     crypto_auth_hmacsha256_update(&PShctx, salt, saltlen);
 
     for (i = 0; i * 32 < dkLen; i++) {
-        be32enc(ivec, (uint32_t)(i + 1));
+        STORE32_BE(ivec, (uint32_t)(i + 1));
         memcpy(&hctx, &PShctx, sizeof(crypto_auth_hmacsha256_state));
         crypto_auth_hmacsha256_update(&hctx, ivec, 4);
         crypto_auth_hmacsha256_final(&hctx, U);

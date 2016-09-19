@@ -2,6 +2,7 @@
 SODIUM_EXPORT = \
 	sodium.h \
 	sodium/core.h \
+	sodium/crypto_aead_aes256gcm.h \
 	sodium/crypto_aead_chacha20poly1305.h \
 	sodium/crypto_auth.h \
 	sodium/crypto_auth_hmacsha256.h \
@@ -9,6 +10,7 @@ SODIUM_EXPORT = \
 	sodium/crypto_auth_hmacsha512256.h \
 	sodium/crypto_box.h \
 	sodium/crypto_box_curve25519xsalsa20poly1305.h \
+	sodium/crypto_core_hchacha20.h \
 	sodium/crypto_core_hsalsa20.h \
 	sodium/crypto_core_salsa20.h \
 	sodium/crypto_core_salsa2012.h \
@@ -20,6 +22,8 @@ SODIUM_EXPORT = \
 	sodium/crypto_hash_sha512.h \
 	sodium/crypto_onetimeauth.h \
 	sodium/crypto_onetimeauth_poly1305.h \
+	sodium/crypto_pwhash.h \
+	sodium/crypto_pwhash_argon2i.h \
 	sodium/crypto_pwhash_scryptsalsa208sha256.h \
 	sodium/crypto_scalarmult.h \
 	sodium/crypto_scalarmult_curve25519.h \
@@ -52,6 +56,11 @@ SODIUM_EXPORT = \
 	sodium/randombytes_sysrandom.h \
 	sodium/runtime.h \
 	sodium/utils.h
+
+if NATIVECLIENT
+SODIUM_EXPORT += \
+	sodium/randombytes_nativeclient.h
+endif
 
 EXTRA_SRC = $(SODIUM_EXPORT) \
 	sodium/version.h.in
