@@ -1,0 +1,6 @@
+fails:Module#private_constant marked constants in a module cannot be reopened as a module from scope where constant would be private
+fails:Module#private_constant marked constants in a module can be reopened as a class where constant is not private
+fails:Module#private_constant marked constants in a class cannot be reopened as a module
+fails:Module#private_constant marked constants in a class can be reopened as a class where constant is not private
+fails:Module#private_constant marked constants in a module cannot be reopened as a class from scope where constant would be private
+fails:Module#private_constant marked constants in a class cannot be reopened as a class

@@ -339,12 +339,6 @@ module Rubinius
       obj = Class.new sup, name, mod
     else
       entry = tbl.lookup(name)
-      if entry.visibility == :private
-        unless self == Object
-          mod_name = "#{Rubinius::Type.module_name mod}::"
-        end
-        raise NameError, "Private constant: #{mod_name}#{name}"
-      end
       obj = entry.constant
       if Type.object_kind_of? obj, Autoload
         obj = begin
@@ -411,12 +405,6 @@ module Rubinius
       mod.const_set name, obj
     else
       entry = tbl.lookup(name)
-      if entry.visibility == :private
-        unless self == Object
-          mod_name = "#{Rubinius::Type.module_name mod}::"
-        end
-        raise NameError, "Private constant: #{mod_name}#{name}"
-      end
       obj = entry.constant
 
       if Type.object_kind_of? obj, Autoload
