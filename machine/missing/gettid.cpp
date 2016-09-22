@@ -4,6 +4,7 @@
 #if defined(__APPLE__)
 #define _DARWIN_C_SOURCE
 #include <pthread.h>
+#include <stdint.h>
 #else
 #include <sys/syscall.h>
 #endif
