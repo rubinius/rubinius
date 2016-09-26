@@ -258,7 +258,7 @@ function rbx_deploy_website_release {
   releases="releases.yml"
   updates="updated_$releases"
   version=$(rbx_revision_version)
-  url="https://api.github.com/repos/rubinius/rubinius.github.io/contents/_data/releases.yml"
+  url="https://api.github.com/repos/rubinius/rubinius.com/contents/_data/releases.yml"
 
   response=$(curl "$url?access_token=$GITHUB_OAUTH_TOKEN")
 
