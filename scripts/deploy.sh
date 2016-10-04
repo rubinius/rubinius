@@ -317,10 +317,14 @@ RUN apt-get update && apt-get install -y \\
         libssl1.0.0 \\
         clang-3.6 \\
         libedit-dev \\
+        zlib1g-dev \\
         make
 
 ADD https://rubinius-binaries-rubinius-com.s3-us-west-2.amazonaws.com/ubuntu/$path/x86_64/$release /tmp/rubinius.tar.bz2
 RUN cd /opt && tar xvjf /tmp/rubinius.tar.bz2
+
+RUN ln -sf `which clang-3.6` /usr/bin/cc
+RUN ln -sf `which clang++-3.6` /usr/bin/c++
 
 ENV PATH /opt/rubinius/$version/bin:/opt/rubinius/$version/gems/bin:\$PATH
 
