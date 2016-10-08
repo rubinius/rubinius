@@ -63,10 +63,7 @@ To install Rubinius, use the following steps:
 6. rake
 
 When the install process finishes, follow the directions printed to the terminal
-to add the Rubinius executable (bin) directory to your PATH. For more
-information see the documentation for
-[Build Requirements](http://rubinius.com/doc/en/getting-started/requirements/)
-and [Building Rubinius](http://rubinius.com/doc/en/getting-started/building/).
+to add the Rubinius executable (bin) directory to your PATH.
 
 ### Using RubyGems
 
