@@ -54,7 +54,7 @@ function rbx_upload_files {
 
 # Build and upload the release tarball to S3.
 function rbx_deploy_release_tarball {
-  if [[ $1 == osx ]]; then
+  if [[ $1 == linux ]]; then
     echo "Deploying release tarball $(rbx_release_name)..."
 
     "$__dir__/release.sh" || fail "unable to build release tarball"
@@ -159,12 +159,8 @@ function rbx_deploy_travis_binary {
   os_name=$1
   echo "Deploying Travis binary $(rbx_release_name) for $os_name..."
 
-  # TODO: Remove this hack when LLVM 3.6/7 support lands.
   if [[ $os_name == linux ]]; then
-    vendor_llvm="./vendor/llvm/Release/bin/llvm-config"
-    if [[ -f "$vendor_llvm" ]]; then
-      export RBX_BINARY_CONFIG="--llvm-config=$vendor_llvm"
-    fi
+    export RBX_BINARY_CONFIG='--llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8'
   elif [[ $os_name == osx ]]; then
     export RBX_BINARY_CONFIG='--llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8'
   fi
@@ -209,7 +205,7 @@ function rbx_deploy_travis_binary {
 }
 
 function rbx_trigger_deploy {
-  if [[ $1 != osx ]]; then
+  if [[ $1 != linux ]]; then
     return
   fi
 
@@ -241,7 +237,7 @@ function rbx_trigger_deploy {
 function rbx_deploy_github_release {
   local upload_url
 
-  if [[ $1 == osx ]]; then
+  if [[ $1 == linux ]]; then
     upload_url=$(rbx_github_release "$(rbx_revision_version)" "$(rbx_revision_date)")
 
     rbx_github_release_assets "$upload_url" "$(rbx_release_name)"
@@ -249,7 +245,7 @@ function rbx_deploy_github_release {
 }
 
 function rbx_deploy_website_release {
-  if [[ $1 != osx ]]; then
+  if [[ $1 != linux ]]; then
     return
   fi
 

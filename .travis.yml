@@ -5,7 +5,7 @@ compiler:
 - clang
 os:
 - linux
-- osx
+# - osx
 ruby: 2.2.0
 before_install:
 - echo $LANG
@@ -16,7 +16,7 @@ before_install:
 - gem --version
 before_script:
 - travis_retry bundle
-- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=llvm-config-3.6; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8; fi
 - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure --with-include-dir=$(brew --prefix openssl)/include --llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8; fi
 script: rake ci
 after_success:
