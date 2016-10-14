@@ -16,7 +16,7 @@ function rbx_package_tar {
   files="$(git ls-files; ls .revision; ls vendor/cache/*.gem)"
 
   echo "$files" | sort | uniq | \
-    tar -c -s "|^|rubinius-$(rbx_revision_version)/|" -T - -f - | bzip2 > "$archive"
+    bsdtar -c -s "|^|rubinius-$(rbx_revision_version)/|" -T - -f - | bzip2 > "$archive"
 
   rbx_digest_file "$archive" "sha512"
 }
