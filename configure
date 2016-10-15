@@ -908,7 +908,7 @@ not support #{name} compiler, please email contact@rubinius.com
     @log.print "Checking sizeof(#{type}): "
 
     size = check_program do |f|
-      src = includes.map { |include| "#include <#{include}>" }.join("\n")
+      src = includes.map { |include| "#include <#{include}>\n" }.join
       src += <<-EOP
 #include <stddef.h>
 

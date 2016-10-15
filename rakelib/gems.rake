@@ -54,14 +54,6 @@ namespace :gems do
       %r[.*/rubysl-(etc|fcntl)-.*]
     )
 
-    unless BUILD_CONFIG[:darwin] and
-             ENV["TRAVIS_OS_NAME"] != "osx" and
-             `which brew`.chomp.size > 0 and
-             $?.success? and
-             (openssl = `brew --prefix #{ENV["RBX_OPENSSL"] || "openssl"}`.chomp).size > 0
-      openssl = false
-    end
-
     re = %r[(.*)/(ext|lib)/[^/]+/(.*extconf.rb)]
     names.each do |name|
       next unless m = re.match(name)
@@ -73,7 +65,7 @@ namespace :gems do
       Dir.chdir File.dirname(name) do
         puts "Building #{m[1]}..."
 
-        if m[1] =~ /openssl/ and openssl
+        if m[1] =~ /openssl/ and openssl = ENV["OPENSSL_DIR"]
           options = "--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"
         else
           options = nil
