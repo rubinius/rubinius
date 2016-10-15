@@ -5,7 +5,7 @@ compiler:
 - clang
 os:
 - linux
-- osx
+# - osx
 ruby: 2.2.0
 before_install:
 - echo $LANG
