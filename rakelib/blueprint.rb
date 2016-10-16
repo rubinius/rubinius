@@ -258,7 +258,6 @@ Daedalus.blueprint do |i|
 
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-Werror"
-  gcc.cflags << "-DRBX_PROFILER"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"
   gcc.cflags << "-D_FILE_OFFSET_BITS=64"
