@@ -655,8 +655,6 @@ int main() { LLVMContext &Context = getGlobalContext(); }
   def check_llvm_flags
     flags = '--ldflags'
 
-    @llvm_cxxflags << " -std=c++11"
-
     # Starting with LLVM 3.5 the --system-libs option is required in order to
     # link against libraries such as zlib. Prior to 3.5 this was handled by
     # --ldflags.

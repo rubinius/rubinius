@@ -9,7 +9,7 @@ Daedalus.blueprint do |i|
   # -fno-omit-frame-pointer is needed to get a backtrace on FreeBSD.
   # It is enabled by default on OS X, on the other hand, not on Linux.
   # To use same build flags across platforms, it is added explicitly.
-  gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer -g"
+  gcc.cflags << "-pipe -fPIC -fno-omit-frame-pointer -g"
 
   # Due to a Clang bug (http://llvm.org/bugs/show_bug.cgi?id=9825),
   # -mno-omit-leaf-frame-pointer is needed for Clang on Linux.
@@ -209,6 +209,9 @@ Daedalus.blueprint do |i|
   gcc.cxxflags << Rubinius::BUILD_CONFIG[:llvm_cxxflags]
 
   flags = `#{conf} --cflags`.strip.split(/\s+/)
+
+  flags.keep_if { |x| x =~ /^-[DI]/ }
+
   flags.delete_if { |x| x.index("-O") == 0 }
   flags.delete_if { |x| x =~ /-D__STDC/ }
   flags.delete_if { |x| x == "-DNDEBUG" }
@@ -256,8 +259,13 @@ Daedalus.blueprint do |i|
   dirs = %w[ /machine /machine/include /machine/builtin ]
   gcc.cflags.unshift "#{dirs.map { |d| "-I#{src}#{d}" }.join(" ")} -I. -Imachine/test/cxxtest"
 
-  gcc.cflags << "-Wno-unused-function"
+  gcc.cflags << "-Wall"
   gcc.cflags << "-Werror"
+  gcc.cflags << "-Wno-unused-function"
+  gcc.cflags << "-Wno-unused-parameter"
+  gcc.cflags << "-Wwrite-strings"
+  gcc.cflags << "-Wmissing-field-initializers"
+  gcc.cflags << "-Wcovered-switch-default"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"
   gcc.cflags << "-D_FILE_OFFSET_BITS=64"
