@@ -101,6 +101,24 @@ describe "Kernel#instance_eval" do
     obj.singleton_class.const_get(:B).should be_an_instance_of(Class)
   end
 
+  it 'allows evaling local variables when using a block' do
+    obj = Object.new
+    result = obj.instance_eval do
+      foo = 123
+      eval('foo')
+    end
+    result.should == 123
+  end
+
+  it 'allows evaling local variables when using a string' do
+    obj = Object.new
+    result = obj.instance_eval %{
+      foo = 123
+      eval('foo')
+    }
+    result.should == 123
+  end
+
   it "gets constants in the receiver if a string given" do
     KernelSpecs::InstEvalOuter::Inner::X_BY_STR.should == 2
   end
