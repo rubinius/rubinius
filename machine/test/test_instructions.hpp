@@ -255,17 +255,32 @@ public:
     TS_ASSERT(true);
   }
 
-  void test_check_frozen() {
+  void test_check_frozen_raising() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Array* ary = Array::create(state, 0);
+    ary->freeze(state);
 
-    // TODO: instructions
-    // instructions::check_frozen(state, call_frame);
+    stack_push(ary);
 
-    TS_ASSERT(true);
+    TS_ASSERT(!instructions::check_frozen(state, call_frame));
+    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+  }
+
+  void test_check_frozen_non_raising() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Array* ary = Array::create(state, 0);
+
+    stack_push(ary);
+
+    TS_ASSERT(instructions::check_frozen(state, call_frame));
+
+    TS_ASSERT_EQUALS(stack_pop(), ary);
   }
 
   void test_check_interrupts() {
