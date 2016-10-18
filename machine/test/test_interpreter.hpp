@@ -27,11 +27,11 @@ public:
     opcodes[1] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
-    // TODO: instructions
-    // interpreter::add_scope(state, call_frame, opcodes);
+    stack_push(Module::create(state));
 
-    TS_ASSERT(true);
-    // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_add_scope.width);
+    interpreter::add_scope(state, call_frame, opcodes);
+
+    TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_add_scope.width);
   }
 
   void test_interpreter_allow_private() {
@@ -45,13 +45,18 @@ public:
     opcodes[1] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
-    // TODO: instructions
-    // interpreter::allow_private(state, call_frame, opcodes);
+    interpreter::allow_private(state, call_frame, opcodes);
 
-    TS_ASSERT(true);
-    // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_allow_private.width);
+    TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_allow_private.width);
   }
 
+  /* The cast_array instruction has multiple paths that are tested in the
+   * instruction tests. Here we only test that the interpreter advances. This
+   * obviously relies on knowledge that all paths through the instruction
+   * result in the interpreter advancing. But we have this knowledge, so
+   * multiple tests of the instruction via the interpreter don't add anything
+   * to the multiple instruction tests we already have.
+   */
   void test_interpreter_cast_array() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
@@ -63,11 +68,11 @@ public:
     opcodes[1] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
-    // TODO: instructions
-    // interpreter::cast_array(state, call_frame, opcodes);
+    stack_push(cNil);
 
-    TS_ASSERT(true);
-    // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_cast_array.width);
+    interpreter::cast_array(state, call_frame, opcodes);
+
+    TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_cast_array.width);
   }
 
   void test_interpreter_cast_for_multi_block_arg() {
@@ -142,7 +147,7 @@ public:
     // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_cast_multi_value.width);
   }
 
-  void test_interpreter_check_frozen() {
+  void test_interpreter_check_frozen_non_raising() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
@@ -153,11 +158,13 @@ public:
     opcodes[1] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
-    // TODO: instructions
-    // interpreter::check_frozen(state, call_frame, opcodes);
+    Array* ary = Array::create(state, 0);
 
-    TS_ASSERT(true);
-    // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_check_frozen.width);
+    stack_push(ary);
+
+    interpreter::check_frozen(state, call_frame, opcodes);
+
+    TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_check_frozen.width);
   }
 
   void test_interpreter_check_interrupts() {
