@@ -1,7 +1,7 @@
 #ifndef RBX_VM_OBJECT_UTILS_HPP
 #define RBX_VM_OBJECT_UTILS_HPP
 
-#include "builtin/object.hpp"
+#include "class/object.hpp"
 #include "exception.hpp"
 
 /**

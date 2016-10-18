@@ -4,12 +4,12 @@
 #include "transcoder.h"
 #include "regenc.h"
 
-#include "builtin/array.hpp"
-#include "builtin/encoding.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/regexp.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "class/array.hpp"
+#include "class/encoding.hpp"
+#include "class/native_method.hpp"
+#include "class/regexp.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
 
 #include "capi/capi.hpp"
 

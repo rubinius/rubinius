@@ -1,6 +1,6 @@
 #include "interpreter/instructions.hpp"
 
-#include "builtin/variable_scope.hpp"
+#include "class/variable_scope.hpp"
 
 namespace rubinius {
   namespace instructions {

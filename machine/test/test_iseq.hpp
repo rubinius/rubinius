@@ -1,4 +1,4 @@
-#include "builtin/iseq.hpp"
+#include "class/iseq.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "memory.hpp"

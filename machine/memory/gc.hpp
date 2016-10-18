@@ -7,7 +7,7 @@
 
 #include "shared_state.hpp"
 
-#include "builtin/object.hpp"
+#include "class/object.hpp"
 
 namespace rubinius {
   struct CallFrame;

@@ -1,4 +1,4 @@
-#include "builtin/lexical_scope.hpp"
+#include "class/lexical_scope.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "memory.hpp"

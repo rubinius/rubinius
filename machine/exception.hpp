@@ -7,7 +7,7 @@
 
 #include "object_types.hpp"
 #include "defines.hpp"
-#include "builtin/object.hpp"
+#include "class/object.hpp"
 
 #include "bug.hpp"
 

@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/regexp.hpp"
+#include "class/regexp.hpp"
 
 class TestRegexp : public CxxTest::TestSuite, public VMTest {
 public:

@@ -1,4 +1,4 @@
-#include "builtin/native_method.hpp"
+#include "class/native_method.hpp"
 
 #include "memory.hpp"
 

@@ -1,4 +1,4 @@
-#include "builtin/executable.hpp"
+#include "class/executable.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "memory.hpp"

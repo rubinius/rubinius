@@ -2,8 +2,8 @@
 #define RBX_ARGUMENTS_HPP
 
 #include <stdint.h>
-#include "builtin/array.hpp"
-#include "builtin/tuple.hpp"
+#include "class/array.hpp"
+#include "class/tuple.hpp"
 
 namespace rubinius {
   namespace memory {

@@ -1,7 +1,7 @@
 #include "interpreter/instructions.hpp"
 
-#include "builtin/call_site.hpp"
-#include "builtin/string.hpp"
+#include "class/call_site.hpp"
+#include "class/string.hpp"
 
 namespace rubinius {
   namespace instructions {

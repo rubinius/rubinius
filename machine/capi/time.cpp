@@ -1,7 +1,7 @@
 #include <math.h>
 
-#include "builtin/object.hpp"
-#include "builtin/time.hpp"
+#include "class/object.hpp"
+#include "class/time.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

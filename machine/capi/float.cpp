@@ -2,7 +2,7 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
-#include "builtin/float.hpp"
+#include "class/float.hpp"
 
 using namespace rubinius;
 using namespace rubinius::capi;

@@ -7,8 +7,8 @@
 #include "thread_phase.hpp"
 #include "vm.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/thread.hpp"
+#include "class/class.hpp"
+#include "class/thread.hpp"
 
 #include "memory/gc.hpp"
 #include "memory/immix_collector.hpp"

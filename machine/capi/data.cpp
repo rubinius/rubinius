@@ -1,7 +1,7 @@
 #include "memory.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/data.hpp"
+#include "class/class.hpp"
+#include "class/data.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

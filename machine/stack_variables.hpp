@@ -1,7 +1,7 @@
 #ifndef RBX_SCOPE_VARIABLES_HPP
 #define RBX_SCOPE_VARIABLES_HPP
 
-#include "builtin/object.hpp"
+#include "class/object.hpp"
 
 namespace rubinius {
   class VariableScope;

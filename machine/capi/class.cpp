@@ -1,8 +1,8 @@
-#include "builtin/autoload.hpp"
-#include "builtin/class.hpp"
-#include "builtin/module.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "class/autoload.hpp"
+#include "class/class.hpp"
+#include "class/module.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
 
 #include "helpers.hpp"
 #include "exception_point.hpp"

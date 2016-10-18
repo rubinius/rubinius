@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/symbol.hpp"
+#include "class/symbol.hpp"
 
 class TestSymbol : public CxxTest::TestSuite, public VMTest {
 public:

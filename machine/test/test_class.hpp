@@ -1,9 +1,9 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/class.hpp"
+#include "class/class.hpp"
 #include "machine/object_utils.hpp"
-#include "builtin/constant_table.hpp"
-#include "builtin/method_table.hpp"
+#include "class/constant_table.hpp"
+#include "class/method_table.hpp"
 #include "object_types.hpp"
 
 class TestClass : public CxxTest::TestSuite, public VMTest {

@@ -2,8 +2,8 @@
 
 #include "machine_code.hpp"
 
-#include "builtin/call_site.hpp"
-#include "builtin/variable_scope.hpp"
+#include "class/call_site.hpp"
+#include "class/variable_scope.hpp"
 
 namespace rubinius {
   namespace instructions {

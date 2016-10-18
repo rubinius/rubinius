@@ -1,7 +1,7 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/encoding.hpp"
-#include "builtin/string.hpp"
+#include "class/encoding.hpp"
+#include "class/string.hpp"
 
 class TestString : public CxxTest::TestSuite, public VMTest {
 public:

@@ -68,7 +68,7 @@ Daedalus.blueprint do |i|
   gcc.ldflags << Rubinius::BUILD_CONFIG[:user_ldflags]
 
   # Files
-  subdirs = %w[ builtin capi util instruments instructions memory jit missing ].map do |x|
+  subdirs = %w[ class data capi util instruments instructions memory jit missing ].map do |x|
     "machine/#{x}/**/*.{cpp,c}"
   end
 
@@ -256,7 +256,7 @@ Daedalus.blueprint do |i|
   gcc.ldflags << ldflags
 
   # Make sure to push these up front so machine/ stuff has priority
-  dirs = %w[ /machine /machine/include /machine/builtin ]
+  dirs = %w[ /machine /machine/include ]
   gcc.cflags.unshift "#{dirs.map { |d| "-I#{src}#{d}" }.join(" ")} -I. -Imachine/test/cxxtest"
 
   gcc.cflags << "-Wall"

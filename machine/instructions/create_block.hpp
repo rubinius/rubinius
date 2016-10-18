@@ -1,7 +1,7 @@
 #include "interpreter/instructions.hpp"
 
-#include "builtin/block_environment.hpp"
-#include "builtin/code_db.hpp"
+#include "class/block_environment.hpp"
+#include "class/code_db.hpp"
 
 namespace rubinius {
   namespace instructions {

@@ -1,7 +1,7 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/compact_lookup_table.hpp"
-#include "builtin/lookup_table.hpp"
+#include "class/compact_lookup_table.hpp"
+#include "class/lookup_table.hpp"
 
 class TestCompactLookupTable : public CxxTest::TestSuite, public VMTest {
 public:

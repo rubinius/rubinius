@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/tuple.hpp"
+#include "class/tuple.hpp"
 
 class TestTuple : public CxxTest::TestSuite, public VMTest {
 public:

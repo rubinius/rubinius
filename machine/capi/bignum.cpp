@@ -1,7 +1,7 @@
 #include <math.h>
 
-#include "builtin/bignum.hpp"
-#include "builtin/object.hpp"
+#include "class/bignum.hpp"
+#include "class/object.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

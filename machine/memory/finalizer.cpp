@@ -8,12 +8,12 @@
 #include "exception_point.hpp"
 #include "thread_phase.hpp"
 
-#include "builtin/array.hpp"
-#include "builtin/class.hpp"
-#include "builtin/module.hpp"
-#include "builtin/thread.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/call_site.hpp"
+#include "class/array.hpp"
+#include "class/class.hpp"
+#include "class/module.hpp"
+#include "class/thread.hpp"
+#include "class/native_method.hpp"
+#include "class/call_site.hpp"
 
 #include "capi/handle.hpp"
 

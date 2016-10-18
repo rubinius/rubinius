@@ -8,10 +8,10 @@
 #include "on_stack.hpp"
 #include "thread_phase.hpp"
 
-#include "builtin/object.hpp"
-#include "builtin/class.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/thread.hpp"
+#include "class/object.hpp"
+#include "class/class.hpp"
+#include "class/exception.hpp"
+#include "class/thread.hpp"
 
 #include "capi/handles.hpp"
 #include "memory/inflated_headers.hpp"

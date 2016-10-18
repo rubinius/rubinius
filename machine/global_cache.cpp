@@ -6,12 +6,12 @@
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
 
-#include "builtin/symbol.hpp"
-#include "builtin/class.hpp"
-#include "builtin/module.hpp"
-#include "builtin/object.hpp"
-#include "builtin/method_table.hpp"
-#include "builtin/alias.hpp"
+#include "class/symbol.hpp"
+#include "class/class.hpp"
+#include "class/module.hpp"
+#include "class/object.hpp"
+#include "class/method_table.hpp"
+#include "class/alias.hpp"
 
 namespace rubinius {
   static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {

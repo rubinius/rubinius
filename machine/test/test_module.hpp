@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/module.hpp"
+#include "class/module.hpp"
 
 class TestModule : public CxxTest::TestSuite, public VMTest {
 public:

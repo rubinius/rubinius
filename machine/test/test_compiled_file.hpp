@@ -1,11 +1,11 @@
 #include "machine/test/test.hpp"
 
 #include "compiled_file.hpp"
-#include "builtin/class.hpp"
-#include "builtin/compiled_code.hpp"
-#include "builtin/lookup_table.hpp"
-#include "builtin/lexical_scope.hpp"
-#include "builtin/symbol.hpp"
+#include "class/class.hpp"
+#include "class/compiled_code.hpp"
+#include "class/lookup_table.hpp"
+#include "class/lexical_scope.hpp"
+#include "class/symbol.hpp"
 
 #include <cxxtest/TestSuite.h>
 

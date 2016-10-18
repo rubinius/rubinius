@@ -1,6 +1,6 @@
 #include "interpreter/instructions.hpp"
 
-#include "builtin/string.hpp"
+#include "class/string.hpp"
 
 namespace rubinius {
   namespace instructions {

@@ -7,8 +7,8 @@
 #include "arguments.hpp"
 #include "object_utils.hpp"
 
-#include "builtin/compiled_code.hpp"
-#include "builtin/symbol.hpp"
+#include "class/compiled_code.hpp"
+#include "class/symbol.hpp"
 
 #include <ostream>
 

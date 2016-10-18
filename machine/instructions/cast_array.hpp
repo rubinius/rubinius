@@ -2,7 +2,7 @@
 
 #include "object_utils.hpp"
 
-#include "builtin/array.hpp"
+#include "class/array.hpp"
 
 namespace rubinius {
   namespace instructions {

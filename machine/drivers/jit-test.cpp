@@ -5,8 +5,8 @@
 #include "environment.hpp"
 #include "config_parser.hpp"
 
-#include "builtin/compiled_code.hpp"
-#include "builtin/machine_method.hpp"
+#include "class/compiled_code.hpp"
+#include "class/machine_method.hpp"
 #include "compiled_file.hpp"
 #include "metrics.hpp"
 

@@ -3,10 +3,10 @@
 
 #include "interpreter/addresses.hpp"
 
-#include "builtin/call_site.hpp"
-#include "builtin/compiled_code.hpp"
-#include "builtin/constant_cache.hpp"
-#include "builtin/location.hpp"
+#include "class/call_site.hpp"
+#include "class/compiled_code.hpp"
+#include "class/constant_cache.hpp"
+#include "class/location.hpp"
 
 namespace rubinius {
   void Interpreter::prepare(STATE, CompiledCode* compiled_code, MachineCode* machine_code) {

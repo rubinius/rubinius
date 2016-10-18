@@ -1,8 +1,8 @@
 #include "machine/test/test.hpp"
 
 #include "configuration.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/list.hpp"
+#include "class/exception.hpp"
+#include "class/list.hpp"
 
 class TestFixnum : public CxxTest::TestSuite, public VMTest {
   public:

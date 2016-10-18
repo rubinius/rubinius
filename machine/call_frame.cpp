@@ -3,15 +3,15 @@
 #include "object_utils.hpp"
 #include "machine_code.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/compiled_code.hpp"
-#include "builtin/lexical_scope.hpp"
-#include "builtin/lookup_table.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/variable_scope.hpp"
+#include "class/class.hpp"
+#include "class/compiled_code.hpp"
+#include "class/lexical_scope.hpp"
+#include "class/lookup_table.hpp"
+#include "class/native_method.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
+#include "class/tuple.hpp"
+#include "class/variable_scope.hpp"
 
 #include <iostream>
 

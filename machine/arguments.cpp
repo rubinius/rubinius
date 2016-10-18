@@ -3,7 +3,7 @@
 #include "state.hpp"
 #include "vm.hpp"
 
-#include "builtin/tuple.hpp"
+#include "class/tuple.hpp"
 
 namespace rubinius {
   void Arguments::append(STATE, Array* ary) {

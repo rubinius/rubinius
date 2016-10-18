@@ -1,8 +1,8 @@
-#include "builtin/system.hpp"
-#include "builtin/object.hpp"
-#include "builtin/regexp.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "class/system.hpp"
+#include "class/object.hpp"
+#include "class/regexp.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
 #include "memory.hpp"
 
 #include "capi/capi.hpp"

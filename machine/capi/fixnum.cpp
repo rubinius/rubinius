@@ -1,6 +1,6 @@
-#include "builtin/bignum.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/native_method.hpp"
+#include "class/bignum.hpp"
+#include "class/fixnum.hpp"
+#include "class/native_method.hpp"
 
 #include "capi/ruby.h"
 #include "object_utils.hpp"

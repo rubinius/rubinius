@@ -5,7 +5,7 @@
 #include "thread_phase.hpp"
 #include "vm.hpp"
 
-#include "builtin/thread.hpp"
+#include "class/thread.hpp"
 
 namespace rubinius {
   Object* Park::park(STATE) {

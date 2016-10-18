@@ -1,8 +1,8 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/array.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/tuple.hpp"
+#include "class/array.hpp"
+#include "class/fixnum.hpp"
+#include "class/tuple.hpp"
 
 #include "ffi_util.hpp"
 

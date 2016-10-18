@@ -9,7 +9,7 @@
 
 #include "object_utils.hpp"
 
-#include "builtin/array.hpp"
+#include "class/array.hpp"
 
 #include <cxxtest/TestSuite.h>
 

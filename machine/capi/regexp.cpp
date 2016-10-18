@@ -2,11 +2,11 @@
 #include "state.hpp"
 #include "object_utils.hpp"
 
-#include "builtin/array.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/io.hpp"
-#include "builtin/regexp.hpp"
-#include "builtin/string.hpp"
+#include "class/array.hpp"
+#include "class/fixnum.hpp"
+#include "class/io.hpp"
+#include "class/regexp.hpp"
+#include "class/string.hpp"
 #include "memory.hpp"
 #include "primitives.hpp"
 

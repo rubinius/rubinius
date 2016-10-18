@@ -5,7 +5,7 @@
 #include "state.hpp"
 #include "vm.hpp"
 
-#include "builtin/class.hpp"
+#include "class/class.hpp"
 
 #include "gen/includes.hpp"
 

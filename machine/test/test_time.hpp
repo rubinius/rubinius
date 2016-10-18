@@ -1,7 +1,7 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/time.hpp"
+#include "class/class.hpp"
+#include "class/time.hpp"
 #include "object_types.hpp"
 
 class TestTime : public CxxTest::TestSuite, public VMTest {

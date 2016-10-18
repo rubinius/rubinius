@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "exception_point.hpp"
-#include "builtin/native_method.hpp"
+#include "class/native_method.hpp"
 #include "windows_compat.h"
 
 namespace rubinius {

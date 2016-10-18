@@ -1,8 +1,8 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/channel.hpp"
-#include "builtin/list.hpp"
-#include "builtin/thread.hpp"
+#include "class/channel.hpp"
+#include "class/list.hpp"
+#include "class/thread.hpp"
 
 class TestThread : public CxxTest::TestSuite, public VMTest {
 public:

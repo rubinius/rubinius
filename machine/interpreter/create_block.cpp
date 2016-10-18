@@ -1,10 +1,10 @@
 #include "instructions/create_block.hpp"
 
-#include "builtin/block_environment.hpp"
-#include "builtin/code_db.hpp"
-#include "builtin/object.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "class/block_environment.hpp"
+#include "class/code_db.hpp"
+#include "class/object.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
 
 namespace rubinius {
   namespace interpreter {

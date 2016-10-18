@@ -14,12 +14,12 @@
 #include "console.hpp"
 #include "metrics.hpp"
 #include "signal.hpp"
-#include "builtin/randomizer.hpp"
-#include "builtin/array.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/thread.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/system.hpp"
+#include "class/randomizer.hpp"
+#include "class/array.hpp"
+#include "class/fixnum.hpp"
+#include "class/thread.hpp"
+#include "class/native_method.hpp"
+#include "class/system.hpp"
 
 #include "instruments/timing.hpp"
 

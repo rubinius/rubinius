@@ -23,10 +23,10 @@ namespace :rapa do
   desc "Build the Ragel parsers for Array#pack, String#unpack"
   task :build do
     project_dir = File.expand_path("../../projects/rapa", __FILE__)
-    vm_builtin  = File.expand_path("../../machine/builtin", __FILE__)
+    vm_class  = File.expand_path("../../machine/class", __FILE__)
 
     Dir.chdir project_dir do
-      sh "rake build:rbx DIR=#{vm_builtin}"
+      sh "rake build:rbx DIR=#{vm_class}"
     end
   end
 end

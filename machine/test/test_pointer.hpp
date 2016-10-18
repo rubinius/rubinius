@@ -3,7 +3,7 @@
 #include "defines.hpp"
 #include "ffi_util.hpp"
 
-#include "builtin/ffi_pointer.hpp"
+#include "class/ffi_pointer.hpp"
 
 class TestPointer : public CxxTest::TestSuite, public VMTest {
 public:

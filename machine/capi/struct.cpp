@@ -1,4 +1,4 @@
-#include "builtin/array.hpp"
+#include "class/array.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

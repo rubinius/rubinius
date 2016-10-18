@@ -3,7 +3,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "memory.hpp"
-#include "builtin/native_method.hpp"
+#include "class/native_method.hpp"
 
 #include "capi/capi.hpp"
 #include "machine/test/ruby.h"

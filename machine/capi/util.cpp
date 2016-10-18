@@ -4,7 +4,7 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 
-#include "builtin/string.hpp"
+#include "class/string.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

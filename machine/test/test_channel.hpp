@@ -2,10 +2,10 @@
 
 #include <iostream>
 
-#include "builtin/channel.hpp"
-#include "builtin/list.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/thread.hpp"
+#include "class/channel.hpp"
+#include "class/list.hpp"
+#include "class/symbol.hpp"
+#include "class/thread.hpp"
 
 #include <sys/time.h>
 

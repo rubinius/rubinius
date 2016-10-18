@@ -1,6 +1,6 @@
 #include "interpreter/instructions.hpp"
 
-#include "builtin/proc.hpp"
+#include "class/proc.hpp"
 
 namespace rubinius {
   namespace instructions {

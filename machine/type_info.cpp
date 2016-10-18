@@ -2,8 +2,8 @@
 #include "type_info.hpp"
 #include "memory.hpp"
 #include "gen/includes.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/symbol.hpp"
+#include "class/fixnum.hpp"
+#include "class/symbol.hpp"
 #include "field_offset.hpp"
 
 #include "memory/gc.hpp"

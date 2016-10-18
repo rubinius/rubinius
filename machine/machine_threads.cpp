@@ -5,7 +5,7 @@
 #include "machine_threads.hpp"
 #include "thread_phase.hpp"
 
-#include "builtin/native_method.hpp"
+#include "class/native_method.hpp"
 
 #include "dtrace/dtrace.h"
 #include "logger.hpp"

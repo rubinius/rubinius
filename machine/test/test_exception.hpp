@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/exception.hpp"
+#include "class/exception.hpp"
 #include "object_types.hpp"
 #include "exception.hpp"
 

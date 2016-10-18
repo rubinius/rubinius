@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/iseq.hpp"
+#include "class/iseq.hpp"
 
 class TestCompiledCode : public CxxTest::TestSuite, public VMTest {
 public:

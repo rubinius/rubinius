@@ -1,7 +1,7 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/list.hpp"
-#include "builtin/fixnum.hpp"
+#include "class/list.hpp"
+#include "class/fixnum.hpp"
 
 class TestList : public CxxTest::TestSuite, public VMTest {
 public:

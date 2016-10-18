@@ -1,9 +1,9 @@
 #include "machine/test/test.hpp"
 
 #include "machine/object_utils.hpp"
-#include "builtin/byte_array.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/string.hpp"
+#include "class/byte_array.hpp"
+#include "class/exception.hpp"
+#include "class/string.hpp"
 #include "primitives.hpp"
 
 class TestByteArray : public CxxTest::TestSuite, public VMTest {

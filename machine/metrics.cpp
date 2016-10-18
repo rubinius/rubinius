@@ -8,12 +8,12 @@
 #include "configuration.hpp"
 #include "thread_phase.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/integer.hpp"
-#include "builtin/lookup_table.hpp"
-#include "builtin/thread.hpp"
-#include "builtin/tuple.hpp"
+#include "class/class.hpp"
+#include "class/fixnum.hpp"
+#include "class/integer.hpp"
+#include "class/lookup_table.hpp"
+#include "class/thread.hpp"
+#include "class/tuple.hpp"
 
 #include "memory/managed.hpp"
 

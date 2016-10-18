@@ -11,7 +11,7 @@
 #include "metrics.hpp"
 #include "machine/detection.hpp"
 #include "machine/memory/immix_marker.hpp"
-#include "builtin/thread.hpp"
+#include "class/thread.hpp"
 
 #include <cxxtest/TestSuite.h>
 

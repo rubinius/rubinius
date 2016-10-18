@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/list.hpp"
+#include "class/list.hpp"
 
 class TestInteger : public CxxTest::TestSuite, public VMTest {
 public:

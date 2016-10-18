@@ -1,8 +1,8 @@
-#include "builtin/compact_lookup_table.hpp"
-#include "builtin/lookup_table.hpp"
-#include "builtin/object.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "class/compact_lookup_table.hpp"
+#include "class/lookup_table.hpp"
+#include "class/object.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

@@ -2,7 +2,7 @@
 
 #include "symbol_table.hpp"
 #include "configuration.hpp"
-#include "builtin/array.hpp"
+#include "class/array.hpp"
 
 #include <algorithm>
 #include <vector>

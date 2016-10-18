@@ -1,4 +1,4 @@
-#include "builtin/block_environment.hpp"
+#include "class/block_environment.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "memory.hpp"

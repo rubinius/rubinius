@@ -1,9 +1,9 @@
 #include "memory.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/proc.hpp"
-#include "builtin/string.hpp"
+#include "class/class.hpp"
+#include "class/exception.hpp"
+#include "class/proc.hpp"
+#include "class/string.hpp"
 
 #include "exception_point.hpp"
 

@@ -1,5 +1,5 @@
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

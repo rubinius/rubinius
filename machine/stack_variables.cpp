@@ -4,10 +4,10 @@
 #include "on_stack.hpp"
 #include "stack_variables.hpp"
 
-#include "builtin/fiber.hpp"
-#include "builtin/lookup_table.hpp"
-#include "builtin/thread.hpp"
-#include "builtin/variable_scope.hpp"
+#include "class/fiber.hpp"
+#include "class/lookup_table.hpp"
+#include "class/thread.hpp"
+#include "class/variable_scope.hpp"
 
 namespace rubinius {
 

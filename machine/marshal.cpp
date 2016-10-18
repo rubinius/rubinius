@@ -15,17 +15,17 @@
 #include <double-conversion.h>
 #include <ieee.h>
 
-#include "builtin/array.hpp"
-#include "builtin/class.hpp"
-#include "builtin/compiled_code.hpp"
-#include "builtin/encoding.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/float.hpp"
-#include "builtin/iseq.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/tuple.hpp"
+#include "class/array.hpp"
+#include "class/class.hpp"
+#include "class/compiled_code.hpp"
+#include "class/encoding.hpp"
+#include "class/exception.hpp"
+#include "class/fixnum.hpp"
+#include "class/float.hpp"
+#include "class/iseq.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
+#include "class/tuple.hpp"
 
 #include "detection.hpp"
 

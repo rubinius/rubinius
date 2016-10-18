@@ -1,7 +1,7 @@
 #include "interpreter/instructions.hpp"
 
-#include "builtin/block_environment.hpp"
-#include "builtin/proc.hpp"
+#include "class/block_environment.hpp"
+#include "class/proc.hpp"
 
 namespace rubinius {
   namespace instructions {

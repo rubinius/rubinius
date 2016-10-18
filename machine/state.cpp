@@ -6,10 +6,10 @@
 #include "state.hpp"
 #include "vm.hpp"
 
-#include "builtin/exception.hpp"
-#include "builtin/location.hpp"
-#include "builtin/array.hpp"
-#include "builtin/fiber.hpp"
+#include "class/exception.hpp"
+#include "class/location.hpp"
+#include "class/array.hpp"
+#include "class/fiber.hpp"
 
 namespace rubinius {
   void State::raise_stack_error(STATE) {

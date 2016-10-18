@@ -3,8 +3,8 @@
 #include "helpers.hpp"
 #include "on_stack.hpp"
 
-#include "builtin/autoload.hpp"
-#include "builtin/constant_cache.hpp"
+#include "class/autoload.hpp"
+#include "class/constant_cache.hpp"
 
 namespace rubinius {
   namespace instructions {

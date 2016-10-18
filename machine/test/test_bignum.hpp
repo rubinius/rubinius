@@ -1,9 +1,9 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/bignum.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/float.hpp"
-#include "builtin/string.hpp"
+#include "class/bignum.hpp"
+#include "class/exception.hpp"
+#include "class/float.hpp"
+#include "class/string.hpp"
 
 class TestBignum : public CxxTest::TestSuite, public VMTest {
   public:

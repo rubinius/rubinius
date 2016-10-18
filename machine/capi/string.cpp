@@ -6,12 +6,12 @@
 #include "state.hpp"
 #include "memory.hpp"
 
-#include "builtin/byte_array.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/integer.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/object.hpp"
-#include "builtin/string.hpp"
+#include "class/byte_array.hpp"
+#include "class/fixnum.hpp"
+#include "class/integer.hpp"
+#include "class/native_method.hpp"
+#include "class/object.hpp"
+#include "class/string.hpp"
 
 #include "util/vsnprintf.h"
 

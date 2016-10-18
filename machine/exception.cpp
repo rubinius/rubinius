@@ -4,10 +4,10 @@
 #include "detection.hpp"
 #include "memory.hpp"
 
-#include "builtin/exception.hpp"
-#include "builtin/string.hpp"
-#include "builtin/class.hpp"
-#include "builtin/symbol.hpp"
+#include "class/exception.hpp"
+#include "class/string.hpp"
+#include "class/class.hpp"
+#include "class/symbol.hpp"
 
 #include <ctype.h>
 #include <vector>

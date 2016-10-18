@@ -1,7 +1,7 @@
 #include "machine/test/test.hpp"
 #include "defines.hpp"
-#include "builtin/native_function.hpp"
-#include "builtin/ffi_pointer.hpp"
+#include "class/native_function.hpp"
+#include "class/ffi_pointer.hpp"
 
 State *global_state;
 

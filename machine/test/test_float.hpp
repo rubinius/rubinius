@@ -1,6 +1,6 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/float.hpp"
+#include "class/float.hpp"
 
 class TestFloat : public CxxTest::TestSuite, public VMTest {
 public:

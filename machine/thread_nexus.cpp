@@ -3,7 +3,7 @@
 #include "thread_nexus.hpp"
 #include "vm.hpp"
 
-#include "builtin/thread.hpp"
+#include "class/thread.hpp"
 
 #include "memory/managed.hpp"
 

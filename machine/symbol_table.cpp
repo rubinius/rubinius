@@ -6,11 +6,11 @@
 #include "exception.hpp"
 #include "configuration.hpp"
 
-#include "builtin/array.hpp"
-#include "builtin/encoding.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "class/array.hpp"
+#include "class/encoding.hpp"
+#include "class/exception.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
 
 #include "logger.hpp"
 

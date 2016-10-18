@@ -1,4 +1,4 @@
-#include "builtin/object.hpp"
+#include "class/object.hpp"
 #include "memory/write_barrier.hpp"
 #include "object_utils.hpp"
 

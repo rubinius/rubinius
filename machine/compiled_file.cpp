@@ -7,10 +7,10 @@
  * it. */
 
 #include "arguments.hpp"
-#include "builtin/lexical_scope.hpp"
-#include "builtin/compiled_code.hpp"
-#include "builtin/class.hpp"
-#include "builtin/thread.hpp"
+#include "class/lexical_scope.hpp"
+#include "class/compiled_code.hpp"
+#include "class/class.hpp"
+#include "class/thread.hpp"
 #include "call_frame.hpp"
 #include "compiled_file.hpp"
 #include "marshal.hpp"

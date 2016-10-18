@@ -12,13 +12,13 @@
 #include "exception_point.hpp"
 #include "thread_phase.hpp"
 
-#include "builtin/exception.hpp"
-#include "builtin/thread.hpp"
-#include "builtin/native_method.hpp"
-#include "builtin/ffi_pointer.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/thread.hpp"
+#include "class/exception.hpp"
+#include "class/thread.hpp"
+#include "class/native_method.hpp"
+#include "class/ffi_pointer.hpp"
+#include "class/string.hpp"
+#include "class/symbol.hpp"
+#include "class/thread.hpp"
 
 #include "windows_compat.h"
 

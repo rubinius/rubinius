@@ -1,5 +1,5 @@
-#include "builtin/native_method.hpp"
-#include "builtin/proc.hpp"
+#include "class/native_method.hpp"
+#include "class/proc.hpp"
 
 #include "configuration.hpp"
 

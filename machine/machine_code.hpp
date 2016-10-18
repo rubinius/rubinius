@@ -10,8 +10,8 @@
 #include "unwind_info.hpp"
 #include "memory.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/compiled_code.hpp"
+#include "class/class.hpp"
+#include "class/compiled_code.hpp"
 #include "memory/code_resource.hpp"
 
 #include <stdint.h>

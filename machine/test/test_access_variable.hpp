@@ -1,9 +1,9 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/access_variable.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/class.hpp"
-#include "builtin/string.hpp"
+#include "class/access_variable.hpp"
+#include "class/symbol.hpp"
+#include "class/class.hpp"
+#include "class/string.hpp"
 #include "call_frame.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"

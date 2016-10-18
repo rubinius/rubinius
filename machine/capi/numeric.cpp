@@ -1,9 +1,9 @@
-#include "builtin/bignum.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/float.hpp"
-#include "builtin/object.hpp"
-#include "builtin/integer.hpp"
-#include "builtin/string.hpp"
+#include "class/bignum.hpp"
+#include "class/fixnum.hpp"
+#include "class/float.hpp"
+#include "class/object.hpp"
+#include "class/integer.hpp"
+#include "class/string.hpp"
 
 #include "object_utils.hpp"
 

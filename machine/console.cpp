@@ -8,13 +8,13 @@
 #include "object_utils.hpp"
 #include "thread_phase.hpp"
 
-#include "builtin/array.hpp"
-#include "builtin/channel.hpp"
-#include "builtin/class.hpp"
-#include "builtin/fsevent.hpp"
-#include "builtin/io.hpp"
-#include "builtin/string.hpp"
-#include "builtin/thread.hpp"
+#include "class/array.hpp"
+#include "class/channel.hpp"
+#include "class/class.hpp"
+#include "class/fsevent.hpp"
+#include "class/io.hpp"
+#include "class/string.hpp"
+#include "class/thread.hpp"
 
 #include "dtrace/dtrace.h"
 

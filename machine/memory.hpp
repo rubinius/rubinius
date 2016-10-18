@@ -9,9 +9,9 @@
 #include "metrics.hpp"
 #include "configuration.hpp"
 
-#include "builtin/class.hpp"
-#include "builtin/module.hpp"
-#include "builtin/object.hpp"
+#include "class/class.hpp"
+#include "class/module.hpp"
+#include "class/object.hpp"
 
 #include "memory/code_manager.hpp"
 #include "memory/finalizer.hpp"

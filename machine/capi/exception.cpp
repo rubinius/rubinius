@@ -1,6 +1,6 @@
 #include "memory.hpp"
 
-#include "builtin/exception.hpp"
+#include "class/exception.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

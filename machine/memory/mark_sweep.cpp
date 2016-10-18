@@ -4,10 +4,10 @@
 
 #include "object_utils.hpp"
 
-#include "builtin/tuple.hpp"
-#include "builtin/string.hpp"
-#include "builtin/class.hpp"
-#include "builtin/symbol.hpp"
+#include "class/tuple.hpp"
+#include "class/string.hpp"
+#include "class/class.hpp"
+#include "class/symbol.hpp"
 
 #include "configuration.hpp"
 #include "metrics.hpp"

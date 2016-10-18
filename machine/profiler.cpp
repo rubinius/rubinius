@@ -2,7 +2,7 @@
 #include "machine_code.hpp"
 #include "profiler.hpp"
 
-#include "builtin/compiled_code.hpp"
+#include "class/compiled_code.hpp"
 
 #include <iostream>
 #include <iomanip>

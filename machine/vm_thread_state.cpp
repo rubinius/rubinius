@@ -1,11 +1,11 @@
-#include "builtin/exception.hpp"
+#include "class/exception.hpp"
 #include "vm_thread_state.hpp"
-#include "builtin/variable_scope.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/class.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/thread_state.hpp"
+#include "class/variable_scope.hpp"
+#include "class/fixnum.hpp"
+#include "class/class.hpp"
+#include "class/symbol.hpp"
+#include "class/exception.hpp"
+#include "class/thread_state.hpp"
 
 namespace rubinius {
   VMThreadState::VMThreadState(VM* state)

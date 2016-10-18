@@ -1,7 +1,7 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/dir.hpp"
-#include "builtin/string.hpp"
+#include "class/dir.hpp"
+#include "class/string.hpp"
 
 #include <stdio.h>
 #include <sys/stat.h>

@@ -1,12 +1,12 @@
 #include "machine/test/test.hpp"
 
-#include "builtin/tuple.hpp"
-#include "builtin/list.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/array.hpp"
-#include "builtin/iseq.hpp"
-#include "builtin/compiled_code.hpp"
-#include "builtin/symbol.hpp"
+#include "class/tuple.hpp"
+#include "class/list.hpp"
+#include "class/fixnum.hpp"
+#include "class/array.hpp"
+#include "class/iseq.hpp"
+#include "class/compiled_code.hpp"
+#include "class/symbol.hpp"
 
 #include "message.hpp"
 

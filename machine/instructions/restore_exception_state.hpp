@@ -1,6 +1,6 @@
 #include "interpreter/instructions.hpp"
 
-#include "builtin/thread_state.hpp"
+#include "class/thread_state.hpp"
 
 namespace rubinius {
   namespace instructions {
