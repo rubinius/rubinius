@@ -132,23 +132,75 @@ public:
 
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::allow_private();
+    instructions::allow_private();
 
+    // There is no effect to this instruction so this assertion merely records
+    // that the call was made successfully.
     TS_ASSERT(true);
   }
 
-  void test_cast_array() {
+  void test_cast_array_nil() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::cast_array(state, call_frame);
+    instructions::cast_array(state, call_frame);
 
-    TS_ASSERT(true);
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 0);
+  }
+
+  void test_cast_array_tuple() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Tuple* tuple = Tuple::create(state, 0);
+
+    stack_push(tuple);
+
+    instructions::cast_array(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 0);
+  }
+
+  void test_cast_array_array() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Array* original = Array::create(state, 0);
+
+    stack_push(original);
+
+    instructions::cast_array(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 0);
+    TS_ASSERT_EQUALS(ary, original);
+  }
+
+  void test_cast_array_non_array_no_to_ary() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(Fixnum::from(42));
+
+    TS_ASSERT_THROWS(instructions::cast_array(state, call_frame),
+        const RubyException &);
   }
 
   void test_cast_for_multi_block_arg() {
