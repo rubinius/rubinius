@@ -41,6 +41,9 @@
 #elif defined(__APPLE__)
 #define APPLE_BARRIER 1
 
+#elif defined(__ARM_ARCH_ISA_A64)
+#define AARCH64_BARRIER 1
+
 #endif
 
 #if (defined(_LP64) || defined(__LP64__)) && (defined(__x86_64__) || defined(__amd64__))
@@ -66,6 +69,8 @@ namespace atomic {
     OSMemoryBarrier();
 #elif defined(X86_BARRIER)
     __asm__ __volatile__ ("mfence" ::: "memory");
+#elif defined(AARCH64_BARRIER)
+    __sync_synchronize();
 #else
 #error "no memory barrier implementation"
 #endif
