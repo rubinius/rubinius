@@ -1381,6 +1381,8 @@ struct RTypedData {
   /** Returns Method object for given method name */
   VALUE rb_obj_method(VALUE self, VALUE method);
 
+  int rb_obj_method_arity(VALUE obj, ID mid);
+
   /** Returns a string formatted with Kernel#sprintf. */
   VALUE rb_f_sprintf(int argc, const VALUE* argv);
 

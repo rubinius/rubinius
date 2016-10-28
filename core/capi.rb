@@ -158,5 +158,9 @@ module Rubinius
     def self.rb_block_proc(env)
       Rubinius::Mirror::Proc.from_block ::Proc, env
     end
+
+    def self.rb_obj_method_arity(obj, sym)
+      obj.method(sym).arity
+    end
   end
 end

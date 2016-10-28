@@ -299,6 +299,11 @@ extern "C" {
     return rb_funcall(object_handle, rb_intern("kind_of?"), 1, module_handle);
   }
 
+  int rb_obj_method_arity(VALUE obj, ID mid) {
+    return FIX2INT(rb_funcall(
+          rb_mCAPI, rb_intern("rb_obj_method_arity"), 2, obj, ID2SYM(mid)));
+  }
+
   ID rb_intern(const char* string) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
