@@ -71,6 +71,7 @@ class Configure
     # System settings
     @libc         = nil
     @x86_64       = false
+    @aarch64      = false
     @dtrace       = false
     @dtrace_const = false
     @have_lchmod  = false
@@ -995,6 +996,28 @@ return 0;
     puts @x86_64 ? "yes" : "no"
   end
 
+  def detect_aarch64
+    print "Checking for aarch64: "
+
+    status = check_program do |f|
+      src = <<-EOP
+int main() {
+#if defined(__ARM_ARCH_ISA_A64) 
+return 1;
+#else
+return 0;
+#endif
+}
+      EOP
+
+      f.puts src
+      @log.log src
+    end
+    @aarch64 = (status == 1)
+
+    puts @aarch64 ? "yes" : "no"
+  end
+
   def detect_curses
     @log.print "Checking curses library: "
 
@@ -1450,6 +1473,7 @@ int main(int argc, char* argv[]) {
     detect_tr1
     detect_tr1_hash
     detect_x86
+    detect_aarch64
     detect_features
     detect_functions
     detect_structures
@@ -1583,6 +1607,7 @@ int main(int argc, char* argv[]) {
       :little_endian      => @little_endian,
       :sizeof_long        => sizeof("long"),
       :x86_64             => @x86_64,
+      :aarch64            => @aarch64,
       :dtrace             => @dtrace,
       :dtrace_const       => @dtrace_const,
       :debug_build        => @debug_build,
