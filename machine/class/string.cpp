@@ -616,6 +616,10 @@ namespace rubinius {
     return h;
   }
 
+  uint64_t String::siphash(const unsigned char *bp, unsigned int sz, uint32_t seed) {
+    return siphash24(siphash_key, seed, bp, sz);
+  }
+
   hashval String::hash_str(const unsigned char *bp, unsigned int sz, uint32_t seed) {
 #ifdef USE_MURMUR3
 #ifdef IS_64BIT_ARCH
@@ -627,7 +631,7 @@ namespace rubinius {
 #endif
     return hv[0] & FIXNUM_MAX;
 #else
-    uint64_t v = siphash24(siphash_key, seed, bp, sz);
+    uint64_t v = siphash(bp, sz, seed);
     return ((hashval)v) & FIXNUM_MAX;
 #endif
   }

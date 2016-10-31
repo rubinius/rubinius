@@ -1592,6 +1592,8 @@ struct RTypedData {
   /** Called when there is no memory available */
   void    rb_memerror();
 
+  uint64_t rb_memhash(const void *ptr, long len);
+
   /** Retrieve global by name. Because of MRI, the leading $ is optional but recommended. */
   VALUE   rb_gv_get(const char* name);
 

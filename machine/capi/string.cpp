@@ -189,6 +189,10 @@ extern "C" {
     str->data(env->state(), ByteArray::create(env->state(), 1));
   }
 
+  uint64_t rb_memhash(const void *ptr, long len) {
+    return String::siphash(reinterpret_cast<const unsigned char*>(ptr), len, 0);
+  }
+
   void rb_str_modify(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

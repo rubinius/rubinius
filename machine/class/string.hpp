@@ -113,6 +113,8 @@ namespace rubinius {
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
 
+    static uint64_t siphash(const unsigned char *bp, unsigned int sz, uint32_t seed);
+
     // Hash the byte array _bp_ which contains _sz_ bytes.
     static hashval hash_str(const unsigned char *bp, unsigned int sz, uint32_t seed);
 
