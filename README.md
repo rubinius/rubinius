@@ -2,31 +2,21 @@
 
 ## The Rubinius Language Platform
 
-Rubinius is a modern language platform that supports a number of programming
-languages.
+Rubinius is a modern language platform that supports a number of programming languages.
 
-Rubinius includes a bytecode virtual machine, generational garbage collector,
-and just-in-time (JIT) native machine code compiler. Rubinius provides
-concurrency support via native OS threads with no global interpreter lock.
+Rubinius includes a bytecode virtual machine, generational garbage collector, and just-in-time (JIT) native machine code compiler. Rubinius provides concurrency support via native OS threads with no global interpreter lock.
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
-Windows is not yet supported.
+Rubinius runs on Mac OS X and many Unix/Linux operating systems. Microsoft Windows is not yet supported.
 
 ### Code of Conduct
 
-Participation in the Rubinius project is governed by the Rubinius [Code of
-Conduct](http://rubinius.com/code-of-conduct/).
+Participation in the Rubinius project is governed by the Rubinius [Code of Conduct](https://rubinius.com/code-of-conduct/).
 
 ### The Ruby Programming Language
 
-Many popular Ruby applications, like Rails, run on Rubinius, which aims to be
-compatible with Ruby version 2.2.
+Many popular Ruby applications, like Rails, run on Rubinius, which aims to be compatible with Ruby version 2.3.1.
 
-Rubinius includes a Ruby parser, Ruby bytecode compiler, Ruby core library,
-and C-API compatibility for native C extensions. The Ruby core library is
-written almost entirely in Ruby. The Ruby bytecode compiler and other tools,
-such as the debugger, are also written in Ruby.  Rubinius provides the
-standard Ruby libraries, with the following exceptions:
+Rubinius includes a Ruby parser, Ruby bytecode compiler, Ruby core library, and C-API compatibility for native C extensions. The Ruby core library is written almost entirely in Ruby. The Ruby bytecode compiler and other tools, such as the debugger, are also written in Ruby.  Rubinius provides the standard Ruby libraries, with the following exceptions:
 
 * Continuation
 * Ripper
@@ -40,16 +30,11 @@ The following Ruby features are not supported on Rubinius:
 
 ### License
 
-All source code in this repository is subject to the terms of the Mozilla Public
-License, version 2.0 unless stated otherwise. A copy of this license can be
-found the file "LICENSE" or at <https://www.mozilla.org/MPL/2.0/>.
+All source code in this repository is subject to the terms of the Mozilla Public License, version 2.0 unless stated otherwise. A copy of this license can be found the file "LICENSE" or at <https://www.mozilla.org/MPL/2.0/>.
 
-Contributions made prior to January 3rd, 2016 are licensed under the old BSD
-3-clause license. A copy of this license can be found in the file "BSD_LICENSE".
+Contributions made prior to January 3rd, 2016 are licensed under the old BSD 3-clause license. A copy of this license can be found in the file "BSD_LICENSE".
 
-In the event a directory contains a "LICENSE", "LICENSE.txt" or "COPYING" file
-the license specified in said file applies to the contents of said directory and
-all sub directories, overwriting the licenses specified above.
+In the event a directory contains a "LICENSE", "LICENSE.txt" or "COPYING" file the license specified in said file applies to the contents of said directory and all sub directories, overwriting the licenses specified above.
 
 ### Installing Rubinius from Source
 
@@ -62,8 +47,7 @@ To install Rubinius, use the following steps:
 5. ./configure --prefix=/path/to/install/dir
 6. rake
 
-When the install process finishes, follow the directions printed to the terminal
-to add the Rubinius executable (bin) directory to your PATH.
+When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH.
 
 ### Using RubyGems
 
@@ -73,20 +57,14 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
 ### Documentation
 
-The Rubinius documentation is available at the [Rubinius
-website](http://rubinius.com).
+The Rubinius documentation is the [Rubinius book](https://rubinius.com/book/).
 
 ### Issues & Support
 
-Please [file tickets](http://github.com/rubinius/rubinius/issues) for bugs or
-problems.
+Please [file tickets](http://github.com/rubinius/rubinius/issues) for bugs or problems.
 
-For additional help, visit the
-[Rubinius Gitter chat room](https://gitter.im/rubinius/rubinius).
+For additional help, visit the [Rubinius Gitter chat room](https://gitter.im/rubinius/rubinius).
 
 ### Contributing
 
-The Rubinius team welcomes contributions. For more information, read the
-[CONTRIBUTING](https://github.com/rubinius/rubinius/blob/master/CONTRIBUTING.md)
-file and see the documentation
-[about contributing](http://rubinius.com/doc/en/contributing/).
+The Rubinius team welcomes contributions. For more information, read the [contributing](https://github.com/rubinius/rubinius/blob/master/.github/contributing.md) file.

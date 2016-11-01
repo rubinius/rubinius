@@ -7,19 +7,19 @@ Rubinius includes a bytecode virtual machine, generational garbage collector,
 and just-in-time (JIT) native machine code compiler. Rubinius provides
 concurrency support via native OS threads with no global interpreter lock.
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
+Rubinius runs on Mac OS X and many Unix/Linux operating systems. Microsoft
 Windows is not yet supported.
 
 
 2. Code of Conduct
 
 Participation in the Rubinius project is governed by the Rubinius Code of
-Conduct. See http://rubinius.com/code-of-conduct/
+Conduct. See https://rubinius.com/code-of-conduct/
 
 3. The Ruby Programming Language
 
 Many popular Ruby applications, like Rails, run on Rubinius, which aims to be
-compatible with Ruby version 2.2.
+compatible with Ruby version 2.3.1.
 
 Rubinius includes a Ruby parser, Ruby bytecode compiler, Ruby core library,
 and C-API compatibility for native C extensions. The Ruby core library is
@@ -75,16 +75,16 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
 7. Documentation
 
-The Rubinius documentation is available at the Rubinius website:
+The Rubinius documentation is the Rubinius book:
 
-  http://rubinius.com
+  https://rubinius.com/book/
 
 
 8. Issues & Support
 
 Please file tickets for bugs or problems. The issue tracker is:
 
-  http://github.com/rubinius/rubinius/issues
+  https://github.com/rubinius/rubinius/issues
 
 For additional help, visit the Rubinius Gitter chat room:
 
@@ -94,4 +94,4 @@ For additional help, visit the Rubinius Gitter chat room:
 9. Contributing
 
 The Rubinius team welcomes contributions. For more information, read the
-CONTRIBUTING file in the root directory of Rubinius.
+.github/contributing.md file.
