@@ -25,7 +25,7 @@ namespace rubinius {
     };
 
 
-    void open(logger_type type, const char* identifier, logger_level level=eWarn, ...);
+    void open(logger_type type, logger_level level, const char* identifier, ...);
     void lock();
     bool try_lock();
     void unlock();

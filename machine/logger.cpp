@@ -27,7 +27,7 @@ namespace rubinius {
     static Logger* logger_ = 0;
     static logger_level loglevel_ = eWarn;
 
-    void open(logger_type type, const char* identifier, logger_level level, ...) {
+    void open(logger_type type, logger_level level, const char* identifier, ...) {
       va_list varargs;
 
       switch(type) {
@@ -38,7 +38,7 @@ namespace rubinius {
         logger_ = new ConsoleLogger(identifier);
         break;
       case eFileLogger:
-        va_start(varargs, level);
+        va_start(varargs, identifier);
         logger_ = new FileLogger(identifier, varargs);
         va_end(varargs);
         break;

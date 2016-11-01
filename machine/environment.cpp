@@ -195,16 +195,16 @@ namespace rubinius {
     }
 
     if(!config.system_log.value.compare("syslog")) {
-      logger::open(logger::eSyslog, RBX_PROGRAM_NAME, level);
+      logger::open(logger::eSyslog, level, RBX_PROGRAM_NAME);
     } else if(!config.system_log.value.compare("console")) {
-      logger::open(logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
+      logger::open(logger::eConsoleLogger, level, RBX_PROGRAM_NAME);
     } else {
       expand_config_value(config.system_log.value, "$TMPDIR", config.system_tmp);
       expand_config_value(config.system_log.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
       expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
 
-      logger::open(logger::eFileLogger,
-          config.system_log.value.c_str(), level,
+      logger::open(logger::eFileLogger, level,
+          config.system_log.value.c_str(),
           config.system_log_limit.value,
           config.system_log_archives.value,
           config.system_log_access.value);
