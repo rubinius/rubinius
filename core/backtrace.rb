@@ -78,11 +78,13 @@ class Rubinius::Backtrace
     max_width = (@width * (MAX_WIDTH_PERCENTAGE / 100.0)).to_i
     max = max_width if max > max_width
 
+    cwd = Dir.getwd
+
     str = ""
     lines.each do |recv, location, rec_times|
       next unless location
 
-      pos  = location.position(Dir.getwd)
+      pos = location.position cwd
       color = show_color ? color_from_loc(pos, first) : ""
       first = false # special handling for first line
 
@@ -98,52 +100,18 @@ class Rubinius::Backtrace
       # start.size without the escapes
       start_size = 1 + spaces + recv.size + 4
 
-      line_break = @width - start_size - 1
-      line_break = nil if line_break < @min_width
-
-      if line_break and pos.size >= line_break
-        indent = start_size
-
-        new_pos = ""
-        bit = ""
-        parts = pos.split("/")
-        file = parts.pop
-
-        first = true
-        parts.each do |part|
-          if bit.size + part.size > line_break
-            new_pos << bit << "\n" << (' ' * indent)
-            bit = ""
-          end
-
-          bit << "/" unless first
-          first = false
-          bit << part
-        end
-
-        new_pos << bit
-        if bit.size + file.size > line_break
-          new_pos << "\n" << (' ' * indent)
-        end
-        new_pos << "/" << file
-        str << color
-        str << start
-        str << new_pos
-        str << clear
-      else
-        if start_size > @width - @min_width
-          str << "#{color} #{start}\\\n          #{pos}#{clear}"
-        else
-          str << "#{color} #{start}#{pos}#{clear}"
-        end
-      end
-
       if rec_times > 1
-        str << " (#{rec_times} times)"
+        pos << " (#{rec_times} times)"
       end
 
       if location.is_jit and $DEBUG
-        str << " (jit)"
+        pos << " (jit)"
+      end
+
+      if start_size + pos.size > @width
+        str << "#{color} #{start}\n          #{pos}#{clear}"
+      else
+        str << "#{color} #{start}#{pos}#{clear}"
       end
 
       str << sep
