@@ -4,6 +4,11 @@ module Rubinius
     watch_signal(sig.to_signal, ignored)
   end
 
+  def self.signal_thread
+    Rubinius.primitive :vm_signal_thread
+    raise PrimitiveFailure, "Rubinius.signal_thread primitive failed"
+  end
+
   def self.find_method(obj, name)
     Rubinius.primitive :vm_find_method
     raise PrimitiveFailure, "Rubinius.find_method primitive failed"

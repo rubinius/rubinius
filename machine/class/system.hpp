@@ -141,6 +141,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_watch_signal
     static Object*  vm_watch_signal(STATE, Fixnum* sig, Object* ignored);
 
+    // Rubinius.primitive :vm_signal_thread
+    static Object* vm_signal_thread(STATE);
+
     // Rubinius.primitive+ :vm_time
     static Object*  vm_time(STATE);
 

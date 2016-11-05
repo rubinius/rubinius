@@ -1340,7 +1340,6 @@ module Signal
     0 => "EXIT"
   }
 
-  @threads = {}
   @handlers = {}
 
   Rubinius::Config.section 'rbx.platform.signal.' do |key, value|
@@ -1841,9 +1840,10 @@ class Thread
   MUTEX_FOR_THREAD_EXCLUSIVE = Mutex.new
 
   Thread.initialize_main_thread(Thread.current)
-  dg = ThreadGroup::Default
-  Default = dg
-  dg.add Thread.current
+  ThreadGroup::Default.add Thread.current
+
+  sm = Rubinius::Mirror.reflect Rubinius.signal_thread
+  sm.group = ThreadGroup::Default
 end
 
 class Time

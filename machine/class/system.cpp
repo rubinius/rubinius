@@ -1028,6 +1028,10 @@ namespace rubinius {
     }
   }
 
+  Object* System::vm_signal_thread(STATE) {
+    return state->shared().signals()->vm()->thread();
+  }
+
   Object* System::vm_time(STATE) {
     return Integer::from(state, time(0));
   }

@@ -17,10 +17,34 @@ describe "Signal.trap" do
   end
 
   it "accepts a block in place of a proc/command argument" do
-    Signal.trap(:HUP) { ScratchPad.record :block_trap }
+    done = false
+
+    Signal.trap(:HUP) do
+      ScratchPad.record :block_trap
+      done = true
+    end
+
     Process.kill :HUP, Process.pid
-    sleep 0.5
+    Thread.pass until done
+
     ScratchPad.recorded.should == :block_trap
+  end
+
+  it "is possible to create a new Thread when the handler runs" do
+    done = false
+
+    Signal.trap(:HUP) do
+      thr = Thread.new { }
+      thr.join
+      ScratchPad.record(thr.group == Thread.main.group)
+
+      done = true
+    end
+
+    Process.kill :HUP, Process.pid
+    Thread.pass until done
+
+    ScratchPad.recorded.should be_true
   end
 
   it "ignores the signal when passed nil" do
@@ -104,7 +128,5 @@ describe "Signal.trap" do
       code = "trap(:EXIT, proc { print 1 }); trap(:EXIT, 'DEFAULT')"
       ruby_exe(code).should == ""
     end
-
   end
-
 end

@@ -741,7 +741,6 @@ namespace rubinius {
     main = Thread::create(state, state->vm(), Thread::main_thread);
     main->start_thread(state, Thread::run);
 
-    // Start signal handling. We don't return until the process is exiting.
     VM* vm = SignalThread::new_vm(state);
     vm->set_stack_bounds(state->vm()->stack_size());
 
