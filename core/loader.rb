@@ -820,11 +820,10 @@ Alternative: #{alt}
       when SyntaxError
         @exit_code = 1
 
-        show_syntax_error(e)
-
-        STDERR.puts "\nBacktrace:"
-        STDERR.puts
         STDERR.puts e.awesome_backtrace.show
+        STDERR.puts
+
+        show_syntax_error(e)
       when Interrupt
         exit_with_exception e
       when SignalException

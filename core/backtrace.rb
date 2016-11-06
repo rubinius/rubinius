@@ -7,10 +7,6 @@ class Rubinius::Backtrace
   MAX_WIDTH_PERCENTAGE = 45
   MIN_WIDTH = 20
 
-  attr_accessor :first_color
-  attr_accessor :core_color
-  attr_accessor :eval_color
-
   # If passed nil, we assume someone forgot to create a backtrace
   # in the VM.
   def self.backtrace(locations)
@@ -26,9 +22,7 @@ class Rubinius::Backtrace
     end
 
     @locations = locations
-    @first_color = "\033[0;31m"
-    @core_color = "\033[0;34m"
-    @eval_color = "\033[0;33m"
+    @bold = "\033[0;1m"
     @inline_effect = "\033[0;4m"
 
     @width = width
@@ -58,7 +52,7 @@ class Rubinius::Backtrace
     last_name = nil
     times = 0
 
-    @locations.each do |loc|
+    @locations.reverse_each do |loc|
       if loc.name == last_name and loc.method == last_method \
                                and loc.line == last_line
         times += 1
@@ -85,7 +79,7 @@ class Rubinius::Backtrace
       next unless location
 
       pos = location.position cwd
-      color = show_color ? color_from_loc(pos, first) : ""
+      recv = show_color ? "#{@bold}#{recv}#{clear}" : recv
       first = false # special handling for first line
 
       spaces = max - recv.size
@@ -109,9 +103,9 @@ class Rubinius::Backtrace
       end
 
       if start_size + pos.size > @width
-        str << "#{color} #{start}\n          #{pos}#{clear}"
+        str << " #{start}\n          #{pos}"
       else
-        str << "#{color} #{start}#{pos}#{clear}"
+        str << " #{start}#{pos}"
       end
 
       str << sep
@@ -125,18 +119,6 @@ class Rubinius::Backtrace
   end
 
   alias_method :to_s, :show
-
-  def color_from_loc(loc, first)
-    return @first_color if first
-
-    if loc =~ /^core/
-      @core_color
-    elsif loc =~ /\(eval\)/
-      @eval_color
-    else
-      ""
-    end
-  end
 
   def each
     @locations.each { |f| yield f }

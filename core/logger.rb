@@ -15,33 +15,48 @@ module Rubinius
     def self.log_exception(message, e)
       log = system
 
-      log.error message
-      STDERR.puts message, "\n"
-
-      msg = "#{e.message} (#{e.class})"
-      log.error msg
-      STDERR.puts msg, "\nBacktrace:\n\n"
-
-      color = STDERR.tty?
       exception = e
+      exceptions = []
 
       while exception
+        exceptions.unshift exception
+        exception = exception.cause
+      end
+
+      color = STDERR.tty?
+
+      while exception = exceptions.shift
         if custom_trace = exception.custom_backtrace
-          custom_trace.each do |line|
+          msg = "User-defined backtrace:"
+          log.error msg
+          STDERR.puts msg
+
+          custom_trace.reverse_each do |line|
             log.error line
             STDERR.puts line
           end
+
+          msg = "Backtrace: "
+          log.error msg
+          STDERR.puts "\n", msg, "\n"
         end
 
-        exception.backtrace.each { |line| log.error line }
+        exception.backtrace.reverse_each { |line| log.error line }
         STDERR.puts exception.awesome_backtrace.show("\n", color)
 
-        if exception = exception.cause
-          msg = "Caused by: #{exception.message} (#{exception.class})"
+        msg = "#{exception.message} (#{exception.class})"
+        log.error msg
+        STDERR.puts "\n", msg
+
+        unless exceptions.empty?
+          msg = "Causing:"
           log.error msg
           STDERR.puts "\n", msg, "\n"
         end
       end
+
+      log.error message
+      STDERR.puts "\n", message
     end
 
     def initialize(name)

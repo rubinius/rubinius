@@ -66,6 +66,30 @@ class Exception
   end
 
   def render(header="An exception occurred", io=STDERR, color=true)
+    exception = self
+    exceptions = []
+
+    while exception
+      exceptions.unshift exception
+      exception = exception.cause
+    end
+
+    while exception = exceptions.shift
+      if custom_trace = exception.custom_backtrace
+        io.puts "User-defined backtrace:", "\n"
+
+        custom_trace.reverse_each { |line| io.puts line }
+
+        io.puts "\nBacktrace:", "\n"
+      end
+
+      io.puts exception.awesome_backtrace.show("\n", color)
+
+      io.puts "\n#{exception.message} (#{exception.class})"
+
+      io.puts "\nCausing:", "\n" unless exceptions.empty?
+    end
+
     message_lines = message.to_s.split("\n")
 
     io.puts header
@@ -75,38 +99,6 @@ class Exception
     message_lines.each do |line|
       io.puts "    #{line}"
     end
-
-    if @custom_backtrace
-      io.puts "\nUser defined backtrace:"
-      io.puts
-      @custom_backtrace.each do |line|
-        io.puts "    #{line}"
-      end
-    end
-
-    io.puts "\nBacktrace:"
-    io.puts
-    io.puts awesome_backtrace.show("\n", color)
-
-    cause = @cause
-    while cause
-      io.puts "\nCaused by: #{cause.message} (#{cause.class})"
-
-      if @custom_backtrace
-        io.puts "\nUser defined backtrace:"
-        io.puts
-        @custom_backtrace.each do |line|
-          io.puts "    #{line}"
-        end
-      end
-
-      io.puts "\nBacktrace:"
-      io.puts
-      io.puts cause.awesome_backtrace.show
-
-      cause = cause.cause
-    end
-
   end
 
   def set_backtrace(bt)
