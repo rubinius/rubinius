@@ -78,11 +78,7 @@ class Rubinius::Backtrace
     lines.each do |receiver_name, method_name, location, rec_times|
       next unless location
 
-      if location.is_block
-        full_name = "{ } in #{method_name} #{receiver_name[-1]} "
-      else
-        full_name = "#{method_name} #{receiver_name[-1]} "
-      end
+      full_name = "#{method_name} #{receiver_name[-1]} "
 
       if show_color
         receiver_method = "#{@bold}#{full_name}#{receiver_name[0..-2]}#{clear}"
