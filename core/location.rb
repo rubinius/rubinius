@@ -123,6 +123,10 @@ module Rubinius
         "*** Missing backtrace! Did the VM not create one? ***"
       end
 
+      def describe_receiver
+        "missing_backtrace_unknown_receiver"
+      end
+
       def describe_method
         "missing_backtrace_unknown_location"
       end
@@ -141,6 +145,10 @@ module Rubinius
 
       def name
         "missing_backtrace_unknown_name"
+      end
+
+      def is_block
+        false
       end
 
       def is_jit

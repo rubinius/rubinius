@@ -36,14 +36,8 @@ class Rubinius::Backtrace
   end
 
   def show(sep="\n", show_color=true)
-    first = true
-
     show_color = false unless @colorize
-    if show_color
-      clear = "\033[0m"
-    else
-      clear = ""
-    end
+    clear = show_color ? "\033[0m" : ""
 
     max = 0
     lines = []
@@ -62,37 +56,53 @@ class Rubinius::Backtrace
         last_line = loc.line
         last_name = loc.name
 
-        str = loc.describe
-        max = str.size if str.size > max
-        lines << [str, loc, 1]
+        receiver_name = loc.describe_receiver
+
+        if loc.is_block
+          method_name = "{ } in #{loc.describe_method}"
+        else
+          method_name = loc.describe_method
+        end
+
+        size = method_name.size + 4 # additional space needed for {#, .}
+        max = size if size > max
+
+        lines << [receiver_name, method_name, loc, 1]
         times = 0
       end
     end
 
-    max_width = (@width * (MAX_WIDTH_PERCENTAGE / 100.0)).to_i
-    max = max_width if max > max_width
-
     cwd = Dir.getwd
 
     str = ""
-    lines.each do |recv, location, rec_times|
+    lines.each do |receiver_name, method_name, location, rec_times|
       next unless location
 
-      pos = location.position cwd
-      recv = show_color ? "#{@bold}#{recv}#{clear}" : recv
-      first = false # special handling for first line
+      if location.is_block
+        full_name = "{ } in #{method_name} #{receiver_name[-1]} "
+      else
+        full_name = "#{method_name} #{receiver_name[-1]} "
+      end
 
-      spaces = max - recv.size
+      if show_color
+        receiver_method = "#{@bold}#{full_name}#{receiver_name[0..-2]}#{clear}"
+      else
+        receiver_method = "#{full_name}#{receiver_name[0..-2]}"
+      end
+
+      spaces = max - full_name.size
       spaces = 0 if spaces < 0
 
       if show_color and location.inlined?
-        start = " #{' ' * spaces}#{recv} #{@inline_effect}at#{clear}#{color} "
+        start = " #{' ' * spaces}#{receiver_method} #{@inline_effect}at#{clear}#{color} "
       else
-        start = " #{' ' * spaces}#{recv} at "
+        start = " #{' ' * spaces}#{receiver_method} at "
       end
 
       # start.size without the escapes
-      start_size = 1 + spaces + recv.size + 4
+      start_size = 1 + spaces + receiver_method.size + 4
+
+      pos = location.position cwd
 
       if rec_times > 1
         pos << " (#{rec_times} times)"
@@ -103,7 +113,7 @@ class Rubinius::Backtrace
       end
 
       if start_size + pos.size > @width
-        str << " #{start}\n          #{pos}"
+        str << " #{start}\n        #{pos}"
       else
         str << " #{start}#{pos}"
       end
