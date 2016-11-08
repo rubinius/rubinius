@@ -121,11 +121,14 @@ int main(int argc, char** argv) {
       std::cout << "  http://github.com/rubinius/rubinius\n";
       exit_code = 1;
     } catch(VMException &e) {
-      std::cout << "Unknown VM exception detected." << std::endl;
+      std::cout << "Unknown VM exception detected:" << std::endl;
       e.print_backtrace();
       exit_code = 1;
-    } catch(std::runtime_error& e) {
-      std::cout << "Runtime exception: " << e.what() << std::endl;
+    } catch(const std::exception& e) {
+      std::cout << "C++ exception detected: " << e.what() << std::endl;
+      exit_code = 1;
+    } catch(...) {
+      std::cout << "Unknown C++ exception detected" << std::endl;
       exit_code = 1;
     }
   }

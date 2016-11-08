@@ -121,6 +121,24 @@ continue_to_run:
     }
     state->raise_exception(exc.exception);
     return NULL;
+	} catch(const std::exception& e) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, e.what());
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  } catch(...) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, "unknown C++ exception thrown");
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
   }
 
   // There is no reason to be here. Either the bytecode loop exits,
@@ -277,6 +295,24 @@ continue_to_run:
     }
     state->raise_exception(exc.exception);
     return NULL;
+	} catch(const std::exception& e) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, e.what());
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  } catch(...) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, "unknown C++ exception thrown");
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
   }
 
   // No reason to be here!
@@ -425,6 +461,24 @@ continue_to_run:
     }
     state->raise_exception(exc.exception);
     return NULL;
+	} catch(const std::exception& e) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, e.what());
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  } catch(...) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, "unknown C++ exception thrown");
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
   }
 
   // no reason to be here!
@@ -562,6 +616,24 @@ continue_to_run:
       exc.exception->locations(state, Location::from_call_stack(state));
     }
     state->raise_exception(exc.exception);
+    return NULL;
+	} catch(const std::exception& e) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, e.what());
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  } catch(...) {
+		flush_ip();
+    Exception* exc =
+      Exception::make_interpreter_error(state, "unknown C++ exception thrown");
+    exc->locations(state, Location::from_call_stack(state));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
     return NULL;
   }
 
