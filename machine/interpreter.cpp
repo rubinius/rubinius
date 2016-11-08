@@ -202,6 +202,16 @@ namespace rubinius {
         exc.exception->locations(state, Location::from_call_stack(state));
       }
       exception = exc.exception;
+    } catch(const std::exception& e) {
+      exception = Exception::make_interpreter_error(state, e.what());
+      exception->locations(state, Location::from_call_stack(state));
+
+      call_frame->scope->flush_to_heap(state);
+    } catch(...) {
+      exception = Exception::make_interpreter_error(state, "unknown C++ exception thrown");
+      exception->locations(state, Location::from_call_stack(state));
+
+      call_frame->scope->flush_to_heap(state);
     }
 
     state->raise_exception(exception);
