@@ -238,7 +238,7 @@ Daedalus.blueprint do |i|
   if Rubinius::BUILD_CONFIG[:llvm_shared_objs]
     objects = Rubinius::BUILD_CONFIG[:llvm_shared_objs]
   else
-    objects = `#{conf} --libfiles`.strip.split(/\s+/)
+    objects = `#{conf} --libs`.strip.split(/\s+/)
   end
 
   if Rubinius::BUILD_CONFIG[:windows]
