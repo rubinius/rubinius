@@ -2018,7 +2018,19 @@ class IO
       if @limit
         # Always read to char boundary because the +limit+ may have cut a multi-byte
         # character in the middle. Returning such a string would have an invalid encoding.
-        buffer += (@io.read(PEEK_AHEAD_LIMIT) || '') if buffer.size < PEEK_AHEAD_LIMIT
+        if buffer.size < PEEK_AHEAD_LIMIT
+          # Use nonblocking read since existing +buffer+ might already have a valid encoding
+          # and we don't want to block forever if no more data is coming
+          result = "".force_encoding(Encoding::ASCII_8BIT)
+
+          # save and restore encodings around the read operation so that we ensure ASCII_8BIT
+          internal, external = @io.internal, @io.external
+          @io.external = Encoding::ASCII_8BIT
+          (@io.read_nonblock(PEEK_AHEAD_LIMIT, result, exception: false) || ''.force_encoding(Encoding::ASCII_8BIT))
+          @io.internal, @io.external = internal, external
+
+          buffer += result
+        end
         str, bytes_read = read_to_char_boundary(@io, str, buffer)
       else
         # We are confident that our +str+ ends on a char boundary
