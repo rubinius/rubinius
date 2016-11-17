@@ -165,6 +165,10 @@ class IO
       end
     end
 
+    def self.get_empty_8bit_buffer
+      "".force_encoding(Encoding::ASCII_8BIT)
+    end
+
 
     def initialize(fd, stat, io)
       @descriptor, @stat, @io = fd, stat, io
@@ -600,7 +604,7 @@ class IO
         @offset += @unget_buffer.size
         length -= @unget_buffer.size
 
-        str = @unget_buffer.inject("".force_encoding(Encoding::ASCII_8BIT)) { |sum, val| val.chr + sum }
+        str = @unget_buffer.inject(self.class.get_empty_8bit_buffer) { |sum, val| val.chr + sum }
         str2 = super(length, output_string)
 
         if str.size == 0 && str2.nil?
@@ -614,11 +618,11 @@ class IO
         @offset += length
         length -= @unget_buffer.size
 
-        str = @unget_buffer.inject("".force_encoding(Encoding::ASCII_8BIT)) { |sum, val| val.chr + sum }
+        str = @unget_buffer.inject(self.class.get_empty_8bit_buffer) { |sum, val| val.chr + sum }
         buffer_reset
       else
         @offset += @unget_buffer.size
-        str = "".force_encoding(Encoding::ASCII_8BIT)
+        str = self.class.get_empty_8bit_buffer
 
         length.times do
           str << @unget_buffer.pop
@@ -641,12 +645,12 @@ class IO
           @offset += @unget_buffer.size
           length -= @unget_buffer.size
 
-          str = @unget_buffer.inject("".force_encoding(Encoding::ASCII_8BIT)) { |sum, val| val.chr + sum }
+          str = @unget_buffer.inject(self.class.get_empty_8bit_buffer) { |sum, val| val.chr + sum }
           buffer_reset
           [str, length]
         else
           @offset += @unget_buffer.size
-          str = "".force_encoding(Encoding::ASCII_8BIT)
+          str = self.class.get_empty_8bit_buffer
 
           length.times do
             str << @unget_buffer.pop
@@ -2021,12 +2025,12 @@ class IO
         if buffer.size < PEEK_AHEAD_LIMIT
           # Use nonblocking read since existing +buffer+ might already have a valid encoding
           # and we don't want to block forever if no more data is coming
-          result = "".force_encoding(Encoding::ASCII_8BIT)
+          result = @io.get_empty_8bit_buffer
 
           # save and restore encodings around the read operation so that we ensure ASCII_8BIT
           internal, external = @io.internal, @io.external
           @io.external = Encoding::ASCII_8BIT
-          (@io.read_nonblock(PEEK_AHEAD_LIMIT, result, exception: false) || ''.force_encoding(Encoding::ASCII_8BIT))
+          (@io.read_nonblock(PEEK_AHEAD_LIMIT, result, exception: false) || @io.get_empty_8bit_buffer)
           @io.internal, @io.external = internal, external
 
           buffer += result
@@ -2061,8 +2065,8 @@ class IO
 
     # method A, D
     def read_to_separator(&block)
-      str = "".force_encoding(Encoding::ASCII_8BIT)
-      buffer = "".force_encoding(Encoding::ASCII_8BIT)
+      str = @io.get_empty_8bit_buffer
+      buffer = @io.get_empty_8bit_buffer
       separator_size = @separator.bytesize
 
       begin
@@ -2078,7 +2082,7 @@ class IO
           count += separator_size
 
           read_and_yield_count_chars(str, buffer, count, &block)
-          str = "".force_encoding(Encoding::ASCII_8BIT)
+          str = @io.get_empty_8bit_buffer
         else
           str << buffer
           buffer.clear
@@ -2095,8 +2099,8 @@ class IO
     # method B, E
 
     def read_to_separator_with_limit(&block)
-      str = "".force_encoding(Encoding::ASCII_8BIT)
-      buffer = "".force_encoding(Encoding::ASCII_8BIT)
+      str = @io.get_empty_8bit_buffer
+      buffer = @io.get_empty_8bit_buffer
       separator_size = @separator.bytesize
 
       #TODO: implement ignoring encoding with negative limit
@@ -2116,11 +2120,11 @@ class IO
           count = count < wanted ? count : wanted
           read_and_yield_count_chars(str, buffer, count, &block)
 
-          str = "".force_encoding(Encoding::ASCII_8BIT)
+          str = @io.get_empty_8bit_buffer
         else
           if wanted < buffer.size
             read_and_yield_count_chars(str, buffer, wanted, &block)
-            str = "".force_encoding(Encoding::ASCII_8BIT)
+            str = @io.get_empty_8bit_buffer
           else
             str << buffer
             wanted -= buffer.size
@@ -2136,7 +2140,7 @@ class IO
 
     # Method G
     def read_all(&block)
-      str = "".force_encoding(Encoding::ASCII_8BIT)
+      str = @io.get_empty_8bit_buffer
 
       begin
         str << @io.read
@@ -2149,13 +2153,13 @@ class IO
 
     # Method H
     def read_to_limit(&block)
-      str = "".force_encoding(Encoding::ASCII_8BIT)
+      str = @io.get_empty_8bit_buffer
       wanted = limit = @limit.abs
 
       begin
         str << @io.read(wanted)
-        read_and_yield_count_chars(str, '', str.bytesize, &block)
-        str = "".force_encoding(Encoding::ASCII_8BIT)
+        read_and_yield_count_chars(str, @io.get_empty_8bit_buffer, str.bytesize, &block)
+        str = @io.get_empty_8bit_buffer
       end until @io.eof?
 
       unless str.empty?
@@ -2517,7 +2521,7 @@ class IO
     ensure_open
     return if eof?
 
-    char = ""
+    char = get_empty_8bit_buffer
     begin
       char.force_encoding Encoding::ASCII_8BIT
       char << read(1)
@@ -3468,6 +3472,10 @@ class IO
   def ensure_open_and_writable
     ensure_open
     raise IOError, "not opened for writing" if @fd.read_only?
+  end
+
+  def get_empty_8bit_buffer
+    FileDescriptor.get_empty_8bit_buffer
   end
 
   def invalid_descriptor?
