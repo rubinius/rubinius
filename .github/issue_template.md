@@ -30,19 +30,20 @@ Please include a link to a gist (https://gist.github.com/) for terminal output, 
 
 7. How did you build your version of Rubinius?
 
-  -[ ] I used RVM.
-  -[ ] I used ruby-build.
-  -[ ] I used ruby-install.
-  -[ ] I built manually from a tarball.
-  -[ ] I built manually from a git clone.
+  - [ ] I used RVM.
+  - [ ] I used ruby-build.
+  - [ ] I used ruby-install.
+  - [ ] I built manually from a tarball.
+  - [ ] I built manually from a git clone.
+  - [ ] I installed a binary.
 
 8. Does this issue involve proprietary code?
 
-  -[ ] Yes, this issue involves proprietary code that I cannot share.
-  -[ ] Yes, this issue involves proprietary code, but I am able to share it under certain conditions.
-  -[ ] No, this issued doesn't involve proprietary code.
+  - [ ] Yes, this issue involves proprietary code that I cannot share.
+  - [ ] Yes, this issue involves proprietary code, but I am able to share it under certain conditions.
+  - [ ] No, this issued doesn't involve proprietary code.
 
 9. Are you able to help us debug the issue?
 
-  -[ ] Yes, I'm able to help debug, including running commands under lldb.
-  -[ ] No, I'm not able help debug or I don't have time to help.
+  - [ ] Yes, I'm able to help debug, including running commands under lldb.
+  - [ ] No, I'm not able help debug or I don't have time to help.
