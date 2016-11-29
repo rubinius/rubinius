@@ -324,6 +324,10 @@ class Configure
       @release_build = true
     end
 
+    o.on "--no-release-build", "Build from the network instead of local files" do
+      @release_build = false
+    end
+
     o.doc "\n Compiler settings"
 
     o.on "--cc", "COMPILER", "Compiler to use for C code (eg clang)" do |cc|
