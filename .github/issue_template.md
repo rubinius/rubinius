@@ -18,6 +18,8 @@ Please include a link to a gist (https://gist.github.com/) for terminal output, 
 
 4. What version of Rubinius?
 
+  *Note that we accept issue reports for the current release of Rubinius. That version can be found at https://rubinius.com/install/. If there is a reason that you cannot use the current version, other than not having installed the current version, please include that reason in your issue.*
+
   Output of `rbx -v`:
 
 5. What version of operating system?
