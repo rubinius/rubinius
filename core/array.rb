@@ -1516,30 +1516,13 @@ class Array
         while i < count
           k = rng.rand(size)
 
-          spin = false
-          spin_count = 0
-
-          while true
-            j = 0
-            while j < i
-              if k == result[j]
-                spin = true
-                break
-              end
-
-              j += 1
-            end
-
-            if spin
-              if (spin_count += 1) > 100
-                abandon = true
-                break
-              end
-
-              k = rng.rand(size)
-            else
+          j = 0
+          while j < i
+            if k == result[j]
+              abandon = true
               break
             end
+            j += 1
           end
 
           break if abandon
