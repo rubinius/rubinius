@@ -2,6 +2,13 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Array#sample" do
+  it "samples evenly" do
+    3.times do |i|
+      samples = 4000.times.map { 4.times.to_a.sample(3)[i] }
+      counts = samples.group_by(&:itself).map { |a, b| b.size }
+      counts.each { |count| (800..1200).should include(count) }
+    end
+  end
   it "returns nil for an empty Array" do
     [].sample.should be_nil
   end
