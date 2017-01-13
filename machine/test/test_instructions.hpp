@@ -216,17 +216,55 @@ public:
     TS_ASSERT(true);
   }
 
-  void test_cast_for_single_block_arg() {
+  void test_cast_for_single_block_arg_no_args() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+    Arguments args(state->symbol("blah"));
+    call_frame->arguments = &args;
+
+    instructions::cast_for_single_block_arg(state, call_frame);
+
+    TS_ASSERT_EQUALS(stack_pop(), cNil);
+  }
+
+  void test_cast_for_single_block_arg_single_field() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Object** static_arg = new Object*[1];
+    static_arg[0] = Fixnum::from(42);
+    Arguments args(state->symbol("blah"), 1, static_arg);
 
-    // TODO: instructions
-    // instructions::cast_for_single_block_arg(state, call_frame);
+    call_frame->arguments = &args;
 
-    TS_ASSERT(true);
+    instructions::cast_for_single_block_arg(state, call_frame);
+
+    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+  }
+
+  void test_cast_for_single_block_arg_multi_field() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object** static_args = new Object*[2];
+    static_args[0] = Fixnum::from(42);
+    static_args[1] = Fixnum::from(71);
+    Arguments args(state->symbol("blah"), 2, static_args);
+
+    call_frame->arguments = &args;
+
+    instructions::cast_for_single_block_arg(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
   }
 
   void test_cast_for_splat_block_arg() {
