@@ -216,17 +216,49 @@ public:
     TS_ASSERT(true);
   }
 
-  void test_cast_for_single_block_arg() {
+  void test_cast_for_single_block_arg_nil() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::cast_for_single_block_arg(state, call_frame);
+    instructions::cast_for_single_block_arg(state, call_frame);
 
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), cNil);
+  }
+
+  void test_cast_for_single_block_arg_non_array_no() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(Fixnum::from(42));
+
+    instructions::cast_for_single_block_arg(state, call_frame);
+
+    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+  }
+
+  void test_cast_for_single_block_arg_mulit_fields_to_array() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Array* original = Array::create(state, 2);
+    original->set(state, 0, Fixnum::from(42));
+    original->set(state, 1, Fixnum::from(71));
+
+    stack_push(original);
+
+    instructions::cast_for_single_block_arg(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary, original);
   }
 
   void test_cast_for_splat_block_arg() {
