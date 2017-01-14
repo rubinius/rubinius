@@ -347,8 +347,8 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    // TODO: also handle TS_ASSERT_THROWS_EXCEPTION case
     TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
   }
 
   void test_cast_for_splat_block_arg_single_non_array_arg() {
