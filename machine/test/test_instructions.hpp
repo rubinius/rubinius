@@ -525,12 +525,11 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    int checkpoints = state->vm()->metrics().machine.checkpoints;
 
-    // TODO: instructions
-    // instructions::check_interrupts(state);
+    instructions::check_interrupts(state);
 
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(state->vm()->metrics().machine.checkpoints, checkpoints+1);
   }
 
   void test_check_serial() {
