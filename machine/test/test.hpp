@@ -17,6 +17,31 @@
 
 using namespace rubinius;
 
+// Initial attempt at creating Mock objects that behave like Array but
+// do not descend from it. Needed for testing cast_for_multi_block_arg.
+//class RespondsToToaryReturnsNil : public Object {
+//public:
+//  static RespondsToToaryReturnsNil* create(STATE, native_int size) {
+//    RespondsToToaryReturnsNil* ary = state->memory()->new_object<RespondsToToaryReturnsNil>(state, G(array));
+//
+//    return ary;
+//  }
+//
+//  Object* respond_to(STATE, Symbol* name, Object* priv) {
+//    printf("called respond_to\n");
+//    return cTrue;
+//  }
+//
+//  static void to_ary(STATE, Object* value) {
+//  }
+//};
+//
+//class RespondsToToaryReturnsNonarray : public Array {
+//  Fixnum* to_ary(STATE, Object* value) {
+//    return Fixnum::from(42);
+//  }
+//};
+
 class VMTest {
 public:
   SharedState* shared;
