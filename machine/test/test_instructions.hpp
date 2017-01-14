@@ -342,17 +342,104 @@ public:
     TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
   }
 
-  void test_cast_for_splat_block_arg() {
+  void test_cast_for_splat_block_arg_no_args() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    // TODO: also handle TS_ASSERT_THROWS_EXCEPTION case
+    TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+  }
 
-    // TODO: instructions
-    // instructions::cast_for_splat_block_arg(state, call_frame);
+  void test_cast_for_splat_block_arg_single_non_array_arg() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object** static_args = new Object*[1];
+    static_args[0] = Fixnum::from(42);
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+
+    instructions::cast_for_splat_block_arg(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+  }
+
+  void test_cast_for_splat_block_arg_single_non_array_toary_arg() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    // TODO: figure out how to mock a non-Array object that responds
+    // correctly to respond_to(:to_ary)
+    //Object** static_args = new Object*[1];
+    //static_args[0] = Fixnum::from(42);
+    //Arguments args(state->symbol("blah"), 1, static_args);
+
+    //call_frame->arguments = &args;
+
+    instructions::cast_for_splat_block_arg(state, call_frame);
+
+    //Array *ary = try_as<Array>(stack_pop());
 
     TS_ASSERT(true);
+    //TS_ASSERT(ary);
+    //TS_ASSERT(kind_of<Array>(ary));
+    //TS_ASSERT_EQUALS(ary->size(), 1);
+    //TS_Assert(kind_of<Array>(ary->get(state, 0)));
+  }
+
+  void test_cast_for_splat_block_arg_multi_non_array_args() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object** static_args = new Object*[2];
+    static_args[0] = Fixnum::from(42);
+    static_args[1] = Fixnum::from(71);
+    Arguments args(state->symbol("blah"), 2, static_args);
+
+    call_frame->arguments = &args;
+
+    instructions::cast_for_splat_block_arg(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
+  }
+
+  void test_cast_for_splat_block_arg_single_array_arg() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object** static_args = new Object*[2];
+    Array* original = Array::create(state, 1);
+    original->set(state, 0, Fixnum::from(42));
+    static_args[0] = original;
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+
+    instructions::cast_for_splat_block_arg(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->get(state, 0), original);
   }
 
   void test_cast_multi_value() {
