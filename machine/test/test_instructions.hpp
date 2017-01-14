@@ -442,15 +442,52 @@ public:
     TS_ASSERT_EQUALS(ary->get(state, 0), original);
   }
 
-  void test_cast_multi_value() {
+  void test_cast_multi_value_single_array() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Array* original = Array::create(state, 1);
+    original->set(state, 0, Fixnum::from(42));
+    stack_push(original);
+
+    instructions::cast_multi_value(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary, original);
+  }
+
+  void test_cast_multi_value_single_arg_no_toary() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(Fixnum::from(42));
+
+    instructions::cast_multi_value(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+  }
+
+  void test_cast_multi_value_single_arg_toary_nil() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::cast_multi_value(state, call_frame);
+    // TODO: push an arg that is a non-Array that responds to :to_ary
+    // but does not return a valid array
+    //TS_ASSERT(!instructions::cast_multi_value(state, call_frame));
 
     TS_ASSERT(true);
   }
