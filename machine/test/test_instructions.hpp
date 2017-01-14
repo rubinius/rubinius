@@ -569,12 +569,15 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    object_type type = ClassType;
+    Object* obj = G(object);
+    Exception::make_type_error(state, type, obj);
 
-    // TODO: instructions
-    // instructions::clear_exception(state);
+    TS_ASSERT(state->vm()->thread_state()->current_exception());
 
-    TS_ASSERT(true);
+    instructions::clear_exception(state);
+
+    TS_ASSERT_EQUALS(state->vm()->thread_state()->current_exception(), cNil);
   }
 
   void test_create_block() {
