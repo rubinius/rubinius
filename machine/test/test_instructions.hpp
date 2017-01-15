@@ -248,24 +248,55 @@ public:
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
   }
 
-  // Need to figure out a way to mock an array-like object that responds to to_ary
-  // but can have different behavior. Subclassing Array doesn't work because we need the
-  // <kindof> test to fail. Must be non-Array subclass.
-//  void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg_toary_nil() {
-//    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-//    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-//    setup_call_frame(call_frame, scope, 1);
-//
-//    Object** static_args = new Object*[1];
-//    RespondsToToaryReturnsNil* obj = RespondsToToaryReturnsNil::create(state, 0);
-//    printf("in test, obj %ld\n", (long) obj);
-//    static_args[0] = obj;
-//    Arguments args(state->symbol("blah"), 1, static_args);
-//
-//    call_frame->arguments = &args;
-//
-//    TS_ASSERT(!instructions::cast_for_multi_block_arg(state, call_frame));
-//  }
+  void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg_toary_null() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* obj = RespondToToAryReturnNull::create(state);
+    Object* static_args[1] = { obj };
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+
+    TS_ASSERT(!instructions::cast_for_multi_block_arg(state, call_frame));
+  }
+
+  void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg_toary_array() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* obj = RespondToToAryReturnArray::create(state);
+    Object* static_args[1] = { obj };
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+
+    instructions::cast_for_multi_block_arg(state, call_frame);
+
+    Array *ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT(kind_of<Array>(ary));
+    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+  }
+
+  void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg_toary_non_array() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* obj = RespondToToAryReturnNonArray::create(state);
+    Object* static_args[1] = { obj };
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+
+    TS_ASSERT(!instructions::cast_for_multi_block_arg(state, call_frame));
+    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+  }
 
   void test_cast_for_multi_block_arg_multi_fields_is_lambda() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
