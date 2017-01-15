@@ -626,16 +626,16 @@ public:
   }
 
   void test_dup() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    stack_push(Fixnum::from(42));
 
-    // TODO: instructions
-    // instructions::dup(call_frame);
+    instructions::dup(call_frame);
 
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
   }
 
   void test_dup_many() {
