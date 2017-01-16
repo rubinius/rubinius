@@ -723,30 +723,44 @@ public:
     TS_ASSERT(!instructions::goto_if_equal(call_frame));
   }
 
-  void test_goto_if_false() {
+  void test_goto_if_false_push_false() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    stack_push(cFalse);
 
-    // TODO: instructions
-    // instructions::goto_if_false(call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT(instructions::goto_if_false(call_frame));
   }
 
-  void test_goto_if_nil() {
+  void test_goto_if_false_push_true() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(cTrue);
+
+    TS_ASSERT(!instructions::goto_if_false(call_frame));
+  }
+
+  void test_goto_if_nil_push_nil() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::goto_if_nil(call_frame);
+    TS_ASSERT(instructions::goto_if_nil(call_frame));
+  }
 
-    TS_ASSERT(true);
+  void test_goto_if_nil_push_non_nil() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(cTrue);
+
+    TS_ASSERT(!instructions::goto_if_nil(call_frame));
   }
 
   void test_goto_if_not_equal() {
