@@ -703,9 +703,8 @@ public:
     setup_call_frame(call_frame, scope, 1);
 
     Object* a = Fixnum::from(42);
-    Object* b = Fixnum::from(42);
     stack_push(a);
-    stack_push(b);
+    stack_push(a);
 
     TS_ASSERT(instructions::goto_if_equal(call_frame));
   }
@@ -763,69 +762,109 @@ public:
     TS_ASSERT(!instructions::goto_if_nil(call_frame));
   }
 
-  void test_goto_if_not_equal() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+  void test_goto_if_not_equal_both_equal() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Object* a = Fixnum::from(42);
+    stack_push(a);
+    stack_push(a);
 
-    // TODO: instructions
-    // instructions::goto_if_not_equal(call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT(!instructions::goto_if_not_equal(call_frame));
   }
 
-  void test_goto_if_not_nil() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+  void test_goto_if_not_equal_both_not_equal() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Object* a = Fixnum::from(42);
+    Object* b = Fixnum::from(71);
+    stack_push(a);
+    stack_push(b);
 
-    // TODO: instructions
-    // instructions::goto_if_not_nil(call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT(instructions::goto_if_not_equal(call_frame));
   }
 
-  void test_goto_if_not_undefined() {
+  void test_goto_if_not_nil_nil_arg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::goto_if_not_undefined(state, call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT(!instructions::goto_if_not_nil(call_frame));
   }
 
-  void test_goto_if_true() {
+  void test_goto_if_not_nil_non_nil_arg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    stack_push(Fixnum::from(42));
 
-    // TODO: instructions
-    // instructions::goto_if_true(call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT(instructions::goto_if_not_nil(call_frame));
   }
 
-  void test_goto_if_undefined() {
+  void test_goto_if_not_undefined_arg_undefined() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(G(undefined));
+
+    TS_ASSERT(!instructions::goto_if_not_undefined(state, call_frame));
+  }
+
+  void test_goto_if_not_undefined_arg_not_undefined() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::goto_if_undefined(state, call_frame);
+    TS_ASSERT(instructions::goto_if_not_undefined(state, call_frame));
+  }
 
-    TS_ASSERT(true);
+  void test_goto_if_true_arg_true() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(cTrue);
+
+    TS_ASSERT(instructions::goto_if_true(call_frame));
+  }
+
+  void test_goto_if_true_arg_false() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(cFalse);
+
+    TS_ASSERT(!instructions::goto_if_true(call_frame));
+  }
+
+  void test_goto_if_undefined_arg_undefined() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(G(undefined));
+
+    TS_ASSERT(instructions::goto_if_undefined(state, call_frame));
+  }
+
+  void test_goto_if_undefined_arg_defined() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    stack_push(cNil);
+
+    TS_ASSERT(!instructions::goto_if_undefined(state, call_frame));
   }
 
   void test_instance_of() {
