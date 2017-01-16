@@ -666,17 +666,30 @@ public:
     TS_ASSERT(true);
   }
 
-  void test_goto_if_equal() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+  void test_goto_if_equal_both_equal() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Object* a = Fixnum::from(42);
+    Object* b = Fixnum::from(42);
+    stack_push(a);
+    stack_push(b);
 
-    // TODO: instructions
-    // instructions::goto_if_equal(call_frame);
+    TS_ASSERT(instructions::goto_if_equal(call_frame));
+  }
 
-    TS_ASSERT(true);
+  void test_goto_if_equal_not_equal() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* a = Fixnum::from(42);
+    Object* b = Fixnum::from(71);
+    stack_push(a);
+    stack_push(b);
+
+    TS_ASSERT(!instructions::goto_if_equal(call_frame));
   }
 
   void test_goto_if_false() {
