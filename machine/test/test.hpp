@@ -11,36 +11,69 @@
 #include "metrics.hpp"
 #include "machine/detection.hpp"
 #include "machine/memory/immix_marker.hpp"
+#include "class/executable.hpp"
+#include "class/method_table.hpp"
 #include "class/thread.hpp"
 
 #include <cxxtest/TestSuite.h>
 
 using namespace rubinius;
 
-// Initial attempt at creating Mock objects that behave like Array but
-// do not descend from it. Needed for testing cast_for_multi_block_arg.
-//class RespondsToToaryReturnsNil : public Object {
-//public:
-//  static RespondsToToaryReturnsNil* create(STATE, native_int size) {
-//    RespondsToToaryReturnsNil* ary = state->memory()->new_object<RespondsToToaryReturnsNil>(state, G(array));
-//
-//    return ary;
-//  }
-//
-//  Object* respond_to(STATE, Symbol* name, Object* priv) {
-//    printf("called respond_to\n");
-//    return cTrue;
-//  }
-//
-//  static void to_ary(STATE, Object* value) {
-//  }
-//};
-//
-//class RespondsToToaryReturnsNonarray : public Array {
-//  Fixnum* to_ary(STATE, Object* value) {
-//    return Fixnum::from(42);
-//  }
-//};
+class RespondToToAry {
+public:
+  template <class T>
+    static Object* create(STATE) {
+      Class* klass = Class::create(state, G(object));
+
+      Symbol* to_ary_sym = state->symbol("to_ary");
+      Executable* to_ary = Executable::allocate(state, cNil);
+      to_ary->primitive(state, to_ary_sym);
+      to_ary->set_executor(T::to_ary);
+
+      klass->method_table()->store(state, to_ary_sym, nil<String>(), to_ary,
+          nil<LexicalScope>(), Fixnum::from(0), G(sym_public));
+
+      Object* obj = state->memory()->new_object<Object>(state, klass);
+
+      return obj;
+    }
+};
+
+class RespondToToAryReturnNull : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnNull>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return nullptr;
+  }
+};
+
+class RespondToToAryReturnArray : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnArray>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, Fixnum::from(42));
+
+    return ary;
+  }
+};
+
+class RespondToToAryReturnNonArray : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnNonArray>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return Fixnum::from(42);
+  }
+};
 
 class VMTest {
 public:
