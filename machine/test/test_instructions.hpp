@@ -1730,12 +1730,13 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    String* str = String::create(state, "blah");
+    stack_push(str);
 
-    // TODO: instructions
-    // instructions::string_dup(state, call_frame);
+    TS_ASSERT(instructions::string_dup(state, call_frame));
 
-    TS_ASSERT(true);
+    String* dup = (String*) stack_pop();
+    TS_ASSERT_EQUALS(dup->data(), str->data());
   }
 
   void test_swap() {
