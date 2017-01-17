@@ -1204,10 +1204,14 @@ public:
     setup_call_frame(call_frame, scope, 1);
 
     Exception::internal_error(state, "forced an exception for testing purposes");
+    Exception* exc = state->vm()->thread_state()->current_exception();
 
     instructions::push_current_exception(state, call_frame);
 
-    TS_ASSERT(kind_of<Exception>(stack_pop()));
+    Exception* res = try_as<Exception>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, exc);
   }
 
   void test_push_exception_state() {
