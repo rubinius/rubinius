@@ -1002,11 +1002,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::noop();
 
-    // TODO: instructions
-    // instructions::noop();
-
+    // no op does not do anything
     TS_ASSERT(true);
   }
 
@@ -1024,18 +1022,58 @@ public:
     TS_ASSERT(literal);
   }
 
-  void test_passed_arg() {
+  void test_passed_arg_no_args() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
-    intptr_t index = reinterpret_cast<intptr_t>(cNil);
+    intptr_t index = reinterpret_cast<intptr_t>(0L);
 
-    // TODO: instructions
-    // instructions::passed_arg(state, call_frame, index);
+    TS_ASSERT(!instructions::passed_arg(state, call_frame, index));
+    // TODO: test for raised exception too
+  }
 
-    TS_ASSERT(index);
+  void test_passed_arg_two_args_matches() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* a = Fixnum::from(42);
+    Object* b = Fixnum::from(42);
+    Object* static_args[2] = { a, b };
+    Arguments args(state->symbol("blah"), 2, static_args);
+
+    call_frame->arguments = &args;
+
+    intptr_t index = reinterpret_cast<intptr_t>(1L);
+
+    TS_ASSERT(instructions::passed_arg(state, call_frame, index));
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cTrue);
+  }
+
+  void test_passed_arg_one_arg_no_match() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* a = Fixnum::from(42);
+    Object* static_args[1] = { a };
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+
+    intptr_t index = reinterpret_cast<intptr_t>(1L);
+
+    TS_ASSERT(instructions::passed_arg(state, call_frame, index));
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cFalse);
   }
 
   void test_passed_blockarg() {
