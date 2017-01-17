@@ -1137,12 +1137,14 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    scope->set_block(BlockEnvironment::allocate(state));
+    call_frame->scope = scope;
 
-    // TODO: instructions
-    // instructions::push_block(state, call_frame);
+    Object** stack_ptr = STACK_PTR;
+    instructions::push_block(state, call_frame);
 
-    TS_ASSERT(true);
+    // assert that the stack pointer advanced by one
+    TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
   }
 
   void test_push_block_arg() {
