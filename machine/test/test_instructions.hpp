@@ -1844,17 +1844,44 @@ public:
     TS_ASSERT(!type);
   }
 
-  void test_shift_array() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+  void test_shift_array_empty() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Array* original = Array::create(state, 0);
+    stack_push(original);
 
-    // TODO: instructions
-    // instructions::shift_array(state, call_frame);
+    instructions::shift_array(state, call_frame);
 
-    TS_ASSERT(true);
+    Object* shifted_value = stack_pop();
+    Array* ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(shifted_value);
+    TS_ASSERT_EQUALS(shifted_value, cNil);
+    TS_ASSERT(ary);
+    TS_ASSERT_EQUALS(ary->size(), 0);
+  }
+
+  void test_shift_array_has_elements() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Array* original = Array::create(state, 2);
+    original->set(state, 0, Fixnum::from(42));
+    original->set(state, 1, Fixnum::from(71));
+    stack_push(original);
+
+    instructions::shift_array(state, call_frame);
+
+    Object* shifted_value = stack_pop();
+    Array* ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(shifted_value);
+    TS_ASSERT_EQUALS(shifted_value, Fixnum::from(42));
+    TS_ASSERT(ary);
+    TS_ASSERT_EQUALS(ary->size(), 1);
   }
 
   void test_store_my_field() {
