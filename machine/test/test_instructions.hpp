@@ -1147,17 +1147,31 @@ public:
     TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
   }
 
-  void test_push_block_arg() {
+  void test_push_block_arg_no_args() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    TS_ASSERT(!instructions::push_block_arg(state, call_frame));
+    // TODO: assert that instruction throws exception
+  }
 
-    // TODO: instructions
-    // instructions::push_block_arg(state, call_frame);
+  void test_push_block_arg_good_arg() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
-    TS_ASSERT(true);
+    Object* block = BlockEnvironment::allocate(state);
+    Arguments args(state->symbol("blah"), cNil, block);
+
+    call_frame->arguments = &args;
+
+    Object** stack_ptr = STACK_PTR;
+
+    TS_ASSERT(instructions::push_block_arg(state, call_frame));
+
+    TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
+    TS_ASSERT_EQUALS(stack_pop()->class_object(state), BlockEnvironment::allocate(state)->class_object(state));
   }
 
   void test_push_const() {
