@@ -1219,12 +1219,15 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Exception::internal_error(state, "forced an exception for testing purposes");
+    ThreadState* exc = state->vm()->thread_state()->state_as_object(state);
 
-    // TODO: instructions
-    // instructions::push_exception_state(state, call_frame);
+    instructions::push_exception_state(state, call_frame);
 
-    TS_ASSERT(true);
+    ThreadState* res = try_as<ThreadState>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res->current_exception(), exc->current_exception());
   }
 
   void test_push_false() {
