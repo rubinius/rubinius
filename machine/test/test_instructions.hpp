@@ -1899,16 +1899,22 @@ public:
   }
 
   void test_string_append() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    String* final_string = String::create(state, "rubinius");
+    String* s1 = String::create(state, "rubini");
+    String* s2 = String::create(state, "us");
+    stack_push(s2);
+    stack_push(s1);
 
-    // TODO: instructions
-    // instructions::string_append(state, call_frame);
+    instructions::string_append(state, call_frame);
 
-    TS_ASSERT(true);
+    String* string = try_as<String>(stack_pop());
+
+    TS_ASSERT(string);
+    TS_ASSERT_EQUALS(string->equal(state, final_string), cTrue);
   }
 
   void test_string_build() {
