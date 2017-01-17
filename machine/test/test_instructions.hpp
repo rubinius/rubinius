@@ -1821,16 +1821,19 @@ public:
   }
 
   void test_swap() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Object* a = Fixnum::from(42);
+    Object* b = Fixnum::from(71);
+    stack_push(a);
+    stack_push(b);
 
-    // TODO: instructions
-    // instructions::swap(call_frame);
+    instructions::swap(call_frame);
 
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), a);
+    TS_ASSERT_EQUALS(stack_pop(), b);
   }
 
   void test_yield_debugger() {
