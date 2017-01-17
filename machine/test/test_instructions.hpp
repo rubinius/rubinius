@@ -917,17 +917,38 @@ public:
     TS_ASSERT(count);
   }
 
-  void test_kind_of() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+  void test_kind_of_arg_match() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Fixnum* a = Fixnum::from(42);
+    stack_push(a->class_object(state));
+    stack_push(a);
 
-    // TODO: instructions
-    // instructions::kind_of(state, call_frame);
+    instructions::kind_of(state, call_frame);
 
-    TS_ASSERT(true);
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cTrue);
+  }
+
+  void test_kind_of_arg_mismatch() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Fixnum* a = Fixnum::from(42);
+    stack_push(cNil->class_object(state));
+    stack_push(a);
+
+    instructions::kind_of(state, call_frame);
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cFalse);
   }
 
   void test_make_array() {
