@@ -1095,26 +1095,28 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
+    void* stack_ptr = STACK_PTR;
     stack_push(cNil);
 
-    // TODO: instructions
-    // instructions::pop(call_frame);
+    instructions::pop(call_frame);
 
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
   }
 
   void test_pop_many() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(3);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
+    void* stack_ptr = STACK_PTR;
     stack_push(cNil);
-    intptr_t count = reinterpret_cast<intptr_t>(cNil);
+    stack_push(cNil);
+    stack_push(cNil);
+    intptr_t count = reinterpret_cast<intptr_t>(3L);
 
-    // TODO: instructions
-    // instructions::pop_many(call_frame, count);
+    instructions::pop_many(call_frame, count);
 
-    TS_ASSERT(count);
+    TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
   }
 
   void test_pop_unwind() {
