@@ -1193,12 +1193,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::push_cpath_top(state, call_frame);
 
-    // TODO: instructions
-    // instructions::push_cpath_top(state, call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop()->class_object(state), G(object)->class_object(state));
   }
 
   void test_push_current_exception() {
