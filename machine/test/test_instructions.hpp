@@ -952,17 +952,26 @@ public:
   }
 
   void test_make_array() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(3);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
+    Fixnum* a = Fixnum::from(42);
+    Fixnum* b = Fixnum::from(71);
+    stack_push(a);
     stack_push(cNil);
-    intptr_t count = 2;
+    stack_push(b);
+    intptr_t count = 3;
 
-    // TODO: instructions
-    // instructions::make_array(state, call_frame, count);
+    instructions::make_array(state, call_frame, count);
 
-    TS_ASSERT(count);
+    Array* ary = try_as<Array>(stack_pop());
+
+    TS_ASSERT(ary);
+    TS_ASSERT_EQUALS(ary->size(), 3);
+    TS_ASSERT_EQUALS(ary->get(state, 0), a);
+    TS_ASSERT_EQUALS(ary->get(state, 1), cNil);
+    TS_ASSERT_EQUALS(ary->get(state, 2), b);
   }
 
   void test_move_down() {
