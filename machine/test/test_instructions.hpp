@@ -1357,12 +1357,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::push_mirror(state, call_frame);
 
-    // TODO: instructions
-    // instructions::push_mirror(state, call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), G(mirror));
   }
 
   void test_push_my_field() {
@@ -1421,12 +1418,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::push_rubinius(state, call_frame);
 
-    // TODO: instructions
-    // instructions::push_rubinius(state, call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), G(rubinius));
   }
 
   void test_push_scope() {
@@ -1434,12 +1428,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::push_scope(call_frame);
 
-    // TODO: instructions
-    // instructions::push_scope(call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), call_frame->lexical_scope());
   }
 
   void test_push_self() {
@@ -1447,12 +1438,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::push_self(call_frame);
 
-    // TODO: instructions
-    // instructions::push_self(call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), call_frame->self());
   }
 
   void test_push_stack_local() {
@@ -1484,12 +1472,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::push_type(state, call_frame);
 
-    // TODO: instructions
-    // instructions::push_type(state, call_frame);
-
-    TS_ASSERT(true);
+    TS_ASSERT_EQUALS(stack_pop(), G(type));
   }
 
   void test_push_undef() {
