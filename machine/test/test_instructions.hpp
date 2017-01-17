@@ -1095,7 +1095,7 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    void* stack_ptr = STACK_PTR;
+    Object** stack_ptr = STACK_PTR;
     stack_push(cNil);
 
     instructions::pop(call_frame);
@@ -1108,7 +1108,7 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    void* stack_ptr = STACK_PTR;
+    Object** stack_ptr = STACK_PTR;
     stack_push(cNil);
     stack_push(cNil);
     stack_push(cNil);
