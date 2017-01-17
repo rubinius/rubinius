@@ -975,17 +975,26 @@ public:
   }
 
   void test_move_down() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(4);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
-    intptr_t positions = reinterpret_cast<intptr_t>(cNil);
+    Fixnum* a = Fixnum::from(0);
+    Fixnum* b = Fixnum::from(1);
+    Fixnum* c = Fixnum::from(2);
+    Fixnum* d = Fixnum::from(3);
+    stack_push(a);
+    stack_push(b);
+    stack_push(c);
+    stack_push(d);
+    intptr_t positions = reinterpret_cast<intptr_t>(2L);
 
-    // TODO: instructions
-    // instructions::move_down(call_frame, positions);
+    instructions::move_down(call_frame, positions);
 
-    TS_ASSERT(positions);
+    TS_ASSERT_EQUALS(stack_pop(), c);
+    TS_ASSERT_EQUALS(stack_pop(), b);
+    TS_ASSERT_EQUALS(stack_pop(), d);
+    TS_ASSERT_EQUALS(stack_pop(), a);
   }
 
   void test_noop() {
