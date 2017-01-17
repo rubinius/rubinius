@@ -1240,17 +1240,27 @@ public:
     TS_ASSERT_EQUALS(stack_pop(), cFalse);
   }
 
-  void test_push_has_block() {
+  void test_push_has_block_false() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    instructions::push_has_block(call_frame);
 
-    // TODO: instructions
-    // instructions::push_has_block(call_frame);
+    TS_ASSERT_EQUALS(stack_pop(), cFalse);
+  }
 
-    TS_ASSERT(true);
+  void test_push_has_block_true() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    scope->set_block(BlockEnvironment::allocate(state));
+    call_frame->scope = scope;
+
+    instructions::push_has_block(call_frame);
+
+    TS_ASSERT_EQUALS(stack_pop(), cTrue);
   }
 
   void test_push_int() {
