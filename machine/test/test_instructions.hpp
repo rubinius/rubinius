@@ -867,17 +867,38 @@ public:
     TS_ASSERT(!instructions::goto_if_undefined(state, call_frame));
   }
 
-  void test_instance_of() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+  void test_instance_of_args_match() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Fixnum* a = Fixnum::from(42);
+    stack_push(a->class_object(state));
+    stack_push(a);
 
-    // TODO: instructions
-    // instructions::instance_of(state, call_frame);
+    instructions::instance_of(state, call_frame);
 
-    TS_ASSERT(true);
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cTrue);
+  }
+
+  void test_instance_of_args_mismatch() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Fixnum* a = Fixnum::from(42);
+    stack_push(cNil->class_object(state));
+    stack_push(a);
+
+    instructions::instance_of(state, call_frame);
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cFalse);
   }
 
   void test_invoke_primitive() {
