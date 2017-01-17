@@ -1203,12 +1203,11 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Exception::internal_error(state, "forced an exception for testing purposes");
 
-    // TODO: instructions
-    // instructions::push_current_exception(state, call_frame);
+    instructions::push_current_exception(state, call_frame);
 
-    TS_ASSERT(true);
+    TS_ASSERT(kind_of<Exception>(stack_pop()));
   }
 
   void test_push_exception_state() {
