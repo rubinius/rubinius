@@ -1280,18 +1280,13 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    // FIXME: not sure how this would work. The instruction calls
-    // call_frame->self()->get_ivar(state, sym) to fetch the ivar,
-    // but call_frame->self() refers to the +scope+ which is a
-    // StackVariables pointer. That class doesn't inherit from
-    // Object so it doesn't have any ivar storage nor does it
-    // have the +get_ivar()+ method on it.
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+    Symbol* sym = state->symbol("@blah");
+    scope->self()->set_ivar(state, sym, cTrue);
+    intptr_t literal = reinterpret_cast<intptr_t>(sym);
 
-    // TODO: instructions
-    // instructions::push_ivar(state, call_frame, literal);
+    instructions::push_ivar(state, call_frame, literal);
 
-    TS_ASSERT(literal);
+    TS_ASSERT_EQUALS(stack_pop(), cTrue);
   }
 
   void test_push_literal() {
