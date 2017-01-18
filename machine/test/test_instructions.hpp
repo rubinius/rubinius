@@ -403,28 +403,34 @@ public:
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
   }
 
-  void test_cast_for_splat_block_arg_single_non_array_toary_arg() {
+  void test_cast_for_splat_block_arg_single_non_array_toary_arg_null() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    // TODO: figure out how to mock a non-Array object that responds
-    // correctly to respond_to(:to_ary)
-    //Object** static_args = new Object*[1];
-    //static_args[0] = Fixnum::from(42);
-    //Arguments args(state->symbol("blah"), 1, static_args);
+    Object* obj = RespondToToAryReturnNull::create(state);
+    Object* static_args[1] = { obj };
+    Arguments args(state->symbol("blah"), 1, static_args);
 
-    //call_frame->arguments = &args;
+    call_frame->arguments = &args;
 
-    instructions::cast_for_splat_block_arg(state, call_frame);
+    TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+  }
 
-    //Array *ary = try_as<Array>(stack_pop());
+  void test_cast_for_splat_block_arg_single_non_array_toary_arg_nonary() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
 
-    TS_ASSERT(true);
-    //TS_ASSERT(ary);
-    //TS_ASSERT(kind_of<Array>(ary));
-    //TS_ASSERT_EQUALS(ary->size(), 1);
-    //TS_Assert(kind_of<Array>(ary->get(state, 0)));
+    Object* obj = RespondToToAryReturnFixnum::create(state);
+    Object* static_args[1] = { obj };
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+
+    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
+    TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
   }
 
   void test_cast_for_splat_block_arg_multi_non_array_args() {
@@ -514,13 +520,10 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
+    Object* obj = RespondToToAryReturnNull::create(state);
+    stack_push(obj);
 
-    // TODO: push an arg that is a non-Array that responds to :to_ary
-    // but does not return a valid array
-    //TS_ASSERT(!instructions::cast_multi_value(state, call_frame));
-
-    TS_ASSERT(true);
+    TS_ASSERT(!instructions::cast_multi_value(state, call_frame));
   }
 
   void test_check_frozen_raising() {
@@ -1029,8 +1032,9 @@ public:
 
     intptr_t index = reinterpret_cast<intptr_t>(0L);
 
+    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
     TS_ASSERT(!instructions::passed_arg(state, call_frame, index));
-    // TODO: test for raised exception too
+    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
   }
 
   void test_passed_arg_two_args_matches() {
@@ -1152,8 +1156,9 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
+    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
     TS_ASSERT(!instructions::push_block_arg(state, call_frame));
-    // TODO: assert that instruction throws exception
+    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
   }
 
   void test_push_block_arg_good_arg() {
