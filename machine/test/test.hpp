@@ -50,6 +50,17 @@ public:
   }
 };
 
+class RespondToToAryReturnFixnum : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnFixnum>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return Fixnum::from(42);
+  }
+};
+
 class RespondToToAryReturnArray : public RespondToToAry {
 public:
   static Object* create(STATE) {
