@@ -109,6 +109,17 @@ public:
     cf->arguments = NULL;
   }
 
+  CompiledCode* setup_compiled_code(int iseq_length, int arg_length) {
+    CompiledCode* code = CompiledCode::create(state);
+
+    code->iseq(state, InstructionSequence::create(state, iseq_length));
+    code->total_args(state, Fixnum::from(arg_length));
+    code->required_args(state, code->total_args());
+    code->post_args(state, code->total_args());
+
+    return code;
+  }
+
   // TODO: Fix this
   void initialize_as_root(VM* vm) {
     vm->set_current_thread();
