@@ -1056,12 +1056,12 @@ public:
     TS_ASSERT(literal);
   }
 
-  // TODO: passed_arg instruction accesses call_frame->machine_code
-  void xtest_passed_arg_no_args() {
+  void test_passed_arg_no_args() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
+    call_frame->arguments = nullptr;
     intptr_t index = reinterpret_cast<intptr_t>(0L);
 
     TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
@@ -1069,18 +1069,21 @@ public:
     TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
   }
 
-  // TODO: passed_arg instruction accesses call_frame->machine_code
-  void xtest_passed_arg_two_args_matches() {
+  void test_passed_arg_two_args_matches() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
+    // initialize some complex structures to mock
+    CompiledCode* code = setup_compiled_code(0, 0);
+    MachineCode* mcode = new MachineCode(state, code);
+
     Object* a = Fixnum::from(42);
-    Object* b = Fixnum::from(42);
-    Object* static_args[2] = { a, b };
+    Object* static_args[2] = { a, a };
     Arguments args(state->symbol("blah"), 2, static_args);
 
     call_frame->arguments = &args;
+    call_frame->machine_code = mcode;
 
     intptr_t index = reinterpret_cast<intptr_t>(1L);
 
@@ -1092,19 +1095,23 @@ public:
     TS_ASSERT_EQUALS(res, cTrue);
   }
 
-  // TODO: passed_arg instruction accesses call_frame->machine_code
-  void xtest_passed_arg_one_arg_no_match() {
+  void test_passed_arg_one_arg_no_match() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
+    // initialize some complex structures to mock
+    CompiledCode* code = setup_compiled_code(0, 0);
+    MachineCode* mcode = new MachineCode(state, code);
+
     Object* a = Fixnum::from(42);
-    Object* static_args[1] = { a };
-    Arguments args(state->symbol("blah"), 1, static_args);
+    Object* static_args[2] = { a, a };
+    Arguments args(state->symbol("blah"), 2, static_args);
 
     call_frame->arguments = &args;
+    call_frame->machine_code = mcode;
 
-    intptr_t index = reinterpret_cast<intptr_t>(1L);
+    intptr_t index = reinterpret_cast<intptr_t>(3L);
 
     TS_ASSERT(instructions::passed_arg(state, call_frame, index));
 
