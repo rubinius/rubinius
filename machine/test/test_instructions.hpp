@@ -566,20 +566,51 @@ public:
     TS_ASSERT_EQUALS(state->vm()->metrics().machine.checkpoints, checkpoints+1);
   }
 
-  void test_check_serial() {
+  void test_check_serial_ret_true() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(1);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-    intptr_t serial = reinterpret_cast<intptr_t>(cNil);
+    Object* recv = RespondToToAryReturnArray::create(state);
+    Symbol* sym_literal = state->symbol("to_ary");
+    CallSite* call_site = CallSite::create(state, sym_literal, 0);
+    scope->initialize(recv, nullptr, nullptr, 0);
 
-    // TODO: instructions
-    // instructions::check_serial(state, call_frame, literal, serial);
+    // set call frame so instruction will use it to process
+    state->vm()->set_call_frame(call_frame);
+    stack_push(recv);
+    intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+    intptr_t serial = reinterpret_cast<intptr_t>(0L);
 
-    TS_ASSERT(literal);
-    TS_ASSERT(serial);
+    instructions::check_serial(state, call_frame, literal, serial);
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cTrue);
+  }
+
+  void test_check_serial_ret_false() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(1);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* recv = RespondToToAryReturnArray::create(state);
+    Symbol* sym_literal = state->symbol("to_ary");
+    CallSite* call_site = CallSite::create(state, sym_literal, 0);
+    scope->initialize(recv, nullptr, nullptr, 0);
+
+    state->vm()->set_call_frame(call_frame);
+    stack_push(recv);
+    intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+    intptr_t serial = reinterpret_cast<intptr_t>(1L); // will cause mismatch
+
+    instructions::check_serial(state, call_frame, literal, serial);
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cFalse);
   }
 
   void test_check_serial_private() {
