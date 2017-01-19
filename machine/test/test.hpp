@@ -116,6 +116,7 @@ public:
     code->total_args(state, Fixnum::from(arg_length));
     code->required_args(state, code->total_args());
     code->post_args(state, code->total_args());
+    code->stack_size(state, Fixnum::from(0));
 
     return code;
   }
