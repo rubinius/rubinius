@@ -680,13 +680,17 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+    CompiledCode* code = setup_compiled_code(0, 0);
+    call_frame->compiled_code = code;
+    intptr_t literal = reinterpret_cast<intptr_t>(code);
+    state->vm()->set_call_frame(call_frame);
 
-    // TODO: instructions
-    // instructions::create_block(state, call_frame, literal);
+    instructions::create_block(state, call_frame, literal);
 
-    TS_ASSERT(literal);
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT(kind_of<BlockEnvironment>(res));
   }
 
   void test_dup() {
