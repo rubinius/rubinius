@@ -112,11 +112,18 @@ public:
   CompiledCode* setup_compiled_code(int iseq_length, int arg_length) {
     CompiledCode* code = CompiledCode::create(state);
 
-    code->iseq(state, InstructionSequence::create(state, iseq_length));
+    Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
+    code->literals(state, tup);
+
+    // Need a valid stream of instructions terminated with a return in order
+    // to pass the byte verifier
+    code->iseq(state, InstructionSequence::create(state, 2));
+    code->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_nil));
+    code->iseq()->opcodes()->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
+    code->stack_size(state, Fixnum::from(10));
     code->total_args(state, Fixnum::from(arg_length));
     code->required_args(state, code->total_args());
     code->post_args(state, code->total_args());
-    code->stack_size(state, Fixnum::from(0));
 
     return code;
   }
