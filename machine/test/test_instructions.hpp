@@ -1155,18 +1155,56 @@ public:
     TS_ASSERT_EQUALS(res, cFalse);
   }
 
-  void test_passed_blockarg() {
+  void test_passed_blockarg_noarg() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    stack_push(cNil);
-    intptr_t count = reinterpret_cast<intptr_t>(cNil);
+    intptr_t count = reinterpret_cast<intptr_t>(1L);
 
-    // TODO: instructions
-    // instructions::passed_blockarg(state, call_frame, count);
+    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
+    TS_ASSERT(!instructions::passed_blockarg(state, call_frame, count));
+    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+  }
 
-    TS_ASSERT(count);
+  void test_passed_blockarg_arg_count_matches() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* a = Fixnum::from(42);
+    Object* static_args[1] = { a };
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    call_frame->arguments = &args;
+    intptr_t count = reinterpret_cast<intptr_t>(1L);
+
+    TS_ASSERT(instructions::passed_blockarg(state, call_frame, count));
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cTrue);
+  }
+
+  void test_passed_blockarg_arg_count_mismatch() {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
+    setup_call_frame(call_frame, scope, 1);
+
+    Object* a = Fixnum::from(42);
+    Object* static_args[2] = { a, a };
+    Arguments args(state->symbol("blah"), 2, static_args);
+
+    call_frame->arguments = &args;
+    intptr_t count = reinterpret_cast<intptr_t>(1L);
+
+    TS_ASSERT(instructions::passed_blockarg(state, call_frame, count));
+
+    Object* res = reinterpret_cast<Object*>(stack_pop());
+
+    TS_ASSERT(res);
+    TS_ASSERT_EQUALS(res, cFalse);
   }
 
   void test_pop() {
