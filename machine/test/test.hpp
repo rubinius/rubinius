@@ -109,25 +109,6 @@ public:
     cf->arguments = NULL;
   }
 
-  CompiledCode* setup_compiled_code(int arg_length) {
-    CompiledCode* code = CompiledCode::create(state);
-
-    Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
-    code->literals(state, tup);
-
-    // Need a valid stream of instructions terminated with a return in order
-    // to pass the byte verifier
-    code->iseq(state, InstructionSequence::create(state, 2));
-    code->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_nil));
-    code->iseq()->opcodes()->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
-    code->stack_size(state, Fixnum::from(10));
-    code->total_args(state, Fixnum::from(arg_length));
-    code->required_args(state, code->total_args());
-    code->post_args(state, code->total_args());
-
-    return code;
-  }
-
   // TODO: Fix this
   void initialize_as_root(VM* vm) {
     vm->set_current_thread();

@@ -1,3 +1,5 @@
+#include <functional>
+
 #include "machine/test/test.hpp"
 
 #include "call_frame.hpp"
@@ -113,2004 +115,2025 @@ public:
     destroy();
   }
 
+  typedef std::function<void (STATE, CallFrame*)> InstructionTest;
+
+#define lambda [] (STATE, CallFrame* call_frame)
+
+  CompiledCode* setup_compiled_code(int arg_length) {
+    CompiledCode* code = CompiledCode::create(state);
+
+    Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
+    code->literals(state, tup);
+
+    // Need a valid stream of instructions terminated with a return in order
+    // to pass the byte verifier
+    code->iseq(state, InstructionSequence::create(state, 2));
+    code->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_nil));
+    code->iseq()->opcodes()->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
+    code->stack_size(state, Fixnum::from(10));
+    code->total_args(state, Fixnum::from(arg_length));
+    code->required_args(state, code->total_args());
+    code->post_args(state, code->total_args());
+
+    return code;
+  }
+
+  void interpreter(int stack, int vars, InstructionTest test) {
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(stack);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(vars);
+    setup_call_frame(call_frame, scope, stack);
+
+    call_frame->compiled_code = setup_compiled_code(0);
+    call_frame->machine_code = new MachineCode(state, call_frame->compiled_code);
+
+    test(state, call_frame);
+  }
+
   void test_add_scope() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(Module::create(state));
 
-    stack_push(Module::create(state));
+      instructions::add_scope(state, call_frame);
 
-    instructions::add_scope(state, call_frame);
+      TS_ASSERT(instance_of<LexicalScope>(call_frame->lexical_scope_));
+    };
 
-    TS_ASSERT(instance_of<LexicalScope>(call_frame->lexical_scope_));
+    interpreter(1, 0, test);
   }
 
   void test_allow_private() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      instructions::allow_private();
 
-    instructions::allow_private();
+      // There is no effect to this instruction so this assertion merely
+      // records that the call was made successfully.
+      TS_ASSERT(true);
+    };
 
-    // There is no effect to this instruction so this assertion merely records
-    // that the call was made successfully.
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_cast_array_nil() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      instructions::cast_array(state, call_frame);
 
-    instructions::cast_array(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 0);
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 0);
+    interpreter(1, 0, test);
   }
 
   void test_cast_array_tuple() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Tuple* tuple = Tuple::create(state, 0);
 
-    Tuple* tuple = Tuple::create(state, 0);
+      stack_push(tuple);
 
-    stack_push(tuple);
+      instructions::cast_array(state, call_frame);
 
-    instructions::cast_array(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 0);
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 0);
+    interpreter(1, 0, test);
   }
 
   void test_cast_array_array() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Array* original = Array::create(state, 0);
 
-    Array* original = Array::create(state, 0);
+      stack_push(original);
 
-    stack_push(original);
+      instructions::cast_array(state, call_frame);
 
-    instructions::cast_array(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 0);
+      TS_ASSERT_EQUALS(ary, original);
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 0);
-    TS_ASSERT_EQUALS(ary, original);
+    interpreter(1, 0, test);
   }
 
   void test_cast_array_non_array_no_to_ary() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(Fixnum::from(42));
 
-    stack_push(Fixnum::from(42));
+      TS_ASSERT_THROWS(instructions::cast_array(state, call_frame),
+          const RubyException &);
+    };
 
-    TS_ASSERT_THROWS(instructions::cast_array(state, call_frame),
-        const RubyException &);
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_array_arg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** static_args = new Object*[1];
+      Array* original = Array::create(state, 1);
+      original->set(state, 0, Fixnum::from(42));
+      static_args[0] = original;
 
-    Object** static_args = new Object*[1];
-    Array* original = Array::create(state, 1);
-    original->set(state, 0, Fixnum::from(42));
-    static_args[0] = original;
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_multi_block_arg(state, call_frame);
 
-    instructions::cast_for_multi_block_arg(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 1);
+      TS_ASSERT_EQUALS(ary, original);
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 1);
-    TS_ASSERT_EQUALS(ary, original);
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** static_args = new Object*[1];
+      static_args[0] = Fixnum::from(42);
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object** static_args = new Object*[1];
-    static_args[0] = Fixnum::from(42);
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_multi_block_arg(state, call_frame);
 
-    instructions::cast_for_multi_block_arg(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 1);
+      TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 1);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg_toary_null() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* obj = RespondToToAryReturnNull::create(state);
+      Object* static_args[1] = { obj };
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object* obj = RespondToToAryReturnNull::create(state);
-    Object* static_args[1] = { obj };
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      TS_ASSERT(!instructions::cast_for_multi_block_arg(state, call_frame));
+    };
 
-    TS_ASSERT(!instructions::cast_for_multi_block_arg(state, call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg_toary_array() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* obj = RespondToToAryReturnArray::create(state);
+      Object* static_args[1] = { obj };
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object* obj = RespondToToAryReturnArray::create(state);
-    Object* static_args[1] = { obj };
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_multi_block_arg(state, call_frame);
 
-    instructions::cast_for_multi_block_arg(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 1);
+      TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 1);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_multi_block_arg_multi_fields_not_lambda_single_non_array_arg_toary_non_array() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* obj = RespondToToAryReturnNonArray::create(state);
+      Object* static_args[1] = { obj };
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object* obj = RespondToToAryReturnNonArray::create(state);
-    Object* static_args[1] = { obj };
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      TS_ASSERT(!instructions::cast_for_multi_block_arg(state, call_frame));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-    TS_ASSERT(!instructions::cast_for_multi_block_arg(state, call_frame));
-    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_multi_block_arg_multi_fields_is_lambda() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
-    call_frame->flags |= CallFrame::cIsLambda;
+    InstructionTest test = lambda {
+      call_frame->flags |= CallFrame::cIsLambda;
 
-    Object** static_args = new Object*[2];
-    static_args[0] = Fixnum::from(42);
-    static_args[1] = Fixnum::from(71);
-    Arguments args(state->symbol("blah"), 2, static_args);
+      Object** static_args = new Object*[2];
+      static_args[0] = Fixnum::from(42);
+      static_args[1] = Fixnum::from(71);
+      Arguments args(state->symbol("blah"), 2, static_args);
 
-    call_frame->arguments = &args;
+      call_frame->arguments = &args;
 
-    instructions::cast_for_multi_block_arg(state, call_frame);
+      instructions::cast_for_multi_block_arg(state, call_frame);
 
-    Array *ary = try_as<Array>(stack_pop());
+      Array *ary = try_as<Array>(stack_pop());
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 2);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
-    TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 2);
+      TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+      TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
+    };
+
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_single_block_arg_no_args() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
-    Arguments args(state->symbol("blah"));
-    call_frame->arguments = &args;
+    InstructionTest test = lambda {
+      Arguments args(state->symbol("blah"));
+      call_frame->arguments = &args;
 
-    instructions::cast_for_single_block_arg(state, call_frame);
+      instructions::cast_for_single_block_arg(state, call_frame);
 
-    TS_ASSERT_EQUALS(stack_pop(), cNil);
+      TS_ASSERT_EQUALS(stack_pop(), cNil);
+    };
+
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_single_block_arg_single_field() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** static_arg = new Object*[1];
+      static_arg[0] = Fixnum::from(42);
+      Arguments args(state->symbol("blah"), 1, static_arg);
 
-    Object** static_arg = new Object*[1];
-    static_arg[0] = Fixnum::from(42);
-    Arguments args(state->symbol("blah"), 1, static_arg);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_single_block_arg(state, call_frame);
 
-    instructions::cast_for_single_block_arg(state, call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_single_block_arg_multi_field() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** static_args = new Object*[2];
+      static_args[0] = Fixnum::from(42);
+      static_args[1] = Fixnum::from(71);
+      Arguments args(state->symbol("blah"), 2, static_args);
 
-    Object** static_args = new Object*[2];
-    static_args[0] = Fixnum::from(42);
-    static_args[1] = Fixnum::from(71);
-    Arguments args(state->symbol("blah"), 2, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_single_block_arg(state, call_frame);
 
-    instructions::cast_for_single_block_arg(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 2);
+      TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+      TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 2);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
-    TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_splat_block_arg_no_args() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-    TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
-    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_splat_block_arg_single_non_array_arg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** static_args = new Object*[1];
+      static_args[0] = Fixnum::from(42);
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object** static_args = new Object*[1];
-    static_args[0] = Fixnum::from(42);
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_splat_block_arg(state, call_frame);
 
-    instructions::cast_for_splat_block_arg(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 1);
+      TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 1);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_splat_block_arg_single_non_array_toary_arg_null() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* obj = RespondToToAryReturnNull::create(state);
+      Object* static_args[1] = { obj };
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object* obj = RespondToToAryReturnNull::create(state);
-    Object* static_args[1] = { obj };
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+    };
 
-    TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_splat_block_arg_single_non_array_toary_arg_nonary() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* obj = RespondToToAryReturnFixnum::create(state);
+      Object* static_args[1] = { obj };
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object* obj = RespondToToAryReturnFixnum::create(state);
-    Object* static_args[1] = { obj };
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
+      TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
-    TS_ASSERT(!instructions::cast_for_splat_block_arg(state, call_frame));
-    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_splat_block_arg_multi_non_array_args() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** static_args = new Object*[2];
+      static_args[0] = Fixnum::from(42);
+      static_args[1] = Fixnum::from(71);
+      Arguments args(state->symbol("blah"), 2, static_args);
 
-    Object** static_args = new Object*[2];
-    static_args[0] = Fixnum::from(42);
-    static_args[1] = Fixnum::from(71);
-    Arguments args(state->symbol("blah"), 2, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_splat_block_arg(state, call_frame);
 
-    instructions::cast_for_splat_block_arg(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 2);
+      TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+      TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 2);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
-    TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(71));
+    interpreter(1, 0, test);
   }
 
   void test_cast_for_splat_block_arg_single_array_arg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** static_args = new Object*[2];
+      Array* original = Array::create(state, 1);
+      original->set(state, 0, Fixnum::from(42));
+      static_args[0] = original;
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object** static_args = new Object*[2];
-    Array* original = Array::create(state, 1);
-    original->set(state, 0, Fixnum::from(42));
-    static_args[0] = original;
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      instructions::cast_for_splat_block_arg(state, call_frame);
 
-    instructions::cast_for_splat_block_arg(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 1);
+      TS_ASSERT_EQUALS(ary->get(state, 0), original);
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 1);
-    TS_ASSERT_EQUALS(ary->get(state, 0), original);
+    interpreter(1, 0, test);
   }
 
   void test_cast_multi_value_single_array() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Array* original = Array::create(state, 1);
+      original->set(state, 0, Fixnum::from(42));
+      stack_push(original);
 
-    Array* original = Array::create(state, 1);
-    original->set(state, 0, Fixnum::from(42));
-    stack_push(original);
+      instructions::cast_multi_value(state, call_frame);
 
-    instructions::cast_multi_value(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 1);
+      TS_ASSERT_EQUALS(ary, original);
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 1);
-    TS_ASSERT_EQUALS(ary, original);
+    interpreter(1, 0, test);
   }
 
   void test_cast_multi_value_single_arg_no_toary() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(Fixnum::from(42));
 
-    stack_push(Fixnum::from(42));
+      instructions::cast_multi_value(state, call_frame);
 
-    instructions::cast_multi_value(state, call_frame);
+      Array *ary = try_as<Array>(stack_pop());
 
-    Array *ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT(kind_of<Array>(ary));
+      TS_ASSERT_EQUALS(ary->size(), 1);
+      TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT(kind_of<Array>(ary));
-    TS_ASSERT_EQUALS(ary->size(), 1);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(42));
+    interpreter(1, 0, test);
   }
 
   void test_cast_multi_value_single_arg_toary_nil() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* obj = RespondToToAryReturnNull::create(state);
+      stack_push(obj);
 
-    Object* obj = RespondToToAryReturnNull::create(state);
-    stack_push(obj);
+      TS_ASSERT(!instructions::cast_multi_value(state, call_frame));
+    };
 
-    TS_ASSERT(!instructions::cast_multi_value(state, call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_check_frozen_raising() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Array* ary = Array::create(state, 0);
+      ary->freeze(state);
 
-    Array* ary = Array::create(state, 0);
-    ary->freeze(state);
+      stack_push(ary);
 
-    stack_push(ary);
+      TS_ASSERT(!instructions::check_frozen(state, call_frame));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-    TS_ASSERT(!instructions::check_frozen(state, call_frame));
-    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    interpreter(1, 0, test);
   }
 
   void test_check_frozen_non_raising() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Array* ary = Array::create(state, 0);
 
-    Array* ary = Array::create(state, 0);
+      stack_push(ary);
 
-    stack_push(ary);
+      TS_ASSERT(instructions::check_frozen(state, call_frame));
+      TS_ASSERT_EQUALS(stack_pop(), ary);
+    };
 
-    TS_ASSERT(instructions::check_frozen(state, call_frame));
-
-    TS_ASSERT_EQUALS(stack_pop(), ary);
+    interpreter(1, 0, test);
   }
 
   void test_check_interrupts() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      int checkpoints = state->vm()->metrics().machine.checkpoints;
 
-    int checkpoints = state->vm()->metrics().machine.checkpoints;
+      instructions::check_interrupts(state);
 
-    instructions::check_interrupts(state);
+      TS_ASSERT_EQUALS(state->vm()->metrics().machine.checkpoints, checkpoints+1);
+    };
 
-    TS_ASSERT_EQUALS(state->vm()->metrics().machine.checkpoints, checkpoints+1);
+    interpreter(1, 0, test);
   }
 
   void test_check_serial_ret_true() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(1);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
 
-    Object* recv = RespondToToAryReturnArray::create(state);
-    Symbol* sym_literal = state->symbol("to_ary");
-    CallSite* call_site = CallSite::create(state, sym_literal, 0);
-    scope->initialize(recv, nullptr, nullptr, 0);
+      // set call frame so instruction will use it to process
+      state->vm()->set_call_frame(call_frame);
+      stack_push(recv);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+      intptr_t serial = reinterpret_cast<intptr_t>(0L);
 
-    // set call frame so instruction will use it to process
-    state->vm()->set_call_frame(call_frame);
-    stack_push(recv);
-    intptr_t literal = reinterpret_cast<intptr_t>(call_site);
-    intptr_t serial = reinterpret_cast<intptr_t>(0L);
+      instructions::check_serial(state, call_frame, literal, serial);
 
-    instructions::check_serial(state, call_frame, literal, serial);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cTrue);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cTrue);
+    interpreter(1, 1, test);
   }
 
   void test_check_serial_ret_false() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(1);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
 
-    Object* recv = RespondToToAryReturnArray::create(state);
-    Symbol* sym_literal = state->symbol("to_ary");
-    CallSite* call_site = CallSite::create(state, sym_literal, 0);
-    scope->initialize(recv, nullptr, nullptr, 0);
+      state->vm()->set_call_frame(call_frame);
+      stack_push(recv);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+      intptr_t serial = reinterpret_cast<intptr_t>(1L); // will cause mismatch
 
-    state->vm()->set_call_frame(call_frame);
-    stack_push(recv);
-    intptr_t literal = reinterpret_cast<intptr_t>(call_site);
-    intptr_t serial = reinterpret_cast<intptr_t>(1L); // will cause mismatch
+      instructions::check_serial(state, call_frame, literal, serial);
 
-    instructions::check_serial(state, call_frame, literal, serial);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cFalse);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cFalse);
+    interpreter(1, 1, test);
   }
 
   void test_check_serial_private_ret_true() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
 
-    Object* recv = RespondToToAryReturnArray::create(state);
-    Symbol* sym_literal = state->symbol("to_ary");
-    CallSite* call_site = CallSite::create(state, sym_literal, 0);
-    scope->initialize(recv, nullptr, nullptr, 0);
+      state->vm()->set_call_frame(call_frame);
+      stack_push(recv);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+      intptr_t serial = reinterpret_cast<intptr_t>(0L);
 
-    state->vm()->set_call_frame(call_frame);
-    stack_push(recv);
-    intptr_t literal = reinterpret_cast<intptr_t>(call_site);
-    intptr_t serial = reinterpret_cast<intptr_t>(0L);
+      instructions::check_serial_private(state, call_frame, literal, serial);
 
-    instructions::check_serial_private(state, call_frame, literal, serial);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cTrue);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cTrue);
+    interpreter(1, 0, test);
   }
 
   void test_check_serial_private_ret_false() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
 
-    Object* recv = RespondToToAryReturnArray::create(state);
-    Symbol* sym_literal = state->symbol("to_ary");
-    CallSite* call_site = CallSite::create(state, sym_literal, 0);
-    scope->initialize(recv, nullptr, nullptr, 0);
+      state->vm()->set_call_frame(call_frame);
+      stack_push(recv);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+      intptr_t serial = reinterpret_cast<intptr_t>(1L);
 
-    state->vm()->set_call_frame(call_frame);
-    stack_push(recv);
-    intptr_t literal = reinterpret_cast<intptr_t>(call_site);
-    intptr_t serial = reinterpret_cast<intptr_t>(1L);
+      instructions::check_serial_private(state, call_frame, literal, serial);
 
-    instructions::check_serial_private(state, call_frame, literal, serial);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cFalse);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cFalse);
+    interpreter(1, 0, test);
   }
 
   void test_clear_exception() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      object_type type = ClassType;
+      Object* obj = G(object);
+      Exception::make_type_error(state, type, obj);
 
-    object_type type = ClassType;
-    Object* obj = G(object);
-    Exception::make_type_error(state, type, obj);
+      TS_ASSERT(state->vm()->thread_state()->current_exception());
 
-    TS_ASSERT(state->vm()->thread_state()->current_exception());
+      instructions::clear_exception(state);
 
-    instructions::clear_exception(state);
+      TS_ASSERT_EQUALS(state->vm()->thread_state()->current_exception(), cNil);
+    };
 
-    TS_ASSERT_EQUALS(state->vm()->thread_state()->current_exception(), cNil);
+    interpreter(1, 0, test);
   }
 
   void test_create_block() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      intptr_t literal = reinterpret_cast<intptr_t>(call_frame->compiled_code);
+      state->vm()->set_call_frame(call_frame);
 
-    CompiledCode* code = setup_compiled_code(0);
-    call_frame->compiled_code = code;
-    intptr_t literal = reinterpret_cast<intptr_t>(code);
-    state->vm()->set_call_frame(call_frame);
+      instructions::create_block(state, call_frame, literal);
 
-    instructions::create_block(state, call_frame, literal);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<BlockEnvironment>(res));
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT(kind_of<BlockEnvironment>(res));
+    interpreter(1, 0, test);
   }
 
   void test_dup() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(Fixnum::from(42));
 
-    stack_push(Fixnum::from(42));
+      instructions::dup(call_frame);
 
-    instructions::dup(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+      TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
-    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+    interpreter(2, 0, test);
   }
 
   void test_dup_many() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(4);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* b = Fixnum::from(71);
+      stack_push(a);
+      stack_push(b);
+      intptr_t count = reinterpret_cast<intptr_t>(2L);
 
-    Object* a = Fixnum::from(42);
-    Object* b = Fixnum::from(71);
-    stack_push(a);
-    stack_push(b);
-    intptr_t count = reinterpret_cast<intptr_t>(2L);
+      instructions::dup_many(call_frame, count);
 
-    instructions::dup_many(call_frame, count);
+      TS_ASSERT_EQUALS(stack_pop(), b);
+      TS_ASSERT_EQUALS(stack_pop(), a);
+      TS_ASSERT_EQUALS(stack_pop(), b);
+      TS_ASSERT_EQUALS(stack_pop(), a);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), b);
-    TS_ASSERT_EQUALS(stack_pop(), a);
-    TS_ASSERT_EQUALS(stack_pop(), b);
-    TS_ASSERT_EQUALS(stack_pop(), a);
+    interpreter(4, 0, test);
   }
 
   void test_ensure_return() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::ensure_return(state, call_frame);
 
-    // TODO: instructions
-    // instructions::ensure_return(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_find_const() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::find_const(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::find_const(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_goto() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::goto_(call_frame);
 
-    // TODO: instructions
-    // instructions::goto_(call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_equal_both_equal() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      stack_push(a);
+      stack_push(a);
 
-    Object* a = Fixnum::from(42);
-    stack_push(a);
-    stack_push(a);
+      TS_ASSERT(instructions::goto_if_equal(call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_equal(call_frame));
+    interpreter(2, 0, test);
   }
 
   void test_goto_if_equal_not_equal() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* b = Fixnum::from(71);
+      stack_push(a);
+      stack_push(b);
 
-    Object* a = Fixnum::from(42);
-    Object* b = Fixnum::from(71);
-    stack_push(a);
-    stack_push(b);
+      TS_ASSERT(!instructions::goto_if_equal(call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_equal(call_frame));
+    interpreter(2, 0, test);
   }
 
   void test_goto_if_false_push_false() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cFalse);
 
-    stack_push(cFalse);
+      TS_ASSERT(instructions::goto_if_false(call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_false(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_false_push_true() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cTrue);
 
-    stack_push(cTrue);
+      TS_ASSERT(!instructions::goto_if_false(call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_false(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_nil_push_nil() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      TS_ASSERT(instructions::goto_if_nil(call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_nil(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_nil_push_non_nil() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cTrue);
 
-    stack_push(cTrue);
+      TS_ASSERT(!instructions::goto_if_nil(call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_nil(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_not_equal_both_equal() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      stack_push(a);
+      stack_push(a);
 
-    Object* a = Fixnum::from(42);
-    stack_push(a);
-    stack_push(a);
+      TS_ASSERT(!instructions::goto_if_not_equal(call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_not_equal(call_frame));
+    interpreter(2, 0, test);
   }
 
   void test_goto_if_not_equal_both_not_equal() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* b = Fixnum::from(71);
+      stack_push(a);
+      stack_push(b);
 
-    Object* a = Fixnum::from(42);
-    Object* b = Fixnum::from(71);
-    stack_push(a);
-    stack_push(b);
+      TS_ASSERT(instructions::goto_if_not_equal(call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_not_equal(call_frame));
+    interpreter(2, 0, test);
   }
 
   void test_goto_if_not_nil_nil_arg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      TS_ASSERT(!instructions::goto_if_not_nil(call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_not_nil(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_not_nil_non_nil_arg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(Fixnum::from(42));
 
-    stack_push(Fixnum::from(42));
+      TS_ASSERT(instructions::goto_if_not_nil(call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_not_nil(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_not_undefined_arg_undefined() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(G(undefined));
 
-    stack_push(G(undefined));
+      TS_ASSERT(!instructions::goto_if_not_undefined(state, call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_not_undefined(state, call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_not_undefined_arg_not_undefined() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      TS_ASSERT(instructions::goto_if_not_undefined(state, call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_not_undefined(state, call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_true_arg_true() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cTrue);
 
-    stack_push(cTrue);
+      TS_ASSERT(instructions::goto_if_true(call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_true(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_true_arg_false() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cFalse);
 
-    stack_push(cFalse);
+      TS_ASSERT(!instructions::goto_if_true(call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_true(call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_undefined_arg_undefined() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(G(undefined));
 
-    stack_push(G(undefined));
+      TS_ASSERT(instructions::goto_if_undefined(state, call_frame));
+    };
 
-    TS_ASSERT(instructions::goto_if_undefined(state, call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_goto_if_undefined_arg_defined() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      TS_ASSERT(!instructions::goto_if_undefined(state, call_frame));
+    };
 
-    TS_ASSERT(!instructions::goto_if_undefined(state, call_frame));
+    interpreter(1, 0, test);
   }
 
   void test_instance_of_args_match() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Fixnum* a = Fixnum::from(42);
+      stack_push(a->class_object(state));
+      stack_push(a);
 
-    Fixnum* a = Fixnum::from(42);
-    stack_push(a->class_object(state));
-    stack_push(a);
+      instructions::instance_of(state, call_frame);
 
-    instructions::instance_of(state, call_frame);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cTrue);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cTrue);
+    interpreter(2, 0, test);
   }
 
   void test_instance_of_args_mismatch() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Fixnum* a = Fixnum::from(42);
+      stack_push(cNil->class_object(state));
+      stack_push(a);
 
-    Fixnum* a = Fixnum::from(42);
-    stack_push(cNil->class_object(state));
-    stack_push(a);
+      instructions::instance_of(state, call_frame);
 
-    instructions::instance_of(state, call_frame);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cFalse);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cFalse);
+    interpreter(2, 0, test);
   }
 
   void test_invoke_primitive() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      intptr_t count = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-    intptr_t count = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::invoke_primitive(state, call_frame, literal, count);
 
-    // TODO: instructions
-    // instructions::invoke_primitive(state, call_frame, literal, count);
+      TS_ASSERT(literal);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(literal);
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_kind_of_arg_match() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Fixnum* a = Fixnum::from(42);
+      stack_push(a->class_object(state));
+      stack_push(a);
 
-    Fixnum* a = Fixnum::from(42);
-    stack_push(a->class_object(state));
-    stack_push(a);
+      instructions::kind_of(state, call_frame);
 
-    instructions::kind_of(state, call_frame);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cTrue);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cTrue);
+    interpreter(2, 0, test);
   }
 
   void test_kind_of_arg_mismatch() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Fixnum* a = Fixnum::from(42);
+      stack_push(cNil->class_object(state));
+      stack_push(a);
 
-    Fixnum* a = Fixnum::from(42);
-    stack_push(cNil->class_object(state));
-    stack_push(a);
+      instructions::kind_of(state, call_frame);
 
-    instructions::kind_of(state, call_frame);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cFalse);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cFalse);
+    interpreter(2, 0, test);
   }
 
   void test_make_array() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(3);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Fixnum* a = Fixnum::from(42);
+      Fixnum* b = Fixnum::from(71);
+      stack_push(a);
+      stack_push(cNil);
+      stack_push(b);
+      intptr_t count = 3;
 
-    Fixnum* a = Fixnum::from(42);
-    Fixnum* b = Fixnum::from(71);
-    stack_push(a);
-    stack_push(cNil);
-    stack_push(b);
-    intptr_t count = 3;
+      instructions::make_array(state, call_frame, count);
 
-    instructions::make_array(state, call_frame, count);
+      Array* ary = try_as<Array>(stack_pop());
 
-    Array* ary = try_as<Array>(stack_pop());
+      TS_ASSERT(ary);
+      TS_ASSERT_EQUALS(ary->size(), 3);
+      TS_ASSERT_EQUALS(ary->get(state, 0), a);
+      TS_ASSERT_EQUALS(ary->get(state, 1), cNil);
+      TS_ASSERT_EQUALS(ary->get(state, 2), b);
+    };
 
-    TS_ASSERT(ary);
-    TS_ASSERT_EQUALS(ary->size(), 3);
-    TS_ASSERT_EQUALS(ary->get(state, 0), a);
-    TS_ASSERT_EQUALS(ary->get(state, 1), cNil);
-    TS_ASSERT_EQUALS(ary->get(state, 2), b);
+    interpreter(3, 0, test);
   }
 
   void test_move_down() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(4);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Fixnum* a = Fixnum::from(0);
+      Fixnum* b = Fixnum::from(1);
+      Fixnum* c = Fixnum::from(2);
+      Fixnum* d = Fixnum::from(3);
+      stack_push(a);
+      stack_push(b);
+      stack_push(c);
+      stack_push(d);
+      intptr_t positions = reinterpret_cast<intptr_t>(2L);
 
-    Fixnum* a = Fixnum::from(0);
-    Fixnum* b = Fixnum::from(1);
-    Fixnum* c = Fixnum::from(2);
-    Fixnum* d = Fixnum::from(3);
-    stack_push(a);
-    stack_push(b);
-    stack_push(c);
-    stack_push(d);
-    intptr_t positions = reinterpret_cast<intptr_t>(2L);
+      instructions::move_down(call_frame, positions);
 
-    instructions::move_down(call_frame, positions);
+      TS_ASSERT_EQUALS(stack_pop(), c);
+      TS_ASSERT_EQUALS(stack_pop(), b);
+      TS_ASSERT_EQUALS(stack_pop(), d);
+      TS_ASSERT_EQUALS(stack_pop(), a);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), c);
-    TS_ASSERT_EQUALS(stack_pop(), b);
-    TS_ASSERT_EQUALS(stack_pop(), d);
-    TS_ASSERT_EQUALS(stack_pop(), a);
+    interpreter(4, 0, test);
   }
 
   void test_noop() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::noop();
 
-    instructions::noop();
+      // no op does not do anything
+      TS_ASSERT(true);
+    };
 
-    // no op does not do anything
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_object_to_s() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::object_to_s(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::object_to_s(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_passed_arg_no_args() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      call_frame->arguments = nullptr;
+      intptr_t index = reinterpret_cast<intptr_t>(0L);
 
-    call_frame->arguments = nullptr;
-    intptr_t index = reinterpret_cast<intptr_t>(0L);
+      TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
+      TS_ASSERT(!instructions::passed_arg(state, call_frame, index));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
-    TS_ASSERT(!instructions::passed_arg(state, call_frame, index));
-    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    interpreter(1, 0, test);
   }
 
   void test_passed_arg_two_args_matches() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* static_args[2] = { a, a };
+      Arguments args(state->symbol("blah"), 2, static_args);
 
-    // initialize some complex structures to mock
-    CompiledCode* code = setup_compiled_code(0);
-    MachineCode* mcode = new MachineCode(state, code);
+      call_frame->arguments = &args;
 
-    Object* a = Fixnum::from(42);
-    Object* static_args[2] = { a, a };
-    Arguments args(state->symbol("blah"), 2, static_args);
+      intptr_t index = reinterpret_cast<intptr_t>(1L);
 
-    call_frame->arguments = &args;
-    call_frame->machine_code = mcode;
+      TS_ASSERT(instructions::passed_arg(state, call_frame, index));
 
-    intptr_t index = reinterpret_cast<intptr_t>(1L);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    TS_ASSERT(instructions::passed_arg(state, call_frame, index));
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cTrue);
+    };
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
-
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cTrue);
+    interpreter(1, 0, test);
   }
 
   void test_passed_arg_one_arg_no_match() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* static_args[2] = { a, a };
+      Arguments args(state->symbol("blah"), 2, static_args);
 
-    // initialize some complex structures to mock
-    CompiledCode* code = setup_compiled_code(0);
-    MachineCode* mcode = new MachineCode(state, code);
+      call_frame->arguments = &args;
 
-    Object* a = Fixnum::from(42);
-    Object* static_args[2] = { a, a };
-    Arguments args(state->symbol("blah"), 2, static_args);
+      intptr_t index = reinterpret_cast<intptr_t>(3L);
 
-    call_frame->arguments = &args;
-    call_frame->machine_code = mcode;
+      TS_ASSERT(instructions::passed_arg(state, call_frame, index));
 
-    intptr_t index = reinterpret_cast<intptr_t>(3L);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    TS_ASSERT(instructions::passed_arg(state, call_frame, index));
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cFalse);
+    };
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
-
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cFalse);
+    interpreter(1, 0, test);
   }
 
   void test_passed_blockarg_noarg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      intptr_t count = reinterpret_cast<intptr_t>(1L);
 
-    intptr_t count = reinterpret_cast<intptr_t>(1L);
+      TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
+      TS_ASSERT(!instructions::passed_blockarg(state, call_frame, count));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
-    TS_ASSERT(!instructions::passed_blockarg(state, call_frame, count));
-    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    interpreter(1, 0, test);
   }
 
   void test_passed_blockarg_arg_count_matches() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* static_args[1] = { a };
+      Arguments args(state->symbol("blah"), 1, static_args);
 
-    Object* a = Fixnum::from(42);
-    Object* static_args[1] = { a };
-    Arguments args(state->symbol("blah"), 1, static_args);
+      call_frame->arguments = &args;
+      intptr_t count = reinterpret_cast<intptr_t>(1L);
 
-    call_frame->arguments = &args;
-    intptr_t count = reinterpret_cast<intptr_t>(1L);
+      TS_ASSERT(instructions::passed_blockarg(state, call_frame, count));
 
-    TS_ASSERT(instructions::passed_blockarg(state, call_frame, count));
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cTrue);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cTrue);
+    interpreter(1, 0, test);
   }
 
   void test_passed_blockarg_arg_count_mismatch() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* static_args[2] = { a, a };
+      Arguments args(state->symbol("blah"), 2, static_args);
 
-    Object* a = Fixnum::from(42);
-    Object* static_args[2] = { a, a };
-    Arguments args(state->symbol("blah"), 2, static_args);
+      call_frame->arguments = &args;
+      intptr_t count = reinterpret_cast<intptr_t>(1L);
 
-    call_frame->arguments = &args;
-    intptr_t count = reinterpret_cast<intptr_t>(1L);
+      TS_ASSERT(instructions::passed_blockarg(state, call_frame, count));
 
-    TS_ASSERT(instructions::passed_blockarg(state, call_frame, count));
+      Object* res = reinterpret_cast<Object*>(stack_pop());
 
-    Object* res = reinterpret_cast<Object*>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cFalse);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, cFalse);
+    interpreter(1, 0, test);
   }
 
   void test_pop() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** stack_ptr = STACK_PTR;
+      stack_push(cNil);
 
-    Object** stack_ptr = STACK_PTR;
-    stack_push(cNil);
+      instructions::pop(call_frame);
 
-    instructions::pop(call_frame);
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
+    };
 
-    TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
+    interpreter(1, 0, test);
   }
 
   void test_pop_many() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(3);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object** stack_ptr = STACK_PTR;
+      stack_push(cNil);
+      stack_push(cNil);
+      stack_push(cNil);
+      intptr_t count = reinterpret_cast<intptr_t>(3L);
 
-    Object** stack_ptr = STACK_PTR;
-    stack_push(cNil);
-    stack_push(cNil);
-    stack_push(cNil);
-    intptr_t count = reinterpret_cast<intptr_t>(3L);
+      instructions::pop_many(call_frame, count);
 
-    instructions::pop_many(call_frame, count);
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
+    };
 
-    TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
+    interpreter(3, 0, test);
   }
 
   void test_pop_unwind() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::pop_unwind(state, call_frame);
 
-    // TODO: instructions
-    // instructions::pop_unwind(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_push_block() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      call_frame->scope->set_block(BlockEnvironment::allocate(state));
 
-    scope->set_block(BlockEnvironment::allocate(state));
-    call_frame->scope = scope;
+      Object** stack_ptr = STACK_PTR;
+      instructions::push_block(state, call_frame);
 
-    Object** stack_ptr = STACK_PTR;
-    instructions::push_block(state, call_frame);
+      // assert that the stack pointer advanced by one
+      TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
+    };
 
-    // assert that the stack pointer advanced by one
-    TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
+    interpreter(1, 0, test);
   }
 
   void test_push_block_arg_no_args() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
+      TS_ASSERT(!instructions::push_block_arg(state, call_frame));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-    TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
-    TS_ASSERT(!instructions::push_block_arg(state, call_frame));
-    TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    interpreter(1, 0, test);
   }
 
   void test_push_block_arg_good_arg() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* block = BlockEnvironment::allocate(state);
+      Arguments args(state->symbol("blah"), cNil, block);
 
-    Object* block = BlockEnvironment::allocate(state);
-    Arguments args(state->symbol("blah"), cNil, block);
+      call_frame->arguments = &args;
 
-    call_frame->arguments = &args;
+      Object** stack_ptr = STACK_PTR;
 
-    Object** stack_ptr = STACK_PTR;
+      TS_ASSERT(instructions::push_block_arg(state, call_frame));
 
-    TS_ASSERT(instructions::push_block_arg(state, call_frame));
+      TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
+      TS_ASSERT_EQUALS(stack_pop()->class_object(state), BlockEnvironment::allocate(state)->class_object(state));
+    };
 
-    TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
-    TS_ASSERT_EQUALS(stack_pop()->class_object(state), BlockEnvironment::allocate(state)->class_object(state));
+    interpreter(1, 0, test);
   }
 
   void test_push_const() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::push_const(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::push_const(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_push_cpath_top() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_cpath_top(state, call_frame);
 
-    instructions::push_cpath_top(state, call_frame);
+      TS_ASSERT_EQUALS(stack_pop()->class_object(state), G(object)->class_object(state));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop()->class_object(state), G(object)->class_object(state));
+    interpreter(1, 0, test);
   }
 
   void test_push_current_exception() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Exception::internal_error(state, "forced an exception for testing purposes");
+      Exception* exc = state->vm()->thread_state()->current_exception();
 
-    Exception::internal_error(state, "forced an exception for testing purposes");
-    Exception* exc = state->vm()->thread_state()->current_exception();
+      instructions::push_current_exception(state, call_frame);
 
-    instructions::push_current_exception(state, call_frame);
+      Exception* res = try_as<Exception>(stack_pop());
 
-    Exception* res = try_as<Exception>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, exc);
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res, exc);
+    interpreter(1, 0, test);
   }
 
   void test_push_exception_state() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Exception::internal_error(state, "forced an exception for testing purposes");
+      ThreadState* exc = state->vm()->thread_state()->state_as_object(state);
 
-    Exception::internal_error(state, "forced an exception for testing purposes");
-    ThreadState* exc = state->vm()->thread_state()->state_as_object(state);
+      instructions::push_exception_state(state, call_frame);
 
-    instructions::push_exception_state(state, call_frame);
+      ThreadState* res = try_as<ThreadState>(stack_pop());
 
-    ThreadState* res = try_as<ThreadState>(stack_pop());
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res->current_exception(), exc->current_exception());
+    };
 
-    TS_ASSERT(res);
-    TS_ASSERT_EQUALS(res->current_exception(), exc->current_exception());
+    interpreter(1, 0, test);
   }
 
   void test_push_false() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_false(call_frame);
 
-    instructions::push_false(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), cFalse);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), cFalse);
+    interpreter(1, 0, test);
   }
 
   void test_push_has_block_false() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_has_block(call_frame);
 
-    instructions::push_has_block(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), cFalse);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), cFalse);
+    interpreter(1, 0, test);
   }
 
   void test_push_has_block_true() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      call_frame->scope->set_block(BlockEnvironment::allocate(state));
 
-    scope->set_block(BlockEnvironment::allocate(state));
-    call_frame->scope = scope;
+      instructions::push_has_block(call_frame);
 
-    instructions::push_has_block(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), cTrue);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), cTrue);
+    interpreter(1, 0, test);
   }
 
   void test_push_int() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      intptr_t number = reinterpret_cast<intptr_t>(Fixnum::from(42));
 
-    intptr_t number = reinterpret_cast<intptr_t>(Fixnum::from(42));
+      instructions::push_int(call_frame, number);
 
-    instructions::push_int(call_frame, number);
+      TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), Fixnum::from(42));
+    interpreter(1, 0, test);
   }
 
   void test_push_ivar() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Symbol* sym = state->symbol("@blah");
+      call_frame->scope->self()->set_ivar(state, sym, cTrue);
+      intptr_t literal = reinterpret_cast<intptr_t>(sym);
 
-    Symbol* sym = state->symbol("@blah");
-    scope->self()->set_ivar(state, sym, cTrue);
-    intptr_t literal = reinterpret_cast<intptr_t>(sym);
+      instructions::push_ivar(state, call_frame, literal);
 
-    instructions::push_ivar(state, call_frame, literal);
+      TS_ASSERT_EQUALS(stack_pop(), cTrue);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), cTrue);
+    interpreter(1, 0, test);
   }
 
   void test_push_literal() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::push_literal(call_frame, literal);
 
-    // TODO: instructions
-    // instructions::push_literal(call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_push_local() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t local = 0;
 
-    stack_push(cNil);
-    intptr_t local = 0;
+      // TODO: instructions
+      // instructions::push_local(call_frame, local);
 
-    // TODO: instructions
-    // instructions::push_local(call_frame, local);
+      TS_ASSERT(!local);
+    };
 
-    TS_ASSERT(!local);
+    interpreter(1, 0, test);
   }
 
   void test_push_local_depth() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t depth = 0;
+      intptr_t index = 0;
 
-    stack_push(cNil);
-    intptr_t depth = 0;
-    intptr_t index = 0;
+      // TODO: instructions
+      // instructions::push_local_depth(state, call_frame, depth, index);
 
-    // TODO: instructions
-    // instructions::push_local_depth(state, call_frame, depth, index);
+      TS_ASSERT(!depth);
+      TS_ASSERT(!index);
+    };
 
-    TS_ASSERT(!depth);
-    TS_ASSERT(!index);
+    interpreter(1, 0, test);
   }
 
   void test_push_memo() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::push_memo(call_frame, literal);
 
-    // TODO: instructions
-    // instructions::push_memo(call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_push_mirror() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_mirror(state, call_frame);
 
-    instructions::push_mirror(state, call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), G(mirror));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), G(mirror));
+    interpreter(1, 0, test);
   }
 
   void test_push_my_field() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t index = 0;
 
-    stack_push(cNil);
-    intptr_t index = 0;
+      // TODO: instructions
+      // instructions::push_my_field(state, call_frame, index);
 
-    // TODO: instructions
-    // instructions::push_my_field(state, call_frame, index);
+      TS_ASSERT(!index);
+    };
 
-    TS_ASSERT(!index);
+    interpreter(1, 0, test);
   }
 
   void test_push_my_offset() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t index = 0;
 
-    stack_push(cNil);
-    intptr_t index = 0;
+      // TODO: instructions
+      // instructions::push_my_offset(call_frame, index);
 
-    // TODO: instructions
-    // instructions::push_my_offset(call_frame, index);
+      TS_ASSERT(!index);
+    };
 
-    TS_ASSERT(!index);
+    interpreter(1, 0, test);
   }
 
   void test_push_nil() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_nil(call_frame);
 
-    instructions::push_nil(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), cNil);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), cNil);
+    interpreter(1, 0, test);
   }
 
   void test_push_proc() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::push_proc(state, call_frame);
 
-    // TODO: instructions
-    // instructions::push_proc(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_push_rubinius() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_rubinius(state, call_frame);
 
-    instructions::push_rubinius(state, call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), G(rubinius));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), G(rubinius));
+    interpreter(1, 0, test);
   }
 
   void test_push_scope() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_scope(call_frame);
 
-    instructions::push_scope(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), call_frame->lexical_scope());
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), call_frame->lexical_scope());
+    interpreter(1, 0, test);
   }
 
   void test_push_self() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_self(call_frame);
 
-    instructions::push_self(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), call_frame->self());
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), call_frame->self());
+    interpreter(1, 0, test);
   }
 
   void test_push_stack_local() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t which = 0;
 
-    stack_push(cNil);
-    intptr_t which = 0;
+      // TODO: instructions
+      // instructions::push_stack_local(call_frame, which);
 
-    // TODO: instructions
-    // instructions::push_stack_local(call_frame, which);
+      TS_ASSERT(!which);
+    };
 
-    TS_ASSERT(!which);
+    interpreter(1, 0, test);
   }
 
   void test_push_true() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_true(call_frame);
 
-    instructions::push_true(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), cTrue);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), cTrue);
+    interpreter(1, 0, test);
   }
 
   void test_push_type() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_type(state, call_frame);
 
-    instructions::push_type(state, call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), G(type));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), G(type));
+    interpreter(1, 0, test);
   }
 
   void test_push_undef() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      instructions::push_undef(state, call_frame);
 
-    instructions::push_undef(state, call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), G(undefined));
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), G(undefined));
+    interpreter(1, 0, test);
   }
 
   void test_push_variables() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::push_variables(state, call_frame);
 
-    // TODO: instructions
-    // instructions::push_variables(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_raise_break() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::raise_break(state, call_frame);
 
-    // TODO: instructions
-    // instructions::raise_break(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_raise_exc() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::raise_exc(state, call_frame);
 
-    // TODO: instructions
-    // instructions::raise_exc(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_raise_return() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::raise_return(state, call_frame);
 
-    // TODO: instructions
-    // instructions::raise_return(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_reraise() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::reraise(state, call_frame);
 
-    // TODO: instructions
-    // instructions::reraise(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_restore_exception_state() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::restore_exception_state(state, call_frame);
 
-    // TODO: instructions
-    // instructions::restore_exception_state(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_ret() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::ret(state, call_frame);
 
-    // TODO: instructions
-    // instructions::ret(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_rotate() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t count = 2;
 
-    stack_push(cNil);
-    intptr_t count = 2;
+      // TODO: instructions
+      // instructions::rotate(call_frame, count);
 
-    // TODO: instructions
-    // instructions::rotate(call_frame, count);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_run_exception() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::run_exception(state, call_frame);
 
-    // TODO: instructions
-    // instructions::run_exception(state, call_frame);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_send_method() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::send_method(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::send_method(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_send_stack() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      intptr_t count = 1;
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-    intptr_t count = 1;
+      // TODO: instructions
+      // instructions::send_stack(state, call_frame, literal, count);
 
-    // TODO: instructions
-    // instructions::send_stack(state, call_frame, literal, count);
+      TS_ASSERT(literal);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(literal);
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_send_stack_with_block() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      intptr_t count = 1;
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-    intptr_t count = 1;
+      // TODO: instructions
+      // instructions::send_stack_with_block(state, call_frame, literal, count);
 
-    // TODO: instructions
-    // instructions::send_stack_with_block(state, call_frame, literal, count);
+      TS_ASSERT(literal);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(literal);
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_send_stack_with_splat() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      intptr_t count = 1;
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-    intptr_t count = 1;
+      // TODO: instructions
+      // instructions::send_stack_with_splat(state, call_frame, literal, count);
 
-    // TODO: instructions
-    // instructions::send_stack_with_splat(state, call_frame, literal, count);
+      TS_ASSERT(literal);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(literal);
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_send_super_stack_with_block() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      intptr_t count = 1;
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-    intptr_t count = 1;
+      // TODO: instructions
+      // instructions::send_super_stack_with_block(state, call_frame, literal, count);
 
-    // TODO: instructions
-    // instructions::send_super_stack_with_block(state, call_frame, literal, count);
+      TS_ASSERT(literal);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(literal);
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_send_super_stack_with_splat() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      intptr_t count = 1;
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-    intptr_t count = 1;
+      // TODO: instructions
+      // instructions::send_super_stack_with_splat(state, call_frame, literal, count);
 
-    // TODO: instructions
-    // instructions::send_super_stack_with_splat(state, call_frame, literal, count);
+      TS_ASSERT(literal);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(literal);
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_send_vcall() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::send_vcall(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::send_vcall(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_set_call_flags() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t flags = 0;
 
-    stack_push(cNil);
-    intptr_t flags = 0;
+      // TODO: instructions
+      // instructions::set_call_flags(call_frame);
 
-    // TODO: instructions
-    // instructions::set_call_flags(call_frame);
+      TS_ASSERT(!flags);
+    };
 
-    TS_ASSERT(!flags);
+    interpreter(1, 0, test);
   }
 
   void test_set_const() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::set_const(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::set_const(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_set_const_at() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::set_const_at(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::set_const_at(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_set_ivar() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::set_ivar(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::set_ivar(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 
   void test_set_local() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t local = 0;
 
-    stack_push(cNil);
-    intptr_t local = 0;
+      // TODO: instructions
+      // instructions::set_local(call_frame, local);
 
-    // TODO: instructions
-    // instructions::set_local(call_frame, local);
+      TS_ASSERT(!local);
+    };
 
-    TS_ASSERT(!local);
+    interpreter(1, 0, test);
   }
 
   void test_set_local_depth() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t depth = 0;
+      intptr_t index = 0;
 
-    stack_push(cNil);
-    intptr_t depth = 0;
-    intptr_t index = 0;
+      // TODO: instructions
+      // instructions::set_local_depth(state, call_frame, depth, index);
 
-    // TODO: instructions
-    // instructions::set_local_depth(state, call_frame, depth, index);
+      TS_ASSERT(!depth);
+      TS_ASSERT(!index);
+    };
 
-    TS_ASSERT(!depth);
-    TS_ASSERT(!index);
+    interpreter(1, 0, test);
   }
 
   void test_set_stack_local() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t which = 0;
 
-    stack_push(cNil);
-    intptr_t which = 0;
+      // TODO: instructions
+      // instructions::set_stack_local(call_frame, which);
 
-    // TODO: instructions
-    // instructions::set_stack_local(call_frame, which);
+      TS_ASSERT(!which);
+    };
 
-    TS_ASSERT(!which);
+    interpreter(1, 0, test);
   }
 
   void test_setup_unwind() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t ip = 0;
+      intptr_t type = 0;
 
-    stack_push(cNil);
-    intptr_t ip = 0;
-    intptr_t type = 0;
+      // TODO: instructions
+      // instructions::setup_unwind(call_frame, ip, type);
 
-    // TODO: instructions
-    // instructions::setup_unwind(call_frame, ip, type);
+      TS_ASSERT(!ip);
+      TS_ASSERT(!type);
+    };
 
-    TS_ASSERT(!ip);
-    TS_ASSERT(!type);
+    interpreter(1, 0, test);
   }
 
   void test_shift_array_empty() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Array* original = Array::create(state, 0);
+      stack_push(original);
 
-    Array* original = Array::create(state, 0);
-    stack_push(original);
+      instructions::shift_array(state, call_frame);
 
-    instructions::shift_array(state, call_frame);
+      Object* shifted_value = stack_pop();
+      Array* ary = try_as<Array>(stack_pop());
 
-    Object* shifted_value = stack_pop();
-    Array* ary = try_as<Array>(stack_pop());
+      TS_ASSERT(shifted_value);
+      TS_ASSERT_EQUALS(shifted_value, cNil);
+      TS_ASSERT(ary);
+      TS_ASSERT_EQUALS(ary->size(), 0);
+    };
 
-    TS_ASSERT(shifted_value);
-    TS_ASSERT_EQUALS(shifted_value, cNil);
-    TS_ASSERT(ary);
-    TS_ASSERT_EQUALS(ary->size(), 0);
+    interpreter(2, 0, test);
   }
 
   void test_shift_array_has_elements() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Array* original = Array::create(state, 2);
+      original->set(state, 0, Fixnum::from(42));
+      original->set(state, 1, Fixnum::from(71));
+      stack_push(original);
 
-    Array* original = Array::create(state, 2);
-    original->set(state, 0, Fixnum::from(42));
-    original->set(state, 1, Fixnum::from(71));
-    stack_push(original);
+      instructions::shift_array(state, call_frame);
 
-    instructions::shift_array(state, call_frame);
+      Object* shifted_value = stack_pop();
+      Array* ary = try_as<Array>(stack_pop());
 
-    Object* shifted_value = stack_pop();
-    Array* ary = try_as<Array>(stack_pop());
+      TS_ASSERT(shifted_value);
+      TS_ASSERT_EQUALS(shifted_value, Fixnum::from(42));
+      TS_ASSERT(ary);
+      TS_ASSERT_EQUALS(ary->size(), 1);
+    };
 
-    TS_ASSERT(shifted_value);
-    TS_ASSERT_EQUALS(shifted_value, Fixnum::from(42));
-    TS_ASSERT(ary);
-    TS_ASSERT_EQUALS(ary->size(), 1);
+    interpreter(2, 0, test);
   }
 
   void test_store_my_field() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t index = 0;
 
-    stack_push(cNil);
-    intptr_t index = 0;
+      // TODO: instructions
+      // instructions::store_my_field(state, call_frame, index);
 
-    // TODO: instructions
-    // instructions::store_my_field(state, call_frame, index);
+      TS_ASSERT(!index);
+    };
 
-    TS_ASSERT(!index);
+    interpreter(1, 0, test);
   }
 
   void test_string_append() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      String* final_string = String::create(state, "rubinius");
+      String* s1 = String::create(state, "rubini");
+      String* s2 = String::create(state, "us");
+      stack_push(s2);
+      stack_push(s1);
 
-    String* final_string = String::create(state, "rubinius");
-    String* s1 = String::create(state, "rubini");
-    String* s2 = String::create(state, "us");
-    stack_push(s2);
-    stack_push(s1);
+      instructions::string_append(state, call_frame);
 
-    instructions::string_append(state, call_frame);
+      String* string = try_as<String>(stack_pop());
 
-    String* string = try_as<String>(stack_pop());
+      TS_ASSERT(string);
+      TS_ASSERT_EQUALS(string->equal(state, final_string), cTrue);
+    };
 
-    TS_ASSERT(string);
-    TS_ASSERT_EQUALS(string->equal(state, final_string), cTrue);
+    interpreter(2, 0, test);
   }
 
   void test_string_build() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t count = 2;
 
-    stack_push(cNil);
-    intptr_t count = 2;
+      // TODO: instructions
+      // instructions::string_build(state, call_frame, count);
 
-    // TODO: instructions
-    // instructions::string_build(state, call_frame, count);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_string_dup() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      String* str = String::create(state, "blah");
+      stack_push(str);
 
-    String* str = String::create(state, "blah");
-    stack_push(str);
+      TS_ASSERT(instructions::string_dup(state, call_frame));
 
-    TS_ASSERT(instructions::string_dup(state, call_frame));
+      String* dup = (String*) stack_pop();
+      TS_ASSERT_EQUALS(dup->data(), str->data());
+    };
 
-    String* dup = (String*) stack_pop();
-    TS_ASSERT_EQUALS(dup->data(), str->data());
+    interpreter(1, 0, test);
   }
 
   void test_swap() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(2);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      Object* a = Fixnum::from(42);
+      Object* b = Fixnum::from(71);
+      stack_push(a);
+      stack_push(b);
 
-    Object* a = Fixnum::from(42);
-    Object* b = Fixnum::from(71);
-    stack_push(a);
-    stack_push(b);
+      instructions::swap(call_frame);
 
-    instructions::swap(call_frame);
+      TS_ASSERT_EQUALS(stack_pop(), a);
+      TS_ASSERT_EQUALS(stack_pop(), b);
+    };
 
-    TS_ASSERT_EQUALS(stack_pop(), a);
-    TS_ASSERT_EQUALS(stack_pop(), b);
+    interpreter(2, 0, test);
   }
 
   void test_yield_debugger() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
 
-    stack_push(cNil);
+      // TODO: instructions
+      // instructions::yield_debugger(state);
 
-    // TODO: instructions
-    // instructions::yield_debugger(state);
+      TS_ASSERT(true);
+    };
 
-    TS_ASSERT(true);
+    interpreter(1, 0, test);
   }
 
   void test_yield_splat() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t count = 1;
 
-    stack_push(cNil);
-    intptr_t count = 1;
+      // TODO: instructions
+      // instructions::yield_splat(state, call_frame, count);
 
-    // TODO: instructions
-    // instructions::yield_splat(state, call_frame, count);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_yield_stack() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t count = 1;
 
-    stack_push(cNil);
-    intptr_t count = 1;
+      // TODO: instructions
+      // instructions::yield_stack(state, call_frame, count);
 
-    // TODO: instructions
-    // instructions::yield_stack(state, call_frame, count);
+      TS_ASSERT(count);
+    };
 
-    TS_ASSERT(count);
+    interpreter(1, 0, test);
   }
 
   void test_zsuper() {
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
-    StackVariables* scope = ALLOCA_STACKVARIABLES(0);
-    setup_call_frame(call_frame, scope, 1);
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-    stack_push(cNil);
-    intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      // TODO: instructions
+      // instructions::zsuper(state, call_frame, literal);
 
-    // TODO: instructions
-    // instructions::zsuper(state, call_frame, literal);
+      TS_ASSERT(literal);
+    };
 
-    TS_ASSERT(literal);
+    interpreter(1, 0, test);
   }
 };
