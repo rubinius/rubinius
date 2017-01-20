@@ -109,7 +109,7 @@ public:
     cf->arguments = NULL;
   }
 
-  CompiledCode* setup_compiled_code(int iseq_length, int arg_length) {
+  CompiledCode* setup_compiled_code(int arg_length) {
     CompiledCode* code = CompiledCode::create(state);
 
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));

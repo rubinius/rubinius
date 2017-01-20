@@ -680,7 +680,7 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    CompiledCode* code = setup_compiled_code(0, 0);
+    CompiledCode* code = setup_compiled_code(0);
     call_frame->compiled_code = code;
     intptr_t literal = reinterpret_cast<intptr_t>(code);
     state->vm()->set_call_frame(call_frame);
@@ -1109,7 +1109,7 @@ public:
     setup_call_frame(call_frame, scope, 1);
 
     // initialize some complex structures to mock
-    CompiledCode* code = setup_compiled_code(0, 0);
+    CompiledCode* code = setup_compiled_code(0);
     MachineCode* mcode = new MachineCode(state, code);
 
     Object* a = Fixnum::from(42);
@@ -1135,7 +1135,7 @@ public:
     setup_call_frame(call_frame, scope, 1);
 
     // initialize some complex structures to mock
-    CompiledCode* code = setup_compiled_code(0, 0);
+    CompiledCode* code = setup_compiled_code(0);
     MachineCode* mcode = new MachineCode(state, code);
 
     Object* a = Fixnum::from(42);
