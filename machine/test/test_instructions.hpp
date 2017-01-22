@@ -1497,13 +1497,19 @@ public:
 
   void test_push_literal() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      Object* obj = String::create(state, "blah");
 
-      // TODO: instructions
-      // instructions::push_literal(call_frame, literal);
+      intptr_t literal = reinterpret_cast<intptr_t>(obj);
 
-      TS_ASSERT(literal);
+      Object** stack_ptr = STACK_PTR;
+      instructions::push_literal(call_frame, literal);
+
+      TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, obj);
     };
 
     interpreter(1, 0, test);
