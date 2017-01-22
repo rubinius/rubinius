@@ -1515,18 +1515,46 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_push_local() {
+  void test_push_local_zero() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      String* str = String::create(state, "blah");
       intptr_t local = 0;
+      call_frame->scope->set_local(local, str);
+      Object** stack_ptr = STACK_PTR;
 
-      // TODO: instructions
-      // instructions::push_local(call_frame, local);
+      instructions::push_local(call_frame, local);
 
-      TS_ASSERT(!local);
+      TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, str);
     };
 
-    interpreter(1, 0, test);
+    interpreter(1, 1, test);
+  }
+
+  void test_push_local_one() {
+    InstructionTest test = lambda {
+      String* str0 = String::create(state, "blah");
+      String* str1 = String::create(state, "blech");
+      intptr_t local = 1;
+      call_frame->scope->set_local(0, str0);
+      call_frame->scope->set_local(1, str1);
+      Object** stack_ptr = STACK_PTR;
+
+      instructions::push_local(call_frame, local);
+
+      TS_ASSERT_EQUALS(STACK_PTR, ++stack_ptr);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, str1);
+    };
+
+    interpreter(1, 1, test);
   }
 
   void test_push_local_depth() {
