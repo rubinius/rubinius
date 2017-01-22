@@ -1131,15 +1131,60 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_object_to_s() {
+  void test_object_to_s_pass_string() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      Object* obj = String::create(state, "test");
+
+      stack_push(obj);
       intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-      // TODO: instructions
-      // instructions::object_to_s(state, call_frame, literal);
+      TS_ASSERT(instructions::object_to_s(state, call_frame, literal));
+    };
 
-      TS_ASSERT(literal);
+    interpreter(1, 0, test);
+  }
+
+  void test_object_to_s_pass_obj_ret_string() {
+    InstructionTest test = lambda {
+      Object* recv = RespondToToSReturnString::create(state);
+      Symbol* sym_literal = state->symbol("to_s");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+
+      // set call frame so instruction will use it to process
+      state->vm()->set_call_frame(call_frame);
+      stack_push(recv);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+
+      instructions::object_to_s(state, call_frame, literal);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<String>(res));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_object_to_s_pass_obj_ret_ctrue() {
+    InstructionTest test = lambda {
+      Object* recv = RespondToToSReturnCTrue::create(state);
+      Symbol* sym_literal = state->symbol("to_s");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+
+      // set call frame so instruction will use it to process
+      state->vm()->set_call_frame(call_frame);
+      stack_push(recv);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+
+      instructions::object_to_s(state, call_frame, literal);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<String>(res));
     };
 
     interpreter(1, 0, test);
