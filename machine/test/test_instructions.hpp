@@ -791,8 +791,7 @@ public:
     InstructionTest test = lambda {
       stack_push(cNil);
 
-      // TODO: instructions
-      // instructions::goto_(call_frame);
+      instructions::goto_(call_frame);
 
       TS_ASSERT(true);
     };
@@ -1004,17 +1003,38 @@ public:
     interpreter(2, 0, test);
   }
 
-  void test_invoke_primitive() {
+  void test_invoke_primitive_pass() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
-      intptr_t count = reinterpret_cast<intptr_t>(cNil);
+      Class* sub = state->memory()->new_class<Class>(state, G(array));
+      InvokePrimitive invoker = Primitives::get_invoke_stub(state, state->symbol("array_allocate"));
+      intptr_t literal = reinterpret_cast<intptr_t>(invoker);
+      intptr_t count = reinterpret_cast<intptr_t>(1L);
 
-      // TODO: instructions
-      // instructions::invoke_primitive(state, call_frame, literal, count);
+      stack_push(sub);
 
-      TS_ASSERT(literal);
-      TS_ASSERT(count);
+      TS_ASSERT(instructions::invoke_primitive(state, call_frame, literal, count));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<Array>(res));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_invoke_primitive_fail() {
+    InstructionTest test = lambda {
+      Class* sub = state->memory()->new_class<Class>(state, G(array));
+      InvokePrimitive invoker = Primitives::get_invoke_stub(state, state->symbol("unknown_prim"));
+      intptr_t literal = reinterpret_cast<intptr_t>(invoker);
+      intptr_t count = reinterpret_cast<intptr_t>(1L);
+
+      stack_push(sub);
+
+      TS_ASSERT_EQUALS(cNil, state->thread_state()->current_exception());
+      TS_ASSERT(!instructions::invoke_primitive(state, call_frame, literal, count));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
     };
 
     interpreter(1, 0, test);
