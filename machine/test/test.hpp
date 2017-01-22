@@ -86,6 +86,48 @@ public:
   }
 };
 
+class RespondToToS {
+public:
+  template <class T>
+    static Object* create(STATE) {
+      Class* klass = Class::create(state, G(object));
+
+      Symbol* to_s_sym = state->symbol("to_s");
+      Executable* to_s = Executable::allocate(state, cNil);
+      to_s->primitive(state, to_s_sym);
+      to_s->set_executor(T::to_s);
+
+      klass->method_table()->store(state, to_s_sym, nil<String>(), to_s,
+          nil<LexicalScope>(), Fixnum::from(0), G(sym_public));
+
+      Object* obj = state->memory()->new_object<Object>(state, klass);
+
+      return obj;
+    }
+};
+
+class RespondToToSReturnString : public RespondToToS {
+public:
+  static Object* create(STATE) {
+    return RespondToToS::create<RespondToToSReturnString>(state);
+  }
+
+  static Object* to_s(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return String::create(state, "blah");
+  }
+};
+
+class RespondToToSReturnCTrue : public RespondToToS {
+public:
+  static Object* create(STATE) {
+    return RespondToToS::create<RespondToToSReturnCTrue>(state);
+  }
+
+  static Object* to_s(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return cTrue;
+  }
+};
+
 class VMTest {
 public:
   SharedState* shared;
