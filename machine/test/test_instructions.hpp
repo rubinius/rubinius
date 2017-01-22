@@ -1557,20 +1557,98 @@ public:
     interpreter(1, 1, test);
   }
 
-  void test_push_local_depth() {
+  void test_push_local_depth_illegal_depth() {
     InstructionTest test = lambda {
-      stack_push(cNil);
       intptr_t depth = 0;
       intptr_t index = 0;
 
-      // TODO: instructions
-      // instructions::push_local_depth(state, call_frame, depth, index);
-
-      TS_ASSERT(!depth);
-      TS_ASSERT(!index);
+      TS_ASSERT(!instructions::push_local_depth(state, call_frame, depth, index));
+      TS_ASSERT(kind_of<Exception>(state->vm()->thread_state()->current_exception()));
     };
 
     interpreter(1, 0, test);
+  }
+
+  void test_push_local_depth_illegal_depth_no_parent() {
+    InstructionTest test = lambda {
+      intptr_t depth = 1;
+      intptr_t index = 0;
+
+      call_frame->scope->set_parent(nullptr);
+
+      TS_ASSERT(!instructions::push_local_depth(state, call_frame, depth, index));
+      TS_ASSERT(kind_of<Exception>(state->vm()->thread_state()->current_exception()));
+    };
+
+    interpreter(1, 1, test);
+  }
+
+  void test_push_local_depth_illegal_depth_no_parent2() {
+    InstructionTest test = lambda {
+      intptr_t depth = 2;
+      intptr_t index = 0;
+
+      VariableScope* parent = state->memory()->new_object<VariableScope>(state, G(variable_scope));
+      call_frame->scope->initialize((Object*)call_frame->scope, nullptr, nullptr, 0);
+      VariableScope::initialize(state, parent);
+
+      call_frame->scope->set_parent(parent);
+      parent->parent(nil<VariableScope>());
+
+      TS_ASSERT(!instructions::push_local_depth(state, call_frame, depth, index));
+      TS_ASSERT(kind_of<Exception>(state->vm()->thread_state()->current_exception()));
+    };
+
+    interpreter(1, 1, test);
+  }
+
+  void test_push_local_depth_bad_index() {
+    InstructionTest test = lambda {
+      intptr_t depth = 1;
+      intptr_t index = 1;
+
+      VariableScope* parent = state->memory()->new_object<VariableScope>(state, G(variable_scope));
+      call_frame->scope->initialize((Object*)call_frame->scope, nullptr, nullptr, 0);
+      VariableScope::initialize(state, parent);
+
+      call_frame->scope->set_parent(parent);
+      parent->parent(nil<VariableScope>());
+
+      TS_ASSERT(!instructions::push_local_depth(state, call_frame, depth, index));
+      TS_ASSERT(kind_of<Exception>(state->vm()->thread_state()->current_exception()));
+    };
+
+    interpreter(1, 1, test);
+  }
+
+  void test_push_local_depth_pass() {
+    InstructionTest test = lambda {
+      intptr_t depth = 1;
+      intptr_t index = 0;
+
+      // set a local at index
+      String* local = String::create(state, "blah");
+      Tuple* tup = Tuple::create(state, 1);
+      tup->put(state, 0, local);
+
+      VariableScope* parent = VariableScope::synthesize(state, nil<CompiledCode>(), nil<Module>(),
+        nil<Object>(),
+        state->memory()->new_object<VariableScope>(state, G(variable_scope)),
+        nil<BlockEnvironment>(), tup);
+        call_frame->scope->initialize((Object*)call_frame->scope, nullptr, nullptr, 0);
+
+      call_frame->scope->set_parent(parent);
+      parent->parent(nil<VariableScope>());
+
+      TS_ASSERT(instructions::push_local_depth(state, call_frame, depth, index));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<String>(res));
+    };
+
+    interpreter(1, 1, test);
   }
 
   void test_push_memo() {
