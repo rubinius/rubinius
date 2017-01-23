@@ -1693,13 +1693,20 @@ public:
 
   void test_push_my_field() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      Array* ary = Array::create(state, 3);
+      ary->set(state, 0, Fixnum::from(42)); // set values so size returns 3
+      ary->set(state, 1, Fixnum::from(71));
+      ary->set(state, 2, Fixnum::from(96));
+
+      call_frame->scope->initialize(ary, cNil, nil<Module>(), 0);
       intptr_t index = 0;
 
-      // TODO: instructions
-      // instructions::push_my_field(state, call_frame, index);
+      instructions::push_my_field(state, call_frame, index);
 
-      TS_ASSERT(!index);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(3));
     };
 
     interpreter(1, 0, test);
