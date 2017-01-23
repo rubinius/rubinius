@@ -1949,6 +1949,22 @@ public:
     interpreter(1, 0, test);
   }
 
+  void test_restore_exception_state_nil() {
+    InstructionTest test = lambda {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
+      state->raise_exception(exc);
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+
+      stack_push(cNil);
+
+      instructions::restore_exception_state(state, call_frame);
+
+      TS_ASSERT_EQUALS(nil<Exception>(), state->thread_state()->current_exception());
+    };
+
+    interpreter(1, 0, test);
+  }
+
   void test_restore_exception_state() {
     InstructionTest test = lambda {
       stack_push(cNil);
