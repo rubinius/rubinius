@@ -1651,12 +1651,28 @@ public:
     interpreter(1, 1, test);
   }
 
-  void test_push_memo() {
+  void test_push_memo_nil() {
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cTrue);
+
+      instructions::push_memo(call_frame, literal);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cTrue);
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_push_memo_push_opcode() {
     InstructionTest test = lambda {
       stack_push(cNil);
       intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
-      // TODO: instructions
+      // TODO: instructions store_literal not implemented
       // instructions::push_memo(call_frame, literal);
 
       TS_ASSERT(literal);
