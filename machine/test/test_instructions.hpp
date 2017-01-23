@@ -121,6 +121,7 @@ public:
 
   CompiledCode* setup_compiled_code(int arg_length) {
     CompiledCode* code = CompiledCode::create(state);
+    CompiledCode::initialize(state, code);
 
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
     code->literals(state, tup);
@@ -1881,15 +1882,19 @@ public:
 
   void test_push_variables() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      // assigns compiled_code->machine_code which is needed to initialize
+      // several variables required by this instruction test
+      call_frame->compiled_code->internalize(state);
 
-      // TODO: instructions
-      // instructions::push_variables(state, call_frame);
+      instructions::push_variables(state, call_frame);
 
-      TS_ASSERT(true);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<VariableScope>(res));
     };
 
-    interpreter(1, 0, test);
+    interpreter(1, 1, test);
   }
 
   void test_raise_break() {
