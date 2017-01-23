@@ -1834,13 +1834,16 @@ public:
 
   void test_push_stack_local() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t which = 0;
+      intptr_t which = 8;
+      Array* ary = Array::create(state, 0);
+      call_frame->stk[10 - which - 1] = ary;
 
-      // TODO: instructions
-      // instructions::push_stack_local(call_frame, which);
+      instructions::push_stack_local(call_frame, which);
 
-      TS_ASSERT(!which);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, ary);
     };
 
     interpreter(1, 0, test);
