@@ -1745,14 +1745,58 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_push_proc() {
+  void test_push_proc_no_args() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      call_frame->arguments = nullptr;
+      TS_ASSERT(!instructions::push_proc(state, call_frame));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
 
-      // TODO: instructions
-      // instructions::push_proc(state, call_frame);
+    interpreter(1, 0, test);
+  }
 
-      TS_ASSERT(true);
+  void test_push_proc_invalid_block_type() {
+    InstructionTest test = lambda {
+      Arguments args(state->symbol("blah"));
+      args.set_block(Array::create(state, 1));
+      call_frame->arguments = &args;
+
+      TS_ASSERT(!instructions::push_proc(state, call_frame));
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_push_proc_valid_block_type() {
+    InstructionTest test = lambda {
+      Arguments args(state->symbol("blah"));
+      args.set_block(BlockEnvironment::allocate(state));
+      call_frame->arguments = &args;
+
+      TS_ASSERT(instructions::push_proc(state, call_frame));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<Proc>(res));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_push_proc_no_block() {
+    InstructionTest test = lambda {
+      Arguments args(state->symbol("blah"));
+
+      call_frame->arguments = &args;
+
+      TS_ASSERT(instructions::push_proc(state, call_frame));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, cNil);
     };
 
     interpreter(1, 0, test);
