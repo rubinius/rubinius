@@ -1912,12 +1912,12 @@ public:
 
   void test_raise_exc() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      Exception* exc = Exception::create(state);
+      stack_push(exc);
 
-      // TODO: instructions
-      // instructions::raise_exc(state, call_frame);
+      instructions::raise_exc(state, call_frame);
 
-      TS_ASSERT(true);
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
     };
 
     interpreter(1, 0, test);
