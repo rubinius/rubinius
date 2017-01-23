@@ -1938,12 +1938,12 @@ public:
 
   void test_reraise() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
+      state->raise_exception(exc);
 
-      // TODO: instructions
-      // instructions::reraise(state, call_frame);
+      instructions::reraise(state, call_frame);
 
-      TS_ASSERT(true);
+      TS_ASSERT(kind_of<Exception>(state->thread_state()->current_exception()));
     };
 
     interpreter(1, 0, test);
