@@ -1965,14 +1965,16 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_restore_exception_state() {
+  void test_restore_exception_state_thread_state() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      ThreadState* ts = ThreadState::create(state);
+      ThreadState::initialize(state, ts);
+      ts->raise_reason(Fixnum::from(cFiberCancel));
+      stack_push(ts);
 
-      // TODO: instructions
-      // instructions::restore_exception_state(state, call_frame);
+      instructions::restore_exception_state(state, call_frame);
 
-      TS_ASSERT(true);
+      TS_ASSERT_EQUALS(cFiberCancel, state->thread_state()->raise_reason());
     };
 
     interpreter(1, 0, test);
