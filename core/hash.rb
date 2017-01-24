@@ -651,7 +651,7 @@ class Hash
 
     return yield(key) if block_given?
     return default unless undefined.equal?(default)
-    raise KeyError, 'key #{key} not found'
+    raise KeyError, "key #{key} not found"
   end
 
   def fetch_values(*keys, &block)
