@@ -2020,15 +2020,43 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_send_method() {
+  void test_send_method_method_exists() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
 
-      // TODO: instructions
-      // instructions::send_method(state, call_frame, literal);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
 
-      TS_ASSERT(literal);
+      stack_push(recv);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT(instructions::send_method(state, call_frame, literal));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<Array>(res));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_send_method_method_does_not_exist() {
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_nothing");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+
+      stack_push(recv);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT_THROWS(instructions::send_method(state, call_frame, literal),
+          const RubyException &);
     };
 
     interpreter(1, 0, test);
