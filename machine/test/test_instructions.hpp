@@ -2102,7 +2102,7 @@ public:
       intptr_t literal = reinterpret_cast<intptr_t>(call_site);
       intptr_t count = 1;
 
-      Object** stack_ptr = STACK_PTR;
+      //Object** stack_ptr = STACK_PTR; // FIXME: see stack assertion below
 
       stack_push(recv);
       stack_push(method_arg);
@@ -2112,6 +2112,37 @@ public:
           const RubyException &);
 
       // TS_ASSERT_EQUALS(STACK_PTR, stack_ptr); // FIXME: should interpreter exception clean up stack?
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_send_stack_with_block_method_exists() {
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+      Object* method_arg = cTrue;
+      BlockEnvironment* block = BlockEnvironment::allocate(state);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+      intptr_t count = 1;
+
+      Object** stack_ptr = STACK_PTR;
+
+      stack_push(recv);
+      stack_push(method_arg);
+      stack_push(block);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT(instructions::send_stack_with_block(state, call_frame, literal, count));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<Array>(res));
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
     };
 
     interpreter(1, 0, test);
