@@ -1995,13 +1995,20 @@ public:
 
   void test_rotate() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      Object* a = cTrue;
+      Object* b = cFalse;
+      Object* c = Array::create(state, 0);
+
+      stack_push(a);
+      stack_push(b);
+      stack_push(c);
       intptr_t count = 2;
 
-      // TODO: instructions
-      // instructions::rotate(call_frame, count);
+      instructions::rotate(call_frame, count);
 
-      TS_ASSERT(count);
+      TS_ASSERT_EQUALS(stack_pop(), b);
+      TS_ASSERT_EQUALS(stack_pop(), c);
+      TS_ASSERT_EQUALS(stack_pop(), a);
     };
 
     interpreter(1, 0, test);
