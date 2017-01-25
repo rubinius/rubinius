@@ -2261,7 +2261,53 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_send_stack_with_splat() {
+  void test_send_stack_with_splat_method_exists() {
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      intptr_t count = 1;
+
+      // TODO: instructions
+      // instructions::send_stack_with_splat(state, call_frame, literal, count);
+
+      TS_ASSERT(literal);
+      TS_ASSERT(count);
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_send_stack_with_splat_no_method_error() {
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_nomethod");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+      BlockEnvironment* block = BlockEnvironment::allocate(state);
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, cTrue);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+      intptr_t count = 1;
+
+      Object** stack_ptr = STACK_PTR;
+
+      stack_push(recv);
+      stack_push(cFalse); // method arg
+      stack_push(args);
+      stack_push(block);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT_THROWS(instructions::send_stack_with_splat(state, call_frame, literal, count),
+        const RubyException &);
+
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_send_stack_with_splat_execute_return_null() {
     InstructionTest test = lambda {
       stack_push(cNil);
       intptr_t literal = reinterpret_cast<intptr_t>(cNil);
