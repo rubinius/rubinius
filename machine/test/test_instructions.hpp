@@ -2059,11 +2059,15 @@ public:
 
       intptr_t literal = reinterpret_cast<intptr_t>(call_site);
 
+      Object** stack_ptr = STACK_PTR;
+
       stack_push(recv);
 
       state->vm()->set_call_frame(call_frame);
       TS_ASSERT_THROWS(instructions::send_method(state, call_frame, literal),
           const RubyException &);
+
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
     };
 
     interpreter(1, 0, test);
