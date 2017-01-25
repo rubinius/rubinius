@@ -2073,6 +2073,28 @@ public:
     interpreter(1, 0, test);
   }
 
+  void test_send_method_execute_returns_null() {
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnNull::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+
+      Object** stack_ptr = STACK_PTR;
+
+      stack_push(recv);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT(!instructions::send_method(state, call_frame, literal));
+
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
+    };
+
+    interpreter(1, 0, test);
+  }
+
   void test_send_stack_method_exist() {
     InstructionTest test = lambda {
       Object* recv = RespondToToAryReturnArray::create(state);
