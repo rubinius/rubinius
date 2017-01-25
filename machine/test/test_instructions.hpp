@@ -2098,7 +2098,32 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_send_stack_method_does_not_exist() {
+  void test_send_stack_execute_returns_null() {
+    InstructionTest test = lambda {
+      Object* recv = RespondToToAryReturnNull::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+      Object* method_arg = cTrue;
+
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+      intptr_t count = 1;
+
+      Object** stack_ptr = STACK_PTR;
+
+      stack_push(recv);
+      stack_push(method_arg);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT(!instructions::send_stack(state, call_frame, literal, count));
+
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_send_stack_method_no_method_error() {
     InstructionTest test = lambda {
       Object* recv = RespondToToAryReturnArray::create(state);
       Symbol* sym_literal = state->symbol("to_doesnotexist");
@@ -2109,7 +2134,7 @@ public:
       intptr_t literal = reinterpret_cast<intptr_t>(call_site);
       intptr_t count = 1;
 
-      //Object** stack_ptr = STACK_PTR; // FIXME: see stack assertion below
+      Object** stack_ptr = STACK_PTR;
 
       stack_push(recv);
       stack_push(method_arg);
@@ -2118,10 +2143,10 @@ public:
       TS_ASSERT_THROWS(instructions::send_stack(state, call_frame, literal, count),
           const RubyException &);
 
-      // TS_ASSERT_EQUALS(STACK_PTR, stack_ptr); // FIXME: should interpreter exception clean up stack?
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
     };
 
-    interpreter(1, 0, test);
+    interpreter(1, 1, test);
   }
 
   void test_send_stack_with_block_method_exists() {
