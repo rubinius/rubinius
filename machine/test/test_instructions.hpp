@@ -2263,15 +2263,32 @@ public:
 
   void test_send_stack_with_splat_method_exists() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      Object* recv = RespondToToAryReturnArray::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+      BlockEnvironment* block = BlockEnvironment::allocate(state);
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, cTrue);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
       intptr_t count = 1;
 
-      // TODO: instructions
-      // instructions::send_stack_with_splat(state, call_frame, literal, count);
+      Object** stack_ptr = STACK_PTR;
 
-      TS_ASSERT(literal);
-      TS_ASSERT(count);
+      stack_push(recv);
+      stack_push(cFalse); // method arg
+      stack_push(args);
+      stack_push(block);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT(instructions::send_stack_with_splat(state, call_frame, literal, count));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<Array>(res));
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
     };
 
     interpreter(1, 0, test);
@@ -2309,15 +2326,28 @@ public:
 
   void test_send_stack_with_splat_execute_return_null() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      Object* recv = RespondToToAryReturnNull::create(state);
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      call_frame->scope->initialize(recv, nullptr, nullptr, 0);
+      BlockEnvironment* block = BlockEnvironment::allocate(state);
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, cTrue);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
       intptr_t count = 1;
 
-      // TODO: instructions
-      // instructions::send_stack_with_splat(state, call_frame, literal, count);
+      Object** stack_ptr = STACK_PTR;
 
-      TS_ASSERT(literal);
-      TS_ASSERT(count);
+      stack_push(recv);
+      stack_push(cFalse); // method arg
+      stack_push(args);
+      stack_push(block);
+
+      state->vm()->set_call_frame(call_frame);
+      TS_ASSERT(!instructions::send_stack_with_splat(state, call_frame, literal, count));
+
+      TS_ASSERT_EQUALS(STACK_PTR, stack_ptr);
     };
 
     interpreter(1, 0, test);
