@@ -11,9 +11,9 @@ namespace rubinius {
       Arguments args(call_site->name(), recv, cNil, count,
                      stack_back_position(count));
 
-      Object* ret = call_site->execute(state, args);
-
       stack_clear(count + 1);
+
+      Object* ret = call_site->execute(state, args);
 
       state->vm()->checkpoint(state);
 
