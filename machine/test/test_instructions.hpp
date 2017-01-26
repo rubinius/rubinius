@@ -2666,16 +2666,19 @@ public:
 
   void test_set_local() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      stack_push(Fixnum::from(42));
       intptr_t local = 0;
 
-      // TODO: instructions
-      // instructions::set_local(call_frame, local);
+      instructions::set_local(call_frame, local);
 
-      TS_ASSERT(!local);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
+      TS_ASSERT_EQUALS(call_frame->scope->get_local(local), Fixnum::from(42));
     };
 
-    interpreter(1, 0, test);
+    interpreter(1, 1, test);
   }
 
   void test_set_local_depth() {
@@ -2696,13 +2699,15 @@ public:
 
   void test_set_stack_local() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t which = 0;
+      stack_push(Fixnum::from(42));
+      intptr_t which = 6;
 
-      // TODO: instructions
-      // instructions::set_stack_local(call_frame, which);
+      stack_local(which) = Fixnum::from(0);
 
-      TS_ASSERT(!which);
+      TS_ASSERT_EQUALS(stack_local(which), Fixnum::from(0));
+      instructions::set_stack_local(call_frame, which);
+
+      TS_ASSERT_EQUALS(stack_local(which), Fixnum::from(42));
     };
 
     interpreter(1, 0, test);
@@ -2766,13 +2771,16 @@ public:
 
   void test_store_my_field() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      Array* ary = Array::create(state, 3);
+      ary->set(state, 0, Fixnum::from(42)); // set values so size returns 3
+      ary->set(state, 1, Fixnum::from(71));
+      ary->set(state, 2, Fixnum::from(96));
+
+      call_frame->scope->initialize(ary, cNil, nil<Module>(), 0);
+      stack_push(Fixnum::from(42));
       intptr_t index = 0;
 
-      // TODO: instructions
-      // instructions::store_my_field(state, call_frame, index);
-
-      TS_ASSERT(!index);
+      TS_ASSERT(instructions::store_my_field(state, call_frame, index));
     };
 
     interpreter(1, 0, test);
