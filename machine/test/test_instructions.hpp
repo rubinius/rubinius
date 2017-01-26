@@ -2595,13 +2595,20 @@ public:
 
   void test_set_const() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, Module::create(state));
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
 
-      // TODO: instructions
-      // instructions::set_const(state, call_frame, literal);
+      stack_push(Fixnum::from(42));
+      intptr_t literal = reinterpret_cast<intptr_t>(state->symbol("ConstantVal"));
 
-      TS_ASSERT(literal);
+      instructions::set_const(state, call_frame, literal);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
     };
 
     interpreter(1, 0, test);
