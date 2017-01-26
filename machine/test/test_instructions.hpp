@@ -2525,29 +2525,55 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_send_vcall() {
+  void test_send_vcall_method_exists() {
     InstructionTest test = lambda {
-      TS_ASSERT(true);
-      // TODO: fixme. interpreter raises exception and I don't know how to debug it yet
-//      Symbol* sym_literal = state->symbol("to_ary");
-//      CallSite* call_site = CallSite::create(state, sym_literal, 0);
-//      Array* ary = Array::create(state, 3);
-//      ary->set(state, 0, Fixnum::from(42)); // set values so size returns 3
-//      ary->set(state, 1, Fixnum::from(71));
-//      ary->set(state, 2, Fixnum::from(96));
-//
-//      call_frame->scope->initialize(ary, cNil, nil<Module>(), 0);
-//      TS_ASSERT_EQUALS(call_frame->self(), ary);
-//      state->vm()->set_call_frame(call_frame);
-//      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
-//
-//      TS_ASSERT(instructions::send_vcall(state, call_frame, literal));
-//
-//      Object* res = reinterpret_cast<Object*>(stack_pop());
-//
-//      TS_ASSERT(res);
-//      TS_ASSERT(kind_of<Array>(res));
-//      TS_ASSERT_EQUALS(((Array*)res)->total(), ary->total());
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      Object* recv = RespondToToAryReturnArray::create(state);
+
+      call_frame->scope->initialize(recv, cNil, nil<Module>(), 0);
+      state->vm()->set_call_frame(call_frame);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+
+      TS_ASSERT(instructions::send_vcall(state, call_frame, literal));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT(kind_of<Array>(res));
+    };
+
+    interpreter(1, 1, test);
+  }
+
+  void test_send_vcall_no_method_error() {
+    InstructionTest test = lambda {
+      Symbol* sym_literal = state->symbol("to_nomethod");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      Object* recv = RespondToToAryReturnArray::create(state);
+
+      call_frame->scope->initialize(recv, cNil, nil<Module>(), 0);
+      state->vm()->set_call_frame(call_frame);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+
+      TS_ASSERT_THROWS(instructions::send_vcall(state, call_frame, literal),
+        const RubyException &);
+    };
+
+    interpreter(1, 1, test);
+  }
+
+  void test_send_vcall_return_null() {
+    InstructionTest test = lambda {
+      Symbol* sym_literal = state->symbol("to_ary");
+      CallSite* call_site = CallSite::create(state, sym_literal, 0);
+      Object* recv = RespondToToAryReturnNull::create(state);
+
+      call_frame->scope->initialize(recv, cNil, nil<Module>(), 0);
+      state->vm()->set_call_frame(call_frame);
+      intptr_t literal = reinterpret_cast<intptr_t>(call_site);
+
+      TS_ASSERT(!instructions::send_vcall(state, call_frame, literal));
     };
 
     interpreter(1, 1, test);
