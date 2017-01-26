@@ -714,8 +714,8 @@ not support #{name} compiler, please email contact@rubinius.com
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
 
-    supported_compiler "clang C" unless @cc =~ /clang/
-    supported_compiler "clang++ C++" unless @cxx =~ /clang\+\+/
+    supported_compiler "clang C" unless @cc =~ /clang|ccc-analyzer/
+    supported_compiler "clang++ C++" unless @cxx =~ /clang\+\+|c\+\+\-analyzer/
 
     if File.exist? @build_bin
       if !File.directory? @build_bin
