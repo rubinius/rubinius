@@ -2616,13 +2616,16 @@ public:
 
   void test_set_const_at() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      stack_push(Module::create(state));
+      stack_push(Fixnum::from(42));
+      intptr_t literal = reinterpret_cast<intptr_t>(state->symbol("ConstantVal"));
 
-      // TODO: instructions
-      // instructions::set_const_at(state, call_frame, literal);
+      instructions::set_const_at(state, call_frame, literal);
 
-      TS_ASSERT(literal);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
     };
 
     interpreter(1, 0, test);
