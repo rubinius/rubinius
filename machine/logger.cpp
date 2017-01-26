@@ -517,7 +517,7 @@ namespace rubinius {
       char* to = (char*)malloc(MAXPATHLEN);
       if(!to) {
         free(buf);
-        free(from)
+        free(from);
         return;
       }
 
