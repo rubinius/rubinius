@@ -2633,13 +2633,32 @@ public:
 
   void test_set_ivar() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      call_frame->scope->initialize(Array::create(state, 0), nullptr, nullptr, 0);
+      stack_push(Fixnum::from(42));
+      intptr_t literal = reinterpret_cast<intptr_t>(state->symbol("@blah"));
 
-      // TODO: instructions
-      // instructions::set_ivar(state, call_frame, literal);
+      TS_ASSERT(instructions::set_ivar(state, call_frame, literal));
 
-      TS_ASSERT(literal);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_set_ivar_frozen_obj_raises() {
+    InstructionTest test = lambda {
+      Array* ary = Array::create(state, 0);
+      ary->freeze(state);
+      call_frame->scope->initialize(ary, nullptr, nullptr, 0);
+      stack_push(Fixnum::from(42));
+      intptr_t literal = reinterpret_cast<intptr_t>(state->symbol("@blah"));
+
+      TS_ASSERT_EQUALS(cNil, (state->vm()->thread_state()->current_exception()));
+      TS_ASSERT(!instructions::set_ivar(state, call_frame, literal));
+      TS_ASSERT(kind_of<Exception>(state->vm()->thread_state()->current_exception()));
     };
 
     interpreter(1, 0, test);
