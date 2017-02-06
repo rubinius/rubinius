@@ -20,6 +20,7 @@ module FFI
 
                  "int" => :int,
           "signed int" => :int,
+            "unsigned" => :uint,
         "unsigned int" => :uint,
 
                  "long" => :long,
