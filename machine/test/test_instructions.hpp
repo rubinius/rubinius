@@ -2876,7 +2876,56 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_yield_stack() {
+//  void test_yield_stack_passed_block() {
+//    InstructionTest test = lambda {
+//      BlockEnvironment* block = BlockEnvironment::allocate(state);
+//      BlockEnvironment::initialize(state, block);
+//      call_frame->scope->set_block(block);
+//
+//      LexicalScope* scope = LexicalScope::create(state);
+//      scope->module(state, Module::create(state));
+//      scope->parent(state, call_frame->lexical_scope());
+//      call_frame->lexical_scope_ = scope;
+//
+//      Object* block_arg = Fixnum::from(42);
+//      stack_push(block_arg);
+//      intptr_t count = 1;
+//
+//      TS_ASSERT(instructions::yield_stack(state, call_frame, count));
+//
+//      TS_ASSERT(count);
+//    };
+//
+//    interpreter(1, 1, test);
+//  }
+
+  void test_yield_stack_passed_proc() {
+    InstructionTest test = lambda {
+      stack_push(cNil);
+      intptr_t count = 1;
+
+      // TODO: instructions
+      // instructions::yield_stack(state, call_frame, count);
+
+      TS_ASSERT(count);
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_yield_stack_nil_raises() {
+    InstructionTest test = lambda {
+      intptr_t count = 0;
+
+      TS_ASSERT(!instructions::yield_stack(state, call_frame, count));
+
+      TS_ASSERT(kind_of<Exception>(state->vm()->thread_state()->current_exception()));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_yield_stack_passed_method() {
     InstructionTest test = lambda {
       stack_push(cNil);
       intptr_t count = 1;
