@@ -42,7 +42,7 @@ print m.map { |x| x.to_s }.join("")
   end
 
   def self.chop(str, method)
-    cmd = "| #{RUBY_EXE} -n -e '$_ = #{str.inspect}; #{method}; print $_'"
+    cmd = "| #{RUBY_EXE} -n -e '$_ = #{str.inspect}; #{method} rescue 1; print $_'"
     ruby_exe "puts", :args => cmd
   end
 
@@ -51,7 +51,7 @@ print m.map { |x| x.to_s }.join("")
   end
 
   def self.chomp(str, method, sep="\n")
-    cmd = "| #{RUBY_EXE} -n -e '$_ = #{str.inspect}; $/ = #{sep.inspect}; #{method}; print $_'"
+    cmd = "| #{RUBY_EXE} -n -e '$_ = #{str.inspect}; $/ = #{sep.inspect}; #{method} rescue 1; print $_'"
     ruby_exe "puts", :args => cmd
   end
 
