@@ -30,6 +30,7 @@ namespace rubinius {
 
   private:
     String* locale_string(STATE, const char* data);
+    void print_tm64(struct tm64* tm);
 
   public:
     static void bootstrap(STATE);

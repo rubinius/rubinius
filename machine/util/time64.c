@@ -198,6 +198,22 @@ int tm64_to_tm(struct tm64* tm64, struct tm* tm) {
   return 0;
 }
 
+void print_tm(struct tm* tm) {
+  printf("tm: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] wday [%d] yday [%d] isdst [%d] gmtoff [%lu] zone [%s] year [%d]\n",
+  tm->tm_sec,
+  tm->tm_min,
+  tm->tm_hour,
+  tm->tm_mday,
+  tm->tm_mon,
+  tm->tm_wday,
+  tm->tm_yday,
+  tm->tm_isdst,
+  tm->tm_gmtoff,
+  tm->tm_zone,
+  tm->tm_year
+  );
+}
+
 /* Copy a regular struct tm into a struct tm64. This is
  * done after passing it into the standard system functions
  */
@@ -288,6 +304,7 @@ time64_t timestamp64_mktime(time_t (*func)(struct tm*), struct tm* tm) {
   time_t time;
 
   time = func(tm);
+  printf("timestamp64_mktime, time after func %ld, errno [%d], errstr [%s]\n", time, errno, strerror(errno));
   if(time == -1 && tm->tm_isdst != 0 && (errno == EINVAL || errno == EOVERFLOW)) {
     /*
      * Retry one time because of perhaps DST change or inappropriate value of tm_isdst.
@@ -299,11 +316,14 @@ time64_t timestamp64_mktime(time_t (*func)(struct tm*), struct tm* tm) {
     int orig_tm_isdst = tm->tm_isdst;
     tm->tm_isdst = 0;
     time = func(tm);
+    printf("timestamp64_mktime, RETRY, time after func %ld\n", time);
     if(time == -1 && (errno == EINVAL || errno == EOVERFLOW)) {
       /* Restore the original value, adjusting tm_isdst didn't help. */
       tm->tm_isdst = orig_tm_isdst;
+      printf("timestamp64_mktime, restore original value, adjustment failed\n");
     }
   }
+  printf("timestamp64_mktime, returning %ld\n", time);
   return (time64_t) time;
 }
 
@@ -314,17 +334,25 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
 
   /* If this succeeds it fits in a standard struct tm */
   if(tm64_to_tm(tm64, &tm) == 0) {
+    printf("timestamp64, fits in standard 'struct tm'\n");
+    print_tm(&tm);
     time = timestamp64_mktime(func, &tm);
+    printf("timestamp64, call timestamp64_mktime\n");
+    print_tm(&tm);
     /*
      * This still would fail for 1969-12-31 23:59:59 GMT, but
      * the fallback code will properly handle that case anyway.
      */
     if(time != -1) {
+      printf("timestamp64, overflow on tm, copy back\n");
       /* Copy back updated information */
       tm_to_tm64(&tm, tm64);
+      print_tm(&tm);
       return time;
     }
   }
+
+  printf("timestamp64, time will not fit into standard struct tm\n");
 
   /*
    * Convert the struct to a year that is day compatible with
@@ -334,34 +362,51 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   int64_t year = tm64->tm_year;
 
   if(year < 1902) {
+    printf("timestamp64, year < 1902\n");
     /* For years below the 32 bit size time_t value we need to use
     * the lower comparable years */
     int day = day_of_week(year, tm64->tm_mon, 1);
     if(tm64->tm_mon == 2 && leap_year(year)) {
+      printf("timestamp64, leap month adjustment\n");
       tm.tm_year = lower_leap_month_table[day] - 1900;
     } else {
+      printf("timestamp64, common month\n");
       tm.tm_year = lower_common_month_table[tm.tm_mon][day] - 1900;
     }
   } else if(year > 2037) {
+    printf("timestamp64, year > 2037\n");
     /* For years above the 32 bit size time_t value we need to use
      * the lower comparable years */
     int day = day_of_week(year, tm64->tm_mon, 1);
     if(tm64->tm_mon == 2 && leap_year(year)) {
+      printf("timestamp64, leap month adjustment\n");
       tm.tm_year = higher_leap_month_table[day] - 1900;
     } else {
+      printf("timestamp64, common month\n");
       tm.tm_year = higher_common_month_table[tm.tm_mon][day] - 1900;
     }
   }
 
+  print_tm(&tm);
   time = timestamp64_mktime(func, &tm);
   tm_to_tm64(&tm, tm64);
 
   if(year != tm64->tm_year) {
+#if defined(__FreeBSD__)
+    printf("timestamp64, year != tm64->tm_year, [%ld] != [%ld]\n", year, tm64->tm_year);
+#else
+    printf("timestamp64, year != tm64->tm_year, [%lld] != [%lld]\n", year, tm64->tm_year);
+#endif
     /* Correct for the changed year to do the mktime computation */
     time += year_diff_to_seconds(tm64->tm_year, year, day_before_leap(tm64));
   }
 
   tm64->tm_year = year;
+#if defined(__FreeBSD__)
+  printf("timestamp64, returning time [%ld]\n", time);
+#else
+  printf("timestamp64, returning time [%lld]\n", time);
+#endif
   return time;
 }
 
@@ -370,9 +415,11 @@ time64_t mktime64(struct tm64* tm64) {
 }
 
 time64_t timelocal64(struct tm64* tm64) {
-#if defined( __OpenBSD__) || defined(__FreeBSD__)
+#if defined( __OpenBSD__) || defined(__FreeBSD__) 
+  printf("timelocal64, call timestamp64(timelocal)\n");
   return timestamp64(timelocal, tm64);
 #else
+  printf("timelocal64, call timestamp64(mktime)\n");
   return timestamp64(mktime, tm64);
 #endif
 }

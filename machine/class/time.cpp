@@ -120,8 +120,10 @@ namespace rubinius {
     time64_t seconds = -1;
 
     if(CBOOL(from_gmt) || !offset->nil_p()) {
+      printf("from_array, call ::timegm64\n");
       seconds = ::timegm64(&tm);
     } else {
+      printf("from_array, call tzset and ::timelocal64\n");
       tzset();
       seconds = ::timelocal64(&tm);
     }
@@ -160,18 +162,77 @@ namespace rubinius {
     return tm;
   }
 
+  void Time::print_tm64(struct tm64* tm) {
+#if defined(__FreeBSD__) 
+    printf("tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] year [%ld] wday [%d] yday [%d] isdst [%d] zone [%s]\n",
+    tm->tm_sec,
+    tm->tm_min,
+    tm->tm_hour,
+    tm->tm_mday,
+    tm->tm_mon + 1,
+    tm->tm_year,
+    tm->tm_wday,
+    tm->tm_yday + 1,
+    tm->tm_isdst,
+    tm->tm_zone);
+#else
+    printf("tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] year [%lld] wday [%d] yday [%d] isdst [%d] zone [%s]\n",
+    tm->tm_sec,
+    tm->tm_min,
+    tm->tm_hour,
+    tm->tm_mday,
+    tm->tm_mon + 1,
+    tm->tm_year,
+    tm->tm_wday,
+    tm->tm_yday + 1,
+    tm->tm_isdst,
+    tm->tm_zone);
+#endif
+  }
+
   struct tm64 Time::get_tm() {
     time64_t seconds = sec();
     struct tm64 tm;
 
     if(Fixnum* off = try_as<Fixnum>(offset())) {
+#if defined(__FreeBSD__) 
+      printf("Time::get_tm, add offset [%lld] to seconds [%ld]\n", off->to_long_long(), seconds);
+#else
+      printf("Time::get_tm, add offset [%lld] to seconds [%lld]\n", off->to_long_long(), seconds);
+#endif
       seconds += off->to_long_long();
       gmtime64_r(&seconds, &tm);
+#if defined(__FreeBSD__) 
+      printf("Time::get_tm, called gmtime64_r with [%ld]\n", seconds);
+#else
+      printf("Time::get_tm, called gmtime64_r with [%lld]\n", seconds);
+#endif
+      print_tm64(&tm);
     } else if(gmt_p()) {
+#if defined(__FreeBSD__) 
+      printf("Time::get_tm, calling gmtime64_r with [%ld]\n", seconds);
+#else
+      printf("Time::get_tm, calling gmtime64_r with [%lld]\n", seconds);
+#endif
       gmtime64_r(&seconds, &tm);
+      printf("Time::get_tm, called gmtime64_r\n");
+      print_tm64(&tm);
     } else {
+      printf("Time::get_tm, calling tzset\n");
       tzset();
+#if defined(__FreeBSD__) 
+      printf("Time::get_tm, tzname [%s] timezone [%s] daylight [not-defined-on-freebsd]\n", *tzname, getenv("TZ"));
+#else
+      printf("Time::get_tm, tzname [%s] timezone [%ld] daylight [%d]\n", *tzname, timezone, daylight);
+#endif
+#if defined(__FreeBSD__) 
+      printf("Time::get_tm, calling tzset and localtime64_r with [%ld]\n", seconds);
+#else
+      printf("Time::get_tm, calling tzset and localtime64_r with [%lld]\n", seconds);
+#endif
       localtime64_r(&seconds, &tm);
+      printf("Time::get_tm, called localtime64_r, tzname [%s] ENV['TZ']=[%s]\n", *tzname, getenv("TZ"));
+      print_tm64(&tm);
     }
 
     return tm;
@@ -179,8 +240,10 @@ namespace rubinius {
 
   Object* Time::utc_offset(STATE) {
     if(gmt_p()) {
+      printf("utc_offset, is_gmt is true, returning 0\n");
       return Fixnum::from(0);
     } else if(!offset()->nil_p()) {
+      printf("utc_offset, is_gmt is false and offset is non-nil, returning offset [%ld]\n", ((Fixnum*)offset())->to_native());
       return offset();
     }
 
@@ -189,27 +252,34 @@ namespace rubinius {
 #ifdef HAVE_TM_NAME
     struct tm tm = get_tm();
     off = -tm.tm_tzadj;
+    printf("utc_offset, HAVE_TM_NAME\n");
 #else /* !HAVE_TM_NAME */
 #ifdef HAVE_TM_ZONE
 #ifdef HAVE_TM_GMTOFF
     struct tm64 tm = get_tm();
     off = tm.tm_gmtoff;
+    printf("utc_offset, HAVE_TM_ZONE && HAVE_TM_GMTOFF\n");
 #else
     off = _timezone;
+    printf("utc_offset, HAVE_TM_ZONE && !HAVE_TM_NAME\n");
 #endif
 #else /* !HAVE_TM_ZONE */
 #if HAVE_VAR_TIMEZONE
 #if HAVE_VAR_ALTZONE
     off = -(daylight ? timezone : altzone);
+    printf("utc_offset, !HAVE_TM_ZONE && HAVE_VAR_TIMEZONE && HAVE_VAR_ALTZONE\n");
 #else
     off = -timezone;
+    printf("utc_offset, !HAVE_TM_ZONE && HAVE_VAR_TIMEZONE && !HAVE_VAR_ALTZONE\n");
 #endif
 #else /* !HAVE_VAR_TIMEZONE */
 #ifdef HAVE_GETTIMEOFDAY
     gettimeofday(&tv, &zone);
     off = -zone.tz_minuteswest * 60;
+    printf("utc_offset, !HAVE_VAR_TIMEZONE\n");
 #else
     /* no timezone info, then calc by myself */
+    printf("utc_offset, calc ourselves\n");
     {
       struct tm utc;
       time_t now;
@@ -221,6 +291,7 @@ namespace rubinius {
 #endif /* !HAVE_VAR_TIMEZONE */
 #endif /* !HAVE_TM_ZONE */
 #endif /* !HAVE_TM_NAME */
+    printf("utc_offset, returning [%ld]\n", off);
 
     return Fixnum::from(off);
   }
