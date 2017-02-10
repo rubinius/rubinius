@@ -214,6 +214,38 @@ void print_tm(struct tm* tm) {
   );
 }
 
+void print_tm64(struct tm64* tm) {
+#if defined(__FreeBSD__)
+  printf("util tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] wday [%d] yday [%d] isdst [%d] gmtoff [%d] zone [%s] year [%ld]\n",
+  tm->tm_sec,
+  tm->tm_min,
+  tm->tm_hour,
+  tm->tm_mday,
+  tm->tm_mon,
+  tm->tm_wday,
+  tm->tm_yday,
+  tm->tm_isdst,
+  tm->tm_gmtoff,
+  tm->tm_zone,
+  tm->tm_year
+  );
+#else
+  printf("util tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] wday [%d] yday [%d] isdst [%d] gmtoff [%d] zone [%s] year [%lld]\n",
+  tm->tm_sec,
+  tm->tm_min,
+  tm->tm_hour,
+  tm->tm_mday,
+  tm->tm_mon,
+  tm->tm_wday,
+  tm->tm_yday,
+  tm->tm_isdst,
+  tm->tm_gmtoff,
+  tm->tm_zone,
+  tm->tm_year
+  );
+#endif
+}
+
 /* Copy a regular struct tm into a struct tm64. This is
  * done after passing it into the standard system functions
  */
@@ -353,6 +385,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   }
 
   printf("timestamp64, time will not fit into standard struct tm\n");
+  print_tm64(tm64);
 
   /*
    * Convert the struct to a year that is day compatible with
@@ -387,9 +420,13 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
     }
   }
 
+  printf("timestamp64, remaking time after adjustments\n");
   print_tm(&tm);
+  print_tm64(tm64);
   time = timestamp64_mktime(func, &tm);
   tm_to_tm64(&tm, tm64);
+  print_tm(&tm);
+  print_tm64(tm64);
 
   if(year != tm64->tm_year) {
 #if defined(__FreeBSD__)
@@ -407,6 +444,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
 #else
   printf("timestamp64, returning time [%lld]\n", time);
 #endif
+  print_tm64(tm64);
   return time;
 }
 
@@ -535,12 +573,18 @@ struct tm64* localtime64_r(const time64_t* time64, struct tm64* tm64) {
     memset(&tm, 0, sizeof(tm));
     time_t time = (time_t) *time64;
 
+    printf("localtime64_r, calling localtime_r with seconds [%ld]\n", time);
     if(localtime_r(&time, &tm)) {
+      print_tm(&tm);
+      printf("localtime64_r, convert tm to tm64\n");
       tm_to_tm64(&tm, tm64);
+      print_tm64(tm64);
 #ifndef HAVE_TM_ZONE
 #if HAVE_TZNAME && HAVE_DAYLIGHT
+      printf("localtime64_r, HAVE_TZNAME && HAVE_DAYLIGHT\n");
       tm64->tm_zone = tzname[daylight && tm64->tm_isdst];
 #else
+      printf("localtime64_r, set tm_zone to NULL\n");
       tm64->tm_zone = NULL;
 #endif
 #endif

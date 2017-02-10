@@ -164,29 +164,33 @@ namespace rubinius {
 
   void Time::print_tm64(struct tm64* tm) {
 #if defined(__FreeBSD__) 
-    printf("tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] year [%ld] wday [%d] yday [%d] isdst [%d] zone [%s]\n",
+    printf("Time tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] wday [%d] yday [%d] isdst [%d] gmtoff [%d] zone [%s] year [%ld]\n",
     tm->tm_sec,
     tm->tm_min,
     tm->tm_hour,
     tm->tm_mday,
-    tm->tm_mon + 1,
-    tm->tm_year,
+    tm->tm_mon,
     tm->tm_wday,
-    tm->tm_yday + 1,
+    tm->tm_yday,
     tm->tm_isdst,
-    tm->tm_zone);
+    tm->tm_gmtoff,
+    tm->tm_zone,
+    tm->tm_year
+    );
 #else
-    printf("tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] year [%lld] wday [%d] yday [%d] isdst [%d] zone [%s]\n",
+    printf("Time tm64: sec [%d] min [%d] hour [%d] mday [%d] mon [%d] wday [%d] yday [%d] isdst [%d] gmtoff [%d] zone [%s] year [%lld]\n",
     tm->tm_sec,
     tm->tm_min,
     tm->tm_hour,
     tm->tm_mday,
-    tm->tm_mon + 1,
-    tm->tm_year,
+    tm->tm_mon,
     tm->tm_wday,
-    tm->tm_yday + 1,
+    tm->tm_yday,
     tm->tm_isdst,
-    tm->tm_zone);
+    tm->tm_gmtoff,
+    tm->tm_zone,
+    tm->tm_year
+    );
 #endif
   }
 
