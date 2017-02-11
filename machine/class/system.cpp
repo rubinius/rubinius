@@ -449,6 +449,7 @@ namespace rubinius {
     }
 
     if(pid == 0) {
+      // in child
       close(errors[0]);
 
       state->vm()->thread()->init_lock();
@@ -472,14 +473,18 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
+      int exec_errno = 0;
+
       if(exe.argc()) {
         for(int i = 0; i < 5; i++) {
           if(::execvp(exe.command(), exe.argv()) < 0) {
+            exec_errno = errno;
             if(errno != EAGAIN) break;
           }
         }
       } else {
         exec_sh_fallback(state, exe.command(), exe.command_size());
+        exec_errno = errno;
       }
 
       /* execvp() returning means it failed. */
@@ -497,10 +502,14 @@ namespace rubinius {
       }
       close(errors[1]);
 
-      exit(1);
+      /* Return saved errno to parent since bugs in the logger or other 
+         code after the call to execvp could overwrite errno.
+      */
+      exit(exec_errno);
     }
 
     int error_no = 0;
+    int exec_errno = 0;
     ssize_t size;
 
     {
@@ -540,11 +549,15 @@ namespace rubinius {
         int status, options = 0;
 
         waitpid(pid, &status, options);
+
+        if(WIFEXITED(status)) {
+          exec_errno = WEXITSTATUS(status);
+        }
       }
     }
 
     if(size != 0) {
-      Exception::raise_errno_error(state, "execvp(2) failed", error_no);
+      Exception::raise_errno_error(state, "execvp(2) failed", exec_errno);
       return NULL;
     }
 
