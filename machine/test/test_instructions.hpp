@@ -774,15 +774,103 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_find_const() {
+  void test_find_const_cached() {
+    InstructionTest test = lambda {
+      // lots of setup for scope
+      Module* module = Module::create(state);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, module);
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
+
+      // create empty cache and populate it with a value
+      Symbol* name = state->symbol("ConstantVal");
+      Object* value = Fixnum::from(96);
+      ConstantCache* empty_cache = ConstantCache::empty(state, name, call_frame->compiled_code, 0);
+      ConstantCache* cache = ConstantCache::create(state, empty_cache, value, module, scope);
+
+      stack_push(module);
+      intptr_t literal = reinterpret_cast<intptr_t>(cache);
+
+      TS_ASSERT(instructions::find_const(state, call_frame, literal));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(96));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_find_const_noncached_found_non_autoload() {
+    InstructionTest test = lambda {
+      Module* module = Module::create(state);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, module);
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
+
+      // create empty cache
+      Symbol* name = state->symbol("ConstantVal");
+      Object* value = Fixnum::from(96);
+      call_frame->compiled_code->machine_code(call_frame->machine_code);
+      ConstantCache* empty_cache = ConstantCache::empty(state, name, call_frame->compiled_code, 0);
+
+      // populate module with the constant
+      module->set_const(state, name, value);
+
+      stack_push(module);
+      intptr_t literal = reinterpret_cast<intptr_t>(empty_cache);
+
+      instructions::find_const(state, call_frame, literal);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(96));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_find_const_noncached_found_autoload() {
     InstructionTest test = lambda {
       stack_push(cNil);
       intptr_t literal = reinterpret_cast<intptr_t>(cNil);
 
       // TODO: instructions
+      // Need to understand autoload a whole lot better before I can tackle this
+      // particular case
       // instructions::find_const(state, call_frame, literal);
 
       TS_ASSERT(literal);
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_find_const_noncached_notfound_const_missing() {
+    InstructionTest test = lambda {
+      Module* module = ReturnConst::create(state);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, module);
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
+
+      // create empty cache and populate it with a value
+      Symbol* name = state->symbol("ConstantVal");
+      ConstantCache* empty_cache = ConstantCache::empty(state, name, call_frame->compiled_code, 0);
+
+      stack_push(module);
+      intptr_t literal = reinterpret_cast<intptr_t>(empty_cache);
+
+      TS_ASSERT(instructions::find_const(state, call_frame, literal));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
     };
 
     interpreter(1, 0, test);
