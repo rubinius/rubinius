@@ -128,6 +128,37 @@ public:
   }
 };
 
+class ConstMissing {
+public:
+  template <class T>
+    static Module* create(STATE) {
+      Class* klass = Class::create(state, G(object));
+
+      Symbol* sym = state->symbol("const_missing");
+      Executable* const_missing = Executable::allocate(state, cNil);
+      const_missing->primitive(state, sym);
+      const_missing->set_executor(T::const_missing);
+
+      klass->method_table()->store(state, sym, nil<String>(), const_missing,
+          nil<LexicalScope>(), Fixnum::from(0), G(sym_public));
+
+      Module* obj = state->memory()->new_object<Module>(state, klass);
+
+      return obj;
+    }
+};
+
+class ReturnConst : public ConstMissing {
+public:
+  static Module* create(STATE) {
+    return ConstMissing::create<ReturnConst>(state);
+  }
+
+  static Object* const_missing(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return Fixnum::from(42);
+  }
+};
+
 class VMTest {
 public:
   SharedState* shared;
