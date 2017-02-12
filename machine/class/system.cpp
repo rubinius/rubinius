@@ -625,6 +625,7 @@ namespace rubinius {
       }
 
       exec_sh_fallback(state, exe.command(), exe.command_size());
+      int exec_errno = errno;
 
       /* execvp() returning means it failed. */
       logger::error("%s: backtick: exec failed: %s",
@@ -636,10 +637,11 @@ namespace rubinius {
       }
       close(errors[1]);
 
-      exit(1);
+      exit(exec_errno);
     }
 
     int error_no = 0;
+    int exec_errno = 0;
     ssize_t size;
 
     {
@@ -680,12 +682,17 @@ namespace rubinius {
         int status, options = 0;
 
         waitpid(pid, &status, options);
+
+        if(WIFEXITED(status)) {
+          exec_errno = WEXITSTATUS(status);
+        }
+
         close(output[0]);
       }
     }
 
     if(size != 0) {
-      Exception::raise_errno_error(state, "execvp(2) failed", error_no);
+      Exception::raise_errno_error(state, "execvp(2) failed", exec_errno);
       return NULL;
     }
 
