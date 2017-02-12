@@ -1980,14 +1980,36 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_ret() {
+  void test_ret_no_flush_to_heap() {
     InstructionTest test = lambda {
-      stack_push(cNil);
+      Object* obj = Fixnum::from(42);
+      call_frame->compiled_code->internalize(state);
+      stack_push(obj);
 
-      // TODO: instructions
-      // instructions::ret(state, call_frame);
+      instructions::ret(state, call_frame);
 
-      TS_ASSERT(true);
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_ret_flush_to_heap() {
+    InstructionTest test = lambda {
+      Object* obj = Fixnum::from(42);
+      call_frame->compiled_code->internalize(state);
+      call_frame->promote_scope(state); // causes flush to heap
+      stack_push(obj);
+
+      instructions::ret(state, call_frame);
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
     };
 
     interpreter(1, 0, test);
