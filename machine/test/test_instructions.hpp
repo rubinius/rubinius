@@ -1470,14 +1470,121 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_push_const() {
+  void test_push_const_cached() {
     InstructionTest test = lambda {
-      stack_push(cNil);
-      intptr_t literal = reinterpret_cast<intptr_t>(cNil);
+      Module* module = Module::create(state);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, module);
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
 
-      // TODO: instructions
-      // instructions::push_const(state, call_frame, literal);
+      // create empty cache and populate it with a value
+      Symbol* name = state->symbol("ConstantVal");
+      Object* value = Fixnum::from(96);
+      ConstantCache* empty_cache = ConstantCache::empty(state, name, call_frame->compiled_code, 0);
+      ConstantCache* cache = ConstantCache::create(state, empty_cache, value, module, scope);
 
+      intptr_t literal = reinterpret_cast<intptr_t>(cache);
+
+      TS_ASSERT(instructions::push_const(state, call_frame, literal));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(96));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_push_const_found_in_parent_chain() {
+    InstructionTest test = lambda {
+      state->vm()->set_call_frame(call_frame);
+
+      Module* module = Module::create(state);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, module);
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
+
+      // create empty cache
+      Symbol* name = state->symbol("ConstantVal");
+      Object* value = Fixnum::from(96);
+      call_frame->compiled_code->machine_code(call_frame->machine_code);
+      ConstantCache* empty_cache = ConstantCache::empty(state, name, call_frame->compiled_code, 0);
+
+      // populate module with the constant
+      module->set_const(state, name, value);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(empty_cache);
+
+      TS_ASSERT(instructions::push_const(state, call_frame, literal));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(96));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_push_const_found_autoload() {
+    InstructionTest test = lambda {
+      /* TODO: Need to understand more about how autoloader works
+         before this can be tested properly.
+      */
+      TS_ASSERT(true);
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_push_const_const_missing() {
+    InstructionTest test = lambda {
+      state->vm()->set_call_frame(call_frame);
+
+      Module* module = ReturnConst::create(state);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, module);
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
+
+      // create empty cache and populate it with a value
+      Symbol* name = state->symbol("ConstantVal");
+      ConstantCache* empty_cache = ConstantCache::empty(state, name, call_frame->compiled_code, 0);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(empty_cache);
+
+      TS_ASSERT(instructions::push_const(state, call_frame, literal));
+
+      Object* res = reinterpret_cast<Object*>(stack_pop());
+
+      TS_ASSERT(res);
+      TS_ASSERT_EQUALS(res, Fixnum::from(42));
+    };
+
+    interpreter(1, 0, test);
+  }
+
+  void test_push_const_not_found() {
+    InstructionTest test = lambda {
+      state->vm()->set_call_frame(call_frame);
+
+      Module* module = Module::create(state);
+      LexicalScope* scope = LexicalScope::create(state);
+      scope->module(state, module);
+      scope->parent(state, call_frame->lexical_scope());
+      call_frame->lexical_scope_ = scope;
+
+      // create empty cache and populate it with a value
+      Symbol* name = state->symbol("ConstantVal");
+      ConstantCache* empty_cache = ConstantCache::empty(state, name, call_frame->compiled_code, 0);
+
+      intptr_t literal = reinterpret_cast<intptr_t>(empty_cache);
+
+      //TS_ASSERT(! instructions::push_const(state, call_frame, literal));
+      // TODO: Need autoload to fail in order for const lookup to return false
       TS_ASSERT(literal);
     };
 
