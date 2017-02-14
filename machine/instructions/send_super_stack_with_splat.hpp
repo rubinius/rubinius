@@ -24,9 +24,9 @@ namespace rubinius {
       // TODO: instructions
       // SET_CALL_FLAGS(0);
 
-      Object* ret = call_site->execute(state, new_args);
-
       stack_clear(count);
+
+      Object* ret = call_site->execute(state, new_args);
 
       state->vm()->checkpoint(state);
 

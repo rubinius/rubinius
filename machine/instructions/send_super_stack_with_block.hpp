@@ -12,9 +12,9 @@ namespace rubinius {
       Arguments new_args(call_site->name(), recv, block, count,
                          stack_back_position(count));
 
-      Object* ret = call_site->execute(state, new_args);
-
       stack_clear(count);
+
+      Object* ret = call_site->execute(state, new_args);
 
       state->vm()->checkpoint(state);
 

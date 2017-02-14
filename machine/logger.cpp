@@ -509,10 +509,17 @@ namespace rubinius {
       if(!buf) return;
 
       char* from = (char*)malloc(MAXPATHLEN);
-      if(!from) return;
+      if(!from) {
+        free(buf);
+        return;
+      }
 
       char* to = (char*)malloc(MAXPATHLEN);
-      if(!to) return;
+      if(!to) {
+        free(buf);
+        free(from);
+        return;
+      }
 
       for(int i = archives_; i > 0; i--) {
         if(i > 1) {

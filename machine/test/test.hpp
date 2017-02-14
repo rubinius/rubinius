@@ -11,11 +11,153 @@
 #include "metrics.hpp"
 #include "machine/detection.hpp"
 #include "machine/memory/immix_marker.hpp"
+#include "class/executable.hpp"
+#include "class/method_table.hpp"
 #include "class/thread.hpp"
 
 #include <cxxtest/TestSuite.h>
 
 using namespace rubinius;
+
+class RespondToToAry {
+public:
+  template <class T>
+    static Object* create(STATE) {
+      Class* klass = Class::create(state, G(object));
+
+      Symbol* to_ary_sym = state->symbol("to_ary");
+      Executable* to_ary = Executable::allocate(state, cNil);
+      to_ary->primitive(state, to_ary_sym);
+      to_ary->set_executor(T::to_ary);
+
+      klass->method_table()->store(state, to_ary_sym, nil<String>(), to_ary,
+          nil<LexicalScope>(), Fixnum::from(0), G(sym_public));
+
+      Object* obj = state->memory()->new_object<Object>(state, klass);
+
+      return obj;
+    }
+};
+
+class RespondToToAryReturnNull : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnNull>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return nullptr;
+  }
+};
+
+class RespondToToAryReturnFixnum : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnFixnum>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return Fixnum::from(42);
+  }
+};
+
+class RespondToToAryReturnArray : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnArray>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, Fixnum::from(42));
+
+    return ary;
+  }
+};
+
+class RespondToToAryReturnNonArray : public RespondToToAry {
+public:
+  static Object* create(STATE) {
+    return RespondToToAry::create<RespondToToAryReturnNonArray>(state);
+  }
+
+  static Object* to_ary(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return Fixnum::from(42);
+  }
+};
+
+class RespondToToS {
+public:
+  template <class T>
+    static Object* create(STATE) {
+      Class* klass = Class::create(state, G(object));
+
+      Symbol* to_s_sym = state->symbol("to_s");
+      Executable* to_s = Executable::allocate(state, cNil);
+      to_s->primitive(state, to_s_sym);
+      to_s->set_executor(T::to_s);
+
+      klass->method_table()->store(state, to_s_sym, nil<String>(), to_s,
+          nil<LexicalScope>(), Fixnum::from(0), G(sym_public));
+
+      Object* obj = state->memory()->new_object<Object>(state, klass);
+
+      return obj;
+    }
+};
+
+class RespondToToSReturnString : public RespondToToS {
+public:
+  static Object* create(STATE) {
+    return RespondToToS::create<RespondToToSReturnString>(state);
+  }
+
+  static Object* to_s(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return String::create(state, "blah");
+  }
+};
+
+class RespondToToSReturnCTrue : public RespondToToS {
+public:
+  static Object* create(STATE) {
+    return RespondToToS::create<RespondToToSReturnCTrue>(state);
+  }
+
+  static Object* to_s(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return cTrue;
+  }
+};
+
+class ConstMissing {
+public:
+  template <class T>
+    static Module* create(STATE) {
+      Class* klass = Class::create(state, G(object));
+
+      Symbol* sym = state->symbol("const_missing");
+      Executable* const_missing = Executable::allocate(state, cNil);
+      const_missing->primitive(state, sym);
+      const_missing->set_executor(T::const_missing);
+
+      klass->method_table()->store(state, sym, nil<String>(), const_missing,
+          nil<LexicalScope>(), Fixnum::from(0), G(sym_public));
+
+      Module* obj = state->memory()->new_object<Module>(state, klass);
+
+      return obj;
+    }
+};
+
+class ReturnConst : public ConstMissing {
+public:
+  static Module* create(STATE) {
+    return ConstMissing::create<ReturnConst>(state);
+  }
+
+  static Object* const_missing(STATE, Executable* exec, Module* mod, Arguments& args) {
+    return Fixnum::from(42);
+  }
+};
 
 class VMTest {
 public:

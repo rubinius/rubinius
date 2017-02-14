@@ -246,7 +246,7 @@ module Rubinius
           str = @pointer.read_string(@size)
 
           # NULL clamp this, to be the same as the ffi gem.
-          if idx = str.index(0)
+          if idx = str.index("\0")
             return str[0, idx]
           end
 
@@ -366,14 +366,19 @@ module Rubinius
         cspec = Rubinius::LookupTable.new
 
         fields.each do |field|
-          offset = Rubinius::Config["#{base}.#{field}.offset"]
-          size   = Rubinius::Config["#{base}.#{field}.size"]
-          type   = Rubinius::Config["#{base}.#{field}.type"]
-          type   = type ? type.to_sym : FFI.size_to_type(size)
+          offset         = Rubinius::Config["#{base}.#{field}.offset"]
+          element_size   = Rubinius::Config["#{base}.#{field}.size"]
+          type           = Rubinius::Config["#{base}.#{field}.type"]
+          type           = type ? type.to_sym : FFI.size_to_type(size)
 
-          code = FFI.find_type type
-          cspec[field] = [offset, code]
-          ending = offset + size
+          type_code = FFI.find_type type
+
+          if :char_array == type
+            type_code = FFI::Type::Array.new(FFI.find_type(:char), element_size, InlineCharArray)
+          end
+
+          cspec[field] = [offset, type_code]
+          ending = offset + element_size
           @size = ending if @size < ending
         end
 

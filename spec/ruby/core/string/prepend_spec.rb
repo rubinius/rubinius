@@ -20,7 +20,7 @@ describe "String#prepend" do
     lambda { a = 'hello '.prepend mock('x') }.should raise_error(TypeError)
   end
 
-  it "raises a RuntimeError when self if frozen" do
+  it "raises a RuntimeError when self is frozen" do
     a = "hello"
     a.freeze
 

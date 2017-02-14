@@ -9,9 +9,10 @@ namespace rubinius {
       CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
       Arguments args(call_site->name(), recv, cNil, 0, 0);
-      Object* ret = call_site->execute(state, args);
 
       (void)stack_pop();
+
+      Object* ret = call_site->execute(state, args);
 
       state->vm()->checkpoint(state);
 
