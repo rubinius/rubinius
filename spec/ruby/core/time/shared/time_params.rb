@@ -141,8 +141,10 @@ describe :time_params, :shared => true do
   end
 
   it "accepts various year ranges" do
-    Time.send(@method, 1801, 12, 31, 23, 59, 59).wday.should == 4
-    Time.send(@method, 3000, 12, 31, 23, 59, 59).wday.should == 3
+    with_timezone("PST", -8) do
+      Time.send(@method, 1801, 12, 31, 23, 59, 59).wday.should == 4
+      Time.send(@method, 3000, 12, 31, 23, 59, 59).wday.should == 3
+    end
   end
 
   it "raises an ArgumentError for out of range month" do
