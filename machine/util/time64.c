@@ -370,11 +370,7 @@ time64_t mktime64(struct tm64* tm64) {
 }
 
 time64_t timelocal64(struct tm64* tm64) {
-#if defined( __OpenBSD__) || defined(__FreeBSD__)
-  return timestamp64(timelocal, tm64);
-#else
   return timestamp64(mktime, tm64);
-#endif
 }
 
 time64_t timegm64(struct tm64* tm64) {
