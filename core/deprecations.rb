@@ -5,5 +5,7 @@ module Rubinius
       "Use Ruby 2.3 features if they are available.",
     "Rubinius::ConstantScope is deprecated." =>
       "Use Rubinius::LexicalScope instead.",
+    "Rubinius::Executable#primitive is deprecated." =>
+      "Use Rubinius::Executable#tags instead."
   }
 end
