@@ -14,6 +14,12 @@ namespace rubinius {
   void Executable::bootstrap(STATE) {
     GO(executable).set(state->memory()->new_class<Class, Executable>(
           state, G(rubinius), "Executable"));
+    G(executable)->set_const(state, "Experimental", Fixnum::from(eExperimental));
+    G(executable)->set_const(state, "Stack", Fixnum::from(eStack));
+    G(executable)->set_const(state, "Register", Fixnum::from(eRegister));
+    G(executable)->set_const(state, "Parsing", Fixnum::from(eParsing));
+    G(executable)->set_const(state, "Assertion", Fixnum::from(eAssertion));
+    G(executable)->set_const(state, "Instrumentation", Fixnum::from(eInstrumentation));
   }
 
   Executable* Executable::allocate(STATE, Object* self) {
