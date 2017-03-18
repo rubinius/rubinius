@@ -36,6 +36,7 @@ namespace rubinius {
   public:
     const static object_type type = ExecutableType;
 
+    attr_accessor(tags, Fixnum);
     attr_accessor(primitive, Symbol);
     attr_accessor(serial, Fixnum);
 
@@ -49,6 +50,7 @@ namespace rubinius {
 
   public:
     static void initialize(STATE, Executable* exc) {
+      exc->tags(Fixnum::from(0));
       exc->primitive(nil<Symbol>());
       exc->serial(Fixnum::from(0));
       exc->execute = Executable::default_executor;

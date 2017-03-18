@@ -131,7 +131,8 @@ module Rubinius
     end
 
     def equivalent_body?(other)
-      @primitive       == other.primitive     and
+      @tags            == other.tags          and
+        @primitive     == other.primitive     and
         @iseq          == other.iseq          and
         @stack_size    == other.stack_size    and
         @local_count   == other.local_count   and
