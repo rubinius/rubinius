@@ -202,6 +202,10 @@ class Fixnum < Integer
   alias_method :/, :divide
   alias_method :modulo, :%
 
+  def bit_length
+    Math.log2(self < 0 ? -self : self+1).ceil
+  end
+
   def fdiv(n)
     if n.kind_of?(Fixnum)
       to_f / n

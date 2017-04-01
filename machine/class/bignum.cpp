@@ -181,6 +181,14 @@ namespace rubinius {
     return this;
   }
 
+  Fixnum* Bignum::bit_length(STATE) {
+    int size;
+
+    mp_radix_size(mp_val(), 2, &size);
+
+    return Fixnum::from(size - 1);
+  }
+
   Bignum* Bignum::from(STATE, int num) {
     Bignum* o = Bignum::create(state);
     mp_int* a = o->mp_val();

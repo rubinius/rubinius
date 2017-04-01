@@ -60,6 +60,9 @@ namespace rubinius {
     // Rubinius.primitive! :bignum_initialize_copy
     Bignum* initialize_copy(STATE, Bignum* other);
 
+    // Rubinius.primitive :bignum_bit_length
+    Fixnum* bit_length(STATE);
+
     // Rubinius.primitive! :bignum_add
     Integer* add(STATE, Fixnum* b);
     // Rubinius.primitive! :bignum_add
