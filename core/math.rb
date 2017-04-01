@@ -217,9 +217,16 @@ module Math
   def log2(x)
     return Float::NAN if x.kind_of? Float and x.nan?
 
+    if x.kind_of? Bignum and x >= 0 and Float::MAX_EXP <= (bits = x.bit_length)
+      bits -= Float::MANT_DIG
+      x >>= bits
+    else
+      bits = 0
+    end
+
     x = Rubinius::Type.coerce_to_float(x)
     raise DomainError, 'log2' unless x >= 0.0
-    FFI::Platform::Math.log2 x
+    FFI::Platform::Math.log2(x) + bits
   end
   module_function :log2
 
