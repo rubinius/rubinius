@@ -7,6 +7,10 @@ describe "String#tr" do
     "hello".tr('aeiou', '*').should == "h*ll*"
     "hello".tr('el', 'ip').should == "hippo"
     "Lisp".tr("Lisp", "Ruby").should == "Ruby"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".tr(
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+      "2223334445556667777888999922233344455566677778889999"
+    ).should == "2223334445556667777888999922233344455566677778889999"
   end
 
   it "accepts c1-c2 notation to denote ranges of characters" do
