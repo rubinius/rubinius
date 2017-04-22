@@ -452,7 +452,7 @@ namespace rubinius {
   }
 
   Object* Thread::raise(STATE, Exception* exc) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return cNil;
 
@@ -463,7 +463,7 @@ namespace rubinius {
   }
 
   Object* Thread::kill(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return cNil;
 
@@ -478,7 +478,7 @@ namespace rubinius {
   }
 
   Thread* Thread::wakeup(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!CBOOL(alive()) || !vm()) {
       return force_as<Thread>(Primitives::failure());
@@ -490,7 +490,7 @@ namespace rubinius {
   }
 
   Tuple* Thread::context(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return nil<Tuple>();
 
@@ -502,7 +502,7 @@ namespace rubinius {
   }
 
   Array* Thread::mri_backtrace(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return nil<Array>();
 
@@ -511,10 +511,6 @@ namespace rubinius {
 
   void Thread::stopped() {
     alive(cFalse);
-  }
-
-  void Thread::init_lock() {
-    init_lock_.init();
   }
 
   Thread* Thread::join(STATE, Object* timeout) {
