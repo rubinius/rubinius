@@ -452,7 +452,9 @@ namespace rubinius {
       // in child
       close(errors[0]);
 
-      state->vm()->thread()->init_lock();
+      if(!state->vm()->thread()->nil_p()) {
+        state->vm()->thread()->init_lock();
+      }
       state->shared().machine_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
@@ -502,7 +504,7 @@ namespace rubinius {
       }
       close(errors[1]);
 
-      /* Return saved errno to parent since bugs in the logger or other 
+      /* Return saved errno to parent since bugs in the logger or other
          code after the call to execvp could overwrite errno.
       */
       exit(exec_errno);
@@ -600,7 +602,9 @@ namespace rubinius {
     }
 
     if(pid == 0) {
-      state->vm()->thread()->init_lock();
+      if(!state->vm()->thread()->nil_p()) {
+        state->vm()->thread()->init_lock();
+      }
       state->shared().machine_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
