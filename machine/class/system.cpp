@@ -907,6 +907,12 @@ namespace rubinius {
     state->vm()->thread_nexus()->waiting_phase(state, state->vm());
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
+    if(Fiber* fiber = state->vm()->fiber()) {
+      if(!fiber->nil_p() && !fiber->root_p()) {
+        Exception::raise_runtime_error(state, "fork() not allowed from Fiber");
+      }
+    }
+
     state->shared().machine_threads()->before_fork(state);
     state->memory()->set_interrupt();
 
