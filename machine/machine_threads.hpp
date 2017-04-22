@@ -39,11 +39,6 @@ namespace rubinius {
     static void* run(void*);
 
     // Events
-    virtual void before_exec(STATE) { };
-    virtual void after_exec(STATE) { };
-    virtual void before_fork_exec(STATE) { };
-    virtual void after_fork_exec_parent(STATE) { };
-    virtual void after_fork_exec_child(STATE) { };
     virtual void before_fork(STATE) { };
     virtual void after_fork_parent(STATE) { };
     virtual void after_fork_child(STATE);
@@ -69,8 +64,6 @@ namespace rubinius {
   class MachineThreads {
   private:
     bool fork_in_progress_;
-    bool exec_in_progress_;
-    bool fork_exec_in_progress_;
     bool shutdown_in_progress_;
     utilities::thread::Mutex mutex_;
     MachineThreadList threads_;
@@ -78,8 +71,6 @@ namespace rubinius {
   public:
     MachineThreads()
       : fork_in_progress_(false)
-      , exec_in_progress_(false)
-      , fork_exec_in_progress_(false)
       , shutdown_in_progress_(false)
       , mutex_()
       , threads_()
@@ -90,11 +81,6 @@ namespace rubinius {
     void unregister_thread(MachineThread* thread);
 
     void shutdown(STATE);
-    void before_exec(STATE);
-    void after_exec(STATE);
-    void before_fork_exec(STATE);
-    void after_fork_exec_parent(STATE);
-    void after_fork_exec_child(STATE);
     void before_fork(STATE);
     void after_fork_parent(STATE);
     void after_fork_child(STATE);

@@ -396,7 +396,6 @@ namespace rubinius {
     state->vm()->thread_nexus()->waiting_phase(state, state->vm());
     std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
 
-    state->shared().machine_threads()->before_fork_exec(state);
     state->memory()->set_interrupt();
 
     ThreadNexus::LockStatus status =
@@ -412,9 +411,6 @@ namespace rubinius {
     if(pid == 0) {
       // We're in the child...
       state->vm()->after_fork_child(state);
-    } else if(pid > 0) {
-      // We're in the parent...
-      state->shared().machine_threads()->after_fork_exec_parent(state);
     }
 
     return pid;
@@ -451,8 +447,6 @@ namespace rubinius {
     if(pid == 0) {
       // in child
       close(errors[0]);
-
-      state->shared().machine_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       vm_spawn_setup(state, spawn_state);
@@ -599,8 +593,6 @@ namespace rubinius {
     }
 
     if(pid == 0) {
-      state->shared().machine_threads()->after_fork_exec_child(state);
-
       close(errors[0]);
       close(output[0]);
 
@@ -761,8 +753,6 @@ namespace rubinius {
       }
     }
 
-    state->shared().machine_threads()->before_exec(state);
-
     ThreadNexus::LockStatus status =
       state->vm()->thread_nexus()->lock(state, state->vm());
 
@@ -812,8 +802,6 @@ namespace rubinius {
     if(status == ThreadNexus::eLocked) {
       state->vm()->thread_nexus()->unlock();
     }
-
-    state->shared().machine_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::raise_errno_error(state, "execvp(2) failed", erno);

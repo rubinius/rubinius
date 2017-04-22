@@ -530,10 +530,6 @@ namespace rubinius {
     delete cf;
   }
 
-  void Environment::after_exec(STATE) {
-    halt_lock_.init();
-  }
-
   void Environment::after_fork_child(STATE) {
     fork_exec_lock_.init();
     halt_lock_.init();

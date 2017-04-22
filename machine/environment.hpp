@@ -141,7 +141,6 @@ namespace rubinius {
     void set_console_path();
     void boot();
 
-    void after_exec(STATE);
     void after_fork_child(STATE);
 
     void halt(STATE, int exit_code);
