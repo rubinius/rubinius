@@ -7,7 +7,7 @@
 \#*\#
 .\#*\#
 /default.mspec
-/nbproject/private
+/nbproject
 *.orig
 *.rej
 optional/ffi/fixtures/build
