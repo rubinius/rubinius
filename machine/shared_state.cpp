@@ -193,10 +193,10 @@ namespace rubinius {
     return Fixnum::from(count);
   }
 
-  Array* SharedState::vm_thread_fibers(STATE, Thread* thread) {
+  void SharedState::vm_thread_fibers(STATE, Thread* thread,
+      std::function<void (STATE, Fiber*)> f)
+  {
     std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
-
-    Array* fibers = Array::create(state, 0);
 
     for(ThreadList::iterator i = thread_nexus_->threads()->begin();
         i != thread_nexus_->threads()->end();
@@ -207,10 +207,17 @@ namespace rubinius {
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead
             && vm->fiber()->thread() == thread) {
-          fibers->append(state, vm->fiber());
+          f(state, vm->fiber());
         }
       }
     }
+  }
+
+  Array* SharedState::vm_thread_fibers(STATE, Thread* thread) {
+    Array* fibers = Array::create(state, 0);
+
+    vm_thread_fibers(state, thread,
+          [fibers](STATE, Fiber* fiber){ fibers->append(state, fiber); });
 
     return fibers;
   }

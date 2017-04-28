@@ -75,6 +75,7 @@ namespace rubinius {
 
     static void finalize(STATE, Fiber* fib);
     static void* run(void*);
+    static void cancel_all(STATE, Thread* thread);
 
     static Fiber* create(STATE, VM* vm);
 
@@ -97,6 +98,8 @@ namespace rubinius {
     static Fixnum* s_count(STATE);
 
     bool root_p();
+
+    bool canceled_p();
 
     Status status() {
       return status_;

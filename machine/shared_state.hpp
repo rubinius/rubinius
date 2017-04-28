@@ -22,6 +22,7 @@
 
 #include <unistd.h>
 #include <atomic>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -52,16 +53,17 @@ namespace rubinius {
     class ManagedThread;
   }
 
-  class Fixnum;
-  class SignalThread;
-  class Memory;
-  class GlobalCache;
   class ConfigParser;
+  class Configuration;
+  class Environment;
+  class Fiber;
+  class Fixnum;
+  class GlobalCache;
+  class Memory;
+  class QueryAgent;
+  class SignalThread;
   class State;
   class VM;
-  class Configuration;
-  class QueryAgent;
-  class Environment;
 
   struct CallFrame;
 
@@ -205,6 +207,7 @@ namespace rubinius {
     Array* vm_fibers(STATE);
     Fixnum* vm_fibers_count(STATE);
     Array* vm_thread_fibers(STATE, Thread* thread);
+    void vm_thread_fibers(STATE, Thread* thread, std::function<void (STATE, Fiber*)> f);
 
     int global_serial() const {
       return global_serial_;

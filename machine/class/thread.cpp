@@ -374,6 +374,8 @@ namespace rubinius {
     Object* value = vm->thread()->function()(state);
     vm->set_call_frame(NULL);
 
+    Fiber::cancel_all(state, vm->thread());
+
     vm->thread()->join_lock_.lock();
     vm->thread()->stopped();
 

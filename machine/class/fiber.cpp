@@ -14,6 +14,7 @@
 #include "class/native_method.hpp"
 #include "class/object.hpp"
 #include "class/thread.hpp"
+#include "class/thread_state.hpp"
 
 #include "memory/gc.hpp"
 
@@ -38,6 +39,10 @@ namespace rubinius {
 
   bool Fiber::root_p() {
     return vm()->fiber()->vm() == vm()->thread()->vm();
+  }
+
+  bool Fiber::canceled_p() {
+    return !root_p() && vm()->thread_state()->raise_reason() == cFiberCancel;
   }
 
   void Fiber::unpack_arguments(STATE, Arguments& args) {
@@ -167,12 +172,17 @@ namespace rubinius {
   Object* Fiber::return_value(STATE) {
     if(vm()->thread_state()->raise_reason() == cNone) {
       return state->vm()->thread()->fiber_value();
-    } else if(vm()->thread_state()->raise_reason() == cFiberCancel) {
+    } else if(canceled_p()) {
       return NULL;
     } else {
       invoke_context()->thread_state()->set_state(vm()->thread_state());
       return NULL;
     }
+  }
+
+  void Fiber::cancel_all(STATE, Thread* thread) {
+    state->shared().vm_thread_fibers(state, thread,
+        [](STATE, Fiber* fiber){ fiber->cancel(state); });
   }
 
   void* Fiber::run(void* ptr) {
@@ -419,7 +429,8 @@ namespace rubinius {
 
   Object* Fiber::s_yield(STATE, Arguments& args) {
     Fiber* fiber = state->vm()->fiber();
-    OnStack<1> os(state, fiber);
+    ThreadState* thread_state = state->vm()->thread_state()->state_as_object(state);
+    OnStack<2> os(state, fiber, thread_state);
 
     {
       std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
@@ -435,13 +446,20 @@ namespace rubinius {
     }
 
     // Being cooperative...
+    state->vm()->thread_state()->clear_raise();
     fiber->invoke_context()->fiber()->restart(state);
 
     // Through the worm hole...
     fiber->suspend_and_continue(state);
 
+    if(fiber->canceled_p()) return NULL;
+
+    if(!thread_state->nil_p()) {
+      state->vm()->thread_state()->set_state(state, thread_state);
+    }
+
     // We're back...
-    return fiber->return_value(state);
+    return state->vm()->thread()->fiber_value();
   }
 
   Array* Fiber::s_list(STATE) {
