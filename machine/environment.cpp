@@ -118,8 +118,6 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    stop_logging(state);
-
     delete finalizer_thread_;
 
     VM::discard(state, root_vm);
@@ -130,6 +128,8 @@ namespace rubinius {
       delete[] argv_[i];
     }
     delete[] argv_;
+
+    stop_logging(state);
   }
 
   void cpp_exception_bug() {

@@ -157,11 +157,11 @@ namespace rubinius {
 
     FinalizerThread::~FinalizerThread() {
       if(!live_list_.empty()) {
-        rubinius::bug("FinalizerThread destructed with remaining finalizer objects");
+        logger::error("FinalizerThread destructed with remaining finalizer objects");
       }
 
       if(!process_list_.empty()) {
-        rubinius::bug("FinalizerThread destructed with remaining to-be-finalized objects");
+        logger::error("FinalizerThread destructed with remaining to-be-finalized objects");
       }
 
       cleanup();
