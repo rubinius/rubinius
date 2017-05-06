@@ -75,7 +75,6 @@ namespace rubinius {
 
     static void finalize(STATE, Fiber* fib);
     static void* run(void*);
-    static void cancel_all(STATE, Thread* thread);
 
     static Fiber* create(STATE, VM* vm);
 

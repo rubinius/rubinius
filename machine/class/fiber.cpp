@@ -114,14 +114,9 @@ namespace rubinius {
   }
 
   void Fiber::cancel(STATE) {
-    {
-      std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
-
+    if(!vm()->zombie_p()) {
       vm()->thread_state()->raise_fiber_cancel();
 
-      state->vm()->set_suspending();
-
-      restart_context(state->vm());
       wakeup();
 
       while(vm()->suspended_p()) {
@@ -129,17 +124,6 @@ namespace rubinius {
         vm()->fiber_wait_condition().notify_one();
       }
     }
-
-    vm()->limited_wait_for([this]{ return vm()->running_p(); });
-
-    // Release the canceled Fiber.
-    state->vm()->set_suspended();
-
-    vm()->limited_wait_for([this]{ return vm()->zombie_p(); });
-
-    vm()->set_canceled();
-
-    state->vm()->set_running();
   }
 
   void Fiber::suspend_and_continue(STATE) {
@@ -156,7 +140,7 @@ namespace rubinius {
       vm()->set_resuming();
     }
 
-    {
+    if(!vm()->canceled_p()) {
       std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
       vm()->set_running();
@@ -178,11 +162,6 @@ namespace rubinius {
       invoke_context()->thread_state()->set_state(vm()->thread_state());
       return NULL;
     }
-  }
-
-  void Fiber::cancel_all(STATE, Thread* thread) {
-    state->shared().vm_thread_fibers(state, thread,
-        [](STATE, Fiber* fiber){ fiber->cancel(state); });
   }
 
   void* Fiber::run(void* ptr) {
