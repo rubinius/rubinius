@@ -201,6 +201,7 @@ class ArgumentError < StandardError
 end
 
 class UncaughtThrowError < ArgumentError
+  attr_accessor :tag
 end
 
 class IndexError < StandardError
