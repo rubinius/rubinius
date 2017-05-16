@@ -5,7 +5,6 @@ compiler:
 - clang
 os:
 - linux
-# - osx
 ruby: 2.2.0
 before_install:
 - echo $LANG
@@ -45,4 +44,4 @@ env:
   - LANG="en_US.UTF-8"
   - secure: olbok/GN6rOYvPnHBYWGz7giCoCdLFpT/7WSBHukYO3E0uNeqAUOOgW2BFOwCVWdSEJ/iTvJXZQ4qVZHX+6jRfvILZeGv+D2P93VdD8UFQRoTOfFC7esAo525s9fuKm9ehUGWZxlzGOBHHckky1jn6pEf8mlXAVM5e76dlH0fck=
   - secure: aqG9eB/PrzQ7XJQN6YX/00sNVvwSB77saxXQzguL2WFjAXB74h6168Hzq+awHtNX/vfOb6ta7fpWLHrA0D+gmZnvTR29VlP6nd0vs1tkdX1/jWbiBHjamRffp+NWVdKbJKYn5iLOGXcuUMOzY/opLKOdvxKZfkxGMxR2tTNLZUE=
-  - secure: eElvNLjuFZAuixJdgom4Kv8RDziE4ArFcSEwYctvprMe/414CAaJcFkjQKg0RrJzAxZ51oGjdcZhEfmjNXcUU1gA5l++IdnlQm0x4kt8r7aql+q2geHzrrjhhwPujT9a8JNtXs6dHnbi+quNlxyVItWzeGJsjyhJzH8hxiFhCYI=
+  - secure: NaiH/2wYgzWT3xcscU6Bzw1Zd9lZYPG6OkCRZcQcIXZXwQTmZrGTcZfy5fDe2Vzotvwfr+2B4Ko6axE3KFrsmjTIVD/lI44Y3K+UFHOKhrm6niVtMD6Rx/oUO30hoB3/OkmZnI578F4M5y7x17sDei4L0NKPgnUhm0P0/WPCze4=
