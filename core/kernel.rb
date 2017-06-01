@@ -345,24 +345,33 @@ module Kernel
   alias_method :iterator?, :block_given?
   module_function :iterator?
 
+  def caller_inner(start, length)
+    if start.is_a?(Range)
+      length = start.size
+      start = start.begin
+    end
+
+    # The + 2 is to skip this frame and the caller's.
+    #
+    # TODO: plumb length into mri_backtrace to save some work.
+    full_trace = Rubinius.mri_backtrace(start + 2)
+    if length
+      full_trace = full_trace.slice(0, length)
+    end
+    full_trace
+  end
+  module_function :caller_inner
+  private :caller_inner
+
   def caller(start = 1, length = nil)
-    frames = []
-
-    # The + 1 is to skip this frame
-    Rubinius.mri_backtrace(start + 1).map do |tup|
-      if length and frames.length == length
-        break
-      end
-
+    caller_inner(start, length).map do |tup|
       code     = tup[0]
       line     = tup[1]
       is_block = tup[2]
       name     = tup[3]
 
-      frames << "#{code.active_path}:#{line}:in `#{name}'"
+      "#{code.active_path}:#{line}:in `#{name}'"
     end
-
-    frames
   end
   module_function :caller
 
@@ -371,23 +380,14 @@ module Kernel
   # instances. This method is available starting with Ruby 2.0.
   #
   def caller_locations(start = 1, length = nil)
-    full_trace = Rubinius.mri_backtrace(start + 1)
-    locations  = []
-
-    full_trace.each do |tup|
-      if length and locations.length == length
-        break
-      end
-
+    caller_inner(start, length).map do |tup|
       scope    = tup[0].scope
       abs_path = tup[0].active_path
       path     = scope ? scope.active_path : abs_path
       label    = tup[3].to_s
 
-      locations << Thread::Backtrace::Location.new(label, abs_path, path, tup[1])
+      Thread::Backtrace::Location.new(label, abs_path, path, tup[1])
     end
-
-    locations
   end
   module_function :caller_locations
 
