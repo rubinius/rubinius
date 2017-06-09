@@ -1032,6 +1032,15 @@ class Array
     return "[...]" if Thread.detect_recursion self do
       each_with_index do |element, index|
         temp = element.inspect
+
+        unless temp.kind_of? String
+          Rubinius.asm do
+            push_local 2
+            object_to_s :to_s
+            set_local 2
+          end
+        end
+
         result.force_encoding(temp.encoding) if index == 0
         result << temp << comma
       end
