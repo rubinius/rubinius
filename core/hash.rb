@@ -684,9 +684,9 @@ class Hash
     out = []
     return '{...}' if Thread.detect_recursion self do
       each_item do |e|
-        str =  e.key.inspect
+        str =  Rubinius::Type.coerce_inspect(e.key)
         str << '=>'
-        str << e.value.inspect
+        str << Rubinius::Type.coerce_inspect(e.value)
         out << str
       end
     end
