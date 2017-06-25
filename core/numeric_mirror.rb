@@ -58,10 +58,10 @@ module Rubinius
         raise ArgumentError, "step is given twice" if step && by
         raise ArgumentError, "step cannot be 0" if step == 0
 
-        limit ||= to
         step ||= by || 1
-        value = @object
         asc = step > 0
+        limit ||= to || (asc ? Float::INFINITY : -Float::INFINITY)
+        value = @object
         if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
           return FloatValue(value), FloatValue(limit), FloatValue(step), asc, true
         else
