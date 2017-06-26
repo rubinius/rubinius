@@ -384,6 +384,24 @@ describe :numeric_step, :shared => true do
             end
           end
         end
+
+        describe "when stop not passed" do
+          it "should not raise error" do
+            proc {1.send(@method, *@step_args.call()).size}.should_not raise_error
+          end
+          it "returns infinity_value" do
+            1.send(@method, *@step_args.call()).size.should == infinity_value
+          end
+        end
+
+        describe "when stop is nil" do
+          it "should not raise error" do
+           proc {1.send(@method, *@step_args.call(nil, 5)).size}.should_not raise_error
+          end
+          it "returns infinity_value" do
+            1.send(@method, *@step_args.call(nil, 5)).size.should == infinity_value
+          end
+        end
       end
     end
   end
