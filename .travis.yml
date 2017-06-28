@@ -1,7 +1,6 @@
 language: cpp
 sudo: required
 dist: trusty
-group: deprecated-2017Q2
 compiler:
 - clang
 os:
