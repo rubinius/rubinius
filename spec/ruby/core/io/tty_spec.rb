@@ -6,8 +6,10 @@ describe "IO#tty?" do
 end
 
 describe "IO#ttyname" do
-  it "returns the name of the STDOUT tty" do
-    io = $stdout
-    io.ttyname.should =~ Regexp.new('/dev/')
+  with_tty do
+    it "returns the name of the STDOUT tty" do
+      io = $stdout
+      io.ttyname.should =~ Regexp.new('/dev/')
+    end
   end
 end
