@@ -1853,6 +1853,10 @@ class Time
   }
 end
 
+class Random
+  DEFAULT = new
+end
+
 module Rubinius
   class CodeDB
     class << self
