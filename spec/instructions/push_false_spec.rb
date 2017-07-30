@@ -9,7 +9,6 @@ describe "Instruction push_false" do
   end
 
   it "adds false to the bottom of the stack" do
-    STDERR.puts "running push_false!"
     @spec.run.should be_false
   end
 end

@@ -6,6 +6,7 @@ class InstructionSpec
   def initialize(name, &block)
     @name = name
     @code = self.class.dynamic_method(name, &block)
+    @code.tags |= Rubinius::Executable::Experimental
   end
 
   def run(*args)

@@ -21,11 +21,6 @@ namespace rubinius {
     size_t calls_count = 0;
     size_t constants_count = 0;
 
-    // Set exception handler IP
-    // TODO: handle in the bytecode compiler
-    opcodes[total-1] =
-      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
-
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
       width = Interpreter::instruction_data_(op).width;

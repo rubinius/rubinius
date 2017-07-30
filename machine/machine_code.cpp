@@ -82,7 +82,7 @@ namespace rubinius {
     }
 
     if(code->experimental_tag_p()) {
-      opcodes = new opcode[total+1];
+      opcodes = new opcode[total];
 
       run = (InterpreterRunner)Interpreter::execute;
       Interpreter::prepare(state, code, this);
