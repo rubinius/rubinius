@@ -8,11 +8,11 @@ namespace rubinius {
       switch(th->raise_reason()) {
       case cException:
         if(call_frame->unwinds->has_unwinds()) {
-          // TODO: instructions, set this in call_frame
           call_frame->unwind_info = call_frame->unwinds->pop();
           return cExceptionUnwind;
         } else {
           call_frame->scope->flush_to_heap(state);
+          stack_push(nullptr);
         }
 
       case cBreak:
