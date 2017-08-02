@@ -42,6 +42,10 @@ extern "C" {
     return rb_funcall2b(self, rb_intern("delete_if"), 0, 0, block_handle);
   }
 
+  VALUE rb_hash_fetch(VALUE self, VALUE key) {
+    return capi_fast_call(self, rb_intern("fetch"), 1, key);
+  }
+
   VALUE rb_hash_size(VALUE self) {
     return capi_fast_call(self, rb_intern("size"), 0);
   }

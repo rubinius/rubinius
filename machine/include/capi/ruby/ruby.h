@@ -1449,6 +1449,9 @@ struct RTypedData {
   VALUE   rb_hash_freeze(VALUE self);
 #define HAVE_RB_HASH_FREEZE 1
 
+  /** Return the value associated with the key, or raise KeyError. */
+  VALUE   rb_hash_fetch(VALUE self, VALUE key);
+
   /** Return the value associated with the key, including default values. */
   VALUE   rb_hash_aref(VALUE self, VALUE key);
 
