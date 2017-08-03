@@ -81,3 +81,93 @@ describe "Instruction run_exception" do
     @spec.run.should == :a
   end
 end
+
+describe "Instruction run_exception" do
+  before do
+    @spec = InstructionSpec.new :run_exception do |g|
+			ex = g.new_label
+			no_exc = g.new_label
+
+      exs = g.new_stack_local
+
+      g.setup_unwind ex, 1
+      g.push_exception_state
+      g.set_stack_local exs
+      g.pop
+      g.push_self
+      g.send_method :m
+      g.pop_unwind
+      g.goto no_exc
+
+      ex.set!
+      g.push_exception_state
+      g.push_self
+      g.send_method :n
+      g.pop
+      g.restore_exception_state
+      g.reraise
+
+      no_exc.set!
+      g.push_self
+      g.send_method :n
+      g.pop
+      g.ret
+      g.run_exception
+    end
+
+    def @spec.m
+      raise RuntimeError
+    end
+  end
+
+  it "runs ensure blocks when an exception is raised" do
+    @spec.should_receive(:n)
+
+    lambda { @spec.run }.should raise_error(RuntimeError)
+  end
+end
+
+describe "Instruction run_exception" do
+  before do
+    @spec = InstructionSpec.new :run_exception do |g|
+			ex = g.new_label
+			no_exc = g.new_label
+
+      exs = g.new_stack_local
+
+      g.setup_unwind ex, 1
+      g.push_exception_state
+      g.set_stack_local exs
+      g.pop
+      g.push_self
+      g.send_method :m
+      g.pop_unwind
+      g.goto no_exc
+
+      ex.set!
+      g.push_exception_state
+      g.push_self
+      g.send_method :n
+      g.pop
+      g.restore_exception_state
+      g.reraise
+
+      no_exc.set!
+      g.push_self
+      g.send_method :n
+      g.pop
+      g.ret
+      g.run_exception
+    end
+
+    def @spec.m
+      :a
+    end
+  end
+
+  it "runs ensure blocks when no exception is raised" do
+    @spec.should_receive(:n)
+
+    @spec.run.should == :a
+  end
+end
