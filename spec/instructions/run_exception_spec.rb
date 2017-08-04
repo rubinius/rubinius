@@ -200,7 +200,45 @@ describe "Instruction run_exception" do
   end
 
   it "continues running the method when a block breaks" do
-    @spec.code.literals[0].tags |= Rubinius::Executable::Experimental
     @spec.run.should == :a
   end
 end
+
+describe "Instruction run_exception" do
+  before do
+    @spec = InstructionSpec.new :run_exception do |g|
+      blk = g.class.new
+      blk.name = :__block__
+      blk.set_line 1
+
+      blk.push_literal :a
+      blk.raise_return
+      blk.pop
+      blk.push_literal :b
+      blk.ret
+      blk.run_exception
+      blk.close
+
+      g.push_self
+      g.create_block blk
+      g.send_stack_with_block :m, 0
+      g.pop
+      g.push_literal :c
+      g.ret
+      g.run_exception
+    end
+
+    def @spec.m
+      yield
+    end
+
+    def @spec.start
+      run
+    end
+  end
+
+  it "returns from the method containing the block when return is executed in the block" do
+    @spec.start.should == :a
+  end
+end
+
