@@ -9,7 +9,7 @@ class InstructionSpec
     @code.tags |= Rubinius::Executable::Experimental
   end
 
-  def run(*args)
-    send(@name, *args)
+  def run(*args, &block)
+    send(@name, *args, &block)
   end
 end

@@ -9,10 +9,10 @@ namespace rubinius {
           call_frame->set_ip(call_frame->unwind_info.target_ip);
           break;
         case instructions::cExceptionContinue:
-          call_frame->next_ip(instructions::data_run_exception.width);
+          call_frame->continue_ip();
           break;
         case instructions::cExceptionReturn:
-          call_frame->ret_ip();
+          call_frame->return_ip();
           break;
       }
 
