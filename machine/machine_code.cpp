@@ -6,6 +6,7 @@
 #include "defines.hpp"
 #include "machine_code.hpp"
 #include "interpreter.hpp"
+#include "logger.hpp"
 
 #include "object_utils.hpp"
 
@@ -82,6 +83,8 @@ namespace rubinius {
     }
 
     if(code->experimental_tag_p()) {
+      logger::info("interpreter: experimental: %s, %d", name_->cpp_str(state).c_str(), total);
+
       opcodes = new opcode[total];
 
       run = (InterpreterRunner)Interpreter::execute;
