@@ -82,7 +82,8 @@ namespace rubinius {
       keywords_count = code->keywords()->num_fields() / 2;
     }
 
-    if(code->experimental_tag_p()) {
+    if(code->experimental_tag_p() ||
+        state->shared().config.machine_interpreter_experimental.value) {
       logger::info("interpreter: experimental: %s, %d", name_->cpp_str(state).c_str(), total);
 
       opcodes = new opcode[total];

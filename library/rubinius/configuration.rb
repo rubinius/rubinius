@@ -108,6 +108,11 @@ Rubinius::ConfigurationVariables.define do |c|
         "Maximum number of cache evictions before disabling caching at the call site"
     end
 
+    m.section "interpreter" do |i|
+      i.vm_variable "experimental", false,
+        "Use the experimental interpreter for all bytecode"
+    end
+
     m.section "jit" do |j|
       j.vm_variable "enabled", false,
         "Just-in-time compile managed code to native code"
