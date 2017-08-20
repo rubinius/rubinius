@@ -16,8 +16,6 @@ namespace rubinius {
         state->raise_exception(exc);
         return 0;
       }
-      // TODO: instruction exceptions
-      // return false;
     }
   }
 }

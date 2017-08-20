@@ -5,10 +5,10 @@ describe "Instruction run_exception" do
     @spec = InstructionSpec.new :run_exception do |g|
       g.push_self
       g.send_method :m
+      g.run_exception
       g.pop
       g.push_literal :a
       g.ret
-      g.run_exception
     end
 
     def @spec.m
@@ -38,6 +38,7 @@ describe "Instruction run_exception" do
       g.setup_unwind ex, 0
       g.push_self
       g.send_method :m
+      g.run_exception
       g.pop_unwind
       g.goto done
 
@@ -48,8 +49,10 @@ describe "Instruction run_exception" do
       g.push_current_exception
       g.dup
       g.push_const :RuntimeError
+      g.run_exception
       g.swap
       g.send_stack :===, 1
+      g.run_exception
       g.goto_if_true rescued
       g.goto unrescued
 
@@ -64,12 +67,12 @@ describe "Instruction run_exception" do
       g.push_stack_local exs2
       g.restore_exception_state
       g.reraise
+      g.run_exception
 
       done.set!
       g.push_stack_local exs1
       g.restore_exception_state
       g.ret
-      g.run_exception
     end
 
     def @spec.m
@@ -96,6 +99,7 @@ describe "Instruction run_exception" do
       g.pop
       g.push_self
       g.send_method :m
+      g.run_exception
       g.pop_unwind
       g.goto no_exc
 
@@ -103,16 +107,18 @@ describe "Instruction run_exception" do
       g.push_exception_state
       g.push_self
       g.send_method :n
+      g.run_exception
       g.pop
       g.restore_exception_state
       g.reraise
+      g.run_exception
 
       no_exc.set!
       g.push_self
       g.send_method :n
+      g.run_exception
       g.pop
       g.ret
-      g.run_exception
     end
 
     def @spec.m
@@ -141,6 +147,7 @@ describe "Instruction run_exception" do
       g.pop
       g.push_self
       g.send_method :m
+      g.run_exception
       g.pop_unwind
       g.goto no_exc
 
@@ -148,16 +155,18 @@ describe "Instruction run_exception" do
       g.push_exception_state
       g.push_self
       g.send_method :n
+      g.run_exception
       g.pop
       g.restore_exception_state
       g.reraise
+      g.run_exception
 
       no_exc.set!
       g.push_self
       g.send_method :n
+      g.run_exception
       g.pop
       g.ret
-      g.run_exception
     end
 
     def @spec.m
@@ -181,17 +190,18 @@ describe "Instruction run_exception" do
 
       blk.push_literal :a
       blk.raise_break
+      blk.run_exception
       blk.pop
       blk.push_literal :b
       blk.ret
-      blk.run_exception
       blk.close
 
       g.push_self
       g.create_block blk
-      g.send_stack_with_block :m, 0
-      g.ret
       g.run_exception
+      g.send_stack_with_block :m, 0
+      g.run_exception
+      g.ret
     end
 
     def @spec.m
@@ -213,19 +223,20 @@ describe "Instruction run_exception" do
 
       blk.push_literal :a
       blk.raise_return
+      blk.run_exception
       blk.pop
       blk.push_literal :b
       blk.ret
-      blk.run_exception
       blk.close
 
       g.push_self
       g.create_block blk
+      g.run_exception
       g.send_stack_with_block :m, 0
+      g.run_exception
       g.pop
       g.push_literal :c
       g.ret
-      g.run_exception
     end
 
     def @spec.m
@@ -241,4 +252,3 @@ describe "Instruction run_exception" do
     @spec.start.should == :a
   end
 end
-

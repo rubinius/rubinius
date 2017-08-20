@@ -6,9 +6,11 @@ namespace rubinius {
     using namespace rubinius;
 
     typedef enum {
-      cExceptionUnwind,
-      cExceptionContinue,
+      cExceptionRescue,
+      cExceptionEnsure,
+      cExceptionBreak,
       cExceptionReturn,
+      cExceptionUnwind,
     } ExceptionContinuation;
 
     inline void add_scope(STATE, CallFrame* call_frame);

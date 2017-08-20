@@ -6,9 +6,10 @@ namespace rubinius {
       intptr_t literal = argument(0);
 
       if(instructions::zsuper(state, call_frame, literal)) {
-        call_frame->next_ip(instructions::data_zsuper.width);
+        call_frame->next_ip(instructions::data_zsuper.width
+            + instructions::data_run_exception.width);
       } else {
-        call_frame->exception_ip();
+        call_frame->next_ip(instructions::data_zsuper.width);
       }
 
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);

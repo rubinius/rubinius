@@ -56,9 +56,6 @@ namespace rubinius {
 
     int flags;
     int ip_;
-    int return_ip_;
-    int exception_ip_;
-    int continue_ip_;
 
     VariableScope* top_scope_;
     StackVariables* scope;
@@ -184,24 +181,8 @@ namespace rubinius {
       return ip_++;
     }
 
-    void continue_ip(int width) {
-      continue_ip_ = ip_ + width;
-    }
-
     void next_ip(int width) {
       ip_ += width;
-    }
-
-    void return_ip() {
-      ip_ = return_ip_;
-    }
-
-    void continue_ip() {
-      ip_ = continue_ip_;
-    }
-
-    void exception_ip() {
-      ip_ = exception_ip_;
     }
 
     /**

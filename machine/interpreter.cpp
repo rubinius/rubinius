@@ -179,8 +179,6 @@ namespace rubinius {
     intptr_t* opcodes = (intptr_t*)machine_code->opcodes;
 
     CallFrame* call_frame = state->vm()->call_frame();
-    call_frame->return_ip_ = machine_code->total - 2;
-    call_frame->exception_ip_ = machine_code->total - 1;
     call_frame->stack_ptr_ = call_frame->stk - 1;
     call_frame->machine_code = machine_code;
     call_frame->is = &is;
