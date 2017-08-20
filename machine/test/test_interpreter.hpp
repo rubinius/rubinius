@@ -62,17 +62,20 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    intptr_t opcodes[2];
+    intptr_t opcodes[3];
     opcodes[0] =
       reinterpret_cast<intptr_t>(instructions::data_cast_array.interpreter_address);
     opcodes[1] =
+      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
+    opcodes[2] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
     stack_push(cNil);
 
     interpreter::cast_array(state, call_frame, opcodes);
 
-    TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_cast_array.width);
+    TS_ASSERT_EQUALS(call_frame->ip(),
+        instructions::data_cast_array.width + instructions::data_run_exception.width);
   }
 
   void test_interpreter_cast_for_multi_block_arg() {
@@ -152,10 +155,12 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    intptr_t opcodes[2];
+    intptr_t opcodes[3];
     opcodes[0] =
       reinterpret_cast<intptr_t>(instructions::data_check_frozen.interpreter_address);
     opcodes[1] =
+      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
+    opcodes[2] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
     Array* ary = Array::create(state, 0);
@@ -164,7 +169,8 @@ public:
 
     interpreter::check_frozen(state, call_frame, opcodes);
 
-    TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_check_frozen.width);
+    TS_ASSERT_EQUALS(call_frame->ip(),
+        instructions::data_check_frozen.width + instructions::data_run_exception.width);
   }
 
   void test_interpreter_check_interrupts() {
