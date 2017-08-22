@@ -62,12 +62,13 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    intptr_t opcodes[3];
+    intptr_t opcodes[4];
     opcodes[0] =
       reinterpret_cast<intptr_t>(instructions::data_cast_array.interpreter_address);
     opcodes[1] =
-      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
-    opcodes[2] =
+      reinterpret_cast<intptr_t>(instructions::data_unwind.interpreter_address);
+    opcodes[2] = 0;
+    opcodes[3] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
     stack_push(cNil);
@@ -75,7 +76,7 @@ public:
     interpreter::cast_array(state, call_frame, opcodes);
 
     TS_ASSERT_EQUALS(call_frame->ip(),
-        instructions::data_cast_array.width + instructions::data_run_exception.width);
+        instructions::data_cast_array.width + instructions::data_unwind.width);
   }
 
   void test_interpreter_cast_for_multi_block_arg() {
@@ -155,12 +156,13 @@ public:
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    intptr_t opcodes[3];
+    intptr_t opcodes[4];
     opcodes[0] =
       reinterpret_cast<intptr_t>(instructions::data_check_frozen.interpreter_address);
     opcodes[1] =
-      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
-    opcodes[2] =
+      reinterpret_cast<intptr_t>(instructions::data_unwind.interpreter_address);
+    opcodes[2] = 0;
+    opcodes[3] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
     Array* ary = Array::create(state, 0);
@@ -170,7 +172,7 @@ public:
     interpreter::check_frozen(state, call_frame, opcodes);
 
     TS_ASSERT_EQUALS(call_frame->ip(),
-        instructions::data_check_frozen.width + instructions::data_run_exception.width);
+        instructions::data_check_frozen.width + instructions::data_unwind.width);
   }
 
   void test_interpreter_check_interrupts() {
@@ -1356,22 +1358,23 @@ public:
     // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_rotate.width);
   }
 
-  void test_interpreter_run_exception() {
+  void test_interpreter_unwind() {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(1);
     StackVariables* scope = ALLOCA_STACKVARIABLES(0);
     setup_call_frame(call_frame, scope, 1);
 
-    intptr_t opcodes[2];
+    intptr_t opcodes[3];
     opcodes[0] =
-      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
-    opcodes[1] =
+      reinterpret_cast<intptr_t>(instructions::data_unwind.interpreter_address);
+    opcodes[1] = 0;
+    opcodes[2] =
       reinterpret_cast<intptr_t>(instructions::data_ret.interpreter_address);
 
     // TODO: instructions
-    // interpreter::run_exception(state, call_frame, opcodes);
+    // interpreter::unwind(state, call_frame, opcodes);
 
     TS_ASSERT(true);
-    // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_run_exception.width);
+    // TS_ASSERT_EQUALS(call_frame->ip(), instructions::data_unwind.width);
   }
 
   void test_interpreter_send_method() {

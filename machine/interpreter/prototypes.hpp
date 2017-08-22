@@ -85,7 +85,7 @@ namespace rubinius {
     inline void restore_exception_state(STATE, CallFrame* call_frame);
     inline intptr_t ret(STATE, CallFrame* call_frame);
     inline void rotate(CallFrame* call_frame, intptr_t count);
-    inline ExceptionContinuation run_exception(STATE, CallFrame* call_frame);
+    inline ExceptionContinuation unwind(STATE, CallFrame* call_frame);
     inline bool send_method(STATE, CallFrame* call_frame, intptr_t literal);
     inline bool send_stack(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
     inline bool send_stack_with_block(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
@@ -188,7 +188,7 @@ namespace rubinius {
     intptr_t restore_exception_state(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t ret(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t rotate(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
-    intptr_t run_exception(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t unwind(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t send_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t send_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t send_stack_with_block(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

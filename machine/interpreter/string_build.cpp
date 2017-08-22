@@ -7,7 +7,7 @@ namespace rubinius {
 
       if(instructions::string_build(state, call_frame, count)) {
         call_frame->next_ip(instructions::data_string_build.width
-            + instructions::data_run_exception.width);
+            + instructions::data_unwind.width);
       } else {
         call_frame->next_ip(instructions::data_string_build.width);
       }

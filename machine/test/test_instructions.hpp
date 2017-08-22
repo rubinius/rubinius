@@ -77,7 +77,7 @@
 #include "instructions/restore_exception_state.hpp"
 #include "instructions/ret.hpp"
 #include "instructions/rotate.hpp"
-#include "instructions/run_exception.hpp"
+#include "instructions/unwind.hpp"
 #include "instructions/send_method.hpp"
 #include "instructions/send_stack.hpp"
 #include "instructions/send_stack_with_block.hpp"
@@ -2231,12 +2231,12 @@ public:
     interpreter(1, 0, test);
   }
 
-  void test_run_exception() {
+  void test_unwind() {
     InstructionTest test = lambda {
       stack_push(cNil);
 
       // TODO: instructions
-      // instructions::run_exception(state, call_frame);
+      // instructions::unwind(state, call_frame);
 
       TS_ASSERT(true);
     };

@@ -2,7 +2,7 @@
 
 namespace rubinius {
   namespace instructions {
-    inline ExceptionContinuation run_exception(STATE, CallFrame* call_frame) {
+    inline ExceptionContinuation unwind(STATE, CallFrame* call_frame, intptr_t ip) {
       VMThreadState* th = state->vm()->thread_state();
 
       switch(th->raise_reason()) {

@@ -262,7 +262,9 @@ class InstructionParser
     end
 
     def process_unwind
-      conditional_branch
+      @before_stream = lambda { @file.puts "        location = @ip + 1" }
+      @after_stream = lambda { @file.puts "        arg1.used_at location" }
+      method_definition
     end
 
     def process_ret

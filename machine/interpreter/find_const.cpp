@@ -7,7 +7,7 @@ namespace rubinius {
 
       if(instructions::find_const(state, call_frame, literal)) {
         call_frame->next_ip(instructions::data_find_const.width
-            + instructions::data_run_exception.width);
+            + instructions::data_unwind.width);
       } else {
         call_frame->next_ip(instructions::data_find_const.width);
       }

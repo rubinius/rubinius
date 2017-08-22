@@ -8,7 +8,7 @@ namespace rubinius {
 
       if(instructions::send_stack_with_splat(state, call_frame, literal, count)) {
         call_frame->next_ip(instructions::data_send_stack_with_splat.width
-            + instructions::data_run_exception.width);
+            + instructions::data_unwind.width);
       } else {
         call_frame->next_ip(instructions::data_send_stack_with_splat.width);
       }

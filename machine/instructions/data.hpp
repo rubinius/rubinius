@@ -318,93 +318,93 @@ namespace rubinius {
       "rotate", 71, 2, 0, 1, 0, 0, 0, (1 * 1), (0 * 1), (0 * 0),
       rubinius::interpreter::rotate
     };
-    const InstructionData constexpr data_run_exception = {
-      "run_exception", 72, 1, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
-      rubinius::interpreter::run_exception
-    };
     const InstructionData constexpr data_send_method = {
-      "send_method", 73, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "send_method", 72, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::send_method
     };
     const InstructionData constexpr data_send_stack = {
-      "send_stack", 74, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "send_stack", 73, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::send_stack
     };
     const InstructionData constexpr data_send_stack_with_block = {
-      "send_stack_with_block", 75, 3, 2, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "send_stack_with_block", 74, 3, 2, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::send_stack_with_block
     };
     const InstructionData constexpr data_send_stack_with_splat = {
-      "send_stack_with_splat", 76, 3, 3, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "send_stack_with_splat", 75, 3, 3, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::send_stack_with_splat
     };
     const InstructionData constexpr data_send_super_stack_with_block = {
-      "send_super_stack_with_block", 77, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "send_super_stack_with_block", 76, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::send_super_stack_with_block
     };
     const InstructionData constexpr data_send_super_stack_with_splat = {
-      "send_super_stack_with_splat", 78, 3, 2, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "send_super_stack_with_splat", 77, 3, 2, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::send_super_stack_with_splat
     };
     const InstructionData constexpr data_send_vcall = {
-      "send_vcall", 79, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "send_vcall", 78, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::send_vcall
     };
     const InstructionData constexpr data_set_call_flags = {
-      "set_call_flags", 80, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      "set_call_flags", 79, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::set_call_flags
     };
     const InstructionData constexpr data_set_const = {
-      "set_const", 81, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "set_const", 80, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::set_const
     };
     const InstructionData constexpr data_set_const_at = {
-      "set_const_at", 82, 2, 2, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "set_const_at", 81, 2, 2, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::set_const_at
     };
     const InstructionData constexpr data_set_ivar = {
-      "set_ivar", 83, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "set_ivar", 82, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::set_ivar
     };
     const InstructionData constexpr data_set_local = {
-      "set_local", 84, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "set_local", 83, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::set_local
     };
     const InstructionData constexpr data_set_local_depth = {
-      "set_local_depth", 85, 3, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "set_local_depth", 84, 3, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::set_local_depth
     };
     const InstructionData constexpr data_set_stack_local = {
-      "set_stack_local", 86, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "set_stack_local", 85, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::set_stack_local
     };
     const InstructionData constexpr data_setup_unwind = {
-      "setup_unwind", 87, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      "setup_unwind", 86, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::setup_unwind
     };
     const InstructionData constexpr data_shift_array = {
-      "shift_array", 88, 1, 1, 0, 0, 0, 2, (0 * 0), (0 * 0), (0 * 0),
+      "shift_array", 87, 1, 1, 0, 0, 0, 2, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::shift_array
     };
     const InstructionData constexpr data_store_my_field = {
-      "store_my_field", 89, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "store_my_field", 88, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::store_my_field
     };
     const InstructionData constexpr data_string_append = {
-      "string_append", 90, 1, 2, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "string_append", 89, 1, 2, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::string_append
     };
     const InstructionData constexpr data_string_build = {
-      "string_build", 91, 2, 0, 1, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "string_build", 90, 2, 0, 1, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::string_build
     };
     const InstructionData constexpr data_string_dup = {
-      "string_dup", 92, 1, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "string_dup", 91, 1, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::string_dup
     };
     const InstructionData constexpr data_swap = {
-      "swap", 93, 1, 2, 0, 0, 0, 2, (0 * 0), (0 * 0), (0 * 0),
+      "swap", 92, 1, 2, 0, 0, 0, 2, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::swap
+    };
+    const InstructionData constexpr data_unwind = {
+      "unwind", 93, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::unwind
     };
     const InstructionData constexpr data_yield_debugger = {
       "yield_debugger", 94, 1, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),

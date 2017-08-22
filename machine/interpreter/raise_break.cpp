@@ -5,7 +5,7 @@ namespace rubinius {
     intptr_t raise_break(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
       if(instructions::raise_break(state, call_frame)) {
         call_frame->next_ip(instructions::data_raise_break.width
-            + instructions::data_run_exception.width);
+            + instructions::data_unwind.width);
       } else {
         call_frame->next_ip(instructions::data_raise_break.width);
       }

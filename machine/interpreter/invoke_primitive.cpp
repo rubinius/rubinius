@@ -8,7 +8,7 @@ namespace rubinius {
 
       if(instructions::invoke_primitive(state, call_frame, literal, count)) {
         call_frame->next_ip(instructions::data_invoke_primitive.width
-            + instructions::data_run_exception.width);
+            + instructions::data_unwind.width);
       } else {
         call_frame->next_ip(instructions::data_invoke_primitive.width);
       }
