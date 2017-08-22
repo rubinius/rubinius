@@ -2193,6 +2193,6 @@ instruction push_mirror() [ -- constant ]
   stack_push(G(mirror));
 end
 
-instruction run_exception() [ -- ]
+instruction unwind(ip, stack, type) [ -- ]
   // place holder for transitioning to new interpreter
 end

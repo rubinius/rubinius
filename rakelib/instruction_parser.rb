@@ -261,6 +261,10 @@ class InstructionParser
       conditional_branch
     end
 
+    def process_unwind
+      conditional_branch
+    end
+
     def process_ret
       unconditional_exit true
     end
