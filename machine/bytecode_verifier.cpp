@@ -60,6 +60,20 @@ namespace rubinius {
     }
   }
 
+  void BytecodeVerifier::verify_jump_location(STATE, int index, int ip) {
+    if(index < 0 || index >= total_) {
+      fail(state, "invalid goto location", ip);
+    }
+  }
+
+  void BytecodeVerifier::verify_unwind(STATE, int index, int ip) {
+    opcode op = static_cast<opcode>(verify_opcode(state, index)->to_native());
+
+    if(op != InstructionSequence::insn_unwind) {
+      fail(state, "next instruction must be unwind", ip);
+    }
+  }
+
   Object* BytecodeVerifier::verify_object(STATE, int index, int ip) {
     if(Object* obj = try_as<Object>(method_->literals()->at(index))) {
       return obj;
@@ -273,6 +287,43 @@ namespace rubinius {
           break;
       }
 
+      if(method_->experimental_tag_p() ||
+          state->shared().config.machine_interpreter_experimental.value) {
+      switch(op) {
+        case InstructionSequence::insn_cast_array:
+        case InstructionSequence::insn_cast_for_multi_block_arg:
+        case InstructionSequence::insn_cast_for_single_block_arg:
+        case InstructionSequence::insn_cast_for_splat_block_arg:
+        case InstructionSequence::insn_cast_multi_value:
+        case InstructionSequence::insn_check_frozen:
+        case InstructionSequence::insn_create_block:
+        case InstructionSequence::insn_find_const:
+        case InstructionSequence::insn_invoke_primitive:
+        case InstructionSequence::insn_object_to_s:
+        case InstructionSequence::insn_push_const:
+        case InstructionSequence::insn_push_ivar:
+        case InstructionSequence::insn_raise_break:
+        case InstructionSequence::insn_send_method:
+        case InstructionSequence::insn_send_stack:
+        case InstructionSequence::insn_send_stack_with_block:
+        case InstructionSequence::insn_send_stack_with_splat:
+        case InstructionSequence::insn_send_super_stack_with_block:
+        case InstructionSequence::insn_send_super_stack_with_splat:
+        case InstructionSequence::insn_send_vcall:
+        case InstructionSequence::insn_string_build:
+        case InstructionSequence::insn_string_dup:
+        case InstructionSequence::insn_yield_splat:
+        case InstructionSequence::insn_yield_stack:
+        case InstructionSequence::insn_zsuper:
+          verify_unwind(state, ip, ip - width);
+          break;
+
+        case InstructionSequence::insn_unwind:
+          verify_jump_location(state, arg1, insn_ip);
+          break;
+      }
+      }
+
       int read = 0, write = 0;
 
       int effect = stack_difference(op, arg1, arg2, arg3, &read, &write);
@@ -306,9 +357,7 @@ namespace rubinius {
         }
         break;
       case InstructionSequence::insn_goto:
-        if((native_int)arg1 < 0 || (native_int)arg1 >= total_) {
-          fail(state, "invalid goto location", insn_ip);
-        }
+        verify_jump_location(state, arg1, insn_ip);
 
         // Only handle forward branches.
         if((int)arg1 > ip) {
@@ -323,12 +372,16 @@ namespace rubinius {
           max_stack_local_ = (int)arg1;
         }
         break;
+      case InstructionSequence::insn_goto_if_equal:
       case InstructionSequence::insn_goto_if_false:
+      case InstructionSequence::insn_goto_if_nil:
+      case InstructionSequence::insn_goto_if_not_equal:
+      case InstructionSequence::insn_goto_if_not_nil:
+      case InstructionSequence::insn_goto_if_not_undefined:
       case InstructionSequence::insn_goto_if_true:
+      case InstructionSequence::insn_goto_if_undefined:
       case InstructionSequence::insn_setup_unwind:
-        if((native_int)arg1 < 0 || (native_int)arg1 >= total_) {
-          fail(state, "invalid goto location", insn_ip);
-        }
+        verify_jump_location(state, arg1, insn_ip);
 
         if((int)arg1 > ip) {
           ips.push_back(Section(sp, arg1));

@@ -42,6 +42,8 @@ namespace rubinius {
     void verify_from(STATE, int sp, int ip, std::list<Section>& ips);
 
     void verify_width(STATE, int ip);
+    void verify_jump_location(STATE, int index, int ip);
+    void verify_unwind(STATE, int ip, int width);
     Fixnum* verify_opcode(STATE, int ip);
     Fixnum* verify_argument(STATE, int ip);
     Object* verify_object(STATE, int index, int ip);
