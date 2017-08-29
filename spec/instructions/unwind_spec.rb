@@ -36,11 +36,13 @@ describe "Instruction unwind" do
       g.push_exception_state
       g.set_stack_local exs1
       g.pop
-      uw = g.new_unwind_label
+
+      g.push_state self
+      g.state.push_unwind g.new_unwind_label
       g.setup_unwind ex, 0
       g.push_self
       g.send_method :m
-      g.unwind uw
+      g.state.pop_unwind
       g.pop_unwind
       g.goto done
 
@@ -51,14 +53,10 @@ describe "Instruction unwind" do
       g.push_current_exception
       g.dup
 
-      uw = g.new_unwind_label
       g.push_const :RuntimeError
-      g.unwind uw
       g.swap
 
-      uw = g.new_unwind_label
       g.send_stack :===, 1
-      g.unwind uw
       g.goto_if_true rescued
       g.goto unrescued
 
@@ -101,14 +99,15 @@ describe "Instruction unwind" do
 
       exs = g.new_stack_local
 
-      uw = g.new_unwind_label
+      g.push_state self
+      g.state.push_unwind g.new_unwind_label
       g.setup_unwind ex, 1
       g.push_exception_state
       g.set_stack_local exs
       g.pop
       g.push_self
       g.send_method :m
-      g.unwind uw
+      g.state.pop_unwind
       g.pop_unwind
       g.goto no_exc
 
@@ -116,9 +115,7 @@ describe "Instruction unwind" do
       g.push_exception_state
       g.push_self
 
-      uw = g.new_unwind_label
       g.send_method :n
-      g.unwind uw
       g.pop
       g.restore_exception_state
       uw = g.new_unwind_label
@@ -128,9 +125,7 @@ describe "Instruction unwind" do
       no_exc.set!
       g.push_self
 
-      uw = g.new_unwind_label
       g.send_method :n
-      g.unwind uw
       g.pop
       g.ret
     end
@@ -155,23 +150,22 @@ describe "Instruction unwind" do
 
       exs = g.new_stack_local
 
-      uw = g.new_unwind_label
+      g.push_state self
+      g.state.push_unwind g.new_unwind_label
       g.setup_unwind ex, 1
       g.push_exception_state
       g.set_stack_local exs
       g.pop
       g.push_self
       g.send_method :m
-      g.unwind uw
+      g.state.pop_unwind
       g.pop_unwind
       g.goto no_exc
 
       ex.set!
       g.push_exception_state
       g.push_self
-      uw = g.new_unwind_label
       g.send_method :n
-      g.unwind uw
       g.pop
       g.restore_exception_state
       uw = g.new_unwind_label
@@ -180,9 +174,7 @@ describe "Instruction unwind" do
 
       no_exc.set!
       g.push_self
-      uw = g.new_unwind_label
       g.send_method :n
-      g.unwind uw
       g.pop
       g.ret
     end
@@ -207,8 +199,8 @@ describe "Instruction unwind" do
       blk.set_line 1
 
       blk.push_literal :a
-      blk.raise_break
       uw = blk.new_unwind_label
+      blk.raise_break
       blk.unwind uw
       blk.pop
       blk.push_literal :b
@@ -217,12 +209,8 @@ describe "Instruction unwind" do
 
       g.push_self
 
-      uw = g.new_unwind_label
       g.create_block blk
-      g.unwind uw
-      uw = g.new_unwind_label
       g.send_stack_with_block :m, 0
-      g.unwind uw
       g.ret
     end
 
@@ -253,13 +241,9 @@ describe "Instruction unwind" do
       blk.close
 
       g.push_self
-      uw = g.new_unwind_label
       g.create_block blk
-      g.unwind uw
 
-      uw = g.new_unwind_label
       g.send_stack_with_block :m, 0
-      g.unwind uw
       g.pop
       g.push_literal :c
       g.ret

@@ -2195,8 +2195,7 @@ end
 
 instruction unwind(ip) [ -- ]
   // place holder for transitioning to new interpreter
-  if(ip != 0) {
-    stack_push(cNil);
-    stack_pop();
+  if(ip == 0) {
+    ip = 0;
   }
 end

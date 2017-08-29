@@ -79,6 +79,8 @@ namespace rubinius {
     attr_field(constant_cache_count, size_t);
     attr_field(references_count, size_t);
     attr_field(references, size_t*);
+    attr_field(unwinds_count, size_t);
+    attr_field(unwinds, size_t*);
     attr_field(description, std::string*);
 
     Specialization specializations[cMaxSpecializations];
