@@ -186,6 +186,9 @@ namespace rubinius {
       metric bytecode_internalizer_us;
       metric profiles;
       metric profile_ns;
+      metric unwind_site_count;
+      metric unwind_site_full;
+      metric unwind_site_polymorphic;
 
       MachineMetrics() {
         checkpoints = 0;
@@ -214,6 +217,9 @@ namespace rubinius {
         bytecode_internalizer_us = 0;
         profiles = 0;
         profile_ns = 0;
+        unwind_site_count = 0;
+        unwind_site_full = 0;
+        unwind_site_polymorphic = 0;
       }
 
       void add(MachineMetrics& data) {
@@ -243,6 +249,9 @@ namespace rubinius {
         bytecode_internalizer_us += data.bytecode_internalizer_us;
         profiles += data.profiles;
         profile_ns += data.profile_ns;
+        unwind_site_count += data.unwind_site_count;
+        unwind_site_full += data.unwind_site_full;
+        unwind_site_polymorphic += data.unwind_site_polymorphic;
       }
     };
 

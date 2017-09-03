@@ -117,6 +117,11 @@ Rubinius::ConfigurationVariables.define do |c|
       j.vm_variable "enabled", false,
         "Just-in-time compile managed code to native code"
     end
+
+    m.section "unwind_site" do |u|
+      u.vm_variable "limit", 3,
+        "Maximum number of caches at unwind sites"
+    end
   end
 
   c.section "system" do |s|

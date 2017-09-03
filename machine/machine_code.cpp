@@ -22,6 +22,7 @@
 #include "class/location.hpp"
 #include "class/constant_cache.hpp"
 #include "class/call_site.hpp"
+#include "class/unwind_site.hpp"
 
 #include "instructions.hpp"
 
@@ -354,6 +355,12 @@ namespace rubinius {
     atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
     state->memory()->write_barrier(code, constant_cache);
+  }
+
+  void MachineCode::store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site) {
+    atomic::memory_barrier();
+    opcodes[ip + 1] = reinterpret_cast<intptr_t>(unwind_site);
+    state->memory()->write_barrier(code, unwind_site);
   }
 
   void MachineCode::set_description(STATE) {

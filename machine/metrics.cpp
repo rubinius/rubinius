@@ -397,6 +397,12 @@ namespace rubinius {
             "machine.profiles", metrics_data_.machine.profiles));
       metrics_map_.push_back(new MetricsItem(
             "machine.profile.ns", metrics_data_.machine.profile_ns));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.unwind_site.count", metrics_data_.machine.unwind_site_count));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.unwind_site.full", metrics_data_.machine.unwind_site_full));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.unwind_site.polymorphic", metrics_data_.machine.unwind_site_polymorphic));
 
       // Memory metrics
       metrics_map_.push_back(new MetricsItem(

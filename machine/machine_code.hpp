@@ -23,6 +23,7 @@ namespace rubinius {
   class CallSite;
   class ConstantCache;
   class MachineCode;
+  class UnwindSite;
 
   struct CallFrame;
 
@@ -79,8 +80,7 @@ namespace rubinius {
     attr_field(constant_cache_count, size_t);
     attr_field(references_count, size_t);
     attr_field(references, size_t*);
-    attr_field(unwinds_count, size_t);
-    attr_field(unwinds, size_t*);
+    attr_field(unwind_site_count, size_t);
     attr_field(description, std::string*);
 
     Specialization specializations[cMaxSpecializations];
@@ -155,6 +155,7 @@ namespace rubinius {
 
     void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
+    void store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site);
 
     void set_description(STATE);
 

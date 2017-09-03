@@ -7,6 +7,7 @@
 #include "class/compiled_code.hpp"
 #include "class/constant_cache.hpp"
 #include "class/location.hpp"
+#include "class/unwind_site.hpp"
 
 namespace rubinius {
   void Interpreter::prepare(STATE, CompiledCode* compiled_code, MachineCode* machine_code) {
@@ -20,6 +21,7 @@ namespace rubinius {
     size_t rindex = 0;
     size_t calls_count = 0;
     size_t constants_count = 0;
+    size_t unwind_count = 0;
 
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
@@ -59,6 +61,7 @@ namespace rubinius {
       case instructions::data_object_to_s.id:
       case instructions::data_push_const.id:
       case instructions::data_find_const.id:
+      case instructions::data_unwind.id:
         rcount++;
       }
     }
@@ -165,11 +168,22 @@ namespace rubinius {
 
         break;
       }
+      case instructions::data_unwind.id: {
+        machine_code->references()[rindex++] = ip + 1;
+        unwind_count++;
+
+        UnwindSite* unwind_site = UnwindSite::create(state, ip, UnwindSite::eNone);
+
+        machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
+
+        break;
+      }
       }
     }
 
     machine_code->call_site_count(calls_count);
     machine_code->constant_cache_count(constants_count);
+    machine_code->unwind_site_count(unwind_count);
   }
 
   intptr_t Interpreter::execute(STATE, MachineCode* const machine_code) {

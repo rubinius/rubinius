@@ -285,7 +285,7 @@ namespace rubinius {
       cache->name(name);
       cache->ip(ip);
 
-      state->vm()->metrics().machine.call_site_count++;
+      state->vm()->metrics().machine.unwind_site_count++;
 
       return cache;
     }
