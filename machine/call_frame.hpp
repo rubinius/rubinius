@@ -1,7 +1,6 @@
 #ifndef RBX_CALL_FRAME_HPP
 #define RBX_CALL_FRAME_HPP
 
-#include "unwind_info.hpp"
 #include "stack_variables.hpp"
 #include "dispatch.hpp"
 #include "arguments.hpp"
@@ -64,8 +63,6 @@ namespace rubinius {
     Object** stack_ptr_;
     MachineCode* machine_code;
     InterpreterState* is;
-    UnwindInfoSet* unwinds;
-    UnwindInfo unwind_info;
 
     // Stack
     Object* stk[0];

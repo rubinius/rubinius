@@ -61,8 +61,17 @@ namespace rubinius {
       case instructions::data_object_to_s.id:
       case instructions::data_push_const.id:
       case instructions::data_find_const.id:
-      case instructions::data_unwind.id:
+      case instructions::data_setup_unwind.id:
         rcount++;
+        break;
+      case instructions::data_unwind.id:
+        intptr_t target = static_cast<intptr_t>(opcodes[opcodes[ip + 1]]);
+        intptr_t address = reinterpret_cast<intptr_t>(
+            instructions::data_setup_unwind.interpreter_address);
+
+        if(target != address) rcount++;
+
+        break;
       }
     }
 
@@ -168,13 +177,36 @@ namespace rubinius {
 
         break;
       }
-      case instructions::data_unwind.id: {
+      case instructions::data_setup_unwind.id: {
         machine_code->references()[rindex++] = ip + 1;
         unwind_count++;
 
-        UnwindSite* unwind_site = UnwindSite::create(state, ip, UnwindSite::eNone);
+        int handler = static_cast<int>(opcodes[ip + 1]);
+        UnwindSite::UnwindType type =
+            static_cast<UnwindSite::UnwindType>(opcodes[ip + 2]);
+
+        UnwindSite* unwind_site = UnwindSite::create(state, handler, type);
 
         machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
+
+        break;
+      }
+      case instructions::data_unwind.id: {
+        int unwind_index = opcodes[ip + 1];
+        intptr_t target = static_cast<intptr_t>(opcodes[unwind_index]);
+        intptr_t address = reinterpret_cast<intptr_t>(
+            instructions::data_setup_unwind.interpreter_address);
+
+        if(target == address) {
+          opcodes[ip + 1] = opcodes[unwind_index + 1];
+        } else {
+          machine_code->references()[rindex++] = ip + 1;
+          unwind_count++;
+
+          UnwindSite* unwind_site = UnwindSite::create(state, 0, UnwindSite::eNone);
+
+          machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
+        }
 
         break;
       }
@@ -196,7 +228,6 @@ namespace rubinius {
     call_frame->stack_ptr_ = call_frame->stk - 1;
     call_frame->machine_code = machine_code;
     call_frame->is = &is;
-    call_frame->unwinds = &unwinds;
 
     try {
       return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);

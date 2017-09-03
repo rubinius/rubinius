@@ -50,7 +50,7 @@ namespace rubinius {
     inline bool passed_blockarg(STATE, CallFrame* call_frame, intptr_t count);
     inline void pop(CallFrame* call_frame);
     inline void pop_many(CallFrame* call_frame, intptr_t count);
-    inline bool pop_unwind(STATE, CallFrame* call_frame);
+    inline void pop_unwind(STATE, CallFrame* call_frame);
     inline void push_block(STATE, CallFrame* call_frame);
     inline bool push_block_arg(STATE, CallFrame* call_frame);
     inline bool push_const(STATE, CallFrame* call_frame, intptr_t literal);

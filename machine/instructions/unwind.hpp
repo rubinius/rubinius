@@ -1,15 +1,18 @@
 #include "interpreter/instructions.hpp"
 
+#include "class/unwind_site.hpp"
+
 namespace rubinius {
   namespace instructions {
-    inline ExceptionContinuation unwind(STATE, CallFrame* call_frame, intptr_t ip) {
+    inline ExceptionContinuation unwind(STATE, CallFrame* call_frame, UnwindSite* unwind_site) {
       VMThreadState* th = state->vm()->thread_state();
 
       switch(th->raise_reason()) {
       case cException:
-        if(call_frame->unwinds->has_unwinds()) {
-          call_frame->unwind_info = call_frame->unwinds->pop();
+        if(unwind_site->unwind_type() == UnwindSite::eRescue) {
           return cExceptionRescue;
+        } else if(unwind_site->unwind_type() == UnwindSite::eEnsure) {
+          return cExceptionEnsure;
         } else {
           call_frame->scope->flush_to_heap(state);
         }
@@ -31,11 +34,8 @@ namespace rubinius {
       case cCatchThrow:
       case cThreadKill:
         // Nonlocal return, run ensure blocks.
-        while(call_frame->unwinds->has_unwinds()) {
-          call_frame->unwind_info = call_frame->unwinds->pop();
-          if(call_frame->unwind_info.for_ensure()) {
-            return cExceptionEnsure;
-          }
+        if(unwind_site->unwind_type() == UnwindSite::eEnsure) {
+          return cExceptionEnsure;
         }
 
         // Ok, no ensures to run.
