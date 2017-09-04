@@ -142,7 +142,9 @@ public:
   void interpreter(int stack, int vars, InstructionTest test) {
     CallFrame* call_frame = ALLOCA_CALL_FRAME(stack);
     StackVariables* scope = ALLOCA_STACKVARIABLES(vars);
+    InterpreterState is;
     setup_call_frame(call_frame, scope, stack);
+    call_frame->is = &is;
 
     call_frame->compiled_code = setup_compiled_code(0);
     call_frame->machine_code = new MachineCode(state, call_frame->compiled_code);

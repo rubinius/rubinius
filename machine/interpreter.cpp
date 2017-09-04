@@ -220,7 +220,6 @@ namespace rubinius {
 
   intptr_t Interpreter::execute(STATE, MachineCode* const machine_code) {
     InterpreterState is;
-    UnwindInfoSet unwinds;
     Exception* exception = 0;
     intptr_t* opcodes = (intptr_t*)machine_code->opcodes;
 
