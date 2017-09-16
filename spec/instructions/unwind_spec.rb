@@ -4,9 +4,7 @@ describe "Instruction unwind" do
   before do
     @spec = InstructionSpec.new :unwind do |g|
       g.push_self
-      uw = g.new_unwind_label
       g.send_method :m
-      g.unwind uw
       g.pop
       g.push_literal :a
       g.ret
@@ -70,10 +68,7 @@ describe "Instruction unwind" do
       g.pop
       g.push_stack_local exs2
       g.restore_exception_state
-
-      uw = g.new_unwind_label
       g.reraise
-      g.unwind uw
 
       done.set!
       g.push_stack_local exs1
@@ -118,9 +113,7 @@ describe "Instruction unwind" do
       g.send_method :n
       g.pop
       g.restore_exception_state
-      uw = g.new_unwind_label
       g.reraise
-      g.unwind uw
 
       no_exc.set!
       g.push_self
@@ -168,9 +161,7 @@ describe "Instruction unwind" do
       g.send_method :n
       g.pop
       g.restore_exception_state
-      uw = g.new_unwind_label
       g.reraise
-      g.unwind uw
 
       no_exc.set!
       g.push_self
@@ -181,6 +172,10 @@ describe "Instruction unwind" do
 
     def @spec.m
       :a
+    end
+
+    def @spec.n
+      :b
     end
   end
 
@@ -199,9 +194,7 @@ describe "Instruction unwind" do
       blk.set_line 1
 
       blk.push_literal :a
-      uw = blk.new_unwind_label
       blk.raise_break
-      blk.unwind uw
       blk.pop
       blk.push_literal :b
       blk.ret
@@ -232,9 +225,7 @@ describe "Instruction unwind" do
       blk.set_line 1
 
       blk.push_literal :a
-      uw = blk.new_unwind_label
       blk.raise_return
-      blk.unwind uw
       blk.pop
       blk.push_literal :b
       blk.ret
