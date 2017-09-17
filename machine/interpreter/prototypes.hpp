@@ -79,9 +79,9 @@ namespace rubinius {
     inline void push_undef(STATE, CallFrame* call_frame);
     inline void push_variables(STATE, CallFrame* call_frame);
     inline intptr_t raise_break(STATE, CallFrame* call_frame);
-    inline void raise_exc(STATE, CallFrame* call_frame);
-    inline void raise_return(STATE, CallFrame* call_frame);
-    inline void reraise(STATE, CallFrame* call_frame);
+    inline intptr_t raise_exc(STATE, CallFrame* call_frame);
+    inline intptr_t raise_return(STATE, CallFrame* call_frame);
+    inline intptr_t reraise(STATE, CallFrame* call_frame);
     inline void restore_exception_state(STATE, CallFrame* call_frame);
     inline intptr_t ret(STATE, CallFrame* call_frame);
     inline void rotate(CallFrame* call_frame, intptr_t count);

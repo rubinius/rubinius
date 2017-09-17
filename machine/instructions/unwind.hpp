@@ -58,8 +58,8 @@ namespace rubinius {
         break;
       case cFiberCancel:
         break;
-      default:
-        Exception::interpreter_error(state, "exception handler failed to dispatch");
+      case cNone:
+        Exception::interpreter_error(state, "no exception available for unwind handler");
         break;
       } // switch
 

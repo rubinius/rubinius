@@ -702,28 +702,56 @@ namespace rubinius {
 
   void MachineCode::specialize(STATE, CompiledCode* original, TypeInfo* ti) {
     type = ti;
-    for(size_t i = 0; i < total;) {
-      opcode op = opcodes[i];
+    for(size_t width, i = 0; i < total; i += width) {
+      if(original->experimental_tag_p() ||
+          state->shared().config.machine_interpreter_experimental.value) {
+        Tuple* ops = original->iseq()->opcodes();
 
-      if(op == InstructionSequence::insn_push_ivar) {
-        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+        opcode op = as<Fixnum>(ops->at(i))->to_native();
+        width = Interpreter::instruction_data_(op).width;
 
-        TypeInfo::Slots::iterator it = ti->slots.find(sym);
-        if(it != ti->slots.end()) {
-          opcodes[i] = InstructionSequence::insn_push_my_offset;
-          opcodes[i + 1] = ti->slot_locations[it->second];
+        if(op == instructions::data_push_ivar.id) {
+          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+
+          TypeInfo::Slots::iterator it = ti->slots.find(sym);
+          if(it != ti->slots.end()) {
+            opcodes[i] = reinterpret_cast<intptr_t>(
+                instructions::data_push_my_offset.interpreter_address);
+            opcodes[i + 1] = ti->slot_locations[it->second];
+          }
+        } else if(op == instructions::data_set_ivar.id) {
+          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+
+          TypeInfo::Slots::iterator it = ti->slots.find(sym);
+          if(it != ti->slots.end()) {
+            opcodes[i] = reinterpret_cast<intptr_t>(
+                instructions::data_store_my_field.interpreter_address);
+            opcodes[i + 1] = it->second;
+          }
         }
-      } else if(op == InstructionSequence::insn_set_ivar) {
-        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+      } else {
+        opcode op = opcodes[i];
 
-        TypeInfo::Slots::iterator it = ti->slots.find(sym);
-        if(it != ti->slots.end()) {
-          opcodes[i] = InstructionSequence::insn_store_my_field;
-          opcodes[i + 1] = it->second;
+        if(op == InstructionSequence::insn_push_ivar) {
+          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+
+          TypeInfo::Slots::iterator it = ti->slots.find(sym);
+          if(it != ti->slots.end()) {
+            opcodes[i] = InstructionSequence::insn_push_my_offset;
+            opcodes[i + 1] = ti->slot_locations[it->second];
+          }
+        } else if(op == InstructionSequence::insn_set_ivar) {
+          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+
+          TypeInfo::Slots::iterator it = ti->slots.find(sym);
+          if(it != ti->slots.end()) {
+            opcodes[i] = InstructionSequence::insn_store_my_field;
+            opcodes[i + 1] = it->second;
+          }
         }
+
+        width = InstructionSequence::instruction_width(op);
       }
-
-      i += InstructionSequence::instruction_width(op);
     }
   }
 

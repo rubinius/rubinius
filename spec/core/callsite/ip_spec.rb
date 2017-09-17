@@ -6,6 +6,6 @@ describe "Rubinius::CallSite#ip" do
   end
 
   it "returns the IP of the call site" do
-    @call_site.ip.should == 4
+    @call_site.ip.should == 2
   end
 end

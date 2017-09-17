@@ -297,12 +297,21 @@ namespace rubinius {
         case InstructionSequence::insn_cast_multi_value:
         case InstructionSequence::insn_check_frozen:
         case InstructionSequence::insn_create_block:
+        case InstructionSequence::insn_ensure_return:
         case InstructionSequence::insn_find_const:
         case InstructionSequence::insn_invoke_primitive:
         case InstructionSequence::insn_object_to_s:
+        case InstructionSequence::insn_passed_arg:
+        case InstructionSequence::insn_passed_blockarg:
+        case InstructionSequence::insn_push_block_arg:
         case InstructionSequence::insn_push_const:
         case InstructionSequence::insn_push_ivar:
+        case InstructionSequence::insn_push_local_depth:
+        case InstructionSequence::insn_push_proc:
         case InstructionSequence::insn_raise_break:
+        case InstructionSequence::insn_raise_exc:
+        case InstructionSequence::insn_raise_return:
+        case InstructionSequence::insn_reraise:
         case InstructionSequence::insn_send_method:
         case InstructionSequence::insn_send_stack:
         case InstructionSequence::insn_send_stack_with_block:
@@ -310,6 +319,8 @@ namespace rubinius {
         case InstructionSequence::insn_send_super_stack_with_block:
         case InstructionSequence::insn_send_super_stack_with_splat:
         case InstructionSequence::insn_send_vcall:
+        case InstructionSequence::insn_set_ivar:
+        case InstructionSequence::insn_set_local_depth:
         case InstructionSequence::insn_string_build:
         case InstructionSequence::insn_string_dup:
         case InstructionSequence::insn_yield_splat:
