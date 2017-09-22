@@ -14,11 +14,11 @@ namespace rubinius {
 
       stack_clear(count);
 
-      Object* ret = call_site->execute(state, new_args);
+      call_frame->return_value = call_site->execute(state, new_args);
 
       state->vm()->checkpoint(state);
 
-      CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(call_frame->return_value);
     }
   }
 }

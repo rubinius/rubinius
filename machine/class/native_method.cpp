@@ -668,6 +668,7 @@ namespace rubinius {
     call_frame->top_scope_ = 0;
     call_frame->scope = 0;
     call_frame->arguments = &args;
+    call_frame->return_value = NULL;
 
     CallFrame* saved_frame = env->current_call_frame();
     env->set_current_call_frame(call_frame);

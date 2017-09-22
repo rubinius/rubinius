@@ -64,6 +64,8 @@ namespace rubinius {
     MachineCode* machine_code;
     InterpreterState* is;
 
+    Object* return_value;
+
     // Stack
     Object* stk[0];
 

@@ -26,11 +26,11 @@ namespace rubinius {
 
       stack_clear(count + 1);
 
-      Object* ret = call_site->execute(state, args);
+      call_frame->return_value = call_site->execute(state, args);
 
       state->vm()->checkpoint(state);
 
-      CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(call_frame->return_value);
     }
   }
 }

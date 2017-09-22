@@ -180,6 +180,7 @@ public:
     cf->top_scope_ = NULL;
     cf->scope = scope;
     cf->arguments = NULL;
+    cf->return_value = NULL;
   }
 
   // TODO: Fix this

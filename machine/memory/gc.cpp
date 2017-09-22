@@ -240,6 +240,10 @@ namespace memory {
         saw_variable_scope(frame, displace(frame->scope, offset));
       }
 
+      if(frame->return_value) {
+        frame->return_value = mark_object(frame->return_value);
+      }
+
       frame = frame->previous;
     }
   }

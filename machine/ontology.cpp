@@ -63,6 +63,7 @@
 #include "class/class.hpp"
 #include "class/atomic.hpp"
 #include "class/thread_state.hpp"
+#include "class/unwind_site.hpp"
 
 #include "environment.hpp"
 #include "configuration.hpp"
@@ -268,6 +269,7 @@ namespace rubinius {
     CodeDB::bootstrap(state);
     Diagnostics::bootstrap(state);
     Trie::bootstrap(state);
+    UnwindSite::bootstrap(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

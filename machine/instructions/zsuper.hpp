@@ -82,18 +82,16 @@ namespace rubinius {
       Arguments new_args(call_site->name(), recv, block, arg_count, 0);
       new_args.use_tuple(tup, arg_count);
 
-      Object* ret;
-
       Symbol* current_name = call_frame->original_name();
       if(call_site->name() != current_name) {
         call_site->name(state, current_name);
       }
 
-      ret = call_site->execute(state, new_args);
+      call_frame->return_value = call_site->execute(state, new_args);
 
       state->vm()->checkpoint(state);
 
-      CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(call_frame->return_value);
     }
   }
 }

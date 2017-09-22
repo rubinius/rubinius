@@ -841,6 +841,7 @@ namespace rubinius {
       call_frame->top_scope_ = NULL;
       call_frame->scope = scope;
       call_frame->arguments = &args;
+      call_frame->return_value = NULL;
 
       if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
         return NULL;
@@ -893,6 +894,7 @@ namespace rubinius {
     call_frame->top_scope_ = 0;
     call_frame->scope = scope;
     call_frame->arguments = &args;
+    call_frame->return_value = NULL;
 
     if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
       return NULL;

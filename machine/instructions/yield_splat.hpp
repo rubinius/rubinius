@@ -15,24 +15,23 @@ namespace rubinius {
         args.append(state, as<Array>(ary));
       }
 
-      Object* ret;
       if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-        ret = env->call(state, args);
+        call_frame->return_value = env->call(state, args);
       } else if(Proc* proc = try_as<Proc>(t1)) {
-        ret = proc->yield(state, args);
+        call_frame->return_value = proc->yield(state, args);
       } else if(t1->nil_p()) {
         state->raise_exception(Exception::make_lje(state));
-        ret = NULL;
+        call_frame->return_value = NULL;
       } else {
         Dispatch dispatch(G(sym_call));
-        ret = dispatch.send(state, args);
+        call_frame->return_value = dispatch.send(state, args);
       }
 
       stack_clear(count);
 
       state->vm()->checkpoint(state);
 
-      CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(call_frame->return_value);
     }
   }
 }

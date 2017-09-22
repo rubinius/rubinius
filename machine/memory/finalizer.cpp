@@ -63,6 +63,7 @@ namespace rubinius {
       call_frame->top_scope_ = 0;
       call_frame->scope = 0;
       call_frame->arguments = 0;
+      call_frame->return_value = 0;
 
       env->set_current_call_frame(0);
       env->set_current_native_frame(&nmf);
