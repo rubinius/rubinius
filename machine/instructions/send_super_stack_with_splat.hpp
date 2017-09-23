@@ -21,8 +21,7 @@ namespace rubinius {
         }
       }
 
-      // TODO: instructions
-      // SET_CALL_FLAGS(0);
+      SET_CALL_FLAGS(0);
 
       stack_clear(count);
 

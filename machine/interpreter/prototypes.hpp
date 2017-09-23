@@ -93,7 +93,7 @@ namespace rubinius {
     inline bool send_super_stack_with_block(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
     inline bool send_super_stack_with_splat(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
     inline bool send_vcall(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void set_call_flags(CallFrame* call_frame);
+    inline void set_call_flags(CallFrame* call_frame, intptr_t flags);
     inline void set_const(STATE, CallFrame* call_frame, intptr_t literal);
     inline void set_const_at(STATE, CallFrame* call_frame, intptr_t literal);
     inline bool set_ivar(STATE, CallFrame* call_frame, intptr_t literal);
