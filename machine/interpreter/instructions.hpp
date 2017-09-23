@@ -19,7 +19,7 @@ typedef intptr_t (*Instruction)(STATE, CallFrame* call_frame, intptr_t const opc
 #define argument(n)       opcodes[call_frame->ip() + n + 1]
 
 // TODO: instructions
-#define store_literal(x)  (x)
+#define store_literal(f, x)  (f->machine_code->opcodes[f->ip()+1] = (x))
 
 #define STACK_PTR call_frame->stack_ptr_
 
