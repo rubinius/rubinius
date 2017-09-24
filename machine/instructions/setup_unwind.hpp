@@ -8,6 +8,7 @@ namespace rubinius {
       UnwindSite* unwind_site = reinterpret_cast<UnwindSite*>(ip);
 
       unwind_site->stack_depth(stack_calculate_sp());
+      call_frame->push_unwind(unwind_site);
     }
   }
 }

@@ -828,20 +828,21 @@ namespace rubinius {
         return NULL;
       }
 
-      CallFrame* previous_frame = NULL;
+      CallFrame* previous_frame = nullptr;
       CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
 
       call_frame->prepare(mcode->stack_size);
 
-      call_frame->previous = NULL;
+      call_frame->previous = nullptr;
       call_frame->lexical_scope_ = code->scope();
-      call_frame->dispatch_data = NULL;
+      call_frame->dispatch_data = nullptr;
       call_frame->compiled_code = code;
       call_frame->flags = 0;
-      call_frame->top_scope_ = NULL;
+      call_frame->top_scope_ = nullptr;
       call_frame->scope = scope;
       call_frame->arguments = &args;
-      call_frame->return_value = NULL;
+      call_frame->return_value = nullptr;
+      call_frame->unwind = nullptr;
 
       if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
         return NULL;
@@ -886,15 +887,16 @@ namespace rubinius {
 
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
-    call_frame->previous = NULL;
+    call_frame->previous = nullptr;
     call_frame->lexical_scope_ = code->scope();
-    call_frame->dispatch_data = 0;
+    call_frame->dispatch_data = nullptr;
     call_frame->compiled_code = code;
     call_frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;
-    call_frame->top_scope_ = 0;
+    call_frame->top_scope_ = nullptr;
     call_frame->scope = scope;
     call_frame->arguments = &args;
-    call_frame->return_value = NULL;
+    call_frame->return_value = nullptr;
+    call_frame->unwind = nullptr;
 
     if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
       return NULL;

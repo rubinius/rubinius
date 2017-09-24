@@ -23,6 +23,7 @@ namespace rubinius {
     attr_field(ip, int);
     attr_field(stack_depth, int);
     attr_field(unwind_type, UnwindType);
+    attr_field(previous, UnwindSite*);
 
     typedef std::atomic<InlineCache*> InlineCachePtr;
 
@@ -54,6 +55,7 @@ namespace rubinius {
       obj->ip(0);
       obj->stack_depth(0);
       obj->unwind_type(eNone);
+      obj->previous(nullptr);
 
       obj->_caches_ = new InlineCachePtr[max_caches];
 

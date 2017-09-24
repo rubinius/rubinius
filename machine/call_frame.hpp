@@ -17,6 +17,7 @@ namespace rubinius {
   class NativeMethodFrame;
   class BlockEnvironment;
   class MachineCode;
+  class UnwindSite;
 
   namespace jit {
     class RuntimeData;
@@ -65,6 +66,7 @@ namespace rubinius {
     InterpreterState* is;
 
     Object* return_value;
+    UnwindSite* unwind;
 
     // Stack
     Object* stk[0];
@@ -183,6 +185,9 @@ namespace rubinius {
     void next_ip(int width) {
       ip_ += width;
     }
+
+    void push_unwind(UnwindSite* unwind);
+    UnwindSite* pop_unwind();
 
     /**
      *  Initialize frame for the given stack size.

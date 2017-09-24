@@ -172,15 +172,16 @@ public:
 
     cf->prepare(size);
     cf->stack_ptr_ = cf->stk - 1;
-    cf->previous = NULL;
+    cf->previous = nullptr;
     cf->lexical_scope_ = nil<LexicalScope>();
-    cf->dispatch_data = NULL;
+    cf->dispatch_data = nullptr;
     cf->compiled_code = nil<CompiledCode>();
     cf->flags = 0;
-    cf->top_scope_ = NULL;
+    cf->top_scope_ = nullptr;
     cf->scope = scope;
-    cf->arguments = NULL;
-    cf->return_value = NULL;
+    cf->arguments = nullptr;
+    cf->return_value = nullptr;
+    cf->unwind = nullptr;
   }
 
   // TODO: Fix this

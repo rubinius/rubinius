@@ -12,6 +12,7 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
+#include "class/unwind_site.hpp"
 
 #include <iostream>
 
@@ -36,6 +37,21 @@ namespace rubinius {
 
     // Shouldn't ever get here.
     return 0;
+  }
+
+  void CallFrame::push_unwind(UnwindSite* unwind_site) {
+    unwind_site->previous(unwind);
+    unwind = unwind_site;
+  }
+
+  UnwindSite* CallFrame::pop_unwind() {
+    if(UnwindSite* unwind_site = unwind) {
+      unwind = unwind_site->previous();
+      unwind_site->previous(nullptr);
+      return unwind_site;
+    } else {
+      return nullptr;
+    }
   }
 
   void CallFrame::print_backtrace(STATE, int total, bool filter) {

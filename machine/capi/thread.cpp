@@ -250,14 +250,15 @@ extern "C" {
 
     NativeMethodFrame nmf(env, 0, nm);
     CallFrame call_frame;
-    call_frame.previous = NULL;
-    call_frame.lexical_scope_ = 0;
+    call_frame.previous = nullptr;
+    call_frame.lexical_scope_ = nullptr;
     call_frame.dispatch_data = (void*)&nmf;
-    call_frame.compiled_code = 0;
+    call_frame.compiled_code = nullptr;
     call_frame.flags = CallFrame::cNativeMethod;
-    call_frame.top_scope_ = 0;
-    call_frame.scope = 0;
-    call_frame.arguments = 0;
+    call_frame.top_scope_ = nullptr;
+    call_frame.scope = nullptr;
+    call_frame.arguments = nullptr;
+    call_frame.unwind = nullptr;
 
     env->set_current_call_frame(&call_frame);
     env->set_current_native_frame(&nmf);

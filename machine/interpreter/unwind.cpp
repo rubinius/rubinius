@@ -6,17 +6,19 @@
 namespace rubinius {
   namespace interpreter {
     intptr_t unwind(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
-      UnwindSite* unwind_site = reinterpret_cast<UnwindSite*>(argument(0));
-
-      switch(instructions::unwind(state, call_frame, unwind_site)) {
-        case instructions::cExceptionRescue:
+      switch(instructions::unwind(state, call_frame)) {
+        case instructions::cExceptionRescue: {
+          UnwindSite* unwind_site = call_frame->pop_unwind();
           stack_position(unwind_site->stack_depth());
           call_frame->set_ip(unwind_site->ip());
           break;
-        case instructions::cExceptionEnsure:
+        }
+        case instructions::cExceptionEnsure: {
+          UnwindSite* unwind_site = call_frame->pop_unwind();
           stack_position(unwind_site->stack_depth());
           call_frame->set_ip(unwind_site->ip());
           break;
+        }
         case instructions::cExceptionBreak:
           call_frame->next_ip(instructions::data_unwind.width);
           break;
