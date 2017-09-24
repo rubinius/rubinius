@@ -13,7 +13,7 @@ namespace rubinius {
         call_frame->next_ip(instructions::data_set_local_depth.width);
       }
 
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

@@ -9,7 +9,7 @@ namespace rubinius {
 
       call_frame->next_ip(instructions::data_push_my_offset.width
           + instructions::data_unwind.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

@@ -6,7 +6,7 @@ namespace rubinius {
       instructions::push_rubinius(state, call_frame);
 
       call_frame->next_ip(instructions::data_push_rubinius.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

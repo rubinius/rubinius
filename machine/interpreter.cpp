@@ -3,6 +3,8 @@
 
 #include "interpreter/addresses.hpp"
 
+#include "instructions.hpp"
+
 #include "class/call_site.hpp"
 #include "class/compiled_code.hpp"
 #include "class/constant_cache.hpp"
@@ -25,10 +27,10 @@ namespace rubinius {
 
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
-      width = Interpreter::instruction_data_(op).width;
+      width = Instructions::instruction_data(op).width;
 
       opcodes[ip] =
-        reinterpret_cast<intptr_t>(Interpreter::instruction_data_(op).interpreter_address);
+        reinterpret_cast<intptr_t>(Instructions::instruction_data(op).interpreter_address);
 
       switch(width) {
       case 4:
@@ -83,7 +85,7 @@ namespace rubinius {
 
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
-      width = Interpreter::instruction_data_(op).width;
+      width = Instructions::instruction_data(op).width;
 
       switch(op) {
       case instructions::data_push_int.id:
@@ -229,7 +231,7 @@ namespace rubinius {
     call_frame->is = &is;
 
     try {
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     } catch(TypeError& e) {
       exception = Exception::make_type_error(state, e.type, e.object, e.reason);
       exception->locations(state, Location::from_call_stack(state));

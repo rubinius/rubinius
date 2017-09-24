@@ -1,6 +1,14 @@
 #ifndef RBX_INSTRUCTIONS_DATA_HPP
 #define RBX_INSTRUCTIONS_DATA_HPP
 
+#include <stdint.h>
+
+#include "defines.hpp"
+#include "call_frame.hpp"
+#include "instructions.hpp"
+
+#include "interpreter/prototypes.hpp"
+
 namespace rubinius {
   namespace instructions {
     struct InstructionData {
@@ -423,6 +431,14 @@ namespace rubinius {
       rubinius::interpreter::zsuper
     };
   }
+
+  struct Instructions {
+    static const instructions::InstructionData data[];
+
+    static const instructions::InstructionData& instruction_data(int index) {
+      return data[index];
+    }
+  };
 }
 
 #endif

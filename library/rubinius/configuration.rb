@@ -109,8 +109,6 @@ Rubinius::ConfigurationVariables.define do |c|
     end
 
     m.section "interpreter" do |i|
-      i.vm_variable "experimental", false,
-        "Use the experimental interpreter for all bytecode"
     end
 
     m.section "jit" do |j|

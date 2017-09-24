@@ -6,7 +6,7 @@ namespace rubinius {
       instructions::clear_exception(state);
 
       call_frame->next_ip(instructions::data_clear_exception.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

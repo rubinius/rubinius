@@ -8,7 +8,7 @@ namespace rubinius {
       instructions::set_const_at(state, call_frame, literal);
 
       call_frame->next_ip(instructions::data_set_const_at.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

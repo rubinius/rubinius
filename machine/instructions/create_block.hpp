@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "class/block_environment.hpp"
 #include "class/code_db.hpp"

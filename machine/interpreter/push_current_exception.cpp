@@ -6,7 +6,7 @@ namespace rubinius {
       instructions::push_current_exception(state, call_frame);
 
       call_frame->next_ip(instructions::data_push_current_exception.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

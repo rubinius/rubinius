@@ -22,16 +22,9 @@ namespace rubinius {
     return state->memory()->new_object<InstructionSequence>(state, as<Class>(self));
   }
 
-  size_t InstructionSequence::instruction_width(size_t op) {
-#include "gen/instruction_sizes.hpp"
-    return width;
-  }
-
   void InstructionSequence::post_marshal(STATE) {
 
   }
-
-#include "gen/instruction_names.cpp"
 
   void InstructionSequence::Info::show(STATE, Object* self, int level) {
     InstructionSequence* iseq = as<InstructionSequence>(self);

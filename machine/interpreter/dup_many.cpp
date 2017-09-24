@@ -8,7 +8,7 @@ namespace rubinius {
       instructions::dup_many(call_frame, count);
 
       call_frame->next_ip(instructions::data_dup_many.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

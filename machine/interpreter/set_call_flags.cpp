@@ -8,7 +8,7 @@ namespace rubinius {
       instructions::set_call_flags(call_frame, flags);
 
       call_frame->next_ip(instructions::data_set_call_flags.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

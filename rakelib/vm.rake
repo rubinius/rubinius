@@ -1,4 +1,3 @@
-require 'rakelib/instruction_parser'
 require 'rakelib/generator_task'
 require 'rakelib/release'
 
@@ -25,16 +24,6 @@ vm_release_h = BUILD_CONFIG[:vm_release_h]
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
-INSN_GEN    = %w[ machine/gen/instruction_names.cpp
-                  machine/gen/instruction_names.hpp
-                  machine/gen/instruction_sizes.hpp
-                  machine/gen/instruction_prototypes.hpp
-                  machine/gen/instruction_defines.hpp
-                  machine/gen/instruction_locations.hpp
-                  machine/gen/instruction_implementations.hpp
-                  machine/gen/instruction_visitors.hpp
-                  machine/gen/instruction_effects.hpp
-                ]
 TYPE_GEN    = %w[ machine/gen/includes.hpp
                   machine/gen/kind_of.hpp
                   machine/gen/object_types.hpp
@@ -50,7 +39,7 @@ GENERATED = %W[ machine/gen/config_variables.h
                 #{encoding_database}
                 #{transcoders_database}
                 #{vm_release_h}
-              ] + TYPE_GEN + INSN_GEN
+              ] + TYPE_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
@@ -246,63 +235,6 @@ file "gen/invoke_primitives.cpp" => field_extract_headers
 file "gen/accessor_primitives.cpp" => field_extract_headers
 file "gen/method_resolver.cpp" => field_extract_headers
 file "gen/invoke_resolver.cpp" => field_extract_headers
-
-iparser = InstructionParser.new "machine/instructions.def"
-
-def generate_instruction_file(parser, generator, name)
-  puts "GEN #{name}"
-  parser.parse
-  parser.send generator, name
-end
-
-insn_deps = %w[  machine/gen
-                 machine/instructions.def
-                 rakelib/instruction_parser.rb
-              ]
-
-file "lib/compiler/opcodes.rb" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_opcodes, t.name
-end
-
-file "lib/compiler/generator_methods.rb" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_generator_methods, t.name
-end
-
-file "machine/gen/instruction_names.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_names_header, t.name
-end
-
-file "machine/gen/instruction_names.cpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_names, t.name
-end
-
-file "machine/gen/instruction_prototypes.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_prototypes, t.name
-end
-
-file "machine/gen/instruction_sizes.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_sizes, t.name
-end
-
-file "machine/gen/instruction_defines.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_defines, t.name
-end
-
-file "machine/gen/instruction_locations.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_locations, t.name
-end
-
-file "machine/gen/instruction_implementations.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_implementations , t.name
-end
-
-file "machine/gen/instruction_visitors.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_visitors, t.name
-end
-
-file "machine/gen/instruction_effects.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_stack_effects, t.name
-end
 
 namespace :vm do
   desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'

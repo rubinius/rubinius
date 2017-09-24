@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "class/unwind_site.hpp"
 

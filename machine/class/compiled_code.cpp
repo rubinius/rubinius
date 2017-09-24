@@ -312,6 +312,9 @@ namespace rubinius {
   }
 
   Object* CompiledCode::set_breakpoint(STATE, Fixnum* ip, Object* bp) {
+    return Primitives::failure();
+
+    /* TODO: instructions
     CompiledCode* self = this;
     OnStack<3> os(state, self, ip, bp);
 
@@ -331,9 +334,13 @@ namespace rubinius {
     self->machine_code()->run = MachineCode::debugger_interpreter;
 
     return ip;
+    */
   }
 
   Object* CompiledCode::clear_breakpoint(STATE, Fixnum* ip) {
+    return Primitives::failure();
+
+    /* TODO: instructions
     int i = ip->to_native();
     if(machine_code() == NULL) return ip;
     if(!machine_code()->validate_ip(state, i)) return Primitives::failure();
@@ -350,9 +357,13 @@ namespace rubinius {
     }
 
     return RBOOL(removed);
+    */
   }
 
   Object* CompiledCode::is_breakpoint(STATE, Fixnum* ip) {
+    return Primitives::failure();
+
+    /* TODO: instructions
     int i = ip->to_native();
     if(machine_code() == NULL) return cFalse;
     if(!machine_code()->validate_ip(state, i)) return Primitives::failure();
@@ -362,6 +373,7 @@ namespace rubinius {
     breakpoints()->fetch(state, ip, &found);
 
     return RBOOL(found);
+    */
   }
 
   CompiledCode* CompiledCode::of_sender(STATE) {

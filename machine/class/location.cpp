@@ -33,13 +33,8 @@ namespace rubinius {
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
     loc->method(state, call_frame->compiled_code);
-    if(call_frame->compiled_code->experimental_tag_p() ||
-        state->shared().config.machine_interpreter_experimental.value) {
-      // TODO: instructions
-      loc->ip(state, Fixnum::from(call_frame->ip()+1));
-    } else {
-      loc->ip(state, Fixnum::from(call_frame->ip()));
-    }
+    // TODO: instructions
+    loc->ip(state, Fixnum::from(call_frame->ip()+1));
     loc->flags(state, Fixnum::from(0));
 
     if(call_frame->is_block_p(state)) {

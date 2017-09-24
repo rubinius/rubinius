@@ -51,7 +51,7 @@ namespace rubinius {
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
   MachineCode::MachineCode(STATE, CompiledCode* code)
-    : run(MachineCode::interpreter)
+    : run((InterpreterRunner)Interpreter::execute)
     , total(code->iseq()->opcodes()->num_fields())
     , type(NULL)
     , keywords(!code->keywords()->nil_p())
@@ -83,19 +83,9 @@ namespace rubinius {
       keywords_count = code->keywords()->num_fields() / 2;
     }
 
-    if(code->experimental_tag_p() ||
-        state->shared().config.machine_interpreter_experimental.value) {
-      logger::info("interpreter: experimental: %s, %d", name_->cpp_str(state).c_str(), total);
+    opcodes = new opcode[total];
 
-      opcodes = new opcode[total];
-
-      run = (InterpreterRunner)Interpreter::execute;
-      Interpreter::prepare(state, code, this);
-    } else {
-      opcodes = new opcode[total];
-
-      fill_opcodes(state, code);
-    }
+    Interpreter::prepare(state, code, this);
 
     if(Fixnum* pos = try_as<Fixnum>(code->splat())) {
       splat_position = pos->to_native();
@@ -141,162 +131,6 @@ namespace rubinius {
     return sizeof(MachineCode) +
       (total * sizeof(opcode)) + // opcodes
       (total * sizeof(void*));
-  }
-
-  void MachineCode::fill_opcodes(STATE, CompiledCode* original) {
-    Tuple* lits = original->literals();
-    Tuple* ops = original->iseq()->opcodes();
-
-    size_t rcount = 0;
-    size_t rindex = 0;
-    size_t calls_count = 0;
-    size_t constants_count = 0;
-
-    for(size_t width = 0, ip = 0; ip < total; ip += width) {
-      opcode op = opcodes[ip] = as<Fixnum>(ops->at(ip))->to_native();
-      width = InstructionSequence::instruction_width(opcodes[ip]);
-
-      switch(width) {
-      case 4:
-        opcodes[ip + 3] = as<Fixnum>(ops->at(state, ip + 3))->to_native();
-        // fall through
-      case 3:
-        opcodes[ip + 2] = as<Fixnum>(ops->at(state, ip + 2))->to_native();
-        // fall through
-      case 2:
-        opcodes[ip + 1] = as<Fixnum>(ops->at(state, ip + 1))->to_native();
-        break;
-      case 1:
-        continue;
-      }
-
-      switch(op) {
-      case InstructionSequence::insn_create_block:
-      case InstructionSequence::insn_push_literal:
-      case InstructionSequence::insn_push_memo:
-      case InstructionSequence::insn_check_serial:
-      case InstructionSequence::insn_check_serial_private:
-      case InstructionSequence::insn_send_super_stack_with_block:
-      case InstructionSequence::insn_send_super_stack_with_splat:
-      case InstructionSequence::insn_zsuper:
-      case InstructionSequence::insn_send_vcall:
-      case InstructionSequence::insn_send_method:
-      case InstructionSequence::insn_send_stack:
-      case InstructionSequence::insn_send_stack_with_block:
-      case InstructionSequence::insn_send_stack_with_splat:
-      case InstructionSequence::insn_object_to_s:
-      case InstructionSequence::insn_push_const:
-      case InstructionSequence::insn_find_const:
-        rcount++;
-      }
-    }
-
-    references_count(rcount);
-    references(new size_t[rcount]);
-
-    bool allow_private = false;
-    bool is_super = false;
-
-    for(size_t width = 0, ip = 0; ip < total; ip += width) {
-      width = InstructionSequence::instruction_width(opcodes[ip]);
-
-      switch(opcode op = opcodes[ip]) {
-      case InstructionSequence::insn_push_int:
-        opcodes[ip + 1] = reinterpret_cast<opcode>(Fixnum::from(opcodes[ip + 1]));
-        break;
-      case InstructionSequence::insn_create_block: {
-        references()[rindex++] = ip + 1;
-
-        Object* value = reinterpret_cast<Object*>(lits->at(opcodes[ip + 1]));
-
-        if(CompiledCode* code = try_as<CompiledCode>(value)) {
-          opcodes[ip + 1] = reinterpret_cast<opcode>(code);
-        } else {
-          opcodes[ip + 1] = reinterpret_cast<opcode>(as<String>(value));
-        }
-        break;
-      }
-      case InstructionSequence::insn_push_memo:
-      case InstructionSequence::insn_push_literal: {
-        references()[rindex++] = ip + 1;
-
-        Object* value = as<Object>(lits->at(opcodes[ip + 1]));
-        opcodes[ip + 1] = reinterpret_cast<opcode>(value);
-        break;
-      }
-      case InstructionSequence::insn_set_ivar:
-      case InstructionSequence::insn_push_ivar:
-      case InstructionSequence::insn_set_const:
-      case InstructionSequence::insn_set_const_at: {
-        Symbol* sym = as<Symbol>(lits->at(opcodes[ip + 1]));
-        opcodes[ip + 1] = reinterpret_cast<opcode>(sym);
-        break;
-      }
-      case InstructionSequence::insn_invoke_primitive: {
-        Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
-
-        InvokePrimitive invoker = Primitives::get_invoke_stub(state, name);
-        opcodes[ip + 1] = reinterpret_cast<intptr_t>(invoker);
-        break;
-      }
-      case InstructionSequence::insn_allow_private:
-        allow_private = true;
-
-        break;
-      case InstructionSequence::insn_send_super_stack_with_block:
-      case InstructionSequence::insn_send_super_stack_with_splat:
-      case InstructionSequence::insn_zsuper:
-        is_super = true;
-        // fall through
-      case InstructionSequence::insn_send_vcall:
-      case InstructionSequence::insn_send_method:
-      case InstructionSequence::insn_send_stack:
-      case InstructionSequence::insn_send_stack_with_block:
-      case InstructionSequence::insn_send_stack_with_splat:
-      case InstructionSequence::insn_object_to_s:
-      case InstructionSequence::insn_check_serial:
-      case InstructionSequence::insn_check_serial_private: {
-        references()[rindex++] = ip + 1;
-        calls_count++;
-
-        Symbol* name = try_as<Symbol>(lits->at(opcodes[ip + 1]));
-        if(!name) name = nil<Symbol>();
-
-        CallSite* call_site = CallSite::create(state, name, ip);
-
-        if(op == InstructionSequence::insn_send_vcall) {
-          allow_private = true;
-          call_site->set_is_vcall();
-        } else if(op == InstructionSequence::insn_object_to_s) {
-          allow_private = true;
-        }
-
-        if(allow_private) call_site->set_is_private();
-        if(is_super) call_site->set_is_super();
-
-        store_call_site(state, original, ip, call_site);
-        is_super = false;
-        allow_private = false;
-
-        break;
-      }
-      case InstructionSequence::insn_push_const:
-      case InstructionSequence::insn_find_const: {
-        references()[rindex++] = ip + 1;
-        constants_count++;
-
-        Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
-
-        ConstantCache* cache = ConstantCache::empty(state, name, original, ip);
-        store_constant_cache(state, original, ip, cache);
-
-        break;
-      }
-      }
-    }
-
-    call_site_count(calls_count);
-    constant_cache_count(constants_count);
   }
 
   CallSite* MachineCode::call_site(STATE, int ip) {
@@ -703,54 +537,29 @@ namespace rubinius {
   void MachineCode::specialize(STATE, CompiledCode* original, TypeInfo* ti) {
     type = ti;
     for(size_t width, i = 0; i < total; i += width) {
-      if(original->experimental_tag_p() ||
-          state->shared().config.machine_interpreter_experimental.value) {
-        Tuple* ops = original->iseq()->opcodes();
+      Tuple* ops = original->iseq()->opcodes();
 
-        opcode op = as<Fixnum>(ops->at(i))->to_native();
-        width = Interpreter::instruction_data_(op).width;
+      opcode op = as<Fixnum>(ops->at(i))->to_native();
+      width = Instructions::instruction_data(op).width;
 
-        if(op == instructions::data_push_ivar.id) {
-          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+      if(op == instructions::data_push_ivar.id) {
+        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
-          TypeInfo::Slots::iterator it = ti->slots.find(sym);
-          if(it != ti->slots.end()) {
-            opcodes[i] = reinterpret_cast<intptr_t>(
-                instructions::data_push_my_offset.interpreter_address);
-            opcodes[i + 1] = ti->slot_locations[it->second];
-          }
-        } else if(op == instructions::data_set_ivar.id) {
-          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
-
-          TypeInfo::Slots::iterator it = ti->slots.find(sym);
-          if(it != ti->slots.end()) {
-            opcodes[i] = reinterpret_cast<intptr_t>(
-                instructions::data_store_my_field.interpreter_address);
-            opcodes[i + 1] = it->second;
-          }
+        TypeInfo::Slots::iterator it = ti->slots.find(sym);
+        if(it != ti->slots.end()) {
+          opcodes[i] = reinterpret_cast<intptr_t>(
+              instructions::data_push_my_offset.interpreter_address);
+          opcodes[i + 1] = ti->slot_locations[it->second];
         }
-      } else {
-        opcode op = opcodes[i];
+      } else if(op == instructions::data_set_ivar.id) {
+        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
-        if(op == InstructionSequence::insn_push_ivar) {
-          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
-
-          TypeInfo::Slots::iterator it = ti->slots.find(sym);
-          if(it != ti->slots.end()) {
-            opcodes[i] = InstructionSequence::insn_push_my_offset;
-            opcodes[i + 1] = ti->slot_locations[it->second];
-          }
-        } else if(op == InstructionSequence::insn_set_ivar) {
-          native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
-
-          TypeInfo::Slots::iterator it = ti->slots.find(sym);
-          if(it != ti->slots.end()) {
-            opcodes[i] = InstructionSequence::insn_store_my_field;
-            opcodes[i + 1] = it->second;
-          }
+        TypeInfo::Slots::iterator it = ti->slots.find(sym);
+        if(it != ti->slots.end()) {
+          opcodes[i] = reinterpret_cast<intptr_t>(
+              instructions::data_store_my_field.interpreter_address);
+          opcodes[i + 1] = it->second;
         }
-
-        width = InstructionSequence::instruction_width(op);
       }
     }
   }
@@ -974,17 +783,5 @@ namespace rubinius {
     }
 
     G(jit)->end_method_update(state);
-  }
-
-  /*
-   * Ensures the specified IP value is a valid address.
-   */
-  bool MachineCode::validate_ip(STATE, size_t ip) {
-    /* Ensure ip is valid */
-    MachineCode::Iterator iter(this);
-    for(; !iter.end(); iter.inc()) {
-      if(iter.position() >= ip) break;
-    }
-    return ip == iter.position();
   }
 }
