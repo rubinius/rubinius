@@ -319,7 +319,7 @@ namespace rubinius {
       rubinius::interpreter::restore_exception_state
     };
     const InstructionData constexpr data_ret = {
-      "ret", 70, 1, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      "ret", 70, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::ret
     };
     const InstructionData constexpr data_rotate = {
