@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    daedalus-core (1.5)
+    daedalus-core (1.6)
     rake (12.1.0)
     redcard (1.1.0)
     rubinius-ast (3.9)
