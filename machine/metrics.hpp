@@ -21,15 +21,27 @@ namespace rubinius {
   namespace metrics {
     typedef uint64_t metric;
 
+    struct BootMetrics {
+      metric fields_us;
+      metric main_thread_us;
+      metric memory_us;
+      metric ontology_us;
+      metric platform_us;
+
+      BootMetrics() {
+        fields_us = 0;
+        main_thread_us = 0;
+        memory_us = 0;
+        ontology_us = 0;
+        platform_us = 0;
+      }
+    };
+
     struct CodeDBMetrics {
       metric load_us;
 
       CodeDBMetrics() {
         load_us = 0;
-      }
-
-      void add(CodeDBMetrics& data) {
-        load_us += data.load_us;
       }
     };
 
@@ -370,7 +382,6 @@ namespace rubinius {
     };
 
     struct MetricsData {
-      CodeDBMetrics codedb;
       ConsoleMetrics console;
       GCMetrics gc;
       JITMetrics jit;
@@ -380,8 +391,7 @@ namespace rubinius {
       SystemMetrics system;
 
       MetricsData()
-        : codedb()
-        , console()
+        : console()
         , gc()
         , jit()
         , lock()
@@ -391,7 +401,6 @@ namespace rubinius {
       { }
 
       void add(MetricsData& data) {
-        codedb.add(data.codedb);
         console.add(data.console);
         gc.add(data.gc);
         jit.add(data.jit);

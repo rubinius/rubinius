@@ -6,15 +6,15 @@
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
 
-#include "machine_threads.hpp"
 #include "diagnostics.hpp"
 #include "globals.hpp"
 #include "jit.hpp"
+#include "machine_threads.hpp"
+#include "metrics.hpp"
+#include "primitives.hpp"
 #include "profiler.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
-
-#include "primitives.hpp"
 
 #include "util/thread.hpp"
 
@@ -42,10 +42,6 @@ namespace rubinius {
 
   namespace console {
     class Console;
-  }
-
-  namespace metrics {
-    class Metrics;
   }
 
   namespace memory {
@@ -102,6 +98,8 @@ namespace rubinius {
     diagnostics::Diagnostics* diagnostics_;
     profiler::Profiler* profiler_;
     jit::JIT* jit_;
+    metrics::BootMetrics boot_metrics_;
+    metrics::CodeDBMetrics codedb_metrics_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -152,6 +150,14 @@ namespace rubinius {
   public:
     SharedState(Environment* env, Configuration& config, ConfigParser& cp);
     ~SharedState();
+
+    metrics::BootMetrics& boot_metrics() {
+      return boot_metrics_;
+    }
+
+    metrics::CodeDBMetrics& codedb_metrics() {
+      return codedb_metrics_;
+    }
 
     bool booting_p() {
       return phase_ == eBooting;

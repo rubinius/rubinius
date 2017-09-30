@@ -272,10 +272,6 @@ namespace rubinius {
     }
 
     void Metrics::map_metrics() {
-      // CodeDB metrics
-      metrics_map_.push_back(new MetricsItem(
-            "codedb.load.us", metrics_data_.codedb.load_us));
-
       // Console metrics
       metrics_map_.push_back(new MetricsItem(
             "console.requests.received", metrics_data_.console.requests_received));

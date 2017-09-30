@@ -545,8 +545,9 @@ namespace rubinius {
     state->shared().set_halting();
 
     if(state->shared().config.system_log_lifetime.value) {
-      logger::write("process: exit: %s %d %fs",
-          shared->pid.c_str(), exit_code, shared->run_time());
+      logger::write("process: exit: %s %d %lldus %fs",
+          shared->pid.c_str(), exit_code,
+          shared->codedb_metrics().load_us, shared->run_time());
     }
 
     if(Memory* om = state->memory()) {
@@ -714,17 +715,38 @@ namespace rubinius {
 
   void Environment::boot() {
     runtime_path_ = system_prefix() + RBX_RUNTIME_PATH;
-    load_platform_conf(runtime_path_);
 
-    shared->om = new Memory(state->vm(), *shared);
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics().platform_us);
+
+      load_platform_conf(runtime_path_);
+    }
+
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics().memory_us);
+
+      shared->om = new Memory(state->vm(), *shared);
+    }
 
     shared->set_initialized();
 
     state->vm()->managed_phase(state);
 
-    TypeInfo::auto_learn_fields(state);
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics().fields_us);
 
-    state->vm()->bootstrap_ontology(state);
+      TypeInfo::auto_learn_fields(state);
+    }
+
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics().ontology_us);
+
+      state->vm()->bootstrap_ontology(state);
+    }
 
     start_finalizer(state);
 
@@ -734,8 +756,13 @@ namespace rubinius {
     Thread* main = 0;
     OnStack<1> os(state, main);
 
-    main = Thread::create(state, state->vm(), Thread::main_thread);
-    main->start_thread(state, Thread::run);
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics().main_thread_us);
+
+      main = Thread::create(state, state->vm(), Thread::main_thread);
+      main->start_thread(state, Thread::run);
+    }
 
     VM* vm = SignalThread::new_vm(state);
     vm->set_stack_bounds(state->vm()->stack_size());

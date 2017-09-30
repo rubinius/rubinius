@@ -126,6 +126,18 @@ namespace rubinius {
     if(state->shared().config.system_log_lifetime.value) {
       state->shared().signals()->print_machine_info(logger::write);
       state->shared().signals()->print_process_info(logger::write);
+
+      logger::write("process: boot stats: " \
+          "fields %lldus " \
+          "main thread: %lldus " \
+          "memory: %lldus " \
+          "ontology: %lldus " \
+          "platform: %lldus",
+          state->shared().boot_metrics().fields_us,
+          state->shared().boot_metrics().main_thread_us,
+          state->shared().boot_metrics().memory_us,
+          state->shared().boot_metrics().ontology_us,
+          state->shared().boot_metrics().platform_us);
     }
 
     run(state);
@@ -243,7 +255,7 @@ namespace rubinius {
   }
 
   void SignalThread::print_machine_info(logger::PrintFunction function) {
-    function("node info: %s %s", machine_info.nodename, machine_info.version);
+    function("node: info: %s %s", machine_info.nodename, machine_info.version);
   }
 
 #define RBX_PROCESS_INFO_LEN    256
@@ -270,7 +282,7 @@ namespace rubinius {
         RBX_VERSION, RBX_RUBY_VERSION, RBX_RELEASE_DATE, RBX_BUILD_REV,
         llvm_version, jit_status);
 
-    function("process info: %s", process_info);
+    function("process: info: %s", process_info);
   }
 
   void SignalThread::add_signal_handler(STATE, int signal, HandlerType type) {

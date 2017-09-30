@@ -150,7 +150,7 @@ namespace rubinius {
 
   CompiledCode* CodeDB::load(STATE, const char* m_id) {
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().codedb.load_us);
+        state->shared().codedb_metrics().load_us);
 
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
