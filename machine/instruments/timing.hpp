@@ -66,6 +66,10 @@ namespace timer {
     return (double)get_current_time() * 1000000000;
   }
 
+  static inline double elapsed_seconds(uint64_t nanoseconds) {
+    return (double)nanoseconds / seconds;
+  }
+
   template <int factor=milliseconds>
   class StopWatch {
     uint64_t& total_;

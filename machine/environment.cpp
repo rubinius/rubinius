@@ -545,9 +545,11 @@ namespace rubinius {
     state->shared().set_halting();
 
     if(state->shared().config.system_log_lifetime.value) {
-      logger::write("process: exit: %s %d %lldus %fs",
+      logger::write("process: exit: %s %d %lld %fs %fs",
           shared->pid.c_str(), exit_code,
-          shared->codedb_metrics().load_us, shared->run_time());
+          shared->codedb_metrics().load_count,
+          timer::elapsed_seconds(shared->codedb_metrics().load_ns),
+          shared->run_time());
     }
 
     if(Memory* om = state->memory()) {

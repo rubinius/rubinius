@@ -38,10 +38,12 @@ namespace rubinius {
     };
 
     struct CodeDBMetrics {
-      metric load_us;
+      metric load_ns;
+      metric load_count;
 
       CodeDBMetrics() {
-        load_us = 0;
+        load_ns = 0;
+        load_count = 0;
       }
     };
 
