@@ -2,6 +2,7 @@
 #include "bytecode_verifier.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
+#include "environment.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
 #include "machine_code.hpp"
@@ -24,7 +25,12 @@
 
 #include "instruments/timing.hpp"
 
+#include "sodium/crypto_generichash.h"
+#include "sodium/utils.h"
+
+#include <cstdint>
 #include <ostream>
+
 
 namespace rubinius {
 
@@ -399,7 +405,84 @@ namespace rubinius {
   }
 
   String* CompiledCode::stamp_id(STATE) {
-    return nil<String>();
+    unsigned char hash[crypto_generichash_BYTES];
+    uint64_t data, key_src = state->shared().env()->signature();
+    unsigned char* key = reinterpret_cast<unsigned char*>(&key_src);
+    crypto_generichash_state hs;
+
+    crypto_generichash_init(&hs, key, sizeof(uint64_t), sizeof(hash));
+
+    auto tuple_hash = [](crypto_generichash_state *hs, Tuple *t) {
+      if(t->nil_p()) return;
+
+      for(native_int i = 0; i < t->num_fields(); i++) {
+        uint64_t data = reinterpret_cast<uint64_t>(t->field[i]);
+        crypto_generichash_update(hs,
+            reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+      }
+    };
+
+    // Symbols
+    std::string& sym = name()->cpp_str(state);
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(sym.c_str()), sym.size());
+
+    sym = file()->cpp_str(state);
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(sym.c_str()), sym.size());
+
+    // Fixnums
+    data = stack_size()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+    data = local_count()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+    data = required_args()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+    data = post_args()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+    data = total_args()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+    data = splat()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+    data = arity()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+    data = registers()->to_native();
+    crypto_generichash_update(&hs,
+        reinterpret_cast<const unsigned char*>(&data), sizeof(uint64_t));
+
+    // Tuples
+    tuple_hash(&hs, lines());
+    tuple_hash(&hs, local_names());
+    tuple_hash(&hs, keywords());
+    tuple_hash(&hs, literals());
+
+    // Objects
+    if(Tuple* t = try_as<Tuple>(metadata())) {
+      tuple_hash(&hs, t);
+    } else {
+      std::string str = metadata()->to_string(state);
+      crypto_generichash_update(&hs,
+          reinterpret_cast<const unsigned char*>(str.c_str()), str.size());
+    }
+
+    tuple_hash(&hs, iseq()->opcodes());
+
+    crypto_generichash_final(&hs, hash, sizeof(hash));
+
+    char hash_hex[crypto_generichash_BYTES * 2 + 1];
+
+    code_id(state, String::create(state,
+          reinterpret_cast<const char*>(sodium_bin2hex(
+              hash_hex, sizeof(hash_hex), hash, sizeof(hash)))));
+
+    return code_id();
   }
 
   Object* CompiledCode::execute_script(STATE) {
