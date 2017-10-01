@@ -46,7 +46,13 @@ void tv(void)
             sodium_free(part);
         }
     } while (++i < (sizeof tests) / (sizeof tests[0]));
-
+    assert(66 <= sizeof out);
+    for (plen = 1U; plen < 66; plen += 3) {
+        memset(out, (int) (plen & 0xff), sizeof out);
+        crypto_stream_chacha20(out, plen, nonce, key);
+        sodium_bin2hex(out_hex, sizeof out_hex, out, sizeof out);
+        printf("[%s]\n", out_hex);
+    }
     randombytes_buf(out, sizeof out);
     crypto_stream_chacha20(out, sizeof out, nonce, key);
     sodium_bin2hex(out_hex, sizeof out_hex, out, sizeof out);
@@ -69,7 +75,7 @@ void tv(void)
     crypto_stream_chacha20_xor_ic(out, out, sizeof out, nonce, 1U, key);
     sodium_bin2hex(out_hex, sizeof out_hex, out, sizeof out);
     printf("[%s]\n", out_hex);
-};
+}
 
 static
 void tv_ietf(void)
@@ -96,7 +102,10 @@ void tv_ietf(void)
             0U },
           { "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
             "000000090000004a00000000",
-            1U }};
+            1U },
+          { "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "000000090000004a00000000",
+            0xffffffff }};
     unsigned char  key[crypto_stream_chacha20_KEYBYTES];
     unsigned char  nonce[crypto_stream_chacha20_IETF_NONCEBYTES];
     unsigned char *part;
@@ -125,7 +134,13 @@ void tv_ietf(void)
             sodium_free(part);
         }
     } while (++i < (sizeof tests) / (sizeof tests[0]));
-
+    assert(66 <= sizeof out);
+    for (plen = 1U; plen < 66; plen += 3) {
+        memset(out, (int) (plen & 0xff), sizeof out);
+        crypto_stream_chacha20(out, plen, nonce, key);
+        sodium_bin2hex(out_hex, sizeof out_hex, out, sizeof out);
+        printf("[%s]\n", out_hex);
+    }
     randombytes_buf(out, sizeof out);
     crypto_stream_chacha20_ietf(out, sizeof out, nonce, key);
     sodium_bin2hex(out_hex, sizeof out_hex, out, sizeof out);
@@ -148,7 +163,7 @@ void tv_ietf(void)
     crypto_stream_chacha20_ietf_xor_ic(out, out, sizeof out, nonce, 1U, key);
     sodium_bin2hex(out_hex, sizeof out_hex, out, sizeof out);
     printf("[%s]\n", out_hex);
-};
+}
 
 int
 main(void)
@@ -157,8 +172,15 @@ main(void)
     tv_ietf();
 
     assert(crypto_stream_chacha20_keybytes() > 0U);
+    assert(crypto_stream_chacha20_keybytes() == crypto_stream_chacha20_KEYBYTES);
     assert(crypto_stream_chacha20_noncebytes() > 0U);
+    assert(crypto_stream_chacha20_noncebytes() == crypto_stream_chacha20_NONCEBYTES);
+    assert(crypto_stream_chacha20_messagebytes_max() == crypto_stream_chacha20_MESSAGEBYTES_MAX);
+    assert(crypto_stream_chacha20_ietf_keybytes() > 0U);
+    assert(crypto_stream_chacha20_ietf_keybytes() == crypto_stream_chacha20_ietf_KEYBYTES);
     assert(crypto_stream_chacha20_ietf_noncebytes() > 0U);
+    assert(crypto_stream_chacha20_ietf_noncebytes() == crypto_stream_chacha20_ietf_NONCEBYTES);
+    assert(crypto_stream_chacha20_ietf_messagebytes_max() == crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX);
 
     return 0;
 }

@@ -39,6 +39,7 @@ typedef struct crypto_auth_hmacsha256_state {
     crypto_hash_sha256_state ictx;
     crypto_hash_sha256_state octx;
 } crypto_auth_hmacsha256_state;
+
 SODIUM_EXPORT
 size_t crypto_auth_hmacsha256_statebytes(void);
 
@@ -55,6 +56,10 @@ int crypto_auth_hmacsha256_update(crypto_auth_hmacsha256_state *state,
 SODIUM_EXPORT
 int crypto_auth_hmacsha256_final(crypto_auth_hmacsha256_state *state,
                                  unsigned char *out);
+
+
+SODIUM_EXPORT
+void crypto_auth_hmacsha256_keygen(unsigned char k[crypto_auth_hmacsha256_KEYBYTES]);
 
 #ifdef __cplusplus
 }

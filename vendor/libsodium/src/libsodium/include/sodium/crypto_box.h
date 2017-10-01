@@ -40,6 +40,10 @@ size_t  crypto_box_noncebytes(void);
 SODIUM_EXPORT
 size_t  crypto_box_macbytes(void);
 
+#define crypto_box_MESSAGEBYTES_MAX crypto_box_curve25519xsalsa20poly1305_MESSAGEBYTES_MAX
+SODIUM_EXPORT
+size_t  crypto_box_messagebytes_max(void);
+
 #define crypto_box_PRIMITIVE "curve25519xsalsa20poly1305"
 SODIUM_EXPORT
 const char *crypto_box_primitive(void);

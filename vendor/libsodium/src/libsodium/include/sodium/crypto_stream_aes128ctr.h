@@ -31,27 +31,35 @@ size_t crypto_stream_aes128ctr_noncebytes(void);
 SODIUM_EXPORT
 size_t crypto_stream_aes128ctr_beforenmbytes(void);
 
+#define crypto_stream_aes128ctr_SIZE_MAX \
+    SODIUM_MIN(SODIUM_SIZE_MAX, 16ULL * (1ULL << 32))
+
 SODIUM_EXPORT
 int crypto_stream_aes128ctr(unsigned char *out, unsigned long long outlen,
-                            const unsigned char *n, const unsigned char *k);
+                            const unsigned char *n, const unsigned char *k)
+            __attribute__ ((deprecated));
 
 SODIUM_EXPORT
 int crypto_stream_aes128ctr_xor(unsigned char *out, const unsigned char *in,
                                 unsigned long long inlen, const unsigned char *n,
-                                const unsigned char *k);
+                                const unsigned char *k)
+            __attribute__ ((deprecated));
 
 SODIUM_EXPORT
-int crypto_stream_aes128ctr_beforenm(unsigned char *c, const unsigned char *k);
+int crypto_stream_aes128ctr_beforenm(unsigned char *c, const unsigned char *k)
+            __attribute__ ((deprecated));
 
 SODIUM_EXPORT
 int crypto_stream_aes128ctr_afternm(unsigned char *out, unsigned long long len,
-                                    const unsigned char *nonce, const unsigned char *c);
+                                    const unsigned char *nonce, const unsigned char *c)
+            __attribute__ ((deprecated));
 
 SODIUM_EXPORT
 int crypto_stream_aes128ctr_xor_afternm(unsigned char *out, const unsigned char *in,
                                         unsigned long long len,
                                         const unsigned char *nonce,
-                                        const unsigned char *c);
+                                        const unsigned char *c)
+            __attribute__ ((deprecated));
 
 #ifdef __cplusplus
 }

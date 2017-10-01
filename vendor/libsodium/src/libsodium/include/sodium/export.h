@@ -11,6 +11,7 @@
 
 #ifdef SODIUM_STATIC
 # define SODIUM_EXPORT
+# define SODIUM_EXPORT_WEAK
 #else
 # if defined(_MSC_VER)
 #  ifdef SODIUM_DLL_EXPORT
@@ -31,6 +32,11 @@
 #   define SODIUM_EXPORT __attribute__ ((visibility ("default")))
 #  endif
 # endif
+# if defined(__ELF__) && !defined(SODIUM_DISABLE_WEAK_FUNCTIONS)
+#  define SODIUM_EXPORT_WEAK SODIUM_EXPORT __attribute__((weak))
+# else
+#  define SODIUM_EXPORT_WEAK SODIUM_EXPORT
+# endif
 #endif
 
 #ifndef CRYPTO_ALIGN
@@ -40,5 +46,8 @@
 #  define CRYPTO_ALIGN(x) __attribute__ ((aligned(x)))
 # endif
 #endif
+
+#define SODIUM_MIN(A, B) ((A) < (B) ? (A) : (B))
+#define SODIUM_SIZE_MAX SODIUM_MIN(UINT64_MAX, SIZE_MAX)
 
 #endif

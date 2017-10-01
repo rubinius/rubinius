@@ -3145,8 +3145,8 @@ tv(void)
             memcmp(mac, expected_ciphertext + message_len,
                    crypto_aead_aes256gcm_ABYTES) != 0) {
             printf("Detached encryption of test vector #%u failed\n", (unsigned int) i);
-            hex = (char *) sodium_malloc((size_t) found_ciphertext_len * 2 + 1);
-            sodium_bin2hex(hex, (size_t) found_ciphertext_len * 2 + 1,
+            hex = (char *) sodium_malloc((size_t) ciphertext_len * 2 + 1);
+            sodium_bin2hex(hex, (size_t) ciphertext_len * 2 + 1,
                            ciphertext, ciphertext_len);
             printf("Computed: [%s]\n", hex);
             sodium_free(hex);
@@ -3184,6 +3184,11 @@ tv(void)
                                           ad, ad_len, nonce, key) != -1) {
             printf("Verification of test vector #%u with a truncated tag failed\n",
                    (unsigned int) i);
+        }
+        if (i == 0 && crypto_aead_aes256gcm_decrypt(NULL, NULL,
+                                                    NULL, ciphertext, ciphertext_len,
+                                                    ad, ad_len, nonce, key) != 0) {
+            printf("Verification of test vector #%u's tag failed\n", (unsigned int) i);
         }
         if (crypto_aead_aes256gcm_decrypt(decrypted, &found_message_len,
                                           NULL, ciphertext, ciphertext_len,
@@ -3231,6 +3236,7 @@ main(void)
     assert(crypto_aead_aes256gcm_npubbytes() == crypto_aead_aes256gcm_NPUBBYTES);
     assert(crypto_aead_aes256gcm_abytes() == crypto_aead_aes256gcm_ABYTES);
     assert(crypto_aead_aes256gcm_statebytes() >= sizeof(crypto_aead_aes256gcm_state));
+    assert(crypto_aead_aes256gcm_messagebytes_max() == crypto_aead_aes256gcm_MESSAGEBYTES_MAX);
     printf("OK\n");
 
     return 0;

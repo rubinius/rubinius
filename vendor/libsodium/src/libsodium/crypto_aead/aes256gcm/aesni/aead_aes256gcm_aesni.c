@@ -10,17 +10,22 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "core.h"
 #include "crypto_aead_aes256gcm.h"
 #include "export.h"
+#include "private/common.h"
+#include "private/sse2_64_32.h"
+#include "randombytes.h"
 #include "runtime.h"
 #include "utils.h"
 
-#if (defined(HAVE_TMMINTRIN_H) && defined(HAVE_WMMINTRIN_H)) || \
-    (defined(_MSC_VER) && _MSC_VER >= 1600 && (defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86)))
+#if defined(HAVE_TMMINTRIN_H) && defined(HAVE_WMMINTRIN_H)
 
-#pragma GCC target("ssse3")
-#pragma GCC target("aes")
-#pragma GCC target("pclmul")
+# ifdef __GNUC__
+#  pragma GCC target("ssse3")
+#  pragma GCC target("aes")
+#  pragma GCC target("pclmul")
+# endif
 
 #include <tmmintrin.h>
 #include <wmmintrin.h>
@@ -96,12 +101,21 @@ static inline void
 aesni_encrypt1(unsigned char *out, __m128i nv, const __m128i *rkeys)
 {
     __m128i temp = _mm_xor_si128(nv, rkeys[0]);
-    int     roundctr;
 
-#pragma unroll(13)
-    for (roundctr = 1; roundctr < 14; roundctr++) {
-        temp = _mm_aesenc_si128(temp, rkeys[roundctr]);
-    }
+    temp = _mm_aesenc_si128(temp, rkeys[1]);
+    temp = _mm_aesenc_si128(temp, rkeys[2]);
+    temp = _mm_aesenc_si128(temp, rkeys[3]);
+    temp = _mm_aesenc_si128(temp, rkeys[4]);
+    temp = _mm_aesenc_si128(temp, rkeys[5]);
+    temp = _mm_aesenc_si128(temp, rkeys[6]);
+    temp = _mm_aesenc_si128(temp, rkeys[7]);
+    temp = _mm_aesenc_si128(temp, rkeys[8]);
+    temp = _mm_aesenc_si128(temp, rkeys[9]);
+    temp = _mm_aesenc_si128(temp, rkeys[10]);
+    temp = _mm_aesenc_si128(temp, rkeys[11]);
+    temp = _mm_aesenc_si128(temp, rkeys[12]);
+    temp = _mm_aesenc_si128(temp, rkeys[13]);
+
     temp = _mm_aesenclast_si128(temp, rkeys[14]);
     _mm_storeu_si128((__m128i *) out, temp);
 }
@@ -479,7 +493,7 @@ crypto_aead_aes256gcm_beforenm(crypto_aead_aes256gcm_state *ctx_,
     __m128i        zero = _mm_setzero_si128();
     unsigned char *H = ctx->H;
 
-    (void) sizeof(int[(sizeof *ctx_) >= (sizeof *ctx) ? 1 : -1]);
+    COMPILER_ASSERT((sizeof *ctx_) >= (sizeof *ctx));
     aesni_key256_expand(k, rkeys);
     aesni_encrypt1(H, zero, rkeys);
 
@@ -510,8 +524,8 @@ crypto_aead_aes256gcm_encrypt_detached_afternm(unsigned char *c,
 
     (void) nsec;
     memcpy(H, ctx->H, sizeof H);
-    if (mlen > 16ULL * ((1ULL << 32) - 2)) {
-        abort(); /* LCOV_EXCL_LINE */
+    if (mlen > crypto_aead_aes256gcm_MESSAGEBYTES_MAX) {
+        sodium_misuse(); /* LCOV_EXCL_LINE */
     }
     memcpy(&n2[0], npub, 3 * 4);
     n2[3] = 0x01000000;
@@ -562,7 +576,7 @@ crypto_aead_aes256gcm_encrypt_detached_afternm(unsigned char *c,
         }                                                                                            \
     } while(0)
 
-/* remainder loop, with the slower GCM update to accomodate partial blocks */
+/* remainder loop, with the slower GCM update to accommodate partial blocks */
 #define LOOPRMD128                                           \
     do {                                                     \
         const int iter = 8;                                  \
@@ -648,8 +662,8 @@ crypto_aead_aes256gcm_decrypt_detached_afternm(unsigned char *m, unsigned char *
     CRYPTO_ALIGN(16) unsigned char fb[16];
 
     (void) nsec;
-    if (clen > 16ULL * (1ULL << 32)) {
-        abort(); /* LCOV_EXCL_LINE */
+    if (clen > crypto_aead_aes256gcm_MESSAGEBYTES_MAX) {
+        sodium_misuse(); /* LCOV_EXCL_LINE */
     }
     mlen = clen;
 
@@ -1042,4 +1056,16 @@ size_t
 crypto_aead_aes256gcm_statebytes(void)
 {
     return (sizeof(crypto_aead_aes256gcm_state) + (size_t) 15U) & ~(size_t) 15U;
+}
+
+size_t
+crypto_aead_aes256gcm_messagebytes_max(void)
+{
+    return crypto_aead_aes256gcm_MESSAGEBYTES_MAX;
+}
+
+void
+crypto_aead_aes256gcm_keygen(unsigned char k[crypto_aead_aes256gcm_KEYBYTES])
+{
+    randombytes_buf(k, crypto_aead_aes256gcm_KEYBYTES);
 }

@@ -19,6 +19,8 @@
 #   the flags: "CFLAGS EXTRA-FLAGS FLAG".  This can for example be used to
 #   force the compiler to issue an error when a bad flag is given.
 #
+#   INPUT gives an alternative input source to AC_COMPILE_IFELSE.
+#
 #   NOTE: Implementation based on AX_CFLAGS_GCC_OPTION. Please keep this
 #   macro in sync with AX_CHECK_{PREPROC,LINK}_FLAG.
 #
@@ -38,7 +40,7 @@
 #   Public License for more details.
 #
 #   You should have received a copy of the GNU General Public License along
-#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#   with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 #   As a special exception, the respective Autoconf Macro's copyright owner
 #   gives unlimited permission to copy, distribute and modify the configure
@@ -53,7 +55,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 2
+#serial 5
 
 AC_DEFUN([AX_CHECK_COMPILE_FLAG],
 [AC_PREREQ(2.64)dnl for _AC_LANG_PREFIX and AS_VAR_IF
@@ -61,8 +63,8 @@ AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_check_[]_AC_LANG_ABBREV[]flags_$4_$1])dnl
 AC_CACHE_CHECK([whether _AC_LANG compiler accepts $1], CACHEVAR, [
   ax_check_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
   _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $4 $1"
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]],
-  [[char x[42U], fodder = 0;if (fodder > -1000 && fgets(x,1000,stdin)) puts(x)]])],
+  AC_TRY_LINK([#include <time.h>],
+    [time_t x; int fodder = 0; if (fodder > -1000 && time(&x)) return (int) x],
     [AS_VAR_SET(CACHEVAR,[yes])],
     [AS_VAR_SET(CACHEVAR,[no])])
   _AC_LANG_PREFIX[]FLAGS=$ax_check_save_flags])

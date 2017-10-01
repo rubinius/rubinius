@@ -42,8 +42,7 @@ namespace rubinius {
     attr_accessor(keywords, Tuple);
     attr_accessor(arity, Fixnum);
     attr_accessor(breakpoints, LookupTable);
-    attr_accessor(iregisters, Fixnum);
-    attr_accessor(dregisters, Fixnum);
+    attr_accessor(registers, Fixnum);
 
   private:
     attr_field(machine_code, MachineCode*);
@@ -78,8 +77,7 @@ namespace rubinius {
       obj->keywords(nil<Tuple>());
       obj->arity(nil<Fixnum>());
       obj->breakpoints(nil<LookupTable>());
-      obj->iregisters(Fixnum::from(0));
-      obj->dregisters(Fixnum::from(0));
+      obj->registers(Fixnum::from(0));
       obj->machine_code(NULL);
 
       obj->literals(nil<Tuple>());

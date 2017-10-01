@@ -1,6 +1,114 @@
 
+* Version 1.0.14
+ - iOS binaries should now be compatible with WatchOS and TVOS.
+ - WebAssembly is now officially supported. Special thanks to
+@facekapow and @pepyakin who helped to make it happen.
+ - Internal consistency checks failing and primitives used with
+dangerous/out-of-bounds/invalid parameters used to call abort(3).
+Now, a custom handler *that doesn't return* can be set with the
+`set_sodium_misuse()` function. It still aborts by default or if the
+handler ever returns. This is not a replacement for non-fatal,
+expected runtime errors. This handler will be only called in
+unexpected situations due to potential bugs in the library or in
+language bindings.
+ - `*_MESSAGEBYTES_MAX` macros (and the corresponding
+`_messagebytes_max()` symbols) have been added to represent the
+maximum message size that can be safely handled by a primitive.
+Language bindings are encouraged to check user inputs against these
+maximum lengths.
+ - The test suite has been extended to cover more edge cases.
+ - crypto_sign_ed25519_pk_to_curve25519() now rejects points that are
+not on the curve, or not in the main subgroup.
+ - Further changes have been made to ensure that smart compilers will
+not optimize out code that we don't want to be optimized.
+ - Visual Studio solutions are now included in distribution tarballs.
+ - The `sodium_runtime_has_*` symbols for CPU features detection are
+now defined as weak symbols, i.e. they can be replaced with an
+application-defined implementation. This can be useful to disable
+AVX* when temperature/power consumption is a concern.
+ - `crypto_kx_*()` now aborts if called with no non-NULL pointers to
+store keys to.
+ - SSE2 implementations of `crypto_verify_*()` have been added.
+ - Passwords can be hashed using a specific algorithm with the new
+`crypto_pwhash_str_alg()` function.
+ - Due to popular demand, base64 encoding (`sodium_bin2base64()`) and
+decoding (`sodium_base642bin()`) have been implemented.
+ - A new `crypto_secretstream_*()` API was added to safely encrypt files
+and multi-part messages.
+ - The `sodium_pad()` and `sodium_unpad()` helper functions have been
+added in order to add & remove padding.
+ - An AVX512 optimized implementation of Argon2 has been added (written
+by Ondrej Mosnáček, thanks!)
+ - The `crypto_pwhash_str_needs_rehash()` function was added to check if
+a password hash string matches the given parameters, or if it needs an
+update.
+ - The library can now be compiled with recent versions of
+emscripten/binaryen that don't allow multiple variables declarations
+using a single `var` statement.
+
+* Version 1.0.13
+ - Javascript: the sumo builds now include all symbols. They were
+previously limited to symbols defined in minimal builds.
+ - The public `crypto_pwhash_argon2i_MEMLIMIT_MAX` constant was
+incorrectly defined on 32-bit platforms. This has been fixed.
+ - Version 1.0.12 didn't compile on OpenBSD/i386 using the base gcc
+compiler. This has been fixed.
+ - The Android compilation scripts have been updated for NDK r14b.
+ - armv7s-optimized code was re-added to iOS builds.
+ - An AVX2 optimized implementation of the Argon2 round function was
+added.
+ - The Argon2id variant of Argon2 has been implemented. The
+high-level `crypto_pwhash_str_verify()` function automatically detects
+the algorithm and can verify both Argon2i and Argon2id hashed passwords.
+The default algorithm for newly hashed passwords remains Argon2i in
+this version to avoid breaking compatibility with verifiers running
+libsodium <= 1.0.12.
+ - A `crypto_box_curve25519xchacha20poly1305_seal*()` function set was
+implemented.
+ - scrypt was removed from minimal builds.
+ - libsodium is now available on NuGet.
+
+* Version 1.0.12
+ - Ed25519ph was implemented, adding a multi-part signature API
+(`crypto_sign_init()`, `crypto_sign_update()`, `crypto_sign_final_*()`).
+ - New constants and related accessors have been added for Scrypt and
+Argon2.
+ - XChaCha20 has been implemented. Like XSalsa20, this construction
+extends the ChaCha20 cipher to accept a 192-bit nonce. This makes it safe
+to use ChaCha20 with random nonces.
+ - `crypto_secretbox`, `crypto_box` and `crypto_aead` now offer
+variants leveraging XChaCha20.
+ - SHA-2 is about 20% faster, which also gives a speed boost to
+signature and signature verification.
+ - AVX2 implementations of Salsa20 and ChaCha20 have been added. They
+are twice as fast as the SSE2 implementations. The speed gain is
+even more significant on Windows, that previously didn't use
+vectorized implementations.
+ - New high-level API: `crypto_kdf`, to easily derive one or more
+subkeys from a master key.
+ - Siphash with a 128-bit output has been implemented, and is
+available as `crypto_shorthash_siphashx_*`.
+ - New `*_keygen()` helpers functions have been added to create secret
+keys for all constructions. This improves code clarity and can prevent keys
+from being partially initialized.
+ - A new `randombytes_buf_deterministic()` function was added to
+deterministically fill a memory region with pseudorandom data. This
+function can especially be useful to write reproducible tests.
+ - A preliminary `crypto_kx_*()` API was added to compute shared session
+keys.
+ - AVX2 detection is more reliable.
+ - The pthreads library is not required any more when using MingW.
+ - `contrib/Findsodium.cmake` was added as an example to include
+libsodium in a project using cmake.
+ - Compatibility with gcc 2.x has been restored.
+ - Minimal builds can be checked using `sodium_library_minimal()`.
+ - The `--enable-opt` compilation switch has become compatible with more
+platforms.
+ - Android builds are now using clang on platforms where it is
+available.
+
 * Version 1.0.11
- - sodium_init() is now thread-safe, and can be safely called multiple
+ - `sodium_init()` is now thread-safe, and can be safely called multiple
 times.
  - Android binaries now properly support 64-bit Android, targeting
 platform 24, but without breaking compatibility with platforms 16 and
@@ -146,7 +254,7 @@ required.
  - On Linux, getrandom(2) is being used instead of directly accessing
 /dev/urandom, if the kernel supports this system call.
  - crypto_box_seal() and crypto_box_seal_open() have been added.
- - A solutions for Visual Studio 2015 was added.
+ - Visual Studio 2015 is now supported.
 
 * Version 1.0.2
  - The _easy and _detached APIs now support precalculated keys;

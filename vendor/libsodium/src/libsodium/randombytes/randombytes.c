@@ -1,34 +1,43 @@
 
-#include <stdlib.h>
-#include <sys/types.h>
-
 #include <assert.h>
 #include <limits.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#include <sys/types.h>
 
 #ifdef __EMSCRIPTEN__
 # include <emscripten.h>
 #endif
 
+#include "core.h"
+#include "crypto_stream_chacha20.h"
 #include "randombytes.h"
-#include "randombytes_sysrandom.h"
-
-#ifdef __native_client__
-# include "randombytes_nativeclient.h"
+#ifdef RANDOMBYTES_DEFAULT_IMPLEMENTATION
+# include "randombytes_default.h"
+#else
+# ifdef __native_client__
+#  include "randombytes_nativeclient.h"
+# else
+#  include "randombytes_sysrandom.h"
+# endif
 #endif
+#include "private/common.h"
 
 /* C++Builder defines a "random" macro */
 #undef random
 
 static const randombytes_implementation *implementation;
 
-#ifdef __EMSCRIPTEN__
-# define RANDOMBYTES_DEFAULT_IMPLEMENTATION NULL
-#else
-# ifdef __native_client__
-#  define RANDOMBYTES_DEFAULT_IMPLEMENTATION &randombytes_nativeclient_implementation;
+#ifndef RANDOMBYTES_DEFAULT_IMPLEMENTATION
+# ifdef __EMSCRIPTEN__
+#  define RANDOMBYTES_DEFAULT_IMPLEMENTATION NULL
 # else
-#  define RANDOMBYTES_DEFAULT_IMPLEMENTATION &randombytes_sysrandom_implementation;
+#  ifdef __native_client__
+#   define RANDOMBYTES_DEFAULT_IMPLEMENTATION &randombytes_nativeclient_implementation;
+#  else
+#   define RANDOMBYTES_DEFAULT_IMPLEMENTATION &randombytes_sysrandom_implementation;
+#  endif
 # endif
 #endif
 
@@ -85,22 +94,22 @@ randombytes_stir(void)
     EM_ASM({
         if (Module.getRandomValue === undefined) {
             try {
-                var window_ = "object" === typeof window ? window : self,
-                    crypto_ = typeof window_.crypto !== "undefined" ? window_.crypto : window_.msCrypto,
-                    randomValuesStandard = function() {
-                        var buf = new Uint32Array(1);
-                        crypto_.getRandomValues(buf);
-                        return buf[0] >>> 0;
-                    };
+                var window_ = 'object' === typeof window ? window : self;
+                var crypto_ = typeof window_.crypto !== 'undefined' ? window_.crypto : window_.msCrypto;
+                var randomValuesStandard = function() {
+                    var buf = new Uint32Array(1);
+                    crypto_.getRandomValues(buf);
+                    return buf[0] >>> 0;
+                };
                 randomValuesStandard();
                 Module.getRandomValue = randomValuesStandard;
             } catch (e) {
                 try {
-                    var crypto = require('crypto'),
-                        randomValueNodeJS = function() {
-                            var buf = crypto.randomBytes(4);
-                            return (buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]) >>> 0;
-                        };
+                    var crypto = require('crypto');
+                    var randomValueNodeJS = function() {
+                        var buf = crypto.randomBytes(4);
+                        return (buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]) >>> 0;
+                    };
                     randomValueNodeJS();
                     Module.getRandomValue = randomValueNodeJS;
                 } catch (e) {
@@ -112,10 +121,6 @@ randombytes_stir(void)
 #endif
 }
 
-/*
- * randombytes_uniform() derives from OpenBSD's arc4random_uniform()
- * Copyright (c) 2008, Damien Miller <djm@openbsd.org>
- */
 uint32_t
 randombytes_uniform(const uint32_t upper_bound)
 {
@@ -131,10 +136,12 @@ randombytes_uniform(const uint32_t upper_bound)
     if (upper_bound < 2) {
         return 0;
     }
-    min = (uint32_t) (-upper_bound % upper_bound);
+    min = (1U + ~upper_bound) % upper_bound; /* = 2**32 mod upper_bound */
     do {
         r = randombytes_random();
     } while (r < min);
+    /* r is now clamped to a set whose size mod upper_bound == 0
+     * the worst case (2**31+1) requires ~ 2 attempts */
 
     return r % upper_bound;
 }
@@ -148,13 +155,38 @@ randombytes_buf(void * const buf, const size_t size)
         implementation->buf(buf, size);
     }
 #else
-    unsigned char *p = buf;
+    unsigned char *p = (unsigned char *) buf;
     size_t         i;
 
     for (i = (size_t) 0U; i < size; i++) {
         p[i] = (unsigned char) randombytes_random();
     }
 #endif
+}
+
+void
+randombytes_buf_deterministic(void * const buf, const size_t size,
+                              const unsigned char seed[randombytes_SEEDBYTES])
+{
+    static const unsigned char nonce[crypto_stream_chacha20_ietf_NONCEBYTES] = {
+        'L', 'i', 'b', 's', 'o', 'd', 'i', 'u', 'm', 'D', 'R', 'G'
+    };
+
+    COMPILER_ASSERT(randombytes_SEEDBYTES == crypto_stream_chacha20_ietf_KEYBYTES);
+#if SIZE_MAX > 0x4000000000ULL
+    COMPILER_ASSERT(randombytes_BYTES_MAX <= 0x4000000000ULL);
+    if (size > 0x4000000000ULL) {
+        sodium_misuse();
+    }
+#endif
+    crypto_stream_chacha20_ietf((unsigned char *) buf, (unsigned long long) size,
+                                nonce, seed);
+}
+
+size_t
+randombytes_seedbytes(void)
+{
+    return randombytes_SEEDBYTES;
 }
 
 int

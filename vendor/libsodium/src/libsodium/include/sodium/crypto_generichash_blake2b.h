@@ -20,7 +20,7 @@ extern "C" {
 # pragma pack(push, 1)
 #endif
 
-typedef CRYPTO_ALIGN(64) struct crypto_generichash_blake2b_state {
+typedef struct CRYPTO_ALIGN(64) crypto_generichash_blake2b_state {
     uint64_t h[8];
     uint64_t t[2];
     uint64_t f[2];
@@ -107,9 +107,8 @@ int crypto_generichash_blake2b_final(crypto_generichash_blake2b_state *state,
                                      unsigned char *out,
                                      const size_t outlen);
 
-/* ------------------------------------------------------------------------- */
-
-int _crypto_generichash_blake2b_pick_best_implementation(void);
+SODIUM_EXPORT
+void crypto_generichash_blake2b_keygen(unsigned char k[crypto_generichash_blake2b_KEYBYTES]);
 
 #ifdef __cplusplus
 }

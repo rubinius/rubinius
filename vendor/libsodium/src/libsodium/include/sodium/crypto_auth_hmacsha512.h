@@ -39,6 +39,7 @@ typedef struct crypto_auth_hmacsha512_state {
     crypto_hash_sha512_state ictx;
     crypto_hash_sha512_state octx;
 } crypto_auth_hmacsha512_state;
+
 SODIUM_EXPORT
 size_t crypto_auth_hmacsha512_statebytes(void);
 
@@ -55,6 +56,9 @@ int crypto_auth_hmacsha512_update(crypto_auth_hmacsha512_state *state,
 SODIUM_EXPORT
 int crypto_auth_hmacsha512_final(crypto_auth_hmacsha512_state *state,
                                  unsigned char *out);
+
+SODIUM_EXPORT
+void crypto_auth_hmacsha512_keygen(unsigned char k[crypto_auth_hmacsha512_KEYBYTES]);
 
 #ifdef __cplusplus
 }

@@ -8,15 +8,16 @@ static unsigned char m[10000];
 static unsigned char c[10000];
 static unsigned char m2[10000];
 
-int main(void)
+int
+main(void)
 {
     size_t mlen;
     size_t i;
-    int caught;
+    int    caught;
 
     for (mlen = 0; mlen < 1000 && mlen + crypto_secretbox_ZEROBYTES < sizeof m;
          ++mlen) {
-        randombytes_buf(k, crypto_secretbox_KEYBYTES);
+        crypto_secretbox_keygen(k);
         randombytes_buf(n, crypto_secretbox_NONCEBYTES);
         randombytes_buf(m + crypto_secretbox_ZEROBYTES, mlen);
         crypto_secretbox(c, m, mlen + crypto_secretbox_ZEROBYTES, n, k);
