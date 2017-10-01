@@ -323,10 +323,6 @@ namespace rubinius {
         case instructions::data_zsuper.id:
           verify_unwind(state, ip, ip - width);
           break;
-
-        case instructions::data_unwind.id:
-          verify_jump_location(state, arg1, insn_ip);
-          break;
       }
 
       int effect = Instructions::instruction_data(op).stack_effect(arg1, arg2, arg3);

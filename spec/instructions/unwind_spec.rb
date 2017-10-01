@@ -36,11 +36,9 @@ describe "Instruction unwind" do
       g.pop
 
       g.push_state self
-      g.state.push_unwind g.new_unwind_label
       g.setup_unwind ex, 0
       g.push_self
       g.send_method :m
-      g.state.pop_unwind
       g.pop_unwind
       g.goto done
 
@@ -95,14 +93,12 @@ describe "Instruction unwind" do
       exs = g.new_stack_local
 
       g.push_state self
-      g.state.push_unwind g.new_unwind_label
       g.setup_unwind ex, 1
       g.push_exception_state
       g.set_stack_local exs
       g.pop
       g.push_self
       g.send_method :m
-      g.state.pop_unwind
       g.pop_unwind
       g.goto no_exc
 
@@ -144,14 +140,12 @@ describe "Instruction unwind" do
       exs = g.new_stack_local
 
       g.push_state self
-      g.state.push_unwind g.new_unwind_label
       g.setup_unwind ex, 1
       g.push_exception_state
       g.set_stack_local exs
       g.pop
       g.push_self
       g.send_method :m
-      g.state.pop_unwind
       g.pop_unwind
       g.goto no_exc
 

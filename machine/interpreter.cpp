@@ -64,15 +64,8 @@ namespace rubinius {
       case instructions::data_push_const.id:
       case instructions::data_find_const.id:
       case instructions::data_setup_unwind.id:
-        rcount++;
-        break;
       case instructions::data_unwind.id:
-        intptr_t target = static_cast<intptr_t>(opcodes[opcodes[ip + 1]]);
-        intptr_t address = reinterpret_cast<intptr_t>(
-            instructions::data_setup_unwind.interpreter_address);
-
-        if(target != address) rcount++;
-
+        rcount++;
         break;
       }
     }
@@ -194,21 +187,12 @@ namespace rubinius {
         break;
       }
       case instructions::data_unwind.id: {
-        int unwind_index = opcodes[ip + 1];
-        intptr_t target = static_cast<intptr_t>(opcodes[unwind_index]);
-        intptr_t address = reinterpret_cast<intptr_t>(
-            instructions::data_setup_unwind.interpreter_address);
+        machine_code->references()[rindex++] = ip + 1;
+        unwind_count++;
 
-        if(target == address) {
-          opcodes[ip + 1] = opcodes[unwind_index + 1];
-        } else {
-          machine_code->references()[rindex++] = ip + 1;
-          unwind_count++;
+        UnwindSite* unwind_site = UnwindSite::create(state, 0, UnwindSite::eNone);
 
-          UnwindSite* unwind_site = UnwindSite::create(state, 0, UnwindSite::eNone);
-
-          machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
-        }
+        machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
 
         break;
       }
