@@ -398,6 +398,10 @@ namespace rubinius {
     return Fixnum::from(machine_code()->sample_count);
   }
 
+  String* CompiledCode::stamp_id(STATE) {
+    return nil<String>();
+  }
+
   Object* CompiledCode::execute_script(STATE) {
     state->thread_state()->clear();
 
@@ -480,6 +484,7 @@ namespace rubinius {
     indent_attribute(level, "splat"); code->splat()->show(state, level);
     indent_attribute(level, "stack_size"); code->stack_size()->show(state, level);
     indent_attribute(level, "total_args"); code->total_args()->show(state, level);
+    indent_attribute(level, "code_id"); code->code_id()->show(state, level);
 
     indent_attribute(level, "internalized");
     if(!code->machine_code()) {

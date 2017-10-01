@@ -9,6 +9,7 @@
 #include "class/fixnum.hpp"
 #include "class/iseq.hpp"
 #include "class/lookup_table.hpp"
+#include "class/string.hpp"
 #include "class/symbol.hpp"
 
 namespace rubinius {
@@ -43,6 +44,7 @@ namespace rubinius {
     attr_accessor(arity, Fixnum);
     attr_accessor(breakpoints, LookupTable);
     attr_accessor(registers, Fixnum);
+    attr_accessor(code_id, String);
 
   private:
     attr_field(machine_code, MachineCode*);
@@ -78,6 +80,7 @@ namespace rubinius {
       obj->arity(nil<Fixnum>());
       obj->breakpoints(nil<LookupTable>());
       obj->registers(Fixnum::from(0));
+      obj->code_id(nil<String>());
       obj->machine_code(NULL);
 
       obj->literals(nil<Tuple>());
@@ -132,6 +135,9 @@ namespace rubinius {
 
     // Rubinius.primitive :compiledcode_sample_count
     Fixnum* sample_count(STATE);
+
+    // Rubinius.primitive :compiledcode_stamp_id
+    String* stamp_id(STATE);
 
     String* full_name(STATE);
 

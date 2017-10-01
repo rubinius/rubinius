@@ -17,6 +17,10 @@ module Rubinius
       raise PrimitiveFailure, "CompiledCode#call_sites primitive failed"
     end
 
+    def code_id
+      @code_id || stamp_id
+    end
+
     def constant_caches
       Rubinius.primitive :compiledcode_constant_caches
       raise PrimitiveFailure, "CompiledCode#constant_caches primitive failed"
@@ -216,6 +220,11 @@ module Rubinius
     def breakpoint?(ip)
       Rubinius.primitive :compiledcode_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
+    end
+
+    def stamp_id
+      Rubinius.primitive :compiledcode_stamp_id
+      raise ArgumentError, "CompiledCode#stamp_id primitive failed"
     end
 
     class Script
