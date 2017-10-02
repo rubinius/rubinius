@@ -196,11 +196,6 @@ end
 directory "runtime/core"
 
 class CodeDBCompiler
-  def self.m_id
-    @m_id ||= 0
-    (@m_id += 1).to_s
-  end
-
   def self.compile(file, line, transforms)
     compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_code
 
@@ -231,9 +226,10 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
   puts "CodeDB: writing data..."
 
   core_files.each do |file|
-    id = CodeDBCompiler.m_id
+    code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
+    id = code.code_id
 
-    code_db_code << [id, CodeDBCompiler.compile(file, 1, [:default, :kernel])]
+    code_db_code << [id, code]
 
     code_db_scripts << [file, id]
   end
@@ -243,7 +239,7 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
 
     cc.iseq.opcodes.each_with_index do |value, index|
       if value.kind_of? Rubinius::CompiledCode
-        cc.iseq.opcodes[index] = i = CodeDBCompiler.m_id
+        cc.iseq.opcodes[index] = i = value.code_id
         code_db_code.unshift [i, value]
       end
     end
