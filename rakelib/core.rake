@@ -237,9 +237,9 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
   while x = code_db_code.shift
     id, cc = x
 
-    cc.iseq.opcodes.each_with_index do |value, index|
+    cc.literals.each_with_index do |value, index|
       if value.kind_of? Rubinius::CompiledCode
-        cc.iseq.opcodes[index] = i = value.code_id
+        cc.literals[index] = i = value.code_id
         code_db_code.unshift [i, value]
       end
     end
