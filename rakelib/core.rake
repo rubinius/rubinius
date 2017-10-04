@@ -71,6 +71,7 @@ code_db_files = FileList[
 code_db_scripts = []
 code_db_code = []
 code_db_data = []
+code_db_contents = []
 
 # All the core library files are listed in the `core_load_order`
 core_load_order = "core/load_order.txt"
@@ -79,6 +80,9 @@ core_files = FileList[]
 IO.foreach core_load_order do |name|
   core_files << "core/#{name.chomp}"
 end
+
+library_dir = "#{BUILD_CONFIG[:sourcedir]}/#{BUILD_CONFIG[:libdir]}"
+rubygems_files = FileList["#{library_dir}/rubygems.rb", "#{library_dir}/rubygems/**/*.rb"]
 
 # Generate file tasks for all core library and load_order files.
 def file_task(re, runtime_files, signature, rb, rbc)
@@ -234,6 +238,26 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
     code_db_scripts << [file, id]
   end
 
+  rubygems_files.each do |file|
+    code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
+    id = code.code_id
+
+    code_db_code << [id, code]
+
+    code_db_contents << [file[(library_dir.size+1)..-1], id]
+  end
+
+  runtime_gem_files.each do |file|
+    code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
+    id = code.code_id
+
+    code_db_code << [id, code]
+
+    m = /(#{runtime_gems_dir}\/[^\/]+\/lib\/)/.match file
+    prefix = m ? m[1].size : 0
+    code_db_contents << [file[prefix..-1], id]
+  end
+
   while x = code_db_code.shift
     id, cc = x
 
@@ -272,6 +296,7 @@ file "runtime/core/contents" => "runtime/core/data" do |t|
 
   File.open t.name, "wb" do |f|
     code_db_scripts.each { |file, id| f.puts "#{file} #{id}" }
+    code_db_contents.each { |file, id| f.puts "#{file} #{id}" }
   end
 end
 
