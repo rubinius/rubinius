@@ -129,85 +129,6 @@ class CPPPrimitive < BasicPrimitive
     return str
   end
 
-  def generate_jit_stub
-    return if @raw or @pass_message or @pass_arguments
-
-    # Default value, overriden below
-    @can_fail = true
-
-    str = ""
-    if arg_types.empty?
-      arg_list = ""
-    else
-      list = []
-      arg_types.size.times { |i| list << "Object* ra#{i}" }
-      arg_list = ", " + list.join(", ")
-    end
-
-    str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
-    str << "  Object* ret;\n"
-
-    emit_fail = false
-
-    i = 0
-    arg_types.each do |t|
-      str << "  #{t}* a#{i};\n"
-      i += 1
-    end
-
-    if @type == "Object"
-      str << "  Object* self = recv;\n"
-    else
-      emit_fail = true
-      str << "  #{@type}* self = try_as<#{@type}>(recv);\n"
-      str << "  if(unlikely(self == NULL)) goto fail;\n"
-    end
-
-    args = []
-    i = 0
-    arg_types.each do |t|
-      emit_fail = true
-      str << "  a#{i} = try_as<#{t}>(ra#{i});\n"
-      str << "  if(unlikely(a#{i} == NULL)) goto fail;\n"
-      args << "a#{i}"
-      i += 1
-    end
-
-    args.unshift "recv" if @pass_self
-    args.unshift "state" if @pass_state
-
-    if @safe
-      str << "  ret = self->#{@cpp_name}(#{args.join(', ')});\n"
-      str << "  return ret;\n"
-    else
-      str << "\n"
-      str << "  try {\n"
-      str << "    ret = self->#{@cpp_name}(#{args.join(', ')});\n"
-      str << "  } catch(const RubyException& exc) {\n"
-      str << "    if(exc.exception->locations()->nil_p()) {\n"
-      str << "      exc.exception->locations(state, Location::from_call_stack(state));\n"
-      str << "    }\n"
-      str << "    state->raise_exception(exc.exception);\n"
-      str << "    return NULL;\n"
-      str << "  }\n"
-      str << "\n"
-      str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
-      str << "    goto fail;\n\n"
-      str << "  return ret;\n"
-    end
-
-    if !@safe or emit_fail
-      str << "fail:\n"
-      str << "  return cUndef;\n"
-    end
-
-    if @safe and !emit_fail
-      @can_fail = false
-    end
-
-    str << "}\n\n"
-  end
-
   def generate_invoke_stub
     return if @raw or @pass_arguments
 
@@ -306,77 +227,6 @@ class CPPStaticPrimitive < CPPPrimitive
       output_call str, "#{@type}::#{@cpp_name}", args
     end
     return str
-  end
-
-  def generate_jit_stub
-    return if @raw or @pass_arguments
-
-    # Default value, overriden below
-    @can_fail = true
-
-    str = ""
-    if arg_types.empty?
-      arg_list = ""
-    else
-      list = []
-      arg_types.size.times { |i| list << "Object* ra#{i}" }
-      arg_list = ", " + list.join(", ")
-    end
-
-    str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
-    str << "  Object* ret;\n"
-
-    i = 0
-    arg_types.each do |t|
-      str << "  #{t}* a#{i};\n"
-      i += 1
-    end
-
-    emit_fail = false
-
-    args = []
-    i = 0
-    arg_types.each do |t|
-      emit_fail = true
-      str << "  a#{i} = try_as<#{t}>(ra#{i});\n"
-      str << "  if(unlikely(a#{i} == NULL)) goto fail;\n"
-      args << "a#{i}"
-      i += 1
-    end
-
-    args.unshift "recv" if @pass_self
-    args.unshift "state" if @pass_state
-
-    if @safe
-      str << "  ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
-      str << "  return ret;\n"
-    else
-      str << "\n"
-      str << "  try {\n"
-      str << "    ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
-      str << "  } catch(const RubyException& exc) {\n"
-      str << "    if(exc.exception->locations()->nil_p()) {\n"
-      str << "      exc.exception->locations(state, Location::from_call_stack(state));\n"
-      str << "    }\n"
-      str << "    state->raise_exception(exc.exception);\n"
-      str << "    return NULL;\n"
-      str << "  }\n"
-      str << "\n"
-      str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
-      str << "    goto fail;\n\n"
-      str << "  return ret;\n"
-    end
-
-    if !@safe or emit_fail
-      str << "fail:\n"
-      str << "  return cUndef;\n"
-    end
-
-    if @safe and !emit_fail
-      @can_fail = false
-    end
-
-    str << "}\n\n"
   end
 
   def generate_invoke_stub
@@ -1146,7 +996,6 @@ class PrimitiveCodeGenerator
     classes = parser.classes.sort_by { |n, | n }
 
     @indexes = {}
-    @jit_functions = []
     @invoke_functions = []
 
     @names = []
@@ -1168,31 +1017,15 @@ class PrimitiveCodeGenerator
 
   def generate
     method_primitives
-    jit_primitives
     invoke_primitives
     accessor_primitives
     method_resolver
-    jit_resolver
     invoke_resolver
   end
 
   def method_primitives
     write_if_new "machine/gen/method_primitives.cpp" do |f|
       @primitives.each { |_, p| f << p.generate_glue }
-    end
-  end
-
-  def jit_primitives
-    write_if_new "machine/gen/jit_primitives.cpp" do |f|
-      @primitives.each do |n, p|
-        if p.respond_to? :generate_jit_stub
-          code = p.generate_jit_stub
-          if code
-            f << code
-            @jit_functions << [n, p]
-          end
-        end
-      end
     end
   end
 
@@ -1238,26 +1071,6 @@ class PrimitiveCodeGenerator
   // throw std::runtime_error(msg.c_str());
 }
       EOC
-    end
-  end
-
-  def jit_resolver
-    write_if_new "machine/gen/jit_resolver.cpp" do |f|
-      f.puts "bool Primitives::get_jit_stub(int index, JITStubResults& res) {"
-      f.puts "  switch(index) {"
-
-      @jit_functions.each do |n, p|
-        f.puts "  case #{@indexes[n]}: // #{n}"
-        f.puts "    res.set_arg_count(#{p.arg_count});"
-        f.puts "    res.set_name(\"jit_stub_#{n}\");"
-        f.puts "    res.set_pass_callframe(false);" if p.safe && !p.pass_call_frame
-        f.puts "    res.set_can_fail(false);" unless p.can_fail
-        f.puts "    return true;"
-      end
-
-      f.puts "  }"
-      f.puts "  return false;"
-      f.puts "}"
     end
   end
 
