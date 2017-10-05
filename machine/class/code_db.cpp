@@ -37,13 +37,33 @@ namespace rubinius {
   bool CodeDB::valid_database_p(STATE, std::string path) {
     struct stat st;
 
+    if(stat(path.c_str(), &st) || !S_ISDIR(st.st_mode)) {
+      return false;
+    }
+
     std::string signature_path = path + "/signature";
     if(stat(signature_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
       return false;
     }
 
+    std::ifstream signature(signature_path.c_str());
+    if(signature) {
+      uint64_t sig;
+      signature >> sig;
+      signature.close();
+
+      if(sig != RBX_SIGNATURE) return false;
+    } else {
+      return false;
+    }
+
     std::string index_path = path + "/index";
     if(stat(index_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
+      return false;
+    }
+
+    std::string contents_path = path + "/contents";
+    if(stat(contents_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
       return false;
     }
 
@@ -55,34 +75,39 @@ namespace rubinius {
     return true;
   }
 
-  CodeDB* CodeDB::open(STATE, String* path) {
-    return open(state, path->c_str(state));
+  bool CodeDB::copy_database(STATE, std::string core_path, std::string cache_path) {
+    return false;
   }
 
-  CodeDB* CodeDB::open(STATE, const char* path) {
+  CodeDB* CodeDB::open(STATE, String* core_path, String* cache_path) {
+    return open(state, core_path->c_str(state), cache_path->c_str(state));
+  }
+
+  CodeDB* CodeDB::open(STATE, std::string core_path, std::string cache_path) {
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
     CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
-    codedb->path(state, String::create(state, path));
 
-    std::string base_path(path);
+    std::string base_path;
 
-    // Check the CodeDB signature matches the VM.
-    std::string signature_path = base_path + "/signature";
-    std::ifstream signature(signature_path.c_str());
-    if(signature) {
-      uint64_t sig;
-      signature >> sig;
-
-      if(sig != RBX_SIGNATURE) {
-        Exception::raise_runtime_error(state,
-            "the CodeDB signature is not valid for this version");
-      }
-
-      signature.close();
+    if(CodeDB::valid_database_p(state, cache_path)) {
+      base_path = cache_path;
     } else {
-      Exception::raise_runtime_error(state, "unable to open CodeDB signature");
+      if(CodeDB::valid_database_p(state, core_path)) {
+        if(CodeDB::copy_database(state, core_path, cache_path)) {
+          base_path = cache_path;
+        } else {
+          base_path = core_path;
+          codedb->writable(state, cFalse);
+        }
+      } else {
+        Exception::raise_runtime_error(state, "unable to find valid CodeDB");
+      }
     }
+
+    codedb->path(state, String::create(state, base_path.c_str()));
+
+    logger::write("codedb: loading: %s", base_path.c_str());
 
     // Map the CodeDB data to memory.
     std::string data_path = base_path + "/data";
@@ -182,6 +207,10 @@ namespace rubinius {
     }
 
     return as<CompiledCode>(id_or_code);
+  }
+
+  Object* CodeDB::load_path(STATE, String* path) {
+    return cNil;
   }
 
   Object* CodeDB::store(STATE, CompiledCode* code) {

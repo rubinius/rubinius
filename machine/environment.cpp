@@ -586,15 +586,9 @@ namespace rubinius {
    */
   void Environment::load_core(STATE, std::string root) {
     try {
-      if(CodeDB::valid_database_p(state, config.codedb_core_path.value)) {
-        logger::write("codedb: loading: %s", config.codedb_core_path.value.c_str());
-        CodeDB::open(state, config.codedb_core_path.value.c_str());
-      } else {
-        std::string core = root + "/core";
-
-        logger::write("codedb: loading: %s", core.c_str());
-        CodeDB::open(state, core.c_str());
-      }
+      CodeDB::open(state,
+          config.codedb_core_path.value,
+          config.codedb_cache_path.value);
     } catch(RubyException& exc) {
       exc.show(state);
       exit(1);
