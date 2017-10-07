@@ -403,6 +403,17 @@ module Rubinius
 
       return false if CodeLoader.feature_provided?(@path)
 
+      # TODO: WIP: Check CodeDB
+      if @type != :library
+        if code = Rubinius::CodeDB.current.load_path(@path, ".rb")
+          @type = :ruby
+          @load_path = @path
+          @compiled_code = code
+          @feature = code.file.to_s
+          return true
+        end
+      end
+
       verified = @type ? verify_load_path(@path) : verify_require_path(@path)
       if verified
         return false if CodeLoader.feature_provided?(@feature)
@@ -561,6 +572,18 @@ module Rubinius
         require "rubygems"
       end
 
+      # TODO: WIP: Use CodeDB
+      def run_script(path)
+        if code = Rubinius::CodeDB.current.load_path(path, ".rb")
+          script = code.create_script(false)
+          script.file_path = @file_path
+          script.data_path = @load_path
+
+          CodeLoader.compiled_hook.trigger! script
+          Rubinius.run_script code
+        end
+      end
+
       # Loads the pre-compiled bytecode compiler. Sets up paths needed by the
       # compiler to find dependencies like the parser.
       def load_compiler
@@ -569,13 +592,13 @@ module Rubinius
             $LOAD_PATH.unshift dir
           end
 
-          require_compiled "rubinius/code/toolset"
+          run_script "rubinius/code/toolset"
 
           Rubinius::ToolSets.create :runtime do
-            require_compiled "rubinius/code/melbourne"
-            require_compiled "rubinius/code/processor"
-            require_compiled "rubinius/code/compiler"
-            require_compiled "rubinius/code/ast"
+            run_script "rubinius/code/melbourne"
+            run_script "rubinius/code/processor"
+            run_script "rubinius/code/compiler"
+            run_script "rubinius/code/ast"
           end
         rescue Object => e
           raise LoadError, "Unable to load the bytecode compiler", e

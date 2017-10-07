@@ -238,6 +238,19 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
     code_db_scripts << [file, id]
   end
 
+  runtime_gem_files.each do |file|
+    m = %r[#{runtime_gems_dir}/[^/]+/lib/(.*\.rb)$].match file
+
+    if m
+      code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
+      id = code.code_id
+
+      code_db_code << [id, code]
+
+      code_db_contents << [m[1], id]
+    end
+  end
+
   rubygems_files.each do |file|
     code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
     id = code.code_id
@@ -245,17 +258,6 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
     code_db_code << [id, code]
 
     code_db_contents << [file[(library_dir.size+1)..-1], id]
-  end
-
-  runtime_gem_files.each do |file|
-    code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
-    id = code.code_id
-
-    code_db_code << [id, code]
-
-    m = /(#{runtime_gems_dir}\/[^\/]+\/lib\/)/.match file
-    prefix = m ? m[1].size : 0
-    code_db_contents << [file[prefix..-1], id]
   end
 
   while x = code_db_code.shift
