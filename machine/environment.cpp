@@ -586,9 +586,10 @@ namespace rubinius {
    */
   void Environment::load_core(STATE, std::string root) {
     try {
-      CodeDB::open(state,
+      CodeDB* codedb = CodeDB::open(state,
           config.codedb_core_path.value,
           config.codedb_cache_path.value);
+      G(codedb)->set_ivar(state, state->symbol("@current"), codedb);
     } catch(RubyException& exc) {
       exc.show(state);
       exit(1);

@@ -27,6 +27,7 @@
 
 namespace rubinius {
   static CodeDBMap codedb_index;
+  static CodeDBContents codedb_contents;
 
   void CodeDB::bootstrap(STATE) {
     GO(codedb).set(state->memory()->new_class<Class, CodeDB>(
@@ -147,6 +148,26 @@ namespace rubinius {
     }
     data_stream.close();
 
+    // Read the contents.
+    std::string contents_path = base_path + "/contents";
+    std::ifstream contents_stream(contents_path);
+    if(!contents_stream) {
+      Exception::raise_runtime_error(state, "unable to open CodeDB contents index");
+    }
+
+    while(true) {
+      std::string name, m_id;
+
+      contents_stream >> name;
+      contents_stream >> m_id;
+      contents_stream.get();
+
+      if(name.empty()) break;
+
+      codedb_contents[name] = m_id;
+    }
+    contents_stream.close();
+
     // Run all initial methods.
     std::string initialize_path = base_path + "/initialize";
     std::ifstream initialize_stream(initialize_path.c_str());
@@ -209,7 +230,22 @@ namespace rubinius {
     return as<CompiledCode>(id_or_code);
   }
 
-  Object* CodeDB::load_path(STATE, String* path) {
+  Object* CodeDB::load_path(STATE, String* path, String* ext) {
+    std::string search(path->c_str(state));
+    std::string extstr(ext->c_str(state));
+
+    if(search.rfind(extstr, search.size() - extstr.size()) == std::string::npos) {
+      search.append(extstr);
+    }
+
+    CodeDBContents::const_iterator index = codedb_contents.find(search);
+
+    if(index != codedb_contents.end()) {
+      if(CompiledCode* code = CodeDB::load(state, index->second.c_str())) {
+        return code;
+      }
+    }
+
     return cNil;
   }
 

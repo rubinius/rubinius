@@ -45,7 +45,7 @@ namespace rubinius {
     static CompiledCode* load(STATE, Object* id_or_code);
 
     // Rubinius.primitive :code_db_load_path
-    Object* load_path(STATE, String* path);
+    Object* load_path(STATE, String* path, String* ext);
 
     // Rubinius.primitive :code_db_store
     Object* store(STATE, CompiledCode* code);

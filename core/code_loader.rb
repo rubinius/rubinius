@@ -611,6 +611,8 @@ module Rubinius
 
       if CodeLoader.load_compiled
         code = load_compiled_file @load_path, signature, version
+      elsif code = Rubinius::CodeDB.current.load_path(@path, ".rb")
+        # Temporary until old compilation cache is removed
       else
         c = Rubinius::ToolSets::Runtime::Compiler
         compiled_name = c.compiled_name @load_path
