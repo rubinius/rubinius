@@ -100,15 +100,34 @@ module Rubinius
       reqs = CodeLoader.load_map
 
       Rubinius.synchronize(Lock) do
-        return unless resolve_require_path
+        # TODO: WIP: Check CodeDB
+        if not CodeLoader.feature_provided?(@path) and
+            code = Rubinius::CodeDB.current.load_path(@path, ".rb")
 
-        if req = reqs[@load_path]
-          return if req.current_thread?
-          wait = true
-        else
-          req = RequireRequest.new(@type, reqs, @load_path)
+          @type = :cached
+          @file_path = @path
+          @load_path = @path
+          @compiled_code = code
+          @feature = code.file.to_s
+
+          script = code.create_script(false)
+          script.file_path = @file_path
+          script.data_path = @load_path
+
+          req = RequireRequest.new(:ruby, reqs, @load_path)
           reqs[@load_path] = req
           req.take!
+        else
+          return unless resolve_require_path
+
+          if req = reqs[@load_path]
+            return if req.current_thread?
+            wait = true
+          else
+            req = RequireRequest.new(@type, reqs, @load_path)
+            reqs[@load_path] = req
+            req.take!
+          end
         end
       end
 
@@ -124,7 +143,10 @@ module Rubinius
         # through the require, so we try and load it again here.
       end
 
-      if @type == :ruby
+      case @type
+      when :cached
+        @type = :ruby
+      when :ruby
         load_file
       else
         load_library
@@ -403,17 +425,6 @@ module Rubinius
 
       return false if CodeLoader.feature_provided?(@path)
 
-      # TODO: WIP: Check CodeDB
-      if @type != :library
-        if code = Rubinius::CodeDB.current.load_path(@path, ".rb")
-          @type = :ruby
-          @load_path = @path
-          @compiled_code = code
-          @feature = code.file.to_s
-          return true
-        end
-      end
-
       verified = @type ? verify_load_path(@path) : verify_require_path(@path)
       if verified
         return false if CodeLoader.feature_provided?(@feature)
@@ -572,33 +583,21 @@ module Rubinius
         require "rubygems"
       end
 
-      # TODO: WIP: Use CodeDB
-      def run_script(path)
-        if code = Rubinius::CodeDB.current.load_path(path, ".rb")
-          script = code.create_script(false)
-          script.file_path = @file_path
-          script.data_path = @load_path
-
-          CodeLoader.compiled_hook.trigger! script
-          Rubinius.run_script code
-        end
-      end
-
       # Loads the pre-compiled bytecode compiler. Sets up paths needed by the
       # compiler to find dependencies like the parser.
       def load_compiler
         begin
-          Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"].each do |dir|
+          Dir["#{Rubinius::RUNTIME_PATH}/gems/rubinius-melbourne*/**/lib"].each do |dir|
             $LOAD_PATH.unshift dir
           end
 
-          run_script "rubinius/code/toolset"
+          require "rubinius/code/toolset"
 
           Rubinius::ToolSets.create :runtime do
-            run_script "rubinius/code/melbourne"
-            run_script "rubinius/code/processor"
-            run_script "rubinius/code/compiler"
-            run_script "rubinius/code/ast"
+            require "rubinius/code/melbourne"
+            require "rubinius/code/processor"
+            require "rubinius/code/compiler"
+            require "rubinius/code/ast"
           end
         rescue Object => e
           raise LoadError, "Unable to load the bytecode compiler", e
@@ -634,8 +633,6 @@ module Rubinius
 
       if CodeLoader.load_compiled
         code = load_compiled_file @load_path, signature, version
-      elsif code = Rubinius::CodeDB.current.load_path(@path, ".rb")
-        # Temporary until old compilation cache is removed
       else
         c = Rubinius::ToolSets::Runtime::Compiler
         compiled_name = c.compiled_name @load_path
