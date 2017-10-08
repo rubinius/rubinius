@@ -4,6 +4,7 @@
 #include "defines.hpp"
 #include "spinlock.hpp"
 
+#include <functional>
 #include <string>
 #include <semaphore.h>
 #include <stdarg.h>
@@ -46,6 +47,13 @@ namespace rubinius {
     void warn(const char* message, va_list args);
     void info(const char* message, va_list args);
     void debug(const char* message, va_list args);
+
+    void write(std::function<void (PrintFunction writer)> f);
+    void fatal(std::function<void (PrintFunction writer)> f);
+    void error(std::function<void (PrintFunction writer)> f);
+    void warn(std::function<void (PrintFunction writer)> f);
+    void info(std::function<void (PrintFunction writer)> f);
+    void debug(std::function<void (PrintFunction writer)> f);
 
     NORETURN(void abort(const char* message, ...));
     NORETURN(void abort(const char* message, va_list args));
