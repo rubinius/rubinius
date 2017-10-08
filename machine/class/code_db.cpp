@@ -215,7 +215,15 @@ namespace rubinius {
     std::istringstream stream(data);
     UnMarshaller um(state, stream);
 
-    return as<CompiledCode>(um.unmarshal());
+    CompiledCode* code = as<CompiledCode>(um.unmarshal());
+
+    logger::debug([&](logger::PrintFunction writer){
+        writer("codedb: load: %s, %s",
+            code->file()->cpp_str(state).c_str(),
+            code->name()->cpp_str(state).c_str());
+      });
+
+    return code;
   }
 
   CompiledCode* CodeDB::load(STATE, String* m_id) {
@@ -237,6 +245,10 @@ namespace rubinius {
     if(search.rfind(extstr, search.size() - extstr.size()) == std::string::npos) {
       search.append(extstr);
     }
+
+    logger::debug([&](logger::PrintFunction writer){
+        writer("codedb: load path: %s", search.c_str());
+      });
 
     CodeDBContents::const_iterator index = codedb_contents.find(search);
 
