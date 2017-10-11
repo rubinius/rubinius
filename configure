@@ -89,6 +89,7 @@ class Configure
     @libdir       = nil
     @encdir       = nil
     @runtimedir   = nil
+    @codedbdir    = nil
     @coredir      = nil
     @sitedir      = nil
     @vendordir    = nil
@@ -228,6 +229,7 @@ class Configure
 
       @libdir     = dir + "/library"
       @runtimedir = dir + "/runtime"
+      @codedbdir  = dir + "/codedb"
       @coredir    = dir + "/core"
       @sitedir    = dir + "/site"
       @vendordir  = dir + "/vendor"
@@ -236,6 +238,7 @@ class Configure
     @bindir       = @prefixdir + "/bin" unless @bindir
     @libdir       = @prefixdir + "/library" unless @libdir
     @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
+    @codedbdir    = @prefixdir + "/codedb" unless @codedbdir
     @coredir      = @prefixdir + "/core" unless @coredir
     @sitedir      = @prefixdir + "/site" unless @sitedir
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
@@ -245,8 +248,8 @@ class Configure
 
     @encdir = @libdir + "/encoding/converter"
 
-    dirs = [@bindir, @libdir, @runtimedir, @coredir, @sitedir, @vendordir,
-            @mandir, @gemsdir, @includedir, @encdir]
+    dirs = [@bindir, @libdir, @runtimedir, @codedbdir, @coredir, @sitedir,
+            @vendordir, @mandir, @gemsdir, @includedir, @encdir]
 
     parts = dirs.map { |d| d.split "/" }
 
@@ -1628,6 +1631,7 @@ int main(int argc, char* argv[]) {
       :libdir             => @libdir,
       :encdir             => @encdir,
       :runtimedir         => @runtimedir,
+      :codedbdir          => @codedbdir,
       :coredir            => @coredir,
       :sitedir            => @sitedir,
       :vendordir          => @vendordir,
@@ -1668,6 +1672,7 @@ int main(int argc, char* argv[]) {
 #define RBX_BIN_PATH         "#{@bindir}"
 #define RBX_GEMS_PATH        "#{@gemsdir}"
 #define RBX_RUNTIME_PATH     "#{@runtimedir}"
+#define RBX_CODEDB_PATH      "#{@codedbdir}"
 #define RBX_KERNEL_PATH      "#{@coredir}"
 #define RBX_CORE_PATH        "#{@coredir}"
 #define RBX_LIB_PATH         "#{@libdir}"
@@ -1957,6 +1962,7 @@ bin:        #{@prefixdir}#{@bindir}
 lib:        #{@prefixdir}#{@libdir}
 include:    #{@prefixdir}#{@includedir}
 runtime:    #{@prefixdir}#{@runtimedir}
+codedb:     #{@prefixdir}#{@codedbdir}
 core:       #{@prefixdir}#{@coredir}
 site:       #{@prefixdir}#{@sitedir}
 vendor:     #{@prefixdir}#{@vendordir}

@@ -105,6 +105,7 @@ int main(int argc, char** argv) {
       std::cerr << std::endl;
       std::cerr << "      BIN_PATH: " << RBX_BIN_PATH << std::endl;
       std::cerr << "  RUNTIME_PATH: " << RBX_RUNTIME_PATH << std::endl;
+      std::cerr << "   CODEDB_PATH: " << RBX_CODEDB_PATH << std::endl;
       std::cerr << "     CORE_PATH: " << RBX_CORE_PATH << std::endl;
       std::cerr << "      LIB_PATH: " << RBX_LIB_PATH << std::endl;
       std::cerr << "     SITE_PATH: " << RBX_SITE_PATH << std::endl;

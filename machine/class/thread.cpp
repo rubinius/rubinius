@@ -303,17 +303,12 @@ namespace rubinius {
   Object* Thread::main_thread(STATE) {
     state->vm()->managed_phase(state);
 
-    std::string& runtime = state->shared().env()->runtime_path();
-
     G(rubinius)->set_const(state, "Signature",
         Integer::from(state, state->shared().env()->signature()));
 
-    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
-                           runtime.c_str(), runtime.size()));
-
     state->vm()->thread()->pid(state, Fixnum::from(gettid()));
 
-    state->shared().env()->load_core(state, runtime);
+    state->shared().env()->load_core(state);
 
     state->vm()->thread_state()->clear();
 

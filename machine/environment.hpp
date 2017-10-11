@@ -68,7 +68,6 @@ namespace rubinius {
     memory::FinalizerThread* finalizer_thread_;
 
     std::string system_prefix_;
-    std::string runtime_path_;
 
     memory::TypedRoot<Object*>* loader_;
 
@@ -100,10 +99,6 @@ namespace rubinius {
       return fork_exec_lock_;
     }
 
-    std::string& runtime_path() {
-      return runtime_path_;
-    }
-
     void set_loader(Object* loader) {
       loader_->set(loader);
     }
@@ -128,7 +123,7 @@ namespace rubinius {
     void log_argv();
     void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
-    void load_core(STATE, std::string root);
+    void load_core(STATE);
     void load_platform_conf(std::string dir);
     void load_conf(std::string path);
     void load_string(std::string str);

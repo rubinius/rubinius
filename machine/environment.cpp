@@ -386,9 +386,9 @@ namespace rubinius {
 
   void Environment::set_codedb_paths() {
     std::string core_path(config.codedb_core_path.value);
-    std::string runtime_path(system_prefix() + RBX_RUNTIME_PATH);
+    std::string codedb_path(system_prefix() + RBX_CODEDB_PATH);
 
-    expand_config_value(core_path, "$RUNTIME", runtime_path.c_str());
+    expand_config_value(core_path, "$CODEDB", codedb_path.c_str());
 
     config.codedb_core_path.value.assign(core_path);
 
@@ -459,7 +459,7 @@ namespace rubinius {
   }
 
   void Environment::load_platform_conf(std::string dir) {
-    std::string path = dir + "/platform.conf";
+    std::string path = dir + "/cache/platform.conf";
     std::ifstream stream(path.c_str());
     if(!stream) {
       std::string error = "Unable to load " + path + ", it is missing";
@@ -580,11 +580,8 @@ namespace rubinius {
    * Loads the runtime core library files stored in runtime/core. This method
    * is called after the VM has completed bootstrapping, and is ready to load
    * Ruby code.
-   *
-   * @param root The path to the /runtime directory. All core library loading
-   *             is relative to this path.
    */
-  void Environment::load_core(STATE, std::string root) {
+  void Environment::load_core(STATE) {
     try {
       CodeDB* codedb = CodeDB::open(state,
           config.codedb_core_path.value,
@@ -638,8 +635,8 @@ namespace rubinius {
     return argv_[0];
   }
 
-  bool Environment::load_signature(std::string runtime) {
-    std::string path = runtime;
+  bool Environment::load_signature(std::string codedb_path) {
+    std::string path = codedb_path;
 
     path += "/signature";
 
@@ -660,15 +657,15 @@ namespace rubinius {
   bool Environment::verify_paths(std::string prefix) {
     struct stat st;
 
-    std::string dir = prefix + RBX_RUNTIME_PATH;
+    std::string dir = prefix + RBX_CODEDB_PATH;
+    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+
+    dir = dir + "/cache";
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
     if(!load_signature(dir)) return false;
 
     dir = prefix + RBX_BIN_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
-
-    dir = prefix + RBX_CORE_PATH;
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
     dir = prefix + RBX_LIB_PATH;
@@ -711,13 +708,13 @@ namespace rubinius {
   }
 
   void Environment::boot() {
-    runtime_path_ = system_prefix() + RBX_RUNTIME_PATH;
+    std::string codedb_path = system_prefix() + RBX_CODEDB_PATH;
 
     {
       timer::StopWatch<timer::microseconds> timer(
           state->shared().boot_metrics().platform_us);
 
-      load_platform_conf(runtime_path_);
+      load_platform_conf(codedb_path);
     }
 
     {

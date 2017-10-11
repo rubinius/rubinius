@@ -363,6 +363,8 @@ namespace rubinius {
       G(rubinius)->set_const(state, "PREFIX_PATH", String::create(state, prefix.c_str()));
       std::string path = prefix + RBX_RUNTIME_PATH;
       G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_CODEDB_PATH;
+      G(rubinius)->set_const(state, "CODEDB_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_BIN_PATH;
       G(rubinius)->set_const(state, "BIN_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_CORE_PATH;

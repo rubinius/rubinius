@@ -18,6 +18,7 @@ require "rakelib/digest_files"
 def core_clean
   rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
+           "codedb",
            "core/signature.rb",
            "runtime/core",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
@@ -60,20 +61,25 @@ end
 
 # Collection of all files in the runtime core library. Modified by
 # various tasks below.
-runtime_files = FileList["runtime/platform.conf"]
-code_db_files = FileList[
-  "runtime/core/contents",
-  "runtime/core/data",
-  "runtime/core/index",
-  "runtime/core/initialize",
-  "runtime/core/signature"
+runtime_files = FileList["codedb/cache/platform.conf"]
+codedb_files = FileList[
+  "codedb/cache/contents",
+  "codedb/cache/data",
+  "codedb/cache/index",
+  "codedb/cache/initialize",
+  "codedb/cache/signature",
+  "codedb/source/core",
+  "codedb/source/library",
 ]
-code_db_scripts = []
-code_db_code = []
-code_db_data = []
-code_db_contents = []
+codedb_scripts = []
+codedb_code = []
+codedb_data = []
+codedb_contents = []
 
 # All the core library files are listed in the `core_load_order`
+library_dir = "#{BUILD_CONFIG[:sourcedir]}/library"
+gem_files = FileList["#{BUILD_CONFIG[:sourcedir]}/**/*.rb"]
+library_files = FileList["#{library_dir}/**/*.rb"]
 core_load_order = "core/load_order.txt"
 core_files = FileList[]
 
@@ -81,7 +87,6 @@ IO.foreach core_load_order do |name|
   core_files << "core/#{name.chomp}"
 end
 
-library_dir = "#{BUILD_CONFIG[:sourcedir]}/#{BUILD_CONFIG[:libdir]}"
 rubygems_files = FileList["#{library_dir}/rubygems.rb", "#{library_dir}/rubygems/**/*.rb"]
 
 # Generate file tasks for all core library and load_order files.
@@ -160,8 +165,8 @@ end
 directory(runtime_base_dir = "runtime")
 runtime_files << runtime_base_dir
 
-signature = "runtime/signature"
-file signature => signature_file do |t|
+signature = "codedb/cache/signature"
+file signature => [signature_file, "codedb/cache"] do |t|
   File.open t.name, "wb" do |file|
     puts "GEN #{t.name}"
     file.puts Rubinius::Signature
@@ -197,8 +202,6 @@ namespace :compiler do
   task :generate => [signature_file]
 end
 
-directory "runtime/core"
-
 class CodeDBCompiler
   def self.compile(file, line, transforms)
     compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_code
@@ -226,16 +229,42 @@ class CodeDBCompiler
   end
 end
 
-file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do |t|
+directory "codedb/cache"
+directory "codedb/source/core"
+
+core_files.each do |name|
+  file "codedb/source/#{name}" => name do |t|
+    cp t.prerequisites.first t.name
+  end
+end
+
+directory "codedb/source/library"
+
+library_files.each do |name|
+  file "codedb/source/#{name}" => name do |t|
+    cp t.prerequisites.first t.name
+  end
+end
+
+file "codedb/cache/data" => [core_load_order] + core_files + library_files + gem_files do |t|
   puts "CodeDB: writing data..."
 
   core_files.each do |file|
     code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
     id = code.code_id
 
-    code_db_code << [id, code]
+    codedb_code << [id, code]
 
-    code_db_scripts << [file, id]
+    codedb_scripts << [file, id]
+  end
+
+  library_files.each do |file|
+    code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
+    id = code.code_id
+
+    codedb_code << [id, code]
+
+    codedb_contents << [file[(library_dir.size+1)..-1], id]
   end
 
   runtime_gem_files.each do |file|
@@ -245,9 +274,88 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
       code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
       id = code.code_id
 
-      code_db_code << [id, code]
+      codedb_code << [id, code]
 
-      code_db_contents << [m[1], id]
+      codedb_contents << [m[1], id]
+    end
+  end
+
+  while x = codedb_code.shift
+    id, cc = x
+
+    cc.literals.each_with_index do |value, index|
+      if value.kind_of? Rubinius::CompiledCode
+        cc.literals[index] = i = value.code_id
+        codedb_code.unshift [i, value]
+      end
+    end
+
+    marshaled = CodeDBCompiler.marshal cc
+
+    codedb_data << [id, marshaled]
+  end
+
+  File.open t.name, "wb" do |f|
+    codedb_data.map! do |m_id, data|
+      offset = f.pos
+      f.write data
+
+      [m_id, offset, f.pos - offset]
+    end
+  end
+end
+
+file "codedb/cache/index" => "codedb/cache/data" do |t|
+  puts "CodeDB: writing index..."
+
+  File.open t.name, "wb" do |f|
+    codedb_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
+  end
+end
+
+file "codedb/cache/contents" => "codedb/cache/data" do |t|
+  puts "CodeDB: writing contents..."
+
+  File.open t.name, "wb" do |f|
+    codedb_scripts.each { |file, id| f.puts "#{file} #{id}" }
+    codedb_contents.each { |file, id| f.puts "#{file} #{id}" }
+  end
+end
+
+file "codedb/cache/initialize" => "codedb/cache/data" do |t|
+  puts "CodeDB: writing initialize..."
+
+  File.open t.name, "wb" do |f|
+    codedb_scripts.each { |_, id| f.puts id }
+  end
+end
+
+#--- Legacy CodeDB
+
+directory "runtime/core"
+
+file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do |t|
+  puts "CodeDB: writing data..."
+
+  core_files.each do |file|
+    code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
+    id = code.code_id
+
+    codedb_code << [id, code]
+
+    codedb_scripts << [file, id]
+  end
+
+  runtime_gem_files.each do |file|
+    m = %r[#{runtime_gems_dir}/[^/]+/lib/(.*\.rb)$].match file
+
+    if m
+      code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
+      id = code.code_id
+
+      codedb_code << [id, code]
+
+      codedb_contents << [m[1], id]
     end
   end
 
@@ -255,28 +363,28 @@ file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do
     code = CodeDBCompiler.compile(file, 1, [:default, :kernel])
     id = code.code_id
 
-    code_db_code << [id, code]
+    codedb_code << [id, code]
 
-    code_db_contents << [file[(library_dir.size+1)..-1], id]
+    codedb_contents << [file[(library_dir.size+1)..-1], id]
   end
 
-  while x = code_db_code.shift
+  while x = codedb_code.shift
     id, cc = x
 
     cc.literals.each_with_index do |value, index|
       if value.kind_of? Rubinius::CompiledCode
         cc.literals[index] = i = value.code_id
-        code_db_code.unshift [i, value]
+        codedb_code.unshift [i, value]
       end
     end
 
     marshaled = CodeDBCompiler.marshal cc
 
-    code_db_data << [id, marshaled]
+    codedb_data << [id, marshaled]
   end
 
   File.open t.name, "wb" do |f|
-    code_db_data.map! do |m_id, data|
+    codedb_data.map! do |m_id, data|
       offset = f.pos
       f.write data
 
@@ -289,7 +397,7 @@ file "runtime/core/index" => "runtime/core/data" do |t|
   puts "CodeDB: writing index..."
 
   File.open t.name, "wb" do |f|
-    code_db_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
+    codedb_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
   end
 end
 
@@ -297,8 +405,8 @@ file "runtime/core/contents" => "runtime/core/data" do |t|
   puts "CodeDB: writing contents..."
 
   File.open t.name, "wb" do |f|
-    code_db_scripts.each { |file, id| f.puts "#{file} #{id}" }
-    code_db_contents.each { |file, id| f.puts "#{file} #{id}" }
+    codedb_scripts.each { |file, id| f.puts "#{file} #{id}" }
+    codedb_contents.each { |file, id| f.puts "#{file} #{id}" }
   end
 end
 
@@ -306,7 +414,7 @@ file "runtime/core/initialize" => "runtime/core/data" do |t|
   puts "CodeDB: writing initialize..."
 
   File.open t.name, "wb" do |f|
-    code_db_scripts.each { |_, id| f.puts id }
+    codedb_scripts.each { |_, id| f.puts id }
   end
 end
 
@@ -323,7 +431,7 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core library files"
-  task :build => ['compiler:load'] + runtime_files + code_db_files
+  task :build => ['compiler:load'] + runtime_files + codedb_files
 
   desc "Delete all .rbc files"
   task :clean do

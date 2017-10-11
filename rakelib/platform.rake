@@ -1,11 +1,11 @@
 require File.expand_path('../../library/ffi/generators', __FILE__)
 
-directory "runtime"
+directory "codedb/cache"
 
-deps = %w[Rakefile rakelib/platform.rake runtime] + Dir['lib/ffi/*rb']
+deps = %w[Rakefile rakelib/platform.rake codedb/cache] + Dir['lib/ffi/*rb']
 
-file 'runtime/platform.conf' => deps do |task|
-  puts "GEN runtime/platform.conf"
+file 'codedb/cache/platform.conf' => deps do |task|
+  puts "GEN codedb/cache/platform.conf"
 
   File.open task.name, "wb" do |f|
     Rubinius::FFI::Generators::Structures.new 'addrinfo' do |s|
