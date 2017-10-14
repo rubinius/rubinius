@@ -164,6 +164,7 @@ namespace rubinius {
     inline bool yield_splat(STATE, CallFrame* call_frame, intptr_t count);
     inline bool yield_stack(STATE, CallFrame* call_frame, intptr_t count);
     inline bool zsuper(STATE, CallFrame* call_frame, intptr_t literal);
+    inline void push_file(STATE, CallFrame* call_frame);
   }
 }
 

@@ -430,6 +430,10 @@ namespace rubinius {
       "zsuper", 97, 2, 1, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::zsuper
     };
+    const InstructionData constexpr data_push_file = {
+      "push_file", 98, 1, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::push_file
+    };
   }
 
   struct Instructions {

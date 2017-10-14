@@ -385,12 +385,9 @@ namespace rubinius {
   }
 
   void Environment::set_codedb_paths() {
-    std::string core_path(config.codedb_core_path.value);
-    std::string codedb_path(system_prefix() + RBX_CODEDB_PATH);
-
-    expand_config_value(core_path, "$CODEDB", codedb_path.c_str());
-
-    config.codedb_core_path.value.assign(core_path);
+    if(config.codedb_core_path.value.size() == 0) {
+      config.codedb_core_path.value.assign(system_prefix() + RBX_CODEDB_PATH);
+    }
 
     std::string cache_path(config.codedb_cache_path.value);
 

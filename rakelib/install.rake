@@ -6,7 +6,7 @@
 #
 
 desc "Install Rubinius"
-task :install => %w[build:build gems:install install:files install:done]
+task :install => %w[build:build install:files install:done]
 
 # Determine if all the targets for the install directories are writable
 # decomposing each candidate directory from the right side and checking if

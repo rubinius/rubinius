@@ -27,7 +27,7 @@
 
 namespace rubinius {
   static CodeDBMap codedb_index;
-  static CodeDBContents codedb_contents;
+  static CodeDBContentMap codedb_contents;
 
   void CodeDB::bootstrap(STATE) {
     GO(codedb).set(state->memory()->new_class<Class, CodeDB>(
@@ -36,13 +36,14 @@ namespace rubinius {
   }
 
   bool CodeDB::valid_database_p(STATE, std::string path) {
+    std::string cache_path(path + "/cache");
     struct stat st;
 
-    if(stat(path.c_str(), &st) || !S_ISDIR(st.st_mode)) {
+    if(stat(cache_path.c_str(), &st) || !S_ISDIR(st.st_mode)) {
       return false;
     }
 
-    std::string signature_path = path + "/signature";
+    std::string signature_path = cache_path + "/signature";
     if(stat(signature_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
       return false;
     }
@@ -58,17 +59,17 @@ namespace rubinius {
       return false;
     }
 
-    std::string index_path = path + "/index";
+    std::string index_path = cache_path + "/index";
     if(stat(index_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
       return false;
     }
 
-    std::string contents_path = path + "/contents";
+    std::string contents_path = cache_path + "/contents";
     if(stat(contents_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
       return false;
     }
 
-    std::string data_path = path + "/data";
+    std::string data_path = cache_path + "/data";
     if(stat(data_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
       return false;
     }
@@ -96,9 +97,9 @@ namespace rubinius {
     } else {
       if(CodeDB::valid_database_p(state, core_path)) {
         if(CodeDB::copy_database(state, core_path, cache_path)) {
-          base_path = cache_path;
+          base_path = cache_path + "/cache";
         } else {
-          base_path = core_path;
+          base_path = core_path + "/cache";
           codedb->writable(state, cFalse);
         }
       } else {
@@ -156,15 +157,18 @@ namespace rubinius {
     }
 
     while(true) {
-      std::string name, m_id;
+      std::string name, path, m_id;
+      uint64_t mtime;
 
       contents_stream >> name;
+      contents_stream >> path;
       contents_stream >> m_id;
+      contents_stream >> mtime;
       contents_stream.get();
 
       if(name.empty()) break;
 
-      codedb_contents[name] = m_id;
+      codedb_contents[name] = CodeDBContent(path, m_id, mtime, false);
     }
     contents_stream.close();
 
@@ -239,6 +243,8 @@ namespace rubinius {
   }
 
   Object* CodeDB::load_path(STATE, String* path, String* ext) {
+    MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
+
     std::string search(path->c_str(state));
     std::string extstr(ext->c_str(state));
 
@@ -246,14 +252,32 @@ namespace rubinius {
       search.append(extstr);
     }
 
-    logger::debug([&](logger::PrintFunction writer){
-        writer("codedb: load path: %s", search.c_str());
-      });
-
-    CodeDBContents::const_iterator index = codedb_contents.find(search);
+    CodeDBContentMap::iterator index = codedb_contents.find(search);
 
     if(index != codedb_contents.end()) {
-      if(CompiledCode* code = CodeDB::load(state, index->second.c_str())) {
+      CodeDBContent& content = index->second;
+
+      if(std::get<3>(content)) return cFalse;
+
+      if(CompiledCode* code = CodeDB::load(state, std::get<1>(content).c_str())) {
+        std::string& path = std::get<0>(content);
+
+        if(path.size() == 1 && path[0] == '.') {
+          std::ostringstream path;
+
+          path << state->shared().config.codedb_core_path.value
+               << "/source/"
+               << code->file()->cpp_str(state);
+
+          code->file(state, state->symbol(path.str().c_str()));
+        }
+
+        std::get<3>(content) = true;
+
+        logger::debug([&](logger::PrintFunction writer){
+            writer("codedb: load path: %s", search.c_str());
+          });
+
         return code;
       }
     }

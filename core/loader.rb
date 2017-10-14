@@ -58,6 +58,7 @@ module Rubinius
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = [
+        "#{Rubinius::CODEDB_PATH}/extensions",
         Rubinius::SITE_PATH,
         "#{Rubinius::SITE_PATH}/#{RUBY_VERSION}",
         "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
@@ -68,9 +69,10 @@ module Rubinius
 
       $LOAD_PATH.unshift(*additions)
 
-      if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
-        rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
-        $LOAD_PATH.unshift(*rubylib_paths)
+      if libs = ENV['RUBYLIB']
+        Rubinius::Logger.system.write "RUBYLIB: #{libs}"
+
+        $LOAD_PATH.unshift(*libs.split(File::PATH_SEPARATOR).compact)
       end
     end
 
@@ -312,6 +314,18 @@ module Rubinius
         set_default_internal_encoding(int) if int and !int.empty?
       end
 
+      options.on "--main", "PATH", "Load PATH directly from CodeDB" do |path|
+        code = Rubinius::CodeDB.current.load_path(path, "")
+        if code
+          code.create_script false
+          Rubinius.run_script code
+          exit 0
+        else
+          puts "file not found: #{path}"
+          exit 1
+        end
+      end
+
       options.on "-n", "Wrap running code in 'while(gets()) ...'" do
         @input_loop = true
         define_global_methods
@@ -494,12 +508,12 @@ VM Options
     end
     private :set_default_internal_encoding
 
-    RUBYOPT_VALID_OPTIONS = "IdvwWrKT"
-
     def handle_rubyopt(options)
-      if ENV['RUBYOPT']
+      if env_opts = ENV['RUBYOPT']
+        Rubinius::Logger.system.write "RUBYOPT: #{env_opts}"
+
         options.start_parsing
-        env_opts = ENV['RUBYOPT'].strip.split(/\s+/)
+        env_opts = env_opts.strip.split(/\s+/)
 
         until env_opts.empty?
           entry = env_opts.shift
@@ -509,10 +523,6 @@ VM Options
           end
 
           opt, arg, rest = options.split entry, 2
-
-          unless RUBYOPT_VALID_OPTIONS.index opt[1, 1]
-            raise RuntimeError, "invalid option in RUBYOPT: #{opt}"
-          end
 
           options.process env_opts, entry, opt, arg
         end
@@ -552,21 +562,6 @@ Alternative: #{alt}
         STDERR.puts "Rubinius #{Rubinius::VERSION} has no deprecation notices"
         exit 0
       end
-    end
-
-    def run_compiled
-      return unless ENV["RBX_RUN_COMPILED"]
-
-      begin
-        ARGV.each do |script|
-          CodeLoader.require_compiled script
-        end
-      rescue Object => e
-        Rubinius::Logger.log_exception "Unable to run compiled file: #{script}", e
-        exit 1
-      end
-
-      exit 0
     end
 
     def load_compiler
@@ -845,7 +840,6 @@ Alternative: #{alt}
       preamble
       system_load_path
       signals
-      run_compiled
       load_compiler
       preload
       detect_alias

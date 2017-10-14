@@ -100,5 +100,6 @@ namespace rubinius {
     instructions::data_yield_splat,
     instructions::data_yield_stack,
     instructions::data_zsuper,
+    instructions::data_push_file,
   };
 }

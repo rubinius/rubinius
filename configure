@@ -101,7 +101,6 @@ class Configure
     @build_prefix     = nil
     @capi_includedir  = "#{@sourcedir}/machine/include/capi"
 
-    @runtime_gems_dir   = nil
     @bootstrap_gems_dir = nil
 
     @vm_release_h = File.join(root, "/machine/gen/release.h")
@@ -112,48 +111,10 @@ class Configure
     @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri", "erb"]
     @use_bin_links = true
 
-    # Gems
-    #
-    # Rubinius build tools installed in the runtime dir
-    @runtime_gems = [
-      "rubinius-ast",
-      "rubinius-compiler",
-      "rubinius-melbourne",
-      "rubinius-processor",
-      "rubinius-toolset",
-    ]
-
-    # Standard library gems to bootstrap rubygems and Bundler
-    @bootstrap_gems = [
-      "ffi2-generators",
-      "rubysl-etc",
-      "rubysl-fileutils",
-      "rubysl-mkmf",
-      "rubysl-shellwords",
-      "rubysl-date",
-      "rubysl-delegate",
-      "rubysl-digest",
-      "rubysl-etc",
-      "rubysl-fcntl",
-      "rubysl-fileutils",
-      "rubysl-io-nonblock",
-      "rubysl-monitor",
-      "rubysl-openssl",
-      "rubysl-optparse",
-      "rubysl-stringio",
-      "rubysl-strscan",
-      "rubysl-tempfile",
-      "rubysl-thread",
-      "rubysl-tmpdir",
-      "rubysl-uri",
-      "rubysl-yaml",
-      "rubysl-zlib",
-      "psych",
-    ]
-
     # List of all gems to pre-install.
     @gems_list = File.join(root, "gems_list.txt")
     @gem_files = File.readlines(@gems_list).map { |x| x.chomp }
+    @gem_names = @gem_files.map { |x| /(.*)-\d+\.\d+(\.\d+)?\.gem$/.match(x)[1] }
 
     # Default cache directory, can be overwritten by the user.
     @gems_cache = File.expand_path "../vendor/cache", __FILE__
@@ -246,7 +207,7 @@ class Configure
     @gemsdir      = @prefixdir + "/gems" unless @gemsdir
     @includedir   = @prefixdir + "/machine/include/capi" unless @includedir
 
-    @encdir = @libdir + "/encoding/converter"
+    @encdir = @codedbdir + "/extensions/encoding/converter"
 
     dirs = [@bindir, @libdir, @runtimedir, @codedbdir, @coredir, @sitedir,
             @vendordir, @mandir, @gemsdir, @includedir, @encdir]
@@ -278,7 +239,6 @@ class Configure
 
     @build_prefix = @stagingdir || @sourcedir
     @bootstrap_gems_dir ||= "#{@sourcedir}/bootstrap/gems"
-    @runtime_gems_dir ||= "#{@build_prefix}#{@runtimedir}/gems"
   end
 
   def add_opt_dir(dir)
@@ -1621,7 +1581,6 @@ int main(int argc, char* argv[]) {
       :sourcedir          => @sourcedir,
       :stagingdir         => @stagingdir,
       :build_prefix       => @build_prefix,
-      :runtime_gems_dir   => @runtime_gems_dir,
       :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
       :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
@@ -1652,8 +1611,6 @@ int main(int argc, char* argv[]) {
       :vendor_zlib        => @features["vendor-zlib"].value,
       :vendor_libsodium   => @features["vendor-libsodium"].value,
       :vm_release_h       => @vm_release_h,
-      :bootstrap_gems     => @bootstrap_gems,
-      :runtime_gems       => @runtime_gems,
       :ruby_version       => @ruby_version,
       :ruby_libversion    => @ruby_libversion,
     }
@@ -1876,12 +1833,10 @@ int main(int argc, char* argv[]) {
     @log.write "\nSetting up gems..."
 
     # Remove unpacked gems not specified by these configure settings
-    clean_gems @runtime_gems_dir, @runtime_gems
-    clean_gems @bootstrap_gems_dir, @bootstrap_gems
+    clean_gems @bootstrap_gems_dir, @gem_names
 
     # Unpack gems not found for these configure settings
-    unpack_gems @gems_cache, @runtime_gems_dir, @runtime_gems
-    unpack_gems @gems_cache, @bootstrap_gems_dir, @bootstrap_gems
+    unpack_gems @gems_cache, @bootstrap_gems_dir, @gem_files
   end
 
   # Create directories that don't have to be created by the end user

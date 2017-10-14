@@ -133,7 +133,8 @@ def check_status
 end
 
 def clean_environment
-  ENV['GEM_PATH'] = ENV['GEM_HOME'] = ENV['RUBYOPT'] = nil
+  ENV['GEM_PATH'] = ENV['GEM_HOME'] = nil
+  ENV['RUBYOPT'] = "--disable-gems"
 end
 
 task :check_status do
@@ -153,7 +154,7 @@ end
 
 # See vm.rake for more information
 desc "Build Rubinius"
-task :build => %w[build:build gems:install]
+task :build => %w[build:build]
 
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]

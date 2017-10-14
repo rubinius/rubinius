@@ -42,7 +42,7 @@ cscope.files
 cscope.out
 configure.log
 rakelib/ryan.rake
-runtime
+codedb
 scratch
 stamp-h1
 stats

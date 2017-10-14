@@ -140,7 +140,6 @@ namespace :build do
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => %W[
     #{VM_EXE}
-    compiler:generate
     stage:bin
     stage:extra_bins
     stage:capi_include
@@ -148,8 +147,6 @@ namespace :build do
     stage:core
     stage:runtime
     stage:lib
-    gems:melbourne
-    gems:extensions
     stage:documentation
     stage:manpages
   ] + TRANSCODING_LIBS

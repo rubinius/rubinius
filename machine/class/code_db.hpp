@@ -10,8 +10,9 @@ namespace rubinius {
   class CompiledCode;
 
   typedef std::tuple<void*, size_t, size_t> CodeDBIndex;
+  typedef std::tuple<std::string, std::string, uint64_t, bool> CodeDBContent;
   typedef std::unordered_map<std::string, CodeDBIndex> CodeDBMap;
-  typedef std::unordered_map<std::string, std::string> CodeDBContents;
+  typedef std::unordered_map<std::string, CodeDBContent> CodeDBContentMap;
 
   class CodeDB : public Object {
   public:

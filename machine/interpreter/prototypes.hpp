@@ -103,6 +103,7 @@ namespace rubinius {
     intptr_t yield_splat(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t yield_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t zsuper(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t push_file(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
   }
 }
 
