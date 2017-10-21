@@ -52,8 +52,7 @@ module Rubinius
     def system_load_path
       @stage = "setting up system load path"
 
-      @main_lib = Rubinius::LIB_PATH
-      @main_lib_bin = File.join @main_lib, "bin"
+      @lib_bin = "#{Rubinius::CODEDB_PATH}/source/bin"
 
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
@@ -63,7 +62,6 @@ module Rubinius
         "#{Rubinius::SITE_PATH}/#{RUBY_VERSION}",
         "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
         Rubinius::VENDOR_PATH,
-        @main_lib,
       ]
       additions.uniq!
 
@@ -126,7 +124,7 @@ module Rubinius
     # Checks if a subcommand with basename +base+ exists. Returns the full
     # path to the subcommand if it does; otherwise, returns nil.
     def find_subcommand(base)
-      command = File.join @main_lib_bin, "#{base}.rb"
+      command = File.join @lib_bin, "#{base}.rb"
       return command if File.exist? command
       return nil
     end
@@ -661,7 +659,7 @@ Alternative: #{alt}
         if @script.suffix?(".rb")
           raise LoadError, "unable to find '#{@script}'"
         else
-          command = File.join @main_lib_bin, "#{@script}.rb"
+          command = File.join @lib_bin, "#{@script}.rb"
           unless File.exist? command
             raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
