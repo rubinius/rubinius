@@ -38,6 +38,7 @@ codedb_contents = []
 codedb_data = []
 codedb_initialize = []
 codedb_source = []
+codedb_library = []
 
 library_dir = "#{BUILD_CONFIG[:sourcedir]}/library"
 bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
@@ -47,10 +48,10 @@ core_load_order = "core/load_order.txt"
 def codedb_source_task(db, origin, source)
   db << source
 
-  dir = File.dirname(source)
-  directory dir
+  file source => origin do |t|
+    dir = File.dirname t.name
+    mkdir_p dir, :verbose => $verbose unless File.directory? dir
 
-  file source => [origin, dir] do |t|
     cp t.prerequisites.first, t.name, :verbose => $verbose
   end
 end
@@ -67,6 +68,14 @@ FileList["#{library_dir}/**/*.rb"].each do |file|
   source = "codedb/source/#{file[(library_dir.size+1)..-1]}"
 
   codedb_source_task codedb_source, file, source
+end
+
+FileList["#{library_dir}/**/*.*"].exclude("#{library_dir}/**/*.rb").each do |file|
+  source = "codedb/source/#{file[(library_dir.size+1)..-1]}"
+
+  unless File.directory? file
+    codedb_source_task codedb_library, file, source
+  end
 end
 
 # Add pre-installed gems
@@ -306,7 +315,7 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => ["compiler:load"] + codedb_files + ["codedb:extensions"]
+  task :build => ["compiler:load"] + codedb_files + codedb_library + ["codedb:extensions"]
 
   desc "Delete all core and library artifacts"
   task :clean do
