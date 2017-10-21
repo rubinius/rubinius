@@ -1,0 +1,16 @@
+{
+  "name": "push_file",
+  "arguments": "[]",
+  "stack": {
+    "before": [
+
+    ],
+    "after": [
+      "file"
+    ]
+  },
+  "description": "   Pushes the currently executing CompiledCode object's file attribute. Useful for evaluating __FILE__.",
+  "notes": "",
+  "example": "",
+  "related": ""
+}
