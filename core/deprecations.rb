@@ -6,6 +6,10 @@ module Rubinius
     "Rubinius::ConstantScope is deprecated." =>
       "Use Rubinius::LexicalScope instead.",
     "Rubinius::Executable#primitive is deprecated." =>
-      "Use Rubinius::Executable#tags instead."
+      "Use Rubinius::Executable#tags instead.",
+    "Rubinius::RUNTIME_PATH is deprecated." =>
+      "Use Rubinius::CODEDB_PATH instead.",
+    "Rubinius::CORE_PATH is deprecated." =>
+      "Use Rubinius::CODEDB_PATH/source/core instead, or retrieve the path from the CompiledCode#file attribute",
   }
 end
