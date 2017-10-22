@@ -332,24 +332,30 @@ end
 file "codedb/cache/index" => "codedb/cache/data" do |t|
   puts "CodeDB: writing index..."
 
-  File.open t.name, "wb" do |f|
-    codedb_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
+  unless codedb_data.empty?
+    File.open t.name, "wb" do |f|
+      codedb_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
+    end
   end
 end
 
 file "codedb/cache/contents" => "codedb/cache/data" do |t|
   puts "CodeDB: writing contents..."
 
-  File.open t.name, "wb" do |f|
-    codedb_contents.each { |file, id| f.puts "#{file} . #{id} 0" }
+  unless codedb_contents.empty?
+    File.open t.name, "wb" do |f|
+      codedb_contents.each { |file, id| f.puts "#{file} . #{id} 0" }
+    end
   end
 end
 
 file "codedb/cache/initialize" => "codedb/cache/data" do |t|
   puts "CodeDB: writing initialize..."
 
-  File.open t.name, "wb" do |f|
-    codedb_initialize.each { |id| f.puts id }
+  unless codedb_initialize.empty?
+    File.open t.name, "wb" do |f|
+      codedb_initialize.each { |id| f.puts id }
+    end
   end
 end
 
