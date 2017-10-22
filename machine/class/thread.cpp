@@ -320,7 +320,8 @@ namespace rubinius {
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
-      rubinius::bug("unable to find class Rubinius::Loader");
+      state->shared().env()->missing_core("unable to find class Rubinius::Loader");
+      return 0;
     }
 
     Object* instance = 0;
@@ -330,7 +331,8 @@ namespace rubinius {
     if(instance) {
       state->shared().env()->set_loader(instance);
     } else {
-      rubinius::bug("unable to instantiate Rubinius::Loader");
+      state->shared().env()->missing_core("unable to instantiate Rubinius::Loader");
+      return 0;
     }
 
     // Enable the JIT after the core library has loaded

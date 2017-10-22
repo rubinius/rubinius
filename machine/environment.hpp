@@ -24,27 +24,6 @@ namespace rubinius {
   class SignalThread;
 
   /**
-   * Thrown when unable to find Rubinius runtime directories.
-   */
-  class MissingRuntime : public std::runtime_error {
-  public:
-    MissingRuntime(const std::string& str)
-      : std::runtime_error(str)
-    {}
-  };
-
-  /**
-   * Thrown when there is a bad signature on a kernel .rbc file.
-   */
-  class BadKernelFile : public std::runtime_error {
-  public:
-    BadKernelFile(const std::string& str)
-      : std::runtime_error(str)
-    {}
-  };
-
-
-  /**
    * The environment context under which Rubinius virtual machines are executed.
    *
    * Environment and configuration data is processed and stored in an Environment
@@ -127,7 +106,6 @@ namespace rubinius {
     void load_platform_conf(std::string dir);
     void load_conf(std::string path);
     void load_string(std::string str);
-    void run_file(STATE, std::string path);
     void expand_config_value(std::string& cvar, const char* var, const char* value);
     void set_tmp_path();
     void set_username();
@@ -137,6 +115,8 @@ namespace rubinius {
     void boot();
 
     void after_fork_child(STATE);
+
+    NORETURN(void missing_core(const char* message));
 
     void halt(STATE, int exit_code);
     void atexit();

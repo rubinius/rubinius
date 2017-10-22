@@ -94,33 +94,6 @@ int main(int argc, char** argv) {
       std::cout << "Ruby backtrace:" << std::endl;
       env.state->vm()->print_backtrace();
       exit_code = 1;
-    } catch(MissingRuntime& e) {
-      std::cerr << std::endl;
-      std::cerr << e.what() << std::endl;
-      std::cerr << "Rubinius was configured to find the directories relative to:" << std::endl;
-      std::cerr << std::endl << "  " << RBX_PREFIX_PATH << std::endl << std::endl;
-      std::cerr << "Set the environment variable RBX_PREFIX_PATH to the directory";
-      std::cerr << std::endl;
-      std::cerr << "that is the prefix of the following runtime directories:" << std::endl;
-      std::cerr << std::endl;
-      std::cerr << "      BIN_PATH: " << RBX_BIN_PATH << std::endl;
-      std::cerr << "  RUNTIME_PATH: " << RBX_RUNTIME_PATH << std::endl;
-      std::cerr << "   CODEDB_PATH: " << RBX_CODEDB_PATH << std::endl;
-      std::cerr << "     CORE_PATH: " << RBX_CORE_PATH << std::endl;
-      std::cerr << "      LIB_PATH: " << RBX_LIB_PATH << std::endl;
-      std::cerr << "     SITE_PATH: " << RBX_SITE_PATH << std::endl;
-      std::cerr << "   VENDOR_PATH: " << RBX_VENDOR_PATH << std::endl;
-      std::cerr << "     GEMS_PATH: " << RBX_GEMS_PATH << std::endl;
-      std::cerr << std::endl;
-      exit_code = 1;
-    } catch(BadKernelFile& e) {
-      std::cout << "ERROR: Unable to load: " << e.what() << std::endl << std::endl;
-      std::cout << "Please run the following commands to rebuild:" << std::endl;
-      std::cout << "  rake clean" << std::endl;
-      std::cout << "  rake or rake install" << std::endl << std::endl;
-      std::cout << "If the problem persists, please open an issue at:" << std::endl;
-      std::cout << "  http://github.com/rubinius/rubinius\n";
-      exit_code = 1;
     } catch(VMException &e) {
       std::cout << "Unknown VM exception detected:" << std::endl;
       e.print_backtrace();
