@@ -20,6 +20,7 @@ def core_clean
            "**/.*.rbc",
            "codedb",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
+           "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/Makefile",
           ],
     :verbose => $verbose
 end
@@ -103,12 +104,33 @@ ext_source = FileList[
   "#{bootstrap_gems_dir}/**/lex.c.*"
 ]
 
-extconf_source = FileList["#{bootstrap_gems_dir}/**/ext/**/extconf.rb"]
+melbourne_ext = FileList["#{bootstrap_gems_dir}/rubinius-melbourne*/ext/**/extconf.rb"]
+extconf_source = FileList["#{bootstrap_gems_dir}/**/{lib,ext}/**/extconf.rb"
+                         ].exclude(melbourne_ext)
 
 extensions_dir = "#{BUILD_CONFIG[:sourcedir]}/codedb/extensions"
 directory extensions_dir
 
 signature_files = codedb_source + config_files + ext_source
+
+def build_extension(gems_dir, ext_dir, file)
+  extconf = %r[#{gems_dir}/[^/]+/(lib|ext)/(.*\.rb)$].match(file)[2]
+
+  Dir.chdir File.dirname(file) do
+    if file =~ /openssl/ and openssl = ENV["OPENSSL_DIR"]
+      options = "--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"
+    else
+      options = nil
+    end
+
+    unless File.exist? "Makefile"
+      sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems --main #{extconf} #{options}", :verbose => $verbose
+    end
+
+    sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
+    sh "#{BUILD_CONFIG[:build_make]} install", :verbose => $verbose
+  end
+end
 
 namespace :codedb do
   task :signature => signature_files do
@@ -117,57 +139,86 @@ namespace :codedb do
     SIGNATURE_HASH = hd[0, 16].to_i(16) ^ hd[16,16].to_i(16) ^ hd[32,8].to_i(16)
   end
 
-  task :extensions => [extensions_dir] + codedb_files + extconf_source do
+  task :extensions => [extensions_dir, melbourne_ext] + codedb_files + extconf_source do
     # It would be better to define file commands for every extension but we
     # don't know the extension shared library without some other source
     # parsing so we just iterate based on files.
 
+    melbourne_ext.each do |file|
+      build_extension bootstrap_gems_dir, extensions_dir, file
+
+      ext_dir = %r[(#{bootstrap_gems_dir}/[^/]+)/.*$].match(file)[1]
+
+      Dir.chdir "#{ext_dir}/lib" do
+        FileList["./**/*.#{RbConfig::CONFIG["DLEXT"]}"].each do |lib|
+          lib_dir = "#{extensions_dir}/#{File.dirname(lib)}"
+          mkdir_p lib_dir
+
+          cp lib, lib_dir, :verbose => $verbose
+        end
+      end
+    end
+
     extconf_source.each do |file|
-      m = %r[(#{bootstrap_gems_dir}/[^/]+)/(lib|ext)/(.*\.rb)$].match(file)
+      build_extension bootstrap_gems_dir, extensions_dir, file
+    end
 
-      gem_dir = m[1]
-      extconf = m[3]
+    ffi_cache = []
+    ffi_contents = []
+    ffi_data = []
 
-      Dir.chdir File.dirname(file) do
-        if file =~ /openssl/ and openssl = ENV["OPENSSL_DIR"]
-          options = "--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"
-        else
-          options = nil
+    FileList["#{bootstrap_gems_dir}/**/*.rb.ffi"]
+            .map { |x| x.sub(/\.ffi$/, "") }
+            .each do |file|
+      puts "RBC #{file}" if $verbose
+
+      m = %r[(#{bootstrap_gems_dir}/[^/]+/lib/)(.*\.rb)$].match(file)
+
+      dir = m[1]
+      content = m[2]
+
+      Dir.chdir dir do
+        code = CodeDBCompiler.compile(content, 1, [:default, :kernel])
+
+        m_id = code.code_id
+
+        ffi_cache << [m_id, code]
+        ffi_contents << [content, m_id]
+      end
+    end
+
+    while x = ffi_cache.shift
+      id, cc = x
+
+      cc.literals.each_with_index do |value, index|
+        if value.kind_of? Rubinius::CompiledCode
+          cc.literals[index] = i = value.code_id
+          ffi_cache.unshift [i, value]
         end
-
-        unless File.exist? "Makefile"
-          sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems --main #{extconf} #{options}",
-            :verbose => $verbose
-        end
-
-        sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
-        # sh "#{BUILD_CONFIG[:build_make]} install", :verbose => $verbose
       end
 
-      files = FileList["#{gem_dir}/lib/**/*.#{RbConfig::CONFIG["DLEXT"]}"]
+      marshaled = CodeDBCompiler.marshal cc
 
-      unless files.empty?
-        lib_ext = "/lib/"
-      else
-        files = FileList["#{gem_dir}/ext/**/*.#{RbConfig::CONFIG["DLEXT"]}"]
+      ffi_data << [id, marshaled]
+    end
 
-        unless files.empty?
-          lib_ext = "/ext/"
-        else
-          raise RuntimeError, "unable to locate C-extension for library: #{gem_dir}"
-        end
+    File.open "codedb/cache/data", "ab" do |f|
+      f.seek 0, IO::SEEK_END
+
+      ffi_data.map! do |m_id, data|
+        offset = f.pos
+        f.write data
+
+        [m_id, offset, f.pos - offset]
       end
+    end
 
-      files.map! { |f| f[(gem_dir.size+5)..-1] }
+    File.open "codedb/cache/index", "ab" do |f|
+      ffi_data.each { |m_id, offset, length| f.puts "#{m_id} #{offset} #{length}" }
+    end
 
-      Dir.chdir gem_dir do
-        files.each do |lib|
-          ext_dir = "#{extensions_dir}/#{File.dirname(lib)}"
-          mkdir_p ext_dir
-
-          cp "#{gem_dir}#{lib_ext}#{lib}", ext_dir, :verbose => $verbose
-        end
-      end
+    File.open "codedb/cache/contents", "ab" do |f|
+      ffi_contents.each { |file, m_id| f.puts "#{file} . #{m_id} 0" }
     end
   end
 end
