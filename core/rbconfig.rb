@@ -1,6 +1,7 @@
 module RbConfig
-  unless defined? RUBY_ENGINE and RUBY_ENGINE == "rbx" then
-    raise "Looks like you loaded the Rubinius rbconfig, but this is not Rubinius."
+  unless defined? RUBY_ENGINE and RUBY_ENGINE == "rbx"
+    raise "This RbConfig is only compatible with Rubinius. " \
+          "Your RUBY_ENGINE is #{RUBY_ENGINE or "undefined"}"
   end
 
   CONFIG = {}

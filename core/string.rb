@@ -2490,7 +2490,7 @@ class String
     index = Rubinius::Type.coerce_to index, Fixnum, :to_int
     index = length + 1 + index if index < 0
 
-    if index > length or index < 0 then
+    if index > length or index < 0
       raise IndexError, "index #{index} out of string"
     end
 

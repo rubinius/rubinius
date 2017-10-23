@@ -20,6 +20,7 @@ def core_clean
            "**/.*.rbc",
            "codedb",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
+           "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*.*",
            "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/Makefile",
           ],
     :verbose => $verbose
@@ -108,12 +109,12 @@ melbourne_ext = FileList["#{bootstrap_gems_dir}/rubinius-melbourne*/ext/**/extco
 extconf_source = FileList["#{bootstrap_gems_dir}/**/{lib,ext}/**/extconf.rb"
                          ].exclude(melbourne_ext)
 
-extensions_dir = "#{BUILD_CONFIG[:sourcedir]}/codedb/extensions"
+extensions_dir = "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}"
 directory extensions_dir
 
 signature_files = codedb_source + config_files + ext_source
 
-def build_extension(gems_dir, ext_dir, file)
+def build_extension(gems_dir, file)
   extconf = %r[#{gems_dir}/[^/]+/(lib|ext)/(.*\.rb)$].match(file)[2]
 
   Dir.chdir File.dirname(file) do
@@ -145,7 +146,7 @@ namespace :codedb do
     # parsing so we just iterate based on files.
 
     melbourne_ext.each do |file|
-      build_extension bootstrap_gems_dir, extensions_dir, file
+      build_extension bootstrap_gems_dir, file
 
       ext_dir = %r[(#{bootstrap_gems_dir}/[^/]+)/.*$].match(file)[1]
 
@@ -160,7 +161,7 @@ namespace :codedb do
     end
 
     extconf_source.each do |file|
-      build_extension bootstrap_gems_dir, extensions_dir, file
+      build_extension bootstrap_gems_dir, file
     end
 
     ffi_cache = []
