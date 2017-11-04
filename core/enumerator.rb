@@ -8,6 +8,12 @@ module Enumerable
     attr_writer :size
     private :size=
 
+    attr_reader :generator
+    protected :generator
+
+    attr_reader :lookahead
+    protected :lookahead
+
     def initialize_enumerator(receiver, size, method_name, *method_args)
       @object = receiver
       @size = size
@@ -162,6 +168,18 @@ module Enumerable
       @feedvalue = val
       nil
     end
+
+    def dup
+      raise TypeError, "Can't copy iteration state" if @generator&.instance_variable_get(:@fiber)
+      super
+    end
+
+    def initialize_copy(other)
+      @generator = other.generator&.dup
+      @lookahead = other.lookahead.dup
+      super
+    end
+    private :initialize_copy
 
     class Yielder
       def initialize(&block)
