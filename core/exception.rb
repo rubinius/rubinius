@@ -273,6 +273,11 @@ end
 class LoadError < ScriptError
   attr_accessor :path
 
+  def initialize(message=nil, path: nil)
+    super message
+    @path = path
+  end
+
   class InvalidExtensionError < LoadError
   end
 

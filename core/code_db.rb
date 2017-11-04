@@ -1,5 +1,8 @@
 module Rubinius
   class CodeDB
+    attr_accessor :loaded_features
+    attr_accessor :load_path
+
     def self.open(path)
       Rubinius.primitive :code_db_open
       raise PrimitiveFailure, "Rubinius::CodeDB.open primitive failed"
@@ -14,12 +17,20 @@ module Rubinius
       @current
     end
 
-    def load_path(name, ext)
-      Rubinius.primitive :code_db_load_path
-      raise PrimitiveFailure, "Rubinius::CodeDB#load_path primitive failed"
+    def self.load_feature(stem, ext, reload, record)
+      current.load_feature stem, ext, reload, record
     end
 
-    def store(code)
+    def self.store(code, stem, path, feature, record)
+      current.store code, stem, path, feature, record
+    end
+
+    def load_feature(stem, ext, reload, record)
+      Rubinius.primitive :code_db_load_feature
+      raise PrimitiveFailure, "Rubinius::CodeDB#load_feature primitive failed"
+    end
+
+    def store(code, stem, path, feature, record)
       Rubinius.primitive :code_db_store
       raise PrimitiveFailure, "Rubinius::CodeDB#store primitive failed"
     end

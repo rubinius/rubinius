@@ -232,7 +232,7 @@ module Rubinius
         stdin = STDIN.dup
         script = STDIN.read
         STDIN.reopen(stdin)
-        CodeLoader.execute_script script
+        execute_script script
       end
 
       options.on "--", "Stop processing command line arguments" do
@@ -661,7 +661,7 @@ Alternative: #{alt}
       end
 
       set_program_name @script
-      CodeLoader.load_script @script, @debugging
+      CodeLoader.new(@script).load_script
     end
 
     #Check Ruby syntax of source
@@ -704,9 +704,13 @@ Alternative: #{alt}
         load File.join(Rubinius::GEMS_PATH, "bin", repl)
       else
         set_program_name "(eval)"
-        CodeLoader.execute_script "p #{STDIN.read}"
+        execute_script "p #{STDIN.read}"
       end
     end
+
+		def execute_script(script)
+			eval script, TOPLEVEL_BINDING
+		end
 
     def run_at_exits
       until AtExit.empty?

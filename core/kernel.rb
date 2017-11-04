@@ -566,14 +566,15 @@ module Kernel
   module_function :lambda
 
   def load(name, wrap=false)
-    cl = Rubinius::CodeLoader.new(name)
-    cl.load(wrap)
+    Rubinius::CodeLoader.new(name).load(wrap)
+    # cl = Rubinius::CodeLoader.new(name)
+    # cl.load(wrap)
 
-    Rubinius.run_script cl.compiled_code
+    # Rubinius.run_script cl.compiled_code
 
-    Rubinius::CodeLoader.loaded_hook.trigger!(name)
+    # Rubinius::CodeLoader.loaded_hook.trigger!(name)
 
-    return true
+    # return true
   end
   module_function :load
 
@@ -848,13 +849,13 @@ module Kernel
   end
 
   def require(name)
-    Rubinius::CodeLoader.require name
+    Rubinius::CodeLoader.new(name).require
   end
   module_function :require
 
   def require_relative(name)
     scope = Rubinius::LexicalScope.of_sender
-    Rubinius::CodeLoader.require_relative(name, scope)
+    Rubinius::CodeLoader.new(name).require_relative(scope)
   end
   module_function :require_relative
 

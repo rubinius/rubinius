@@ -53,7 +53,7 @@ class Autoload
       unless @loaded && @thread == Thread.current
         @loaded = true
         @thread = Thread.current
-        Rubinius::CodeLoader.require @path or Rubinius::CodeLoader.feature_provided? @path
+        Rubinius::CodeLoader.new(@path).require
       end
     end
   end

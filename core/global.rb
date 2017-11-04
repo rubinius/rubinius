@@ -4,21 +4,22 @@
 module Rubinius
   class GlobalVariables
     def initialize
-      load_path = []
-      loaded_features = LoadedFeatures.new
+      load_path = CodeDB.current.load_path
+      loaded_features = CodeDB.current.loaded_features
 
       @internal = LookupTable.new
-      @internal[:$;] = nil
-      @internal[:$/] = "\n"             # Input record separator
-      @internal[:$\] = nil              # Output record separator
-      @internal[:$<] = ARGF
-      @internal[:$:] = load_path
-      @internal[:$-I] = load_path
-      @internal[:$"] = loaded_features
-      @internal[:$,] = nil              # Output field separator
-      @internal[:$.] = 0
-      @internal[:$=] = false            # ignore case, whatever that is
-      @internal[:$0] = nil
+
+      @internal[:$;]               = nil
+      @internal[:$/]               = "\n"   # Input record separator
+      @internal[:$\]               = nil    # Output record separator
+      @internal[:$<]               = ARGF
+      @internal[:$:]               = load_path
+      @internal[:$-I]              = load_path
+      @internal[:$"]               = loaded_features
+      @internal[:$,]               = nil    # Output field separator
+      @internal[:$.]               = 0
+      @internal[:$=]               = false  # ignore case, whatever that is
+      @internal[:$0]               = nil
       @internal[:$CONSOLE]         = STDOUT
       @internal[:$DEBUG]           = false
       @internal[:$LOADED_FEATURES] = loaded_features

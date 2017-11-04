@@ -219,7 +219,7 @@ namespace :codedb do
     end
 
     File.open "codedb/cache/contents", "ab" do |f|
-      ffi_contents.each { |file, m_id| f.puts "#{file} . #{m_id} 0" }
+      ffi_contents.each { |file, m_id| f.puts "#{file} # # #{m_id} 0" }
     end
   end
 end
@@ -345,7 +345,7 @@ file "codedb/cache/contents" => "codedb/cache/data" do |t|
 
   unless codedb_contents.empty?
     File.open t.name, "wb" do |f|
-      codedb_contents.each { |file, id| f.puts "#{file} . #{id} 0" }
+      codedb_contents.each { |file, id| f.puts "#{file} # # #{id} 0" }
     end
   end
 end

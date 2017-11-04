@@ -324,10 +324,10 @@ describe "Kernel#require_relative with an absolute path" do
       $LOADED_FEATURES.should == []
     end
 
-    it "does not load an absolute path that is already stored" do
+    it "loads an absolute path that is already stored if not previously loaded" do
       $LOADED_FEATURES << @abs_path
-      require_relative(@path).should be_false
-      ScratchPad.recorded.should == []
+      require_relative(@path).should be_true
+      ScratchPad.recorded.should == [:loaded]
     end
 
     it "adds the suffix of the resolved filename" do

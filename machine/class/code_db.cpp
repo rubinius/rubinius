@@ -8,6 +8,7 @@
 #include "metrics.hpp"
 #include "thread_phase.hpp"
 
+#include "class/array.hpp"
 #include "class/class.hpp"
 #include "class/code_db.hpp"
 #include "class/compiled_code.hpp"
@@ -28,6 +29,8 @@
 namespace rubinius {
   static CodeDBMap codedb_index;
   static CodeDBContentMap codedb_contents;
+  static CodeDBLoadPathSet codedb_loadpath;
+  static CodeDBLoadedFeaturesSet codedb_loadedfeatures;
 
   void CodeDB::bootstrap(STATE) {
     GO(codedb).set(state->memory()->new_class<Class, CodeDB>(
@@ -89,6 +92,11 @@ namespace rubinius {
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
     CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
+
+    codedb->loaded_features(state, Array::create(state, 0));
+    codedb->load_path(state, Array::create(state, 0));
+
+    G(codedb)->set_ivar(state, state->symbol("@current"), codedb);
 
     std::string base_path;
 
@@ -157,18 +165,19 @@ namespace rubinius {
     }
 
     while(true) {
-      std::string name, path, m_id;
+      std::string stem, path, feature, m_id;
       uint64_t mtime;
 
-      contents_stream >> name;
+      contents_stream >> stem;
       contents_stream >> path;
+      contents_stream >> feature;
       contents_stream >> m_id;
       contents_stream >> mtime;
       contents_stream.get();
 
-      if(name.empty()) break;
+      if(stem.empty()) break;
 
-      codedb_contents[name] = CodeDBContent(path, m_id, mtime, false);
+      codedb_contents[stem] = CodeDBContent(path, feature, m_id, mtime, false);
     }
     contents_stream.close();
 
@@ -242,10 +251,12 @@ namespace rubinius {
     return as<CompiledCode>(id_or_code);
   }
 
-  Object* CodeDB::load_path(STATE, String* path, String* ext) {
+  Object* CodeDB::load_feature(STATE,
+      String* stem, String* ext, Object* reload, Object* record)
+  {
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
-    std::string search(path->c_str(state));
+    std::string search(stem->c_str(state));
     std::string extstr(ext->c_str(state));
 
     if(search.rfind(extstr, search.size() - extstr.size()) == std::string::npos) {
@@ -257,22 +268,43 @@ namespace rubinius {
     if(index != codedb_contents.end()) {
       CodeDBContent& content = index->second;
 
-      if(std::get<3>(content)) return cFalse;
+      if(std::get<4>(content) && reload->false_p()) {
+        if(codedb_loadedfeatures.size() != loaded_features()->size()) {
+          codedb_loadedfeatures.clear();
 
-      if(CompiledCode* code = CodeDB::load(state, std::get<1>(content).c_str())) {
+          for(native_int i = 0; i < loaded_features()->size(); i++) {
+            if(String* feature = try_as<String>(loaded_features()->get(state, i))) {
+              codedb_loadedfeatures.insert(feature->c_str(state));
+            }
+          }
+        }
+
+        CodeDBLoadedFeaturesSet::const_iterator lf =
+          codedb_loadedfeatures.find(std::get<1>(content));
+
+        if(lf != codedb_loadedfeatures.end()) return cFalse;
+      }
+
+      if(CompiledCode* code = try_as<CompiledCode>(
+            CodeDB::load(state, std::get<2>(content).c_str())))
+      {
         std::string& path = std::get<0>(content);
 
-        if(path.size() == 1 && path[0] == '.') {
+        if(path.size() == 1 && path[0] == '#') {
           std::ostringstream path;
 
           path << state->shared().config.codedb_core_path.value
                << "/source/"
                << code->file()->cpp_str(state);
 
+          std::get<1>(content) = path.str();
+
           code->file(state, state->symbol(path.str().c_str()));
         }
 
-        std::get<3>(content) = true;
+        std::get<4>(content) = true;
+
+        if(record->true_p()) record_feature(state, code->file()->to_str(state));
 
         logger::debug([&](logger::PrintFunction writer){
             writer("codedb: load path: %s", search.c_str());
@@ -285,7 +317,26 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* CodeDB::store(STATE, CompiledCode* code) {
+  Object* CodeDB::record_feature(STATE, String* feature) {
+    loaded_features()->append(state, feature);
+    codedb_loadedfeatures.insert(feature->c_str(state));
+
+    return cNil;
+  }
+
+  Object* CodeDB::store(STATE, Object* code,
+      String* stem, String* path, String* feature, Object* record)
+  {
+    MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
+
+    codedb_contents[stem->c_str(state)] =
+        CodeDBContent(path->c_str(state), feature->c_str(state), "", 0, true);
+
+    if(record->true_p()) record_feature(state, feature);
+
+    if(CompiledCode* ccode = try_as<CompiledCode>(code)) {
+    }
+
     return cNil;
   }
 }

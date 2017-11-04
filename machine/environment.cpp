@@ -555,12 +555,20 @@ namespace rubinius {
    */
   void Environment::load_core(STATE) {
     try {
-      CodeDB* codedb = CodeDB::open(state,
+      CodeDB::open(state,
           config.codedb_core_path.value,
           config.codedb_cache_path.value);
-      G(codedb)->set_ivar(state, state->symbol("@current"), codedb);
     } catch(RubyException& exc) {
       exc.show(state);
+      exit(1);
+    } catch(Assertion& exc) {
+      exc.print_backtrace();
+      exit(1);
+    } catch(TypeError& exc) {
+      exc.print_backtrace();
+      exit(1);
+    } catch(...) {
+      std::cout << "Unknown C++ exception loading CodeDB" << std::endl;
       exit(1);
     }
   }

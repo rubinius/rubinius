@@ -61,7 +61,6 @@ iseq.rb
 jit.rb
 kernel.rb
 library.rb
-loaded_features.rb
 location.rb
 logger.rb
 lookup_table.rb

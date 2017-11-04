@@ -71,8 +71,6 @@ class Module
 
     raise ArgumentError, "empty file name" if path.empty?
 
-    return if Rubinius::CodeLoader.feature_provided?(path)
-
     name = Rubinius::Type.coerce_to_constant_name name
 
     Rubinius.check_frozen

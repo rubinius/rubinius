@@ -454,14 +454,9 @@ describe "Module#autoload" do
   before :all do
     module Kernel
       alias_method :original_require, :require
-      alias_method :original_load,    :load
 
       def require(name)
-        raise Exception, "Kernel#require called"
-      end
-
-      def load(name)
-        raise Exception, "Kernel#load called"
+        original_require name
       end
     end
   end
@@ -469,11 +464,10 @@ describe "Module#autoload" do
   after :all do
     module Kernel
       alias_method :require, :original_require
-      alias_method :load,    :original_load
     end
   end
 
-  it "does not call Kernel#require or Kernel#load dynamically" do
+  it "calls Kernel#require" do
     ModuleSpecs::Autoload.autoload :N, fixture(__FILE__, "autoload_n.rb")
     ModuleSpecs::Autoload::N.should == :autoload_n
   end
