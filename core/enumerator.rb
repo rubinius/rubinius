@@ -125,7 +125,7 @@ module Enumerable
     end
 
     def peek_values
-      Array(self.peek)
+      Array(self.peek).dup
     end
 
     def rewind
