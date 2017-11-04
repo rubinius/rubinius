@@ -43,6 +43,14 @@ describe "Enumerator#initialize" do
     @uninitialized.send(:initialize, Float::INFINITY) {}.size.should equal(Float::INFINITY)
   end
 
+  it "sets size to truncated integer if the given size is a Float" do
+    @uninitialized.send(:initialize, 42.9) {}.size.should equal(42)
+  end
+
+  it "raises a TypeError if the given size is a numbered String" do
+    lambda { @uninitialized.send(:initialize, '42') {} }.should raise_error(TypeError)
+  end
+
   it "sets size to the given size if the given size is a Fixnum" do
     @uninitialized.send(:initialize, 100) {}.size.should == 100
   end
