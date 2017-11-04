@@ -5,20 +5,20 @@ require File.expand_path('../shared/enumerable_enumeratorized', __FILE__)
 describe "Enumerable#each_entry" do
   before :each do
     ScratchPad.record []
-    @enum = EnumerableSpecs::YieldsMixed.new
-    @entries = [1, [2], [3,4], [5,6,7], [8,9], nil, []]
   end
 
   it "yields multiple arguments as an array" do
+    enum = EnumerableSpecs::YieldsMixed2.new
     acc = []
-    @enum.each_entry {|g| acc << g}.should equal(@enum)
-    acc.should == @entries
+    enum.each_entry {|g| acc << g}.should equal(enum)
+    acc.should == EnumerableSpecs::YieldsMixed2.gathered_yields
   end
 
   it "returns an enumerator if no block" do
-    e = @enum.each_entry
+    enum = EnumerableSpecs::YieldsMixed2.new
+    e = enum.each_entry
     e.should be_an_instance_of(enumerator_class)
-    e.to_a.should == @entries
+    e.to_a.should == EnumerableSpecs::YieldsMixed2.gathered_yields
   end
 
   it "passes through the values yielded by #each_with_index" do
@@ -27,8 +27,9 @@ describe "Enumerable#each_entry" do
   end
 
   it "raises an ArgumentError when extra arguments" do
-    lambda { @enum.each_entry("one").to_a   }.should raise_error(ArgumentError)
-    lambda { @enum.each_entry("one"){}.to_a }.should raise_error(ArgumentError)
+    enum = EnumerableSpecs::YieldsMixed.new
+    lambda { enum.each_entry("one").to_a   }.should raise_error(ArgumentError)
+    lambda { enum.each_entry("one"){}.to_a }.should raise_error(ArgumentError)
   end
 
   it "passes extra arguments to #each" do
