@@ -1077,8 +1077,6 @@ class Encoding
   end
 end
 
-Enumerator = Enumerable::Enumerator
-
 module Errno
   FFI = Rubinius::FFI
 end
