@@ -26,7 +26,11 @@ module Enumerable
 
       if block_given?
         unless undefined.equal? receiver_or_size
-          size = receiver_or_size
+          size = if receiver_or_size.nil? || receiver_or_size == Float::INFINITY || receiver_or_size.respond_to?(:call)
+                   receiver_or_size
+                 else
+                   Rubinius::Type.coerce_to receiver_or_size, Integer, :to_int
+                 end
         end
 
         receiver = Generator.new(&block)
