@@ -11,7 +11,7 @@ describe "Enumerable#slice_after" do
       arg = mock "filter"
       arg.should_receive(:===).and_return(false, true, false, false, false, true, false)
       e = @enum.slice_after(arg)
-      e.should be_an_instance_of(enumerator_class)
+      e.should be_an_instance_of(Enumerator)
       e.to_a.should == [[7, 6], [5, 4, 3, 2], [1]]
     end
 
@@ -34,7 +34,7 @@ describe "Enumerable#slice_after" do
     describe "and no argument" do
       it "calls the block to determine when to yield" do
         e = @enum.slice_after{ |i| i == 6 || i == 2 }
-        e.should be_an_instance_of(enumerator_class)
+        e.should be_an_instance_of(Enumerator)
         e.to_a.should == [[7, 6], [5, 4, 3, 2], [1]]
       end
     end
