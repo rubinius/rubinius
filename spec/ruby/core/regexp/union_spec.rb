@@ -17,6 +17,10 @@ describe "Regexp.union" do
     Regexp.union("n", ".").should == /n|\./
   end
 
+  it "handles the optional left parenthesis case correctly" do
+    Regexp.union(/\(?/, "").should == /(?-mix:\(?)|/
+  end
+
   it "returns a Regexp with the encoding of an ASCII-incompatible String argument" do
     Regexp.union("a".encode("UTF-16LE")).encoding.should == Encoding::UTF_16LE
   end
