@@ -388,8 +388,10 @@ class Regexp
     def create_parts
       while @index < @source.size
         if @source[@index].chr == '('
+          escaped = @index > 0 && @source[@index - 1].chr == '\\'
+
           idx = @index + 1
-          if idx < @source.size and @source[idx].chr == '?'
+          if idx < @source.size and @source[idx].chr == '?' and !escaped
             process_group
           else
             push_current_character!
