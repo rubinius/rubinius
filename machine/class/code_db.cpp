@@ -132,8 +132,9 @@ namespace rubinius {
       Exception::raise_runtime_error(state, "unable to get CodeDB data size");
     }
 
-    codedb->data(mmap(NULL, st.st_size, PROT_READ,
-        MAP_PRIVATE, codedb->data_fd(), 0));
+    codedb->size(st.st_size);
+    codedb->data(mmap(NULL, state->shared().config.codedb_cache_size.value,
+          PROT_READ|PROT_WRITE, MAP_PRIVATE, codedb->data_fd(), 0));
 
     // Read the method id index.
     std::string index_path = base_path + "/index";
@@ -207,6 +208,10 @@ namespace rubinius {
     return codedb;
   }
 
+  Object* CodeDB::close(STATE) {
+    return cNil;
+  }
+
   CompiledCode* CodeDB::load(STATE, const char* m_id) {
     timer::StopWatch<timer::nanoseconds> timer(
         state->shared().codedb_metrics().load_ns);
@@ -226,9 +231,9 @@ namespace rubinius {
     const char* ptr = (const char*)std::get<0>(i);
     std::string data(ptr + std::get<1>(i), std::get<2>(i));
     std::istringstream stream(data);
-    UnMarshaller um(state, stream);
+    UnMarshaller unmarshaller(state, stream);
 
-    CompiledCode* code = as<CompiledCode>(um.unmarshal());
+    CompiledCode* code = as<CompiledCode>(unmarshaller.unmarshal());
 
     logger::debug([&](logger::PrintFunction writer){
         writer("codedb: load: %s, %s",
@@ -329,15 +334,35 @@ namespace rubinius {
   {
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
+    const char* path_str = path->byte_size() == 0 ? "#" : path->c_str(state);
+
     codedb_contents[stem->c_str(state)] =
-        CodeDBContent(path->c_str(state), feature->c_str(state), "", 0, true);
+        CodeDBContent(path_str, feature->c_str(state), "", 0, true);
 
     if(record->true_p()) record_feature(state, feature);
 
+    logger::debug([&](logger::PrintFunction writer){
+        writer("codedb: store: %d %s %s %s", writable()->true_p(),
+            stem->c_str(state), path_str, feature->c_str(state));
+      });
+
+    if(writable()->false_p()) return code;
+
     if(CompiledCode* ccode = try_as<CompiledCode>(code)) {
-      return ccode;
+      std::string stream_data(static_cast<char*>(data()) + size());
+      std::ostringstream stream(stream_data);
+      Marshaller marshaller(state, ccode, stream);
+
+      marshaller.marshal();
+
+      ccode->stamp_id(state);
+
+      codedb_index[ccode->code_id()->c_str(state)] =
+          CodeDBIndex(data(), size(), stream_data.size());
+
+      size(size() + stream_data.size());
     }
 
-    return cNil;
+    return code;
   }
 }

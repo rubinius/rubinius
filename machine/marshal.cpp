@@ -33,6 +33,9 @@
 
 namespace rubinius {
 
+  void Marshaller::marshal() {
+  }
+
   Object* UnMarshaller::get_constant() {
     char stack_data[STACK_BUF_SZ];
     char *malloc_data = NULL;

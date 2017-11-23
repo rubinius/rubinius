@@ -25,6 +25,11 @@ module Rubinius
       current.store code, stem, path, feature, record
     end
 
+    def close
+      Rubinius.primitive :code_db_close
+      raise PrimitiveFailure, "Rubinius::CodeDB#close primitive failed"
+    end
+
     def load_feature(stem, ext, reload, record)
       Rubinius.primitive :code_db_load_feature
       raise PrimitiveFailure, "Rubinius::CodeDB#load_feature primitive failed"

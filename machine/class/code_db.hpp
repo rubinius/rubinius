@@ -3,6 +3,7 @@
 
 #include "class/object.hpp"
 
+#include <cstdint>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -31,6 +32,7 @@ namespace rubinius {
   private:
     attr_field(data_fd, int);
     attr_field(data, void*);
+    attr_field(size, size_t);
 
   public:
     static void bootstrap(STATE);
@@ -51,6 +53,9 @@ namespace rubinius {
     static CompiledCode* load(STATE, const char* m_id);
 
     static CompiledCode* load(STATE, Object* id_or_code);
+
+    // Rubinius.primitive :code_db_close
+    Object* close(STATE);
 
     // Rubinius.primitive :code_db_load_feature
     Object* load_feature(STATE, String* stem, String* ext, Object* reload, Object* record);

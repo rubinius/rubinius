@@ -4,7 +4,6 @@
 #include "defines.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
-#include "compiled_file.hpp"
 #include "memory.hpp"
 #include "exception.hpp"
 #include "thread_phase.hpp"
@@ -515,6 +514,9 @@ namespace rubinius {
     utilities::thread::Mutex::LockGuard guard(halt_lock_);
 
     state->shared().set_halting();
+
+    as<CodeDB>(G(codedb)->get_ivar(
+          state, state->symbol("@current")))->close(state);
 
     if(state->shared().config.system_log_lifetime.value) {
       logger::write("process: exit: %s %d %lld %fs %fs",

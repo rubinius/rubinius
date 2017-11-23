@@ -31,10 +31,6 @@ namespace rubinius {
     static void bootstrap_methods(STATE);
     static void attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim);
 
-    /** Load a compiled file. */
-    // Rubinius.primitive :compiledfile_load
-    static Object*  compiledfile_load(STATE, String* path, Integer* signature, Integer* version);
-
     /**
      *  When running under GDB, stop here.
      *

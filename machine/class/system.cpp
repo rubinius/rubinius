@@ -23,7 +23,6 @@
 #include "class/variable_scope.hpp"
 
 #include "call_frame.hpp"
-#include "compiled_file.hpp"
 #include "configuration.hpp"
 #include "config_parser.hpp"
 #include "dtrace/dtrace.h"
@@ -129,34 +128,6 @@ namespace rubinius {
   }
 
 /* Primitives */
-  //
-  // HACK: remove this when performance is better and compiled_file.rb
-  // unmarshal_data method works.
-  Object* System::compiledfile_load(STATE, String* path,
-                                    Integer* signature, Integer* version)
-  {
-    std::ifstream stream(path->c_str(state));
-    if(!stream) {
-      return Primitives::failure();
-    }
-
-    CompiledFile* cf = CompiledFile::load(state, stream);
-    if(cf->magic != "!RBIX") {
-      delete cf;
-      return Primitives::failure();
-    }
-
-    uint64_t sig = signature->to_ulong_long();
-    if((sig > 0 && cf->signature != sig)) {
-      delete cf;
-      return Primitives::failure();
-    }
-
-    Object *body = cf->body(state);
-
-    delete cf;
-    return body;
-  }
 
   Object* System::yield_gdb(STATE, Object* obj) {
     obj->show(state);
