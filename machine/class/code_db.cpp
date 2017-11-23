@@ -335,6 +335,7 @@ namespace rubinius {
     if(record->true_p()) record_feature(state, feature);
 
     if(CompiledCode* ccode = try_as<CompiledCode>(code)) {
+      return ccode;
     }
 
     return cNil;
