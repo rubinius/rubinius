@@ -80,8 +80,77 @@ namespace rubinius {
     return true;
   }
 
+  static bool make_directory(const std::string path) {
+    struct stat st;
+
+    if(stat(path.c_str(), &st)) {
+      if(mkdir(path.c_str(), S_IRWXU)) return false;
+    } else {
+      if(!S_ISDIR(st.st_mode)) return false;
+    }
+
+    return true;
+  }
+
+#define COPY_FILE_BUFLEN  1048576
+
+  static bool copy_file(const std::string name, const std::string src, const std::string dest) {
+    struct stat st;
+
+    std::string src_path = src + name;
+    if(stat(src_path.c_str(), &st) || !S_ISREG(st.st_mode)) return false;
+
+    std::string dest_path = dest + name;
+    if(stat(dest_path.c_str(), &st) == 0 && !S_ISREG(st.st_mode)) return false;
+
+    int src_fd = ::open(src_path.c_str(), O_RDONLY);
+    if(src_fd <= 0) return false;
+
+    int dest_fd = ::open(dest_path.c_str(),
+        O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR);
+    if(dest_fd <= 0) {
+      ::close(src_fd);
+      return false;
+    }
+
+    int num;
+    bool status = true;
+    char* bytes = new char[COPY_FILE_BUFLEN];
+
+    while((num = ::read(src_fd, bytes, COPY_FILE_BUFLEN)) > 0) {
+      if(::write(dest_fd, bytes, num) != num) {
+        status = false;
+        break;
+      }
+    }
+
+    ::close(src_fd);
+    ::close(dest_fd);
+
+    delete[] bytes;
+
+    return status;
+  }
+
   bool CodeDB::copy_database(STATE, std::string core_path, std::string cache_path) {
-    return false;
+    std::string dest_dir = cache_path + "/cache";
+    std::string dirs[] = { cache_path, dest_dir };
+
+    for(auto dir : dirs) {
+      if(!make_directory(dir)) return false;
+    }
+
+    const char* files[] = {
+      "/contents", "/data", "/index", "/initialize", "/platform.conf", "/signature"
+    };
+
+    std::string src_dir = core_path + "/cache";
+
+    for(auto file : files) {
+      if(!copy_file(file, src_dir, dest_dir)) return false;
+    }
+
+    return true;
   }
 
   CodeDB* CodeDB::open(STATE, String* core_path, String* cache_path) {
@@ -101,7 +170,7 @@ namespace rubinius {
     std::string base_path;
 
     if(CodeDB::valid_database_p(state, cache_path)) {
-      base_path = cache_path;
+      base_path = cache_path + "/cache";
     } else {
       if(CodeDB::valid_database_p(state, core_path)) {
         if(CodeDB::copy_database(state, core_path, cache_path)) {
