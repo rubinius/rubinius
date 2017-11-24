@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#include <stack>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -433,18 +434,40 @@ namespace rubinius {
     if(writable()->false_p()) return code;
 
     if(CompiledCode* ccode = try_as<CompiledCode>(code)) {
-      std::string stream_data(static_cast<char*>(data()) + size());
-      std::ostringstream stream(stream_data);
-      Marshaller marshaller(state, ccode, stream);
+      BlockPhase blocking(state);
 
-      marshaller.marshal();
+      std::stack<CompiledCode*> code_stack;
 
-      ccode->stamp_id(state);
+      code_stack.push(ccode);
 
-      codedb_index[ccode->code_id()->c_str(state)] =
-          CodeDBIndex(data(), size(), stream_data.size());
+      while(!code_stack.empty()) {
+        ccode = code_stack.top();
 
-      size(size() + stream_data.size());
+        Tuple* literals = ccode->literals();
+
+        for(int i = 0; i < literals->num_fields(); i++) {
+          if(CompiledCode* c = try_as<CompiledCode>(literals->at(i))) {
+            c->stamp_id(state);
+            literals->put(state, i, c->code_id());
+            code_stack.push(c);
+          }
+        }
+
+        std::string stream_data(static_cast<char*>(data()) + size());
+        std::ostringstream stream(stream_data);
+        Marshaller marshaller(state, ccode, stream);
+
+        marshaller.marshal();
+
+        ccode->stamp_id(state);
+
+        codedb_index[ccode->code_id()->c_str(state)] =
+            CodeDBIndex(data(), size(), stream_data.size());
+
+        size(size() + stream_data.size());
+
+        code_stack.pop();
+      }
     }
 
     return code;

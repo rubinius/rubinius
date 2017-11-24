@@ -53,7 +53,7 @@ namespace rubinius {
     memory::TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     memory::TypedRoot<Class*> string, character, symbol, io;
     memory::TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
-    memory::TypedRoot<Class*> floatpoint, nmc, list, list_node;
+    memory::TypedRoot<Class*> floatpoint, list, list_node;
     memory::TypedRoot<Class*> channel, thread, thread_state, constantscope;
     memory::TypedRoot<Class*> constant_table, lookup_table;
     memory::TypedRoot<Class*> iseq, executable, native_function;
@@ -164,7 +164,6 @@ namespace rubinius {
       fixnum_class(&roots),
       undef_class(&roots),
       floatpoint(&roots),
-      nmc(&roots),
       list(&roots),
       list_node(&roots),
       channel(&roots),

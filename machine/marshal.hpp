@@ -34,6 +34,13 @@ namespace rubinius {
     }
 
     void marshal();
+    void marshal(Object* obj);
+    void put_compiled_code(CompiledCode* code);
+    void put_fixnum(Object* obj);
+    void put_string(const char* type, String* str);
+    void put_rational(Object* obj);
+    void put_complex(Object* obj);
+    void put_constant(Object* obj);
   };
 
   class UnMarshaller {
