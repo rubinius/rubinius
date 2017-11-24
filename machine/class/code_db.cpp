@@ -92,16 +92,35 @@ namespace rubinius {
     return true;
   }
 
+  static bool file_newer_p(struct stat& src, struct stat& dest) {
+#ifdef HAVE_STRUCT_STAT_ST_MTIM
+    if(src.st_mtim.tv_sec > dest.st_mtim.tv_sec) return true;
+    if(src.st_mtim.tv_nsec > dest.st_mtim.tv_nsec) return true;
+#elif HAVE_STRUCT_STAT_ST_MTIMESPEC
+    if(src.st_mtimespec.tv_sec > dest.st_mtimespec.tv_sec) return true;
+    if(src.st_mtimespec.tv_nsec > dest.st_mtimespec.tv_nsec) return true;
+#elif HAVE_STRUCT_STAT_ST_MTIMENSEC
+    if(src.st_time > dest.st_mtime) return true;
+    if(src.st_mtimensec > dest.st_mtimensec) return true;
+#else
+    if(src.st_mtime > dest.st_mtime) return true;
+#endif
+
+    return false;
+  }
+
 #define COPY_FILE_BUFLEN  1048576
 
   static bool copy_file(const std::string name, const std::string src, const std::string dest) {
-    struct stat st;
+    struct stat src_st, dest_st;
 
     std::string src_path = src + name;
-    if(stat(src_path.c_str(), &st) || !S_ISREG(st.st_mode)) return false;
+    if(stat(src_path.c_str(), &src_st) || !S_ISREG(src_st.st_mode)) return false;
 
     std::string dest_path = dest + name;
-    if(stat(dest_path.c_str(), &st) == 0 && !S_ISREG(st.st_mode)) return false;
+    if(stat(dest_path.c_str(), &dest_st) == 0 && !S_ISREG(dest_st.st_mode)) return false;
+
+    if(!file_newer_p(src_st, dest_st)) return true;
 
     int src_fd = ::open(src_path.c_str(), O_RDONLY);
     if(src_fd <= 0) return false;
@@ -169,19 +188,15 @@ namespace rubinius {
 
     std::string base_path;
 
+    CodeDB::copy_database(state, core_path, cache_path);
+
     if(CodeDB::valid_database_p(state, cache_path)) {
       base_path = cache_path + "/cache";
+    } else if(CodeDB::valid_database_p(state, core_path)) {
+      base_path = core_path + "/cache";
+      codedb->writable(state, cFalse);
     } else {
-      if(CodeDB::valid_database_p(state, core_path)) {
-        if(CodeDB::copy_database(state, core_path, cache_path)) {
-          base_path = cache_path + "/cache";
-        } else {
-          base_path = core_path + "/cache";
-          codedb->writable(state, cFalse);
-        }
-      } else {
-        Exception::raise_runtime_error(state, "unable to find valid CodeDB");
-      }
+      Exception::raise_runtime_error(state, "unable to find valid CodeDB");
     }
 
     codedb->path(state, String::create(state, base_path.c_str()));
