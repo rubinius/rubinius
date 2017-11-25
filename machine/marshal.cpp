@@ -115,7 +115,7 @@ namespace rubinius {
   }
 
   void Marshaller::put_string(const char* type, String* str) {
-    String* enc = str->encoding()->name();
+    String* enc = str->encoding(state)->name();
     stream << type << "\nE\n"
            << enc->byte_size() << "\n"
            << enc->c_str(state) << "\n"

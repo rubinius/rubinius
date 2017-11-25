@@ -43,14 +43,15 @@ namespace rubinius {
 
     static bool valid_database_p(STATE, std::string path);
     static bool copy_database(STATE, std::string core_path, std::string cache_path);
+    static void purge(STATE, std::string cache_path);
 
     // Rubinius.primitive :code_db_open
     static CodeDB* open(STATE, String* core_path, String* cache_path);
     static CodeDB* open(STATE, std::string core_path, std::string cache_path);
 
     // Rubinius.primitive :code_db_load
-    static CompiledCode* load(STATE, String* m_id);
-    static CompiledCode* load(STATE, const char* m_id);
+    static CompiledCode* load(STATE, String* c_id);
+    static CompiledCode* load(STATE, const char* c_id);
 
     static CompiledCode* load(STATE, Object* id_or_code);
 

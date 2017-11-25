@@ -18,9 +18,11 @@
 
 #include "util/thread.hpp"
 
+#include <dirent.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <stack>
 #include <string>
@@ -32,6 +34,10 @@ namespace rubinius {
   static CodeDBContentMap codedb_contents;
   static CodeDBLoadPathSet codedb_loadpath;
   static CodeDBLoadedFeaturesSet codedb_loadedfeatures;
+  static const char* codedb_files[] = {
+    "/contents", "/data", "/index", "/initialize", "/platform.conf", "/signature"
+  };
+
 
   void CodeDB::bootstrap(STATE) {
     GO(codedb).set(state->memory()->new_class<Class, CodeDB>(
@@ -79,6 +85,19 @@ namespace rubinius {
     }
 
     return true;
+  }
+
+  void CodeDB::purge(STATE, std::string cache_path) {
+    std::string cache_dir = cache_path + "/cache";
+
+    for(auto file : codedb_files) {
+      std::string name = cache_dir + file;
+
+      (void)::unlink(name.c_str());
+    }
+
+    (void)::rmdir(cache_dir.c_str());
+    (void)::rmdir(cache_path.c_str());
   }
 
   static bool make_directory(const std::string path) {
@@ -160,13 +179,9 @@ namespace rubinius {
       if(!make_directory(dir)) return false;
     }
 
-    const char* files[] = {
-      "/contents", "/data", "/index", "/initialize", "/platform.conf", "/signature"
-    };
-
     std::string src_dir = core_path + "/cache";
 
-    for(auto file : files) {
+    for(auto file : codedb_files) {
       if(!copy_file(file, src_dir, dest_dir)) return false;
     }
 
@@ -189,10 +204,18 @@ namespace rubinius {
 
     std::string base_path;
 
-    CodeDB::copy_database(state, core_path, cache_path);
+    if(state->shared().config.codedb_cache_purge) {
+      CodeDB::purge(state, cache_path);
+    }
 
-    if(CodeDB::valid_database_p(state, cache_path)) {
+    if(state->shared().config.codedb_cache_enabled) {
+      CodeDB::copy_database(state, core_path, cache_path);
+    }
+
+    if(state->shared().config.codedb_cache_enabled
+        && CodeDB::valid_database_p(state, cache_path)) {
       base_path = cache_path + "/cache";
+      codedb->writable(state, cTrue);
     } else if(CodeDB::valid_database_p(state, core_path)) {
       base_path = core_path + "/cache";
       codedb->writable(state, cFalse);
@@ -206,7 +229,7 @@ namespace rubinius {
 
     // Map the CodeDB data to memory.
     std::string data_path = base_path + "/data";
-    codedb->data_fd(::open(data_path.c_str(), O_RDONLY));
+    codedb->data_fd(::open(data_path.c_str(), O_RDWR));
 
     if(codedb->data_fd() < 0) {
       Exception::raise_runtime_error(state, "unable to open CodeDB data");
@@ -218,10 +241,10 @@ namespace rubinius {
     }
 
     codedb->size(st.st_size);
-    codedb->data(mmap(NULL, state->shared().config.codedb_cache_size.value,
+    codedb->data(mmap(NULL, state->shared().config.codedb_cache_size,
           PROT_READ|PROT_WRITE, MAP_PRIVATE, codedb->data_fd(), 0));
 
-    // Read the method id index.
+    // Read the code ID index.
     std::string index_path = base_path + "/index";
     std::ifstream data_stream(index_path.c_str());
     if(!data_stream) {
@@ -229,17 +252,17 @@ namespace rubinius {
     }
 
     while(true) {
-      std::string m_id;
+      std::string c_id;
       size_t offset, length;
 
-      data_stream >> m_id;
+      data_stream >> c_id;
       data_stream >> offset;
       data_stream >> length;
       data_stream.get();
 
-      if(m_id.empty()) break;
+      if(c_id.empty()) break;
 
-      codedb_index[m_id] = CodeDBIndex(codedb->data(), offset, length);
+      codedb_index[c_id] = CodeDBIndex(codedb->data(), offset, length);
     }
     data_stream.close();
 
@@ -251,19 +274,19 @@ namespace rubinius {
     }
 
     while(true) {
-      std::string stem, path, feature, m_id;
+      std::string stem, path, feature, c_id;
       uint64_t mtime;
 
       contents_stream >> stem;
       contents_stream >> path;
       contents_stream >> feature;
-      contents_stream >> m_id;
+      contents_stream >> c_id;
       contents_stream >> mtime;
       contents_stream.get();
 
       if(stem.empty()) break;
 
-      codedb_contents[stem] = CodeDBContent(path, feature, m_id, mtime, false);
+      codedb_contents[stem] = CodeDBContent(path, feature, c_id, mtime, false);
     }
     contents_stream.close();
 
@@ -275,12 +298,12 @@ namespace rubinius {
     }
 
     while(true) {
-      std::string m_id;
+      std::string c_id;
 
-      initialize_stream >> m_id;
-      if(m_id.empty()) break;
+      initialize_stream >> c_id;
+      if(c_id.empty()) break;
 
-      CompiledCode* code = load(state, m_id.c_str());
+      CompiledCode* code = load(state, c_id.c_str());
       OnStack<1> os(state, code);
 
       if(code->nil_p()) {
@@ -293,11 +316,76 @@ namespace rubinius {
     return codedb;
   }
 
+#define CODEDB_WRITE_FLAGS  std::ofstream::out \
+                            | std::ofstream::trunc \
+                            | std::ofstream::ate \
+                            | std::ofstream::binary
+
   Object* CodeDB::close(STATE) {
+    if(writable()->false_p()) {
+      ::munmap(data(), state->shared().config.codedb_cache_size);
+      ::close(data_fd());
+
+      return cNil;
+    }
+
+    // Write the data.
+    if(::msync(data(), size(), MS_SYNC)) {
+      logger::warn("codedb: close: %s: failed to write data", strerror(errno));
+      return cNil;
+    }
+
+    ::munmap(data(), state->shared().config.codedb_cache_size);
+    ::close(data_fd());
+
+    std::string base_path = path()->c_str(state);
+
+    // Write the code ID index.
+    std::string index_path = base_path + "/index";
+    std::ofstream index_stream;
+    index_stream.open(index_path, CODEDB_WRITE_FLAGS);
+
+    for(auto iterator: codedb_index) {
+      const std::string& c_id = iterator.first;
+      const CodeDBIndex& index = iterator.second;
+
+      index_stream << c_id << " "
+                   << std::dec << std::get<1>(index) << " "
+                   << std::dec << std::get<2>(index) << "\n";
+    }
+    index_stream.flush();
+    index_stream.close();
+
+    // Write the contents.
+    std::string contents_path = base_path + "/contents";
+    std::ofstream contents_stream;
+    contents_stream.open(contents_path, CODEDB_WRITE_FLAGS);
+
+    for(auto iterator: codedb_contents) {
+      const std::string& stem = iterator.first;
+      const CodeDBContent& contents = iterator.second;
+
+      const std::string& path = std::get<0>(contents);
+
+      contents_stream << stem << " "
+                      << path << " ";
+
+      if(path == "#") {
+        contents_stream << path << " ";
+      } else {
+        contents_stream << std::get<1>(contents) << " ";
+      }
+
+      contents_stream << std::get<2>(contents) << " "
+                      << std::get<3>(contents) << "\n";
+    }
+    contents_stream.flush();
+    contents_stream.close();
+
     return cNil;
   }
 
-  CompiledCode* CodeDB::load(STATE, const char* m_id) {
+  CompiledCode* CodeDB::load(STATE, const char* c_id) {
     timer::StopWatch<timer::nanoseconds> timer(
         state->shared().codedb_metrics().load_ns);
 
@@ -305,7 +393,7 @@ namespace rubinius {
 
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
-    CodeDBMap::const_iterator index = codedb_index.find(std::string(m_id));
+    CodeDBMap::const_iterator index = codedb_index.find(std::string(c_id));
 
     if(index == codedb_index.end()) {
       return nil<CompiledCode>();
@@ -329,13 +417,13 @@ namespace rubinius {
     return code;
   }
 
-  CompiledCode* CodeDB::load(STATE, String* m_id) {
-    return load(state, m_id->c_str(state));
+  CompiledCode* CodeDB::load(STATE, String* c_id) {
+    return load(state, c_id->c_str(state));
   }
 
   CompiledCode* CodeDB::load(STATE, Object* id_or_code) {
-    if(String* m_id = try_as<String>(id_or_code)) {
-      return CodeDB::load(state, m_id);
+    if(String* c_id = try_as<String>(id_or_code)) {
+      return CodeDB::load(state, c_id);
     }
 
     return as<CompiledCode>(id_or_code);

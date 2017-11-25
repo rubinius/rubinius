@@ -6,10 +6,17 @@ Rubinius::ConfigurationVariables.define do |c|
   c.section "codedb" do |s|
     s.vm_variable "core.path", "",
       "Path for the Rubinius core library CodeDB"
-    s.vm_variable "cache.path", "$TMPDIR/$PROGRAM_NAME-$USER-codedb",
-      "Path for the CodeDB cache"
-    s.vm_variable "cache.size", 78643200,
-      "Maximum size in bytes of the CodeDB cache"
+
+    s.section "cache" do |e|
+      e.vm_variable "enabled", false,
+        "Cache code at runtime"
+      e.vm_variable "path", "$TMPDIR/$PROGRAM_NAME-$USER-codedb",
+        "Path for the CodeDB cache"
+      e.vm_variable "size", 78643200,
+        "Maximum size in bytes of the CodeDB cache"
+      e.vm_variable "purge", false,
+        "Purge the CodeDB cache"
+    end
   end
 
   c.section "memory" do |s|

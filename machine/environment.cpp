@@ -515,21 +515,12 @@ namespace rubinius {
 
     state->shared().set_halting();
 
-    as<CodeDB>(G(codedb)->get_ivar(
-          state, state->symbol("@current")))->close(state);
-
     if(state->shared().config.system_log_lifetime.value) {
       logger::write("process: exit: %s %d %lld %fs %fs",
           shared->pid.c_str(), exit_code,
           shared->codedb_metrics().load_count,
           timer::elapsed_seconds(shared->codedb_metrics().load_ns),
           shared->run_time());
-    }
-
-    if(Memory* om = state->memory()) {
-      if(memory::ImmixMarker* im = om->immix_marker()) {
-        im->stop(state);
-      }
     }
 
     {
@@ -542,6 +533,15 @@ namespace rubinius {
     shared->thread_nexus()->lock(state, state->vm());
 
     shared->finalizer()->finish(state);
+
+    as<CodeDB>(G(codedb)->get_ivar(
+          state, state->symbol("@current")))->close(state);
+
+    if(Memory* om = state->memory()) {
+      if(memory::ImmixMarker* im = om->immix_marker()) {
+        im->stop(state);
+      }
+    }
 
     NativeMethod::cleanup_thread(state);
 
