@@ -1,5 +1,3 @@
-#include "signature.h"
-
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
@@ -20,6 +18,8 @@
 
 #include <dirent.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -28,16 +28,11 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 namespace rubinius {
-  static CodeDBMap codedb_index;
-  static CodeDBContentMap codedb_contents;
-  static CodeDBLoadPathSet codedb_loadpath;
-  static CodeDBLoadedFeaturesSet codedb_loadedfeatures;
-  static const char* codedb_files[] = {
-    "/contents", "/data", "/index", "/initialize", "/platform.conf", "/signature"
-  };
-
+  const char* CodeDB::magic = "!RBIX";
+  const char* CodeDB::signature = RBX_SIGNATURE;
 
   void CodeDB::bootstrap(STATE) {
     GO(codedb).set(state->memory()->new_class<Class, CodeDB>(
@@ -45,71 +40,8 @@ namespace rubinius {
     G(codedb)->set_object_type(state, CodeDBType);
   }
 
-  bool CodeDB::valid_database_p(STATE, std::string path) {
-    std::string cache_path(path + "/cache");
-    struct stat st;
-
-    if(stat(cache_path.c_str(), &st) || !S_ISDIR(st.st_mode)) {
-      return false;
-    }
-
-    std::string signature_path = cache_path + "/signature";
-    if(stat(signature_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
-      return false;
-    }
-
-    std::ifstream signature(signature_path.c_str());
-    if(signature) {
-      uint64_t sig;
-      signature >> sig;
-      signature.close();
-
-      if(sig != RBX_SIGNATURE) return false;
-    } else {
-      return false;
-    }
-
-    std::string index_path = cache_path + "/index";
-    if(stat(index_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
-      return false;
-    }
-
-    std::string contents_path = cache_path + "/contents";
-    if(stat(contents_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
-      return false;
-    }
-
-    std::string data_path = cache_path + "/data";
-    if(stat(data_path.c_str(), &st) || !S_ISREG(st.st_mode)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  void CodeDB::purge(STATE, std::string cache_path) {
-    std::string cache_dir = cache_path + "/cache";
-
-    for(auto file : codedb_files) {
-      std::string name = cache_dir + file;
-
-      (void)::unlink(name.c_str());
-    }
-
-    (void)::rmdir(cache_dir.c_str());
-    (void)::rmdir(cache_path.c_str());
-  }
-
-  static bool make_directory(const std::string path) {
-    struct stat st;
-
-    if(stat(path.c_str(), &st)) {
-      if(mkdir(path.c_str(), S_IRWXU)) return false;
-    } else {
-      if(!S_ISDIR(st.st_mode)) return false;
-    }
-
-    return true;
+  void CodeDB::purge(STATE, std::string path) {
+    (void)::unlink(path.c_str());
   }
 
   static bool file_newer_p(struct stat& src, struct stat& dest) {
@@ -131,23 +63,24 @@ namespace rubinius {
 
 #define COPY_FILE_BUFLEN  1048576
 
-  static bool copy_file(const std::string name, const std::string src, const std::string dest) {
+  bool CodeDB::copy_database(STATE, std::string src, std::string dest) {
     struct stat src_st, dest_st;
 
-    std::string src_path = src + name;
-    if(stat(src_path.c_str(), &src_st) || !S_ISREG(src_st.st_mode)) return false;
-
-    std::string dest_path = dest + name;
-    if(stat(dest_path.c_str(), &dest_st) == 0 && !S_ISREG(dest_st.st_mode)) return false;
+    if(stat(src.c_str(), &src_st) || !S_ISREG(src_st.st_mode)) return false;
+    if(stat(dest.c_str(), &dest_st) == 0 && !S_ISREG(dest_st.st_mode)) return false;
 
     if(!file_newer_p(src_st, dest_st)) return true;
 
-    int src_fd = ::open(src_path.c_str(), O_RDONLY);
-    if(src_fd <= 0) return false;
+    logger::write("codedb: copy: %s, %s", src.c_str(), dest.c_str());
 
-    int dest_fd = ::open(dest_path.c_str(),
+    int src_fd = ::open(src.c_str(), O_RDONLY);
+
+    if(src_fd < 0) return false;
+
+    int dest_fd = ::open(dest.c_str(),
         O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR);
-    if(dest_fd <= 0) {
+
+    if(dest_fd < 0) {
       ::close(src_fd);
       return false;
     }
@@ -171,28 +104,11 @@ namespace rubinius {
     return status;
   }
 
-  bool CodeDB::copy_database(STATE, std::string core_path, std::string cache_path) {
-    std::string dest_dir = cache_path + "/cache";
-    std::string dirs[] = { cache_path, dest_dir };
-
-    for(auto dir : dirs) {
-      if(!make_directory(dir)) return false;
-    }
-
-    std::string src_dir = core_path + "/cache";
-
-    for(auto file : codedb_files) {
-      if(!copy_file(file, src_dir, dest_dir)) return false;
-    }
-
-    return true;
+  CodeDB* CodeDB::open(STATE, String* path) {
+    return CodeDB::open(state, path->c_str(state));
   }
 
-  CodeDB* CodeDB::open(STATE, String* core_path, String* cache_path) {
-    return open(state, core_path->c_str(state), cache_path->c_str(state));
-  }
-
-  CodeDB* CodeDB::open(STATE, std::string core_path, std::string cache_path) {
+  CodeDB* CodeDB::open(STATE, std::string db_path) {
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
     CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
@@ -200,120 +116,177 @@ namespace rubinius {
     codedb->loaded_features(state, Array::create(state, 0));
     codedb->load_path(state, Array::create(state, 0));
 
-    G(codedb)->set_ivar(state, state->symbol("@current"), codedb);
+    codedb->path_set(new CodeDBLoadPathSet);
+    codedb->feature_set(new CodeDBLoadedFeatureSet);
+
+    codedb->path(state, String::create(state, db_path.c_str()));
+
+    std::ifstream stream(db_path);
+    if(!stream.is_open()) return nullptr;
+
+    codedb->regions(new Regions);
+
+    std::string magic;
+    std::string signature;
+    int version;
+
+    stream >> magic;
+    stream >> version;
+    stream >> signature;
+
+    if(state->shared().config.codedb_cache_validate) {
+      if(!magic.compare(CodeDB::magic)) return nullptr;
+      if(version != CodeDB::version) return nullptr;
+      if(!signature.compare(CodeDB::signature)) return nullptr;
+    }
+
+    int region_size;
+
+    stream >> region_size;
+    codedb->regions()->initialize.set(CodeDB::header_size, region_size);
+
+    stream >> region_size;
+    stream >> region_size;
+    codedb->regions()->data.set(codedb->regions()->initialize.end, region_size);
+
+    stream >> region_size;
+    codedb->regions()->index.set(codedb->regions()->data.end, region_size);
+
+    stream >> region_size;
+    codedb->regions()->contents.set(codedb->regions()->index.end, region_size);
+
+    // Memory map data
+    codedb->data_fd(::open(db_path.c_str(), O_RDWR));
+
+    if(codedb->data_fd() < 0) return nullptr;
+
+    codedb->mptr(mmap(NULL, state->shared().config.codedb_cache_size,
+          PROT_READ|PROT_WRITE, MAP_PRIVATE, codedb->data_fd(), 0));
+
+    codedb->data(static_cast<char*>(codedb->mptr()) + codedb->regions()->data.begin);
+    codedb->size(codedb->regions()->data.end - codedb->regions()->data.begin);
+
+    // Read the code ID index.
+    codedb->index(new CodeDBMap);
+    stream.seekg(codedb->regions()->index.begin, stream.beg);
+
+    while(true) {
+      if(stream.tellg() >= codedb->regions()->index.end) break;
+
+      std::string c_id;
+      size_t offset, length;
+
+      stream >> c_id;
+      stream >> offset;
+      stream >> length;
+      stream.get();
+
+      codedb->index()->insert(
+          CodeDBIndexPair(std::move(c_id),
+            CodeDBIndex(std::move(offset), std::move(length))));
+    }
+
+    // Read the contents.
+    codedb->contents(new CodeDBContentMap);
+    stream.seekg(codedb->regions()->contents.begin, stream.beg);
+
+    while(true) {
+      if(stream.tellg() >= codedb->regions()->contents.end) break;
+
+      std::string stem, path, feature, c_id;
+      uint64_t mtime;
+      int name_size;
+
+      stream >> name_size;
+      if(name_size > 0) stream >> stem;
+
+      stream >> name_size;
+      if(name_size > 0) stream >> path;
+
+      stream >> name_size;
+      if(name_size > 0) stream >> feature;
+
+      stream >> c_id;
+      stream >> mtime;
+      stream.get();
+
+      codedb->contents()->insert(
+          CodeDBContentPair(std::move(stem),
+            CodeDBContent(std::move(path), std::move(feature), std::move(c_id), mtime, false)));
+    }
+
+    stream.close();
+
+    return codedb;
+  }
+
+  CodeDB* CodeDB::open(STATE, std::string core_path, std::string cache_path) {
+    CodeDB* codedb = 0;
 
     std::string base_path;
+
+    core_path.append("/cache");
 
     if(state->shared().config.codedb_cache_purge) {
       CodeDB::purge(state, cache_path);
     }
 
     if(state->shared().config.codedb_cache_enabled) {
-      CodeDB::copy_database(state, core_path, cache_path);
+      if(!CodeDB::copy_database(state, core_path, cache_path)) {
+        logger::write("codedb: copy failed: %s, %s",
+            core_path.c_str(), cache_path.c_str());
+      }
     }
 
     if(state->shared().config.codedb_cache_enabled
-        && CodeDB::valid_database_p(state, cache_path)) {
-      base_path = cache_path + "/cache";
-      codedb->writable(state, cTrue);
-    } else if(CodeDB::valid_database_p(state, core_path)) {
-      base_path = core_path + "/cache";
+        && (codedb = CodeDB::open(state, cache_path))) {
+      base_path = cache_path;
+      codedb->writable(state, cFalse);
+    } else if((codedb = CodeDB::open(state, core_path))) {
+      base_path = core_path;
       codedb->writable(state, cFalse);
     } else {
       Exception::raise_runtime_error(state, "unable to find valid CodeDB");
     }
 
-    codedb->path(state, String::create(state, base_path.c_str()));
-
     logger::write("codedb: loading: %s", base_path.c_str());
 
-    // Map the CodeDB data to memory.
-    std::string data_path = base_path + "/data";
-    codedb->data_fd(::open(data_path.c_str(), O_RDWR));
+    GO(coredb).set(codedb);
+    G(rubinius)->set_const(state, "CoreDB", codedb);
 
-    if(codedb->data_fd() < 0) {
-      Exception::raise_runtime_error(state, "unable to open CodeDB data");
-    }
+    codedb->load_db(state);
 
-    struct stat st;
-    if(stat(data_path.c_str(), &st)) {
-      Exception::raise_runtime_error(state, "unable to get CodeDB data size");
-    }
+    return codedb;
+  }
 
-    codedb->size(st.st_size);
-    codedb->data(mmap(NULL, state->shared().config.codedb_cache_size,
-          PROT_READ|PROT_WRITE, MAP_PRIVATE, codedb->data_fd(), 0));
-
-    // Read the code ID index.
-    std::string index_path = base_path + "/index";
-    std::ifstream data_stream(index_path.c_str());
-    if(!data_stream) {
-      Exception::raise_runtime_error(state, "unable to open CodeDB index");
-    }
-
-    while(true) {
-      std::string c_id;
-      size_t offset, length;
-
-      data_stream >> c_id;
-      data_stream >> offset;
-      data_stream >> length;
-      data_stream.get();
-
-      if(c_id.empty()) break;
-
-      codedb_index[c_id] = CodeDBIndex(codedb->data(), offset, length);
-    }
-    data_stream.close();
-
-    // Read the contents.
-    std::string contents_path = base_path + "/contents";
-    std::ifstream contents_stream(contents_path);
-    if(!contents_stream) {
-      Exception::raise_runtime_error(state, "unable to open CodeDB contents index");
-    }
-
-    while(true) {
-      std::string stem, path, feature, c_id;
-      uint64_t mtime;
-
-      contents_stream >> stem;
-      contents_stream >> path;
-      contents_stream >> feature;
-      contents_stream >> c_id;
-      contents_stream >> mtime;
-      contents_stream.get();
-
-      if(stem.empty()) break;
-
-      codedb_contents[stem] = CodeDBContent(path, feature, c_id, mtime, false);
-    }
-    contents_stream.close();
+  Object* CodeDB::load_db(STATE) {
+    std::ifstream stream(path()->c_str(state));
 
     // Run all initial methods.
-    std::string initialize_path = base_path + "/initialize";
-    std::ifstream initialize_stream(initialize_path.c_str());
-    if(!initialize_stream) {
-      Exception::raise_runtime_error(state, "unable to open CodeDB initialize");
-    }
+    stream.seekg(regions()->initialize.begin, stream.beg);
 
     while(true) {
+      if(stream.tellg() >= regions()->initialize.end) break;
+
       std::string c_id;
 
-      initialize_stream >> c_id;
-      if(c_id.empty()) break;
+      stream >> c_id;
+      stream.get();
 
       CompiledCode* code = load(state, c_id.c_str());
       OnStack<1> os(state, code);
 
       if(code->nil_p()) {
-        Exception::raise_runtime_error(state, "unable to resolve method in CodeDB initialize");
+        Exception::raise_runtime_error(state,
+            "unable to resolve method in CodeDB initialize");
       }
 
       code->execute_script(state);
     }
 
-    return codedb;
+    stream.close();
+
+    return cNil;
   }
 
 #define CODEDB_WRITE_FLAGS  std::ofstream::out \
@@ -322,87 +295,127 @@ namespace rubinius {
                             | std::ofstream::binary
 
   Object* CodeDB::close(STATE) {
-    if(writable()->false_p()) {
-      ::munmap(data(), state->shared().config.codedb_cache_size);
-      ::close(data_fd());
+    ::munmap(data(), state->shared().config.codedb_cache_size);
+    ::close(data_fd());
 
-      return cNil;
-    }
+    delete index();
+    index(nullptr);
+
+    delete contents();
+    contents(nullptr);
+
+    delete path_set();
+    path_set(nullptr);
+
+    delete feature_set();
+    feature_set(nullptr);
+
+    delete regions();
+    regions(nullptr);
+
+    // TODO: enable write
+    return cNil;
+
+    off_t index_offset;
 
     // Write the data.
-    if(::msync(data(), size(), MS_SYNC)) {
-      logger::warn("codedb: close: %s: failed to write data", strerror(errno));
-      return cNil;
+    size_t update_size;
+
+    if((update_size = size() - regions()->data.end) > 0) {
+      if(::lseek(data_fd(), regions()->data.end, SEEK_SET) < 0) {
+        logger::warn("codedb: close: %s: failed to write data", strerror(errno));
+      }
+
+      const char* ptr = static_cast<const char*>(data())
+        + (regions()->data.end - regions()->data.begin);
+      if(::write(data_fd(), ptr, update_size) != update_size) {
+        logger::warn("codedb: close: %s: failed to write data", strerror(errno));
+      } else {
+        index_offset = ::lseek(data_fd(), 0, SEEK_CUR);
+      }
+    } else {
+      index_offset = regions()->data.end;
     }
 
     ::munmap(data(), state->shared().config.codedb_cache_size);
     ::close(data_fd());
 
-    std::string base_path = path()->c_str(state);
+    std::ofstream stream;
+    stream.open(path()->c_str(state), CODEDB_WRITE_FLAGS);
+
+    if(!stream.is_open()) {
+      logger::warn("codedb: close: %s: failed to open cache", strerror(errno));
+    }
 
     // Write the code ID index.
-    std::string index_path = base_path + "/index";
-    std::ofstream index_stream;
-    index_stream.open(index_path, CODEDB_WRITE_FLAGS);
+    stream.seekp(index_offset, stream.beg);
 
-    for(auto iterator: codedb_index) {
-      const std::string& c_id = iterator.first;
-      const CodeDBIndex& index = iterator.second;
+    for(CodeDBMap::const_iterator i = index()->begin();
+        i != index()->end();
+        ++i)
+    {
+      const std::string& c_id = i->first;
+      const CodeDBIndex& index = i->second;
 
-      index_stream << c_id << " "
-                   << std::dec << std::get<1>(index) << " "
-                   << std::dec << std::get<2>(index) << "\n";
+      stream << c_id << " "
+             << std::dec << std::get<0>(index) << " "
+             << std::dec << std::get<1>(index) << "\n";
     }
-    index_stream.flush();
-    index_stream.close();
 
     // Write the contents.
-    std::string contents_path = base_path + "/contents";
-    std::ofstream contents_stream;
-    contents_stream.open(contents_path, CODEDB_WRITE_FLAGS);
-
-    for(auto iterator: codedb_contents) {
-      const std::string& stem = iterator.first;
-      const CodeDBContent& contents = iterator.second;
+    for(CodeDBContentMap::const_iterator i = contents()->begin();
+        i != contents()->end();
+        ++i)
+    {
+      const std::string& stem = i->first;
+      const CodeDBContent& contents = i->second;
 
       const std::string& path = std::get<0>(contents);
+      const std::string& feature = std::get<1>(contents);
+      const std::string& c_id = std::get<2>(contents);
 
-      contents_stream << stem << " "
-                      << path << " ";
+      stream << stem.size() << " ";
+      if(stem.size() > 0) stream << stem << " ";
 
-      if(path == "#") {
-        contents_stream << path << " ";
+      stream << path.size() << " ";
+      if(path.size() > 0) stream << path << " ";
+
+      stream << feature.size() << " ";
+      if(feature.size() > 0) stream << feature << " ";
+
+      if(c_id.size() > 0) {
+        stream << c_id << " ";
       } else {
-        contents_stream << std::get<1>(contents) << " ";
+        stream << "0" << " ";
       }
 
-      contents_stream << std::get<2>(contents) << " "
-                      << std::get<3>(contents) << "\n";
+      stream << std::get<3>(contents) << "\n";
     }
-    contents_stream.flush();
-    contents_stream.close();
+
+    stream.close();
 
     return cNil;
   }
 
   CompiledCode* CodeDB::load(STATE, const char* c_id) {
+    MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
+
     timer::StopWatch<timer::nanoseconds> timer(
         state->shared().codedb_metrics().load_ns);
 
     state->shared().codedb_metrics().load_count++;
 
-    MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
+    CodeDBMap::const_iterator m = index()->find(std::string(c_id));
 
-    CodeDBMap::const_iterator index = codedb_index.find(std::string(c_id));
-
-    if(index == codedb_index.end()) {
+    if(m == index()->end()) {
       return nil<CompiledCode>();
     }
 
-    CodeDBIndex i = index->second;
+    CodeDBIndex i = m->second;
 
-    const char* ptr = (const char*)std::get<0>(i);
-    std::string data(ptr + std::get<1>(i), std::get<2>(i));
+    const char* ptr = static_cast<const char*>(data());
+    std::string data(ptr + std::get<0>(i), std::get<1>(i));
+
     std::istringstream stream(data);
     UnMarshaller unmarshaller(state, stream);
 
@@ -423,7 +436,7 @@ namespace rubinius {
 
   CompiledCode* CodeDB::load(STATE, Object* id_or_code) {
     if(String* c_id = try_as<String>(id_or_code)) {
-      return CodeDB::load(state, c_id);
+      return load(state, c_id);
     }
 
     return as<CompiledCode>(id_or_code);
@@ -441,34 +454,34 @@ namespace rubinius {
       search.append(extstr);
     }
 
-    CodeDBContentMap::iterator index = codedb_contents.find(search);
+    CodeDBContentMap::iterator index = contents()->find(search);
 
-    if(index != codedb_contents.end()) {
+    if(index != contents()->end()) {
       CodeDBContent& content = index->second;
 
       if(std::get<4>(content) && reload->false_p()) {
-        if(codedb_loadedfeatures.size() != loaded_features()->size()) {
-          codedb_loadedfeatures.clear();
+        if(feature_set()->size() != loaded_features()->size()) {
+          feature_set()->clear();
 
           for(native_int i = 0; i < loaded_features()->size(); i++) {
             if(String* feature = try_as<String>(loaded_features()->get(state, i))) {
-              codedb_loadedfeatures.insert(feature->c_str(state));
+              feature_set()->insert(feature->c_str(state));
             }
           }
         }
 
-        CodeDBLoadedFeaturesSet::const_iterator lf =
-          codedb_loadedfeatures.find(std::get<1>(content));
+        CodeDBLoadedFeatureSet::const_iterator lf =
+          feature_set()->find(std::get<1>(content));
 
-        if(lf != codedb_loadedfeatures.end()) return cFalse;
+        if(lf != feature_set()->end()) return cFalse;
       }
 
       if(CompiledCode* code = try_as<CompiledCode>(
-            CodeDB::load(state, std::get<2>(content).c_str())))
+            load(state, std::get<2>(content).c_str())))
       {
         std::string& path = std::get<0>(content);
 
-        if(path.size() == 1 && path[0] == '#') {
+        if(path.empty()) {
           std::ostringstream path;
 
           path << state->shared().config.codedb_core_path.value
@@ -497,7 +510,7 @@ namespace rubinius {
 
   Object* CodeDB::record_feature(STATE, String* feature) {
     loaded_features()->append(state, feature);
-    codedb_loadedfeatures.insert(feature->c_str(state));
+    feature_set()->insert(feature->c_str(state));
 
     return cNil;
   }
@@ -507,21 +520,9 @@ namespace rubinius {
   {
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
-    const char* path_str = path->byte_size() == 0 ? "#" : path->c_str(state);
+    const char* c_id;
 
-    codedb_contents[stem->c_str(state)] =
-        CodeDBContent(path_str, feature->c_str(state), "", 0, true);
-
-    if(record->true_p()) record_feature(state, feature);
-
-    logger::debug([&](logger::PrintFunction writer){
-        writer("codedb: store: %d %s %s %s", writable()->true_p(),
-            stem->c_str(state), path_str, feature->c_str(state));
-      });
-
-    if(writable()->false_p()) return code;
-
-    if(CompiledCode* ccode = try_as<CompiledCode>(code)) {
+    if(false) { /*CompiledCode* ccode = try_as<CompiledCode>(code)) {
       BlockPhase blocking(state);
 
       std::stack<CompiledCode*> code_stack;
@@ -541,22 +542,37 @@ namespace rubinius {
           }
         }
 
-        std::string stream_data(static_cast<char*>(data()) + size());
-        std::ostringstream stream(stream_data);
+        std::ostringstream stream;
         Marshaller marshaller(state, ccode, stream);
 
         marshaller.marshal();
 
+        std::string data_str = stream.str();
+
         ccode->stamp_id(state);
+        c_id = ccode->code_id()->c_str(state);
 
-        codedb_index[ccode->code_id()->c_str(state)] =
-            CodeDBIndex(data(), size(), stream_data.size());
+        (*index())[c_id] = CodeDBIndex(size(), data_str.size());
 
-        size(size() + stream_data.size());
+        size(size() + data_str.size());
 
         code_stack.pop();
       }
+      */
+    } else {
+      c_id = "";
     }
+
+    contents()->insert(CodeDBContentPair(stem->c_str(state),
+        CodeDBContent(path->c_str(state), feature->c_str(state), c_id, 0, true)));
+
+    if(record->true_p() && feature->byte_size() > 0) {
+      record_feature(state, feature);
+    }
+
+    logger::debug([&](logger::PrintFunction writer){
+        writer("codedb: store: %s %s", stem->c_str(state), feature->c_str(state));
+      });
 
     return code;
   }

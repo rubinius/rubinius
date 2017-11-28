@@ -361,16 +361,26 @@ namespace rubinius {
 
     if(method_id()->nil_p()) return nil<Executable>();
 
-    CompiledCode* code = CodeDB::load(state, as<String>(method_id()));
-    if(LexicalScope* cs = try_as<LexicalScope>(scope())) {
-      code->scope(state, cs);
-    } else {
-      code->scope(state, nil<LexicalScope>());
-    }
-    code->serial(state, serial());
-    method(state, code);
+    if(CompiledCode* code = G(coredb)->load(state, as<String>(method_id()))) {
+      if(code->nil_p()) {
+        std::string msg = "unable to find code in CodeDB for ID: ";
+        msg.append(as<String>(method_id())->c_str(state));
 
-    return as<Executable>(code);
+        Exception::raise_runtime_error(state, msg.c_str());
+      }
+
+      if(LexicalScope* cs = try_as<LexicalScope>(scope())) {
+        code->scope(state, cs);
+      } else {
+        code->scope(state, nil<LexicalScope>());
+      }
+      code->serial(state, serial());
+      method(state, code);
+
+      return as<Executable>(code);
+    }
+
+    return nil<Executable>();
   }
 
   Object* MethodTableBucket::append(STATE, MethodTableBucket* nxt) {

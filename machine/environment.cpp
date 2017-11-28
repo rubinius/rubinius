@@ -1,5 +1,4 @@
 #include "config.h"
-#include "signature.h"
 #include "paths.h"
 #include "defines.hpp"
 #include "environment.hpp"
@@ -66,7 +65,6 @@ namespace rubinius {
   Environment::Environment(int argc, char** argv)
     : argc_(argc)
     , argv_(0)
-    , signature_(0)
     , fork_exec_lock_()
     , halt_lock_()
     , finalizer_thread_(NULL)
@@ -455,7 +453,7 @@ namespace rubinius {
   }
 
   void Environment::load_platform_conf(std::string dir) {
-    std::string path = dir + "/cache/platform.conf";
+    std::string path = dir + "/platform.conf";
     std::ifstream stream(path.c_str());
     if(!stream) {
       std::string error = "Unable to load " + path + ", it is missing";
@@ -534,8 +532,7 @@ namespace rubinius {
 
     shared->finalizer()->finish(state);
 
-    as<CodeDB>(G(codedb)->get_ivar(
-          state, state->symbol("@current")))->close(state);
+    if(!G(coredb)->nil_p()) G(coredb)->close(state);
 
     if(Memory* om = state->memory()) {
       if(memory::ImmixMarker* im = om->immix_marker()) {
@@ -617,25 +614,6 @@ namespace rubinius {
     return argv_[0];
   }
 
-  bool Environment::load_signature(std::string codedb_path) {
-    std::string path = codedb_path;
-
-    path += "/signature";
-
-    std::ifstream signature(path.c_str());
-    if(signature) {
-      signature >> signature_;
-
-      if(signature_ != RBX_SIGNATURE) return false;
-
-      signature.close();
-
-      return true;
-    }
-
-    return false;
-  }
-
   bool Environment::verify_paths(std::string prefix) {
     struct stat st;
 
@@ -643,9 +621,7 @@ namespace rubinius {
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
     dir = dir + "/cache";
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
-
-    if(!load_signature(dir)) return false;
+    if(stat(dir.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) return false;
 
     dir = prefix + RBX_BIN_PATH;
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;

@@ -4,8 +4,8 @@
 module Rubinius
   class GlobalVariables
     def initialize
-      load_path = CodeDB.current.load_path
-      loaded_features = CodeDB.current.loaded_features
+      load_path = CoreDB.load_path
+      loaded_features = CoreDB.loaded_features
 
       @internal = LookupTable.new
 

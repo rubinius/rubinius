@@ -18,7 +18,8 @@ require "rakelib/digest_files"
 def core_clean
   rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
-           "codedb",
+           "codedb/platform.conf",
+           "codedb/source",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
            "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*.*",
            "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/Makefile",
@@ -26,19 +27,6 @@ def core_clean
     :verbose => $verbose
 end
 
-codedb_files = FileList[
-  "codedb/cache/contents",
-  "codedb/cache/data",
-  "codedb/cache/index",
-  "codedb/cache/initialize",
-  "codedb/cache/signature",
-  "codedb/cache/platform.conf",
-]
-
-codedb_cache = []
-codedb_contents = []
-codedb_data = []
-codedb_initialize = []
 codedb_source = []
 codedb_library = []
 
@@ -135,12 +123,10 @@ end
 
 namespace :codedb do
   task :signature => signature_files do
-    # TODO: Fix: Collapse the digest to a 64bit quantity
-    hd = digest_files signature_files
-    SIGNATURE_HASH = hd[0, 16].to_i(16) ^ hd[16,16].to_i(16) ^ hd[32,8].to_i(16)
+    SIGNATURE_HASH = digest_files signature_files
   end
 
-  task :extensions => [extensions_dir, melbourne_ext] + codedb_files + extconf_source do
+  task :extensions => [extensions_dir, melbourne_ext] + extconf_source do
     # It would be better to define file commands for every extension but we
     # don't know the extension shared library without some other source
     # parsing so we just iterate based on files.
@@ -163,64 +149,6 @@ namespace :codedb do
     extconf_source.each do |file|
       build_extension bootstrap_gems_dir, file
     end
-
-    ffi_cache = []
-    ffi_contents = []
-    ffi_data = []
-
-    FileList["#{bootstrap_gems_dir}/**/*.rb.ffi"]
-            .map { |x| x.sub(/\.ffi$/, "") }
-            .each do |file|
-      puts "RBC #{file}" if $verbose
-
-      m = %r[(#{bootstrap_gems_dir}/[^/]+/lib/)(.*\.rb)$].match(file)
-
-      dir = m[1]
-      content = m[2]
-
-      Dir.chdir dir do
-        code = CodeDBCompiler.compile(content, 1, [:default, :kernel])
-
-        m_id = code.code_id
-
-        ffi_cache << [m_id, code]
-        ffi_contents << [content, m_id]
-      end
-    end
-
-    while x = ffi_cache.shift
-      id, cc = x
-
-      cc.literals.each_with_index do |value, index|
-        if value.kind_of? Rubinius::CompiledCode
-          cc.literals[index] = i = value.code_id
-          ffi_cache.unshift [i, value]
-        end
-      end
-
-      marshaled = CodeDBCompiler.marshal cc
-
-      ffi_data << [id, marshaled]
-    end
-
-    File.open "codedb/cache/data", "ab" do |f|
-      f.seek 0, IO::SEEK_END
-
-      ffi_data.map! do |m_id, data|
-        offset = f.pos
-        f.write data
-
-        [m_id, offset, f.pos - offset]
-      end
-    end
-
-    File.open "codedb/cache/index", "ab" do |f|
-      ffi_data.each { |m_id, offset, length| f.puts "#{m_id} #{offset} #{length}" }
-    end
-
-    File.open "codedb/cache/contents", "ab" do |f|
-      ffi_contents.each { |file, m_id| f.puts "#{file} # # #{m_id} 0" }
-    end
   end
 end
 
@@ -228,152 +156,16 @@ signature_header = "machine/gen/signature.h"
 
 file signature_header => "codedb:signature" do |t|
   File.open t.name, "wb" do |file|
-    file.puts "#define RBX_SIGNATURE          #{SIGNATURE_HASH}ULL"
+    file.puts "#define RBX_SIGNATURE          #{SIGNATURE_HASH.inspect}"
   end
 end
 
-file "codedb/cache/signature" => ["codedb:signature", "codedb/cache"] do |t|
-  File.open t.name, "wb" do |file|
-    puts "GEN #{t.name}"
-    file.puts SIGNATURE_HASH
-  end
-end
-
-namespace :compiler do
-  task :load => :signature do
-    Rubinius::Signature = SIGNATURE_HASH
-
-    require "rubinius/bridge"
-    require "rubinius/code/toolset"
-
-    Rubinius::ToolSets.create :build do
-      require "rubinius/code/melbourne"
-      require "rubinius/code/processor"
-      require "rubinius/code/compiler"
-      require "rubinius/code/ast"
-    end
-  end
-
-  task :signature => "codedb:signature"
-end
-
-class CodeDBCompiler
-  def self.compile(file, line, transforms)
-    compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_code
-
-    parser = compiler.parser
-    parser.root Rubinius::ToolSets::Build::AST::Script
-
-    if transforms.kind_of? Array
-      transforms.each { |t| parser.enable_category t }
-    else
-      parser.enable_category transforms
-    end
-
-    parser.input file, line
-
-    generator = compiler.generator
-    generator.processor Rubinius::ToolSets::Build::Generator
-
-    compiler.run
-  end
-
-  def self.marshal(code)
-    marshaler = Rubinius::ToolSets::Build::CompiledFile::Marshal.new
-    marshaler.marshal code
-  end
-end
-
-directory "codedb/cache"
-
-file "codedb/cache/data" => ["codedb/cache", core_load_order] + codedb_source do |t|
-  puts "CodeDB: writing data..."
-
-  Dir.chdir "codedb/source" do
-    codedb_source.each do |file|
-      puts "RBC #{file}" if $verbose
-
-      content = %r[codedb/source/(.*)$].match(file)[1]
-
-      code = CodeDBCompiler.compile(content, 1, [:default, :kernel])
-      id = code.code_id
-
-      codedb_cache << [id, code]
-      codedb_contents << [content, id]
-
-      codedb_initialize << id if %r[^core/] =~ content
-    end
-  end
-
-  while x = codedb_cache.shift
-    id, cc = x
-
-    cc.literals.each_with_index do |value, index|
-      if value.kind_of? Rubinius::CompiledCode
-        cc.literals[index] = i = value.code_id
-        codedb_cache.unshift [i, value]
-      end
-    end
-
-    marshaled = CodeDBCompiler.marshal cc
-
-    codedb_data << [id, marshaled]
-  end
-
-  File.open t.name, "wb" do |f|
-    codedb_data.map! do |m_id, data|
-      offset = f.pos
-      f.write data
-
-      [m_id, offset, f.pos - offset]
-    end
-  end
-end
-
-file "codedb/cache/index" => "codedb/cache/data" do |t|
-  puts "CodeDB: writing index..."
-
-  unless codedb_data.empty?
-    File.open t.name, "wb" do |f|
-      codedb_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
-    end
-  end
-end
-
-file "codedb/cache/contents" => "codedb/cache/data" do |t|
-  puts "CodeDB: writing contents..."
-
-  unless codedb_contents.empty?
-    File.open t.name, "wb" do |f|
-      codedb_contents.each { |file, id| f.puts "#{file} # # #{id} 0" }
-    end
-  end
-end
-
-file "codedb/cache/initialize" => "codedb/cache/data" do |t|
-  puts "CodeDB: writing initialize..."
-
-  unless codedb_initialize.empty?
-    File.open t.name, "wb" do |f|
-      codedb_initialize.each { |id| f.puts id }
-    end
-  end
-end
-
-file "codedb/cache/signature" => "codedb:signature" do |t|
-  puts "CodeDB: writing signature..."
-
-  File.open t.name, "wb" do |f|
-    f.puts SIGNATURE_HASH
-  end
-end
-
-desc "Build all core library files (alias for core:build)"
+desc "Build all core library files"
 task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => ["compiler:load"] + codedb_files + codedb_library + ["codedb:extensions"]
+  task :build => ["codedb/platform.conf", signature_header] + codedb_source + codedb_library + ["codedb:extensions"]
 
   desc "Delete all core and library artifacts"
   task :clean do

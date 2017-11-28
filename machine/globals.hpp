@@ -29,6 +29,7 @@
 
 namespace rubinius {
 
+  class CodeDB;
   class LookupTable;
   class Tuple;
   class Module;
@@ -132,6 +133,7 @@ namespace rubinius {
     memory::TypedRoot<JIT*> jit;
     memory::TypedRoot<Module*> runtime;
     memory::TypedRoot<Class*> codedb;
+    memory::TypedRoot<CodeDB*> coredb;
 
     memory::TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
@@ -267,6 +269,7 @@ namespace rubinius {
       jit(&roots),
       runtime(&roots),
       codedb(&roots),
+      coredb(&roots),
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)

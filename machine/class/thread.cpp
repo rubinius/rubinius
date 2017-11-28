@@ -303,9 +303,6 @@ namespace rubinius {
   Object* Thread::main_thread(STATE) {
     state->vm()->managed_phase(state);
 
-    G(rubinius)->set_const(state, "Signature",
-        Integer::from(state, state->shared().env()->signature()));
-
     state->vm()->thread()->pid(state, Fixnum::from(gettid()));
 
     state->shared().env()->load_core(state);

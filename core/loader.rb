@@ -305,7 +305,7 @@ module Rubinius
       end
 
       options.on "--main", "PATH", "Load PATH directly from CodeDB" do |path|
-        code = Rubinius::CodeDB.load_feature path, "", false, false
+        code = Rubinius::CoreDB.load_feature path, "", false, false
         if code
           code.create_script false
           Rubinius.run_script code

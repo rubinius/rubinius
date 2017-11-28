@@ -77,7 +77,7 @@ module Rubinius
           @feature = @code.file.to_s
         else
           @code = ToolSets::Runtime::Compiler.compile_file @feature
-          CodeDB.store @code, @stem, @prefix, @feature, @record
+          CoreDB.store @code, @stem, @prefix, @feature, @record
         end
 
         run_script
@@ -106,7 +106,7 @@ module Rubinius
       end
 
       def resolve
-        @code = CodeDB.load_feature @stem, CodeLoader.source_extension, false, @record
+        @code = CoreDB.load_feature @stem, CodeLoader.source_extension, false, @record
 
         return true if @code or false.equal? @code
         return true if loadable?
@@ -131,7 +131,7 @@ module Rubinius
       end
 
       def resolve
-        @code = CodeDB.load_feature @stem, CodeLoader.source_extension, true, @record
+        @code = CoreDB.load_feature @stem, CodeLoader.source_extension, true, @record
 
         return true if @code
         return true if loadable?
@@ -153,6 +153,9 @@ module Rubinius
       end
 
       def resolve
+        @code = CoreDB.load_feature @stem, "", true, @record
+
+        return true if @code
         return true if loadable?
         return false
       end
@@ -174,7 +177,7 @@ module Rubinius
       end
 
       def load
-        CodeDB.store nil, @stem, @prefix, @feature, @record
+        CoreDB.store nil, @stem, @prefix, @feature, @record
 
         name = File.basename @feature, CodeLoader.library_extension
         NativeMethod.load_extension(@feature, name)

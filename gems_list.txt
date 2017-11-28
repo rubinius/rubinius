@@ -42,9 +42,9 @@ rubysl-e2mmap-2.0.0.gem
 rubysl-english-2.0.0.gem
 rubysl-enumerator-2.0.0.gem
 rubysl-erb-2.0.2.gem
-rubysl-etc-2.0.3.gem
+rubysl-etc-3.0.gem
 rubysl-expect-2.0.0.gem
-rubysl-fcntl-2.0.4.gem
+rubysl-fcntl-3.0.gem
 rubysl-fiber-2.0.0.gem
 rubysl-fileutils-2.0.3.gem
 rubysl-find-2.0.1.gem
@@ -98,7 +98,7 @@ rubysl-socket-2.2.1.gem
 rubysl-stringio-2.2.gem
 rubysl-strscan-2.0.0.gem
 rubysl-sync-2.0.0.gem
-rubysl-syslog-2.1.0.gem
+rubysl-syslog-3.0.gem
 rubysl-tempfile-2.0.1.gem
 rubysl-test-unit-2.0.3.gem
 rubysl-thread-2.1.gem

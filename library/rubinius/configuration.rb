@@ -14,6 +14,8 @@ Rubinius::ConfigurationVariables.define do |c|
         "Path for the CodeDB cache"
       e.vm_variable "size", 78643200,
         "Maximum size in bytes of the CodeDB cache"
+      e.vm_variable "validate", false,
+        "Check the CodeDB cache signature"
       e.vm_variable "purge", false,
         "Purge the CodeDB cache"
     end

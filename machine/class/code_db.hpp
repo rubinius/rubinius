@@ -3,6 +3,8 @@
 
 #include "class/object.hpp"
 
+#include "signature.h"
+
 #include <cstdint>
 #include <tuple>
 #include <unordered_map>
@@ -13,17 +15,42 @@ namespace rubinius {
   class CompiledCode;
   class String;
 
-  typedef std::tuple<void*, size_t, size_t> CodeDBIndex;
-  typedef std::tuple<std::string, std::string, std::string, uint64_t, bool> CodeDBContent;
+  typedef std::tuple<size_t, size_t> CodeDBIndex;
+  typedef std::pair<std::string, CodeDBIndex> CodeDBIndexPair;
   typedef std::unordered_map<std::string, CodeDBIndex> CodeDBMap;
+  typedef std::tuple<std::string, std::string, std::string, uint64_t, bool> CodeDBContent;
+  typedef std::pair<std::string, CodeDBContent> CodeDBContentPair;
   typedef std::unordered_map<std::string, CodeDBContent> CodeDBContentMap;
   typedef std::unordered_set<std::string> CodeDBLoadPathSet;
-  typedef std::unordered_set<std::string> CodeDBLoadedFeaturesSet;
+  typedef std::unordered_set<std::string> CodeDBLoadedFeatureSet;
 
   class CodeDB : public Object {
   public:
     const static object_type type = CodeDBType;
 
+    const static int header_size = 156;
+    const static int version = 1;
+    const static char* magic;
+    const static char* signature;
+
+    struct Region {
+      int begin;
+      int end;
+
+      void set(int start, int size) {
+        begin = start;
+        end = start + size;
+      }
+    };
+
+    struct Regions {
+      Region initialize;
+      Region data;
+      Region index;
+      Region contents;
+    };
+
+  public:
     attr_accessor(loaded_features, Array);
     attr_accessor(load_path, Array);
     attr_accessor(path, String);
@@ -31,8 +58,14 @@ namespace rubinius {
 
   private:
     attr_field(data_fd, int);
-    attr_field(data, void*);
+    attr_field(mptr, void*);
+    attr_field(data, char*);
     attr_field(size, size_t);
+    attr_field(regions, Regions*);
+    attr_field(index, CodeDBMap*);
+    attr_field(contents, CodeDBContentMap*);
+    attr_field(path_set, CodeDBLoadPathSet*);
+    attr_field(feature_set, CodeDBLoadedFeatureSet*);
 
   public:
     static void bootstrap(STATE);
@@ -42,21 +75,26 @@ namespace rubinius {
     }
 
     static bool valid_database_p(STATE, std::string path);
-    static bool copy_database(STATE, std::string core_path, std::string cache_path);
-    static void purge(STATE, std::string cache_path);
+    static bool copy_database(STATE, std::string src, std::string dest);
+    static void purge(STATE, std::string path);
 
     // Rubinius.primitive :code_db_open
-    static CodeDB* open(STATE, String* core_path, String* cache_path);
+    static CodeDB* open(STATE, String* path);
+
+    static CodeDB* open(STATE, std::string path);
     static CodeDB* open(STATE, std::string core_path, std::string cache_path);
 
     // Rubinius.primitive :code_db_load
-    static CompiledCode* load(STATE, String* c_id);
-    static CompiledCode* load(STATE, const char* c_id);
+    CompiledCode* load(STATE, String* c_id);
+    CompiledCode* load(STATE, const char* c_id);
 
-    static CompiledCode* load(STATE, Object* id_or_code);
+    CompiledCode* load(STATE, Object* id_or_code);
 
     // Rubinius.primitive :code_db_close
     Object* close(STATE);
+
+    // Rubinius.primitive :code_db_load_db
+    Object* load_db(STATE);
 
     // Rubinius.primitive :code_db_load_feature
     Object* load_feature(STATE, String* stem, String* ext, Object* reload, Object* record);

@@ -35,12 +35,6 @@ namespace rubinius {
     int argc_;
     char** argv_;
 
-    /**
-     * Digest of the runtime and configuration files to keep the runtime
-     * and VM in sync.
-     */
-    uint64_t signature_;
-
     utilities::thread::SpinLock fork_exec_lock_;
     utilities::thread::Mutex halt_lock_;
 
@@ -70,10 +64,6 @@ namespace rubinius {
       return argv_;
     }
 
-    uint64_t signature() {
-      return signature_;
-    }
-
     utilities::thread::SpinLock& fork_exec_lock() {
       return fork_exec_lock_;
     }
@@ -96,7 +86,6 @@ namespace rubinius {
     std::string executable_name();
     std::string system_prefix();
     bool verify_paths(std::string prefix);
-    bool load_signature(std::string dir);
     void check_io_descriptors();
     void copy_argv(int argc, char** argv);
     void log_argv();

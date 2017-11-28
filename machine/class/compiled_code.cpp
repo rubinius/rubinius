@@ -8,6 +8,7 @@
 #include "machine_code.hpp"
 #include "on_stack.hpp"
 #include "logger.hpp"
+#include "signature.h"
 
 #include "class/call_site.hpp"
 #include "class/class.hpp"
@@ -406,11 +407,12 @@ namespace rubinius {
 
   String* CompiledCode::stamp_id(STATE) {
     unsigned char hash[crypto_generichash_BYTES];
-    uint64_t data, key_src = state->shared().env()->signature();
-    unsigned char* key = reinterpret_cast<unsigned char*>(&key_src);
+    uint64_t data;
     crypto_generichash_state hs;
 
-    crypto_generichash_init(&hs, key, sizeof(uint64_t), sizeof(hash));
+    crypto_generichash_init(&hs,
+        reinterpret_cast<const unsigned char*>(RBX_SIGNATURE),
+        sizeof(RBX_SIGNATURE) - 1, sizeof(hash));
 
     auto tuple_hash = [](crypto_generichash_state *hs, Tuple *t) {
       if(t->nil_p()) return;

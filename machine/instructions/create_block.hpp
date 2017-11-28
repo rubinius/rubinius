@@ -10,7 +10,7 @@ namespace rubinius {
       CompiledCode* code = 0;
 
       if(!(code = try_as<CompiledCode>(code_or_id))) {
-        code = CodeDB::load(state, as<String>(code_or_id));
+        code = G(coredb)->load(state, as<String>(code_or_id));
         store_literal(call_frame, reinterpret_cast<opcode>(code));
       }
 

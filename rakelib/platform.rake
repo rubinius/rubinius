@@ -4,8 +4,8 @@ directory "codedb/cache"
 
 deps = %w[Rakefile rakelib/platform.rake codedb/cache] + Dir['lib/ffi/*rb']
 
-file 'codedb/cache/platform.conf' => deps do |task|
-  puts "GEN codedb/cache/platform.conf"
+file 'codedb/platform.conf' => deps do |task|
+  puts "GEN codedb/platform.conf"
 
   File.open task.name, "wb" do |f|
     Rubinius::FFI::Generators::Structures.new 'addrinfo' do |s|
@@ -200,6 +200,31 @@ file 'codedb/cache/platform.conf' => deps do |task|
       s.field :st_ctime, :time_t
     end.write_config(f)
 
+    Rubinius::FFI::Generators::Structures.new 'pwd' do |s|
+      s.include "sys/types.h"
+      s.include "pwd.h"
+
+      s.name "struct passwd"
+      s.field :pw_name, :string
+      s.field :pw_passwd, :string
+      s.field :pw_uid, :uid_t
+      s.field :pw_gid, :gid_t
+      s.field :pw_gecos, :string
+      s.field :pw_dir, :string
+      s.field :pw_shell, :string
+    end.write_config(f)
+
+    Rubinius::FFI::Generators::Structures.new 'grp' do |s|
+      s.include "sys/types.h"
+      s.include "grp.h"
+
+      s.name "struct group"
+      s.field :gr_name, :string
+      s.field :gr_passwd, :string
+      s.field :gr_gid, :gid_t
+      s.field :gr_mem, :pointer
+    end.write_config(f)
+
     unless BUILD_CONFIG[:windows]
       Rubinius::FFI::Generators::Structures.new 'rlimit' do |s|
         s.include "sys/types.h"
@@ -291,7 +316,7 @@ file 'codedb/cache/platform.conf' => deps do |task|
     # Not available on all platforms. Try to load these constants anyway.
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.advise' do |cg|
       cg.include 'fcntl.h'
-      
+
       advise_constants = %w[
         POSIX_FADV_NORMAL
         POSIX_FADV_SEQUENTIAL
@@ -300,24 +325,86 @@ file 'codedb/cache/platform.conf' => deps do |task|
         POSIX_FADV_DONTNEED
         POSIX_FADV_NOREUSE
       ]
-      
+
       advise_constants.each { |c| cg.const c }
     end.write_constants(f)
 
-    # Only constants needed by core are added here
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.fcntl' do |cg|
       cg.include 'fcntl.h'
 
       fcntl_constants = %w[
+        F_DUPFD
+        F_GETFD
+        F_GETLK
+        F_SETFD
         F_GETFL
         F_SETFL
-        O_ACCMODE
-        F_GETFD
-        F_SETFD
+        F_SETLK
+        F_SETLKW
         FD_CLOEXEC
+        F_RDLCK
+        F_UNLCK
+        F_WRLCK
+        O_CREAT
+        O_EXCL
+        O_NOCTTY
+        O_TRUNC
+        O_APPEND
+        O_NONBLOCK
+        O_NDELAY
+        O_RDONLY
+        O_RDWR
+        O_WRONLY
+        O_ACCMODE
       ]
 
       fcntl_constants.each { |c| cg.const c }
+    end.write_constants(f)
+
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.syslog' do |cg|
+      cg.include 'syslog.h'
+
+      syslog_constants = %w[
+        LOG_EMERG
+        LOG_ALERT
+        LOG_ERR
+        LOG_CRIT
+        LOG_WARNING
+        LOG_NOTICE
+        LOG_INFO
+        LOG_DEBUG
+        LOG_PID
+        LOG_CONS
+        LOG_ODELAY
+        LOG_NDELAY
+        LOG_NOWAIT
+        LOG_PERROR
+        LOG_AUTH
+        LOG_AUTHPRIV
+        LOG_CONSOLE
+        LOG_CRON
+        LOG_DAEMON
+        LOG_FTP
+        LOG_KERN
+        LOG_LPR
+        LOG_MAIL
+        LOG_NEWS
+        LOG_NTP
+        LOG_SECURITY
+        LOG_SYSLOG
+        LOG_USER
+        LOG_UUCP
+        LOG_LOCAL0
+        LOG_LOCAL1
+        LOG_LOCAL2
+        LOG_LOCAL3
+        LOG_LOCAL4
+        LOG_LOCAL5
+        LOG_LOCAL6
+        LOG_LOCAL7
+      ]
+
+      syslog_constants.each { |c| cg.const c }
     end.write_constants(f)
 
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.socket' do |cg|

@@ -531,16 +531,6 @@ module Rubinius
     ]
   end
 
-  class CodeLoader
-    Lock = Object.new
-
-    # Hook support. This allows code to be told when a file was just compiled,
-    # or when it has finished loading.
-    @compiled_hook = Rubinius::Hook.new
-    @loaded_hook = Rubinius::Hook.new
-    @loaded_features_index = Hash.new(false)
-  end
-
   module CType
     Printed = Rubinius::Tuple.new 256
     i = 0

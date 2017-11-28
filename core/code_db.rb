@@ -3,31 +3,29 @@ module Rubinius
     attr_accessor :loaded_features
     attr_accessor :load_path
 
+    class << self
+      # CodeDB.open is the constructor
+      private :new
+    end
+
     def self.open(path)
       Rubinius.primitive :code_db_open
       raise PrimitiveFailure, "Rubinius::CodeDB.open primitive failed"
     end
 
-    def self.load(m_id)
-      Rubinius.primitive :code_db_load
-      raise PrimitiveFailure, "Rubinius::CodeDB.load primitive failed"
-    end
-
-    def self.current
-      @current
-    end
-
-    def self.load_feature(stem, ext, reload, record)
-      current.load_feature stem, ext, reload, record
-    end
-
-    def self.store(code, stem, path, feature, record)
-      current.store code, stem, path, feature, record
+    def load_db
+      Rubinius.primitive :code_db_load_db
+      raise PrimitiveFailure, "Rubinius::CodeDB#load_db primitive failed"
     end
 
     def close
       Rubinius.primitive :code_db_close
       raise PrimitiveFailure, "Rubinius::CodeDB#close primitive failed"
+    end
+
+    def load(id)
+      Rubinius.primitive :code_db_load
+      raise PrimitiveFailure, "Rubinius::CodeDB#load primitive failed"
     end
 
     def load_feature(stem, ext, reload, record)
