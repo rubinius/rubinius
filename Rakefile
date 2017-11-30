@@ -1,5 +1,3 @@
-require 'bundler/setup'
-require 'redcard'
 require './rakelib/configure'
 require './rakelib/build_signature'
 
@@ -51,12 +49,6 @@ load_configuration
 
 unless verify_build_signature or $cleaning or ENV["RBX_IGNORE_BUILD_SIGNATURE"]
   STDERR.puts "Your configuration is outdated, please run ./configure first"
-  exit 1
-end
-
-# Yes, this is duplicated from the configure script for now.
-unless RedCard.check :ruby, :rubinius
-  STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
   exit 1
 end
 
