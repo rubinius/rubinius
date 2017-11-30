@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'bundler/setup'
 require './rakelib/configure'
 require './rakelib/release'
 require './rakelib/build_signature'
@@ -13,7 +11,6 @@ require 'date'
 require 'digest/md5'
 require 'digest/sha2'
 require 'net/http'
-require 'redcard'
 
 module Rubinius
   BUILD_CONFIG = {}
@@ -1890,15 +1887,6 @@ int main(int argc, char* argv[]) {
   end
 
   def run
-    unless RedCard.check :ruby, :rubinius
-      failure "Sorry, building Rubinius requires MRI or Rubinius."
-    end
-
-    unless RedCard.check "1.8.7"
-      @log.write "Ruby version 1.8.7+ is required to build Rubinius."
-      @log.write "Your version may work but is unsupported."
-    end
-
     options
     set_host
     parse ARGV
@@ -2126,7 +2114,7 @@ Available commands are:
   end
 
   def brew(args)
-    Bundler.with_clean_env { `brew #{args}`.chomp }
+    `brew #{args}`.chomp
   end
 
   # Returns true if the *brew* command is in the PATH and identifies
