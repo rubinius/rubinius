@@ -19,7 +19,7 @@ before_script:
 - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure --with-include-dir=$OPENSSL_DIR/include --with-lib-dir=$OPENSSL_DIR/lib --llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8; fi
 script: rake ci
 after_success:
-- if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/build_support.sh archive_core; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/build_support.sh archive_codedb; fi
 - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi
 branches:
   only:

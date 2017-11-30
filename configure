@@ -11,6 +11,7 @@ require 'fileutils'
 require 'stringio'
 require 'date'
 require 'digest/md5'
+require 'digest/sha2'
 require 'net/http'
 require 'redcard'
 
@@ -54,6 +55,7 @@ class Configure
     @make = nil
     @rake = nil
     @tar = nil
+    @bzip = nil
     @perl = nil
     @gem = nil
 
@@ -272,6 +274,10 @@ class Configure
 
     o.on "--tar", "NAME", "Use NAME as 'tar'" do |name|
       @tar = name
+    end
+
+    o.on "--bzip", "NAME", "Use NAME as 'bzip'" do |name|
+      @bzip = name
     end
 
     o.on "--perl", "NAME", "Use NAME as 'perl' during build" do |name|
@@ -708,6 +714,7 @@ not support #{name} compiler, please email contact@rubinius.com
     @make ||= ENV['MAKE'] || 'make'
     @rake ||= ENV['RAKE'] || 'rake'
     @tar ||= ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
+    @bzip ||= ENV['BZIP'] || 'bzip2'
     @perl ||= ENV['PERL'] || 'perl'
     @gem ||= ENV['GEM'] || 'gem'
 
@@ -1848,6 +1855,34 @@ int main(int argc, char* argv[]) {
     unpack_gems @gems_cache, @bootstrap_gems_dir, @gem_files
   end
 
+  def setup_codedb
+    @log.write "\nSetting up CodeDB..."
+
+    dir = "#{@build_prefix}/codedb"
+    codedb_cache = "#{dir}/cache"
+
+    unless File.file? codedb_cache
+      url = "https://rubinius-binaries-rubinius-com.s3.amazonaws.com/codedb/"
+      cache = "rubinius-codedb-cache"
+      cache_bzip = "#{cache}.bz2"
+      cache_digest = "#{cache_bzip}.sha512"
+
+      unless File.file? cache_bzip
+        download "#{url}#{cache_bzip}", cache_bzip
+      end
+
+      unless File.file? cache_digest
+        download "#{url}#{cache_digest}", cache_digest
+      end
+
+      if Digest::SHA512.file(cache_bzip).hexdigest ==
+          File.read(cache_digest).strip.split(" ").first
+        FileUtils.mkdir_p dir
+        system("#{@bzip} -c -d #{cache_bzip} > #{codedb_cache}")
+      end
+    end
+  end
+
   # Create directories that don't have to be created by the end user
   # themselves.
   def create_directories
@@ -1886,6 +1921,7 @@ int main(int argc, char* argv[]) {
       fetch_gems
     end
     setup_gems
+    setup_codedb
     write_configure_files
     write_build_signature
 

@@ -9,22 +9,23 @@ source "$__dir__/aws.sh"
 # shellcheck source=scripts/io.sh
 source "$__dir__/io.sh"
 
-function rbx_archive_core {
+function rbx_archive_codedb {
   local archive ext url bucket
 
-  archive="$(rbx_runtime_core_name)"
+  archive="$(rbx_codedb_cache_name)"
   ext=".sha512"
   bucket="$(rbx_binary_bucket)"
   url=$(rbx_url_prefix "$bucket")
+  path="/codedb/"
 
   rm -f "$archive" "$archive$ext"
 
-  "$__dir__/package.sh" core || fail "unable to package runtime core"
+  "$__dir__/package.sh" codedb || fail "unable to package codedb cache"
 
-  rbx_s3_upload "$url" "$bucket" "$archive" "$archive" "/runtime/" ||
-    fail "unable to upload runtime core archive"
-  rbx_s3_upload "$url" "$bucket" "$archive$ext" "$archive$ext" "/runtime/" ||
-    fail "unable to upload runtime core archive digest"
+  rbx_s3_upload "$url" "$bucket" "$archive" "$archive" "$path" ||
+    fail "unable to upload codedb cache archive"
+  rbx_s3_upload "$url" "$bucket" "$archive$ext" "$archive$ext" "$path" ||
+    fail "unable to upload codedb cache archive digest"
 
   rm -f "$archive" "$archive$ext"
 }
@@ -38,8 +39,8 @@ EOM
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   case "$1" in
-    "archive_core")
-      rbx_archive_core
+    "archive_codedb")
+      rbx_archive_codedb
       ;;
     "-h"|"--help"|*)
       rbx_build_support_usage

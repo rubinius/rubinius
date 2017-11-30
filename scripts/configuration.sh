@@ -57,8 +57,8 @@ function rbx_heroku_release_name {
   echo "ruby-2.2.2-rbx-$(rbx_revision_version).tar.bz2"
 }
 
-function rbx_runtime_core_name {
-  echo "rubinius-runtime-core.tar.bz2"
+function rbx_codedb_cache_name {
+  echo "rubinius-codedb-cache.bz2"
 }
 
 function rbx_release_bucket {

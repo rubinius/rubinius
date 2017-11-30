@@ -57,6 +57,7 @@ tmtags
 /build/bin/cc
 /build/bin/c++
 Gemfile.installed.lock
+rubinius-codedb-cache.bz2*
 
 # .revision tracks configure and code revision consistency
 .revision
