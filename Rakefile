@@ -52,6 +52,12 @@ unless verify_build_signature or $cleaning or ENV["RBX_IGNORE_BUILD_SIGNATURE"]
   exit 1
 end
 
+unless ENV["RBX_SUPRESS_DEPRECATION"]
+  STDERR.puts "              *** DEPRECATION NOTICE ***" \
+    "\n\nUse of Rake is deprecated and will be removed in the future.\n" \
+    "Use 'build.sh' to configure, build, package, and install Rubinius.\n\n\n"
+end
+
 if BUILD_CONFIG[:build_bin]
   ENV["PATH"] = "#{BUILD_CONFIG[:build_bin]}:#{ENV["PATH"]}"
 end

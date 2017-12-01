@@ -1889,6 +1889,12 @@ int main(int argc, char* argv[]) {
   end
 
   def run
+    unless ENV["RBX_SUPRESS_DEPRECATION"]
+      @log.write "              *** DEPRECATION NOTICE ***" \
+        "\n\n'configure' is deprecated and will be removed in the future.\n" \
+        "Use 'build.sh' to configure, build, package, and install Rubinius.\n\n\n"
+    end
+
     options
     set_host
     parse ARGV

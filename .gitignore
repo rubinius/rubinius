@@ -56,7 +56,6 @@ tmtags
 /bootstrap
 /build/bin/cc
 /build/bin/c++
-Gemfile.installed.lock
 rubinius-codedb-cache.bz2*
 
 # .revision tracks configure and code revision consistency
@@ -85,7 +84,6 @@ rubinius-codedb-cache.bz2*
 # rubysl-digest installs this header
 machine/include/capi/ruby/digest.h
 
-/core/signature.rb
 /core/build_config.rb
 
 # Ignore generated DTrace header
