@@ -97,8 +97,7 @@ class Configure
     @gemsdir      = nil
     @includedir   = nil
 
-    @stagingdir       = nil
-    @build_prefix     = nil
+    @builddir     = nil
     @capi_includedir  = "#{@sourcedir}/machine/include/capi"
 
     @bootstrap_gems_dir = nil
@@ -232,14 +231,14 @@ class Configure
 
     dirs.each { |d| d.replace d[size..-1] }
 
-    unless @prefixdir == @sourcedir
-      @stagingdir ||= "#{@sourcedir}/staging"
-      FileUtils.rm_rf @stagingdir
-      @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
-      FileUtils.mkdir_p @stagingdir
+    @builddir = "#{@sourcedir}/build/rubinius"
+
+    if @preserve_prefix
+      @builddir = "#{builddir}/#{@prefixdir}"
     end
 
-    @build_prefix = @stagingdir || @sourcedir
+    FileUtils.mkdir_p @builddir
+
     @bootstrap_gems_dir ||= "#{@sourcedir}/bootstrap/gems"
   end
 
@@ -425,7 +424,7 @@ class Configure
     end
 
     o.on "--stagingdir", "PATH", "Use PATH to build and prepare all files for install" do |dir|
-      @stagingdir = expand dir
+      @builddir = expand dir
     end
 
     o.doc "\n Optional features"
@@ -1590,11 +1589,10 @@ int main(int argc, char* argv[]) {
       :dtrace_const       => @dtrace_const,
       :debug_build        => @debug_build,
       :sourcedir          => @sourcedir,
-      :stagingdir         => @stagingdir,
-      :build_prefix       => @build_prefix,
+      :builddir           => @builddir,
       :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
-      :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
+      :build_exe          => "#{@prefixdir}#{@bindir}/#{@program_name}",
       :build_bin          => @build_bin,
       :prefixdir          => @prefixdir,
       :bindir             => @bindir,
@@ -1857,7 +1855,7 @@ int main(int argc, char* argv[]) {
   def setup_codedb
     @log.write "\nSetting up CodeDB..."
 
-    dir = "#{@build_prefix}/codedb"
+    dir = "#{@builddir}/codedb"
     codedb_cache = "#{dir}/cache"
 
     unless File.file? codedb_cache
@@ -1890,8 +1888,7 @@ int main(int argc, char* argv[]) {
 
   def run
     unless ENV["RBX_SUPRESS_DEPRECATION"]
-      @log.write "              *** DEPRECATION NOTICE ***" \
-        "\n\n'configure' is deprecated and will be removed in the future.\n" \
+      @log.deprecated "\n\n'configure' is deprecated and will be removed in the future.\n" \
         "Use 'build.sh' to configure, build, package, and install Rubinius.\n\n\n"
     end
 
@@ -1943,7 +1940,7 @@ irc.freenode.net and provide the following system information:
       EOM
     end
 
-    unless @stagingdir
+    unless @builddir
       build_msg = <<-EOM
 Rubinius (#{release_revision.last[0, 8]}) has been configured.
 
@@ -1957,9 +1954,7 @@ prefix:     #{@prefixdir}
 bin:        #{@prefixdir}#{@bindir}
 lib:        #{@prefixdir}#{@libdir}
 include:    #{@prefixdir}#{@includedir}
-runtime:    #{@prefixdir}#{@runtimedir}
 codedb:     #{@prefixdir}#{@codedbdir}
-core:       #{@prefixdir}#{@coredir}
 site:       #{@prefixdir}#{@sitedir}
 arch:       #{@prefixdir}#{@archdir}
 vendor:     #{@prefixdir}#{@vendordir}

@@ -62,14 +62,6 @@ if BUILD_CONFIG[:build_bin]
   ENV["PATH"] = "#{BUILD_CONFIG[:build_bin]}:#{ENV["PATH"]}"
 end
 
-def libprefixdir
-  if BUILD_CONFIG[:stagingdir]
-    "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:libdir]}"
-  else
-    "#{BUILD_CONFIG[:sourcedir]}/lib"
-  end
-end
-
 # Set the build compiler to the configured compiler unless
 # the compiler is set via CC environment variable.
 ENV['CC'] = BUILD_CONFIG[:cc] unless ENV['CC']
@@ -120,11 +112,7 @@ class SpecRunner
   end
 end
 
-if BUILD_CONFIG[:stagingdir]
-  task :default => [:spec, :check_status, :install]
-else
-  task :default => :spec
-end
+task :default => [:spec, :check_status, :install]
 
 def check_status
   exit 1 unless SpecRunner.at_exit_status == 0

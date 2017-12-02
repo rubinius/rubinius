@@ -56,12 +56,7 @@ class RubiniusPackager
 
   # root directory of the build
   def root
-    if BUILD_CONFIG[:stagingdir]
-      default = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
-    else
-      default = BUILD_CONFIG[:sourcedir]
-    end
-    @root || default
+    @root ||= BUILD_CONFIG[:builddir][0...-BUILD_CONFIG[:prefixdir].size]
   end
 
   # path for a binary symlink

@@ -111,7 +111,7 @@ field_extract_headers = %w[
 
 transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
 
-libdir = "#{BUILD_CONFIG[:build_prefix]}"
+libdir = "#{BUILD_CONFIG[:builddir]}"
 transcoders_lib_dir = "#{libdir}/#{BUILD_CONFIG[:encdir]}"
 directory transcoders_lib_dir
 
@@ -144,8 +144,8 @@ namespace :build do
     stage:extra_bins
     stage:capi_include
     core:build
-    stage:core
-    stage:runtime
+    stage:site
+    stage:codedb
     stage:lib
     stage:documentation
     stage:manpages
