@@ -32,7 +32,7 @@ class Configure
 
     @features = {}
     @defines = []
-    @config = File.join(root, "config.rb")
+    @config = File.join(root, "build/config/config.rb")
 
     # Platform settings
     @host = `sh -c ./rakelib/config.guess`.chomp
@@ -1759,7 +1759,7 @@ int main(int argc, char* argv[]) {
   def print_debug
     puts "\nUsing the following configuration to build"
     puts "------------------------------------------"
-    cat("config.rb")
+    cat("build/config/config.rb")
     puts "\nSetting the following defines for the VM"
     puts "----------------------------------------"
     cat("machine/gen/config.h")

@@ -32,7 +32,7 @@ end
 
 def build_signature
   write_build_ruby
-  digest_files Dir[*%W[configure config.rb #{build_ruby} Rakefile rakelib/*]]
+  digest_files Dir[*%W[configure build/config/config.rb #{build_ruby} Rakefile rakelib/*]]
 end
 
 def verify_build_signature

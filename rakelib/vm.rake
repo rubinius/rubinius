@@ -192,7 +192,7 @@ task vm_release_h do |t|
   write_release t.name
 end
 
-file 'machine/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|
+file 'machine/gen/config_variables.h' => %w[library/rubinius/configuration.rb build/config/config.rb] do |t|
   puts "GEN #{t.name}"
   ruby 'build/scripts/config_vars.rb', t.name
 end

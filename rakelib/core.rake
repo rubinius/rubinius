@@ -82,7 +82,7 @@ end
 
 config_files = FileList[
   "Rakefile",
-  "config.rb",
+  "build/config/config.rb",
   "rakelib/*.rb",
   "rakelib/*.rake"
 ]

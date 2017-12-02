@@ -1,4 +1,5 @@
 def write_config_rb(path, config)
+  FileUtils.mkdir_p File.dirname(path)
   File.open path, "wb" do |f|
     f.puts <<-EOC
 module Rubinius

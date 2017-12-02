@@ -56,6 +56,7 @@ tmtags
 /bootstrap
 /build/bin/cc
 /build/bin/c++
+/build/config/config.rb
 rubinius-codedb-cache.bz2*
 
 # .revision tracks configure and code revision consistency
