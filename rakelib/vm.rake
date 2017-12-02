@@ -166,23 +166,23 @@ end
 
 directory "machine/gen"
 
-file 'machine/codegen/field_extract.rb'    => 'machine/gen'
+file 'build/scripts/field_extract.rb'    => 'machine/gen'
 
 task :run_field_extract do
-  ruby 'machine/codegen/field_extract.rb', *field_extract_headers
+  ruby 'build/scripts/field_extract.rb', *field_extract_headers
 end
 
-files TYPE_GEN, field_extract_headers + %w[machine/codegen/field_extract.rb] + [:run_field_extract] do
+files TYPE_GEN, field_extract_headers + %w[build/scripts/field_extract.rb] + [:run_field_extract] do
 end
 
-encoding_extract = 'machine/codegen/encoding_extract.rb'
+encoding_extract = 'build/scripts/encoding_extract.rb'
 
 file encoding_database => encoding_extract do |t|
   dir = File.expand_path "../../vendor/oniguruma", __FILE__
   ruby encoding_extract, dir, t.name
 end
 
-transcoders_extract = 'machine/codegen/transcoders_extract.rb'
+transcoders_extract = 'build/scripts/transcoders_extract.rb'
 
 file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
@@ -194,7 +194,7 @@ end
 
 file 'machine/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|
   puts "GEN #{t.name}"
-  ruby 'machine/codegen/config_vars.rb', t.name
+  ruby 'build/scripts/config_vars.rb', t.name
 end
 
 file 'machine/dtrace/probes.h' do |t|
