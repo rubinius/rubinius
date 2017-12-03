@@ -1846,8 +1846,6 @@ int main(int argc, char* argv[]) {
   def setup_gems
     @log.write "\nSetting up gems..."
 
-    system("gem install daedalus-core")
-
     # Remove unpacked gems not specified by these configure settings
     clean_gems @bootstrap_gems_dir, @gem_names
 

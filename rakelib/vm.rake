@@ -121,11 +121,9 @@ Dir["#{transcoders_src_dir}/*.c"].each do |name|
   target = File.join transcoders_lib_dir, File.basename(name)
 
   task name do
-    STDERR.puts "**** transcoder task: #{name}"
   end
 
   file target => name do |t|
-    STDERR.puts "**** transcoder file: #{t.name}, #{t.prerequisites.first}"
     cp t.prerequisites.first, t.name, :preserve => true, :verbose => $verbose
   end
 

@@ -19,6 +19,7 @@
 
 require 'set'
 
+module Daedalus
 class DependencyGrapher
   DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
 
@@ -27,10 +28,58 @@ class DependencyGrapher
       @expression = expression
     end
 
-    # TODO: when melbourne is running in MRI, use it to parse
-    # the expression and then evaluate it.
     def evaluate(defines)
-      @expression == "0" ? false : true
+      # Stage0: eliminate comments
+      @expression.gsub!(/(\/\/.*)$/, "")
+      @expression.gsub!(/(\/\*.*\*\/)/, "")
+
+      # Stage1: find 'defined's and evaluate
+      #         replace defined with boolean evaluation value
+      re = /((!|\s*)?defined((\(|\s+)(\s*[^) ]+)(\)|\s|$)))/o
+      @expression.gsub!(re) do |expr|
+        m = expr.match(re)
+        negate = m[2] == "!"
+        key = m[5].strip
+
+        value = defines.include? key
+        value = !value if negate
+        value ? "true" : "false"
+      end
+
+      # Stage2: scan macro-defined keywords
+      #         replace with actual value (true or false)
+      # this covers patterns like __clang__ and __x86_64__
+      @expression.gsub!(/__[A-Za-z0-9_]+__/) do |expr|
+        if defines.include?(expr)
+          defines[expr].to_s
+        elsif integer?(expr)
+          expr
+        else
+          '0'
+        end
+      end
+
+      # this covers other patters.
+      @expression.gsub!(/[A-Z0-9_]{4,}/) do |expr|
+        if defines.include?(expr)
+          defines[expr].to_s
+        elsif integer?(expr)
+          expr
+        else
+          '0'
+        end
+      end
+
+      # Stage3: Evaluate with ruby eval()
+      eval(@expression)
+    end
+
+    private
+    def integer?(str)
+      Integer(str)
+      true
+    rescue
+      false
     end
   end
 
@@ -88,11 +137,10 @@ class DependencyGrapher
 
     attr_reader :name, :object_name, :includes, :dependencies
 
-    def initialize(name, parser, objects_dir=nil)
+    def initialize(name, parser)
       super parser
       @name = name
       @object_name = name.sub(/((c(pp)?)|S)$/, 'o')
-      @objects_dir = objects_dir
       @includes = []
     end
 
@@ -111,14 +159,10 @@ class DependencyGrapher
 
     def print_dependencies(out, max)
       str = "#{@object_name}:"
-      str = "#{@objects_dir}/#{str}" if @objects_dir
       out.print str
 
       width = str.size
       @dependencies.each do |name|
-        # Omit drive letter on Windows.
-        name = name[2..-1] if name[1] == ?:
-
         size = name.size + 1
         if width + size > max
           width = 0
@@ -155,6 +199,12 @@ class DependencyGrapher
         path = File.join dir, @name
         return @name = path if File.file? path
       end
+
+      # Try to find the file in the same directory as where we're looking from
+      dir = File.dirname(node.name)
+      path = File.join dir, @name
+
+      return @name = path if File.file?(path)
 
       raise Errno::ENOENT, "unable to find file to include: #{@name} from #{node.name}"
     end
@@ -374,25 +424,43 @@ class DependencyGrapher
 
     # Parse methods
 
-    def parse_file(name)
-      parse IO.readlines(name)
+    if defined? Encoding
+      def parse_file(name)
+        parse IO.readlines(name, :encoding => "ascii-8bit")
+      end
+    else
+      def parse_file(name)
+        parse IO.readlines(name)
+      end
     end
 
     def parse(lines)
       @line = 0
 
+      re = /^\s*#(include|ifdef|ifndef|endif|else|define|undef|if|elif)(.*)$/o
+      full_line = ""
+
       lines.each do |line|
         @line += 1
-        m = line.match(/^\s*#(include|ifdef|ifndef|endif|else|define|undef|if|elif)(.*)$/)
 
-        # TODO: continue reading if line ends in \
+        full_line.chomp!
+
+        if line[-2] == ?\\
+          full_line += line.chomp("\\\n") + "\n"
+          next
+        else
+          full_line += line
+        end
+
+        m = full_line.match re
+        full_line = ""
 
         send :"process_#{m[1]}", m[2] if m
       end
     end
   end
 
-  attr_accessor :file_names, :directories, :defines, :system_defines, :objects_dir
+  attr_accessor :file_names, :directories, :defines, :system_defines
   attr_reader :sources
 
   def initialize(cc, files, directories=[], defines=nil)
@@ -401,7 +469,6 @@ class DependencyGrapher
     @directories = directories
     @defines = defines
 
-    @objects_dir = nil
     @system_defines = {}
     @sources = []
   end
@@ -420,7 +487,7 @@ class DependencyGrapher
     get_system_defines
 
     @file_names.each do |name|
-      source = SourceFile.new name, self, @objects_dir
+      source = SourceFile.new name, self
       parser = FileParser.new source, @directories
 
       parser.parse_file name
@@ -437,3 +504,5 @@ class DependencyGrapher
     end
   end
 end
+end
+

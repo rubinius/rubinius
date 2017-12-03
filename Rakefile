@@ -25,6 +25,7 @@ if !$verbose and respond_to?(:verbose)
 end
 
 $:.unshift File.expand_path("../", __FILE__)
+$:.unshift File.expand_path("../build/scripts", __FILE__)
 
 BUILD_CONFIG = {} unless Object.const_defined? :BUILD_CONFIG
 
