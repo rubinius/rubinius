@@ -34,7 +34,7 @@ TYPE_GEN    = %w[ machine/gen/includes.hpp
                   machine/gen/invoke_resolver.cpp ]
 
 GENERATED = %W[ machine/gen/config_variables.h
-                machine/gen/signature.h
+                machine/signature.h
                 machine/dtrace/probes.h
                 #{encoding_database}
                 #{transcoders_database}

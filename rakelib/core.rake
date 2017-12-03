@@ -161,11 +161,18 @@ namespace :codedb do
   end
 end
 
-signature_header = "machine/gen/signature.h"
+signature_header = "machine/signature.h"
 
 file signature_header => "codedb:signature" do |t|
   File.open t.name, "wb" do |file|
-    file.puts "#define RBX_SIGNATURE          #{SIGNATURE_HASH.inspect}"
+    file.puts <<-EOC
+#ifndef RBX_SIGNATURE_H
+#define RBX_SIGNATURE_H
+
+#define RBX_SIGNATURE          #{SIGNATURE_HASH.inspect}
+
+#endif
+    EOC
   end
 end
 

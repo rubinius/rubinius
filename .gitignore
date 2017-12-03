@@ -89,7 +89,11 @@ machine/include/capi/ruby/digest.h
 
 /core/build_config.rb
 
-# Ignore generated DTrace header
+# Ignore generated headers
+machine/config.h
+machine/paths.h
+machine/release.h
+machine/signature.h
 machine/dtrace/probes.h
 
 .build_ruby

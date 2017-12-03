@@ -103,7 +103,7 @@ class Configure
 
     @bootstrap_gems_dir = nil
 
-    @vm_release_h = File.join(root, "/machine/gen/release.h")
+    @vm_release_h = File.join(root, "/machine/release.h")
 
     @preserve_prefix = false
 
@@ -1635,9 +1635,12 @@ int main(int argc, char* argv[]) {
     # Write the config file used to build the C++ VM.
     Dir.mkdir "machine/gen" unless File.directory? "machine/gen"
 
-    vm_paths_h = "machine/gen/paths.h"
+    vm_paths_h = "machine/paths.h"
     File.open vm_paths_h, "wb" do |f|
       f.puts <<-EOF
+#ifndef RBX_PATHS_H
+#define RBX_PATHS_H
+
 #define RBX_PREFIX_PATH      "#{@prefixdir}"
 #define RBX_BIN_PATH         "#{@bindir}"
 #define RBX_GEMS_PATH        "#{@gemsdir}"
@@ -1651,12 +1654,17 @@ int main(int argc, char* argv[]) {
 #define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_ARCH_PATH        "#{@archdir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
+
+#endif
       EOF
     end
 
-    vm_config_h = "machine/gen/config.h"
+    vm_config_h = "machine/config.h"
     File.open vm_config_h, "wb" do |f|
       f.puts <<-EOC
+#ifndef RBX_CONFIG
+#define RBX_CONFIG
+
 #define RBX_PROGRAM_NAME     "#{@program_name}"
 #define RBX_HOST             "#{@host}"
 #define RBX_CPU              "#{@cpu}"
@@ -1699,6 +1707,44 @@ int main(int argc, char* argv[]) {
       f.puts "#define RBX_DTRACE_CONST     #{@dtrace_const ? "const" : ""}"
 
       write_have_defines f
+
+      f.puts <<-EOC
+
+#include "detection.hpp"
+
+#define RBX_STRERROR_BUFSIZE 256
+
+// strerror_r has different signatures on GNU and XSI.
+// - The GNU version returns a pointer to a string, which may be the one passed
+//   to the function as 'buf', or some immutable static string, in which case
+//   'buf' is unused.
+// - The XSI version always stores the error message in 'buf' and returns 0 on
+//   success.
+// This macro makes sure that the error message is returned either way.
+#ifdef STRERROR_R_CHAR_P
+#define RBX_STRERROR(errno, buf, size) strerror_r(errno, buf, size)
+#else
+#define RBX_STRERROR(errno, buf, size) (strerror_r(errno, buf, size), buf)
+#endif
+
+// Enable this define for some minimal GC debugging
+// #define RBX_GC_DEBUG
+
+// Enable for GC stress. This only ensures that the interrupts
+// for a GC are set. Use RBX_GC_STRESS_YOUNG and / or RBX_GC_STRESS_MATURE
+// to run either the young or mature gen on each possibility
+// #define RBX_GC_STRESS
+
+// When stress testing is enabled, forces a young collection every time it
+// is possible. This can be useful to flush out bugs because of moving objects.
+// #define RBX_GC_STRESS_YOUNG
+
+// When stress testing is enabled, forces a mature collection every time it
+// is possible. This can be useful to flush out bugs with reachability etc.
+// #define RBX_GC_STRESS_MATURE
+
+#endif
+      EOC
     end
 
     # Write the config file for vendor/oniguruma.
@@ -1763,7 +1809,7 @@ int main(int argc, char* argv[]) {
     cat("build/config/config.rb")
     puts "\nSetting the following defines for the VM"
     puts "----------------------------------------"
-    cat("machine/gen/config.h")
+    cat("machine/config.h")
   end
 
   def cat(file)
