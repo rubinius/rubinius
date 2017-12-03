@@ -1,4 +1,7 @@
 Daedalus.blueprint do |i|
+  i.base_path "#{Rubinius::BUILD_CONFIG[:sourcedir]}"
+  i.artifacts_path "#{Rubinius::BUILD_CONFIG[:sourcedir]}/build/artifacts"
+
   gcc = i.gcc!(Rubinius::BUILD_CONFIG[:cc],
                Rubinius::BUILD_CONFIG[:cxx],
                Rubinius::BUILD_CONFIG[:ldshared],

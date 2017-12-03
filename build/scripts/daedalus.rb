@@ -12,6 +12,7 @@ In other words, he built things for a living.
 
 =end
 
+require 'fileutils'
 require 'digest/sha1'
 require 'thread'
 require 'dependency_grapher'
@@ -316,8 +317,12 @@ module Daedalus
     end
 
     def artifacts_path
-      dir = File.join File.dirname(@path), "artifacts"
-      Dir.mkdir dir unless File.directory?(dir)
+      path = File.expand_path @path
+      suffix = path[-(path.size - Daedalus::BASE_PATH.size)..-1]
+      dir = File.dirname File.join(Daedalus::ARTIFACTS_PATH, suffix)
+
+      FileUtils.mkdir_p dir unless File.directory? dir
+
       return dir
     end
 
@@ -522,7 +527,7 @@ module Daedalus
       @data[:sha1] = sha1(ctx)
 
       fname = File.basename path, "cpp"
-      ll_path = "#{File.dirname(path)}/artifacts/#{fname}ll"
+      ll_path = File.join artifacts_path, "#{fname}ll"
 
       ll_compile ctx, path, ll_path
       cxx_compile ctx, ll_path, object_path
@@ -991,6 +996,14 @@ module Daedalus
     def initialize
       @programs = []
       @compiler = nil
+    end
+
+    def base_path(path)
+      Daedalus.const_set :BASE_PATH, path
+    end
+
+    def artifacts_path(path)
+      Daedalus.const_set :ARTIFACTS_PATH, path
     end
 
     def external_lib(path)

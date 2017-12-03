@@ -1,4 +1,3 @@
-artifacts/
 *.a
 *.bundle
 .bundle/install.log
@@ -52,6 +51,7 @@ tmtags
 /lib/site
 /share
 /work
+/build/artifacts
 /build/bin/cc
 /build/bin/c++
 /build/config/config.rb
