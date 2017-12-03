@@ -2,7 +2,10 @@ require File.expand_path('../../library/ffi/generators', __FILE__)
 
 directory "#{BUILD_CONFIG[:builddir]}/codedb/cache"
 
-deps = %w[Rakefile rakelib/platform.rake codedb/cache] + Dir['lib/ffi/*rb']
+deps = ["Rakefile",
+        "rakelib/platform.rake",
+        "#{BUILD_CONFIG[:builddir]}/codedb/cache"
+] + Dir['lib/ffi/*rb']
 
 file "#{BUILD_CONFIG[:builddir]}/codedb/platform.conf" => deps do |task|
   puts "GEN codedb/platform.conf"
