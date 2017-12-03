@@ -116,7 +116,13 @@ def build_extension(gems_dir, file)
     end
 
     unless File.exist? "Makefile"
-      sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems --main #{extconf} #{options}", :verbose => $verbose
+      begin
+        ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
+
+        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems --main #{extconf} #{options}", :verbose => $verbose
+      ensure
+        ENV.delete "RBX_PREFIX_PATH"
+      end
     end
 
     sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose

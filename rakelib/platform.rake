@@ -835,7 +835,7 @@ file "#{BUILD_CONFIG[:builddir]}/codedb/platform.conf" => deps do |task|
     end.write_constants(f)
 
     Rubinius::FFI::Generators::Constants.new 'rbx.platform.zlib' do |cg|
-      cg.include_dir 'vendor/zlib' if BUILD_CONFIG[:vendor_zlib]
+      cg.include_dir 'build/libraries/zlib' if BUILD_CONFIG[:vendor_zlib]
       cg.include 'zlib.h'
 
       zlib_constants = %w[ZLIB_VERSION]

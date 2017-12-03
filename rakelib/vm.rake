@@ -109,10 +109,9 @@ field_extract_headers = %w[
   machine/class/unwind_site.hpp
 ]
 
-transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
+transcoders_src_dir = "#{BUILD_CONFIG[:build_libdir]}/oniguruma/enc/trans"
 
-libdir = "#{BUILD_CONFIG[:builddir]}"
-transcoders_lib_dir = "#{libdir}/#{BUILD_CONFIG[:encdir]}"
+transcoders_lib_dir = "#{BUILD_CONFIG[:builddir]}/#{BUILD_CONFIG[:encdir]}"
 directory transcoders_lib_dir
 
 TRANSCODING_LIBS = []
@@ -122,9 +121,11 @@ Dir["#{transcoders_src_dir}/*.c"].each do |name|
   target = File.join transcoders_lib_dir, File.basename(name)
 
   task name do
+    STDERR.puts "**** transcoder task: #{name}"
   end
 
   file target => name do |t|
+    STDERR.puts "**** transcoder file: #{t.name}, #{t.prerequisites.first}"
     cp t.prerequisites.first, t.name, :preserve => true, :verbose => $verbose
   end
 
@@ -172,13 +173,13 @@ task :run_field_extract do
   ruby 'build/scripts/field_extract.rb', *field_extract_headers
 end
 
-files TYPE_GEN, field_extract_headers + %w[build/scripts/field_extract.rb] + [:run_field_extract] do
+files TYPE_GEN, field_extract_headers + ["build/scripts/field_extract.rb", :run_field_extract] do
 end
 
 encoding_extract = 'build/scripts/encoding_extract.rb'
 
 file encoding_database => encoding_extract do |t|
-  dir = File.expand_path "../../vendor/oniguruma", __FILE__
+  dir = "#{BUILD_CONFIG[:build_libdir]}/oniguruma"
   ruby encoding_extract, dir, t.name
 end
 

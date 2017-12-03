@@ -83,10 +83,10 @@ Daedalus.blueprint do |i|
   src = Rubinius::BUILD_CONFIG[:sourcedir]
 
   # Libraries
-  gcc.cflags << "-I#{src}/vendor/rapidjson"
+  gcc.cflags << "-I#{src}/build/libraries/rapidjson"
 
-  ltm = i.external_lib "vendor/libtommath" do |l|
-    l.cflags = ["-I#{src}/vendor/libtommath"] + gcc.cflags
+  ltm = i.external_lib "build/libraries/libtommath" do |l|
+    l.cflags = ["-I#{src}/build/libraries/libtommath"] + gcc.cflags
     l.objects = [l.file("libtommath.a")]
     l.to_build do |x|
       x.command make
@@ -95,10 +95,10 @@ Daedalus.blueprint do |i|
   gcc.add_library ltm
   files << ltm
 
-  oniguruma = i.library_group "vendor/oniguruma" do |g|
+  oniguruma = i.library_group "build/libraries/oniguruma" do |g|
     g.depends_on "config.h", "configure"
 
-    gcc.cflags.unshift "-I#{src}/vendor/oniguruma"
+    gcc.cflags.unshift "-I#{src}/build/libraries/oniguruma"
     g.cflags = [ "-DHAVE_CONFIG_H", "-I#{src}/machine/include/capi" ]
     g.cflags += gcc.cflags
 
@@ -128,8 +128,8 @@ Daedalus.blueprint do |i|
   end
   files << oniguruma
 
-  double_conversion = i.external_lib "vendor/double-conversion" do |l|
-    l.cflags = ["-Ivendor/double-conversion/src"] + gcc.cflags
+  double_conversion = i.external_lib "build/libraries/double-conversion" do |l|
+    l.cflags = ["-Ibuild/libraries/double-conversion/src"] + gcc.cflags
     l.objects = [l.file("libdoubleconversion.a")]
     l.to_build do |x|
       x.command make
@@ -138,8 +138,8 @@ Daedalus.blueprint do |i|
   gcc.add_library double_conversion
   files << double_conversion
 
-  ffi = i.external_lib "vendor/libffi" do |l|
-    l.cflags = ["-I#{src}/vendor/libffi/include"] + gcc.cflags
+  ffi = i.external_lib "build/libraries/libffi" do |l|
+    l.cflags = ["-I#{src}/build/libraries/libffi/include"] + gcc.cflags
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
       x.command "sh -c './configure --disable-builddir'" unless File.exist?("Makefile")
@@ -150,8 +150,8 @@ Daedalus.blueprint do |i|
   files << ffi
 
   if Rubinius::BUILD_CONFIG[:vendor_zlib]
-    zlib = i.external_lib "vendor/zlib" do |l|
-      l.cflags = ["-I#{src}/vendor/zlib"] + gcc.cflags
+    zlib = i.external_lib "build/libraries/zlib" do |l|
+      l.cflags = ["-I#{src}/build/libraries/zlib"] + gcc.cflags
       l.objects = [l.file("libz.a")]
       l.to_build do |x|
         unless File.exist?("Makefile") and File.exist?("zconf.h")
@@ -172,8 +172,8 @@ Daedalus.blueprint do |i|
   end
 
   if Rubinius::BUILD_CONFIG[:vendor_libsodium]
-    sodium = i.external_lib "vendor/libsodium" do |l|
-      l.cflags = ["-I#{src}/vendor/libsodium/src/libsodium/include"] + gcc.cflags
+    sodium = i.external_lib "build/libraries/libsodium" do |l|
+      l.cflags = ["-I#{src}/build/libraries/libsodium/src/libsodium/include"] + gcc.cflags
       l.objects = [l.file("src/libsodium/.libs/libsodium.a")]
       l.to_build do |x|
         unless File.exist?("Makefile")
@@ -188,8 +188,8 @@ Daedalus.blueprint do |i|
   end
 
   if Rubinius::BUILD_CONFIG[:windows]
-    winp = i.external_lib "vendor/winpthreads" do |l|
-      l.cflags = ["-I#{src}/vendor/winpthreads/include"] + gcc.cflags
+    winp = i.external_lib "build/libraries/winpthreads" do |l|
+      l.cflags = ["-I#{src}/build/libraries/winpthreads/include"] + gcc.cflags
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
         x.command "sh -c ./configure" unless File.exist?("Makefile")

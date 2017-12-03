@@ -52,12 +52,13 @@ tmtags
 /lib/site
 /share
 /work
-/staging
-/bootstrap
 /build/bin/cc
 /build/bin/c++
 /build/config/config.rb
 /build/rubinius
+/build/libraries/cache
+/build/libraries/gems
+/build/libraries/stdlib
 rubinius-codedb-cache.bz2*
 
 # .revision tracks configure and code revision consistency
@@ -90,9 +91,6 @@ machine/include/capi/ruby/digest.h
 
 # Ignore generated DTrace header
 machine/dtrace/probes.h
-
-# Ignore rubygems except bundled ones
-vendor/cache/*
 
 .build_ruby
 .build_signature
