@@ -18,8 +18,8 @@ require "rakelib/digest_files"
 def core_clean
   rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
-           "codedb/platform.conf",
-           "codedb/source",
+           "#{BUILD_CONFIG[:builddir]}/codedb/platform.conf",
+           "#{BUILD_CONFIG[:builddir]}/codedb/source",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
            "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*.*",
            "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/Makefile",
@@ -50,18 +50,19 @@ end
 IO.foreach core_load_order do |name|
   origin = "core/#{name.chomp}"
 
-  codedb_source_task codedb_source, origin, "codedb/source/#{origin}"
+  codedb_source_task codedb_source, origin,
+    "#{BUILD_CONFIG[:builddir]}/codedb/source/#{origin}"
 end
 
 # Add library files
 FileList["#{library_dir}/**/*.rb"].each do |file|
-  source = "codedb/source/#{file[(library_dir.size+1)..-1]}"
+  source = "#{BUILD_CONFIG[:builddir]}/codedb/source/#{file[(library_dir.size+1)..-1]}"
 
   codedb_source_task codedb_source, file, source
 end
 
 FileList["#{library_dir}/**/*.*"].exclude("#{library_dir}/**/*.rb").each do |file|
-  source = "codedb/source/#{file[(library_dir.size+1)..-1]}"
+  source = "#{BUILD_CONFIG[:builddir]}/codedb/source/#{file[(library_dir.size+1)..-1]}"
 
   unless File.directory? file
     codedb_source_task codedb_library, file, source
@@ -73,7 +74,7 @@ FileList["#{bootstrap_gems_dir}/*/{lib,ext}/**/*.rb"].each do |file|
   m = %r[#{bootstrap_gems_dir}/[^/]+/(lib|ext)/(.*\.rb)$].match file
 
   if m and m[2]
-    source = "codedb/source/#{m[2]}"
+    source = "#{BUILD_CONFIG[:builddir]}/codedb/source/#{m[2]}"
     codedb_source_task codedb_source, file, source
   else
     raise RuntimeError, "pre-installed gem file not matched: #{file}"
@@ -167,7 +168,7 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => ["codedb/platform.conf", signature_header] + codedb_source + codedb_library + ["codedb:extensions"]
+  task :build => ["#{BUILD_CONFIG[:builddir]}/codedb/platform.conf", signature_header] + codedb_source + codedb_library + ["codedb:extensions"]
 
   desc "Delete all core and library artifacts"
   task :clean do

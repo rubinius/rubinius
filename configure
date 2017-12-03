@@ -1592,7 +1592,7 @@ int main(int argc, char* argv[]) {
       :builddir           => @builddir,
       :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
-      :build_exe          => "#{@prefixdir}#{@bindir}/#{@program_name}",
+      :build_exe          => "#{@builddir}#{@bindir}/#{@program_name}",
       :build_bin          => @build_bin,
       :prefixdir          => @prefixdir,
       :bindir             => @bindir,

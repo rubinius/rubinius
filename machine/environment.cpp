@@ -617,17 +617,17 @@ namespace rubinius {
   bool Environment::verify_paths(std::string prefix) {
     struct stat st;
 
-    std::string dir = prefix + RBX_CODEDB_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    std::string codedb = prefix + RBX_CODEDB_PATH;
+    if(stat(codedb.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
-    dir = dir + "/cache";
-    if(stat(dir.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) return false;
+    std::string cache = codedb + "/cache";
+    if(stat(cache.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) return false;
 
-    dir = prefix + RBX_BIN_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    std::string source = codedb + "/source";
+    if(stat(source.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
-    dir = prefix + RBX_LIB_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    std::string bin = prefix + RBX_BIN_PATH;
+    if(stat(bin.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
 
     return true;
   }
