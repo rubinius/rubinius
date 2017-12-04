@@ -268,7 +268,7 @@ namespace :vm do
       'bin/irb',
       'bin/gem',
       'machine/.deps',
-    ].exclude("machine/gen/config.h", "machine/gen/paths.h")
+    ].exclude("machine/config.h", "machine/paths.h")
 
     files.each do |filename|
       rm_rf filename, :verbose => $verbose
