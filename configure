@@ -35,7 +35,7 @@ class Configure
     @config = File.join(root, "build/config/config.rb")
 
     # Platform settings
-    @host = `sh -c ./rakelib/config.guess`.chomp
+    @host = `sh -c ./build/bin/config.guess`.chomp
     @cpu = nil
     @vendor = nil
     @os = nil
