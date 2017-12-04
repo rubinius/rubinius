@@ -95,6 +95,18 @@ machine/paths.h
 machine/release.h
 machine/signature.h
 machine/dtrace/probes.h
+machine/accessor_primitives.hpp
+machine/config_variables.h
+machine/encoding_database.hpp
+machine/includes.hpp
+machine/invoke_primitives.hpp
+machine/invoke_resolver.hpp
+machine/kind_of.hpp
+machine/method_primitives.hpp
+machine/method_resolver.hpp
+machine/primitives_declare.hpp
+machine/transcoder_database.hpp
+machine/typechecks.hpp
 
 .build_ruby
 .build_signature

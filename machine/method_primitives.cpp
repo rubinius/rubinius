@@ -2,7 +2,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "primitives.hpp"
-#include "gen/includes.hpp"
+#include "includes.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "on_stack.hpp"
@@ -22,6 +22,6 @@ namespace rubinius {
     return cNil;
   }
 
-#include "gen/method_primitives.cpp"
-#include "gen/method_resolver.cpp"
+#include "method_primitives.hpp"
+#include "method_resolver.hpp"
 }

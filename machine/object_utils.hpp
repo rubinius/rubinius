@@ -249,7 +249,7 @@ namespace rubinius {
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason);
 
-#include "gen/kind_of.hpp"
+#include "kind_of.hpp"
 
 }
 

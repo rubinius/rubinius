@@ -870,7 +870,7 @@ ensure
   File.unlink tmp_path if File.exist? tmp_path
 end
 
-write_if_new 'machine/gen/includes.hpp' do |f|
+write_if_new 'machine/includes.hpp' do |f|
   f << <<-EOF
 #ifndef GEN_INCLUDES_HPP
 #define GEN_INCLUDES_HPP
@@ -883,7 +883,7 @@ write_if_new 'machine/gen/includes.hpp' do |f|
   EOF
 end
 
-write_if_new "machine/gen/typechecks.gen.cpp" do |f|
+write_if_new "machine/typechecks.hpp" do |f|
   f.puts "size_t TypeInfo::instance_sizes[(int)LastObjectType] = {ObjectHeader::align(sizeof(Object))};"
   f.puts "void TypeInfo::auto_init(Memory* om) {"
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
@@ -950,7 +950,7 @@ write_if_new "machine/gen/typechecks.gen.cpp" do |f|
   end
 end
 
-write_if_new "machine/gen/primitives_declare.hpp" do |f|
+write_if_new "machine/primitives_declare.hpp" do |f|
   total_prims = 0
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     total_prims += cpp.primitives.size
@@ -967,9 +967,12 @@ write_if_new "machine/gen/primitives_declare.hpp" do |f|
   f.puts "const static int cTotalPrimitives = #{total_prims};"
 end
 
-write_if_new "machine/gen/object_types.hpp" do |f|
+write_if_new "machine/object_types.hpp" do |f|
   stripped = parser.classes.reject {|n, cpp| cpp.name =~ /(Nil|True|False)Class/ }
 
+  f.puts "#ifndef RBX_VM_OBJECT_TYPES_HPP"
+  f.puts "#define RBX_VM_OBJECT_TYPES_HPP"
+  f.puts
   f.puts "typedef enum {"
   f.puts "  InvalidType = 0,"
   f.puts "  NilType,"
@@ -981,9 +984,10 @@ write_if_new "machine/gen/object_types.hpp" do |f|
   f.puts "  LastObjectType"
   f.puts "} object_type;"
   f.puts
+  f.puts "#endif"
 end
 
-write_if_new "machine/gen/kind_of.hpp" do |f|
+write_if_new "machine/kind_of.hpp" do |f|
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     next if cpp.name == "Object"
     f.puts "class #{cpp.name};"
@@ -1024,13 +1028,13 @@ class PrimitiveCodeGenerator
   end
 
   def method_primitives
-    write_if_new "machine/gen/method_primitives.cpp" do |f|
+    write_if_new "machine/method_primitives.hpp" do |f|
       @primitives.each { |_, p| f << p.generate_glue }
     end
   end
 
   def invoke_primitives
-    write_if_new "machine/gen/invoke_primitives.cpp" do |f|
+    write_if_new "machine/invoke_primitives.hpp" do |f|
       @primitives.each do |n, p|
         if p.respond_to? :generate_invoke_stub
           code = p.generate_invoke_stub
@@ -1044,13 +1048,13 @@ class PrimitiveCodeGenerator
   end
 
   def accessor_primitives
-    write_if_new "machine/gen/accessor_primitives.cpp" do |f|
+    write_if_new "machine/accessor_primitives.hpp" do |f|
       @files.each { |file| f << file.generate_accessors }
     end
   end
 
   def method_resolver
-    write_if_new "machine/gen/method_resolver.cpp" do |f|
+    write_if_new "machine/method_resolver.hpp" do |f|
       f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name, int* index) {"
 
       @names.each_with_index do |name, index|
@@ -1075,7 +1079,7 @@ class PrimitiveCodeGenerator
   end
 
   def invoke_resolver
-    write_if_new "machine/gen/invoke_resolver.cpp" do |f|
+    write_if_new "machine/invoke_resolver.hpp" do |f|
       f.puts "InvokePrimitive Primitives::get_invoke_stub(STATE, Symbol* name) {"
 
       @invoke_functions.each do |n, |

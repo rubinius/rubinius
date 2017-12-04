@@ -17,23 +17,23 @@ VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'machine/vm.exe' : 'machine/vm'
 ############################################################
 # Files, Flags, & Constants
 
-encoding_database = "machine/gen/encoding_database.cpp"
-transcoders_database = "machine/gen/transcoder_database.cpp"
+encoding_database = "machine/encoding_database.hpp"
+transcoders_database = "machine/transcoder_database.hpp"
 
 vm_release_h = BUILD_CONFIG[:vm_release_h]
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
-TYPE_GEN    = %w[ machine/gen/includes.hpp
-                  machine/gen/kind_of.hpp
-                  machine/gen/object_types.hpp
-                  machine/gen/typechecks.gen.cpp
-                  machine/gen/primitives_declare.hpp
-                  machine/gen/invoke_functions.cpp
-                  machine/gen/accessor_functions.cpp
-                  machine/gen/invoke_resolver.cpp ]
+TYPE_GEN    = %w[ machine/includes.hpp
+                  machine/kind_of.hpp
+                  machine/object_types.hpp
+                  machine/typechecks.hpp
+                  machine/primitives_declare.hpp
+                  machine/invoke_functions.hpp
+                  machine/accessor_functions.hpp
+                  machine/invoke_resolver.hpp ]
 
-GENERATED = %W[ machine/gen/config_variables.h
+GENERATED = %W[ machine/config_variables.h
                 machine/signature.h
                 machine/dtrace/probes.h
                 #{encoding_database}
@@ -191,7 +191,7 @@ task vm_release_h do |t|
   write_release t.name
 end
 
-file 'machine/gen/config_variables.h' => %w[library/rubinius/configuration.rb build/config/config.rb] do |t|
+file 'machine/config_variables.h' => %w[library/rubinius/configuration.rb build/config/config.rb] do |t|
   puts "GEN #{t.name}"
   ruby 'build/scripts/config_vars.rb', t.name
 end
@@ -226,11 +226,11 @@ end
 
 # Generate files for instructions and interpreters
 
-file "gen/method_primitives.cpp" => field_extract_headers
-file "gen/invoke_primitives.cpp" => field_extract_headers
-file "gen/accessor_primitives.cpp" => field_extract_headers
-file "gen/method_resolver.cpp" => field_extract_headers
-file "gen/invoke_resolver.cpp" => field_extract_headers
+file "method_primitives.hpp" => field_extract_headers
+file "invoke_primitives.hpp" => field_extract_headers
+file "accessor_primitives.hpp" => field_extract_headers
+file "method_resolver.hpp" => field_extract_headers
+file "invoke_resolver.hpp" => field_extract_headers
 
 namespace :vm do
   desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
@@ -254,7 +254,6 @@ namespace :vm do
     files = FileList[
       GENERATED,
       'machine/dtrace/probes.o',
-      'machine/gen/*',
       'machine/test/runner',
       'machine/test/runner.cpp',
       'machine/test/runner.o',
