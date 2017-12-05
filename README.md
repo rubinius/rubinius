@@ -43,9 +43,7 @@ To install Rubinius, use the following steps:
 1. Ensure that MRI 2.0+, rubygems, rake, git and LLVM are installed
 2. git clone git://github.com/rubinius/rubinius.git
 3. cd rubinius
-4. bundle
-5. ./configure --prefix=/path/to/install/dir
-6. rake
+4. ./build.sh --prefix=/path/to/install/dir
 
 When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH.
 

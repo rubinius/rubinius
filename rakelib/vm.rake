@@ -163,10 +163,6 @@ def files(targets, dependencies=nil, &block)
   end
 end
 
-directory "machine/gen"
-
-file 'build/scripts/field_extract.rb'    => 'machine/gen'
-
 task :run_field_extract do
   ruby 'build/scripts/field_extract.rb', *field_extract_headers
 end
