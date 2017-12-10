@@ -6,7 +6,6 @@
 #include "config.h"
 #include "memory.hpp"
 #include "environment.hpp"
-#include "global_cache.hpp"
 
 #include "util/thread.hpp"
 #include "configuration.hpp"
@@ -60,7 +59,6 @@ namespace rubinius {
     , use_capi_lock_(false)
     , phase_(eBooting)
     , om(NULL)
-    , global_cache(new GlobalCache)
     , config(config)
     , user_variables(cp)
     , username("")
@@ -104,7 +102,6 @@ namespace rubinius {
       diagnostics_ = NULL;
     }
 
-    delete global_cache;
     delete om;
     delete machine_threads_;
   }
@@ -291,7 +288,6 @@ namespace rubinius {
     disable_metrics(state);
 
     // Reinit the locks for this object
-    global_cache->reset();
     codedb_lock_.init(true);
     capi_ds_lock_.init();
     capi_locks_lock_.init();

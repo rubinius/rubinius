@@ -176,9 +176,6 @@ namespace rubinius {
     struct MachineMetrics {
       metric checkpoints;
       metric stops;
-      metric global_cache_count;
-      metric global_cache_hits;
-      metric global_cache_misses;
       metric call_site_count;
       metric call_site_full;
       metric call_site_polymorphic;
@@ -207,9 +204,6 @@ namespace rubinius {
       MachineMetrics() {
         checkpoints = 0;
         stops = 0;
-        global_cache_count = 0;
-        global_cache_hits = 0;
-        global_cache_misses = 0;
         call_site_count = 0;
         call_site_full = 0;
         call_site_polymorphic = 0;
@@ -242,9 +236,6 @@ namespace rubinius {
         call_site_count += data.call_site_count;
         call_site_full += data.call_site_full;
         call_site_polymorphic += data.call_site_polymorphic;
-        global_cache_count += data.global_cache_count;
-        global_cache_hits += data.global_cache_hits;
-        global_cache_misses += data.global_cache_misses;
         inline_cache_count += data.inline_cache_count;
         inline_cache_hits += data.inline_cache_hits;
         inline_cache_misses += data.inline_cache_misses;

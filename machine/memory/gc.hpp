@@ -14,7 +14,6 @@ namespace rubinius {
 
   class Memory;
   class VariableScope;
-  class GlobalCache;
   class StackVariables;
   class LLVMState;
 
@@ -36,7 +35,6 @@ namespace memory {
     Roots& roots_;
     capi::Handles* handles_;
     std::list<capi::Handle*>* cached_handles_;
-    GlobalCache* global_cache_;
     ThreadNexus* thread_nexus_;
     std::list<capi::GlobalHandle*>* global_handle_locations_;
 
@@ -57,10 +55,6 @@ namespace memory {
 
     std::list<capi::Handle*>* cached_handles() {
       return cached_handles_;
-    }
-
-    GlobalCache* global_cache() {
-      return global_cache_;
     }
 
     std::list<capi::GlobalHandle*>* global_handle_locations() {

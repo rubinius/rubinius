@@ -28,7 +28,6 @@
 #include "dtrace/dtrace.h"
 #include "environment.hpp"
 #include "memory/walker.hpp"
-#include "global_cache.hpp"
 #include "helpers.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
@@ -959,10 +958,6 @@ namespace rubinius {
   }
 
   Object* System::vm_reset_method_cache(STATE, Module* mod, Symbol* name) {
-
-    if(!state->vm()->global_cache()->has_seen(state, name)) return cTrue;
-
-    state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 
     state->vm()->metrics().machine.cache_resets++;

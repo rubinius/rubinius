@@ -2,7 +2,6 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "dispatch.hpp"
-#include "global_cache.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"

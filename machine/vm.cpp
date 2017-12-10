@@ -2,7 +2,6 @@
 #include "state.hpp"
 #include "memory.hpp"
 #include "machine_code.hpp"
-#include "global_cache.hpp"
 #include "environment.hpp"
 #include "thread_phase.hpp"
 

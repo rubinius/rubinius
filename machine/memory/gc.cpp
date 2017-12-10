@@ -34,7 +34,6 @@ namespace memory {
     : roots_(state->globals().roots)
     , handles_(state->memory()->capi_handles())
     , cached_handles_(state->memory()->cached_capi_handles())
-    , global_cache_(state->shared.global_cache)
     , thread_nexus_(state->shared.thread_nexus())
     , global_handle_locations_(state->memory()->global_capi_handle_locations())
   { }

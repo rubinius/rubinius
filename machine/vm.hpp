@@ -52,7 +52,6 @@ namespace rubinius {
   class CompiledCode;
   class ConfigParser;
   class Configuration;
-  class GlobalCache;
   class LookupTable;
   class Memory;
   class NativeMethodEnvironment;
@@ -360,10 +359,6 @@ namespace rubinius {
     CallFrame* get_filtered_frame(STATE, const std::regex& filter);
 
     bool scope_valid_p(VariableScope* scope);
-
-    GlobalCache* global_cache() const {
-      return shared.global_cache;
-    }
 
     Globals& globals() {
       return shared.globals;

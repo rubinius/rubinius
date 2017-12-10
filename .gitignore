@@ -104,6 +104,7 @@ machine/invoke_resolver.hpp
 machine/kind_of.hpp
 machine/method_primitives.hpp
 machine/method_resolver.hpp
+machine/object_types.hpp
 machine/primitives_declare.hpp
 machine/transcoder_database.hpp
 machine/typechecks.hpp

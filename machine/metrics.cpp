@@ -346,12 +346,6 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "machine.stops", metrics_data_.machine.stops));
       metrics_map_.push_back(new MetricsItem(
-            "machine.global_cache.count", metrics_data_.machine.global_cache_count));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.global_cache.hits", metrics_data_.machine.global_cache_hits));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.global_cache.misses", metrics_data_.machine.global_cache_misses));
-      metrics_map_.push_back(new MetricsItem(
             "machine.call_site.count", metrics_data_.machine.call_site_count));
       metrics_map_.push_back(new MetricsItem(
             "machine.call_site.full", metrics_data_.machine.call_site_full));

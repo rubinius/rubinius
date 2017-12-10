@@ -11,6 +11,7 @@
 
 #include "capi/tag.hpp"
 
+#include "memory/code_resource.hpp"
 #include "memory/mark_sweep.hpp"
 #include "memory/immix_collector.hpp"
 #include "memory/inflated_headers.hpp"
@@ -38,8 +39,6 @@
 
 #include "capi/handles.hpp"
 #include "configuration.hpp"
-
-#include "global_cache.hpp"
 
 #include "instruments/timing.hpp"
 #include "dtrace/dtrace.h"
@@ -557,8 +556,6 @@ step1:
     metrics::MetricsData& metrics = state->vm()->metrics();
     metrics.gc.young_count++;
 
-    data->global_cache()->prune_young();
-
     {
       std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
 
@@ -635,8 +632,6 @@ step1:
     immix_->collect_finish(data);
 
     code_manager_.sweep();
-
-    data->global_cache()->prune_unmarked(mark());
 
     prune_handles(data->handles(), data->cached_handles(), NULL);
 

@@ -4,7 +4,6 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "dispatch.hpp"
-#include "global_cache.hpp"
 #include "lookup_data.hpp"
 #include "object_utils.hpp"
 #include "vm.hpp"
@@ -386,7 +385,6 @@ namespace rubinius {
         dispatch.module = missing_dispatch.module;
         dispatch.method_missing = kind();
         state->vm()->set_method_missing_reason(dispatch.method_missing);
-        state->vm()->global_cache()->add_seen(state, dispatch.name);
       }
 
       return true;

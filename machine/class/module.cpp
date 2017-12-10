@@ -1,5 +1,4 @@
 #include "configuration.hpp"
-#include "global_cache.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
@@ -203,7 +202,6 @@ namespace rubinius {
   {
     if(!vis) vis = G(sym_public);
     method_table()->store(state, name, method_id, exec, scope, Fixnum::from(0), vis);
-    state->vm()->global_cache()->clear(state, this, name);
     reset_method_cache(state, name);
   }
 

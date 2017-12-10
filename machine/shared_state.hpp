@@ -54,7 +54,6 @@ namespace rubinius {
   class Environment;
   class Fiber;
   class Fixnum;
-  class GlobalCache;
   class Memory;
   class QueryAgent;
   class SignalThread;
@@ -139,7 +138,6 @@ namespace rubinius {
   public:
     Globals globals;
     Memory* om;
-    GlobalCache* global_cache;
     Configuration& config;
     ConfigParser& user_variables;
     SymbolTable symbols;

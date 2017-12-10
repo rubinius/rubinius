@@ -23,7 +23,6 @@
 #include "arguments.hpp"
 
 #include "exception_point.hpp"
-#include "global_cache.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
