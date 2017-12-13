@@ -407,6 +407,8 @@ namespace rubinius {
     G(rubinius)->set_const(state, "LDSHARED", String::create(state, RBX_LDSHARED));
     G(rubinius)->set_const(state, "LDSHAREDXX", String::create(state, RBX_LDSHAREDXX));
 
+    G(rubinius)->set_const(state, "Signature", String::create(state, RBX_SIGNATURE));
+
     G(rubinius)->set_const(state, "HOST", String::create(state, RBX_HOST));
     G(rubinius)->set_const(state, "CPU", String::create(state, RBX_CPU));
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
