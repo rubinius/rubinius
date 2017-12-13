@@ -159,6 +159,18 @@ namespace :codedb do
       build_extension bootstrap_gems_dir, file
     end
   end
+
+  task :cache => codedb_source + codedb_library + ["codedb:extensions"] do
+    begin
+      ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
+
+      Dir.chdir BUILD_CONFIG[:builddir] do
+        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{BUILD_CONFIG[:scriptdir]}/create_codedb_cache.rb", :verbose => $verbose
+      end
+    ensure
+      ENV.delete "RBX_PREFIX_PATH"
+    end
+  end
 end
 
 signature_header = "machine/signature.h"
@@ -181,7 +193,7 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => ["#{BUILD_CONFIG[:builddir]}/codedb/platform.conf", signature_header] + codedb_source + codedb_library + ["codedb:extensions"]
+  task :build => ["#{BUILD_CONFIG[:builddir]}/codedb/platform.conf", signature_header] + codedb_source + codedb_library + ["codedb:extensions", "codedb:cache"]
 
   desc "Delete all core and library artifacts"
   task :clean do

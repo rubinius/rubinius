@@ -99,6 +99,7 @@ class Configure
 
     @build_libdir = nil
     @builddir     = nil
+    @scriptdir    = nil
     @capi_includedir  = "#{@sourcedir}/machine/include/capi"
 
     @bootstrap_gems_dir = nil
@@ -234,6 +235,7 @@ class Configure
     dirs.each { |d| d.replace d[size..-1] }
 
     @builddir = "#{@sourcedir}/build/rubinius"
+    @scriptdir = "#{@sourcedir}/build/scripts"
 
     if @preserve_prefix
       @builddir = "#{builddir}/#{@prefixdir}"
@@ -1592,6 +1594,7 @@ int main(int argc, char* argv[]) {
       :debug_build        => @debug_build,
       :sourcedir          => @sourcedir,
       :builddir           => @builddir,
+      :scriptdir          => @scriptdir,
       :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
       :build_libdir       => @build_libdir,
