@@ -154,13 +154,15 @@ namespace rubinius {
   }
 
   Object* Fiber::return_value(STATE) {
-    if(vm()->thread_state()->raise_reason() == cNone) {
+    if(vm()->thread()->nil_p()) {
+      return nullptr;
+    } else if(vm()->thread_state()->raise_reason() == cNone) {
       return state->vm()->thread()->fiber_value();
     } else if(canceled_p()) {
-      return NULL;
+      return nullptr;
     } else {
       invoke_context()->thread_state()->set_state(vm()->thread_state());
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -190,7 +192,7 @@ namespace rubinius {
 
     Object* value = vm->fiber()->block()->send(state, G(sym_call),
         as<Array>(vm->thread()->fiber_value()), vm->fiber()->block());
-    vm->set_call_frame(NULL);
+    vm->set_call_frame(nullptr);
 
     if(value) {
       vm->thread()->fiber_value(state, value);
@@ -431,7 +433,7 @@ namespace rubinius {
     // Through the worm hole...
     fiber->suspend_and_continue(state);
 
-    if(fiber->canceled_p()) return NULL;
+    if(fiber->canceled_p()) return nullptr;
 
     if(!thread_state->nil_p()) {
       state->vm()->thread_state()->set_state(state, thread_state);
@@ -468,7 +470,7 @@ namespace rubinius {
 
       if(fiber->vm()->zombie_p()) {
         VM::discard(state, fiber->vm());
-        fiber->vm(NULL);
+        fiber->vm(nullptr);
       } else {
         logger::write("fiber: finalizer: fiber not completed: %s, %d",
             fiber->thread_name()->c_str(state), fiber->fiber_id()->to_native());
