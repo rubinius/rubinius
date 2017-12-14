@@ -30,6 +30,11 @@ end
 codedb_source = []
 codedb_library = []
 
+platform_conf = "#{BUILD_CONFIG[:builddir]}/codedb/platform.conf"
+
+codedb_cache = "#{Rubinius::BUILD_CONFIG[:builddir]}/codedb/cache"
+codedb_cache_next = codedb_cache + ".next"
+
 library_dir = "#{BUILD_CONFIG[:sourcedir]}/library"
 bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
 
@@ -160,16 +165,20 @@ namespace :codedb do
     end
   end
 
-  task :cache => codedb_source + codedb_library + ["codedb:extensions"] do
+  file codedb_cache_next => codedb_source + codedb_library + [platform_conf, "codedb:extensions"] do |t|
     begin
       ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
 
       Dir.chdir BUILD_CONFIG[:builddir] do
-        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{BUILD_CONFIG[:scriptdir]}/create_codedb_cache.rb", :verbose => $verbose
+        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{BUILD_CONFIG[:scriptdir]}/create_codedb_cache.rb #{t.name}", :verbose => $verbose
       end
     ensure
       ENV.delete "RBX_PREFIX_PATH"
     end
+  end
+
+  file codedb_cache => codedb_cache_next do |t|
+    cp t.prerequisites.first, t.name, :verbose => $verbose
   end
 end
 
@@ -193,7 +202,7 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => ["#{BUILD_CONFIG[:builddir]}/codedb/platform.conf", signature_header] + codedb_source + codedb_library + ["codedb:extensions", "codedb:cache"]
+  task :build => [platform_conf, signature_header] + codedb_source + codedb_library + ["codedb:extensions", codedb_cache]
 
   desc "Delete all core and library artifacts"
   task :clean do

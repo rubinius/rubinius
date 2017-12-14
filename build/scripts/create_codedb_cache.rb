@@ -131,7 +131,7 @@ class CodeDBWriter
   end
 end
 
-path = "#{Rubinius::BUILD_CONFIG[:builddir]}/codedb/cache"
+path = ARGV.shift
 puts "Building CodeDB cache: #{path}"
 
 db_writer = CodeDBWriter.new path
