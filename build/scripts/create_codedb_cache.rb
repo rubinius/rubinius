@@ -11,7 +11,6 @@ Rubinius::ToolSets.create :build do
 end
 
 require "../config/config"
-require "securerandom"
 
 class CodeDBCompiler
   def self.compile(file, line=1, transforms=[:default, :kernel])
@@ -37,10 +36,6 @@ class CodeDBCompiler
   def self.marshal(code)
     marshaler = Rubinius::ToolSets::Build::CompiledFile::Marshal.new
     marshaler.marshal code
-  end
-
-  def self.id(code)
-    SecureRandom.hex(32)
   end
 end
 
@@ -78,7 +73,7 @@ class CodeDBWriter
 
       cc.literals.each_with_index do |value, index|
         if value.kind_of? Rubinius::CompiledCode
-          cc.literals[index] = i = CodeDBCompiler.id(value)
+          cc.literals[index] = i = value.code_id
           cache.unshift [i, value]
         end
       end
@@ -96,7 +91,7 @@ class CodeDBWriter
 
     code = CodeDBCompiler.compile file
 
-    return file, CodeDBCompiler.id(code), code
+    return file, code.code_id, code
   end
 
   def compile
