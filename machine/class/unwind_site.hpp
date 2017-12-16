@@ -63,21 +63,21 @@ namespace rubinius {
         obj->_caches_[i] = nullptr;
       }
     }
-  };
 
-  class Info : public TypeInfo {
-    public:
-      Info(object_type type)
-        : TypeInfo(type)
-      {
-        allow_user_allocate = false;
-      }
+    class Info : public TypeInfo {
+      public:
+        Info(object_type type)
+          : TypeInfo(type)
+        {
+          allow_user_allocate = false;
+        }
 
-      void mark(Object* obj, memory::ObjectMark& mark) { }
-      void auto_mark(Object* obj, memory::ObjectMark& mark) { }
-      void set_field(STATE, Object* target, size_t index, Object* val) { }
-      Object* get_field(STATE, Object* target, size_t index) { return cNil; }
-      void populate_slot_locations() { }
+        void mark(Object* obj, memory::ObjectMark& mark) { }
+        void auto_mark(Object* obj, memory::ObjectMark& mark) { }
+        void set_field(STATE, Object* target, size_t index, Object* val) { }
+        Object* get_field(STATE, Object* target, size_t index) { return cNil; }
+        void populate_slot_locations() { }
+    };
   };
 }
 

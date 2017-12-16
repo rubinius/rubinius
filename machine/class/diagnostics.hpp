@@ -10,17 +10,25 @@
 namespace rubinius {
   class LookupTable;
 
-  class Diagnostics : public Class {
+  class Diagnostics : public Object {
   public:
     const static object_type type = DiagnosticsType;
 
-    attr_accessor(map, LookupTable);
-
     static void bootstrap(STATE);
 
-    class Info : public Class::Info {
-    public:
-      BASIC_TYPEINFO(Class::Info)
+    class Info : public TypeInfo {
+      public:
+        Info(object_type type)
+          : TypeInfo(type)
+        {
+          allow_user_allocate = false;
+        }
+
+        void mark(Object* obj, memory::ObjectMark& mark) { }
+        void auto_mark(Object* obj, memory::ObjectMark& mark) { }
+        void set_field(STATE, Object* target, size_t index, Object* val) { }
+        Object* get_field(STATE, Object* target, size_t index) { return cNil; }
+        void populate_slot_locations() { }
     };
   };
 }
