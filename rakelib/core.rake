@@ -145,40 +145,51 @@ namespace :codedb do
     # don't know the extension shared library without some other source
     # parsing so we just iterate based on files.
 
-    melbourne_ext.each do |file|
-      build_extension bootstrap_gems_dir, file
+    begin
+      ENV["CXX"] = BUILD_CONFIG[:cxx]
+      ENV["CXXFLAGS"] = BUILD_CONFIG[:system_cxxflags]
+      ENV["CPPFLAGS"] = BUILD_CONFIG[:system_cppflags]
+      ENV["LDSHAREDXX"] = BUILD_CONFIG[:ldsharedxx]
+      ENV["LDFLAGS"] = BUILD_CONFIG[:system_ldflags]
 
-      ext_dir = %r[(#{bootstrap_gems_dir}/[^/]+)/.*$].match(file)[1]
+      melbourne_ext.each do |file|
+        build_extension bootstrap_gems_dir, file
 
-      Dir.chdir "#{ext_dir}/lib" do
-        FileList["./**/*.#{RbConfig::CONFIG["DLEXT"]}"].each do |lib|
-          lib_dir = "#{extensions_dir}/#{File.dirname(lib)}"
-          mkdir_p lib_dir
+        ext_dir = %r[(#{bootstrap_gems_dir}/[^/]+)/.*$].match(file)[1]
 
-          cp lib, lib_dir, :verbose => $verbose
+        Dir.chdir "#{ext_dir}/lib" do
+          FileList["./**/*.#{RbConfig::CONFIG["DLEXT"]}"].each do |lib|
+            lib_dir = "#{extensions_dir}/#{File.dirname(lib)}"
+            mkdir_p lib_dir
+
+            cp lib, lib_dir, :verbose => $verbose
+          end
         end
       end
+    ensure
+      ENV.delete "CXX"
+      ENV.delete "CXXFLAGS"
+      ENV.delete "CPPFLAGS"
+      ENV.delete "LDSHAREDXX"
+      ENV.delete "LDFLAGS"
+    end
+
+    # Rebuild the CodeDB cache to include platform-specific code
+    begin
+      ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
+
+      Dir.chdir BUILD_CONFIG[:builddir] do
+        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{BUILD_CONFIG[:scriptdir]}/create_codedb_cache.rb #{codedb_cache_next}", :verbose => $verbose
+      end
+
+      cp codedb_cache_next, codedb_cache, :verbose => $verbose
+    ensure
+      ENV.delete "RBX_PREFIX_PATH"
     end
 
     extconf_source.each do |file|
       build_extension bootstrap_gems_dir, file
     end
-  end
-
-  file codedb_cache_next => codedb_source + codedb_library + [platform_conf, "codedb:extensions"] do |t|
-    begin
-      ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
-
-      Dir.chdir BUILD_CONFIG[:builddir] do
-        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{BUILD_CONFIG[:scriptdir]}/create_codedb_cache.rb #{t.name}", :verbose => $verbose
-      end
-    ensure
-      ENV.delete "RBX_PREFIX_PATH"
-    end
-  end
-
-  file codedb_cache => codedb_cache_next do |t|
-    cp t.prerequisites.first, t.name, :verbose => $verbose
   end
 end
 
@@ -202,7 +213,7 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => [platform_conf, signature_header] + codedb_source + codedb_library + ["codedb:extensions", codedb_cache]
+  task :build => [platform_conf, signature_header] + codedb_source + codedb_library + ["codedb:extensions"]
 
   desc "Delete all core and library artifacts"
   task :clean do
