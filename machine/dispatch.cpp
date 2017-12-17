@@ -98,7 +98,11 @@ namespace rubinius {
           msg->method = entry->get_method(state);
           msg->module = module;
         }
-        if(msg->method) return true;
+
+        if(msg->method) {
+          msg->prediction = entry->prediction();
+          return true;
+        }
       } else {
         /* The method is private, but this wasn't a private send. */
         if(entry->private_p(state)) {
@@ -149,7 +153,11 @@ namespace rubinius {
           msg->method = entry->get_method(state);
           msg->module = module;
         }
-        if(msg->method) return true;
+
+        if(msg->method) {
+          msg->prediction = entry->prediction();
+          return true;
+        }
       }
 
 keep_looking:

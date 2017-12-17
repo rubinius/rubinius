@@ -10,6 +10,7 @@
 
 #include "class/integer.hpp"
 #include "class/object.hpp"
+#include "class/prediction.hpp"
 #include "class/symbol.hpp"
 
 #include "util/atomic.hpp"
@@ -62,6 +63,7 @@ namespace rubinius {
       attr_field(stored_module, Module*);
       attr_field(executable, Executable*);
 
+      attr_field(prediction, Prediction*);
       attr_field(receiver_data, ClassData);
       attr_field(method_missing, MethodMissingReason);
       attr_field(hits, int);
@@ -73,6 +75,7 @@ namespace rubinius {
         : _receiver_class_(cache->receiver_class())
         , _stored_module_(dispatch.module)
         , _executable_(dispatch.method)
+        , _prediction_(dispatch.prediction)
         , _receiver_data_(class_data)
         , _method_missing_(cache->method_missing())
         , _hits_(0)
@@ -89,6 +92,7 @@ namespace rubinius {
         : _receiver_class_(klass)
         , _stored_module_(dispatch.module)
         , _executable_(dispatch.method)
+        , _prediction_(dispatch.prediction)
         , _receiver_data_(klass->class_data())
         , _method_missing_(dispatch.method_missing)
         , _hits_(0)
@@ -522,6 +526,11 @@ namespace rubinius {
 
           if(Object* ref = mark.call(cache->executable())) {
             cache->executable(as<Executable>(ref));
+            mark.just_set(this, ref);
+          }
+
+          if(Object* ref = mark.call(cache->prediction())) {
+            cache->prediction(as<Prediction>(ref));
             mark.just_set(this, ref);
           }
         }

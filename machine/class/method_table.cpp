@@ -352,6 +352,7 @@ namespace rubinius {
     entry->scope(state, scope);
     entry->serial(state, serial);
     entry->visibility(state, vis);
+    entry->prediction(state, Prediction::create(state));
 
     return entry;
   }

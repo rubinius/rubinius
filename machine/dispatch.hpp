@@ -5,11 +5,12 @@
 #include "state.hpp"
 
 namespace rubinius {
-  class Symbol;
+  class Arguments;
+  class Executable;
   class Module;
   class Object;
-  class Executable;
-  class Arguments;
+  class Prediction;
+  class Symbol;
   struct LookupData;
 
   class Dispatch {
@@ -18,6 +19,7 @@ namespace rubinius {
     Module* module;
     Executable* method;
     Symbol* visibility;
+    Prediction* prediction;
     MethodMissingReason method_missing;
 
     Dispatch(Symbol* name)
@@ -25,6 +27,7 @@ namespace rubinius {
       , module(0)
       , method(0)
       , visibility(0)
+      , prediction(0)
       , method_missing(eNone)
     {}
 

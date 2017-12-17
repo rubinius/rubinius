@@ -5,12 +5,12 @@
 
 #include "class/executable.hpp"
 #include "class/object.hpp"
+#include "class/prediction.hpp"
 #include "class/symbol.hpp"
 
 namespace rubinius {
   class Tuple;
   class Array;
-  class Executable;
   class String;
   class Symbol;
 
@@ -24,6 +24,7 @@ namespace rubinius {
     attr_accessor(method, Object);
     attr_accessor(scope, Object);
     attr_accessor(serial, Fixnum);
+    attr_accessor(prediction, Prediction);
     attr_accessor(next, MethodTableBucket);
 
     static void initialize(STATE, MethodTableBucket* obj) {
@@ -33,6 +34,7 @@ namespace rubinius {
       obj->method(nil<Executable>());
       obj->scope(nil<Object>());
       obj->serial(nil<Fixnum>());
+      obj->prediction(nil<Prediction>());
       obj->next(nil<MethodTableBucket>());
     }
 

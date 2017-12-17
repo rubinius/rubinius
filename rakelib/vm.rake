@@ -107,6 +107,7 @@ field_extract_headers = %w[
   machine/class/diagnostics.hpp
   machine/class/trie.hpp
   machine/class/unwind_site.hpp
+  machine/class/prediction.hpp
 ]
 
 transcoders_src_dir = "#{BUILD_CONFIG[:build_libdir]}/oniguruma/enc/trans"
