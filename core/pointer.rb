@@ -433,6 +433,7 @@ module Rubinius
         # Hook the created function into the method_table so that #call goes
         # straight to it.
         sc = Rubinius::Type.object_singleton_class(self)
+        Rubinius::VM.reset_method_cache sc, :call
         sc.method_table.store :call, nil, @function, nil, 0, :public
       end
 
@@ -448,10 +449,12 @@ module Rubinius
 
         # Make it available as a method callable directly..
         sc = Rubinius::Type.object_singleton_class(mod)
+        Rubinius::VM.reset_method_cache sc, name
         sc.method_table.store name, nil, @function, nil, 0, :public
 
         # and expose it as a private method for people who
         # want to include this module.
+        Rubinius::VM.reset_method_cache mod, name
         mod.method_table.store name, nil, @function, nil, 0, :public
       end
     end

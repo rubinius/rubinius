@@ -398,7 +398,6 @@ module Rubinius
 
     def self.include_modules_from(included_module, klass)
       insert_at = klass
-      changed = false
       constants_changed = false
 
       mod = included_module
@@ -446,22 +445,18 @@ module Rubinius
               original_mod = mod
             end
 
+            included_module.method_table.each do |meth, obj, vis|
+              Rubinius::VM.reset_method_cache klass, meth
+            end
+
             im = Rubinius::IncludedModule.new(original_mod).attach_to insert_at
             insert_at = im
-
-            changed = true
           end
 
           constants_changed ||= mod.constant_table.size > 0
         end
 
         mod = mod.direct_superclass
-      end
-
-      if changed
-        included_module.method_table.each do |meth, obj, vis|
-          Rubinius::VM.reset_method_cache klass, meth
-        end
       end
 
       if constants_changed

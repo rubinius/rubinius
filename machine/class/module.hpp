@@ -21,7 +21,6 @@ namespace rubinius {
     attr_accessor(origin, Module);
     attr_accessor(seen_ivars, Array);
     attr_accessor(mirror, Class);
-    attr_accessor(hierarchy_subclasses, Array);
 
     static void bootstrap(STATE);
     static void bootstrap(STATE, Module* mod, Module* under, const char* name);

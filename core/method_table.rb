@@ -9,6 +9,7 @@ module Rubinius
       attr_reader :name
       attr_reader :visibility
       attr_reader :method
+      attr_reader :prediction
       attr_reader :next
     end
 

@@ -7,15 +7,23 @@ namespace rubinius {
   class Prediction : public Object {
   public:
     const static object_type type = PredictionType;
+    const static intptr_t valid_prediction = 0xffffffffffffffffULL;
 
     attr_field(valid, intptr_t);
 
     static void bootstrap(STATE);
     static void initialize(STATE, Prediction* obj) {
-      obj->valid(true);
+      obj->valid(valid_prediction);
     }
 
     static Prediction* create(STATE);
+
+    void invalidate() {
+      valid(0);
+    }
+
+    // Rubinius.primitive :prediction_valid_p
+    Object* valid_p(STATE);
 
     class Info : public TypeInfo {
       public:

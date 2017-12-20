@@ -100,6 +100,9 @@ namespace rubinius {
         }
 
         if(msg->method) {
+          if(entry->prediction()->nil_p()) {
+            entry->prediction(state, Prediction::create(state));
+          }
           msg->prediction = entry->prediction();
           return true;
         }
@@ -155,6 +158,9 @@ namespace rubinius {
         }
 
         if(msg->method) {
+          if(entry->prediction()->nil_p()) {
+            entry->prediction(state, Prediction::create(state));
+          }
           msg->prediction = entry->prediction();
           return true;
         }

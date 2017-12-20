@@ -495,6 +495,9 @@ class Module
 
   def set_visibility(meth, vis, where=nil)
     name = Rubinius::Type.coerce_to_symbol(meth)
+
+    Rubinius::VM.reset_method_cache self, name
+
     vis = vis.to_sym
 
     if entry = @method_table.lookup(name)
@@ -504,8 +507,6 @@ class Module
     else
       raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end
-
-    Rubinius::VM.reset_method_cache self, name
 
     return name
   end

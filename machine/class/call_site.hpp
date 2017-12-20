@@ -125,7 +125,8 @@ namespace rubinius {
       Object* execute(STATE, CallSite* call_site, Arguments& args, bool& valid_p) {
         uint64_t raw_data = args.recv()->direct_class(state)->data_raw();
 
-        if(likely(receiver_data().raw == raw_data)) {
+        // if(likely(receiver_data().raw == raw_data)) {
+        if(likely((prediction()->valid() & receiver_data().raw) == raw_data)) {
           call_site->hit();
           hit();
           valid_p = true;
@@ -288,7 +289,7 @@ namespace rubinius {
       cache->name(name);
       cache->ip(ip);
 
-      state->vm()->metrics().machine.unwind_site_count++;
+      state->vm()->metrics().machine.call_site_count++;
 
       return cache;
     }

@@ -1199,8 +1199,6 @@ namespace rubinius {
       mod->add_method(state, name, as<String>(method), cNil, scope);
     }
 
-    vm_reset_method_cache(state, mod, name);
-
     if(!cc) return method;
 
     if(Class* cls = try_as<Class>(mod)) {
@@ -1257,8 +1255,6 @@ namespace rubinius {
     } else {
       mod->add_method(state, name, as<String>(method), cNil, scope);
     }
-
-    vm_reset_method_cache(state, mod, name);
 
     return method;
   }

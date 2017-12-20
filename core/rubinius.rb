@@ -88,12 +88,13 @@ module Rubinius
       visibility = vis
     end
 
+    Rubinius::VM.reset_method_cache mod, name
+
     if Type.object_kind_of? executable, String
       mod.method_table.store name, executable, nil, scope, serial, visibility
     else
       mod.method_table.store name, nil, executable, scope, serial, visibility
     end
-    Rubinius::VM.reset_method_cache mod, name
 
     Rubinius.privately do
       mod.module_function name if vis == :module

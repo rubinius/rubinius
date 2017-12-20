@@ -269,8 +269,8 @@ module Rubinius
       end
 
       sc = Rubinius::Type.object_singleton_class(MAIN)
-      sc.method_table.store :__script__, nil, self, @scope, 0, :public
       VM.reset_method_cache sc, :__script__
+      sc.method_table.store :__script__, nil, self, @scope, 0, :public
 
       script
     end

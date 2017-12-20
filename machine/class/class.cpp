@@ -213,8 +213,6 @@ namespace rubinius {
 
     SingletonClass::attach(state, this, sup->singleton_class(state));
 
-    sup->track_subclass(state, this);
-
     return cNil;
   }
 
@@ -338,7 +336,6 @@ namespace rubinius {
       sc->klass(state, sc);
       Class* super = already_sc->true_superclass(state)->singleton_class_instance(state);
       sc->superclass(state, super);
-      super->track_subclass(state, sc);
     } else {
       /* If we are attaching to anything but a SingletonClass, the new
        * singleton class's class is the same as its superclass.  This is where
@@ -350,7 +347,6 @@ namespace rubinius {
       Class* super_klass = Class::real_class(state, sup)->klass();
       sc->klass(state, super_klass);
       sc->superclass(state, sup);
-      sup->track_subclass(state, sc);
     }
 
     /* Finally, attach the new SingletonClass */

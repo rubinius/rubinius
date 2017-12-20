@@ -731,7 +731,6 @@ extern "C" {
 
     module->add_method(state, method_name, nil<String>(), method,
         nil<LexicalScope>(), visibility);
-    System::vm_reset_method_cache(env->state(), module, method_name);
   }
 
   VALUE capi_class_superclass(VALUE class_handle) {

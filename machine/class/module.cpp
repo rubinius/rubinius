@@ -33,10 +33,6 @@ namespace rubinius {
     mod->constant_table(state, ConstantTable::create(state));
     mod->method_table(state, MethodTable::create(state));
 
-    if(!mod->superclass()->nil_p()) {
-      mod->superclass()->track_subclass(state, mod);
-    }
-
     Symbol* sym = state->symbol(name);
     mod->set_name(state, sym, under);
     under->set_const(state, sym, mod);
@@ -65,7 +61,6 @@ namespace rubinius {
     mod->origin(mod);
     mod->seen_ivars(nil<Array>());
     mod->mirror(nil<Class>());
-    mod->hierarchy_subclasses(nil<Array>());
   }
 
   void Module::initialize(STATE, Module* mod) {
@@ -76,7 +71,6 @@ namespace rubinius {
     mod->origin(mod);
     mod->seen_ivars(nil<Array>());
     mod->mirror(nil<Class>());
-    mod->hierarchy_subclasses(nil<Array>());
   }
 
   void Module::initialize(STATE, Module* mod, const char* name) {
@@ -200,32 +194,40 @@ namespace rubinius {
   void Module::add_method(STATE, Symbol* name,
       String* method_id, Object* exec, LexicalScope* scope, Symbol* vis)
   {
+    reset_method_cache(state, name);
+
     if(!vis) vis = G(sym_public);
     method_table()->store(state, name, method_id, exec, scope, Fixnum::from(0), vis);
-    reset_method_cache(state, name);
   }
 
   Object* Module::reset_method_cache(STATE, Symbol* name) {
     if(Class* self = try_as<Class>(this)) {
       self->increment_serial();
     }
+
     if(!name->nil_p()) {
-      if(MethodTableBucket* b = method_table()->find_entry(state, name)) {
-        Object* exec = b->method();
-        if(!exec->nil_p()) {
-          as<Executable>(exec)->clear_inliners(state);
+      Module* module = this;
+
+      do {
+        if(module != module->origin()) {
+          module = module->superclass();
         }
-      }
-    }
-    if(!hierarchy_subclasses()->nil_p()) {
-      for(native_int i = 0; i < hierarchy_subclasses()->size(); ++i) {
-        WeakRef* ref = try_as<WeakRef>(hierarchy_subclasses()->get(state, i));
-        if(ref && ref->alive_p()) {
-          Module* mod = as<Module>(ref->object());
-          mod->reset_method_cache(state, name);
+
+        MethodTableBucket* entry = module->method_table()->find_entry(state, name);
+
+        if(entry) {
+          if(!entry->prediction()->nil_p()) {
+            entry->prediction()->invalidate();
+            entry->prediction(state, nil<Prediction>());
+          }
         }
-      }
+
+        module = module->superclass();
+
+        if(module->nil_p()) break;
+      } while(1);
     }
+
     return cNil;
   }
 
@@ -488,10 +490,6 @@ namespace rubinius {
   }
 
   Object* Module::track_subclass(STATE, Module* mod) {
-    if(hierarchy_subclasses()->nil_p()) {
-      hierarchy_subclasses(state, Array::create(state, 4));
-    }
-    hierarchy_subclasses()->append(state, WeakRef::create(state, mod));
     return cNil;
   }
 
@@ -518,22 +516,6 @@ namespace rubinius {
 
   void Module::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
-
-    Array* subclasses = as<Module>(obj)->hierarchy_subclasses();
-    if(subclasses->nil_p()) return;
-
-    native_int offset = subclasses->offset();
-    native_int size = subclasses->size();
-    Tuple* tup = subclasses->tuple();
-
-    for(native_int i = offset; i < size + offset; ++i) {
-      if(WeakRef* ref = try_as<WeakRef>(tup->field[i])) {
-        if(!ref->alive_p()) {
-          tup->field[i] = cNil;
-        }
-      }
-    }
-    subclasses->set_size(size - tup->delete_inplace(offset, size, cNil));
   }
 
   IncludedModule* IncludedModule::create(STATE) {

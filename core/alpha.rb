@@ -521,16 +521,16 @@ class Module
   # Redefined in core/module.rb.
   #
   def attr_reader(name)
+    Rubinius::VM.reset_method_cache self, name
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store name, nil, meth, nil, 0, :public
-    Rubinius::VM.reset_method_cache self, name
     nil
   end
 
   def attr_reader_specific(name, method_name)
+    Rubinius::VM.reset_method_cache self, method_name
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store method_name, nil, meth, nil, 0, :public
-    Rubinius::VM.reset_method_cache self, method_name
     nil
   end
 
@@ -543,8 +543,8 @@ class Module
   def attr_writer(name)
     meth = Rubinius::AccessVariable.set_ivar name
     writer_name = "#{name}=".to_sym
-    @method_table.store writer_name, nil, meth, nil, 0, :public
     Rubinius::VM.reset_method_cache self, writer_name
+    @method_table.store writer_name, nil, meth, nil, 0, :public
     nil
   end
 
@@ -607,6 +607,8 @@ class Module
   # Redefined in core/module.rb.
   #
   def alias_method(new_name, current_name)
+    Rubinius::VM.reset_method_cache self, new_name
+
     # If we're aliasing a method we contain, just reference it directly, no
     # need for the alias wrapper
     if entry = @method_table.lookup(current_name)
@@ -627,8 +629,6 @@ class Module
       @method_table.alias new_name, entry.visibility, current_name,
                           entry.get_method, mod
     end
-
-    Rubinius::VM.reset_method_cache self, new_name
   end
 
   # :internal:
@@ -641,16 +641,11 @@ class Module
   def module_function(name)
     if entry = @method_table.lookup(name)
       sc = class << self; self; end
+      Rubinius::VM.reset_method_cache sc, name
       sc.method_table.store name, entry.method_id, entry.method,
         entry.scope, entry.serial, :public
-      Rubinius::VM.reset_method_cache self, name
       private name
     end
-  end
-
-  def track_subclass(cls)
-    Rubinius.primitive :module_track_subclass
-    raise PrimitiveFailure, "Module.track_subclass primitive failed"
   end
 
   def custom_call_site(name)
@@ -660,8 +655,8 @@ class Module
   end
 
   def undef_method(name)
-    @method_table.store name, nil, nil, nil, 0, :undef
     Rubinius::VM.reset_method_cache self, name
+    @method_table.store name, nil, nil, nil, 0, :undef
     name
   end
 end
@@ -743,7 +738,6 @@ module Rubinius
     def attach_to(cls)
       @superclass = cls.direct_superclass
       cls.superclass = self
-      @module.track_subclass(cls)
       self
     end
 

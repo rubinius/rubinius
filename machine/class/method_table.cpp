@@ -146,6 +146,10 @@ namespace rubinius {
         entry->scope(state, scope);
         entry->serial(state, serial);
         entry->visibility(state, visibility);
+        if(!entry->prediction()->nil_p()) {
+          entry->prediction()->invalidate();
+        }
+        entry->prediction(state, nil<Prediction>());
         return name;
       }
 
@@ -207,6 +211,10 @@ namespace rubinius {
         entry->scope(state, cNil);
         entry->serial(state, Fixnum::from(0));
         entry->visibility(state, vis);
+        if(!entry->prediction()->nil_p()) {
+          entry->prediction()->invalidate();
+        }
+        entry->prediction(state, nil<Prediction>());
         return name;
       }
 
@@ -352,7 +360,7 @@ namespace rubinius {
     entry->scope(state, scope);
     entry->serial(state, serial);
     entry->visibility(state, vis);
-    entry->prediction(state, Prediction::create(state));
+    entry->prediction(state, nil<Prediction>());
 
     return entry;
   }

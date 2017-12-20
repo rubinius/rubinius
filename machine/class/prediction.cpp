@@ -12,4 +12,8 @@ namespace rubinius {
   Prediction* Prediction::create(STATE) {
     return state->memory()->new_object<Prediction>(state, G(prediction));
   }
+
+  Object* Prediction::valid_p(STATE) {
+    return RBOOL(valid() == valid_prediction);
+  }
 }
