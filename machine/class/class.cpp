@@ -46,9 +46,7 @@ namespace rubinius {
   }
 
   void Class::initialize_data(STATE, Class* klass) {
-    uint32_t id = state->shared().inc_class_count(state);
-    klass->_class_data_.f.class_id = id;
-    klass->_class_data_.f.serial_id = 1;
+    klass->class_data(state->shared().inc_class_count(state));
     klass->packed_size(0);
 
     klass->packed_ivar_info(nil<LookupTable>());

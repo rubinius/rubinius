@@ -201,10 +201,6 @@ namespace rubinius {
   }
 
   Object* Module::reset_method_cache(STATE, Symbol* name) {
-    if(Class* self = try_as<Class>(this)) {
-      self->increment_serial();
-    }
-
     if(!name->nil_p()) {
       Module* module = this;
 

@@ -7,9 +7,9 @@ namespace rubinius {
   class Prediction : public Object {
   public:
     const static object_type type = PredictionType;
-    const static intptr_t valid_prediction = 0xffffffffffffffffULL;
+    const static uint64_t valid_prediction = 0xffffffffffffffffULL;
 
-    attr_field(valid, intptr_t);
+    attr_field(valid, uint64_t);
 
     static void bootstrap(STATE);
     static void initialize(STATE, Prediction* obj) {

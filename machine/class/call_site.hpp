@@ -117,16 +117,15 @@ namespace rubinius {
         return misses() > hits();
       }
 
-      bool valid_serial_p(uint64_t class_data_raw, int serial) {
-        return class_data_raw == receiver_data().raw
+      bool valid_serial_p(uint64_t class_data, int serial) {
+        return class_data == receiver_data()
           && executable()->serial()->to_native() == serial;
       }
 
       Object* execute(STATE, CallSite* call_site, Arguments& args, bool& valid_p) {
-        uint64_t raw_data = args.recv()->direct_class(state)->data_raw();
+        uint64_t class_data = args.recv()->direct_class(state)->class_data();
 
-        // if(likely(receiver_data().raw == raw_data)) {
-        if(likely((prediction()->valid() & receiver_data().raw) == raw_data)) {
+        if(likely((prediction()->valid() & receiver_data()) == class_data)) {
           call_site->hit();
           hit();
           valid_p = true;
@@ -225,11 +224,11 @@ namespace rubinius {
 
     bool valid_serial_p(STATE, Object* recv, Symbol* vis, int serial) {
       Class* recv_class = recv->direct_class(state);
-      uint64_t class_data_raw = recv_class->data_raw();
+      uint64_t class_data = recv_class->class_data();
 
       for(int i = 0; i < max_caches; i++) {
         if(InlineCache* cache = _caches_[i]) {
-          if(cache->valid_serial_p(class_data_raw, serial)) {
+          if(cache->prediction()->valid() && cache->valid_serial_p(class_data, serial)) {
             return true;
           }
         } else {
@@ -405,7 +404,7 @@ namespace rubinius {
       // 1. Attempt to update a cache.
       for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
         // We know that nothing matched the cache, so we only need this test
-        if(cache->receiver_data().class_id() == class_data.class_id()) {
+        if(cache->receiver_data() == class_data) {
           InlineCache* new_cache = new InlineCache(cache, dispatch, class_data);
           InlineCache* old_cache = cache;
 

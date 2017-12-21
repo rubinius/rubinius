@@ -168,14 +168,14 @@ namespace rubinius {
     CompiledCode* code = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->direct_class(state);
-    uint64_t class_data = cls->data_raw();
+    uint64_t class_data = cls->class_data();
 
     MachineCode* v = code->machine_code();
 
     executor target = v->unspecialized;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint64_t c_id = v->specializations[i].class_data.raw;
+      uint64_t c_id = v->specializations[i].class_data;
       executor x = v->specializations[i].execute;
 
       if(c_id == class_data && x != 0) {
@@ -213,14 +213,14 @@ namespace rubinius {
     CompiledCode* code = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->direct_class(state);
-    uint64_t class_data = cls->data_raw();
+    uint64_t class_data = cls->class_data();
 
     MachineCode* v = code->machine_code();
 
     executor target = v->unspecialized;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint64_t c_id = v->specializations[i].class_data.raw;
+      uint64_t c_id = v->specializations[i].class_data;
       executor x = v->specializations[i].execute;
 
       if(c_id == class_data && x != 0) {
@@ -234,71 +234,6 @@ namespace rubinius {
     if(!target) target = v->fallback;
 
     return target(state, exec, mod, args);
-  }
-
-  bool CompiledCode::can_specialize_p() {
-    if(!machine_code()) rubinius::bug("specializing with no backend");
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(machine_code()->specializations[i].class_data.raw == 0) return true;
-    }
-
-    return false;
-  }
-
-  void CompiledCode::add_specialized(STATE,
-      uint32_t class_id, uint32_t serial_id, executor exec)
-  {
-    if(!machine_code()) {
-      logger::error("specializing with no backend");
-      return;
-    }
-
-    MachineCode* v = machine_code();
-
-    int i;
-
-    for(i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint32_t id = v->specializations[i].class_data.f.class_id;
-
-      if(id == 0 || id == class_id) break;
-    }
-
-    /* We have fixed space for specializations. If we exceed this, overwrite
-     * the first one. This should be converted to some sort of LRU cache.
-     */
-    if(i == MachineCode::cMaxSpecializations) {
-      std::ostringstream msg;
-
-      msg << "Specialization space exceeded for " <<
-        machine_code()->name()->cpp_str(state);
-      logger::warn(msg.str().c_str());
-
-      i = 0;
-    }
-
-    v->specializations[i].class_data.f.class_id = class_id;
-    v->specializations[i].class_data.f.serial_id = serial_id;
-    v->specializations[i].execute = exec;
-
-    v->set_execute_status(MachineCode::eJIT);
-    if(primitive()->nil_p()) {
-      execute = specialized_executor;
-    }
-  }
-
-  executor CompiledCode::find_specialized(Class* cls) {
-    MachineCode* v = machine_code();
-
-    if(!v) return 0;
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(v->specializations[i].class_data.raw == cls->data_raw()) {
-        return v->specializations[i].execute;
-      }
-    }
-
-    return 0;
   }
 
   void CompiledCode::post_marshal(STATE) {

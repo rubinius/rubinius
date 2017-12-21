@@ -91,11 +91,6 @@ namespace rubinius {
       splat_position = pos->to_native();
     }
 
-    for(int i = 0; i < cMaxSpecializations; i++) {
-      specializations[i].class_data.raw = 0;
-      specializations[i].execute = 0;
-    }
-
     state->shared().om->add_code_resource(state, this);
   }
 

@@ -105,7 +105,7 @@ namespace rubinius {
 
     uint64_t start_time_;
     uint64_t method_count_;
-    unsigned int class_count_;
+    uint64_t  class_count_;
     int global_serial_;
 
     bool initialized_;
@@ -227,8 +227,8 @@ namespace rubinius {
       return &global_serial_;
     }
 
-    uint32_t inc_class_count(STATE) {
-      return atomic::fetch_and_add(&class_count_, (uint32_t)1);
+    uint64_t inc_class_count(STATE) {
+      return atomic::fetch_and_add(&class_count_, (uint64_t)1);
     }
 
     uint64_t inc_method_count(STATE) {

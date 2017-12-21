@@ -52,10 +52,6 @@ namespace rubinius {
   public:
     attr_accessor(literals, Tuple)
 
-    bool can_specialize_p();
-    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec);
-    executor find_specialized(Class* cls);
-
     /* interface */
 
     static void bootstrap(STATE);
