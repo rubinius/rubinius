@@ -1,7 +1,5 @@
 module Rubinius
   class CompiledCode < Executable
-    attr_accessor :name
-
     def self.allocate
       Rubinius.primitive :compiledcode_allocate
       raise PrimitiveFailure, "CompiledCode.allocate primitive failed"
@@ -81,6 +79,7 @@ module Rubinius
     # This is runtime hints, added to the method by the VM to indicate how it's
     # being used.
 
+    attr_accessor :name
     attr_accessor :hints         # added by the VM to indicate how it's being used.
     attr_accessor :metadata      # [Tuple]   extra data
     attr_accessor :name          # [Symbol]  name of the method
@@ -143,7 +142,7 @@ module Rubinius
         @required_args == other.required_args and
         @total_args    == other.total_args    and
         @splat         == other.splat         and
-        block_index   == other.block_index    and
+        block_index    == other.block_index   and
         @literals      == other.literals      and
         @file          == other.file          and
         @local_names   == other.local_names
@@ -183,8 +182,10 @@ module Rubinius
     #
     # @return [String]
     def inspect
-      "#<#{self.class.name}:0x#{object_id.to_s(16)} #{@name} file=#{@file}>"
+      "#<#{self.class.name}:0x#{object_id.to_s(16)} name=#{@name} file=#{@file} line=#{defined_line}>"
     end
+
+    alias_method :to_s, :inspect
 
     ##
     # Make the method change its scope so that it can act as though
