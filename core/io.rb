@@ -236,7 +236,9 @@ class IO
 
       position = FFI::Platform::POSIX.lseek(descriptor, offset, whence)
 
-      Errno.handle("seek failed") if FFI.call_failed?(position)
+      if FFI.call_failed?(position)
+        Errno.handle("seek failed: fd: #{descriptor}, offset: #{offset}, from: #{whence}")
+      end
 
       @offset = position
       determine_eof
