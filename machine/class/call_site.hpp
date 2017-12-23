@@ -419,6 +419,7 @@ namespace rubinius {
       }
 
       // 2. Attempt to replace an invalid cache.
+      /*
       for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
         if(!cache->prediction()->valid()) {
           InlineCache* new_cache = new InlineCache(klass, dispatch);
@@ -433,6 +434,7 @@ namespace rubinius {
           }
         }
       }
+      */
 
       // 3. Attempt to add a cache
       for(int i = 0; i < max_caches; i++) {
