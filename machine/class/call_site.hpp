@@ -474,7 +474,6 @@ namespace rubinius {
 
     void evict_and_mark(memory::ObjectMark& mark) {
       // 0. Evict invalid caches.
-      /*
       for(int i = 0; i < max_caches; i++) {
         if(InlineCache* cache = _caches_[i]) {
           if(!cache->prediction()->valid()) {
@@ -502,7 +501,6 @@ namespace rubinius {
           VM::current()->metrics().machine.inline_cache_reordered++;
         }
       }
-      */
 
       // 2. Check if all caching should be disabled.
       if(depth() == 0 && evictions() > max_evictions) {
