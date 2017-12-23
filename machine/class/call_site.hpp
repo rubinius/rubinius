@@ -64,19 +64,17 @@ namespace rubinius {
       attr_field(executable, Executable*);
 
       attr_field(prediction, Prediction*);
-      attr_field(receiver_data, ClassData);
       attr_field(method_missing, MethodMissingReason);
       attr_field(hits, int);
       attr_field(misses, int);
 
       attr_field(execute, Executor);
 
-      InlineCache(InlineCache* cache, Dispatch& dispatch, ClassData class_data)
+      InlineCache(InlineCache* cache, Dispatch& dispatch)
         : _receiver_class_(cache->receiver_class())
         , _stored_module_(dispatch.module)
         , _executable_(dispatch.method)
         , _prediction_(dispatch.prediction)
-        , _receiver_data_(class_data)
         , _method_missing_(cache->method_missing())
         , _hits_(0)
         , _misses_(0)
@@ -93,7 +91,6 @@ namespace rubinius {
         , _stored_module_(dispatch.module)
         , _executable_(dispatch.method)
         , _prediction_(dispatch.prediction)
-        , _receiver_data_(klass->class_data())
         , _method_missing_(dispatch.method_missing)
         , _hits_(0)
         , _misses_(0)
@@ -117,15 +114,16 @@ namespace rubinius {
         return misses() > hits();
       }
 
-      bool valid_serial_p(uint64_t class_data, int serial) {
-        return class_data == receiver_data()
+      bool valid_serial_p(Class* receiver, int serial) {
+        return receiver == receiver_class()
           && executable()->serial()->to_native() == serial;
       }
 
       Object* execute(STATE, CallSite* call_site, Arguments& args, bool& valid_p) {
-        uint64_t class_data = args.recv()->direct_class(state)->class_data();
+        uint64_t klass = reinterpret_cast<uint64_t>(args.recv()->direct_class(state));
+        uint64_t receiver = reinterpret_cast<uint64_t>(receiver_class());
 
-        if(likely((prediction()->valid() & receiver_data()) == class_data)) {
+        if(likely((prediction()->valid() & receiver) == klass)) {
           call_site->hit();
           hit();
           valid_p = true;
@@ -223,12 +221,11 @@ namespace rubinius {
     }
 
     bool valid_serial_p(STATE, Object* recv, Symbol* vis, int serial) {
-      Class* recv_class = recv->direct_class(state);
-      uint64_t class_data = recv_class->class_data();
+      Class* klass = recv->direct_class(state);
 
       for(int i = 0; i < max_caches; i++) {
         if(InlineCache* cache = _caches_[i]) {
-          if(cache->prediction()->valid() && cache->valid_serial_p(class_data, serial)) {
+          if(cache->prediction()->valid() && cache->valid_serial_p(klass, serial)) {
             return true;
           }
         } else {
@@ -242,7 +239,7 @@ namespace rubinius {
 
       if(dispatch.resolve(state, name(), lookup_data)) {
         if(dispatch.method->serial()->to_native() == serial) {
-          cache(state, recv_class, dispatch);
+          cache(state, klass, dispatch);
 
           return true;
         }
@@ -398,14 +395,13 @@ namespace rubinius {
       // 0. Ignore method_missing for now
       if(dispatch.name == G(sym_method_missing)) return;
 
-      ClassData class_data = klass->class_data();
+      // ClassData class_data = klass->class_data();
       InlineCache* cache = 0;
 
       // 1. Attempt to update a cache.
       for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
-        // We know that nothing matched the cache, so we only need this test
-        if(cache->receiver_data() == class_data) {
-          InlineCache* new_cache = new InlineCache(cache, dispatch, class_data);
+        if(cache->receiver_class() == klass) {
+          InlineCache* new_cache = new InlineCache(cache, dispatch);
           InlineCache* old_cache = cache;
 
           if(_caches_[i].compare_exchange_strong(cache, new_cache)) {
@@ -564,6 +560,14 @@ namespace rubinius {
     Integer* misses(STATE) {
       return Integer::from(state, misses());
     }
+
+    // Rubinius.primitive :call_site_dead_list_size
+    Integer* dead_list_size(STATE) {
+      return Integer::from(state, _dead_list_->size());
+    }
+
+    // Rubinius.primitive :call_site_caches
+    Tuple* caches(STATE);
 
     // Rubinius.primitive :call_site_reset
     CallSite* reset(STATE) {
