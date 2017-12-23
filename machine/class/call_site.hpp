@@ -20,6 +20,7 @@
 
 namespace rubinius {
   class Dispatch;
+  class Tuple;
 
   class CallSite : public Object {
   public:
@@ -76,7 +77,7 @@ namespace rubinius {
         , _executable_(dispatch.method)
         , _prediction_(dispatch.prediction)
         , _method_missing_(cache->method_missing())
-        , _hits_(0)
+        , _hits_(1)
         , _misses_(0)
       {
         if(dispatch.method_missing == eNone) {
@@ -92,7 +93,7 @@ namespace rubinius {
         , _executable_(dispatch.method)
         , _prediction_(dispatch.prediction)
         , _method_missing_(dispatch.method_missing)
-        , _hits_(0)
+        , _hits_(1)
         , _misses_(0)
       {
         if(dispatch.method_missing == eNone) {
@@ -110,8 +111,11 @@ namespace rubinius {
         ++_misses_;
       }
 
-      bool inefficient_p() {
-        return misses() > hits();
+      double hit_ratio() {
+        double h = _hits_;
+        double m = _misses_;
+
+        return (h / (h + m)) * h;
       }
 
       bool valid_serial_p(Class* receiver, int serial) {
@@ -414,9 +418,9 @@ namespace rubinius {
         }
       }
 
-      // 2. Attempt to replace a cache.
+      // 2. Attempt to replace an invalid cache.
       for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
-        if(cache->inefficient_p()) {
+        if(!cache->prediction()->valid()) {
           InlineCache* new_cache = new InlineCache(klass, dispatch);
           InlineCache* old_cache = cache;
 
@@ -469,10 +473,10 @@ namespace rubinius {
     }
 
     void evict_and_mark(memory::ObjectMark& mark) {
-      // 0. Evict inefficient caches.
+      // 0. Evict invalid caches.
       for(int i = 0; i < max_caches; i++) {
         if(InlineCache* cache = _caches_[i]) {
-          if(cache->inefficient_p()) {
+          if(!cache->prediction()->valid()) {
             evict();
 
             delete cache;
@@ -559,6 +563,11 @@ namespace rubinius {
     // Rubinius.primitive :call_site_misses
     Integer* misses(STATE) {
       return Integer::from(state, misses());
+    }
+
+    // Rubinius.primitive :call_site_evictions
+    Integer* evictions(STATE) {
+      return Integer::from(state, evictions());
     }
 
     // Rubinius.primitive :call_site_dead_list_size
