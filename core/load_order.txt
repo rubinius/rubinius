@@ -86,7 +86,6 @@ options.rb
 pack.rb
 pointer.rb
 pointer_accessors.rb
-prediction.rb
 proc.rb
 proc_mirror.rb
 process.rb

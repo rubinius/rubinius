@@ -20,7 +20,6 @@
 
 namespace rubinius {
   class Dispatch;
-  class Tuple;
 
   class CallSite : public Object {
   public:
@@ -79,7 +78,7 @@ namespace rubinius {
         , _prediction_(dispatch.prediction)
         , _receiver_data_(class_data)
         , _method_missing_(cache->method_missing())
-        , _hits_(1)
+        , _hits_(0)
         , _misses_(0)
       {
         if(dispatch.method_missing == eNone) {
@@ -96,7 +95,7 @@ namespace rubinius {
         , _prediction_(dispatch.prediction)
         , _receiver_data_(klass->class_data())
         , _method_missing_(dispatch.method_missing)
-        , _hits_(1)
+        , _hits_(0)
         , _misses_(0)
       {
         if(dispatch.method_missing == eNone) {
@@ -114,11 +113,8 @@ namespace rubinius {
         ++_misses_;
       }
 
-      double hit_ratio() {
-        double h = _hits_;
-        double m = _misses_;
-
-        return (h / (h + m)) * h;
+      bool inefficient_p() {
+        return misses() > hits();
       }
 
       bool valid_serial_p(uint64_t class_data, int serial) {
@@ -422,9 +418,9 @@ namespace rubinius {
         }
       }
 
-      // 2. Attempt to replace an invalid cache.
+      // 2. Attempt to replace a cache.
       for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
-        if(!cache->prediction()->valid()) {
+        if(cache->inefficient_p()) {
           InlineCache* new_cache = new InlineCache(klass, dispatch);
           InlineCache* old_cache = cache;
 
@@ -477,10 +473,10 @@ namespace rubinius {
     }
 
     void evict_and_mark(memory::ObjectMark& mark) {
-      // 0. Evict invalid caches.
+      // 0. Evict inefficient caches.
       for(int i = 0; i < max_caches; i++) {
         if(InlineCache* cache = _caches_[i]) {
-          if(!cache->prediction()->valid()) {
+          if(cache->inefficient_p()) {
             evict();
 
             delete cache;
@@ -500,32 +496,13 @@ namespace rubinius {
         if(a == nullptr && b != nullptr) {
           _caches_[i] = b;
           _caches_[i+1] = nullptr;
+
+          // TODO: pass State into GC!
+          VM::current()->metrics().machine.inline_cache_reordered++;
         }
       }
 
-      // 2. Re-order more used caches forward
-      while(true) {
-        bool swapped = false;
-
-        for(int i = 0; i < max_caches - 1; i++) {
-          InlineCache* a = _caches_[i];
-          InlineCache* b = _caches_[i+1];
-
-          if(a && b && (a->hit_ratio() < b->hit_ratio())) {
-            _caches_[i] = b;
-            _caches_[i+1] = a;
-
-            swapped = true;
-
-            // TODO: pass State into GC!
-            VM::current()->metrics().machine.inline_cache_reordered++;
-          }
-        }
-
-        if(!swapped) break;
-      }
-
-      // 3. Check if all caching should be disabled.
+      // 2. Check if all caching should be disabled.
       if(depth() == 0 && evictions() > max_evictions) {
         execute(CallSite::dispatch);
         cache_miss(CallSite::dispatch);
@@ -534,7 +511,7 @@ namespace rubinius {
         VM::current()->metrics().machine.inline_cache_disabled++;
       }
 
-      // 4. Mark remaining caches.
+      // 3. Mark remaining caches.
       for(int i = 0; i < max_caches; i++) {
         if(InlineCache* cache = _caches_[i]) {
           if(Object* ref = mark.call(cache->receiver_class())) {
@@ -559,7 +536,7 @@ namespace rubinius {
         }
       }
 
-      // 5. Clear dead list
+      // 4. Clear dead list
       clear_dead_list();
     }
 
@@ -587,19 +564,6 @@ namespace rubinius {
     Integer* misses(STATE) {
       return Integer::from(state, misses());
     }
-
-    // Rubinius.primitive :call_site_evictions
-    Integer* evictions(STATE) {
-      return Integer::from(state, evictions());
-    }
-
-    // Rubinius.primitive :call_site_dead_list_size
-    Integer* dead_list_size(STATE) {
-      return Integer::from(state, _dead_list_->size());
-    }
-
-    // Rubinius.primitive :call_site_caches
-    Tuple* caches(STATE);
 
     // Rubinius.primitive :call_site_reset
     CallSite* reset(STATE) {
