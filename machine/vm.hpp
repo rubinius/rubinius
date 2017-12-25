@@ -25,6 +25,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <functional>
 #include <mutex>
 #include <regex>
 #include <string>
@@ -132,13 +133,8 @@ namespace rubinius {
 
     std::atomic<ThreadNexus::Phase> thread_phase_;
 
-    uint32_t profile_interval_;
-    uint32_t profile_counter_;
-    CompiledCode** profile_;
-    uint64_t profile_sample_count_;
-    uint64_t profile_report_interval_;
-    native_int max_profile_entries_;
-    native_int min_profile_sample_count_;
+    uint32_t sample_interval_;
+    uint32_t sample_counter_;
 
   public:
     /* Data members */
@@ -459,29 +455,16 @@ namespace rubinius {
 
     void collect_maybe(STATE);
 
-    native_int max_profile_entries() {
-      return max_profile_entries_;
-    }
-
-    uint64_t profile_sample_count() {
-      return profile_sample_count_;
-    }
-
-    CompiledCode** profile() {
-      return profile_;
-    }
-
-    void update_profile(STATE);
-    void sort_profile();
+    void sample(STATE);
 
 #define RBX_PROFILE_MAX_SHIFT     0xf
 #define RBX_PROFILE_MAX_INTERVAL  0x1fff
 
-    void set_profile_interval() {
-      profile_interval_ = randombytes_random();
-      profile_interval_ >>= (profile_interval_ & RBX_PROFILE_MAX_SHIFT);
-      profile_interval_ &= RBX_PROFILE_MAX_INTERVAL;
-      profile_counter_ = 0;
+    void set_sample_interval() {
+      sample_interval_ = randombytes_random();
+      sample_interval_ >>= (sample_interval_ & RBX_PROFILE_MAX_SHIFT);
+      sample_interval_ &= RBX_PROFILE_MAX_INTERVAL;
+      sample_counter_ = 0;
     }
 
     void checkpoint(STATE) {
@@ -492,9 +475,9 @@ namespace rubinius {
           collect_maybe(state);
         });
 
-      if(profile_counter_++ >= profile_interval_) {
-        update_profile(state);
-        set_profile_interval();
+      if(sample_counter_++ >= sample_interval_) {
+        sample(state);
+        set_sample_interval();
       }
     }
 

@@ -371,8 +371,6 @@ namespace rubinius {
     vm->thread()->join_lock_.lock();
     vm->thread()->stopped();
 
-    state->shared().report_profile(state);
-
     memory::LockedObjects& locked_objects = state->vm()->locked_objects();
     for(memory::LockedObjects::iterator i = locked_objects.begin();
         i != locked_objects.end();

@@ -12,15 +12,8 @@ namespace rubinius {
       virtual ~ProfilerDiagnostics() { }
     };
 
-    enum ProfilerTarget {
-      eNone,
-      ePath,
-      eDiagnostics
-    };
-
     class Profiler {
       std::string path_;
-      ProfilerTarget target_;
       ProfilerDiagnostics* diagnostics_data_;
 
     public:
@@ -38,13 +31,7 @@ namespace rubinius {
         return diagnostics_data_;
       }
 
-      void set_profiler_path(STATE);
-
       void report(STATE);
-      void report_to_file(STATE);
-      void report_to_diagnostics(STATE);
-
-      void after_fork_child(STATE);
     };
   }
 }

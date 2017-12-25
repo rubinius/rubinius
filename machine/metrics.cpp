@@ -240,7 +240,7 @@ namespace rubinius {
       , enabled_(true)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
-      , timer_(NULL)
+      , timer_(nullptr)
       , metrics_lock_()
       , metrics_data_()
       , metrics_history_()
@@ -260,8 +260,15 @@ namespace rubinius {
     }
 
     Metrics::~Metrics() {
-      if(timer_) delete timer_;
-      if(emitter_) delete emitter_;
+      if(timer_) {
+        delete timer_;
+        timer_ = nullptr;
+      }
+
+      if(emitter_) {
+        delete emitter_;
+        emitter_ = nullptr;
+      }
 
       for(MetricsMap::iterator i = metrics_map_.begin();
           i != metrics_map_.end();
@@ -383,6 +390,10 @@ namespace rubinius {
             "machine.bytecode.verifier.us", metrics_data_.machine.bytecode_verifier_us));
       metrics_map_.push_back(new MetricsItem(
             "machine.bytecode.internalizer.us", metrics_data_.machine.bytecode_internalizer_us));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.samples", metrics_data_.machine.samples));
+      metrics_map_.push_back(new MetricsItem(
+            "machine.sample.ns", metrics_data_.machine.sample_ns));
       metrics_map_.push_back(new MetricsItem(
             "machine.profiles", metrics_data_.machine.profiles));
       metrics_map_.push_back(new MetricsItem(

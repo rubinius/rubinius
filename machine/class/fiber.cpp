@@ -219,8 +219,6 @@ namespace rubinius {
 
     vm->unmanaged_phase(state);
 
-    state->shared().report_profile(state);
-
     NativeMethod::cleanup_thread(state);
 
     if(state->shared().config.machine_fiber_log_lifetime.value) {

@@ -301,7 +301,6 @@ namespace rubinius {
     om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
-    profiler_->after_fork_child(state);
   }
 
   const unsigned int* SharedState::object_memory_mark_address() const {

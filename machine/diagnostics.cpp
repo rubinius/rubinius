@@ -10,6 +10,8 @@
 #include <fcntl.h>
 
 namespace rubinius {
+  using namespace utilities;
+
   namespace diagnostics {
     DiagnosticsData::DiagnosticsData()
       : document()
@@ -69,10 +71,11 @@ namespace rubinius {
 
     Diagnostics::Diagnostics(STATE)
       : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
+      , timer_(NULL)
+      , interval_(state->shared().config.system_diagnostics_interval)
       , list_()
       , emitter_(NULL)
       , diagnostics_lock_()
-      , diagnostics_condition_()
     {
       // TODO: socket target
       if(false /*state->shared().config.system_diagnostics_target.value.compare("none")*/) {
@@ -85,14 +88,18 @@ namespace rubinius {
     void Diagnostics::initialize(STATE) {
       MachineThread::initialize(state);
 
+      timer_ = new timer::Timer;
+
       diagnostics_lock_.init();
-      diagnostics_condition_.init();
     }
 
     void Diagnostics::wakeup(STATE) {
       MachineThread::wakeup(state);
 
-      diagnostics_condition_.signal();
+      if(timer_) {
+        timer_->clear();
+        timer_->cancel();
+      }
     }
 
     void Diagnostics::after_fork_child(STATE) {
@@ -104,21 +111,30 @@ namespace rubinius {
 
       list_.push_front(data);
 
-      diagnostics_condition_.signal();
+      if(timer_) {
+        timer_->clear();
+        timer_->cancel();
+      }
     }
 
     void Diagnostics::run(STATE) {
       state->vm()->unmanaged_phase(state);
 
+      timer_->set(interval_);
+
       while(!thread_exit_) {
         DiagnosticsData* data = 0;
+
+        if(timer_->wait_for_tick() < 0) {
+          logger::error("diagnostics: error waiting for timer");
+        }
+
+        if(thread_exit_) break;
 
         {
           utilities::thread::Mutex::LockGuard guard(diagnostics_lock_);
 
-          if(list_.empty()) {
-            diagnostics_condition_.wait(diagnostics_lock_);
-          } else {
+          if(!list_.empty()) {
             data = list_.back();
             list_.pop_back();
           }

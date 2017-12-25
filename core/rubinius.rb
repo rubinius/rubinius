@@ -253,7 +253,7 @@ module Rubinius
       # end
     end
 
-    extra << "P" if Rubinius::PROFILER != "none"
+    extra << "P" if Rubinius::PROFILER
     extra << "C" if Rubinius::CONCURRENT_GC
     extra << "D" if Rubinius::DEBUG_BUILD
 

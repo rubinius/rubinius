@@ -4,6 +4,7 @@
 #include "machine_threads.hpp"
 
 #include "util/thread.hpp"
+#include "util/timer.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
@@ -53,16 +54,23 @@ namespace rubinius {
     typedef std::list<DiagnosticsData*> DiagnosticsList;
 
     class Diagnostics : public MachineThread {
+      utilities::timer::Timer* timer_;
+      int interval_;
+
       DiagnosticsList list_;
 
       DiagnosticsEmitter* emitter_;
 
       utilities::thread::Mutex diagnostics_lock_;
-      utilities::thread::Condition diagnostics_condition_;
 
     public:
       Diagnostics(STATE);
-      virtual ~Diagnostics() { }
+      ~Diagnostics() {
+        if(timer_) {
+          delete timer_;
+          timer_ = nullptr;
+        }
+      }
 
       void report(DiagnosticsData* data);
 

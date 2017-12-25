@@ -195,6 +195,8 @@ namespace rubinius {
       metric bytecode_load_us;
       metric bytecode_verifier_us;
       metric bytecode_internalizer_us;
+      metric samples;
+      metric sample_ns;
       metric profiles;
       metric profile_ns;
       metric unwind_site_count;
@@ -223,6 +225,8 @@ namespace rubinius {
         bytecode_load_us = 0;
         bytecode_verifier_us = 0;
         bytecode_internalizer_us = 0;
+        samples = 0;
+        sample_ns = 0;
         profiles = 0;
         profile_ns = 0;
         unwind_site_count = 0;
@@ -252,6 +256,8 @@ namespace rubinius {
         bytecode_load_us += data.bytecode_load_us;
         bytecode_verifier_us += data.bytecode_verifier_us;
         bytecode_internalizer_us += data.bytecode_internalizer_us;
+        samples += data.samples;
+        sample_ns += data.sample_ns;
         profiles += data.profiles;
         profile_ns += data.profile_ns;
         unwind_site_count += data.unwind_site_count;

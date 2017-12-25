@@ -186,19 +186,19 @@ Rubinius::ConfigurationVariables.define do |c|
     end
 
     s.section "diagnostics" do |d|
+      d.vm_variable "interval", 60000,
+        "Number of milliseconds between aggregation of diagnostics"
+
       d.vm_variable "target", "none",
         "Location to send diagnostics: host:port, path"
-    end
 
-    s.section "profiler" do |p|
-      p.vm_variable "target", "none",
-        "Location to send profiler output: 'diagnostics', path"
+      d.section "profiler" do |p|
+        p.vm_variable "enabled", false,
+          "Emit profiler sample data"
 
-      p.vm_variable "interval", 10000,
-        "Report profiler results every N samples"
-
-      p.vm_variable "subprocess", false,
-        "Enable profiling in subprocesses created by fork"
+        p.vm_variable "subprocess", false,
+          "Enable profiling in subprocesses created by fork"
+      end
     end
   end
 end
