@@ -11,4 +11,14 @@ module Rubinius
       raise PrimitiveFailure, "Prediction#valid? primitive failed"
     end
   end
+
+  class MethodPrediction
+    attr_reader :module
+    attr_reader :executable
+
+    def inspect
+      "#<#{self.class.name}:0x#{object_id.to_s(16)} valid=#{valid?}" \
+        " module=#{@module} executable=#{@executable}>"
+    end
+  end
 end

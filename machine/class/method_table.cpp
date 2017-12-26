@@ -149,7 +149,7 @@ namespace rubinius {
         if(!entry->prediction()->nil_p()) {
           entry->prediction()->invalidate();
         }
-        entry->prediction(state, nil<Prediction>());
+        entry->prediction(state, nil<MethodPrediction>());
         return name;
       }
 
@@ -214,7 +214,7 @@ namespace rubinius {
         if(!entry->prediction()->nil_p()) {
           entry->prediction()->invalidate();
         }
-        entry->prediction(state, nil<Prediction>());
+        entry->prediction(state, nil<MethodPrediction>());
         return name;
       }
 
@@ -360,7 +360,7 @@ namespace rubinius {
     entry->scope(state, scope);
     entry->serial(state, serial);
     entry->visibility(state, vis);
-    entry->prediction(state, nil<Prediction>());
+    entry->prediction(state, nil<MethodPrediction>());
 
     return entry;
   }

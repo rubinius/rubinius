@@ -24,7 +24,7 @@ namespace rubinius {
     attr_accessor(method, Object);
     attr_accessor(scope, Object);
     attr_accessor(serial, Fixnum);
-    attr_accessor(prediction, Prediction);
+    attr_accessor(prediction, MethodPrediction);
     attr_accessor(next, MethodTableBucket);
 
     static void initialize(STATE, MethodTableBucket* obj) {
@@ -34,7 +34,7 @@ namespace rubinius {
       obj->method(nil<Executable>());
       obj->scope(nil<Object>());
       obj->serial(nil<Fixnum>());
-      obj->prediction(nil<Prediction>());
+      obj->prediction(nil<MethodPrediction>());
       obj->next(nil<MethodTableBucket>());
     }
 

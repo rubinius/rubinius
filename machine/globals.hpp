@@ -135,6 +135,7 @@ namespace rubinius {
     memory::TypedRoot<Class*> codedb;
     memory::TypedRoot<CodeDB*> coredb;
     memory::TypedRoot<Class*> prediction;
+    memory::TypedRoot<Class*> method_prediction;
 
     memory::TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
@@ -272,6 +273,7 @@ namespace rubinius {
       codedb(&roots),
       coredb(&roots),
       prediction(&roots),
+      method_prediction(&roots),
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)

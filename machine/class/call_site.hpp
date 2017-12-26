@@ -60,10 +60,7 @@ namespace rubinius {
       typedef Function* Executor;
 
       attr_field(receiver_class, Class*);
-      attr_field(stored_module, Module*);
-      attr_field(executable, Executable*);
-
-      attr_field(prediction, Prediction*);
+      attr_field(prediction, MethodPrediction*);
       attr_field(method_missing, MethodMissingReason);
       attr_field(hits, int);
       attr_field(misses, int);
@@ -72,8 +69,6 @@ namespace rubinius {
 
       InlineCache(InlineCache* cache, Dispatch& dispatch)
         : _receiver_class_(cache->receiver_class())
-        , _stored_module_(dispatch.module)
-        , _executable_(dispatch.method)
         , _prediction_(dispatch.prediction)
         , _method_missing_(cache->method_missing())
         , _hits_(0)
@@ -88,8 +83,6 @@ namespace rubinius {
 
       InlineCache(Class* klass, Dispatch& dispatch)
         : _receiver_class_(klass)
-        , _stored_module_(dispatch.module)
-        , _executable_(dispatch.method)
         , _prediction_(dispatch.prediction)
         , _method_missing_(dispatch.method_missing)
         , _hits_(0)
@@ -116,7 +109,7 @@ namespace rubinius {
 
       bool valid_serial_p(Class* receiver, int serial) {
         return receiver == receiver_class()
-          && executable()->serial()->to_native() == serial;
+          && prediction()->executable()->serial()->to_native() == serial;
       }
 
       Object* execute(STATE, CallSite* call_site, Arguments& args, bool& valid_p) {
@@ -142,8 +135,8 @@ namespace rubinius {
         state->vm()->metrics().machine.methods_invoked++;
         state->vm()->metrics().machine.inline_cache_hits++;
 
-        return cache->executable()->execute(state,
-            cache->executable(), cache->stored_module(), args);
+        return cache->prediction()->executable()->execute(state,
+            cache->prediction()->executable(), cache->prediction()->module(), args);
       }
 
       static Object* invoke_method_missing(STATE, CallSite* call_site,
@@ -155,8 +148,9 @@ namespace rubinius {
         state->vm()->set_method_missing_reason(cache->method_missing());
         args.unshift(state, call_site->name());
 
-        return cache->executable()->execute(state, cache->executable(),
-            cache->stored_module(), args);
+        return cache->prediction()->executable()->execute(state,
+            cache->prediction()->executable(),
+            cache->prediction()->module(), args);
       }
     };
 
@@ -515,18 +509,8 @@ namespace rubinius {
             mark.just_set(this, ref);
           }
 
-          if(Object* ref = mark.call(cache->stored_module())) {
-            cache->stored_module(as<Module>(ref));
-            mark.just_set(this, ref);
-          }
-
-          if(Object* ref = mark.call(cache->executable())) {
-            cache->executable(as<Executable>(ref));
-            mark.just_set(this, ref);
-          }
-
           if(Object* ref = mark.call(cache->prediction())) {
-            cache->prediction(as<Prediction>(ref));
+            cache->prediction(as<MethodPrediction>(ref));
             mark.just_set(this, ref);
           }
         }

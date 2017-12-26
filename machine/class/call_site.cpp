@@ -38,13 +38,9 @@ namespace rubinius {
 
     for(int i = 0; i < max_caches; i++) {
       if(InlineCache* cache = _caches_[i]) {
-        Tuple* t = Tuple::from(state, 12,
+        Tuple* t = Tuple::from(state, 8,
               state->symbol("receiver"),
               cache->receiver_class()->module_name(),
-              state->symbol("module"),
-              cache->stored_module()->module_name(),
-              state->symbol("executable"),
-              cache->executable(),
               state->symbol("prediction"),
               cache->prediction(),
               state->symbol("hits"),

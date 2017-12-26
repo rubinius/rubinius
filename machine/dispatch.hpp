@@ -9,7 +9,7 @@ namespace rubinius {
   class Executable;
   class Module;
   class Object;
-  class Prediction;
+  class MethodPrediction;
   class Symbol;
   struct LookupData;
 
@@ -19,7 +19,7 @@ namespace rubinius {
     Module* module;
     Executable* method;
     Symbol* visibility;
-    Prediction* prediction;
+    MethodPrediction* prediction;
     MethodMissingReason method_missing;
 
     Dispatch(Symbol* name)

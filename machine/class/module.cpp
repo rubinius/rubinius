@@ -214,7 +214,7 @@ namespace rubinius {
         if(entry) {
           if(!entry->prediction()->nil_p()) {
             entry->prediction()->invalidate();
-            entry->prediction(state, nil<Prediction>());
+            entry->prediction(state, nil<MethodPrediction>());
           }
         }
 
