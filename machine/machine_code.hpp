@@ -83,7 +83,6 @@ namespace rubinius {
     attr_field(unwind_site_count, size_t);
     attr_field(description, std::string*);
 
-    Specialization specializations[cMaxSpecializations];
     executor unspecialized;
     executor fallback;
 
@@ -188,8 +187,6 @@ namespace rubinius {
       bool force_deoptimization);
 
     void setup_argument_handler();
-
-    void deoptimize(STATE, CompiledCode* original, bool disable=false);
   };
 };
 

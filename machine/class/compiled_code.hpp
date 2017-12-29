@@ -100,7 +100,6 @@ namespace rubinius {
     void specialize(STATE, TypeInfo* ti);
 
     static Object* default_executor(STATE, Executable* exec, Module* mod, Arguments& args);
-    static Object* specialized_executor(STATE, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :compiledcode_set_breakpoint
     Object* set_breakpoint(STATE, Fixnum* ip, Object* bp);

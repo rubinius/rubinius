@@ -22,76 +22,145 @@ namespace rubinius {
   class Dispatch;
 
   class CallSite : public Object {
-  public:
-    struct InlineCache;
+    struct Cache {
+      struct Entry {
+        attr_field(hits, uint32_t);
+        attr_field(misses, uint32_t);
+        attr_field(receiver_class, Class*);
+        attr_field(prediction, MethodPrediction*);
 
-    const static object_type type = CallSiteType;
+        Entry(Class* receiver, MethodPrediction* prediction)
+          : _hits_(1)
+          , _misses_(0)
+          , _receiver_class_(receiver)
+          , _prediction_(prediction)
+        {
+        }
 
-    typedef Object* (Function)(STATE, CallSite*, Arguments&);
+        void hit() {
+          ++_hits_;
+        }
 
-    typedef Function* Executor;
+        void miss() {
+          ++_misses_;
+        }
 
-    attr_accessor(name, Symbol);
+        double efficiency() {
+          double h = _hits_;
+          double m = _misses_;
 
-    attr_field(invokes, int);
-    attr_field(hits, int);
-    attr_field(misses, int);
-    attr_field(evictions, int);
-    attr_field(ip, int);
-    attr_field(kind, MethodMissingReason);
+          return (h / (h + m) * h);
+        }
+      };
 
-    attr_field(execute, Executor);
-    attr_field(cache_miss, Executor);
+      attr_field(size, uint32_t);
+      attr_field(hits, uint32_t);
+      attr_field(misses, uint32_t);
+      attr_field(evictions, uint32_t);
 
-    std::list<InlineCache*>* _dead_list_;
-    locks::spinlock_mutex _dead_list_mutex_;
+      Entry _entries_[0];
 
-    typedef std::atomic<InlineCache*> InlineCachePtr;
-
-    InlineCachePtr* _caches_;
-
-  public:
-    static int max_caches;
-    static int max_evictions;
-    static Executor default_execute;
-
-    struct InlineCache {
-      typedef Object* (Function)(STATE, CallSite*, InlineCache*, Arguments&);
-      typedef Function* Executor;
-
-      attr_field(receiver_class, Class*);
-      attr_field(prediction, MethodPrediction*);
-      attr_field(method_missing, MethodMissingReason);
-      attr_field(hits, int);
-      attr_field(misses, int);
-
-      attr_field(execute, Executor);
-
-      InlineCache(InlineCache* cache, Dispatch& dispatch)
-        : _receiver_class_(cache->receiver_class())
-        , _prediction_(dispatch.prediction)
-        , _method_missing_(cache->method_missing())
+    public:
+      Cache(uint32_t size)
+        : _size_(size)
         , _hits_(0)
         , _misses_(0)
+        , _evictions_(0)
       {
-        if(dispatch.method_missing == eNone) {
-          execute(invoke);
-        } else {
-          execute(invoke_method_missing);
+      }
+
+      Cache(uint32_t size, Cache* cache)
+        : _size_(size)
+        , _hits_(cache->hits() + 1)
+        , _misses_(cache->misses())
+        , _evictions_(cache->evictions())
+      {
+      }
+
+      static Cache* create(STATE, Class* receiver, Dispatch& dispatch) {
+        uint8_t* mem = new uint8_t[sizeof(Cache) + sizeof(Entry)];
+
+        Cache* new_cache = new(mem) Cache(1);
+        new(new_cache->_entries_) Entry(receiver, dispatch.prediction);
+
+        state->vm()->metrics().machine.inline_cache_count++;
+
+        return new_cache;
+      }
+
+      static Cache* create(STATE, Cache* cache, Class* receiver, Dispatch& dispatch) {
+        uint32_t size = cache->valid_size() + 1;
+
+        uint8_t* mem = new uint8_t[sizeof(Cache) + (size * sizeof(Entry))];
+
+        Cache* new_cache = new(mem) Cache(size, cache);
+        new(new_cache->_entries_) Entry(receiver, dispatch.prediction);
+
+        new_cache->copy_valid(cache, 1);
+
+        state->vm()->metrics().machine.inline_cache_count++;
+
+        return new_cache;
+      }
+
+      uint32_t valid_size() {
+        uint32_t size = 0;
+
+        for(int32_t i = 0; i < this->size(); i++) {
+          if(entries(i)->prediction()->valid()) ++size;
+        }
+
+        if(size > max_caches) size = max_caches;
+
+        return size;
+      }
+
+      void copy_valid(Cache* other, uint32_t index) {
+        Entry* entries = other->entries();
+
+        for(int32_t i = 0; i < other->size() && index < size(); i++) {
+          if(entries[i].prediction()->valid()) {
+            _entries_[index++] = entries[i];
+          }
         }
       }
 
-      InlineCache(Class* klass, Dispatch& dispatch)
-        : _receiver_class_(klass)
-        , _prediction_(dispatch.prediction)
-        , _method_missing_(dispatch.method_missing)
-        , _hits_(0)
-        , _misses_(0)
-      {
-        if(dispatch.method_missing == eNone) {
-          execute(invoke);
-        } else {
-          execute(invoke_method_missing);
+      Cache* compact() {
+        uint32_t size = valid_size();
+
+        if(size == this->size()) {
+          return this;
+        } else if(size == 0) {
+          return nullptr;
+        }
+
+        uint8_t* mem = new uint8_t[sizeof(Cache) + (size * sizeof(Entry))];
+
+        Cache* new_cache = new(mem) Cache(size, this);
+
+        new_cache->copy_valid(this, 0);
+
+        return new_cache;
+      }
+
+      void swap(uint32_t a, uint32_t b) {
+        Entry tmp = _entries_[a];
+        _entries_[a] = _entries_[b];
+        _entries_[b] = tmp;
+      }
+
+      void reorder() {
+        while(true) {
+          bool swapped = false;
+
+          for(uint32_t i = 0; i < size() - 1; i++) {
+            if(entries(i)->efficiency() < entries(i+1)->efficiency()) {
+              swap(i, i+1);
+              swapped = true;
+            }
+          }
+
+          if(!swapped) break;
         }
       }
 
@@ -103,173 +172,106 @@ namespace rubinius {
         ++_misses_;
       }
 
-      bool inefficient_p() {
-        return misses() > hits();
+      void evict(int num=1) {
+        _evictions_ += num;
       }
 
-      bool valid_serial_p(Class* receiver, int serial) {
-        return receiver == receiver_class()
-          && prediction()->executable()->serial()->to_native() == serial;
+      Entry* entries() {
+        return _entries_;
       }
 
-      Object* execute(STATE, CallSite* call_site, Arguments& args, bool& valid_p) {
+      Entry* entries(int i) {
+        return _entries_ + i;
+      }
+
+      static Object* mono_execute(STATE, CallSite* call_site, Arguments& args) {
+        Cache* cache = call_site->cache();
+        Entry* entry = cache->entries();
+
         uint64_t klass = reinterpret_cast<uint64_t>(args.recv()->direct_class(state));
-        uint64_t receiver = reinterpret_cast<uint64_t>(receiver_class());
+        uint64_t receiver = reinterpret_cast<uint64_t>(entry->receiver_class());
 
-        if(likely((prediction()->valid() & receiver) == klass)) {
-          call_site->hit();
-          hit();
-          valid_p = true;
-          return _execute_(state, call_site, this, args);
+        if(likely((entry->prediction()->valid() & receiver) == klass)) {
+          call_site->invoked();
+          cache->hit();
+          entry->hit();
+
+          return entry->prediction()->executable()->execute(state,
+              entry->prediction()->executable(),
+              entry->prediction()->module(), args);
         }
 
-        call_site->miss();
-        miss();
+        cache->miss();
+        entry->miss();
 
-        return nullptr;
+        return call_site->dispatch_and_cache(state, call_site, args);
       }
 
-      static Object* invoke(STATE, CallSite* call_site,
-          InlineCache* cache, Arguments& args)
-      {
-        state->vm()->metrics().machine.methods_invoked++;
-        state->vm()->metrics().machine.inline_cache_hits++;
+      static Object* poly_execute(STATE, CallSite* call_site, Arguments& args) {
+        uint64_t klass = reinterpret_cast<uint64_t>(args.recv()->direct_class(state));
 
-        return cache->prediction()->executable()->execute(state,
-            cache->prediction()->executable(), cache->prediction()->module(), args);
-      }
+        Cache* cache = call_site->cache();
+        Entry* entries = cache->entries();
 
-      static Object* invoke_method_missing(STATE, CallSite* call_site,
-          InlineCache* cache, Arguments& args)
-      {
-        state->vm()->metrics().machine.methods_invoked++;
-        state->vm()->metrics().machine.inline_cache_hits++;
+        for(int i = 0; i < cache->size(); i++) {
+          uint64_t receiver = reinterpret_cast<uint64_t>(entries[i].receiver_class());
 
-        state->vm()->set_method_missing_reason(cache->method_missing());
-        args.unshift(state, call_site->name());
+          if((entries[i].prediction()->valid() & receiver) == klass) {
+            call_site->invoked();
+            cache->hit();
+            entries[i].hit();
 
-        return cache->prediction()->executable()->execute(state,
-            cache->prediction()->executable(),
-            cache->prediction()->module(), args);
+            return entries[i].prediction()->executable()->execute(state,
+                entries[i].prediction()->executable(),
+                entries[i].prediction()->module(), args);
+          } else {
+            entries[i].miss();
+          }
+        }
+
+        cache->miss();
+
+        return call_site->dispatch_and_cache(state, call_site, args);
       }
     };
+
+  public:
+    const static object_type type = CallSiteType;
+
+    static int max_caches;
+    static int max_evictions;
+
+    typedef Object* (Function)(STATE, CallSite*, Arguments&);
+    typedef Function* Executor;
+
+    attr_accessor(name, Symbol);
+
+    attr_field(ip, int);
+    attr_field(invokes, int);
+    attr_field(rotations, int);
+    attr_field(kind, MethodMissingReason);
+
+    attr_field(execute, Executor);
+
+    std::list<Cache*>* _dead_list_;
+    locks::spinlock_mutex _dead_list_mutex_;
+
+    std::atomic<Cache*> _cache_;
 
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, CallSite* obj) {
       obj->name(nil<Symbol>());
-      obj->invokes(0);
-      obj->hits(0);
-      obj->misses(0);
-      obj->evictions(0);
       obj->ip(0);
+      obj->invokes(0);
+      obj->rotations(0);
       obj->kind(eNone);
-      obj->execute(default_execute);
-      obj->cache_miss(default_execute);
+      obj->execute(CallSite::dispatch_once);
 
-      obj->_dead_list_ = new std::list<InlineCache*>();
+      obj->_dead_list_ = nullptr;
       obj->_dead_list_mutex_.unlock();
 
-      obj->_caches_ = new InlineCachePtr[max_caches];
-
-      for(int i = 0; i < max_caches; i++) {
-        obj->_caches_[i] = nullptr;
-      }
-    }
-
-    void dead_cache(InlineCache* cache) {
-      std::lock_guard<locks::spinlock_mutex> guard(_dead_list_mutex_);
-      if(cache) _dead_list_->push_back(cache);
-    }
-
-    void clear_dead_list() {
-      while(!_dead_list_->empty()) {
-        InlineCache* cache = _dead_list_->back();
-        _dead_list_->pop_back();
-        delete cache;
-      }
-    }
-
-    void hit() {
-      ++_hits_;
-    }
-
-    void miss() {
-      ++_misses_;
-    }
-
-    void evict() {
-      ++_evictions_;
-    }
-
-    int depth() {
-      for(int i = 0; i < max_caches; i++) {
-        if(!_caches_[i]) return i;
-      }
-
-      return max_caches;
-    }
-
-    void invoked() {
-      ++_invokes_;
-    }
-
-    bool valid_serial_p(STATE, Object* recv, Symbol* vis, int serial) {
-      Class* klass = recv->direct_class(state);
-
-      for(int i = 0; i < max_caches; i++) {
-        if(InlineCache* cache = _caches_[i]) {
-          if(cache->prediction()->valid() && cache->valid_serial_p(klass, serial)) {
-            return true;
-          }
-        } else {
-          break;
-        }
-      }
-
-      Dispatch dispatch(name());
-      LookupData lookup_data(state->vm()->call_frame()->self(),
-          recv->lookup_begin(state), vis);
-
-      if(dispatch.resolve(state, name(), lookup_data)) {
-        if(dispatch.method->serial()->to_native() == serial) {
-          cache(state, klass, dispatch);
-
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-    void set_is_private() {
-      kind(ePrivate);
-    }
-
-    void set_is_super() {
-      kind(eSuper);
-    }
-
-    void set_is_vcall() {
-      kind(eVCall);
-    }
-
-    void finalize(STATE) {
-      if(_dead_list_) {
-        clear_dead_list();
-
-        delete _dead_list_;
-        _dead_list_ = nullptr;
-      }
-
-      for(int i = 0; i < max_caches; i++) {
-        if(InlineCache* cache = _caches_[i]) {
-          delete cache;
-          _caches_[i] = nullptr;
-        }
-      }
-
-      delete[] _caches_;
+      obj->_cache_ = nullptr;
     }
 
     static CallSite* create(STATE, Symbol* name, int ip) {
@@ -284,59 +286,27 @@ namespace rubinius {
       return cache;
     }
 
-    static Object* lookup_invoke_cache(STATE, CallSite* call_site, Arguments& args) {
-      Dispatch dispatch(call_site->name());
-      LookupData lookup_data;
-
-      if(call_site->lookup(state, args, dispatch, lookup_data)) {
-        if(Object* value = call_site->invoke(state, args, dispatch)) {
-          call_site->cache(state, args.recv()->direct_class(state), dispatch);
-
-          return value;
-        }
-      }
-
-      return nullptr;
+    void delete_cache(Cache* cache) {
+      delete[] reinterpret_cast<uint8_t*>(cache);
     }
 
-    static Object* invoke_cached(STATE, CallSite* call_site, Arguments& args) {
-      bool valid_p = false;
-      InlineCache* cache = 0;
-
-      for(int i = 0; i < max_caches && (cache = call_site->_caches_[i]); i++) {
-        Object* value = cache->execute(state, call_site, args, valid_p);
-
-        if(valid_p) return value;
-      }
-
-      return call_site->cache_miss(state, args);
+    void invoked() {
+      ++_invokes_;
     }
 
-    static Object* dispatch(STATE, CallSite* call_site, Arguments& args) {
-      Dispatch dispatch(call_site->name());
-      LookupData lookup_data;
-
-      if(call_site->lookup(state, args, dispatch, lookup_data)) {
-        return call_site->invoke(state, args, dispatch);
-      }
-
-      return nullptr;
+    void rotate() {
+      ++_rotations_;
     }
 
-    Object* invoke(STATE, Arguments& args, Dispatch& dispatch) {
-      Executable* meth = dispatch.method;
-      Module* mod = dispatch.module;
-
-      invoked();
-
-      state->vm()->metrics().machine.methods_invoked++;
-      state->vm()->metrics().machine.inline_cache_misses++;
-
-      return meth->execute(state, meth, mod, args);
+    Cache* cache() {
+      return _cache_;
     }
 
-    bool lookup(STATE, Arguments& args, Dispatch& dispatch, LookupData& lookup_data) {
-      // TODO: why isn't this 'args.recv()'?
+    Object* execute(STATE, Arguments& args) {
+      return _execute_(state, this, args);
+    }
+
+    void lookup(STATE, Arguments& args, Dispatch& dispatch, LookupData& lookup_data) {
       lookup_data.recv = state->vm()->call_frame()->self();
 
       switch(kind()) {
@@ -381,189 +351,286 @@ namespace rubinius {
         dispatch.method_missing = kind();
         state->vm()->set_method_missing_reason(dispatch.method_missing);
       }
-
-      return true;
     }
 
-    void cache(STATE, Class* klass, Dispatch& dispatch) {
-      // 0. Ignore method_missing for now
-      if(dispatch.name == G(sym_method_missing)) return;
+    void cache_method(STATE, Class* receiver, Dispatch& dispatch) {
+      if(Cache* cache = this->cache()) {
+        Cache* new_cache =
+          Cache::create(state, cache, receiver, dispatch);
 
-      // ClassData class_data = klass->class_data();
-      InlineCache* cache = 0;
+        if(_cache_.compare_exchange_strong(cache, new_cache)) {
+          int diff;
 
-      // 1. Attempt to update a cache.
-      for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
-        if(cache->receiver_class() == klass) {
-          InlineCache* new_cache = new InlineCache(cache, dispatch);
-          InlineCache* old_cache = cache;
-
-          if(_caches_[i].compare_exchange_strong(cache, new_cache)) {
-            dead_cache(old_cache);
-            state->vm()->metrics().machine.inline_cache_updated++;
-            return;
-          } else {
-            delete new_cache;
-          }
-        }
-      }
-
-      // 2. Attempt to replace a cache.
-      for(int i = 0; i < max_caches && (cache = _caches_[i]); i++) {
-        if(cache->inefficient_p()) {
-          InlineCache* new_cache = new InlineCache(klass, dispatch);
-          InlineCache* old_cache = cache;
-
-          if(_caches_[i].compare_exchange_strong(cache, new_cache)) {
-            dead_cache(old_cache);
-            state->vm()->metrics().machine.inline_cache_replaced++;
-            return;
-          } else {
-            delete new_cache;
-          }
-        }
-      }
-
-      // 3. Attempt to add a cache
-      for(int i = 0; i < max_caches; i++) {
-        InlineCache* cache = _caches_[i];
-
-        if(cache) continue;
-
-        InlineCache* new_cache = new InlineCache(klass, dispatch);
-
-        if(_caches_[i].compare_exchange_strong(cache, new_cache)) {
-          if(i == 0) {
-            state->vm()->metrics().machine.inline_cache_count++;
-          } else {
-            state->vm()->metrics().machine.call_site_polymorphic++;
+          if((diff = (cache->size() - new_cache->size())) > 0) {
+            new_cache->evict(diff);
           }
 
-          execute(invoke_cached);
+          rotate();
+          dead_cache(cache);
 
-          return;
+          if(new_cache->size() == 1) {
+            execute(Cache::mono_execute);
+          } else {
+            execute(Cache::poly_execute);
+          }
         } else {
-          delete new_cache;
+          delete_cache(new_cache);
+        }
+      } else {
+        Cache* new_cache =
+          Cache::create(state, receiver, dispatch);
+
+        if(_cache_.compare_exchange_strong(cache, new_cache)) {
+          execute(Cache::mono_execute);
+        } else {
+          delete_cache(new_cache);
+        }
+      }
+    }
+
+    bool valid_serial_p(STATE, Object* recv, Symbol* vis, int serial) {
+      if(Cache* cache = this->cache()) {
+        uint64_t klass = reinterpret_cast<uint64_t>(recv->direct_class(state));
+
+        for(int i = 0; i < cache->size(); i++) {
+          Cache::Entry* entry = cache->entries(i);
+
+          uint64_t receiver = reinterpret_cast<uint64_t>(entry->receiver_class());
+
+          if(((entry->prediction()->valid() & receiver) == klass)
+              && (entry->prediction()->executable()->serial()->to_native() == serial))
+          {
+            return true;
+          }
         }
       }
 
-      // 4. Check if we should stop trying to cache.
-      if(invokes() > CallSite::max_caches) {
-        state->vm()->metrics().machine.call_site_full++;
-        cache_miss(CallSite::dispatch);
+      Dispatch dispatch(name());
+      LookupData lookup_data(state->vm()->call_frame()->self(),
+          recv->lookup_begin(state), vis);
+
+      if(dispatch.resolve(state, name(), lookup_data)) {
+        if(dispatch.method->serial()->to_native() == serial) {
+          cache_method(state, recv->direct_class(state), dispatch);
+
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    static Object* dispatch(STATE, CallSite* call_site, Arguments& args) {
+      call_site->invoked();
+
+      Dispatch dispatch(call_site->name());
+      LookupData lookup_data;
+
+      call_site->lookup(state, args, dispatch, lookup_data);
+
+      return dispatch.method->execute(state, dispatch.method, dispatch.module, args);
+    }
+
+    static Object* dispatch_and_cache(STATE, CallSite* call_site, Arguments& args) {
+      call_site->invoked();
+
+      Dispatch dispatch(call_site->name());
+      LookupData lookup_data;
+
+      call_site->lookup(state, args, dispatch, lookup_data);
+
+      Object* value = nullptr;
+
+      if((value = dispatch.method->execute(state, dispatch.method, dispatch.module, args))) {
+        if(dispatch.name == G(sym_method_missing)) return value;
+
+        call_site->cache_method(state, args.recv()->direct_class(state), dispatch);
+      }
+
+      return value;
+    }
+
+    static Object* dispatch_once(STATE, CallSite* call_site, Arguments& args) {
+      call_site->invoked();
+
+      Dispatch dispatch(call_site->name());
+      LookupData lookup_data;
+
+      call_site->lookup(state, args, dispatch, lookup_data);
+
+      Object* value = nullptr;
+
+      if((value = dispatch.method->execute(state, dispatch.method, dispatch.module, args))) {
+        if(dispatch.name == G(sym_method_missing)) return value;
+
+        call_site->execute(CallSite::dispatch_and_cache);
+      }
+
+      return value;
+    }
+
+    void dead_cache(Cache* cache) {
+      std::lock_guard<locks::spinlock_mutex> guard(_dead_list_mutex_);
+
+      if(cache) {
+        if(!_dead_list_) {
+          _dead_list_ = new std::list<Cache*>();
+        }
+
+        _dead_list_->push_back(cache);
       }
     }
 
-    Object* execute(STATE, Arguments& args) {
-      return _execute_(state, this, args);
+    void clear_dead_list() {
+      if(_dead_list_) {
+        while(!_dead_list_->empty()) {
+          Cache* cache = _dead_list_->back();
+          _dead_list_->pop_back();
+          delete_cache(cache);
+        }
+      }
     }
 
-    Object* cache_miss(STATE, Arguments& args) {
-      return _cache_miss_(state, this, args);
+    void set_is_private() {
+      kind(ePrivate);
+    }
+
+    void set_is_super() {
+      kind(eSuper);
+    }
+
+    void set_is_vcall() {
+      kind(eVCall);
+    }
+
+    void finalize(STATE) {
+      if(_dead_list_) {
+        clear_dead_list();
+
+        delete _dead_list_;
+        _dead_list_ = nullptr;
+      }
+
+      if(Cache* cache = this->cache()) {
+        delete_cache(cache);
+        _cache_ = nullptr;
+      }
     }
 
     void evict_and_mark(memory::ObjectMark& mark) {
-      // 0. Evict inefficient caches.
-      for(int i = 0; i < max_caches; i++) {
-        if(InlineCache* cache = _caches_[i]) {
-          if(cache->inefficient_p()) {
-            evict();
+      if(Cache* cache = this->cache()) {
+        // Disable if call site is unstable for caching
+        if(cache->evictions() > max_evictions) {
+          _cache_ = nullptr;
+          execute(CallSite::dispatch);
 
-            delete cache;
-            _caches_[i] = nullptr;
-
-            // TODO: pass State into GC!
-            VM::current()->metrics().machine.inline_cache_evicted++;
-          }
-        }
-      }
-
-      // 1. Compact if there were evictions.
-      for(int i = 0; i < max_caches - 1; i++) {
-        InlineCache* a = _caches_[i];
-        InlineCache* b = _caches_[i+1];
-
-        if(a == nullptr && b != nullptr) {
-          _caches_[i] = b;
-          _caches_[i+1] = nullptr;
+          delete_cache(cache);
 
           // TODO: pass State into GC!
-          VM::current()->metrics().machine.inline_cache_reordered++;
-        }
-      }
+          VM::current()->metrics().machine.inline_cache_disabled++;
+        } else {
+          // Campact and possibly reset cache
+          Cache* new_cache = cache->compact();
 
-      // 2. Check if all caching should be disabled.
-      if(depth() == 0 && evictions() > max_evictions) {
-        execute(CallSite::dispatch);
-        cache_miss(CallSite::dispatch);
+          if(new_cache != cache) {
+            _cache_ = new_cache;
 
-        // TODO: pass State into GC!
-        VM::current()->metrics().machine.inline_cache_disabled++;
-      }
+            delete_cache(cache);
 
-      // 3. Mark remaining caches.
-      for(int i = 0; i < max_caches; i++) {
-        if(InlineCache* cache = _caches_[i]) {
-          if(Object* ref = mark.call(cache->receiver_class())) {
-            cache->receiver_class(as<Class>(ref));
-            mark.just_set(this, ref);
-          }
-
-          if(Object* ref = mark.call(cache->prediction())) {
-            cache->prediction(as<MethodPrediction>(ref));
-            mark.just_set(this, ref);
+            if(new_cache) {
+              // TODO: pass State into GC!
+              VM::current()->metrics().machine.inline_cache_count++;
+            } else {
+              execute(CallSite::dispatch_once);
+            }
           }
         }
       }
 
-      // 4. Clear dead list
-      clear_dead_list();
+      // Do not merge conditionals, we may have set _cache_ to nullptr above.
+      if(Cache* cache = this->cache()) {
+        // Re-order more used cache entries to the front
+        cache->reorder();
+
+        // Mark caches.
+        for(int32_t i = 0; i < cache->size(); i++) {
+          Cache::Entry* entry = cache->entries(i);
+
+          if(Object* ref = mark.call(entry->receiver_class())) {
+            entry->receiver_class(as<Class>(ref));
+            mark.just_set(this, ref);
+          }
+
+          if(Object* ref = mark.call(entry->prediction())) {
+            entry->prediction(as<MethodPrediction>(ref));
+            mark.just_set(this, ref);
+          }
+        }
+      }
+
+      // Clear dead list
+      if(_dead_list_) clear_dead_list();
     }
 
     // Rubinius.primitive :call_site_ip
-    Integer* ip(STATE) {
-      return Integer::from(state, ip());
+    Fixnum* ip(STATE) {
+      return Fixnum::from(ip());
     }
 
-    // Rubinius.primitive :call_site_depth
-    Fixnum* depth(STATE) {
-      return Fixnum::from(depth());
+    // Rubinius.primitive :call_site_size
+    Fixnum* size(STATE) {
+      Cache* cache = this->cache();
+
+      return Fixnum::from(cache ? cache->size() : 0);
     }
 
     // Rubinius.primitive :call_site_invokes
-    Integer* invokes(STATE) {
-      return Integer::from(state, invokes());
+    Fixnum* invokes(STATE) {
+      return Fixnum::from(invokes());
+    }
+
+    // Rubinius.primitive :call_site_evictions
+    Fixnum* evictions(STATE) {
+      Cache* cache = this->cache();
+
+      return Fixnum::from(cache ? cache->evictions() : 0);
+    }
+
+    // Rubinius.primitive :call_site_rotations
+    Fixnum* rotations(STATE) {
+      return Fixnum::from(rotations());
     }
 
     // Rubinius.primitive :call_site_hits
-    Integer* hits(STATE) {
-      return Integer::from(state, hits());
+    Fixnum* hits(STATE) {
+      Cache* cache = this->cache();
+
+      return Fixnum::from(cache ? cache->hits() : 0);
     }
 
     // Rubinius.primitive :call_site_misses
-    Integer* misses(STATE) {
-      return Integer::from(state, misses());
+    Fixnum* misses(STATE) {
+      Cache* cache = this->cache();
+
+      return Fixnum::from(cache ? cache->misses() : 0);
     }
 
     // Rubinius.primitive :call_site_dead_list_size
-    Integer* dead_list_size(STATE) {
-      return Integer::from(state, _dead_list_->size());
+    Fixnum* dead_list_size(STATE) {
+      return Fixnum::from(_dead_list_ ? _dead_list_->size() : 0);
     }
 
-    // Rubinius.primitive :call_site_caches
-    Tuple* caches(STATE);
+    // Rubinius.primitive :call_site_cache_entries
+    Tuple* cache_entries(STATE);
 
     // Rubinius.primitive :call_site_reset
     CallSite* reset(STATE) {
       invokes(0);
-      execute(default_execute);
-      cache_miss(default_execute);
+      execute(CallSite::dispatch_once);
 
-      for(int i = 0; i < max_caches; i++) {
-        if(InlineCache* cache = _caches_[i]) {
-          _caches_[i] = nullptr;
-          dead_cache(cache);
-        }
+      if(Cache* cache = this->cache()) {
+        delete_cache(cache);
+        _cache_ = nullptr;
       }
 
       return this;

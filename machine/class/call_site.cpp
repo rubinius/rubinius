@@ -15,42 +15,39 @@
 namespace rubinius {
   int CallSite::max_caches = 0;
   int CallSite::max_evictions = 0;
-  CallSite::Executor CallSite::default_execute = CallSite::lookup_invoke_cache;
 
   void CallSite::bootstrap(STATE) {
     GO(call_site).set(state->memory()->new_class<Class, CallSite>(
           state, G(rubinius), "CallSite"));
 
-    if(state->shared().config.machine_call_site_cache.value) {
-      default_execute = lookup_invoke_cache;
-    } else {
-      default_execute = dispatch;
-    }
-
-    max_caches = state->shared().config.machine_call_site_limit.value;
-    max_evictions = state->shared().config.machine_call_site_evictions.value;
+    max_caches = state->shared().config.machine_call_site_cache_limit.value;
+    max_evictions = state->shared().config.machine_call_site_eviction_limit.value;
   }
 
-  Tuple* CallSite::caches(STATE) {
-    int num = depth();
+  Tuple* CallSite::cache_entries(STATE) {
+    Tuple* caches = nullptr;
 
-    Tuple* caches = Tuple::create(state, num);
+    if(Cache* cache = this->cache()) {
+      caches = Tuple::create(state, cache->size());
 
-    for(int i = 0; i < max_caches; i++) {
-      if(InlineCache* cache = _caches_[i]) {
+      for(int i = 0; i < cache->size(); i++) {
+        Cache::Entry* entry = cache->entries(i);
+
         Tuple* t = Tuple::from(state, 8,
               state->symbol("receiver"),
-              cache->receiver_class()->module_name(),
+              entry->receiver_class()->module_name(),
               state->symbol("prediction"),
-              cache->prediction(),
+              entry->prediction(),
               state->symbol("hits"),
-              Integer::from(state, cache->hits()),
+              Integer::from(state, entry->hits()),
               state->symbol("misses"),
-              Integer::from(state, cache->misses())
+              Integer::from(state, entry->misses())
             );
 
         caches->put(state, i, t);
       }
+    } else {
+      caches = Tuple::create(state, 0);
     }
 
     return caches;

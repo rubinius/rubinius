@@ -355,23 +355,7 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "machine.call_site.count", metrics_data_.machine.call_site_count));
       metrics_map_.push_back(new MetricsItem(
-            "machine.call_site.full", metrics_data_.machine.call_site_full));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.call_site.polymorphic", metrics_data_.machine.call_site_polymorphic));
-      metrics_map_.push_back(new MetricsItem(
             "machine.inline_cache.count", metrics_data_.machine.inline_cache_count));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.hits", metrics_data_.machine.inline_cache_hits));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.misses", metrics_data_.machine.inline_cache_misses));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.evicted", metrics_data_.machine.inline_cache_evicted));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.updated", metrics_data_.machine.inline_cache_updated));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.replaced", metrics_data_.machine.inline_cache_replaced));
-      metrics_map_.push_back(new MetricsItem(
-            "machine.inline_cache.reordered", metrics_data_.machine.inline_cache_reordered));
       metrics_map_.push_back(new MetricsItem(
             "machine.inline_cache.disabled", metrics_data_.machine.inline_cache_disabled));
       metrics_map_.push_back(new MetricsItem(

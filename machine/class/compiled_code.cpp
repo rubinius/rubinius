@@ -165,30 +165,7 @@ namespace rubinius {
   Object* CompiledCode::primitive_failed(STATE,
               Executable* exec, Module* mod, Arguments& args)
   {
-    CompiledCode* code = as<CompiledCode>(exec);
-
-    Class* cls = args.recv()->direct_class(state);
-    uint64_t class_data = cls->class_data();
-
-    MachineCode* v = code->machine_code();
-
-    executor target = v->unspecialized;
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint64_t c_id = v->specializations[i].class_data;
-      executor x = v->specializations[i].execute;
-
-      if(c_id == class_data && x != 0) {
-        target = x;
-        break;
-      }
-    }
-
-    if(target) {
-      return target(state, exec, mod, args);
-    } else {
-      return MachineCode::execute(state, exec, mod, args);
-    }
+    return MachineCode::execute(state, exec, mod, args);
   }
 
   void CompiledCode::specialize(STATE, TypeInfo* ti) {
@@ -205,35 +182,6 @@ namespace rubinius {
     }
 
     return code->execute(state, exec, mod, args);
-  }
-
-  Object* CompiledCode::specialized_executor(STATE,
-                          Executable* exec, Module* mod, Arguments& args)
-  {
-    CompiledCode* code = as<CompiledCode>(exec);
-
-    Class* cls = args.recv()->direct_class(state);
-    uint64_t class_data = cls->class_data();
-
-    MachineCode* v = code->machine_code();
-
-    executor target = v->unspecialized;
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint64_t c_id = v->specializations[i].class_data;
-      executor x = v->specializations[i].execute;
-
-      if(c_id == class_data && x != 0) {
-        target = x;
-        break;
-      }
-    }
-
-    // This is a bug. We should not have this setup if there are no
-    // specializations. FIX THIS BUG!
-    if(!target) target = v->fallback;
-
-    return target(state, exec, mod, args);
   }
 
   void CompiledCode::post_marshal(STATE) {

@@ -109,14 +109,11 @@ Rubinius::ConfigurationVariables.define do |c|
       "Size in bytes to reserve when checking stack overflow"
 
     m.section "call_site" do |cs|
-      cs.vm_variable "cache", true,
-        "Cache executables at call sites"
-
-      cs.vm_variable "limit", 3,
+      cs.vm_variable "cache.limit", 10,
         "Maximum number of caches at call sites"
 
-      cs.vm_variable "evictions", 10,
-        "Maximum number of cache evictions before disabling caching at the call site"
+      cs.vm_variable "eviction.limit", 25,
+        "Maximum number of evictions before disabling caching at the call site"
     end
 
     m.section "interpreter" do |i|

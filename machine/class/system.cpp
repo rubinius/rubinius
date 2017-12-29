@@ -1319,12 +1319,12 @@ namespace rubinius {
 
     int total = 0;
 
-    bool disable = CBOOL(o_disable);
+    // bool disable = CBOOL(o_disable);
 
     while(obj) {
       if(CompiledCode* code = try_as<CompiledCode>(obj)) {
         if(MachineCode* mcode = code->machine_code()) {
-          mcode->deoptimize(state, code, disable);
+          // mcode->deoptimize(state, code, disable);
         }
         total++;
       }

@@ -78,7 +78,7 @@ namespace rubinius {
     for(std::vector<CompiledCode*>::const_iterator i = inliners()->inliners().begin();
         i != inliners()->inliners().end();
         ++i) {
-      (*i)->machine_code()->deoptimize(state, *i, 0);
+      // (*i)->machine_code()->deoptimize(state, *i, 0);
     }
 
     inliners()->inliners().clear();

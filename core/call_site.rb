@@ -8,9 +8,9 @@ module Rubinius
       raise PrimitiveFailure, "CallSite#ip primitive failed"
     end
 
-    def depth
-      Rubinius.primitive :call_site_depth
-      raise PrimitiveFailure, "CallSite#depth primitive failed"
+    def size
+      Rubinius.primitive :call_site_size
+      raise PrimitiveFailure, "CallSite#size primitive failed"
     end
 
     def invokes
@@ -33,13 +33,18 @@ module Rubinius
       raise PrimitiveFailure, "CallSite#evictions primitive failed"
     end
 
+    def rotations
+      Rubinius.primitive :call_site_rotations
+      raise PrimitiveFailure, "CallSite#rotations primitive failed"
+    end
+
     def dead_list_size
       Rubinius.primitive :call_site_dead_list_size
       raise PrimitiveFailure, "CallSite#dead_list_size primitive failed"
     end
 
-    def caches
-      Rubinius.primitive :call_site_caches
+    def cache_entries
+      Rubinius.primitive :call_site_cache_entries
       raise PrimitiveFailure, "CallSite#caches primitive failed"
     end
 
@@ -50,13 +55,14 @@ module Rubinius
 
     def inspect
       str = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} ip=#{ip} " \
-            "depth=#{depth} invokes=#{invokes} hits=#{hits} misses=#{misses} dead_list=#{dead_list_size}"
+            "size=#{size} invokes=#{invokes} hits=#{hits} misses=#{misses} " \
+            "evictions=#{evictions} rotations=#{rotations} dead_list=#{dead_list_size}"
 
-      caches.each do |cache|
-        str << " #<CallSite::Cache"
+      cache_entries.each do |entry|
+        str << " #<Entry"
         i = 0
-        while i < cache.size
-          str << " #{cache[i]}=#{cache[i+1]}"
+        while i < entry.size
+          str << " #{entry[i]}=#{entry[i+1]}"
           i += 2
         end
         str << ">"
