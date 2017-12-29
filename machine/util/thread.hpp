@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include <sstream>
@@ -35,8 +36,7 @@ namespace utilities {
 namespace thread {
 
   static inline void fail(const char* str) {
-    std::cerr << "utilities::thread: " << str << std::endl;
-    abort();
+    std::cerr << "utilities::thread: " << strerror(errno) << ", " << str << std::endl;
   }
 
   enum Code {
