@@ -114,12 +114,15 @@ module RbConfig
   CONFIG["CFLAGS"]             = "-g"
   CONFIG["CXXFLAGS"]           = "-g"
   CONFIG["LDFLAGS"]            = ""
+  CONFIG["optflags"]           = ""
   if Rubinius::BUILD_CONFIG[:debug_build]
     CONFIG["CFLAGS"] << " -O0 "
     CONFIG["CXXFLAGS"] << " -O0 "
+    CONFIG["optflags"] << " -O0 "
   else
-    CONFIG["CFLAGS"] << " -O2"
-    CONFIG["CXXFLAGS"] << " -O2"
+    CONFIG["CFLAGS"] << " -O2 "
+    CONFIG["CXXFLAGS"] << " -O2 "
+    CONFIG["optflags"] << " -O2 "
   end
 
   if sys = Rubinius::BUILD_CONFIG[:system_cflags]
