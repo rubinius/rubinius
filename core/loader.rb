@@ -57,7 +57,8 @@ module Rubinius
       $LOAD_PATH.unshift(Rubinius::ARCH_PATH,
                          Rubinius::SITE_PATH,
                          "#{Rubinius::SITE_PATH}/#{RUBY_VERSION}",
-                         Rubinius::VENDOR_PATH)
+                         Rubinius::VENDOR_PATH,
+                         "#{Rubinius::CODEDB_PATH}/source")
 
       if libs = ENV['RUBYLIB']
         Rubinius::Logger.system.write "RUBYLIB: #{libs}"

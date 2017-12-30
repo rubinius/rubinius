@@ -9,6 +9,9 @@ namespace :gems do
       Dir.chdir BUILD_CONFIG[:gems_cache] do
         sh "#{BUILD_CONFIG[:build_exe]} #{BUILD_CONFIG[:scriptdir]}/preinstall_gems.rb", :verbose => $verbose
       end
+
+      cp "#{BUILD_CONFIG[:bootstrap_gems_dir]}/rubysl-irb-2.1.1/bin/irb",
+        "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:gemsdir]}/bin/", :verbose => $verbose
     ensure
       ENV.delete "RBX_PREFIX_PATH"
       ENV.delete "RBX_GEMS_PATH"
