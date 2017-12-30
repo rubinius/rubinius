@@ -381,7 +381,7 @@ namespace rubinius {
         if(thread()->nil_p()) {
           msg << "nil";
         } else {
-          thread()->thread_id()->to_native();
+          msg << thread()->thread_id()->to_native();
         }
 
         Exception::raise_fiber_error(state, msg.str().c_str());
