@@ -144,6 +144,7 @@ namespace :build do
     stage:extra_bins
     stage:capi_include
     core:build
+    gems:install
     stage:site
     stage:codedb
     stage:lib

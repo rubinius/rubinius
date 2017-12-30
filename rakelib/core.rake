@@ -75,7 +75,10 @@ FileList["#{library_dir}/**/*.*"].exclude("#{library_dir}/**/*.rb").each do |fil
 end
 
 # Add pre-installed gems
-FileList["#{bootstrap_gems_dir}/*/{lib,ext}/**/*.rb"].each do |file|
+FileList["#{bootstrap_gems_dir}/*/{lib,ext}/**/*.rb"]
+  .exclude("#{bootstrap_gems_dir}/{bundler-*,minitest-*,racc-*,rake-*,rdoc-*,*-readline*}/**/*.*")
+  .each do |file|
+
   m = %r[#{bootstrap_gems_dir}/[^/]+/(lib|ext)/(.*\.rb)$].match file
 
   if m and m[2]
@@ -102,6 +105,7 @@ ext_source = FileList[
 melbourne_ext = FileList["#{bootstrap_gems_dir}/rubinius-melbourne*/ext/**/extconf.rb"]
 extconf_source = FileList["#{bootstrap_gems_dir}/**/{lib,ext}/**/extconf.rb"
                          ].exclude(melbourne_ext)
+                          .exclude("#{bootstrap_gems_dir}/{bundler-*,minitest-*,racc-*,rake-*,rdoc-*,*-readline*}/**/*.*")
 
 extensions_dir = "#{BUILD_CONFIG[:builddir]}/#{BUILD_CONFIG[:archdir]}"
 directory extensions_dir
