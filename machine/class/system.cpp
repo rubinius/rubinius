@@ -1309,6 +1309,9 @@ namespace rubinius {
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
+    int total = 0;
+
+    /*
     memory::ObjectWalker walker(state->memory());
     memory::GCData gc_data(state->vm());
 
@@ -1316,8 +1319,6 @@ namespace rubinius {
     walker.seed(gc_data);
 
     Object* obj = walker.next();
-
-    int total = 0;
 
     // bool disable = CBOOL(o_disable);
 
@@ -1331,6 +1332,7 @@ namespace rubinius {
 
       obj = walker.next();
     }
+    */
 
     return Integer::from(state, total);
   }
