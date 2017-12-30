@@ -237,11 +237,7 @@ class IO
       position = FFI::Platform::POSIX.lseek(descriptor, offset, whence)
 
       if FFI.call_failed?(position)
-        begin
-          Errno.handle("seek failed: fd: #{descriptor}, offset: #{offset}, from: #{whence}")
-        rescue Errno::ESPIPE
-          # TODO: why is this happening on Travis?
-        end
+        Errno.handle("seek failed: fd: #{descriptor}, offset: #{offset}, from: #{whence}")
       end
 
       @offset = position
