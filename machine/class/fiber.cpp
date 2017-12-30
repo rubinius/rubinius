@@ -250,8 +250,10 @@ namespace rubinius {
     fiber->vm(vm);
     fiber->pid(vm->thread()->pid());
     fiber->stack_size(vm->thread()->stack_size());
+    fiber->thread(vm->thread());
     fiber->thread_name(state, String::create(state, vm->name().c_str()));
     fiber->fiber_id(Fixnum::from(0));
+    fiber->source(state, vm->thread()->source());
     fiber->status(eRunning);
     fiber->invoke_context(vm);
 
@@ -280,6 +282,9 @@ namespace rubinius {
 
     fiber->vm()->set_thread(state->vm()->thread());
     fiber->vm()->set_fiber(fiber);
+
+    fiber->thread(state->vm()->thread());
+    fiber->thread_name(state, String::create(state, state->vm()->name().c_str()));
 
     state->memory()->native_finalizer(state, fiber,
         (memory::FinalizerFunction)&Fiber::finalize);

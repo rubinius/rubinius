@@ -61,10 +61,10 @@ namespace rubinius {
       obj->locals(LookupTable::create(state));
       obj->pid(Fixnum::from(0));
       obj->stack_size(Fixnum::from(state->shared().config.machine_fiber_stack_size.value));
-      obj->thread_name(String::create(state, state->vm()->name().c_str()));
+      obj->thread_name(nil<String>());
       obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
       obj->source(nil<String>());
-      obj->thread(state->vm()->thread());
+      obj->thread(nil<Thread>());
       obj->start_time(get_current_time());
       obj->vm(NULL);
       obj->invoke_context(state->vm());
