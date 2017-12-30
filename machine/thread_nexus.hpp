@@ -4,9 +4,6 @@
 #include "bug.hpp"
 #include "defines.hpp"
 
-#include "util/thread.hpp"
-#include "util/atomic.hpp"
-
 #include <atomic>
 #include <condition_variable>
 #include <functional>

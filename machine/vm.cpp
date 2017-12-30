@@ -382,7 +382,7 @@ namespace rubinius {
   void VM::after_fork_child(STATE) {
     thread_nexus_->after_fork_child(state);
 
-    interrupt_lock_.init();
+    interrupt_lock_.unlock();
     set_main_thread();
 
     // TODO: Remove need for root_vm.
@@ -435,7 +435,7 @@ namespace rubinius {
   }
 
   bool VM::wakeup(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     set_check_local_interrupts();
     Object* wait = waiting_object_.get();
@@ -490,7 +490,7 @@ namespace rubinius {
   }
 
   void VM::wait_on_channel(Channel* chan) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     thread()->sleep(this, cTrue);
     waiting_channel_.set(chan);
@@ -522,13 +522,13 @@ namespace rubinius {
   }
 
   void VM::register_raise(STATE, Exception* exc) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
     interrupted_exception_.set(exc);
     set_check_local_interrupts();
   }
 
   void VM::register_kill(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
     set_interrupt_by_kill();
     set_check_local_interrupts();
   }

@@ -6,14 +6,13 @@
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
 #include "object_utils.hpp"
+#include "spinlock.hpp"
 #include "vm.hpp"
 
 #include "class/integer.hpp"
 #include "class/object.hpp"
 #include "class/prediction.hpp"
 #include "class/symbol.hpp"
-
-#include "util/atomic.hpp"
 
 #include <atomic>
 #include <stdint.h>

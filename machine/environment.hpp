@@ -8,10 +8,11 @@
 #include "state.hpp"
 #include "config_parser.hpp"
 #include "configuration.hpp"
+#include "spinlock.hpp"
 
 #include "memory/root.hpp"
 
-#include "util/thread.hpp"
+#include <mutex>
 
 namespace rubinius {
 
@@ -35,8 +36,8 @@ namespace rubinius {
     int argc_;
     char** argv_;
 
-    utilities::thread::SpinLock fork_exec_lock_;
-    utilities::thread::Mutex halt_lock_;
+    locks::spinlock_mutex fork_exec_lock_;
+    std::mutex halt_lock_;
 
     memory::FinalizerThread* finalizer_thread_;
 
@@ -64,7 +65,7 @@ namespace rubinius {
       return argv_;
     }
 
-    utilities::thread::SpinLock& fork_exec_lock() {
+    locks::spinlock_mutex& fork_exec_lock() {
       return fork_exec_lock_;
     }
 

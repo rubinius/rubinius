@@ -2,12 +2,12 @@
 #define RBX_BUILTIN_RANDOMIZER_HPP
 
 #include "object_utils.hpp"
+#include "spinlock.hpp"
 
 #include "class/byte_array.hpp"
 #include "class/object.hpp"
 
 #include "util/random.h"
-#include "util/thread.hpp"
 
 namespace rubinius {
   class ByteArray;
@@ -22,7 +22,7 @@ namespace rubinius {
     attr_accessor(rng_data, ByteArray);
 
   private:
-    utilities::thread::SpinLock lock_;
+    locks::spinlock_mutex lock_;
 
     struct random_state* rng_state();
 

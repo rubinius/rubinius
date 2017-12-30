@@ -478,8 +478,9 @@ namespace rubinius {
   }
 
   void Environment::after_fork_child(STATE) {
-    fork_exec_lock_.init();
-    halt_lock_.init();
+    fork_exec_lock_.unlock();
+    halt_lock_.try_lock();
+    halt_lock_.unlock();
 
     set_pid();
 
@@ -509,7 +510,7 @@ namespace rubinius {
   }
 
   void Environment::halt(STATE, int exit_code) {
-    utilities::thread::Mutex::LockGuard guard(halt_lock_);
+    std::lock_guard<std::mutex> guard(halt_lock_);
 
     state->shared().set_halting();
 

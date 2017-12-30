@@ -9,8 +9,7 @@
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
 #include "metrics.hpp"
-
-#include "util/thread.hpp"
+#include "spinlock.hpp"
 
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
@@ -122,7 +121,7 @@ namespace rubinius {
 
     std::atomic<FiberTransition> fiber_transition_flag_;
 
-    utilities::thread::SpinLock interrupt_lock_;
+    locks::spinlock_mutex interrupt_lock_;
 
     MethodMissingReason method_missing_reason_;
     ConstantMissingReason constant_missing_reason_;
@@ -179,7 +178,7 @@ namespace rubinius {
       thread_phase_.store(thread_phase, std::memory_order_release);
     }
 
-    utilities::thread::SpinLock& interrupt_lock() {
+    locks::spinlock_mutex& interrupt_lock() {
       return interrupt_lock_;
     }
 

@@ -4,7 +4,7 @@
 
 namespace rubinius {
   void LinkedList::add(LinkedList::Node* node) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     assert(!node->next() && !node->prev());
 
@@ -20,7 +20,7 @@ namespace rubinius {
   }
 
   void LinkedList::remove(LinkedList::Node* node) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     if(node == head_) {
       head_ = node->next();
