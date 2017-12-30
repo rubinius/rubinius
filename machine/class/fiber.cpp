@@ -372,7 +372,19 @@ namespace rubinius {
       std::lock_guard<std::mutex> guard(state->vm()->thread()->fiber_mutex());
 
       if(state->vm()->thread() != thread()) {
-        Exception::raise_fiber_error(state, "attempt to transfer fiber across threads");
+        std::ostringstream msg;
+
+        msg << "attempt to transfer fiber across threads: current thread: "
+            << state->vm()->thread()->thread_id()->to_native()
+            << ", Fiber Thread: ";
+
+        if(thread()->nil_p()) {
+          msg << "nil";
+        } else {
+          thread()->thread_id()->to_native();
+        }
+
+        Exception::raise_fiber_error(state, msg.str().c_str());
       } else if(status() == eDead) {
         Exception::raise_fiber_error(state, "attempt to transfer to dead fiber");
       } else if(state->vm()->fiber() == this) {
