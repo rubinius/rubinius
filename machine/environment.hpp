@@ -86,7 +86,7 @@ namespace rubinius {
 
     std::string executable_name();
     std::string system_prefix();
-    bool verify_paths(std::string prefix);
+    bool verify_paths(std::string prefix, std::string& failure_reason);
     void check_io_descriptors();
     void copy_argv(int argc, char** argv);
     void log_argv();

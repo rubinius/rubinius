@@ -489,7 +489,7 @@ namespace rubinius {
 
   void Environment::missing_core(const char* message) {
     std::cerr << std::endl;
-    std::cerr << message << std::endl;
+    std::cerr << message << std::endl << std::endl;
     std::cerr << "Rubinius was configured to find the directories relative to:" << std::endl;
     std::cerr << std::endl << "  " << RBX_PREFIX_PATH << std::endl << std::endl;
     std::cerr << "Set the environment variable RBX_PREFIX_PATH to the directory";
@@ -615,20 +615,32 @@ namespace rubinius {
     return argv_[0];
   }
 
-  bool Environment::verify_paths(std::string prefix) {
+  bool Environment::verify_paths(std::string prefix, std::string& failure_reason) {
     struct stat st;
 
     std::string codedb = prefix + RBX_CODEDB_PATH;
-    if(stat(codedb.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    if(stat(codedb.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
+      failure_reason.assign("the CodeDB path is invalid: ").append(codedb);
+      return false;
+    }
 
     std::string cache = codedb + "/cache";
-    if(stat(cache.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) return false;
+    if(stat(cache.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) {
+      failure_reason.assign("the CodeDB cache path is invalid: ").append(cache);
+      return false;
+    }
 
     std::string source = codedb + "/source";
-    if(stat(source.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    if(stat(source.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
+      failure_reason.assign("the CodeDB source path is invalid: ").append(source);
+      return false;
+    }
 
     std::string bin = prefix + RBX_BIN_PATH;
-    if(stat(bin.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    if(stat(bin.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
+      failure_reason.assign("the bin path is invalid: ").append(bin);
+      return false;
+    }
 
     return true;
   }
@@ -636,16 +648,18 @@ namespace rubinius {
   std::string Environment::system_prefix() {
     if(!system_prefix_.empty()) return system_prefix_;
 
+    std::string failure_reason;
+
     // 1. Check if our configure prefix is overridden by the environment.
     const char* path = getenv("RBX_PREFIX_PATH");
-    if(path && verify_paths(path)) {
+    if(path && verify_paths(path, failure_reason)) {
       system_prefix_ = path;
       return path;
     }
 
     // 2. Check if our configure prefix is valid.
     path = RBX_PREFIX_PATH;
-    if(verify_paths(path)) {
+    if(verify_paths(path, failure_reason)) {
       system_prefix_ = path;
       return path;
     }
@@ -657,13 +671,16 @@ namespace rubinius {
 
     if(exe != std::string::npos) {
       std::string prefix = name.substr(0, exe - strlen(RBX_BIN_PATH));
-      if(verify_paths(prefix)) {
+      if(verify_paths(prefix, failure_reason)) {
         system_prefix_ = prefix;
         return prefix;
       }
     }
 
-    missing_core("unable to find Rubinius runtime directories.");
+    std::string error("Unable to find Rubinius runtime directories: ");
+    error.append(failure_reason);
+
+    missing_core(error.c_str());
   }
 
   void Environment::boot() {
