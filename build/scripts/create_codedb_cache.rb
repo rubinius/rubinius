@@ -131,7 +131,7 @@ puts "Building CodeDB cache: #{path}"
 
 db_writer = CodeDBWriter.new path
 
-Dir.chdir "#{Rubinius::BUILD_CONFIG[:builddir]}/codedb/source" do
+Dir.chdir "#{Rubinius::BUILD_CONFIG[:builddir]}#{Rubinius::BUILD_CONFIG[:codedbdir]}/source" do
   File.foreach "#{Rubinius::BUILD_CONFIG[:sourcedir]}/core/load_order.txt" do |name|
     db_writer.add_init "core/#{name.chomp}"
   end

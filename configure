@@ -1905,7 +1905,7 @@ int main(int argc, char* argv[]) {
   def setup_codedb
     @log.write "\nSetting up CodeDB..."
 
-    dir = "#{@builddir}/codedb"
+    dir = "#{@builddir}#{@codedbdir}"
     codedb_cache = "#{dir}/cache"
 
     unless File.file? codedb_cache

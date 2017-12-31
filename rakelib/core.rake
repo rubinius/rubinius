@@ -18,8 +18,8 @@ require "rakelib/digest_files"
 def core_clean
   rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
-           "#{BUILD_CONFIG[:builddir]}/codedb/platform.conf",
-           "#{BUILD_CONFIG[:builddir]}/codedb/source",
+           "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/platform.conf",
+           "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/source",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
            "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*.*",
            "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/Makefile",
@@ -30,9 +30,10 @@ end
 codedb_source = []
 codedb_library = []
 
-platform_conf = "#{BUILD_CONFIG[:builddir]}/codedb/platform.conf"
+codedbdir = "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}"
+platform_conf = "#{codedbdir}/platform.conf"
 
-codedb_cache = "#{Rubinius::BUILD_CONFIG[:builddir]}/codedb/cache"
+codedb_cache = "#{codedbdir}/cache"
 codedb_cache_next = codedb_cache + ".next"
 
 library_dir = "#{BUILD_CONFIG[:sourcedir]}/library"
@@ -55,19 +56,18 @@ end
 IO.foreach core_load_order do |name|
   origin = "core/#{name.chomp}"
 
-  codedb_source_task codedb_source, origin,
-    "#{BUILD_CONFIG[:builddir]}/codedb/source/#{origin}"
+  codedb_source_task codedb_source, origin, "#{codedbdir}/source/#{origin}"
 end
 
 # Add library files
 FileList["#{library_dir}/**/*.rb"].each do |file|
-  source = "#{BUILD_CONFIG[:builddir]}/codedb/source/#{file[(library_dir.size+1)..-1]}"
+  source = "#{codedbdir}/source/#{file[(library_dir.size+1)..-1]}"
 
   codedb_source_task codedb_source, file, source
 end
 
 FileList["#{library_dir}/**/*.*"].exclude("#{library_dir}/**/*.rb").each do |file|
-  source = "#{BUILD_CONFIG[:builddir]}/codedb/source/#{file[(library_dir.size+1)..-1]}"
+  source = "#{codedbdir}/source/#{file[(library_dir.size+1)..-1]}"
 
   unless File.directory? file
     codedb_source_task codedb_library, file, source
@@ -82,7 +82,7 @@ FileList["#{bootstrap_gems_dir}/*/{lib,ext}/**/*.rb"]
   m = %r[#{bootstrap_gems_dir}/[^/]+/(lib|ext)/(.*\.rb)$].match file
 
   if m and m[2]
-    source = "#{BUILD_CONFIG[:builddir]}/codedb/source/#{m[2]}"
+    source = "#{codedbdir}/source/#{m[2]}"
     codedb_source_task codedb_source, file, source
   else
     raise RuntimeError, "pre-installed gem file not matched: #{file}"

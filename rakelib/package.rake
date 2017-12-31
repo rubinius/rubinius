@@ -51,7 +51,6 @@ namespace :package do
     lib = "lib/rubinius/#{rbx_version}"
     config = "'--with-include-dir=#{ENV["OPENSSL_DIR"]}/include " \
              "--with-lib-dir=#{ENV["OPENSSL_DIR"]}/lib " \
-             "--llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8 " \
              "--bindir=#{prefix}/bin --appdir=#{prefix}/#{lib} " \
              "--includedir=#{prefix}/include/rubinius " \
              "--gemsdir=#{prefix}/#{lib}/gems " \

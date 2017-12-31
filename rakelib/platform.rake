@@ -4,7 +4,7 @@ deps = ["Rakefile",
         "rakelib/platform.rake"
 ] + Dir['lib/ffi/*rb']
 
-file "#{BUILD_CONFIG[:builddir]}/codedb/platform.conf" => deps do |task|
+file "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/platform.conf" => deps do |task|
   puts "GEN codedb/platform.conf"
 
   File.open task.name, "wb" do |f|
