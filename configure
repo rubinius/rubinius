@@ -238,7 +238,7 @@ class Configure
     @scriptdir = "#{@sourcedir}/build/scripts"
 
     if @preserve_prefix
-      @builddir = "#{builddir}/#{@prefixdir}"
+      @builddir = "#{@builddir}/#{@prefixdir}"
     end
 
     FileUtils.mkdir_p @builddir
