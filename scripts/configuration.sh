@@ -54,7 +54,7 @@ function rbx_release_name {
 }
 
 function rbx_heroku_release_name {
-  echo "ruby-2.2.2-rbx-$(rbx_revision_version).tar.bz2"
+  echo "ruby-2.3.1-rbx-$(rbx_revision_version).tar.bz2"
 }
 
 function rbx_codedb_cache_name {
