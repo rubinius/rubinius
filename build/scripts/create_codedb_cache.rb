@@ -10,7 +10,7 @@ Rubinius::ToolSets.create :build do
   require "rubinius/code/ast"
 end
 
-require "../config/config"
+require File.expand_path("../config/config.rb", __dir__)
 
 class CodeDBCompiler
   def self.compile(file, line=1, transforms=[:default, :kernel])
