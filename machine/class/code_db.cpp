@@ -108,7 +108,7 @@ namespace rubinius {
     return CodeDB::open(state, path->c_str(state));
   }
 
-  CodeDB* CodeDB::open(STATE, std::string db_path) {
+  CodeDB* CodeDB::open(STATE, std::string db_path, bool writable) {
     MutexLockWaiting lock_waiting(state, state->shared().codedb_lock());
 
     CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
@@ -156,7 +156,7 @@ namespace rubinius {
     codedb->regions()->contents.set(codedb->regions()->index.end, region_size);
 
     // Memory map data
-    codedb->data_fd(::open(db_path.c_str(), O_RDWR));
+    codedb->data_fd(::open(db_path.c_str(), writable ? O_RDWR : O_RDONLY));
 
     if(codedb->data_fd() < 0) return nullptr;
 

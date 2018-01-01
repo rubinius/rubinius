@@ -81,7 +81,7 @@ namespace rubinius {
     // Rubinius.primitive :code_db_open
     static CodeDB* open(STATE, String* path);
 
-    static CodeDB* open(STATE, std::string path);
+    static CodeDB* open(STATE, std::string path, bool writable=false);
     static CodeDB* open(STATE, std::string core_path, std::string cache_path);
 
     // Rubinius.primitive :code_db_load
