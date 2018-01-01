@@ -186,7 +186,7 @@ namespace :codedb do
         sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{BUILD_CONFIG[:scriptdir]}/create_codedb_cache.rb #{codedb_cache_next}", :verbose => $verbose
       end
 
-      cp codedb_cache_next, codedb_cache, :verbose => $verbose
+      mv codedb_cache_next, codedb_cache, :verbose => $verbose
     ensure
       ENV.delete "RBX_PREFIX_PATH"
     end

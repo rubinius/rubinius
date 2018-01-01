@@ -198,12 +198,6 @@ exec #{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
     end
   end
 
-  task :codedb do
-    if BUILD_CONFIG[:builddir]
-      install_codedb "#{BUILD_CONFIG[:sourcedir]}/codedb", BUILD_CONFIG[:builddir]
-    end
-  end
-
   task :site do
     if BUILD_CONFIG[:builddir]
       install_site "#{BUILD_CONFIG[:sourcedir]}/site", BUILD_CONFIG[:builddir]

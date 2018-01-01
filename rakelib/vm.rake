@@ -146,7 +146,6 @@ namespace :build do
     core:build
     gems:install
     stage:site
-    stage:codedb
     stage:lib
     stage:documentation
     stage:manpages
