@@ -238,7 +238,7 @@ class Configure
 
     @builddir = "#{@sourcedir}/build/rubinius" unless @builddir
 
-    stat = File.stat @builddir
+    stat = File.stat @builddir if File.exist? @builddir
 
     if stat and stat.owned? and not @builddir.empty? and @builddir != "/"
       FileUtils.rm_r @builddir
