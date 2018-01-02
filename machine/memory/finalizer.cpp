@@ -150,7 +150,8 @@ namespace rubinius {
       : MachineThread(state, "rbx.finalizer", MachineThread::eLarge)
       , live_list_()
       , process_list_()
-      , synchronization_(NULL)
+      , list_mutex_()
+      , list_condition_()
       , finishing_(false)
     {
       initialize(state);
@@ -165,26 +166,17 @@ namespace rubinius {
       if(!process_list_.empty()) {
         logger::error("FinalizerThread destructed with remaining to-be-finalized objects");
       }
-
-      cleanup();
-    }
-
-    void FinalizerThread::cleanup() {
-      if(synchronization_) {
-        delete synchronization_;
-        synchronization_ = NULL;
-      }
     }
 
     void FinalizerThread::after_fork_child(STATE) {
-      cleanup();
+      new(&list_mutex_) std::mutex;
+      new(&list_condition_) std::condition_variable;
 
       MachineThread::after_fork_child(state);
     }
 
     void FinalizerThread::initialize(STATE) {
       Thread::create(state, vm());
-      synchronization_ = new Synchronization();
     }
 
     void FinalizerThread::wakeup(STATE) {

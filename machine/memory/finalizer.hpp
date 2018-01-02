@@ -93,29 +93,11 @@ namespace rubinius {
     typedef std::list<FinalizerObject*> FinalizerObjects;
 
     class FinalizerThread : public MachineThread {
-      class Synchronization {
-        std::mutex list_mutex_;
-        std::condition_variable list_condition_;
-
-      public:
-        Synchronization()
-          : list_mutex_()
-          , list_condition_()
-        { }
-
-        std::mutex& list_mutex() {
-          return list_mutex_;
-        }
-
-        std::condition_variable& list_condition() {
-          return list_condition_;
-        }
-      };
-
       FinalizerObjects live_list_;
       FinalizerObjects process_list_;
 
-      Synchronization* synchronization_;
+      std::mutex list_mutex_;
+      std::condition_variable list_condition_;
 
       std::atomic<bool> finishing_;
 
@@ -124,11 +106,11 @@ namespace rubinius {
       virtual ~FinalizerThread();
 
       std::mutex& list_mutex() {
-        return synchronization_->list_mutex();
+        return list_mutex_;
       }
 
       std::condition_variable& list_condition() {
-        return synchronization_->list_condition();
+        return list_condition_;
       }
 
       void finish(STATE);
@@ -147,8 +129,6 @@ namespace rubinius {
       void stop(STATE);
       void wakeup(STATE);
       void after_fork_child(STATE);
-
-      void cleanup();
     };
   }
 }
