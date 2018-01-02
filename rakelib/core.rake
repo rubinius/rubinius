@@ -150,6 +150,9 @@ namespace :codedb do
     # parsing so we just iterate based on files.
 
     begin
+      destdir = ENV["DESTDIR"]
+      ENV.delete "DESTDIR"
+
       ENV["CXX"] = BUILD_CONFIG[:cxx]
       ENV["CXXFLAGS"] = BUILD_CONFIG[:system_cxxflags]
       ENV["CPPFLAGS"] = BUILD_CONFIG[:system_cppflags]
@@ -171,6 +174,8 @@ namespace :codedb do
         end
       end
     ensure
+      ENV["DESTDIR"] = destdir
+
       ENV.delete "CXX"
       ENV.delete "CXXFLAGS"
       ENV.delete "CPPFLAGS"

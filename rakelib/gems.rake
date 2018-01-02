@@ -3,6 +3,10 @@ namespace :gems do
   task :install do
     begin
       clean_environment
+
+      destdir = ENV["DESTDIR"]
+      ENV.delete "DESTDIR"
+
       ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
       ENV["RBX_GEMS_PATH"] = BUILD_CONFIG[:builddir]
 
@@ -13,6 +17,8 @@ namespace :gems do
       cp "#{BUILD_CONFIG[:bootstrap_gems_dir]}/rubysl-irb-2.1.1/bin/irb",
         "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:gemsdir]}/bin/", :verbose => $verbose
     ensure
+      ENV["DESTDIR"] = destdir
+
       ENV.delete "RBX_PREFIX_PATH"
       ENV.delete "RBX_GEMS_PATH"
     end
