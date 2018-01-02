@@ -234,11 +234,18 @@ class Configure
 
     dirs.each { |d| d.replace d[size..-1] }
 
-    @builddir = "#{@sourcedir}/build/rubinius"
     @scriptdir = "#{@sourcedir}/build/scripts"
 
+    @builddir = "#{@sourcedir}/build/rubinius" unless @builddir
+
+    stat = File.stat @builddir
+
+    if stat and stat.owned? and not @builddir.empty? and @builddir != "/"
+      FileUtils.rm_r @builddir
+    end
+
     if @preserve_prefix
-      @builddir = "#{@builddir}/#{@prefixdir}"
+      @builddir = File.expand_path "#{@builddir}/#{@prefixdir}"
     end
 
     FileUtils.mkdir_p @builddir

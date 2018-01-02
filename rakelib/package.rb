@@ -100,8 +100,6 @@ class RubiniusPackager
   end
 
   def build
-    sh "rm -rf #{BUILD_CONFIG[:sourcedir]}/staging"
-
     package_name = package + "." + archive
     sh "rm -rf #{package_name}*"
 
