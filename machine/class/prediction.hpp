@@ -3,6 +3,8 @@
 
 #include "class/object.hpp"
 
+#include <atomic>
+
 namespace rubinius {
   class Executable;
   class Module;
@@ -12,7 +14,15 @@ namespace rubinius {
     const static object_type type = PredictionType;
     const static uint64_t valid_prediction = 0xffffffffffffffffULL;
 
-    attr_field(valid, uint64_t);
+    std::atomic<uint64_t> _valid_;
+
+    uint64_t valid() {
+      return _valid_.load(std::memory_order_seq_cst);
+    }
+
+    void valid(uint64_t value) {
+      _valid_.store(value, std::memory_order_seq_cst);
+    }
 
     static void bootstrap(STATE);
     static void initialize(STATE, Prediction* obj) {
