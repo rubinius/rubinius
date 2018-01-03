@@ -66,9 +66,7 @@ namespace rubinius {
   }
 
   void ThreadNexus::after_fork_child(STATE) {
-    // TODO: ensure this mutex is not locked on fork()
-    threads_mutex_.try_lock();
-    threads_mutex_.unlock();
+    new(&threads_mutex_) std::mutex;
 
     VM* current = state->vm();
 
