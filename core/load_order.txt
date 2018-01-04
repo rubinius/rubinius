@@ -84,6 +84,7 @@ numeric_mirror.rb
 object_space.rb
 options.rb
 pack.rb
+peg.rb
 pointer.rb
 pointer_accessors.rb
 prediction.rb

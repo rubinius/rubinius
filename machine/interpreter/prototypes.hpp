@@ -104,6 +104,25 @@ namespace rubinius {
     intptr_t yield_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t zsuper(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t push_file(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // PEG instructions
+    intptr_t p_any(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_call(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_char(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_char_set(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_choice(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_commit(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_commit_back(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_commit_partial(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_end(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_fail(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_fail_twice(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_jump(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_return(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_span(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_test_any(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_test_char(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_test_char_set(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
   }
 }
 

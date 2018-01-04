@@ -434,6 +434,74 @@ namespace rubinius {
       "push_file", 98, 1, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::push_file
     };
+    const InstructionData constexpr data_p_any = {
+      "p_any", 99, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_any
+    };
+    const InstructionData constexpr data_p_call = {
+      "p_call", 100, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_call
+    };
+    const InstructionData constexpr data_p_char = {
+      "p_char", 101, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_char
+    };
+    const InstructionData constexpr data_p_char_set = {
+      "p_char_set", 102, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_char_set
+    };
+    const InstructionData constexpr data_p_choice = {
+      "p_choice", 103, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_choice
+    };
+    const InstructionData constexpr data_p_commit = {
+      "p_commit", 104, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_commit
+    };
+    const InstructionData constexpr data_p_commit_back = {
+      "p_commit_back", 105, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_commit_back
+    };
+    const InstructionData constexpr data_p_commit_partial = {
+      "p_commit_partial", 106, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_commit_partial
+    };
+    const InstructionData constexpr data_p_end = {
+      "p_end", 107, 1, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_end
+    };
+    const InstructionData constexpr data_p_fail = {
+      "p_fail", 108, 1, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_fail
+    };
+    const InstructionData constexpr data_p_fail_twice = {
+      "p_fail_twice", 109, 1, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_fail_twice
+    };
+    const InstructionData constexpr data_p_jump = {
+      "p_jump", 110, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_jump
+    };
+    const InstructionData constexpr data_p_return = {
+      "p_return", 111, 1, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_return
+    };
+    const InstructionData constexpr data_p_span = {
+      "p_span", 112, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_span
+    };
+    const InstructionData constexpr data_p_test_any = {
+      "p_test_any", 113, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_test_any
+    };
+    const InstructionData constexpr data_p_test_char = {
+      "p_test_char", 114, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_test_char
+    };
+    const InstructionData constexpr data_p_test_char_set = {
+      "p_test_char_set", 115, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_test_char_set
+    };
   }
 
   struct Instructions {

@@ -165,6 +165,25 @@ namespace rubinius {
     inline bool yield_stack(STATE, CallFrame* call_frame, intptr_t count);
     inline bool zsuper(STATE, CallFrame* call_frame, intptr_t literal);
     inline void push_file(STATE, CallFrame* call_frame);
+
+    // PEG instructions
+    inline bool p_any(STATE, CallFrame* call_frame, const intptr_t n);
+    inline void p_call(STATE, CallFrame* call_frame);
+    inline bool p_char(STATE, CallFrame* call_frame, const intptr_t chr);
+    inline bool p_char_set(STATE, CallFrame* call_frame, const intptr_t chr_set);
+    inline void p_choice(STATE, CallFrame* call_frame, const intptr_t ip, const intptr_t index);
+    inline void p_commit(STATE, CallFrame* call_frame);
+    inline void p_commit_back(STATE, CallFrame* call_frame);
+    inline void p_commit_partial(STATE, CallFrame* call_frame);
+    inline intptr_t p_end(STATE, CallFrame* call_frame);
+    inline intptr_t p_fail(STATE, CallFrame* call_frame);
+    inline void p_fail_twice(STATE, CallFrame* call_frame);
+    inline void p_jump(STATE, CallFrame* call_frame);
+    inline intptr_t p_return(STATE, CallFrame* call_frame);
+    inline bool p_span(STATE, CallFrame* call_frame, const intptr_t chr_set);
+    inline bool p_test_any(STATE, CallFrame* call_frame, const intptr_t n);
+    inline bool p_test_char(STATE, CallFrame* call_frame, const intptr_t chr);
+    inline bool p_test_char_set(STATE, CallFrame* call_frame, const intptr_t chr_set);
   }
 }
 
