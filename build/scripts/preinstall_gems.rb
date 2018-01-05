@@ -5,7 +5,7 @@ puts "Pre-installing gems for #{RUBY_VERSION}..."
 
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 gems = ["bundler-1.11.2.gem",
-        "minitest-4.7.5.gem",
+        "minitest-5.11.1.gem",
         "racc-1.4.14.gem",
         "rake-12.1.0.gem",
         "rdoc-4.3.0.gem",
