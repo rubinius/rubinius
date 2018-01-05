@@ -7,7 +7,7 @@ psych-2.0.17.gem
 racc-1.4.14.gem
 rake-12.3.0.gem
 rb-readline-0.5.5.gem
-rdoc-6.0.1.gem
+rdoc-5.1.0.gem
 redcard-1.1.0.gem
 rubinius-ast-3.14.gem
 rubinius-bridge-3.0.gem
