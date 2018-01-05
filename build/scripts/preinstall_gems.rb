@@ -37,7 +37,7 @@ options = {
 }
 
 def install(gem, install_dir, options)
-  puts "Attempting to install gem #{gem} to #{install_dir}..."
+  puts "Attempting to install gem #{gem} to #{install_dir}..." if $verbose
   return if File.directory? "#{install_dir}/gems/#{gem[0..-5]}"
 
   file = File.join(BUILD_CONFIG[:gems_cache], "#{gem}")
