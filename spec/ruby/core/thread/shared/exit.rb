@@ -78,16 +78,22 @@ describe :thread_exit, :shared => true do
 
   with_feature :fiber do
     it "kills the entire thread when a fiber is active" do
+      running = false
+      wait = true
+
       t = Thread.new do
         Fiber.new do
-          sleep
+          running = true
+          sleep 1 while wait
         end.resume
-        ScratchPad.record :fiber_resumed
       end
-      Thread.pass while t.status and t.status != "sleep"
+
+      Thread.pass until running
+
       t.send(@method)
       t.join
-      ScratchPad.recorded.should == nil
+
+      t.status.should be_false
     end
   end
 
