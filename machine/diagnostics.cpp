@@ -13,6 +13,16 @@ namespace rubinius {
   using namespace utilities;
 
   namespace diagnostics {
+    Measurement* Measurement::create_counter(STATE) {
+      Measurement* m = new Measurement();
+
+      m->update(Measurement::update_counter);
+
+      state->shared().diagnostics()->add_measurement(m);
+
+      return m;
+    }
+
     DiagnosticsData::DiagnosticsData()
       : document()
     {
@@ -69,7 +79,7 @@ namespace rubinius {
       }
     }
 
-    Diagnostics::Diagnostics(STATE)
+    DiagnosticsReporter::DiagnosticsReporter(STATE)
       : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
       , timer_(NULL)
       , interval_(state->shared().config.system_diagnostics_interval)
@@ -85,7 +95,7 @@ namespace rubinius {
       }
     }
 
-    void Diagnostics::initialize(STATE) {
+    void DiagnosticsReporter::initialize(STATE) {
       MachineThread::initialize(state);
 
       timer_ = new timer::Timer;
@@ -93,7 +103,7 @@ namespace rubinius {
       diagnostics_lock_.init();
     }
 
-    void Diagnostics::wakeup(STATE) {
+    void DiagnosticsReporter::wakeup(STATE) {
       MachineThread::wakeup(state);
 
       if(timer_) {
@@ -102,11 +112,11 @@ namespace rubinius {
       }
     }
 
-    void Diagnostics::after_fork_child(STATE) {
+    void DiagnosticsReporter::after_fork_child(STATE) {
       MachineThread::after_fork_child(state);
     }
 
-    void Diagnostics::report(DiagnosticsData* data) {
+    void DiagnosticsReporter::report(DiagnosticsData* data) {
       utilities::thread::Mutex::LockGuard guard(diagnostics_lock_);
 
       list_.push_front(data);
@@ -117,7 +127,7 @@ namespace rubinius {
       }
     }
 
-    void Diagnostics::run(STATE) {
+    void DiagnosticsReporter::run(STATE) {
       state->vm()->unmanaged_phase(state);
 
       timer_->set(interval_);

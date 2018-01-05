@@ -30,14 +30,14 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : thread_nexus_(new ThreadNexus())
-    , machine_threads_(NULL)
-    , signals_(NULL)
-    , finalizer_(NULL)
-    , console_(NULL)
-    , metrics_(NULL)
-    , diagnostics_(NULL)
-    , profiler_(NULL)
-    , jit_(NULL)
+    , machine_threads_(nullptr)
+    , signals_(nullptr)
+    , finalizer_(nullptr)
+    , console_(nullptr)
+    , metrics_(nullptr)
+    , diagnostics_(new diagnostics::Diagnostics())
+    , profiler_(nullptr)
+    , jit_(nullptr)
     , start_time_(get_current_time())
     , method_count_(1)
     , class_count_(1)
@@ -45,7 +45,7 @@ namespace rubinius {
     , initialized_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
-    , root_vm_(NULL)
+    , root_vm_(nullptr)
     , env_(env)
     , codedb_lock_(true)
     , capi_ds_lock_()
@@ -58,7 +58,7 @@ namespace rubinius {
     , code_resource_lock_()
     , use_capi_lock_(false)
     , phase_(eBooting)
-    , om(NULL)
+    , om(nullptr)
     , config(config)
     , user_variables(cp)
     , username("")
@@ -79,27 +79,27 @@ namespace rubinius {
 
     if(console_) {
       delete console_;
-      console_ = NULL;
+      console_ = nullptr;
     }
 
     if(metrics_) {
       delete metrics_;
-      metrics_ = NULL;
+      metrics_ = nullptr;
     }
 
     if(profiler_) {
       delete profiler_;
-      profiler_ = NULL;
+      profiler_ = nullptr;
     }
 
     if(jit_) {
       delete jit_;
-      jit_ = NULL;
+      jit_ = nullptr;
     }
 
     if(diagnostics_) {
       delete diagnostics_;
-      diagnostics_ = NULL;
+      diagnostics_ = nullptr;
     }
 
     delete om;
@@ -256,11 +256,8 @@ namespace rubinius {
   }
 
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
-    if(!diagnostics_) {
-      if(state->shared().config.system_diagnostics_target.value.compare("none")) {
-        diagnostics_ = new diagnostics::Diagnostics(state);
-        diagnostics_->start(state);
-      }
+    if(state->shared().config.system_diagnostics_target.value.compare("none")) {
+      diagnostics_->start_reporter(state);
     }
 
     return diagnostics_;

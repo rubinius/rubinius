@@ -507,7 +507,7 @@ namespace rubinius {
       rubinius::interpreter::p_init
     };
     const InstructionData constexpr data_m_bytes = {
-      "m_bytes", 117, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      "m_bytes", 117, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::m_bytes
     };
     const InstructionData constexpr data_m_counter = {
@@ -523,7 +523,7 @@ namespace rubinius {
       rubinius::interpreter::m_value
     };
     const InstructionData constexpr data_m_time_stamp = {
-      "m_time_stamp", 121, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      "m_time_stamp", 121, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::m_time_stamp
     };
     const InstructionData constexpr data_m_timer_start = {
@@ -531,7 +531,7 @@ namespace rubinius {
       rubinius::interpreter::m_timer_start
     };
     const InstructionData constexpr data_m_timer_stop = {
-      "m_timer_stop", 123, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      "m_timer_stop", 123, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::m_timer_stop
     };
   }

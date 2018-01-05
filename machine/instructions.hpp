@@ -187,13 +187,13 @@ namespace rubinius {
     inline void p_init(STATE, CallFrame* call_frame, const intptr_t subject, const intptr_t captures);
 
     // Instrumentation instructions
-    inline void m_bytes(STATE, CallFrame* call_frame, intptr_t object);
+    inline void m_bytes(STATE, CallFrame* call_frame, intptr_t value, const intptr_t r0);
     inline void m_counter(STATE, CallFrame* call_frame, intptr_t value);
     inline void m_sum(STATE, CallFrame* call_frame, intptr_t value, const intptr_t r0);
     inline void m_value(STATE, CallFrame* call_frame, intptr_t value, const intptr_t r0);
-    inline void m_time_stamp(STATE, CallFrame* call_frame, intptr_t value);
+    inline void m_time_stamp(STATE, CallFrame* call_frame, intptr_t value, const intptr_t flag);
     inline void m_timer_start(STATE, CallFrame* call_frame, intptr_t timer);
-    inline void m_timer_stop(STATE, CallFrame* call_frame, const intptr_t ip);
+    inline void m_timer_stop(STATE, CallFrame* call_frame, const intptr_t ip, const intptr_t flag);
   }
 }
 

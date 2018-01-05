@@ -12,6 +12,8 @@
 #include "class/unwind_site.hpp"
 
 namespace rubinius {
+  using namespace diagnostics;
+
   void Interpreter::prepare(STATE, CompiledCode* compiled_code, MachineCode* machine_code) {
     Tuple* lits = compiled_code->literals();
     Tuple* ops = compiled_code->iseq()->opcodes();
@@ -193,6 +195,13 @@ namespace rubinius {
         UnwindSite* unwind_site = UnwindSite::create(state, 0, UnwindSite::eNone);
 
         machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
+
+        break;
+      }
+      case instructions::data_m_counter.id: {
+        Measurement* m = Measurement::create_counter(state);
+
+        opcodes[ip + 1] = reinterpret_cast<intptr_t>(m);
 
         break;
       }

@@ -118,6 +118,7 @@ namespace rubinius {
     instructions::data_p_test_any,
     instructions::data_p_test_char,
     instructions::data_p_test_char_set,
+    instructions::data_p_init,
     instructions::data_m_bytes,
     instructions::data_m_counter,
     instructions::data_m_sum,
