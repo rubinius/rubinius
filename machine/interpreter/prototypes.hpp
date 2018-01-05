@@ -123,6 +123,16 @@ namespace rubinius {
     intptr_t p_test_any(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t p_test_char(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t p_test_char_set(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_init(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Instrumentation instructions
+    intptr_t m_bytes(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_counter(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_sum(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_value(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_time_stamp(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_timer_start(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_timer_stop(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
   }
 }
 

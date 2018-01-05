@@ -502,6 +502,38 @@ namespace rubinius {
       "p_test_char_set", 115, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::p_test_char_set
     };
+    const InstructionData constexpr data_p_init = {
+      "p_init", 116, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::p_init
+    };
+    const InstructionData constexpr data_m_bytes = {
+      "m_bytes", 117, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_bytes
+    };
+    const InstructionData constexpr data_m_counter = {
+      "m_counter", 118, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_counter
+    };
+    const InstructionData constexpr data_m_sum = {
+      "m_sum", 119, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_sum
+    };
+    const InstructionData constexpr data_m_value = {
+      "m_value", 120, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_value
+    };
+    const InstructionData constexpr data_m_time_stamp = {
+      "m_time_stamp", 121, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_time_stamp
+    };
+    const InstructionData constexpr data_m_timer_start = {
+      "m_timer_start", 122, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_timer_start
+    };
+    const InstructionData constexpr data_m_timer_stop = {
+      "m_timer_stop", 123, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_timer_stop
+    };
   }
 
   struct Instructions {
