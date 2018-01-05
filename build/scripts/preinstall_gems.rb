@@ -7,9 +7,9 @@ BUILD_CONFIG = Rubinius::BUILD_CONFIG
 gems = ["bundler-1.11.2.gem",
         "minitest-5.11.1.gem",
         "racc-1.4.14.gem",
-        "rake-12.1.0.gem",
-        "rdoc-4.3.0.gem",
-        "rb-readline-0.5.4.gem",
+        "rake-12.3.0.gem",
+        "rdoc-6.0.1.gem",
+        "rb-readline-0.5.5.gem",
         "rubysl-readline-2.0.2.gem"
        ]
 
@@ -37,6 +37,7 @@ options = {
 }
 
 def install(gem, install_dir, options)
+  puts "Attempting to install gem #{gem} to #{install_dir}..."
   return if File.directory? "#{install_dir}/gems/#{gem[0..-5]}"
 
   file = File.join(BUILD_CONFIG[:gems_cache], "#{gem}")
