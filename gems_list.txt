@@ -2,7 +2,7 @@ bundler-1.11.2.gem
 daedalus-core-1.6.gem
 ffi2-generators-0.1.1.gem
 json-1.8.6.gem
-minitest-4.7.5.gem
+minitest-5.11.1.gem
 psych-2.0.17.gem
 racc-1.4.14.gem
 rake-12.1.0.gem
