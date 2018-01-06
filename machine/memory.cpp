@@ -542,6 +542,8 @@ step1:
       RUBINIUS_GC_BEGIN(1);
       collect_full(state);
     }
+
+    std::atomic_thread_fence(std::memory_order_seq_cst);
   }
 
   void Memory::collect_young(STATE, memory::GCData* data) {

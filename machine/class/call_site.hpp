@@ -88,6 +88,12 @@ namespace rubinius {
       }
 
       static Cache* create(STATE, Cache* cache, Class* receiver, Dispatch& dispatch) {
+        for(int32_t i = 0; i < cache->size(); i++) {
+          if(cache->entries(i)->receiver_class() == receiver) {
+            return cache;
+          }
+        }
+
         uint32_t size = cache->valid_size() + 1;
 
         uint8_t* mem = new uint8_t[sizeof(Cache) + (size * sizeof(Entry))];
@@ -357,6 +363,8 @@ namespace rubinius {
         Cache* new_cache =
           Cache::create(state, cache, receiver, dispatch);
 
+        if(new_cache == cache) return;
+
         if(_cache_.compare_exchange_strong(cache, new_cache)) {
           int diff;
 
@@ -372,6 +380,8 @@ namespace rubinius {
           } else {
             execute(Cache::poly_execute);
           }
+
+          std::atomic_thread_fence(std::memory_order_seq_cst);
         } else {
           delete_cache(new_cache);
         }
@@ -381,6 +391,8 @@ namespace rubinius {
 
         if(_cache_.compare_exchange_strong(cache, new_cache)) {
           execute(Cache::mono_execute);
+
+          std::atomic_thread_fence(std::memory_order_seq_cst);
         } else {
           delete_cache(new_cache);
         }
@@ -443,7 +455,9 @@ namespace rubinius {
       if((value = dispatch.method->execute(state, dispatch.method, dispatch.module, args))) {
         if(dispatch.name == G(sym_method_missing)) return value;
 
-        call_site->cache_method(state, args.recv()->direct_class(state), dispatch);
+        if(call_site->execute() == CallSite::dispatch_and_cache) {
+          call_site->cache_method(state, args.recv()->direct_class(state), dispatch);
+        }
       }
 
       return value;
@@ -462,7 +476,9 @@ namespace rubinius {
       if((value = dispatch.method->execute(state, dispatch.method, dispatch.module, args))) {
         if(dispatch.name == G(sym_method_missing)) return value;
 
-        call_site->execute(CallSite::dispatch_and_cache);
+        if(call_site->execute() == CallSite::dispatch_once) {
+          call_site->execute(CallSite::dispatch_and_cache);
+        }
       }
 
       return value;
