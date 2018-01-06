@@ -17,6 +17,7 @@ namespace rubinius {
       Measurement* m = new Measurement();
 
       m->update(Measurement::update_counter);
+      m->report(Measurement::report_counter);
 
       state->shared().diagnostics()->add_measurement(m);
 
@@ -79,13 +80,14 @@ namespace rubinius {
       }
     }
 
-    DiagnosticsReporter::DiagnosticsReporter(STATE)
+    DiagnosticsReporter::DiagnosticsReporter(STATE, Diagnostics* d)
       : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
       , timer_(NULL)
       , interval_(state->shared().config.system_diagnostics_interval)
       , list_()
       , emitter_(NULL)
       , diagnostics_lock_()
+      , diagnostics_(d)
     {
       // TODO: socket target
       if(false /*state->shared().config.system_diagnostics_target.value.compare("none")*/) {
@@ -147,6 +149,10 @@ namespace rubinius {
           if(!list_.empty()) {
             data = list_.back();
             list_.pop_back();
+          }
+
+          for(auto m : diagnostics_->measurements()) {
+            m->report(state);
           }
         }
 

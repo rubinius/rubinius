@@ -199,9 +199,8 @@ namespace rubinius {
         break;
       }
       case instructions::data_m_counter.id: {
-        Measurement* m = Measurement::create_counter(state);
-
-        opcodes[ip + 1] = reinterpret_cast<intptr_t>(m);
+        machine_code->store_measurement(state,
+            compiled_code, ip, Measurement::create_counter(state));
 
         break;
       }

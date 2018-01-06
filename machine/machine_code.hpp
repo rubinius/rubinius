@@ -17,6 +17,10 @@
 #include <stdint.h>
 
 namespace rubinius {
+  namespace diagnostics {
+    class Measurement;
+  }
+
   typedef uintptr_t opcode;
 
   class CompiledCode;
@@ -155,6 +159,7 @@ namespace rubinius {
     void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
     void store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site);
+    void store_measurement(STATE, CompiledCode* code, int ip, diagnostics::Measurement* m);
 
     void set_description(STATE);
 

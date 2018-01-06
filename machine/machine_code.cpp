@@ -192,6 +192,13 @@ namespace rubinius {
     state->memory()->write_barrier(code, unwind_site);
   }
 
+  void MachineCode::store_measurement(STATE,
+      CompiledCode* code, int ip, diagnostics::Measurement* m)
+  {
+    m->label(code->file()->cpp_str(state), code->name()->cpp_str(state), ip);
+    opcodes[ip + 1] = reinterpret_cast<intptr_t>(m);
+  }
+
   void MachineCode::set_description(STATE) {
     if(description()) return;
 

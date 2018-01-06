@@ -23,6 +23,7 @@ namespace rubinius {
       typedef std::string (Report)(STATE, Measurement*);
 
       std::atomic<intptr_t> _value_;
+      std::string _label_;
 
       attr_field(update, Update*);
       attr_field(scan, Scan*);
@@ -30,6 +31,7 @@ namespace rubinius {
 
       Measurement()
         : _value_(0)
+        , _label_()
         , _update_(nullptr)
         , _scan_(nullptr)
         , _report_(nullptr)
@@ -42,8 +44,16 @@ namespace rubinius {
         m->_value_.fetch_add(value);
       }
 
+      static std::string report_counter(STATE, Measurement* m) {
+        return std::to_string(m->value());
+      }
+
       intptr_t value() {
         return _value_;
+      }
+
+      void label(const std::string& file, const std::string& name, int ip) {
+        _label_.assign(file).append(":").append(name).append(":").append(std::to_string(ip));
       }
 
       void update(STATE, intptr_t value) {
@@ -103,6 +113,8 @@ namespace rubinius {
     typedef std::list<DiagnosticsData*> DiagnosticsList;
     typedef std::unordered_set<Measurement*> Measurements;
 
+    class Diagnostics;
+
     class DiagnosticsReporter : public MachineThread {
       utilities::timer::Timer* timer_;
       int interval_;
@@ -113,8 +125,10 @@ namespace rubinius {
 
       utilities::thread::Mutex diagnostics_lock_;
 
+      Diagnostics* diagnostics_;
+
     public:
-      DiagnosticsReporter(STATE);
+      DiagnosticsReporter(STATE, Diagnostics* d);
       ~DiagnosticsReporter() {
         if(timer_) {
           delete timer_;
@@ -148,9 +162,14 @@ namespace rubinius {
         }
       }
 
+      Measurements& measurements() {
+        return measurements_;
+      }
+
       void start_reporter(STATE) {
         if(!reporter_) {
-          reporter_ = new DiagnosticsReporter(state);
+          reporter_ = new DiagnosticsReporter(state, this);
+          reporter_->start(state);
         }
       }
 
