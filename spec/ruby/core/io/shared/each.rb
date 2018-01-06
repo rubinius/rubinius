@@ -80,6 +80,14 @@ describe :io_each, :shared => true do
         lambda { @io.send(@method, 0){} }.should raise_error(ArgumentError)
       end
     end
+
+    describe "when limit is positive" do
+      it "returns at most +limit+ bytes per iteration" do
+        @io.send(@method, 5) do |line|
+          line.size.should <= 5
+        end
+      end
+    end
   end
 
   describe "when passed a String containing one space as a separator" do
