@@ -2035,7 +2035,7 @@ class IO
           (@io.read_nonblock(PEEK_AHEAD_LIMIT, result, exception: false) || @io.get_empty_8bit_buffer)
           @io.internal, @io.external = internal, external
 
-          buffer += result
+          buffer << result
         end
         str, bytes_read = read_to_char_boundary(@io, str, buffer)
       else
@@ -2154,6 +2154,7 @@ class IO
     end
 
     # Method H
+    # Only ever called if separator or $/ is forced to nil
     def read_to_limit(&block)
       str = @io.get_empty_8bit_buffer
       wanted = limit = @limit.abs
@@ -2290,6 +2291,7 @@ class IO
           sep = $/
           limit = Rubinius::Type.coerce_to sep_or_limit, Integer, :to_int
           raise ArgumentError, "invalid limit: 0 for each_line" if limit.zero?
+          sep_or_limit = sep
         end
       end
     end
