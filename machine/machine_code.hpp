@@ -41,13 +41,6 @@ namespace rubinius {
       eCompiling = 1 << 1
     };
 
-    const static int cMaxSpecializations = 3;
-
-    struct Specialization {
-      ClassData class_data;
-      executor execute;
-    };
-
     enum ExecuteStatus {
       eInterpret,
       eJIT,
@@ -102,6 +95,8 @@ namespace rubinius {
     uint32_t flags; // Used to store bit flags
   public: // Methods
     static void bootstrap(STATE);
+
+    static MachineCode* create(STATE, CompiledCode* code);
 
     MachineCode(STATE, CompiledCode* code);
     virtual ~MachineCode();

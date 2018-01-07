@@ -141,7 +141,7 @@ namespace rubinius {
         bytecode_verifier.verify(state);
       }
 
-      MachineCode* mcode = new MachineCode(state, this);
+      MachineCode* mcode = MachineCode::create(state, this);
 
       if(resolve_primitive(state)) {
         mcode->fallback = execute;
@@ -347,10 +347,6 @@ namespace rubinius {
 
     MachineCode* mcode = code->machine_code();
     mcode->set_mark();
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      // TODO: JIT
-    }
 
     for(size_t i = 0; i < mcode->references_count(); i++) {
       if(size_t ip = mcode->references()[i]) {

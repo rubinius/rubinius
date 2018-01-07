@@ -26,9 +26,6 @@
 #include <string>
 #include <vector>
 
-#include "missing/unordered_map.hpp"
-#include "missing/unordered_set.hpp"
-
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #endif
@@ -62,12 +59,12 @@ namespace rubinius {
 
   struct CallFrame;
 
-  typedef std_unordered_set<std::string> CApiBlackList;
+  typedef std::unordered_set<std::string> CApiBlackList;
   typedef std::vector<utilities::thread::Mutex*> CApiLocks;
-  typedef std_unordered_map<std::string, int> CApiLockMap;
+  typedef std::unordered_map<std::string, int> CApiLockMap;
 
   typedef std::vector<std::string> CApiConstantNameMap;
-  typedef std_unordered_map<int, capi::Handle*> CApiConstantHandleMap;
+  typedef std::unordered_map<int, capi::Handle*> CApiConstantHandleMap;
 
   /**
    * SharedState represents the global shared state that needs to be shared

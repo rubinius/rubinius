@@ -47,6 +47,10 @@ namespace rubinius {
   void MachineCode::bootstrap(STATE) {
   }
 
+  MachineCode* MachineCode::create(STATE, CompiledCode* code) {
+    return new MachineCode(state, code);
+  }
+
   /*
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
