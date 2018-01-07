@@ -44,6 +44,8 @@ namespace rubinius {
     if(MachineCode* machine_code = code->machine_code()) {
       machine_code->finalize(state);
     }
+
+    code->lock().std::mutex::~mutex();
   }
 
   CompiledCode* CompiledCode::create(STATE) {
@@ -129,36 +131,29 @@ namespace rubinius {
     timer::StopWatch<timer::microseconds> timer(
         state->vm()->metrics().machine.bytecode_internalizer_us);
 
-    atomic::memory_barrier();
+    std::lock_guard<std::mutex> guard(_lock_);
 
-    MachineCode* mcode = machine_code();
-
-    if(mcode) return mcode;
-
-    {
-      BytecodeVerifier bytecode_verifier(this);
-      bytecode_verifier.verify(state);
-    }
-
-    mcode = new MachineCode(state, this);
-
-    if(resolve_primitive(state)) {
-      mcode->fallback = execute;
-    } else {
-      mcode->setup_argument_handler();
-    }
-
-    /* There is a race here because another Thread may have run this
-     * CompiledCode instance and internalized it. We attempt to store our
-     * version assuming that we are the only ones to do so and throw away our
-     * work if someone else has beat us to it.
-     */
-    MachineCode** mcode_ptr = &_machine_code_;
-    if(atomic::compare_and_swap(reinterpret_cast<void**>(mcode_ptr), 0, mcode)) {
-      set_executor(mcode->fallback);
-      return mcode;
-    } else {
+    if(machine_code()) {
       return machine_code();
+    } else {
+      {
+        BytecodeVerifier bytecode_verifier(this);
+        bytecode_verifier.verify(state);
+      }
+
+      MachineCode* mcode = new MachineCode(state, this);
+
+      if(resolve_primitive(state)) {
+        mcode->fallback = execute;
+      } else {
+        mcode->setup_argument_handler();
+      }
+
+      set_executor(mcode->fallback);
+
+      machine_code(mcode);
+
+      return mcode;
     }
   }
 

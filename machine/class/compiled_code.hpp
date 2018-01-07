@@ -12,6 +12,8 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 
+#include <mutex>
+
 namespace rubinius {
 
   class InstructionSequence;
@@ -48,6 +50,7 @@ namespace rubinius {
 
   private:
     attr_field(machine_code, MachineCode*);
+    std::mutex _lock_;
 
   public:
     attr_accessor(literals, Tuple)
@@ -80,6 +83,8 @@ namespace rubinius {
       obj->machine_code(NULL);
 
       obj->literals(nil<Tuple>());
+
+      new(&obj->_lock_) std::mutex;
     }
 
     static CompiledCode* create(STATE);
@@ -88,6 +93,10 @@ namespace rubinius {
     static CompiledCode* allocate(STATE, Object* self);
 
     static Object* primitive_failed(STATE, Executable* exec, Module* mod, Arguments& args);
+
+    std::mutex& lock() {
+      return _lock_;
+    }
 
     int start_line(STATE);
     int start_line();
