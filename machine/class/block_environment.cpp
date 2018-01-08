@@ -412,7 +412,7 @@ namespace rubinius {
     }
 
     CallFrame* previous_frame = NULL;
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 

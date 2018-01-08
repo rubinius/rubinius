@@ -65,8 +65,7 @@ namespace rubinius {
     , splat_position(-1)
     , stack_size(code->stack_size()->to_native())
     , number_of_locals(code->number_of_locals())
-    , iregisters(0)
-    , dregisters(0)
+    , registers(code->registers())
     , sample_count(0)
     , call_count(0)
     , uncommon_count(0)
@@ -644,7 +643,7 @@ namespace rubinius {
       }
 
       CallFrame* previous_frame = nullptr;
-      CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+      CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
       call_frame->prepare(mcode->stack_size);
 
@@ -696,7 +695,7 @@ namespace rubinius {
     scope->initialize(G(main), cNil, G(object), mcode->number_of_locals);
 
     CallFrame* previous_frame = 0;
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 
