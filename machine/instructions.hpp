@@ -66,6 +66,15 @@ namespace rubinius {
 #define SET_CALL_FLAGS(val) call_frame->is->call_flags = (val)
 #define CALL_FLAGS()        call_frame->is->call_flags
 
+#define CF        CallFrame* call_frame
+#define LITERAL   const intptr_t literal
+#define LOCAL     const intptr_t local
+#define DEPTH     const intptr_t depth
+#define IP        const intptr_t IP
+#define R0        const intptr_t r0
+#define R1        const intptr_t r1
+#define R2        const intptr_t r2
+
     inline void add_scope(STATE, CallFrame* call_frame);
     inline void allow_private();
     inline bool cast_array(STATE, CallFrame* call_frame);
@@ -116,7 +125,7 @@ namespace rubinius {
     inline bool push_ivar(STATE, CallFrame* call_frame, intptr_t literal);
     inline void push_literal(CallFrame* call_frame, intptr_t literal);
     inline void push_local(CallFrame* call_frame, intptr_t local);
-    inline bool push_local_depth(STATE, CallFrame* call_frame, intptr_t depth, intptr_t index);
+    inline bool push_local_depth(STATE, CallFrame* call_frame, DEPTH, intptr_t index);
     inline void push_memo(CallFrame* call_frame, intptr_t literal);
     inline void push_mirror(STATE, CallFrame* call_frame);
     inline void push_my_field(STATE, CallFrame* call_frame, intptr_t index);
@@ -151,9 +160,9 @@ namespace rubinius {
     inline void set_const_at(STATE, CallFrame* call_frame, intptr_t literal);
     inline bool set_ivar(STATE, CallFrame* call_frame, intptr_t literal);
     inline void set_local(CallFrame* call_frame, intptr_t local);
-    inline bool set_local_depth(STATE, CallFrame* call_frame, intptr_t depth, intptr_t index);
+    inline bool set_local_depth(STATE, CallFrame* call_frame, DEPTH, intptr_t index);
     inline void set_stack_local(CallFrame* call_frame, intptr_t which);
-    inline void setup_unwind(CallFrame* call_frame, intptr_t ip, intptr_t type);
+    inline void setup_unwind(CallFrame* call_frame, IP, intptr_t type);
     inline void shift_array(STATE, CallFrame* call_frame);
     inline bool store_my_field(STATE, CallFrame* call_frame, intptr_t index);
     inline void string_append(STATE, CallFrame* call_frame);
@@ -171,7 +180,7 @@ namespace rubinius {
     inline void p_call(STATE, CallFrame* call_frame);
     inline bool p_char(STATE, CallFrame* call_frame, const intptr_t chr);
     inline bool p_char_set(STATE, CallFrame* call_frame, const intptr_t chr_set);
-    inline void p_choice(STATE, CallFrame* call_frame, const intptr_t ip, const intptr_t index);
+    inline void p_choice(STATE, CallFrame* call_frame, IP, const intptr_t index);
     inline void p_commit(STATE, CallFrame* call_frame);
     inline void p_commit_back(STATE, CallFrame* call_frame);
     inline void p_commit_partial(STATE, CallFrame* call_frame);
@@ -187,13 +196,47 @@ namespace rubinius {
     inline void p_init(STATE, CallFrame* call_frame, const intptr_t subject, const intptr_t captures);
 
     // Instrumentation instructions
-    inline void m_bytes(STATE, CallFrame* call_frame, intptr_t value, const intptr_t r0);
+    inline void m_bytes(STATE, CallFrame* call_frame, intptr_t value, R0);
     inline void m_counter(STATE, CallFrame* call_frame, intptr_t value);
-    inline void m_sum(STATE, CallFrame* call_frame, intptr_t value, const intptr_t r0);
-    inline void m_value(STATE, CallFrame* call_frame, intptr_t value, const intptr_t r0);
+    inline void m_sum(STATE, CallFrame* call_frame, intptr_t value, R0);
+    inline void m_value(STATE, CallFrame* call_frame, intptr_t value, R0);
     inline void m_time_stamp(STATE, CallFrame* call_frame, intptr_t value, const intptr_t flag);
     inline void m_timer_start(STATE, CallFrame* call_frame, intptr_t timer);
-    inline void m_timer_stop(STATE, CallFrame* call_frame, const intptr_t ip, const intptr_t flag);
+    inline void m_timer_stop(STATE, CallFrame* call_frame, IP, const intptr_t flag);
+
+    // Branching instructions
+    inline bool b_if_serial(CF, R0, R1);
+    inline bool b_if_int(CF, R0, R1);
+    inline bool b_if(CF, R0);
+
+    // Register movement instructions
+    inline void r_load_local(CF, R0, LOCAL);
+    inline void r_store_local(CF, R0, LOCAL);
+    inline void r_load_local_depth(CF, R0, LOCAL, DEPTH);
+    inline void r_store_local_depth(CF, R0, LOCAL, DEPTH);
+    inline void r_load_stack(CF, R0);
+    inline void r_store_stack(CF, R0);
+    inline void r_load_literal(CF, R0, LITERAL);
+    inline void r_load_int(CF, R0, R1);
+    inline void r_store_int(CF, R0, R1);
+    inline void r_copy(CF, R0, R1);
+
+    // Native signed integer instructions
+    inline void n_iadd(CF, R0, R1, R2);
+    inline void n_isub(CF, R0, R1, R2);
+    inline void n_imul(CF, R0, R1, R2);
+    inline void n_idiv(CF, R0, R1, R2);
+    inline void n_iadd_o(CF, R0, R1, R2);
+    inline void n_isub_o(CF, R0, R1, R2);
+    inline void n_imul_o(CF, R0, R1, R2);
+    inline void n_idiv_o(CF, R0, R1, R2);
+    inline void n_ieq(CF, R0, R1, R2);
+    inline void n_ine(CF, R0, R1, R2);
+    inline void n_ilt(CF, R0, R1, R2);
+    inline void n_ile(CF, R0, R1, R2);
+    inline void n_igt(CF, R0, R1, R2);
+    inline void n_ige(CF, R0, R1, R2);
+    inline void n_ipopcnt(CF, R0, R1);
   }
 }
 

@@ -133,6 +133,40 @@ namespace rubinius {
     intptr_t m_time_stamp(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t m_timer_start(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t m_timer_stop(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Branching instructions
+    intptr_t b_if_serial(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t b_if_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t b_if(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Register movement instructions
+    intptr_t r_load_local(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_local(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_local_depth(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_local_depth(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_literal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_copy(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Native signed integer instructions
+    intptr_t n_iadd(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_isub(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_imul(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_idiv(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_iadd_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_isub_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_imul_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_idiv_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ieq(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ine(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ilt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ile(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_igt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ige(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ipopcnt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
   }
 }
 

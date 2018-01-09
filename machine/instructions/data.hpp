@@ -534,6 +534,121 @@ namespace rubinius {
       "m_timer_stop", 123, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::m_timer_stop
     };
+
+    const InstructionData constexpr data_b_if_serial = {
+      "b_if_serial", 124, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::b_if_serial
+    };
+    const InstructionData constexpr data_b_if_int = {
+      "b_if_int", 125, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::b_if_int
+    };
+    const InstructionData constexpr data_b_if = {
+      "b_if", 126, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::b_if
+    };
+
+    const InstructionData constexpr data_r_load_local = {
+      "r_load_local", 127, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_local
+    };
+    const InstructionData constexpr data_r_store_local = {
+      "r_store_local", 128, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_local
+    };
+    const InstructionData constexpr data_r_load_local_depth = {
+      "r_load_local_depth", 129, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_local_depth
+    };
+    const InstructionData constexpr data_r_store_local_depth = {
+      "r_store_local_depth", 130, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_local_depth
+    };
+    const InstructionData constexpr data_r_load_stack = {
+      "r_load_stack", 131, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_stack
+    };
+    const InstructionData constexpr data_r_store_stack = {
+      "r_store_stack", 132, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_stack
+    };
+    const InstructionData constexpr data_r_load_literal = {
+      "r_load_literal", 133, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_literal
+    };
+    const InstructionData constexpr data_r_load_int = {
+      "r_load_int", 134, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_int
+    };
+    const InstructionData constexpr data_r_store_int = {
+      "r_store_int", 135, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_int
+    };
+    const InstructionData constexpr data_r_copy = {
+      "r_copy", 136, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_copy
+    };
+
+    const InstructionData constexpr data_n_iadd = {
+      "n_iadd", 137, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_iadd
+    };
+    const InstructionData constexpr data_n_isub = {
+      "n_isub", 138, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_isub
+    };
+    const InstructionData constexpr data_n_imul = {
+      "n_imul", 139, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_imul
+    };
+    const InstructionData constexpr data_n_idiv = {
+      "n_idiv", 140, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_idiv
+    };
+    const InstructionData constexpr data_n_iadd_o = {
+      "n_iadd_o", 141, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_iadd_o
+    };
+    const InstructionData constexpr data_n_isub_o = {
+      "n_isub_o", 142, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_isub_o
+    };
+    const InstructionData constexpr data_n_imul_o = {
+      "n_imul_o", 143, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_imul_o
+    };
+    const InstructionData constexpr data_n_idiv_o = {
+      "n_idiv_o", 144, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_idiv_o
+    };
+    const InstructionData constexpr data_n_ieq = {
+      "n_ieq", 145, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ieq
+    };
+    const InstructionData constexpr data_n_ine = {
+      "n_ine", 146, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ine
+    };
+    const InstructionData constexpr data_n_ilt = {
+      "n_ilt", 147, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ilt
+    };
+    const InstructionData constexpr data_n_ile = {
+      "n_ile", 148, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ile
+    };
+    const InstructionData constexpr data_n_igt = {
+      "n_igt", 149, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_igt
+    };
+    const InstructionData constexpr data_n_ige = {
+      "n_ige", 150, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ige
+    };
+    const InstructionData constexpr data_n_ipopcnt = {
+      "n_ipopcnt", 151, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ipopcnt
+    };
   }
 
   struct Instructions {
