@@ -97,6 +97,7 @@ module Rubinius
     attr_accessor :scope         # [LexicalScope] scope for looking up constants
     attr_accessor :keywords      # [Tuple] pairs of Symbol name, required flag
     attr_accessor :arity         # [Integer] number of arguments, negative if variadic.
+    attr_accessor :registers     # [Integer] number of registers used.
 
     ##
     # Compare this method with +other+. Instead of bugging out if +other+
