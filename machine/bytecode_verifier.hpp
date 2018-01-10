@@ -25,6 +25,8 @@ namespace rubinius {
     native_int locals_;
     int max_stack_local_;
 
+    int max_registers_;
+
     struct Section {
       int sp;
       int ip;
@@ -44,6 +46,8 @@ namespace rubinius {
     void verify_width(STATE, int ip);
     void verify_jump_location(STATE, int index, int ip);
     void verify_unwind(STATE, int ip, int width);
+    void verify_register(STATE, int reg, int ip);
+    void verify_local(STATE, int local, int ip);
     Fixnum* verify_opcode(STATE, int ip);
     Fixnum* verify_argument(STATE, int ip);
     Object* verify_object(STATE, int index, int ip);

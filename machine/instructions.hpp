@@ -31,6 +31,9 @@ namespace rubinius {
 
 #define STACK_PTR call_frame->stack_ptr_
 
+#define RVAL(r) (reinterpret_cast<Object**>(STACK_PTR)[r])
+#define REG(r)  (reinterpret_cast<intptr_t*>(STACK_PTR)[r])
+
 /* We have to use the local here we need to evaluate val before we alter the
  * stack. The reason is evaluating val might throw an exception. The old code
  * used an undefined behavior, this forces the order.
@@ -49,7 +52,7 @@ namespace rubinius {
 
 #define stack_local(which) call_frame->stk[call_frame->machine_code->stack_size - which - 1]
 
-#define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
+#define fixnums_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM_MASK == TAG_FIXNUM)
 
 #define CHECK_AND_PUSH(val) \
   if(val == NULL) { \
@@ -205,7 +208,7 @@ namespace rubinius {
     inline void m_timer_stop(STATE, CallFrame* call_frame, IP, const intptr_t flag);
 
     // Branching instructions
-    inline bool b_if_serial(CF, R0, R1);
+    inline bool b_if_serial(CF, LITERAL, R0);
     inline bool b_if_int(CF, R0, R1);
     inline bool b_if(CF, R0);
 
@@ -217,7 +220,7 @@ namespace rubinius {
     inline void r_load_stack(CF, R0);
     inline void r_store_stack(CF, R0);
     inline void r_load_literal(CF, R0, LITERAL);
-    inline void r_load_int(CF, R0, R1);
+    inline void r_load_int(STATE, CF, R0, R1);
     inline void r_store_int(CF, R0, R1);
     inline void r_copy(CF, R0, R1);
 
@@ -225,11 +228,11 @@ namespace rubinius {
     inline void n_iadd(CF, R0, R1, R2);
     inline void n_isub(CF, R0, R1, R2);
     inline void n_imul(CF, R0, R1, R2);
-    inline void n_idiv(CF, R0, R1, R2);
-    inline void n_iadd_o(CF, R0, R1, R2);
-    inline void n_isub_o(CF, R0, R1, R2);
-    inline void n_imul_o(CF, R0, R1, R2);
-    inline void n_idiv_o(CF, R0, R1, R2);
+    inline void n_idiv(STATE, CF, R0, R1, R2);
+    inline void n_iadd_o(STATE, CF, R0, R1, R2);
+    inline void n_isub_o(STATE, CF, R0, R1, R2);
+    inline void n_imul_o(STATE, CF, R0, R1, R2);
+    inline void n_idiv_o(STATE, CF, R0, R1, R2);
     inline void n_ieq(CF, R0, R1, R2);
     inline void n_ine(CF, R0, R1, R2);
     inline void n_ilt(CF, R0, R1, R2);

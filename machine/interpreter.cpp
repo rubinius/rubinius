@@ -20,6 +20,7 @@ namespace rubinius {
 
     opcode* opcodes = machine_code->opcodes;
     size_t total = machine_code->total;
+    size_t stack_size = machine_code->stack_size;
 
     size_t rcount = 0;
     size_t rindex = 0;
@@ -67,6 +68,8 @@ namespace rubinius {
       case instructions::data_find_const.id:
       case instructions::data_setup_unwind.id:
       case instructions::data_unwind.id:
+      case instructions::data_b_if_serial.id:
+      case instructions::data_r_load_literal.id:
         rcount++;
         break;
       }
@@ -81,6 +84,57 @@ namespace rubinius {
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
       width = Instructions::instruction_data(op).width;
+
+      // Fix register offsets
+      switch(op) {
+      case instructions::data_b_if_serial.id:
+        opcodes[ip + 2] += stack_size;
+        break;
+      case instructions::data_b_if.id:
+      case instructions::data_r_load_local.id:
+      case instructions::data_r_store_local.id:
+      case instructions::data_r_load_local_depth.id:
+      case instructions::data_r_store_local_depth.id:
+      case instructions::data_r_load_stack.id:
+      case instructions::data_r_store_stack.id:
+        opcodes[ip + 1] += stack_size;
+        break;
+      case instructions::data_r_load_literal.id: {
+        machine_code->references()[rindex++] = ip + 2;
+
+        Object* value = as<Object>(lits->at(opcodes[ip + 2]));
+        opcodes[ip + 2] = reinterpret_cast<opcode>(value);
+
+        opcodes[ip + 1] += stack_size;
+        break;
+      }
+      case instructions::data_b_if_int.id:
+      case instructions::data_r_load_int.id:
+      case instructions::data_r_store_int.id:
+      case instructions::data_r_copy.id:
+      case instructions::data_n_ipopcnt.id:
+        opcodes[ip + 1] += stack_size;
+        opcodes[ip + 2] += stack_size;
+        break;
+      case instructions::data_n_iadd.id:
+      case instructions::data_n_isub.id:
+      case instructions::data_n_imul.id:
+      case instructions::data_n_idiv.id:
+      case instructions::data_n_iadd_o.id:
+      case instructions::data_n_isub_o.id:
+      case instructions::data_n_imul_o.id:
+      case instructions::data_n_idiv_o.id:
+      case instructions::data_n_ieq.id:
+      case instructions::data_n_ine.id:
+      case instructions::data_n_ilt.id:
+      case instructions::data_n_ile.id:
+      case instructions::data_n_igt.id:
+      case instructions::data_n_ige.id:
+        opcodes[ip + 1] += stack_size;
+        opcodes[ip + 2] += stack_size;
+        opcodes[ip + 3] += stack_size;
+        break;
+      };
 
       switch(op) {
       case instructions::data_push_int.id:
@@ -137,7 +191,8 @@ namespace rubinius {
       case instructions::data_send_stack_with_splat.id:
       case instructions::data_object_to_s.id:
       case instructions::data_check_serial.id:
-      case instructions::data_check_serial_private.id: {
+      case instructions::data_check_serial_private.id:
+      case instructions::data_b_if_serial.id: {
         machine_code->references()[rindex++] = ip + 1;
         calls_count++;
 
@@ -150,6 +205,8 @@ namespace rubinius {
           allow_private = true;
           call_site->set_is_vcall();
         } else if(op == instructions::data_object_to_s.id) {
+          allow_private = true;
+        } else if(op == instructions::data_b_if_serial.id) {
           allow_private = true;
         }
 

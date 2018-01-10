@@ -113,6 +113,18 @@ namespace rubinius {
     }
   }
 
+  void BytecodeVerifier::verify_register(STATE, int reg, int ip) {
+    if(reg < 0 || reg >= max_registers_) {
+      fail(state, "register value exceeds max register count", ip);
+    }
+  }
+
+  void BytecodeVerifier::verify_local(STATE, int local, int ip) {
+    if(local < 0 || local >= locals_) {
+      fail(state, "invalid local variable access", ip);
+    }
+  }
+
   void BytecodeVerifier::verify(STATE) {
     timer::StopWatch<timer::microseconds> timer(
         state->vm()->metrics().machine.bytecode_verifier_us);
@@ -146,6 +158,12 @@ namespace rubinius {
       max_stack_allowed_ = fix->to_native();
     } else {
       fail(state, "stack_size is not a Fixnum", -1);
+    }
+
+    if(Fixnum* fix = try_as<Fixnum>(method_->registers())) {
+      max_registers_ = fix->to_native();
+    } else {
+      fail(state, "registers is not a Fixnum", -1);
     }
 
     if(Fixnum* fix = try_as<Fixnum>(method_->splat())) {
@@ -282,6 +300,62 @@ namespace rubinius {
         case instructions::data_send_super_stack_with_splat.id:
           verify_symbol_or_nil(state, arg1, insn_ip);
           break;
+        case instructions::data_b_if.id:
+          verify_register(state, arg1, insn_ip);
+          break;
+        case instructions::data_b_if_int.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          break;
+        case instructions::data_b_if_serial.id:
+          verify_object(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          break;
+        case instructions::data_r_load_local.id:
+        case instructions::data_r_store_local.id:
+          verify_register(state, arg1, insn_ip);
+          verify_local(state, arg2, insn_ip);
+          break;
+        case instructions::data_r_load_local_depth.id:
+        case instructions::data_r_store_local_depth.id:
+          verify_register(state, arg1, insn_ip);
+          break;
+        case instructions::data_r_load_stack.id:
+        case instructions::data_r_store_stack.id:
+          verify_register(state, arg1, insn_ip);
+          break;
+        case instructions::data_r_load_literal.id:
+          verify_register(state, arg1, insn_ip);
+          verify_object(state, arg2, insn_ip);
+          break;
+        case instructions::data_r_load_int.id:
+        case instructions::data_r_store_int.id:
+        case instructions::data_r_copy.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          break;
+        case instructions::data_n_iadd.id:
+        case instructions::data_n_isub.id:
+        case instructions::data_n_imul.id:
+        case instructions::data_n_idiv.id:
+        case instructions::data_n_iadd_o.id:
+        case instructions::data_n_isub_o.id:
+        case instructions::data_n_imul_o.id:
+        case instructions::data_n_idiv_o.id:
+        case instructions::data_n_ieq.id:
+        case instructions::data_n_ine.id:
+        case instructions::data_n_ilt.id:
+        case instructions::data_n_ile.id:
+        case instructions::data_n_igt.id:
+        case instructions::data_n_ige.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          verify_register(state, arg3, insn_ip);
+          break;
+        case instructions::data_n_ipopcnt.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          break;
       }
 
       switch(op) {
@@ -344,9 +418,7 @@ namespace rubinius {
       switch(op) {
         case instructions::data_push_local.id:
         case instructions::data_set_local.id:
-          if((native_int)arg1 < 0 || (native_int)arg1 >= locals_) {
-            fail(state, "invalid local variable access", insn_ip);
-          }
+          verify_local(state, arg1, insn_ip);
           break;
         case instructions::data_goto.id:
           verify_jump_location(state, arg1, insn_ip);
@@ -377,6 +449,23 @@ namespace rubinius {
 
           if((int)arg1 > ip) {
             ips.push_back(Section(sp, arg1));
+          }
+
+          break;
+        case instructions::data_b_if.id:
+          verify_jump_location(state, arg2, insn_ip);
+
+          if((int)arg2 > ip) {
+            ips.push_back(Section(sp, arg2));
+          }
+
+          break;
+        case instructions::data_b_if_int.id:
+        case instructions::data_b_if_serial.id:
+          verify_jump_location(state, arg3, insn_ip);
+
+          if((int)arg3 > ip) {
+            ips.push_back(Section(sp, arg3));
           }
 
           break;
