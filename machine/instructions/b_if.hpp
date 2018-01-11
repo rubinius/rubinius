@@ -2,8 +2,12 @@
 
 namespace rubinius {
   namespace instructions {
-    inline bool b_if(CallFrame* call_frame, const intptr_t r0) {
-      return true;
+    inline bool b_if(CF, R0) {
+      if(REG(r0)) {
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 }
