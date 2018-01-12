@@ -17,10 +17,10 @@ describe "Rubinius::CallSite#reset" do
     obj.m 1
     obj.m :a
 
-    @call_site.depth.should == 2
+    @call_site.size.should == 1
     @call_site.reset
 
-    @call_site.depth.should == 0
+    @call_site.size.should == 0
   end
 
   it "sets the invokes to 0" do

@@ -77,6 +77,9 @@ class Fixnum < Integer
     Rubinius.primitive :fixnum_left_shift
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
+
+    self >> -other if other < 0
+
     unless other.kind_of? Fixnum
       raise RangeError, "argument is out of range for a Fixnum"
     end
@@ -88,6 +91,9 @@ class Fixnum < Integer
     Rubinius.primitive :fixnum_right_shift
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
+
+    self << -other if other < 0
+
     unless other.kind_of? Fixnum
       raise RangeError, "argument is out of range for a Fixnum"
     end

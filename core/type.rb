@@ -608,8 +608,8 @@ module Rubinius
     end
 
     def self.coerce_to_bitwise_operand(obj)
-      if object_kind_of? obj, Float
-        raise TypeError, "can't convert Float into Integer for bitwise arithmetic"
+      unless object_kind_of? obj, Integer
+        raise TypeError, "can't convert non-Integer into Integer for bitwise arithmetic"
       end
       coerce_to obj, Integer, :to_int
     end

@@ -59,16 +59,11 @@ namespace rubinius {
 #define __SYMBOL_P__(v)    (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
 /* How many bits of data are available in fixnum, not including the sign. */
-#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
-#define FIXNUM_MAX   (((native_int)1 << FIXNUM_WIDTH) - 1)
+#define FIXNUM_MAX_WIDTH  ((8 * sizeof(intptr_t)) - TAG_FIXNUM_SHIFT - 1)
+#define FIXNUM_MIN_WIDTH  (FIXNUM_MAX_WIDTH + 1)
 
-/* This would naturally be (-(FIXNUM_MAX) - 1) considering the range of bits
- * and how twos-complement works. However, the libtommath library used by
- * Bignum does not store negative numbers in twos-complement. Consequently,
- * this value of FIXNUM_MIN allows for checking that a value is in the Fixnum
- * range merely by checking a count of the bits used to represent the number.
- */
-#define FIXNUM_MIN   (-(FIXNUM_MAX))
+#define FIXNUM_MAX        (((intptr_t)1 << FIXNUM_MAX_WIDTH) - 1)
+#define FIXNUM_MIN        (-1 - FIXNUM_MAX)
 
 /* Standard Rubinius Representation
  *

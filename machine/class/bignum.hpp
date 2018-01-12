@@ -28,7 +28,6 @@ namespace rubinius {
     static Bignum* from(STATE, unsigned long);
     static Bignum* from(STATE, long long val);
     static Bignum* from(STATE, unsigned long long val);
-    static Integer* from(STATE, mp_int *num);
 
     mp_int* mp_val() {
       return &mp_val_;
@@ -46,6 +45,7 @@ namespace rubinius {
     bool positive_p();
     bool even_p();
 
+    static Integer* normalize(STATE, mp_int *num);
     static Integer* normalize(STATE, Bignum* obj);
     static Integer* from_double(STATE, double d);
     static Integer* from_array(STATE, uint32_t *ary, size_t sz);

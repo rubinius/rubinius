@@ -20,8 +20,7 @@ describe "Rubinius::CallSite#misses" do
     obj.m Object.new
     obj.m []
 
-    STDERR.puts obj.method(:m).executable.call_sites.first.inspect
-    obj.method(:m).executable.call_sites.first.misses.should == 9
+    obj.method(:m).executable.call_sites.first.misses.should == 3
   end
 end
 

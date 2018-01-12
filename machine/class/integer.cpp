@@ -304,13 +304,10 @@ error_check:
     }
 
     if(!mp_isinitialized(&a)) {
-      if(value < FIXNUM_MAX) {
-        Fixnum* result = Fixnum::from(value);
-        if(negative) {
-          return result->neg(state);
-        } else {
-          return result;
-        }
+      intptr_t fix = negative ? -value : value;
+
+      if(fix <= FIXNUM_MAX && fix >= FIXNUM_MIN) {
+        return Fixnum::from(fix);
       }
 
       mp_init_set_long(XST, &a, value);
@@ -328,7 +325,7 @@ error_check:
       mp_neg(XST, &a, &a);
     }
 
-    Integer* result = Bignum::from(state, &a);
+    Integer* result = Bignum::normalize(state, &a);
     mp_clear(&a);
 
     return result;

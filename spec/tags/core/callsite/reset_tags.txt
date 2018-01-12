@@ -1,2 +1,0 @@
-fails:Rubinius::CallSite#reset clears the caches
-fails:Rubinius::CallSite#reset sets the invokes to 0

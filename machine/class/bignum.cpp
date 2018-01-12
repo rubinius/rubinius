@@ -284,17 +284,6 @@ namespace rubinius {
     return ret;
   }
 
-  Integer* Bignum::from(STATE, mp_int *num) {
-    if((size_t)mp_count_bits(num) <= FIXNUM_WIDTH) {
-      unsigned long val = mp_get_long(num);
-      return num->sign == MP_NEG ? Fixnum::from(-val) : Fixnum::from(val);
-    } else {
-      Bignum* n_obj = Bignum::create(state);
-      mp_copy(XST, num, n_obj->mp_val());
-      return n_obj;
-    }
-  }
-
   Bignum* Bignum::create(STATE, Fixnum* val) {
     return Bignum::from(state, val->to_native());
   }
@@ -350,14 +339,43 @@ namespace rubinius {
     return mp_iseven(mp_val()) == MP_YES;
   }
 
-  Integer* Bignum::normalize(STATE, Bignum* b) {
-    mp_clamp(b->mp_val());
+  static Fixnum* fixnum_value(mp_int *num) {
+    mp_clamp(num);
 
-    if((size_t)mp_count_bits(b->mp_val()) <= FIXNUM_WIDTH) {
-      native_int val;
-      val = (native_int)b->to_native();
-      return Fixnum::from(val);
+    size_t bits = mp_count_bits(num);
+    bool neg = num->sign == MP_NEG;
+
+    if((neg && (bits <= FIXNUM_MIN_WIDTH)) || (!neg && (bits <= FIXNUM_MAX_WIDTH))) {
+      intptr_t value = mp_get_long(num);
+
+      if(neg) value = -value;
+
+      if(value <= FIXNUM_MAX && value >= FIXNUM_MIN) {
+        return Fixnum::from(value);
+      }
     }
+
+    return 0;
+  }
+
+  Integer* Bignum::normalize(STATE, mp_int *num) {
+    if(Fixnum* value = fixnum_value(num)) {
+      return value;
+    }
+
+    Bignum* n_obj = Bignum::create(state);
+    mp_copy(XST, num, n_obj->mp_val());
+
+    return n_obj;
+  }
+
+  Integer* Bignum::normalize(STATE, Bignum* b) {
+    mp_int* num = b->mp_val();
+
+    if(Fixnum* value = fixnum_value(num)) {
+      return value;
+    }
+
     return b;
   }
 
@@ -837,6 +855,7 @@ namespace rubinius {
   }
 
   Object* Bignum::gt(STATE, Float* b) {
+
     return Float::coerce(state, this)->gt(state, b);
   }
 
