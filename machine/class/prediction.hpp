@@ -46,11 +46,11 @@ namespace rubinius {
           allow_user_allocate = false;
         }
 
-        void mark(Object* obj, memory::ObjectMark& mark) { }
-        void auto_mark(Object* obj, memory::ObjectMark& mark) { }
-        void set_field(STATE, Object* target, size_t index, Object* val) { }
-        Object* get_field(STATE, Object* target, size_t index) { return cNil; }
-        void populate_slot_locations() { }
+        virtual void mark(Object* obj, memory::ObjectMark& mark) { }
+        virtual void auto_mark(Object* obj, memory::ObjectMark& mark) { }
+        virtual void set_field(STATE, Object* target, size_t index, Object* val) { }
+        virtual Object* get_field(STATE, Object* target, size_t index) { return cNil; }
+        virtual void populate_slot_locations() { }
     };
   };
 
@@ -74,6 +74,9 @@ namespace rubinius {
     class Info : public Prediction::Info {
     public:
       BASIC_TYPEINFO(Prediction::Info)
+      virtual void mark(Object* obj, memory::ObjectMark& mark) {
+        auto_mark(obj, mark);
+      }
     };
   };
 }

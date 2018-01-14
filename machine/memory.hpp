@@ -439,6 +439,22 @@ namespace rubinius {
         return obj;
       }
 
+    template <class T>
+      T* new_object_unmanaged(STATE, Class* klass, intptr_t* mem) {
+        T* obj = reinterpret_cast<T*>(mem);
+
+        obj->init_header(UnmanagedZone, T::type);
+
+        obj->klass(state, klass);
+        obj->ivars(cNil);
+
+        obj->set_cycle(cycle_);
+
+        T::initialize(state, obj);
+
+        return obj;
+      }
+
     // New classes.
     template <class T>
       Class* new_class(STATE, Class* super) {

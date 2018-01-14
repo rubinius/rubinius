@@ -243,6 +243,8 @@ namespace rubinius {
   public:
     const static object_type type = CallSiteType;
 
+    static int memory_size;
+    static int memory_words;
     static int max_caches;
     static int max_evictions;
 
@@ -279,9 +281,9 @@ namespace rubinius {
       obj->_cache_ = nullptr;
     }
 
-    static CallSite* create(STATE, Symbol* name, int ip) {
+    static CallSite* create(STATE, intptr_t* mem, Symbol* name, int ip) {
       CallSite* cache =
-        state->memory()->new_variable_object<CallSite>(state, G(call_site));
+        state->memory()->new_object_unmanaged<CallSite>(state, G(call_site), mem);
 
       cache->name(name);
       cache->ip(ip);

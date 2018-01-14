@@ -104,6 +104,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     UnspecifiedZone  = 0,
     MatureObjectZone = 1,
     YoungObjectZone  = 2,
+    UnmanagedZone    = 3,
   } gc_zone;
 
   class Class;
