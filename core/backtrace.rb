@@ -100,6 +100,8 @@ class Rubinius::Backtrace
 
       pos = location.position cwd
 
+      pos << " (+#{location.ip})"
+
       if rec_times > 1
         pos << " (#{rec_times} times)"
       end
