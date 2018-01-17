@@ -143,6 +143,10 @@ module Rubinius
         "<no file>"
       end
 
+      def ip
+        0
+      end
+
       def name
         "missing_backtrace_unknown_name"
       end
