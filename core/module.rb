@@ -33,6 +33,8 @@ class Module
     module_eval(&block) if block
   end
 
+  private :initialize
+
   def const_get(name, inherit=true)
     Rubinius::Type.const_get self, name, inherit
   end

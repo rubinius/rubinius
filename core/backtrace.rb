@@ -31,6 +31,8 @@ class Rubinius::Backtrace
     @mri_backtrace = nil
   end
 
+  private :initialize
+
   def [](index)
     @locations[index]
   end

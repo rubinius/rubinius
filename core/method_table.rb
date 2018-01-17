@@ -34,6 +34,8 @@ module Rubinius
       end
     end
 
+    private :initialize
+
     def duplicate
       Rubinius.primitive :methodtable_duplicate
       raise PrimitiveFailure, "MethodTable#duplicate primitive failed"

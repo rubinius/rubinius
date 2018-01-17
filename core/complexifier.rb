@@ -4,6 +4,8 @@ class String
       @value = value
     end
 
+    private :initialize
+
     def convert
       if m = PATTERN0.match(@value)
         sr = m[1]

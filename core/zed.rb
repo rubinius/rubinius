@@ -722,6 +722,8 @@ module Rubinius
         end
       end
 
+      private :initialize
+
       attr_reader :name
 
       def find_symbol(name)
@@ -1737,6 +1739,8 @@ class Struct
       @tutime = tutime
       @tstime = tstime
     end
+
+    private :initialize
   end
 
   def self._specialize(attrs)
@@ -1797,6 +1801,8 @@ class Struct
         #{assigns.join(';')}
         self
       end
+
+      private :initialize
 
       def hash
         hash = #{hashes.size}

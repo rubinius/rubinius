@@ -1189,7 +1189,7 @@ class File < IO
       Errno.handle path if fd < 0
 
       @path = path
-      
+
       super(fd, mode, options)
     end
   end

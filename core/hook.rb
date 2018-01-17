@@ -4,6 +4,8 @@ module Rubinius
       @hooks = []
     end
 
+    private :initialize
+
     def add(obj)
       @hooks << obj
     end

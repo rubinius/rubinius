@@ -341,6 +341,8 @@ module Enumerable
       @value, @sort_id = val, sort_id
     end
 
+    private :initialize
+
     attr_reader :value
     attr_reader :sort_id
 

@@ -20,6 +20,8 @@ class Autoload
     @constant = undefined
   end
 
+  private :initialize
+
   ##
   #
   # Change the file to autoload. Used by Module#autoload

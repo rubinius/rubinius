@@ -38,6 +38,8 @@ module Rubinius
         end
       end
 
+      private :initialize
+
       def inspect
         # Don't have this print the data at the location. It can crash everything.
         addr = address()
@@ -401,6 +403,8 @@ module Rubinius
           self.address = ptr.address
         end
 
+        private :initialize
+
         def inspect
           "#<FFI::Library::Symbol name=#{@name} address=#{address.to_s(16)}>"
         end
@@ -436,6 +440,8 @@ module Rubinius
         Rubinius::VM.reset_method_cache sc, :call
         sc.method_table.store :call, nil, @function, nil, 0, :public
       end
+
+      private :initialize
 
       attr_reader :function
 

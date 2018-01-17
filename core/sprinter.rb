@@ -28,6 +28,8 @@ module Rubinius
       end
     end
 
+    private :initialize
+
     def debug_print
       printer = Rubinius::ToolSets::Runtime::Compiler::MethodPrinter.new
       printer.input(method(:call).executable)
@@ -264,6 +266,8 @@ module Rubinius
         @g = g
       end
 
+      private :initialize
+
       def build
         self.parse
 
@@ -375,6 +379,8 @@ module Rubinius
           @full_leader_size = @prefix ? @prefix.size : 0
           @full_leader_size += 1 if @f_plus || @f_space
         end
+
+        private :initialize
 
         def prepend_prefix
           @g.push_literal @prefix

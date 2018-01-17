@@ -29,6 +29,8 @@ module Rubinius
       end
     end
 
+    private :initialize
+
     def self.debugger
       @debugger_proc
     end

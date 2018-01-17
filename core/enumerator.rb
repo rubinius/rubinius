@@ -467,6 +467,8 @@ class Enumerator
       rewind
     end
 
+    private :initialize
+
     def next?
       !@done
     end

@@ -43,6 +43,8 @@ module Rubinius
       @parent = par
     end
 
+    private :initialize
+
     # Source code of this scope.
     attr_accessor :script
 

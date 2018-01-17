@@ -169,7 +169,6 @@ class IO
       "".force_encoding(Encoding::ASCII_8BIT)
     end
 
-
     def initialize(fd, stat, io)
       @descriptor, @stat, @io = fd, stat, io
       acc_mode = FileDescriptor.get_flags(@descriptor)
@@ -197,6 +196,8 @@ class IO
         ObjectSpace.define_finalizer(self)
       end
     end
+
+    private :initialize
 
     def autoclose=(bool)
       @autoclose = bool
@@ -752,6 +753,8 @@ class IO
       @eof = false # force to false
     end
 
+    private :initialize
+
     def determine_eof
       if @offset >= @total_size
         @eof = true
@@ -791,6 +794,8 @@ class IO
       @mode &= O_ACCMODE
       @sync = true
     end
+
+    private :initialize
 
     def force_read_write
       @mode &= ~(O_RDONLY | O_WRONLY)
@@ -1052,6 +1057,8 @@ class IO
 
       @method = read_method @from
     end
+
+    private :initialize
 
     def to_io(obj, mode)
       if obj.kind_of? IO
@@ -1996,6 +2003,8 @@ class IO
       @encoding_options = encoding_options
       @skip = nil
     end
+
+    private :initialize
 
     def each(&block)
       if @separator

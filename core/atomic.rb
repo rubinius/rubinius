@@ -4,6 +4,8 @@ module Rubinius
       set(val) unless val.nil?
     end
 
+    private :initialize
+
     def marshal_dump
       get
     end

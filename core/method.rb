@@ -23,6 +23,8 @@ class Method
     @name        = name
   end
 
+  private :initialize
+
   attr_reader :receiver
   attr_reader :defined_in
   attr_reader :executable
@@ -220,6 +222,8 @@ class UnboundMethod
     @pulled_from = pulled_from
     @name        = name
   end
+
+  private :initialize
 
   attr_reader :executable
   attr_reader :defined_in

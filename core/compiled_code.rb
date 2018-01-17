@@ -243,6 +243,8 @@ module Rubinius
         @main = false
       end
 
+      private :initialize
+
       def eval?
         @for_eval
       end
@@ -624,6 +626,8 @@ module Rubinius
           @index = index
         end
 
+        private :initialize
+
         def inspect
           "literals[#{@index}]"
         end
@@ -635,6 +639,8 @@ module Rubinius
         def initialize(location)
           @location = location
         end
+
+        private :initialize
 
         def inspect
           FORMAT % @location
@@ -666,6 +672,8 @@ module Rubinius
         @compiled_code = code
         @ip = ip
       end
+
+      private :initialize
 
       # Instruction pointer
       attr_reader :ip

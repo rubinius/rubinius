@@ -34,6 +34,8 @@ module Rubinius
       @hooks = LookupTable.new
     end
 
+    private :initialize
+
     def key?(key)
       @internal.key?(key) || @alias.key?(key)
     end

@@ -10,6 +10,8 @@ module Rubinius
       @pass_self = pass_self
     end
 
+    private :initialize
+
     attr_reader :name
     attr_reader :receiver
 

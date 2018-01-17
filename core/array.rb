@@ -1453,6 +1453,8 @@ class Array
       @rng = rng
     end
 
+    private :initialize
+
     def rand(size)
       random = Rubinius::Type.coerce_to_collection_index @rng.rand(size)
       raise RangeError, "random value must be >= 0" if random < 0

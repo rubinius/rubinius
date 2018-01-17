@@ -7,6 +7,8 @@ class Dir
         @separator = nil
       end
 
+      private :initialize
+
       attr_writer :separator
 
       def separator
@@ -29,6 +31,8 @@ class Dir
         @dir = dir
       end
 
+      private :initialize
+
       def call(env, path)
         full = path_join(path, @dir)
 
@@ -43,6 +47,8 @@ class Dir
         super nxt, flags
         @name = name
       end
+
+      private :initialize
 
       def call(env, parent)
         path = path_join(parent, @name)
@@ -152,6 +158,8 @@ class Dir
         @glob = glob || ""
       end
 
+      private :initialize
+
       def match?(str)
         File.fnmatch @glob, str, @flags
       end
@@ -163,6 +171,8 @@ class Dir
 
         @glob.gsub! "**", "*"
       end
+
+      private :initialize
 
       def call(env, path)
         return if path and !File.exist?("#{path}/.")
@@ -214,6 +224,8 @@ class Dir
       def initialize(matches=[])
         @matches = matches
       end
+
+      private :initialize
     end
 
     def self.path_split(str)

@@ -31,6 +31,8 @@ module Rubinius
       end
     end
 
+    private :initialize
+
     def duplicate
       Rubinius.primitive :constant_table_duplicate
       raise PrimitiveFailure, "ConstantTable#duplicate primitive failed"

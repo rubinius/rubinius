@@ -45,6 +45,8 @@ class Class
     super
   end
 
+  private :initialize_copy
+
   def inherited(name)
   end
   private :inherited

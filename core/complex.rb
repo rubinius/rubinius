@@ -90,6 +90,8 @@ class Complex < Numeric
     @imag = b
   end
 
+  private :initialize
+
   def -@
     Complex(-real, -imag)
   end

@@ -21,6 +21,8 @@ class Hash
       @compare_by_identity = false
     end
 
+    private :initialize
+
     def compare_by_identity?
       @compare_by_identity
     end
@@ -67,6 +69,8 @@ class Hash
 
       state.size += 1
     end
+
+    private :initialize
 
     def empty?
       not @key_hash
@@ -117,6 +121,8 @@ class Hash
       @key_hash = key_hash
       @entries = Vector.new 2
     end
+
+    private :initialize
 
     def empty?
       not @entries
@@ -189,6 +195,8 @@ class Hash
       @bmp = 0
       @entries = nil
     end
+
+    private :initialize
 
     def empty?
       not @entries
@@ -292,6 +300,8 @@ class Hash
     def initialize(state)
       @state = state
     end
+
+    private :initialize
 
     # Returns the next object or +nil+.
     def next(item)

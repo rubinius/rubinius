@@ -25,6 +25,8 @@ module Rubinius
         @record = true
       end
 
+      private :initialize
+
       def resolve
         return true if loadable?
         return true if search
@@ -72,6 +74,8 @@ module Rubinius
         @code = nil
       end
 
+      private :initialize
+
       def load
         if @code
           @feature = @code.file.to_s
@@ -105,6 +109,8 @@ module Rubinius
         super stem, CodeLoader.source_extension
       end
 
+      private :initialize
+
       def resolve
         @code = CoreDB.load_feature @stem, CodeLoader.source_extension, false, @record
 
@@ -130,6 +136,8 @@ module Rubinius
         @record = false
       end
 
+      private :initialize
+
       def resolve
         @code = CoreDB.load_feature @stem, CodeLoader.source_extension, true, @record
 
@@ -151,6 +159,8 @@ module Rubinius
         @file = stem
         @record = false
       end
+
+      private :initialize
 
       def resolve
         @code = CoreDB.load_feature @stem, "", true, @record
@@ -175,6 +185,8 @@ module Rubinius
           super stem, CodeLoader.library_extension
         end
       end
+
+      private :initialize
 
       def load
         CoreDB.store nil, @stem, @prefix, @feature, @record
@@ -226,6 +238,8 @@ module Rubinius
     def initialize(stem)
       @stem = stem
     end
+
+    private :initialize
 
     def load_script
       resource = Script.new @stem

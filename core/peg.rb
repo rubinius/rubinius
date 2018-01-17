@@ -60,6 +60,8 @@ module Rubinius
       def initialize(pattern)
         @pattern = PEG.pattern pattern
       end
+
+      private :initialize
     end
 
     class BinaryOp < Pattern
@@ -70,6 +72,8 @@ module Rubinius
         @first = PEG.pattern first
         @second = PEG.pattern second
       end
+
+      private :initialize
     end
 
     class Grammar < Pattern
@@ -81,6 +85,8 @@ module Rubinius
           set_variable variable.name, variable.pattern
         end
       end
+
+      private :initialize
 
       def set_variable(name, pattern)
         variable = get_variable name
@@ -134,6 +140,8 @@ module Rubinius
         @range = range
       end
 
+      private :initialize
+
       def visit(visitor)
         visitor.any_range self
       end
@@ -145,6 +153,8 @@ module Rubinius
       def initialize(count)
         @count = count
       end
+
+      private :initialize
 
       def visit(visitor)
         visitor.any self
@@ -158,6 +168,8 @@ module Rubinius
         @range = range
       end
 
+      private :initialize
+
       def visit(visitor)
         visitor.character_range self
       end
@@ -169,6 +181,8 @@ module Rubinius
       def initialize(string)
         @string = string
       end
+
+      private :initialize
 
       def visit(visitor)
         visitor.character self
@@ -216,6 +230,8 @@ module Rubinius
         @count = Type.coerce_to(count, Integer, :to_int).abs
       end
 
+      private :initialize
+
       def visit(visitor)
         visitor.product self
       end
@@ -227,6 +243,8 @@ module Rubinius
       def initialize(set)
         @set = set.uniq
       end
+
+      private :initialize
 
       def visit(visitor)
         visitor.set self
@@ -249,6 +267,8 @@ module Rubinius
         @name = name.to_sym
         @pattern = PEG.pattern pattern
       end
+
+      private :initialize
 
       def visit(visitor)
         visitor.variable self

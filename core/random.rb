@@ -8,6 +8,8 @@ class Rubinius::Randomizer
     self.seed = generate_seed
   end
 
+  private :initialize
+
   attr_reader :seed
   def seed=(new_seed)
     set_seed new_seed
@@ -149,6 +151,8 @@ class Random
       @randomizer.swap_seed seed.to_int
     end
   end
+
+  private :initialize
 
   def rand(limit=undefined)
     @randomizer.random(limit)

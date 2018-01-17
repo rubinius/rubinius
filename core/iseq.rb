@@ -13,6 +13,8 @@ module Rubinius
       end
     end
 
+    private :initialize
+
     attr_reader :opcodes
 
     def ==(other)

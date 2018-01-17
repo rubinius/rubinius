@@ -39,6 +39,8 @@ class Encoding
       @incomplete_input = nil
     end
 
+    private :initialize
+
     def incomplete_input?
       @incomplete_input
     end
@@ -160,6 +162,8 @@ class Encoding
         end
       end
     end
+
+    private :initialize
 
     def convert(str)
       str = StringValue(str)

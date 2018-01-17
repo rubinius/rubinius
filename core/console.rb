@@ -17,6 +17,8 @@ module Rubinius
         end
       end
 
+      private :initialize
+
       def evaluate(source)
         begin
           eval(source, TOPLEVEL_BINDING, "(console)", 1).inspect

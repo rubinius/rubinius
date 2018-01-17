@@ -1719,6 +1719,8 @@ class String
   def initialize_copy(other)
   end
 
+  private :initialize_copy
+
   def <<(other)
     Rubinius.check_frozen
 
