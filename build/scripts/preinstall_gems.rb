@@ -4,14 +4,7 @@ require 'rubygems/installer'
 puts "Pre-installing gems for #{RUBY_VERSION}..."
 
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
-gems = ["bundler-1.11.2.gem",
-        "minitest-5.11.1.gem",
-        "racc-1.4.14.gem",
-        "rake-12.3.0.gem",
-        "rdoc-5.1.0.gem",
-        "rb-readline-0.5.5.gem",
-        "rubysl-readline-2.0.2.gem"
-       ]
+gems = BUILD_CONFIG[:installed_gems]
 
 install_dir = "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:gemsdir]}"
 unless BUILD_CONFIG[:darwin] and

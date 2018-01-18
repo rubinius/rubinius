@@ -117,6 +117,16 @@ class Configure
     @gem_files = File.readlines(@gems_list).map { |x| x.chomp }
     @gem_names = @gem_files.map { |x| /(.*)-\d+\.\d+(\.\d+)?\.gem$/.match(x)[1] }
 
+    @installed_gems = [
+      "bundler-1.16.1.gem",
+      "minitest-5.11.1.gem",
+      "racc-1.4.14.gem",
+      "rake-12.3.0.gem",
+      "rdoc-5.1.0.gem",
+      "rb-readline-0.5.5.gem",
+      "rubysl-readline-2.0.2.gem"
+     ]
+
     # Default cache directory, can be overwritten by the user.
     @gems_cache = File.expand_path "../build/libraries/cache", __FILE__
 
@@ -1623,6 +1633,7 @@ int main(int argc, char* argv[]) {
       :gems_cache         => @gems_cache,
       :gems_list          => @gems_list,
       :gem_files          => @gem_files,
+      :installed_gems     => @installed_gems,
       :program_name       => @program_name,
       :bin_links          => @bin_links,
       :use_bin_links      => @use_bin_links,
@@ -1887,6 +1898,8 @@ int main(int argc, char* argv[]) {
       list.each do |name|
         gem_name = @gem_files.find { |x| x =~ /^#{name}/ }
         failure "Unable to find gem to unpack: #{name}" unless gem_name
+
+        next if @installed_gems.include? gem_name
 
         unless File.directory? gem_name[0..-5]
           system("#{@gem} unpack #{source}/#{gem_name}")
