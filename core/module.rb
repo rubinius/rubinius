@@ -90,10 +90,10 @@ class Module
       return
     end
 
-    autoload_contant = Autoload.new(name, self, path)
-    constant_table.store(name, autoload_contant, :public)
+    autoload_constant = Autoload.new(name, self, path)
+    constant_table.store(name, autoload_constant, :public)
     if self == Kernel
-      Object.singleton_class.constant_table.store(name, autoload_contant, :public)
+      Object.singleton_class.constant_table.store(name, autoload_constant, :public)
     end
 
     Rubinius.inc_global_serial

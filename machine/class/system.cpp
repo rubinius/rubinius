@@ -1,6 +1,7 @@
 #include "arguments.hpp"
 
 #include "class/array.hpp"
+#include "class/autoload.hpp"
 #include "class/bignum.hpp"
 #include "class/block_environment.hpp"
 #include "class/channel.hpp"
@@ -1453,8 +1454,16 @@ namespace rubinius {
 
     Object* res = Helpers::const_get(state, sym, &reason);
 
-    if(reason != vFound) {
-      return Primitives::failure();
+    if(reason == vFound) {
+      if(Autoload* autoload = try_as<Autoload>(res)) {
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+
+        if(autoload->loading()->true_p()) {
+          res = Primitives::failure();
+        }
+      }
+    } else {
+      res = Primitives::failure();
     }
 
     return res;
@@ -1466,7 +1475,16 @@ namespace rubinius {
     ConstantMissingReason reason = vNonExistent;
 
     Object* res = Helpers::const_get_under(state, under, sym, &reason);
-    if(reason != vFound) {
+
+    if(reason == vFound) {
+      if(Autoload* autoload = try_as<Autoload>(res)) {
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+
+        if(autoload->loading()->true_p()) {
+          res = Primitives::failure();
+        }
+      }
+    } else {
       if(send_const_missing->true_p()) {
         res = Helpers::const_missing_under(state, under, sym);
       } else {

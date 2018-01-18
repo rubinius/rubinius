@@ -344,8 +344,15 @@ module Rubinius
       while current and object_kind_of? current, Module
         if bucket = current.constant_table.lookup(name)
           constant = bucket.constant
-          if resolve and object_kind_of? constant, Autoload
-            constant = constant.call(current)
+
+          if object_kind_of? constant, Autoload
+            if resolve
+              return constant.call(current)
+            elsif not constant.loading?
+              return constant
+            else
+              return undefined
+            end
           end
 
           return constant
@@ -361,8 +368,15 @@ module Rubinius
       if object_instance_of? mod, Module
         if bucket = Object.constant_table.lookup(name)
           constant = bucket.constant
-          if resolve and object_kind_of? constant, Autoload
-            constant = constant.call(current)
+
+          if object_kind_of? constant, Autoload
+            if resolve
+              return constant.call(current)
+            elsif not constant.loading?
+              return constant
+            else
+              return undefined
+            end
           end
 
           return constant
