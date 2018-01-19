@@ -348,7 +348,7 @@ module Rubinius
           if object_kind_of? constant, Autoload
             if resolve
               return constant.call(current)
-            elsif not constant.loading?
+            elsif not CodeLoader.loading? constant.path
               return constant
             else
               return undefined
@@ -372,7 +372,7 @@ module Rubinius
           if object_kind_of? constant, Autoload
             if resolve
               return constant.call(current)
-            elsif not constant.loading?
+            elsif not CodeLoader.loading? constant.path
               return constant
             else
               return undefined
@@ -384,6 +384,92 @@ module Rubinius
       end
 
       resolve ? mod.const_missing(name) : undefined
+    end
+
+    def self.constant_scope_defined?(scope, name)
+      current = scope
+
+      until nil.equal? current
+        break if nil.equal? current.parent
+
+        if bucket = current.module.constant_table.lookup(name)
+          constant = bucket.constant
+
+          if object_kind_of? constant, Autoload
+            return constant.constant unless undefined.equal? constant.constant
+          end
+
+          return constant
+        end
+
+        current = current.parent
+      end
+
+      check_object = true
+      object_seen = false
+
+      unless nil.equal? scope
+        current = scope.module
+
+        until nil.equal? current
+          object_seen = true if ::Object.equal? current
+
+          if not object_seen and ::BasicObject.equal? current
+            check_object = false
+          end
+
+          if bucket = current.constant_table.lookup(name)
+            constant = bucket.constant
+
+            if object_kind_of? constant, Autoload
+              return undefined if CodeLoader.loading? constant.path
+              return constant.constant unless undefined.equal? constant.constant
+            end
+
+            return constant
+          end
+
+          current = current.direct_superclass
+        end
+      end
+
+      if check_object
+        if bucket = Object.constant_table.lookup(name)
+          constant = bucket.constant
+
+          if object_kind_of? constant, Autoload
+            return undefined if CodeLoader.loading? constant.path
+            return constant.constant unless undefined.equal? constant.constant
+          end
+
+          return constant
+        end
+      end
+
+      undefined
+    end
+
+    def self.constant_path_defined?(mod, name)
+      current = mod
+
+      begin
+        break unless object_kind_of? current, ::Module
+
+        if bucket = current.constant_table.lookup(name)
+          return undefined if bucket.private?
+
+          constant = bucket.constant
+
+          if object_kind_of? constant, Autoload
+            return undefined if CodeLoader.loading? constant.path
+            return constant.constant unless undefined.equal? constant.constant
+          end
+
+          return constant
+        end
+      end while current = current.direct_superclass
+
+      undefined
     end
 
     def self.const_exists?(mod, name, inherit = true)

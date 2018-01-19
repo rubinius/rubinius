@@ -1,6 +1,36 @@
 module Rubinius
   class CodeLoader
+    def self.registry
+      Rubinius.synchronize(self) { @registry ||= [] }
+    end
+
+    def self.loading?(path)
+      feature = nil
+
+      resource = Feature.new path
+      if resource.loadable? or resource.search
+        feature = resource.feature
+      end
+
+      unless feature
+        resource = Library.new path
+        if resource.loadable? or resource.search
+          feature = resource.feature
+        end
+      end
+
+      if feature
+        Rubinius.synchronize(registry) do
+          return true if registry.include? feature
+        end
+      end
+
+      false
+    end
+
     class Resource
+      attr_reader :feature
+
       def initialize(stem, ext)
         stem = Type.coerce_to_path stem
         stem = "#{stem}#{ext}" unless stem.suffix? ext
@@ -63,7 +93,9 @@ module Rubinius
       end
 
       def unload_feature
-        $LOADED_FEATURES.delete_if { |f| f == @feature }
+        Rubinius.synchronize($LOADED_FEATURES) do
+          $LOADED_FEATURES.delete_if { |f| f == @feature }
+        end
       end
     end
 
@@ -257,12 +289,20 @@ module Rubinius
 
     def require
       resource = Feature.new @stem
-      return resource.load if resource.resolve
+      if resource.resolve
+        register_file resource.feature
+        return resource.load
+      end
 
       resource = Library.new @stem
-      return resource.load if resource.resolve
+      if resource.resolve
+        register_file resource.feature
+        return resource.load
+      end
 
       load_error
+    ensure
+      unregister_file resource.feature if resource
     end
 
     def require_relative(scope)
@@ -279,6 +319,22 @@ module Rubinius
         require
       else
         raise LoadError.new "unable to get relative path"
+      end
+    end
+
+    def register_file(path)
+      registry = self.class.registry
+
+      Rubinius.synchronize(registry) do
+        registry << path
+      end
+    end
+
+    def unregister_file(path)
+      registry = self.class.registry
+
+      Rubinius.synchronize(registry) do
+        registry.delete_if { |x| x == path }
       end
     end
 

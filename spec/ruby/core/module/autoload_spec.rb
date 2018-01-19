@@ -396,26 +396,57 @@ describe "Module#autoload" do
 
   end
 
-  it "causes 'defined?(A)' and 'defined?(A.m)' to return nil for A when loading the file for that constant" do
+  it "causes 'defined?(A::B)' and 'defined?(B.m)' to return nil for B when autoloading the file for that constant" do
     ScratchPad.record []
 
-    ModuleSpecs::Autoload.autoload(:ForDefined,
+    ModuleSpecs::AutoloadDefined.autoload(:ForDefined,
                                    fixture(__FILE__, "autoload_defined.rb"))
-    ModuleSpecs::Autoload.autoload(:DefinedByForDefined,
+    ModuleSpecs::AutoloadDefined.autoload(:DefinedByForDefined,
                                    fixture(__FILE__, "autoload_defined.rb"))
 
-    ModuleSpecs::Autoload::ForDefined.should == 1
-    ScratchPad.recorded.should == [nil, nil]
+    ModuleSpecs::AutoloadDefined::ForDefined.should == 1
+    ScratchPad.recorded.should == [nil, nil, nil, nil, "constant", nil,
+                                   nil, "constant", "constant", "method"]
+  end
+
+  it "causes 'defined?(A::B)' and 'defined?(B.m)' to return nil for B when requiring the file for that constant" do
+    ScratchPad.record []
+
+    ModuleSpecs::AutoloadDefined.autoload(:ForRDefined,
+                                   fixture(__FILE__, "autoload_rdefined.rb"))
+    ModuleSpecs::AutoloadDefined.autoload(:DefinedByForRDefined,
+                                   fixture(__FILE__, "autoload_rdefined.rb"))
+
+    require fixture(__FILE__, "autoload_rdefined.rb")
+
+    ScratchPad.recorded.should == [nil, nil, nil, nil, "constant", nil,
+                                   nil, "constant", "constant", "method"]
+  end
+
+  it "causes 'defined?(A::B)' and 'defined?(B.m)' to return nil for B when loading the file for that constant" do
+    ScratchPad.record []
+
+    ModuleSpecs::AutoloadDefined.autoload(:ForLDefined,
+                                   fixture(__FILE__, "autoload_ldefined.rb"))
+    ModuleSpecs::AutoloadDefined.autoload(:DefinedByForLDefined,
+                                   fixture(__FILE__, "autoload_ldefined.rb"))
+
+    load fixture(__FILE__, "autoload_ldefined.rb")
+
+    ScratchPad.recorded.should == ["constant", "constant", "constant",
+                                   "constant", "constant", "constant"]
   end
 
   it "causes 'SomeModule.const_defined?(A)' to return false when loading the file for that constant" do
+    ScratchPad.record []
+
     ModuleSpecs::Autoload.autoload(:ForConstDefined,
                                    fixture(__FILE__, "autoload_const_defined.rb"))
     ModuleSpecs::Autoload.autoload(:DefinedByForConstDefined,
                                    fixture(__FILE__, "autoload_const_defined.rb"))
 
     ModuleSpecs::Autoload::ForConstDefined.should == 1
-    ScratchPad.recorded.should be_false
+    ScratchPad.recorded.should == [false, false, true, true]
   end
 
   it "loads the registered constant even if the constant was already loaded by another thread" do

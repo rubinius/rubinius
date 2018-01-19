@@ -168,7 +168,7 @@ module Rubinius
 
   def self.lock_timed(obj, duration)
     Rubinius.primitive :vm_object_lock_timed
-    raise PrimitiveFailure, "Rubinius.lock primitive failed"
+    raise PrimitiveFailure, "Rubinius.lock_timed primitive failed"
   end
 
   def self.try_lock(obj)

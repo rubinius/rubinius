@@ -354,6 +354,10 @@ module ModuleSpecs
   module M1; end
   module M2; end
 
+  class AutoloadDefined
+    class AutoloadDefinedSub < AutoloadDefined; end
+  end
+
   module Autoload
     def self.use_ex1
       begin

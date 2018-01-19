@@ -6,6 +6,10 @@ module Rubinius
       attr_accessor :visibility
       attr_reader :next
 
+      def private?
+        @visibility == :private
+      end
+
       def inspect
         "#<#{self.class}:0x#{object_id.to_s(16)} name=#{@name.inspect} constant=#{@constant.inspect} visibility=#{visibility.inspect}>"
       end
