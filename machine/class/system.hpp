@@ -242,12 +242,6 @@ namespace rubinius {
     // Rubinius.primitive :vm_find_object
     static Object* vm_find_object(STATE, Array* arg, Object* callable);
 
-    // Rubinius.primitive :vm_const_defined
-    static Object* vm_const_defined(STATE, Symbol* sym);
-
-    // Rubinius.primitive :vm_const_defined_under
-    static Object* vm_const_defined_under(STATE, Module* under, Symbol* sym, Object* send_const_missing);
-
     // Rubinius.primitive :vm_check_callable
     static Object* vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self);
 

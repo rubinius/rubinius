@@ -1449,52 +1449,6 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* System::vm_const_defined(STATE, Symbol* sym) {
-    ConstantMissingReason reason = vNonExistent;
-
-    Object* res = Helpers::const_get(state, sym, &reason);
-
-    if(reason == vFound) {
-      if(Autoload* autoload = try_as<Autoload>(res)) {
-        std::atomic_thread_fence(std::memory_order_seq_cst);
-
-        if(autoload->loading()->true_p()) {
-          res = Primitives::failure();
-        }
-      }
-    } else {
-      res = Primitives::failure();
-    }
-
-    return res;
-  }
-
-  Object* System::vm_const_defined_under(STATE, Module* under, Symbol* sym,
-                                         Object* send_const_missing)
-  {
-    ConstantMissingReason reason = vNonExistent;
-
-    Object* res = Helpers::const_get_under(state, under, sym, &reason);
-
-    if(reason == vFound) {
-      if(Autoload* autoload = try_as<Autoload>(res)) {
-        std::atomic_thread_fence(std::memory_order_seq_cst);
-
-        if(autoload->loading()->true_p()) {
-          res = Primitives::failure();
-        }
-      }
-    } else {
-      if(send_const_missing->true_p()) {
-        res = Helpers::const_missing_under(state, under, sym);
-      } else {
-        res = Primitives::failure();
-      }
-    }
-
-    return res;
-  }
-
   Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self) {
     LookupData lookup(self, obj->lookup_begin(state), G(sym_public));
     Dispatch dispatch(sym);
