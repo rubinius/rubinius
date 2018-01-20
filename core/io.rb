@@ -77,7 +77,7 @@ class IO
       when "link"
         raise "cannot make link"
       else
-        new(fd, stat, io)
+        BufferedFileDescriptor.new(fd, stat, io)
       end
     end
 
