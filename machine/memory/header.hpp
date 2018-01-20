@@ -45,10 +45,10 @@ namespace rubinius {
 #define TAG_SYMBOL_MASK  7
 
 #define APPLY_FIXNUM_TAG(v) ((Object*)(((intptr_t)(v) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
-#define STRIP_FIXNUM_TAG(v) (((intptr_t)v) >> TAG_FIXNUM_SHIFT)
+#define STRIP_FIXNUM_TAG(v) (((intptr_t)(v)) >> TAG_FIXNUM_SHIFT)
 
 #define APPLY_SYMBOL_TAG(v) ((Object*)(((intptr_t)(v) << TAG_SYMBOL_SHIFT) | TAG_SYMBOL))
-#define STRIP_SYMBOL_TAG(v) (((intptr_t)v) >> TAG_SYMBOL_SHIFT)
+#define STRIP_SYMBOL_TAG(v) (((intptr_t)(v)) >> TAG_SYMBOL_SHIFT)
 
 /* Do not use these macros in code. They define the bit patterns for the
  * various object types and are used to define predicates. Use the predicates

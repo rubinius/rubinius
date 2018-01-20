@@ -104,7 +104,7 @@
 #define FIXNUM_P(v)         (((VALUE)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
 #define SYMBOL_P(v)         (((VALUE)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
-#define CAPI_TAG_FIXNUM(v)  ((VALUE)(((VALUE)((uintptr_t)v) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
+#define CAPI_TAG_FIXNUM(v)  ((VALUE)(((VALUE)((uintptr_t)(v)) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
 
 #define FIXNUM_MAX_WIDTH    ((8 * sizeof(intptr_t)) - TAG_FIXNUM_SHIFT - 1)
 #define FIXNUM_MIN_WIDTH    (FIXNUM_MAX_WIDTH + 1)
