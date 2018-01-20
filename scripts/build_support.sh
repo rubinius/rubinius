@@ -26,8 +26,6 @@ function rbx_archive_codedb {
     fail "unable to upload codedb cache archive"
   rbx_s3_upload "$url" "$bucket" "$archive$ext" "$archive$ext" "$path" ||
     fail "unable to upload codedb cache archive digest"
-
-  rm -f "$archive" "$archive$ext"
 }
 
 function rbx_build_support_usage {
