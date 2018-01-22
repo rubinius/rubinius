@@ -986,7 +986,7 @@ class File < IO
   # Returns true if the named file is a symbolic link.
   def self.symlink?(path)
     Stat.lstat(path).symlink?
-  rescue Errno::ENOENT, Errno::ENODIR
+  rescue Errno::ENOENT, Errno::ENOTDIR
     false
   end
 

@@ -57,7 +57,6 @@ namespace rubinius {
     /* : young_(new BakerGC(this, shared.config)) */
     : mark_sweep_(new memory::MarkSweepGC(this, shared.config))
     , immix_(new memory::ImmixGC(this))
-    , immix_marker_(NULL)
     , inflated_headers_(new memory::InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&vm->shared)
@@ -612,7 +611,6 @@ step1:
       mature_gc_in_progress_ = true;
 
       immix_->collect_start(data);
-      immix_->start_marker(state, data);
     }
   }
 
@@ -755,15 +753,6 @@ step1:
       schedule_full_collection(
           "mature region allocate object",
           state->vm()->metrics().gc.immix_set);
-
-      if(mature_mark_concurrent_) {
-        /* Spilling allocations to the Large Object Space can be costly
-         * because that region and collector are less efficient. To mitigate
-         * spilling, we sleep for a very small random interval to allow the
-         * concurrent marking thread to catch up and complete the GC cycle.
-         */
-        state->vm()->blocking_suspend(state, state->vm()->metrics().memory.suspend_ms);
-      }
     }
 
     collect_flag = false;

@@ -84,9 +84,6 @@ namespace rubinius {
     /// ImmixGC used for the mature generation
     memory::ImmixGC* immix_;
 
-    /// ImmixMarker thread used for the mature generation
-    memory::ImmixMarker* immix_marker_;
-
     /// Storage for all InflatedHeader instances.
     memory::InflatedHeaders* inflated_headers_;
 
@@ -234,14 +231,6 @@ namespace rubinius {
 
     capi::Handles* capi_handles() const {
       return capi_handles_;
-    }
-
-    memory::ImmixMarker* immix_marker() const {
-      return immix_marker_;
-    }
-
-    void set_immix_marker(memory::ImmixMarker* immix_marker) {
-      immix_marker_ = immix_marker;
     }
 
     capi::Handle* add_capi_handle(STATE, Object* obj);

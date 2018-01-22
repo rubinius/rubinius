@@ -301,7 +301,7 @@ namespace rubinius {
     memory::GCData gc_data(state->vm());
 
     {
-      LockPhase locked(state);
+      StopPhase locked(state);
       // Seed it with the root objects.
       walker.seed(gc_data);
     }

@@ -21,7 +21,6 @@
 
 #include "logger.hpp"
 
-#include "memory/immix_marker.hpp"
 #include "memory/finalizer.hpp"
 
 #include "signal.hpp"
@@ -529,23 +528,17 @@ namespace rubinius {
 
     shared->finalizer()->dispose(state);
 
-    shared->thread_nexus()->lock(state, state->vm());
-
     shared->finalizer()->finish(state);
 
-    if(!G(coredb)->nil_p()) G(coredb)->close(state);
+    shared->thread_nexus()->stop(state, state->vm(), [state, exit_code]{
+        if(!G(coredb)->nil_p()) G(coredb)->close(state);
 
-    if(Memory* om = state->memory()) {
-      if(memory::ImmixMarker* im = om->immix_marker()) {
-        im->stop(state);
-      }
-    }
+        NativeMethod::cleanup_thread(state);
 
-    NativeMethod::cleanup_thread(state);
+        state->shared().signals()->stop(state);
 
-    state->shared().signals()->stop(state);
-
-    exit(exit_code);
+        exit(exit_code);
+      });
   }
 
   /**

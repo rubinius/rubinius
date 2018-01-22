@@ -31,8 +31,6 @@ public:
   }
 
   void tearDown() {
-    state->shared().thread_nexus()->unlock();
-
     if(gc_data) {
       delete gc_data;
     }

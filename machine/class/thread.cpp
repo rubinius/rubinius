@@ -87,8 +87,6 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
-    BlockPhase blocking(state);
-
     return Thread::create(state, self,
         state->shared().thread_nexus()->new_vm(&state->shared()),
         function);

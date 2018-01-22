@@ -13,7 +13,6 @@ namespace rubinius {
 
 namespace memory {
   class ImmixGC;
-  class ImmixMarker;
 
   /**
    * ImmixGC uses the immix memory management strategy to perform garbage
@@ -111,7 +110,6 @@ namespace memory {
     GC<ObjectDescriber> gc_;
     ExpandingAllocator allocator_;
     Memory* memory_;
-    ImmixMarker* marker_;
     int chunks_left_;
     int chunks_before_collection_;
     Diagnostics* diagnostics_;
@@ -156,7 +154,6 @@ namespace memory {
       return diagnostics_;
     }
 
-    void start_marker(STATE, GCData* data);
     bool process_mark_stack();
     bool process_mark_stack(bool& exit);
     MarkStack& mark_stack();

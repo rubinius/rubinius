@@ -267,10 +267,7 @@ namespace rubinius {
     std::ostringstream name;
     name << "fiber." << fiber->fiber_id()->to_native();
 
-    {
-      BlockPhase blocking(state);
-      fiber->vm(state->vm()->thread_nexus()->new_vm(&state->shared(), name.str().c_str()));
-    }
+    fiber->vm(state->vm()->thread_nexus()->new_vm(&state->shared(), name.str().c_str()));
 
     fiber->vm()->set_kind(memory::ManagedThread::eFiber);
     fiber->vm()->set_suspending();

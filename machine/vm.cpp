@@ -327,13 +327,6 @@ namespace rubinius {
     nanosleep(&ts, NULL);
   }
 
-  void VM::blocking_suspend(STATE, metrics::metric& counter) {
-    timer::StopWatch<timer::milliseconds> timer(counter);
-
-    BlockPhase blocking(state);
-    suspend_thread();
-  }
-
   void VM::sleeping_suspend(STATE, metrics::metric& counter) {
     timer::StopWatch<timer::milliseconds> timer(counter);
 

@@ -12,36 +12,19 @@ namespace rubinius {
    * threads to be suspended. Upon destruction of the instance, Ruby execution
    * is resumed.
    */
-  class LockPhase {
-    State* state_;
-    ThreadNexus::LockStatus status_;
-
-  public:
-    LockPhase(STATE)
-      : state_(state)
-    {
-      status_ = state->vm()->thread_nexus()->lock(state, state->vm());
-    }
-
-    ~LockPhase() {
-      if(status_ == ThreadNexus::eLocked) {
-        state_->vm()->thread_nexus()->unlock();
-      }
-    }
-  };
-
-  class BlockPhase {
+  class StopPhase {
     State* state_;
 
   public:
-    BlockPhase(STATE)
+    StopPhase(STATE)
       : state_(state)
     {
-      state->vm()->blocking_phase(state_);
+      state->vm()->thread_nexus()->stop(state, state->vm());
     }
 
-    ~BlockPhase() {
-      state_->vm()->managed_phase(state_);
+    ~StopPhase() {
+      state_->vm()->thread_nexus()->unset_stop();
+      state_->vm()->thread_nexus()->unlock(state_, state_->vm());
     }
   };
 

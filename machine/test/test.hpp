@@ -10,7 +10,6 @@
 #include "configuration.hpp"
 #include "metrics.hpp"
 #include "machine/detection.hpp"
-#include "machine/memory/immix_marker.hpp"
 #include "class/executable.hpp"
 #include "class/method_table.hpp"
 #include "class/thread.hpp"
@@ -218,12 +217,6 @@ public:
   }
 
   void destroy() {
-    if(Memory* om = state->memory()) {
-      if(memory::ImmixMarker* im = om->immix_marker()) {
-        im->stop(state);
-      }
-    }
-
     VM::discard(state, state->vm());
     delete shared;
     delete state;

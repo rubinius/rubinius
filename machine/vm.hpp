@@ -480,12 +480,7 @@ namespace rubinius {
       }
     }
 
-    void blocking_suspend(STATE, metrics::metric& counter);
     void sleeping_suspend(STATE, metrics::metric& counter);
-
-    void blocking_phase(STATE) {
-      thread_nexus_->blocking_phase(state, this);
-    }
 
     void managed_phase(STATE) {
       thread_nexus_->managed_phase(state, this);

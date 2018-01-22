@@ -364,20 +364,14 @@ namespace rubinius {
   }
 
   static int fork_exec(STATE, int errors_fd) {
-    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
+    StopPhase locked(state);
 
     state->memory()->set_interrupt();
-
-    ThreadNexus::LockStatus status =
-      state->vm()->thread_nexus()->fork_lock(state, state->vm());
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
     int pid = ::fork();
-
-    state->vm()->thread_nexus()->fork_unlock(status);
 
     if(pid == 0) {
       // We're in the child...
@@ -702,8 +696,7 @@ namespace rubinius {
   }
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
-    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
+    StopPhase locked(state);
 
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
@@ -723,9 +716,6 @@ namespace rubinius {
             state->vm()->name().c_str());
       }
     }
-
-    ThreadNexus::LockStatus status =
-      state->vm()->thread_nexus()->lock(state, state->vm());
 
     void* old_handlers[NSIG];
 
@@ -768,10 +758,6 @@ namespace rubinius {
       sigfillset(&action.sa_mask);
 
       sigaction(i, &action, NULL);
-    }
-
-    if(status == ThreadNexus::eLocked) {
-      state->vm()->thread_nexus()->unlock();
     }
 
     /* execvp() returning means it failed. */
@@ -851,49 +837,48 @@ namespace rubinius {
     return NULL;
   }
 
-  Fixnum* System::vm_fork(STATE)
-  {
+  Fixnum* System::vm_fork(STATE) {
 #ifdef RBX_WINDOWS
     // TODO: Windows
     return force_as<Fixnum>(Primitives::failure());
 #else
-    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
-
     if(Fiber* fiber = state->vm()->fiber()) {
       if(!fiber->nil_p() && !fiber->root_p()) {
         Exception::raise_runtime_error(state, "fork() not allowed from Fiber");
       }
     }
 
-    state->shared().machine_threads()->before_fork(state);
-    state->memory()->set_interrupt();
+    int pid = -1;
 
-    ThreadNexus::LockStatus status =
-      state->vm()->thread_nexus()->fork_lock(state, state->vm());
+    {
+      StopPhase locked(state);
 
-    int pid = ::fork();
+      state->shared().machine_threads()->before_fork(state);
+      state->memory()->set_interrupt();
 
-    state->vm()->thread_nexus()->fork_unlock(status);
+      pid = ::fork();
 
-    if(pid > 0) {
-      // We're in the parent...
-      state->shared().machine_threads()->after_fork_parent(state);
+      if(pid > 0) {
+        // We're in the parent...
+        state->shared().machine_threads()->after_fork_parent(state);
 
-      if(state->shared().config.system_log_lifetime.value) {
-        const std::regex& filter = state->shared().config.system_log_filter();
+        if(state->shared().config.system_log_lifetime.value) {
+          const std::regex& filter = state->shared().config.system_log_filter();
 
-        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
-          logger::write("process: fork: child: %d, %s, %s:%d", pid,
-              state->vm()->name().c_str(),
-              call_frame->file(state)->cpp_str(state).c_str(),
-              call_frame->line(state));
-        } else {
-          logger::write("process: fork: child: %d, %s", pid,
-              state->vm()->name().c_str());
+          if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+            logger::write("process: fork: child: %d, %s, %s:%d", pid,
+                state->vm()->name().c_str(),
+                call_frame->file(state)->cpp_str(state).c_str(),
+                call_frame->line(state));
+          } else {
+            logger::write("process: fork: child: %d, %s", pid,
+                state->vm()->name().c_str());
+          }
         }
       }
-    } else if(pid == 0) {
+    }
+
+    if(pid == 0) {
       // We're in the child...
       state->vm()->after_fork_child(state);
 

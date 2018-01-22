@@ -1,6 +1,5 @@
 #include "memory.hpp"
 #include "memory/immix_collector.hpp"
-#include "memory/immix_marker.hpp"
 
 #include "capi/handles.hpp"
 #include "capi/tag.hpp"
@@ -61,7 +60,6 @@ namespace memory {
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
     , memory_(om)
-    , marker_(NULL)
     , chunks_left_(0)
     , chunks_before_collection_(10)
     , diagnostics_(new Diagnostics())
@@ -71,9 +69,6 @@ namespace memory {
   }
 
   ImmixGC::~ImmixGC() {
-    if(marker_) {
-      delete marker_;
-    }
   }
 
   Address ImmixGC::ObjectDescriber::copy(Address original,
@@ -366,12 +361,6 @@ namespace memory {
 
     allocator_.restart(diagnostics()->percentage_,
         diagnostics()->total_bytes_ - diagnostics()->bytes_);
-  }
-
-  void ImmixGC::start_marker(STATE, GCData* data) {
-    if(!marker_) {
-      marker_ = new ImmixMarker(state, this, data);
-    }
   }
 
   bool ImmixGC::process_mark_stack() {

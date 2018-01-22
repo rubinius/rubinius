@@ -25,61 +25,39 @@ namespace rubinius {
 
   class ThreadNexus {
     std::atomic<bool> stop_;
-    std::mutex process_mutex_;
     std::mutex threads_mutex_;
     std::mutex waiting_mutex_;
     std::condition_variable waiting_condition_;
 
-    std::atomic<uint32_t> phase_flag_;
+    std::atomic<uint32_t> lock_;
 
     ThreadList threads_;
     uint32_t thread_ids_;
 
-    const static uint64_t cLockLimit = 5000000000;
-    const static int cSpinLimit = 10000;
-
-
   public:
+    const static uint64_t cLockLimit = 5000000000;
+
     enum Phase {
       eManaged    = 0x01,
-      eBlocking   = 0x02,
       eUnmanaged  = 0x81,
       eWaiting    = 0x82,
-    };
-
-    enum LockStatus {
-      eNotLocked  = 0x0,
-      eHeldLock   = 0x1,
-      eLocked     = 0x2,
     };
 
     const static int cYieldingPhase = 0x80;
 
     ThreadNexus()
       : stop_(false)
-      , process_mutex_()
       , threads_mutex_()
       , waiting_mutex_()
       , waiting_condition_()
-      , phase_flag_(0)
+      , lock_(0)
       , threads_()
       , thread_ids_(0)
     { }
 
-    ~ThreadNexus() {
-      rubinius::bug("attempt to destroy ThreadNexus");
-    }
-
-  private:
-    LockStatus to_lock_status(bool flag) {
-      return flag ? eHeldLock : eLocked;
-    }
+    ~ThreadNexus() = delete;
 
   public:
-    std::mutex& process_mutex() {
-      return process_mutex_;
-    }
-
     ThreadList* threads() {
       return &threads_;
     }
@@ -92,20 +70,22 @@ namespace rubinius {
       return stop_.load(std::memory_order_acquire);
     }
 
-    void set_stop() {
+    bool set_stop() {
       stop_.store(true, std::memory_order_release);
+
+      return stop_p();
     }
 
     void unset_stop() {
       stop_.store(false, std::memory_order_release);
     }
 
-    void blocking_phase(STATE, VM* vm);
     void managed_phase(STATE, VM* vm);
     void unmanaged_phase(STATE, VM* vm);
     void waiting_phase(STATE, VM* vm);
 
-    bool blocking_p(VM* vm);
+    void set_managed(STATE, VM* vm);
+
     bool yielding_p(VM* vm);
 
     void yield(STATE, VM* vm) {
@@ -113,47 +93,70 @@ namespace rubinius {
         waiting_phase(state, vm);
 
         {
-          std::unique_lock<std::mutex> lk(waiting_mutex_);
-          waiting_condition_.wait(lk,
-              [this]{ return !stop_.load(std::memory_order_acquire); });
+          std::unique_lock<std::mutex> lock(waiting_mutex_);
+          waiting_condition_.wait(lock, [this]{ return !stop_p(); });
         }
 
         managed_phase(state, vm);
       }
     }
 
-    bool waiting_lock(STATE, VM* vm);
-    void spinning_lock(STATE, VM* vm, std::function<void ()> f);
+    uint64_t wait();
+    void wait_for_all(STATE, VM* vm);
 
-    LockStatus fork_lock(STATE, VM* vm);
-    void fork_unlock(LockStatus status);
+    bool try_lock(VM* vm);
+    bool try_lock_wait(STATE, VM* vm);
 
-    void check_stop(STATE, VM* vm, std::function<void ()> f) {
+    void check_stop(STATE, VM* vm, std::function<void ()> process) {
       while(stop_p()) {
-        spinning_lock(state, vm, [&, this]{ f(); unset_stop(); });
+        if(try_lock(vm)) {
+          wait_for_all(state, vm);
+
+          process();
+
+          unset_stop();
+          unlock(state, vm);
+        } else {
+          yield(state, vm);
+        }
       }
     }
 
-    LockStatus lock(STATE, VM* vm) {
-      bool held = waiting_lock(state, vm);
-      set_stop();
-      checkpoint(state, vm);
+    void stop(STATE, VM* vm) {
+      while(set_stop()) {
+        if(try_lock_wait(state, vm)) {
+          wait_for_all(state, vm);
+
+          return;
+        }
+      }
+    }
+
+    void stop(STATE, VM* vm, std::function<void ()> process) {
+      stop(state, vm);
+
+      process();
+
       unset_stop();
-      return to_lock_status(held);
+      unlock(state, vm);
     }
 
-    void unlock() {
-      waiting_condition_.notify_all();
-      phase_flag_ = 0;
+    void lock(STATE, VM* vm, std::function<void ()> process) {
+      lock(state, vm);
+      process();
+      unlock(state, vm);
     }
 
-    bool try_checkpoint(STATE, VM* vm);
-    void checkpoint(STATE, VM* vm);
+    void lock(STATE, VM* vm) {
+      try_lock_wait(state, vm);
+    }
 
-    uint64_t delay();
-    void detect_deadlock(STATE, uint64_t nanoseconds, uint64_t limit, VM* vm);
-    void detect_deadlock(STATE, uint64_t nanoseconds, uint64_t limit);
+    void unlock(STATE, VM* vm);
 
+    void detect_deadlock(STATE, uint64_t nanoseconds);
+    void detect_deadlock(STATE, uint64_t nanoseconds, VM* vm);
+
+    void list_threads();
     void list_threads(logger::PrintFunction function);
 
     VM* new_vm(SharedState* shared, const char* name = NULL);
