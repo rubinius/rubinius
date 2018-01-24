@@ -45,6 +45,8 @@
 
 #include "logger.hpp"
 
+#include <mutex>
+
 namespace rubinius {
   void Memory::memory_error(STATE) {
     Exception::raise_memory_error(state);
@@ -808,6 +810,8 @@ step1:
   }
 
   capi::Handle* Memory::add_capi_handle(STATE, Object* obj) {
+    std::lock_guard<locks::spinlock_mutex> guard(state->shared().capi_handles_lock());
+
     if(!obj->reference_p()) {
       rubinius::bug("Trying to add a handle for a non reference");
     }

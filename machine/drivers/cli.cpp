@@ -98,11 +98,11 @@ int main(int argc, char** argv) {
       std::cout << "Unknown VM exception detected:" << std::endl;
       e.print_backtrace();
       exit_code = 1;
-    } catch(const std::exception& e) {
+    } catch(std::exception& e) {
       std::cout << "C++ exception detected: " << e.what() << std::endl;
       exit_code = 1;
     } catch(...) {
-      std::cout << "Unknown C++ exception detected" << std::endl;
+      std::cout << "Unknown C++ exception detected at top level" << std::endl;
       exit_code = 1;
     }
   }

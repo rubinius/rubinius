@@ -131,7 +131,7 @@ namespace rubinius {
     timer::StopWatch<timer::microseconds> timer(
         state->vm()->metrics().machine.bytecode_internalizer_us);
 
-    std::lock_guard<std::mutex> guard(_lock_);
+    std::lock_guard<std::mutex> guard(lock());
 
     if(machine_code()) {
       return machine_code();

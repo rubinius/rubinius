@@ -13,6 +13,7 @@
 #include "metrics.hpp"
 #include "primitives.hpp"
 #include "profiler.hpp"
+#include "spinlock.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
 
@@ -122,6 +123,8 @@ namespace rubinius {
     utilities::thread::SpinLock wait_lock_;
     utilities::thread::SpinLock type_info_lock_;
     utilities::thread::SpinLock code_resource_lock_;
+
+    locks::spinlock_mutex capi_handles_lock_;
 
     CApiBlackList capi_black_list_;
     CApiLocks capi_locks_;
@@ -372,6 +375,10 @@ namespace rubinius {
 
     utilities::thread::SpinLock& code_resource_lock() {
       return code_resource_lock_;
+    }
+
+    locks::spinlock_mutex& capi_handles_lock() {
+      return capi_handles_lock_;
     }
 
     void scheduler_loop();

@@ -291,12 +291,12 @@ namespace rubinius {
       exception->locations(state, Location::from_call_stack(state));
 
       call_frame->scope->flush_to_heap(state);
-    } catch(const RubyException& exc) {
+    } catch(RubyException& exc) {
       if(exc.exception->locations()->nil_p()) {
         exc.exception->locations(state, Location::from_call_stack(state));
       }
       exception = exc.exception;
-    } catch(const std::exception& e) {
+    } catch(std::exception& e) {
       exception = Exception::make_interpreter_error(state, e.what());
       exception->locations(state, Location::from_call_stack(state));
 
