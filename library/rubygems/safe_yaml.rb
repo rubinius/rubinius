@@ -28,11 +28,15 @@ module Gem
 
     if ::YAML.respond_to? :safe_load
       def self.safe_load input
+        Rubinius.synchronize(YAML) do
         ::YAML.safe_load(input, WHITELISTED_CLASSES, WHITELISTED_SYMBOLS, true)
+        end
       end
 
       def self.load input
+        Rubinius.synchronize(YAML) do
         ::YAML.safe_load(input, [::Symbol])
+        end
       end
     else
       unless Gem::Deprecate.skip

@@ -64,7 +64,9 @@ permission to.
     end
 
     with_response response do |resp|
+      Rubinius.synchronize(YAML) do
       owners = YAML.load resp.body
+      end
 
       say "Owners for gem: #{name}"
       owners.each do |owner|
