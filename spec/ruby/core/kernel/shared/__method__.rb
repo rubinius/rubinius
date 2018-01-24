@@ -3,16 +3,17 @@ def f
 end
 alias g f
 
-describe :kernel___method__, :shared => true do
-
+describe :kernel___method__aliased, :shared => true do
   it "returns the current method, even when aliased" do
     f.should == :f
   end
 
-  it "returns the aliased name when aliased method" do
-    g.should == :g
+  it "returns the original name when the aliased method is called" do
+    g.should == :f
   end
+end
 
+describe :kernel___method__, :shared => true do
   it "returns the caller from blocks too" do
     def h
       (1..2).map { send(@method) }

@@ -27,6 +27,7 @@ namespace rubinius {
     }
 
     scope->self(state, self_);
+    scope->name(state, name_);
     scope->block(state, block_);
     scope->module(state, module_);
     scope->method(state, call_frame->compiled_code);

@@ -392,11 +392,16 @@ namespace rubinius {
     if(!mod) mod = env->module();
 
     Object* block = cNil;
+    Symbol* name = nil<Symbol>();
+
     if(VariableScope* vs = env->top_scope()) {
-      if(!vs->nil_p()) block = vs->block();
+      if(!vs->nil_p()) {
+        block = vs->block();
+        name = vs->name();
+      }
     }
 
-    scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
+    scope->initialize(invocation.self, name, block, mod, mcode->number_of_locals);
     scope->set_parent(env->scope());
 
     if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {

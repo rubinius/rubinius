@@ -5,22 +5,25 @@
 
 namespace rubinius {
   class VariableScope;
+  class Symbol;
 
   class StackVariables {
   public: // Treat these like private!
     VariableScope* on_heap_;
     VariableScope* parent_;
     Object* self_;
+    Symbol* name_;
     Object* block_;
     Module* module_;
     Object* last_match_;
     Object* locals_[0];
 
   public:
-    void initialize(Object* self, Object* block, Module* module, int locals) {
+    void initialize(Object* self, Symbol* name, Object* block, Module* module, int locals) {
       on_heap_ = 0;
       parent_ = 0;
       self_ = self;
+      name_ = name;
       block_ = block;
       module_ = module;
       last_match_ = cNil;
@@ -48,6 +51,10 @@ namespace rubinius {
 
     Object* self() const {
       return self_;
+    }
+
+    Symbol* name() const {
+      return name_;
     }
 
     Object* block() const {

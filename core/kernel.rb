@@ -248,16 +248,29 @@ module Kernel
   def __method__
     scope = Rubinius::VariableScope.of_sender
 
+    return nil if scope.method.for_module_body?
+
     name = scope.method.name
 
-    return nil if scope.method.for_module_body?
     # If the name is still __block__, then it's in a script, so return nil
     return nil if name == :__block__ or name == :__script__
+
     name
   end
   module_function :__method__
 
-  alias_method :__callee__, :__method__
+  def __callee__
+    scope = Rubinius::VariableScope.of_sender
+
+    return nil if scope.method.for_module_body?
+
+    name = scope.name
+
+    # If the name is still __block__, then it's in a script, so return nil
+    return nil if name == :__block__ or name == :__script__
+
+    name
+  end
   module_function :__callee__
 
   def __dir__

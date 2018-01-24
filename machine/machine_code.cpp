@@ -655,7 +655,7 @@ namespace rubinius {
       // look in the wrong place.
       //
       // Thus, we have to cache the value in the StackVariables.
-      scope->initialize(args.recv(), args.block(), mod, mcode->number_of_locals);
+      scope->initialize(args.recv(), args.name(), args.block(), mod, mcode->number_of_locals);
 
       // If argument handling fails..
       if(ArgumentHandler::call(state, mcode, scope, args) == false) {
@@ -712,6 +712,8 @@ namespace rubinius {
   Object* MachineCode::execute_as_script(STATE, CompiledCode* code) {
     MachineCode* mcode = code->machine_code();
 
+    Symbol* name = state->symbol("__script__");
+
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
     // Originally, I tried using msg.module directly, but what happens is if
     // super is used, that field is read. If you combine that with the method
@@ -719,14 +721,14 @@ namespace rubinius {
     // look in the wrong place.
     //
     // Thus, we have to cache the value in the StackVariables.
-    scope->initialize(G(main), cNil, G(object), mcode->number_of_locals);
+    scope->initialize(G(main), name, cNil, G(object), mcode->number_of_locals);
 
     CallFrame* previous_frame = 0;
     CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 
-    Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
+    Arguments args(name, G(main), cNil, 0, 0);
 
     call_frame->previous = nullptr;
     call_frame->lexical_scope_ = code->scope();

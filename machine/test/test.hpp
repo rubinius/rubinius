@@ -167,7 +167,7 @@ public:
 
 
   void setup_call_frame(CallFrame* cf, StackVariables* scope, int size) {
-    scope->initialize(cNil, cNil, Module::create(state), 0);
+    scope->initialize(cNil, nil<Symbol>(), cNil, Module::create(state), 0);
 
     cf->prepare(size);
     cf->stack_ptr_ = cf->stk - 1;
