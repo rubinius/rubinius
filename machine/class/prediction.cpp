@@ -21,7 +21,7 @@ namespace rubinius {
 
   void MethodPrediction::bootstrap(STATE) {
     GO(method_prediction).set(state->memory()->new_class<Class, MethodPrediction>(
-          state, G(rubinius), "MethodPrediction"));
+          state, G(prediction), G(rubinius), "MethodPrediction"));
   }
 
   MethodPrediction* MethodPrediction::create(STATE, Module* module, Executable* executable) {

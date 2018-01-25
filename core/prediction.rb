@@ -12,7 +12,7 @@ module Rubinius
     end
   end
 
-  class MethodPrediction
+  class MethodPrediction < Prediction
     attr_reader :module
     attr_reader :executable
 
