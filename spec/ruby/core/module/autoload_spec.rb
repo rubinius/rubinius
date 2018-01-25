@@ -449,6 +449,24 @@ describe "Module#autoload" do
     ScratchPad.recorded.should == [false, false, true, true]
   end
 
+  it "loads an autoload again if a new path is added while currently autoloading" do
+    ScratchPad.record []
+
+    ModuleSpecs::Autoload.autoload(:AutoloadAgain,
+                                   fixture(__FILE__, "autoload_loading.rb"))
+
+    ModuleSpecs::Autoload::AutoloadAgain.new.m.should == :autoload_again_and_again
+
+    ModuleSpecs::Autoload.autoload(:AutoloadAgain,
+                                   fixture(__FILE__, "autoload_nonexistent.rb"))
+
+    ScratchPad.recorded.should == ["autoload_loading.rb", "autoload_again.rb"]
+
+    ModuleSpecs::Autoload::AutoloadAgain.new.m.should == :autoload_again_and_again
+
+    ScratchPad.recorded.should == ["autoload_loading.rb", "autoload_again.rb"]
+  end
+
   it "loads the registered constant even if the constant was already loaded by another thread" do
     Thread.new { ModuleSpecs::Autoload::FromThread::D.foo }.value.should == :foo
   end

@@ -26,6 +26,13 @@ class Autoload
 
   private :initialize
 
+  def inspect
+    "#<#{self.class.name}:0x#{object_id.to_s(16)} name=#{@name} scope=#{@scope}" \
+      " path=#{@path} constant=#{@constant} loading=#{@loading} loaded=#{@loaded}>"
+  end
+
+  alias_method :to_s, :inspect
+
   def loading?
     Rubinius.synchronize(self) { @loading }
   end
@@ -35,6 +42,7 @@ class Autoload
   # Change the file to autoload. Used by Module#autoload
   def set_path(path)
     @path = path
+    @loading = false
   end
 
   ##
