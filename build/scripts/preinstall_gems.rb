@@ -35,6 +35,8 @@ def install(gem, install_dir, options)
 
   file = File.join(BUILD_CONFIG[:gems_cache], "#{gem}")
 
+  return unless File.exist? file
+
   installer = Gem::Installer.new file, options
   spec = installer.install
   puts "Installed #{spec.name} (#{spec.version})"
