@@ -25,11 +25,14 @@ namespace rubinius {
 
   class ThreadNexus {
     std::atomic<bool> stop_;
+    std::atomic<uint32_t> halt_;
+    std::atomic<uint32_t> lock_;
+
+
     std::mutex threads_mutex_;
+    std::mutex halting_mutex_;
     std::mutex waiting_mutex_;
     std::condition_variable waiting_condition_;
-
-    std::atomic<uint32_t> lock_;
 
     ThreadList threads_;
     uint32_t thread_ids_;
@@ -47,10 +50,12 @@ namespace rubinius {
 
     ThreadNexus()
       : stop_(false)
+      , halt_(0)
+      , lock_(0)
       , threads_mutex_()
+      , halting_mutex_()
       , waiting_mutex_()
       , waiting_condition_()
-      , lock_(0)
       , threads_()
       , thread_ids_(0)
     { }
@@ -80,6 +85,12 @@ namespace rubinius {
       stop_.store(false, std::memory_order_release);
     }
 
+    bool halt_p() {
+      return halt_.load(std::memory_order_acquire) != 0;
+    }
+
+    void set_halt(STATE, VM* vm);
+
     void managed_phase(STATE, VM* vm);
     void unmanaged_phase(STATE, VM* vm);
     void waiting_phase(STATE, VM* vm);
@@ -92,7 +103,9 @@ namespace rubinius {
       while(stop_p()) {
         waiting_phase(state, vm);
 
-        {
+        if(halt_p()) {
+          std::lock_guard<std::mutex> lock(halting_mutex_);
+        } else {
           std::unique_lock<std::mutex> lock(waiting_mutex_);
           waiting_condition_.wait(lock, [this]{ return !stop_p(); });
         }
@@ -132,11 +145,9 @@ namespace rubinius {
       }
     }
 
-    void stop(STATE, VM* vm, std::function<void ()> process) {
+    void halt(STATE, VM* vm) {
+      set_halt(state, vm);
       stop(state, vm);
-
-      process();
-
       unset_stop();
       unlock(state, vm);
     }

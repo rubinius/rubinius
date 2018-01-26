@@ -521,24 +521,20 @@ namespace rubinius {
           shared->run_time());
     }
 
-    {
-      UnmanagedPhase unmanaged(state);
-      shared->machine_threads()->shutdown(state);
-    }
+    shared->machine_threads()->shutdown(state);
+
+    shared->thread_nexus()->halt(state, state->vm());
 
     shared->finalizer()->dispose(state);
-
     shared->finalizer()->finish(state);
 
-    shared->thread_nexus()->stop(state, state->vm(), [state, exit_code]{
-        if(!G(coredb)->nil_p()) G(coredb)->close(state);
+    if(!G(coredb)->nil_p()) G(coredb)->close(state);
 
-        NativeMethod::cleanup_thread(state);
+    NativeMethod::cleanup_thread(state);
 
-        state->shared().signals()->stop(state);
+    state->shared().signals()->stop(state);
 
-        exit(exit_code);
-      });
+    exit(exit_code);
   }
 
   /**

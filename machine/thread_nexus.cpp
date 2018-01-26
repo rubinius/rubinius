@@ -18,7 +18,23 @@
 #include <time.h>
 
 namespace rubinius {
+  void ThreadNexus::set_halt(STATE, VM* vm) {
+    if(!halting_mutex_.try_lock()) {
+      std::ostringstream msg;
+
+      msg << "halting mutex is already locked: id: " << vm->thread_id();
+
+      Exception::raise_assertion_error(state, msg.str().c_str());
+    }
+
+    halt_.store(vm->thread_id(), std::memory_order_release);
+  }
+
   void ThreadNexus::managed_phase(STATE, VM* vm) {
+    if(halt_ && halt_ != vm->thread_id()) {
+      halting_mutex_.lock();
+    }
+
     lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
   }
 

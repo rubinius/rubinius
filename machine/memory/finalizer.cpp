@@ -46,8 +46,6 @@ namespace rubinius {
     }
 
     void ExtensionFinalizer::finalize(STATE) {
-      ManagedPhase managed(state);
-
       NativeMethodEnvironment* env = state->vm()->native_method_environment;
       NativeMethodFrame nmf(env, 0, 0);
       ExceptionPoint ep(env);
@@ -100,8 +98,6 @@ namespace rubinius {
     }
 
     void ManagedFinalizer::finalize(STATE) {
-      ManagedPhase managed(state);
-
       /* Rubinius specific code. If the finalizer is cTrue, then send the
        * object the __finalize__ message.
        */
@@ -183,9 +179,6 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_p()) {
-        UnmanagedPhase unmanaged(state);
-        std::lock_guard<std::mutex> guard(list_mutex());
-
         list_condition().notify_one();
       }
     }
@@ -197,30 +190,41 @@ namespace rubinius {
     }
 
     void FinalizerThread::run(STATE) {
-      while(true) {
-        FinalizerObject* object = 0;
+      state->vm()->managed_phase(state);
 
-        {
+      while(!thread_exit_) {
+        if(process_list_.empty()) {
+          UnmanagedPhase unmanaged(state);
+
           std::unique_lock<std::mutex> lk(list_mutex());
           list_condition().wait(lk,
               [this]{ return thread_exit_ || !process_list_.empty(); });
+        }
 
-          if(thread_exit_) {
-            return;
-          } else {
+        while(!process_list_.empty()) {
+          if(thread_exit_) break;
+
+          FinalizerObject* object = 0;
+
+          {
+            std::lock_guard<std::mutex> guard(list_mutex());
+
             object = process_list_.back();
             process_list_.pop_back();
           }
-        }
 
-        if(object) {
-          object->finalize(state);
-          delete object;
+          if(object) {
+            object->finalize(state);
+            delete object;
 
-          vm()->metrics().gc.objects_finalized++;
+            vm()->metrics().gc.objects_finalized++;
+          }
+
+          state->vm()->thread_nexus()->yield(state, state->vm());
         }
       }
 
+      state->vm()->unmanaged_phase(state);
       state->vm()->thread()->vm()->set_zombie(state);
     }
 
