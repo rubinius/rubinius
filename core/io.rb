@@ -895,8 +895,8 @@ class IO
 
     def self.make_timeval_timeout(timeout)
       if timeout
-        limit = Timeval_t.new
-        future = Timeval_t.new
+        limit = Rubinius::FFI::Platform::POSIX::TimeVal.new
+        future = Rubinius::FFI::Platform::POSIX::TimeVal.new
 
         limit[:tv_sec] = (timeout / 1_000_000.0).to_i
         limit[:tv_usec] = (timeout % 1_000_000.0).to_i
@@ -913,7 +913,7 @@ class IO
     end
 
     def self.reset_timeval_timeout(time_limit, future)
-      now = Timeval_t.new
+      now = Rubinius::FFI::Platform::POSIX::TimeVal.new
 
       if FFI.call_failed?(FFI::Platform::POSIX.gettimeofday(now, nil))
         Errno.handle("gettimeofday(2) failed")
@@ -927,12 +927,8 @@ class IO
       fd_set.zero
       fd_set.set(read_fd)
 
-      unless const_defined?(:Timeval_t)
-        # This is a complete hack.
-        Select.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
-      end
-
-      timer = Timeval_t.new # sets fields to zero by default
+      # sets fields to zero by default
+      timer = Rubinius::FFI::Platform::POSIX::TimeVal.new
 
       FFI::Platform::POSIX.select(read_fd + 1, fd_set.to_set, nil, nil, timer)
     end
@@ -950,11 +946,6 @@ class IO
       write_set, highest_write_fd = writables.nil? ? [nil, nil] : fd_set_from_array(writables)
       error_set, highest_err_fd = errorables.nil? ? [nil, nil] : fd_set_from_array(errorables)
       max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].compact.max || -1
-
-      unless const_defined?(:Timeval_t)
-        # This is a complete hack.
-        Select.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
-      end
 
       time_limit, future = make_timeval_timeout(timeout)
 
