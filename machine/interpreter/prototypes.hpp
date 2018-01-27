@@ -133,6 +133,8 @@ namespace rubinius {
     intptr_t m_time_stamp(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t m_timer_start(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t m_timer_stop(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_log(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_debug(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Branching instructions
     intptr_t b_if_serial(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -167,6 +169,37 @@ namespace rubinius {
     intptr_t n_igt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ige(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ipopcnt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Code execution instructions
+    intptr_t e_cache_method_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_function_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_value_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_value(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_receiver_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_scope_constant(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_path_constant(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_signature(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_check_signature(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_invoke_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_invoke_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Assertion instructions
+    intptr_t a_instance(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_kind(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_receiver_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_type(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_not_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_less(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_less_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_greater(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_greater_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
   }
 }
 

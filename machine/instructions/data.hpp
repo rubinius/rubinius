@@ -649,6 +649,122 @@ namespace rubinius {
       "n_ipopcnt", 151, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::n_ipopcnt
     };
+    const InstructionData constexpr data_m_log = {
+      "m_log", 152, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_log
+    };
+    const InstructionData constexpr data_m_debug = {
+      "m_debug", 153, 1, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::m_debug
+    };
+    const InstructionData constexpr data_e_cache_method_p = {
+      "e_cache_method_p", 154, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_cache_method_p
+    };
+    const InstructionData constexpr data_e_cache_function_p = {
+      "e_cache_function_p", 155, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_cache_function_p
+    };
+    const InstructionData constexpr data_e_cache_value_p = {
+      "e_cache_value_p", 156, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_cache_value_p
+    };
+    const InstructionData constexpr data_e_cache_method = {
+      "e_cache_method", 157, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_cache_method
+    };
+    const InstructionData constexpr data_e_cache_function = {
+      "e_cache_function", 158, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_cache_function
+    };
+    const InstructionData constexpr data_e_cache_value = {
+      "e_cache_value", 159, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_cache_value
+    };
+    const InstructionData constexpr data_e_resolve_method = {
+      "e_resolve_method", 160, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_resolve_method
+    };
+    const InstructionData constexpr data_e_resolve_receiver_method = {
+      "e_resolve_receiver_method", 161, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_resolve_receiver_method
+    };
+    const InstructionData constexpr data_e_resolve_function = {
+      "e_resolve_function", 162, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_resolve_function
+    };
+    const InstructionData constexpr data_e_resolve_scope_constant = {
+      "e_resolve_scope_constant", 163, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_resolve_scope_constant
+    };
+    const InstructionData constexpr data_e_resolve_path_constant = {
+      "e_resolve_path_constant", 164, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_resolve_path_constant
+    };
+    const InstructionData constexpr data_e_signature = {
+      "e_signature", 165, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_signature
+    };
+    const InstructionData constexpr data_e_check_signature = {
+      "e_check_signature", 166, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_check_signature
+    };
+    const InstructionData constexpr data_e_invoke_method = {
+      "e_invoke_method", 167, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_invoke_method
+    };
+    const InstructionData constexpr data_e_invoke_function = {
+      "e_invoke_function", 168, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::e_invoke_function
+    };
+    const InstructionData constexpr data_a_instance = {
+      "a_instance", 169, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_instance
+    };
+    const InstructionData constexpr data_a_kind = {
+      "a_kind", 170, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_kind
+    };
+    const InstructionData constexpr data_a_method = {
+      "a_method", 171, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_method
+    };
+    const InstructionData constexpr data_a_receiver_method = {
+      "a_receiver_method", 172, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_receiver_method
+    };
+    const InstructionData constexpr data_a_type = {
+      "a_type", 173, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_type
+    };
+    const InstructionData constexpr data_a_function = {
+      "a_function", 174, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_function
+    };
+    const InstructionData constexpr data_a_equal = {
+      "a_equal", 175, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_equal
+    };
+    const InstructionData constexpr data_a_not_equal = {
+      "a_not_equal", 176, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_not_equal
+    };
+    const InstructionData constexpr data_a_less = {
+      "a_less", 177, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_less
+    };
+    const InstructionData constexpr data_a_less_equal = {
+      "a_less_equal", 178, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_less_equal
+    };
+    const InstructionData constexpr data_a_greater = {
+      "a_greater", 179, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_greater
+    };
+    const InstructionData constexpr data_a_greater_equal = {
+      "a_greater_equal", 180, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::a_greater_equal
+    };
   }
 
   struct Instructions {

@@ -209,6 +209,8 @@ namespace rubinius {
     inline void m_time_stamp(STATE, CF, intptr_t value, const intptr_t flag);
     inline void m_timer_start(STATE, CF, intptr_t timer);
     inline void m_timer_stop(STATE, CF, IP, const intptr_t flag);
+    inline void m_log(R0);
+    inline void m_debug(STATE, CF);
 
     // Branching instructions
     inline bool b_if_serial(CF, LITERAL, R0);
@@ -243,6 +245,37 @@ namespace rubinius {
     inline void n_igt(CF, R0, R1, R2);
     inline void n_ige(CF, R0, R1, R2);
     inline void n_ipopcnt(CF, R0, R1);
+
+    // Code execution instructions
+    inline void e_cache_method_p(STATE, CF, R0, R1);
+    inline void e_cache_function_p(STATE, CF, R0, R1);
+    inline void e_cache_value_p(STATE, CF, R0, R1);
+    inline void e_cache_method(STATE, CF, R0, R1);
+    inline void e_cache_function(STATE, CF, R0, R1);
+    inline void e_cache_value(STATE, CF, R0, R1);
+    inline void e_resolve_method(STATE, CF, R0, R1);
+    inline void e_resolve_receiver_method(STATE, CF, R0, R1);
+    inline void e_resolve_function(STATE, CF, R0, R1);
+    inline void e_resolve_scope_constant(STATE, CF, R0, R1);
+    inline void e_resolve_path_constant(STATE, CF, R0, R1);
+    inline void e_signature(STATE, CF, R0, R1);
+    inline void e_check_signature(STATE, CF, R0, R1);
+    inline void e_invoke_method(STATE, CF, R0, R1);
+    inline void e_invoke_function(STATE, CF, R0, R1);
+
+    // Assertion instructions
+    inline void a_instance(STATE, CF, R0, R1);
+    inline void a_kind(STATE, CF, R0, R1);
+    inline void a_method(STATE, CF, R0, R1);
+    inline void a_receiver_method(STATE, CF, R0, R1);
+    inline void a_type(STATE, CF, R0, R1);
+    inline void a_function(STATE, CF, R0, R1);
+    inline void a_equal(STATE, CF, R0, R1);
+    inline void a_not_equal(STATE, CF, R0, R1);
+    inline void a_less(STATE, CF, R0, R1);
+    inline void a_less_equal(STATE, CF, R0, R1);
+    inline void a_greater(STATE, CF, R0, R1);
+    inline void a_greater_equal(STATE, CF, R0, R1);
   }
 }
 
