@@ -5,9 +5,7 @@ describe "Instruction r_load_literal" do
     @spec = InstructionSpec.new :r_load_literal do |g|
       r0 = g.new_register
 
-      g.push_literal "hello"
-      g.r_load_literal r0, 0
-
+      g.r_load_literal r0, "hello"
       g.r_store_stack r0
       g.ret
     end

@@ -12,7 +12,7 @@ redcard-1.1.0.gem
 rubinius-ast-3.15.gem
 rubinius-bridge-3.0.gem
 rubinius-code-3.0.gem
-rubinius-compiler-3.32.gem
+rubinius-compiler-3.33.gem
 rubinius-coverage-2.1.gem
 rubinius-debugger-2.6.gem
 rubinius-developer_tools-2.0.0.gem
