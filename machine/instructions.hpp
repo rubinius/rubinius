@@ -209,7 +209,7 @@ namespace rubinius {
     inline void m_time_stamp(STATE, CF, intptr_t value, const intptr_t flag);
     inline void m_timer_start(STATE, CF, intptr_t timer);
     inline void m_timer_stop(STATE, CF, IP, const intptr_t flag);
-    inline void m_log(R0);
+    inline void m_log(STATE, CF, R0);
     inline void m_debug(STATE, CF);
 
     // Branching instructions

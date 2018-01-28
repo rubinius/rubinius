@@ -301,6 +301,7 @@ namespace rubinius {
           verify_symbol_or_nil(state, arg1, insn_ip);
           break;
         case instructions::data_b_if.id:
+        case instructions::data_m_log.id:
           verify_register(state, arg1, insn_ip);
           break;
         case instructions::data_b_if_int.id:
