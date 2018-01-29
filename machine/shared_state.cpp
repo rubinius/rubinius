@@ -240,7 +240,7 @@ namespace rubinius {
   }
 
   metrics::Metrics* SharedState::start_metrics(STATE) {
-    if(state->shared().config.system_metrics_target.value.compare("none")) {
+    if(state->shared().config.diagnostics_target.value.compare("none")) {
       if(!metrics_) {
         metrics_ = new metrics::Metrics(state);
         metrics_->start(state);
@@ -256,7 +256,7 @@ namespace rubinius {
   }
 
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
-    if(state->shared().config.system_diagnostics_target.value.compare("none")) {
+    if(state->shared().config.diagnostics_target.value.compare("none")) {
       diagnostics_->start_reporter(state);
     }
 
@@ -273,7 +273,7 @@ namespace rubinius {
 
   jit::JIT* SharedState::start_jit(STATE) {
     if(!jit_) {
-      if(config.machine_jit_enabled.value) {
+      if(config.jit_enabled.value) {
         jit_ = new jit::JIT(state);
       }
     }

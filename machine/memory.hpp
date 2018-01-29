@@ -104,8 +104,6 @@ namespace rubinius {
 
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
-    /// Flag set when concurrent mature mark is requested
-    bool mature_mark_concurrent_;
     /// Flag set when a mature GC is already in progress
     bool mature_gc_in_progress_;
     /// Flag set when requesting a young gen resize
@@ -209,14 +207,14 @@ namespace rubinius {
       if(collect_full_flag_) return;
 
       // Don't trigger GC if currently prohibited so we don't thrash checking.
-      if(shared_.config.memory_collection_log.value) {
+      if(shared_.config.log_gc_set.value) {
         logger::write("memory: full collection: trigger: %s", trigger);
       }
 
       if(can_gc()) {
         interrupt_flag_ = collect_full_flag_ = true;
         shared_.thread_nexus()->set_stop();
-      } else if(shared_.config.memory_collection_log.value) {
+      } else if(shared_.config.log_gc_set.value) {
         logger::write("memory: collection: disabled");
       }
     }

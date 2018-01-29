@@ -100,8 +100,6 @@ namespace rubinius {
     }
 
     set_sample_interval();
-
-    allocation_tracking_ = shared.config.allocation_tracking;
   }
 
   VM::~VM() {

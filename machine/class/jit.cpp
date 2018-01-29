@@ -32,7 +32,7 @@ namespace rubinius {
   }
 
   Object* JIT::enabled_p(STATE) {
-    return RBOOL(state->shared().config.machine_jit_enabled.value);
+    return RBOOL(state->shared().config.jit_enabled.value);
   }
 
   Object* JIT::compile_threshold(STATE) {

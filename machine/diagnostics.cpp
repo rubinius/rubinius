@@ -83,17 +83,17 @@ namespace rubinius {
     DiagnosticsReporter::DiagnosticsReporter(STATE, Diagnostics* d)
       : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
       , timer_(NULL)
-      , interval_(state->shared().config.system_diagnostics_interval)
+      , interval_(state->shared().config.diagnostics_interval)
       , list_()
       , emitter_(NULL)
       , diagnostics_lock_()
       , diagnostics_(d)
     {
       // TODO: socket target
-      if(false /*state->shared().config.system_diagnostics_target.value.compare("none")*/) {
+      if(false /*state->shared().config.diagnostics_target.value.compare("none")*/) {
       } else {
         emitter_ = new FileEmitter(state,
-            state->shared().config.system_diagnostics_target.value);
+            state->shared().config.diagnostics_target.value);
       }
     }
 

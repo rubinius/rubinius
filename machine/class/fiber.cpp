@@ -180,7 +180,7 @@ namespace rubinius {
 
     vm->fiber()->pid(state, Fixnum::from(gettid()));
 
-    if(state->shared().config.machine_thread_log_lifetime.value) {
+    if(state->shared().config.log_fiber_lifetime.value) {
       logger::write("fiber: run: %s, %d, %#x",
           vm->name().c_str(), vm->fiber()->pid()->to_native(),
           (intptr_t)pthread_self());
@@ -221,7 +221,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    if(state->shared().config.machine_fiber_log_lifetime.value) {
+    if(state->shared().config.log_fiber_lifetime.value) {
       logger::write("fiber: exit: %s %fs", vm->name().c_str(), vm->run_time());
     }
 
@@ -286,8 +286,8 @@ namespace rubinius {
     state->memory()->native_finalizer(state, fiber,
         (memory::FinalizerFunction)&Fiber::finalize);
 
-    if(state->shared().config.machine_fiber_log_lifetime.value) {
-      const std::regex& filter = state->shared().config.machine_fiber_log_filter();
+    if(state->shared().config.log_fiber_lifetime.value) {
+      const std::regex& filter = state->shared().config.log_fiber_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;
@@ -468,7 +468,7 @@ namespace rubinius {
   }
 
   void Fiber::finalize(STATE, Fiber* fiber) {
-    if(state->shared().config.machine_fiber_log_finalizer.value) {
+    if(state->shared().config.log_fiber_finalizer.value) {
       logger::write("fiber: finalizer: %s, %d",
           fiber->thread_name()->c_str(state), fiber->fiber_id()->to_native());
     }

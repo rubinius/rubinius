@@ -123,7 +123,7 @@ namespace rubinius {
   void SignalThread::start(STATE) {
     initialize(state);
 
-    if(state->shared().config.system_log_lifetime.value) {
+    if(state->shared().config.log_lifetime.value) {
       state->shared().signals()->print_machine_info(logger::write);
       state->shared().signals()->print_process_info(logger::write);
 

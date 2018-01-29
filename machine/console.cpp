@@ -42,7 +42,7 @@ namespace rubinius {
 
   namespace console {
     static int open_file(STATE, std::string path) {
-      int perms = state->shared().config.system_console_access;
+      int perms = state->shared().config.console_access;
       int fd = IO::open_with_cloexec(state, path.c_str(),
           O_CREAT | O_TRUNC | O_RDWR | O_SYNC, perms);
 
@@ -342,7 +342,7 @@ namespace rubinius {
     void Listener::initialize(STATE) {
       fd_ = ::open(console_->console_path().c_str(),
           O_CREAT | O_TRUNC | O_RDWR | O_CLOEXEC,
-          state->shared().config.system_console_access.value);
+          state->shared().config.console_access.value);
 
       if(fd_ < 0) {
         logger::error("%s: unable to open Console connection file",
@@ -351,7 +351,7 @@ namespace rubinius {
 
       // The umask setting will override our permissions for open().
       if(chmod(console_->console_path().c_str(),
-            state->shared().config.system_console_access.value) < 0) {
+            state->shared().config.console_access.value) < 0) {
         logger::error("%s: unable to set mode for Console connection file",
             strerror(errno));
       }
@@ -410,10 +410,10 @@ namespace rubinius {
       , request_(0)
       , ruby_console_(state)
     {
-      console_path_ = state->shared().config.system_console_path.value;
+      console_path_ = state->shared().config.console_path.value;
 
       std::ostringstream basename;
-      basename << state->shared().config.system_console_path.value << "-"
+      basename << state->shared().config.console_path.value << "-"
                << state->shared().pid;
 
       request_path_ = basename.str() + "-request";

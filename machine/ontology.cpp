@@ -403,9 +403,8 @@ namespace rubinius {
     G(rubinius)->set_const(state, "RELEASE_DATE", String::create(state, RBX_RELEASE_DATE));
     G(rubinius)->set_const(state, "DEBUG_BUILD", RBOOL(RBX_DEBUG_BUILD));
     G(rubinius)->set_const(state, "PROFILER",
-        RBOOL(state->shared().config.system_diagnostics_profiler_enabled));
-    G(rubinius)->set_const(state, "CONCURRENT_GC",
-        RBOOL(state->shared().config.gc_immix_concurrent));
+        RBOOL(state->shared().config.diagnostics_profiler_enabled));
+    G(rubinius)->set_const(state, "CONCURRENT_GC", cFalse);
     G(rubinius)->set_const(state, "LDSHARED", String::create(state, RBX_LDSHARED));
     G(rubinius)->set_const(state, "LDSHAREDXX", String::create(state, RBX_LDSHAREDXX));
 

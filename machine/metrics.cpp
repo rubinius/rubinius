@@ -239,7 +239,7 @@ namespace rubinius {
       : MachineThread(state, "rbx.metrics", MachineThread::eSmall)
       , enabled_(true)
       , values_(state)
-      , interval_(state->shared().config.system_metrics_interval)
+      , interval_(state->shared().config.diagnostics_interval)
       , timer_(nullptr)
       , metrics_lock_()
       , metrics_data_()
@@ -249,13 +249,9 @@ namespace rubinius {
     {
       map_metrics();
 
-      if(!state->shared().config.system_metrics_target.value.compare("statsd")) {
-        emitter_ = new StatsDEmitter(metrics_map_,
-            state->shared().config.system_metrics_statsd_server.value,
-            state->shared().config.system_metrics_statsd_prefix.value);
-      } else if(state->shared().config.system_metrics_target.value.compare("none")) {
+      if(state->shared().config.diagnostics_target.value.compare("none")) {
         emitter_ = new FileEmitter(state, metrics_map_,
-            state->shared().config.system_metrics_target.value);
+            state->shared().config.diagnostics_target.value);
       }
     }
 

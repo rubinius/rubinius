@@ -127,7 +127,6 @@ namespace rubinius {
     ConstantMissingReason constant_missing_reason_;
 
     bool zombie_;
-    bool allocation_tracking_;
     bool main_thread_;
 
     std::atomic<ThreadNexus::Phase> thread_phase_;
@@ -421,18 +420,6 @@ namespace rubinius {
 
     void clear_interrupted_exception() {
       interrupted_exception_.set(cNil);
-    }
-
-    bool allocation_tracking() const {
-      return allocation_tracking_;
-    }
-
-    void enable_allocation_tracking() {
-      allocation_tracking_ = true;
-    }
-
-    void disable_allocation_tracking() {
-      allocation_tracking_ = false;
     }
 
     memory::VariableRootBuffers& current_root_buffers();

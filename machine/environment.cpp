@@ -103,7 +103,7 @@ namespace rubinius {
     start_logging(state);
     log_argv();
 
-    if(config.system_log_config.value) {
+    if(config.log_config.value) {
       std::string options;
 
       config_parser.parsed_options(options);
@@ -151,7 +151,7 @@ namespace rubinius {
   }
 
   void Environment::check_io_descriptors() {
-    std::string dir = config.system_tmp.value;
+    std::string dir = config.tmp_path.value;
 
     if(fcntl(STDIN_FILENO, F_GETFD) < 0 && errno == EBADF) {
       assign_io_descriptor(dir, STDIN_FILENO, "stdin");
@@ -178,32 +178,32 @@ namespace rubinius {
   void Environment::start_logging(STATE) {
     logger::logger_level level = logger::eWarn;
 
-    if(!config.system_log_level.value.compare("fatal")) {
+    if(!config.log_level.value.compare("fatal")) {
       level = logger::eFatal;
-    } else if(!config.system_log_level.value.compare("error")) {
+    } else if(!config.log_level.value.compare("error")) {
       level = logger::eError;
-    } else if(!config.system_log_level.value.compare("warn")) {
+    } else if(!config.log_level.value.compare("warn")) {
       level = logger::eWarn;
-    } else if(!config.system_log_level.value.compare("info")) {
+    } else if(!config.log_level.value.compare("info")) {
       level = logger::eInfo;
-    } else if(!config.system_log_level.value.compare("debug")) {
+    } else if(!config.log_level.value.compare("debug")) {
       level = logger::eDebug;
     }
 
-    if(!config.system_log.value.compare("syslog")) {
+    if(!config.log_target.value.compare("syslog")) {
       logger::open(logger::eSyslog, level, RBX_PROGRAM_NAME);
-    } else if(!config.system_log.value.compare("console")) {
+    } else if(!config.log_target.value.compare("console")) {
       logger::open(logger::eConsoleLogger, level, RBX_PROGRAM_NAME);
     } else {
-      expand_config_value(config.system_log.value, "$TMPDIR", config.system_tmp);
-      expand_config_value(config.system_log.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
-      expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
+      expand_config_value(config.log_target.value, "$TMPDIR", config.tmp_path);
+      expand_config_value(config.log_target.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+      expand_config_value(config.log_target.value, "$USER", shared->username.c_str());
 
       logger::open(logger::eFileLogger, level,
-          config.system_log.value.c_str(),
-          config.system_log_limit.value,
-          config.system_log_archives.value,
-          config.system_log_access.value);
+          config.log_target.value.c_str(),
+          config.log_limit.value,
+          config.log_archives.value,
+          config.log_access.value);
     }
   }
 
@@ -343,7 +343,7 @@ namespace rubinius {
   }
 
   void Environment::set_tmp_path() {
-    if(!config.system_tmp.value.compare("$TMPDIR")) {
+    if(!config.tmp_path.value.compare("$TMPDIR")) {
       std::ostringstream path;
       const char* tmp = getenv("TMPDIR");
 
@@ -354,7 +354,7 @@ namespace rubinius {
         path << "/tmp/";
       }
 
-      config.system_tmp.value.assign(path.str());
+      config.tmp_path.value.assign(path.str());
     }
   }
 
@@ -371,13 +371,13 @@ namespace rubinius {
   }
 
   void Environment::set_console_path() {
-    std::string path(config.system_console_path.value);
+    std::string path(config.console_path.value);
 
-    expand_config_value(path, "$TMPDIR", config.system_tmp);
+    expand_config_value(path, "$TMPDIR", config.tmp_path);
     expand_config_value(path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
     expand_config_value(path, "$USER", shared->username.c_str());
 
-    config.system_console_path.value.assign(path);
+    config.console_path.value.assign(path);
   }
 
   void Environment::set_codedb_paths() {
@@ -387,7 +387,7 @@ namespace rubinius {
 
     std::string cache_path(config.codedb_cache_path.value);
 
-    expand_config_value(cache_path, "$TMPDIR", config.system_tmp);
+    expand_config_value(cache_path, "$TMPDIR", config.tmp_path);
     expand_config_value(cache_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
     expand_config_value(cache_path, "$USER", shared->username.c_str());
 
@@ -513,7 +513,7 @@ namespace rubinius {
 
     state->shared().set_halting();
 
-    if(state->shared().config.system_log_lifetime.value) {
+    if(state->shared().config.log_lifetime.value) {
       logger::write("process: exit: %s %d %lld %fs %fs",
           shared->pid.c_str(), exit_code,
           shared->codedb_metrics().load_count,

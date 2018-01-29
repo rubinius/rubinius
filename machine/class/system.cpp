@@ -475,8 +475,8 @@ namespace rubinius {
 
       close(errors[1]);
 
-      if(state->shared().config.system_log_lifetime.value) {
-        const std::regex& filter = state->shared().config.system_log_filter();
+      if(state->shared().config.log_lifetime.value) {
+        const std::regex& filter = state->shared().config.log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: spawn: %d: %s, %s, %s:%d",
@@ -605,8 +605,8 @@ namespace rubinius {
       close(errors[1]);
       close(output[1]);
 
-      if(state->shared().config.system_log_lifetime.value) {
-        const std::regex& filter = state->shared().config.system_log_filter();
+      if(state->shared().config.log_lifetime.value) {
+        const std::regex& filter = state->shared().config.log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: backtick: %d: %s, %s, %s:%d",
@@ -703,8 +703,8 @@ namespace rubinius {
      */
     ExecCommand exe(state, path, args);
 
-    if(state->shared().config.system_log_lifetime.value) {
-      const std::regex& filter = state->shared().config.system_log_filter();
+    if(state->shared().config.log_lifetime.value) {
+      const std::regex& filter = state->shared().config.log_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         logger::write("process: exec: %s, %s, %s:%d", exe.command(),
@@ -862,8 +862,8 @@ namespace rubinius {
         // We're in the parent...
         state->shared().machine_threads()->after_fork_parent(state);
 
-        if(state->shared().config.system_log_lifetime.value) {
-          const std::regex& filter = state->shared().config.system_log_filter();
+        if(state->shared().config.log_lifetime.value) {
+          const std::regex& filter = state->shared().config.log_filter();
 
           if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
             logger::write("process: fork: child: %d, %s, %s:%d", pid,

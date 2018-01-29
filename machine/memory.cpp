@@ -65,7 +65,6 @@ namespace rubinius {
     , cycle_(0)
     , mark_(2)
     , allow_gc_(true)
-    , mature_mark_concurrent_(shared.config.gc_immix_concurrent)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , interrupt_flag_(false)
@@ -75,7 +74,7 @@ namespace rubinius {
     , vm_(vm)
     , last_object_id(1)
     , last_snapshot_id(0)
-    , large_object_threshold(shared.config.gc_large_object)
+    , large_object_threshold(shared.config.memory_large_object)
   {
     // TODO Not sure where this code should be...
 #ifdef ENABLE_OBJECT_WATCH
@@ -592,7 +591,7 @@ step1:
     timer::StopWatch<timer::milliseconds> timerx(
         state->vm()->metrics().gc.immix_stop_ms);
 
-    if(state->shared().config.memory_collection_log.value) {
+    if(state->shared().config.log_gc_run.value) {
       logger::write("memory: full collection");
     }
 
@@ -606,18 +605,10 @@ step1:
       immix_->collect(&data);
       collect_full_finish(state, &data);
     }
-
-    if(mature_mark_concurrent_) {
-      memory::GCData* data = new memory::GCData(state->vm());
-
-      mature_gc_in_progress_ = true;
-
-      immix_->collect_start(data);
-    }
   }
 
   void Memory::collect_full_restart(STATE, memory::GCData* data) {
-    if(state->shared().config.memory_collection_log.value) {
+    if(state->shared().config.log_gc_run.value) {
       logger::write("memory: concurrent collection restart");
     }
 
