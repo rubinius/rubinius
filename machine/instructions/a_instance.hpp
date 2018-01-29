@@ -2,7 +2,7 @@
 
 namespace rubinius {
   namespace instructions {
-    inline void a_instance(CF, R0, R1) {
+    inline void a_instance(STATE, CF, R0, R1) {
     }
   }
 }

@@ -10,6 +10,10 @@
 #include "instructions/data.hpp"
 
 namespace rubinius {
+  inline bool Object::integer_p() const {
+    return fixnum_p() || (reference_p() && try_as<Bignum>(this));
+  }
+
   namespace instructions {
     using namespace rubinius;
 

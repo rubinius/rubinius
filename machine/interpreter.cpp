@@ -100,6 +100,7 @@ namespace rubinius {
       case instructions::data_r_store_local_depth.id:
       case instructions::data_r_load_stack.id:
       case instructions::data_r_store_stack.id:
+      case instructions::data_m_log.id:
         opcodes[ip + 1] += stack_size;
         break;
       case instructions::data_r_load_literal.id: {
@@ -116,6 +117,18 @@ namespace rubinius {
       case instructions::data_r_store_int.id:
       case instructions::data_r_copy.id:
       case instructions::data_n_ipopcnt.id:
+      case instructions::data_a_instance.id:
+      case instructions::data_a_kind.id:
+      case instructions::data_a_method.id:
+      case instructions::data_a_receiver_method.id:
+      case instructions::data_a_type.id:
+      case instructions::data_a_function.id:
+      case instructions::data_a_equal.id:
+      case instructions::data_a_not_equal.id:
+      case instructions::data_a_less.id:
+      case instructions::data_a_less_equal.id:
+      case instructions::data_a_greater.id:
+      case instructions::data_a_greater_equal.id:
         opcodes[ip + 1] += stack_size;
         opcodes[ip + 2] += stack_size;
         break;

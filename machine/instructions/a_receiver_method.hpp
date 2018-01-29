@@ -2,7 +2,7 @@
 
 namespace rubinius {
   namespace instructions {
-    inline void a_receiver_method(CF, R0, R1) {
+    inline void a_receiver_method(STATE, CF, R0, R1) {
     }
   }
 }

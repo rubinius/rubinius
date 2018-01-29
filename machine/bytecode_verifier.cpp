@@ -305,6 +305,18 @@ namespace rubinius {
           verify_register(state, arg1, insn_ip);
           break;
         case instructions::data_b_if_int.id:
+        case instructions::data_a_instance.id:
+        case instructions::data_a_kind.id:
+        case instructions::data_a_method.id:
+        case instructions::data_a_receiver_method.id:
+        case instructions::data_a_type.id:
+        case instructions::data_a_function.id:
+        case instructions::data_a_equal.id:
+        case instructions::data_a_not_equal.id:
+        case instructions::data_a_less.id:
+        case instructions::data_a_less_equal.id:
+        case instructions::data_a_greater.id:
+        case instructions::data_a_greater_equal.id:
           verify_register(state, arg1, insn_ip);
           verify_register(state, arg2, insn_ip);
           break;

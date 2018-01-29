@@ -97,6 +97,8 @@ namespace rubinius {
     /** True if this Object* is actually a Fixnum, false otherwise. */
     bool fixnum_p() const;
 
+    bool integer_p() const;
+
     /**
      *  Retrieve the Object stored in given field index of this Object.
      *
