@@ -1,3 +1,4 @@
+#include "diagnostics.hpp"
 #include "environment.hpp"
 #include "machine_code.hpp"
 #include "profiler.hpp"
@@ -12,10 +13,10 @@
 #include <vector>
 
 namespace rubinius {
-  namespace profiler {
+  namespace diagnostics {
     ProfilerDiagnostics::ProfilerDiagnostics()
-      : diagnostics::DiagnosticsData()
     {
+      /* TODO: diagnostics
       set_type("Profiler");
 
       document.AddMember("thread", 0, document.GetAllocator());
@@ -23,8 +24,11 @@ namespace rubinius {
       document.AddMember("sample_average_time", 0.0, document.GetAllocator());
       document.AddMember("total_time", 0.0, document.GetAllocator());
       document.AddMember("entries", 0, document.GetAllocator());
+      */
     }
+  }
 
+  namespace profiler {
     Profiler::Profiler(STATE)
       : path_()
       , diagnostics_data_(NULL)
@@ -32,10 +36,6 @@ namespace rubinius {
     }
 
     void Profiler::report(STATE) {
-    }
-
-    static bool profile_cmp(const CompiledCode* left, const CompiledCode* right) {
-      return left->machine_code()->sample_count > right->machine_code()->sample_count;
     }
   }
 }

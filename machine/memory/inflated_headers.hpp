@@ -1,9 +1,10 @@
 #ifndef RBX_GC_INFLATED_HEADERS_HPP
 #define RBX_GC_INFLATED_HEADERS_HPP
 
-#include "diagnostics.hpp"
 #include "defines.hpp"
 #include "memory/allocator.hpp"
+
+#include "diagnostics/memory.hpp"
 
 #include <stddef.h>
 #include <list>

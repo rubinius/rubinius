@@ -24,6 +24,8 @@
 #include "class/call_site.hpp"
 #include "class/unwind_site.hpp"
 
+#include "diagnostics/measurement.hpp"
+
 #include "instructions.hpp"
 
 #include "instruments/timing.hpp"

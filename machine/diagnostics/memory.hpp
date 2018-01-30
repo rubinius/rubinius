@@ -5,6 +5,15 @@
 
 namespace rubinius {
   namespace diagnostics {
+    class MemoryDiagnostics {
+    public:
+      uint64_t objects_;
+      uint64_t bytes_;
+
+      MemoryDiagnostics();
+      virtual ~MemoryDiagnostics() { }
+    };
+
     struct MemoryMetrics {
       metric young_bytes;
       metric young_objects;

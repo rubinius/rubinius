@@ -1,7 +1,8 @@
 #ifndef RBX_GC_CODE_MANAGER
 #define RBX_GC_CODE_MANAGER
 
-#include "diagnostics.hpp"
+#include "diagnostics/memory.hpp"
+
 #include "util/thread.hpp"
 
 #include <stdint.h>

@@ -11,7 +11,9 @@
 #include "configuration.hpp"
 
 #include "console.hpp"
+#include "diagnostics.hpp"
 #include "signal.hpp"
+
 #include "class/randomizer.hpp"
 #include "class/array.hpp"
 #include "class/fixnum.hpp"
@@ -244,6 +246,12 @@ namespace rubinius {
     }
 
     return diagnostics_;
+  }
+
+  void SharedState::report_diagnostics(diagnostics::Formatter* formatter) {
+    if(diagnostics_) {
+      diagnostics_->report(formatter);
+    }
   }
 
   profiler::Profiler* SharedState::start_profiler(STATE) {

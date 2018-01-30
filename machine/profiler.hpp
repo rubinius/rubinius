@@ -2,19 +2,14 @@
 #define RBX_PROFILER_H
 
 #include "defines.hpp"
-#include "diagnostics.hpp"
+
+#include "diagnostics/profiler.hpp"
 
 namespace rubinius {
   namespace profiler {
-    class ProfilerDiagnostics : public diagnostics::DiagnosticsData {
-    public:
-      ProfilerDiagnostics();
-      virtual ~ProfilerDiagnostics() { }
-    };
-
     class Profiler {
       std::string path_;
-      ProfilerDiagnostics* diagnostics_data_;
+      diagnostics::ProfilerDiagnostics* diagnostics_data_;
 
     public:
       Profiler(STATE);
@@ -23,9 +18,9 @@ namespace rubinius {
         if(diagnostics_data_) delete diagnostics_data_;
       }
 
-      ProfilerDiagnostics* diagnostics_data() {
+      diagnostics::ProfilerDiagnostics* diagnostics_data() {
         if(!diagnostics_data_) {
-          diagnostics_data_ = new ProfilerDiagnostics();
+          diagnostics_data_ = new diagnostics::ProfilerDiagnostics();
         }
 
         return diagnostics_data_;

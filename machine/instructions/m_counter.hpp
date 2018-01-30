@@ -1,5 +1,6 @@
 #include "instructions.hpp"
-#include "diagnostics.hpp"
+
+#include "diagnostics/measurement.hpp"
 
 namespace rubinius {
   using namespace diagnostics;

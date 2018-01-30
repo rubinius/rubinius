@@ -11,6 +11,8 @@
 #include "class/location.hpp"
 #include "class/unwind_site.hpp"
 
+#include "diagnostics/measurement.hpp"
+
 namespace rubinius {
   using namespace diagnostics;
 

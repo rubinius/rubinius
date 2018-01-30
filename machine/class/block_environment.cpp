@@ -21,6 +21,7 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 
+#include <algorithm>
 #include <iostream>
 
 namespace rubinius {
@@ -289,7 +290,7 @@ namespace rubinius {
 
       native_int X;
 
-      const native_int ON = (X = MIN(O, E)) > 0 ? X : 0;
+      const native_int ON = (X = std::min(O, E)) > 0 ? X : 0;
       const native_int RN = (RP && (X = E - ON) > 0) ? X : 0;
       const native_int PI = H + O + (RP ? 1 : 0);
       const native_int KI = RP ? T : T - 1;
@@ -310,7 +311,7 @@ namespace rubinius {
 
       // optional arguments
       if(O > 0) {
-        for(; l < H + O && a < MIN(N, H + ON); l++, a++) {
+        for(; l < H + O && a < std::min(N, H + ON); l++, a++) {
           if(unlikely(kw_remainder && !RP && (a == N - 1))) {
             scope->set_local(l, kw_remainder);
           } else {
@@ -346,7 +347,7 @@ namespace rubinius {
 
       // post arguments
       if(P > 0) {
-        const native_int N_K = (X = MIN(N, N - K)) > 0 ? X : N;
+        const native_int N_K = (X = std::min(N, N - K)) > 0 ? X : N;
 
         for(l = PI; l < PI + P && a < N_K; l++, a++) {
           scope->set_local(l, args.get_argument(a));

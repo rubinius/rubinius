@@ -21,6 +21,7 @@ namespace memory {
     , holes_(0)
     , percentage_(0.0)
   {
+    /* TODO: diagnostics
     set_type("ImmixCollector");
 
     document.AddMember("collections", collections_, document.GetAllocator());
@@ -28,10 +29,12 @@ namespace memory {
     document.AddMember("chunks", chunks_, document.GetAllocator());
     document.AddMember("holes", holes_, document.GetAllocator());
     document.AddMember("percentage", percentage_, document.GetAllocator());
+    */
   }
 
 
   void ImmixGC::Diagnostics::update() {
+    /* TODO: diagnostics
     document["objects"] = objects_;
     document["bytes"] = bytes_;
     document["collections"] = collections_;
@@ -39,6 +42,7 @@ namespace memory {
     document["chunks"] = chunks_;
     document["holes"] = holes_;
     document["percentage"] = percentage_;
+    */
   }
 
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
@@ -356,7 +360,8 @@ namespace memory {
 
       diagnostics()->collections_++;
 
-      memory_->shared().report_diagnostics(diagnostics_);
+      // TODO: diagnostics
+      // memory_->shared().report_diagnostics(diagnostics_);
     }
 
     allocator_.restart(diagnostics()->percentage_,

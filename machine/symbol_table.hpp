@@ -4,7 +4,8 @@
 #include "memory/header.hpp"
 
 #include "defines.hpp"
-#include "diagnostics.hpp"
+
+#include "diagnostics/memory.hpp"
 
 #include "util/thread.hpp"
 

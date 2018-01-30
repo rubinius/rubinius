@@ -5,7 +5,8 @@
 #include "memory/root.hpp"
 
 #include "object_position.hpp"
-#include "diagnostics.hpp"
+
+#include "diagnostics/memory.hpp"
 
 #include <stdint.h>
 #include <list>

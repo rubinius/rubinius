@@ -6,7 +6,6 @@
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
 
-#include "diagnostics.hpp"
 #include "globals.hpp"
 #include "jit.hpp"
 #include "machine_threads.hpp"
@@ -29,6 +28,7 @@
 #include <atomic>
 #include <functional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #ifdef RBX_WINDOWS
@@ -40,6 +40,11 @@ namespace rubinius {
     class Handle;
     class Handles;
     class GlobalHandle;
+  }
+
+  namespace diagnostics {
+    class Diagnostics;
+    class Formatter;
   }
 
   namespace console {
@@ -279,12 +284,7 @@ namespace rubinius {
 
     diagnostics::Diagnostics* start_diagnostics(STATE);
 
-    void report_diagnostics(diagnostics::DiagnosticsData* data) {
-      if(diagnostics_) {
-        data->update();
-        diagnostics_->report(data);
-      }
-    }
+    void report_diagnostics(diagnostics::Formatter* data);
 
     profiler::Profiler* start_profiler(STATE);
 

@@ -4,6 +4,8 @@
 #include "environment.hpp"
 #include "logger.hpp"
 
+#include "diagnostics/measurement.hpp"
+
 #include <rapidjson/writer.h>
 
 #include <unistd.h>
@@ -43,18 +45,19 @@ namespace rubinius {
     }
 
     MemoryDiagnostics::MemoryDiagnostics()
-      : DiagnosticsData()
-      , objects_(0)
+      : objects_(0)
       , bytes_(0)
     {
+      /* TODO: diagnostics
       set_type("MemoryDiagnostics");
 
       document.AddMember("objects", objects_, document.GetAllocator());
       document.AddMember("bytes", bytes_, document.GetAllocator());
+      */
     }
 
     FileEmitter::FileEmitter(STATE, std::string path)
-      : DiagnosticsEmitter()
+      : Emitter()
       , path_(path)
       , fd_(-1)
     {
@@ -80,12 +83,11 @@ namespace rubinius {
       }
     }
 
-    DiagnosticsReporter::DiagnosticsReporter(STATE, Diagnostics* d)
+    Reporter::Reporter(STATE, Diagnostics* d)
       : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
-      , timer_(NULL)
+      , timer_(nullptr)
       , interval_(state->shared().config.diagnostics_interval)
-      , list_()
-      , emitter_(NULL)
+      , emitter_(nullptr)
       , diagnostics_lock_()
       , diagnostics_(d)
     {
@@ -97,15 +99,13 @@ namespace rubinius {
       }
     }
 
-    void DiagnosticsReporter::initialize(STATE) {
+    void Reporter::initialize(STATE) {
       MachineThread::initialize(state);
 
       timer_ = new timer::Timer;
-
-      diagnostics_lock_.init();
     }
 
-    void DiagnosticsReporter::wakeup(STATE) {
+    void Reporter::wakeup(STATE) {
       MachineThread::wakeup(state);
 
       if(timer_) {
@@ -114,14 +114,12 @@ namespace rubinius {
       }
     }
 
-    void DiagnosticsReporter::after_fork_child(STATE) {
+    void Reporter::after_fork_child(STATE) {
       MachineThread::after_fork_child(state);
     }
 
-    void DiagnosticsReporter::report(DiagnosticsData* data) {
-      utilities::thread::Mutex::LockGuard guard(diagnostics_lock_);
-
-      list_.push_front(data);
+    void Reporter::report(Formatter* formatter) {
+      std::lock_guard<std::mutex> guard(diagnostics_lock_);
 
       if(timer_) {
         timer_->clear();
@@ -129,7 +127,7 @@ namespace rubinius {
       }
     }
 
-    void DiagnosticsReporter::run(STATE) {
+    void Reporter::run(STATE) {
       state->vm()->unmanaged_phase(state);
 
       timer_->set(interval_);
@@ -144,12 +142,7 @@ namespace rubinius {
         if(thread_exit_) break;
 
         {
-          utilities::thread::Mutex::LockGuard guard(diagnostics_lock_);
-
-          if(!list_.empty()) {
-            data = list_.back();
-            list_.pop_back();
-          }
+          std::lock_guard<std::mutex> guard(diagnostics_lock_);
 
           for(auto m : diagnostics_->measurements()) {
             m->report(state);

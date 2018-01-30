@@ -1,12 +1,15 @@
 #ifndef RBX_CAPI_HANDLES_HPP
 #define RBX_CAPI_HANDLES_HPP
 
-#include "diagnostics.hpp"
 #include "vm.hpp"
 #include "state.hpp"
+
 #include "memory/root.hpp"
 #include "memory/allocator.hpp"
+
 #include "capi/handle.hpp"
+
+#include "diagnostics/memory.hpp"
 
 #include <vector>
 #include <stdint.h>
