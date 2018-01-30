@@ -69,7 +69,7 @@ namespace rubinius {
       }
     }
 
-    state->vm()->metrics().machine.blocks_invoked++;
+    state->vm()->metrics().blocks_invoked++;
 
     if(executor ptr = mcode->unspecialized) {
       return (*((BlockExecutor)ptr))(state, env, args, invocation);

@@ -134,8 +134,8 @@ namespace rubinius {
     if(up < 0) rubinius::bug("negative skip frame value provided");
 
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().machine.backtrace_us);
-    state->vm()->metrics().machine.backtraces++;
+        state->vm()->metrics().backtrace_us);
+    state->vm()->metrics().backtraces++;
 
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;
@@ -169,8 +169,8 @@ namespace rubinius {
     if(up < 0) rubinius::bug("negative skip frame value provided");
 
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().machine.backtrace_us);
-    state->vm()->metrics().machine.backtraces++;
+        state->vm()->metrics().backtrace_us);
+    state->vm()->metrics().backtraces++;
 
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;

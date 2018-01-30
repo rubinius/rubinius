@@ -8,7 +8,7 @@
 #include "class/class.hpp"
 #include "class/executable.hpp"
 
-#include "metrics.hpp"
+#include "diagnostics/machine.hpp"
 
 #include "capi/tag.hpp"
 #include "capi/value.hpp"
@@ -38,7 +38,7 @@ namespace rubinius {
 
     VALUE outgoing_block_;
 
-    metrics::MetricsData metrics_;
+    diagnostics::MachineMetrics metrics_;
 
   public:   /* Class Interface */
     NativeMethodEnvironment(STATE)
@@ -61,7 +61,7 @@ namespace rubinius {
     /** GC marking for Objects behind VALUEs. */
     void mark_handles(memory::ObjectMark& mark);
 
-    metrics::MetricsData* metrics() {
+    diagnostics::MachineMetrics* metrics() {
       return &metrics_;
     }
 

@@ -4,7 +4,6 @@
 #include "on_stack.hpp"
 #include "memory.hpp"
 #include "call_frame.hpp"
-#include "metrics.hpp"
 #include "exception_point.hpp"
 #include "thread_phase.hpp"
 
@@ -217,7 +216,7 @@ namespace rubinius {
             object->finalize(state);
             delete object;
 
-            vm()->metrics().gc.objects_finalized++;
+            state->shared().gc_metrics().objects_finalized++;
           }
 
           state->vm()->thread_nexus()->yield(state, state->vm());
@@ -260,7 +259,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        vm()->metrics().gc.objects_finalized++;
+        state->shared().gc_metrics().objects_finalized++;
       }
 
       while(!live_list_.empty()) {
@@ -270,7 +269,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        vm()->metrics().gc.objects_finalized++;
+        state->shared().gc_metrics().objects_finalized++;
       }
     }
 
@@ -338,7 +337,7 @@ namespace rubinius {
 
     void FinalizerThread::add_finalizer(STATE, FinalizerObject* obj) {
       live_list_.push_back(obj);
-      vm()->metrics().gc.objects_queued++;
+      state->shared().gc_metrics().objects_queued++;
     }
 
     void FinalizerThread::gc_scan(ImmixGC* gc, Memory* memory) {

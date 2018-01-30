@@ -44,7 +44,7 @@ namespace memory {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(memory_) {
       // memory_->schedule_full_collection("Immix region chunk added");
-      memory_->vm()->metrics().memory.immix_chunks++;
+      memory_->shared().memory_metrics().immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
         gc_->reset_chunks_left();
@@ -336,7 +336,7 @@ namespace memory {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          vm()->metrics().gc.immix_diagnostics_us);
+          vm()->shared.gc_metrics().immix_diagnostics_us);
 
       // Now, calculate how much space we're still using.
       Chunks& chunks = gc_.block_allocator().chunks();

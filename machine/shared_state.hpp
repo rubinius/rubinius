@@ -10,12 +10,16 @@
 #include "globals.hpp"
 #include "jit.hpp"
 #include "machine_threads.hpp"
-#include "metrics.hpp"
 #include "primitives.hpp"
 #include "profiler.hpp"
 #include "spinlock.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
+
+#include "diagnostics/codedb.hpp"
+#include "diagnostics/gc.hpp"
+#include "diagnostics/machine.hpp"
+#include "diagnostics/memory.hpp"
 
 #include "util/thread.hpp"
 
@@ -91,12 +95,14 @@ namespace rubinius {
     SignalThread* signals_;
     memory::FinalizerThread* finalizer_;
     console::Console* console_;
-    metrics::Metrics* metrics_;
+    diagnostics::MachineMetrics* metrics_;
     diagnostics::Diagnostics* diagnostics_;
     profiler::Profiler* profiler_;
     jit::JIT* jit_;
-    metrics::BootMetrics boot_metrics_;
-    metrics::CodeDBMetrics codedb_metrics_;
+    diagnostics::BootMetrics boot_metrics_;
+    diagnostics::CodeDBMetrics codedb_metrics_;
+    diagnostics::GCMetrics gc_metrics_;
+    diagnostics::MemoryMetrics memory_metrics_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -149,12 +155,20 @@ namespace rubinius {
     SharedState(Environment* env, Configuration& config, ConfigParser& cp);
     ~SharedState();
 
-    metrics::BootMetrics& boot_metrics() {
+    diagnostics::BootMetrics& boot_metrics() {
       return boot_metrics_;
     }
 
-    metrics::CodeDBMetrics& codedb_metrics() {
+    diagnostics::CodeDBMetrics& codedb_metrics() {
       return codedb_metrics_;
+    }
+
+    diagnostics::GCMetrics& gc_metrics() {
+      return gc_metrics_;
+    }
+
+    diagnostics::MemoryMetrics& memory_metrics() {
+      return memory_metrics_;
     }
 
     bool booting_p() {
@@ -255,12 +269,9 @@ namespace rubinius {
 
     console::Console* start_console(STATE);
 
-    metrics::Metrics* metrics() const {
+    diagnostics::MachineMetrics* metrics() const {
       return metrics_;
     }
-
-    metrics::Metrics* start_metrics(STATE);
-    void disable_metrics(STATE);
 
     diagnostics::Diagnostics* diagnostics() const {
       return diagnostics_;

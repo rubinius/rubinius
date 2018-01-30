@@ -2,7 +2,6 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "ffi_util.hpp"
-#include "metrics.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"

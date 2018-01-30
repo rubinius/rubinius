@@ -6,7 +6,8 @@
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
 #include "memory/root.hpp"
-#include "metrics.hpp"
+
+#include "diagnostics/machine.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -28,14 +29,13 @@ namespace memory {
     };
 
   private:
-    SharedState& shared_;
     Roots roots_;
     std::string name_;
     VariableRootBuffers variable_root_buffers_;
     RootBuffers root_buffers_;
     LockedObjects locked_objects_;
     Kind kind_;
-    metrics::MetricsData metrics_;
+    diagnostics::MachineMetrics metrics_;
 
   protected:
     memory::Slab local_slab_;
@@ -131,7 +131,7 @@ namespace memory {
       return os_thread_;
     }
 
-    metrics::MetricsData& metrics() {
+    diagnostics::MachineMetrics& metrics() {
       return metrics_;
     }
   };

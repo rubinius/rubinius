@@ -2,7 +2,6 @@
 #include "call_frame.hpp"
 #include "on_stack.hpp"
 #include "memory.hpp"
-#include "metrics.hpp"
 #include "raise_reason.hpp"
 #include "thread_phase.hpp"
 
@@ -306,7 +305,7 @@ namespace rubinius {
       }
     }
 
-    state->vm()->metrics().system.fibers_created++;
+    state->vm()->metrics().fibers_created++;
 
     return fiber;
   }

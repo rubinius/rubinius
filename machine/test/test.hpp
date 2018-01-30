@@ -8,7 +8,6 @@
 #include "machine/object_utils.hpp"
 #include "memory.hpp"
 #include "configuration.hpp"
-#include "metrics.hpp"
 #include "machine/detection.hpp"
 #include "class/executable.hpp"
 #include "class/method_table.hpp"

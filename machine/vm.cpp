@@ -110,7 +110,7 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    state->vm()->metrics().system.threads_destroyed++;
+    state->vm()->metrics().threads_destroyed++;
 
     delete vm;
   }
@@ -296,9 +296,9 @@ namespace rubinius {
   }
 
   void VM::sample(STATE) {
-    timer::StopWatch<timer::nanoseconds> timer(metrics().machine.sample_ns);
+    timer::StopWatch<timer::nanoseconds> timer(metrics().sample_ns);
 
-    metrics().machine.samples++;
+    metrics().samples++;
 
     CallFrame* frame = state->vm()->call_frame();
 
@@ -323,13 +323,6 @@ namespace rubinius {
     ts.tv_nsec = delay[i++ % modulo];
 
     nanosleep(&ts, NULL);
-  }
-
-  void VM::sleeping_suspend(STATE, metrics::metric& counter) {
-    timer::StopWatch<timer::milliseconds> timer(counter);
-
-    UnmanagedPhase sleeping(state);
-    suspend_thread();
   }
 
   void VM::set_zombie(STATE) {

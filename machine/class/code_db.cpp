@@ -3,7 +3,6 @@
 #include "on_stack.hpp"
 #include "ontology.hpp"
 #include "marshal.hpp"
-#include "metrics.hpp"
 #include "thread_phase.hpp"
 
 #include "class/array.hpp"

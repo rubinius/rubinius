@@ -82,7 +82,7 @@ namespace rubinius {
         Cache* new_cache = new(mem) Cache(1);
         new(new_cache->_entries_) Entry(receiver, dispatch.prediction);
 
-        state->vm()->metrics().machine.inline_cache_count++;
+        state->vm()->metrics().inline_cache_count++;
 
         return new_cache;
       }
@@ -103,7 +103,7 @@ namespace rubinius {
 
         new_cache->copy_valid(cache, 1);
 
-        state->vm()->metrics().machine.inline_cache_count++;
+        state->vm()->metrics().inline_cache_count++;
 
         return new_cache;
       }
@@ -288,7 +288,7 @@ namespace rubinius {
       cache->name(name);
       cache->ip(ip);
 
-      state->vm()->metrics().machine.call_site_count++;
+      state->vm()->metrics().call_site_count++;
 
       return cache;
     }
@@ -544,7 +544,7 @@ namespace rubinius {
           delete_cache(cache);
 
           // TODO: pass State into GC!
-          VM::current()->metrics().machine.inline_cache_disabled++;
+          VM::current()->metrics().inline_cache_disabled++;
         } else {
           // Campact and possibly reset cache
           Cache* new_cache = cache->compact();
@@ -556,7 +556,7 @@ namespace rubinius {
 
             if(new_cache) {
               // TODO: pass State into GC!
-              VM::current()->metrics().machine.inline_cache_count++;
+              VM::current()->metrics().inline_cache_count++;
             } else {
               execute(CallSite::dispatch_once);
             }

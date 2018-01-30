@@ -6,7 +6,6 @@
 
 #include "type_info.hpp"
 #include "object_position.hpp"
-#include "metrics.hpp"
 #include "configuration.hpp"
 
 #include "class/class.hpp"
@@ -17,6 +16,8 @@
 #include "memory/finalizer.hpp"
 #include "memory/write_barrier.hpp"
 #include "memory/immix_collector.hpp"
+
+#include "diagnostics/metrics.hpp"
 
 #include "util/atomic.hpp"
 #include "util/thread.hpp"
@@ -187,7 +188,7 @@ namespace rubinius {
       allow_gc_ = false;
     }
 
-    void schedule_young_collection(VM* vm, metrics::metric& counter) {
+    void schedule_young_collection(VM* vm, diagnostics::metric& counter) {
       counter++;
 
       // Don't trigger GC if currently prohibited so we don't thrash checking.
@@ -197,7 +198,7 @@ namespace rubinius {
       }
     }
 
-    void schedule_full_collection(const char* trigger, metrics::metric& counter) {
+    void schedule_full_collection(const char* trigger, diagnostics::metric& counter) {
       counter++;
       schedule_full_collection(trigger);
     }

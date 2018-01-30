@@ -23,7 +23,7 @@ namespace rubinius {
         diagnostics()->collections_++;
         state->memory()->schedule_full_collection(
             "CAPI handles",
-            state->vm()->metrics().gc.handles_set);
+            state->shared().gc_metrics().handles_set);
       }
       atomic::memory_barrier();
       return handle;
@@ -44,7 +44,7 @@ namespace rubinius {
         diagnostics()->collections_++;
         state->memory()->schedule_full_collection(
             "CAPI handles",
-            state->vm()->metrics().gc.handles_set);
+            state->shared().gc_metrics().handles_set);
       }
       atomic::memory_barrier();
 

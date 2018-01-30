@@ -24,7 +24,7 @@ namespace memory {
       diagnostics()->collections_++;
       state->memory()->schedule_full_collection(
           "Inflated headers",
-          state->vm()->metrics().gc.headers_set);
+          state->shared().gc_metrics().headers_set);
     }
     atomic::memory_barrier();
     return header;

@@ -11,7 +11,6 @@
 #include "configuration.hpp"
 
 #include "console.hpp"
-#include "metrics.hpp"
 #include "signal.hpp"
 #include "class/randomizer.hpp"
 #include "class/array.hpp"
@@ -239,22 +238,6 @@ namespace rubinius {
     return console_;
   }
 
-  metrics::Metrics* SharedState::start_metrics(STATE) {
-    if(state->shared().config.diagnostics_target.value.compare("none")) {
-      if(!metrics_) {
-        metrics_ = new metrics::Metrics(state);
-        metrics_->start(state);
-        metrics_->init_ruby_metrics(state);
-      }
-    }
-
-    return metrics_;
-  }
-
-  void SharedState::disable_metrics(STATE) {
-    if(metrics_) metrics_->disable(state);
-  }
-
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
     if(state->shared().config.diagnostics_target.value.compare("none")) {
       diagnostics_->start_reporter(state);
@@ -282,8 +265,6 @@ namespace rubinius {
   }
 
   void SharedState::after_fork_child(STATE) {
-    disable_metrics(state);
-
     // Reinit the locks for this object
     codedb_lock_.init(true);
     capi_ds_lock_.init();

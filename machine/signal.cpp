@@ -90,7 +90,7 @@ namespace rubinius {
   void SignalThread::queue_signal(int signal) {
     if(system_exit_) return;
 
-    vm()->metrics().system.signals_received++;
+    vm()->metrics().signals_received++;
 
     {
       thread::Mutex::LockGuard guard(lock_);
@@ -276,7 +276,7 @@ namespace rubinius {
       if(signal > 0) {
         ManagedPhase managed(state);
 
-        vm()->metrics().system.signals_processed++;
+        vm()->metrics().signals_processed++;
 
         Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(signal));

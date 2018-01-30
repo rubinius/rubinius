@@ -946,7 +946,7 @@ namespace rubinius {
   Object* System::vm_reset_method_cache(STATE, Module* mod, Symbol* name) {
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics().machine.cache_resets++;
+    state->vm()->metrics().cache_resets++;
 
     return cTrue;
   }

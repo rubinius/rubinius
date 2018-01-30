@@ -10,7 +10,6 @@
 #include "class/symbol.hpp"
 
 #include "configuration.hpp"
-#include "metrics.hpp"
 
 #include "instruments/timing.hpp"
 
@@ -53,14 +52,14 @@ namespace memory {
     diagnostics()->objects_++;
     diagnostics()->bytes_ += bytes;
 
-    memory_->vm()->metrics().memory.large_objects++;
-    memory_->vm()->metrics().memory.large_bytes += bytes;
+    memory_->shared().memory_metrics().large_objects++;
+    memory_->shared().memory_metrics().large_bytes += bytes;
 
     entries.push_back(obj);
 
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
-      memory_->vm()->metrics().gc.large_set++;
+      memory_->shared().gc_metrics().large_set++;
       collect_now = true;
       next_collection_bytes = collection_threshold;
     }
@@ -120,9 +119,10 @@ namespace memory {
   }
 
   void MarkSweepGC::after_marked() {
-    metrics::MetricsData& metrics = memory_->vm()->metrics();
+    // TODO: diagnostics, metrics
+    // metrics::MetricsData& metrics = memory_->vm()->metrics();
 
-    timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
+    // timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
 
     // Cleanup all weakrefs seen
     clean_weakrefs();

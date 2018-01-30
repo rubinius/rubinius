@@ -8,8 +8,9 @@
 #include "memory/managed.hpp"
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
-#include "metrics.hpp"
 #include "spinlock.hpp"
+
+#include "diagnostics/metrics.hpp"
 
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
@@ -454,10 +455,10 @@ namespace rubinius {
     }
 
     void checkpoint(STATE) {
-      metrics().machine.checkpoints++;
+      metrics().checkpoints++;
 
       thread_nexus_->check_stop(state, this, [this, state]{
-          metrics().machine.stops++;
+          metrics().stops++;
           collect_maybe(state);
         });
 
@@ -466,8 +467,6 @@ namespace rubinius {
         set_sample_interval();
       }
     }
-
-    void sleeping_suspend(STATE, metrics::metric& counter);
 
     void managed_phase(STATE) {
       thread_nexus_->managed_phase(state, this);
