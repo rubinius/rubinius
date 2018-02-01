@@ -8,6 +8,8 @@
 #include "diagnostics/emitter.hpp"
 #include "diagnostics/formatter.hpp"
 
+#include <fcntl.h>
+
 namespace rubinius {
   namespace diagnostics {
     Emitter* Emitter::create(STATE) {
