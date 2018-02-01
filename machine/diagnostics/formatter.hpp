@@ -16,17 +16,17 @@ namespace rubinius {
         : document_()
       {
         document_.SetObject();
-        document_.AddMember("diagnostic_type", "Diagnostics", document_.GetAllocator());
+        document_.AddMember("type", "Diagnostics", document_.GetAllocator());
       }
 
       virtual ~Formatter() {}
 
       virtual void set_type(const char* type) {
-        document_["diagnostic_type"].SetString(type, document_.GetAllocator());
+        document_["type"].SetString(type, document_.GetAllocator());
       }
 
       virtual void update() {}
-      virtual std::string to_string() { return std::string(""); }
+      virtual std::string to_string();
     };
 
     class ImmixFormatter : public Formatter {
@@ -38,6 +38,16 @@ namespace rubinius {
 
       virtual void update();
       virtual std::string to_string();
+    };
+
+    class SymbolFormatter : public Formatter {
+      SymbolDiagnostics* diagnostics_;
+
+    public:
+      SymbolFormatter(SymbolDiagnostics* d);
+      ~SymbolFormatter() {}
+
+      virtual void update();
     };
   }
 }

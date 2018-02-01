@@ -14,23 +14,19 @@ namespace rubinius {
     class Emitter;
     class Formatter;
     class ImmixFormatter;
-    class Measurement;
+    class SymbolFormatter;
 
-    typedef std::unordered_set<Measurement*> Measurements;
-    typedef std::list<Formatter*> ReportRequests;
+    typedef std::unordered_set<Formatter*> RecurringReports;
+    typedef std::list<Formatter*> IntermittentReports;
 
     class Diagnostics;
 
     class Reporter : public MachineThread {
-      utilities::timer::Timer* timer_;
-      int interval_;
-
-      ReportRequests list_;
-      Emitter* emitter_;
-
-      std::mutex diagnostics_lock_;
-
       Diagnostics* diagnostics_;
+
+      utilities::timer::Timer* timer_;
+
+      Emitter* emitter_;
 
     public:
       Reporter(STATE, Diagnostics* d);
@@ -47,19 +43,21 @@ namespace rubinius {
       void wakeup(STATE);
       void after_fork_child(STATE);
 
-      void report(Formatter* formatter);
+      void report();
     };
 
     class Diagnostics {
-      Measurements measurements_;
+      RecurringReports recurring_reports_;
+      IntermittentReports intermittent_reports_;
+
       Reporter* reporter_;
 
+      std::mutex lock_;
+
+      int interval_;
+
     public:
-      Diagnostics()
-        : measurements_()
-        , reporter_(nullptr)
-      {
-      }
+      Diagnostics(STATE);
 
       ~Diagnostics() {
         if(reporter_) {
@@ -68,8 +66,20 @@ namespace rubinius {
         }
       }
 
-      Measurements& measurements() {
-        return measurements_;
+      std::mutex& lock() {
+        return lock_;
+      }
+
+      int interval() const {
+        return interval_;
+      }
+
+      RecurringReports& recurring_reports() {
+        return recurring_reports_;
+      }
+
+      IntermittentReports& intermittent_reports() {
+        return intermittent_reports_;
       }
 
       void start_reporter(STATE) {
@@ -80,13 +90,19 @@ namespace rubinius {
       }
 
       void report(Formatter* formatter) {
+        std::lock_guard<std::mutex> guard(lock_);
+
+        intermittent_reports_.push_back(formatter);
+
         if(reporter_) {
-          reporter_->report(formatter);
+          reporter_->report();
         }
       }
 
-      void add_measurement(Measurement* m) {
-        measurements_.insert(m);
+      void add_report(Formatter* formatter) {
+        std::lock_guard<std::mutex> guard(lock_);
+
+        recurring_reports_.insert(formatter);
       }
     };
   }

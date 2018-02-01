@@ -5,6 +5,7 @@
 
 #include "defines.hpp"
 
+#include "diagnostics.hpp"
 #include "diagnostics/memory.hpp"
 
 #include "util/thread.hpp"
@@ -42,16 +43,6 @@ namespace rubinius {
   typedef std::unordered_map<hashval, SymbolIds> SymbolMap;
 
   class SymbolTable {
-  public:
-    class Diagnostics : public diagnostics::MemoryDiagnostics {
-    public:
-      Diagnostics()
-        : diagnostics::MemoryDiagnostics()
-      { }
-
-      void update();
-    };
-
   public: // Types
 
     // We encode in the symbol some information about it, mostly
@@ -75,27 +66,23 @@ namespace rubinius {
     SymbolEncodings encodings;
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
-    Diagnostics* diagnostics_;
+    diagnostics::SymbolDiagnostics* diagnostics_;
+    diagnostics::SymbolFormatter* formatter_;
 
   public:
 
-    SymbolTable()
-      : diagnostics_(new Diagnostics())
-    {
-      lock_.init();
-    }
+    SymbolTable();
+    virtual ~SymbolTable();
 
-    virtual ~SymbolTable() {
-      if(diagnostics()) delete diagnostics();
-    }
-
-    Diagnostics* diagnostics() {
+    diagnostics::SymbolDiagnostics* diagnostics() {
       return diagnostics_;
     }
 
     size_t size() {
       return symbols.size();
     };
+
+    void sweep(STATE);
 
     Symbol* lookup(STATE, SharedState* shared, const std::string& str);
     Symbol* lookup(STATE, const std::string& str);

@@ -12,13 +12,36 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 
+#include "diagnostics/formatter.hpp"
+
 #include "logger.hpp"
 
 #include <iostream>
 #include <iomanip>
 
 namespace rubinius {
-  void SymbolTable::Diagnostics::update() {
+  SymbolTable::SymbolTable()
+    : diagnostics_(new diagnostics::SymbolDiagnostics())
+    , formatter_(new diagnostics::SymbolFormatter(diagnostics_))
+  {
+    lock_.init();
+  }
+
+  SymbolTable::~SymbolTable() {
+    if(diagnostics_) {
+      delete diagnostics_;
+      diagnostics_ = nullptr;
+    }
+
+    if(formatter_) {
+      delete formatter_;
+      formatter_ = nullptr;
+    }
+  }
+
+  void SymbolTable::sweep(STATE) {
+    formatter_->update();
+    state->shared().report_diagnostics(formatter_);
   }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
@@ -89,7 +112,7 @@ namespace rubinius {
 
   size_t SymbolTable::add(STATE, std::string str, int enc) {
     size_t bytes = (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
-    diagnostics()->objects_++;
+    diagnostics()->symbols_++;
     diagnostics()->bytes_ += bytes;
 
     strings.push_back(str);

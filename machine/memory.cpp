@@ -639,6 +639,8 @@ step1:
 #endif
     immix_->sweep();
 
+    state->shared().symbols.sweep(state);
+
     rotate_mark();
 
     diagnostics::GCMetrics& metrics = state->shared().gc_metrics();

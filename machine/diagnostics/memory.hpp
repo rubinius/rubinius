@@ -40,6 +40,18 @@ namespace rubinius {
       void update() {}
     };
 
+    class SymbolDiagnostics : public MemoryDiagnostics {
+    public:
+      int64_t symbols_;
+
+      SymbolDiagnostics()
+        : MemoryDiagnostics()
+        , symbols_(0)
+      { }
+
+      void update() {}
+    };
+
     struct MemoryMetrics {
       metric young_bytes;
       metric young_objects;

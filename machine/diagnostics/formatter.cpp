@@ -16,6 +16,16 @@
 
 namespace rubinius {
   namespace diagnostics {
+    std::string Formatter::to_string() {
+      rapidjson::StringBuffer buffer;
+
+      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+      document_.Accept(writer);
+
+      return std::move(buffer.GetString());
+    }
+
     ImmixFormatter::ImmixFormatter(ImmixDiagnostics* d)
       : Formatter()
       , diagnostics_(d)
@@ -49,6 +59,21 @@ namespace rubinius {
       document_.Accept(writer);
 
       return std::move(buffer.GetString());
+    }
+
+    SymbolFormatter::SymbolFormatter(SymbolDiagnostics* d)
+      : Formatter()
+      , diagnostics_(d)
+    {
+      set_type("SymbolTable");
+
+      document_.AddMember("symbols", diagnostics_->symbols_, document_.GetAllocator());
+      document_.AddMember("bytes", diagnostics_->bytes_, document_.GetAllocator());
+    }
+
+    void SymbolFormatter::update() {
+      document_["symbols"] = diagnostics_->symbols_;
+      document_["bytes"] = diagnostics_->bytes_;
     }
   }
 }

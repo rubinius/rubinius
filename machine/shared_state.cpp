@@ -36,7 +36,7 @@ namespace rubinius {
     , finalizer_(nullptr)
     , console_(nullptr)
     , metrics_(nullptr)
-    , diagnostics_(new diagnostics::Diagnostics())
+    , diagnostics_(nullptr)
     , profiler_(nullptr)
     , jit_(nullptr)
     , start_time_(get_current_time())
@@ -241,6 +241,8 @@ namespace rubinius {
   }
 
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
+    diagnostics_ = new diagnostics::Diagnostics(state);
+
     if(state->shared().config.diagnostics_target.value.compare("none")) {
       diagnostics_->start_reporter(state);
     }

@@ -42,6 +42,15 @@ namespace memory {
   }
 
   ImmixGC::~ImmixGC() {
+    if(diagnostics_) {
+      delete diagnostics_;
+      diagnostics_ = nullptr;
+    }
+
+    if(formatter_) {
+      delete formatter_;
+      formatter_ = nullptr;
+    }
   }
 
   Address ImmixGC::ObjectDescriber::copy(Address original,
