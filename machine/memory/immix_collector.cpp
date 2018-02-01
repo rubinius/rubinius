@@ -1,50 +1,18 @@
 #include "memory.hpp"
+#include "object_watch.hpp"
+#include "configuration.hpp"
+#include "logger.hpp"
+
 #include "memory/immix_collector.hpp"
 
 #include "capi/handles.hpp"
 #include "capi/tag.hpp"
-#include "object_watch.hpp"
 
-#include "configuration.hpp"
-
-#include "instruments/timing.hpp"
-
-#include "logger.hpp"
+#include "diagnostics/formatter.hpp"
+#include "diagnostics/timing.hpp"
 
 namespace rubinius {
 namespace memory {
-  ImmixGC::Diagnostics::Diagnostics()
-    : diagnostics::MemoryDiagnostics()
-    , collections_(0)
-    , total_bytes_(0)
-    , chunks_(0)
-    , holes_(0)
-    , percentage_(0.0)
-  {
-    /* TODO: diagnostics
-    set_type("ImmixCollector");
-
-    document.AddMember("collections", collections_, document.GetAllocator());
-    document.AddMember("total_bytes", total_bytes_, document.GetAllocator());
-    document.AddMember("chunks", chunks_, document.GetAllocator());
-    document.AddMember("holes", holes_, document.GetAllocator());
-    document.AddMember("percentage", percentage_, document.GetAllocator());
-    */
-  }
-
-
-  void ImmixGC::Diagnostics::update() {
-    /* TODO: diagnostics
-    document["objects"] = objects_;
-    document["bytes"] = bytes_;
-    document["collections"] = collections_;
-    document["total_bytes"] = total_bytes_;
-    document["chunks"] = chunks_;
-    document["holes"] = holes_;
-    document["percentage"] = percentage_;
-    */
-  }
-
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(memory_) {
       // memory_->schedule_full_collection("Immix region chunk added");
@@ -66,7 +34,8 @@ namespace memory {
     , memory_(om)
     , chunks_left_(0)
     , chunks_before_collection_(10)
-    , diagnostics_(new Diagnostics())
+    , diagnostics_(new diagnostics::ImmixDiagnostics())
+    , formatter_(new diagnostics::ImmixFormatter(diagnostics_))
   {
     gc_.describer().set_object_memory(om, this);
     reset_chunks_left();
@@ -360,8 +329,8 @@ namespace memory {
 
       diagnostics()->collections_++;
 
-      // TODO: diagnostics
-      // memory_->shared().report_diagnostics(diagnostics_);
+      formatter_->update();
+      memory_->shared().report_diagnostics(formatter_);
     }
 
     allocator_.restart(diagnostics()->percentage_,

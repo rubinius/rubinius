@@ -1,5 +1,5 @@
-#ifndef RBX_INSTRUMENTS_TIMING_HPP
-#define RBX_INSTRUMENTS_TIMING_HPP
+#ifndef RBX_DIAGNOSTICS_TIMING_HPP
+#define RBX_DIAGNOSTICS_TIMING_HPP
 
 #include <stdint.h>
 #include <stdlib.h>

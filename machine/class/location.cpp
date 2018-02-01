@@ -10,7 +10,7 @@
 #include "class/native_method.hpp"
 #include "class/string.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 namespace rubinius {
   void Location::bootstrap(STATE) {

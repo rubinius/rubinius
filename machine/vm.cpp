@@ -40,7 +40,7 @@
 
 #include "util/thread.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include <algorithm>
 #include <functional>

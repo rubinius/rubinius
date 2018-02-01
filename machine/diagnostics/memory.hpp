@@ -10,8 +10,34 @@ namespace rubinius {
       uint64_t objects_;
       uint64_t bytes_;
 
-      MemoryDiagnostics();
+      MemoryDiagnostics()
+        : objects_(0)
+        , bytes_(0)
+      {
+      }
+
       virtual ~MemoryDiagnostics() { }
+    };
+
+    class ImmixDiagnostics : public MemoryDiagnostics {
+    public:
+      int64_t collections_;
+      int64_t total_bytes_;
+      int64_t chunks_;
+      int64_t holes_;
+      double percentage_;
+
+      ImmixDiagnostics()
+        : MemoryDiagnostics()
+        , collections_(0)
+        , total_bytes_(0)
+        , chunks_(0)
+        , holes_(0)
+        , percentage_(0.0)
+      {
+      }
+
+      void update() {}
     };
 
     struct MemoryMetrics {

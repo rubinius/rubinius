@@ -40,7 +40,7 @@
 #include "capi/handles.hpp"
 #include "configuration.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 #include "dtrace/dtrace.h"
 
 #include "logger.hpp"

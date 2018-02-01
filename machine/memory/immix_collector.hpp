@@ -4,9 +4,12 @@
 #include "memory/address.hpp"
 #include "memory/immix_region.hpp"
 #include "memory/gc.hpp"
-#include "exception.hpp"
 
+#include "exception.hpp"
 #include "object_position.hpp"
+
+#include "diagnostics.hpp"
+#include "diagnostics/memory.hpp"
 
 namespace rubinius {
   class Memory;
@@ -20,22 +23,6 @@ namespace memory {
    */
 
   class ImmixGC : public GarbageCollector {
-  public:
-    class Diagnostics : public diagnostics::MemoryDiagnostics {
-    public:
-      int64_t collections_;
-      int64_t total_bytes_;
-      int64_t chunks_;
-      int64_t holes_;
-      double percentage_;
-
-      Diagnostics();
-
-      void update();
-    };
-
-  private:
-
     /**
      * Class used as an interface to the Rubinius specific object memory layout
      * by the (general purpose) Immix memory manager. By imposing this interface
@@ -112,7 +99,8 @@ namespace memory {
     Memory* memory_;
     int chunks_left_;
     int chunks_before_collection_;
-    Diagnostics* diagnostics_;
+    diagnostics::ImmixDiagnostics* diagnostics_;
+    diagnostics::ImmixFormatter* formatter_;
 
   public:
     ImmixGC(Memory* om);
@@ -150,7 +138,7 @@ namespace memory {
       chunks_left_ = chunks_before_collection_;
     }
 
-    Diagnostics* diagnostics() {
+    diagnostics::ImmixDiagnostics* diagnostics() {
       return diagnostics_;
     }
 

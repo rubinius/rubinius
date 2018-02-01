@@ -11,7 +11,7 @@
 
 #include "configuration.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "logger.hpp"
 

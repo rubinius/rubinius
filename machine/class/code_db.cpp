@@ -11,7 +11,7 @@
 #include "class/compiled_code.hpp"
 #include "class/string.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "util/thread.hpp"
 

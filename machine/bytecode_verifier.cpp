@@ -13,7 +13,7 @@
 #include "interpreter.hpp"
 #include "instructions.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 namespace rubinius {
   BytecodeVerifier::BytecodeVerifier(CompiledCode* code)

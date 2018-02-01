@@ -25,10 +25,9 @@
 #include "class/unwind_site.hpp"
 
 #include "diagnostics/measurement.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "instructions.hpp"
-
-#include "instruments/timing.hpp"
 
 #include "raise_reason.hpp"
 #include "on_stack.hpp"

@@ -5,55 +5,19 @@
 
 #include "util/timer.hpp"
 
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-
-#include <stdint.h>
+#include <list>
 #include <mutex>
 #include <unordered_set>
 
 namespace rubinius {
   namespace diagnostics {
+    class Emitter;
+    class Formatter;
+    class ImmixFormatter;
     class Measurement;
 
-    class DiagnosticsData {
-    public:
-      rapidjson::Document document;
-
-      DiagnosticsData();
-      virtual ~DiagnosticsData() { }
-
-      virtual void update() { }
-
-      void set_type(const char* type);
-      void to_string(rapidjson::StringBuffer& buffer);
-    };
-
-    class Formatter {
-
-    public:
-      Formatter() { }
-      virtual ~Formatter();
-
-
-    };
-
-    class Emitter {
-    public:
-      virtual void send_diagnostics(DiagnosticsData*) = 0;
-    };
-
-    class FileEmitter : public Emitter {
-      std::string path_;
-      int fd_;
-
-    public:
-      FileEmitter(STATE, std::string path);
-
-      void send_diagnostics(DiagnosticsData* data);
-    };
-
     typedef std::unordered_set<Measurement*> Measurements;
+    typedef std::list<Formatter*> ReportRequests;
 
     class Diagnostics;
 
@@ -61,6 +25,7 @@ namespace rubinius {
       utilities::timer::Timer* timer_;
       int interval_;
 
+      ReportRequests list_;
       Emitter* emitter_;
 
       std::mutex diagnostics_lock_;
@@ -69,6 +34,7 @@ namespace rubinius {
 
     public:
       Reporter(STATE, Diagnostics* d);
+
       ~Reporter() {
         if(timer_) {
           delete timer_;

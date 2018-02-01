@@ -21,7 +21,7 @@
 #include "class/native_method.hpp"
 #include "class/system.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include <iostream>
 #include <fstream>

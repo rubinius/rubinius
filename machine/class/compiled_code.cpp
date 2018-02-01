@@ -24,7 +24,7 @@
 
 #include "memory/object_mark.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "sodium/crypto_generichash.h"
 #include "sodium/utils.h"

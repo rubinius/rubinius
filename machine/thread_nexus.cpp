@@ -9,7 +9,7 @@
 
 #include "util/atomic.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include <chrono>
 #include <ostream>

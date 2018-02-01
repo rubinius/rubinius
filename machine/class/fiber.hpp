@@ -10,7 +10,7 @@
 #include "class/string.hpp"
 #include "class/thread.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include <stdint.h>
 #include <atomic>
