@@ -1,7 +1,7 @@
 #ifndef RBX_GC_CODE_MANAGER
 #define RBX_GC_CODE_MANAGER
 
-#include "diagnostics/memory.hpp"
+#include "diagnostics.hpp"
 
 #include "util/thread.hpp"
 
@@ -31,19 +31,6 @@ namespace memory {
 
   class CodeManager {
   public:
-    class Diagnostics : public diagnostics::MemoryDiagnostics {
-    public:
-      int64_t chunks_;
-      int64_t collections_;
-
-      Diagnostics()
-        : diagnostics::MemoryDiagnostics()
-        , chunks_(0)
-        , collections_(0)
-      { }
-
-      void update();
-    };
 
   private:
     const static int cDefaultChunkSize = 1024 * 1024;
@@ -74,15 +61,15 @@ namespace memory {
     Chunk* current_chunk_;
     int current_index_;
 
-    Diagnostics* diagnostics_;
+    diagnostics::CodeManager* diagnostic_;
 
   public:
     SharedState* shared() const {
       return shared_;
     }
 
-    Diagnostics* diagnostics() {
-      return diagnostics_;
+    diagnostics::CodeManager* diagnostic() {
+      return diagnostic_;
     }
 
   public:

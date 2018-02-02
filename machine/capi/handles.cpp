@@ -1,17 +1,41 @@
 #include "class/native_method.hpp"
 
 #include "memory.hpp"
+#include "logger.hpp"
 
 #include "memory/gc.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/handles.hpp"
 
-#include "logger.hpp"
+#include "diagnostics/gc.hpp"
+#include "diagnostics/memory.hpp"
 
 namespace rubinius {
   namespace capi {
-    void Handles::Diagnostics::update() {
+    Handles::Handles()
+      : allocator_(new memory::Allocator<Handle>())
+      , diagnostic_(new diagnostics::Handles())
+    {}
+
+    Handles::~Handles() {
+      for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
+        Handle* chunk = allocator_->chunks_[i];
+
+        for(size_t j = 0; j < allocator_->cChunkSize; j++) {
+          Handle* handle = &chunk[j];
+          if(handle->in_use_p()) {
+            handle->clear();
+          }
+        }
+      }
+
+      delete allocator_;
+
+      if(diagnostic_) {
+        delete diagnostic_;
+        diagnostic_ = nullptr;
+      }
     }
 
     Handle* Handles::allocate(STATE, Object* obj) {
@@ -20,10 +44,10 @@ namespace rubinius {
       handle->set_object(obj);
       handle->validate();
       if(needs_gc) {
-        diagnostics()->collections_++;
+        diagnostic()->collections_++;
         state->memory()->schedule_full_collection(
             "CAPI handles",
-            state->shared().gc_metrics().handles_set);
+            state->shared().gc_metrics()->handles_set);
       }
       atomic::memory_barrier();
       return handle;
@@ -41,10 +65,10 @@ namespace rubinius {
       handle->set_object(obj);
       handle->validate();
       if(needs_gc) {
-        diagnostics()->collections_++;
+        diagnostic()->collections_++;
         state->memory()->schedule_full_collection(
             "CAPI handles",
-            state->shared().gc_metrics().handles_set);
+            state->shared().gc_metrics()->handles_set);
       }
       atomic::memory_barrier();
 
@@ -55,29 +79,12 @@ namespace rubinius {
       return allocator_->validate(handle);
     }
 
-    Handles::~Handles() {
-      for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
-        Handle* chunk = allocator_->chunks_[i];
-
-        for(size_t j = 0; j < allocator_->cChunkSize; j++) {
-          Handle* handle = &chunk[j];
-          if(handle->in_use_p()) {
-            handle->clear();
-          }
-        }
-      }
-
-      delete allocator_;
-
-      if(diagnostics()) delete diagnostics();
-    }
-
     void Handles::deallocate_handles(std::list<Handle*>* cached,
         unsigned int mark, /* BakerGC */ void* young)
     {
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
-      diagnostics()->objects_ = 0;
+      diagnostic()->objects_ = 0;
 
       for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
         Handle* chunk = allocator_->chunks_[i];
@@ -94,7 +101,7 @@ namespace rubinius {
           // Strong references will already have been updated.
           if(!handle->weak_p()) {
             chunk_marks[i] = true;
-            diagnostics()->objects_++;
+            diagnostic()->objects_++;
             continue;
           }
 
@@ -107,12 +114,12 @@ namespace rubinius {
               // a collection. In this state, valid objects are only in current.
               if(young->in_current_p(obj)) {
                 chunk_marks[i] = true;
-                diagnostics()->objects_++;
+                diagnostic()->objects_++;
               // A weakref pointing to a forwarded young object
               } else if(obj->forwarded_p()) {
                 handle->set_object(obj->forward());
                 chunk_marks[i] = true;
-                diagnostics()->objects_++;
+                diagnostic()->objects_++;
               // A weakref pointing to a dead young object
               } else {
                 handle->clear();
@@ -121,7 +128,7 @@ namespace rubinius {
               // Not a young object, so won't be GC'd so mark
               // chunk as still active
               chunk_marks[i] = true;
-              diagnostics()->objects_++;
+              diagnostic()->objects_++;
             }
             */
 
@@ -130,7 +137,7 @@ namespace rubinius {
             handle->clear();
           } else {
             chunk_marks[i] = true;
-            diagnostics()->objects_++;
+            diagnostic()->objects_++;
           }
         }
       }
@@ -148,7 +155,7 @@ namespace rubinius {
 
       allocator_->rebuild_freelist(&chunk_marks);
 
-      diagnostics()->bytes_ = allocator_->in_use_ * sizeof(Handle);
+      diagnostic()->bytes_ = allocator_->in_use_ * sizeof(Handle);
     }
   }
 }

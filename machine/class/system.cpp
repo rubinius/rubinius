@@ -39,6 +39,8 @@
 #include "thread_phase.hpp"
 #include "windows_compat.h"
 
+#include "diagnostics/machine.hpp"
+
 #include "util/sha1.h"
 #include "util/timing.h"
 #include "logger.hpp"
@@ -946,7 +948,7 @@ namespace rubinius {
   Object* System::vm_reset_method_cache(STATE, Module* mod, Symbol* name) {
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics().cache_resets++;
+    state->vm()->metrics()->cache_resets++;
 
     return cTrue;
   }

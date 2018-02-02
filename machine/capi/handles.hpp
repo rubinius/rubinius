@@ -9,7 +9,7 @@
 
 #include "capi/handle.hpp"
 
-#include "diagnostics/memory.hpp"
+#include "diagnostics.hpp"
 
 #include <vector>
 #include <stdint.h>
@@ -17,31 +17,13 @@
 namespace rubinius {
   namespace capi {
     class Handles {
-    public:
-      class Diagnostics : public diagnostics::MemoryDiagnostics {
-      public:
-        int64_t collections_;
-
-        Diagnostics()
-          : diagnostics::MemoryDiagnostics()
-          , collections_(0)
-        { }
-
-        void update();
-      };
-
-    private:
       memory::Allocator<Handle>* allocator_;
 
-      Diagnostics* diagnostics_;
+      diagnostics::Handles* diagnostic_;
 
     public:
 
-      Handles()
-        : allocator_(new memory::Allocator<Handle>())
-        , diagnostics_(new Diagnostics())
-      {}
-
+      Handles();
       ~Handles();
 
       Handle* allocate(STATE, Object* obj);
@@ -66,8 +48,8 @@ namespace rubinius {
         return allocator_->in_use_;
       }
 
-      Diagnostics* diagnostics() {
-        return diagnostics_;
+      diagnostics::Handles* diagnostic() {
+        return diagnostic_;
       }
     };
   }

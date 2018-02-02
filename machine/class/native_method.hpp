@@ -8,7 +8,7 @@
 #include "class/class.hpp"
 #include "class/executable.hpp"
 
-#include "diagnostics/machine.hpp"
+#include "diagnostics.hpp"
 
 #include "capi/tag.hpp"
 #include "capi/value.hpp"
@@ -38,17 +38,10 @@ namespace rubinius {
 
     VALUE outgoing_block_;
 
-    diagnostics::MachineMetrics metrics_;
+    diagnostics::MachineMetrics* metrics_;
 
   public:   /* Class Interface */
-    NativeMethodEnvironment(STATE)
-      : state_(state->vm())
-      , current_call_frame_(0)
-      , current_native_frame_(0)
-      , current_ep_(0)
-      , outgoing_block_(0)
-      , metrics_()
-    {}
+    NativeMethodEnvironment(STATE);
 
     /** Obtain the NativeMethodEnvironment for this thread. */
     static NativeMethodEnvironment* get();
@@ -62,7 +55,7 @@ namespace rubinius {
     void mark_handles(memory::ObjectMark& mark);
 
     diagnostics::MachineMetrics* metrics() {
-      return &metrics_;
+      return metrics_;
     }
 
     VALUE outgoing_block() const {

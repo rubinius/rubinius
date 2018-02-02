@@ -5,6 +5,9 @@
 #include "memory/managed.hpp"
 #include "shared_state.hpp"
 
+#include "diagnostics/machine.hpp"
+#include "diagnostics/memory.hpp"
+
 #include <thread>
 #include <sstream>
 
@@ -15,7 +18,7 @@ namespace memory {
   ManagedThread::ManagedThread(uint32_t id, SharedState& ss,
       ManagedThread::Kind kind, const char* name)
     : kind_(kind)
-    , metrics_()
+    , metrics_(new diagnostics::MachineMetrics())
     , os_thread_(0)
     , id_(id)
   {

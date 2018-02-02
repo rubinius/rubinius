@@ -10,8 +10,6 @@
 #include "thread_nexus.hpp"
 #include "spinlock.hpp"
 
-#include "diagnostics/metrics.hpp"
-
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
 #include "memory/slab.hpp"
@@ -454,19 +452,7 @@ namespace rubinius {
       sample_counter_ = 0;
     }
 
-    void checkpoint(STATE) {
-      metrics().checkpoints++;
-
-      thread_nexus_->check_stop(state, this, [this, state]{
-          metrics().stops++;
-          collect_maybe(state);
-        });
-
-      if(sample_counter_++ >= sample_interval_) {
-        sample(state);
-        set_sample_interval();
-      }
-    }
+    void checkpoint(STATE);
 
     void managed_phase(STATE) {
       thread_nexus_->managed_phase(state, this);

@@ -11,6 +11,8 @@
 
 #include "configuration.hpp"
 
+#include "diagnostics/gc.hpp"
+#include "diagnostics/memory.hpp"
 #include "diagnostics/timing.hpp"
 
 #include "logger.hpp"
@@ -23,16 +25,16 @@ namespace memory {
 
   MarkSweepGC::MarkSweepGC(Memory *om, Configuration& config)
     : GarbageCollector(om)
-    , diagnostics_(new Diagnostics())
+    , diagnostic_(new diagnostics::MarkSweep())
     , collection_threshold(config.gc_marksweep_threshold)
     , next_collection_bytes(collection_threshold)
   {}
 
   MarkSweepGC::~MarkSweepGC() {
-    if(diagnostics()) delete diagnostics();
-  }
-
-  void MarkSweepGC::Diagnostics::update() {
+    if(diagnostic_) {
+      delete diagnostic_;
+      diagnostic_ = nullptr;
+    }
   }
 
   void MarkSweepGC::free_objects() {
@@ -49,17 +51,17 @@ namespace memory {
 
     Object* obj = reinterpret_cast<Object*>(mem);
 
-    diagnostics()->objects_++;
-    diagnostics()->bytes_ += bytes;
+    diagnostic()->objects_++;
+    diagnostic()->bytes_ += bytes;
 
-    memory_->shared().memory_metrics().large_objects++;
-    memory_->shared().memory_metrics().large_bytes += bytes;
+    memory_->shared().memory_metrics()->large_objects++;
+    memory_->shared().memory_metrics()->large_bytes += bytes;
 
     entries.push_back(obj);
 
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
-      memory_->shared().gc_metrics().large_set++;
+      memory_->shared().gc_metrics()->large_set++;
       collect_now = true;
       next_collection_bytes = collection_threshold;
     }
@@ -71,8 +73,8 @@ namespace memory {
   }
 
   void MarkSweepGC::free_object(Object* obj, bool fast) {
-    diagnostics()->objects_--;
-    diagnostics()->bytes_ -= obj->size_in_bytes(memory_->vm());
+    diagnostic()->objects_--;
+    diagnostic()->bytes_ -= obj->size_in_bytes(memory_->vm());
 
     if(!fast) {
       delete_object(obj);

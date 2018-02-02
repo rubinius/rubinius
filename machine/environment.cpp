@@ -19,6 +19,9 @@
 #include "class/symbol.hpp"
 #include "class/thread.hpp"
 
+#include "diagnostics/codedb.hpp"
+#include "diagnostics/machine.hpp"
+
 #include "logger.hpp"
 
 #include "memory/finalizer.hpp"
@@ -516,8 +519,8 @@ namespace rubinius {
     if(state->shared().config.log_lifetime.value) {
       logger::write("process: exit: %s %d %lld %fs %fs",
           shared->pid.c_str(), exit_code,
-          shared->codedb_metrics().load_count,
-          timer::elapsed_seconds(shared->codedb_metrics().load_ns),
+          shared->codedb_metrics()->load_count,
+          timer::elapsed_seconds(shared->codedb_metrics()->load_ns),
           shared->run_time());
     }
 
@@ -677,14 +680,14 @@ namespace rubinius {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics().platform_us);
+          state->shared().boot_metrics()->platform_us);
 
       load_platform_conf(codedb_path);
     }
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics().memory_us);
+          state->shared().boot_metrics()->memory_us);
 
       shared->om = new Memory(state->vm(), *shared);
     }
@@ -695,14 +698,14 @@ namespace rubinius {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics().fields_us);
+          state->shared().boot_metrics()->fields_us);
 
       TypeInfo::auto_learn_fields(state);
     }
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics().ontology_us);
+          state->shared().boot_metrics()->ontology_us);
 
       state->vm()->bootstrap_ontology(state);
     }
@@ -717,7 +720,7 @@ namespace rubinius {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics().main_thread_us);
+          state->shared().boot_metrics()->main_thread_us);
 
       main = Thread::create(state, state->vm(), Thread::main_thread);
       main->start_thread(state, Thread::run);

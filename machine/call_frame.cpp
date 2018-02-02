@@ -14,6 +14,8 @@
 #include "class/variable_scope.hpp"
 #include "class/unwind_site.hpp"
 
+#include "diagnostics/machine.hpp"
+
 #include <iostream>
 
 namespace rubinius {

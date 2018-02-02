@@ -21,6 +21,8 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 
+#include "diagnostics/machine.hpp"
+
 #include <algorithm>
 #include <iostream>
 
@@ -70,7 +72,7 @@ namespace rubinius {
       }
     }
 
-    state->vm()->metrics().blocks_invoked++;
+    state->vm()->metrics()->blocks_invoked++;
 
     if(executor ptr = mcode->unspecialized) {
       return (*((BlockExecutor)ptr))(state, env, args, invocation);

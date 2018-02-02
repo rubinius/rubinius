@@ -17,7 +17,7 @@
 #include "memory/write_barrier.hpp"
 #include "memory/immix_collector.hpp"
 
-#include "diagnostics/metrics.hpp"
+#include "diagnostics.hpp"
 
 #include "util/atomic.hpp"
 #include "util/thread.hpp"

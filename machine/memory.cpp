@@ -40,7 +40,10 @@
 #include "capi/handles.hpp"
 #include "configuration.hpp"
 
+#include "diagnostics/gc.hpp"
+#include "diagnostics/memory.hpp"
 #include "diagnostics/timing.hpp"
+
 #include "dtrace/dtrace.h"
 
 #include "logger.hpp"
@@ -429,17 +432,17 @@ step1:
 
     memory::Address addr = memory::Address::null(); /* young_->allocate_for_slab(slab_size_); */
 
-    diagnostics::MemoryMetrics& metrics = state->shared().memory_metrics();
-    metrics.young_objects += slab.allocations();
-    metrics.young_bytes += slab.bytes_used();
+    diagnostics::MemoryMetrics* metrics = state->shared().memory_metrics();
+    metrics->young_objects += slab.allocations();
+    metrics->young_bytes += slab.bytes_used();
 
     if(addr) {
       slab.refill(addr, slab_size_);
-      metrics.slab_refills++;
+      metrics->slab_refills++;
       return true;
     } else {
       slab.refill(0, 0);
-      metrics.slab_refills_fails++;
+      metrics->slab_refills_fails++;
       return false;
     }
   }
@@ -486,8 +489,8 @@ step1:
       schedule_full_collection("promote object");
     }
 
-    shared().memory_metrics().promoted_objects++;
-    shared().memory_metrics().promoted_bytes += sz;
+    shared().memory_metrics()->promoted_objects++;
+    shared().memory_metrics()->promoted_bytes += sz;
 
     if(unlikely(!copy)) {
       collect_flag = false;
@@ -548,7 +551,7 @@ step1:
 
   void Memory::collect_young(STATE, memory::GCData* data) {
     timer::StopWatch<timer::milliseconds> timerx(
-        state->shared().gc_metrics().young_ms);
+        state->shared().gc_metrics()->young_ms);
 
     /* 
     young_->collect(data);
@@ -589,7 +592,7 @@ step1:
     if(mature_gc_in_progress_) return;
 
     timer::StopWatch<timer::milliseconds> timerx(
-        state->shared().gc_metrics().immix_stop_ms);
+        state->shared().gc_metrics()->immix_stop_ms);
 
     if(state->shared().config.log_gc_run.value) {
       logger::write("memory: full collection");
@@ -643,9 +646,9 @@ step1:
 
     rotate_mark();
 
-    diagnostics::GCMetrics& metrics = state->shared().gc_metrics();
-    metrics.immix_count++;
-    metrics.large_count++;
+    diagnostics::GCMetrics* metrics = state->shared().gc_metrics();
+    metrics->immix_count++;
+    metrics->large_count++;
 
     collect_full_flag_ = false;
     interrupt_flag_ = false;
@@ -738,8 +741,8 @@ step1:
 
     // TODO: check if immix_ needs to trigger GC
     if(likely(obj = immix_->allocate(bytes, collect_flag))) {
-      shared().memory_metrics().immix_objects++;
-      shared().memory_metrics().immix_bytes += bytes;
+      shared().memory_metrics()->immix_objects++;
+      shared().memory_metrics()->immix_bytes += bytes;
 
       return obj;
     }
@@ -747,19 +750,19 @@ step1:
     if(collect_flag) {
       schedule_full_collection(
           "mature region allocate object",
-          state->shared().gc_metrics().immix_set);
+          state->shared().gc_metrics()->immix_set);
     }
 
     collect_flag = false;
 
     if(likely(obj = mark_sweep_->allocate(bytes, collect_flag))) {
-      shared().memory_metrics().large_objects++;
-      shared().memory_metrics().large_bytes += bytes;
+      shared().memory_metrics()->large_objects++;
+      shared().memory_metrics()->large_bytes += bytes;
 
       if(collect_flag) {
         schedule_full_collection(
             "large region allocate object",
-            state->shared().gc_metrics().large_set);
+            state->shared().gc_metrics()->large_set);
       }
 
       return obj;
@@ -790,7 +793,7 @@ step1:
   void Memory::add_code_resource(STATE, memory::CodeResource* cr) {
     utilities::thread::SpinLock::LockGuard guard(shared_.code_resource_lock());
 
-    state->shared().memory_metrics().code_bytes += cr->size();
+    state->shared().memory_metrics()->code_bytes += cr->size();
 
     bool collect_flag = false;
     code_manager_.add_resource(cr, &collect_flag);
@@ -798,7 +801,7 @@ step1:
     if(collect_flag) {
       schedule_full_collection(
           "add code resource",
-          state->shared().gc_metrics().resource_set);
+          state->shared().gc_metrics()->resource_set);
     }
   }
 
@@ -808,7 +811,7 @@ step1:
     if(!obj->reference_p()) {
       rubinius::bug("Trying to add a handle for a non reference");
     }
-    state->shared().memory_metrics().capi_handles++;
+    state->shared().memory_metrics()->capi_handles++;
     uintptr_t handle_index = capi_handles_->allocate_index(state, obj);
     obj->set_handle_index(state, handle_index);
     return obj->handle(state);
@@ -892,8 +895,8 @@ step1:
 
 void* XMALLOC(size_t bytes) {
   if(rubinius::VM* vm = rubinius::VM::current()) {
-    vm->shared.memory_metrics().malloc++;
-    vm->shared.memory_metrics().allocated_bytes += bytes;
+    vm->shared.memory_metrics()->malloc++;
+    vm->shared.memory_metrics()->allocated_bytes += bytes;
   }
 
   return malloc(bytes);
@@ -901,7 +904,7 @@ void* XMALLOC(size_t bytes) {
 
 void XFREE(void* ptr) {
   if(rubinius::VM* vm = rubinius::VM::current()) {
-    vm->shared.memory_metrics().freed++;
+    vm->shared.memory_metrics()->freed++;
   }
 
   free(ptr);
@@ -909,9 +912,9 @@ void XFREE(void* ptr) {
 
 void* XREALLOC(void* ptr, size_t bytes) {
   if(rubinius::VM* vm = rubinius::VM::current()) {
-    vm->shared.memory_metrics().realloc++;
-    vm->shared.memory_metrics().freed++;
-    vm->shared.memory_metrics().allocated_bytes += bytes;
+    vm->shared.memory_metrics()->realloc++;
+    vm->shared.memory_metrics()->freed++;
+    vm->shared.memory_metrics()->allocated_bytes += bytes;
   }
 
   return realloc(ptr, bytes);
@@ -921,8 +924,8 @@ void* XCALLOC(size_t items, size_t bytes_per) {
   size_t bytes = bytes_per * items;
 
   if(rubinius::VM* vm = rubinius::VM::current()) {
-    vm->shared.memory_metrics().calloc++;
-    vm->shared.memory_metrics().allocated_bytes += bytes;
+    vm->shared.memory_metrics()->calloc++;
+    vm->shared.memory_metrics()->allocated_bytes += bytes;
   }
 
   return calloc(items, bytes_per);

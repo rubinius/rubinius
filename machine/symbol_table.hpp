@@ -6,7 +6,6 @@
 #include "defines.hpp"
 
 #include "diagnostics.hpp"
-#include "diagnostics/memory.hpp"
 
 #include "util/thread.hpp"
 
@@ -66,16 +65,15 @@ namespace rubinius {
     SymbolEncodings encodings;
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
-    diagnostics::SymbolDiagnostics* diagnostics_;
-    diagnostics::SymbolFormatter* formatter_;
+    diagnostics::SymbolTable* diagnostic_;
 
   public:
 
     SymbolTable();
     virtual ~SymbolTable();
 
-    diagnostics::SymbolDiagnostics* diagnostics() {
-      return diagnostics_;
+    diagnostics::SymbolTable* diagnostic() {
+      return diagnostic_;
     }
 
     size_t size() {

@@ -11,15 +11,27 @@
 
 namespace rubinius {
   namespace diagnostics {
-    class Emitter;
-    class Formatter;
-    class ImmixFormatter;
-    class SymbolFormatter;
-
-    typedef std::unordered_set<Formatter*> RecurringReports;
-    typedef std::list<Formatter*> IntermittentReports;
-
     class Diagnostics;
+    class Diagnostic;
+    class Emitter;
+    class BootMetrics;
+    class CodeDBMetrics;
+    class CodeManager;
+    class GCMetrics;
+    class Handles;
+    class Immix;
+    class InflatedHeader;
+    class MachineMetrics;
+    class MarkSweep;
+    class MachineMetrics;
+    class Memory;
+    class MemoryMetrics;
+    class SymbolTable;
+
+    typedef uint64_t metric;
+
+    typedef std::unordered_set<Diagnostic*> RecurringReports;
+    typedef std::list<Diagnostic*> IntermittentReports;
 
     class Reporter : public MachineThread {
       Diagnostics* diagnostics_;
@@ -89,20 +101,20 @@ namespace rubinius {
         }
       }
 
-      void report(Formatter* formatter) {
+      void report(Diagnostic* diagnostic) {
         std::lock_guard<std::mutex> guard(lock_);
 
-        intermittent_reports_.push_back(formatter);
+        intermittent_reports_.push_back(diagnostic);
 
         if(reporter_) {
           reporter_->report();
         }
       }
 
-      void add_report(Formatter* formatter) {
+      void add_report(Diagnostic* diagnostic) {
         std::lock_guard<std::mutex> guard(lock_);
 
-        recurring_reports_.insert(formatter);
+        recurring_reports_.insert(diagnostic);
       }
     };
   }

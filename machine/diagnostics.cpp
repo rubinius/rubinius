@@ -5,8 +5,8 @@
 #include "thread_phase.hpp"
 
 #include "diagnostics.hpp"
+#include "diagnostics/diagnostic.hpp"
 #include "diagnostics/emitter.hpp"
-#include "diagnostics/formatter.hpp"
 #include "diagnostics/measurement.hpp"
 
 #include <unistd.h>

@@ -19,6 +19,8 @@
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
 
+#include "diagnostics/machine.hpp"
+
 #include "dtrace/dtrace.h"
 
 namespace rubinius {
@@ -26,6 +28,15 @@ namespace rubinius {
   utilities::thread::ThreadData<NativeMethodEnvironment*> native_method_environment;
 
 /* Class methods */
+
+  NativeMethodEnvironment::NativeMethodEnvironment(STATE)
+    : state_(state->vm())
+    , current_call_frame_(0)
+    , current_native_frame_(0)
+    , current_ep_(0)
+    , outgoing_block_(0)
+    , metrics_(new diagnostics::MachineMetrics())
+  {}
 
   NativeMethodEnvironment* NativeMethodEnvironment::get() {
     return native_method_environment.get();

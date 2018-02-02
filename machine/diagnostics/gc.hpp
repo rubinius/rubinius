@@ -1,11 +1,12 @@
 #ifndef RBX_DIAGNOSTICS_GC_HPP
 #define RBX_DIAGNOSTICS_GC_HPP
 
-#include "diagnostics/metrics.hpp"
+#include "diagnostics/diagnostic.hpp"
 
 namespace rubinius {
   namespace diagnostics {
-    struct GCMetrics {
+    class GCMetrics {
+    public:
       metric young_set;
       metric young_count;
       metric young_ms;

@@ -6,7 +6,7 @@
 
 #include "object_position.hpp"
 
-#include "diagnostics/memory.hpp"
+#include "diagnostics.hpp"
 
 #include <stdint.h>
 #include <list>
@@ -21,22 +21,12 @@ namespace rubinius {
 namespace memory {
   class MarkSweepGC : public GarbageCollector {
   public:
-    class Diagnostics : public diagnostics::MemoryDiagnostics {
-    public:
-      Diagnostics()
-        : diagnostics::MemoryDiagnostics()
-      { }
-
-      void update();
-    };
-
-  public:
     typedef std::list<Object*> MarkStack;
 
   private:
       MarkStack mark_stack_;
 
-      Diagnostics* diagnostics_;
+      diagnostics::MarkSweep* diagnostic_;
 
   public:
     /* Data members */
@@ -63,8 +53,8 @@ namespace memory {
 
     ObjectPosition validate_object(Object* obj);
 
-    Diagnostics* diagnostics() {
-      return diagnostics_;
+    diagnostics::MarkSweep* diagnostic() {
+      return diagnostic_;
     }
   };
 }

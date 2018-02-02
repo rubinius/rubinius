@@ -1,11 +1,12 @@
 #ifndef RBX_DIAGNOSTICS_CONSOLE_HPP
 #define RBX_DIAGNOSTICS_CONSOLE_HPP
 
-#include "diagnostics/metrics.hpp"
+#include "diagnostics/diagnostic.hpp"
 
 namespace rubinius {
   namespace diagnostics {
-    struct ConsoleMetrics {
+    class ConsoleMetrics {
+    public:
       metric requests_received;
       metric responses_sent;
 

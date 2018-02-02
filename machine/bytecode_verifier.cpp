@@ -13,6 +13,7 @@
 #include "interpreter.hpp"
 #include "instructions.hpp"
 
+#include "diagnostics/machine.hpp"
 #include "diagnostics/timing.hpp"
 
 namespace rubinius {
@@ -127,7 +128,7 @@ namespace rubinius {
 
   void BytecodeVerifier::verify(STATE) {
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().bytecode_verifier_us);
+        state->vm()->metrics()->bytecode_verifier_us);
 
     // Do this setup here instead of the constructor so we can do
     // some validation of the CompiledCode's fields we read them.

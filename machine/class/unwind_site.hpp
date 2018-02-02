@@ -37,18 +37,6 @@ namespace rubinius {
       attr_field(hits, int);
     };
 
-    static UnwindSite* create(STATE, int ip, UnwindType unwind_type) {
-      UnwindSite* cache =
-        state->memory()->new_variable_object<UnwindSite>(state, G(unwind_site));
-
-      cache->ip(ip);
-      cache->unwind_type(unwind_type);
-
-      state->vm()->metrics().unwind_site_count++;
-
-      return cache;
-    }
-
   public:
     static void bootstrap(STATE);
     static void initialize(STATE, UnwindSite* obj) {
@@ -63,6 +51,8 @@ namespace rubinius {
         obj->_caches_[i] = nullptr;
       }
     }
+
+    static UnwindSite* create(STATE, int ip, UnwindType unwind_type);
 
     class Info : public TypeInfo {
       public:

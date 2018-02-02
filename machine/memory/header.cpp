@@ -14,6 +14,9 @@
 #include "class/thread.hpp"
 
 #include "capi/handles.hpp"
+
+#include "diagnostics/memory.hpp"
+
 #include "memory/inflated_headers.hpp"
 
 #include <assert.h>
@@ -39,7 +42,7 @@ namespace rubinius {
     new_val.f.aux_word = ih_index;
     new_val.f.meaning  = eAuxWordInflated;
 
-    state->shared().memory_metrics().inflated_headers++;
+    state->shared().memory_metrics()->inflated_headers++;
 
     // Make sure to include a barrier to the header is all properly initialized
     atomic::memory_barrier();

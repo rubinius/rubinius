@@ -129,7 +129,7 @@ namespace rubinius {
 
   MachineCode* CompiledCode::internalize(STATE) {
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().bytecode_internalizer_us);
+        state->vm()->metrics()->bytecode_internalizer_us);
 
     std::lock_guard<std::mutex> guard(lock());
 

@@ -9,7 +9,7 @@ namespace rubinius {
 
       static Emitter* create(STATE);
 
-      virtual void transmit(Formatter*) { }
+      virtual void transmit(Diagnostic*) { }
     };
 
     class FileEmitter : public Emitter {
@@ -19,7 +19,7 @@ namespace rubinius {
     public:
       FileEmitter(STATE, std::string path);
 
-      virtual void transmit(Formatter* data);
+      virtual void transmit(Diagnostic* data);
     };
   }
 }

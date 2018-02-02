@@ -7,7 +7,7 @@
 #include "memory/root_buffer.hpp"
 #include "memory/root.hpp"
 
-#include "diagnostics/machine.hpp"
+#include "diagnostics.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -35,7 +35,7 @@ namespace memory {
     RootBuffers root_buffers_;
     LockedObjects locked_objects_;
     Kind kind_;
-    diagnostics::MachineMetrics metrics_;
+    diagnostics::MachineMetrics* metrics_;
 
   protected:
     memory::Slab local_slab_;
@@ -131,7 +131,7 @@ namespace memory {
       return os_thread_;
     }
 
-    diagnostics::MachineMetrics& metrics() {
+    diagnostics::MachineMetrics* metrics() {
       return metrics_;
     }
   };

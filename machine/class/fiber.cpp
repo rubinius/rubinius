@@ -15,6 +15,8 @@
 #include "class/thread.hpp"
 #include "class/thread_state.hpp"
 
+#include "diagnostics/machine.hpp"
+
 #include "memory/gc.hpp"
 
 #include "dtrace/dtrace.h"
@@ -305,7 +307,7 @@ namespace rubinius {
       }
     }
 
-    state->vm()->metrics().fibers_created++;
+    state->vm()->metrics()->fibers_created++;
 
     return fiber;
   }

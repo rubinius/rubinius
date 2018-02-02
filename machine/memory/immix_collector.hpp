@@ -9,7 +9,6 @@
 #include "object_position.hpp"
 
 #include "diagnostics.hpp"
-#include "diagnostics/memory.hpp"
 
 namespace rubinius {
   class Memory;
@@ -99,8 +98,7 @@ namespace memory {
     Memory* memory_;
     int chunks_left_;
     int chunks_before_collection_;
-    diagnostics::ImmixDiagnostics* diagnostics_;
-    diagnostics::ImmixFormatter* formatter_;
+    diagnostics::Immix* diagnostic_;
 
   public:
     ImmixGC(Memory* om);
@@ -138,8 +136,8 @@ namespace memory {
       chunks_left_ = chunks_before_collection_;
     }
 
-    diagnostics::ImmixDiagnostics* diagnostics() {
-      return diagnostics_;
+    diagnostics::Immix* diagnostic() {
+      return diagnostic_;
     }
 
     bool process_mark_stack();

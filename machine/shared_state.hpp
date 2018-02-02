@@ -15,10 +15,7 @@
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
 
-#include "diagnostics/codedb.hpp"
-#include "diagnostics/gc.hpp"
-#include "diagnostics/machine.hpp"
-#include "diagnostics/memory.hpp"
+#include "diagnostics.hpp"
 
 #include "util/thread.hpp"
 
@@ -40,11 +37,6 @@ namespace rubinius {
     class Handle;
     class Handles;
     class GlobalHandle;
-  }
-
-  namespace diagnostics {
-    class Diagnostics;
-    class Formatter;
   }
 
   namespace console {
@@ -100,14 +92,14 @@ namespace rubinius {
     SignalThread* signals_;
     memory::FinalizerThread* finalizer_;
     console::Console* console_;
-    diagnostics::MachineMetrics* metrics_;
-    diagnostics::Diagnostics* diagnostics_;
-    profiler::Profiler* profiler_;
     jit::JIT* jit_;
-    diagnostics::BootMetrics boot_metrics_;
-    diagnostics::CodeDBMetrics codedb_metrics_;
-    diagnostics::GCMetrics gc_metrics_;
-    diagnostics::MemoryMetrics memory_metrics_;
+    profiler::Profiler* profiler_;
+
+    diagnostics::Diagnostics* diagnostics_;
+    diagnostics::BootMetrics* boot_metrics_;
+    diagnostics::CodeDBMetrics* codedb_metrics_;
+    diagnostics::GCMetrics* gc_metrics_;
+    diagnostics::MemoryMetrics* memory_metrics_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -159,22 +151,6 @@ namespace rubinius {
   public:
     SharedState(Environment* env, Configuration& config, ConfigParser& cp);
     ~SharedState();
-
-    diagnostics::BootMetrics& boot_metrics() {
-      return boot_metrics_;
-    }
-
-    diagnostics::CodeDBMetrics& codedb_metrics() {
-      return codedb_metrics_;
-    }
-
-    diagnostics::GCMetrics& gc_metrics() {
-      return gc_metrics_;
-    }
-
-    diagnostics::MemoryMetrics& memory_metrics() {
-      return memory_metrics_;
-    }
 
     bool booting_p() {
       return phase_ == eBooting;
@@ -274,17 +250,29 @@ namespace rubinius {
 
     console::Console* start_console(STATE);
 
-    diagnostics::MachineMetrics* metrics() const {
-      return metrics_;
-    }
-
     diagnostics::Diagnostics* diagnostics() const {
       return diagnostics_;
     }
 
     diagnostics::Diagnostics* start_diagnostics(STATE);
 
-    void report_diagnostics(diagnostics::Formatter* data);
+    void report_diagnostics(diagnostics::Diagnostic* diagnostic);
+
+    diagnostics::BootMetrics* boot_metrics() {
+      return boot_metrics_;
+    }
+
+    diagnostics::CodeDBMetrics* codedb_metrics() {
+      return codedb_metrics_;
+    }
+
+    diagnostics::GCMetrics* gc_metrics() {
+      return gc_metrics_;
+    }
+
+    diagnostics::MemoryMetrics* memory_metrics() {
+      return memory_metrics_;
+    }
 
     profiler::Profiler* start_profiler(STATE);
 

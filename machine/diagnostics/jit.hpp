@@ -1,11 +1,12 @@
 #ifndef RBX_DIAGNOSTICS_JIT_HPP
 #define RBX_DIAGNOSTICS_JIT_HPP
 
-#include "diagnostics/metrics.hpp"
+#include "diagnostics/diagnostic.hpp"
 
 namespace rubinius {
   namespace diagnostics {
-    struct JITMetrics {
+    class JITMetrics {
+    public:
       metric methods_queued;
       metric methods_compiled;
       metric methods_failed;

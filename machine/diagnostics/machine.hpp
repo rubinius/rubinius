@@ -1,11 +1,12 @@
 #ifndef RBX_DIAGNOSTICS_MACHINE_HPP
 #define RBX_DIAGNOSTICS_MACHINE_HPP
 
-#include "diagnostics/metrics.hpp"
+#include "diagnostics/diagnostic.hpp"
 
 namespace rubinius {
   namespace diagnostics {
-    struct BootMetrics {
+    class BootMetrics {
+    public:
       metric fields_us;
       metric main_thread_us;
       metric memory_us;
@@ -21,7 +22,8 @@ namespace rubinius {
       }
     };
 
-    struct MachineMetrics {
+    class MachineMetrics {
+    public:
       metric checkpoints;
       metric stops;
       metric call_site_count;

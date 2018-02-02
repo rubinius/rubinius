@@ -1,7 +1,6 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
-#include "diagnostics.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"
@@ -21,6 +20,8 @@
 #include "class/symbol.hpp"
 #include "class/thread.hpp"
 #include "class/tuple.hpp"
+
+#include "diagnostics/machine.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -99,7 +100,7 @@ namespace rubinius {
     state->memory()->native_finalizer(state, thr,
         (memory::FinalizerFunction)&Thread::finalize);
 
-    state->vm()->metrics().threads_created++;
+    state->vm()->metrics()->threads_created++;
 
     return thr;
   }

@@ -10,6 +10,8 @@
 
 #include "capi/capi.hpp"
 
+#include "diagnostics/memory.hpp"
+
 namespace rubinius {
 
   void Data::bootstrap(STATE) {
@@ -47,7 +49,7 @@ namespace rubinius {
           (memory::FinalizerFunction)&Data::finalize);
     }
 
-    state->shared().memory_metrics().data_objects++;
+    state->shared().memory_metrics()->data_objects++;
 
     return data;
   }
@@ -83,7 +85,7 @@ namespace rubinius {
           (memory::FinalizerFunction)&Data::finalize);
     }
 
-    state->shared().memory_metrics().data_objects++;
+    state->shared().memory_metrics()->data_objects++;
 
     return data;
   }

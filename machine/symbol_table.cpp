@@ -12,7 +12,7 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 
-#include "diagnostics/formatter.hpp"
+#include "diagnostics/memory.hpp"
 
 #include "logger.hpp"
 
@@ -21,27 +21,21 @@
 
 namespace rubinius {
   SymbolTable::SymbolTable()
-    : diagnostics_(new diagnostics::SymbolDiagnostics())
-    , formatter_(new diagnostics::SymbolFormatter(diagnostics_))
+    : diagnostic_(new diagnostics::SymbolTable())
   {
     lock_.init();
   }
 
   SymbolTable::~SymbolTable() {
-    if(diagnostics_) {
-      delete diagnostics_;
-      diagnostics_ = nullptr;
-    }
-
-    if(formatter_) {
-      delete formatter_;
-      formatter_ = nullptr;
+    if(diagnostic_) {
+      delete diagnostic_;
+      diagnostic_ = nullptr;
     }
   }
 
   void SymbolTable::sweep(STATE) {
-    formatter_->update();
-    state->shared().report_diagnostics(formatter_);
+    diagnostic_->update();
+    state->shared().report_diagnostics(diagnostic_);
   }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
@@ -112,15 +106,15 @@ namespace rubinius {
 
   size_t SymbolTable::add(STATE, std::string str, int enc) {
     size_t bytes = (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
-    diagnostics()->symbols_++;
-    diagnostics()->bytes_ += bytes;
+    diagnostic()->symbols_++;
+    diagnostic()->bytes_ += bytes;
 
     strings.push_back(str);
     encodings.push_back(enc);
     kinds.push_back(eUnknown);
 
-    state->shared().memory_metrics().symbols++;
-    state->shared().memory_metrics().symbols_bytes += bytes;
+    state->shared().memory_metrics()->symbols++;
+    state->shared().memory_metrics()->symbols_bytes += bytes;
 
     return strings.size() - 1;
   }

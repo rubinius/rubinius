@@ -1,58 +1,140 @@
 #ifndef RBX_DIAGNOSTICS_MEMORY_HPP
 #define RBX_DIAGNOSTICS_MEMORY_HPP
 
-#include "diagnostics/metrics.hpp"
+#include "diagnostics/diagnostic.hpp"
 
 namespace rubinius {
   namespace diagnostics {
-    class MemoryDiagnostics {
+    class Memory : public Diagnostic {
     public:
       uint64_t objects_;
       uint64_t bytes_;
+      int64_t collections_;
 
-      MemoryDiagnostics()
-        : objects_(0)
+      Memory()
+        : Diagnostic()
+        , objects_(0)
         , bytes_(0)
+        , collections_(0)
       {
+        set_type("Memory");
+
+        document_.AddMember("objects", objects_, document_.GetAllocator());
+        document_.AddMember("bytes", bytes_, document_.GetAllocator());
+        document_.AddMember("collections", collections_, document_.GetAllocator());
       }
 
-      virtual ~MemoryDiagnostics() { }
+      virtual ~Memory() { }
+
+      virtual void update() {
+        document_["objects"] = objects_;
+        document_["bytes"] = bytes_;
+        document_["collections"] = collections_;
+      }
     };
 
-    class ImmixDiagnostics : public MemoryDiagnostics {
+    class CodeManager : public Memory {
     public:
-      int64_t collections_;
+      int64_t chunks_;
+
+      CodeManager()
+        : Memory()
+        , chunks_(0)
+      {
+        set_type("CodeManager");
+
+        document_.AddMember("chunks", chunks_, document_.GetAllocator());
+      }
+
+      virtual void update() {
+        document_["chunks"] = chunks_;
+      }
+    };
+
+    class Handles : public Memory {
+    public:
+
+      Handles()
+        : Memory()
+      {
+        set_type("CAPIHandles");
+      }
+    };
+
+    class Immix : public Memory {
+    public:
       int64_t total_bytes_;
       int64_t chunks_;
       int64_t holes_;
       double percentage_;
 
-      ImmixDiagnostics()
-        : MemoryDiagnostics()
-        , collections_(0)
+      Immix()
+        : Memory()
         , total_bytes_(0)
         , chunks_(0)
         , holes_(0)
         , percentage_(0.0)
       {
+        set_type("ImmixCollector");
+
+        document_.AddMember("total_bytes", total_bytes_, document_.GetAllocator());
+        document_.AddMember("chunks", chunks_, document_.GetAllocator());
+        document_.AddMember("holes", holes_, document_.GetAllocator());
+        document_.AddMember("percentage", percentage_, document_.GetAllocator());
       }
 
-      void update() {}
+      virtual void update() {
+        Memory::update();
+
+        document_["total_bytes"] = total_bytes_;
+        document_["chunks"] = chunks_;
+        document_["holes"] = holes_;
+        document_["percentage"] = percentage_;
+      }
     };
 
-    class SymbolDiagnostics : public MemoryDiagnostics {
+    class InflatedHeader : public Memory {
+    public:
+
+      InflatedHeader()
+        : Memory()
+      {
+        set_type("InflatedHeaders");
+      }
+    };
+
+    class MarkSweep : public Memory {
+    public:
+
+      MarkSweep()
+        : Memory()
+      {
+        set_type("MarkSweepCollector");
+      }
+    };
+
+    class SymbolTable : public Memory {
     public:
       int64_t symbols_;
 
-      SymbolDiagnostics()
-        : MemoryDiagnostics()
+      SymbolTable()
+        : Memory()
         , symbols_(0)
-      { }
+      {
+        set_type("SymbolTable");
 
-      void update() {}
+        document_.AddMember("symbols", symbols_, document_.GetAllocator());
+      }
+
+      virtual void update() {
+        Memory::update();
+
+        document_["symbols"] = symbols_;
+      }
     };
 
-    struct MemoryMetrics {
+    class MemoryMetrics {
+    public:
       metric young_bytes;
       metric young_objects;
       metric immix_bytes;

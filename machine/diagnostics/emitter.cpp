@@ -5,8 +5,8 @@
 #include "vm.hpp"
 
 #include "diagnostics.hpp"
+#include "diagnostics/diagnostic.hpp"
 #include "diagnostics/emitter.hpp"
-#include "diagnostics/formatter.hpp"
 
 #include <fcntl.h>
 
@@ -35,7 +35,7 @@ namespace rubinius {
       }
     }
 
-    void FileEmitter::transmit(Formatter* formatter) {
+    void FileEmitter::transmit(Diagnostic* formatter) {
       std::string str = formatter->to_string().c_str();
 
       if(::write(fd_, str.c_str(), str.size()) < str.size()) {

@@ -110,7 +110,7 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    state->vm()->metrics().threads_destroyed++;
+    state->vm()->metrics()->threads_destroyed++;
 
     delete vm;
   }
@@ -129,6 +129,20 @@ namespace rubinius {
 
   double VM::run_time() {
     return timer::time_elapsed_seconds(start_time_);
+  }
+
+  void VM::checkpoint(STATE) {
+    metrics()->checkpoints++;
+
+    thread_nexus_->check_stop(state, this, [this, state]{
+        metrics()->stops++;
+        collect_maybe(state);
+      });
+
+    if(sample_counter_++ >= sample_interval_) {
+      sample(state);
+      set_sample_interval();
+    }
   }
 
   void VM::raise_stack_error(STATE) {
@@ -296,9 +310,9 @@ namespace rubinius {
   }
 
   void VM::sample(STATE) {
-    timer::StopWatch<timer::nanoseconds> timer(metrics().sample_ns);
+    timer::StopWatch<timer::nanoseconds> timer(metrics()->sample_ns);
 
-    metrics().samples++;
+    metrics()->samples++;
 
     CallFrame* frame = state->vm()->call_frame();
 

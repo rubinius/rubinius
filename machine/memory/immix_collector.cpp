@@ -8,7 +8,8 @@
 #include "capi/handles.hpp"
 #include "capi/tag.hpp"
 
-#include "diagnostics/formatter.hpp"
+#include "diagnostics/gc.hpp"
+#include "diagnostics/memory.hpp"
 #include "diagnostics/timing.hpp"
 
 namespace rubinius {
@@ -16,7 +17,7 @@ namespace memory {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(memory_) {
       // memory_->schedule_full_collection("Immix region chunk added");
-      memory_->shared().memory_metrics().immix_chunks++;
+      memory_->shared().memory_metrics()->immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
         gc_->reset_chunks_left();
@@ -34,22 +35,16 @@ namespace memory {
     , memory_(om)
     , chunks_left_(0)
     , chunks_before_collection_(10)
-    , diagnostics_(new diagnostics::ImmixDiagnostics())
-    , formatter_(new diagnostics::ImmixFormatter(diagnostics_))
+    , diagnostic_(new diagnostics::Immix())
   {
     gc_.describer().set_object_memory(om, this);
     reset_chunks_left();
   }
 
   ImmixGC::~ImmixGC() {
-    if(diagnostics_) {
-      delete diagnostics_;
-      diagnostics_ = nullptr;
-    }
-
-    if(formatter_) {
-      delete formatter_;
-      formatter_ = nullptr;
+    if(diagnostic_) {
+      delete diagnostic_;
+      diagnostic_ = nullptr;
     }
   }
 
@@ -318,32 +313,32 @@ namespace memory {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          vm()->shared.gc_metrics().immix_diagnostics_us);
+          vm()->shared.gc_metrics()->immix_diagnostics_us);
 
       // Now, calculate how much space we're still using.
       Chunks& chunks = gc_.block_allocator().chunks();
       AllBlockIterator iter(chunks);
 
-      diagnostics()->chunks_ = chunks.size();
+      diagnostic()->chunks_ = chunks.size();
 
       while(Block* block = iter.next()) {
-        diagnostics()->holes_ += block->holes();
-        diagnostics()->objects_ += block->objects();
-        diagnostics()->bytes_ += block->object_bytes();
-        diagnostics()->total_bytes_ += cBlockSize;
+        diagnostic()->holes_ += block->holes();
+        diagnostic()->objects_ += block->objects();
+        diagnostic()->bytes_ += block->object_bytes();
+        diagnostic()->total_bytes_ += cBlockSize;
       }
 
-      diagnostics()->percentage_ =
-        (double)diagnostics()->bytes_ / (double)diagnostics()->total_bytes_;
+      diagnostic()->percentage_ =
+        (double)diagnostic()->bytes_ / (double)diagnostic()->total_bytes_;
 
-      diagnostics()->collections_++;
+      diagnostic()->collections_++;
 
-      formatter_->update();
-      memory_->shared().report_diagnostics(formatter_);
+      diagnostic()->update();
+      memory_->shared().report_diagnostics(diagnostic());
     }
 
-    allocator_.restart(diagnostics()->percentage_,
-        diagnostics()->total_bytes_ - diagnostics()->bytes_);
+    allocator_.restart(diagnostic()->percentage_,
+        diagnostic()->total_bytes_ - diagnostic()->bytes_);
   }
 
   bool ImmixGC::process_mark_stack() {

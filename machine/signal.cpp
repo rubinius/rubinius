@@ -4,6 +4,7 @@
 #include "state.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
+#include "logger.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"
 #include "thread_phase.hpp"
@@ -19,7 +20,7 @@
 #include "class/string.hpp"
 #include "class/thread.hpp"
 
-#include "logger.hpp"
+#include "diagnostics/machine.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -90,7 +91,7 @@ namespace rubinius {
   void SignalThread::queue_signal(int signal) {
     if(system_exit_) return;
 
-    vm()->metrics().signals_received++;
+    vm()->metrics()->signals_received++;
 
     {
       thread::Mutex::LockGuard guard(lock_);
@@ -133,11 +134,11 @@ namespace rubinius {
           "memory: %lldus " \
           "ontology: %lldus " \
           "platform: %lldus",
-          state->shared().boot_metrics().fields_us,
-          state->shared().boot_metrics().main_thread_us,
-          state->shared().boot_metrics().memory_us,
-          state->shared().boot_metrics().ontology_us,
-          state->shared().boot_metrics().platform_us);
+          state->shared().boot_metrics()->fields_us,
+          state->shared().boot_metrics()->main_thread_us,
+          state->shared().boot_metrics()->memory_us,
+          state->shared().boot_metrics()->ontology_us,
+          state->shared().boot_metrics()->platform_us);
     }
 
     run(state);
@@ -276,7 +277,7 @@ namespace rubinius {
       if(signal > 0) {
         ManagedPhase managed(state);
 
-        vm()->metrics().signals_processed++;
+        vm()->metrics()->signals_processed++;
 
         Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(signal));

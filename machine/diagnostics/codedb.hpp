@@ -1,11 +1,12 @@
 #ifndef RBX_DIAGNOSTICS_CODEDB_HPP
 #define RBX_DIAGNOSTICS_CODEDB_HPP
 
-#include "diagnostics/metrics.hpp"
+#include "diagnostics/diagnostic.hpp"
 
 namespace rubinius {
   namespace diagnostics {
-    struct CodeDBMetrics {
+    class CodeDBMetrics {
+    public:
       metric load_ns;
       metric load_count;
 
