@@ -5,7 +5,7 @@
 
 namespace rubinius {
   namespace diagnostics {
-    class JITMetrics {
+    class JITMetrics : public Diagnostic {
     public:
       metric methods_queued;
       metric methods_compiled;
@@ -18,17 +18,32 @@ namespace rubinius {
       metric inlined_primitives;
       metric inlined_ffi;
 
-      JITMetrics() {
-        methods_queued = 0;
-        methods_compiled = 0;
-        methods_failed = 0;
-        compile_time_us = 0;
-        uncommon_exits = 0;
-        inlined_accessors = 0;
-        inlined_methods = 0;
-        inlined_blocks = 0;
-        inlined_primitives = 0;
-        inlined_ffi = 0;
+      JITMetrics()
+        : Diagnostic()
+        , methods_queued(0)
+        , methods_compiled(0)
+        , methods_failed(0)
+        , compile_time_us(0)
+        , uncommon_exits(0)
+        , inlined_accessors(0)
+        , inlined_methods(0)
+        , inlined_blocks(0)
+        , inlined_primitives(0)
+        , inlined_ffi(0)
+      {
+        set_type("JITMetrics");
+      }
+
+      virtual void start_reporting(STATE) {
+        if(state->shared().config.diagnostics_jit_enabled) {
+          Diagnostic::start_reporting(state);
+        }
+      }
+
+      virtual void stop_reporting(STATE) {
+        if(state->shared().config.diagnostics_jit_enabled) {
+          Diagnostic::stop_reporting(state);
+        }
       }
     };
   }

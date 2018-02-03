@@ -5,7 +5,7 @@
 
 namespace rubinius {
   namespace diagnostics {
-    class GCMetrics {
+    class GCMetrics : public Diagnostic {
     public:
       metric young_set;
       metric young_count;
@@ -25,24 +25,39 @@ namespace rubinius {
       metric handles_set;
       metric resource_set;
 
-      GCMetrics() {
-        young_set = 0;
-        young_count = 0;
-        young_ms = 0;
-        immix_set = 0;
-        immix_count = 0;
-        immix_stop_ms = 0;
-        immix_suspend_ms = 0;
-        immix_concurrent_ms = 0;
-        immix_diagnostics_us = 0;
-        large_set = 0;
-        large_count = 0;
-        large_sweep_us = 0;
-        objects_queued = 0;
-        objects_finalized = 0;
-        headers_set = 0;
-        handles_set = 0;
-        resource_set = 0;
+      GCMetrics()
+        : Diagnostic()
+        , young_set(0)
+        , young_count(0)
+        , young_ms(0)
+        , immix_set(0)
+        , immix_count(0)
+        , immix_stop_ms(0)
+        , immix_suspend_ms(0)
+        , immix_concurrent_ms(0)
+        , immix_diagnostics_us(0)
+        , large_set(0)
+        , large_count(0)
+        , large_sweep_us(0)
+        , objects_queued(0)
+        , objects_finalized(0)
+        , headers_set(0)
+        , handles_set(0)
+        , resource_set(0)
+      {
+        set_type("GCMetrics");
+      }
+
+      virtual void start_reporting(STATE) {
+        if(state->shared().config.diagnostics_gc_enabled) {
+          Diagnostic::start_reporting(state);
+        }
+      }
+
+      virtual void stop_reporting(STATE) {
+        if(state->shared().config.diagnostics_gc_enabled) {
+          Diagnostic::stop_reporting(state);
+        }
       }
     };
   }

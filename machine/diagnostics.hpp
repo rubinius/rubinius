@@ -116,6 +116,12 @@ namespace rubinius {
 
         recurring_reports_.insert(diagnostic);
       }
+
+      void remove_report(Diagnostic* diagnostic) {
+        std::lock_guard<std::mutex> guard(lock_);
+
+        recurring_reports_.erase(diagnostic);
+      }
     };
   }
 }

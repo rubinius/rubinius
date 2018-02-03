@@ -5,11 +5,26 @@
 
 namespace rubinius {
   namespace diagnostics {
-    struct LockMetrics {
+    struct LockMetrics : public Diagnostic {
       metric stop_the_world_ns;
 
-      LockMetrics() {
-        stop_the_world_ns = 0;
+      LockMetrics()
+        : Diagnostic()
+        , stop_the_world_ns(0)
+      {
+        set_type("ConcurrencyMetrics");
+      }
+
+      virtual void start_reporting(STATE) {
+        if(state->shared().config.diagnostics_machine_enabled) {
+          Diagnostic::start_reporting(state);
+        }
+      }
+
+      virtual void stop_reporting(STATE) {
+        if(state->shared().config.diagnostics_machine_enabled) {
+          Diagnostic::stop_reporting(state);
+        }
       }
     };
   }

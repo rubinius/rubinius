@@ -206,6 +206,14 @@ namespace rubinius {
     }
   }
 
+  void ThreadNexus::each_thread(STATE, std::function<void (STATE, VM* vm)> process) {
+    std::lock_guard<std::mutex> guard(threads_mutex_);
+
+    for(auto vm : threads_) {
+      process(state, reinterpret_cast<VM*>(vm));
+    }
+  }
+
   uint64_t ThreadNexus::wait() {
     static int i = 0;
     static int delay[] = {

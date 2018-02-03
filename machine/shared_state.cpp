@@ -248,6 +248,15 @@ namespace rubinius {
 
     if(state->shared().config.diagnostics_target.value.compare("none")) {
       diagnostics_->start_reporter(state);
+
+      boot_metrics_->start_reporting(state);
+      codedb_metrics_->start_reporting(state);
+      gc_metrics_->start_reporting(state);
+      memory_metrics_->start_reporting(state);
+
+      thread_nexus()->each_thread(state, [state](STATE, VM* vm) {
+          vm->metrics()->start_reporting(state);
+        });
     }
 
     return diagnostics_;

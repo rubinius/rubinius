@@ -97,6 +97,8 @@ namespace rubinius {
 
     void set_managed(STATE, VM* vm);
 
+    void each_thread(STATE, std::function<void (STATE, VM*)> process);
+
     bool yielding_p(VM* vm);
 
     void yield(STATE, VM* vm) {
