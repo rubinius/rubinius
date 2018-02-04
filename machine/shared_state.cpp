@@ -24,6 +24,7 @@
 #include "diagnostics/gc.hpp"
 #include "diagnostics/machine.hpp"
 #include "diagnostics/memory.hpp"
+#include "diagnostics/profiler.hpp"
 #include "diagnostics/timing.hpp"
 
 #include <iostream>
@@ -39,16 +40,15 @@ namespace rubinius {
     , finalizer_(nullptr)
     , console_(nullptr)
     , jit_(nullptr)
-    , profiler_(nullptr)
     , diagnostics_(nullptr)
     , boot_metrics_(new diagnostics::BootMetrics())
     , codedb_metrics_(new diagnostics::CodeDBMetrics())
     , gc_metrics_(new diagnostics::GCMetrics())
     , memory_metrics_(new diagnostics::MemoryMetrics())
+    , profiler_(new diagnostics::Profiler())
     , capi_constant_name_map_()
     , capi_constant_handle_map_()
     , start_time_(get_current_time())
-    , method_count_(1)
     , class_count_(1)
     , global_serial_(1)
     , initialized_(false)
@@ -89,11 +89,6 @@ namespace rubinius {
     if(console_) {
       delete console_;
       console_ = nullptr;
-    }
-
-    if(profiler_) {
-      delete profiler_;
-      profiler_ = nullptr;
     }
 
     if(jit_) {
@@ -253,6 +248,7 @@ namespace rubinius {
       codedb_metrics_->start_reporting(state);
       gc_metrics_->start_reporting(state);
       memory_metrics_->start_reporting(state);
+      profiler_->start_reporting(state);
 
       thread_nexus()->each_thread(state, [](STATE, VM* vm) {
           vm->metrics()->start_reporting(state);
@@ -266,14 +262,6 @@ namespace rubinius {
     if(diagnostics_) {
       diagnostics_->report(diagnostic);
     }
-  }
-
-  profiler::Profiler* SharedState::start_profiler(STATE) {
-    if(!profiler_) {
-      profiler_ = new profiler::Profiler(state);
-    }
-
-    return profiler_;
   }
 
   jit::JIT* SharedState::start_jit(STATE) {

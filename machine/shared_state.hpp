@@ -10,7 +10,6 @@
 #include "jit.hpp"
 #include "machine_threads.hpp"
 #include "primitives.hpp"
-#include "profiler.hpp"
 #include "spinlock.hpp"
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
@@ -93,19 +92,18 @@ namespace rubinius {
     memory::FinalizerThread* finalizer_;
     console::Console* console_;
     jit::JIT* jit_;
-    profiler::Profiler* profiler_;
 
     diagnostics::Diagnostics* diagnostics_;
     diagnostics::BootMetrics* boot_metrics_;
     diagnostics::CodeDBMetrics* codedb_metrics_;
     diagnostics::GCMetrics* gc_metrics_;
     diagnostics::MemoryMetrics* memory_metrics_;
+    diagnostics::Profiler* profiler_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
 
     uint64_t start_time_;
-    uint64_t method_count_;
     uint64_t  class_count_;
     int global_serial_;
 
@@ -226,10 +224,6 @@ namespace rubinius {
       return atomic::fetch_and_add(&class_count_, (uint64_t)1);
     }
 
-    uint64_t inc_method_count(STATE) {
-      return atomic::fetch_and_add(&method_count_, (uint64_t)1);
-    }
-
     int inc_primitive_hit(int primitive) {
       return ++primitive_hits_[primitive];
     }
@@ -274,14 +268,9 @@ namespace rubinius {
       return memory_metrics_;
     }
 
-    profiler::Profiler* start_profiler(STATE);
 
-    profiler::Profiler* profiler() const {
+    diagnostics::Profiler* profiler() {
       return profiler_;
-    }
-
-    void report_profile(STATE) {
-      if(profiler_) profiler_->report(state);
     }
 
     jit::JIT* start_jit(STATE);

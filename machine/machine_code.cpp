@@ -44,8 +44,10 @@
  * method.
  */
 namespace rubinius {
+  std::atomic<uint64_t> MachineCode::code_serial;
 
   void MachineCode::bootstrap(STATE) {
+    code_serial = 0;
   }
 
   MachineCode* MachineCode::create(STATE, CompiledCode* code) {
@@ -75,11 +77,11 @@ namespace rubinius {
     , _references_count_(0)
     , _references_(NULL)
     , _description_(NULL)
+    , _serial_(MachineCode::get_serial())
     , unspecialized(NULL)
     , fallback(NULL)
     , execute_status_(eInterpret)
     , name_(code->name())
-    , method_id_(state->shared().inc_method_count(state))
     , debugging(false)
     , flags(0)
   {

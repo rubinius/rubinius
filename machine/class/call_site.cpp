@@ -1,13 +1,17 @@
 #include "call_frame.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
+#include "machine_code.hpp"
 
 #include "class/class.hpp"
 #include "class/call_site.hpp"
+#include "class/compiled_code.hpp"
 #include "class/exception.hpp"
 #include "class/executable.hpp"
 #include "class/object.hpp"
 #include "class/tuple.hpp"
+
+#include "diagnostics/profiler.hpp"
 
 #include <stdlib.h>
 #include <sstream>
@@ -56,6 +60,16 @@ namespace rubinius {
     }
 
     return caches;
+  }
+
+  void CallSite::add_profiler_entry(VM* vm, Cache::Entry* entry) {
+    if(vm->shared.profiler()->collecting_p()) {
+      if(CompiledCode* code = try_as<CompiledCode>(entry->prediction()->executable())) {
+        vm->shared.profiler()->add_entry(serial(), ip(),
+            code->machine_code()->serial(), entry->hits(),
+            vm->shared.symbols.lookup_cppstring(entry->receiver_class()->module_name()));
+      }
+    }
   }
 
   void CallSite::Info::mark(Object* obj, memory::ObjectMark& mark) {

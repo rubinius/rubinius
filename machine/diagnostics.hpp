@@ -26,6 +26,7 @@ namespace rubinius {
     class MachineMetrics;
     class Memory;
     class MemoryMetrics;
+    class Profiler;
     class SymbolTable;
 
     typedef uint64_t metric;

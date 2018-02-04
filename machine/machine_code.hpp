@@ -14,6 +14,7 @@
 #include "class/compiled_code.hpp"
 #include "memory/code_resource.hpp"
 
+#include <atomic>
 #include <stdint.h>
 
 namespace rubinius {
@@ -47,6 +48,8 @@ namespace rubinius {
       eJITDisable,
     };
 
+    static std::atomic<uint64_t> code_serial;
+
   public:
     InterpreterRunner run;
 
@@ -78,6 +81,7 @@ namespace rubinius {
     attr_field(references, size_t*);
     attr_field(unwind_site_count, size_t);
     attr_field(description, std::string*);
+    attr_field(serial, uint64_t);
 
     executor unspecialized;
     executor fallback;
@@ -86,13 +90,16 @@ namespace rubinius {
     ExecuteStatus execute_status_;
 
     Symbol* name_;
-    uint64_t method_id_;
   public:
     uint32_t debugging;
 
   private:
     uint32_t flags; // Used to store bit flags
   public: // Methods
+    static uint64_t get_serial() {
+      return ++code_serial;
+    }
+
     static void bootstrap(STATE);
 
     static MachineCode* create(STATE, CompiledCode* code);
@@ -128,10 +135,6 @@ namespace rubinius {
 
     Symbol* name() const {
       return name_;
-    }
-
-    uint64_t method_id() const {
-      return method_id_;
     }
 
     bool no_inline_p() const {

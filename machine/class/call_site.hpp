@@ -255,6 +255,7 @@ namespace rubinius {
 
     attr_accessor(name, Symbol);
 
+    attr_field(serial, uint64_t);
     attr_field(ip, int);
     attr_field(invokes, int);
     attr_field(rotations, int);
@@ -283,11 +284,12 @@ namespace rubinius {
       obj->_cache_ = nullptr;
     }
 
-    static CallSite* create(STATE, intptr_t* mem, Symbol* name, int ip) {
+    static CallSite* create(STATE, intptr_t* mem, Symbol* name, uint64_t serial, int ip) {
       CallSite* cache =
         state->memory()->new_object_unmanaged<CallSite>(state, G(call_site), mem);
 
       cache->name(name);
+      cache->serial(serial);
       cache->ip(ip);
 
       state->vm()->metrics()->call_site_count++;
@@ -536,7 +538,12 @@ namespace rubinius {
       }
     }
 
+    void add_profiler_entry(VM* vm, Cache::Entry* entry);
+
     void evict_and_mark(memory::ObjectMark& mark) {
+      // TODO: pass State into GC!
+      VM* vm = VM::current();
+
       if(Cache* cache = this->cache()) {
         // Disable if call site is unstable for caching
         if(cache->evictions() > max_evictions) {
@@ -545,8 +552,7 @@ namespace rubinius {
 
           delete_cache(cache);
 
-          // TODO: pass State into GC!
-          VM::current()->metrics()->inline_cache_disabled++;
+          vm->metrics()->inline_cache_disabled++;
         } else {
           // Campact and possibly reset cache
           Cache* new_cache = cache->compact();
@@ -557,8 +563,7 @@ namespace rubinius {
             delete_cache(cache);
 
             if(new_cache) {
-              // TODO: pass State into GC!
-              VM::current()->metrics()->inline_cache_count++;
+              vm->metrics()->inline_cache_count++;
             } else {
               execute(CallSite::dispatch_once);
             }
@@ -584,6 +589,8 @@ namespace rubinius {
             entry->prediction(as<MethodPrediction>(ref));
             mark.just_set(this, ref);
           }
+
+          add_profiler_entry(vm, entry);
         }
       }
 

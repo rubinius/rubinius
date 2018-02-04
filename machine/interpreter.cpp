@@ -219,7 +219,7 @@ namespace rubinius {
 
         intptr_t* mem = call_site_base + (CallSite::memory_words * call_site_index++);
 
-        CallSite* call_site = CallSite::create(state, mem, name, ip);
+        CallSite* call_site = CallSite::create(state, mem, name, machine_code->serial(), ip);
 
         if(op == instructions::data_send_vcall.id) {
           allow_private = true;

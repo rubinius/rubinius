@@ -79,8 +79,6 @@ namespace rubinius {
           msg->visibility = entry->visibility();
         }
         if(entry->method()->nil_p() && entry->method_id()->nil_p()) {
-        // TODO: fix using method() == cNil for this
-        // if(entry->method()->nil_p()) {
           skip_vis_check = true;
           goto keep_looking;
         }
