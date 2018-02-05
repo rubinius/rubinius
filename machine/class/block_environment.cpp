@@ -410,8 +410,8 @@ namespace rubinius {
     if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
       if(state->vm()->thread_state()->raise_reason() == cNone) {
         Exception* exc =
-          Exception::make_argument_error(state, mcode->required_args, args.total(),
-                                         mcode->name());
+          Exception::make_argument_error(state,
+              mcode->required_args, args.total(), mcode->name().c_str());
         exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
       }
@@ -466,13 +466,11 @@ namespace rubinius {
     return call(state, args);
   }
 
-  Object* BlockEnvironment::call_on_object(STATE,
-                                           Arguments& args, int flags)
-  {
+  Object* BlockEnvironment::call_on_object(STATE, Arguments& args, int flags) {
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(),
-                                       compiled_code()->name());
+            compiled_code()->name()->cpp_str(state).c_str());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -491,7 +489,7 @@ namespace rubinius {
     if(args.total() < 3) {
       Exception* exc =
         Exception::make_argument_error(state, 3, args.total(),
-                                       compiled_code()->name());
+            compiled_code()->name()->cpp_str(state).c_str());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;

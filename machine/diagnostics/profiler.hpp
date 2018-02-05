@@ -42,14 +42,14 @@ namespace rubinius {
 
       class IndexEntry {
       public:
+        std::string name;
         std::string location;
-        std::string module_name;
         uint64_t samples;
         uint64_t invokes;
 
-        IndexEntry(std::string& l, std::string& m, uint64_t s, uint64_t i)
-          : location(l)
-          , module_name(m)
+        IndexEntry(const std::string& n, const std::string& l, uint64_t s, uint64_t i)
+          : name(n)
+          , location(l)
           , samples(s)
           , invokes(i)
         {
@@ -61,11 +61,13 @@ namespace rubinius {
         uint64_t serial;
         int cache_hits;
         std::string receiver_class;
+        std::string module_name;
 
-        Entry(uint64_t s, int h, std::string& r)
+        Entry(uint64_t s, int h, const std::string& r, const std::string& m)
           : serial(s)
           , cache_hits(h)
           , receiver_class(r)
+          , module_name(m)
         {
         }
       };
@@ -73,65 +75,110 @@ namespace rubinius {
       std::unordered_map<uint64_t, IndexEntry> index_;
       std::unordered_map<ProfilerEntryKey, Entry> entries_;
 
+      int sample_min_;
       bool collecting_;
-      bool reporting_;
-      bool updating_;
 
     public:
       Profiler()
         : Diagnostic()
         , index_()
         , entries_()
+        , sample_min_(10)
         , collecting_(false)
-        , reporting_(false)
-        , updating_(false)
       {
         set_type("Profiler");
+
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("index", rapidjson::Value(rapidjson::kArrayType).Move(), alloc);
+        document_.AddMember("entries", rapidjson::Value(rapidjson::kArrayType).Move(), alloc);
       }
 
       virtual ~Profiler() { }
 
+      int sample_min() const {
+        return sample_min_;
+      }
+
       virtual void start_reporting(STATE) {
         if(state->shared().config.diagnostics_profiler_enabled) {
           Diagnostic::start_reporting(state);
-          reporting_ = true;
+          collecting_ = true;
         }
       }
 
       virtual void stop_reporting(STATE) {
         if(state->shared().config.diagnostics_profiler_enabled) {
           Diagnostic::stop_reporting(state);
-          reporting_ = false;
+          collecting_ = false;
         }
       }
 
-      virtual void update() {
-        updating_ = true;
-      }
+      virtual const std::string to_string() {
+        rapidjson::Value& index = document_["index"];
+        index.Clear();
 
-      void start_collecting() {
-        if(!updating_) return;
+        rapidjson::Value& entries = document_["entries"];
+        entries.Clear();
 
-        entries_.clear();
-        collecting_ = true;
-      }
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
-      void stop_collecting() {
-        collecting_ = false;
+        for(auto i : index_) {
+          const IndexEntry& e = i.second;
+
+          rapidjson::Value o(rapidjson::kObjectType);
+
+          o.AddMember("serial", i.first, alloc);
+          o.AddMember("name", rapidjson::Value(e.name.c_str(), alloc).Move(), alloc);
+          o.AddMember("location", rapidjson::Value(e.location.c_str(), alloc).Move(), alloc);
+          o.AddMember("samples", e.samples, alloc);
+          o.AddMember("calls", e.invokes, alloc);
+
+          index.PushBack(o.Move(), alloc);
+        }
+
+        for(auto e : entries_) {
+          const ProfilerEntryKey& k = e.first;
+          const Entry& v = e.second;
+
+          rapidjson::Value o(rapidjson::kObjectType);
+
+          o.AddMember("caller_serial", k.serial, alloc);
+          o.AddMember("ip", k.ip, alloc);
+          o.AddMember("callee_serial", v.serial, alloc);
+          o.AddMember("cache_hits", v.cache_hits, alloc);
+          o.AddMember("class",
+              rapidjson::Value(v.receiver_class.c_str(), alloc).Move(), alloc);
+          o.AddMember("module",
+              rapidjson::Value(v.module_name.c_str(), alloc).Move(), alloc);
+
+          entries.PushBack(o.Move(), alloc);
+        }
+
+        const std::string& str = Diagnostic::to_string();
+
+        index.Clear();
+        entries.Clear();
+
+        return std::move(str);
       }
 
       bool collecting_p() const {
         return collecting_;
       }
 
-      virtual void add_index() {
+      virtual void add_index(uint64_t serial, const std::string& name,
+          const std::string& location, uint64_t samples, uint64_t invokes)
+      {
+        index_.insert(std::make_pair(serial,
+              IndexEntry(name, location, samples, invokes)));
       }
 
-      virtual void add_entry(uint64_t caller_serial, int ip,
-          uint64_t callee_serial, int hits, std::string& receiver_class)
+      virtual void add_entry(uint64_t caller_serial, int ip, uint64_t callee_serial,
+          int hits, const std::string& receiver_class, const std::string& module_name)
       {
         entries_.insert(std::make_pair(ProfilerEntryKey(caller_serial, ip),
-              Entry(callee_serial, hits, receiver_class)));
+              Entry(callee_serial, hits, receiver_class, module_name)));
       }
     };
   }

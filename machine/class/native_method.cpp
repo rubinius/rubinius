@@ -648,7 +648,7 @@ namespace rubinius {
 
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
-          state, arity, args.total(), args.name());
+          state, arity, args.total(), args.name()->cpp_str(state).c_str());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
 

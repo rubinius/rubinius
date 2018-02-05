@@ -20,6 +20,7 @@
 #include "class/weakref.hpp"
 
 #include <string>
+#include <ostream>
 
 namespace rubinius {
   void Module::bootstrap(STATE) {
@@ -497,6 +498,39 @@ namespace rubinius {
     } else {
       return name->cpp_str(state);
     }
+  }
+
+  std::string Module::name() {
+    // TODO: temporary method to facilitate Profiler until passing State into
+    // GC is fixed.
+    VM* vm = VM::current();
+    std::string name;
+
+    Symbol* sym = module_name();
+
+    if(sym->nil_p()) {
+      std::ostringstream n;
+
+      if(SingletonClass* klass = try_as<SingletonClass>(this)) {
+        Module* super = superclass();
+
+        while(kind_of<IncludedModule>(super)) {
+          super = super->superclass();
+        }
+
+        n << "#<Class:"
+          << vm->shared.symbols.lookup_cppstring(super->module_name())
+          << ">";
+      } else {
+        n << "#<unknown class>";
+      }
+
+      name = n.str();
+    } else {
+      name = vm->shared.symbols.lookup_cppstring(sym);
+    }
+
+    return name;
   }
 
   void Module::Info::show(STATE, Object* self, int level) {

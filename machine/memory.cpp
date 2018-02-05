@@ -544,7 +544,6 @@ step1:
 
     if(collect_full_flag_) {
       RUBINIUS_GC_BEGIN(1);
-      state->shared().profiler()->start_collecting();
       collect_full(state);
     }
 
@@ -654,8 +653,6 @@ step1:
 
     collect_full_flag_ = false;
     interrupt_flag_ = false;
-
-    state->shared().profiler()->stop_collecting();
 
     RUBINIUS_GC_END(1);
   }

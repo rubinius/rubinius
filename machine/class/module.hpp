@@ -88,6 +88,8 @@ namespace rubinius {
 
     std::string debug_str(STATE);
 
+    std::string name();
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

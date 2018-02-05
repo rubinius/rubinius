@@ -38,7 +38,7 @@ namespace rubinius {
         document_["type"].SetString(type, document_.GetAllocator());
       }
 
-      virtual std::string to_string() {
+      virtual const std::string to_string() {
         rapidjson::StringBuffer buffer;
 
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

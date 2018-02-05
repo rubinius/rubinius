@@ -638,7 +638,7 @@ namespace rubinius {
     if(!CBOOL(varargs()) && given_args != ffi_data()->arg_count) {
       Exception* exc =
         Exception::make_argument_error(state, ffi_data()->arg_count,
-                                         args.total(), args.name());
+            args.total(), args.name()->cpp_str(state).c_str());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
 

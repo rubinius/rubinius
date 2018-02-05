@@ -35,8 +35,8 @@ namespace rubinius {
       }
     }
 
-    void FileEmitter::transmit(Diagnostic* formatter) {
-      std::string str = formatter->to_string().c_str();
+    void FileEmitter::transmit(Diagnostic* diagnostic) {
+      std::string str = diagnostic->to_string().c_str();
 
       if(::write(fd_, str.c_str(), str.size()) < str.size()) {
         logger::error("%s: writing diagnostics failed", strerror(errno));

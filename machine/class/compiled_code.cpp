@@ -24,6 +24,7 @@
 
 #include "memory/object_mark.hpp"
 
+#include "diagnostics/profiler.hpp"
 #include "diagnostics/timing.hpp"
 
 #include "sodium/crypto_generichash.h"
@@ -347,6 +348,16 @@ namespace rubinius {
 
     MachineCode* mcode = code->machine_code();
     mcode->set_mark();
+
+    // TODO: pass State into GC!
+    VM* vm = VM::current();
+
+    if(vm->shared.profiler()->collecting_p()) {
+      if(mcode->sample_count > vm->shared.profiler()->sample_min()) {
+        vm->shared.profiler()->add_index(mcode->serial(), mcode->name(),
+            mcode->location(), mcode->sample_count, mcode->call_count);
+      }
+    }
 
     for(size_t i = 0; i < mcode->references_count(); i++) {
       if(size_t ip = mcode->references()[i]) {

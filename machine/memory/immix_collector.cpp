@@ -333,8 +333,10 @@ namespace memory {
 
       diagnostic()->collections_++;
 
-      diagnostic()->update();
-      memory_->shared().report_diagnostics(diagnostic());
+      if(memory_->shared().config.diagnostics_memory_enabled) {
+        diagnostic()->update();
+        memory_->shared().report_diagnostics(diagnostic());
+      }
     }
 
     allocator_.restart(diagnostic()->percentage_,

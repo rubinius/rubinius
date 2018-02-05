@@ -35,6 +35,8 @@
 #include "configuration.hpp"
 #include "dtrace/dtrace.h"
 
+#include <ostream>
+
 #ifdef RBX_WINDOWS
 #include <malloc.h>
 #endif
@@ -75,19 +77,24 @@ namespace rubinius {
     , _call_site_count_(0)
     , _constant_cache_count_(0)
     , _references_count_(0)
-    , _references_(NULL)
-    , _description_(NULL)
+    , _references_(nullptr)
     , _serial_(MachineCode::get_serial())
-    , unspecialized(NULL)
-    , fallback(NULL)
+    , _name_(code->name()->cpp_str(state))
+    , _location_()
+    , unspecialized(nullptr)
+    , fallback(nullptr)
     , execute_status_(eInterpret)
-    , name_(code->name())
     , debugging(false)
     , flags(0)
   {
     if(keywords) {
       keywords_count = code->keywords()->num_fields() / 2;
     }
+
+    std::ostringstream loc;
+    loc << code->file()->cpp_str(state) << ":" << code->start_line();
+
+    _location_.assign(loc.str());
 
     size_t call_sites = 0;
     Tuple* ops = code->iseq()->opcodes();
@@ -139,8 +146,6 @@ namespace rubinius {
 #endif
       delete[] references();
     }
-
-    if(description()) delete description();
   }
 
   void MachineCode::finalize(STATE) {
@@ -230,34 +235,6 @@ namespace rubinius {
   {
     m->label(code->file()->cpp_str(state), code->name()->cpp_str(state), ip);
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(m);
-  }
-
-  void MachineCode::set_description(STATE) {
-    if(description()) return;
-
-    CallFrame* call_frame = state->vm()->call_frame();
-
-    Class* klass = call_frame->self()->class_object(state);
-    Module* method_module = call_frame->module();
-
-    std::string* desc = new std::string();
-
-    if(kind_of<SingletonClass>(method_module)) {
-      desc->append(method_module->debug_str(state));
-      desc->append(".");
-    } else if(method_module != klass) {
-      desc->append(method_module->debug_str(state));
-      desc->append("(");
-      desc->append(klass->debug_str(state));
-      desc->append(")");
-    } else {
-      desc->append(klass->debug_str(state));
-      desc->append("#");
-    }
-
-    desc->append(name()->cpp_str(state));
-
-    description(desc);
   }
 
   // Argument handler implementations
@@ -664,7 +641,8 @@ namespace rubinius {
       if(ArgumentHandler::call(state, mcode, scope, args) == false) {
         if(state->vm()->thread_state()->raise_reason() == cNone) {
           Exception* exc =
-            Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
+            Exception::make_argument_error(state, mcode->total_args,
+                args.total(), args.name()->cpp_str(state).c_str());
           exc->locations(state, Location::from_call_stack(state));
           state->raise_exception(exc);
         }

@@ -297,6 +297,10 @@ namespace rubinius {
       return cache;
     }
 
+    void set_cache(Cache* cache) {
+      _cache_ = cache;
+    }
+
     void delete_cache(Cache* cache) {
       delete[] reinterpret_cast<uint8_t*>(cache);
     }
@@ -536,66 +540,6 @@ namespace rubinius {
         delete_cache(cache);
         _cache_ = nullptr;
       }
-    }
-
-    void add_profiler_entry(VM* vm, Cache::Entry* entry);
-
-    void evict_and_mark(memory::ObjectMark& mark) {
-      // TODO: pass State into GC!
-      VM* vm = VM::current();
-
-      if(Cache* cache = this->cache()) {
-        // Disable if call site is unstable for caching
-        if(cache->evictions() > max_evictions) {
-          _cache_ = nullptr;
-          execute(CallSite::dispatch);
-
-          delete_cache(cache);
-
-          vm->metrics()->inline_cache_disabled++;
-        } else {
-          // Campact and possibly reset cache
-          Cache* new_cache = cache->compact();
-
-          if(new_cache != cache) {
-            _cache_ = new_cache;
-
-            delete_cache(cache);
-
-            if(new_cache) {
-              vm->metrics()->inline_cache_count++;
-            } else {
-              execute(CallSite::dispatch_once);
-            }
-          }
-        }
-      }
-
-      // Do not merge conditionals, we may have set _cache_ to nullptr above.
-      if(Cache* cache = this->cache()) {
-        // Re-order more used cache entries to the front
-        cache->reorder();
-
-        // Mark caches.
-        for(int32_t i = 0; i < cache->size(); i++) {
-          Cache::Entry* entry = cache->entries(i);
-
-          if(Object* ref = mark.call(entry->receiver_class())) {
-            entry->receiver_class(as<Class>(ref));
-            mark.just_set(this, ref);
-          }
-
-          if(Object* ref = mark.call(entry->prediction())) {
-            entry->prediction(as<MethodPrediction>(ref));
-            mark.just_set(this, ref);
-          }
-
-          add_profiler_entry(vm, entry);
-        }
-      }
-
-      // Clear dead list
-      if(_dead_list_) clear_dead_list();
     }
 
     // Rubinius.primitive :call_site_ip

@@ -62,21 +62,72 @@ namespace rubinius {
     return caches;
   }
 
-  void CallSite::add_profiler_entry(VM* vm, Cache::Entry* entry) {
-    if(vm->shared.profiler()->collecting_p()) {
-      if(CompiledCode* code = try_as<CompiledCode>(entry->prediction()->executable())) {
-        vm->shared.profiler()->add_entry(serial(), ip(),
-            code->machine_code()->serial(), entry->hits(),
-            vm->shared.symbols.lookup_cppstring(entry->receiver_class()->module_name()));
-      }
-    }
-  }
-
   void CallSite::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
 
     CallSite* call_site = as<CallSite>(obj);
 
-    call_site->evict_and_mark(mark);
+    // TODO: pass State into GC!
+    VM* vm = VM::current();
+
+    if(Cache* cache = call_site->cache()) {
+      // Disable if call site is unstable for caching
+      if(cache->evictions() > max_evictions) {
+        call_site->set_cache(nullptr);
+        call_site->execute(CallSite::dispatch);
+
+        call_site->delete_cache(cache);
+
+        vm->metrics()->inline_cache_disabled++;
+      } else {
+        // Campact and possibly reset cache
+        Cache* new_cache = cache->compact();
+
+        if(new_cache != cache) {
+          call_site->set_cache(new_cache);
+          call_site->delete_cache(cache);
+
+          if(new_cache) {
+            vm->metrics()->inline_cache_count++;
+          } else {
+            call_site->execute(CallSite::dispatch_once);
+          }
+        }
+      }
+    }
+
+    // Do not merge conditionals, we may have set _cache_ to nullptr above.
+    if(Cache* cache = call_site->cache()) {
+      // Re-order more used cache entries to the front
+      cache->reorder();
+
+      // Mark caches.
+      for(int32_t i = 0; i < cache->size(); i++) {
+        Cache::Entry* entry = cache->entries(i);
+
+        if(Object* ref = mark.call(entry->receiver_class())) {
+          entry->receiver_class(as<Class>(ref));
+          mark.just_set(call_site, ref);
+        }
+
+        if(Object* ref = mark.call(entry->prediction())) {
+          entry->prediction(as<MethodPrediction>(ref));
+          mark.just_set(call_site, ref);
+        }
+
+        if(vm->shared.profiler()->collecting_p()) {
+          if(CompiledCode* code = try_as<CompiledCode>(entry->prediction()->executable())) {
+            if(code->machine_code()->sample_count > vm->shared.profiler()->sample_min()) {
+              vm->shared.profiler()->add_entry(call_site->serial(), call_site->ip(),
+                  code->machine_code()->serial(), entry->hits(),
+                  entry->receiver_class()->name(), entry->prediction()->module()->name());
+            }
+          }
+        }
+      }
+    }
+
+    // Clear dead list
+    call_site->clear_dead_list();
   }
 }

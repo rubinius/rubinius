@@ -80,8 +80,10 @@ namespace rubinius {
     attr_field(references_count, size_t);
     attr_field(references, size_t*);
     attr_field(unwind_site_count, size_t);
-    attr_field(description, std::string*);
     attr_field(serial, uint64_t);
+
+    std::string _name_;
+    std::string _location_;
 
     executor unspecialized;
     executor fallback;
@@ -89,7 +91,6 @@ namespace rubinius {
   private:
     ExecuteStatus execute_status_;
 
-    Symbol* name_;
   public:
     uint32_t debugging;
 
@@ -108,6 +109,14 @@ namespace rubinius {
     virtual ~MachineCode();
     virtual void cleanup(STATE, memory::CodeManager* code) {}
     virtual int size();
+
+    const std::string& name() const {
+      return _name_;
+    }
+
+    const std::string& location() const {
+      return _location_;
+    }
 
     bool jitted_p() const {
       return execute_status_ == eJIT;
@@ -133,10 +142,6 @@ namespace rubinius {
       execute_status_ = s;
     }
 
-    Symbol* name() const {
-      return name_;
-    }
-
     bool no_inline_p() const {
       return (flags & eNoInline) == eNoInline;
     }
@@ -157,8 +162,6 @@ namespace rubinius {
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
     void store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site);
     void store_measurement(STATE, CompiledCode* code, int ip, diagnostics::Measurement* m);
-
-    void set_description(STATE);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     static Object* execute(STATE, Executable* exec, Module* mod, Arguments& args);

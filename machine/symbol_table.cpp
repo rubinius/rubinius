@@ -34,8 +34,10 @@ namespace rubinius {
   }
 
   void SymbolTable::sweep(STATE) {
-    diagnostic_->update();
-    state->shared().report_diagnostics(diagnostic_);
+    if(state->shared().config.diagnostics_memory_enabled) {
+      diagnostic_->update();
+      state->shared().report_diagnostics(diagnostic_);
+    }
   }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {

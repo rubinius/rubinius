@@ -102,7 +102,7 @@ namespace rubinius {
       if(!arity_ok) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
-              block()->compiled_code()->name());
+              block()->compiled_code()->name()->cpp_str(state).c_str());
         exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
         return NULL;
@@ -178,7 +178,7 @@ namespace rubinius {
       if(args.total() < 1 || (required >= 0 && (size_t)required != args.total() - 1)) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
-              block()->compiled_code()->name());
+              block()->compiled_code()->name()->cpp_str(state).c_str());
         exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
         return NULL;
