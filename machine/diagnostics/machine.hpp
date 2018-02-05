@@ -23,11 +23,13 @@ namespace rubinius {
       {
         set_type("BootMetrics");
 
-        document_.AddMember("fields.us", fields_us, document_.GetAllocator());
-        document_.AddMember("main_thread.us", main_thread_us, document_.GetAllocator());
-        document_.AddMember("memory.us", memory_us, document_.GetAllocator());
-        document_.AddMember("ontology.us", ontology_us, document_.GetAllocator());
-        document_.AddMember("platform.us", platform_us, document_.GetAllocator());
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("fields.us", fields_us, alloc);
+        document_.AddMember("main_thread.us", main_thread_us, alloc);
+        document_.AddMember("memory.us", memory_us, alloc);
+        document_.AddMember("ontology.us", ontology_us, alloc);
+        document_.AddMember("platform.us", platform_us, alloc);
       }
 
       virtual void update() {
@@ -103,34 +105,36 @@ namespace rubinius {
       {
         set_type("MachineMetrics");
 
-        document_.AddMember("checkpoints", checkpoints, document_.GetAllocator());
-        document_.AddMember("stops", stops, document_.GetAllocator());
-        document_.AddMember("call_site_count", call_site_count, document_.GetAllocator());
-        document_.AddMember("inline_cache_count", inline_cache_count, document_.GetAllocator());
-        document_.AddMember("inline_cache_disabled", inline_cache_disabled, document_.GetAllocator());
-        document_.AddMember("cache_resets", cache_resets, document_.GetAllocator());
-        document_.AddMember("methods_invoked", methods_invoked, document_.GetAllocator());
-        document_.AddMember("blocks_invoked", blocks_invoked, document_.GetAllocator());
-        document_.AddMember("backtraces", backtraces, document_.GetAllocator());
-        document_.AddMember("backtrace_us", backtrace_us, document_.GetAllocator());
-        document_.AddMember("bytecode_load_us", bytecode_load_us, document_.GetAllocator());
-        document_.AddMember("bytecode_verifier_us", bytecode_verifier_us, document_.GetAllocator());
-        document_.AddMember("bytecode_internalizer_us", bytecode_internalizer_us, document_.GetAllocator());
-        document_.AddMember("samples", samples, document_.GetAllocator());
-        document_.AddMember("sample_ns", sample_ns, document_.GetAllocator());
-        document_.AddMember("profiles", profiles, document_.GetAllocator());
-        document_.AddMember("profile_ns", profile_ns, document_.GetAllocator());
-        document_.AddMember("unwind_site_count", unwind_site_count, document_.GetAllocator());
-        document_.AddMember("unwind_site_full", unwind_site_full, document_.GetAllocator());
-        document_.AddMember("unwind_site_polymorphic", unwind_site_polymorphic, document_.GetAllocator());
-        document_.AddMember("read_bytes", read_bytes, document_.GetAllocator());
-        document_.AddMember("write_bytes", write_bytes, document_.GetAllocator());
-        document_.AddMember("signals_received", signals_received, document_.GetAllocator());
-        document_.AddMember("signals_processed", signals_processed, document_.GetAllocator());
-        document_.AddMember("threads_created", threads_created, document_.GetAllocator());
-        document_.AddMember("threads_destroyed", threads_destroyed, document_.GetAllocator());
-        document_.AddMember("fibers_created", fibers_created, document_.GetAllocator());
-        document_.AddMember("fibers_destroyed", fibers_destroyed, document_.GetAllocator());
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("checkpoints", checkpoints, alloc);
+        document_.AddMember("stops", stops, alloc);
+        document_.AddMember("call_site_count", call_site_count, alloc);
+        document_.AddMember("inline_cache_count", inline_cache_count, alloc);
+        document_.AddMember("inline_cache_disabled", inline_cache_disabled, alloc);
+        document_.AddMember("cache_resets", cache_resets, alloc);
+        document_.AddMember("methods_invoked", methods_invoked, alloc);
+        document_.AddMember("blocks_invoked", blocks_invoked, alloc);
+        document_.AddMember("backtraces", backtraces, alloc);
+        document_.AddMember("backtrace_us", backtrace_us, alloc);
+        document_.AddMember("bytecode_load_us", bytecode_load_us, alloc);
+        document_.AddMember("bytecode_verifier_us", bytecode_verifier_us, alloc);
+        document_.AddMember("bytecode_internalizer_us", bytecode_internalizer_us, alloc);
+        document_.AddMember("samples", samples, alloc);
+        document_.AddMember("sample_ns", sample_ns, alloc);
+        document_.AddMember("profiles", profiles, alloc);
+        document_.AddMember("profile_ns", profile_ns, alloc);
+        document_.AddMember("unwind_site_count", unwind_site_count, alloc);
+        document_.AddMember("unwind_site_full", unwind_site_full, alloc);
+        document_.AddMember("unwind_site_polymorphic", unwind_site_polymorphic, alloc);
+        document_.AddMember("read_bytes", read_bytes, alloc);
+        document_.AddMember("write_bytes", write_bytes, alloc);
+        document_.AddMember("signals_received", signals_received, alloc);
+        document_.AddMember("signals_processed", signals_processed, alloc);
+        document_.AddMember("threads_created", threads_created, alloc);
+        document_.AddMember("threads_destroyed", threads_destroyed, alloc);
+        document_.AddMember("fibers_created", fibers_created, alloc);
+        document_.AddMember("fibers_destroyed", fibers_destroyed, alloc);
       }
 
       virtual void update() {

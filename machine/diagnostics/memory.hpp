@@ -19,9 +19,11 @@ namespace rubinius {
       {
         set_type("Memory");
 
-        document_.AddMember("objects", objects_, document_.GetAllocator());
-        document_.AddMember("bytes", bytes_, document_.GetAllocator());
-        document_.AddMember("collections", collections_, document_.GetAllocator());
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("objects", objects_, alloc);
+        document_.AddMember("bytes", bytes_, alloc);
+        document_.AddMember("collections", collections_, alloc);
       }
 
       virtual ~Memory() { }
@@ -77,10 +79,12 @@ namespace rubinius {
       {
         set_type("ImmixCollector");
 
-        document_.AddMember("total_bytes", total_bytes_, document_.GetAllocator());
-        document_.AddMember("chunks", chunks_, document_.GetAllocator());
-        document_.AddMember("holes", holes_, document_.GetAllocator());
-        document_.AddMember("percentage", percentage_, document_.GetAllocator());
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("total_bytes", total_bytes_, alloc);
+        document_.AddMember("chunks", chunks_, alloc);
+        document_.AddMember("holes", holes_, alloc);
+        document_.AddMember("percentage", percentage_, alloc);
       }
 
       virtual void update() {
@@ -179,30 +183,32 @@ namespace rubinius {
       {
         set_type("MemoryMetrics");
 
-        document_.AddMember("young_bytes", young_bytes, document_.GetAllocator());
-        document_.AddMember("young_objects", young_objects, document_.GetAllocator());
-        document_.AddMember("immix_bytes", immix_bytes, document_.GetAllocator());
-        document_.AddMember("immix_objects", immix_objects, document_.GetAllocator());
-        document_.AddMember("immix_chunks", immix_chunks, document_.GetAllocator());
-        document_.AddMember("large_bytes", large_bytes, document_.GetAllocator());
-        document_.AddMember("large_objects", large_objects, document_.GetAllocator());
-        document_.AddMember("symbols", symbols, document_.GetAllocator());
-        document_.AddMember("symbols_bytes", symbols_bytes, document_.GetAllocator());
-        document_.AddMember("code_bytes", code_bytes, document_.GetAllocator());
-        document_.AddMember("jit_bytes", jit_bytes, document_.GetAllocator());
-        document_.AddMember("promoted_bytes", promoted_bytes, document_.GetAllocator());
-        document_.AddMember("promoted_objects", promoted_objects, document_.GetAllocator());
-        document_.AddMember("slab_refills", slab_refills, document_.GetAllocator());
-        document_.AddMember("slab_refills_fails", slab_refills_fails, document_.GetAllocator());
-        document_.AddMember("data_objects", data_objects, document_.GetAllocator());
-        document_.AddMember("capi_handles", capi_handles, document_.GetAllocator());
-        document_.AddMember("inflated_headers", inflated_headers, document_.GetAllocator());
-        document_.AddMember("suspend.ms", suspend_ms, document_.GetAllocator());
-        document_.AddMember("allocated_bytes", allocated_bytes, document_.GetAllocator());
-        document_.AddMember("malloc", malloc, document_.GetAllocator());
-        document_.AddMember("calloc", calloc, document_.GetAllocator());
-        document_.AddMember("realloc", realloc, document_.GetAllocator());
-        document_.AddMember("freed", freed, document_.GetAllocator());
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("young_bytes", young_bytes, alloc);
+        document_.AddMember("young_objects", young_objects, alloc);
+        document_.AddMember("immix_bytes", immix_bytes, alloc);
+        document_.AddMember("immix_objects", immix_objects, alloc);
+        document_.AddMember("immix_chunks", immix_chunks, alloc);
+        document_.AddMember("large_bytes", large_bytes, alloc);
+        document_.AddMember("large_objects", large_objects, alloc);
+        document_.AddMember("symbols", symbols, alloc);
+        document_.AddMember("symbols_bytes", symbols_bytes, alloc);
+        document_.AddMember("code_bytes", code_bytes, alloc);
+        document_.AddMember("jit_bytes", jit_bytes, alloc);
+        document_.AddMember("promoted_bytes", promoted_bytes, alloc);
+        document_.AddMember("promoted_objects", promoted_objects, alloc);
+        document_.AddMember("slab_refills", slab_refills, alloc);
+        document_.AddMember("slab_refills_fails", slab_refills_fails, alloc);
+        document_.AddMember("data_objects", data_objects, alloc);
+        document_.AddMember("capi_handles", capi_handles, alloc);
+        document_.AddMember("inflated_headers", inflated_headers, alloc);
+        document_.AddMember("suspend.ms", suspend_ms, alloc);
+        document_.AddMember("allocated_bytes", allocated_bytes, alloc);
+        document_.AddMember("malloc", malloc, alloc);
+        document_.AddMember("calloc", calloc, alloc);
+        document_.AddMember("realloc", realloc, alloc);
+        document_.AddMember("freed", freed, alloc);
       }
 
       virtual void update() {

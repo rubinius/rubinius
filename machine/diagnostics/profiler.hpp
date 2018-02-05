@@ -90,6 +90,26 @@ namespace rubinius {
 
         rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
+        rapidjson::Value i(rapidjson::kArrayType);
+        i.PushBack(rapidjson::Value("serial", alloc).Move(), alloc);
+        i.PushBack(rapidjson::Value("name", alloc).Move(), alloc);
+        i.PushBack(rapidjson::Value("location", alloc).Move(), alloc);
+        i.PushBack(rapidjson::Value("samples", alloc).Move(), alloc);
+        i.PushBack(rapidjson::Value("calls", alloc).Move(), alloc);
+
+        rapidjson::Value e(rapidjson::kArrayType);
+        e.PushBack(rapidjson::Value("caller_serial", alloc).Move(), alloc);
+        e.PushBack(rapidjson::Value("ip", alloc).Move(), alloc);
+        e.PushBack(rapidjson::Value("callee_serial", alloc).Move(), alloc);
+        e.PushBack(rapidjson::Value("cache_hits", alloc).Move(), alloc);
+        e.PushBack(rapidjson::Value("receiver_class", alloc).Move(), alloc);
+        e.PushBack(rapidjson::Value("method_module", alloc).Move(), alloc);
+
+        rapidjson::Value o(rapidjson::kObjectType);
+        o.AddMember("index", i.Move(), alloc);
+        o.AddMember("entries", e.Move(), alloc);
+
+        document_.AddMember("fields", o.Move(), alloc);
         document_.AddMember("index", rapidjson::Value(rapidjson::kArrayType).Move(), alloc);
         document_.AddMember("entries", rapidjson::Value(rapidjson::kArrayType).Move(), alloc);
       }
@@ -126,33 +146,31 @@ namespace rubinius {
         for(auto i : index_) {
           const IndexEntry& e = i.second;
 
-          rapidjson::Value o(rapidjson::kObjectType);
+          rapidjson::Value a(rapidjson::kArrayType);
 
-          o.AddMember("serial", i.first, alloc);
-          o.AddMember("name", rapidjson::Value(e.name.c_str(), alloc).Move(), alloc);
-          o.AddMember("location", rapidjson::Value(e.location.c_str(), alloc).Move(), alloc);
-          o.AddMember("samples", e.samples, alloc);
-          o.AddMember("calls", e.invokes, alloc);
+          a.PushBack(i.first, alloc);
+          a.PushBack(rapidjson::Value(e.name.c_str(), alloc).Move(), alloc);
+          a.PushBack(rapidjson::Value(e.location.c_str(), alloc).Move(), alloc);
+          a.PushBack(e.samples, alloc);
+          a.PushBack(e.invokes, alloc);
 
-          index.PushBack(o.Move(), alloc);
+          index.PushBack(a.Move(), alloc);
         }
 
         for(auto e : entries_) {
           const ProfilerEntryKey& k = e.first;
           const Entry& v = e.second;
 
-          rapidjson::Value o(rapidjson::kObjectType);
+          rapidjson::Value a(rapidjson::kArrayType);
 
-          o.AddMember("caller_serial", k.serial, alloc);
-          o.AddMember("ip", k.ip, alloc);
-          o.AddMember("callee_serial", v.serial, alloc);
-          o.AddMember("cache_hits", v.cache_hits, alloc);
-          o.AddMember("class",
-              rapidjson::Value(v.receiver_class.c_str(), alloc).Move(), alloc);
-          o.AddMember("module",
-              rapidjson::Value(v.module_name.c_str(), alloc).Move(), alloc);
+          a.PushBack(k.serial, alloc);
+          a.PushBack(k.ip, alloc);
+          a.PushBack(v.serial, alloc);
+          a.PushBack(v.cache_hits, alloc);
+          a.PushBack(rapidjson::Value(v.receiver_class.c_str(), alloc).Move(), alloc);
+          a.PushBack(rapidjson::Value(v.module_name.c_str(), alloc).Move(), alloc);
 
-          entries.PushBack(o.Move(), alloc);
+          entries.PushBack(a.Move(), alloc);
         }
 
         const std::string& str = Diagnostic::to_string();
