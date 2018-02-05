@@ -14,6 +14,7 @@ namespace rubinius {
   namespace utilities {
     namespace timer {
       class Timer {
+        bool canceled_;
 
 #ifdef HAVE_KQUEUE
         int kq_;
@@ -26,6 +27,8 @@ namespace rubinius {
       public:
         Timer();
         virtual ~Timer();
+
+        bool canceled_p() const;
 
         void set(int milliseconds);
         void cancel();

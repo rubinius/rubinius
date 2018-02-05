@@ -81,7 +81,18 @@ namespace rubinius {
           logger::error("diagnostics: error waiting for timer");
         }
 
-        if(thread_exit_) break;
+        {
+          std::lock_guard<std::mutex> guard(diagnostics_->lock());
+
+          while(!diagnostics_->intermittent_reports().empty()) {
+            auto f = diagnostics_->intermittent_reports().back();
+            diagnostics_->intermittent_reports().pop_back();
+
+            emitter_->transmit(f);
+          }
+        }
+
+        if(timer_->canceled_p()) continue;
 
         {
           ManagedPhase managed(state);
@@ -96,13 +107,6 @@ namespace rubinius {
           std::lock_guard<std::mutex> guard(diagnostics_->lock());
 
           for(auto f : diagnostics_->recurring_reports()) {
-            emitter_->transmit(f);
-          }
-
-          while(!diagnostics_->intermittent_reports().empty()) {
-            auto f = diagnostics_->intermittent_reports().back();
-            diagnostics_->intermittent_reports().pop_back();
-
             emitter_->transmit(f);
           }
         }

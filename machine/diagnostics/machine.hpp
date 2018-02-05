@@ -39,6 +39,18 @@ namespace rubinius {
         document_["ontology.us"] = ontology_us;
         document_["platform.us"] = platform_us;
       }
+
+      virtual void start_reporting(STATE) {
+        if(state->shared().config.diagnostics_machine_enabled) {
+          Diagnostic::start_reporting(state);
+        }
+      }
+
+      virtual void stop_reporting(STATE) {
+        if(state->shared().config.diagnostics_machine_enabled) {
+          Diagnostic::stop_reporting(state);
+        }
+      }
     };
 
     class MachineMetrics : public Diagnostic {

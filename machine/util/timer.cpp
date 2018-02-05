@@ -17,9 +17,15 @@
 namespace rubinius {
   namespace utilities {
     namespace timer {
+      bool Timer::canceled_p() const {
+        return canceled_;
+      }
+
 #ifdef HAVE_KQUEUE
 
-      Timer::Timer() {
+      Timer::Timer()
+        : canceled_(false)
+      {
         if((kq_ = kqueue()) < 0) {
           logger::error("%s: timer: unable to create kqueue", strerror(errno));
         }
@@ -30,11 +36,15 @@ namespace rubinius {
       }
 
       void Timer::set(int milliseconds) {
+        canceled_ = false;
+
         EV_SET(&filter_, 0, EVFILT_TIMER, EV_ADD | EV_ENABLE,
             0, milliseconds, NULL);
       }
 
       void Timer::cancel() {
+        canceled_ = true;
+
         struct kevent event;
 
         ts_.tv_sec = 0;
@@ -75,7 +85,9 @@ namespace rubinius {
 
 #elif HAVE_TIMERFD
 
-      Timer::Timer() {
+      Timer::Timer()
+        : canceled_(false)
+      {
         if((fd_ = timerfd_create(CLOCK_MONOTONIC, 0)) < 0) {
           logger::error("%s: timer: unable to create timer fd", strerror(errno));
         }
@@ -86,6 +98,8 @@ namespace rubinius {
       }
 
       void Timer::set(int milliseconds) {
+        canceled_ = false;
+
         struct itimerspec ts;
 
         if(milliseconds > 1000) {
@@ -102,6 +116,8 @@ namespace rubinius {
       }
 
       void Timer::cancel() {
+        canceled_ = true;
+
         struct itimerspec ts;
 
         ts.it_interval.tv_sec = 0;
