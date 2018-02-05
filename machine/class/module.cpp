@@ -511,7 +511,7 @@ namespace rubinius {
     if(sym->nil_p()) {
       std::ostringstream n;
 
-      if(SingletonClass* klass = try_as<SingletonClass>(this)) {
+      if(try_as<SingletonClass>(this)) {
         Module* super = superclass();
 
         while(kind_of<IncludedModule>(super)) {
