@@ -85,7 +85,7 @@ namespace memory {
       if(!current_chunk_) {
         add_chunk();
         *collect_now = true;
-        diagnostic()->collections_++;
+        diagnostic()->collections++;
       }
     }
   }
@@ -108,8 +108,8 @@ namespace memory {
             chunk_used = true;
             cr->clear_mark();
 
-            diagnostic()->objects_++;
-            diagnostic()->bytes_ += cr->size();
+            diagnostic()->objects++;
+            diagnostic()->bytes += cr->size();
           }
         }
       }
@@ -136,7 +136,7 @@ namespace memory {
       } else {
         prev = chunk;
         chunk = chunk->next;
-        diagnostic()->chunks_++;
+        diagnostic()->chunks++;
       }
     }
   }

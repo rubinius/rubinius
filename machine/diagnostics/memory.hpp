@@ -7,49 +7,49 @@ namespace rubinius {
   namespace diagnostics {
     class Memory : public Diagnostic {
     public:
-      uint64_t objects_;
-      uint64_t bytes_;
-      int64_t collections_;
+      uint64_t objects;
+      uint64_t bytes;
+      int64_t collections;
 
       Memory()
         : Diagnostic()
-        , objects_(0)
-        , bytes_(0)
-        , collections_(0)
+        , objects(0)
+        , bytes(0)
+        , collections(0)
       {
         set_type("Memory");
 
         rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
-        document_.AddMember("objects", objects_, alloc);
-        document_.AddMember("bytes", bytes_, alloc);
-        document_.AddMember("collections", collections_, alloc);
+        document_.AddMember("objects", objects, alloc);
+        document_.AddMember("bytes", bytes, alloc);
+        document_.AddMember("collections", collections, alloc);
       }
 
       virtual ~Memory() { }
 
       virtual void update() {
-        document_["objects"] = objects_;
-        document_["bytes"] = bytes_;
-        document_["collections"] = collections_;
+        document_["objects"] = objects;
+        document_["bytes"] = bytes;
+        document_["collections"] = collections;
       }
     };
 
     class CodeManager : public Memory {
     public:
-      int64_t chunks_;
+      int64_t chunks;
 
       CodeManager()
         : Memory()
-        , chunks_(0)
+        , chunks(0)
       {
         set_type("CodeManager");
 
-        document_.AddMember("chunks", chunks_, document_.GetAllocator());
+        document_.AddMember("chunks", chunks, document_.GetAllocator());
       }
 
       virtual void update() {
-        document_["chunks"] = chunks_;
+        document_["chunks"] = chunks;
       }
     };
 
@@ -65,35 +65,35 @@ namespace rubinius {
 
     class Immix : public Memory {
     public:
-      int64_t total_bytes_;
-      int64_t chunks_;
-      int64_t holes_;
-      double percentage_;
+      int64_t total_bytes;
+      int64_t chunks;
+      int64_t holes;
+      double percentage;
 
       Immix()
         : Memory()
-        , total_bytes_(0)
-        , chunks_(0)
-        , holes_(0)
-        , percentage_(0.0)
+        , total_bytes(0)
+        , chunks(0)
+        , holes(0)
+        , percentage(0.0)
       {
         set_type("ImmixCollector");
 
         rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
-        document_.AddMember("total_bytes", total_bytes_, alloc);
-        document_.AddMember("chunks", chunks_, alloc);
-        document_.AddMember("holes", holes_, alloc);
-        document_.AddMember("percentage", percentage_, alloc);
+        document_.AddMember("total_bytes", total_bytes, alloc);
+        document_.AddMember("chunks", chunks, alloc);
+        document_.AddMember("holes", holes, alloc);
+        document_.AddMember("percentage", percentage, alloc);
       }
 
       virtual void update() {
         Memory::update();
 
-        document_["total_bytes"] = total_bytes_;
-        document_["chunks"] = chunks_;
-        document_["holes"] = holes_;
-        document_["percentage"] = percentage_;
+        document_["total_bytes"] = total_bytes;
+        document_["chunks"] = chunks;
+        document_["holes"] = holes;
+        document_["percentage"] = percentage;
       }
     };
 

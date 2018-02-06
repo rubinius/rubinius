@@ -5,14 +5,24 @@
 
 namespace rubinius {
   namespace diagnostics {
-    struct LockMetrics : public Diagnostic {
+    struct ConcurrencyMetrics : public Diagnostic {
       metric stop_the_world_ns;
 
-      LockMetrics()
+      ConcurrencyMetrics()
         : Diagnostic()
         , stop_the_world_ns(0)
       {
         set_type("ConcurrencyMetrics");
+
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("stop_the_world.ns", stop_the_world_ns, alloc);
+      }
+
+      virtual ~ConcurrencyMetrics() { }
+
+      virtual void update() {
+        document_["stop_the_world.ns"] = stop_the_world_ns;
       }
 
       virtual void start_reporting(STATE) {

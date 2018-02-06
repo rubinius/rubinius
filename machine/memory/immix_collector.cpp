@@ -319,19 +319,19 @@ namespace memory {
       Chunks& chunks = gc_.block_allocator().chunks();
       AllBlockIterator iter(chunks);
 
-      diagnostic()->chunks_ = chunks.size();
+      diagnostic()->chunks = chunks.size();
 
       while(Block* block = iter.next()) {
-        diagnostic()->holes_ += block->holes();
-        diagnostic()->objects_ += block->objects();
-        diagnostic()->bytes_ += block->object_bytes();
-        diagnostic()->total_bytes_ += cBlockSize;
+        diagnostic()->holes += block->holes();
+        diagnostic()->objects += block->objects();
+        diagnostic()->bytes += block->object_bytes();
+        diagnostic()->total_bytes += cBlockSize;
       }
 
-      diagnostic()->percentage_ =
-        (double)diagnostic()->bytes_ / (double)diagnostic()->total_bytes_;
+      diagnostic()->percentage =
+        (double)diagnostic()->bytes / (double)diagnostic()->total_bytes;
 
-      diagnostic()->collections_++;
+      diagnostic()->collections++;
 
       if(memory_->shared().config.diagnostics_memory_enabled) {
         diagnostic()->update();
@@ -339,8 +339,8 @@ namespace memory {
       }
     }
 
-    allocator_.restart(diagnostic()->percentage_,
-        diagnostic()->total_bytes_ - diagnostic()->bytes_);
+    allocator_.restart(diagnostic()->percentage,
+        diagnostic()->total_bytes - diagnostic()->bytes);
   }
 
   bool ImmixGC::process_mark_stack() {

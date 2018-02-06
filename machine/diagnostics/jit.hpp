@@ -32,6 +32,34 @@ namespace rubinius {
         , inlined_ffi(0)
       {
         set_type("JITMetrics");
+
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("methods_queued", methods_queued, alloc);
+        document_.AddMember("methods_compiled", methods_compiled, alloc);
+        document_.AddMember("methods_failed", methods_failed, alloc);
+        document_.AddMember("compile_time_us", compile_time_us, alloc);
+        document_.AddMember("uncommon_exits", uncommon_exits, alloc);
+        document_.AddMember("inlined_accessors", inlined_accessors, alloc);
+        document_.AddMember("inlined_methods", inlined_methods, alloc);
+        document_.AddMember("inlined_blocks", inlined_blocks, alloc);
+        document_.AddMember("inlined_primitives", inlined_primitives, alloc);
+        document_.AddMember("inlined_ffi", inlined_ffi, alloc);
+      }
+
+      virtual ~JITMetrics() { }
+
+      virtual void update() {
+        document_["methods_queued"] = methods_queued;
+        document_["methods_compiled"] = methods_compiled;
+        document_["methods_failed"] = methods_failed;
+        document_["compile_time_us"] = compile_time_us;
+        document_["uncommon_exits"] = uncommon_exits;
+        document_["inlined_accessors"] = inlined_accessors;
+        document_["inlined_methods"] = inlined_methods;
+        document_["inlined_blocks"] = inlined_blocks;
+        document_["inlined_primitives"] = inlined_primitives;
+        document_["inlined_ffi"] = inlined_ffi;
       }
 
       virtual void start_reporting(STATE) {

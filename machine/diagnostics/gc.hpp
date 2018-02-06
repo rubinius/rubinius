@@ -46,6 +46,48 @@ namespace rubinius {
         , resource_set(0)
       {
         set_type("GCMetrics");
+
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("young_set", young_set, alloc);
+        document_.AddMember("young_count", young_count, alloc);
+        document_.AddMember("young_ms", young_ms, alloc);
+        document_.AddMember("immix_set", immix_set, alloc);
+        document_.AddMember("immix_count", immix_count, alloc);
+        document_.AddMember("immix_stop_ms", immix_stop_ms, alloc);
+        document_.AddMember("immix_suspend_ms", immix_suspend_ms, alloc);
+        document_.AddMember("immix_concurrent_ms", immix_concurrent_ms, alloc);
+        document_.AddMember("immix_diagnostics_us", immix_diagnostics_us, alloc);
+        document_.AddMember("large_set", large_set, alloc);
+        document_.AddMember("large_count", large_count, alloc);
+        document_.AddMember("large_sweep_us", large_sweep_us, alloc);
+        document_.AddMember("objects_queued", objects_queued, alloc);
+        document_.AddMember("objects_finalized", objects_finalized, alloc);
+        document_.AddMember("headers_set", headers_set, alloc);
+        document_.AddMember("handles_set", handles_set, alloc);
+        document_.AddMember("resource_set", resource_set, alloc);
+      }
+
+      virtual ~GCMetrics() { }
+
+      virtual void update() {
+        document_["young_set"] = young_set;
+        document_["young_count"] = young_count;
+        document_["young_ms"] = young_ms;
+        document_["immix_set"] = immix_set;
+        document_["immix_count"] = immix_count;
+        document_["immix_stop_ms"] = immix_stop_ms;
+        document_["immix_suspend_ms"] = immix_suspend_ms;
+        document_["immix_concurrent_ms"] = immix_concurrent_ms;
+        document_["immix_diagnostics_us"] = immix_diagnostics_us;
+        document_["large_set"] = large_set;
+        document_["large_count"] = large_count;
+        document_["large_sweep_us"] = large_sweep_us;
+        document_["objects_queued"] = objects_queued;
+        document_["objects_finalized"] = objects_finalized;
+        document_["headers_set"] = headers_set;
+        document_["handles_set"] = handles_set;
+        document_["resource_set"] = resource_set;
       }
 
       virtual void start_reporting(STATE) {

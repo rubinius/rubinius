@@ -108,8 +108,8 @@ namespace rubinius {
 
   size_t SymbolTable::add(STATE, std::string str, int enc) {
     size_t bytes = (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
-    diagnostic()->objects_++;
-    diagnostic()->bytes_ += bytes;
+    diagnostic()->objects++;
+    diagnostic()->bytes += bytes;
 
     strings.push_back(str);
     encodings.push_back(enc);

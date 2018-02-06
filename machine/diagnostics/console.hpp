@@ -16,6 +16,18 @@ namespace rubinius {
         , responses_sent(0)
       {
         set_type("ConsoleMetrics");
+
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("requests_received", requests_received, alloc);
+        document_.AddMember("responses_sent", responses_sent, alloc);
+      }
+
+      virtual ~ConsoleMetrics() { }
+
+      virtual void update() {
+        document_["requests_received"] = requests_received;
+        document_["responses_sent"] = responses_sent;
       }
 
       virtual void start_reporting(STATE) {

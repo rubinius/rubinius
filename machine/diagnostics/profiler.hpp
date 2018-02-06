@@ -72,6 +72,7 @@ namespace rubinius {
         }
       };
 
+    private:
       std::unordered_map<uint64_t, IndexEntry> index_;
       std::unordered_map<ProfilerEntryKey, Entry> entries_;
 

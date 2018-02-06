@@ -16,6 +16,18 @@ namespace rubinius {
         , load_count(0)
       {
         set_type("CodeDBMetrics");
+
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_.AddMember("load.ns", load_ns, alloc);
+        document_.AddMember("load_count", load_count, alloc);
+      }
+
+      virtual ~CodeDBMetrics() { }
+
+      virtual void update() {
+        document_["load.ns"] = load_ns;
+        document_["load_count"] = load_count;
       }
 
       virtual void start_reporting(STATE) {

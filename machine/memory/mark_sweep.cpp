@@ -51,8 +51,8 @@ namespace memory {
 
     Object* obj = reinterpret_cast<Object*>(mem);
 
-    diagnostic()->objects_++;
-    diagnostic()->bytes_ += bytes;
+    diagnostic()->objects++;
+    diagnostic()->bytes += bytes;
 
     memory_->shared().memory_metrics()->large_objects++;
     memory_->shared().memory_metrics()->large_bytes += bytes;
@@ -73,8 +73,8 @@ namespace memory {
   }
 
   void MarkSweepGC::free_object(Object* obj, bool fast) {
-    diagnostic()->objects_--;
-    diagnostic()->bytes_ -= obj->size_in_bytes(memory_->vm());
+    diagnostic()->objects--;
+    diagnostic()->bytes -= obj->size_in_bytes(memory_->vm());
 
     if(!fast) {
       delete_object(obj);

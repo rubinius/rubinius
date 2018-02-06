@@ -35,7 +35,7 @@ namespace memory {
     *index = (uint32_t)header_index;
     InflatedHeader* header = allocator_->from_index(header_index);
     if(needs_gc) {
-      diagnostic()->collections_++;
+      diagnostic()->collections++;
       state->memory()->schedule_full_collection(
           "Inflated headers",
           state->shared().gc_metrics()->headers_set);
@@ -47,7 +47,7 @@ namespace memory {
   void InflatedHeaders::deallocate_headers(unsigned int mark) {
     std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
-    diagnostic()->objects_ = 0;
+    diagnostic()->objects = 0;
 
     for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
       InflatedHeader* chunk = allocator_->chunks_[i];
@@ -57,7 +57,7 @@ namespace memory {
 
         if(header->marked_p(mark)) {
           chunk_marks[i] = true;
-          diagnostic()->objects_++;
+          diagnostic()->objects++;
         } else {
           header->clear();
         }
@@ -66,7 +66,7 @@ namespace memory {
 
     allocator_->rebuild_freelist(&chunk_marks);
 
-    diagnostic()->bytes_ = allocator_->in_use_ * sizeof(InflatedHeader);
+    diagnostic()->bytes = allocator_->in_use_ * sizeof(InflatedHeader);
   }
 }
 }
