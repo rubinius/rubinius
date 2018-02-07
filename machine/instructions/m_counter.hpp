@@ -9,7 +9,7 @@ namespace rubinius {
     inline void m_counter(STATE, CallFrame* call_frame, intptr_t value) {
       Counter* counter = reinterpret_cast<Counter*>(value);
 
-      counter->update(state, 1);
+      counter->set(state, 1);
     }
   }
 }
