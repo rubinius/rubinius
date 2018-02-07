@@ -118,7 +118,7 @@ class Configure
     @gem_names = @gem_files.map { |x| /(.*)-\d+\.\d+(\.\d+)?\.gem$/.match(x)[1] }
 
     @installed_gems = [
-      "bundler-1.11.2.gem",
+      "bundler-1.16.1.gem",
       "minitest-5.11.1.gem",
       "racc-1.4.14.gem",
       "rake-12.3.0.gem",

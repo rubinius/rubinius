@@ -53,6 +53,23 @@ gems.each do |gem|
   end
 
   install gem, install_dir, options
+
+  if gem =~ /bundler/
+    worker = "#{install_dir}/gems/#{gem[0..-5]}/lib/bundler/worker.rb"
+
+    lines = File.readlines worker
+
+    a = "      @size = size\n"
+    b = "      @size = 1 # Bundler is not thread-safe\n"
+
+    if lines[28] == a
+      lines[28] = b
+    elsif lines[28] != b
+      raise "Unable to patch Bundler to be thread-safe on Rubinius"
+    end
+
+    File.write worker, lines.join
+  end
 end
 
 if RUBY_PLATFORM =~ /freebsd/
