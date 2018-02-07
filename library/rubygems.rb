@@ -10,7 +10,7 @@ require 'rbconfig'
 require 'thread'
 
 module Gem
-  VERSION = "2.7.4"
+  VERSION = "2.7.5"
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -176,7 +176,7 @@ module Gem
     write_binary_errors
   end.freeze
 
-  USE_BUNDLER_FOR_GEMDEPS = true # :nodoc:
+  USE_BUNDLER_FOR_GEMDEPS = !ENV['DONT_USE_BUNDLER_FOR_GEMDEPS'] # :nodoc:
 
   @@win_platform = nil
 
@@ -871,19 +871,19 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   # Safely read a file in binary mode on all platforms.
 
   def self.read_binary(path)
-    open path, 'rb+' do |f|
+    File.open path, 'rb+' do |f|
       f.flock(File::LOCK_EX)
       f.read
     end
   rescue *READ_BINARY_ERRORS
-    open path, 'rb' do |f|
+    File.open path, 'rb' do |f|
       f.read
     end
   rescue Errno::ENOLCK # NFS
     if Thread.main != Thread.current
       raise
     else
-      open path, 'rb' do |f|
+      File.open path, 'rb' do |f|
         f.read
       end
     end
