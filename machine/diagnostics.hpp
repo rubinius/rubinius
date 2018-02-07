@@ -112,10 +112,12 @@ namespace rubinius {
         }
       }
 
-      void add_report(Diagnostic* diagnostic) {
+      void add_report(STATE, Diagnostic* diagnostic) {
         std::lock_guard<std::mutex> guard(lock_);
 
         recurring_reports_.insert(diagnostic);
+
+        start_reporter(state);
       }
 
       void remove_report(Diagnostic* diagnostic) {

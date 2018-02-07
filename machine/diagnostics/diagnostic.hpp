@@ -25,7 +25,7 @@ namespace rubinius {
       virtual ~Diagnostic() {}
 
       virtual void start_reporting(STATE) {
-        state->shared().diagnostics()->add_report(this);
+        state->shared().diagnostics()->add_report(state, this);
       }
 
       virtual void stop_reporting(STATE) {

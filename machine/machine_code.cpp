@@ -213,28 +213,28 @@ namespace rubinius {
   }
 
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
-    atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
     state->memory()->write_barrier(code, call_site);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache) {
-    atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
     state->memory()->write_barrier(code, constant_cache);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site) {
-    atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(unwind_site);
     state->memory()->write_barrier(code, unwind_site);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_measurement(STATE,
       CompiledCode* code, int ip, diagnostics::Measurement* m)
   {
-    m->label(code->file()->cpp_str(state), code->name()->cpp_str(state), ip);
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(m);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   // Argument handler implementations

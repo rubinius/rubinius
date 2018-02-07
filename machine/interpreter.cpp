@@ -277,7 +277,7 @@ namespace rubinius {
       }
       case instructions::data_m_counter.id: {
         machine_code->store_measurement(state,
-            compiled_code, ip, Measurement::create_counter(state));
+            compiled_code, ip, new diagnostics::Counter(state, compiled_code, ip));
 
         break;
       }

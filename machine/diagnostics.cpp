@@ -7,7 +7,6 @@
 #include "diagnostics.hpp"
 #include "diagnostics/diagnostic.hpp"
 #include "diagnostics/emitter.hpp"
-#include "diagnostics/measurement.hpp"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -16,18 +15,6 @@ namespace rubinius {
   using namespace utilities;
 
   namespace diagnostics {
-    Measurement* Measurement::create_counter(STATE) {
-      Measurement* m = new Measurement();
-
-      m->update(Measurement::update_counter);
-      m->report(Measurement::report_counter);
-
-      // TODO: diagnostics
-      // state->shared().diagnostics()->add_measurement(m);
-
-      return m;
-    }
-
     Diagnostics::Diagnostics(STATE)
       : recurring_reports_()
       , intermittent_reports_()
