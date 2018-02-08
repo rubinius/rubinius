@@ -73,6 +73,9 @@ Rubinius::ConfigurationVariables.define do |cv|
       p.vm_variable "enabled", false,
         "Emit Profiler data"
 
+      p.vm_variable "min_sample", 10,
+        "Minimum number of samples for reporting"
+
       p.vm_variable "subprocess", false,
         "Enable profiling in subprocesses created by fork"
     end

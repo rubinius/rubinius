@@ -84,7 +84,7 @@ namespace rubinius {
         : Diagnostic()
         , index_()
         , entries_()
-        , sample_min_(10)
+        , sample_min_(0)
         , collecting_(false)
       {
         set_type("Profiler");
@@ -124,6 +124,8 @@ namespace rubinius {
       virtual void start_reporting(STATE) {
         if(state->shared().config.diagnostics_profiler_enabled) {
           Diagnostic::start_reporting(state);
+
+          sample_min_ = state->shared().config.diagnostics_profiler_min_sample.value;
           collecting_ = true;
         }
       }
