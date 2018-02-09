@@ -16,6 +16,10 @@ module CallSiteSpecs
   module N
     def e
     end
+
+    def size(a)
+      super a
+    end
   end
 
   class A
@@ -53,6 +57,10 @@ module CallSiteSpecs
     end
 
     def miss(a)
+      a.to_s
+    end
+
+    def size(a)
       a.to_s
     end
   end
@@ -120,5 +128,25 @@ module CallSiteSpecs
     def respond_to_missing?(name, include_private)
       true
     end
+  end
+
+  class MIAS
+    def size(a)
+      a.to_s
+    end
+  end
+
+  class MIA < MIAS
+    include N
+  end
+
+  class MIBS
+    def size(a)
+      a.to_s
+    end
+  end
+
+  class MIB < MIBS
+    include N
   end
 end

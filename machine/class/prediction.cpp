@@ -18,19 +18,4 @@ namespace rubinius {
   Object* Prediction::valid_p(STATE) {
     return RBOOL(valid() == valid_prediction);
   }
-
-  void MethodPrediction::bootstrap(STATE) {
-    GO(method_prediction).set(state->memory()->new_class<Class, MethodPrediction>(
-          state, G(prediction), G(rubinius), "MethodPrediction"));
-  }
-
-  MethodPrediction* MethodPrediction::create(STATE, Module* module, Executable* executable) {
-    MethodPrediction* pred =
-      state->memory()->new_object<MethodPrediction>(state, G(method_prediction));
-
-    pred->module(state, module);
-    pred->executable(state, executable);
-
-    return pred;
-  }
 }

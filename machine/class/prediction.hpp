@@ -53,32 +53,6 @@ namespace rubinius {
         virtual void populate_slot_locations() { }
     };
   };
-
-  class MethodPrediction : public Prediction {
-  public:
-    const static object_type type = MethodPredictionType;
-
-    attr_accessor(module, Module);
-    attr_accessor(executable, Executable);
-
-    static void bootstrap(STATE);
-    static void initialize(STATE, MethodPrediction* obj) {
-      Prediction::initialize(state, obj);
-
-      obj->module(nil<Module>());
-      obj->executable(nil<Executable>());
-    }
-
-    static MethodPrediction* create(STATE, Module* module, Executable* executable);
-
-    class Info : public Prediction::Info {
-    public:
-      BASIC_TYPEINFO(Prediction::Info)
-      virtual void mark(Object* obj, memory::ObjectMark& mark) {
-        auto_mark(obj, mark);
-      }
-    };
-  };
 }
 
 #endif

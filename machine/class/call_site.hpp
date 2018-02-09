@@ -28,13 +28,17 @@ namespace rubinius {
         attr_field(hits, uint32_t);
         attr_field(misses, uint32_t);
         attr_field(receiver_class, Class*);
-        attr_field(prediction, MethodPrediction*);
+        attr_field(prediction, Prediction*);
+        attr_field(module, Module*);
+        attr_field(executable, Executable*);
 
-        Entry(Class* receiver, MethodPrediction* prediction)
+        Entry(Class* receiver, Dispatch& dispatch)
           : _hits_(1)
           , _misses_(0)
           , _receiver_class_(receiver)
-          , _prediction_(prediction)
+          , _prediction_(dispatch.prediction)
+          , _module_(dispatch.module)
+          , _executable_(dispatch.method)
         {
         }
 
@@ -82,7 +86,7 @@ namespace rubinius {
         uint8_t* mem = new uint8_t[sizeof(Cache) + sizeof(Entry)];
 
         Cache* new_cache = new(mem) Cache(1);
-        new(new_cache->_entries_) Entry(receiver, dispatch.prediction);
+        new(new_cache->_entries_) Entry(receiver, dispatch);
 
         state->vm()->metrics()->inline_cache_count++;
 
@@ -101,7 +105,7 @@ namespace rubinius {
         uint8_t* mem = new uint8_t[sizeof(Cache) + (size * sizeof(Entry))];
 
         Cache* new_cache = new(mem) Cache(size, cache);
-        new(new_cache->_entries_) Entry(receiver, dispatch.prediction);
+        new(new_cache->_entries_) Entry(receiver, dispatch);
 
         new_cache->copy_valid(cache, 1);
 
@@ -203,9 +207,8 @@ namespace rubinius {
           cache->hit();
           entry->hit();
 
-          return entry->prediction()->executable()->execute(state,
-              entry->prediction()->executable(),
-              entry->prediction()->module(), args);
+          return entry->executable()->execute(state,
+              entry->executable(), entry->module(), args);
         }
 
         cache->miss();
@@ -228,9 +231,8 @@ namespace rubinius {
             cache->hit();
             entries[i].hit();
 
-            return entries[i].prediction()->executable()->execute(state,
-                entries[i].prediction()->executable(),
-                entries[i].prediction()->module(), args);
+            return entries[i].executable()->execute(state,
+                entries[i].executable(), entries[i].module(), args);
           } else {
             entries[i].miss();
           }
@@ -261,7 +263,7 @@ namespace rubinius {
     attr_field(rotations, int);
     attr_field(kind, MethodMissingReason);
 
-    attr_field(execute, Executor);
+    attr_field(executor, Executor);
 
     std::list<Cache*>* _dead_list_;
     locks::spinlock_mutex _dead_list_mutex_;
@@ -276,7 +278,7 @@ namespace rubinius {
       obj->invokes(0);
       obj->rotations(0);
       obj->kind(eNone);
-      obj->execute(CallSite::dispatch_once);
+      obj->executor(CallSite::dispatch_once);
 
       obj->_dead_list_ = nullptr;
       obj->_dead_list_mutex_.unlock();
@@ -318,7 +320,7 @@ namespace rubinius {
     }
 
     Object* execute(STATE, Arguments& args) {
-      return _execute_(state, this, args);
+      return executor()(state, this, args);
     }
 
     void lookup(STATE, Arguments& args, Dispatch& dispatch, LookupData& lookup_data) {
@@ -386,9 +388,9 @@ namespace rubinius {
           dead_cache(cache);
 
           if(new_cache->size() == 1) {
-            execute(Cache::mono_execute);
+            executor(Cache::mono_execute);
           } else {
-            execute(Cache::poly_execute);
+            executor(Cache::poly_execute);
           }
 
           std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -400,7 +402,7 @@ namespace rubinius {
           Cache::create(state, receiver, dispatch);
 
         if(_cache_.compare_exchange_strong(cache, new_cache)) {
-          execute(Cache::mono_execute);
+          executor(Cache::mono_execute);
 
           std::atomic_thread_fence(std::memory_order_seq_cst);
         } else {
@@ -419,7 +421,7 @@ namespace rubinius {
           uint64_t receiver = reinterpret_cast<uint64_t>(entry->receiver_class());
 
           if(((entry->prediction()->valid() & receiver) == klass)
-              && (entry->prediction()->executable()->serial()->to_native() == serial))
+              && (entry->executable()->serial()->to_native() == serial))
           {
             return true;
           }
@@ -465,9 +467,7 @@ namespace rubinius {
       if((value = dispatch.method->execute(state, dispatch.method, dispatch.module, args))) {
         if(dispatch.name == G(sym_method_missing)) return value;
 
-        if(call_site->execute() == CallSite::dispatch_and_cache) {
-          call_site->cache_method(state, args.recv()->direct_class(state), dispatch);
-        }
+        call_site->cache_method(state, args.recv()->direct_class(state), dispatch);
       }
 
       return value;
@@ -486,8 +486,8 @@ namespace rubinius {
       if((value = dispatch.method->execute(state, dispatch.method, dispatch.module, args))) {
         if(dispatch.name == G(sym_method_missing)) return value;
 
-        if(call_site->execute() == CallSite::dispatch_once) {
-          call_site->execute(CallSite::dispatch_and_cache);
+        if(call_site->executor() == CallSite::dispatch_once) {
+          call_site->executor(CallSite::dispatch_and_cache);
         }
       }
 
@@ -596,7 +596,7 @@ namespace rubinius {
     // Rubinius.primitive :call_site_reset
     CallSite* reset(STATE) {
       invokes(0);
-      execute(CallSite::dispatch_once);
+      executor(CallSite::dispatch_once);
 
       if(Cache* cache = this->cache()) {
         delete_cache(cache);

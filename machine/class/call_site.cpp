@@ -42,11 +42,15 @@ namespace rubinius {
       for(int i = 0; i < cache->size(); i++) {
         Cache::Entry* entry = cache->entries(i);
 
-        Tuple* t = Tuple::from(state, 8,
+        Tuple* t = Tuple::from(state, 12,
               state->symbol("receiver"),
               entry->receiver_class()->module_name(),
               state->symbol("prediction"),
               entry->prediction(),
+              state->symbol("module"),
+              entry->module(),
+              state->symbol("executable"),
+              entry->executable(),
               state->symbol("hits"),
               Integer::from(state, entry->hits()),
               state->symbol("misses"),
@@ -74,7 +78,7 @@ namespace rubinius {
       // Disable if call site is unstable for caching
       if(cache->evictions() > max_evictions) {
         call_site->set_cache(nullptr);
-        call_site->execute(CallSite::dispatch);
+        call_site->executor(CallSite::dispatch);
 
         call_site->delete_cache(cache);
 
@@ -90,7 +94,7 @@ namespace rubinius {
           if(new_cache) {
             vm->metrics()->inline_cache_count++;
           } else {
-            call_site->execute(CallSite::dispatch_once);
+            call_site->executor(CallSite::dispatch_once);
           }
         }
       }
@@ -111,16 +115,26 @@ namespace rubinius {
         }
 
         if(Object* ref = mark.call(entry->prediction())) {
-          entry->prediction(as<MethodPrediction>(ref));
+          entry->prediction(as<Prediction>(ref));
+          mark.just_set(call_site, ref);
+        }
+
+        if(Object* ref = mark.call(entry->module())) {
+          entry->module(as<Module>(ref));
+          mark.just_set(call_site, ref);
+        }
+
+        if(Object* ref = mark.call(entry->executable())) {
+          entry->executable(as<Executable>(ref));
           mark.just_set(call_site, ref);
         }
 
         if(vm->shared.profiler()->collecting_p()) {
-          if(CompiledCode* code = try_as<CompiledCode>(entry->prediction()->executable())) {
+          if(CompiledCode* code = try_as<CompiledCode>(entry->executable())) {
             if(code->machine_code()->sample_count > vm->shared.profiler()->sample_min()) {
               vm->shared.profiler()->add_entry(call_site->serial(), call_site->ip(),
                   code->machine_code()->serial(), entry->hits(),
-                  entry->receiver_class()->name(), entry->prediction()->module()->name());
+                  entry->receiver_class()->name(), entry->module()->name());
             }
           }
         }

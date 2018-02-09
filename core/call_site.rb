@@ -70,5 +70,7 @@ module Rubinius
 
       str << ">"
     end
+
+    alias_method :to_s, :inspect
   end
 end

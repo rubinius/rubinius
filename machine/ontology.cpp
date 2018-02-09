@@ -256,7 +256,6 @@ namespace rubinius {
     NativeMethod::bootstrap(state);
 
     Prediction::bootstrap(state);
-    MethodPrediction::bootstrap(state);
     CallSite::bootstrap(state);
     ConstantCache::bootstrap(state);
     Fiber::bootstrap(state);
