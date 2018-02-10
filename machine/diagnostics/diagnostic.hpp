@@ -8,7 +8,7 @@
 #include <rapidjson/writer.h>
 
 #include <chrono>
-#include <iomanip>
+#include <ctime>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -63,14 +63,17 @@ namespace rubinius {
             node.c_str(), node.size(), document_.GetAllocator());
       }
 
+#define RBX_DIAGNOSTICS_TIME_LEN    100
+
       virtual void set_timestamp() {
         auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
-        std::ostringstream t;
-        t << std::put_time(std::localtime(&tt), "%c");
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
-        document_["metadata"]["timestamp"].SetString(
-            t.str().c_str(), t.str().size(), document_.GetAllocator());
+        char st[RBX_DIAGNOSTICS_TIME_LEN];
+        size_t len = std::strftime(st, RBX_DIAGNOSTICS_TIME_LEN, "%c", std::localtime(&tt));
+
+        document_["metadata"]["timestamp"].SetString(rapidjson::StringRef(st, len), alloc);
       }
 
       virtual void set_sequence() {
