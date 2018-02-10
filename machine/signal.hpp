@@ -70,7 +70,7 @@ namespace rubinius {
     static void* run(void* ptr);
     static void signal_handler(int signal);
 
-    void install_default_handlers();
+    void install_default_handlers(STATE);
 
     void initialize(STATE);
     void start(STATE);

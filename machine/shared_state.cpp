@@ -70,8 +70,9 @@ namespace rubinius {
     , om(nullptr)
     , config(config)
     , user_variables(cp)
-    , username("")
-    , pid("")
+    , nodename()
+    , username()
+    , pid()
   {
     machine_threads_ = new MachineThreads();
 

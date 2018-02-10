@@ -29,6 +29,8 @@ namespace rubinius {
       virtual ~Memory() { }
 
       virtual void update() {
+        Diagnostic::update();
+
         document_["objects"] = objects;
         document_["bytes"] = bytes;
         document_["collections"] = collections;
@@ -49,6 +51,8 @@ namespace rubinius {
       }
 
       virtual void update() {
+        Diagnostic::update();
+
         document_["chunks"] = chunks;
       }
     };
@@ -212,6 +216,8 @@ namespace rubinius {
       }
 
       virtual void update() {
+        Diagnostic::update();
+
         document_["young_bytes"] = young_bytes;
         document_["young_objects"] = young_objects;
         document_["immix_bytes"] = immix_bytes;

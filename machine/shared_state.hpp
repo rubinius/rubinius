@@ -142,6 +142,7 @@ namespace rubinius {
     Configuration& config;
     ConfigParser& user_variables;
     SymbolTable symbols;
+    std::string nodename;
     std::string username;
     std::string pid;
     uint32_t hash_seed;

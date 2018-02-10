@@ -65,7 +65,7 @@ namespace rubinius {
     state->set_vm(vm_);
 
     signal_thread_ = this;
-    install_default_handlers();
+    install_default_handlers(state);
 
     NativeMethod::init_thread(state);
   }
@@ -534,10 +534,12 @@ namespace rubinius {
   }
 #endif
 
-  void SignalThread::install_default_handlers() {
+  void SignalThread::install_default_handlers(STATE) {
 #ifndef RBX_WINDOWS
     // Get the machine info.
     uname(&machine_info);
+
+    state->shared().nodename.assign(machine_info.nodename);
 
     struct sigaction action;
     action.sa_handler = null_func;

@@ -368,9 +368,7 @@ namespace rubinius {
   }
 
   void Environment::set_pid() {
-    std::ostringstream pid;
-    pid << getpid();
-    shared->pid.assign(pid.str());
+    shared->pid.assign(std::to_string(getpid()));
   }
 
   void Environment::set_console_path() {

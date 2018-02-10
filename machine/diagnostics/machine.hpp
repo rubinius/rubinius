@@ -33,6 +33,8 @@ namespace rubinius {
       }
 
       virtual void update() {
+        Diagnostic::update();
+
         document_["fields.us"] = fields_us;
         document_["main_thread.us"] = main_thread_us;
         document_["memory.us"] = memory_us;
@@ -150,6 +152,8 @@ namespace rubinius {
       }
 
       virtual void update() {
+        Diagnostic::update();
+
         document_["checkpoints"] = checkpoints;
         document_["stops"] = stops;
         document_["call_site_count"] = call_site_count;
