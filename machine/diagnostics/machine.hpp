@@ -184,9 +184,20 @@ namespace rubinius {
         document_["fibers_destroyed"] = fibers_destroyed;
       }
 
+      void set_thread_info(VM* vm) {
+        rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
+
+        document_["metadata"].AddMember("thread_name",
+            rapidjson::Value(vm->name().c_str(), vm->name().size(), alloc).Move(), alloc);
+        document_["metadata"].AddMember("thread_id",
+            rapidjson::Value().SetInt(vm->thread_id()).Move(), alloc);
+      }
+
       virtual void start_reporting(STATE) {
         if(state->shared().config.diagnostics_machine_enabled) {
           Diagnostic::start_reporting(state);
+
+          set_thread_info(state->vm());
         }
       }
 

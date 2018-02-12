@@ -188,6 +188,8 @@ namespace rubinius {
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
+    vm->metrics()->start_reporting(state);
+
     NativeMethod::init_thread(state);
 
     int exit_code = 0;

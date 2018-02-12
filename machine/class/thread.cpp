@@ -308,7 +308,6 @@ namespace rubinius {
     state->vm()->thread_state()->clear();
 
     state->shared().start_console(state);
-    state->shared().start_diagnostics(state);
     state->shared().start_jit(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
@@ -356,6 +355,8 @@ namespace rubinius {
           vm->name().c_str(), vm->thread()->pid()->to_native(),
           (unsigned int)thread_debug_self());
     }
+
+    vm->metrics()->start_reporting(state);
 
     NativeMethod::init_thread(state);
 

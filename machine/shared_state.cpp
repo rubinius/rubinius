@@ -250,10 +250,6 @@ namespace rubinius {
       gc_metrics_->start_reporting(state);
       memory_metrics_->start_reporting(state);
       profiler_->start_reporting(state);
-
-      thread_nexus()->each_thread(state, [](STATE, VM* vm) {
-          vm->metrics()->start_reporting(state);
-        });
     }
 
     return diagnostics_;

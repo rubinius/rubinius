@@ -674,6 +674,8 @@ namespace rubinius {
   }
 
   void Environment::boot() {
+    state->shared().start_diagnostics(state);
+
     std::string codedb_path = system_prefix() + RBX_CODEDB_PATH;
 
     {
