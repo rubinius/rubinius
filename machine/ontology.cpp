@@ -91,6 +91,7 @@ namespace rubinius {
      * cross-dependencies. Additionally, creating a new normal class requires
      * a few more kinds of objects, like ConstantTable and MethodTable.
      */
+    MemoryHeader::bootstrap(state);
     Class::bootstrap(state);
     BasicObject::bootstrap(state);
     Object::bootstrap(state);

@@ -11,6 +11,7 @@
 #include "class/object.hpp"
 #include "class/class.hpp"
 #include "class/exception.hpp"
+#include "class/fixnum.hpp"
 #include "class/thread.hpp"
 
 #include "capi/handles.hpp"
@@ -23,6 +24,11 @@
 #include <sys/time.h>
 
 namespace rubinius {
+  std::atomic<uintptr_t> MemoryHeader::object_id_counter;
+
+  void MemoryHeader::bootstrap(STATE) {
+    object_id_counter = 0;
+  }
 
   bool HeaderWord::atomic_set(HeaderWord& old, HeaderWord& nw) {
     return atomic::compare_and_swap(&flags64,

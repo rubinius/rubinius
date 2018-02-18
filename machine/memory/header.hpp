@@ -1,5 +1,5 @@
-#ifndef RBX_VM_OOP_HPP
-#define RBX_VM_OOP_HPP
+#ifndef RBX_MEMORY_HEADER_HPP
+#define RBX_MEMORY_HEADER_HPP
 
 #include <assert.h>
 #include <stddef.h>
@@ -19,6 +19,7 @@
 #include "bug.hpp"
 
 namespace rubinius {
+  class Fixnum;
 
 /* We use a variable length pointer tag system: The tag represents 1 to 3 bits
  * which uniquely identify a data type.
@@ -336,15 +337,18 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define RBX_MEMORY_HEADER_MASK                  0x7L
 #define RBX_MEMORY_HEADER_PTR(f)                (f & ~RBX_MEMORY_HEADER_MASK)
 
-#define RBX_MEMORY_EXTENDED_HEADER_SIZE(f)      (f & RBX_MEMORY_HEADER_MASK)
+#define RBX_MEMORY_EXT_HEADER_SIZE              (RBX_MEMORY_HEADER_LOAD \
+                                                  & RBX_MEMORY_HEADER_MASK)
+
+#define RBX_MEMORY_EXT_HEADER_WORD_MASK         0x3L
+#define RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(w,t)  (((w) & RBX_MEMORY_EXT_HEADER_WORD_MASK) == t)
+#define RBX_MEMORY_EXT_HEADER_WORD_PTR(w)       ((w) & ~RBX_MEMORY_EXT_HEADER_WORD_MASK)
 
 #define RBX_MEMORY_EXTENDED_SHIFT               0L
 
 #define RBX_MEMORY_EXTENDED_P                   RBX_MEMORY_GET_BIT(EXTENDED)
-#define RBX_MEMORY_EXTENDED_SET                 RBX_MEMORY_SET_BIT(EXTENDED)
-#define RBX_MEMORY_EXTENDED_UNSET               RBX_MEMORY_UNSET_BIT(EXTENDED)
 
-#define RBX_MEMORY_HEADER_EXTENDED_SET          RBX_MEMORY_HEADER_SET_BIT(EXTENDED)
+#define RBX_MEMORY_HEADER_EXTENDED_SET(p)       (reinterpret_cast<uintptr_t>(p) | 1L)
 
 #define RBX_MEMORY_FORWARDED_SHIFT              1L
 
@@ -490,8 +494,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define RBX_MEMORY_OBJECT_ID_SET(v)             RBX_MEMORY_SET_FIELD(OBJECT_ID,v)
 #define RBX_MEMORY_OBJECT_ID_GET                RBX_MEMORY_GET_FIELD(OBJECT_ID)
 
-#define RBX_MEMORY_MAX_OBJECT_ID_P              RBX_MEMORY_MAX(OBJECT_ID)
-
 #define RBX_MEMORY_HEADER_OBJECT_ID_SET(v)      RBX_MEMORY_HEADER_SET(OBJECT_ID,v)
 #define RBX_MEMORY_EXT_HEADER_OBJECT_ID_SET(v)  RBX_MEMORY_EXT_HEADER_SET(OBJECT_ID,v)
 
@@ -517,6 +519,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     eLargeRegion,
   };
 
+  struct MemoryHandle {
+  };
+
   struct ExtendedHeader {
     std::atomic<MemoryFlags> header;
     ExtendedHeaderWord words[0];
@@ -527,6 +532,93 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       eRefCount,
       eLock,
     };
+
+    ExtendedHeader(const MemoryFlags h)
+      : header(h)
+    {
+      words[0] = 0;
+    }
+
+    ExtendedHeader(const MemoryFlags h, const ExtendedHeader* eh)
+      : header(h)
+    {
+      for(int i = 0; i < eh->size(); i++) {
+        words[i] = eh->words[i];
+      }
+
+      words[eh->size()] = 0;
+    }
+
+    ~ExtendedHeader() {
+      for(int i = 0; i < size(); i++) {
+        if(RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(words[i], eHandle)) {
+          delete reinterpret_cast<MemoryHandle*>(RBX_MEMORY_EXT_HEADER_WORD_PTR(words[i]));
+        }
+      }
+    }
+
+    static ExtendedHeader* create(const MemoryFlags h) {
+      uintptr_t* mem = new uintptr_t[2];
+
+      return new(mem) ExtendedHeader(h);
+    }
+
+    static ExtendedHeader* create(const MemoryFlags h, const ExtendedHeader* eh) {
+      uintptr_t* mem = new uintptr_t[eh->size() + 2];
+
+      return new(mem) ExtendedHeader(h);
+    }
+
+    static ExtendedHeader* create_object_id(const MemoryFlags h) {
+      return create(h);
+    }
+
+    static ExtendedHeader* create_object_id(const MemoryFlags h, const ExtendedHeader* eh) {
+      return create(h, eh);
+    }
+
+    static ExtendedHeader* create_handle(const MemoryFlags h) {
+      return create(h);
+    }
+
+    static ExtendedHeader* create_handle(const MemoryFlags h, const ExtendedHeader* eh) {
+      return create(h, eh);
+    }
+
+    static ExtendedHeader* create_reference(const MemoryFlags h) {
+      return create(h);
+    }
+
+    static ExtendedHeader* create_reference(const MemoryFlags h, const ExtendedHeader* eh) {
+      return create(h, eh);
+    }
+
+    static ExtendedHeader* create_lock(const MemoryFlags h) {
+      return create(h);
+    }
+
+    static ExtendedHeader* create_lock(const MemoryFlags h, const ExtendedHeader* eh) {
+      return create(h, eh);
+    }
+
+    void delete_header() {
+      this->~ExtendedHeader();
+      delete[] reinterpret_cast<uintptr_t*>(this);
+    }
+
+    int size() const {
+      return RBX_MEMORY_EXT_HEADER_SIZE;
+    }
+
+    MemoryHandle* get_handle() const {
+      for(int i = 0; i < size(); i++) {
+        if(RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(words[i], eHandle)) {
+          return reinterpret_cast<MemoryHandle*>(RBX_MEMORY_EXT_HEADER_WORD_PTR(words[i]));
+        }
+      }
+
+      return nullptr;
+    }
 
     unsigned int thread_id() {
       return RBX_MEMORY_THREAD_ID_GET;
@@ -588,8 +680,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return RBX_MEMORY_REFERENCED_GET;
     }
 
-    void add_referenced() {
-      // TODO: refcount
+    unsigned int add_referenced() {
+      return 0;
     }
 
     object_type type_id() const {
@@ -632,8 +724,31 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return RBX_MEMORY_LOCKED_COUNT_GET;
     }
 
-    size_t object_id() const {
-      return RBX_MEMORY_OBJECT_ID_GET;
+    uintptr_t object_id() const {
+      uintptr_t id = RBX_MEMORY_OBJECT_ID_GET;
+
+      if(id < RBX_MEMORY_OBJECT_ID_MAX) return id;
+
+      for(int i = 0; i < size(); i++) {
+        if(RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(words[i], eObjectID)) {
+          return reinterpret_cast<uintptr_t>(RBX_MEMORY_EXT_HEADER_WORD_PTR(words[i]));
+        }
+      }
+
+      return 0;
+    }
+
+    bool set_object_id(uintptr_t id) {
+      while(true) {
+        MemoryFlags h = header;
+        MemoryFlags nh = RBX_MEMORY_OBJECT_ID_SET(id);
+
+        if(header.compare_exchange_strong(h, nh)) {
+          return true;
+        } else {
+          if(object_id() != 0) return false;
+        }
+      }
     }
 
     unsigned int type_specific() const {
@@ -647,6 +762,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
   struct MemoryHeader {
     std::atomic<MemoryFlags> header;
+
+    static std::atomic<uintptr_t> object_id_counter;
+
+    static void bootstrap(STATE);
 
     void initialize(int thread_id, MemoryRegion region, object_type type, bool data) {
       header = 0;
@@ -897,6 +1016,121 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       } else {
         RBX_MEMORY_HEADER_TYPE_SPECIFIC_SET(value);
       }
+    }
+
+    // Operations on a managed object.
+
+    uintptr_t get_object_id() {
+      uintptr_t id = object_id_counter.fetch_add(1);
+
+      while(true) {
+        if(id < RBX_MEMORY_OBJECT_ID_MAX) {
+          if(extended_p()) {
+            if(extended_header()->set_object_id(id)) {
+              return id;
+            }
+
+            if(object_id() > 0) return object_id();
+          } else {
+            MemoryFlags h = header;
+            MemoryFlags nh = RBX_MEMORY_OBJECT_ID_SET(id);
+
+            if(header.compare_exchange_strong(h, nh)) {
+              return id;
+            } else if(object_id() != 0) {
+              return object_id();
+            }
+          }
+        }
+
+        if(extended_p()) {
+          ExtendedHeader* eh = extended_header();
+
+          MemoryFlags h = header;
+          ExtendedHeader* n = ExtendedHeader::create_object_id(h, eh);
+          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
+
+          if(header.compare_exchange_strong(h, nh)) {
+            // TODO: dead_list.push_back(eh);
+            return n->object_id();
+          } else {
+            if(extended_header()->object_id() != 0) {
+              return extended_header()->object_id();
+            }
+
+            n->delete_header();
+          }
+        } else {
+          MemoryFlags h = header;
+          ExtendedHeader* n = ExtendedHeader::create_object_id(h);
+          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
+
+          if(header.compare_exchange_strong(h, nh)) {
+            return n->object_id();
+          } else {
+            if(extended_header()->object_id() != 0) {
+              return extended_header()->object_id();
+            }
+
+            n->delete_header();
+          }
+        }
+      }
+    }
+
+    MemoryHandle* get_handle() {
+      while(true) {
+        if(extended_p()) {
+          ExtendedHeader* eh = extended_header();
+
+          if(MemoryHandle* handle = eh->get_handle()) {
+            return handle;
+          }
+
+          MemoryFlags h = header;
+          ExtendedHeader* n = ExtendedHeader::create_handle(h, eh);
+          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
+
+          if(header.compare_exchange_strong(h, nh)) {
+            // TODO: dead_list.push_back(eh);
+            return n->get_handle();
+          } else {
+            if(MemoryHandle* handle = extended_header()->get_handle()) {
+              return handle;
+            }
+
+            n->delete_header();
+          }
+        } else {
+          MemoryFlags h = header;
+          ExtendedHeader* n = ExtendedHeader::create_handle(h);
+          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
+
+          if(header.compare_exchange_strong(h, nh)) {
+            return n->get_handle();
+          } else {
+            if(MemoryHandle* handle = extended_header()->get_handle()) {
+              return handle;
+            }
+
+            n->delete_header();
+          }
+        }
+      }
+    }
+
+    int add_reference() {
+      return 0;
+    }
+
+    void lock() {
+    }
+
+    bool try_lock() {
+      return false;
+    }
+
+    void unlock() {
     }
   };
 
