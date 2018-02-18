@@ -96,8 +96,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 // The bits that identify any nil value.
 #define NIL_MASK    0x1f
 
-#define CBOOL(v)                    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
-#define RBOOL(v)                    ((v) ? cTrue : cFalse)
+#define CBOOL(v)    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
+#define RBOOL(v)    ((v) ? cTrue : cFalse)
 
 // Some configuration flags
 
@@ -197,10 +197,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
    * compare_exchange operations are lock-free.
    *
    * The following struct with bitfields is provided for clarity and assumes
-   * little endian architecture. The macros that implement the header
-   * operations use simple integral values and are the same regardless of
-   * endianness (but obviously, the actual memory layout of these values would
-   * depend on the endianness of the particular platform).
+   * little endian architecture. The implementation of the header operations
+   * use simple integral values and are the same regardless of endianness (but
+   * obviously, the actual memory layout of these values would depend on the
+   * endianness of the particular platform).
    *
    * This ordering of fields is rather arbitrary. They are grouped by function
    * to provide clarity.
@@ -236,281 +236,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
    *   } MemoryFlags;
    */
 
-#define RBX_MEMORY_HEADER_LOAD              (header.load())
-
-#define RBX_MEMORY_UNSET_BIT(b)             (RBX_MEMORY_HEADER_LOAD \
-                                              & ~(1L << RBX_MEMORY_ ## b ## _SHIFT))
-#define RBX_MEMORY_SET_BIT(b)               (RBX_MEMORY_HEADER_LOAD \
-                                              | (1L << RBX_MEMORY_ ## b ## _SHIFT))
-#define RBX_MEMORY_GET_BIT(b)               (!!(RBX_MEMORY_HEADER_LOAD \
-                                              & (1L << RBX_MEMORY_ ## b ## _SHIFT)))
-
-#define RBX_MEMORY_SET_FIELD(b,v)           (RBX_MEMORY_HEADER_LOAD \
-                                              | (((v & RBX_MEMORY_ ## b ## _VALUE_MASK) \
-                                              << RBX_MEMORY_ ## b ## _SHIFT) \
-                                              & RBX_MEMORY_ ## b ## _BIT_MASK))
-#define RBX_MEMORY_GET_FIELD(b)             (((RBX_MEMORY_HEADER_LOAD \
-                                              & RBX_MEMORY_ ## b ## _BIT_MASK) \
-                                              >> RBX_MEMORY_ ## b ## _SHIFT) \
-                                              & RBX_MEMORY_ ## b ## _VALUE_MASK)
-#define RBX_MEMORY_BIT_MASK(b)              ((RBX_MEMORY_ ## b ## _VALUE_MASK) << \
-                                              (RBX_MEMORY_ ## b ## _SHIFT))
-
-#define RBX_MEMORY_MAX(b,f)                 (((f) & (RBX_MEMORY_ ## b ## _BIT_MASK)) \
-                                              == (RBX_MEMORY_ ## b ## _BIT_MASK))
-
-#define RBX_MEMORY_EXT_HEADER_SET(b,v)      \
-  while(true) { \
-    uintptr_t h = header.load(); \
-    uintptr_t n = RBX_MEMORY_ ## b ## _SET(v); \
-    if(header.compare_exchange_strong(h,n)) { \
-      return; \
-    } else { \
-      std::this_thread::yield(); \
-    } \
-  }
-
-#define RBX_MEMORY_EXT_HEADER_SET_BIT(b)    \
-  while(true) { \
-    uintptr_t h = header.load(); \
-    uintptr_t n = RBX_MEMORY_ ## b ## _SET; \
-    if(header.compare_exchange_strong(h,n)) { \
-      return; \
-    } else { \
-      std::this_thread::yield(); \
-    } \
-  }
-
-#define RBX_MEMORY_EXT_HEADER_UNSET_BIT(b)  \
-  while(true) { \
-    uintptr_t h = header.load(); \
-    uintptr_t n = RBX_MEMORY_ ## b ## _UNSET; \
-    if(header.compare_exchange_strong(h,n)) { \
-      return; \
-    } else { \
-      std::this_thread::yield(); \
-    } \
-  }
-
-#define RBX_MEMORY_HEADER_SET(b,v)          \
-  while(true) { \
-    uintptr_t h = header.load(); \
-    uintptr_t n = RBX_MEMORY_ ## b ## _SET(v); \
-    if(header.compare_exchange_strong(h,n)) { \
-      return; \
-    } else if(extended_p()) { \
-      RBX_MEMORY_EXT_HEADER_ ## b ## _SET(v); \
-      return; \
-    } else { \
-      std::this_thread::yield(); \
-    } \
-  }
-
-#define RBX_MEMORY_HEADER_SET_BIT(b)        \
-  while(true) { \
-    uintptr_t h = header.load(); \
-    uintptr_t n = RBX_MEMORY_ ## b ## _SET; \
-    if(header.compare_exchange_strong(h,n)) { \
-      return; \
-    } else if(extended_p()) { \
-      RBX_MEMORY_EXT_HEADER_ ## b ## _SET; \
-      return; \
-    } else { \
-      std::this_thread::yield(); \
-    } \
-  }
-
-#define RBX_MEMORY_HEADER_UNSET_BIT(b)      \
-  while(true) { \
-    uintptr_t h = header.load(); \
-    uintptr_t n = RBX_MEMORY_ ## b ## _UNSET; \
-    if(header.compare_exchange_strong(h,n)) { \
-      return; \
-    } else if(extended_p()) { \
-      RBX_MEMORY_EXT_HEADER_ ## b ## _UNSET; \
-      return; \
-    } else { \
-      std::this_thread::yield(); \
-    } \
-  }
-
-#define RBX_MEMORY_HEADER_MASK                  0x7L
-#define RBX_MEMORY_HEADER_PTR(f)                (f & ~RBX_MEMORY_HEADER_MASK)
-
-#define RBX_MEMORY_EXT_HEADER_SIZE              (RBX_MEMORY_HEADER_LOAD \
-                                                  & RBX_MEMORY_HEADER_MASK)
-
-#define RBX_MEMORY_EXT_HEADER_WORD_MASK         0x3L
-#define RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(w,t)  (((w) & RBX_MEMORY_EXT_HEADER_WORD_MASK) == t)
-#define RBX_MEMORY_EXT_HEADER_WORD_PTR(w)       ((w) & ~RBX_MEMORY_EXT_HEADER_WORD_MASK)
-
-#define RBX_MEMORY_EXTENDED_SHIFT               0L
-
-#define RBX_MEMORY_EXTENDED_P                   RBX_MEMORY_GET_BIT(EXTENDED)
-
-#define RBX_MEMORY_HEADER_EXTENDED_SET(p)       (reinterpret_cast<uintptr_t>(p) | 1L)
-
-#define RBX_MEMORY_FORWARDED_SHIFT              1L
-
-#define RBX_MEMORY_FORWARDED_P                  RBX_MEMORY_GET_BIT(FORWARDED)
-#define RBX_MEMORY_FORWARDED_SET                RBX_MEMORY_SET_BIT(FORWARDED)
-#define RBX_MEMORY_FORWARDED_UNSET              RBX_MEMORY_UNSET_BIT(FORWARDED)
-
-#define RBX_MEMORY_HEADER_FORWARDED_SET         RBX_MEMORY_HEADER_SET_BIT(FORWARDED)
-
-#define RBX_MEMORY_THREAD_ID_SHIFT              2L
-#define RBX_MEMORY_THREAD_ID_VALUE_MASK         ((1L << 12) - 1)
-#define RBX_MEMORY_THREAD_ID_MAX                RBX_MEMORY_THREAD_ID_VALUE_MASK
-#define RBX_MEMORY_THREAD_ID_BIT_MASK           RBX_MEMORY_BIT_MASK(THREAD_ID)
-
-#define RBX_MEMORY_THREAD_ID_SET(v)             RBX_MEMORY_SET_FIELD(THREAD_ID,v)
-#define RBX_MEMORY_THREAD_ID_GET                RBX_MEMORY_GET_FIELD(THREAD_ID)
-
-#define RBX_MEMORY_HEADER_THREAD_ID_SET(v)      RBX_MEMORY_HEADER_SET(THREAD_ID,v)
-#define RBX_MEMORY_EXT_HEADER_THREAD_ID_SET(v)  RBX_MEMORY_EXT_HEADER_SET(THREAD_ID,v)
-
-#define RBX_MEMORY_MAX_THREAD_ID_P              RBX_MEMORY_MAX(THREAD_ID)
-
-#define RBX_MEMORY_REGION_SHIFT                 14L
-#define RBX_MEMORY_REGION_VALUE_MASK            ((1L << 2) - 1)
-#define RBX_MEMORY_REGION_BIT_MASK              RBX_MEMORY_BIT_MASK(REGION)
-
-#define RBX_MEMORY_REGION_SET(v)                RBX_MEMORY_SET_FIELD(REGION,v)
-#define RBX_MEMORY_REGION_GET                   RBX_MEMORY_GET_FIELD(REGION)
-
-#define RBX_MEMORY_HEADER_REGION_SET(v)         RBX_MEMORY_HEADER_SET(REGION,v)
-#define RBX_MEMORY_EXT_HEADER_REGION_SET(v)     RBX_MEMORY_EXT_HEADER_SET(REGION,v)
-
-#define RBX_MEMORY_PINNED_SHIFT                 16L
-
-#define RBX_MEMORY_PINNED_P                     RBX_MEMORY_GET_BIT(PINNED)
-#define RBX_MEMORY_PINNED_SET                   RBX_MEMORY_SET_BIT(PINNED)
-#define RBX_MEMORY_PINNED_UNSET                 RBX_MEMORY_UNSET_BIT(PINNED)
-
-#define RBX_MEMORY_HEADER_PINNED_SET            RBX_MEMORY_HEADER_SET_BIT(PINNED)
-#define RBX_MEMORY_HEADER_PINNED_UNSET          RBX_MEMORY_HEADER_UNSET_BIT(PINNED)
-#define RBX_MEMORY_EXT_HEADER_PINNED_SET        RBX_MEMORY_EXT_HEADER_SET_BIT(PINNED)
-#define RBX_MEMORY_EXT_HEADER_PINNED_UNSET      RBX_MEMORY_EXT_HEADER_UNSET_BIT(PINNED)
-
-#define RBX_MEMORY_VISITED_SHIFT                17L
-#define RBX_MEMORY_VISITED_VALUE_MASK           ((1L << 2) - 1)
-#define RBX_MEMORY_VISITED_BIT_MASK             RBX_MEMORY_BIT_MASK(VISITED)
-
-#define RBX_MEMORY_VISITED_SET(v)               RBX_MEMORY_SET_FIELD(VISITED,v)
-#define RBX_MEMORY_VISITED_GET                  RBX_MEMORY_GET_FIELD(VISITED)
-
-#define RBX_MEMORY_HEADER_VISITED_SET(v)        RBX_MEMORY_HEADER_SET(VISITED,v)
-#define RBX_MEMORY_EXT_HEADER_VISITED_SET(v)    RBX_MEMORY_EXT_HEADER_SET(VISITED,v)
-
-#define RBX_MEMORY_MARKED_SHIFT                 19L
-#define RBX_MEMORY_MARKED_VALUE_MASK            ((1L << 2) - 1)
-#define RBX_MEMORY_MARKED_BIT_MASK              RBX_MEMORY_BIT_MASK(MARKED)
-
-#define RBX_MEMORY_MARKED_SET(v)                RBX_MEMORY_SET_FIELD(MARKED,v)
-#define RBX_MEMORY_MARKED_GET                   RBX_MEMORY_GET_FIELD(MARKED)
-
-#define RBX_MEMORY_HEADER_MARKED_SET(v)         RBX_MEMORY_HEADER_SET(MARKED,v)
-#define RBX_MEMORY_EXT_HEADER_MARKED_SET(v)     RBX_MEMORY_EXT_HEADER_SET(MARKED,v)
-
-#define RBX_MEMORY_SCANNED_SHIFT                21L
-
-#define RBX_MEMORY_SCANNED_P                    RBX_MEMORY_GET_BIT(SCANNED)
-#define RBX_MEMORY_SCANNED_SET                  RBX_MEMORY_SET_BIT(SCANNED)
-#define RBX_MEMORY_SCANNED_UNSET                RBX_MEMORY_UNSET_BIT(SCANNED)
-
-#define RBX_MEMORY_HEADER_SCANNED_SET           RBX_MEMORY_HEADER_SET_BIT(SCANNED)
-#define RBX_MEMORY_HEADER_SCANNED_UNSET         RBX_MEMORY_HEADER_UNSET_BIT(SCANNED)
-#define RBX_MEMORY_EXT_HEADER_SCANNED_SET       RBX_MEMORY_EXT_HEADER_SET_BIT(SCANNED)
-#define RBX_MEMORY_EXT_HEADER_SCANNED_UNSET     RBX_MEMORY_EXT_HEADER_UNSET_BIT(SCANNED)
-
-#define RBX_MEMORY_REFERENCED_SHIFT             22L
-#define RBX_MEMORY_REFERENCED_VALUE_MASK        ((1L << 4) - 1)
-#define RBX_MEMORY_REFERENCED_BIT_MASK          RBX_MEMORY_BIT_MASK(REFERENCED)
-
-#define RBX_MEMORY_REFERENCED_SET(v)            RBX_MEMORY_SET_FIELD(REFERENCED,v)
-#define RBX_MEMORY_REFERENCED_GET               RBX_MEMORY_GET_FIELD(REFERENCED)
-
-#define RBX_MEMORY_HEADER_REFERENCED_SET(v)     RBX_MEMORY_HEADER_SET(REFERENCED,v)
-#define RBX_MEMORY_EXT_HEADER_REFERENCED_SET(v) RBX_MEMORY_EXT_HEADER_SET(REFERENCED,v)
-
-#define RBX_MEMORY_TYPE_ID_SHIFT                26L
-#define RBX_MEMORY_TYPE_ID_VALUE_MASK           ((1L << 10) - 1)
-#define RBX_MEMORY_TYPE_ID_MAX                  RBX_MEMORY_TYPE_ID_VALUE_MASK
-#define RBX_MEMORY_TYPE_ID_BIT_MASK             RBX_MEMORY_BIT_MASK(TYPE_ID)
-
-#define RBX_MEMORY_TYPE_ID_SET(v)               RBX_MEMORY_SET_FIELD(TYPE_ID,v)
-#define RBX_MEMORY_TYPE_ID_GET                  RBX_MEMORY_GET_FIELD(TYPE_ID)
-
-#define RBX_MEMORY_HEADER_TYPE_ID_SET(v)        RBX_MEMORY_HEADER_SET(TYPE_ID,v)
-#define RBX_MEMORY_EXT_HEADER_TYPE_ID_SET(v)    RBX_MEMORY_EXT_HEADER_SET(TYPE_ID,v)
-
-#define RBX_MEMORY_DATA_SHIFT                   36L
-#define RBX_MEMORY_DATA_VALUE_MASK              1L
-#define RBX_MEMORY_DATA_BIT_MASK                RBX_MEMORY_BIT_MASK(DATA)
-
-#define RBX_MEMORY_DATA_P                       RBX_MEMORY_GET_BIT(DATA)
-#define RBX_MEMORY_DATA_SET(v)                  RBX_MEMORY_SET_FIELD(DATA,v)
-
-#define RBX_MEMORY_FROZEN_SHIFT                 37L
-
-#define RBX_MEMORY_FROZEN_P                     RBX_MEMORY_GET_BIT(FROZEN)
-#define RBX_MEMORY_FROZEN_SET                   RBX_MEMORY_SET_BIT(FROZEN)
-#define RBX_MEMORY_FROZEN_UNSET                 RBX_MEMORY_UNSET_BIT(FROZEN)
-
-#define RBX_MEMORY_HEADER_FROZEN_SET            RBX_MEMORY_HEADER_SET_BIT(FROZEN)
-#define RBX_MEMORY_HEADER_FROZEN_UNSET          RBX_MEMORY_HEADER_UNSET_BIT(FROZEN)
-#define RBX_MEMORY_EXT_HEADER_FROZEN_SET        RBX_MEMORY_EXT_HEADER_SET_BIT(FROZEN)
-#define RBX_MEMORY_EXT_HEADER_FROZEN_UNSET      RBX_MEMORY_EXT_HEADER_UNSET_BIT(FROZEN)
-
-#define RBX_MEMORY_TAINTED_SHIFT                38L
-
-#define RBX_MEMORY_TAINTED_P                    RBX_MEMORY_GET_BIT(TAINTED)
-#define RBX_MEMORY_TAINTED_SET                  RBX_MEMORY_SET_BIT(TAINTED)
-#define RBX_MEMORY_TAINTED_UNSET                RBX_MEMORY_UNSET_BIT(TAINTED)
-
-#define RBX_MEMORY_HEADER_TAINTED_SET           RBX_MEMORY_HEADER_SET_BIT(TAINTED)
-#define RBX_MEMORY_HEADER_TAINTED_UNSET         RBX_MEMORY_HEADER_UNSET_BIT(TAINTED)
-#define RBX_MEMORY_EXT_HEADER_TAINTED_SET       RBX_MEMORY_EXT_HEADER_SET_BIT(TAINTED)
-#define RBX_MEMORY_EXT_HEADER_TAINTED_UNSET     RBX_MEMORY_EXT_HEADER_UNSET_BIT(TAINTED)
-
-#define RBX_MEMORY_LOCKED_COUNT_SHIFT           39L
-#define RBX_MEMORY_LOCKED_COUNT_VALUE_MASK      ((1L << 3) - 1)
-#define RBX_MEMORY_LOCKED_COUNT_MAX             RBX_MEMORY_LOCKED_COUNT_VALUE_MASK
-#define RBX_MEMORY_LOCKED_COUNT_BIT_MASK        RBX_MEMORY_BIT_MASK(LOCKED_COUNT)
-
-#define RBX_MEMORY_LOCKED_COUNT_SET(v)          RBX_MEMORY_SET_FIELD(LOCKED_COUNT,v)
-#define RBX_MEMORY_LOCKED_COUNT_GET             RBX_MEMORY_GET_FIELD(LOCKED_COUNT)
-
-#define RBX_MEMORY_MAX_LOCKED_COUNT_P           RBX_MEMORY_MAX(LOCKED_COUNT)
-
-#define RBX_MEMORY_HEADER_LOCKED_COUNT_SET(v)      RBX_MEMORY_HEADER_SET(LOCKED_COUNT,v)
-#define RBX_MEMORY_EXT_HEADER_LOCKED_COUNT_SET(v)  RBX_MEMORY_EXT_HEADER_SET(LOCKED_COUNT,v)
-
-#define RBX_MEMORY_OBJECT_ID_SHIFT              42L
-#define RBX_MEMORY_OBJECT_ID_VALUE_MASK         ((1L << 20) - 1)
-#define RBX_MEMORY_OBJECT_ID_MAX                RBX_MEMORY_OBJECT_ID_VALUE_MASK
-#define RBX_MEMORY_OBJECT_ID_BIT_MASK           RBX_MEMORY_BIT_MASK(OBJECT_ID)
-
-#define RBX_MEMORY_OBJECT_ID_SET(v)             RBX_MEMORY_SET_FIELD(OBJECT_ID,v)
-#define RBX_MEMORY_OBJECT_ID_GET                RBX_MEMORY_GET_FIELD(OBJECT_ID)
-
-#define RBX_MEMORY_HEADER_OBJECT_ID_SET(v)      RBX_MEMORY_HEADER_SET(OBJECT_ID,v)
-#define RBX_MEMORY_EXT_HEADER_OBJECT_ID_SET(v)  RBX_MEMORY_EXT_HEADER_SET(OBJECT_ID,v)
-
-#define RBX_MEMORY_TYPE_SPECIFIC_SHIFT          62L
-#define RBX_MEMORY_TYPE_SPECIFIC_VALUE_MASK     ((1L << 2) - 1)
-#define RBX_MEMORY_TYPE_SPECIFIC_BIT_MASK       RBX_MEMORY_BIT_MASK(TYPE_SPECIFIC)
-
-#define RBX_MEMORY_TYPE_SPECIFIC_SET(v)         RBX_MEMORY_SET_FIELD(TYPE_SPECIFIC,v)
-#define RBX_MEMORY_TYPE_SPECIFIC_GET            RBX_MEMORY_GET_FIELD(TYPE_SPECIFIC)
-
-#define RBX_MEMORY_HEADER_TYPE_SPECIFIC_SET(v)      RBX_MEMORY_HEADER_SET(TYPE_SPECIFIC,v)
-#define RBX_MEMORY_EXT_HEADER_TYPE_SPECIFIC_SET(v)  RBX_MEMORY_EXT_HEADER_SET(TYPE_SPECIFIC,v)
-
-  // A machine word so that compare_exchange is lock-free. We assume 64-bit;
   typedef uintptr_t MemoryFlags;
 
-  typedef uintptr_t ExtendedHeaderWord;
+  static_assert(sizeof(MemoryFlags) == 8, "MemoryFlags must be 64 bits");
 
   enum MemoryRegion {
     eThreadRegion = 0,
@@ -519,24 +247,151 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     eLargeRegion,
   };
 
+  struct HeaderField {
+    int shift;
+    int width;
+
+    uintptr_t mask() const {
+      return (1L << width) - 1;
+    }
+
+    uintptr_t max() const {
+      return mask();
+    }
+
+    uintptr_t get(const MemoryFlags& header) const {
+      return (header & (mask() << shift)) >> shift;
+    }
+
+    uintptr_t set(MemoryFlags& header, uintptr_t value) const {
+      return header | ((value & mask()) << shift);
+    }
+
+    uintptr_t set(MemoryFlags& header) const {
+      return header | (mask() << shift);
+    }
+
+    uintptr_t unset(MemoryFlags& header) const {
+      return header & ~(mask() << shift);
+    }
+  };
+
+  const HeaderField constexpr size_field          = { 0,  2 };
+  const HeaderField constexpr extended_field      = { 0,  1 };
+  const HeaderField constexpr forwarded_field     = { 1,  1 };
+  const HeaderField constexpr thread_id_field     = { 2,  12 };
+  const HeaderField constexpr region_field        = { 14, 2 };
+  const HeaderField constexpr pinned_field        = { 16, 1 };
+  const HeaderField constexpr visited_field       = { 17, 2 };
+  const HeaderField constexpr marked_field        = { 19, 2 };
+  const HeaderField constexpr scanned_field       = { 21, 1 };
+  const HeaderField constexpr referenced_field    = { 22, 4 };
+  const HeaderField constexpr type_id_field       = { 26, 10 };
+  const HeaderField constexpr data_field          = { 36, 1 };
+  const HeaderField constexpr frozen_field        = { 37, 1 };
+  const HeaderField constexpr tainted_field       = { 38, 1 };
+  const HeaderField constexpr locked_count_field  = { 39, 3 };
+  const HeaderField constexpr object_id_field     = { 42, 20 };
+  const HeaderField constexpr type_specific_field = { 62, 2 };
+
+  /* Managed objects have a header. The header (a MemoryHeader) is a single, 64bit,
+   * machine word that may be a MemoryFlags or pointer to an ExtendedHeader.
+   *
+   * The object's header field values may be single bit flags or multi-bit
+   * values.  There are two classes of multi-bit values: 1. finite,
+   * MemoryFlags-only; 2. finite, but expandable to a single machine word in
+   * the 'words' vector in an ExtendedHeader.
+   *
+   * Header values have two operations: 1. get; 2. set. There are two
+   * classes of set operations based on the two classes of multi-bit values:
+   * 1. set bits in the MemoryFlags word; 2. add a value to the
+   * ExtendedHeader 'words' vector.
+   *
+   * All changes to the managed object's header are compare-exchanged (ie
+   * CAS) into the object's first word to ensure there are not pathological
+   * read-update-write or write-write data race conditions.
+   *
+   * The values in the ExtendedHeader 'words' are stable pointers or values.
+   * When the ExtendedHeader is changed to expand the 'words' or update the
+   * MemoryFlags, the existing pointer values are unchanged, so any
+   * references to these pointers are valid before and after the header
+   * change. Only the MemoryFlags word in the MemoryHeader is updated.
+   */
+
   struct MemoryHandle {
   };
 
-  struct ExtendedHeader {
-    std::atomic<MemoryFlags> header;
-    ExtendedHeaderWord words[0];
+  struct ExtendedHeaderWord {
+    uintptr_t word;
 
     enum WordType {
-      eObjectID = 0,
+      eUnsetWord = 1,
+      eObjectID,
       eHandle,
       eRefCount,
       eLock,
     };
 
+    ExtendedHeaderWord(unsigned int type = eUnsetWord)
+      : word(type)
+    {
+    }
+
+    ExtendedHeaderWord(unsigned int type, uintptr_t addr)
+      : word(type | addr)
+    {
+    }
+
+    uintptr_t type_mask() const {
+      return 0x7L;
+    }
+
+    uintptr_t ptr_mask() const {
+      return ~type_mask();
+    }
+
+    bool unset_p() const {
+      return (word & type_mask()) == eUnsetWord;
+    }
+
+    bool object_id_p() const {
+      return (word & type_mask()) == eObjectID;
+    }
+
+    bool handle_p() const {
+      return (word & type_mask()) == eHandle;
+    }
+
+    MemoryHandle* get_handle() const {
+      if(handle_p()) {
+        return reinterpret_cast<MemoryHandle*>(word & ptr_mask());
+      }
+
+      return nullptr;
+    }
+
+    bool ref_count_p() const {
+      return (word & type_mask()) == eRefCount;
+    }
+
+    bool lock_p() const {
+      return (word & type_mask()) == eLock;
+    }
+  };
+
+  static_assert(sizeof(ExtendedHeaderWord) == sizeof(uintptr_t),
+      "ExtendedHeaderWord structure must be the same size as uintptr_t");
+
+  struct ExtendedHeader {
+    MemoryFlags header;
+    ExtendedHeaderWord words[0];
+
     ExtendedHeader(const MemoryFlags h)
       : header(h)
     {
-      words[0] = 0;
+      ExtendedHeaderWord unset;
+
+      words[0] = unset;
     }
 
     ExtendedHeader(const MemoryFlags h, const ExtendedHeader* eh)
@@ -545,14 +400,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       for(int i = 0; i < eh->size(); i++) {
         words[i] = eh->words[i];
       }
-
-      words[eh->size()] = 0;
     }
 
     ~ExtendedHeader() {
       for(int i = 0; i < size(); i++) {
-        if(RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(words[i], eHandle)) {
-          delete reinterpret_cast<MemoryHandle*>(RBX_MEMORY_EXT_HEADER_WORD_PTR(words[i]));
+        if(MemoryHandle* handle = words[i].get_handle()) {
+          delete handle;
         }
       }
     }
@@ -566,7 +419,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     static ExtendedHeader* create(const MemoryFlags h, const ExtendedHeader* eh) {
       uintptr_t* mem = new uintptr_t[eh->size() + 2];
 
-      return new(mem) ExtendedHeader(h);
+      return new(mem) ExtendedHeader(h, eh);
+    }
+
+    static ExtendedHeader* create_copy(const MemoryFlags h, const ExtendedHeader* eh) {
+      uintptr_t* mem = new uintptr_t[eh->size() + 1];
+
+      return new(mem) ExtendedHeader(h, eh);
     }
 
     static ExtendedHeader* create_object_id(const MemoryFlags h) {
@@ -607,156 +466,17 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     int size() const {
-      return RBX_MEMORY_EXT_HEADER_SIZE;
+      return size_field.get(header);
     }
 
     MemoryHandle* get_handle() const {
       for(int i = 0; i < size(); i++) {
-        if(RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(words[i], eHandle)) {
-          return reinterpret_cast<MemoryHandle*>(RBX_MEMORY_EXT_HEADER_WORD_PTR(words[i]));
+        if(MemoryHandle* handle = words[i].get_handle()) {
+          return handle;
         }
       }
 
       return nullptr;
-    }
-
-    unsigned int thread_id() {
-      return RBX_MEMORY_THREAD_ID_GET;
-    }
-
-    void set_thread_id(uintptr_t id) {
-      RBX_MEMORY_EXT_HEADER_THREAD_ID_SET(id);
-    }
-
-    MemoryRegion region() const {
-      return static_cast<MemoryRegion>(RBX_MEMORY_REGION_GET);
-    }
-
-    void region(MemoryRegion region) {
-      RBX_MEMORY_EXT_HEADER_REGION_SET(region);
-    }
-
-    bool pinned_p() const {
-      return RBX_MEMORY_PINNED_P;
-    }
-
-    void set_pinned() {
-      RBX_MEMORY_EXT_HEADER_PINNED_SET;
-    }
-
-    void unset_pinned() {
-      RBX_MEMORY_EXT_HEADER_PINNED_UNSET;
-    }
-
-    bool visited_p(int flag) const {
-      return RBX_MEMORY_VISITED_GET == flag;
-    }
-
-    void set_visited(int flag) {
-      RBX_MEMORY_EXT_HEADER_VISITED_SET(flag);
-    }
-
-    bool marked_p(unsigned int mark) const {
-      return RBX_MEMORY_MARKED_GET == mark;
-    }
-
-    void set_marked(unsigned int mark) {
-      RBX_MEMORY_EXT_HEADER_MARKED_SET(mark)
-    }
-
-    bool scanned_p() const {
-      return RBX_MEMORY_SCANNED_P;
-    }
-
-    void set_scanned() {
-      RBX_MEMORY_EXT_HEADER_SCANNED_SET;
-    }
-
-    void unset_scanned() {
-      RBX_MEMORY_EXT_HEADER_SCANNED_UNSET;
-    }
-
-    unsigned int referenced() const {
-      return RBX_MEMORY_REFERENCED_GET;
-    }
-
-    unsigned int add_referenced() {
-      return 0;
-    }
-
-    object_type type_id() const {
-      return static_cast<object_type>(RBX_MEMORY_TYPE_ID_GET);
-    }
-
-    bool data_p() const {
-      return RBX_MEMORY_DATA_P;
-    }
-
-    bool object_p() const {
-      return !RBX_MEMORY_DATA_P;
-    }
-
-    bool frozen_p() const {
-      return RBX_MEMORY_FROZEN_P;
-    }
-
-    void set_frozen() {
-      RBX_MEMORY_EXT_HEADER_FROZEN_SET;
-    }
-
-    void unset_frozen() {
-      RBX_MEMORY_EXT_HEADER_FROZEN_UNSET;
-    }
-
-    bool tainted_p() const {
-      return RBX_MEMORY_TAINTED_P;
-    }
-
-    void set_tainted() {
-      RBX_MEMORY_EXT_HEADER_TAINTED_SET;
-    }
-
-    void unset_tainted() {
-      RBX_MEMORY_EXT_HEADER_TAINTED_UNSET;
-    }
-
-    unsigned int locked_count() const {
-      return RBX_MEMORY_LOCKED_COUNT_GET;
-    }
-
-    uintptr_t object_id() const {
-      uintptr_t id = RBX_MEMORY_OBJECT_ID_GET;
-
-      if(id < RBX_MEMORY_OBJECT_ID_MAX) return id;
-
-      for(int i = 0; i < size(); i++) {
-        if(RBX_MEMORY_EXT_HEADER_WORD_TYPE_P(words[i], eObjectID)) {
-          return reinterpret_cast<uintptr_t>(RBX_MEMORY_EXT_HEADER_WORD_PTR(words[i]));
-        }
-      }
-
-      return 0;
-    }
-
-    bool set_object_id(uintptr_t id) {
-      while(true) {
-        MemoryFlags h = header;
-        MemoryFlags nh = RBX_MEMORY_OBJECT_ID_SET(id);
-
-        if(header.compare_exchange_strong(h, nh)) {
-          return true;
-        } else {
-          if(object_id() != 0) return false;
-        }
-      }
-    }
-
-    unsigned int type_specific() const {
-      return RBX_MEMORY_TYPE_SPECIFIC_GET;
-    }
-
-    void type_specific(unsigned int value) {
-      RBX_MEMORY_EXT_HEADER_TYPE_SPECIFIC_SET(value);
     }
   };
 
@@ -768,12 +488,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     static void bootstrap(STATE);
 
     void initialize(int thread_id, MemoryRegion region, object_type type, bool data) {
-      header = 0;
+      MemoryFlags h = 0;
 
-      RBX_MEMORY_THREAD_ID_SET(thread_id);
-      RBX_MEMORY_REGION_SET(region);
-      RBX_MEMORY_TYPE_ID_SET(type);
-      RBX_MEMORY_DATA_SET(data);
+      header.store(thread_id_field.set(h, thread_id)
+                   | region_field.set(h, region)
+                   | type_id_field.set(h, type)
+                   | data_field.set(h, data),
+                   std::memory_order_release);
     }
 
     static void initialize(MemoryHeader* obj,
@@ -782,166 +503,169 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       obj->initialize(thread_id, region, type, data);
     }
 
-    ExtendedHeader* extended_header() const {
-      return const_cast<ExtendedHeader*>(
-          reinterpret_cast<const ExtendedHeader*>(
-            RBX_MEMORY_HEADER_PTR(header.load())));
-    }
-
     unsigned int max_thread_id() const {
-      return RBX_MEMORY_THREAD_ID_MAX;
+      return thread_id_field.max();
     }
 
     unsigned int max_type_id() const {
-      return RBX_MEMORY_TYPE_ID_MAX;
+      return type_id_field.max();
     }
 
     unsigned int max_object_id() const {
-      return RBX_MEMORY_OBJECT_ID_MAX;
+      return object_id_field.max();
     }
 
     unsigned int max_locked_count() const {
-      return RBX_MEMORY_LOCKED_COUNT_MAX;
+      return locked_count_field.max();
+    }
+
+    ExtendedHeader* extended_header() const {
+      return const_cast<ExtendedHeader*>(
+          reinterpret_cast<const ExtendedHeader*>(header.load() & ~0x7L));
+    }
+
+    MemoryFlags extended_header(ExtendedHeader* h) const {
+      MemoryFlags f = reinterpret_cast<MemoryFlags>(h);
+
+      return reinterpret_cast<MemoryFlags>(extended_field.set(f));
     }
 
     bool extended_p() const {
-      return RBX_MEMORY_EXTENDED_P;
+      return extended_field.get(header);
+    }
+
+    void set(const HeaderField field, unsigned int value) {
+      while(true) {
+        MemoryFlags h = header;
+
+        if(extended_p()) {
+          ExtendedHeader* eh = ExtendedHeader::create_copy(
+              field.set(h, value), extended_header());
+          MemoryFlags nh = extended_header(eh);
+
+          if(header.compare_exchange_strong(h, nh)) return;
+
+          eh->delete_header();
+        } else {
+          MemoryFlags nh = field.set(h, value);
+
+          if(header.compare_exchange_strong(h, nh)) return;
+        }
+      }
+    }
+
+    void set(const HeaderField field) {
+      while(true) {
+        MemoryFlags h = header;
+
+        if(extended_p()) {
+          ExtendedHeader* eh = ExtendedHeader::create_copy(field.set(h), extended_header());
+          MemoryFlags nh = extended_header(eh);
+
+          if(header.compare_exchange_strong(h, nh)) return;
+
+          eh->delete_header();
+        } else {
+          MemoryFlags nh = field.set(h);
+
+          if(header.compare_exchange_strong(h, nh)) return;
+        }
+      }
+    }
+
+    void unset(const HeaderField field) {
+      while(true) {
+        MemoryFlags h = header;
+
+        if(extended_p()) {
+          ExtendedHeader* eh = ExtendedHeader::create_copy(field.unset(h), extended_header());
+          MemoryFlags nh = extended_header(eh);
+
+          if(header.compare_exchange_strong(h, nh)) return;
+
+          eh->delete_header();
+        } else {
+          MemoryFlags nh = field.unset(h);
+
+          if(header.compare_exchange_strong(h, nh)) return;
+        }
+      }
     }
 
     bool forwarded_p() const {
-      return RBX_MEMORY_FORWARDED_P;
+      return forwarded_field.get(header);
     }
 
     int thread_id() const {
-      if(extended_p()) return extended_header()->thread_id();
-
-      return RBX_MEMORY_THREAD_ID_GET;
+      return thread_id_field.get(header);
     }
 
     void set_thread_id(uintptr_t id) {
-      if(extended_p()) {
-        extended_header()->set_thread_id(id);
-      } else {
-        RBX_MEMORY_HEADER_THREAD_ID_SET(id);
-      }
+      set(thread_id_field, id);
     }
 
     MemoryRegion region() const {
-      if(extended_p()) return extended_header()->region();
-
-      return static_cast<MemoryRegion>(RBX_MEMORY_REGION_GET);
+      return static_cast<MemoryRegion>(region_field.get(header));
     }
 
     void region(MemoryRegion region) {
-      if(extended_p()) {
-        extended_header()->region(region);
-      } else {
-        RBX_MEMORY_HEADER_REGION_SET(region);
-      }
+      set(region_field, region);
     }
 
     bool pinned_p() const {
-      if(extended_p()) return extended_header()->pinned_p();
-
-      return RBX_MEMORY_PINNED_P;
+      return pinned_field.get(header);
     }
 
     void set_pinned() {
-      if(extended_p()) {
-        extended_header()->set_pinned();
-      } else {
-        RBX_MEMORY_HEADER_PINNED_SET;
-      }
+      set(pinned_field);
     }
 
     void unset_pinned() {
-      if(extended_p()) {
-        extended_header()->unset_pinned();
-      } else {
-        RBX_MEMORY_HEADER_PINNED_UNSET;
-      }
+      unset(pinned_field);
     }
 
-    bool visited_p(int flag) const {
-      if(extended_p()) return extended_header()->visited_p(flag);
-
-      return RBX_MEMORY_VISITED_GET == flag;
+    bool visited_p(unsigned int flag) const {
+      return visited_field.get(header) == flag;
     }
 
-    void set_visited(int flag) {
-      if(extended_p()) {
-        extended_header()->set_visited(flag);
-      } else {
-        RBX_MEMORY_HEADER_VISITED_SET(flag);
-      }
+    void set_visited(unsigned int flag) {
+      set(visited_field, flag);
     }
 
     bool marked_p(unsigned int mark) const {
-      if(extended_p()) return extended_header()->marked_p(mark);
-
-      return RBX_MEMORY_MARKED_GET == mark;
+      return marked_field.get(header) == mark;
     }
 
     void set_marked(unsigned int mark) {
-      if(extended_p()) {
-        extended_header()->set_marked(mark);
-      } else {
-        RBX_MEMORY_HEADER_MARKED_SET(mark)
-      }
+      set(marked_field, mark);
     }
 
     bool scanned_p() const {
-      if(extended_p()) return extended_header()->scanned_p();
-
-      return RBX_MEMORY_SCANNED_P;
+      return scanned_field.get(header);
     }
 
     void set_scanned() {
-      if(extended_p()) {
-        extended_header()->set_scanned();
-      } else {
-        RBX_MEMORY_HEADER_SCANNED_SET;
-      }
+      set(scanned_field);
     }
 
     void unset_scanned() {
-      if(extended_p()) {
-        extended_header()->unset_scanned();
-      } else {
-        RBX_MEMORY_HEADER_SCANNED_UNSET;
-      }
+      unset(scanned_field);
     }
 
     unsigned int referenced() const {
-      if(extended_p()) return extended_header()->referenced();
-
-      return RBX_MEMORY_REFERENCED_GET;
-    }
-
-    void add_referenced() {
-      if(extended_p()) {
-        extended_header()->add_referenced();
-      } else {
-        // TODO: refcount
-      }
+      return referenced_field.get(header);
     }
 
     object_type type_id() const {
-      if(extended_p()) return extended_header()->type_id();
-
-      return static_cast<object_type>(RBX_MEMORY_TYPE_ID_GET);
+      return static_cast<object_type>(type_id_field.get(header));
     }
 
     bool data_p() const {
-      if(extended_p()) return extended_header()->data_p();
-
-      return RBX_MEMORY_DATA_P;
+      return data_field.get(header);
     }
 
     bool object_p() const {
-      if(extended_p()) return extended_header()->object_p();
-
-      return !RBX_MEMORY_DATA_P;
+      return !data_p();
     }
 
     bool reference_p() const {
@@ -949,188 +673,57 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool frozen_p() const {
-      if(extended_p()) return extended_header()->frozen_p();
-
-      return RBX_MEMORY_FROZEN_P;
+      return frozen_field.get(header);
     }
 
     void set_frozen() {
-      if(extended_p()) {
-        extended_header()->set_frozen();
-      } else {
-        RBX_MEMORY_HEADER_FROZEN_SET;
-      }
+      set(frozen_field);
     }
 
     void unset_frozen() {
-      if(extended_p()) {
-        extended_header()->unset_frozen();
-      } else {
-        RBX_MEMORY_HEADER_FROZEN_UNSET;
-      }
+      unset(frozen_field);
     }
 
     bool tainted_p() const {
-      if(extended_p()) return extended_header()->tainted_p();
-
-      return RBX_MEMORY_TAINTED_P;
+      return tainted_field.get(header);
     }
 
     void set_tainted() {
-      if(extended_p()) {
-        extended_header()->set_tainted();
-      } else {
-        RBX_MEMORY_HEADER_TAINTED_SET;
-      }
+      set(tainted_field);
     }
 
     void unset_tainted() {
-      if(extended_p()) {
-        extended_header()->unset_tainted();
-      } else {
-        RBX_MEMORY_HEADER_TAINTED_UNSET;
-      }
-    }
-
-    unsigned int locked_count() const {
-      if(extended_p()) return extended_header()->locked_count();
-
-      return RBX_MEMORY_LOCKED_COUNT_GET;
+      unset(tainted_field);
     }
 
     size_t object_id() const {
-      if(extended_p()) return extended_header()->object_id();
-
-      return RBX_MEMORY_OBJECT_ID_GET;
+      return object_id_field.get(header);
     }
 
     unsigned int type_specific() const {
-      if(extended_p()) return extended_header()->type_specific();
-
-      return RBX_MEMORY_TYPE_SPECIFIC_GET;
+      return type_specific_field.get(header);
     }
 
     void type_specific(unsigned int value) {
-      if(extended_p()) {
-        extended_header()->type_specific(value);
-      } else {
-        RBX_MEMORY_HEADER_TYPE_SPECIFIC_SET(value);
-      }
+      set(type_specific_field, value);
     }
 
     // Operations on a managed object.
 
+    void lock(STATE);
+    bool try_lock(STATE);
+    void unlock(STATE);
+
     uintptr_t get_object_id() {
-      uintptr_t id = object_id_counter.fetch_add(1);
-
-      while(true) {
-        if(id < RBX_MEMORY_OBJECT_ID_MAX) {
-          if(extended_p()) {
-            if(extended_header()->set_object_id(id)) {
-              return id;
-            }
-
-            if(object_id() > 0) return object_id();
-          } else {
-            MemoryFlags h = header;
-            MemoryFlags nh = RBX_MEMORY_OBJECT_ID_SET(id);
-
-            if(header.compare_exchange_strong(h, nh)) {
-              return id;
-            } else if(object_id() != 0) {
-              return object_id();
-            }
-          }
-        }
-
-        if(extended_p()) {
-          ExtendedHeader* eh = extended_header();
-
-          MemoryFlags h = header;
-          ExtendedHeader* n = ExtendedHeader::create_object_id(h, eh);
-          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
-
-          if(header.compare_exchange_strong(h, nh)) {
-            // TODO: dead_list.push_back(eh);
-            return n->object_id();
-          } else {
-            if(extended_header()->object_id() != 0) {
-              return extended_header()->object_id();
-            }
-
-            n->delete_header();
-          }
-        } else {
-          MemoryFlags h = header;
-          ExtendedHeader* n = ExtendedHeader::create_object_id(h);
-          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
-
-          if(header.compare_exchange_strong(h, nh)) {
-            return n->object_id();
-          } else {
-            if(extended_header()->object_id() != 0) {
-              return extended_header()->object_id();
-            }
-
-            n->delete_header();
-          }
-        }
-      }
+      return 1;
     }
 
     MemoryHandle* get_handle() {
-      while(true) {
-        if(extended_p()) {
-          ExtendedHeader* eh = extended_header();
-
-          if(MemoryHandle* handle = eh->get_handle()) {
-            return handle;
-          }
-
-          MemoryFlags h = header;
-          ExtendedHeader* n = ExtendedHeader::create_handle(h, eh);
-          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
-
-          if(header.compare_exchange_strong(h, nh)) {
-            // TODO: dead_list.push_back(eh);
-            return n->get_handle();
-          } else {
-            if(MemoryHandle* handle = extended_header()->get_handle()) {
-              return handle;
-            }
-
-            n->delete_header();
-          }
-        } else {
-          MemoryFlags h = header;
-          ExtendedHeader* n = ExtendedHeader::create_handle(h);
-          MemoryFlags nh = RBX_MEMORY_HEADER_EXTENDED_SET(n);
-
-          if(header.compare_exchange_strong(h, nh)) {
-            return n->get_handle();
-          } else {
-            if(MemoryHandle* handle = extended_header()->get_handle()) {
-              return handle;
-            }
-
-            n->delete_header();
-          }
-        }
-      }
+      return nullptr;
     }
 
     int add_reference() {
-      return 0;
-    }
-
-    void lock() {
-    }
-
-    bool try_lock() {
-      return false;
-    }
-
-    void unlock() {
+      return 1;
     }
   };
 

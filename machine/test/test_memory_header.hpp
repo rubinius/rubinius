@@ -159,13 +159,6 @@ public:
     TS_ASSERT_EQUALS(h.tainted_p(), true);
   }
 
-  void test_memory_header_locked_count() {
-    TS_ASSERT_EQUALS(h.locked_count(), 0);
-
-    h.header = 0x38000000000L;
-    TS_ASSERT_EQUALS(h.locked_count(), 0x7L);
-  }
-
   void test_memory_header_object_id() {
     TS_ASSERT_EQUALS(h.object_id(), 0);
 

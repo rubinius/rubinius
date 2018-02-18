@@ -30,6 +30,17 @@ namespace rubinius {
     object_id_counter = 0;
   }
 
+  void MemoryHeader::lock(STATE) {
+    locked_count_field.get(header);
+  }
+
+  bool MemoryHeader::try_lock(STATE) {
+    return false;
+  }
+
+  void MemoryHeader::unlock(STATE) {
+  }
+
   bool HeaderWord::atomic_set(HeaderWord& old, HeaderWord& nw) {
     return atomic::compare_and_swap(&flags64,
                                      old.flags64,
