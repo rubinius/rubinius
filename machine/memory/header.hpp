@@ -342,6 +342,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     {
     }
 
+    unsigned int value_shift() const {
+      return 0x3;
+    }
+
     uintptr_t type_mask() const {
       return 0x7L;
     }
@@ -370,8 +374,20 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return nullptr;
     }
 
-    bool ref_count_p() const {
+    bool referenced_p() const {
       return (word & type_mask()) == eRefCount;
+    }
+
+    uintptr_t get_referenced() const {
+      if(referenced_p()) {
+        return reinterpret_cast<uintptr_t>(word >> value_shift());
+      }
+
+      return 0;
+    }
+
+    void set_referenced(uintptr_t refcount) {
+      word |= refcount << value_shift();
     }
 
     bool lock_p() const {
@@ -444,11 +460,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return create(h, eh);
     }
 
-    static ExtendedHeader* create_reference(const MemoryFlags h) {
+    static ExtendedHeader* create_referenced(const MemoryFlags h, uintptr_t refcount) {
       return create(h);
     }
 
-    static ExtendedHeader* create_reference(const MemoryFlags h, const ExtendedHeader* eh) {
+    static ExtendedHeader* create_referenced(
+        const MemoryFlags h, const ExtendedHeader* eh, uintptr_t refcount)
+    {
+      // referenced_field.set(hh->header, referenced_field.max())
       return create(h, eh);
     }
 
@@ -477,6 +496,24 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
 
       return nullptr;
+    }
+
+    uintptr_t get_referenced() const {
+      for(int i = 0; i < size(); i++) {
+        if(uintptr_t refcount = words[i].get_referenced()) {
+          return refcount;
+        }
+      }
+
+      return 0;
+    }
+
+    void set_referenced(uintptr_t refcount) {
+      for(int i = 0; i < size(); i++) {
+        if(words[i].referenced_p()) {
+          words[i].set_referenced(refcount);
+        }
+      }
     }
   };
 
@@ -507,6 +544,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return thread_id_field.max();
     }
 
+    unsigned int max_referenced() const {
+      return referenced_field.max();
+    }
+
     unsigned int max_type_id() const {
       return type_id_field.max();
     }
@@ -524,7 +565,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           reinterpret_cast<const ExtendedHeader*>(header.load() & ~0x7L));
     }
 
-    MemoryFlags extended_header(ExtendedHeader* h) const {
+    MemoryFlags extended_flags(ExtendedHeader* h) const {
       MemoryFlags f = reinterpret_cast<MemoryFlags>(h);
 
       return reinterpret_cast<MemoryFlags>(extended_field.set(f));
@@ -534,6 +575,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return extended_field.get(header);
     }
 
+    uintptr_t get(const HeaderField field) const {
+      if(extended_p()) {
+        return field.get(extended_flags(extended_header()));
+      } else {
+        return field.get(header);
+      }
+    }
+
     void set(const HeaderField field, unsigned int value) {
       while(true) {
         MemoryFlags h = header;
@@ -541,7 +590,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         if(extended_p()) {
           ExtendedHeader* eh = ExtendedHeader::create_copy(
               field.set(h, value), extended_header());
-          MemoryFlags nh = extended_header(eh);
+          MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh)) return;
 
@@ -560,7 +609,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
         if(extended_p()) {
           ExtendedHeader* eh = ExtendedHeader::create_copy(field.set(h), extended_header());
-          MemoryFlags nh = extended_header(eh);
+          MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh)) return;
 
@@ -579,7 +628,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
         if(extended_p()) {
           ExtendedHeader* eh = ExtendedHeader::create_copy(field.unset(h), extended_header());
-          MemoryFlags nh = extended_header(eh);
+          MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh)) return;
 
@@ -597,7 +646,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     int thread_id() const {
-      return thread_id_field.get(header);
+      return get(thread_id_field);
     }
 
     void set_thread_id(uintptr_t id) {
@@ -605,7 +654,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     MemoryRegion region() const {
-      return static_cast<MemoryRegion>(region_field.get(header));
+      return static_cast<MemoryRegion>(get(region_field));
     }
 
     void region(MemoryRegion region) {
@@ -613,7 +662,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool pinned_p() const {
-      return pinned_field.get(header);
+      return get(pinned_field);
     }
 
     void set_pinned() {
@@ -625,7 +674,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool visited_p(unsigned int flag) const {
-      return visited_field.get(header) == flag;
+      return get(visited_field) == flag;
     }
 
     void set_visited(unsigned int flag) {
@@ -633,7 +682,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool marked_p(unsigned int mark) const {
-      return marked_field.get(header) == mark;
+      return get(marked_field) == mark;
     }
 
     void set_marked(unsigned int mark) {
@@ -641,7 +690,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool scanned_p() const {
-      return scanned_field.get(header);
+      return get(scanned_field);
     }
 
     void set_scanned() {
@@ -653,15 +702,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     unsigned int referenced() const {
-      return referenced_field.get(header);
+      return get(referenced_field);
     }
 
     object_type type_id() const {
-      return static_cast<object_type>(type_id_field.get(header));
+      return static_cast<object_type>(get(type_id_field));
     }
 
     bool data_p() const {
-      return data_field.get(header);
+      return get(data_field);
     }
 
     bool object_p() const {
@@ -673,7 +722,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool frozen_p() const {
-      return frozen_field.get(header);
+      return get(frozen_field);
     }
 
     void set_frozen() {
@@ -685,7 +734,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool tainted_p() const {
-      return tainted_field.get(header);
+      return get(tainted_field);
     }
 
     void set_tainted() {
@@ -696,12 +745,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       unset(tainted_field);
     }
 
-    size_t object_id() const {
-      return object_id_field.get(header);
+    uintptr_t object_id() const {
+      return get(object_id_field);
     }
 
     unsigned int type_specific() const {
-      return type_specific_field.get(header);
+      return get(type_specific_field);
     }
 
     void type_specific(unsigned int value) {
@@ -715,15 +764,107 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void unlock(STATE);
 
     uintptr_t get_object_id() {
-      return 1;
+      uintptr_t id = object_id_counter.fetch_add(1);
+
+      while(true) {
+        MemoryFlags h = header;
+
+        if(extended_p()) {
+          ExtendedHeader* eh;
+          ExtendedHeader* hh = extended_header();
+
+          if(object_id_field.get(hh->header) > 0) {
+            return object_id_field.get(hh->header);
+          } else if(id < object_id_field.max()) {
+            eh = ExtendedHeader::create_copy(object_id_field.set(hh->header, id), hh);
+          } else {
+            eh = ExtendedHeader::create_object_id(object_id_field.set(hh->header, id), hh);
+          }
+
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh)) return id;
+
+          eh->delete_header();
+        } else {
+          if(object_id_field.get(h) > 0) {
+            return object_id_field.get(h);
+          } else {
+            MemoryFlags nh = object_id_field.set(h, id);
+
+            if(header.compare_exchange_strong(h, nh)) return id;
+          }
+        }
+      }
     }
 
     MemoryHandle* get_handle() {
-      return nullptr;
+      while(true) {
+        MemoryFlags h = header;
+        ExtendedHeader* eh;
+
+        if(extended_p()) {
+          if(MemoryHandle* handle = extended_header()->get_handle()) {
+            return handle;
+          }
+
+          eh = ExtendedHeader::create_handle(h, extended_header());
+        } else {
+          eh = ExtendedHeader::create_handle(h);
+        }
+
+        MemoryFlags nh = extended_flags(eh);
+
+        if(header.compare_exchange_strong(h, nh)) return eh->get_handle();
+
+        eh->delete_header();
+      }
     }
 
     int add_reference() {
-      return 1;
+      while(true) {
+        MemoryFlags h = header;
+
+        if(extended_p()) {
+          ExtendedHeader* eh;
+          ExtendedHeader* hh = extended_header();
+          uintptr_t refcount = referenced_field.get(hh->header);
+
+          if(refcount < referenced_field.max()) {
+            eh = ExtendedHeader::create_copy(
+                referenced_field.set(hh->header, refcount + 1), hh);
+          } else {
+            if(uintptr_t rc = hh->get_referenced()) {
+              eh = ExtendedHeader::create_copy(
+                  referenced_field.set(hh->header, refcount + 1), hh);
+            } else {
+              eh = ExtendedHeader::create_referenced(hh->header, hh, refcount + 1);
+            }
+          }
+
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh)) return refcount + 1;
+
+          eh->delete_header();
+        } else {
+          unsigned int refcount = referenced_field.get(h);
+
+          if(refcount < referenced_field.max()) {
+            MemoryFlags nh = referenced_field.set(h, refcount + 1);
+
+            if(header.compare_exchange_strong(h, nh)) return refcount + 1;
+          } else {
+            ExtendedHeader* eh = ExtendedHeader::create_referenced(h, refcount + 1);
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh)) return refcount + 1;
+
+            eh->delete_header();
+          }
+        }
+      }
     }
   };
 
