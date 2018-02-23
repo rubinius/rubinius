@@ -835,6 +835,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
                 referenced_field.set(hh->header, refcount + 1), hh);
           } else {
             if(uintptr_t rc = hh->get_referenced()) {
+              refcount = rc;
+
               eh = ExtendedHeader::create_copy(
                   referenced_field.set(hh->header, refcount + 1), hh);
             } else {
