@@ -357,6 +357,18 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return (word & type_mask()) == eObjectID;
     }
 
+    uintptr_t get_object_id() const {
+      if(object_id_p()) {
+        return reinterpret_cast<uintptr_t>(word >> value_shift());
+      }
+
+      return 0;
+    }
+
+    void set_object_id(uintptr_t id) {
+      word = (id << value_shift()) | eObjectID;
+    }
+
     bool handle_p() const {
       return (word & type_mask()) == eHandle;
     }
@@ -439,12 +451,20 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return new(mem) ExtendedHeader(h, eh, eh->size());
     }
 
-    static ExtendedHeader* create_object_id(const MemoryFlags h) {
-      return create(h);
+    static ExtendedHeader* create_object_id(const MemoryFlags h, uintptr_t id) {
+       ExtendedHeader* nh = create(h);
+       nh->words[0].set_object_id(id);
+
+       return nh;
     }
 
-    static ExtendedHeader* create_object_id(const MemoryFlags h, const ExtendedHeader* eh) {
-      return create(h, eh);
+    static ExtendedHeader* create_object_id(
+        const MemoryFlags h, const ExtendedHeader* eh, uintptr_t id)
+    {
+      ExtendedHeader* nh = create(h, eh);
+      nh->words[eh->size()].set_object_id(id);
+
+      return nh;
     }
 
     static ExtendedHeader* create_handle(const MemoryFlags h) {
@@ -496,6 +516,24 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
 
       return nullptr;
+    }
+
+    uintptr_t get_object_id() const {
+      for(int i = 0; i < size(); i++) {
+        if(uintptr_t id = words[i].get_object_id()) {
+          return id;
+        }
+      }
+
+      return 0;
+    }
+
+    void set_object_id(uintptr_t id) {
+      for(int i = 0; i < size(); i++) {
+        if(words[i].object_id_p()) {
+          words[i].set_object_id(id);
+        }
+      }
     }
 
     uintptr_t get_referenced() const {
@@ -704,7 +742,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int referenced() const {
       if(extended_p()) {
         ExtendedHeader* eh = extended_header();
-        uintptr_t refcount = referenced_field.get(extended_header()->header);
+        uintptr_t refcount = referenced_field.get(eh->header);
 
         if(refcount < max_referenced()) {
           return refcount;
@@ -763,7 +801,24 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     uintptr_t object_id() const {
-      return get(object_id_field);
+      if(extended_p()) {
+        ExtendedHeader* eh = extended_header();
+        uintptr_t id = object_id_field.get(eh->header);
+
+        if(id < max_object_id()) {
+          return id;
+        } else {
+          uintptr_t ext_id = eh->get_object_id();
+
+          if(ext_id > 0) {
+            return ext_id;
+          } else {
+            return id;
+          }
+        }
+      } else {
+        return object_id_field.get(header);
+      }
     }
 
     unsigned int type_specific() const {
@@ -795,7 +850,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           } else if(id < max_object_id()) {
             eh = ExtendedHeader::create_copy(object_id_field.set(hh->header, id), hh);
           } else {
-            eh = ExtendedHeader::create_object_id(object_id_field.set(hh->header, id), hh);
+            eh = ExtendedHeader::create_object_id(
+                object_id_field.set(hh->header, max_object_id()), hh, id);
           }
 
           MemoryFlags nh = extended_flags(eh);
@@ -806,10 +862,18 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         } else {
           if(object_id_field.get(h) > 0) {
             return object_id_field.get(h);
-          } else {
+          } else if(id < max_object_id()) {
             MemoryFlags nh = object_id_field.set(h, id);
 
             if(header.compare_exchange_strong(h, nh)) return id;
+          } else {
+            ExtendedHeader* eh = ExtendedHeader::create_object_id(
+                object_id_field.set(h, max_object_id()), id);
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh)) return id;
+
+            eh->delete_header();
           }
         }
       }

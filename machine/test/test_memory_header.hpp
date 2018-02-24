@@ -42,7 +42,7 @@ public:
     h.header = 0x3ffcL;
 
     TS_ASSERT_EQUALS(h.thread_id(), 0xfff);
-    TS_ASSERT_EQUALS(h.max_thread_id(), 0xfff);
+    TS_ASSERT_EQUALS(MemoryHeader::max_thread_id(), 0xfff);
   }
 
   void test_memory_header_region() {
@@ -124,6 +124,10 @@ public:
       h.add_reference();
 
       TS_ASSERT_EQUALS(h.referenced(), i+1);
+
+      if(i > 15) {
+        TS_ASSERT(h.extended_p());
+      }
     }
   }
 
@@ -175,7 +179,23 @@ public:
     h.header = 0x3ffffc0000000000L;
     TS_ASSERT_EQUALS(h.object_id(), 0xfffffL);
 
-    TS_ASSERT_EQUALS(h.max_object_id(), 0xfffffL);
+    TS_ASSERT_EQUALS(MemoryHeader::max_object_id(), 0xfffffL);
+  }
+
+  void test_memory_header_set_object_id() {
+    MemoryHeader::object_id_counter = 21;
+
+    h.get_object_id();
+
+    TS_ASSERT_EQUALS(h.object_id(), 0x15);
+
+    MemoryHeader::object_id_counter = MemoryHeader::max_object_id() + 10;
+
+    h.header = 0;
+    h.get_object_id();
+
+    TS_ASSERT(h.extended_p());
+    TS_ASSERT_EQUALS(h.object_id(), MemoryHeader::max_object_id() + 10);
   }
 
   void test_memory_header_type_specific() {

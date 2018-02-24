@@ -27,7 +27,7 @@ namespace rubinius {
   std::atomic<uintptr_t> MemoryHeader::object_id_counter;
 
   void MemoryHeader::bootstrap(STATE) {
-    object_id_counter = 0;
+    object_id_counter = 1;
   }
 
   void MemoryHeader::lock(STATE) {
