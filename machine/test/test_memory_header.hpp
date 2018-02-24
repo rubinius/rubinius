@@ -117,6 +117,16 @@ public:
     TS_ASSERT_EQUALS(h.referenced(), 15);
   }
 
+  void test_memory_header_add_reference() {
+    for(int i = 0; i < 20; i++) {
+      TS_ASSERT_EQUALS(h.referenced(), i);
+
+      h.add_reference();
+
+      TS_ASSERT_EQUALS(h.referenced(), i+1);
+    }
+  }
+
   void test_memory_header_type_id() {
     TS_ASSERT_EQUALS(h.type_id(), 0);
 

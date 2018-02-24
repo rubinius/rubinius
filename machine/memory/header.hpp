@@ -263,15 +263,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return (header & (mask() << shift)) >> shift;
     }
 
-    uintptr_t set(MemoryFlags& header, uintptr_t value) const {
-      return header | ((value & mask()) << shift);
+    uintptr_t set(const MemoryFlags& header, uintptr_t value) const {
+      return (header & ~(mask() << shift)) | ((value & mask()) << shift);
     }
 
-    uintptr_t set(MemoryFlags& header) const {
+    uintptr_t set(const MemoryFlags& header) const {
       return header | (mask() << shift);
     }
 
-    uintptr_t unset(MemoryFlags& header) const {
+    uintptr_t unset(const MemoryFlags& header) const {
       return header & ~(mask() << shift);
     }
   };
@@ -337,11 +337,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     {
     }
 
-    ExtendedHeaderWord(unsigned int type, uintptr_t addr)
-      : word(type | addr)
-    {
-    }
-
     unsigned int value_shift() const {
       return 0x3;
     }
@@ -387,7 +382,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     void set_referenced(uintptr_t refcount) {
-      word |= refcount << value_shift();
+      word = (refcount << value_shift()) | eRefCount;
     }
 
     bool lock_p() const {
@@ -402,16 +397,16 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     MemoryFlags header;
     ExtendedHeaderWord words[0];
 
-    ExtendedHeader(const MemoryFlags h)
-      : header(h)
+    ExtendedHeader(const MemoryFlags h, int size)
+      : header(size_field.set(h, size))
     {
       ExtendedHeaderWord unset;
 
       words[0] = unset;
     }
 
-    ExtendedHeader(const MemoryFlags h, const ExtendedHeader* eh)
-      : header(h)
+    ExtendedHeader(const MemoryFlags h, const ExtendedHeader* eh, int size)
+      : header(size_field.set(h, size))
     {
       for(int i = 0; i < eh->size(); i++) {
         words[i] = eh->words[i];
@@ -429,19 +424,19 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     static ExtendedHeader* create(const MemoryFlags h) {
       uintptr_t* mem = new uintptr_t[2];
 
-      return new(mem) ExtendedHeader(h);
+      return new(mem) ExtendedHeader(h, 1);
     }
 
     static ExtendedHeader* create(const MemoryFlags h, const ExtendedHeader* eh) {
       uintptr_t* mem = new uintptr_t[eh->size() + 2];
 
-      return new(mem) ExtendedHeader(h, eh);
+      return new(mem) ExtendedHeader(h, eh, eh->size() + 1);
     }
 
     static ExtendedHeader* create_copy(const MemoryFlags h, const ExtendedHeader* eh) {
       uintptr_t* mem = new uintptr_t[eh->size() + 1];
 
-      return new(mem) ExtendedHeader(h, eh);
+      return new(mem) ExtendedHeader(h, eh, eh->size());
     }
 
     static ExtendedHeader* create_object_id(const MemoryFlags h) {
@@ -461,14 +456,19 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     static ExtendedHeader* create_referenced(const MemoryFlags h, uintptr_t refcount) {
-      return create(h);
+      ExtendedHeader* nh = create(h);
+      nh->words[0].set_referenced(refcount);
+
+      return nh;
     }
 
     static ExtendedHeader* create_referenced(
         const MemoryFlags h, const ExtendedHeader* eh, uintptr_t refcount)
     {
-      // referenced_field.set(hh->header, referenced_field.max())
-      return create(h, eh);
+      ExtendedHeader* nh = create(h, eh);
+      nh->words[eh->size()].set_referenced(refcount);
+
+      return nh;
     }
 
     static ExtendedHeader* create_lock(const MemoryFlags h) {
@@ -540,23 +540,23 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       obj->initialize(thread_id, region, type, data);
     }
 
-    unsigned int max_thread_id() const {
+    static unsigned int max_thread_id() {
       return thread_id_field.max();
     }
 
-    unsigned int max_referenced() const {
+    static unsigned int max_referenced() {
       return referenced_field.max();
     }
 
-    unsigned int max_type_id() const {
+    static unsigned int max_type_id() {
       return type_id_field.max();
     }
 
-    unsigned int max_object_id() const {
+    static unsigned int max_object_id() {
       return object_id_field.max();
     }
 
-    unsigned int max_locked_count() const {
+    static unsigned int max_locked_count() {
       return locked_count_field.max();
     }
 
@@ -577,7 +577,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     uintptr_t get(const HeaderField field) const {
       if(extended_p()) {
-        return field.get(extended_flags(extended_header()));
+        return field.get(extended_header()->header);
       } else {
         return field.get(header);
       }
@@ -702,7 +702,24 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     unsigned int referenced() const {
-      return get(referenced_field);
+      if(extended_p()) {
+        ExtendedHeader* eh = extended_header();
+        uintptr_t refcount = referenced_field.get(extended_header()->header);
+
+        if(refcount < max_referenced()) {
+          return refcount;
+        } else {
+          uintptr_t ext_refcount = eh->get_referenced();
+
+          if(ext_refcount > 0) {
+            return ext_refcount;
+          } else {
+            return refcount;
+          }
+        }
+      } else {
+        return referenced_field.get(header);
+      }
     }
 
     object_type type_id() const {
@@ -775,7 +792,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
           if(object_id_field.get(hh->header) > 0) {
             return object_id_field.get(hh->header);
-          } else if(id < object_id_field.max()) {
+          } else if(id < max_object_id()) {
             eh = ExtendedHeader::create_copy(object_id_field.set(hh->header, id), hh);
           } else {
             eh = ExtendedHeader::create_object_id(object_id_field.set(hh->header, id), hh);
@@ -830,15 +847,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           ExtendedHeader* hh = extended_header();
           uintptr_t refcount = referenced_field.get(hh->header);
 
-          if(refcount < referenced_field.max()) {
+          if(refcount < max_referenced()) {
             eh = ExtendedHeader::create_copy(
                 referenced_field.set(hh->header, refcount + 1), hh);
           } else {
             if(uintptr_t rc = hh->get_referenced()) {
               refcount = rc;
 
-              eh = ExtendedHeader::create_copy(
-                  referenced_field.set(hh->header, refcount + 1), hh);
+              eh = ExtendedHeader::create_copy(hh->header, hh);
+              eh->set_referenced(refcount + 1);
             } else {
               eh = ExtendedHeader::create_referenced(hh->header, hh, refcount + 1);
             }
@@ -852,7 +869,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         } else {
           unsigned int refcount = referenced_field.get(h);
 
-          if(refcount < referenced_field.max()) {
+          if(refcount < max_referenced()) {
             MemoryFlags nh = referenced_field.set(h, refcount + 1);
 
             if(header.compare_exchange_strong(h, nh)) return refcount + 1;
