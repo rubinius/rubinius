@@ -204,4 +204,12 @@ public:
     h.header = 0xc000000000000000L;
     TS_ASSERT_EQUALS(h.type_specific(), 0x3L);
   }
+
+  void test_memory_header_get_handle() {
+    MemoryHandle* handle = h.get_handle();
+
+    TS_ASSERT(handle);
+    TS_ASSERT(h.extended_p());
+    TS_ASSERT_EQUALS(h.get_handle(), handle);
+  }
 };

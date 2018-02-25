@@ -381,6 +381,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return nullptr;
     }
 
+    void set_handle(MemoryHandle* handle) {
+      word = reinterpret_cast<uintptr_t>(handle) | eHandle;
+    }
+
     bool referenced_p() const {
       return (word & type_mask()) == eRefCount;
     }
@@ -468,11 +472,21 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     static ExtendedHeader* create_handle(const MemoryFlags h) {
-      return create(h);
+      ExtendedHeader* nh = create(h);
+
+      MemoryHandle* handle = new MemoryHandle();
+      nh->words[0].set_handle(handle);
+
+      return nh;
     }
 
-    static ExtendedHeader* create_handle(const MemoryFlags h, const ExtendedHeader* eh) {
-      return create(h, eh);
+    static ExtendedHeader* create_handle(const MemoryFlags h, ExtendedHeader* eh) {
+      ExtendedHeader* nh = create(h, eh);
+
+      MemoryHandle* handle = new MemoryHandle();
+      nh->words[nh->size()].set_handle(handle);
+
+      return nh;
     }
 
     static ExtendedHeader* create_referenced(const MemoryFlags h, uintptr_t refcount) {
