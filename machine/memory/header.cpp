@@ -31,14 +31,182 @@ namespace rubinius {
   }
 
   void MemoryHeader::lock(STATE) {
-    locked_count_field.get(header);
+    while(!try_lock(state)) {
+      // TODO: backoff
+      std::this_thread::yield();
+    }
   }
 
   bool MemoryHeader::try_lock(STATE) {
-    return false;
+    while(true) {
+      MemoryFlags h = header;
+
+      if(thread_id() == state->vm()->thread_id()) {
+        if(extended_p()) {
+          ExtendedHeader* eh;
+          ExtendedHeader* hh = extended_header();
+          int locked_count = locked_count_field.get(hh->header);
+
+          if(locked_count < max_locked_count()) {
+            eh = ExtendedHeader::create_copy(
+                locked_count_field.set(hh->header, locked_count + 1), hh);
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh)) return true;
+
+            eh->delete_header();
+          } else if(hh->lock_extended_p()) {
+            return hh->get_lock()->try_lock();
+          } else {
+            eh = ExtendedHeader::create_lock(
+                locked_count_field.set(hh->header, lock_extended()), hh);
+
+            std::recursive_mutex* lock = eh->get_lock();
+
+            for(int i = 0; i <= max_locked_count(); i++) {
+              lock->lock();
+            }
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh)) return true;
+
+            for(int i = 0; i <= max_locked_count(); i++) {
+              lock->unlock();
+            }
+
+            eh->delete_header();
+          }
+        } else {
+          int locked_count = locked_count_field.get(h);
+
+          if(locked_count < max_locked_count()) {
+            MemoryFlags nh = locked_count_field.set(h, locked_count + 1);
+
+            if(header.compare_exchange_strong(h, nh)) return true;
+          } else {
+            ExtendedHeader* eh = ExtendedHeader::create_lock(
+                locked_count_field.set(h, lock_extended()));
+
+            std::recursive_mutex* lock = eh->get_lock();
+
+            for(int i = 0; i <= max_locked_count(); i++) {
+              lock->lock();
+            }
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh)) return true;
+
+            for(int i = 0; i <= max_locked_count(); i++) {
+              lock->unlock();
+            }
+
+            eh->delete_header();
+          }
+        }
+      } else {
+        if(extended_p()) {
+          ExtendedHeader* hh = extended_header();
+
+          if(hh->lock_extended_p()) {
+            return hh->get_lock()->try_lock();
+          } else if(locked_count_field.get(hh->header) == 0) {
+            ExtendedHeader* eh = ExtendedHeader::create_lock(
+                locked_count_field.set(hh->header, lock_extended()), hh);
+
+            std::recursive_mutex* lock = eh->get_lock();
+
+            lock->lock();
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh)) return true;
+
+            lock->unlock();
+
+            eh->delete_header();
+          } else {
+            return false;
+          }
+        } else {
+          if(locked_count_field.get(h) == 0) {
+            ExtendedHeader* eh = ExtendedHeader::create_lock(
+                locked_count_field.set(h, lock_extended()));
+
+            std::recursive_mutex* lock = eh->get_lock();
+
+            lock->lock();
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh)) return true;
+
+            lock->unlock();
+
+            eh->delete_header();
+          } else {
+            return false;
+          }
+        }
+      }
+    }
   }
 
   void MemoryHeader::unlock(STATE) {
+    while(true) {
+      MemoryFlags h = header;
+
+      if(thread_id() == state->vm()->thread_id()) {
+        if(extended_p()) {
+          ExtendedHeader* hh = extended_header();
+
+          if(hh->lock_extended_p()) {
+            hh->get_lock()->unlock();
+            return;
+          } else {
+            int locked_count = locked_count_field.get(hh->header);
+
+            if(locked_count > 0) {
+              ExtendedHeader* eh = ExtendedHeader::create_copy(
+                  locked_count_field.set(hh->header, locked_count - 1), hh);
+
+              MemoryFlags nh = extended_flags(eh);
+
+              if(header.compare_exchange_strong(h, nh)) return;
+
+              eh->delete_header();
+            } else {
+              Exception::raise_runtime_error(state, "unlocking non-locked object");
+            }
+          }
+        } else {
+          int locked_count = locked_count_field.get(h);
+
+          if(locked_count > 0) {
+            MemoryFlags nh = locked_count_field.set(h, locked_count - 1);
+
+            if(header.compare_exchange_strong(h, nh)) return;
+          } else {
+            Exception::raise_runtime_error(state, "unlocking non-locked object");
+          }
+        }
+      } else {
+        if(extended_p()) {
+          ExtendedHeader* hh = extended_header();
+
+          if(hh->lock_extended_p()) {
+            hh->get_lock()->unlock();
+            return;
+          } else {
+            Exception::raise_runtime_error(state, "unlocking non-locked object");
+          }
+        } else {
+          Exception::raise_runtime_error(state, "unlocking non-locked object");
+        }
+      }
+    }
   }
 
   bool HeaderWord::atomic_set(HeaderWord& old, HeaderWord& nw) {

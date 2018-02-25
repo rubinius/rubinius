@@ -404,6 +404,18 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     bool lock_p() const {
       return (word & type_mask()) == eLock;
     }
+
+    std::recursive_mutex* get_lock() const {
+      if(lock_p()) {
+        return reinterpret_cast<std::recursive_mutex*>(word & ptr_mask());
+      }
+
+      return nullptr;
+    }
+
+    void set_lock(std::recursive_mutex* lock) {
+      word = reinterpret_cast<uintptr_t>(lock) | eLock;
+    }
   };
 
   static_assert(sizeof(ExtendedHeaderWord) == sizeof(uintptr_t),
@@ -433,6 +445,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       for(int i = 0; i < size(); i++) {
         if(MemoryHandle* handle = words[i].get_handle()) {
           delete handle;
+        } else if(std::recursive_mutex* lock = words[i].get_lock()) {
+          delete lock;
         }
       }
     }
@@ -484,7 +498,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       ExtendedHeader* nh = create(h, eh);
 
       MemoryHandle* handle = new MemoryHandle();
-      nh->words[nh->size()].set_handle(handle);
+      nh->words[eh->size()].set_handle(handle);
 
       return nh;
     }
@@ -506,11 +520,21 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     static ExtendedHeader* create_lock(const MemoryFlags h) {
-      return create(h);
+      ExtendedHeader* nh = create(h);
+
+      std::recursive_mutex* lock = new std::recursive_mutex();
+      nh->words[0].set_lock(lock);
+
+      return nh;
     }
 
     static ExtendedHeader* create_lock(const MemoryFlags h, const ExtendedHeader* eh) {
-      return create(h, eh);
+      ExtendedHeader* nh = create(h, eh);
+
+      std::recursive_mutex* lock = new std::recursive_mutex();
+      nh->words[eh->size()].set_lock(lock);
+
+      return nh;
     }
 
     void delete_header() {
@@ -567,6 +591,20 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         }
       }
     }
+
+    bool lock_extended_p() const {
+      return locked_count_field.get(header) == locked_count_field.max();
+    }
+
+    std::recursive_mutex* get_lock() const {
+      for(int i = 0; i < size(); i++) {
+        if(std::recursive_mutex* lock = words[i].get_lock()) {
+          return lock;
+        }
+      }
+
+      return nullptr;
+    }
   };
 
   struct MemoryHeader {
@@ -609,6 +647,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     static unsigned int max_locked_count() {
+      return locked_count_field.max() - 1;
+    }
+
+    static unsigned int lock_extended() {
       return locked_count_field.max();
     }
 
@@ -625,6 +667,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool extended_p() const {
       return extended_field.get(header);
+    }
+
+    bool lock_extended_p() const {
+      return locked_count_field.get(header) == locked_count_field.max();
     }
 
     uintptr_t get(const HeaderField field) const {

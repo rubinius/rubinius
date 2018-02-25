@@ -12,6 +12,7 @@ public:
   MemoryHeader h;
 
   void setUp() {
+    VMTest::setUp();
     MemoryHeader::initialize(&h, 0, eThreadRegion, InvalidType, false);
   }
 
@@ -211,5 +212,42 @@ public:
     TS_ASSERT(handle);
     TS_ASSERT(h.extended_p());
     TS_ASSERT_EQUALS(h.get_handle(), handle);
+  }
+
+  void test_memory_header_lock() {
+    h.set_thread_id(state->vm()->thread_id());
+
+    TS_ASSERT_THROWS_ASSERT(h.unlock(state),
+			    const RubyException &e,
+			    TS_ASSERT(Exception::runtime_error_p(state, e.exception)));
+
+    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count(); i++) {
+      h.lock(state);
+      TS_ASSERT_EQUALS(locked_count_field.get(h.header), i+1);
+    }
+
+    TS_ASSERT(!h.extended_p());
+
+    for(int i = rubinius::MemoryHeader::max_locked_count(); i > 0; i--) {
+      TS_ASSERT_EQUALS(locked_count_field.get(h.header), i);
+      h.unlock(state);
+    }
+
+    TS_ASSERT(!h.extended_p());
+
+    TS_ASSERT_THROWS_ASSERT(h.unlock(state),
+			    const RubyException &e,
+			    TS_ASSERT(Exception::runtime_error_p(state, e.exception)));
+
+    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count() + 1; i++) {
+      h.lock(state);
+      TS_ASSERT_EQUALS(locked_count_field.get(h.header), i+1);
+    }
+
+    TS_ASSERT(h.extended_p());
+
+    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count() + 1; i++) {
+      h.unlock(state);
+    }
   }
 };
