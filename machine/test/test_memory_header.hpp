@@ -239,9 +239,8 @@ public:
 			    const RubyException &e,
 			    TS_ASSERT(Exception::runtime_error_p(state, e.exception)));
 
-    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count() + 1; i++) {
+    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count() + 2; i++) {
       h.lock(state);
-      TS_ASSERT_EQUALS(locked_count_field.get(h.header), i+1);
     }
 
     TS_ASSERT(h.extended_p());
