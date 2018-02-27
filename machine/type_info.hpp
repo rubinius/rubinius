@@ -65,6 +65,7 @@ namespace rubinius {
     static void auto_init(Memory* om);
     static void auto_learn_fields(STATE);
     virtual void auto_mark(Object* obj, memory::ObjectMark& mark) = 0;
+    virtual void mark_weakref(Object* obj, memory::ObjectMark& mark) {}
 
   public:   /* Ctors */
 

@@ -195,10 +195,6 @@ namespace rubinius {
     // Rubinius.primitive :thread_join
     Thread* join(STATE, Object* timeout);
 
-    // This method must only be called after fork() with only one active
-    // thread.
-    void unlock_after_fork(STATE);
-
     // Rubinius.primitive :thread_fiber_list
     Array* fiber_list(STATE);
 

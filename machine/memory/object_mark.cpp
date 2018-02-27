@@ -50,6 +50,13 @@ namespace memory {
     }
   }
 
+  void ObjectMark::set_value(Object* target, Object** pos, Object* val) {
+    *reinterpret_cast<VALUE*>(pos) = MemoryHandle::value(val);
+    if(val->reference_p()) {
+      gc->memory_->write_barrier(target, val);
+    }
+  }
+
   /**
    * Runs the write-barrier for the reference from target to val.
    *

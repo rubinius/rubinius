@@ -32,12 +32,6 @@
 #endif
 
 namespace rubinius {
-  namespace capi {
-    class Handle;
-    class Handles;
-    class GlobalHandle;
-  }
-
   namespace console {
     class Console;
   }
@@ -65,7 +59,7 @@ namespace rubinius {
   typedef std::unordered_map<std::string, int> CApiLockMap;
 
   typedef std::vector<std::string> CApiConstantNameMap;
-  typedef std::unordered_map<int, capi::Handle*> CApiConstantHandleMap;
+  typedef std::unordered_map<int, MemoryHandle*> CApiConstantHandleMap;
 
   /**
    * SharedState represents the global shared state that needs to be shared
@@ -101,7 +95,7 @@ namespace rubinius {
     diagnostics::Profiler* profiler_;
 
     CApiConstantNameMap capi_constant_name_map_;
-    CApiConstantHandleMap capi_constant_handle_map_;
+    CApiConstantHandleMap capi_constant_map_;
 
     uint64_t start_time_;
     uint64_t  class_count_;
@@ -119,13 +113,9 @@ namespace rubinius {
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
-    utilities::thread::SpinLock global_capi_handle_lock_;
-    utilities::thread::SpinLock capi_handle_cache_lock_;
     utilities::thread::SpinLock wait_lock_;
     utilities::thread::SpinLock type_info_lock_;
     utilities::thread::SpinLock code_resource_lock_;
-
-    locks::spinlock_mutex capi_handles_lock_;
 
     CApiBlackList capi_black_list_;
     CApiLocks capi_locks_;
@@ -344,14 +334,6 @@ namespace rubinius {
       return capi_constant_lock_;
     }
 
-    utilities::thread::SpinLock& global_capi_handle_lock() {
-      return global_capi_handle_lock_;
-    }
-
-    utilities::thread::SpinLock& capi_handle_cache_lock() {
-      return capi_handle_cache_lock_;
-    }
-
     int capi_lock_index(std::string name);
 
     utilities::thread::SpinLock& wait_lock() {
@@ -366,10 +348,6 @@ namespace rubinius {
       return code_resource_lock_;
     }
 
-    locks::spinlock_mutex& capi_handles_lock() {
-      return capi_handles_lock_;
-    }
-
     void scheduler_loop();
 
     void after_fork_child(STATE);
@@ -382,8 +360,8 @@ namespace rubinius {
       return capi_constant_name_map_;
     }
 
-    CApiConstantHandleMap& capi_constant_handle_map() {
-      return capi_constant_handle_map_;
+    CApiConstantHandleMap& capi_constant_map() {
+      return capi_constant_map_;
     }
 
     void initialize_capi_black_list();

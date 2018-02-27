@@ -21,8 +21,6 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 
-#include "capi/handle.hpp"
-
 #include "util/murmur_hash3.hpp"
 #include "util/siphash.h"
 #include "util/spinlock.hpp"
@@ -148,16 +146,22 @@ namespace rubinius {
     return s;
   }
 
-  void String::update_handle(VM* vm) {
-    State state(vm);
-    update_handle(&state);
+  void String::read_rstring() {
+    State state(VM::current());
+    if(memory_handle_p()) {
+      get_handle(&state)->read_rstring(&state);
+    }
   }
 
-  void String::update_handle(STATE) {
-    capi::Handle* handle = this->handle(state);
-    if(!handle) return;
+  void String::write_rstring(VM* vm) {
+    State state(vm);
+    write_rstring(&state);
+  }
 
-    handle->update(state->vm()->native_method_environment);
+  void String::write_rstring(STATE) {
+    if(memory_handle_p()) {
+      get_handle(state)->write_rstring(state);
+    }
   }
 
   static bool byte_compatible_p(Encoding* enc) {

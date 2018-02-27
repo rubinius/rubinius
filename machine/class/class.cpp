@@ -21,7 +21,8 @@ namespace rubinius {
   }
 
   Class* Class::bootstrap_class(STATE, Class* super, object_type type) {
-    Class* klass = static_cast<Class*>(state->memory()->new_object(state, sizeof(Class)));
+    Class* klass = static_cast<Class*>(state->memory()->new_object(
+          state, sizeof(Class), ClassType));
     Class::bootstrap_initialize(state, klass, super, type);
 
     return klass;
@@ -32,9 +33,6 @@ namespace rubinius {
 
     klass->klass(state, G(klass));
     klass->ivars(cNil);
-
-    // The type of object that this class is (ie Class).
-    klass->set_obj_type(ClassType);
 
     // The type of object this class makes (eg Tuple).
     klass->instance_type(Fixnum::from(type));
@@ -228,12 +226,12 @@ namespace rubinius {
     Class* self = this;
     OnStack<1> os(state, self);
 
-    hard_lock(state);
+    lock(state);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
     if(self->type_info()->type == PackedObject::type) {
-      self->hard_unlock(state);
+      self->unlock(state);
       return;
     }
 
@@ -283,7 +281,7 @@ namespace rubinius {
     atomic::memory_barrier();
     self->set_object_type(state, PackedObject::type);
 
-    self->hard_unlock(state);
+    self->unlock(state);
   }
 
   Class* Class::real_class(STATE, Class* klass) {

@@ -17,7 +17,6 @@
 #include "class/tuple.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/handle.hpp"
 
 #include "diagnostics/machine.hpp"
 
@@ -46,142 +45,15 @@ namespace rubinius {
     : _previous_(prev)
     , _env_(env)
     , _capi_lock_index_(method ? method->capi_lock_index() : 0)
-    , _check_handles_(false)
     , _block_(Qnil)
     , _receiver_(Qnil)
     , _module_(Qnil)
     , _method_(Qnil)
   {}
 
-  NativeMethodFrame::~NativeMethodFrame() {
-    flush_cached_data();
-    handles().deref_all();
-  }
-
-  void NativeMethodFrame::check_tracked_handle(capi::Handle* handle,
-                                               bool need_update)
-  {
-    if(need_update) {
-      check_handles(true);
-    }
-
-    if(handles().add_if_absent(handle)) {
-      // We're seeing this object for the first time in this function.
-      // Be sure that it's updated.
-      handle->update(env());
-    }
-  }
-
-  VALUE NativeMethodFrame::get_handle(STATE, Object* obj) {
-
-    capi::Handle* handle = obj->handle(state);
-
-    if(handle) {
-      if(handles().add_if_absent(handle)) {
-        // We're seeing this object for the first time in this function.
-        // Be sure that it's updated.
-        handle->update(env());
-      }
-    } else {
-      handle = state->memory()->add_capi_handle(state, obj);
-      handles().add_if_absent(handle);
-    }
-
-    if(!handle->valid_p()) {
-      handle->debug_print();
-      rubinius::abort();
-    }
-
-    return handle->as_value();
-  }
-
-  Object* NativeMethodFrame::get_object(VALUE val) {
-    return capi::Handle::from(val)->object();
-  }
-
-  void NativeMethodFrame::flush_cached_data() {
-    if(check_handles()) {
-      handles().flush_all(env());
-    }
-
-    if(env()->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env()->state()->memory()->cached_capi_handles();
-
-      for(std::list<capi::Handle*>::iterator i = handles->begin();
-          i != handles->end();
-          ++i) {
-        (*i)->flush(env());
-      }
-    }
-  }
-
-  void NativeMethodFrame::update_cached_data() {
-    if(check_handles()) {
-      handles().update_all(env());
-    }
-
-    if(env()->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env()->state()->memory()->cached_capi_handles();
-
-      for(std::list<capi::Handle*>::iterator i = handles->begin();
-          i != handles->end();
-          ++i) {
-        (*i)->update(env());
-      }
-    }
-  }
-
-  VALUE NativeMethodEnvironment::get_handle(Object* obj) {
-    if(obj->reference_p()) {
-      if(!current_native_frame_) {
-        rubinius::bug("Unable to create handles with no NMF");
-      }
-
-      return current_native_frame()->get_handle(&state_, obj);
-    } else if(obj->fixnum_p() || obj->symbol_p()) {
-      return reinterpret_cast<VALUE>(obj);
-    } else if(obj->nil_p()) {
-      return Qnil;
-    } else if(obj->false_p()) {
-      return Qfalse;
-    } else if(obj->true_p()) {
-      return Qtrue;
-    } else if(obj->undef_p()) {
-      return Qundef;
-    }
-
-    capi::capi_raise_runtime_error("NativeMethod handle requested for unknown object type");
-    return 0; // keep compiler happy
-  }
-
   Object* NativeMethodEnvironment::block() {
     if(!current_native_frame_) return cNil;
-    return get_object(current_native_frame()->block());
-  }
-
-  capi::HandleSet& NativeMethodEnvironment::handles() {
-    if(!current_native_frame_) {
-      rubinius::bug("Requested handles with no frame");
-    }
-
-    return current_native_frame()->handles();
-  }
-
-  void NativeMethodEnvironment::flush_cached_data() {
-    if(!current_native_frame_) return;
-    current_native_frame()->flush_cached_data();
-  }
-
-  void NativeMethodEnvironment::check_tracked_handle(capi::Handle* hdl,
-                                                     bool need_update)
-  {
-    if(!current_native_frame_) return;
-    current_native_frame()->check_tracked_handle(hdl, need_update);
-  }
-
-  void NativeMethodEnvironment::update_cached_data() {
-    if(!current_native_frame_) return;
-    current_native_frame()->update_cached_data();
+    return MemoryHandle::object(current_native_frame()->block());
   }
 
   StackVariables* NativeMethodEnvironment::scope() {
@@ -242,7 +114,7 @@ namespace rubinius {
                           Arguments& args)
     {
       VALUE receiver = env->current_native_frame()->receiver();
-      return env->get_object(nm->func()(receiver));
+      return MemoryHandle::object(nm->func()(receiver));
     }
   };
 
@@ -252,9 +124,9 @@ namespace rubinius {
                           Arguments& args)
     {
       VALUE receiver = env->current_native_frame()->receiver();
-      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a1 = MemoryHandle::value(args.get_argument(0));
 
-      return env->get_object(nm->func()(receiver, a1));
+      return MemoryHandle::object(nm->func()(receiver, a1));
     }
   };
 
@@ -264,10 +136,10 @@ namespace rubinius {
                           Arguments& args)
     {
       VALUE receiver = env->current_native_frame()->receiver();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a1 = MemoryHandle::value(args.get_argument(0));
+      VALUE a2 = MemoryHandle::value(args.get_argument(1));
 
-      return env->get_object(nm->func()(receiver, a1, a2));
+      return MemoryHandle::object(nm->func()(receiver, a1, a2));
     }
   };
 
@@ -277,11 +149,11 @@ namespace rubinius {
                           Arguments& args)
     {
       VALUE receiver = env->current_native_frame()->receiver();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
+      VALUE a1 = MemoryHandle::value(args.get_argument(0));
+      VALUE a2 = MemoryHandle::value(args.get_argument(1));
+      VALUE a3 = MemoryHandle::value(args.get_argument(2));
 
-      return env->get_object(nm->func()(receiver, a1, a2, a3));
+      return MemoryHandle::object(nm->func()(receiver, a1, a2, a3));
     }
   };
 
@@ -296,31 +168,31 @@ namespace rubinius {
 
         // This one is not in MRI.
       case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
-        VALUE ary = env->get_handle(args.as_array(state));
+        VALUE ary = MemoryHandle::value(args.as_array(state));
 
         VALUE ret = nm->func()(ary);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
-        VALUE ary = env->get_handle(args.as_array(state));
+        VALUE ary = MemoryHandle::value(args.as_array(state));
 
         VALUE ret = nm->func()(receiver, ary);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
         VALUE ary[args.total()];
 
         for (std::size_t i = 0; i < args.total(); ++i) {
-          ary[i] = env->get_handle(args.get_argument(i));
+          ary[i] = MemoryHandle::value(args.get_argument(i));
         }
 
         VALUE ret = nm->func_as<ArgcFunction>()(args.total(), ary, receiver);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
         /*
@@ -329,237 +201,237 @@ namespace rubinius {
          */
 
       case 0:
-        return env->get_object(nm->func()(receiver));
+        return MemoryHandle::object(nm->func()(receiver));
 
       case 1: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
 
         VALUE ret = nm->func()(receiver, a1);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 2: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
 
         VALUE ret = nm->func()(receiver, a1, a2);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 3: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 4: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 5: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 6: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 7: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 8: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7, a8);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 9: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
-        VALUE a9 = env->get_handle(args.get_argument(8));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
+        VALUE a9 = MemoryHandle::value(args.get_argument(8));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 10: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
-        VALUE a9 = env->get_handle(args.get_argument(8));
-        VALUE a10 = env->get_handle(args.get_argument(9));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
+        VALUE a9 = MemoryHandle::value(args.get_argument(8));
+        VALUE a10 = MemoryHandle::value(args.get_argument(9));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
                                a8, a9, a10);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 11: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
-        VALUE a9 = env->get_handle(args.get_argument(8));
-        VALUE a10 = env->get_handle(args.get_argument(9));
-        VALUE a11 = env->get_handle(args.get_argument(10));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
+        VALUE a9 = MemoryHandle::value(args.get_argument(8));
+        VALUE a10 = MemoryHandle::value(args.get_argument(9));
+        VALUE a11 = MemoryHandle::value(args.get_argument(10));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
                                a8, a9, a10, a11);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 12: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
-        VALUE a9 = env->get_handle(args.get_argument(8));
-        VALUE a10 = env->get_handle(args.get_argument(9));
-        VALUE a11 = env->get_handle(args.get_argument(10));
-        VALUE a12 = env->get_handle(args.get_argument(11));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
+        VALUE a9 = MemoryHandle::value(args.get_argument(8));
+        VALUE a10 = MemoryHandle::value(args.get_argument(9));
+        VALUE a11 = MemoryHandle::value(args.get_argument(10));
+        VALUE a12 = MemoryHandle::value(args.get_argument(11));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
                                a8, a9, a10, a11, a12);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 13: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
-        VALUE a9 = env->get_handle(args.get_argument(8));
-        VALUE a10 = env->get_handle(args.get_argument(9));
-        VALUE a11 = env->get_handle(args.get_argument(10));
-        VALUE a12 = env->get_handle(args.get_argument(11));
-        VALUE a13 = env->get_handle(args.get_argument(12));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
+        VALUE a9 = MemoryHandle::value(args.get_argument(8));
+        VALUE a10 = MemoryHandle::value(args.get_argument(9));
+        VALUE a11 = MemoryHandle::value(args.get_argument(10));
+        VALUE a12 = MemoryHandle::value(args.get_argument(11));
+        VALUE a13 = MemoryHandle::value(args.get_argument(12));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
                                a8, a9, a10, a11, a12, a13);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 14: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
-        VALUE a9 = env->get_handle(args.get_argument(8));
-        VALUE a10 = env->get_handle(args.get_argument(9));
-        VALUE a11 = env->get_handle(args.get_argument(10));
-        VALUE a12 = env->get_handle(args.get_argument(11));
-        VALUE a13 = env->get_handle(args.get_argument(12));
-        VALUE a14 = env->get_handle(args.get_argument(13));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
+        VALUE a9 = MemoryHandle::value(args.get_argument(8));
+        VALUE a10 = MemoryHandle::value(args.get_argument(9));
+        VALUE a11 = MemoryHandle::value(args.get_argument(10));
+        VALUE a12 = MemoryHandle::value(args.get_argument(11));
+        VALUE a13 = MemoryHandle::value(args.get_argument(12));
+        VALUE a14 = MemoryHandle::value(args.get_argument(13));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
                                a8, a9, a10, a11, a12, a13, a14);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case 15: {
-        VALUE a1 = env->get_handle(args.get_argument(0));
-        VALUE a2 = env->get_handle(args.get_argument(1));
-        VALUE a3 = env->get_handle(args.get_argument(2));
-        VALUE a4 = env->get_handle(args.get_argument(3));
-        VALUE a5 = env->get_handle(args.get_argument(4));
-        VALUE a6 = env->get_handle(args.get_argument(5));
-        VALUE a7 = env->get_handle(args.get_argument(6));
-        VALUE a8 = env->get_handle(args.get_argument(7));
-        VALUE a9 = env->get_handle(args.get_argument(8));
-        VALUE a10 = env->get_handle(args.get_argument(9));
-        VALUE a11 = env->get_handle(args.get_argument(10));
-        VALUE a12 = env->get_handle(args.get_argument(11));
-        VALUE a13 = env->get_handle(args.get_argument(12));
-        VALUE a14 = env->get_handle(args.get_argument(13));
-        VALUE a15 = env->get_handle(args.get_argument(14));
+        VALUE a1 = MemoryHandle::value(args.get_argument(0));
+        VALUE a2 = MemoryHandle::value(args.get_argument(1));
+        VALUE a3 = MemoryHandle::value(args.get_argument(2));
+        VALUE a4 = MemoryHandle::value(args.get_argument(3));
+        VALUE a5 = MemoryHandle::value(args.get_argument(4));
+        VALUE a6 = MemoryHandle::value(args.get_argument(5));
+        VALUE a7 = MemoryHandle::value(args.get_argument(6));
+        VALUE a8 = MemoryHandle::value(args.get_argument(7));
+        VALUE a9 = MemoryHandle::value(args.get_argument(8));
+        VALUE a10 = MemoryHandle::value(args.get_argument(9));
+        VALUE a11 = MemoryHandle::value(args.get_argument(10));
+        VALUE a12 = MemoryHandle::value(args.get_argument(11));
+        VALUE a13 = MemoryHandle::value(args.get_argument(12));
+        VALUE a14 = MemoryHandle::value(args.get_argument(13));
+        VALUE a15 = MemoryHandle::value(args.get_argument(14));
 
         VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
                                a8, a9, a10, a11, a12, a13, a14, a15);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
         /* Extension entry point, should never occur for user code. */
       case INIT_FUNCTION: {
@@ -570,60 +442,60 @@ namespace rubinius {
 
         /* A C function being used as a block */
       case ITERATE_BLOCK: {
-        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE cb_data = MemoryHandle::value(nm->get_ivar(state, state->symbol("cb_data")));
 
         Object* ob = nm->get_ivar(state, state->symbol("original_block"));
         if(!ob->nil_p()) {
-          env->current_native_frame()->block(env->get_handle(ob));
+          env->current_native_frame()->block(MemoryHandle::value(ob));
         }
 
         VALUE val;
 
         switch(args.total()) {
         case 0:
-          val = env->get_handle(cNil);
+          val = MemoryHandle::value(cNil);
           break;
         case 1:
-          val = env->get_handle(args.get_argument(0));
+          val = MemoryHandle::value(args.get_argument(0));
           break;
         default:
-          val = env->get_handle(args.as_array(state));
+          val = MemoryHandle::value(args.as_array(state));
           break;
         }
 
         VALUE ret = nm->func()(val, cb_data, receiver);
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case C_BLOCK_CALL: {
         VALUE val;
         VALUE ary[args.total()];
-        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE cb_data = MemoryHandle::value(nm->get_ivar(state, state->symbol("cb_data")));
 
         if(args.total() > 0) {
-          val = env->get_handle(args.get_argument(0));
+          val = MemoryHandle::value(args.get_argument(0));
         } else {
-          val = env->get_handle(cNil);
+          val = MemoryHandle::value(cNil);
         }
 
         for (std::size_t i = 0; i < args.total(); ++i) {
-          ary[i] = env->get_handle(args.get_argument(i));
+          ary[i] = MemoryHandle::value(args.get_argument(i));
         }
 
         VALUE ret = nm->func()(val, cb_data, args.total(), ary);
 
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case C_LAMBDA: {
-        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
-        VALUE val = env->get_handle(args.as_array(state));
+        VALUE cb_data = MemoryHandle::value(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE val = MemoryHandle::value(args.as_array(state));
         VALUE ret = nm->func()(val, cb_data);
-        return env->get_object(ret);
+        return MemoryHandle::object(ret);
       }
 
       case C_CALLBACK: {
-        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE cb_data = MemoryHandle::value(nm->get_ivar(state, state->symbol("cb_data")));
 
         nm->func()(cb_data);
 
@@ -657,17 +529,6 @@ namespace rubinius {
 
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
 
-    // Optionally get the handles back to the proper state.
-    if(state->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env->state()->memory()->cached_capi_handles();
-
-      for(std::list<capi::Handle*>::iterator i = handles->begin();
-          i != handles->end();
-          ++i) {
-        (*i)->update(env);
-      }
-    }
-
     NativeMethodFrame nmf(env, env->current_native_frame(), nm);
     CallFrame* previous_frame = nullptr;
     CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
@@ -694,10 +555,10 @@ namespace rubinius {
     // Be sure to do this after installing nmf as the current
     // native frame.
     nmf.setup(
-        env->get_handle(args.recv()),
-        env->get_handle(args.block()),
-        env->get_handle(exec),
-        env->get_handle(mod));
+        MemoryHandle::value(args.recv()),
+        MemoryHandle::value(args.block()),
+        MemoryHandle::value(exec),
+        MemoryHandle::value(mod));
 
     // We've got things setup (they can be GC'd properly), so we need to
     // wait before entering the extension code.

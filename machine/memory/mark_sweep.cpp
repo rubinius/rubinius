@@ -66,9 +66,6 @@ namespace memory {
       next_collection_bytes = collection_threshold;
     }
 
-    obj->init_header(MatureObjectZone, InvalidType);
-    obj->set_in_large();
-
     return obj;
   }
 
@@ -80,8 +77,6 @@ namespace memory {
       delete_object(obj);
     }
 
-    obj->set_zone(UnspecifiedZone);
-
     free(reinterpret_cast<void*>(obj));
   }
 
@@ -91,25 +86,14 @@ namespace memory {
     Object* obj = allocate(bytes, collect_now);
     memcpy(obj, orig, bytes);
 
-    obj->set_zone(MatureObjectZone);
-    obj->set_age(0);
-
-    orig->set_forward(obj);
-
-    return obj;
-  }
-
-  Object* MarkSweepGC::copy_object(Object* orig, bool& collect_now) {
-    Object* obj = allocate(orig->size_in_bytes(memory_->vm()), collect_now);
-
-    obj->initialize_full_state(memory_->vm(), orig, 0);
+    orig->set_forwarded(obj);
 
     return obj;
   }
 
   Object* MarkSweepGC::saw_object(Object* obj) {
     if(obj->marked_p(memory_->mark())) return NULL;
-    obj->mark(memory_, memory_->mark());
+    obj->set_marked(memory_->mark());
 
     // Add the object to the mark stack, to be scanned later.
     mark_stack_.push_back(obj);
@@ -125,9 +109,6 @@ namespace memory {
     // metrics::MetricsData& metrics = memory_->vm()->metrics();
 
     // timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
-
-    // Cleanup all weakrefs seen
-    clean_weakrefs();
 
     // Sweep up the garbage
     sweep_objects();

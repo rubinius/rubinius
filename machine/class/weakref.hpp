@@ -21,7 +21,7 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, WeakRef* obj) {
-      obj->object(nil<Object>());
+      obj->object(cNil);
     }
 
     // Rubinius.primitive+ :weakref_object
@@ -29,10 +29,11 @@ namespace rubinius {
       return object();
     }
 
-    void set_object(Memory* om, Object* obj);
-
     // Rubinius.primitive+ :weakref_set_object
-    Object* set_object(STATE, Object* obj);
+    Object* set_object(STATE, Object* obj) {
+      object(obj);
+      return obj;
+    }
 
     // Rubinius.primitive+ :weakref_new
     static WeakRef* create(STATE, Object* obj);
@@ -44,8 +45,8 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      virtual void mark(Object* obj, memory::ObjectMark& mark);
       virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
+      virtual void mark_weakref(Object* obj, memory::ObjectMark& mark);
     };
   };
 }

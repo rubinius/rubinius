@@ -17,7 +17,7 @@ namespace rubinius {
         Object* obj = stack_back(i);
 
         if(obj->reference_p()) {
-          tainted |= obj->is_tainted_p();
+          tainted |= obj->tainted_p();
         }
 
         String* str = try_as<String>(obj);
@@ -37,7 +37,7 @@ namespace rubinius {
 
           str = obj->to_s(state, false);
 
-          tainted |= str->is_tainted_p();
+          tainted |= str->tainted_p();
           native_int cur_size = str->byte_size();
           native_int data_size = as<ByteArray>(str->data())->size();
           if(unlikely(cur_size > data_size)) {

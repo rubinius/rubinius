@@ -5,7 +5,6 @@
 
 #include "memory/immix_collector.hpp"
 
-#include "capi/handles.hpp"
 #include "capi/tag.hpp"
 
 #include "diagnostics/gc.hpp"
@@ -26,7 +25,7 @@ namespace memory {
   }
 
   void ImmixGC::ObjectDescriber::set_forwarding_pointer(Address from, Address to) {
-    from.as<Object>()->set_forward(to.as<Object>());
+    from.as<Object>()->set_forwarded(to.as<Object>());
   }
 
   ImmixGC::ImmixGC(Memory* om)
@@ -48,8 +47,7 @@ namespace memory {
     }
   }
 
-  Address ImmixGC::ObjectDescriber::copy(Address original,
-      ImmixAllocator& alloc) {
+  Address ImmixGC::ObjectDescriber::copy(Address original, ImmixAllocator& alloc) {
     Object* orig = original.as<Object>();
 
     bool collect_flag = false;
@@ -62,12 +60,9 @@ namespace memory {
       memory_->schedule_full_collection("Immix region copy object");
     }
 
-    Object* copy = copy_addr.as<Object>();
-
-    copy->initialize_full_state(memory_->vm(), orig, 0);
-
-    copy->set_zone(MatureObjectZone);
-    copy->set_in_immix();
+    // TODO: MemoryHeader
+    // Object* copy = copy_addr.as<Object>();
+    // copy->initialize_full_state(memory_->vm(), orig, 0);
 
     return copy_addr;
   }
@@ -79,14 +74,9 @@ namespace memory {
   Address ImmixGC::ObjectDescriber::update_pointer(Address addr) {
     Object* obj = addr.as<Object>();
     if(!obj) return Address::null();
-    if(obj->young_object_p()) {
-      if(obj->forwarded_p()) return obj->forward();
-      return Address::null();
-    } else {
-      // we must remember this because it might
-      // contain references to young gen objects
-      memory_->remember_object(obj);
-    }
+
+    if(obj->forwarded_p()) return obj->forward();
+
     return addr;
   }
 
@@ -94,24 +84,17 @@ namespace memory {
     Object* obj = addr.as<Object>();
 
     if(obj->marked_p(memory_->mark())) return false;
-    obj->mark(memory_, memory_->mark());
+    obj->set_marked(memory_->mark());
 
     if(push) ms.push_back(addr);
-    // If this is a young object, let the GC know not to try and mark
-    // the block it's in.
-    return obj->in_immix_p();
+
+    return obj->region() != eLargeRegion;
   }
 
   Object* ImmixGC::allocate(size_t bytes, bool& collect_now) {
     if(bytes > cMaxObjectSize) return 0;
 
-    Object* obj = allocator_.allocate(bytes, collect_now).as<Object>();
-    if(likely(obj)) {
-      obj->init_header(MatureObjectZone, InvalidType);
-      obj->set_in_immix();
-    }
-
-    return obj;
+    return allocator_.allocate(bytes, collect_now).as<Object>();
   }
 
   Object* ImmixGC::move_object(Object* orig, size_t bytes, bool& collect_now) {
@@ -121,10 +104,7 @@ namespace memory {
 
     memcpy(obj, orig, bytes);
 
-    obj->set_zone(MatureObjectZone);
-    obj->set_in_immix();
-
-    orig->set_forward(obj);
+    orig->set_forwarded(obj);
 
     return obj;
   }
@@ -143,7 +123,7 @@ namespace memory {
 
     // Check and update an inflated header
     if(copy && copy != obj) {
-      obj->set_forward(copy);
+      obj->set_forwarded(copy);
       return copy;
     }
 
@@ -152,7 +132,7 @@ namespace memory {
   }
 
   void ImmixGC::scanned_object(Object* obj) {
-    obj->scanned();
+    obj->set_scanned();
   }
 
   bool ImmixGC::mature_gc_in_progress() {
@@ -161,7 +141,7 @@ namespace memory {
 
   ObjectPosition ImmixGC::validate_object(Object* obj) {
     if(gc_.allocated_address(Address(obj))) {
-      if(obj->in_immix_p()) {
+      if(obj->region() != eLargeRegion) {
         return cInImmix;
       } else {
         return cInImmixCorruptHeader;
@@ -184,6 +164,41 @@ namespace memory {
   }
 
   void ImmixGC::collect_scan(GCData* data) {
+    for(auto i = data->references().begin();
+        i != data->references().end();
+        ++i)
+    {
+      if((*i)->reference_p()) {
+        if((*i)->object_p()) {
+          Object* obj = reinterpret_cast<Object*>(*i);
+
+          if(obj->referenced() > 0) {
+            if(Object* fwd = saw_object(obj)) {
+              // TODO: MemoryHeader set new address
+            }
+          } else if(obj->memory_handle_p()) {
+            MemoryHandle* handle = obj->extended_header()->get_handle();
+            if(handle->accesses() > 0) {
+              if(Object* fwd = saw_object(obj)) {
+                // TODO: MemoryHeader set new address
+              }
+
+              handle->unset_accesses();
+            }
+          } else if(!obj->finalizer_p() && !obj->weakref_p()) {
+            if(Object* fwd = saw_object(obj)) {
+              // TODO: MemoryHeader set new address
+            }
+          }
+        } else if((*i)->data_p()) {
+          // TODO: MemoryHeader process data object
+        }
+      } else {
+        // TODO: MemoryHeader if not reference, remove or log?
+        // is it an error to add a non-reference?
+      }
+    }
+
     for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
       if(Object* fwd = saw_object(i->get())) {
         i->set(fwd);
@@ -198,37 +213,6 @@ namespace memory {
           ++i)
       {
         scan(*i, false);
-      }
-    }
-
-    for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator()); i.more(); i.advance()) {
-      if(i->in_use_p() && !i->weak_p()) {
-        if(Object* fwd = saw_object(i->object())) {
-          i->set_object(fwd);
-        }
-      }
-    }
-
-    std::list<capi::GlobalHandle*>* gh = data->global_handle_locations();
-
-    if(gh) {
-      for(std::list<capi::GlobalHandle*>::iterator i = gh->begin();
-          i != gh->end();
-          ++i) {
-        capi::Handle** loc = (*i)->handle();
-        if(capi::Handle* hdl = *loc) {
-          if(!REFERENCE_P(hdl)) continue;
-          if(hdl->valid_p()) {
-            Object* obj = hdl->object();
-            if(obj && obj->reference_p()) {
-              if(Object* fwd = saw_object(obj)) {
-                hdl->set_object(fwd);
-              }
-            }
-          } else {
-            std::cerr << "Detected bad handle checking global capi handles\n";
-          }
-        }
       }
     }
   }
@@ -257,6 +241,7 @@ namespace memory {
     // We do this in a loop because the scanning might generate new entries
     // on the mark stack.
     do {
+      /* TODO: MemoryHandle
       for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator());
           i.more();
           i.advance())
@@ -270,13 +255,8 @@ namespace memory {
           }
         }
       }
+      */
     } while(process_mark_stack());
-
-    // We've now finished marking the entire object graph.
-    // Clean weakrefs before keeping additional objects alive
-    // for finalization, so people don't get a hold of finalized
-    // objects through weakrefs.
-    clean_weakrefs();
 
     if(FinalizerThread* finalizer = memory_->finalizer()) {
       std::lock_guard<std::mutex> guard(finalizer->list_mutex());
@@ -287,29 +267,101 @@ namespace memory {
       finalizer->list_condition().notify_one();
     }
 
-    // Remove unreachable locked objects still in the list
-    {
-      std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
-
-      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
-          i != data->thread_nexus()->threads()->end();
-          ++i)
-      {
-        clean_locked_objects(*i, false);
-      }
-    }
-
     // Clear unreachable objects from the various remember sets
     unsigned int mark = memory_->mark();
     memory_->unremember_objects(mark);
   }
 
-  void ImmixGC::sweep() {
+  void ImmixGC::sweep(GCData* data) {
     // Copy marks for use in new allocations
     gc_.copy_marks();
 
     // Sweep up the garbage
     gc_.sweep_blocks();
+
+    /* TODO: MemoryHeader add to diagnostics
+    unsigned int references = 0;
+    unsigned int handles = 0;
+    unsigned int refd = 0;
+    unsigned int weakref = 0;
+    unsigned int finalizer = 0;
+    unsigned int remembered = 0;
+    */
+
+    for(auto i = data->references().begin();
+        i != data->references().end();)
+    {
+      if((*i)->reference_p()) {
+        // references++;
+
+        if((*i)->object_p()) {
+          Object* obj = reinterpret_cast<Object*>(*i);
+
+          if(obj->referenced() > 0) {
+            if(!obj->marked_p(data->mark())) {
+              std::cerr << "immix gc: sweep: ref'd object not marked" << std::endl;
+              ::abort();
+            }
+
+            // refd++;
+          } else if(obj->memory_handle_p()) {
+            // handles++;
+            MemoryHandle* handle = obj->extended_header()->get_handle();
+
+            if(!obj->marked_p(data->mark())) {
+              if(handle->accesses() > 0) {
+                std::cerr << "immix gc: sweep: handle with refs not marked" << std::endl;
+                ::abort();
+              } else {
+                i = data->references().erase(i);
+                continue;
+              }
+            }
+          } else if(obj->weakref_p()) {
+            // weakref++;
+            if(obj->marked_p(data->mark())) {
+              TypeInfo* ti = memory_->type_info[obj->type_id()];
+
+              // TODO: MemoryHeader get rid of this construct
+              ObjectMark mark(this);
+              ti->mark_weakref(obj, mark);
+            } else {
+              i = data->references().erase(i);
+              continue;
+            }
+          } else if(obj->finalizer_p()) {
+            // finalizer++;
+            if(!obj->marked_p(data->mark())) {
+              // TODO: MemoryHeader process finalizer
+            }
+          } else if(obj->remembered_p()) {
+            // remembered++;
+            i = data->references().erase(i);
+            continue;
+          }
+        }
+      } else {
+        // TODO: MemoryHeader non-reference object in refs list
+      }
+
+      if(!(*i)->marked_p(data->mark())) {
+        // TODO: MemoryHeader
+        const MemoryHeader* h = (*i);
+        std::cerr << "ref'd object not marked after sweep: bits: " << (h->extended_header_p() ? h->extended_header()->header : h->header.load()) << ", region: " << h->region() << std::endl;
+      }
+
+      ++i;
+    }
+
+    /* TODO: MemoryHeader
+    std::cerr <<
+      "references: " << references << ", " <<
+      "handles: " << handles << ", " <<
+      "refd: " << refd << ", " <<
+      "weakref: " << weakref << ", " <<
+      "finalizer: " << finalizer << ", " <<
+      "remembered: " << remembered << std::endl;
+      */
 
     {
       timer::StopWatch<timer::microseconds> timer(

@@ -20,6 +20,7 @@
 #include "vm.hpp"
 
 #include "class/array.hpp"
+#include "class/bignum.hpp"
 #include "class/byte_array.hpp"
 #include "class/class.hpp"
 #include "class/encoding.hpp"
@@ -654,7 +655,7 @@ namespace rubinius {
     str.reserve(array_size * 4);
 
     if(directives->byte_size() == 0) ascii_encoding = true;
-    if(CBOOL(directives->tainted_p(state))) tainted = true;
+    if(directives->tainted_p()) tainted = true;
 
 static const char _actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
@@ -3252,7 +3253,7 @@ _resume:
 	break;
 	case 32:
 	{
-    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    if(string_value->tainted_p()) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -3601,7 +3602,7 @@ _again:
 	break;
 	case 32:
 	{
-    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    if(string_value->tainted_p()) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {

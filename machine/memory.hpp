@@ -7,6 +7,7 @@
 #include "type_info.hpp"
 #include "object_position.hpp"
 #include "configuration.hpp"
+#include "spinlock.hpp"
 
 #include "class/class.hpp"
 #include "class/module.hpp"
@@ -24,11 +25,15 @@
 
 #include "shared_state.hpp"
 
+#include <unordered_set>
+
 class TestMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
 
 namespace rubinius {
   struct CallFrame;
+  struct MemoryHeader;
+
   class Configuration;
   class Integer;
   class Thread;
@@ -38,15 +43,8 @@ namespace rubinius {
     class GCData;
     class ImmixGC;
     class ImmixMarker;
-    class InflatedHeaders;
     class MarkSweepGC;
     class Slab;
-  }
-
-  namespace capi {
-    class Handle;
-    class Handles;
-    class GlobalHandle;
   }
 
   /**
@@ -85,15 +83,6 @@ namespace rubinius {
     /// ImmixGC used for the mature generation
     memory::ImmixGC* immix_;
 
-    /// Storage for all InflatedHeader instances.
-    memory::InflatedHeaders* inflated_headers_;
-
-    /// Storage for C-API handle allocator, cached C-API handles
-    /// and global handle locations.
-    capi::Handles* capi_handles_;
-    std::list<capi::Handle*> cached_capi_handles_;
-    std::list<capi::GlobalHandle*> global_capi_handle_locations_;
-
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
 
@@ -128,6 +117,9 @@ namespace rubinius {
     /// Condition variable used to manage lock contention
     utilities::thread::Condition contention_var_;
 
+    locks::spinlock_mutex references_lock_;
+    std::unordered_set<MemoryHeader*> references_set_;
+
     SharedState& shared_;
 
   public:
@@ -160,6 +152,10 @@ namespace rubinius {
       return this;
     }
 
+    std::unordered_set<MemoryHeader*>& references() {
+      return references_set_;
+    }
+
     unsigned int cycle() {
       return cycle_;
     }
@@ -173,7 +169,7 @@ namespace rubinius {
     }
 
     void rotate_mark() {
-      mark_ = (mark_ == 2 ? 4 : 2);
+      mark_ ^= 0x3;
     }
 
     bool can_gc() const {
@@ -186,6 +182,20 @@ namespace rubinius {
 
     void inhibit_gc() {
       allow_gc_ = false;
+    }
+
+    void track_reference(MemoryHeader* object) {
+      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
+
+      if(!valid_object_p(reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(object)))) ::abort();
+
+      references_set_.insert(object);
+    }
+
+    void untrack_reference(MemoryHeader* object ) {
+      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
+
+      references_set_.erase(object);
     }
 
     void schedule_young_collection(VM* vm, diagnostics::metric& counter) {
@@ -224,28 +234,6 @@ namespace rubinius {
       return shared_.finalizer();
     }
 
-    memory::InflatedHeaders* inflated_headers() const {
-      return inflated_headers_;
-    }
-
-    capi::Handles* capi_handles() const {
-      return capi_handles_;
-    }
-
-    capi::Handle* add_capi_handle(STATE, Object* obj);
-    void make_capi_handle_cached(State*, capi::Handle* handle);
-
-    std::list<capi::Handle*>* cached_capi_handles() {
-      return &cached_capi_handles_;
-    }
-
-    std::list<capi::GlobalHandle*>* global_capi_handle_locations() {
-      return &global_capi_handle_locations_;
-    }
-
-    void add_global_capi_handle_location(STATE, capi::Handle** loc, const char* file, int line);
-    void del_global_capi_handle_location(STATE, capi::Handle** loc);
-
     ObjectArray* weak_refs_set();
 
   public:
@@ -271,7 +259,7 @@ namespace rubinius {
     }
 
     // Object must be created in Immix or large object space.
-    Object* new_object(STATE, native_int bytes);
+    Object* new_object(STATE, native_int bytes, object_type type);
 
     /* Allocate a new object in any space that will accommodate it based on
      * the following priority:
@@ -305,19 +293,17 @@ namespace rubinius {
       }
       */
 
-      if(likely(obj = new_object(state, bytes))) goto set_type;
+      if(likely(obj = new_object(state, bytes, type))) goto set_type;
 
       Memory::memory_error(state);
       return NULL;
 
     set_type:
-      obj->set_obj_type(type);
+      // obj->set_obj_type(type);
 
     // set_klass:
       obj->klass(state, klass);
       obj->ivars(cNil);
-
-      obj->set_cycle(cycle_);
 
       return obj;
     }
@@ -331,7 +317,7 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object_pinned(STATE, Class* klass, native_int bytes, object_type type) {
-      Object* obj = new_object(state, bytes);
+      Object* obj = new_object(state, bytes, type);
 
       if(unlikely(!obj)) {
         Memory::memory_error(state);
@@ -339,12 +325,9 @@ namespace rubinius {
       }
 
       obj->set_pinned();
-      obj->set_obj_type(type);
 
       obj->klass(state, klass);
       obj->ivars(cNil);
-
-      obj->set_cycle(cycle_);
 
       return obj;
     }
@@ -431,12 +414,10 @@ namespace rubinius {
       T* new_object_unmanaged(STATE, Class* klass, intptr_t* mem) {
         T* obj = reinterpret_cast<T*>(mem);
 
-        obj->init_header(UnmanagedZone, T::type);
+        MemoryHeader::initialize(obj, state->vm()->thread_id(), eThreadRegion, T::type, false);
 
         obj->klass(state, klass);
         obj->ivars(cNil);
-
-        obj->set_cycle(cycle_);
 
         T::initialize(state, obj);
 
@@ -536,21 +517,11 @@ namespace rubinius {
 
     bool refill_slab(STATE, memory::Slab& slab);
 
-    void assign_object_id(STATE, Object* obj);
-    bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
-    LockStatus contend_for_lock(STATE, ObjectHeader* obj, size_t us, bool interrupt);
-    void release_contention(STATE);
-    bool inflate_and_lock(STATE, ObjectHeader* obj);
-    bool inflate_for_contention(STATE, ObjectHeader* obj);
-
     bool valid_object_p(Object* obj);
     void add_type_info(TypeInfo* ti);
 
     void add_code_resource(STATE, memory::CodeResource* cr);
     void memstats();
-
-    void validate_handles(capi::Handles* handles);
-    void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young);
 
     ObjectPosition validate_object(Object* obj);
 
@@ -583,13 +554,6 @@ namespace rubinius {
         f->managed_finalizer(state, obj, finalizer);
       }
     }
-
-    InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
-    void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
-    void inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle);
-
-    // TODO: generalize when fixing safe points.
-    String* new_string_certain(STATE, Class* klass);
 
     bool mature_gc_in_progress() {
       return mature_gc_in_progress_;

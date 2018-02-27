@@ -229,21 +229,6 @@ namespace rubinius {
     return state->vm()->thread();
   }
 
-  void Thread::unlock_after_fork(STATE) {
-    unlock_object_after_fork(state);
-
-    memory::LockedObjects& los = vm()->locked_objects();
-    for(memory::LockedObjects::iterator i = los.begin();
-        i != los.end();
-        ++i) {
-      Object* obj = static_cast<Object*>(*i);
-      if(obj && obj != this) {
-        obj->unlock_object_after_fork(state);
-      }
-    }
-    los.clear();
-  }
-
   Object* Thread::variable_get(STATE, Symbol* key) {
     return locals()->aref(state, key);
   }
@@ -368,19 +353,15 @@ namespace rubinius {
     vm->thread()->join_lock_.lock();
     vm->thread()->stopped();
 
-    memory::LockedObjects& locked_objects = state->vm()->locked_objects();
-    for(memory::LockedObjects::iterator i = locked_objects.begin();
-        i != locked_objects.end();
-        ++i)
-    {
-      (*i)->unlock_for_terminate(state);
-    }
-    locked_objects.clear();
-
     vm->thread()->join_cond_.broadcast();
     vm->thread()->join_lock_.unlock();
 
     NativeMethod::cleanup_thread(state);
+
+    if(vm->thread_nexus()->lock_owned_p(vm)) {
+      logger::write("thread: exiting while owning ThreadNexus lock: %s", vm->name().c_str());
+      vm->thread_nexus()->unlock(state, vm);
+    }
 
     if(state->shared().config.log_thread_lifetime.value) {
       logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());

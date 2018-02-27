@@ -92,12 +92,15 @@ namespace rubinius {
     void set_halt(STATE, VM* vm);
 
     void managed_phase(STATE, VM* vm);
+    bool try_managed_phase(STATE, VM* vm);
     void unmanaged_phase(STATE, VM* vm);
     void waiting_phase(STATE, VM* vm);
 
     void set_managed(STATE, VM* vm);
 
     void each_thread(STATE, std::function<void (STATE, VM*)> process);
+
+    bool valid_thread_p(STATE, unsigned int thread_id);
 
     bool yielding_p(VM* vm);
 
@@ -118,6 +121,8 @@ namespace rubinius {
 
     uint64_t wait();
     void wait_for_all(STATE, VM* vm);
+
+    bool lock_owned_p(VM* vm);
 
     bool try_lock(VM* vm);
     bool try_lock_wait(STATE, VM* vm);
@@ -162,6 +167,16 @@ namespace rubinius {
 
     void lock(STATE, VM* vm) {
       try_lock_wait(state, vm);
+    }
+
+    bool try_lock(STATE, VM* vm, std::function<void ()> process) {
+      if(try_lock(vm)) {
+        process();
+        unlock(state, vm);
+        return true;
+      } else {
+        return false;
+      }
     }
 
     void unlock(STATE, VM* vm);

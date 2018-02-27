@@ -17,9 +17,7 @@ extern "C" {
   }
 
   long rb_big2long(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj);
+    Object* object = MemoryHandle::object(obj);
 
     if(object->nil_p()) {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to long");
@@ -42,9 +40,7 @@ extern "C" {
   }
 
   unsigned long rb_big2ulong(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj);
+    Object* object = MemoryHandle::object(obj);
 
     if(object->nil_p()) {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to unsigned long");
@@ -72,9 +68,7 @@ extern "C" {
   }
 
   long long rb_big2ll(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj);
+    Object* object = MemoryHandle::object(obj);
 
     if(object->nil_p()) {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to unsigned long");
@@ -93,9 +87,7 @@ extern "C" {
   }
 
   unsigned long long rb_big2ull(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj);
+    Object* object = MemoryHandle::object(obj);
 
     if(object->nil_p()) {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to unsigned long");
@@ -117,7 +109,7 @@ extern "C" {
   double rb_big2dbl(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Bignum* big = c_as<Bignum>(env->get_object(obj));
+    Bignum* big = MemoryHandle::object<Bignum>(obj);
     double d = big->to_double(env->state());
     if(isinf(d)) {
       if(big->mp_val()->sign == MP_NEG) {
@@ -143,21 +135,19 @@ extern "C" {
 
     Integer* bignum = Bignum::from_double(env->state(), num);
 
-    return env->get_handle(bignum);
+    return MemoryHandle::value(bignum);
   }
 
   int rb_big_bytes_used(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Bignum* big = c_as<Bignum>(env->get_object(obj));
+    Bignum* big = MemoryHandle::object<Bignum>(obj);
 
     return big->size(env->state())->to_native();
   }
 
   int rb_big_sign(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Bignum* big = c_as<Bignum>(env->get_object(obj));
+    Bignum* big = MemoryHandle::object<Bignum>(obj);
 
     return big->mp_val()->sign != MP_NEG;
   }

@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "memory/header.hpp"
+
 #include "class/native_method.hpp"
 
 #include "object_utils.hpp"
@@ -50,24 +52,6 @@ namespace rubinius {
 
     void capi_raise_break(VALUE obj);
 
-    /** Get an Array object for a handle ensuring that any RARRAY data has
-     * been flushed. */
-    Array* capi_get_array(NativeMethodEnvironment* env, VALUE ary_handle);
-
-    /** Update the RARRAY cache if one exists for this handle. */
-    void capi_update_array(NativeMethodEnvironment* env, VALUE ary_handle);
-
-    /** Get a String object for a handle ensuring that any RSTRING data has
-     * been flushed. */
-    String* capi_get_string(NativeMethodEnvironment* env, VALUE str_handle);
-
-    /** Update the RSTRING cache if one exists for this handle. */
-    void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle);
-
-    /** Get a Float object for a handle ensuring that RFLOAT data has
-     *  been flushed. */
-    Float* capi_get_float(NativeMethodEnvironment* env, VALUE float_handle);
-
     /** Wrap a C function in a Proc */
     Proc* wrap_c_function(void* func, VALUE cb, int arity);
 
@@ -78,7 +62,7 @@ namespace rubinius {
     template<typename NativeType>
       VALUE capi_native2num(NativeType number) {
         NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-        return env->get_handle(Integer::from(env->state(), number));
+        return MemoryHandle::value(Integer::from(env->state(), number));
       }
 
     /**
@@ -129,6 +113,16 @@ namespace rubinius {
         return obj;
       }
   }
+
+  template<typename T>
+    T* MemoryHandle::object(VALUE value) {
+      return capi::c_as<T>(MemoryHandle::object(value));
+    }
+
+  template<typename T>
+    T* MemoryHandle::try_as(VALUE value) {
+      return rubinius::try_as<T>(MemoryHandle::object(value));
+    }
 }
 
 #endif

@@ -251,26 +251,20 @@ namespace rubinius {
     // Rubinius.primitive :vm_get_user_home
     static String* vm_get_user_home(STATE, String* name);
 
-    // Rubinius.primitive :vm_dump_heap
-    static Object* vm_dump_heap(STATE, String* path);
-
     // Rubinius.primitive :vm_set_finalizer
     static Object* vm_set_finalizer(STATE, Object* obj, Object* fin);
 
     // Rubinius.primitive :vm_object_lock
     static Object* vm_object_lock(STATE, Object* obj);
 
-    // Rubinius.primitive :vm_object_uninterrupted_lock
-    static Object* vm_object_uninterrupted_lock(STATE, Object* obj);
-
-    // Rubinius.primitive :vm_object_lock_timed
-    static Object* vm_object_lock_timed(STATE, Object* obj, Integer* time);
-
     // Rubinius.primitive+ :vm_object_trylock
     static Object* vm_object_trylock(STATE, Object* obj);
 
     // Rubinius.primitive+ :vm_object_locked_p
     static Object* vm_object_locked_p(STATE, Object* obj);
+
+    // Rubinius.primitive+ :vm_object_lock_owned_p
+    static Object* vm_object_lock_owned_p(STATE, Object* obj);
 
     // Rubinius.primitive :vm_object_unlock
     static Object* vm_object_unlock(STATE, Object* obj);

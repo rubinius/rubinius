@@ -286,9 +286,8 @@ namespace rubinius {
       obj->_cache_ = nullptr;
     }
 
-    static CallSite* create(STATE, intptr_t* mem, Symbol* name, uint64_t serial, int ip) {
-      CallSite* cache =
-        state->memory()->new_object_unmanaged<CallSite>(state, G(call_site), mem);
+    static CallSite* create(STATE, Symbol* name, uint64_t serial, int ip) {
+      CallSite* cache = state->memory()->new_object<CallSite>(state, G(call_site));
 
       cache->name(name);
       cache->serial(serial);

@@ -5,7 +5,6 @@
 #include "memory/gc.hpp"
 #include "memory/root.hpp"
 #include "memory/mark_sweep.hpp"
-#include "capi/handles.hpp"
 
 #include "object_utils.hpp"
 
@@ -21,8 +20,6 @@ public:
   memory::GCData* gc_data;
   memory::Roots* roots;
   memory::VariableRootBuffers variable_buffers;
-  capi::Handles handles;
-  std::list<capi::Handle*> cached_handles;
 
   void setUp() {
     create();
@@ -82,7 +79,8 @@ public:
   */
 
   /* Causes a segfault when fails. */
-  void test_write_barrier_not_called_for_immediates() {
+  /* TODO: MemoryHeader
+  void xtest_write_barrier_not_called_for_immediates() {
     Memory& om = *state->memory();
     Object* obj;
     Object* obj2;
@@ -95,6 +93,7 @@ public:
     om.write_barrier(obj, obj2);
     TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
   }
+  */
 
   /* TODO: young gen
   void xtest_collect_young() {
@@ -168,7 +167,7 @@ public:
 
     obj = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
     TS_ASSERT_EQUALS(obj->num_fields(), LARGE_OBJECT_BYTE_SIZE);
-    TS_ASSERT_EQUALS(obj->zone(), MatureObjectZone);
+    TS_ASSERT_EQUALS(obj->region(), eLargeRegion);
 
   /* TODO: young gen
     TS_ASSERT_EQUALS(om.young_->bytes_used(), start);
@@ -315,7 +314,7 @@ public:
 
     mature = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
 
-    TS_ASSERT(mature->mature_object_p());
+    TS_ASSERT_EQUALS(mature->region(), eLargeRegion);
     unsigned int mark = om.mark();
     TS_ASSERT(!mature->marked_p(mark));
     memory::Root r(roots, mature);
@@ -406,9 +405,6 @@ public:
 
     obj = util_new_object(om);
     TS_ASSERT(om.valid_object_p(obj));
-
-    obj->set_zone((gc_zone)0);
-    TS_ASSERT(!om.valid_object_p(obj));
   }
 };
 

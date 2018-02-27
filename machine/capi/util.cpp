@@ -67,7 +67,7 @@ extern "C" {
 
     if(*p == '&') {
       var = va_arg(vargs, VALUE*);
-      *var = env->get_handle(env->block());
+      *var = MemoryHandle::value(env->block());
       p++;
     }
     va_end(vargs);
@@ -272,8 +272,8 @@ extern "C" {
     String* string = String::create(env->state(), str);
 
     // MRI does this, probably to escape non-printing chars in the string
-    VALUE s = rb_funcall(env->get_handle(string), rb_intern("inspect"), 0);
-    string = c_as<String>(env->get_object(s));
+    VALUE s = rb_funcall(MemoryHandle::value(string), rb_intern("inspect"), 0);
+    string = MemoryHandle::object<String>(s);
 
     rb_raise(rb_eArgError, "invalid value for %s: %s", type, string->c_str(env->state()));
   }
@@ -312,7 +312,7 @@ extern "C" {
     if(call_frame->compiled_code) {
       Symbol* name = try_as<Symbol>(call_frame->compiled_code->file());
       if(name) {
-        VALUE str = env->get_handle(name->to_str(env->state()));
+        VALUE str = MemoryHandle::value(name->to_str(env->state()));
         return rb_str_ptr_readonly(str);
       }
     }

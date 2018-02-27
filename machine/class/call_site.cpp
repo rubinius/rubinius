@@ -17,8 +17,6 @@
 #include <sstream>
 
 namespace rubinius {
-  int CallSite::memory_size = 0;
-  int CallSite::memory_words = 0;
   int CallSite::max_caches = 0;
   int CallSite::max_evictions = 0;
 
@@ -28,9 +26,6 @@ namespace rubinius {
 
     max_caches = state->shared().config.machine_call_site_cache_limit.value;
     max_evictions = state->shared().config.machine_call_site_eviction_limit.value;
-
-    memory_size = ObjectHeader::align(sizeof(CallSite));
-    memory_words = memory_size / sizeof(intptr_t);
   }
 
   Tuple* CallSite::cache_entries(STATE) {

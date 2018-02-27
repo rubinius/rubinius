@@ -14,26 +14,20 @@ namespace rubinius {
 
   WeakRef* WeakRef::create(STATE, Object* obj) {
     WeakRef* ref = state->memory()->new_object<WeakRef>(state, G(cls_weakref));
-    ref->set_object(state, obj);
+
+    ref->set_weakref(state);
+    ref->object(obj);
 
     return ref;
   }
 
-  void WeakRef::set_object(Memory* om, Object* obj) {
-    object(obj);
-    om->write_barrier(this, obj);
-  }
-
-  Object* WeakRef::set_object(STATE, Object* obj) {
-    object(obj);
-    state->memory()->write_barrier(this, obj);
-    return obj;
-  }
-
-  void WeakRef::Info::mark(Object* obj, memory::ObjectMark& mark) {
+  void WeakRef::Info::mark_weakref(Object* obj, memory::ObjectMark& mark) {
     WeakRef* ref = as<WeakRef>(obj);
-    if(ref->alive_p()) {
-      mark.gc->add_weak_ref(obj);
+
+    if(ref->object()->reference_p()) {
+      if(!ref->object()->marked_p(mark.vm()->memory()->mark())) {
+        ref->object(cNil);
+      }
     }
   }
 }

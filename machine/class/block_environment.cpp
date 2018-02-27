@@ -548,7 +548,7 @@ namespace rubinius {
 
   Object* BlockEnvironment::of_sender(STATE) {
     if(NativeMethodFrame* nmf = state->vm()->get_call_frame(1)->native_method_frame()) {
-      return state->vm()->native_method_environment->get_object(nmf->block());
+      return MemoryHandle::object(nmf->block());
     }
 
     CallFrame* frame = state->vm()->get_ruby_frame(1);

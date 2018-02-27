@@ -122,9 +122,7 @@ namespace rubinius {
 
     // We pin this so we can pass condition_ out without worrying about
     // us moving it.
-    if(!self->pin()) {
-      rubinius::bug("unable to pin Channel");
-    }
+    self->set_pinned();
 
     struct timeval tv = {0,0};
     if(use_timed_wait) {
@@ -170,7 +168,7 @@ namespace rubinius {
     state->vm()->clear_waiter();
     state->vm()->thread()->sleep(state, cFalse);
 
-    self->unpin();
+    self->unset_pinned();
     self->_waiters_--;
 
     if(exception) return NULL;

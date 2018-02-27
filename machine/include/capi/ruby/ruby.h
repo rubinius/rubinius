@@ -434,7 +434,7 @@ typedef struct rb_io_t {
 } rb_io_t;
 
 
-#define RIO       rb_io_t
+typedef struct rb_io_t RIO;
 
 #define OpenFile  rb_io_t
 
@@ -856,9 +856,9 @@ VALUE rb_uint2big(unsigned long number);
   struct RTypedData* capi_rtypeddata_struct(VALUE data);
   struct RString* capi_rstring_struct(VALUE string, int cache_level);
   struct RFloat* capi_rfloat_struct(VALUE data);
-  struct RIO* capi_rio_struct(VALUE handle);
   struct RFile* capi_rfile_struct(VALUE file);
   double capi_rfloat_value(VALUE flt);
+  RIO* capi_rio_struct(VALUE handle);
 
 /* Real API */
 
@@ -1367,9 +1367,6 @@ struct RTypedData {
 
   // To advertise we have rb_errinfo to extensions
 #define HAVE_RB_ERRINFO 1
-
-  /** Remove a previously declared global variable. */
-  void    rb_free_global(VALUE global);
 
   /** Freeze object and return it. */
   VALUE   rb_obj_freeze(VALUE obj);

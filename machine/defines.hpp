@@ -90,18 +90,6 @@ namespace rubinius {
       state->memory()->write_barrier(this, obj); \
     }
 
-#define attr_slot(name, type) \
-  public: \
-    type* name() const { return _ ## name ## _; } \
-    void name(type* obj) { \
-      _ ## name ## _ = obj; \
-    } \
-    template <class T> \
-    void name(T state, type* obj) { \
-      _ ## name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
-    }
-
 #define attr_field(name, type) \
   private: \
     type _ ## name ## _; \

@@ -65,7 +65,7 @@ extern "C" {
         env->current_ep()->return_to(env);
       }
 
-      VALUE exc_handle = env->get_handle(env->state()->thread_state()->current_exception());
+      VALUE exc_handle = MemoryHandle::value(env->state()->thread_state()->current_exception());
       bool handle_exc = false;
 
       va_start(exc_classes, arg2);
@@ -208,7 +208,7 @@ extern "C" {
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     String* string = String::create(env->state(), msg);
-    rb_funcall(rb_mKernel, rb_intern("warn"), 1, env->get_handle(string));
+    rb_funcall(rb_mKernel, rb_intern("warn"), 1, MemoryHandle::value(string));
   }
 
   void rb_warning(const char* fmt, ...) {
@@ -221,7 +221,7 @@ extern "C" {
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     String* string = String::create(env->state(), msg);
-    rb_funcall(rb_mKernel, rb_intern("warning"), 1, env->get_handle(string));
+    rb_funcall(rb_mKernel, rb_intern("warning"), 1, MemoryHandle::value(string));
   }
 
   VALUE rb_require(const char* name) {
@@ -252,7 +252,7 @@ extern "C" {
   VALUE rb_block_proc() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return rb_funcall(rb_mCAPI, rb_intern("rb_block_proc"), 1,
-        env->get_handle(env->block()));
+        MemoryHandle::value(env->block()));
   }
 
   // Hoisted from 1.8.7
@@ -352,8 +352,7 @@ extern "C" {
   }
 
   void rb_set_end_proc(void* cb, VALUE cb_data) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    VALUE prc = env->get_handle(
+    VALUE prc = MemoryHandle::value(
         capi::wrap_c_function(cb, cb_data, C_CALLBACK));
     rb_funcall(rb_mKernel, rb_intern("at_exit"), 1, prc);
   }

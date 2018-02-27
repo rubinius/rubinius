@@ -49,7 +49,7 @@ namespace rubinius {
      * the constructor for Globals, again, at the END of the list. */
 
     /* classes for the core 'types' */
-    memory::TypedRoot<Class*> compiled_code, tuple, module, basicobject, object, array;
+    memory::TypedRoot<Class*> compiled_code, tuple, rtuple, module, basicobject, object, array;
     memory::TypedRoot<Class*> klass, method_table, bytearray;
     memory::TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     memory::TypedRoot<Class*> string, character, symbol, io;
@@ -147,6 +147,7 @@ namespace rubinius {
     Globals() :
       compiled_code(&roots),
       tuple(&roots),
+      rtuple(&roots),
       module(&roots),
       basicobject(&roots),
       object(&roots),

@@ -39,11 +39,12 @@ extern "C" {
   }
 
   void rb_gc_mark(VALUE ptr) {
-    Handle* handle = Handle::from(ptr);
-    if(REFERENCE_P(handle) && handle->object()->reference_p()) {
-      Object* res = capi::current_mark()->call(handle->object());
-      if(res) {
-        handle->set_object(res);
+    if(REFERENCE_P(ptr)) {
+      MemoryHandle* handle = MemoryHandle::from(ptr);
+      Object* obj = handle->object();
+      if(obj->reference_p()) {
+        obj = capi::current_mark()->call(obj);
+        if(obj) handle->object(obj);
       }
     }
   }
@@ -59,12 +60,7 @@ extern "C" {
    * to be in the heap.
    */
   void rb_gc_mark_maybe(VALUE ptr) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Handle* handle = Handle::from(ptr);
-
-    if(capi::Handle::valid_handle_p(env->state(), handle)) {
-      rb_gc_mark(ptr);
-    }
+    rb_gc_mark(ptr);
   }
 
   void rb_memerror() {

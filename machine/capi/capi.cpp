@@ -16,6 +16,7 @@
 #include "class/proc.hpp"
 #include "class/exception.hpp"
 
+#include "bug.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "lookup_data.hpp"
@@ -30,8 +31,72 @@
 #include "capi/ruby.h"
 
 namespace rubinius {
-  namespace capi {
+  using namespace capi;
 
+  NORETURN(static void abort_memory_handle_error(const char* error));
+
+  static void abort_memory_handle_error(const char* error) {
+    /* This is one of the rare cases where aborting with rubinius::bug is
+     * acceptable. We MUST be able to do the conversions performed by the
+     * functions that may call this abort function. We CANNOT raise exceptions
+     * inside components like the GC because certain state invariants must be
+     * maintained and those operations cannot be interrupted.
+     */
+    rubinius::bug(error);
+  }
+
+  MemoryHandle* MemoryHandle::from(VALUE value) {
+    if(REFERENCE_P(value)) {
+      return reinterpret_cast<MemoryHandle*>(STRIP_HANDLE_TAG(value));
+    }
+
+    abort_memory_handle_error("MemoryHandle requested for unknown VALUE type");
+  }
+
+  Object* MemoryHandle::object(VALUE value) {
+    if(REFERENCE_P(value)) {
+      MemoryHandle* handle = MemoryHandle::from(value);
+
+      return handle->object();
+    } else if(FIXNUM_P(value) || SYMBOL_P(value)) {
+      return reinterpret_cast<Object*>(value);
+    } else if(TRUE_P(value)) {
+      return cTrue;
+    } else if(FALSE_P(value)) {
+      return cFalse;
+    } else if(NIL_P(value)) {
+      return cNil;
+    } else if(UNDEF_P(value)) {
+      return cUndef;
+    }
+
+    abort_memory_handle_error("Object reference requested for unknown VALUE type");
+  }
+
+  VALUE MemoryHandle::value(Object* object) {
+    if(object->reference_p()) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+      MemoryHandle* handle = object->get_handle(env->state());
+      handle->access();
+
+      return handle->as_value();
+    } else if(object->fixnum_p() || object->symbol_p()) {
+      return reinterpret_cast<VALUE>(object);
+    } else if(object->true_p()) {
+      return Qtrue;
+    } else if(object->false_p()) {
+      return Qfalse;
+    } else if(object->nil_p()) {
+      return Qnil;
+    } else if(object->undef_p()) {
+      return Qundef;
+    }
+
+    abort_memory_handle_error("VALUE requested for unknown Object type");
+  }
+
+  namespace capi {
     /**
      * This looks like a complicated scheme but there is a reason for
      * doing it this way. In MRI, rb_cObject, etc. are all global data.
@@ -42,7 +107,7 @@ namespace rubinius {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
       if(type < 0 || type >= cCApiMaxConstant) {
-        rb_raise(env->get_handle(env->state()->globals().exception.get()),
+        rb_raise(MemoryHandle::value(env->state()->globals().exception.get()),
               "C-API: invalid constant index");
       }
 
@@ -72,21 +137,20 @@ namespace rubinius {
                                size_t arg_count, VALUE* arg_array)
     {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      env->flush_cached_data();
 
       Array* args = Array::create(env->state(), arg_count);
       for(size_t i = 0; i < arg_count; i++) {
-        args->set(env->state(), i, env->get_object(arg_array[i]));
+        args->set(env->state(), i, MemoryHandle::object(arg_array[i]));
       }
 
       Object* blk = cNil;
 
       if(VALUE blk_handle = env->outgoing_block()) {
-        blk = env->get_object(blk_handle);
+        blk = MemoryHandle::object(blk_handle);
         env->set_outgoing_block(0);
       }
 
-      Object* recv = env->get_object(receiver);
+      Object* recv = MemoryHandle::object(receiver);
 
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
@@ -97,12 +161,10 @@ namespace rubinius {
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
       VALUE ret_handle = 0;
-      if(ret) ret_handle = env->get_handle(ret);
+      if(ret) ret_handle = MemoryHandle::value(ret);
 
       // Re-entering extension code
       ENTER_CAPI(env->state());
-
-      env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
@@ -120,8 +182,6 @@ namespace rubinius {
       if(!capi_check_interrupts(env->state())) {
         env->current_ep()->return_to(env);
       }
-
-      env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
@@ -147,12 +207,10 @@ namespace rubinius {
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
       VALUE ret_handle = 0;
-      if(ret) ret_handle = env->get_handle(ret);
+      if(ret) ret_handle = MemoryHandle::value(ret);
 
       // Re-entering extension code
       ENTER_CAPI(env->state());
-
-      env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
@@ -169,7 +227,7 @@ namespace rubinius {
       Object* args[arg_count];
 
       for(int i = 0; i < arg_count; i++) {
-        args[i] = env->get_object(va_arg(varargs, VALUE));
+        args[i] = MemoryHandle::object(va_arg(varargs, VALUE));
       }
 
       va_end(varargs);
@@ -177,7 +235,7 @@ namespace rubinius {
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
 
-      Object* recv = env->get_object(receiver);
+      Object* recv = MemoryHandle::object(receiver);
       Symbol* method = (Symbol*)method_name;
 
       Object* ret = cNil;
@@ -194,7 +252,7 @@ namespace rubinius {
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
       VALUE ret_handle = 0;
-      if(ret) ret_handle = env->get_handle(ret);
+      if(ret) ret_handle = MemoryHandle::value(ret);
 
       // Re-entering extension code
       ENTER_CAPI(env->state());
@@ -212,8 +270,6 @@ namespace rubinius {
       if(!capi_check_interrupts(env->state())) {
         env->current_ep()->return_to(env);
       }
-
-      env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
@@ -242,12 +298,10 @@ namespace rubinius {
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
       VALUE ret_handle = 0;
-      if(ret) ret_handle = env->get_handle(ret);
+      if(ret) ret_handle = MemoryHandle::value(ret);
 
       // Re-entering extension code
       ENTER_CAPI(env->state());
-
-      env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
@@ -262,13 +316,11 @@ namespace rubinius {
         env->current_ep()->return_to(env);
       }
 
-      env->flush_cached_data();
-
       NativeMethodFrame* frame = NativeMethodFrame::current();
 
-      Object* recv = env->get_object(frame->receiver());
-      Module* mod =  c_as<Module>(env->get_object(frame->module()));
-      Symbol* name = c_as<NativeMethod>(env->get_object(frame->method()))->name();
+      Object* recv = MemoryHandle::object(frame->receiver());
+      Module* mod =  MemoryHandle::object<Module>(frame->module());
+      Symbol* name = MemoryHandle::object<NativeMethod>(frame->method())->name();
 
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
@@ -287,12 +339,10 @@ namespace rubinius {
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
       VALUE ret_handle = 0;
-      if(ret) ret_handle = env->get_handle(ret);
+      if(ret) ret_handle = MemoryHandle::value(ret);
 
       // Re-entering extension code
       ENTER_CAPI(env->state());
-
-      env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
@@ -361,21 +411,21 @@ namespace rubinius {
     }
 
     void capi_raise_backend(VALUE exception) {
-      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      Exception *exc = capi::c_as<Exception>(env->get_object(exception));
+      Exception *exc = MemoryHandle::object<Exception>(exception);
       capi_raise_backend(exc);
     }
 
     void capi_raise_backend(VALUE klass, const char* reason) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      Class* cls = c_as<Class>(env->get_object(klass));
+      Class* cls = MemoryHandle::object<Class>(klass);
       Exception* exc = Exception::make_exception(env->state(), cls, reason);
       capi_raise_backend(exc);
     }
 
     void capi_raise_break(VALUE obj) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      env->state()->vm()->thread_state()->raise_break(env->get_object(obj), env->scope()->parent());
+      env->state()->vm()->thread_state()->raise_break(
+          MemoryHandle::object(obj), env->scope()->parent());
       env->current_ep()->return_to(env);
     }
 
@@ -387,7 +437,7 @@ namespace rubinius {
                           Fixnum::from(arity), 0);
 
       nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
-                   env->get_object(cb_data));
+                   MemoryHandle::object(cb_data));
 
       Object* current_block = env->block();
       if(!current_block->nil_p()) {
@@ -412,23 +462,29 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     env->shared().capi_constant_lock().lock();
-    CApiConstantHandleMap& map = env->state()->shared().capi_constant_handle_map();
+    CApiConstantHandleMap& map = env->state()->shared().capi_constant_map();
+
+    VALUE value;
 
     CApiConstantHandleMap::iterator entry = map.find(type);
     if(entry == map.end()) {
       std::string constant_name = capi_get_constant_name(type);
 
-      VALUE val = rb_path2class(constant_name.c_str());
-      capi::Handle* hdl = capi::Handle::from(val);
-      hdl->ref(); // Extra ref, since we save it in the map
-      map[type] = hdl;
-      env->shared().capi_constant_lock().unlock();
-      return val;
+      value = rb_path2class(constant_name.c_str());
+      MemoryHandle* handle = MemoryHandle::from(value);
+      Object* object = handle->object();
+
+      if(object->reference_p()) {
+        object->add_reference(env->state());
+      }
+
+      map[type] = handle;
     } else {
-      VALUE val = entry->second->as_value();
-      env->shared().capi_constant_lock().unlock();
-      return val;
+      value = entry->second->as_value();
     }
+
+    env->shared().capi_constant_lock().unlock();
+    return value;
   }
 
   VALUE rb_call_super(int argc, const VALUE *argv) {
@@ -436,7 +492,7 @@ extern "C" {
 
     Object* args[argc];
     for(int i = 0; i < argc; i++) {
-      args[i] = env->get_object(argv[i]);
+      args[i] = MemoryHandle::object(argv[i]);
     }
 
     return capi_call_super_native(env, argc, args);
@@ -451,7 +507,7 @@ extern "C" {
     Object* args[arg_count];
 
     for(int i = 0; i < arg_count; i++) {
-      args[i] = env->get_object(va_arg(varargs, VALUE));
+      args[i] = MemoryHandle::object(va_arg(varargs, VALUE));
     }
 
     va_end(varargs);
@@ -459,12 +515,12 @@ extern "C" {
     Object* blk = cNil;
 
     if(VALUE blk_handle = env->outgoing_block()) {
-      blk = env->get_object(blk_handle);
+      blk = MemoryHandle::object(blk_handle);
       env->set_outgoing_block(0);
     }
 
     return capi_funcall_backend_native(env, "", 0,
-        env->get_object(receiver),
+        MemoryHandle::object(receiver),
         reinterpret_cast<Symbol*>(method_name),
         arg_count, args, blk, true);
   }
@@ -475,18 +531,18 @@ extern "C" {
     Object* args[arg_count];
 
     for(int i = 0; i < arg_count; i++) {
-      args[i] = env->get_object(v_args[i]);
+      args[i] = MemoryHandle::object(v_args[i]);
     }
 
     Object* blk = cNil;
 
     if(VALUE blk_handle = env->outgoing_block()) {
-      blk = env->get_object(blk_handle);
+      blk = MemoryHandle::object(blk_handle);
       env->set_outgoing_block(0);
     }
 
     return capi_funcall_backend_native(env, "", 0,
-        env->get_object(receiver),
+        MemoryHandle::object(receiver),
         reinterpret_cast<Symbol*>(method_name),
         arg_count, args, blk, true);
   }
@@ -497,18 +553,18 @@ extern "C" {
     Object* args[arg_count];
 
     for(int i = 0; i < arg_count; i++) {
-      args[i] = env->get_object(v_args[i]);
+      args[i] = MemoryHandle::object(v_args[i]);
     }
 
     Object* blk = cNil;
 
     if(VALUE blk_handle = env->outgoing_block()) {
-      blk = env->get_object(blk_handle);
+      blk = MemoryHandle::object(blk_handle);
       env->set_outgoing_block(0);
     }
 
     return capi_funcall_backend_native(env, "", 0,
-        env->get_object(receiver),
+        MemoryHandle::object(receiver),
         reinterpret_cast<Symbol*>(method_name),
         arg_count, args, blk, false);
   }
@@ -521,13 +577,13 @@ extern "C" {
     Object* args[arg_count];
 
     for(int i = 0; i < arg_count; i++) {
-      args[i] = env->get_object(v_args[i]);
+      args[i] = MemoryHandle::object(v_args[i]);
     }
 
     return capi_funcall_backend_native(env, "", 0,
-        env->get_object(receiver),
+        MemoryHandle::object(receiver),
         reinterpret_cast<Symbol*>(method_name),
-        arg_count, args, env->get_object(block), allow_private);
+        arg_count, args, MemoryHandle::object(block), allow_private);
   }
 
   VALUE rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
@@ -551,7 +607,7 @@ extern "C" {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
-    Object* arg = env->get_object(argument_handle);
+    Object* arg = MemoryHandle::object(argument_handle);
 
     return capi_yield_backend(env, blk, 1, &arg);
   }
@@ -575,7 +631,7 @@ extern "C" {
     va_start(args, n);
 
     for(int i = 0; i < n; ++i) {
-      vars[i] = env->get_object(va_arg(args, VALUE));
+      vars[i] = MemoryHandle::object(va_arg(args, VALUE));
     }
 
     va_end(args);
@@ -592,7 +648,7 @@ extern "C" {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
-    if(Array* ary = try_as<Array>(env->get_object(array_handle))) {
+    if(Array* ary = MemoryHandle::try_as<Array>(array_handle)) {
       int count = ary->size();
       Object* vars[count];
 
@@ -623,9 +679,9 @@ extern "C" {
 
     if(cb) {
       Proc* prc = capi::wrap_c_function((void*)cb, cb_data, C_BLOCK_CALL);
-      env->set_outgoing_block(env->get_handle(prc));
+      env->set_outgoing_block(MemoryHandle::value(prc));
     } else {
-      env->set_outgoing_block(env->get_handle(env->block()));
+      env->set_outgoing_block(MemoryHandle::value(env->block()));
     }
 
     return rb_funcall2(obj, meth, argc, argv);
@@ -633,11 +689,10 @@ extern "C" {
 
   VALUE rb_apply(VALUE recv, ID mid, VALUE args) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->flush_cached_data();
 
-    Array* ary = capi::c_as<Array>(env->get_object(args));
+    Array* ary = MemoryHandle::object<Array>(args);
 
-    Object* obj = env->get_object(recv);
+    Object* obj = MemoryHandle::object(recv);
 
     // Unlock, we're leaving extension code.
     LEAVE_CAPI(env->state());
@@ -647,12 +702,10 @@ extern "C" {
     // We need to get the handle for the return value before getting
     // the GEL so that ret isn't accidentally GCd while we wait.
     VALUE ret_handle = 0;
-    if(ret) ret_handle = env->get_handle(ret);
+    if(ret) ret_handle = MemoryHandle::value(ret);
 
     // Re-entering extension code
     ENTER_CAPI(env->state());
-
-    env->update_cached_data();
 
     // An exception occurred
     if(!ret) env->current_ep()->return_to(env);
@@ -660,34 +713,29 @@ extern "C" {
     return ret_handle;
   }
 
-
   void capi_infect(VALUE h, VALUE s) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* host   = env->get_object(h);
-    Object* source = env->get_object(s);
+    Object* host   = MemoryHandle::object(h);
+    Object* source = MemoryHandle::object(s);
 
     source->infect(env->state(), host);
   }
 
   int capi_nil_p(VALUE expression_result) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    return env->get_object(expression_result)->nil_p();
+    return MemoryHandle::object(expression_result)->nil_p();
   }
 
   void capi_taint(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    env->get_object(obj)->taint(env->state());
+    MemoryHandle::object(obj)->taint(env->state());
   }
 
-  int rb_obj_tainted(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+  int rb_obj_tainted(VALUE value) {
+    Object* obj = MemoryHandle::object(value);
 
-    Object* tainted = env->get_object(obj)->tainted_p(env->state());
-
-    return tainted->true_p() ? 1 : 0;
+    return obj->reference_p() && obj->tainted_p();
   }
 
   void capi_define_method(const char* file, VALUE target,
@@ -702,9 +750,9 @@ extern "C" {
     Module* module = NULL;
 
     if(kind == cCApiSingletonMethod) {
-      module = c_as<Module>(env->get_object(target)->singleton_class(env->state()));
+      module = c_as<Module>(MemoryHandle::object(target)->singleton_class(env->state()));
     } else {
-      module = c_as<Module>(env->get_object(target));
+      module = MemoryHandle::object<Module>(target);
     }
 
     NativeMethod* method = NULL;
@@ -734,9 +782,7 @@ extern "C" {
   }
 
   VALUE capi_class_superclass(VALUE class_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Module* module = c_as<Module>(env->get_object(class_handle));
+    Module* module = MemoryHandle::object<Module>(class_handle);
     Module* super = module->superclass();
 
     if(super->nil_p()) {
@@ -745,7 +791,7 @@ extern "C" {
        */
       return 0;
     } else {
-      return env->get_handle(super);
+      return MemoryHandle::value(super);
     }
   }
 
@@ -753,7 +799,7 @@ extern "C" {
   void __show_subtend__(VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = env->get_object(obj_handle);
+    Object* object = MemoryHandle::object(obj_handle);
     if(!object) {
       std::cout << "the object is NULL, check if an exception was raised." << std::endl;
       return;

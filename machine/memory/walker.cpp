@@ -1,8 +1,6 @@
 #include "memory/walker.hpp"
 #include "memory.hpp"
 
-#include "capi/handles.hpp"
-
 namespace rubinius {
 namespace memory {
   ObjectWalker::~ObjectWalker() {
@@ -46,10 +44,6 @@ namespace memory {
       {
         scan(*i, false);
       }
-    }
-
-    for(Allocator<capi::Handle>::Iterator i(data.handles()->allocator()); i.more(); i.advance()) {
-      saw_object(i->object());
     }
   }
 

@@ -2,10 +2,6 @@ module Rubinius
   class Tuple
     include Enumerable
 
-    def self.allocate
-      raise TypeError, "Tuple cannot be created via allocate()"
-    end
-
     def self.new(cnt)
       Rubinius.primitive :tuple_allocate
       raise PrimitiveFailure, "Tuple.new primitive failed"
@@ -323,5 +319,37 @@ module Rubinius
       ary.each_with_index { |obj, idx| t[idx] = obj }
       return t
     end
+  end
+
+  class RTuple < Tuple
+    include Enumerable
+
+    def self.new(cnt)
+      Rubinius.primitive :rtuple_allocate
+      raise PrimitiveFailure, "RTuple.new primitive failed"
+    end
+
+    def [](idx)
+      Rubinius.primitive :rtuple_at
+
+      unless idx.kind_of? Fixnum
+        raise TypeError, "Only Fixnums valid for RTuple indices"
+      end
+
+      raise PrimitiveFailure, "RTuple#[] primitive failed"
+    end
+
+    alias_method :at, :[]
+
+    def []=(idx, val)
+      Rubinius.primitive :rtuple_put
+
+      unless idx.kind_of? Fixnum
+        raise TypeError, "Only Fixnums valid for RTuple indices"
+      end
+      raise PrimitiveFailure, "RTuple#[]= primitive failed"
+    end
+
+    alias_method :put, :[]=
   end
 end

@@ -3,7 +3,7 @@
 namespace rubinius {
   namespace instructions {
     inline bool store_my_field(STATE, CallFrame* call_frame, intptr_t index) {
-      if(CBOOL(call_frame->self()->frozen_p(state))) {
+      if(call_frame->self()->frozen_p()) {
         Exception::frozen_error(state, call_frame->self());
         return false;
       }

@@ -81,18 +81,7 @@ namespace memory {
     void inline write_barrier(ObjectHeader* target, ObjectHeader* val, int mark) {
       if(!val->reference_p()) return;
 
-      if(target->reference_p()) {
-        // Check if we need to mark the value set because the
-        // target is already scanned.
-        if(unlikely(target->scanned_p(mark) && !val->marked_p(mark))) {
-          mark_object(reinterpret_cast<Object*>(val));
-        }
-        if(target->remembered_p()) return;
-        if(target->young_object_p()) return;
-        if(!val->young_object_p()) return;
-      }
-
-      remember_object(reinterpret_cast<Object*>(target));
+      // TODO: generational
     }
 
     // Adds the target object directly to the remembered set.

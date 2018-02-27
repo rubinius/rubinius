@@ -23,20 +23,11 @@ namespace rubinius {
 
     data = state->memory()->new_object<Data>(state, G(data));
 
-    // Data is just a heap alias for the handle, so go ahead and create
-    // the handle and populate it as an RData now.
-    capi::Handle* handle = data->handle(state);
+    MemoryHandle* handle = data->get_handle(state);
 
-    if(handle) {
-      Exception::raise_runtime_error(state, "new Data instance already has C-API handle");
-    }
-
-    handle = state->memory()->add_capi_handle(state, data);
-
-    // Don't call ->ref() on handle! We don't want the handle to keep the object
-    // alive by default. The handle needs to have the lifetime of the object.
-
-    RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
+    // TODO: MemoryHandle
+    RDataShadow* rdata = new RDataShadow(); // = reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
+    handle->set_data(rdata, MemoryHandle::eRData);
 
     rdata->data = data_ptr;
     rdata->d.untyped.dmark = mark;
@@ -59,20 +50,12 @@ namespace rubinius {
 
     data = state->memory()->new_object<Data>(state, G(data));
 
-    // Data is just a heap alias for the handle, so go ahead and create
-    // the handle and populate it as an RData now.
-    capi::Handle* handle = data->handle(state);
+    MemoryHandle* handle = data->get_handle(state);
 
-    if(handle) {
-      Exception::raise_runtime_error(state, "new Data instance already has C-API handle");
-    }
-
-    handle = state->memory()->add_capi_handle(state, data);
-
-    // Don't call ->ref() on handle! We don't want the handle to keep the object
-    // alive by default. The handle needs to have the lifetime of the object.
-
-    RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rtypeddata(0));
+    // TODO: MemoryHandle
+    // RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rtypeddata(0));
+    RDataShadow* rdata = new RDataShadow();
+    handle->set_data(rdata, MemoryHandle::eRData);
 
     rdata->data = data_ptr;
     rdata->d.typed.typed = 1;
@@ -113,7 +96,8 @@ namespace rubinius {
   }
 
   void Data::finalize(STATE, Data* data) {
-    capi::Handle* handle = data->handle(state);
+    /* TODO: MemoryHandle
+    MemoryHandle* handle = data->get_handle(state);
 
     if(!handle->valid_p()) {
       logger::error("finalizer: Data object has invalid handle");
@@ -145,6 +129,7 @@ namespace rubinius {
         }
       }
     }
+    */
   }
 
   void Data::Info::mark(Object* t, memory::ObjectMark& mark) {

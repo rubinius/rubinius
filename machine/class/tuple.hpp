@@ -9,7 +9,7 @@ namespace rubinius {
   class Tuple : public Object {
   public:
     const static object_type type = TupleType;
-    static uintptr_t fields_offset;
+    const static uintptr_t fields_offset = sizeof(Object) + sizeof(native_int);
 
     attr_field(full_size, native_int);
 
@@ -55,6 +55,7 @@ namespace rubinius {
 
     Object* put(STATE, native_int idx, Object* val) {
       field[idx] = val;
+
       Tuple::write_barrier(state, this, val);
       return val;
     }
@@ -86,6 +87,7 @@ namespace rubinius {
   public: // Inline Functions
     Object* at(native_int index) {
       if(index < 0 || num_fields() <= index) return cNil;
+
       return field[index];
     }
 
@@ -107,6 +109,51 @@ namespace rubinius {
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
       virtual size_t object_size(const ObjectHeader* object);
+    };
+  };
+
+  class RTuple : public Tuple {
+  public:
+    const static object_type type = RTupleType;
+
+    Object* at(native_int index) {
+      if(index < 0 || num_fields() <= index) return cNil;
+
+      return MemoryHandle::object(reinterpret_cast<VALUE>(field[index]));
+    }
+
+    Object* put(STATE, native_int idx, Object* val) {
+      reinterpret_cast<VALUE*>(field)[idx] = MemoryHandle::value(val);
+
+      Tuple::write_barrier(state, this, val);
+      return val;
+    }
+
+    static void initialize(STATE, RTuple* obj);
+
+    static RTuple* create(STATE, native_int fields);
+    static RTuple* from(STATE, Tuple* tuple);
+
+    // Rubinius.primitive :rtuple_allocate
+    static RTuple* allocate(STATE, Object* self, Fixnum* fields);
+
+    // Rubinius.primitive :rtuple_at
+    Object* at_prim(STATE, Fixnum* pos);
+
+    // Rubinius.primitive :rtuple_put
+    Object* put_prim(STATE, Fixnum* idx, Object* val);
+
+  public:
+    class Info : public Tuple::Info {
+    public:
+
+      Info(object_type type)
+        : Tuple::Info(type)
+      {
+        allow_user_allocate = false;
+      }
+
+      virtual void mark(Object* obj, memory::ObjectMark& mark);
     };
   };
 };

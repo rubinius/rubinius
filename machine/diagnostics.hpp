@@ -20,7 +20,7 @@ namespace rubinius {
     class GCMetrics;
     class Handles;
     class Immix;
-    class InflatedHeader;
+    class ExtendedHeader;
     class MachineMetrics;
     class MarkSweep;
     class MachineMetrics;

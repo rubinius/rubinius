@@ -18,7 +18,8 @@ extern "C" {
       ts.tv_sec = NUM2TIMET(num);
       ts.tv_nsec = 0;
     } else {
-      num = rb_funcall(env->get_handle(env->state()->globals().type.get()), rb_intern("coerce_to_exact_num"), 1, num);
+      num = rb_funcall(MemoryHandle::value(
+            env->state()->globals().type.get()), rb_intern("coerce_to_exact_num"), 1, num);
 
       VALUE parts = rb_funcall(num, rb_intern("divmod"), 1, INT2FIX(1));
       ts.tv_sec = NUM2TIMET(rb_ary_entry(parts, 0));
@@ -41,7 +42,7 @@ extern "C" {
                                 Integer::from(env->state(), sec),
                                 Integer::from(env->state(), usec * 1000),
                                 cFalse, cNil);
-    return env->get_handle(obj);
+    return MemoryHandle::value(obj);
   }
 
   VALUE rb_time_nano_new(time_t sec, long nsec) {
@@ -58,7 +59,7 @@ extern "C" {
                                 Integer::from(env->state(), sec),
                                 Integer::from(env->state(), nsec),
                                 cFalse, cNil);
-    return env->get_handle(obj);
+    return MemoryHandle::value(obj);
   }
 
   VALUE rb_time_num_new(VALUE num, VALUE offset) {
@@ -68,8 +69,11 @@ extern "C" {
     struct timespec ts = capi_time_num_timespec(env, num);
 
     State* state = env->state();
-    Time* obj = Time::specific(state, cls, Integer::from(state, ts.tv_sec), Integer::from(state, ts.tv_nsec), cFalse, env->get_object(offset));
-    return env->get_handle(obj);
+    Time* obj = Time::specific(state, cls,
+        Integer::from(state, ts.tv_sec),
+        Integer::from(state, ts.tv_nsec),
+        cFalse, MemoryHandle::object(offset));
+    return MemoryHandle::value(obj);
   }
 
   struct timeval rb_time_interval(VALUE time) {
@@ -77,7 +81,7 @@ extern "C" {
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    if(kind_of<Time>(env->get_object(time))) {
+    if(MemoryHandle::try_as<Time>(time)) {
       rb_raise(rb_eTypeError, "can't use Time for time interval");
     }
     struct timespec ts = capi_time_num_timespec(env, time);
@@ -123,6 +127,6 @@ extern "C" {
       rb_raise(rb_eArgError, "utc_offset out of range");
     }
 
-    return env->get_handle(time);
+    return MemoryHandle::value(time);
   }
 }

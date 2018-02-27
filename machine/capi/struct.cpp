@@ -25,12 +25,12 @@ extern "C" {
     char *sym;
     Array* array = Array::create(env->state(), 0);
     while((sym = va_arg(args, char*)) != 0) {
-      array->append(env->state(), env->get_object(rb_intern(sym)));
+      array->append(env->state(), MemoryHandle::object(rb_intern(sym)));
     }
 
     va_end(args);
 
-    return rb_funcall(rb_cStruct, rb_intern("make_struct"), 2, nm, env->get_handle(array));
+    return rb_funcall(rb_cStruct, rb_intern("make_struct"), 2, nm, MemoryHandle::value(array));
   }
 
   VALUE rb_struct_new(VALUE klass, ...) {

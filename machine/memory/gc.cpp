@@ -19,7 +19,6 @@
 #include "class/variable_scope.hpp"
 #include "class/lexical_scope.hpp"
 #include "class/block_environment.hpp"
-#include "capi/handle.hpp"
 
 #include "arguments.hpp"
 #include "object_watch.hpp"
@@ -32,15 +31,13 @@ namespace memory {
 
   GCData::GCData(VM* state)
     : roots_(state->globals().roots)
-    , handles_(state->memory()->capi_handles())
-    , cached_handles_(state->memory()->cached_capi_handles())
+    , references_(state->memory()->references())
     , thread_nexus_(state->shared.thread_nexus())
-    , global_handle_locations_(state->memory()->global_capi_handle_locations())
+    , mark_(state->memory()->mark())
   { }
 
   GarbageCollector::GarbageCollector(Memory *om)
     : memory_(om)
-    , weak_refs_(NULL)
   { }
 
   VM* GarbageCollector::vm() {
@@ -93,6 +90,19 @@ namespace memory {
           }
         }
       }
+    } else if(RTuple* tup = try_as<RTuple>(obj)) {
+      native_int size = tup->num_fields();
+      VALUE* ptr = reinterpret_cast<VALUE*>(tup->field);
+
+      for(native_int i = 0; i < size; i++) {
+        Object* slot = MemoryHandle::object(ptr[i]);
+        if(slot->reference_p()) {
+          if(Object* moved = saw_object(slot)) {
+            ptr[i] = MemoryHandle::value(moved);
+            memory_->write_barrier(tup, moved);
+          }
+        }
+      }
     } else {
       TypeInfo* ti = memory_->type_info[obj->type_id()];
 
@@ -106,9 +116,6 @@ namespace memory {
    * alive any young objects if no other live references to those objects exist.
    */
   void GarbageCollector::delete_object(Object* obj) {
-    if(obj->remembered_p()) {
-      memory_->unremember_object(obj);
-    }
   }
 
   void GarbageCollector::saw_variable_scope(CallFrame* call_frame,
@@ -231,10 +238,6 @@ namespace memory {
         }
       }
 
-      if(NativeMethodFrame* nmf = frame->native_method_frame()) {
-        nmf->handles().gc_scan(this);
-      }
-
       if(frame->scope && frame->compiled_code) {
         saw_variable_scope(frame, displace(frame->scope, offset));
       }
@@ -348,10 +351,14 @@ namespace memory {
         Object** var = displace(buffer[idx], offset);
         Object* cur = *var;
 
-        if(cur && cur->reference_p() && (!young_only || cur->young_object_p())) {
+        if(!cur) continue;
+
+        if(cur->reference_p()) {
           if(Object* tmp = saw_object(cur)) {
             *var = tmp;
           }
+        } else if(cur->handle_p()) {
+          // TODO: MemoryHeader mark MemoryHandle objects
         }
       }
 
@@ -368,66 +375,12 @@ namespace memory {
       for(int idx = 0; idx < i->size(); idx++) {
         Object* cur = buffer[idx];
 
-        if(cur->reference_p() && (!young_only || cur->young_object_p())) {
+        if(cur->reference_p()) {
           if(Object* tmp = saw_object(cur)) {
             buffer[idx] = tmp;
           }
-        }
-      }
-    }
-  }
-
-  void GarbageCollector::clean_weakrefs(bool check_forwards) {
-    if(!weak_refs_) return;
-
-    for(ObjectArray::iterator i = weak_refs_->begin();
-        i != weak_refs_->end();
-        ++i) {
-      if(!*i) continue; // Object was removed during young gc.
-      WeakRef* ref = try_as<WeakRef>(*i);
-      if(!ref) continue; // Other type for some reason?
-
-      Object* obj = ref->object();
-      if(!obj->reference_p()) continue;
-
-      if(check_forwards) {
-        if(obj->young_object_p()) {
-          if(!obj->forwarded_p()) {
-            ref->set_object(memory_, cNil);
-          } else {
-            ref->set_object(memory_, obj->forward());
-          }
-        }
-      } else if(!obj->marked_p(memory_->mark())) {
-        ref->set_object(memory_, cNil);
-      }
-    }
-
-    delete weak_refs_;
-    weak_refs_ = NULL;
-  }
-
-  void GarbageCollector::clean_locked_objects(ManagedThread* thr, bool young_only) {
-    LockedObjects& los = thr->locked_objects();
-    for(LockedObjects::iterator i = los.begin();
-        i != los.end();) {
-      Object* obj = static_cast<Object*>(*i);
-      if(young_only) {
-        if(obj->young_object_p()) {
-          if(obj->forwarded_p()) {
-            *i = obj->forward();
-            ++i;
-          } else {
-            i = los.erase(i);
-          }
-        } else {
-          ++i;
-        }
-      } else {
-        if(!obj->marked_p(memory_->mark())) {
-          i = los.erase(i);
-        } else {
-          ++i;
+        } else if(cur->handle_p()) {
+          // TODO: MemoryHeader mark MemoryHandle objects
         }
       }
     }

@@ -22,10 +22,11 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
     NativeMethodEnvironment* nme = create_native_method_environment();
     NativeMethodFrame nmf(nme, NULL, NULL);
     String* str = String::create(state, "test");
-    Integer* id = str->id(state);
-    VALUE handle = nmf.get_handle(state, str);
+    Integer* id = str->object_id(state);
+    VALUE handle = str->get_handle(state)->as_value();
 
-    TS_ASSERT_EQUALS(id, nmf.get_object(handle)->id(state));
+    TS_ASSERT_EQUALS(str, MemoryHandle::object(handle));
+    TS_ASSERT_EQUALS(id, MemoryHandle::object(handle)->object_id(state));
   }
 
   NativeMethodEnvironment* create_native_method_environment() {
@@ -48,7 +49,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   void test_native_method_environment_get_cFalse_handle() {
     NativeMethodEnvironment* nme = create_native_method_environment();
 
-    TS_ASSERT_EQUALS(Qfalse, nme->get_handle(cFalse));
+    TS_ASSERT_EQUALS(Qfalse, MemoryHandle::value(cFalse));
 
     destroy_native_method_environment(nme);
   }
@@ -56,7 +57,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   void test_native_method_environment_get_cTrue_handle() {
     NativeMethodEnvironment* nme = create_native_method_environment();
 
-    TS_ASSERT_EQUALS(Qtrue, nme->get_handle(cTrue));
+    TS_ASSERT_EQUALS(Qtrue, MemoryHandle::value(cTrue));
 
     destroy_native_method_environment(nme);
   }
@@ -64,7 +65,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   void test_native_method_environment_get_cNil_handle() {
     NativeMethodEnvironment* nme = create_native_method_environment();
 
-    TS_ASSERT_EQUALS(Qnil, nme->get_handle(cNil));
+    TS_ASSERT_EQUALS(Qnil, MemoryHandle::value(cNil));
 
     destroy_native_method_environment(nme);
   }
@@ -72,7 +73,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   void test_native_method_environment_get_cUndef_handle() {
     NativeMethodEnvironment* nme = create_native_method_environment();
 
-    TS_ASSERT_EQUALS(Qundef, nme->get_handle(cUndef));
+    TS_ASSERT_EQUALS(Qundef, MemoryHandle::value(cUndef));
 
     destroy_native_method_environment(nme);
   }
@@ -81,7 +82,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
     NativeMethodEnvironment* nme = create_native_method_environment();
     Symbol* sym = state->symbol("capi_symbol");
 
-    TS_ASSERT_EQUALS(sym, reinterpret_cast<Symbol*>(nme->get_handle(sym)));
+    TS_ASSERT_EQUALS(sym, reinterpret_cast<Symbol*>(MemoryHandle::value(sym)));
 
     destroy_native_method_environment(nme);
   }
@@ -90,7 +91,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
     NativeMethodEnvironment* nme = create_native_method_environment();
     Fixnum* fix = Fixnum::from(28);
 
-    TS_ASSERT_EQUALS(fix, reinterpret_cast<Fixnum*>(nme->get_handle(fix)));
+    TS_ASSERT_EQUALS(fix, reinterpret_cast<Fixnum*>(MemoryHandle::value(fix)));
 
     destroy_native_method_environment(nme);
   }
@@ -98,10 +99,11 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   void test_native_method_environment_get_object() {
     NativeMethodEnvironment* nme = create_native_method_environment();
     String* str = String::create(state, "test");
-    Integer* id = str->id(state);
-    VALUE handle = nme->get_handle(str);
+    Integer* id = str->object_id(state);
+    VALUE handle = MemoryHandle::value(str);
 
-    TS_ASSERT_EQUALS(id, nme->get_object(handle)->id(state));
+    TS_ASSERT_EQUALS(str, MemoryHandle::object(handle));
+    TS_ASSERT_EQUALS(id, MemoryHandle::object(handle)->object_id(state));
 
     destroy_native_method_environment(nme);
   }

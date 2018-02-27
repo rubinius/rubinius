@@ -2,6 +2,7 @@
 #define RBX_VM_GC_HPP
 
 #include <list>
+#include <unordered_set>
 
 #include "memory/header.hpp"
 
@@ -11,15 +12,12 @@
 
 namespace rubinius {
   struct CallFrame;
+  struct MemoryHeader;
 
   class Memory;
   class VariableScope;
   class StackVariables;
   class LLVMState;
-
-  namespace capi {
-    class Handles;
-  }
 
 namespace memory {
   class ManagedThread;
@@ -33,10 +31,9 @@ namespace memory {
 
   class GCData {
     Roots& roots_;
-    capi::Handles* handles_;
-    std::list<capi::Handle*>* cached_handles_;
+    std::unordered_set<MemoryHeader*>& references_;
     ThreadNexus* thread_nexus_;
-    std::list<capi::GlobalHandle*>* global_handle_locations_;
+    unsigned int mark_;
 
   public:
     GCData(VM*);
@@ -45,20 +42,16 @@ namespace memory {
       return roots_;
     }
 
+    unsigned int mark() const {
+      return mark_;
+    }
+
+    std::unordered_set<MemoryHeader*>& references() {
+      return references_;
+    }
+
     ThreadNexus* thread_nexus() {
       return thread_nexus_;
-    }
-
-    capi::Handles* handles() {
-      return handles_;
-    }
-
-    std::list<capi::Handle*>* cached_handles() {
-      return cached_handles_;
-    }
-
-    std::list<capi::GlobalHandle*>* global_handle_locations() {
-      return global_handle_locations_;
     }
   };
 
@@ -97,10 +90,6 @@ namespace memory {
     /// Reference to the Memory we are collecting
     Memory* memory_;
 
-  private:
-    /// Array of weak references
-    ObjectArray* weak_refs_;
-
   public:
     /**
      * Constructor; takes a pointer to Memory.
@@ -108,7 +97,6 @@ namespace memory {
     GarbageCollector(Memory *om);
 
     virtual ~GarbageCollector() {
-      if(weak_refs_) delete weak_refs_;
     }
 
     /**
@@ -138,7 +126,6 @@ namespace memory {
     }
 
     void clean_weakrefs(bool check_forwards=false);
-    void clean_locked_objects(ManagedThread* thr, bool young_only);
 
     // Scans the thread for object references
     void scan(ManagedThread* thr, bool young_only);
@@ -152,28 +139,7 @@ namespace memory {
       return memory_;
     }
 
-    /**
-     * Adds a weak reference to the specified object.
-     *
-     * A weak reference provides a way to hold a reference to an object without
-     * that reference being sufficient to keep the object alive. If no other
-     * reference to the weak-referenced object exists, it can be collected by
-     * the garbage collector, with the weak-reference subsequently returning
-     * null.
-     */
-    void add_weak_ref(Object* obj) {
-      if(!weak_refs_) {
-        weak_refs_ = new ObjectArray;
-      }
-
-      weak_refs_->push_back(obj);
-    }
-
     void reset_stats() {
-    }
-
-    ObjectArray* weak_refs_set() {
-      return weak_refs_;
     }
 
     friend class ObjectMark;

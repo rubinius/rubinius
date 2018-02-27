@@ -69,9 +69,15 @@ namespace rubinius {
     {
       state->vm()->thread_nexus()->waiting_phase(state, state->vm());
 
-      lock_.lock();
+      while(true) {
+        lock_.lock();
 
-      state->vm()->thread_nexus()->managed_phase(state, state->vm());
+        if(state->vm()->thread_nexus()->try_managed_phase(state, state->vm())) {
+          return;
+        } else {
+          lock_.unlock();
+        }
+      }
     }
 
     ~LockWaiting() {

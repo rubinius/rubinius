@@ -39,15 +39,15 @@ extern "C" {
     Integer* exp  = Integer::from(state, y);
     if(Fixnum* base_fix = try_as<Fixnum>(base)) {
       if(Fixnum* exp_fix = try_as<Fixnum>(exp)) {
-        return env->get_handle(base_fix->pow(state, exp_fix));
+        return MemoryHandle::value(base_fix->pow(state, exp_fix));
       } else {
-        return env->get_handle(base_fix->pow(state, as<Bignum>(exp)));
+        return MemoryHandle::value(base_fix->pow(state, as<Bignum>(exp)));
       }
     } else {
        if(Fixnum* exp_fix = try_as<Fixnum>(exp)) {
-        return env->get_handle(as<Bignum>(base)->pow(state, exp_fix));
+        return MemoryHandle::value(as<Bignum>(base)->pow(state, exp_fix));
       } else {
-        return env->get_handle(as<Bignum>(base)->pow(state, as<Bignum>(exp)));
+        return MemoryHandle::value(as<Bignum>(base)->pow(state, as<Bignum>(exp)));
       }
     }
   }

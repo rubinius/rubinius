@@ -24,9 +24,6 @@ namespace rubinius {
     size_t total = machine_code->total;
     size_t stack_size = machine_code->stack_size;
 
-    intptr_t* call_site_base = reinterpret_cast<intptr_t*>(opcodes) + total;
-    size_t call_site_index = 0;
-
     size_t rcount = 0;
     size_t rindex = 0;
     size_t calls_count = 0;
@@ -217,9 +214,7 @@ namespace rubinius {
         Symbol* name = try_as<Symbol>(lits->at(opcodes[ip + 1]));
         if(!name) name = nil<Symbol>();
 
-        intptr_t* mem = call_site_base + (CallSite::memory_words * call_site_index++);
-
-        CallSite* call_site = CallSite::create(state, mem, name, machine_code->serial(), ip);
+        CallSite* call_site = CallSite::create(state, name, machine_code->serial(), ip);
 
         if(op == instructions::data_send_vcall.id) {
           allow_private = true;

@@ -25,7 +25,7 @@ extern "C" {
         size = FIXNUM_MIN_WIDTH;
       }
     } else if(RB_TYPE_P(value, T_BIGNUM)) {
-      Bignum* big = c_as<Bignum>(env->get_object(value));
+      Bignum* big = MemoryHandle::object<Bignum>(value);
       size = big->size(env->state())->to_native();
     }
 
@@ -56,7 +56,7 @@ extern "C" {
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    if(Fixnum* f = try_as<Fixnum>(env->get_object(value))) {
+    if(Fixnum* f = MemoryHandle::try_as<Fixnum>(value)) {
       native_int v = f->to_native();
 
       if(v == 0) return 0;
@@ -81,7 +81,7 @@ extern "C" {
     memset(bytes->byte_address(), 0, numbytes);
 
     VALUE result = rb_funcall(rb_mCAPI, rb_intern("rb_integer_pack"), 6,
-        value, env->get_handle(bytes), INT2FIX(numwords), INT2FIX(wordsize),
+        value, MemoryHandle::value(bytes), INT2FIX(numwords), INT2FIX(wordsize),
         INT2FIX(nails), INT2FIX(flags));
 
     memcpy(words, bytes->byte_address(), numbytes);

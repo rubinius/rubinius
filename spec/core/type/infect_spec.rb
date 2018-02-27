@@ -19,32 +19,24 @@ describe "Rubinius::Type.infect" do
     Rubinius::Type.infect(Object.new, @tainted).tainted?.should be_true
   end
 
-  ruby_version_is "1.9" do
-    it "doesn't untrust the first argument if the second is trusted" do
-      Rubinius::Type.infect(Object.new, Object.new).untrusted?.should be_false
-    end
-
-    it "untrusts the first argument if the second is untrusted" do
-      Rubinius::Type.infect(Object.new, Object.new.untrust).untrusted?.should be_true
-    end
+  it "returns the Fixnum" do
+    value = 1
+    Rubinius::Type.infect(value,  @tainted).should == value
   end
 
-  ruby_version_is "2.1" do
-    it "raises a RuntimeError for Fixnum" do
-      lambda { Rubinius::Type.infect(1,  @tainted) }.should raise_error(RuntimeError)
-    end
+  it "returns the Bignum" do
+    value = bignum_value
+    Rubinius::Type.infect(value,  @tainted).should == value
+  end
 
-    it "raises a RuntimeError for Bignum" do
-      lambda { Rubinius::Type.infect(bignum_value,  @tainted) }.should raise_error(RuntimeError)
-    end
+  it "returns the Float" do
+    value = 2.0
+    Rubinius::Type.infect(value,  @tainted).should == value
+  end
 
-    it "raises a RuntimeError for Float" do
-      lambda { Rubinius::Type.infect(2.0,  @tainted) }.should raise_error(RuntimeError)
-    end
-
-    it "raises a RuntimeError for Symbol" do
-      lambda { Rubinius::Type.infect(:a,  @tainted) }.should raise_error(RuntimeError)
-    end
+  it "returns the Symbol" do
+    value = :a
+    Rubinius::Type.infect(value,  @tainted).should == value
   end
 
   it "is a no-op for true" do

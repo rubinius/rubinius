@@ -18,6 +18,7 @@
 #include "vm.hpp"
 
 #include "class/array.hpp"
+#include "class/bignum.hpp"
 #include "class/byte_array.hpp"
 #include "class/class.hpp"
 #include "class/encoding.hpp"
