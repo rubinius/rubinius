@@ -26,10 +26,10 @@ public:
   }
 
   void test_memory_header_extended() {
-    TS_ASSERT_EQUALS(h.extended_p(), false);
+    TS_ASSERT_EQUALS(h.extended_header_p(), false);
 
     h.header = 0x1L;
-    TS_ASSERT_EQUALS(h.extended_p(), true);
+    TS_ASSERT_EQUALS(h.extended_header_p(), true);
   }
 
   void test_memory_header_forwarded() {
@@ -40,14 +40,14 @@ public:
   }
 
   void test_memory_header_thread_id() {
-    h.header = 0x3ffcL;
+    h.header = 0x1ffcL;
 
-    TS_ASSERT_EQUALS(h.thread_id(), 0xfff);
-    TS_ASSERT_EQUALS(MemoryHeader::max_thread_id(), 0xfff);
+    TS_ASSERT_EQUALS(h.thread_id(), 0x7ff);
+    TS_ASSERT_EQUALS(MemoryHeader::max_thread_id(), 0x7ff);
   }
 
   void test_memory_header_region() {
-    h.header = 0xc000L;
+    h.header = 0x6000L;
 
     TS_ASSERT_EQUALS(static_cast<int>(h.region()), 3);
   }
@@ -55,7 +55,7 @@ public:
   void test_memory_header_pinned() {
     TS_ASSERT_EQUALS(h.pinned_p(), false);
 
-    h.header = 0x10000L;
+    h.header = 0x80000L;
     TS_ASSERT_EQUALS(h.pinned_p(), true);
 
     h.unset_pinned();
@@ -78,7 +78,7 @@ public:
     TS_ASSERT_EQUALS(h.visited_p(3), false);
 
     h.set_visited(3);
-    TS_ASSERT_EQUALS(h.header.load(), 0x60000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x1800000L);
   }
 
   void test_memory_header_marked() {
@@ -94,13 +94,13 @@ public:
     TS_ASSERT_EQUALS(h.marked_p(3), false);
 
     h.set_marked(3);
-    TS_ASSERT_EQUALS(h.header.load(), 0x180000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x6000000L);
   }
 
   void test_memory_header_scanned() {
     TS_ASSERT_EQUALS(h.scanned_p(), false);
 
-    h.header = 0x200000L;
+    h.header = 0x8000000L;
     TS_ASSERT_EQUALS(h.scanned_p(), true);
 
     h.unset_scanned();
@@ -113,7 +113,7 @@ public:
   void test_memory_header_referenced() {
     TS_ASSERT_EQUALS(h.referenced(), 0);
 
-    h.header = 0x3c00000L;
+    h.header = 0x78000L;
 
     TS_ASSERT_EQUALS(h.referenced(), 15);
   }
@@ -122,12 +122,12 @@ public:
     for(int i = 0; i < 20; i++) {
       TS_ASSERT_EQUALS(h.referenced(), i);
 
-      h.add_reference();
+      h.add_reference(state);
 
       TS_ASSERT_EQUALS(h.referenced(), i+1);
 
       if(i > 15) {
-        TS_ASSERT(h.extended_p());
+        TS_ASSERT(h.extended_header_p());
       }
     }
   }
@@ -135,15 +135,15 @@ public:
   void test_memory_header_type_id() {
     TS_ASSERT_EQUALS(h.type_id(), 0);
 
-    h.header = 0xffc000000;
-    TS_ASSERT_EQUALS(h.type_id(), 0x3ffL);
+    h.header = 0x1ff0000000L;
+    TS_ASSERT_EQUALS(h.type_id(), 0x1ffL);
   }
 
   void test_memory_header_data() {
     TS_ASSERT_EQUALS(h.data_p(), false);
     TS_ASSERT_EQUALS(h.object_p(), true);
 
-    h.header = 0x1000000000L;
+    h.header = 0x2000000000L;
     TS_ASSERT_EQUALS(h.data_p(), true);
     TS_ASSERT_EQUALS(h.object_p(), false);
   }
@@ -151,7 +151,7 @@ public:
   void test_memory_header_frozen() {
     TS_ASSERT_EQUALS(h.frozen_p(), false);
 
-    h.header = 0x2000000000L;
+    h.header = 0x4000000000L;
     TS_ASSERT_EQUALS(h.frozen_p(), true);
 
     h.unset_frozen();
@@ -164,7 +164,7 @@ public:
   void test_memory_header_tainted() {
     TS_ASSERT_EQUALS(h.tainted_p(), false);
 
-    h.header = 0x4000000000L;
+    h.header = 0x8000000000L;
     TS_ASSERT_EQUALS(h.tainted_p(), true);
 
     h.unset_tainted();
@@ -177,25 +177,25 @@ public:
   void test_memory_header_object_id() {
     TS_ASSERT_EQUALS(h.object_id(), 0);
 
-    h.header = 0x3ffffc0000000000L;
-    TS_ASSERT_EQUALS(h.object_id(), 0xfffffL);
+    h.header = 0x3ffff80000000000L;
+    TS_ASSERT_EQUALS(h.object_id(), 0x7ffffL);
 
-    TS_ASSERT_EQUALS(MemoryHeader::max_object_id(), 0xfffffL);
+    TS_ASSERT_EQUALS(MemoryHeader::max_object_id(), 0x7ffffL);
   }
 
   void test_memory_header_set_object_id() {
     MemoryHeader::object_id_counter = 21;
 
-    h.get_object_id();
+    h.assign_object_id();
 
     TS_ASSERT_EQUALS(h.object_id(), 0x15);
 
     MemoryHeader::object_id_counter = MemoryHeader::max_object_id() + 10;
 
     h.header = 0;
-    h.get_object_id();
+    h.assign_object_id();
 
-    TS_ASSERT(h.extended_p());
+    TS_ASSERT(h.extended_header_p());
     TS_ASSERT_EQUALS(h.object_id(), MemoryHeader::max_object_id() + 10);
   }
 
@@ -206,16 +206,16 @@ public:
     TS_ASSERT_EQUALS(h.type_specific(), 0x3L);
   }
 
-  void test_memory_header_get_handle() {
-    MemoryHandle* handle = h.get_handle();
+  void test_memory_header_memory_handle() {
+    String* str = String::create(state, "");
+    MemoryHandle* handle = h.memory_handle(state, str);
 
     TS_ASSERT(handle);
-    TS_ASSERT(h.extended_p());
-    TS_ASSERT_EQUALS(h.get_handle(), handle);
+    TS_ASSERT(h.extended_header_p());
+    TS_ASSERT_EQUALS(h.memory_handle(state, str), handle);
   }
 
-  /* TODO: MemoryHeader
-  void xtest_memory_header_lock() {
+  void test_memory_header_lock() {
     h.set_thread_id(state->vm()->thread_id());
 
     TS_ASSERT_THROWS_ASSERT(h.unlock(state),
@@ -227,14 +227,14 @@ public:
       TS_ASSERT_EQUALS(locked_count_field.get(h.header), i+1);
     }
 
-    TS_ASSERT(!h.extended_p());
+    TS_ASSERT(!h.extended_header_p());
 
     for(int i = rubinius::MemoryHeader::max_locked_count(); i > 0; i--) {
       TS_ASSERT_EQUALS(locked_count_field.get(h.header), i);
       h.unlock(state);
     }
 
-    TS_ASSERT(!h.extended_p());
+    TS_ASSERT(!h.extended_header_p());
 
     TS_ASSERT_THROWS_ASSERT(h.unlock(state),
 			    const RubyException &e,
@@ -244,11 +244,10 @@ public:
       h.lock(state);
     }
 
-    TS_ASSERT(h.extended_p());
+    TS_ASSERT(h.extended_header_p());
 
     for(int i = 0; i < rubinius::MemoryHeader::max_locked_count() + 1; i++) {
       h.unlock(state);
     }
   }
-  */
 };

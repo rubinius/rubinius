@@ -130,6 +130,7 @@ namespace rubinius {
     GO(runtime).set(state->memory()->new_module<Module>(state, G(rubinius), "Runtime"));
 
     Module::bootstrap(state, G(tuple), G(rubinius), "Tuple");
+    Module::bootstrap(state, G(rtuple), G(rubinius), "RTuple");
     Module::bootstrap(state, G(constant_table), G(rubinius), "ConstantTable");
     Module::bootstrap(state, G(constant_table_bucket), G(constant_table), "Bucket");
     Module::bootstrap(state, G(lookup_table), G(rubinius), "LookupTable");

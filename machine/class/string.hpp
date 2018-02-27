@@ -41,9 +41,14 @@ namespace rubinius {
 
   class String : public Object {
   public:
+
+    enum HeaderFlags {
+      eRString = 1,
+    };
+
     const static object_type type = StringType;
 
-    attr_reader(num_bytes, Fixnum);
+    Fixnum* _num_bytes_;  // slot
     attr_accessor(num_chars, Fixnum);
     attr_reader(data, ByteArray);
     attr_accessor(hash_value, Fixnum);
@@ -52,25 +57,43 @@ namespace rubinius {
     attr_accessor(ascii_only, Object);
     attr_accessor(valid_encoding, Object);
 
-    void update_handle(STATE);
-    void update_handle(VM* vm);
+    void read_rstring();
+    void write_rstring(STATE);
+    void write_rstring(VM* vm);
 
-    template <class T>
+    Fixnum* num_bytes() {
+      if(type_specific() == eRString) {
+        read_rstring();
+      }
+
+      return _num_bytes_;
+    }
+
+    void num_bytes(Fixnum* num) {
+      _num_bytes_ = num;
+    }
+
+    template<typename T>
       void num_bytes(T state, Fixnum* obj) {
         num_bytes(obj);
         num_chars(nil<Fixnum>());
-        update_handle(state);
+
+        if(type_specific() == eRString) {
+          write_rstring(state);
+        }
       }
 
-    template <class T>
+    template<typename T>
       void data(T state, ByteArray* obj) {
         data(obj);
         state->memory()->write_barrier(this, obj);
 
-        update_handle(state);
+        if(type_specific() == eRString) {
+          write_rstring(state);
+        }
       }
 
-    template <class T>
+    template<typename T>
       void encoding(T state, Encoding* obj) {
         if(obj->nil_p() || (!CBOOL(ascii_only()) && obj->ascii_compatible())) {
           ascii_only(cNil);
@@ -140,8 +163,12 @@ namespace rubinius {
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    native_int byte_size() const {
+    native_int byte_size() {
       return num_bytes()->to_native();
+    }
+
+    native_int get_byte_size() {
+      return _num_bytes_->to_native();
     }
 
     native_int char_size(STATE);
@@ -190,7 +217,9 @@ namespace rubinius {
          * without needing a write barrier.
          */
         String* so = state->memory()->new_object<String>(state, G(string));
-        if(likely(so->young_object_p())) {
+        // TODO: fix for generational heap
+        // if(likely(so->young_object_p())) {
+        if(true) {
           so->copy_body(state->vm(), this);
           so->shared(state, cTrue);
           shared(state, cTrue);

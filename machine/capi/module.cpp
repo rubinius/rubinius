@@ -41,7 +41,7 @@ extern "C" {
 
     if(CallFrame* frame = env->state()->vm()->get_ruby_frame(1)) {
       Symbol* name = frame->name();
-      if(!name->nil_p()) return env->get_handle(name);
+      if(!name->nil_p()) return MemoryHandle::value(name);
     }
 
     return rb_intern("<nil>");
@@ -55,7 +55,7 @@ extern "C" {
 
     if(name->nil_p()) return rb_intern("<nil>");
 
-    return env->get_handle(name);
+    return MemoryHandle::value(name);
   }
 
   static VALUE const_missing(VALUE klass, ID id) {
@@ -67,7 +67,7 @@ extern "C" {
 
     State* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
-    Module* module = c_as<Module>(env->get_object(module_handle));
+    Module* module = MemoryHandle::object<Module>(module_handle);
 
     ConstantMissingReason reason = vNonExistent;
     Object* val = module->get_const(state, name, G(sym_private), &reason);
@@ -75,11 +75,11 @@ extern "C" {
     if(reason != vFound) return const_missing(module_handle, id_name);
 
     if(Autoload* autoload = try_as<Autoload>(val)) {
-      return capi_fast_call(env->get_handle(autoload),
+      return capi_fast_call(MemoryHandle::value(autoload),
           rb_intern("call"), 1, module_handle);
     }
 
-    return env->get_handle(val);
+    return MemoryHandle::value(val);
   }
 
   VALUE rb_const_get_from(VALUE module_handle, ID id_name) {
@@ -87,18 +87,18 @@ extern "C" {
 
     State* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
-    Module* module = c_as<Module>(env->get_object(module_handle));
+    Module* module = MemoryHandle::object<Module>(module_handle);
 
     ConstantMissingReason reason = vNonExistent;
     while(!module->nil_p()) {
       Object* val = module->get_const(state, name, G(sym_private), &reason);
       if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
-          return capi_fast_call(env->get_handle(autoload),
+          return capi_fast_call(MemoryHandle::value(autoload),
               rb_intern("call"), 1, module_handle);
         }
 
-        return env->get_handle(val);
+        return MemoryHandle::value(val);
       }
 
       module = module->superclass();
@@ -112,18 +112,18 @@ extern "C" {
 
     State* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
-    Module* module = c_as<Module>(env->get_object(module_handle));
+    Module* module = MemoryHandle::object<Module>(module_handle);
 
     ConstantMissingReason reason = vNonExistent;
     while(!module->nil_p()) {
       Object* val = module->get_const(state, name, G(sym_private), &reason);
       if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
-          return capi_fast_call(env->get_handle(autoload),
-              rb_intern("call"), 1, env->get_handle(module));
+          return capi_fast_call(MemoryHandle::value(autoload),
+              rb_intern("call"), 1, MemoryHandle::value(module));
         }
 
-        return env->get_handle(val);
+        return MemoryHandle::value(val);
       }
 
       module = module->superclass();
@@ -136,11 +136,11 @@ extern "C" {
       Object* val = module->get_const(state, name, G(sym_private), &reason);
       if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
-          return capi_fast_call(env->get_handle(autoload),
-              rb_intern("call"), 1, env->get_handle(module));
+          return capi_fast_call(MemoryHandle::value(autoload),
+              rb_intern("call"), 1, MemoryHandle::value(module));
         }
 
-        return env->get_handle(val);
+        return MemoryHandle::value(val);
       }
 
       module = module->superclass();
@@ -152,8 +152,8 @@ extern "C" {
   void rb_const_set(VALUE module_handle, ID name, VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = c_as<Module>(env->get_object(module_handle));
-    Object* object = env->get_object(obj_handle);
+    Module* module = MemoryHandle::object<Module>(module_handle);
+    Object* object = MemoryHandle::object(obj_handle);
 
     module->set_const(env->state(), reinterpret_cast<Symbol*>(name),  object);
   }
@@ -176,7 +176,8 @@ extern "C" {
   void rb_undef_alloc_func(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     rb_undef_method(
-        env->get_handle(env->get_object(class_handle)->singleton_class(env->state())),
+        MemoryHandle::value(
+          MemoryHandle::object(class_handle)->singleton_class(env->state())),
         "allocate");
   }
 
@@ -193,8 +194,8 @@ extern "C" {
   void rb_define_const(VALUE module_handle, const char* name, VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = c_as<Module>(env->get_object(module_handle));
-    Object* object = env->get_object(obj_handle);
+    Module* module = c_as<Module>(MemoryHandle::object<Module>(module_handle));
+    Object* object = MemoryHandle::object(obj_handle);
 
     module->set_const(env->state(), name,  object);
   }
@@ -221,7 +222,7 @@ extern "C" {
   VALUE rb_define_module_under(VALUE parent_handle, const char* name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* parent = c_as<Module>(env->get_object(parent_handle));
+    Module* parent = c_as<Module>(MemoryHandle::object<Module>(parent_handle));
     Symbol* constant = env->state()->symbol(name);
 
     LEAVE_CAPI(env->state());
@@ -242,7 +243,7 @@ extern "C" {
 
     // Grab the module handle before grabbing the lock
     // so the Module isn't accidentally GC'ed.
-    VALUE module_handle = env->get_handle(module);
+    VALUE module_handle = MemoryHandle::value(module);
     ENTER_CAPI(env->state());
 
     return module_handle;
@@ -277,7 +278,7 @@ extern "C" {
   VALUE rb_mod_remove_const(VALUE mod, VALUE name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = c_as<Module>(env->get_object(mod));
+    Module* module = c_as<Module>(MemoryHandle::object<Module>(mod));
     module->del_const(env->state(), reinterpret_cast<Symbol*>(name));
     return Qnil;
   }
@@ -285,13 +286,13 @@ extern "C" {
   const char* rb_class2name(VALUE module_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     State* state = env->state();
-    Module* module_object = c_as<Module>(env->get_object(module_handle));
+    Module* module_object = c_as<Module>(MemoryHandle::object<Module>(module_handle));
 
     String* str = module_object->get_name(state);
     if(str->nil_p()) {
       std::string desc = module_object->to_string(state);
       str = String::create(state, desc.c_str(), desc.size());
     }
-    return RSTRING_PTR(env->get_handle(str));
+    return RSTRING_PTR(MemoryHandle::value(str));
   }
 }

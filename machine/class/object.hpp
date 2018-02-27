@@ -64,9 +64,13 @@ namespace rubinius {
 
   public:   /* GC support, bookkeeping &c. */
 
-    void        setup_allocation_site(STATE = NULL);
+    void setup_allocation_site(STATE = NULL);
 
   public:   /* Type information, field access, copy support &c. */
+
+    MemoryHandle* get_handle(STATE) {
+      return memory_handle(state, this);
+    }
 
     /**
      * Returns a copy of this object. This is NOT the same as Ruby
@@ -94,41 +98,33 @@ namespace rubinius {
     // Rubinius.primitive :object_copy_singleton_class
     Object* copy_singleton_class(STATE, Object* other);
 
-    /** True if this Object* is actually a Fixnum, false otherwise. */
-    bool fixnum_p() const;
-
-    bool integer_p() const;
-
     /**
      *  Retrieve the Object stored in given field index of this Object.
      *
      *  Uses TypeInfo.
      */
-    Object*     get_field(STATE, std::size_t index);
+    Object* get_field(STATE, std::size_t index);
 
     /** Safely return the object type, even if the receiver is an immediate. */
     object_type get_type() const;
 
     /** True if given Module is this Object's class, superclass or an included Module. */
-    bool        kind_of_p(STATE, Object* module);
+    bool kind_of_p(STATE, Object* module);
 
     /** Store the given Object at given field index of this Object through TypeInfo. */
-    void        set_field(STATE, std::size_t index, Object* val);
-
-    /** True if this Object* is actually a Symbol, false otherwise. */
-    bool        symbol_p() const;
+    void set_field(STATE, std::size_t index, Object* val);
 
     /** Return the TypeInfo for this Object's type. */
-    TypeInfo*   type_info(STATE) const;
+    TypeInfo* type_info(STATE) const;
 
 
   public:   /* Method dispatch stuff */
 
     /** Actual class for this object. Also handles immediates */
-    Class*       direct_class(STATE) const;
+    Class* direct_class(STATE) const;
 
     /** Module where to start looking for the MethodTable for this Object. */
-    Module*      lookup_begin(STATE) const;
+    Module* lookup_begin(STATE) const;
 
     /**
      *  Directly send a method to this Object.
@@ -160,7 +156,7 @@ namespace rubinius {
 
     /** Returns the Class object of which this Object is an instance. */
     // Rubinius.primitive+ :object_class
-    Class*    class_object(STATE) const;
+    Class* class_object(STATE) const;
 
     /**
      *  Ruby #equal?.
@@ -169,15 +165,15 @@ namespace rubinius {
      *  the SAME object, false otherwise.
      */
     // Rubinius.primitive+ :object_equal
-    Object*   equal(STATE, Object* other);
+    Object* equal(STATE, Object* other);
 
     /** Sets the frozen flag. Rubinius does NOT currently support freezing. */
     // Rubinius.primitive :object_freeze
-    Object*   freeze(STATE);
+    Object* freeze(STATE);
 
     /** Returns true if this Object's frozen flag set, false otherwise. */
     // Rubinius.primitive+ :object_frozen_p
-    Object*   frozen_p(STATE);
+    Object* object_frozen_p(STATE);
 
     /**
      *  Ruby #instance_variable_get.
@@ -186,49 +182,46 @@ namespace rubinius {
      *  identifier.
      */
     // Rubinius.primitive :object_get_ivar
-    Object*   get_ivar_prim(STATE, Symbol* sym);
+    Object* get_ivar_prim(STATE, Symbol* sym);
 
-    Object*   get_ivar(STATE, Symbol* sym);
+    Object* get_ivar(STATE, Symbol* sym);
 
     // A version that only attempts to find +sym+ in the ivars slot
-    Object*   get_table_ivar(STATE, Symbol* sym);
+    Object* get_table_ivar(STATE, Symbol* sym);
 
     // Rubinius.primitive :object_del_ivar
-    Object*   del_ivar(STATE, Symbol* sym);
-    Object*   del_table_ivar(STATE, Symbol* sym, bool* removed = 0);
+    Object* del_ivar(STATE, Symbol* sym);
+    Object* del_table_ivar(STATE, Symbol* sym, bool* removed = 0);
 
-    Object*   table_ivar_defined(STATE, Symbol* sym);
+    Object* table_ivar_defined(STATE, Symbol* sym);
 
-    Object*   ivar_defined(STATE, Symbol* sym);
+    Object* ivar_defined(STATE, Symbol* sym);
 
     // Rubinius.primitive :object_ivar_defined
-    Object*   ivar_defined_prim(STATE, Symbol* sym);
+    Object* ivar_defined_prim(STATE, Symbol* sym);
 
     // Rubinius.primitive :object_instance_fields
     Array* instance_fields(STATE);
 
     /** Returns the structure containing this object's instance variables. */
     // Rubinius.primitive :object_instance_variables
-    Array*   ivar_names(STATE);
+    Array* ivar_names(STATE);
 
-    Array*   ivar_names(STATE, Array* ary);
+    Array* ivar_names(STATE, Array* ary);
 
     /** Calculate a hash value for this object. */
-    hashval   hash(STATE);
+    hashval hash(STATE);
 
     /** Returns the hash value as an Integer. @see hash(). */
     // Rubinius.primitive+ :object_hash
-    Integer*  hash_prim(STATE);
+    Integer* hash_prim(STATE);
 
     /** Returns an Integer ID for this object. Created as needed. */
     // Rubinius.primitive+ :object_id
-    Integer*  id(STATE);
+    Integer* object_id(STATE);
 
     /** Indicates if this object has been assigned an object id. */
-    bool has_id(STATE);
-
-    /** Reset the object id */
-    void reset_id(STATE);
+    bool object_id_p(STATE);
 
     // Rubinius.primitive+ :object_infect
     Object* infect_prim(STATE, Object* obj, Object* other) {
@@ -248,7 +241,7 @@ namespace rubinius {
      *  superclass or an included Module, false otherwise.
      */
     // Rubinius.primitive+ :object_kind_of
-    Object*   kind_of_prim(STATE, Module* klass);
+    Object* kind_of_prim(STATE, Module* klass);
 
     /**
      *  Ruby #instance_of?
@@ -257,7 +250,7 @@ namespace rubinius {
      *  false otherwise.
      */
     // Rubinius.primitive+ :object_instance_of
-    Object*   instance_of_prim(STATE, Module* klass);
+    Object* instance_of_prim(STATE, Module* klass);
 
     /** Return object's MetaClass object. Created as needed.
      *  Also fixes up the parent hierarchy if needed */
@@ -273,40 +266,40 @@ namespace rubinius {
      *  given identifier.
      */
     // Rubinius.primitive :object_set_ivar
-    Object*   set_ivar_prim(STATE, Symbol* sym, Object* val);
+    Object* set_ivar_prim(STATE, Symbol* sym, Object* val);
 
-    Object*   set_ivar(STATE, Symbol* sym, Object* val);
+    Object* set_ivar(STATE, Symbol* sym, Object* val);
 
     // Specialized version that only checks _ivars_
-    Object*   set_table_ivar(STATE, Symbol* sym, Object* val);
+    Object* set_table_ivar(STATE, Symbol* sym, Object* val);
 
     /** String describing this object (through TypeInfo.) */
     // Rubinius.primitive :object_show
-    Object*   show(STATE);
+    Object* show(STATE);
     /** Indented String describing this object (through TypeInfo.) */
-    Object*   show(STATE, int level);
+    Object* show(STATE, int level);
     /** Shorter String describing this object (through TypeInfo.) */
-    Object*   show_simple(STATE);
+    Object* show_simple(STATE);
     /** Shorter indented String describing this object (through TypeInfo.) */
-    Object*   show_simple(STATE, int level);
+    Object* show_simple(STATE, int level);
 
     /**
      *  Set tainted flag on this object.
      */
     // Rubinius.primitive :object_taint
-    Object*   taint(STATE);
+    Object* taint(STATE);
 
     /**
      *  Returns true if this object's tainted flag is set.
      */
     // Rubinius.primitive+ :object_tainted_p
-    Object*   tainted_p(STATE);
+    Object* object_tainted_p(STATE);
 
     /**
      *  Clears the tainted flag on this object.
      */
     // Rubinius.primitive :object_untaint
-    Object*   untaint(STATE);
+    Object* untaint(STATE);
 
     /**
      *  Returns an #inspect-like representation of an Object for
@@ -346,7 +339,7 @@ namespace rubinius {
      * false. Those objects are allowed to be modified when
      * frozen.
      */
-    Object* frozen_mod_disallowed(STATE);
+    bool frozen_mod_disallowed();
 
   public:   /* TypeInfo */
 
@@ -366,10 +359,6 @@ namespace rubinius {
 
 /* Object inlines -- Alphabetic, unlike class definition. */
 
-  inline bool Object::fixnum_p() const {
-    return __FIXNUM_P__(this);
-  }
-
   inline Class* Object::direct_class(STATE) const {
     if(reference_p()) {
       return klass();
@@ -380,10 +369,6 @@ namespace rubinius {
 
   inline Module* Object::lookup_begin(STATE) const {
     return reinterpret_cast<Module*>(direct_class(state));
-  }
-
-  inline bool Object::symbol_p() const {
-    return __SYMBOL_P__(this);
   }
 
   // Used in filtering APIs

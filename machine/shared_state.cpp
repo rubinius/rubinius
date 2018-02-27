@@ -47,7 +47,7 @@ namespace rubinius {
     , memory_metrics_(new diagnostics::MemoryMetrics())
     , profiler_(new diagnostics::Profiler())
     , capi_constant_name_map_()
-    , capi_constant_handle_map_()
+    , capi_constant_map_()
     , start_time_(get_current_time())
     , class_count_(1)
     , global_serial_(1)
@@ -60,8 +60,6 @@ namespace rubinius {
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
-    , global_capi_handle_lock_()
-    , capi_handle_cache_lock_()
     , wait_lock_()
     , type_info_lock_()
     , code_resource_lock_()
@@ -277,8 +275,6 @@ namespace rubinius {
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
-    global_capi_handle_lock_.init();
-    capi_handle_cache_lock_.init();
     wait_lock_.init();
     type_info_lock_.init();
     code_resource_lock_.init();

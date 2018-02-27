@@ -20,6 +20,8 @@
 #include "class/string.hpp"
 #include "class/thread.hpp"
 
+#include "capi/capi.hpp"
+
 #include "diagnostics/machine.hpp"
 
 #include "dtrace/dtrace.h"
@@ -389,7 +391,7 @@ namespace rubinius {
 
         if(NativeMethodFrame* nmf = frame->native_method_frame()) {
           stream << static_cast<void*>(frame) << ": ";
-          NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+          NativeMethod* nm = MemoryHandle::try_as<NativeMethod>(nmf->method());
           if(nm && nm->name()->symbol_p()) {
             stream << "capi:" << nm->name()->debug_str(state) << " at ";
             stream << nm->file()->c_str(state);
@@ -410,7 +412,7 @@ namespace rubinius {
                   stream << "MAIN.";
                 } else {
                   stream << "#<" << obj->class_object(state)->debug_str(state) <<
-                            ":" << (void*)obj->id(state)->to_native() << ">.";
+                            ":" << (void*)obj->object_id(state)->to_native() << ">.";
                 }
               }
             } else if(IncludedModule* im = try_as<IncludedModule>(frame->module())) {

@@ -17,7 +17,7 @@ extern "C" {
   char rb_num2chr(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = env->get_object(obj);
+    Object* object = MemoryHandle::object(obj);
 
     String* str;
     char chr;
@@ -39,19 +39,19 @@ extern "C" {
     return num;
   }
 
-  long rb_num2long(VALUE obj) {
+  long rb_num2long(VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = env->get_object(obj);
+    Object* object = MemoryHandle::object(value);
 
     if(object->nil_p()) {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to Integer");
     } else if(Fixnum* fix = try_as<Fixnum>(object)) {
       return fix->to_long();
     } else if(try_as<Bignum>(object)) {
-      return rb_big2long(obj);
+      return rb_big2long(value);
     } else if(try_as<Float>(object)) {
-      return (long)capi_get_float(env, obj)->value();
+      return (long)MemoryHandle::from(value)->get_rfloat(env->state())->value;
     } else if(object->true_p()) {
       rb_raise(rb_eTypeError, "can't convert true to Integer");
     } else if(object->false_p()) {
@@ -60,14 +60,14 @@ extern "C" {
 
     ID to_int_id = rb_intern("to_int");
 
-    if(!rb_respond_to(obj, to_int_id)) {
+    if(!rb_respond_to(value, to_int_id)) {
 	    rb_raise(rb_eTypeError, "can't convert %s into Integer",
-		     rb_obj_classname(obj));
+		     rb_obj_classname(value));
     }
 
-    obj = rb_funcall(obj, to_int_id, 0);
+    value = rb_funcall(value, to_int_id, 0);
 
-    return rb_num2long(obj);
+    return rb_num2long(value);
   }
 
   unsigned long rb_num2uint(VALUE obj) {
@@ -87,40 +87,28 @@ extern "C" {
     return num;
   }
 
-  unsigned long rb_num2ulong(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj);
-
-    if(try_as<Bignum>(object)) {
-      return rb_big2ulong(obj);
+  unsigned long rb_num2ulong(VALUE value) {
+    if(MemoryHandle::try_as<Bignum>(value)) {
+      return rb_big2ulong(value);
     }
 
-    return (unsigned long)rb_num2long(obj);
+    return (unsigned long)rb_num2long(value);
   }
 
-  long long rb_num2ll(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj);
-
-    if(Bignum* big = try_as<Bignum>(object)) {
+  long long rb_num2ll(VALUE value) {
+    if(Bignum* big = MemoryHandle::try_as<Bignum>(value)) {
       return big->to_long_long();
     }
 
-    return (long long)rb_num2long(obj);
+    return (long long)rb_num2long(value);
   }
 
-  unsigned long long rb_num2ull(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj);
-
-    if(Bignum* big = try_as<Bignum>(object)) {
+  unsigned long long rb_num2ull(VALUE value) {
+    if(Bignum* big = MemoryHandle::try_as<Bignum>(value)) {
       return big->to_ulong_long();
     }
 
-    return (unsigned long long)rb_num2long(obj);
+    return (unsigned long long)rb_num2long(value);
   }
 
   VALUE rb_int2big(long number) {
@@ -166,17 +154,17 @@ extern "C" {
     if(i->nil_p()) {
       rb_raise(rb_eArgError, "invalid string for Integer");
     }
-    return env->get_handle(i);
+    return MemoryHandle::value(i);
   }
 
   VALUE rb_ll2inum(long long val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return env->get_handle(Integer::from(env->state(), val));
+    return MemoryHandle::value(Integer::from(env->state(), val));
   }
 
   VALUE rb_ull2inum(unsigned long long val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return env->get_handle(Integer::from(env->state(), val));
+    return MemoryHandle::value(Integer::from(env->state(), val));
   }
 
   VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
@@ -191,20 +179,20 @@ extern "C" {
     return rb_funcall(rb_mCAPI, rb_intern("rb_num_coerce_relop"), 3, x, y, ID2SYM(func));
   }
 
-  double rb_num2dbl(VALUE val) {
+  double rb_num2dbl(VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = env->get_object(val);
+    Object* object = MemoryHandle::object(value);
 
     if(object->nil_p()) {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to Float");
     } else if(try_as<String>(object)) {
       rb_raise(rb_eTypeError, "no implicit conversion from String to Float");
     } else if(!try_as<Float>(object)) {
-      val = rb_Float(val);
+      value = rb_Float(value);
     }
 
-    return capi_get_float(env, val)->value();
+    return MemoryHandle::from(value)->get_rfloat(env->state())->value;
   }
 
   // Imported from MRI

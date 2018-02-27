@@ -1,6 +1,7 @@
 #include "logger.hpp"
 #include "shared_state.hpp"
 #include "thread_nexus.hpp"
+#include "thread_phase.hpp"
 #include "vm.hpp"
 
 #include "class/thread.hpp"
@@ -36,6 +37,15 @@ namespace rubinius {
     }
 
     lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
+  }
+
+
+  bool ThreadNexus::try_managed_phase(STATE, VM* vm) {
+    if(halt_ && halt_ != vm->thread_id()) {
+      halting_mutex_.lock();
+    }
+
+    return try_lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
   }
 
   void ThreadNexus::unmanaged_phase(STATE, VM* vm) {
@@ -123,7 +133,6 @@ namespace rubinius {
                 continue;
               }
 
-              thread->unlock_after_fork(state);
               thread->stopped();
             }
           }
@@ -207,11 +216,21 @@ namespace rubinius {
   }
 
   void ThreadNexus::each_thread(STATE, std::function<void (STATE, VM* vm)> process) {
-    std::lock_guard<std::mutex> guard(threads_mutex_);
+    LockWaiting<std::mutex> guard(state, threads_mutex_);
 
     for(auto vm : threads_) {
       process(state, reinterpret_cast<VM*>(vm));
     }
+  }
+
+  bool ThreadNexus::valid_thread_p(STATE, unsigned int thread_id) {
+    bool valid = false;
+
+    each_thread(state, [thread_id, &valid](STATE, VM* vm) {
+        if(thread_id == vm->thread_id()) valid = true;
+      });
+
+    return valid;
   }
 
   uint64_t ThreadNexus::wait() {
@@ -254,6 +273,10 @@ namespace rubinius {
         }
       }
     }
+  }
+
+  bool ThreadNexus::lock_owned_p(VM* vm) {
+    return lock_ == vm->thread_id();
   }
 
   bool ThreadNexus::try_lock(VM* vm) {

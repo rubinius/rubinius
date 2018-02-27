@@ -683,7 +683,7 @@ class CPPParser
 
   def parse_stream(f)
     class_pattern = /class\s+([^\s]+)\s*:\s*public\s+([^\s]+)/
-    slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)_\s*;\s*//\s*slot(.*)!
+    slot_pattern = %r!^\s*(\w+)\*?\s+\*?_(\w+)_\s*;\s*//\s*slot(.*)!
     accessor_pattern = %r!^\s*attr_(accessor|reader|writer)\((\w+),\s*(\w+)\)!
     primitive_pattern = %r%^\s*//\s+Rubinius.primitive([?!\+])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!

@@ -22,130 +22,115 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 namespace rubinius {
-  namespace capi {
-
-    IO* capi_get_io(NativeMethodEnvironment* env, VALUE io_handle) {
-      Handle* handle = Handle::from(io_handle);
-      handle->flush(env);
-      env->check_tracked_handle(handle, false);
-      return c_as<IO>(handle->object());
-    }
-
-    static const char* flags_modestr(int oflags)
-    {
+  static const char* flags_modestr(int oflags)
+  {
 #ifdef O_BINARY
 # define MODE_BINARY(a,b) ((oflags & O_BINARY) ? (b) : (a))
 #else
 # define MODE_BINARY(a,b) (a)
 #endif
-      int accmode = oflags & (O_RDONLY|O_WRONLY|O_RDWR);
-      if(oflags & O_APPEND) {
-        if(accmode == O_WRONLY) {
-          return MODE_BINARY("a", "ab");
-        }
-        if(accmode == O_RDWR) {
-          return MODE_BINARY("a+", "ab+");
-        }
+    int accmode = oflags & (O_RDONLY|O_WRONLY|O_RDWR);
+    if(oflags & O_APPEND) {
+      if(accmode == O_WRONLY) {
+        return MODE_BINARY("a", "ab");
       }
-      switch (oflags & (O_RDONLY|O_WRONLY|O_RDWR)) {
-      case O_RDONLY:
-        return MODE_BINARY("r", "rb");
-      case O_WRONLY:
-        return MODE_BINARY("w", "wb");
-      case O_RDWR:
-        return MODE_BINARY("r+", "rb+");
+      if(accmode == O_RDWR) {
+        return MODE_BINARY("a+", "ab+");
       }
-      return NULL;
     }
-
-    RIO* Handle::as_rio(NativeMethodEnvironment* env) {
-      IO* io_obj = c_as<IO>(object());
-      ID id_descriptor = rb_intern("descriptor");
-      ID id_mode = rb_intern("mode");
-      VALUE jobj = env->get_handle(io_obj);
-
-      if(type_ != cRIO) {
-        env->shared().capi_ds_lock().lock();
-
-        if(type_ != cRIO) {
-          native_int fd = -1;
-          VALUE fileno = rb_funcall(jobj, id_descriptor, 0);
-          Fixnum* tmp_fd = try_as<Fixnum>(env->get_object(fileno));
-
-          if(tmp_fd) {
-            fd = tmp_fd->to_native();
-          }
-
-          env->shared().capi_ds_lock().unlock();
-
-          if(fd == -1) {
-            char buf[RBX_STRERROR_BUFSIZE];
-            char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
-            rb_raise(rb_eIOError, "%s (%d)", err, errno);
-          }
-
-          FILE* f = fdopen(fd, flags_modestr(try_as<Fixnum>(env->get_object(rb_funcall(jobj, id_mode, 0)))->to_native()));
-
-          if(!f) {
-            char buf[RBX_STRERROR_BUFSIZE];
-            char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
-            std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
-                      << err << " (" << errno << ")" << std::endl;
-
-            env->shared().capi_ds_lock().unlock();
-
-            rb_raise(rb_eTypeError,
-                "unable to convert fd (%d) to lowlevel IO: %s (%d)",
-                fd, err, errno);
-          }
-
-          RIO* rf = new RIO;
-          rf->handle = as_value();
-          rf->fd = fd;
-          rf->f = f;
-          rf->f2 = NULL;
-          rf->stdio_file = NULL;
-          rf->finalize = NULL;
-
-          // Disable all buffering so that it doesn't get out of sync with
-          // the normal IO buffer.
-          setvbuf(rf->f, 0, _IONBF, 0);
-
-          type_ = cRIO;
-          as_.rio = rf;
-        }
-
-        env->shared().capi_ds_lock().unlock();
-      }
-
-      return as_.rio;
+    switch (oflags & (O_RDONLY|O_WRONLY|O_RDWR)) {
+    case O_RDONLY:
+      return MODE_BINARY("r", "rb");
+    case O_WRONLY:
+      return MODE_BINARY("w", "wb");
+    case O_RDWR:
+      return MODE_BINARY("r+", "rb+");
     }
+    return NULL;
+  }
 
-    bool Handle::rio_close() {
-      if(type_ != cRIO) return true;
+  RIO* MemoryHandle::get_rio(STATE) {
+    ID id_descriptor = rb_intern("descriptor");
+    ID id_mode = rb_intern("mode");
+    VALUE jobj = as_value();
 
-      RIO* rio = as_.rio;
+    if(rio_p()) {
+      return reinterpret_cast<RIO*>(data());
+    } else if(unknown_type_p()) {
+      native_int fd = -1;
+      VALUE fileno = rb_funcall(jobj, id_descriptor, 0);
+      Fixnum* tmp_fd = MemoryHandle::try_as<Fixnum>(fileno);
 
-      if(rio->finalize) rio->finalize(rio, true);
-
-      bool ok = true;
-
-      /* This field is publicly accessible in the C-API structure so we need
-       * to guard against the possibility that it is NULL;
-       */
-      if(rio->f) {
-        ok = (fclose(rio->f) == 0);
-        rio->f = NULL;
+      if(tmp_fd) {
+        fd = tmp_fd->to_native();
       }
 
-      return ok;
+      if(fd == -1) {
+        char buf[RBX_STRERROR_BUFSIZE];
+        char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
+        rb_raise(rb_eIOError, "%s (%d)", err, errno);
+      }
+
+      VALUE mode = rb_funcall(jobj, id_mode, 0);
+      Fixnum* oflags = MemoryHandle::try_as<Fixnum>(mode);
+      FILE* f = fdopen(fd, flags_modestr(oflags ? oflags->to_native() : 0));
+
+      if(!f) {
+        char buf[RBX_STRERROR_BUFSIZE];
+        char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
+        std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
+                  << err << " (" << errno << ")" << std::endl;
+
+        rb_raise(rb_eTypeError,
+            "unable to convert fd (%d) to lowlevel IO: %s (%d)",
+            fd, err, errno);
+      }
+
+      RIO* rf = new RIO;
+      rf->handle = as_value();
+      rf->fd = fd;
+      rf->f = f;
+      rf->f2 = NULL;
+      rf->stdio_file = NULL;
+      rf->finalize = NULL;
+
+      // Disable all buffering so that it doesn't get out of sync with
+      // the normal IO buffer.
+      setvbuf(rf->f, 0, _IONBF, 0);
+
+      set_rio(rf);
+
+      return rf;
+    } else {
+      Exception::raise_runtime_error(state, "C-API handle invalid reference as RIO");
     }
   }
+
+  bool MemoryHandle::rio_close(STATE) {
+    if(!rio_p()) return true;
+
+    RIO* rio = reinterpret_cast<RIO*>(data());
+
+    if(rio->finalize) rio->finalize(rio, true);
+
+    bool ok = true;
+
+    /* This field is publicly accessible in the C-API structure so we need
+     * to guard against the possibility that it is NULL;
+     */
+    if(rio->f) {
+      ok = (fclose(rio->f) == 0);
+      rio->f = NULL;
+    }
+
+    return ok;
+  }
 }
+
 extern "C" {
-  struct RIO* capi_rio_struct(VALUE io_handle) {
+  RIO* capi_rio_struct(VALUE io_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return Handle::from(io_handle)->as_rio(env);
+    return MemoryHandle::from(io_handle)->get_rio(env->state());
   }
 
   void rb_eof_error() {
@@ -182,9 +167,8 @@ extern "C" {
   }
 
   int rb_io_fd(VALUE io_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    return c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("fileno"), 0)))->to_native();
+    return MemoryHandle::object<Fixnum>(
+        rb_funcall(io_handle, rb_intern("fileno"), 0))->to_native();
   }
 
   long rb_io_fread(char* ptr, int len, FILE* f) {
@@ -385,17 +369,16 @@ extern "C" {
 
   void rb_io_check_closed(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    if(c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("fileno"), 0)))->to_native() == -1) {
+    if(MemoryHandle::object<Fixnum>(
+          rb_funcall(io_handle, rb_intern("fileno"), 0))->to_native() == -1) {
       rb_raise(rb_eIOError, "closed stream");
     }
   }
 
   void rb_io_check_readable(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    int io_mode = c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("mode"), 0)))->to_native() & O_ACCMODE;
+    int io_mode = MemoryHandle::object<Fixnum>(
+        rb_funcall(io_handle, rb_intern("mode"), 0))->to_native() & O_ACCMODE;
     if(!(O_RDONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for reading");
     }
@@ -403,8 +386,8 @@ extern "C" {
 
   void rb_io_check_writable(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    int io_mode = c_as<Fixnum>(env->get_object(rb_funcall(io_handle, rb_intern("mode"), 0)))->to_native() & O_ACCMODE;
+    int io_mode = MemoryHandle::object<Fixnum>(
+        rb_funcall(io_handle, rb_intern("mode"), 0))->to_native() & O_ACCMODE;
     if(!(O_WRONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for writing");
     }
@@ -414,8 +397,8 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     State *state = env->state();
     Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
-    VALUE fd_class = env->get_handle(fd_object);
-    VALUE descriptor = env->get_handle(Fixnum::from(fd));
+    VALUE fd_class = MemoryHandle::value(fd_object);
+    VALUE descriptor = MemoryHandle::value(Fixnum::from(fd));
 
     rb_funcall(fd_class, rb_intern("update_max_fd"), 1, descriptor);
   }
@@ -424,8 +407,8 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     State *state = env->state();
     Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
-    VALUE fd_class = env->get_handle(fd_object);
-    VALUE descriptor = env->get_handle(Fixnum::from(fd));
+    VALUE fd_class = MemoryHandle::value(fd_object);
+    VALUE descriptor = MemoryHandle::value(Fixnum::from(fd));
 
     rb_funcall(fd_class, rb_intern("new_open_fd"), 1, descriptor);
   }

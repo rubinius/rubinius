@@ -96,34 +96,7 @@ namespace rubinius {
 
     _location_.assign(loc.str());
 
-    size_t call_sites = 0;
-    Tuple* ops = code->iseq()->opcodes();
-
-    for(size_t width = 0, ip = 0; ip < total; ip += width) {
-      opcode op = as<Fixnum>(ops->at(ip))->to_native();
-      width = Instructions::instruction_data(op).width;
-
-      switch(op) {
-      case instructions::data_send_super_stack_with_block.id:
-      case instructions::data_send_super_stack_with_splat.id:
-      case instructions::data_zsuper.id:
-      case instructions::data_send_vcall.id:
-      case instructions::data_send_method.id:
-      case instructions::data_send_stack.id:
-      case instructions::data_send_stack_with_block.id:
-      case instructions::data_send_stack_with_splat.id:
-      case instructions::data_object_to_s.id:
-      case instructions::data_check_serial.id:
-      case instructions::data_check_serial_private.id:
-      case instructions::data_b_if_serial.id:
-        call_sites++;
-        break;
-      }
-    }
-
-    size_t num = total + (call_sites * CallSite::memory_words);
-
-    opcodes = new opcode[num];
+    opcodes = new opcode[total];
 
     Interpreter::prepare(state, code, this);
 

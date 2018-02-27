@@ -10,6 +10,8 @@
 #include "class/native_method.hpp"
 #include "class/string.hpp"
 
+#include "capi/capi.hpp"
+
 #include "diagnostics/machine.hpp"
 #include "diagnostics/timing.hpp"
 
@@ -77,15 +79,15 @@ namespace rubinius {
   }
 
   Location* Location::create(STATE, NativeMethodFrame* nmf) {
-    NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+    NativeMethod* nm = MemoryHandle::try_as<NativeMethod>(nmf->method());
     if(!nm) return Location::allocate(state, G(location));
 
     Location* loc = state->memory()->new_object<Location>(state, G(location));
-    if(Module* mod = try_as<Module>(nmf->get_object(nmf->module()))) {
+    if(Module* mod = MemoryHandle::try_as<Module>(nmf->module())) {
       loc->method_module(state, mod);
     }
 
-    loc->receiver(state, nmf->get_object(nmf->receiver()));
+    loc->receiver(state, MemoryHandle::object(nmf->receiver()));
 
     loc->method(state, nm);
     loc->ip(state, Fixnum::from(-1));

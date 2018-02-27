@@ -101,13 +101,13 @@ namespace rubinius {
       }
     };
 
-    class InflatedHeader : public Memory {
+    class ExtendedHeader : public Memory {
     public:
 
-      InflatedHeader()
+      ExtendedHeader()
         : Memory()
       {
-        set_type("InflatedHeaders");
+        set_type("ExtendedHeaders");
       }
     };
 

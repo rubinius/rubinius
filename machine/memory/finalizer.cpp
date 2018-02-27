@@ -14,8 +14,6 @@
 #include "class/native_method.hpp"
 #include "class/call_site.hpp"
 
-#include "capi/handle.hpp"
-
 #include "diagnostics/gc.hpp"
 
 #include "memory/finalizer.hpp"
@@ -106,7 +104,7 @@ namespace rubinius {
         object()->send(state, state->symbol("__finalize__"));
       } else {
         Array* ary = Array::create(state, 1);
-        ary->set(state, 0, object()->id(state));
+        ary->set(state, 0, object()->object_id(state));
         if(!finalizer_->send(state, G(sym_call), ary)) {
           if(state->vm()->thread_state()->raise_reason() == cException) {
             logger::warn(

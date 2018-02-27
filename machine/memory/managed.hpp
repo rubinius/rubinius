@@ -18,8 +18,6 @@ namespace rubinius {
   class VM;
 
 namespace memory {
-  typedef std::vector<ObjectHeader*> LockedObjects;
-
   class ManagedThread {
   public:
     enum Kind {
@@ -33,7 +31,6 @@ namespace memory {
     std::string name_;
     VariableRootBuffers variable_root_buffers_;
     RootBuffers root_buffers_;
-    LockedObjects locked_objects_;
     Kind kind_;
     diagnostics::MachineMetrics* metrics_;
 
@@ -63,30 +60,6 @@ namespace memory {
 
     memory::Slab& local_slab() {
       return local_slab_;
-    }
-
-    LockedObjects& locked_objects() {
-      return locked_objects_;
-    }
-
-    void add_locked_object(ObjectHeader* obj) {
-      locked_objects_.push_back(obj);
-    }
-
-    void del_locked_object(ObjectHeader* obj) {
-      // Often we will remove the last locked object
-      // because how locks are used in a stack wise manner.
-      // Therefore we optimize here for this case and have a fast path
-      if(locked_objects_.size() == 0) return;
-      ObjectHeader* last = locked_objects_.back();
-      if(obj == last) {
-        locked_objects_.pop_back();
-      } else {
-        LockedObjects::iterator f = std::find(locked_objects_.begin(), locked_objects_.end(), obj);
-        if(f != locked_objects_.end()) {
-          locked_objects_.erase(f);
-        }
-      }
     }
 
     const char* kind_name() const {

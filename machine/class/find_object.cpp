@@ -96,7 +96,7 @@ namespace rubinius {
     }
 
     virtual bool perform(STATE, Object* obj) {
-      return obj->has_id(state) && obj->id(state) == id_;
+      return obj->object_id_p(state) && obj->object_id(state) == id_;
     }
 
     virtual Object* immediate() {

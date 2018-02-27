@@ -113,7 +113,7 @@ namespace memory {
     void collect(GCData* data);
     void collect_start(GCData* data);
     void collect_finish(GCData* data);
-    void sweep();
+    void sweep(GCData* data);
 
     void walk_finalizers();
 

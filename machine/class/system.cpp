@@ -1512,89 +1512,35 @@ retry:
   Object* System::vm_object_lock(STATE, Object* obj) {
     if(!obj->reference_p()) return Primitives::failure();
 
-    switch(obj->lock(state)) {
-    case eLocked:
-      return cTrue;
-    case eLockTimeout:
-    case eUnlocked:
-    case eLockError:
-      return Primitives::failure();
-    case eLockInterrupted:
-      {
-        Exception* exc = state->vm()->interrupted_exception();
-        assert(!exc->nil_p());
-        state->vm()->clear_interrupted_exception();
-        exc->locations(state, Location::from_call_stack(state));
-        state->raise_exception(exc);
-        return 0;
-      }
-    }
-
-    return cNil;
-  }
-
-  Object* System::vm_object_uninterrupted_lock(STATE, Object* obj) {
-    if(!obj->reference_p()) return Primitives::failure();
-
-retry:
-    switch(obj->lock(state, false)) {
-    case eLocked:
-      return cTrue;
-    case eLockInterrupted:
-      goto retry;
-    case eLockTimeout:
-    case eUnlocked:
-    case eLockError:
-      return Primitives::failure();
-    }
-
-    return cNil;
-  }
-
-  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time) {
-    if(!obj->reference_p()) return Primitives::failure();
-
-    switch(obj->lock(state, time->to_native())) {
-    case eLocked:
-      return cTrue;
-    case eLockTimeout:
-      return cFalse;
-    case eUnlocked:
-    case eLockError:
-      return Primitives::failure();
-    case eLockInterrupted:
-      {
-        Exception* exc = state->vm()->interrupted_exception();
-        assert(!exc->nil_p());
-        state->vm()->clear_interrupted_exception();
-        exc->locations(state, Location::from_call_stack(state));
-        state->raise_exception(exc);
-        return 0;
-      }
-      return 0;
-    }
+    obj->lock(state);
 
     return cNil;
   }
 
   Object* System::vm_object_trylock(STATE, Object* obj) {
     if(!obj->reference_p()) return Primitives::failure();
-    return RBOOL(obj->try_lock(state) == eLocked);
+
+    return RBOOL(obj->try_lock(state));
   }
 
   Object* System::vm_object_locked_p(STATE, Object* obj) {
     if(!obj->reference_p()) return cFalse;
+
     return RBOOL(obj->locked_p(state));
+  }
+
+  Object* System::vm_object_lock_owned_p(STATE, Object* obj) {
+    if(!obj->reference_p()) return cFalse;
+
+    return RBOOL(obj->lock_owned_p(state));
   }
 
   Object* System::vm_object_unlock(STATE, Object* obj) {
     if(!obj->reference_p()) return Primitives::failure();
 
-    if(obj->unlock(state) == eUnlocked) return cNil;
-    if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->vm()->thread_id() << " unlock failed]" << std::endl;
-    }
-    return Primitives::failure();
+    obj->unlock(state);
+
+    return cNil;
   }
 
   Object* System::vm_memory_barrier(STATE) {

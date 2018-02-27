@@ -39,43 +39,4 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
 
     TS_ASSERT_EQUALS(sym1, sym2);
   }
-
-  void test_collection() {
-    std::map<int, Object*> objs;
-
-    int index = 0;
-    memory::Root* root = static_cast<memory::Root*>(state->globals().roots.head());
-    while(root) {
-      Object* tmp = root->get();
-      if(tmp->reference_p() && tmp->young_object_p()) {
-        objs[index] = tmp;
-      }
-      index++;
-
-      root = static_cast<memory::Root*>(root->next());
-    }
-
-    //std::cout << "young: " << index << " (" <<
-    //  state->om->young.total_objects << ")" << std::endl;
-
-    memory::GCData gc_data(state->vm());
-    state->memory()->collect_young(state, &gc_data);
-
-    index = 0;
-    root = static_cast<memory::Root*>(state->globals().roots.head());
-    while(root) {
-      if(Object* tmp = objs[index]) {
-        TS_ASSERT(root->get() != tmp);
-      }
-      index++;
-
-      root = static_cast<memory::Root*>(root->next());
-    }
-
-    memory::HeapDebug hd(state->memory());
-    hd.walk(state->globals().roots);
-
-    //std::cout << "total: " << hd.seen_objects << " (" <<
-    //  state->om->young.total_objects << ")" << std::endl;
-  }
 };

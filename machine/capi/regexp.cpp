@@ -23,7 +23,8 @@ extern "C" {
   VALUE rb_reg_new(const char *source, long len, int options) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     String *pat = String::create(env->state(), source, len);
-    return rb_funcall(rb_cRegexp, rb_intern("new"), 2, env->get_handle(pat), Fixnum::from(options));
+    return rb_funcall(rb_cRegexp, rb_intern("new"), 2,
+        MemoryHandle::value(pat), Fixnum::from(options));
   }
 
   VALUE rb_reg_nth_match(long nth, VALUE match_data) {

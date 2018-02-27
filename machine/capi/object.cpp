@@ -13,18 +13,12 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
-
   void rb_error_frozen(const char* what) {
     rb_raise(rb_eRuntimeError, "can't modify frozen %s", what);
   }
 
   VALUE rb_obj_frozen_p(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    if(CBOOL(env->get_object(obj)->frozen_p(env->state()))) {
-      return Qtrue;
-    }
-
-    return Qfalse;
+    return MemoryHandle::object(obj)->frozen_p() ? Qtrue : Qfalse;
   }
 
   void rb_check_frozen(VALUE obj_handle) {
@@ -36,7 +30,7 @@ extern "C" {
 
   VALUE rb_obj_freeze(VALUE hndl) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->get_object(hndl)->freeze(env->state());
+    MemoryHandle::object(hndl)->freeze(env->state());
     return hndl;
   }
 
@@ -110,19 +104,19 @@ extern "C" {
 
   VALUE rb_check_array_type(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return rb_funcall(env->get_handle(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cArray, rb_intern("to_ary"));
+    return rb_funcall(MemoryHandle::value(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cArray, rb_intern("to_ary"));
   }
 
   VALUE rb_check_string_type(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return rb_funcall(env->get_handle(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cString, rb_intern("to_str"));
+    return rb_funcall(MemoryHandle::value(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cString, rb_intern("to_str"));
   }
 
   static VALUE convert_type(VALUE object, const char* type_name,
                             const char* method_name, bool raise=false)
   {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    VALUE name = env->get_handle(String::create(env->state(), method_name));
+    VALUE name = MemoryHandle::value(String::create(env->state(), method_name));
 
     if(RTEST(rb_funcall(object, rb_intern("respond_to?"), 1, name)) ) {
       return rb_funcall2(object, rb_intern(method_name), 0, NULL);
@@ -209,7 +203,7 @@ extern "C" {
     if(obj == Qundef) return T_UNDEF;
     if(SYMBOL_P(obj)) return T_SYMBOL;
 
-    capi::Handle* handle = capi::Handle::from(obj);
+    MemoryHandle* handle = MemoryHandle::from(obj);
     Object* object = handle->object();
     switch(object->type_id()) {
     case ArrayType:
@@ -261,11 +255,7 @@ extern "C" {
   }
 
   VALUE rb_obj_as_string(VALUE obj_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(obj_handle);
-
-    if(kind_of<String>(object)) {
+    if(MemoryHandle::try_as<String>(obj_handle)) {
       return obj_handle;
     }
 
@@ -273,9 +263,6 @@ extern "C" {
   }
 
   VALUE rb_obj_clone(VALUE obj_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    env->flush_cached_data();
     return rb_funcall(obj_handle, rb_intern("clone"), 0);
   }
 
@@ -322,7 +309,7 @@ extern "C" {
 
   ID rb_intern_str(VALUE str) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    String* string = capi_get_string(env, str);
+    String* string = MemoryHandle::object<String>(str);
     return reinterpret_cast<ID>(string->to_sym(env->state()));
   }
 
@@ -337,20 +324,20 @@ extern "C" {
   VALUE rb_ivar_get(VALUE self_handle, ID ivar_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = env->get_object(self_handle);
+    Object* object = MemoryHandle::object(self_handle);
 
     Symbol* sym = reinterpret_cast<Symbol*>(ivar_name);
-    return env->get_handle(object->get_ivar(env->state(), sym));
+    return MemoryHandle::value(object->get_ivar(env->state(), sym));
   }
 
   VALUE rb_ivar_set(VALUE self_handle, ID ivar_name, VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* receiver = env->get_object(self_handle);
+    Object* receiver = MemoryHandle::object(self_handle);
 
     Symbol* sym = reinterpret_cast<Symbol*>(ivar_name);
     receiver->set_ivar(env->state(), sym,
-                       env->get_object(value));
+                       MemoryHandle::object(value));
 
     return value;
   }
@@ -359,10 +346,10 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Symbol* ivar = reinterpret_cast<Symbol*>(ivar_name);
-    Object* obj = env->get_object(obj_handle);
+    Object* obj = MemoryHandle::object(obj_handle);
     Object* ret = obj->ivar_defined(env->state(), ivar);
 
-    return env->get_handle(ret);
+    return MemoryHandle::value(ret);
   }
 
   VALUE rb_attr_get(VALUE obj_handle, ID attr_name) {
@@ -410,7 +397,7 @@ extern "C" {
 
   VALUE rb_obj_instance_eval(int argc, VALUE* argv, VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    VALUE block = env->get_handle(env->block());
+    VALUE block = MemoryHandle::value(env->block());
 
     return rb_funcall2b(self, rb_intern("instance_eval"), argc,
                         (const VALUE*)argv, block);
@@ -421,18 +408,16 @@ extern "C" {
   }
 
   VALUE rb_hash(VALUE obj) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* hash = env->get_object(rb_funcall(obj, rb_intern("hash"), 0));
+    Object* hash = MemoryHandle::object(rb_funcall(obj, rb_intern("hash"), 0));
 
     retry:
 
     if(try_as<Fixnum>(hash)) {
-      return env->get_handle(hash);
+      return MemoryHandle::value(hash);
     } else if(Bignum* big = try_as<Bignum>(hash)) {
       return LONG2FIX(big->to_native());
     } else {
-      hash = env->get_object(rb_to_int(env->get_handle(hash)));
+      hash = MemoryHandle::object(rb_to_int(MemoryHandle::value(hash)));
       goto retry;
     }
   }

@@ -14,11 +14,6 @@ class Rubinius::VM
     raise PrimitiveFailure, "Rubinius::VM.stats primitive failed"
   end
 
-  def self.dump_heap(path)
-    Rubinius.primitive :vm_dump_heap
-    raise PrimitiveFailure, "Rubinius::VM.dump_heap primitive failed"
-  end
-
   def self.load_library(path, name)
     Rubinius.primitive :load_library
     raise PrimitiveFailure, "Rubinius::VM.load_library primitive failed"

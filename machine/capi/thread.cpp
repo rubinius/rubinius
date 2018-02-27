@@ -100,7 +100,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Thread* thread = env->state()->vm()->thread();
 
-    return env->get_handle(thread);
+    return MemoryHandle::value(thread);
   }
 
 
@@ -113,17 +113,17 @@ extern "C" {
 
   VALUE rb_thread_local_aref(VALUE thread, ID id) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Thread* thr = capi::c_as<Thread>(env->get_object(thread));
-    return env->get_handle(
+    Thread* thr = MemoryHandle::object<Thread>(thread);
+    return MemoryHandle::value(
         thr->fiber_variable_get(env->state(), reinterpret_cast<Symbol*>(id)));
   }
 
   VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Thread* thr = capi::c_as<Thread>(env->get_object(thread));
-    return env->get_handle(
+    Thread* thr = MemoryHandle::object<Thread>(thread);
+    return MemoryHandle::value(
         thr->fiber_variable_set(
-          env->state(), reinterpret_cast<Symbol*>(id), env->get_object(value)));
+          env->state(), reinterpret_cast<Symbol*>(id), MemoryHandle::object(value)));
   }
 
   VALUE rb_thread_wakeup(VALUE thread) {
@@ -266,10 +266,10 @@ extern "C" {
     state->vm()->set_call_frame(&call_frame);
 
     nmf.setup(
-        env->get_handle(thread),
-        env->get_handle(cNil),
-        env->get_handle(nm),
-        env->get_handle(nm->module()));
+        MemoryHandle::value(thread),
+        MemoryHandle::value(cNil),
+        MemoryHandle::value(nm),
+        MemoryHandle::value(nm->module()));
 
     ENTER_CAPI(state);
 
@@ -286,7 +286,7 @@ extern "C" {
       state->vm()->thread()->exception(state,
           capi::c_as<Exception>(state->vm()->thread_state()->current_exception()));
     } else {
-      value = env->get_object(nm->func()(ptr->pointer));
+      value = MemoryHandle::object(nm->func()(ptr->pointer));
     }
 
     LEAVE_CAPI(state);
@@ -316,7 +316,7 @@ extern "C" {
 
     thr->group(state, state->vm()->thread()->group());
 
-    VALUE thr_handle = env->get_handle(thr);
+    VALUE thr_handle = MemoryHandle::value(thr);
     thr->fork(state);
 
     return thr_handle;

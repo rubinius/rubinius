@@ -22,15 +22,29 @@ namespace rubinius {
   }
 
   native_int Array::size() {
-    return total()->to_native();
-  }
-
-  void Array::set_size(native_int size) {
-    total(Fixnum::from(size));
+    return _total_->to_native();
   }
 
   native_int Array::offset() {
-    return start()->to_native();
+    return _start_->to_native();
+  }
+
+  void Array::read_rarray() {
+    State state(VM::current());
+    if(memory_handle_p()) {
+      get_handle(&state)->read_rarray(&state);
+    }
+  }
+
+  void Array::write_rarray(VM* vm) {
+    State state(vm);
+    write_rarray(&state);
+  }
+
+  void Array::write_rarray(STATE) {
+    if(memory_handle_p()) {
+      get_handle(state)->write_rarray(state);
+    }
   }
 
   Array* Array::create(STATE, native_int size) {
@@ -171,7 +185,7 @@ namespace rubinius {
   }
 
   Object* Array::aset(STATE, Fixnum* idx, Object* val) {
-    if(is_frozen_p()) return Primitives::failure();
+    if(frozen_p()) return Primitives::failure();
 
     native_int index = idx->to_native();
 
@@ -184,7 +198,7 @@ namespace rubinius {
   }
 
   Array* Array::concat(STATE, Array* other) {
-    if(is_frozen_p()) return force_as<Array>(Primitives::failure());
+    if(frozen_p()) return force_as<Array>(Primitives::failure());
 
     native_int size = this->size();
     native_int osize = other->size();

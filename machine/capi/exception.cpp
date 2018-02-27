@@ -30,14 +30,14 @@ extern "C" {
 
   VALUE rb_errinfo() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return env->get_handle(env->state()->thread_state()->current_exception());
+    return MemoryHandle::value(env->state()->thread_state()->current_exception());
   }
 
   void rb_set_errinfo(VALUE err) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Exception* exc = 0;
-    Object* object = env->get_object(err);
+    Object* object = MemoryHandle::object(err);
 
     if(object->nil_p()) {
       exc = nil<Exception>();

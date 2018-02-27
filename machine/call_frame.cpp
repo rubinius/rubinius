@@ -14,6 +14,8 @@
 #include "class/variable_scope.hpp"
 #include "class/unwind_site.hpp"
 
+#include "capi/capi.hpp"
+
 #include "diagnostics/machine.hpp"
 
 #include <iostream>
@@ -72,7 +74,7 @@ namespace rubinius {
 
       if(NativeMethodFrame* nmf = cf->native_method_frame()) {
         stream << static_cast<void*>(cf) << ": ";
-        NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+        NativeMethod* nm = MemoryHandle::try_as<NativeMethod>(nmf->method());
         if(nm && nm->name()->symbol_p()) {
           stream << "capi:" << nm->name()->debug_str(state) << " at ";
           stream << nm->file()->c_str(state);
@@ -110,7 +112,7 @@ namespace rubinius {
               stream << "MAIN.";
             } else {
               stream << "#<" << obj->class_object(state)->debug_str(state) <<
-                        ":" << (void*)obj->id(state)->to_native() << ">.";
+                        ":" << (void*)obj->object_id(state)->to_native() << ">.";
             }
           }
         } else if(IncludedModule* im = try_as<IncludedModule>(cf->module())) {

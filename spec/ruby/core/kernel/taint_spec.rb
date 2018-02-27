@@ -35,8 +35,8 @@ describe "Kernel#taint" do
       @fixnum = 1
     end
 
-    it "raises a RuntimeError" do
-      lambda { @fixnum.taint }.should raise_exception(RuntimeError)
+    it "returns the Fixnum" do
+      @fixnum.taint.should == @fixnum
     end
   end
 
@@ -49,8 +49,8 @@ describe "Kernel#taint" do
       @bignum.untaint if @bignum.tainted?
     end
 
-    it "raises a RuntimeError" do
-      lambda { @bignum.taint }.should raise_exception(RuntimeError)
+    it "returns the Bignum" do
+      @bignum.taint.should == @bignum
     end
   end
 
@@ -63,8 +63,8 @@ describe "Kernel#taint" do
       @float.untaint if @float.tainted?
     end
 
-    it "raises a RuntimeError" do
-      lambda { @float.taint }.should raise_exception(RuntimeError)
+    it "returns the Float" do
+      @float.taint.should == @float
     end
   end
 
@@ -73,8 +73,8 @@ describe "Kernel#taint" do
       @symbol = :symbol
     end
 
-    it "raises a RuntimeError" do
-      lambda { @symbol.taint }.should raise_exception(RuntimeError)
+    it "returns the Symbol" do
+      @symbol.taint.should == @symbol
     end
   end
 end
