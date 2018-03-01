@@ -100,7 +100,6 @@ rubysl-strscan-2.0.0.gem
 rubysl-sync-2.0.0.gem
 rubysl-syslog-3.0.gem
 rubysl-tempfile-2.0.1.gem
-rubysl-test-unit-2.0.3.gem
 rubysl-thread-2.1.gem
 rubysl-thwait-2.0.0.gem
 rubysl-time-2.0.3.gem

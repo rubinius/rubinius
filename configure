@@ -124,7 +124,8 @@ class Configure
       "rake-12.3.0.gem",
       "rdoc-5.1.0.gem",
       "rb-readline-0.5.5.gem",
-      "rubysl-readline-2.0.2.gem"
+      "rubysl-readline-2.0.2.gem",
+      "test-unit-3.2.7.gem",
      ]
 
     # Default cache directory, can be overwritten by the user.
