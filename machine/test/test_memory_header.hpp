@@ -215,7 +215,7 @@ public:
   }
 
   /* TODO: MemoryHeader
-  void test_memory_header_lock() {
+  void xtest_memory_header_lock() {
     h.set_thread_id(state->vm()->thread_id());
 
     TS_ASSERT_THROWS_ASSERT(h.unlock(state),
