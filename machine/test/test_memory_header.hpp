@@ -214,6 +214,7 @@ public:
     TS_ASSERT_EQUALS(h.get_handle(), handle);
   }
 
+  /* TODO: MemoryHeader
   void test_memory_header_lock() {
     h.set_thread_id(state->vm()->thread_id());
 
@@ -249,4 +250,5 @@ public:
       h.unlock(state);
     }
   }
+  */
 };
