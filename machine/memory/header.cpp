@@ -62,7 +62,7 @@ namespace rubinius {
             eh = ExtendedHeader::create_lock(
                 locked_count_field.set(hh->header, lock_extended()), hh);
 
-            std::recursive_mutex* lock = eh->get_lock();
+            MemoryLock* lock = eh->get_lock();
 
             for(int i = 0; i <= max_locked_count(); i++) {
               lock->lock();
@@ -89,7 +89,7 @@ namespace rubinius {
             ExtendedHeader* eh = ExtendedHeader::create_lock(
                 locked_count_field.set(h, lock_extended()));
 
-            std::recursive_mutex* lock = eh->get_lock();
+            MemoryLock* lock = eh->get_lock();
 
             for(int i = 0; i <= max_locked_count(); i++) {
               lock->lock();
@@ -116,7 +116,7 @@ namespace rubinius {
             ExtendedHeader* eh = ExtendedHeader::create_lock(
                 locked_count_field.set(hh->header, lock_extended()), hh);
 
-            std::recursive_mutex* lock = eh->get_lock();
+            MemoryLock* lock = eh->get_lock();
 
             lock->lock();
 
@@ -135,7 +135,7 @@ namespace rubinius {
             ExtendedHeader* eh = ExtendedHeader::create_lock(
                 locked_count_field.set(h, lock_extended()));
 
-            std::recursive_mutex* lock = eh->get_lock();
+            MemoryLock* lock = eh->get_lock();
 
             lock->lock();
 
