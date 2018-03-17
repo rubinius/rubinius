@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <atomic>
+#include <mutex>
 #include <thread>
 
 #ifdef HAVE_ALLOCA_H
