@@ -42,6 +42,7 @@ namespace rubinius {
     attr_accessor(fiber_id, Fixnum);
     attr_accessor(source, String);
     attr_accessor(thread, Thread);
+    attr_accessor(value, Object);
 
   private:
     attr_field(start_time, uint64_t);
@@ -65,8 +66,9 @@ namespace rubinius {
       obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
       obj->source(nil<String>());
       obj->thread(nil<Thread>());
+      obj->value(cNil);
       obj->start_time(get_current_time());
-      obj->vm(NULL);
+      obj->vm(nullptr);
       obj->invoke_context(state->vm());
       obj->restart_context(state->vm());
       obj->status(eCreated);

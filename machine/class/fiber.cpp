@@ -156,7 +156,7 @@ namespace rubinius {
 
   Object* Fiber::return_value(STATE) {
     if(vm()->thread()->nil_p()) {
-      return cNil;
+      return value();
     } else if(vm()->thread_state()->raise_reason() == cNone) {
       return state->vm()->thread()->fiber_value();
     } else if(canceled_p()) {
@@ -196,8 +196,10 @@ namespace rubinius {
     vm->set_call_frame(nullptr);
 
     if(value) {
+      vm->fiber()->value(state, value);
       vm->thread()->fiber_value(state, value);
     } else {
+      vm->fiber()->value(state, value);
       vm->thread()->fiber_value(state, cNil);
     }
 
