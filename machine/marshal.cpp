@@ -27,6 +27,8 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 
+#include "missing/math.h"
+
 #include "detection.hpp"
 
 #define STACK_BUF_SZ 1024
