@@ -199,7 +199,7 @@ namespace rubinius {
       vm->fiber()->value(state, value);
       vm->thread()->fiber_value(state, value);
     } else {
-      vm->fiber()->value(state, value);
+      vm->fiber()->value(state, cNil);
       vm->thread()->fiber_value(state, cNil);
     }
 
