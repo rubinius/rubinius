@@ -38,6 +38,9 @@ In the event a directory contains a "LICENSE", "LICENSE.txt" or "COPYING" file t
 
 ### Installing Rubinius from Source
 
+*Please see https://book.rubinius.com/manuscript/getting_rubinius.html
+for a more complete guide to installing Rubinius from source.*
+
 To install Rubinius, use the following steps:
 
 1. Ensure that MRI 2.0+, rubygems, rake, git and LLVM are installed
