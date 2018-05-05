@@ -13,6 +13,10 @@ namespace rubinius {
       spinlock_mutex()
         : flag()
       {
+        reset();
+      }
+
+      void reset() {
         flag.clear();
       }
 

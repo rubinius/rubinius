@@ -47,6 +47,12 @@ namespace rubinius {
       loglevel_ = level;
     }
 
+    void reset() {
+      if(logger_) {
+        logger_->spinlock().reset();
+      }
+    }
+
     void lock() {
       if(logger_) {
         logger_->lock();

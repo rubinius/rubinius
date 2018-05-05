@@ -378,6 +378,7 @@ namespace rubinius {
   }
 
   void VM::after_fork_child(STATE) {
+    logger::reset();
     thread_nexus_->after_fork_child(state);
 
     interrupt_lock_.unlock();

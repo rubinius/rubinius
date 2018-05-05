@@ -27,6 +27,7 @@ namespace rubinius {
 
 
     void open(logger_type type, logger_level level, const char* identifier, ...);
+    void reset();
     void lock();
     bool try_lock();
     void unlock();
