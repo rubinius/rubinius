@@ -786,4 +786,8 @@ class Module
     self
   end
   private :prepend_features
+
+  def singleton_class?
+    !!Rubinius::Type.singleton_class_object(self)
+  end
 end

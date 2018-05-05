@@ -130,9 +130,10 @@ module Rubinius
 
       pat_size = pattern.bytesize
       str_size = string.bytesize
+      m = Rubinius::Mirror.reflect string
 
       while pos < str_size
-        nxt = string.find_string(pattern, pos)
+        nxt = m.find_string(pattern, pos)
         break unless nxt
 
         match_size = nxt - pos

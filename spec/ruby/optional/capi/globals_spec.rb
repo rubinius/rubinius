@@ -210,9 +210,12 @@ describe "CApiGlobalSpecs" do
       running = false
 
       thr = Thread.new do
-        @io.gets
-        @f.rb_lastline_get.should == "last line"
-        running = true
+        begin
+          @io.gets
+          @f.rb_lastline_get.should == "last line"
+        ensure
+          running = true
+        end
       end
 
       Thread.pass until running

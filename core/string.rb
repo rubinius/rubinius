@@ -129,16 +129,6 @@ class String
     raise PrimitiveFailure, "String#substring primitive failed"
   end
 
-  def find_string(pattern, start)
-    Rubinius.primitive :string_index
-    raise PrimitiveFailure, "String#find_string primitive failed"
-  end
-
-  def find_string_reverse(pattern, start)
-    Rubinius.primitive :string_rindex
-    raise PrimitiveFailure, "String#find_string_reverse primitive failed"
-  end
-
   def ==(other)
     Rubinius.primitive :string_equal
     raise PrimitiveFailure, "String#== primitive failed"
@@ -524,7 +514,7 @@ class String
   end
 
   def include?(needle)
-    !!find_string(StringValue(needle), 0)
+    !!Rubinius::Mirror.reflect(self).find_string(StringValue(needle), 0)
   end
 
   ControlCharacters = [10, 9, 7, 11, 12, 13, 27, 8]
@@ -1767,9 +1757,10 @@ class String
     if sep.empty?
       sep = "\n\n"
       pat_size = 2
+      m = Rubinius::Mirror.reflect self
 
       while pos < size
-        nxt = find_string(sep, pos)
+        nxt = m.find_string(sep, pos)
         break unless nxt
 
         while @data[nxt] == 10 and nxt < @num_bytes
@@ -1801,9 +1792,10 @@ class String
       # This is the normal case.
       pat_size = sep.size
       unmodified_self = clone
+      m = Rubinius::Mirror.reflect unmodified_self
 
       while pos < size
-        nxt = unmodified_self.find_string(sep, pos)
+        nxt = m.find_string(sep, pos)
         break unless nxt
 
         match_size = nxt - pos
@@ -2444,7 +2436,7 @@ class String
         return nil
       end
 
-      if byte_index = find_string_reverse(str, byte_finish)
+      if byte_index = m.find_string_reverse(str, byte_finish)
         return m.byte_to_character_index byte_index
       end
 
@@ -2466,7 +2458,8 @@ class String
       return finish if needle_size == 0
 
       Rubinius::Type.compatible_encoding self, needle
-      if byte_index = find_string_reverse(needle, byte_finish)
+
+      if byte_index = m.find_string_reverse(needle, byte_finish)
         return m.byte_to_character_index byte_index
       end
     end

@@ -187,8 +187,6 @@ namespace rubinius {
     void track_reference(MemoryHeader* object) {
       std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
 
-      if(!valid_object_p(reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(object)))) ::abort();
-
       references_set_.insert(object);
     }
 

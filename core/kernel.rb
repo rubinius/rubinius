@@ -18,10 +18,6 @@ module Kernel
     Rubinius::Type.object_singleton_class self
   end
 
-  def singleton_class?
-    !!Rubinius::Type.singleton_class_object(self)
-  end
-
   def extend(mod)
     Rubinius::Type.object_singleton_class(self).include(mod)
     self

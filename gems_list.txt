@@ -95,7 +95,7 @@ rubysl-set-2.0.1.gem
 rubysl-shellwords-2.0.0.gem
 rubysl-singleton-2.0.0.gem
 rubysl-socket-2.2.1.gem
-rubysl-stringio-2.2.gem
+rubysl-stringio-2.3.gem
 rubysl-strscan-2.0.0.gem
 rubysl-sync-2.0.0.gem
 rubysl-syslog-3.0.gem
