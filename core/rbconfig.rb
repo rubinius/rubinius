@@ -125,12 +125,34 @@ module RbConfig
     CONFIG["optflags"] << " -O2 "
   end
 
+  CONFIG["INCFLAGS"]           = ""
+
   if sys = Rubinius::BUILD_CONFIG[:system_cflags]
-    CONFIG["CFLAGS"] << " #{sys}" unless sys.empty?
+    unless sys.empty?
+      CONFIG["CFLAGS"] << " #{sys}"
+
+      sys.split.each do |f|
+        if f.start_with? "-I"
+          inc = " #{f}"
+          CONFIG["INCFLAGS"] << inc
+          CONFIG["CXXFLAGS"] << inc
+        end
+      end
+    end
   end
 
   if user = Rubinius::BUILD_CONFIG[:user_cflags]
-    CONFIG["CFLAGS"] << " #{user}" unless user.empty?
+    unless user.empty?
+      CONFIG["CFLAGS"] << " #{user}"
+
+      user.split.each do |f|
+        if f.start_with? "-I"
+          inc = " #{f}"
+          CONFIG["INCFLAGS"] << inc
+          CONFIG["CXXFLAGS"] << inc
+        end
+      end
+    end
   end
 
   if sys = Rubinius::BUILD_CONFIG[:system_cxxflags]
