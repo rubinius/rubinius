@@ -1155,7 +1155,7 @@ int main() { return tgetnum(""); }
 
     @log.log string
 
-    cmd = "#{@cxx} -S -o - -x c++ #{defines.join(" ")} #{@user_cppflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
+    cmd = "#{@cxx} -S -o - -x c++ #{defines.join(" ")} #{@user_cppflags} #{@user_incflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_incflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
     @log.log cmd
     system cmd
 
