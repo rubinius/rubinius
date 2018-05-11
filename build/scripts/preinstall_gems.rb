@@ -45,13 +45,6 @@ end
 gems.each do |gem|
   next if gem =~ /readline/
 
-  if gem =~ /openssl/ and openssl
-    options[:build_args] =
-      ["--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"]
-  else
-    options[:build_args] = []
-  end
-
   install gem, install_dir, options
 
   if gem =~ /bundler/

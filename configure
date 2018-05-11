@@ -746,11 +746,13 @@ not support #{name} compiler, please email contact@rubinius.com
     @system_cflags =   ""
     @system_cxxflags = "-std=c++11 "
     @system_cppflags = ""
+    @system_incflags =  ""
     @system_ldflags =  ""
 
     @user_cflags =   ENV['CFLAGS']
     @user_cxxflags = ENV['CXXFLAGS']
     @user_cppflags = ENV['CPPFLAGS']
+    @user_incflags = ENV['INCFLAGS']
     @user_ldflags =  ENV['LDFLAGS']
 
     setup_platform
@@ -761,7 +763,7 @@ not support #{name} compiler, please email contact@rubinius.com
     @ldshared   = "#{@cc} -shared"
 
     @include_dirs.each do |d|
-      @system_cflags << "-I#{d} "
+      @system_incflags << "-I#{d} "
     end
     @lib_dirs.each do |d|
       @system_ldflags << "-L#{d} "
@@ -854,7 +856,7 @@ not support #{name} compiler, please email contact@rubinius.com
       libs = default_link_libs.map { |l| "-l#{l}" }.join(" ")
       args = arguments.join(" ")
 
-      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} #{libs} #{args} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_incflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_incflags} #{@system_ldflags} #{libs} #{args} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
@@ -1590,10 +1592,12 @@ int main(int argc, char* argv[]) {
       :user_cflags        => "#{@user_cflags}",
       :user_cxxflags      => "#{@user_cxxflags}",
       :user_cppflags      => "#{@user_cppflags}",
+      :user_incflags      => "#{@user_incflags}",
       :user_ldflags       => "#{@user_ldflags}",
       :system_cflags      => "#{@system_cflags}",
       :system_cxxflags    => "#{@system_cxxflags}",
       :system_cppflags    => "#{@system_cppflags}",
+      :system_incflags    => "#{@system_incflags}",
       :system_ldflags     => "#{@system_ldflags}",
       :include_dirs       => @include_dirs,
       :lib_dirs           => @lib_dirs,

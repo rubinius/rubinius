@@ -156,6 +156,7 @@ namespace :codedb do
       ENV["CXX"] = BUILD_CONFIG[:cxx]
       ENV["CXXFLAGS"] = BUILD_CONFIG[:system_cxxflags]
       ENV["CPPFLAGS"] = BUILD_CONFIG[:system_cppflags]
+      ENV["INCFLAGS"] = BUILD_CONFIG[:system_incflags]
       ENV["LDSHAREDXX"] = BUILD_CONFIG[:ldsharedxx]
       ENV["LDFLAGS"] = BUILD_CONFIG[:system_ldflags]
 
@@ -179,6 +180,7 @@ namespace :codedb do
       ENV.delete "CXX"
       ENV.delete "CXXFLAGS"
       ENV.delete "CPPFLAGS"
+      ENV.delete "INCFLAGS"
       ENV.delete "LDSHAREDXX"
       ENV.delete "LDFLAGS"
     end
