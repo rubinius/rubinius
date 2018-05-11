@@ -125,34 +125,12 @@ module RbConfig
     CONFIG["optflags"] << " -O2 "
   end
 
-  CONFIG["INCFLAGS"]           = ""
-
   if sys = Rubinius::BUILD_CONFIG[:system_cflags]
-    unless sys.empty?
-      CONFIG["CFLAGS"] << " #{sys}"
-
-      sys.split.each do |f|
-        if f.start_with? "-I"
-          inc = " #{f}"
-          CONFIG["INCFLAGS"] << inc
-          CONFIG["CXXFLAGS"] << inc
-        end
-      end
-    end
+    CONFIG["CFLAGS"] << " #{sys}" unless sys.empty?
   end
 
   if user = Rubinius::BUILD_CONFIG[:user_cflags]
-    unless user.empty?
-      CONFIG["CFLAGS"] << " #{user}"
-
-      user.split.each do |f|
-        if f.start_with? "-I"
-          inc = " #{f}"
-          CONFIG["INCFLAGS"] << inc
-          CONFIG["CXXFLAGS"] << inc
-        end
-      end
-    end
+    CONFIG["CFLAGS"] << " #{user}" unless user.empty?
   end
 
   if sys = Rubinius::BUILD_CONFIG[:system_cxxflags]
@@ -161,6 +139,20 @@ module RbConfig
 
   if user = Rubinius::BUILD_CONFIG[:user_cxxflags]
     CONFIG["CXXFLAGS"] << " #{user}" unless user.empty?
+  end
+
+  if sys = Rubinius::BUILD_CONFIG[:system_incflags]
+    unless sys.empty?
+      CONFIG["CFLAGS"] << " #{sys}"
+      CONFIG["CXXFLAGS"] << " #{sys}"
+    end
+  end
+
+  if user = Rubinius::BUILD_CONFIG[:user_incflags]
+    unless user.empty?
+      CONFIG["CFLAGS"] << " #{user}"
+      CONFIG["CXXFLAGS"] << " #{user}"
+    end
   end
 
   if sys = Rubinius::BUILD_CONFIG[:system_ldflags]
@@ -172,6 +164,7 @@ module RbConfig
   end
 
   CONFIG["CPPFLAGS"]           = ""
+
   if sys = Rubinius::BUILD_CONFIG[:system_cppflags]
     CONFIG["CPPFLAGS"] << " #{sys}" unless sys.empty?
   end
