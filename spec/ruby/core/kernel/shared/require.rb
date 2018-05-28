@@ -200,6 +200,12 @@ describe :kernel_require_basic, :shared => true do
       end
       ScratchPad.recorded.should == [:loaded]
     end
+
+    it "loads from a path with a trailing separator" do
+      $LOAD_PATH.unshift CODE_LOADING_DIR + File::Separator
+      @object.send(@method, "trailing_separator.rb").should be_true
+      ScratchPad.recorded.should == [:loaded]
+    end
   end
 end
 

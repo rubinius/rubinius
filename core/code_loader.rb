@@ -68,7 +68,7 @@ module Rubinius
 
         $LOAD_PATH.each do |dir|
           if dir[-1] == ?/
-            @prefix = @dir[0...-1]
+            @prefix = dir[0...-1]
           else
             @prefix = dir
           end
