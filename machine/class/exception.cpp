@@ -142,7 +142,7 @@ namespace rubinius {
 
   Exception* Exception::make_frozen_exception(STATE, Object* obj) {
     std::ostringstream msg;
-    msg << "can't modify frozen instance of ";
+    msg << "can't modify frozen ";
     msg << obj->class_object(state)->module_name()->debug_str(state);
 
     return Exception::make_exception(state, G(exc_rte), msg.str().c_str());
