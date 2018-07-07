@@ -58,8 +58,6 @@ extern "C" {
     {T_SYMBOL,  "Symbol"},    /* :symbol */
     {T_DATA,    "Data"},      /* internal use: wrapped C pointers */
     {T_MATCH,   "MatchData"}, /* data of $~ */
-    {T_VARMAP,  "Varmap"},    /* internal use: dynamic variables */
-    {T_SCOPE,   "Scope"},     /* internal use: variable scope */
     {T_NODE,    "Node"},      /* internal use: syntax tree node */
     {T_UNDEF,   "undef"},     /* internal use: #undef; should not happen */
     {T_RATIONAL, "Rational" },
