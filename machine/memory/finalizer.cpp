@@ -351,6 +351,9 @@ namespace rubinius {
           process_list_.push_back(*i);
           i = live_list_.erase(i);
         } else {
+          // It's possible that the ManagedFinalizer finalizer is a GC root.
+          fo->mark(gc);
+
           ++i;
         }
       }
