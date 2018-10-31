@@ -572,7 +572,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
 
   def create_tmpdir
     tmpdir = nil
-    Dir.chdir Dir.tmpdir do tmpdir = Dir.pwd end # HACK OSX /private/tmp
+    Dir.chdir Dir.tmpdir do tmpdir = Dir.pwd end # HACK macOS /private/tmp
     tmpdir = File.join tmpdir, "test_rubygems_#{$$}"
     FileUtils.mkdir_p tmpdir
     return tmpdir

@@ -92,7 +92,7 @@ printf("#define dsNiceMatch     (%3u)(%%rdi)\n",(int)(((char*)&(s->nice_match))-
 
 
 /*
-  to compile for XCode 3.2 on MacOSX x86_64
+  to compile for XCode 3.2 on macOS x86_64
   - run "gcc -g -c -DXCODE_MAC_X64_STRUCTURE amd64-match.S"
  */
 
