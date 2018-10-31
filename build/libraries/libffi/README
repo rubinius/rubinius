@@ -210,7 +210,7 @@ See the git log for details at http://github.com/atgreen/libffi.
 	Build fix for m68000 targets.
 	Build fix for soft-float Power targets.
 	Fix the install dir location for some platforms when building
-	  with GCC (OS X, Solaris).
+	  with GCC (macOS, Solaris).
 	Fix Cygwin regression.
 
 3.0.12 Feb-11-13

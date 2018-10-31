@@ -258,7 +258,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
 
     FileUtils.mkdir_p @tempdir
 
-    # This makes the tempdir consistent on OS X.
+    # This makes the tempdir consistent on macOS.
     # File.expand_path Dir.tmpdir                      #=> "/var/..."
     # Dir.chdir Dir.tmpdir do File.expand_path '.' end #=> "/private/var/..."
     # TODO use File#realpath above instead of #expand_path once 1.8 support is

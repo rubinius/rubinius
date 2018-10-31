@@ -101,7 +101,7 @@ namespace rubinius {
         cpp_name = abi::__cxa_demangle(name, cpp_name, &sz, &status);
 
         // It's possible for __cxa_demangle to return 0x0, which probably
-        // shouldn't happen with status == 0, but it was observed in OS X
+        // shouldn't happen with status == 0, but it was observed in macOS
         // Mavericks Preview 2 so be paranoid.
         if(cpp_name) {
           if(!status) {

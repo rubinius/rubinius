@@ -157,7 +157,7 @@ describe :thread_exit, :shared => true do
     ScratchPad.recorded.should == :after_sleep
   end
 
-  # Hangs on 1.8.6.114 OS X, possibly also on Linux
+  # Hangs on 1.8.6.114 macOS, possibly also on Linux
   # FIX: There is no such thing as not_compliant_on(:ruby)!!!
   quarantine! do
   not_compliant_on(:ruby) do # Doing a sleep in the ensure block hangs the process

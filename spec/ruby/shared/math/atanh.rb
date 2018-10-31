@@ -31,7 +31,7 @@ describe :math_atanh_base, :shared => true do
   end
 
   # These are quarantined because MRI depends mostly on libc behavior, but
-  # not entirely. For example, on OS X 10.5.8:
+  # not entirely. For example, on macOS 10.5.8:
   #
   #   $ ruby1.8.7 -v -e 'p Math.atanh(1.0)'
   #   ruby 1.8.7 (2009-12-24 patchlevel 248) [i686-darwin9.8.0]
@@ -42,7 +42,7 @@ describe :math_atanh_base, :shared => true do
   #   -e:1:in `atanh': Numerical argument out of domain - atanh (Errno::EDOM)
   #           from -e:1:in `<main>'
   #
-  # Since MRI is linking with the same libc on OS X (afaik), MRI's behavior
+  # Since MRI is linking with the same libc on macOS (afaik), MRI's behavior
   # is not solely determined by what libc is doing. So, MRI needs to decide
   # what behavior is expected or state that the behavior is undefined.
   quarantine! do
