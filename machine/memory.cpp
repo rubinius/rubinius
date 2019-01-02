@@ -64,7 +64,7 @@ namespace rubinius {
     , code_manager_(&vm->shared)
     , cycle_(0)
     , mark_(0x1)
-    , allow_gc_(true)
+    , inhibit_gc_(0)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , interrupt_flag_(false)

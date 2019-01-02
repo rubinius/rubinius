@@ -93,7 +93,7 @@ namespace rubinius {
     unsigned int mark_;
 
     /// Flag controlling whether garbage collections are allowed
-    bool allow_gc_;
+    int inhibit_gc_;
     /// Flag set when a mature GC is already in progress
     bool mature_gc_in_progress_;
     /// Flag set when requesting a young gen resize
@@ -173,15 +173,17 @@ namespace rubinius {
     }
 
     bool can_gc() const {
-      return allow_gc_;
+      return inhibit_gc_ == 0;
     }
 
     void allow_gc() {
-      allow_gc_ = true;
+      if(inhibit_gc_ > 0) {
+        --inhibit_gc_;
+      }
     }
 
     void inhibit_gc() {
-      allow_gc_ = false;
+      ++inhibit_gc_;
     }
 
     void track_reference(MemoryHeader* object) {

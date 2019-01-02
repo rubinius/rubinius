@@ -254,7 +254,7 @@ namespace rubinius {
   }
 
   Object* System::vm_find_object(STATE, Array* arg, Object* callable) {
-    Memory::GCInhibit inhibitor(state->memory());
+    Memory::GCInhibit inhibitor(state);
 
     // Support an aux mode, where callable is an array and we just append
     // objects to it rather than #call it.
