@@ -80,13 +80,15 @@ namespace memory {
     return addr;
   }
 
-  bool ImmixGC::ObjectDescriber::mark_address(Address addr, MarkStack& ms, bool push) {
-    Object* obj = addr.as<Object>();
+  bool ImmixGC::ObjectDescriber::mark_address(
+      Address parent, Address child, MarkStack& ms, bool push)
+  {
+    Object* obj = child.as<Object>();
 
     if(obj->marked_p(memory_->mark())) return false;
     obj->set_marked(memory_->mark());
 
-    if(push) ms.push_back(addr);
+    if(push) ms.add(parent.as<Object>(), obj);
 
     return obj->region() != eLargeRegion;
   }
@@ -109,21 +111,21 @@ namespace memory {
     return obj;
   }
 
-  Object* ImmixGC::saw_object(Object* obj) {
+  Object* ImmixGC::saw_object(void* parent, Object* child) {
 #ifdef ENABLE_OBJECT_WATCH
-    if(watched_p(obj)) {
-      std::cout << "detected " << obj << " during immix scanning.\n";
+    if(watched_p(child)) {
+      std::cout << "detected " << child << " during immix scanning.\n";
     }
 #endif
 
-    if(!obj->reference_p()) return NULL;
+    if(!child->reference_p()) return NULL;
 
-    Address fwd = gc_.mark_address(Address(obj), allocator_);
+    Address fwd = gc_.mark_address(parent, Address(child), allocator_);
     Object* copy = fwd.as<Object>();
 
     // Check and update an inflated header
-    if(copy && copy != obj) {
-      obj->set_forwarded(copy);
+    if(copy && copy != child) {
+      child->set_forwarded(copy);
       return copy;
     }
 
@@ -173,20 +175,20 @@ namespace memory {
           Object* obj = reinterpret_cast<Object*>(*i);
 
           if(obj->referenced() > 0) {
-            if(Object* fwd = saw_object(obj)) {
+            if(Object* fwd = saw_object(0, obj)) {
               // TODO: MemoryHeader set new address
             }
           } else if(obj->memory_handle_p()) {
             MemoryHandle* handle = obj->extended_header()->get_handle();
             if(handle->accesses() > 0) {
-              if(Object* fwd = saw_object(obj)) {
+              if(Object* fwd = saw_object(0, obj)) {
                 // TODO: MemoryHeader set new address
               }
 
               handle->unset_accesses();
             }
           } else if(!obj->finalizer_p() && !obj->weakref_p()) {
-            if(Object* fwd = saw_object(obj)) {
+            if(Object* fwd = saw_object(0, obj)) {
               // TODO: MemoryHeader set new address
             }
           }
@@ -200,7 +202,7 @@ namespace memory {
     }
 
     for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
-      if(Object* fwd = saw_object(i->get())) {
+      if(Object* fwd = saw_object(0, i->get())) {
         i->set(fwd);
       }
     }
@@ -227,7 +229,7 @@ namespace memory {
         ++oi) {
       Object* obj = *oi;
       if(obj) {
-        if(Object* fwd = saw_object(obj)) {
+        if(Object* fwd = saw_object(0, obj)) {
           *oi = fwd;
         }
       }
@@ -352,6 +354,8 @@ namespace memory {
 
       ++i;
     }
+
+    gc_.mark_stack().finish();
 
     /* TODO: MemoryHeader
     std::cerr <<

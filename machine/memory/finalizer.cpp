@@ -36,7 +36,7 @@ namespace rubinius {
     }
 
     void NativeFinalizer::mark(ImmixGC* gc) {
-      if(Object* fwd = gc->saw_object(object())) {
+      if(Object* fwd = gc->saw_object(0, object())) {
         object(fwd);
       }
     }
@@ -88,7 +88,7 @@ namespace rubinius {
     }
 
     void ExtensionFinalizer::mark(ImmixGC* gc) {
-      if(Object* fwd = gc->saw_object(object())) {
+      if(Object* fwd = gc->saw_object(0, object())) {
         object(fwd);
       }
     }
@@ -116,11 +116,11 @@ namespace rubinius {
     }
 
     void ManagedFinalizer::mark(ImmixGC* gc) {
-      if(Object* fwd = gc->saw_object(finalizer_)) {
+      if(Object* fwd = gc->saw_object(0, finalizer_)) {
         finalizer_ = fwd;
       }
 
-      if(Object* fwd = gc->saw_object(object())) {
+      if(Object* fwd = gc->saw_object(0, object())) {
         object(fwd);
       }
     }

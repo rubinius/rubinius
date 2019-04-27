@@ -4,6 +4,7 @@
 #include "memory/address.hpp"
 #include "memory/immix_region.hpp"
 #include "memory/gc.hpp"
+#include "memory/mark_stack.hpp"
 
 #include "exception.hpp"
 #include "object_position.hpp"
@@ -90,7 +91,7 @@ namespace memory {
        * @returns true if the object is not already marked, and in the Immix
        * space; otherwise false.
        */
-      bool mark_address(Address addr, MarkStack& ms, bool push = true);
+      bool mark_address(Address parent, Address child, MarkStack& ms, bool push = true);
     };
 
     GC<ObjectDescriber> gc_;
@@ -107,7 +108,7 @@ namespace memory {
     Object* allocate(size_t bytes, bool& collect_now);
     Object* move_object(Object* orig, size_t bytes, bool& collect_now);
 
-    virtual Object* saw_object(Object*);
+    virtual Object* saw_object(void*, Object*);
     virtual void scanned_object(Object*);
     virtual bool mature_gc_in_progress();
     void collect(GCData* data);

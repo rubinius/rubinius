@@ -91,12 +91,12 @@ namespace memory {
     return obj;
   }
 
-  Object* MarkSweepGC::saw_object(Object* obj) {
-    if(obj->marked_p(memory_->mark())) return NULL;
-    obj->set_marked(memory_->mark());
+  Object* MarkSweepGC::saw_object(void* parent, Object* child) {
+    if(child->marked_p(memory_->mark())) return NULL;
+    child->set_marked(memory_->mark());
 
     // Add the object to the mark stack, to be scanned later.
-    mark_stack_.push_back(obj);
+    mark_stack_.add(parent, child);
     return NULL;
   }
 
@@ -112,6 +112,8 @@ namespace memory {
 
     // Sweep up the garbage
     sweep_objects();
+
+    mark_stack_.finish();
   }
 
   void MarkSweepGC::sweep_objects() {

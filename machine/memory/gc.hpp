@@ -103,7 +103,7 @@ namespace memory {
      * Subclasses implement appropriate behaviour for handling a live object
      * encountered during garbage collection.
      */
-    virtual Object* saw_object(Object*) = 0;
+    virtual Object* saw_object(void*, Object*) = 0;
     virtual void scanned_object(Object*) = 0;
     virtual bool mature_gc_in_progress() = 0;
 
@@ -118,11 +118,11 @@ namespace memory {
     /**
      * Marks the specified Object +obj+ as live.
      */
-    Object* mark_object(Object* obj) {
-      if(!obj || !obj->reference_p()) return obj;
-      Object* tmp = saw_object(obj);
+    Object* mark_object(void* parent, Object* child) {
+      if(!child || !child->reference_p()) return child;
+      Object* tmp = saw_object(parent, child);
       if(tmp) return tmp;
-      return obj;
+      return child;
     }
 
     void clean_weakrefs(bool check_forwards=false);

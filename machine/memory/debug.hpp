@@ -16,7 +16,7 @@ namespace memory {
     HeapDebug(Memory *om);
     virtual ~HeapDebug() { }
 
-    virtual Object* saw_object(Object* obj);
+    virtual Object* saw_object(void* parent, Object* child);
     virtual void scanned_object(Object* obj) {}
     virtual bool mature_gc_in_progress() { return false; }
     void walk(Roots &roots);

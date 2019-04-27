@@ -2,6 +2,7 @@
 #define RBX_MARKSWEEP_H
 
 #include "memory/gc.hpp"
+#include "memory/mark_stack.hpp"
 #include "memory/root.hpp"
 
 #include "object_position.hpp"
@@ -21,8 +22,6 @@ namespace rubinius {
 namespace memory {
   class MarkSweepGC : public GarbageCollector {
   public:
-    typedef std::list<Object*> MarkStack;
-
   private:
       MarkStack mark_stack_;
 
@@ -44,7 +43,7 @@ namespace memory {
     Object* copy_object(Object* obj, bool& collect_now);
     void   sweep_objects();
     void   free_object(Object* obj, bool fast = false);
-    virtual Object* saw_object(Object* obj);
+    virtual Object* saw_object(void* parent, Object* child);
     virtual void scanned_object(Object* obj) {}
     virtual bool mature_gc_in_progress();
     void after_marked();

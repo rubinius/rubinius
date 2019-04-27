@@ -11,6 +11,7 @@
 
 #include "memory/address.hpp"
 #include "memory/gc_alloc.hpp"
+#include "memory/mark_stack.hpp"
 
 namespace rubinius {
 namespace memory {
@@ -1029,8 +1030,6 @@ namespace memory {
     }
   };
 
-  typedef std::vector<Address> MarkStack;
-
   template <typename Describer> class GC;
 
   /**
@@ -1050,7 +1049,7 @@ namespace memory {
     {}
 
     void mark_address(Address addr) {
-      gc->mark_address(addr, alloc);
+      gc->mark_address(0, addr, alloc);
     }
   };
 
@@ -1137,34 +1136,34 @@ namespace memory {
      * for evacuation). Since this method does not actually know how to do the
      * marking of an object, it calls back to ObjectDescriber to handle this.
      */
-    Address mark_address(Address addr, ImmixAllocator& alloc, bool push = true) {
-      Address fwd = desc.forwarding_pointer(addr);
+    Address mark_address(Address parent, Address child, ImmixAllocator& alloc, bool push = true) {
+      Address fwd = desc.forwarding_pointer(child);
 
       if(!fwd.is_null()) {
-        addr = fwd;
+        child = fwd;
       }
 
-      // Returns false if addr is already marked, if so, we don't
+      // Returns false if child is already marked, if so, we don't
       // do the block marking logic again.
-      if(!desc.mark_address(addr, mark_stack_, push)) {
-        return addr;
+      if(!desc.mark_address(parent, child, mark_stack_, push)) {
+        return child;
       }
 
       // Find the Block the address relates to
-      Block* block = Block::from_address(addr);
-      if(block->status() == cEvacuate && !desc.pinned(addr)) {
+      Block* block = Block::from_address(child);
+      if(block->status() == cEvacuate && !desc.pinned(child)) {
         // Block is marked for evacuation, so copy the object to a new Block
-        fwd = desc.copy(addr, alloc);
-        desc.set_forwarding_pointer(addr, fwd);
+        fwd = desc.copy(child, alloc);
+        desc.set_forwarding_pointer(child, fwd);
 
-        addr = fwd;
-        block = Block::from_address(addr);
+        child = fwd;
+        block = Block::from_address(child);
       }
 
       // Mark the line(s) in the Block that this object occupies as in use
-      block->mark_address(addr, desc.size(addr));
+      block->mark_address(child, desc.size(child));
 
-      return addr;
+      return child;
     }
 
     /**
@@ -1177,29 +1176,16 @@ namespace memory {
 
       // Use while() since mark_stack_ is modified as we walk it.
       while(!mark_stack_.empty() && !exit) {
-        Address addr = mark_stack_.back();
-        mark_stack_.pop_back();
+#ifdef RBX_GC_STACK_CHECK
+        MarkStackEntry& entry = mark_stack_.get();
+        Address addr = entry.child();
+#else
+        Address addr = mark_stack_.get();
+#endif
         desc.walk_pointers(addr, mark);
       }
 
       return !mark_stack_.empty();
-    }
-
-    /**
-     * Calls the describer to update addresses that might have been
-     * forwarded by another GC.
-     */
-    size_t update_mark_stack(ImmixAllocator& alloc) {
-      Marker<Describer> mark(this, alloc);
-
-      for(MarkStack::iterator i = mark_stack_.begin(); i != mark_stack_.end(); ++i) {
-        Address addr = desc.update_pointer(*i);
-        if(!addr.is_null()) {
-          addr = mark_address(addr, alloc, false);
-        }
-        *i = addr;
-      }
-      return mark_stack_.size();
     }
 
     /**

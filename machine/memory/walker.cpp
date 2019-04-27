@@ -6,12 +6,12 @@ namespace memory {
   ObjectWalker::~ObjectWalker() {
   }
 
-  Object* ObjectWalker::saw_object(Object* obj) {
-    if(obj->reference_p()) {
-      std::map<Object*,bool>::iterator i = mark_bits_.find(obj);
+  Object* ObjectWalker::saw_object(void* parent, Object* child) {
+    if(child->reference_p()) {
+      std::map<Object*,bool>::iterator i = mark_bits_.find(child);
       if(i == mark_bits_.end()) {
-        stack_.push_back(obj);
-        mark_bits_[obj] = true;
+        stack_.push_back(child);
+        mark_bits_[child] = true;
       }
     }
 
@@ -28,11 +28,11 @@ namespace memory {
       Object* tmp = *oi;
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
-      if(tmp) saw_object(tmp);
+      if(tmp) saw_object(0, tmp);
     }
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
-      saw_object(i->get());
+      saw_object(0, i->get());
     }
 
     {

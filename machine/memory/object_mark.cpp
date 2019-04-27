@@ -32,7 +32,7 @@ namespace memory {
       rubinius::bug("Unspecified zone for object");
     }
 #endif
-    return gc->saw_object(obj);
+    return gc->saw_object(0, obj);
   }
 
   /**

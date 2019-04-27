@@ -284,10 +284,6 @@ namespace rubinius {
     console_->after_fork_child(state);
   }
 
-  const unsigned int* SharedState::object_memory_mark_address() const {
-    return om->mark_address();
-  }
-
   void SharedState::enter_capi(STATE, const char* file, int line) {
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {

@@ -18,7 +18,7 @@ namespace memory {
 
     virtual ~ObjectWalker();
 
-    virtual Object* saw_object(Object*);
+    virtual Object* saw_object(void*, Object*);
     virtual void scanned_object(Object*) {}
     virtual bool mature_gc_in_progress() { return false; }
 

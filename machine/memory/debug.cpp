@@ -18,21 +18,21 @@ namespace memory {
     while(root) {
       Object* tmp = root->get();
       if(tmp->reference_p()) {
-        saw_object(tmp);
+        saw_object(0, tmp);
       }
 
       root = static_cast<Root*>(root->next());
     }
   }
 
-  Object* HeapDebug::saw_object(Object* obj) {
-    if(!obj->reference_p()) return NULL;
+  Object* HeapDebug::saw_object(void* parent, Object* child) {
+    if(!child->reference_p()) return NULL;
 
-    if(seen[obj]) return NULL;
+    if(seen[child]) return NULL;
 
     seen_objects++;
 
-    seen[obj] = 1;
+    seen[child] = 1;
 
     /*
     if(obj->young_object_p()) {
@@ -42,7 +42,7 @@ namespace memory {
     }
     */
 
-    scan_object(obj);
+    scan_object(child);
 
     return NULL;
   }

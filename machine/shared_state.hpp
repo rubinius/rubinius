@@ -316,8 +316,6 @@ namespace rubinius {
       return &check_global_interrupts_;
     }
 
-    const unsigned int* object_memory_mark_address() const;
-
     utilities::thread::Mutex& codedb_lock() {
       return codedb_lock_;
     }
