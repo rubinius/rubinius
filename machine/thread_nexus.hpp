@@ -102,11 +102,19 @@ namespace rubinius {
 
     bool valid_thread_p(STATE, unsigned int thread_id);
 
+#ifdef RBX_GC_STACK_CHECK
+    void check_stack(STATE, VM* vm);
+#endif
+
     bool yielding_p(VM* vm);
 
     void yield(STATE, VM* vm) {
       while(stop_p()) {
         waiting_phase(state, vm);
+
+#ifdef RBX_GC_STACK_CHECK
+        check_stack(state, vm);
+#endif
 
         if(halt_p()) {
           std::lock_guard<std::mutex> lock(halting_mutex_);
@@ -131,6 +139,10 @@ namespace rubinius {
       while(stop_p()) {
         if(try_lock(vm)) {
           wait_for_all(state, vm);
+
+#ifdef RBX_GC_STACK_CHECK
+        check_stack(state, vm);
+#endif
 
           process();
 

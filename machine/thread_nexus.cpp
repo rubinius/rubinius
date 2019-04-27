@@ -13,10 +13,15 @@
 #include "diagnostics/timing.hpp"
 
 #include <chrono>
+#include <cxxabi.h>
 #include <ostream>
 #include <string>
 #include <thread>
 #include <time.h>
+
+#ifdef USE_EXECINFO
+#include <execinfo.h>
+#endif
 
 namespace rubinius {
   void ThreadNexus::set_halt(STATE, VM* vm) {
@@ -307,4 +312,50 @@ namespace rubinius {
 
     return true;
   }
+
+  static char* demangle(char* symbol, char* result, size_t size) {
+    const char* pos = strstr(symbol, " _Z");
+
+    if(pos) {
+      size_t sz = 0;
+      char *cpp_name = 0;
+      char* name = strdup(pos + 1);
+      char* end = strstr(name, " + ");
+      *end = 0;
+
+      int status;
+      if((cpp_name = abi::__cxa_demangle(name, cpp_name, &sz, &status))) {
+        if(!status) {
+          snprintf(result, size, "%.*s %s %s", int(pos - symbol), symbol, cpp_name, ++end);
+        }
+        free(cpp_name);
+      }
+
+      free(name);
+    } else {
+      strcpy(result, symbol);
+    }
+
+    return result;
+  }
+
+#ifdef RBX_GC_STACK_CHECK
+#define RBX_ABORT_CALLSTACK_SIZE    128
+#define RBX_ABORT_SYMBOL_SIZE       512
+
+  void ThreadNexus::check_stack(STATE, VM* vm) {
+    void* callstack[RBX_ABORT_CALLSTACK_SIZE];
+    char symbol[RBX_ABORT_SYMBOL_SIZE];
+
+    int i, frames = backtrace(callstack, RBX_ABORT_CALLSTACK_SIZE);
+    char** symbols = backtrace_symbols(callstack, frames);
+
+    logger::debug("Backtrace for thread: %s", vm->name().c_str());
+    for(i = 0; i < frames; i++) {
+      logger::debug("%s", demangle(symbols[i], symbol, RBX_ABORT_SYMBOL_SIZE));
+    }
+
+    free(symbols);
+  }
+#endif
 }

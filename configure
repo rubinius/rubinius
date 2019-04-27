@@ -45,6 +45,7 @@ class Configure
     @linux = nil
     @little_endian = false
     @sizeof = {}
+    @gc_stack_check = false
 
     # Build tools
     @cc = nil
@@ -316,6 +317,10 @@ class Configure
 
     o.on "--no-release-build", "Build from the network instead of local files" do
       @release_build = false
+    end
+
+    o.on "--gc-stack-check", "Emit stack trace for all threads on pause for GC" do
+      @gc_stack_check = true
     end
 
     o.doc "\n Compiler settings"
@@ -1722,6 +1727,10 @@ int main(int argc, char* argv[]) {
 
       if @tr1_hash
         f.puts "#define RBX_HAVE_TR1_HASH    1"
+      end
+
+      if @gc_stack_check
+        f.puts "#define RBX_GC_STACK_CHECK   1"
       end
 
       [:windows, :darwin, :bsd, :linux].each do |platform|

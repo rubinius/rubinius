@@ -534,6 +534,7 @@ namespace rubinius {
     signal_thread_->print_backtraces();
     logger::fatal("--- end Ruby backtraces ---");
 
+    free(symbols);
     raise(sig);
   }
 #endif
