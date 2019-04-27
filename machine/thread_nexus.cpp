@@ -350,7 +350,7 @@ namespace rubinius {
     int i, frames = backtrace(callstack, RBX_ABORT_CALLSTACK_SIZE);
     char** symbols = backtrace_symbols(callstack, frames);
 
-    logger::debug("Backtrace for thread: %s", vm->name().c_str());
+    logger::debug("Backtrace for %s: %s", vm->kind_name(), vm->name().c_str());
     for(i = 0; i < frames; i++) {
       logger::debug("%s", demangle(symbols[i], symbol, RBX_ABORT_SYMBOL_SIZE));
     }
