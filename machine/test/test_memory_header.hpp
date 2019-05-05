@@ -118,6 +118,16 @@ public:
     TS_ASSERT_EQUALS(h.referenced(), 15);
   }
 
+  void test_memory_header_add_reference_adds_to_list() {
+    Object* obj = state->memory()->new_object<Object>(state, G(object));
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 0);
+
+    obj->add_reference(state);
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 1);
+  }
+
   void test_memory_header_add_reference() {
     Object* obj = state->memory()->new_object<Object>(state, G(object));
 

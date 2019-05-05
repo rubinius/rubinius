@@ -243,6 +243,38 @@ namespace memory {
     // We do this in a loop because the scanning might generate new entries
     // on the mark stack.
     do {
+      for(auto i = data->references().begin();
+          i != data->references().end();)
+      {
+        if((*i)->reference_p()) {
+          if((*i)->object_p()) {
+            Object* obj = reinterpret_cast<Object*>(*i);
+
+            if(obj->memory_handle_p()) {
+              MemoryHandle* handle = obj->extended_header()->get_handle();
+
+              if(!obj->marked_p(data->mark())) {
+                if(handle->cycles() < 3) {
+                  if(Object* fwd = saw_object(0, obj)) {
+                    // TODO: MemoryHeader set new address
+                  }
+                  handle->cycle();
+                } else {
+                  i = data->references().erase(i);
+                  continue;
+                }
+              } else if(handle->rdata_p()) {
+                if(obj->marked_p(data->mark())) {
+                  scan_object(obj);
+                }
+              }
+            }
+          }
+        }
+
+        ++i;
+      }
+
       /* TODO: MemoryHandle
       for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator());
           i.more();

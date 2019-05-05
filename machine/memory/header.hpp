@@ -302,12 +302,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     attr_field(type, HandleType);
     attr_field(accesses, unsigned int);
+    attr_field(cycles, unsigned int);
     attr_field(object, Object*);
     attr_field(data, void*);
 
     MemoryHandle(Object* object)
       : _type_(eUnknown)
       , _accesses_(0)
+      , _cycles_(0)
       , _object_(object)
       , _data_(nullptr)
     {
@@ -338,6 +340,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void access() {
       _accesses_++;
+    }
+
+    void cycle() {
+      _cycles_++;
     }
 
     bool unknown_type_p() const {

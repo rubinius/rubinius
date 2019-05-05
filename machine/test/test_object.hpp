@@ -441,6 +441,16 @@ public:
     TS_ASSERT_EQUALS(big->get_type(), BignumType);
   }
 
+  void test_get_handle() {
+    Object* obj = state->memory()->new_object<Object>(state, G(object));
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 0);
+
+    obj->get_handle(state);
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 1);
+  }
+
   Object* util_new_object() {
     return state->memory()->new_object<Object>(state, G(object));
   }

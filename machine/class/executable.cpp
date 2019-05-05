@@ -78,6 +78,7 @@ namespace rubinius {
     for(std::vector<CompiledCode*>::const_iterator i = inliners()->inliners().begin();
         i != inliners()->inliners().end();
         ++i) {
+      // TODO: JIT inliners
       // (*i)->machine_code()->deoptimize(state, *i, 0);
     }
 
@@ -86,7 +87,8 @@ namespace rubinius {
 
   void Executable::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
-    mark_inliners(obj, mark);
+    // TODO: JIT inliners
+    // mark_inliners(obj, mark);
   }
 
   void Executable::Info::mark_inliners(Object* obj, memory::ObjectMark& mark) {
