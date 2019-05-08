@@ -120,7 +120,7 @@ namespace rubinius {
         finalizer_ = fwd;
       }
 
-      if(Object* fwd = gc->saw_object(0, object())) {
+      if(Object* fwd = gc->saw_object(finalizer_, object())) {
         object(fwd);
       }
     }

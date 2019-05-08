@@ -64,16 +64,20 @@ namespace memory {
     }
 
     void finish() {
-      /*
-      while(!stack_.empty()) {
-        MarkStackEntry* entry = stack_.back();
-        stack_.pop_back();
-        delete entry;
-      }
-      */
-
       stack_.erase(stack_.begin(), stack_.end());
       index_ = 0;
+    }
+
+    void find(void* obj) {
+      for(auto i = stack_.begin(); i != stack_.end(); ++i) {
+        MarkStackEntry& entry = *i;
+
+        if(entry.child() == obj) {
+          std::cerr << "obj: " << obj << " child of parent: " << entry.parent() << std::endl;
+        } else if(entry.parent() == obj) {
+          std::cerr << "obj: " << obj << " parent of child: " << entry.child() << std::endl;
+        }
+      }
     }
   };
 #else

@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include "paths.h"
+#include "debug.h"
 
 
 using namespace std;
