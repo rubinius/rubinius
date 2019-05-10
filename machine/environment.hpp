@@ -17,7 +17,7 @@
 namespace rubinius {
 
   namespace memory {
-    class FinalizerThread;
+    class CollectorThread;
   }
 
   class ConfigParser;
@@ -39,7 +39,7 @@ namespace rubinius {
     locks::spinlock_mutex fork_exec_lock_;
     std::mutex halt_lock_;
 
-    memory::FinalizerThread* finalizer_thread_;
+    memory::CollectorThread* collector_thread_;
 
     std::string system_prefix_;
 
@@ -111,7 +111,7 @@ namespace rubinius {
     void halt(STATE, int exit_code);
     void atexit();
 
-    void start_finalizer(STATE);
+    void start_collector(STATE);
 
     void start_logging(STATE);
     void restart_logging(STATE);

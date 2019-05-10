@@ -24,7 +24,7 @@
 
 #include "logger.hpp"
 
-#include "memory/finalizer.hpp"
+#include "memory/collector.hpp"
 
 #include "signal.hpp"
 #include "object_utils.hpp"
@@ -69,7 +69,7 @@ namespace rubinius {
     , argv_(0)
     , fork_exec_lock_()
     , halt_lock_()
-    , finalizer_thread_(NULL)
+    , collector_thread_(NULL)
     , loader_(NULL)
   {
     String::init_hash();
@@ -117,7 +117,7 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    delete finalizer_thread_;
+    delete collector_thread_;
 
     VM::discard(state, root_vm);
     delete shared;
@@ -173,9 +173,9 @@ namespace rubinius {
     logger::close();
   }
 
-  void Environment::start_finalizer(STATE) {
-    finalizer_thread_ = new memory::FinalizerThread(state);
-    finalizer_thread_->start(state);
+  void Environment::start_collector(STATE) {
+    collector_thread_ = new memory::CollectorThread(state);
+    collector_thread_->start(state);
   }
 
   void Environment::start_logging(STATE) {
@@ -526,8 +526,8 @@ namespace rubinius {
 
     shared->thread_nexus()->halt(state, state->vm());
 
-    shared->finalizer()->dispose(state);
-    shared->finalizer()->finish(state);
+    shared->collector()->dispose(state);
+    shared->collector()->finish(state);
 
     if(!G(coredb)->nil_p()) G(coredb)->close(state);
 
@@ -710,7 +710,7 @@ namespace rubinius {
       state->vm()->bootstrap_ontology(state);
     }
 
-    start_finalizer(state);
+    start_collector(state);
 
     load_argv(argc_, argv_);
 

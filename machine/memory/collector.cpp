@@ -16,7 +16,7 @@
 
 #include "diagnostics/gc.hpp"
 
-#include "memory/finalizer.hpp"
+#include "memory/collector.hpp"
 
 #include "logger.hpp"
 
@@ -74,7 +74,7 @@ namespace rubinius {
 
         if(unlikely(ep.jumped_to())) {
           logger::warn(
-              "finalizer: an exception occurred running a NativeMethod finalizer");
+              "collector: an exception occurred running a NativeMethod finalizer");
         } else {
           (*finalizer_)(state, object());
         }
@@ -83,7 +83,7 @@ namespace rubinius {
         env->set_current_call_frame(0);
         env->set_current_native_frame(0);
       } else {
-        logger::warn("finalizer: stack error");
+        logger::warn("collector: stack error");
       }
     }
 
@@ -108,7 +108,7 @@ namespace rubinius {
         if(!finalizer_->send(state, G(sym_call), ary)) {
           if(state->vm()->thread_state()->raise_reason() == cException) {
             logger::warn(
-                "finalizer: an exception occurred running a Ruby finalizer: %s",
+                "collector: an exception occurred running a Ruby finalizer: %s",
                 state->vm()->thread_state()->current_exception()->message_c_str(state));
           }
         }
@@ -141,8 +141,8 @@ namespace rubinius {
       return match;
     }
 
-    FinalizerThread::FinalizerThread(STATE)
-      : MachineThread(state, "rbx.finalizer", MachineThread::eLarge)
+    CollectorThread::CollectorThread(STATE)
+      : MachineThread(state, "rbx.collector", MachineThread::eLarge)
       , live_list_()
       , process_list_()
       , list_mutex_()
@@ -153,28 +153,28 @@ namespace rubinius {
       state->shared().set_finalizer(this);
     }
 
-    FinalizerThread::~FinalizerThread() {
+    CollectorThread::~CollectorThread() {
       if(!live_list_.empty()) {
-        logger::error("FinalizerThread destructed with remaining finalizer objects");
+        logger::error("collector: destructed with remaining finalizer objects");
       }
 
       if(!process_list_.empty()) {
-        logger::error("FinalizerThread destructed with remaining to-be-finalized objects");
+        logger::error("collector: destructed with remaining to-be-finalized objects");
       }
     }
 
-    void FinalizerThread::after_fork_child(STATE) {
+    void CollectorThread::after_fork_child(STATE) {
       new(&list_mutex_) std::mutex;
       new(&list_condition_) std::condition_variable;
 
       MachineThread::after_fork_child(state);
     }
 
-    void FinalizerThread::initialize(STATE) {
+    void CollectorThread::initialize(STATE) {
       Thread::create(state, vm());
     }
 
-    void FinalizerThread::wakeup(STATE) {
+    void CollectorThread::wakeup(STATE) {
       MachineThread::wakeup(state);
 
       while(thread_running_p()) {
@@ -182,13 +182,16 @@ namespace rubinius {
       }
     }
 
-    void FinalizerThread::stop(STATE) {
+    void CollectorThread::stop(STATE) {
       state->shared().machine_threads()->unregister_thread(this);
 
       stop_thread(state);
     }
 
-    void FinalizerThread::run(STATE) {
+    void CollectorThread::collect(STATE) {
+    }
+
+    void CollectorThread::run(STATE) {
       state->vm()->managed_phase(state);
 
       while(!thread_exit_) {
@@ -227,7 +230,7 @@ namespace rubinius {
       state->vm()->thread()->vm()->set_zombie(state);
     }
 
-    void FinalizerThread::dispose(STATE) {
+    void CollectorThread::dispose(STATE) {
       finishing_ = true;
 
       std::lock_guard<std::mutex> guard(list_mutex());
@@ -249,7 +252,7 @@ namespace rubinius {
       }
     }
 
-    void FinalizerThread::finish(STATE) {
+    void CollectorThread::finish(STATE) {
       finishing_ = true;
 
       while(!process_list_.empty()) {
@@ -273,7 +276,7 @@ namespace rubinius {
       }
     }
 
-    void FinalizerThread::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
+    void CollectorThread::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
       UnmanagedPhase unmanaged(state);
@@ -282,7 +285,7 @@ namespace rubinius {
       add_finalizer(state, new NativeFinalizer(state, obj, func));
     }
 
-    void FinalizerThread::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
+    void CollectorThread::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
       UnmanagedPhase unmanaged(state);
@@ -291,7 +294,7 @@ namespace rubinius {
       add_finalizer(state, new ExtensionFinalizer(state, obj, func));
     }
 
-    void FinalizerThread::managed_finalizer(STATE, Object* obj, Object* finalizer) {
+    void CollectorThread::managed_finalizer(STATE, Object* obj, Object* finalizer) {
       if(finishing_) return;
 
       /* This method will be called by a managed thread during a managed
@@ -335,12 +338,12 @@ namespace rubinius {
             obj == finalizer ? cTrue : finalizer));
     }
 
-    void FinalizerThread::add_finalizer(STATE, FinalizerObject* obj) {
+    void CollectorThread::add_finalizer(STATE, FinalizerObject* obj) {
       live_list_.push_back(obj);
       state->shared().gc_metrics()->objects_queued++;
     }
 
-    void FinalizerThread::gc_scan(ImmixGC* gc, Memory* memory) {
+    void CollectorThread::gc_scan(ImmixGC* gc, Memory* memory) {
       for(FinalizerObjects::iterator i = live_list_.begin();
           i != live_list_.end();
           /* advance is handled in the loop */)

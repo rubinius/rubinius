@@ -1,5 +1,5 @@
-#ifndef RBX_GC_FINALIZE_HPP
-#define RBX_GC_FINALIZE_HPP
+#ifndef RBX_MEMORY_COLLECTOR_HPP
+#define RBX_MEMORY_COLLECTOR_HPP
 
 #include "machine_threads.hpp"
 
@@ -92,7 +92,7 @@ namespace rubinius {
 
     typedef std::list<FinalizerObject*> FinalizerObjects;
 
-    class FinalizerThread : public MachineThread {
+    class CollectorThread : public MachineThread {
       FinalizerObjects live_list_;
       FinalizerObjects process_list_;
 
@@ -102,8 +102,8 @@ namespace rubinius {
       std::atomic<bool> finishing_;
 
     public:
-      FinalizerThread(STATE);
-      virtual ~FinalizerThread();
+      CollectorThread(STATE);
+      virtual ~CollectorThread();
 
       std::mutex& list_mutex() {
         return list_mutex_;
@@ -129,6 +129,8 @@ namespace rubinius {
       void stop(STATE);
       void wakeup(STATE);
       void after_fork_child(STATE);
+
+      void collect(STATE);
     };
   }
 }

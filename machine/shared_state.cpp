@@ -37,7 +37,7 @@ namespace rubinius {
     : thread_nexus_(new ThreadNexus())
     , machine_threads_(nullptr)
     , signals_(nullptr)
-    , finalizer_(nullptr)
+    , collector_(nullptr)
     , console_(nullptr)
     , jit_(nullptr)
     , diagnostics_(nullptr)

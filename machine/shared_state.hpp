@@ -37,7 +37,7 @@ namespace rubinius {
   }
 
   namespace memory {
-    class FinalizerThread;
+    class CollectorThread;
     class ManagedThread;
   }
 
@@ -83,7 +83,7 @@ namespace rubinius {
     ThreadNexus* thread_nexus_;
     MachineThreads* machine_threads_;
     SignalThread* signals_;
-    memory::FinalizerThread* finalizer_;
+    memory::CollectorThread* collector_;
     console::Console* console_;
     jit::JIT* jit_;
 
@@ -182,12 +182,12 @@ namespace rubinius {
       return machine_threads_;
     }
 
-    memory::FinalizerThread* finalizer() const {
-      return finalizer_;
+    memory::CollectorThread* collector() const {
+      return collector_;
     }
 
-    void set_finalizer(memory::FinalizerThread* thr) {
-      finalizer_ = thr;
+    void set_finalizer(memory::CollectorThread* thr) {
+      collector_ = thr;
     }
 
     Array* vm_threads(STATE);

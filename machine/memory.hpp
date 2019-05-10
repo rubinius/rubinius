@@ -14,7 +14,7 @@
 #include "class/object.hpp"
 
 #include "memory/code_manager.hpp"
-#include "memory/finalizer.hpp"
+#include "memory/collector.hpp"
 #include "memory/write_barrier.hpp"
 #include "memory/immix_collector.hpp"
 
@@ -39,7 +39,7 @@ namespace rubinius {
   class Thread;
 
   namespace memory {
-    class FinalizerThread;
+    class CollectorThread;
     class GCData;
     class ImmixGC;
     class ImmixMarker;
@@ -230,8 +230,8 @@ namespace rubinius {
       }
     }
 
-    memory::FinalizerThread* finalizer() const {
-      return shared_.finalizer();
+    memory::CollectorThread* collector() const {
+      return shared_.collector();
     }
 
     ObjectArray* weak_refs_set();
@@ -538,19 +538,19 @@ namespace rubinius {
     void collect_maybe(STATE);
 
     void native_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::FinalizerThread* f = this->finalizer()) {
+      if(memory::CollectorThread* f = this->collector()) {
         f->native_finalizer(state, obj, func);
       }
     }
 
     void extension_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::FinalizerThread* f = this->finalizer()) {
+      if(memory::CollectorThread* f = this->collector()) {
         f->extension_finalizer(state, obj, func);
       }
     }
 
     void managed_finalizer(STATE, Object* obj, Object* finalizer) {
-      if(memory::FinalizerThread* f = this->finalizer()) {
+      if(memory::CollectorThread* f = this->collector()) {
         f->managed_finalizer(state, obj, finalizer);
       }
     }

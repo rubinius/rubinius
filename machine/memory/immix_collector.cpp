@@ -292,13 +292,13 @@ namespace memory {
       */
     } while(process_mark_stack());
 
-    if(FinalizerThread* finalizer = memory_->finalizer()) {
-      std::lock_guard<std::mutex> guard(finalizer->list_mutex());
+    if(CollectorThread* collector = memory_->collector()) {
+      std::lock_guard<std::mutex> guard(collector->list_mutex());
 
-      finalizer->gc_scan(this, memory_);
+      collector->gc_scan(this, memory_);
       process_mark_stack();
 
-      finalizer->list_condition().notify_one();
+      collector->list_condition().notify_one();
     }
 
     // Clear unreachable objects from the various remember sets
