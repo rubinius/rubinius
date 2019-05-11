@@ -141,7 +141,7 @@ namespace rubinius {
       return match;
     }
 
-    CollectorThread::CollectorThread(STATE)
+    Collector::Collector(STATE)
       : MachineThread(state, "rbx.collector", MachineThread::eLarge)
       , live_list_()
       , process_list_()
@@ -150,10 +150,10 @@ namespace rubinius {
       , finishing_(false)
     {
       initialize(state);
-      state->shared().set_finalizer(this);
+      state->shared().set_collector(this);
     }
 
-    CollectorThread::~CollectorThread() {
+    Collector::~Collector() {
       if(!live_list_.empty()) {
         logger::error("collector: destructed with remaining finalizer objects");
       }
@@ -163,18 +163,18 @@ namespace rubinius {
       }
     }
 
-    void CollectorThread::after_fork_child(STATE) {
+    void Collector::after_fork_child(STATE) {
       new(&list_mutex_) std::mutex;
       new(&list_condition_) std::condition_variable;
 
       MachineThread::after_fork_child(state);
     }
 
-    void CollectorThread::initialize(STATE) {
+    void Collector::initialize(STATE) {
       Thread::create(state, vm());
     }
 
-    void CollectorThread::wakeup(STATE) {
+    void Collector::wakeup(STATE) {
       MachineThread::wakeup(state);
 
       while(thread_running_p()) {
@@ -182,16 +182,16 @@ namespace rubinius {
       }
     }
 
-    void CollectorThread::stop(STATE) {
+    void Collector::stop(STATE) {
       state->shared().machine_threads()->unregister_thread(this);
 
       stop_thread(state);
     }
 
-    void CollectorThread::collect(STATE) {
+    void Collector::collect(STATE) {
     }
 
-    void CollectorThread::run(STATE) {
+    void Collector::run(STATE) {
       state->vm()->managed_phase(state);
 
       while(!thread_exit_) {
@@ -230,7 +230,7 @@ namespace rubinius {
       state->vm()->thread()->vm()->set_zombie(state);
     }
 
-    void CollectorThread::dispose(STATE) {
+    void Collector::dispose(STATE) {
       finishing_ = true;
 
       std::lock_guard<std::mutex> guard(list_mutex());
@@ -252,7 +252,7 @@ namespace rubinius {
       }
     }
 
-    void CollectorThread::finish(STATE) {
+    void Collector::finish(STATE) {
       finishing_ = true;
 
       while(!process_list_.empty()) {
@@ -276,7 +276,7 @@ namespace rubinius {
       }
     }
 
-    void CollectorThread::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
+    void Collector::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
       UnmanagedPhase unmanaged(state);
@@ -285,7 +285,7 @@ namespace rubinius {
       add_finalizer(state, new NativeFinalizer(state, obj, func));
     }
 
-    void CollectorThread::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
+    void Collector::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
       UnmanagedPhase unmanaged(state);
@@ -294,7 +294,7 @@ namespace rubinius {
       add_finalizer(state, new ExtensionFinalizer(state, obj, func));
     }
 
-    void CollectorThread::managed_finalizer(STATE, Object* obj, Object* finalizer) {
+    void Collector::managed_finalizer(STATE, Object* obj, Object* finalizer) {
       if(finishing_) return;
 
       /* This method will be called by a managed thread during a managed
@@ -338,12 +338,12 @@ namespace rubinius {
             obj == finalizer ? cTrue : finalizer));
     }
 
-    void CollectorThread::add_finalizer(STATE, FinalizerObject* obj) {
+    void Collector::add_finalizer(STATE, FinalizerObject* obj) {
       live_list_.push_back(obj);
       state->shared().gc_metrics()->objects_queued++;
     }
 
-    void CollectorThread::gc_scan(ImmixGC* gc, Memory* memory) {
+    void Collector::gc_scan(ImmixGC* gc, Memory* memory) {
       for(FinalizerObjects::iterator i = live_list_.begin();
           i != live_list_.end();
           /* advance is handled in the loop */)

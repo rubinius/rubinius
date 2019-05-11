@@ -92,7 +92,7 @@ namespace rubinius {
 
     typedef std::list<FinalizerObject*> FinalizerObjects;
 
-    class CollectorThread : public MachineThread {
+    class Collector : public MachineThread {
       FinalizerObjects live_list_;
       FinalizerObjects process_list_;
 
@@ -101,9 +101,12 @@ namespace rubinius {
 
       std::atomic<bool> finishing_;
 
+      std::atomic<int> inhibit_collection_;
+      std::atomic<bool> collect_requested_;
+
     public:
-      CollectorThread(STATE);
-      virtual ~CollectorThread();
+      Collector(STATE);
+      virtual ~Collector();
 
       std::mutex& list_mutex() {
         return list_mutex_;
@@ -130,7 +133,46 @@ namespace rubinius {
       void wakeup(STATE);
       void after_fork_child(STATE);
 
+      void inhibit_collection() {
+        ++inhibit_collection_;
+      }
+
+      void allow_collection() {
+        --inhibit_collection_;
+        if(inhibit_collection_ < 0) inhibit_collection_ = 0;
+      }
+
+      bool collect_p() {
+        return inhibit_collection_ == 0;
+      }
+
+      void collect_requested(STATE);
       void collect(STATE);
+
+
+      /**
+       * Object used to prevent garbage collections from running for a short
+       * period while the memory is scanned, e.g. to find referrers to an
+       * object or take a snapshot of the heap. Typically, an instance of this
+       * class is created at the start of a method that requires the heap to
+       * be stable. When the method ends, the object goes out of scope and is
+       * destroyed, re-enabling garbage collections.
+       */
+
+      class Inhibit {
+        Collector* collector_;
+
+      public:
+        Inhibit(STATE)
+          : collector_(state->collector())
+        {
+          collector_->inhibit_collection();
+        }
+
+        ~Inhibit() {
+          collector_->allow_collection();
+        }
+      };
     };
   }
 }

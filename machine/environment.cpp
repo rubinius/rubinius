@@ -69,7 +69,7 @@ namespace rubinius {
     , argv_(0)
     , fork_exec_lock_()
     , halt_lock_()
-    , collector_thread_(NULL)
+    , collector_(NULL)
     , loader_(NULL)
   {
     String::init_hash();
@@ -117,7 +117,7 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    delete collector_thread_;
+    delete collector_;
 
     VM::discard(state, root_vm);
     delete shared;
@@ -174,8 +174,8 @@ namespace rubinius {
   }
 
   void Environment::start_collector(STATE) {
-    collector_thread_ = new memory::CollectorThread(state);
-    collector_thread_->start(state);
+    collector_ = new memory::Collector(state);
+    collector_->start(state);
   }
 
   void Environment::start_logging(STATE) {

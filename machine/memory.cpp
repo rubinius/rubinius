@@ -64,7 +64,6 @@ namespace rubinius {
     , code_manager_(&vm->shared)
     , cycle_(0)
     , mark_(0x1)
-    , inhibit_gc_(0)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , interrupt_flag_(false)
@@ -197,7 +196,7 @@ namespace rubinius {
      * flags so that we don't thrash constantly trying to GC. When the GC
      * prohibition lifts, a GC will eventually be triggered again.
      */
-    if(!can_gc()) {
+    if(!state->collector()->collect_p()) {
       collect_young_flag_ = false;
       collect_full_flag_ = false;
       interrupt_flag_ = false;

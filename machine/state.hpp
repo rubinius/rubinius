@@ -82,6 +82,10 @@ namespace rubinius {
       return shared_.memory();
     }
 
+    memory::Collector* collector() {
+      return shared_.collector();
+    }
+
     SharedState& shared() {
       return shared_;
     }

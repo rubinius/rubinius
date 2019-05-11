@@ -10,6 +10,7 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 #include "class/system.hpp"
+#include "memory/collector.hpp"
 #include "memory/gc.hpp"
 #include "memory/walker.hpp"
 #include "memory.hpp"
@@ -254,7 +255,7 @@ namespace rubinius {
   }
 
   Object* System::vm_find_object(STATE, Array* arg, Object* callable) {
-    Memory::GCInhibit inhibitor(state);
+    memory::Collector::Inhibit inhibitor(state);
 
     // Support an aux mode, where callable is an array and we just append
     // objects to it rather than #call it.

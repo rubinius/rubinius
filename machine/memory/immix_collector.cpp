@@ -292,7 +292,7 @@ namespace memory {
       */
     } while(process_mark_stack());
 
-    if(CollectorThread* collector = memory_->collector()) {
+    if(Collector* collector = memory_->collector()) {
       std::lock_guard<std::mutex> guard(collector->list_mutex());
 
       collector->gc_scan(this, memory_);

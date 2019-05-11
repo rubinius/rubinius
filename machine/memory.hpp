@@ -39,7 +39,7 @@ namespace rubinius {
   class Thread;
 
   namespace memory {
-    class CollectorThread;
+    class Collector;
     class GCData;
     class ImmixGC;
     class ImmixMarker;
@@ -92,8 +92,6 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
-    /// Flag controlling whether garbage collections are allowed
-    int inhibit_gc_;
     /// Flag set when a mature GC is already in progress
     bool mature_gc_in_progress_;
     /// Flag set when requesting a young gen resize
@@ -172,20 +170,6 @@ namespace rubinius {
       mark_ ^= 0x3;
     }
 
-    bool can_gc() const {
-      return inhibit_gc_ == 0;
-    }
-
-    void allow_gc() {
-      if(inhibit_gc_ > 0) {
-        --inhibit_gc_;
-      }
-    }
-
-    void inhibit_gc() {
-      ++inhibit_gc_;
-    }
-
     void track_reference(MemoryHeader* object) {
       std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
 
@@ -196,16 +180,6 @@ namespace rubinius {
       std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
 
       references_set_.erase(object);
-    }
-
-    void schedule_young_collection(VM* vm, diagnostics::metric& counter) {
-      counter++;
-
-      // Don't trigger GC if currently prohibited so we don't thrash checking.
-      if(can_gc()) {
-        interrupt_flag_ = collect_young_flag_ = true;
-        shared_.thread_nexus()->set_stop();
-      }
     }
 
     void schedule_full_collection(const char* trigger, diagnostics::metric& counter) {
@@ -222,7 +196,7 @@ namespace rubinius {
         logger::write("memory: full collection: trigger: %s", trigger);
       }
 
-      if(can_gc()) {
+      if(shared_.collector()->collect_p()) {
         interrupt_flag_ = collect_full_flag_ = true;
         shared_.thread_nexus()->set_stop();
       } else if(shared_.config.log_gc_set.value) {
@@ -230,7 +204,7 @@ namespace rubinius {
       }
     }
 
-    memory::CollectorThread* collector() const {
+    memory::Collector* collector() const {
       return shared_.collector();
     }
 
@@ -526,7 +500,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
 
     void collect(STATE) {
-      if(can_gc()) {
+      if(state->collector()->collect_p()) {
         collect_young_flag_ = true;
         collect_full_flag_ = true;
         interrupt_flag_ = true;
@@ -538,19 +512,19 @@ namespace rubinius {
     void collect_maybe(STATE);
 
     void native_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::CollectorThread* f = this->collector()) {
+      if(memory::Collector* f = this->collector()) {
         f->native_finalizer(state, obj, func);
       }
     }
 
     void extension_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::CollectorThread* f = this->collector()) {
+      if(memory::Collector* f = this->collector()) {
         f->extension_finalizer(state, obj, func);
       }
     }
 
     void managed_finalizer(STATE, Object* obj, Object* finalizer) {
-      if(memory::CollectorThread* f = this->collector()) {
+      if(memory::Collector* f = this->collector()) {
         f->managed_finalizer(state, obj, finalizer);
       }
     }
@@ -596,35 +570,6 @@ namespace rubinius {
     friend class ::TestVM;
 
 
-    /**
-     * Object used to prevent garbage collections from running for a short
-     * period while the memory is scanned, e.g. to find referrers to an
-     * object or take a snapshot of the heap. Typically, an instance of
-     * this class is created at the start of a method that requires the
-     * heap to be stable. When the method ends, the object goes out of
-     * scope and is destroyed, re-enabling garbage collections.
-     */
-
-    class GCInhibit {
-      Memory* om_;
-
-    public:
-      GCInhibit(Memory* om)
-        : om_(om)
-      {
-        om->inhibit_gc();
-      }
-
-      GCInhibit(STATE)
-        : om_(state->memory())
-      {
-        om_->inhibit_gc();
-      }
-
-      ~GCInhibit() {
-        om_->allow_gc();
-      }
-    };
   };
 };
 

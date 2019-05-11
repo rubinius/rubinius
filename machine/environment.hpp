@@ -17,7 +17,7 @@
 namespace rubinius {
 
   namespace memory {
-    class CollectorThread;
+    class Collector;
   }
 
   class ConfigParser;
@@ -39,7 +39,7 @@ namespace rubinius {
     locks::spinlock_mutex fork_exec_lock_;
     std::mutex halt_lock_;
 
-    memory::CollectorThread* collector_thread_;
+    memory::Collector* collector_;
 
     std::string system_prefix_;
 
