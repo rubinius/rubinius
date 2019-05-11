@@ -23,6 +23,7 @@
 #include "util/atomic.hpp"
 #include "util/thread.hpp"
 
+#include "state.hpp"
 #include "shared_state.hpp"
 
 #include <unordered_set>
@@ -76,6 +77,8 @@ namespace rubinius {
 
     /// BakerGC used for the young generation
     /* BakerGC* young_; */
+
+    memory::Collector* collector_;
 
     /// MarkSweepGC used for the large object store
     memory::MarkSweepGC* mark_sweep_;
@@ -150,6 +153,10 @@ namespace rubinius {
       return this;
     }
 
+    memory::Collector* collector() {
+      return collector_;
+    }
+
     std::unordered_set<MemoryHeader*>& references() {
       return references_set_;
     }
@@ -196,7 +203,7 @@ namespace rubinius {
         logger::write("memory: full collection: trigger: %s", trigger);
       }
 
-      if(shared_.collector()->collect_p()) {
+      if(collector()->collect_p()) {
         interrupt_flag_ = collect_full_flag_ = true;
         shared_.thread_nexus()->set_stop();
       } else if(shared_.config.log_gc_set.value) {
@@ -204,14 +211,10 @@ namespace rubinius {
       }
     }
 
-    memory::Collector* collector() const {
-      return shared_.collector();
-    }
-
     ObjectArray* weak_refs_set();
 
   public:
-    Memory(VM* state, SharedState& shared);
+    Memory(STATE);
     ~Memory();
 
     void after_fork_child(STATE);
@@ -500,7 +503,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
 
     void collect(STATE) {
-      if(state->collector()->collect_p()) {
+      if(collector()->collect_p()) {
         collect_young_flag_ = true;
         collect_full_flag_ = true;
         interrupt_flag_ = true;

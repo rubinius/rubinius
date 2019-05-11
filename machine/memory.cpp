@@ -57,11 +57,11 @@ namespace rubinius {
   Object* object_watch = 0;
 
   /* Memory methods */
-  Memory::Memory(VM* vm, SharedState& shared)
-    /* : young_(new BakerGC(this, shared.config)) */
-    : mark_sweep_(new memory::MarkSweepGC(this, shared.config))
+  Memory::Memory(STATE)
+    : collector_(new memory::Collector(state))
+    , mark_sweep_(new memory::MarkSweepGC(this, state->shared().config))
     , immix_(new memory::ImmixGC(this))
-    , code_manager_(&vm->shared)
+    , code_manager_(&state->shared())
     , cycle_(0)
     , mark_(0x1)
     , mature_gc_in_progress_(false)
@@ -71,11 +71,11 @@ namespace rubinius {
     , collect_full_flag_(false)
     , references_lock_()
     , references_set_()
-    , shared_(vm->shared)
-    , vm_(vm)
+    , shared_(state->shared())
+    , vm_(state->vm())
     , last_object_id(1)
     , last_snapshot_id(0)
-    , large_object_threshold(shared.config.memory_large_object)
+    , large_object_threshold(state->shared().config.memory_large_object)
   {
     // TODO Not sure where this code should be...
 #ifdef ENABLE_OBJECT_WATCH
@@ -196,7 +196,7 @@ namespace rubinius {
      * flags so that we don't thrash constantly trying to GC. When the GC
      * prohibition lifts, a GC will eventually be triggered again.
      */
-    if(!state->collector()->collect_p()) {
+    if(!collector()->collect_p()) {
       collect_young_flag_ = false;
       collect_full_flag_ = false;
       interrupt_flag_ = false;

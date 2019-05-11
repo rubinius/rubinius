@@ -37,7 +37,6 @@ namespace rubinius {
     : thread_nexus_(new ThreadNexus())
     , machine_threads_(nullptr)
     , signals_(nullptr)
-    , collector_(nullptr)
     , console_(nullptr)
     , jit_(nullptr)
     , diagnostics_(nullptr)
@@ -102,6 +101,10 @@ namespace rubinius {
 
     delete om;
     delete machine_threads_;
+  }
+
+  memory::Collector* SharedState::collector() {
+    return om->collector();
   }
 
   Array* SharedState::vm_threads(STATE) {

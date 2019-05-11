@@ -92,7 +92,51 @@ namespace rubinius {
 
     typedef std::list<FinalizerObject*> FinalizerObjects;
 
-    class Collector : public MachineThread {
+    class Collector {
+    public:
+      /**
+       * Object used to prevent garbage collections from running for a short
+       * period while the memory is scanned, e.g. to find referrers to an
+       * object or take a snapshot of the heap. Typically, an instance of this
+       * class is created at the start of a method that requires the heap to
+       * be stable. When the method ends, the object goes out of scope and is
+       * destroyed, re-enabling garbage collections.
+       */
+      class Inhibit {
+        Collector* collector_;
+
+      public:
+        Inhibit(STATE)
+          : collector_(state->shared().collector())
+        {
+          collector_->inhibit_collection();
+        }
+
+        ~Inhibit() {
+          collector_->allow_collection();
+        }
+      };
+
+      class Worker : public MachineThread {
+        FinalizerObjects& process_list_;
+
+        std::mutex& list_mutex_;
+        std::condition_variable& list_condition_;
+
+      public:
+        Worker(STATE, FinalizerObjects& list, std::mutex& lk, std::condition_variable& cond);
+        ~Worker() { }
+
+        void initialize(STATE);
+        void stop(STATE);
+        void wakeup(STATE);
+        void after_fork_child(STATE);
+        void run(STATE);
+      };
+
+    private:
+      Worker* worker_;
+
       FinalizerObjects live_list_;
       FinalizerObjects process_list_;
 
@@ -127,11 +171,8 @@ namespace rubinius {
 
       void gc_scan(ImmixGC* gc, Memory* memory);
 
-      void initialize(STATE);
-      void run(STATE);
       void stop(STATE);
       void wakeup(STATE);
-      void after_fork_child(STATE);
 
       void inhibit_collection() {
         ++inhibit_collection_;
@@ -148,31 +189,6 @@ namespace rubinius {
 
       void collect_requested(STATE);
       void collect(STATE);
-
-
-      /**
-       * Object used to prevent garbage collections from running for a short
-       * period while the memory is scanned, e.g. to find referrers to an
-       * object or take a snapshot of the heap. Typically, an instance of this
-       * class is created at the start of a method that requires the heap to
-       * be stable. When the method ends, the object goes out of scope and is
-       * destroyed, re-enabling garbage collections.
-       */
-
-      class Inhibit {
-        Collector* collector_;
-
-      public:
-        Inhibit(STATE)
-          : collector_(state->collector())
-        {
-          collector_->inhibit_collection();
-        }
-
-        ~Inhibit() {
-          collector_->allow_collection();
-        }
-      };
     };
   }
 }

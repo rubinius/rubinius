@@ -173,11 +173,6 @@ namespace rubinius {
     logger::close();
   }
 
-  void Environment::start_collector(STATE) {
-    collector_ = new memory::Collector(state);
-    collector_->start(state);
-  }
-
   void Environment::start_logging(STATE) {
     logger::logger_level level = logger::eWarn;
 
@@ -689,7 +684,7 @@ namespace rubinius {
       timer::StopWatch<timer::microseconds> timer(
           state->shared().boot_metrics()->memory_us);
 
-      shared->om = new Memory(state->vm(), *shared);
+      shared->om = new Memory(state);
     }
 
     shared->set_initialized();
@@ -709,8 +704,6 @@ namespace rubinius {
 
       state->vm()->bootstrap_ontology(state);
     }
-
-    start_collector(state);
 
     load_argv(argc_, argv_);
 

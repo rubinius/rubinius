@@ -142,15 +142,15 @@ namespace rubinius {
     }
 
     Collector::Collector(STATE)
-      : MachineThread(state, "rbx.collector", MachineThread::eLarge)
+      : worker_(nullptr)
       , live_list_()
       , process_list_()
       , list_mutex_()
       , list_condition_()
       , finishing_(false)
+      , inhibit_collection_(0)
+      , collect_requested_(false)
     {
-      initialize(state);
-      state->shared().set_collector(this);
     }
 
     Collector::~Collector() {
@@ -163,43 +163,79 @@ namespace rubinius {
       }
     }
 
-    void Collector::after_fork_child(STATE) {
+    void Collector::wakeup(STATE) {
+      if(worker_) {
+        worker_->wakeup(state);
+      }
+    }
+
+    void Collector::stop(STATE) {
+      if(worker_) {
+        worker_->stop_thread(state);
+        worker_ = nullptr;
+      }
+    }
+
+    void Collector::collect_requested(STATE) {
+      if(collect_p()) {
+        collect_requested_ = true;
+
+        if(!worker_) {
+          worker_ = new Worker(state, process_list_, list_mutex_, list_condition_);
+          worker_->start(state);
+        }
+
+        wakeup(state);
+      }
+    }
+
+    void Collector::collect(STATE) {
+    }
+
+    Collector::Worker::Worker(STATE,
+        FinalizerObjects& list, std::mutex& lk, std::condition_variable& cond)
+      : MachineThread(state, "rbx.collector", MachineThread::eLarge)
+      , process_list_(list)
+      , list_mutex_(lk)
+      , list_condition_(cond)
+    {
+      initialize(state);
+    }
+
+    void Collector::Worker::initialize(STATE) {
+      Thread::create(state, vm());
+    }
+
+    void Collector::Worker::wakeup(STATE) {
+      MachineThread::wakeup(state);
+
+      while(thread_running_p()) {
+        list_condition_.notify_one();
+      }
+    }
+
+    void Collector::Worker::stop(STATE) {
+      state->shared().machine_threads()->unregister_thread(this);
+
+      MachineThread::stop_thread(state);
+    }
+
+    void Collector::Worker::after_fork_child(STATE) {
       new(&list_mutex_) std::mutex;
       new(&list_condition_) std::condition_variable;
 
       MachineThread::after_fork_child(state);
     }
 
-    void Collector::initialize(STATE) {
-      Thread::create(state, vm());
-    }
-
-    void Collector::wakeup(STATE) {
-      MachineThread::wakeup(state);
-
-      while(thread_running_p()) {
-        list_condition().notify_one();
-      }
-    }
-
-    void Collector::stop(STATE) {
-      state->shared().machine_threads()->unregister_thread(this);
-
-      stop_thread(state);
-    }
-
-    void Collector::collect(STATE) {
-    }
-
-    void Collector::run(STATE) {
+    void Collector::Worker::run(STATE) {
       state->vm()->managed_phase(state);
 
       while(!thread_exit_) {
         if(process_list_.empty()) {
           UnmanagedPhase unmanaged(state);
 
-          std::unique_lock<std::mutex> lk(list_mutex());
-          list_condition().wait(lk,
+          std::unique_lock<std::mutex> lk(list_mutex_);
+          list_condition_.wait(lk,
               [this]{ return thread_exit_ || !process_list_.empty(); });
         }
 
@@ -209,7 +245,7 @@ namespace rubinius {
           FinalizerObject* object = 0;
 
           {
-            std::lock_guard<std::mutex> guard(list_mutex());
+            std::lock_guard<std::mutex> guard(list_mutex_);
 
             object = process_list_.back();
             process_list_.pop_back();

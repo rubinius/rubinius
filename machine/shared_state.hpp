@@ -83,7 +83,6 @@ namespace rubinius {
     ThreadNexus* thread_nexus_;
     MachineThreads* machine_threads_;
     SignalThread* signals_;
-    memory::Collector* collector_;
     console::Console* console_;
     jit::JIT* jit_;
 
@@ -182,13 +181,7 @@ namespace rubinius {
       return machine_threads_;
     }
 
-    memory::Collector* collector() const {
-      return collector_;
-    }
-
-    void set_collector(memory::Collector* thr) {
-      collector_ = thr;
-    }
+    memory::Collector* collector();
 
     Array* vm_threads(STATE);
     Fixnum* vm_threads_count(STATE);
