@@ -203,7 +203,7 @@ namespace rubinius {
         logger::write("memory: full collection: trigger: %s", trigger);
       }
 
-      if(collector()->collect_p()) {
+      if(collector()->collectable_p()) {
         interrupt_flag_ = collect_full_flag_ = true;
         shared_.thread_nexus()->set_stop();
       } else if(shared_.config.log_gc_set.value) {
@@ -503,7 +503,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
 
     void collect(STATE) {
-      if(collector()->collect_p()) {
+      if(collector()->collectable_p()) {
         collect_young_flag_ = true;
         collect_full_flag_ = true;
         interrupt_flag_ = true;

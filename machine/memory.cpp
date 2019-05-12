@@ -196,7 +196,7 @@ namespace rubinius {
      * flags so that we don't thrash constantly trying to GC. When the GC
      * prohibition lifts, a GC will eventually be triggered again.
      */
-    if(!collector()->collect_p()) {
+    if(!collector()->collectable_p()) {
       collect_young_flag_ = false;
       collect_full_flag_ = false;
       interrupt_flag_ = false;

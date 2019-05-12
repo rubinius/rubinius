@@ -176,25 +176,31 @@ namespace rubinius {
       }
     }
 
+    Collector::Worker* Collector::worker(STATE) {
+      if(!worker_) {
+        worker_ = new Worker(state, this, process_list_, list_mutex_, list_condition_);
+        worker_->start(state);
+      }
+
+      return worker_;
+    }
+
     void Collector::collect_requested(STATE) {
-      if(collect_p()) {
+      if(collectable_p()) {
         collect_requested_ = true;
 
-        if(!worker_) {
-          worker_ = new Worker(state, process_list_, list_mutex_, list_condition_);
-          worker_->start(state);
-        }
-
-        wakeup(state);
+        worker(state)->wakeup(state);
       }
     }
 
     void Collector::collect(STATE) {
+      state->shared().memory()->collect_maybe(state);
     }
 
-    Collector::Worker::Worker(STATE,
+    Collector::Worker::Worker(STATE, Collector* collector,
         FinalizerObjects& list, std::mutex& lk, std::condition_variable& cond)
       : MachineThread(state, "rbx.collector", MachineThread::eLarge)
+      , collector_(collector)
       , process_list_(list)
       , list_mutex_(lk)
       , list_condition_(cond)
@@ -231,6 +237,10 @@ namespace rubinius {
       state->vm()->managed_phase(state);
 
       while(!thread_exit_) {
+        if(collector_->collectable_p()) {
+          collector_->collect(state);
+        }
+
         if(process_list_.empty()) {
           UnmanagedPhase unmanaged(state);
 

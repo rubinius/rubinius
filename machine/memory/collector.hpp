@@ -118,13 +118,16 @@ namespace rubinius {
       };
 
       class Worker : public MachineThread {
+        Collector* collector_;
+
         FinalizerObjects& process_list_;
 
         std::mutex& list_mutex_;
         std::condition_variable& list_condition_;
 
       public:
-        Worker(STATE, FinalizerObjects& list, std::mutex& lk, std::condition_variable& cond);
+        Worker(STATE, Collector* collector,
+            FinalizerObjects& list, std::mutex& lk, std::condition_variable& cond);
         ~Worker() { }
 
         void initialize(STATE);
@@ -171,6 +174,8 @@ namespace rubinius {
 
       void gc_scan(ImmixGC* gc, Memory* memory);
 
+      Worker* worker(STATE);
+
       void stop(STATE);
       void wakeup(STATE);
 
@@ -183,7 +188,7 @@ namespace rubinius {
         if(inhibit_collection_ < 0) inhibit_collection_ = 0;
       }
 
-      bool collect_p() {
+      bool collectable_p() {
         return inhibit_collection_ == 0;
       }
 

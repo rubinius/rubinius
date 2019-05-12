@@ -438,8 +438,6 @@ namespace rubinius {
     void bootstrap_ontology(STATE);
     void bootstrap_symbol(STATE);
 
-    void collect_maybe(STATE);
-
     void sample(STATE);
 
 #define RBX_PROFILE_MAX_SHIFT     0xf

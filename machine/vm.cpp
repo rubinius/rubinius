@@ -136,7 +136,7 @@ namespace rubinius {
 
     thread_nexus_->check_stop(state, this, [this, state]{
         metrics()->stops++;
-        collect_maybe(state);
+        state->memory()->collector()->collect_requested(state);
       });
 
     if(sample_counter_++ >= sample_interval_) {
@@ -303,10 +303,6 @@ namespace rubinius {
     }
 
     return false;
-  }
-
-  void VM::collect_maybe(STATE) {
-    memory()->collect_maybe(state);
   }
 
   void VM::sample(STATE) {
