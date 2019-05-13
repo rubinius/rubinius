@@ -5,6 +5,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "thread_nexus.hpp"
+#include "memory.hpp"
 
 namespace rubinius {
   /**
@@ -19,7 +20,13 @@ namespace rubinius {
     StopPhase(STATE)
       : state_(state)
     {
-      state->vm()->thread_nexus()->stop(state, state->vm());
+      // TODO: GC make thread_nexus aware of this
+      while(true) {
+        if(!state->shared().memory()->collector()->collect_requested_p()) {
+          state->vm()->thread_nexus()->stop(state, state->vm());
+          break;
+        }
+      }
     }
 
     ~StopPhase() {

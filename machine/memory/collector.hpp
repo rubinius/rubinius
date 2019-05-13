@@ -143,6 +143,7 @@ namespace rubinius {
       FinalizerObjects live_list_;
       FinalizerObjects process_list_;
 
+      std::mutex collector_mutex_;
       std::mutex list_mutex_;
       std::condition_variable list_condition_;
 
@@ -174,10 +175,16 @@ namespace rubinius {
 
       void gc_scan(ImmixGC* gc, Memory* memory);
 
-      Worker* worker(STATE);
-
+      void start(STATE);
       void stop(STATE);
-      void wakeup(STATE);
+
+      void notify() {
+        list_condition_.notify_one();
+      }
+
+      void worker_exited(STATE) {
+        worker_ = nullptr;
+      }
 
       void inhibit_collection() {
         ++inhibit_collection_;
@@ -192,7 +199,22 @@ namespace rubinius {
         return inhibit_collection_ == 0;
       }
 
-      void collect_requested(STATE);
+      bool collect_requested_p() {
+        return collect_requested_;
+      }
+
+      void collect_requested(STATE) {
+        if(collectable_p()) {
+          {
+            std::lock_guard<std::mutex> guard(collector_mutex_);
+
+            collect_requested_ = true;
+          }
+
+          notify();
+        }
+      }
+
       void collect(STATE);
     };
   }

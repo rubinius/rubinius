@@ -719,6 +719,9 @@ namespace rubinius {
       main->start_thread(state, Thread::run);
     }
 
+    // TODO: GC improve this
+    shared->om->collector()->start(state);
+
     VM* vm = SignalThread::new_vm(state);
     vm->set_stack_bounds(state->vm()->stack_size());
 

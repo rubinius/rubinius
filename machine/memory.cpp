@@ -192,10 +192,10 @@ namespace rubinius {
   }
 
   void Memory::collect_maybe(STATE) {
-    /* Don't go any further unless we're allowed to GC. We also reset the
+    /* TODO: GC
+     * Don't go any further unless we're allowed to GC. We also reset the
      * flags so that we don't thrash constantly trying to GC. When the GC
      * prohibition lifts, a GC will eventually be triggered again.
-     */
     if(!collector()->collectable_p()) {
       collect_young_flag_ = false;
       collect_full_flag_ = false;
@@ -225,6 +225,9 @@ namespace rubinius {
       RUBINIUS_GC_BEGIN(1);
       collect_full(state);
     }
+     */
+
+    collect_full(state);
 
     std::atomic_thread_fence(std::memory_order_seq_cst);
   }
@@ -361,9 +364,12 @@ namespace rubinius {
     }
 
     if(collect_flag) {
+      collector()->collect_requested(state);
+      /* TODO: GC
       schedule_full_collection(
           "mature region allocate object",
           state->shared().gc_metrics()->immix_set);
+          */
     }
 
     collect_flag = false;
@@ -373,9 +379,12 @@ namespace rubinius {
       shared().memory_metrics()->large_bytes += bytes;
 
       if(collect_flag) {
+        collector()->collect_requested(state);
+        /* TODO: GC
         schedule_full_collection(
             "large region allocate object",
             state->shared().gc_metrics()->large_set);
+            */
       }
 
       MemoryHeader::initialize(

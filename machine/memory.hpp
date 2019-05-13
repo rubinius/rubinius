@@ -195,6 +195,7 @@ namespace rubinius {
     }
 
     void schedule_full_collection(const char* trigger) {
+      /* TODO: GC
       // Don't trigger if already triggered.
       if(collect_full_flag_) return;
 
@@ -209,6 +210,7 @@ namespace rubinius {
       } else if(shared_.config.log_gc_set.value) {
         logger::write("memory: collection: disabled");
       }
+      */
     }
 
     ObjectArray* weak_refs_set();

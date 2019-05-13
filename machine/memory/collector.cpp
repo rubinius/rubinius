@@ -5,6 +5,7 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 #include "exception_point.hpp"
+#include "thread_nexus.hpp"
 #include "thread_phase.hpp"
 
 #include "class/array.hpp"
@@ -163,38 +164,50 @@ namespace rubinius {
       }
     }
 
-    void Collector::wakeup(STATE) {
-      if(worker_) {
-        worker_->wakeup(state);
-      }
-    }
-
     void Collector::stop(STATE) {
       if(worker_) {
-        worker_->stop_thread(state);
+        worker_->stop(state);
         worker_ = nullptr;
       }
     }
 
-    Collector::Worker* Collector::worker(STATE) {
+    void Collector::start(STATE) {
       if(!worker_) {
         worker_ = new Worker(state, this, process_list_, list_mutex_, list_condition_);
         worker_->start(state);
       }
-
-      return worker_;
-    }
-
-    void Collector::collect_requested(STATE) {
-      if(collectable_p()) {
-        collect_requested_ = true;
-
-        worker(state)->wakeup(state);
-      }
     }
 
     void Collector::collect(STATE) {
-      state->shared().memory()->collect_maybe(state);
+      logger::info("collector: collection cycle started");
+
+      if(state->vm()->thread_nexus()->try_lock_wait(state, state->vm())) {
+        state->vm()->metrics()->stops++;
+        state->vm()->thread_nexus()->set_stop();
+
+        logger::info("collector: stop initiated, waiting for all threads to checkpoint");
+
+        state->vm()->thread_nexus()->wait_for_all(state, state->vm());
+
+#ifdef RBX_GC_STACK_CHECK
+        state->vm()->thread_nexus()->check_stack(state, state->vm());
+#endif
+
+        logger::info("collector: collection started");
+
+        state->shared().memory()->collect_maybe(state);
+
+        logger::info("collector: collection finished");
+
+        state->vm()->thread_nexus()->unset_stop();
+        state->vm()->thread_nexus()->unlock(state, state->vm());
+      }
+
+      {
+        std::lock_guard<std::mutex> guard(collector_mutex_);
+
+        collect_requested_ = false;
+      }
     }
 
     Collector::Worker::Worker(STATE, Collector* collector,
@@ -216,7 +229,7 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       while(thread_running_p()) {
-        list_condition_.notify_one();
+        collector_->notify();
       }
     }
 
@@ -236,17 +249,19 @@ namespace rubinius {
     void Collector::Worker::run(STATE) {
       state->vm()->managed_phase(state);
 
-      while(!thread_exit_) {
-        if(collector_->collectable_p()) {
-          collector_->collect(state);
-        }
+      logger::info("collector: worker thread starting");
 
+      while(!thread_exit_) {
         if(process_list_.empty()) {
           UnmanagedPhase unmanaged(state);
 
           std::unique_lock<std::mutex> lk(list_mutex_);
           list_condition_.wait(lk,
-              [this]{ return thread_exit_ || !process_list_.empty(); });
+              [this]{ return thread_exit_ || collector_->collect_requested_p() || !process_list_.empty(); });
+        }
+
+        if(collector_->collect_requested_p()) {
+          collector_->collect(state);
         }
 
         while(!process_list_.empty()) {
@@ -271,6 +286,10 @@ namespace rubinius {
           state->vm()->thread_nexus()->yield(state, state->vm());
         }
       }
+
+      collector_->worker_exited(state);
+
+      logger::info("collector: worker thread exited");
 
       state->vm()->unmanaged_phase(state);
       state->vm()->thread()->vm()->set_zombie(state);

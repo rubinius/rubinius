@@ -134,9 +134,8 @@ namespace rubinius {
   void VM::checkpoint(STATE) {
     metrics()->checkpoints++;
 
-    thread_nexus_->check_stop(state, this, [this, state]{
+    thread_nexus_->check_stop(state, this, [this/*, state*/]{
         metrics()->stops++;
-        state->memory()->collector()->collect_requested(state);
       });
 
     if(sample_counter_++ >= sample_interval_) {
