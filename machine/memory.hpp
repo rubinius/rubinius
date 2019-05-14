@@ -153,6 +153,22 @@ namespace rubinius {
       return this;
     }
 
+    void collect_cycle() {
+      cycle_++;
+    }
+
+    memory::CodeManager& code_manager() {
+      return code_manager_;
+    }
+
+    memory::ImmixGC* immix() {
+      return immix_;
+    }
+
+    memory::MarkSweepGC* mark_sweep() {
+      return mark_sweep_;
+    }
+
     memory::Collector* collector() {
       return collector_;
     }

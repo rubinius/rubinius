@@ -364,6 +364,7 @@ namespace rubinius {
     }
 
     if(collect_flag) {
+      logger::info("collector: immix triggered collection request");
       collector()->collect_requested(state);
       /* TODO: GC
       schedule_full_collection(
@@ -379,6 +380,7 @@ namespace rubinius {
       shared().memory_metrics()->large_bytes += bytes;
 
       if(collect_flag) {
+        logger::info("collector: large object space triggered collection request");
         collector()->collect_requested(state);
         /* TODO: GC
         schedule_full_collection(

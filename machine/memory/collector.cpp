@@ -16,8 +16,10 @@
 #include "class/call_site.hpp"
 
 #include "diagnostics/gc.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "memory/collector.hpp"
+#include "memory/mark_sweep.hpp"
 
 #include "logger.hpp"
 
@@ -178,7 +180,7 @@ namespace rubinius {
       }
     }
 
-    void Collector::collect(STATE) {
+    void Collector::stop_for_collection(STATE, std::function<void ()> process) {
       logger::info("collector: collection cycle started");
 
       if(state->vm()->thread_nexus()->try_lock_wait(state, state->vm())) {
@@ -195,19 +197,48 @@ namespace rubinius {
 
         logger::info("collector: collection started");
 
-        state->shared().memory()->collect_maybe(state);
+        process();
 
         logger::info("collector: collection finished");
 
         state->vm()->thread_nexus()->unset_stop();
         state->vm()->thread_nexus()->unlock(state, state->vm());
       }
+    }
 
-      {
-        std::lock_guard<std::mutex> guard(collector_mutex_);
+    void Collector::trace_roots(STATE) {
+    }
 
-        collect_requested_ = false;
-      }
+    void Collector::collect(STATE) {
+      timer::StopWatch<timer::milliseconds> timerx(
+          state->shared().gc_metrics()->immix_stop_ms);
+
+      stop_for_collection(state, [this, state]{
+          memory::GCData data(state->vm());
+
+          state->shared().memory()->collect_cycle();
+
+          state->shared().memory()->code_manager().clear_marks();
+          state->shared().memory()->immix()->reset_stats();
+
+          trace_roots(state);
+
+          state->shared().memory()->immix()->collect(&data);
+          state->shared().memory()->immix()->collect_finish(&data);
+
+          state->shared().memory()->code_manager().sweep();
+          state->shared().memory()->immix()->sweep(&data);
+          state->shared().memory()->mark_sweep()->after_marked();
+          state->shared().symbols.sweep(state);
+
+          state->shared().memory()->rotate_mark();
+
+          diagnostics::GCMetrics* metrics = state->shared().gc_metrics();
+          metrics->immix_count++;
+          metrics->large_count++;
+        });
+
+      collect_completed(state);
     }
 
     Collector::Worker::Worker(STATE, Collector* collector,

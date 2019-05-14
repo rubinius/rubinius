@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <functional>
 #include <list>
 #include <mutex>
 
@@ -215,7 +216,15 @@ namespace rubinius {
         }
       }
 
+      void collect_completed(STATE) {
+        std::lock_guard<std::mutex> guard(collector_mutex_);
+
+        collect_requested_ = false;
+      }
+
       void collect(STATE);
+      void stop_for_collection(STATE, std::function<void ()> process);
+      void trace_roots(STATE);
     };
   }
 }
