@@ -15,7 +15,6 @@ namespace rubinius {
 namespace memory {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
     if(memory_) {
-      // memory_->schedule_full_collection("Immix region chunk added");
       memory_->shared().memory_metrics()->immix_chunks++;
 
       if(gc_->dec_chunks_left() <= 0) {
@@ -57,7 +56,8 @@ namespace memory {
         collect_flag);
 
     if(collect_flag) {
-      memory_->schedule_full_collection("Immix region copy object");
+      // TODO: GC
+      // memory_->schedule_full_collection("Immix region copy object");
     }
 
     // TODO: MemoryHeader
@@ -135,10 +135,6 @@ namespace memory {
 
   void ImmixGC::scanned_object(Object* obj) {
     obj->set_scanned();
-  }
-
-  bool ImmixGC::mature_gc_in_progress() {
-    return memory_->mature_gc_in_progress();
   }
 
   ObjectPosition ImmixGC::validate_object(Object* obj) {

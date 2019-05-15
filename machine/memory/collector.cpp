@@ -21,8 +21,6 @@
 #include "memory/collector.hpp"
 #include "memory/mark_sweep.hpp"
 
-#include "logger.hpp"
-
 #include "dtrace/dtrace.h"
 
 namespace rubinius {
@@ -216,22 +214,22 @@ namespace rubinius {
       stop_for_collection(state, [this, state]{
           memory::GCData data(state->vm());
 
-          state->shared().memory()->collect_cycle();
+          state->memory()->collect_cycle();
 
-          state->shared().memory()->code_manager().clear_marks();
-          state->shared().memory()->immix()->reset_stats();
+          state->memory()->code_manager().clear_marks();
+          state->memory()->immix()->reset_stats();
 
           trace_roots(state);
 
-          state->shared().memory()->immix()->collect(&data);
-          state->shared().memory()->immix()->collect_finish(&data);
+          state->memory()->immix()->collect(&data);
+          state->memory()->immix()->collect_finish(&data);
 
-          state->shared().memory()->code_manager().sweep();
-          state->shared().memory()->immix()->sweep(&data);
-          state->shared().memory()->mark_sweep()->after_marked();
+          state->memory()->code_manager().sweep();
+          state->memory()->immix()->sweep(&data);
+          state->memory()->mark_sweep()->after_marked();
           state->shared().symbols.sweep(state);
 
-          state->shared().memory()->rotate_mark();
+          state->memory()->rotate_mark();
 
           diagnostics::GCMetrics* metrics = state->shared().gc_metrics();
           metrics->immix_count++;

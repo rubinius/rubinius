@@ -64,11 +64,7 @@ namespace rubinius {
     , code_manager_(&state->shared())
     , cycle_(0)
     , mark_(0x1)
-    , mature_gc_in_progress_(false)
     , slab_size_(4096)
-    , interrupt_flag_(false)
-    , collect_young_flag_(false)
-    , collect_full_flag_(false)
     , references_lock_()
     , references_set_()
     , shared_(state->shared())
@@ -108,7 +104,6 @@ namespace rubinius {
 
   void Memory::after_fork_child(STATE) {
     contention_lock_.init();
-    mature_gc_in_progress_ = false;
     vm_ = state->vm();
   }
 
@@ -160,179 +155,6 @@ namespace rubinius {
 
   /* Garbage collection */
 
-  Object* Memory::promote_object(Object* obj) {
-    size_t sz = obj->size_in_bytes(vm());
-
-    bool collect_flag = false;
-    Object* copy = immix_->move_object(obj, sz, collect_flag);
-
-    if(collect_flag) {
-      schedule_full_collection("promote object");
-    }
-
-    shared().memory_metrics()->promoted_objects++;
-    shared().memory_metrics()->promoted_bytes += sz;
-
-    if(unlikely(!copy)) {
-      collect_flag = false;
-      copy = mark_sweep_->move_object(obj, sz, collect_flag);
-
-      if(collect_flag) {
-        schedule_full_collection("promote object to large space");
-      }
-    }
-
-#ifdef ENABLE_OBJECT_WATCH
-    if(watched_p(obj)) {
-      std::cout << "detected object " << obj << " during promotion.\n";
-    }
-#endif
-
-    return copy;
-  }
-
-  void Memory::collect_maybe(STATE) {
-    /* TODO: GC
-     * Don't go any further unless we're allowed to GC. We also reset the
-     * flags so that we don't thrash constantly trying to GC. When the GC
-     * prohibition lifts, a GC will eventually be triggered again.
-    if(!collector()->collectable_p()) {
-      collect_young_flag_ = false;
-      collect_full_flag_ = false;
-      interrupt_flag_ = false;
-      return;
-    }
-
-    if(!collect_young_flag_ && !collect_full_flag_) return;
-
-    if(cDebugThreading) {
-      std::cerr << std::endl << "[" << state
-                << " WORLD beginning GC.]" << std::endl;
-    }
-
-    if(collect_young_flag_) {
-      memory::GCData gc_data(state->vm());
-
-      RUBINIUS_GC_BEGIN(0);
-      collect_young(state, &gc_data);
-
-      if(!collect_full_flag_) interrupt_flag_ = false;
-
-      RUBINIUS_GC_END(0);
-    }
-
-    if(collect_full_flag_) {
-      RUBINIUS_GC_BEGIN(1);
-      collect_full(state);
-    }
-     */
-
-    collect_full(state);
-
-    std::atomic_thread_fence(std::memory_order_seq_cst);
-  }
-
-  void Memory::collect_young(STATE, memory::GCData* data) {
-    timer::StopWatch<timer::milliseconds> timerx(
-        state->shared().gc_metrics()->young_ms);
-
-    /* 
-    young_->collect(data);
-
-    metrics::MetricsData& metrics = state->vm()->metrics();
-    metrics.gc.young_count++;
-
-    {
-      std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
-
-      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
-          i != data->thread_nexus()->threads()->end();
-          ++i)
-      {
-        memory::Slab& slab = (*i)->local_slab();
-
-        // Reset the slab to a size of 0 so that the thread has to do
-        // an allocation to get a proper refill. This keeps the number
-        // of threads in the system from starving the available
-        // number of slabs.
-        slab.refill(0, 0);
-      }
-    }
-
-    young_->reset();
-#ifdef RBX_GC_DEBUG
-    young_->verify(data);
-#endif
-    */
-
-    collect_young_flag_ = false;
-  }
-
-  void Memory::collect_full(STATE) {
-    // If we're already collecting, ignore this request
-    if(mature_gc_in_progress_) return;
-
-    timer::StopWatch<timer::milliseconds> timerx(
-        state->shared().gc_metrics()->immix_stop_ms);
-
-    if(state->shared().config.log_gc_run.value) {
-      logger::write("memory: full collection");
-    }
-
-    code_manager_.clear_marks();
-
-    immix_->reset_stats();
-
-    {
-      memory::GCData data(state->vm());
-
-      immix_->collect(&data);
-      collect_full_finish(state, &data);
-    }
-  }
-
-  void Memory::collect_full_restart(STATE, memory::GCData* data) {
-    if(state->shared().config.log_gc_run.value) {
-      logger::write("memory: concurrent collection restart");
-    }
-
-    code_manager_.clear_marks();
-
-    immix_->reset_stats();
-
-    immix_->collect_start(data);
-  }
-
-  void Memory::collect_full_finish(STATE, memory::GCData* data) {
-    cycle_++;
-
-    immix_->collect_finish(data);
-
-    code_manager_.sweep();
-
-#ifdef RBX_GC_DEBUG
-    immix_->verify(data);
-#endif
-    immix_->sweep(data);
-
-    // Have to do this after all things that check for mark bits is
-    // done, as it free()s objects, invalidating mark bits.
-    mark_sweep_->after_marked();
-
-    state->shared().symbols.sweep(state);
-
-    rotate_mark();
-
-    diagnostics::GCMetrics* metrics = state->shared().gc_metrics();
-    metrics->immix_count++;
-    metrics->large_count++;
-
-    collect_full_flag_ = false;
-    interrupt_flag_ = false;
-
-    RUBINIUS_GC_END(1);
-  }
-
   memory::MarkStack& Memory::mature_mark_stack() {
     return immix_->mark_stack();
   }
@@ -364,13 +186,8 @@ namespace rubinius {
     }
 
     if(collect_flag) {
-      logger::info("collector: immix triggered collection request");
-      collector()->collect_requested(state);
-      /* TODO: GC
-      schedule_full_collection(
-          "mature region allocate object",
-          state->shared().gc_metrics()->immix_set);
-          */
+      collector()->collect_requested(state,
+          "collector: immix triggered collection request");
     }
 
     collect_flag = false;
@@ -380,13 +197,8 @@ namespace rubinius {
       shared().memory_metrics()->large_bytes += bytes;
 
       if(collect_flag) {
-        logger::info("collector: large object space triggered collection request");
-        collector()->collect_requested(state);
-        /* TODO: GC
-        schedule_full_collection(
-            "large region allocate object",
-            state->shared().gc_metrics()->large_set);
-            */
+        collector()->collect_requested(state,
+            "collector: large object space triggered collection request");
       }
 
       MemoryHeader::initialize(
@@ -426,9 +238,8 @@ namespace rubinius {
     code_manager_.add_resource(cr, &collect_flag);
 
     if(collect_flag) {
-      schedule_full_collection(
-          "add code resource",
-          state->shared().gc_metrics()->resource_set);
+      collector()->collect_requested(state,
+          "collector: code resource triggered collection request");
     }
   }
 }

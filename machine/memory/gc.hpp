@@ -105,7 +105,6 @@ namespace memory {
      */
     virtual Object* saw_object(void*, Object*) = 0;
     virtual void scanned_object(Object*) = 0;
-    virtual bool mature_gc_in_progress() = 0;
 
     // Scans the specified Object for references to other Objects.
     void scan_object(Object* obj);

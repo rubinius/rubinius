@@ -100,10 +100,6 @@ namespace memory {
     return NULL;
   }
 
-  bool MarkSweepGC::mature_gc_in_progress() {
-    return memory_->mature_gc_in_progress();
-  }
-
   void MarkSweepGC::after_marked() {
     // TODO: diagnostics, metrics
     // metrics::MetricsData& metrics = memory_->vm()->metrics();

@@ -95,22 +95,9 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
-    /// Flag set when a mature GC is already in progress
-    bool mature_gc_in_progress_;
-    /// Flag set when requesting a young gen resize
-
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
     size_t slab_size_;
-
-    /// Flag indicating that a Memory condition exists
-    bool interrupt_flag_;
-
-    /// Flag indicating whether a young collection should be performed soon
-    bool collect_young_flag_;
-
-    /// Flag indicating whether a full collection should be performed soon
-    bool collect_full_flag_;
 
     /// Mutex used to manage lock contention
     utilities::thread::Mutex contention_lock_;
@@ -203,30 +190,6 @@ namespace rubinius {
       std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
 
       references_set_.erase(object);
-    }
-
-    void schedule_full_collection(const char* trigger, diagnostics::metric& counter) {
-      counter++;
-      schedule_full_collection(trigger);
-    }
-
-    void schedule_full_collection(const char* trigger) {
-      /* TODO: GC
-      // Don't trigger if already triggered.
-      if(collect_full_flag_) return;
-
-      // Don't trigger GC if currently prohibited so we don't thrash checking.
-      if(shared_.config.log_gc_set.value) {
-        logger::write("memory: full collection: trigger: %s", trigger);
-      }
-
-      if(collector()->collectable_p()) {
-        interrupt_flag_ = collect_full_flag_ = true;
-        shared_.thread_nexus()->set_stop();
-      } else if(shared_.config.log_gc_set.value) {
-        logger::write("memory: collection: disabled");
-      }
-      */
     }
 
     ObjectArray* weak_refs_set();
@@ -508,7 +471,6 @@ namespace rubinius {
       }
 
     TypeInfo* find_type_info(Object* obj);
-    Object* promote_object(Object* obj);
 
     bool refill_slab(STATE, memory::Slab& slab);
 
@@ -519,18 +481,6 @@ namespace rubinius {
     void memstats();
 
     ObjectPosition validate_object(Object* obj);
-
-    void collect(STATE) {
-      if(collector()->collectable_p()) {
-        collect_young_flag_ = true;
-        collect_full_flag_ = true;
-        interrupt_flag_ = true;
-        state->vm()->thread_nexus()->set_stop();
-        state->vm()->checkpoint(state);
-      }
-    }
-
-    void collect_maybe(STATE);
 
     void native_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
       if(memory::Collector* f = this->collector()) {
@@ -550,47 +500,11 @@ namespace rubinius {
       }
     }
 
-    bool mature_gc_in_progress() {
-      return mature_gc_in_progress_;
-    }
-
-    void clear_mature_mark_in_progress() {
-      mature_gc_in_progress_ = false;
-    }
-
     memory::MarkStack& mature_mark_stack();
-
-    void set_interrupt() {
-      interrupt_flag_ = true;
-      atomic::memory_barrier();
-    }
-
-    void reset_interrupt() {
-      interrupt_flag_ = false;
-    }
-
-    bool& interrupt_p() {
-      return interrupt_flag_;
-    }
-
-    bool& collect_young_p() {
-      return collect_young_flag_;
-    }
-
-    bool& collect_full_p() {
-      return collect_full_flag_;
-    }
-
-    void collect_young(STATE, memory::GCData* data);
-    void collect_full(STATE);
-    void collect_full_restart(STATE, memory::GCData* data);
-    void collect_full_finish(STATE, memory::GCData* data);
 
   public:
     friend class ::TestMemory;
     friend class ::TestVM;
-
-
   };
 };
 

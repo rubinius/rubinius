@@ -20,7 +20,6 @@ namespace memory {
 
     virtual Object* saw_object(void*, Object*);
     virtual void scanned_object(Object*) {}
-    virtual bool mature_gc_in_progress() { return false; }
 
     void seed(GCData& data);
     Object* next();

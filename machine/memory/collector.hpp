@@ -2,6 +2,7 @@
 #define RBX_MEMORY_COLLECTOR_HPP
 
 #include "machine_threads.hpp"
+#include "logger.hpp"
 
 #include "memory/root.hpp"
 
@@ -204,7 +205,9 @@ namespace rubinius {
         return collect_requested_;
       }
 
-      void collect_requested(STATE) {
+      void collect_requested(STATE, const char* reason) {
+        logger::info(reason);
+
         if(collectable_p()) {
           {
             std::lock_guard<std::mutex> guard(collector_mutex_);

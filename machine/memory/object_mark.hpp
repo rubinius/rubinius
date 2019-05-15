@@ -25,7 +25,6 @@ namespace memory {
     {}
 
     VM* vm();
-    bool mature_gc_in_progress();
 
     Object* call(Object*);
     void set(Object* target, Object** pos, Object* val);

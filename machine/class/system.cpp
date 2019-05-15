@@ -368,8 +368,6 @@ namespace rubinius {
   static int fork_exec(STATE, int errors_fd) {
     StopPhase locked(state);
 
-    state->memory()->set_interrupt();
-
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
@@ -856,7 +854,6 @@ namespace rubinius {
       StopPhase locked(state);
 
       state->shared().machine_threads()->before_fork(state);
-      state->memory()->set_interrupt();
 
       pid = ::fork();
 
@@ -906,7 +903,8 @@ namespace rubinius {
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
     if(CBOOL(force) || state->shared().config.gc_honor_start) {
-      state->memory()->collect(state);
+      state->memory()->collector()->collect_requested(state,
+          "collector: request to collect from managed code");
     }
     return cNil;
   }
