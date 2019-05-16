@@ -156,67 +156,7 @@ namespace memory {
     gc_.clear_marks();
   }
 
-  void ImmixGC::collect_start(GCData* data) {
-    gc_.clear_marks();
-    collect_scan(data);
-  }
-
-  void ImmixGC::collect_scan(GCData* data) {
-    for(auto i = data->references().begin();
-        i != data->references().end();
-        ++i)
-    {
-      if((*i)->reference_p()) {
-        if((*i)->object_p()) {
-          Object* obj = reinterpret_cast<Object*>(*i);
-
-          if(obj->referenced() > 0) {
-            if(Object* fwd = saw_object(0, obj)) {
-              // TODO: MemoryHeader set new address
-            }
-          } else if(obj->memory_handle_p()) {
-            MemoryHandle* handle = obj->extended_header()->get_handle();
-            if(handle->accesses() > 0) {
-              if(Object* fwd = saw_object(0, obj)) {
-                // TODO: MemoryHeader set new address
-              }
-
-              handle->unset_accesses();
-            }
-          } else if(!obj->finalizer_p() && !obj->weakref_p()) {
-            if(Object* fwd = saw_object(0, obj)) {
-              // TODO: MemoryHeader set new address
-            }
-          }
-        } else if((*i)->data_p()) {
-          // TODO: MemoryHeader process data object
-        }
-      } else {
-        // TODO: MemoryHeader if not reference, remove or log?
-        // is it an error to add a non-reference?
-      }
-    }
-
-    for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
-      if(Object* fwd = saw_object(0, i->get())) {
-        i->set(fwd);
-      }
-    }
-
-    {
-      std::lock_guard<std::mutex> guard(data->thread_nexus()->threads_mutex());
-
-      for(ThreadList::iterator i = data->thread_nexus()->threads()->begin();
-          i != data->thread_nexus()->threads()->end();
-          ++i)
-      {
-        scan(*i, false);
-      }
-    }
-  }
-
   void ImmixGC::collect_finish(GCData* data) {
-    collect_scan(data);
     process_mark_stack();
 
     ObjectArray* marked_set = memory_->swap_marked_set();

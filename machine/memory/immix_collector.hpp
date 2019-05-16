@@ -111,7 +111,6 @@ namespace memory {
     virtual Object* saw_object(void*, Object*);
     virtual void scanned_object(Object*);
     void collect(GCData* data);
-    void collect_start(GCData* data);
     void collect_finish(GCData* data);
     void sweep(GCData* data);
 
@@ -143,9 +142,6 @@ namespace memory {
     bool process_mark_stack();
     bool process_mark_stack(bool& exit);
     MarkStack& mark_stack();
-
-  private:
-    void collect_scan(GCData* data);
   };
 }
 }
