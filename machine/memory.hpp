@@ -15,8 +15,9 @@
 
 #include "memory/code_manager.hpp"
 #include "memory/collector.hpp"
-#include "memory/write_barrier.hpp"
+#include "memory/heap.hpp"
 #include "memory/immix_collector.hpp"
+#include "memory/write_barrier.hpp"
 
 #include "diagnostics.hpp"
 
@@ -26,6 +27,7 @@
 #include "state.hpp"
 #include "shared_state.hpp"
 
+#include <functional>
 #include <unordered_set>
 
 class TestMemory; // So we can friend it properly
@@ -46,6 +48,26 @@ namespace rubinius {
     class ImmixMarker;
     class MarkSweepGC;
     class Slab;
+
+    class MainHeap : public Heap {
+      ImmixGC* immix_;
+      MarkSweepGC* mark_sweep_;
+      CodeManager& code_manager_;
+
+    public:
+      MainHeap(STATE, ImmixGC* immix, MarkSweepGC* ms, CodeManager& cm)
+        : Heap()
+        , immix_(immix)
+        , mark_sweep_(ms)
+        , code_manager_(cm)
+      {
+      }
+      virtual ~MainHeap() { }
+
+      void collect_start(STATE, GCData* data);
+      void collect_roots(STATE, std::function<Object* (STATE, Object*)> f);
+      void collect_finish(STATE, GCData* data);
+    };
   }
 
   /**
@@ -88,6 +110,8 @@ namespace rubinius {
 
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
+
+    memory::MainHeap* main_heap_;
 
     /// The number of GC cycles that have run
     unsigned int cycle_;
@@ -154,6 +178,10 @@ namespace rubinius {
 
     memory::MarkSweepGC* mark_sweep() {
       return mark_sweep_;
+    }
+
+    memory::MainHeap* main_heap() {
+      return main_heap_;
     }
 
     memory::Collector* collector() {

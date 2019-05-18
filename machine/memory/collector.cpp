@@ -19,6 +19,7 @@
 #include "diagnostics/timing.hpp"
 
 #include "memory/collector.hpp"
+#include "memory/tracer.hpp"
 #include "memory/mark_sweep.hpp"
 
 #include "dtrace/dtrace.h"
@@ -320,32 +321,12 @@ namespace rubinius {
           state->shared().gc_metrics()->immix_stop_ms);
 
       stop_for_collection(state, [this, state]{
-          memory::GCData data(state->vm());
+          MemoryTracer tracer(state, state->memory()->main_heap());
 
-          state->memory()->collect_cycle();
+          tracer.trace_heap(state);
 
-          state->memory()->code_manager().clear_marks();
-          state->memory()->immix()->reset_stats();
-
-          state->memory()->immix()->collect(&data);
-
-          trace_roots(state);
-
-          state->memory()->immix()->collect_finish(&data);
-
-          state->memory()->code_manager().sweep();
-          state->memory()->immix()->sweep(&data);
-          state->memory()->mark_sweep()->after_marked();
-          state->shared().symbols.sweep(state);
-
-          state->memory()->rotate_mark();
-
-          diagnostics::GCMetrics* metrics = state->shared().gc_metrics();
-          metrics->immix_count++;
-          metrics->large_count++;
+          collect_completed(state);
         });
-
-      collect_completed(state);
     }
 
     Collector::Worker::Worker(STATE, Collector* collector,
