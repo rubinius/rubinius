@@ -11,7 +11,7 @@ namespace rubinius {
       virtual ~Heap() { }
 
       virtual void collect_start(STATE, GCData* data) = 0;
-      virtual void collect_roots(STATE, std::function<Object* (STATE, Object*)> f) = 0;
+      virtual void collect_roots(STATE, std::function<Object* (STATE, void*, Object*)> f) = 0;
       virtual void collect_finish(STATE, GCData* data) = 0;
     };
   }

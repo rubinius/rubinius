@@ -15,8 +15,8 @@
 
 #include "memory/code_manager.hpp"
 #include "memory/collector.hpp"
-#include "memory/heap.hpp"
 #include "memory/immix_collector.hpp"
+#include "memory/main_heap.hpp"
 #include "memory/write_barrier.hpp"
 
 #include "diagnostics.hpp"
@@ -45,29 +45,9 @@ namespace rubinius {
     class Collector;
     class GCData;
     class ImmixGC;
-    class ImmixMarker;
+    class MainHeap;
     class MarkSweepGC;
     class Slab;
-
-    class MainHeap : public Heap {
-      ImmixGC* immix_;
-      MarkSweepGC* mark_sweep_;
-      CodeManager& code_manager_;
-
-    public:
-      MainHeap(STATE, ImmixGC* immix, MarkSweepGC* ms, CodeManager& cm)
-        : Heap()
-        , immix_(immix)
-        , mark_sweep_(ms)
-        , code_manager_(cm)
-      {
-      }
-      virtual ~MainHeap() { }
-
-      void collect_start(STATE, GCData* data);
-      void collect_roots(STATE, std::function<Object* (STATE, Object*)> f);
-      void collect_finish(STATE, GCData* data);
-    };
   }
 
   /**
@@ -76,7 +56,6 @@ namespace rubinius {
    * performing garbage collection.
    *
    * It is currently split among 3 generations:
-   *   - BakerGC:     handles young objects
    *   - ImmixGC:     handles mature objects
    *   - MarkSweepGC: handles large objects
    *
@@ -96,9 +75,6 @@ namespace rubinius {
   private:
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
-
-    /// BakerGC used for the young generation
-    /* BakerGC* young_; */
 
     memory::Collector* collector_;
 

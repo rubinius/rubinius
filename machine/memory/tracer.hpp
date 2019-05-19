@@ -17,7 +17,7 @@ namespace rubinius {
       virtual ~MemoryTracer() { }
 
       virtual void trace_heap(STATE);
-      virtual Object* trace_object(STATE, Object* obj);
+      virtual Object* trace_object(STATE, void* parent, Object* child);
     };
   }
 }

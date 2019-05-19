@@ -227,7 +227,6 @@ namespace rubinius {
 
       void collect(STATE);
       void stop_for_collection(STATE, std::function<void ()> process);
-      void trace_roots(STATE);
     };
   }
 }
