@@ -80,7 +80,7 @@ namespace memory {
     return addr;
   }
 
-  bool ImmixGC::ObjectDescriber::mark_address(
+  bool ImmixGC::ObjectDescriber::describer_mark_address(
       Address parent, Address child, MarkStack& ms, bool push)
   {
     Object* obj = child.as<Object>();
@@ -120,7 +120,7 @@ namespace memory {
 
     if(!child->reference_p()) return NULL;
 
-    Address fwd = gc_.mark_address(parent, Address(child), allocator_);
+    Address fwd = gc_.mark_address_of_object(parent, Address(child), allocator_);
     Object* copy = fwd.as<Object>();
 
     // Check and update an inflated header

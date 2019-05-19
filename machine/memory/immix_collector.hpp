@@ -91,7 +91,7 @@ namespace memory {
        * @returns true if the object is not already marked, and in the Immix
        * space; otherwise false.
        */
-      bool mark_address(Address parent, Address child, MarkStack& ms, bool push = true);
+      bool describer_mark_address(Address parent, Address child, MarkStack& ms, bool push = true);
     };
 
     GC<ObjectDescriber> gc_;

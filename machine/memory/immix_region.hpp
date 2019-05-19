@@ -307,7 +307,7 @@ namespace memory {
      * bytes as being in use. This involves ensuring the line map records each
      * line occupied by the range as in use.
      */
-    void mark_address(Address addr, size_t size) {
+    void mark_address_line_in_block(Address addr, size_t size) {
       // Mark the line containing +addr+ as in use
       size_t offset = addr - address_;
       size_t line = offset / cLineSize;
@@ -1048,8 +1048,8 @@ namespace memory {
       , alloc(alloc)
     {}
 
-    void mark_address(Address addr) {
-      gc->mark_address(0, addr, alloc);
+    void marker_mark_address(Address addr) {
+      gc->mark_address_of_object(0, addr, alloc);
     }
   };
 
@@ -1136,7 +1136,7 @@ namespace memory {
      * for evacuation). Since this method does not actually know how to do the
      * marking of an object, it calls back to ObjectDescriber to handle this.
      */
-    Address mark_address(Address parent, Address child, ImmixAllocator& alloc, bool push = true) {
+    Address mark_address_of_object(Address parent, Address child, ImmixAllocator& alloc, bool push = true) {
       Address fwd = desc.forwarding_pointer(child);
 
       if(!fwd.is_null()) {
@@ -1145,7 +1145,7 @@ namespace memory {
 
       // Returns false if child is already marked, if so, we don't
       // do the block marking logic again.
-      if(!desc.mark_address(parent, child, mark_stack_, push)) {
+      if(!desc.describer_mark_address(parent, child, mark_stack_, push)) {
         return child;
       }
 
@@ -1161,7 +1161,7 @@ namespace memory {
       }
 
       // Mark the line(s) in the Block that this object occupies as in use
-      block->mark_address(child, desc.size(child));
+      block->mark_address_line_in_block(child, desc.size(child));
 
       return child;
     }

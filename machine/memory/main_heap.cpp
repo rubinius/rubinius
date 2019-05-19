@@ -21,9 +21,9 @@ namespace rubinius {
       immix_->collect(data);
     }
 
-    void MainHeap::collect_roots(STATE, std::function<Object* (STATE, void*, Object*)> f) {
+    void MainHeap::collect_references(STATE, std::function<Object* (STATE, Object*)> f) {
       for(Roots::Iterator i(state->globals().roots); i.more(); i.advance()) {
-        if(Object* fwd = f(state, 0, i->get())) {
+        if(Object* fwd = f(state, i->get())) {
           i->set(fwd);
         }
       }
@@ -38,7 +38,7 @@ namespace rubinius {
           ManagedThread* thr = (*i);
 
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
-            if(Object* fwd = f(state, 0, ri->get())) {
+            if(Object* fwd = f(state, ri->get())) {
               ri->set(fwd);
             }
           }
@@ -56,7 +56,7 @@ namespace rubinius {
               if(!cur) continue;
 
               if(cur->reference_p()) {
-                if(Object* tmp = f(state, vrb, cur)) {
+                if(Object* tmp = f(state, cur)) {
                   *var = tmp;
                 }
               } else if(cur->handle_p()) {
@@ -79,7 +79,7 @@ namespace rubinius {
               Object* cur = buffer[idx];
 
               if(cur->reference_p()) {
-                if(Object* tmp = f(state, buffer, cur)) {
+                if(Object* tmp = f(state, cur)) {
                   buffer[idx] = tmp;
                 }
               } else if(cur->handle_p()) {
@@ -104,30 +104,10 @@ namespace rubinius {
           if((*i)->object_p()) {
             Object* obj = reinterpret_cast<Object*>(*i);
 
-            if(obj->referenced() > 0) {
-              if(Object* fwd = f(state, 0, obj)) {
-                // TODO: MemoryHeader set new address
-              }
-            } else if(obj->memory_handle_p()) {
-              MemoryHandle* handle = obj->extended_header()->get_handle();
-              if(handle->accesses() > 0) {
-                if(Object* fwd = f(state, 0, obj)) {
-                  // TODO: MemoryHeader set new address
-                }
-
-                handle->unset_accesses();
-              }
-            } else if(!obj->finalizer_p() && !obj->weakref_p()) {
-              if(Object* fwd = f(state, 0, obj)) {
-                // TODO: MemoryHeader set new address
-              }
+            if(Object* fwd = f(state, obj)) {
+              // TODO: MemoryHeader set new address
             }
-          } else if((*i)->data_p()) {
-            // TODO: MemoryHeader process data object
           }
-        } else {
-          // TODO: MemoryHeader if not reference, remove or log?
-          // is it an error to add a non-reference?
         }
       }
     }
