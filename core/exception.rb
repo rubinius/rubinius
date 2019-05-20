@@ -10,6 +10,8 @@ class Exception
     @custom_backtrace = nil
   end
 
+  private :initialize
+
   def capture_backtrace!(offset=1)
     @locations = Rubinius::VM.backtrace offset
   end
@@ -155,7 +157,7 @@ class Exception
         # Exception#initialize (via __initialize__) is exactly what MRI
         # does.
         e = clone
-        e.__initialize__(message)
+        Rubinius.privately { e.__initialize__(message) }
         return e
       end
     end
@@ -201,6 +203,7 @@ class ArgumentError < StandardError
 end
 
 class UncaughtThrowError < ArgumentError
+  attr_accessor :tag
 end
 
 class IndexError < StandardError
@@ -228,6 +231,8 @@ class NameError < StandardError
     @receiver = receiver
   end
 
+  private :initialize
+
   def receiver
     if @receiver
       @receiver
@@ -246,6 +251,8 @@ class NoMethodError < NameError
     @name = arguments.shift
     @args = arguments.shift
   end
+
+  private :initialize
 end
 
 class RuntimeError < StandardError
@@ -272,6 +279,13 @@ end
 class LoadError < ScriptError
   attr_accessor :path
 
+  def initialize(message=nil, path: nil)
+    super message
+    @path = path
+  end
+
+  private :initialize
+
   class InvalidExtensionError < LoadError
   end
 
@@ -287,6 +301,8 @@ class Interrupt < SignalException
     super(args.shift)
     @name = args.shift
   end
+
+  private :initialize
 end
 
 class IOError < StandardError
@@ -342,6 +358,8 @@ class SystemExit < Exception
 
     @status = status
   end
+
+  private :initialize
 
   ##
   # Returns true is exiting successfully, false if not. A successful exit is
@@ -446,6 +464,8 @@ class SystemCallError < StandardError
     msg << " - #{StringValue(message)}" if message
     super(msg)
   end
+
+  private :initialize
 end
 
 class KeyError < IndexError
@@ -485,6 +505,8 @@ class SignalException < Exception
     end
     super(@signm)
   end
+
+  private :initialize
 end
 
 class StopIteration

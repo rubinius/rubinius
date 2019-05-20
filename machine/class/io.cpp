@@ -18,7 +18,6 @@
 #include "class/string.hpp"
 #include "class/thread.hpp"
 
-#include "capi/handle.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "memory.hpp"
@@ -192,7 +191,7 @@ namespace rubinius {
     state->vm()->thread()->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
-    buffer->unpin();
+    buffer->unset_pinned();
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
@@ -601,14 +600,16 @@ failed: /* try next '*' position */
     // a lowlevel RIO struct using fdopen, then we MUST use fclose
     // to close it.
 
-    if(capi::Handle* hdl = io->handle(state)) {
-      if(hdl->is_rio()) {
-        if(!hdl->rio_close() && CBOOL(allow_exception)) {
+      /* TODO: MemoryHandle
+    if(MemoryHandle* handle = io->get_handle()) {
+      if(handle->is_rio()) {
+        if(!handle->rio_close() && CBOOL(allow_exception)) {
           Exception::raise_errno_error(state, "failed to close RIOStream");
         }
         return cTrue;
       }
     }
+      */
     return cFalse;
   }
 }

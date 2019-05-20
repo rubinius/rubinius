@@ -34,6 +34,8 @@ module Rubinius
       @size = 0
     end
 
+    private :initialize
+
     # Adds +item+ to the IdentityMap if it does not already exist. May cause
     # a row to be added or enlarged. Returns +self+.
     def insert(item, &block)

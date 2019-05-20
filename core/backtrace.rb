@@ -31,6 +31,8 @@ class Rubinius::Backtrace
     @mri_backtrace = nil
   end
 
+  private :initialize
+
   def [](index)
     @locations[index]
   end
@@ -99,6 +101,8 @@ class Rubinius::Backtrace
       start_size = 1 + spaces + receiver_method.size + 4
 
       pos = location.position cwd
+
+      pos << " (+#{location.ip})"
 
       if rec_times > 1
         pos << " (#{rec_times} times)"

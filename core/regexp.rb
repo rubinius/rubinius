@@ -161,9 +161,13 @@ class Regexp
     compile pattern, opts
   end
 
+  private :initialize
+
   def initialize_copy(other)
     initialize other.source, other.options
   end
+
+  private :initialize_copy
 
   def match(str, pos=0)
     unless str
@@ -301,6 +305,8 @@ class Regexp
         @negated_options = []
       end
 
+      private :initialize
+
       def <<(str)
         @source << str
       end
@@ -363,6 +369,7 @@ class Regexp
       @parts = [Part.new]
     end
 
+    private :initialize
 
     def string
       "(?#{options_string}:#{parts_string})"
@@ -388,8 +395,10 @@ class Regexp
     def create_parts
       while @index < @source.size
         if @source[@index].chr == '('
+          escaped = @index > 0 && @source[@index - 1].chr == '\\'
+
           idx = @index + 1
-          if idx < @source.size and @source[idx].chr == '?'
+          if idx < @source.size and @source[idx].chr == '?' and !escaped
             process_group
           else
             push_current_character!

@@ -51,6 +51,8 @@
  *   10 0 0010   Qnil
  *   11 0 0010   Qundef
  *
+ *   ......100   Object reference
+ *
  * In other words, any bit pattern ending in 1 is a Fixnum, ending in 110
  * is a Symbol, ending in 0010 is a C-API "boolean" and Qfalse is 0.
  *
@@ -81,8 +83,8 @@
 #undef TAG_REF
 #undef TAG_REF_MASK
 
-#define TAG_REF             0x0
-#define TAG_REF_MASK        0x3
+#define TAG_REF             0x4L
+#define TAG_REF_MASK        0x7L
 
 #undef TAG_FIXNUM
 #undef TAG_FIXNUM_SHIFT
@@ -104,10 +106,12 @@
 #define FIXNUM_P(v)         (((VALUE)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
 #define SYMBOL_P(v)         (((VALUE)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
-#define CAPI_TAG_FIXNUM(v)  ((VALUE)(((VALUE)(v) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
+#define CAPI_TAG_FIXNUM(v)  ((VALUE)(((VALUE)((uintptr_t)(v)) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
 
-#define FIXNUM_WIDTH        ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
-#define FIXNUM_MAX          (((native_int)1 << FIXNUM_WIDTH) - 1)
-#define FIXNUM_MIN          (-(FIXNUM_MAX))
+#define FIXNUM_MAX_WIDTH    ((8 * sizeof(intptr_t)) - TAG_FIXNUM_SHIFT - 1)
+#define FIXNUM_MIN_WIDTH    (FIXNUM_MAX_WIDTH + 1)
+
+#define FIXNUM_MAX          (((intptr_t)1 << FIXNUM_MAX_WIDTH) - 1)
+#define FIXNUM_MIN          (-1 - FIXNUM_MAX)
 
 #endif

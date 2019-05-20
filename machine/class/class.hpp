@@ -20,18 +20,7 @@ namespace rubinius {
     uint32_t serial_id;
   };
 
-  union ClassData {
-    struct ClassFlags f;
-    uint64_t raw;
-
-    uint32_t class_id() const {
-      return f.class_id;
-    }
-
-    uint32_t serial_id() const {
-      return f.serial_id;
-    }
-  };
+  typedef uint64_t ClassData;
 
   class Class : public Module {
   public:
@@ -46,26 +35,6 @@ namespace rubinius {
     attr_field(packed_size, uint32_t);
 
   public:
-    uint64_t data_raw() const {
-      return class_data().raw;
-    }
-
-    uint32_t class_id() const {
-      return class_data().f.class_id;
-    }
-
-    uint32_t serial_id() const {
-      return class_data().f.serial_id;
-    }
-
-    void increment_serial() {
-      atomic::fetch_and_add(&_class_data_.f.serial_id, 1U);
-    }
-
-    void set_class_id(uint32_t id) {
-      _class_data_.f.class_id = id;
-    }
-
     /* interface */
     static void bootstrap(STATE);
     static Class* bootstrap_class(STATE, Class* super, object_type type);

@@ -6,6 +6,8 @@ class Numeric
     raise TypeError, "copy of #{self.class} is not allowed"
   end
 
+  private :initialize_copy
+
   def +@
     self
   end

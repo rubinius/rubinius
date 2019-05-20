@@ -8,7 +8,7 @@ namespace rubinius {
   class Configuration : public config::Configuration {
   public:
 
-#include "gen/config_variables.h"
+#include "config_variables.h"
 
     void finalize() { }
   };

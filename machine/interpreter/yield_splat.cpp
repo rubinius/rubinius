@@ -6,12 +6,13 @@ namespace rubinius {
       intptr_t count = argument(0);
 
       if(instructions::yield_splat(state, call_frame, count)) {
-        call_frame->next_ip(instructions::data_yield_splat.width);
+        call_frame->next_ip(instructions::data_yield_splat.width
+            + instructions::data_unwind.width);
       } else {
-        call_frame->exception_ip();
+        call_frame->next_ip(instructions::data_yield_splat.width);
       }
 
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

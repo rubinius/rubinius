@@ -6,14 +6,13 @@
 #include "config.h"
 #include "memory.hpp"
 #include "environment.hpp"
-#include "global_cache.hpp"
 
 #include "util/thread.hpp"
 #include "configuration.hpp"
 
 #include "console.hpp"
-#include "metrics.hpp"
 #include "signal.hpp"
+
 #include "class/randomizer.hpp"
 #include "class/array.hpp"
 #include "class/fixnum.hpp"
@@ -21,7 +20,12 @@
 #include "class/native_method.hpp"
 #include "class/system.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/codedb.hpp"
+#include "diagnostics/gc.hpp"
+#include "diagnostics/machine.hpp"
+#include "diagnostics/memory.hpp"
+#include "diagnostics/profiler.hpp"
+#include "diagnostics/timing.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -31,40 +35,41 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : thread_nexus_(new ThreadNexus())
-    , machine_threads_(NULL)
-    , signals_(NULL)
-    , finalizer_(NULL)
-    , console_(NULL)
-    , metrics_(NULL)
-    , diagnostics_(NULL)
-    , profiler_(NULL)
-    , jit_(NULL)
+    , machine_threads_(nullptr)
+    , signals_(nullptr)
+    , console_(nullptr)
+    , jit_(nullptr)
+    , diagnostics_(nullptr)
+    , boot_metrics_(new diagnostics::BootMetrics())
+    , codedb_metrics_(new diagnostics::CodeDBMetrics())
+    , gc_metrics_(new diagnostics::GCMetrics())
+    , memory_metrics_(new diagnostics::MemoryMetrics())
+    , profiler_(new diagnostics::Profiler())
+    , capi_constant_name_map_()
+    , capi_constant_map_()
     , start_time_(get_current_time())
-    , method_count_(1)
     , class_count_(1)
     , global_serial_(1)
     , initialized_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
-    , root_vm_(NULL)
+    , root_vm_(nullptr)
     , env_(env)
     , codedb_lock_(true)
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
-    , global_capi_handle_lock_()
-    , capi_handle_cache_lock_()
     , wait_lock_()
     , type_info_lock_()
     , code_resource_lock_()
     , use_capi_lock_(false)
     , phase_(eBooting)
-    , om(NULL)
-    , global_cache(new GlobalCache)
+    , om(nullptr)
     , config(config)
     , user_variables(cp)
-    , username("")
-    , pid("")
+    , nodename()
+    , username()
+    , pid()
   {
     machine_threads_ = new MachineThreads();
 
@@ -81,32 +86,25 @@ namespace rubinius {
 
     if(console_) {
       delete console_;
-      console_ = NULL;
-    }
-
-    if(metrics_) {
-      delete metrics_;
-      metrics_ = NULL;
-    }
-
-    if(profiler_) {
-      delete profiler_;
-      profiler_ = NULL;
+      console_ = nullptr;
     }
 
     if(jit_) {
       delete jit_;
-      jit_ = NULL;
+      jit_ = nullptr;
     }
 
     if(diagnostics_) {
       delete diagnostics_;
-      diagnostics_ = NULL;
+      diagnostics_ = nullptr;
     }
 
-    delete global_cache;
     delete om;
     delete machine_threads_;
+  }
+
+  memory::Collector* SharedState::collector() {
+    return om->collector();
   }
 
   Array* SharedState::vm_threads(STATE) {
@@ -193,10 +191,10 @@ namespace rubinius {
     return Fixnum::from(count);
   }
 
-  Array* SharedState::vm_thread_fibers(STATE, Thread* thread) {
+  void SharedState::vm_thread_fibers(STATE, Thread* thread,
+      std::function<void (STATE, Fiber*)> f)
+  {
     std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
-
-    Array* fibers = Array::create(state, 0);
 
     for(ThreadList::iterator i = thread_nexus_->threads()->begin();
         i != thread_nexus_->threads()->end();
@@ -207,10 +205,17 @@ namespace rubinius {
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead
             && vm->fiber()->thread() == thread) {
-          fibers->append(state, vm->fiber());
+          f(state, vm->fiber());
         }
       }
     }
+  }
+
+  Array* SharedState::vm_thread_fibers(STATE, Thread* thread) {
+    Array* fibers = Array::create(state, 0);
+
+    vm_thread_fibers(state, thread,
+          [fibers](STATE, Fiber* fiber){ fibers->append(state, fiber); });
 
     return fibers;
   }
@@ -235,44 +240,31 @@ namespace rubinius {
     return console_;
   }
 
-  metrics::Metrics* SharedState::start_metrics(STATE) {
-    if(state->shared().config.system_metrics_target.value.compare("none")) {
-      if(!metrics_) {
-        metrics_ = new metrics::Metrics(state);
-        metrics_->start(state);
-        metrics_->init_ruby_metrics(state);
-      }
-    }
-
-    return metrics_;
-  }
-
-  void SharedState::disable_metrics(STATE) {
-    if(metrics_) metrics_->disable(state);
-  }
-
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
-    if(!diagnostics_) {
-      if(state->shared().config.system_diagnostics_target.value.compare("none")) {
-        diagnostics_ = new diagnostics::Diagnostics(state);
-        diagnostics_->start(state);
-      }
+    diagnostics_ = new diagnostics::Diagnostics(state);
+
+    if(state->shared().config.diagnostics_target.value.compare("none")) {
+      diagnostics_->start_reporter(state);
+
+      boot_metrics_->start_reporting(state);
+      codedb_metrics_->start_reporting(state);
+      gc_metrics_->start_reporting(state);
+      memory_metrics_->start_reporting(state);
+      profiler_->start_reporting(state);
     }
 
     return diagnostics_;
   }
 
-  profiler::Profiler* SharedState::start_profiler(STATE) {
-    if(!profiler_) {
-      profiler_ = new profiler::Profiler(state);
+  void SharedState::report_diagnostics(diagnostics::Diagnostic* diagnostic) {
+    if(diagnostics_) {
+      diagnostics_->report(diagnostic);
     }
-
-    return profiler_;
   }
 
   jit::JIT* SharedState::start_jit(STATE) {
     if(!jit_) {
-      if(config.machine_jit_enabled.value) {
+      if(config.jit_enabled.value) {
         jit_ = new jit::JIT(state);
       }
     }
@@ -281,16 +273,11 @@ namespace rubinius {
   }
 
   void SharedState::after_fork_child(STATE) {
-    disable_metrics(state);
-
     // Reinit the locks for this object
-    global_cache->reset();
     codedb_lock_.init(true);
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
-    global_capi_handle_lock_.init();
-    capi_handle_cache_lock_.init();
     wait_lock_.init();
     type_info_lock_.init();
     code_resource_lock_.init();
@@ -298,11 +285,6 @@ namespace rubinius {
     om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
-    profiler_->after_fork_child(state);
-  }
-
-  const unsigned int* SharedState::object_memory_mark_address() const {
-    return om->mark_address();
   }
 
   void SharedState::enter_capi(STATE, const char* file, int line) {
@@ -379,7 +361,7 @@ namespace rubinius {
     capi_constant_name_map_[cCApiMethod]     = "Method";
     capi_constant_name_map_[cCApiRational]   = "Rational";
     capi_constant_name_map_[cCApiComplex]    = "Complex";
-    capi_constant_name_map_[cCApiEnumerator] = "Enumerable::Enumerator";
+    capi_constant_name_map_[cCApiEnumerator] = "Enumerator";
     capi_constant_name_map_[cCApiMutex]      = "Mutex";
     capi_constant_name_map_[cCApiDir]        = "Dir";
 

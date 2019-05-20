@@ -17,7 +17,7 @@ extern "C" {
   VALUE rb_id2str(ID sym) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     String* str = reinterpret_cast<Symbol*>(sym)->to_str(env->state());
-    return env->get_handle(str);
+    return MemoryHandle::value(str);
   }
 
   int rb_is_const_id(ID sym) {

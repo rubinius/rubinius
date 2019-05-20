@@ -19,6 +19,8 @@ module Rubinius
         @block       = block
       end
 
+      private :initialize
+
       def arg?
         @arg != nil
       end
@@ -59,6 +61,8 @@ module Rubinius
 
       yield self if block_given?
     end
+
+    private :initialize
 
     # Documentation for options is left aligned. For example,
     #

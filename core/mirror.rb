@@ -19,6 +19,8 @@ module Rubinius
       @object = obj
     end
 
+    private :initialize
+
     class Object < Mirror
       self.subject = ::Object
     end

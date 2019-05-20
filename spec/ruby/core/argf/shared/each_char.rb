@@ -29,7 +29,7 @@ describe :argf_each_char, :shared => true do
   it "returns an Enumerator when passed no block" do
     argv [@file1_name, @file2_name] do
       enum = ARGF.send(@method)
-      enum.should be_an_instance_of(enumerator_class)
+      enum.should be_an_instance_of(Enumerator)
 
       chars = []
       enum.each { |c| chars << c }
@@ -41,7 +41,7 @@ describe :argf_each_char, :shared => true do
     it "returns an Enumerator" do
       argv [@file1_name, @file2_name] do
         enum = ARGF.send(@method)
-        enum.should be_an_instance_of(enumerator_class)
+        enum.should be_an_instance_of(Enumerator)
 
         chars = []
         enum.each { |c| chars << c }

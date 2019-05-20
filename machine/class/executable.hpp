@@ -36,6 +36,18 @@ namespace rubinius {
   public:
     const static object_type type = ExecutableType;
 
+#define TAGS_TEST(x)  ((tags()->to_native() & x) == x)
+
+    enum Tags {
+      eExperimental     = 0x01,
+      eStack            = 0x02,
+      eRegister         = 0x04,
+      eParsing          = 0x08,
+      eAssertion        = 0x10,
+      eInstrumentation  = 0x20,
+    };
+
+    attr_accessor(tags, Fixnum);
     attr_accessor(primitive, Symbol);
     attr_accessor(serial, Fixnum);
 
@@ -49,6 +61,7 @@ namespace rubinius {
 
   public:
     static void initialize(STATE, Executable* exc) {
+      exc->tags(Fixnum::from(0));
       exc->primitive(nil<Symbol>());
       exc->serial(Fixnum::from(0));
       exc->execute = Executable::default_executor;
@@ -61,6 +74,30 @@ namespace rubinius {
       Executable::initialize(state, exc);
 
       exc->execute = exec;
+    }
+
+    bool experimental_tag_p() {
+      return TAGS_TEST(eExperimental);
+    }
+
+    bool stack_tag_p() {
+      return TAGS_TEST(eStack);
+    }
+
+    bool register_tag_p() {
+      return TAGS_TEST(eRegister);
+    }
+
+    bool parsing_tag_p() {
+      return TAGS_TEST(eParsing);
+    }
+
+    bool assertion_tag_p() {
+      return TAGS_TEST(eAssertion);
+    }
+
+    bool instrumentation_tag_p() {
+      return TAGS_TEST(eInstrumentation);
     }
 
     void set_executor(rubinius::executor exc) {

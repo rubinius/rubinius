@@ -8,9 +8,7 @@
 #include "memory/managed.hpp"
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
-#include "metrics.hpp"
-
-#include "util/thread.hpp"
+#include "spinlock.hpp"
 
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
@@ -25,6 +23,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <functional>
 #include <mutex>
 #include <regex>
 #include <string>
@@ -52,7 +51,6 @@ namespace rubinius {
   class CompiledCode;
   class ConfigParser;
   class Configuration;
-  class GlobalCache;
   class LookupTable;
   class Memory;
   class NativeMethodEnvironment;
@@ -122,24 +120,18 @@ namespace rubinius {
 
     std::atomic<FiberTransition> fiber_transition_flag_;
 
-    utilities::thread::SpinLock interrupt_lock_;
+    locks::spinlock_mutex interrupt_lock_;
 
     MethodMissingReason method_missing_reason_;
     ConstantMissingReason constant_missing_reason_;
 
     bool zombie_;
-    bool allocation_tracking_;
     bool main_thread_;
 
     std::atomic<ThreadNexus::Phase> thread_phase_;
 
-    uint32_t profile_interval_;
-    uint32_t profile_counter_;
-    CompiledCode** profile_;
-    uint64_t profile_sample_count_;
-    uint64_t profile_report_interval_;
-    native_int max_profile_entries_;
-    native_int min_profile_sample_count_;
+    uint32_t sample_interval_;
+    uint32_t sample_counter_;
 
   public:
     /* Data members */
@@ -184,7 +176,7 @@ namespace rubinius {
       thread_phase_.store(thread_phase, std::memory_order_release);
     }
 
-    utilities::thread::SpinLock& interrupt_lock() {
+    locks::spinlock_mutex& interrupt_lock() {
       return interrupt_lock_;
     }
 
@@ -361,10 +353,6 @@ namespace rubinius {
 
     bool scope_valid_p(VariableScope* scope);
 
-    GlobalCache* global_cache() const {
-      return shared.global_cache;
-    }
-
     Globals& globals() {
       return shared.globals;
     }
@@ -433,18 +421,6 @@ namespace rubinius {
       interrupted_exception_.set(cNil);
     }
 
-    bool allocation_tracking() const {
-      return allocation_tracking_;
-    }
-
-    void enable_allocation_tracking() {
-      allocation_tracking_ = true;
-    }
-
-    void disable_allocation_tracking() {
-      allocation_tracking_ = false;
-    }
-
     memory::VariableRootBuffers& current_root_buffers();
 
   public:
@@ -462,53 +438,19 @@ namespace rubinius {
     void bootstrap_ontology(STATE);
     void bootstrap_symbol(STATE);
 
-    void collect_maybe(STATE);
-
-    native_int max_profile_entries() {
-      return max_profile_entries_;
-    }
-
-    uint64_t profile_sample_count() {
-      return profile_sample_count_;
-    }
-
-    CompiledCode** profile() {
-      return profile_;
-    }
-
-    void update_profile(STATE);
-    void sort_profile();
+    void sample(STATE);
 
 #define RBX_PROFILE_MAX_SHIFT     0xf
 #define RBX_PROFILE_MAX_INTERVAL  0x1fff
 
-    void set_profile_interval() {
-      profile_interval_ = randombytes_random();
-      profile_interval_ >>= (profile_interval_ & RBX_PROFILE_MAX_SHIFT);
-      profile_interval_ &= RBX_PROFILE_MAX_INTERVAL;
-      profile_counter_ = 0;
+    void set_sample_interval() {
+      sample_interval_ = randombytes_random();
+      sample_interval_ >>= (sample_interval_ & RBX_PROFILE_MAX_SHIFT);
+      sample_interval_ &= RBX_PROFILE_MAX_INTERVAL;
+      sample_counter_ = 0;
     }
 
-    void checkpoint(STATE) {
-      metrics().machine.checkpoints++;
-
-      thread_nexus_->check_stop(state, this, [this, state]{
-          metrics().machine.stops++;
-          collect_maybe(state);
-        });
-
-      if(profile_counter_++ >= profile_interval_) {
-        update_profile(state);
-        set_profile_interval();
-      }
-    }
-
-    void blocking_suspend(STATE, metrics::metric& counter);
-    void sleeping_suspend(STATE, metrics::metric& counter);
-
-    void blocking_phase(STATE) {
-      thread_nexus_->blocking_phase(state, this);
-    }
+    void checkpoint(STATE);
 
     void managed_phase(STATE) {
       thread_nexus_->managed_phase(state, this);

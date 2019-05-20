@@ -33,6 +33,8 @@ class Module
     module_eval(&block) if block
   end
 
+  private :initialize
+
   def const_get(name, inherit=true)
     Rubinius::Type.const_get self, name, inherit
   end
@@ -71,8 +73,6 @@ class Module
 
     raise ArgumentError, "empty file name" if path.empty?
 
-    return if Rubinius::CodeLoader.feature_provided?(path)
-
     name = Rubinius::Type.coerce_to_constant_name name
 
     Rubinius.check_frozen
@@ -90,10 +90,10 @@ class Module
       return
     end
 
-    autoload_contant = Autoload.new(name, self, path)
-    constant_table.store(name, autoload_contant, :public)
+    autoload_constant = Autoload.new(name, self, path)
+    constant_table.store(name, autoload_constant, :public)
     if self == Kernel
-      Object.singleton_class.constant_table.store(name, autoload_contant, :public)
+      Object.singleton_class.constant_table.store(name, autoload_constant, :public)
     end
 
     Rubinius.inc_global_serial
@@ -497,6 +497,9 @@ class Module
 
   def set_visibility(meth, vis, where=nil)
     name = Rubinius::Type.coerce_to_symbol(meth)
+
+    Rubinius::VM.reset_method_cache self, name
+
     vis = vis.to_sym
 
     if entry = @method_table.lookup(name)
@@ -506,8 +509,6 @@ class Module
     else
       raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end
-
-    Rubinius::VM.reset_method_cache self, name
 
     return name
   end
@@ -785,4 +786,8 @@ class Module
     self
   end
   private :prepend_features
+
+  def singleton_class?
+    !!Rubinius::Type.singleton_class_object(self)
+  end
 end

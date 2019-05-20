@@ -369,12 +369,12 @@ describe "Module#autoload" do
       t1.join
       t2.join
 
-      ScratchPad.recorded.should == [:con_pre, :con_post, :t1_post, :t2_post]
+      t2_exc.should be_nil
 
       t1_val.should == 1
       t2_val.should == t1_val
 
-      t2_exc.should be_nil
+      ScratchPad.recorded.should == [:con_pre, :con_post, :t1_post, :t2_post]
     end
   end
 
@@ -396,49 +396,75 @@ describe "Module#autoload" do
 
   end
 
-  describe "(concurrently)" do
-    it "blocks others threads while doing an autoload" do
-      file_path     = fixture(__FILE__, "repeated_concurrent_autoload.rb")
-      autoload_path = file_path.sub(/\.rb\Z/, '')
-      mod_count     = 30
-      thread_count  = 16
+  it "causes 'defined?(A::B)' and 'defined?(B.m)' to return nil for B when autoloading the file for that constant" do
+    ScratchPad.record []
 
-      mod_names = []
-      mod_count.times do |i|
-        mod_name = :"Mod#{i}"
-        autoload mod_name, autoload_path
-        mod_names << mod_name
-      end
+    ModuleSpecs::AutoloadDefined.autoload(:ForDefined,
+                                   fixture(__FILE__, "autoload_defined.rb"))
+    ModuleSpecs::AutoloadDefined.autoload(:DefinedByForDefined,
+                                   fixture(__FILE__, "autoload_defined.rb"))
 
-      barrier = ModuleSpecs::CyclicBarrier.new thread_count
-      ScratchPad.record ModuleSpecs::ThreadSafeCounter.new
+    ModuleSpecs::AutoloadDefined::ForDefined.should == 1
+    ScratchPad.recorded.should == [nil, nil, nil, nil, "constant", nil,
+                                   nil, "constant", "constant", "method"]
+  end
 
-      threads = (1..thread_count).map do
-        Thread.new do
-          mod_names.each do |mod_name|
-            break false unless barrier.enabled?
+  it "causes 'defined?(A::B)' and 'defined?(B.m)' to return nil for B when requiring the file for that constant" do
+    ScratchPad.record []
 
-            was_last_one_in = barrier.await # wait for all threads to finish the iteration
-            # clean up so we can autoload the same file again
-            $LOADED_FEATURES.delete(file_path) if was_last_one_in && $LOADED_FEATURES.include?(file_path)
-            barrier.await # get ready for race
+    ModuleSpecs::AutoloadDefined.autoload(:ForRDefined,
+                                   fixture(__FILE__, "autoload_rdefined.rb"))
+    ModuleSpecs::AutoloadDefined.autoload(:DefinedByForRDefined,
+                                   fixture(__FILE__, "autoload_rdefined.rb"))
 
-            begin
-              Object.const_get(mod_name).foo
-            rescue NoMethodError
-              barrier.disable!
-              break false
-            end
-          end
-        end
-      end
+    require fixture(__FILE__, "autoload_rdefined.rb")
 
-      # check that no thread got a NoMethodError because of partially loaded module
-      threads.all? {|t| t.value}.should be_true
+    ScratchPad.recorded.should == [nil, nil, nil, nil, "constant", nil,
+                                   nil, "constant", "constant", "method"]
+  end
 
-      # check that the autoloaded file was evaled exactly once
-      ScratchPad.recorded.get.should == mod_count
-    end
+  it "causes 'defined?(A::B)' and 'defined?(B.m)' to return nil for B when loading the file for that constant" do
+    ScratchPad.record []
+
+    ModuleSpecs::AutoloadDefined.autoload(:ForLDefined,
+                                   fixture(__FILE__, "autoload_ldefined.rb"))
+    ModuleSpecs::AutoloadDefined.autoload(:DefinedByForLDefined,
+                                   fixture(__FILE__, "autoload_ldefined.rb"))
+
+    load fixture(__FILE__, "autoload_ldefined.rb")
+
+    ScratchPad.recorded.should == ["constant", "constant", "constant",
+                                   "constant", "constant", "constant"]
+  end
+
+  it "causes 'SomeModule.const_defined?(A)' to return false when loading the file for that constant" do
+    ScratchPad.record []
+
+    ModuleSpecs::Autoload.autoload(:ForConstDefined,
+                                   fixture(__FILE__, "autoload_const_defined.rb"))
+    ModuleSpecs::Autoload.autoload(:DefinedByForConstDefined,
+                                   fixture(__FILE__, "autoload_const_defined.rb"))
+
+    ModuleSpecs::Autoload::ForConstDefined.should == 1
+    ScratchPad.recorded.should == [false, false, true, true]
+  end
+
+  it "loads an autoload again if a new path is added while currently autoloading" do
+    ScratchPad.record []
+
+    ModuleSpecs::Autoload.autoload(:AutoloadAgain,
+                                   fixture(__FILE__, "autoload_loading.rb"))
+
+    ModuleSpecs::Autoload::AutoloadAgain.new.m.should == :autoload_again_and_again
+
+    ModuleSpecs::Autoload.autoload(:AutoloadAgain,
+                                   fixture(__FILE__, "autoload_nonexistent.rb"))
+
+    ScratchPad.recorded.should == ["autoload_loading.rb", "autoload_again.rb"]
+
+    ModuleSpecs::Autoload::AutoloadAgain.new.m.should == :autoload_again_and_again
+
+    ScratchPad.recorded.should == ["autoload_loading.rb", "autoload_again.rb"]
   end
 
   it "loads the registered constant even if the constant was already loaded by another thread" do
@@ -454,14 +480,9 @@ describe "Module#autoload" do
   before :all do
     module Kernel
       alias_method :original_require, :require
-      alias_method :original_load,    :load
 
       def require(name)
-        raise Exception, "Kernel#require called"
-      end
-
-      def load(name)
-        raise Exception, "Kernel#load called"
+        original_require name
       end
     end
   end
@@ -469,11 +490,10 @@ describe "Module#autoload" do
   after :all do
     module Kernel
       alias_method :require, :original_require
-      alias_method :load,    :original_load
     end
   end
 
-  it "does not call Kernel#require or Kernel#load dynamically" do
+  it "calls Kernel#require" do
     ModuleSpecs::Autoload.autoload :N, fixture(__FILE__, "autoload_n.rb")
     ModuleSpecs::Autoload::N.should == :autoload_n
   end

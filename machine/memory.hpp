@@ -6,46 +6,48 @@
 
 #include "type_info.hpp"
 #include "object_position.hpp"
-#include "metrics.hpp"
 #include "configuration.hpp"
+#include "spinlock.hpp"
 
 #include "class/class.hpp"
 #include "class/module.hpp"
 #include "class/object.hpp"
 
 #include "memory/code_manager.hpp"
-#include "memory/finalizer.hpp"
-#include "memory/write_barrier.hpp"
+#include "memory/collector.hpp"
 #include "memory/immix_collector.hpp"
+#include "memory/main_heap.hpp"
+#include "memory/write_barrier.hpp"
+
+#include "diagnostics.hpp"
 
 #include "util/atomic.hpp"
 #include "util/thread.hpp"
 
+#include "state.hpp"
 #include "shared_state.hpp"
+
+#include <functional>
+#include <unordered_set>
 
 class TestMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
 
 namespace rubinius {
   struct CallFrame;
+  struct MemoryHeader;
+
   class Configuration;
   class Integer;
   class Thread;
 
   namespace memory {
-    class FinalizerThread;
+    class Collector;
     class GCData;
     class ImmixGC;
-    class ImmixMarker;
-    class InflatedHeaders;
+    class MainHeap;
     class MarkSweepGC;
     class Slab;
-  }
-
-  namespace capi {
-    class Handle;
-    class Handles;
-    class GlobalHandle;
   }
 
   /**
@@ -54,7 +56,6 @@ namespace rubinius {
    * performing garbage collection.
    *
    * It is currently split among 3 generations:
-   *   - BakerGC:     handles young objects
    *   - ImmixGC:     handles mature objects
    *   - MarkSweepGC: handles large objects
    *
@@ -75,8 +76,7 @@ namespace rubinius {
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
 
-    /// BakerGC used for the young generation
-    /* BakerGC* young_; */
+    memory::Collector* collector_;
 
     /// MarkSweepGC used for the large object store
     memory::MarkSweepGC* mark_sweep_;
@@ -84,20 +84,10 @@ namespace rubinius {
     /// ImmixGC used for the mature generation
     memory::ImmixGC* immix_;
 
-    /// ImmixMarker thread used for the mature generation
-    memory::ImmixMarker* immix_marker_;
-
-    /// Storage for all InflatedHeader instances.
-    memory::InflatedHeaders* inflated_headers_;
-
-    /// Storage for C-API handle allocator, cached C-API handles
-    /// and global handle locations.
-    capi::Handles* capi_handles_;
-    std::list<capi::Handle*> cached_capi_handles_;
-    std::list<capi::GlobalHandle*> global_capi_handle_locations_;
-
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
+
+    memory::MainHeap* main_heap_;
 
     /// The number of GC cycles that have run
     unsigned int cycle_;
@@ -105,32 +95,18 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
-    /// Flag controlling whether garbage collections are allowed
-    bool allow_gc_;
-    /// Flag set when concurrent mature mark is requested
-    bool mature_mark_concurrent_;
-    /// Flag set when a mature GC is already in progress
-    bool mature_gc_in_progress_;
-    /// Flag set when requesting a young gen resize
-
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
     size_t slab_size_;
-
-    /// Flag indicating that a Memory condition exists
-    bool interrupt_flag_;
-
-    /// Flag indicating whether a young collection should be performed soon
-    bool collect_young_flag_;
-
-    /// Flag indicating whether a full collection should be performed soon
-    bool collect_full_flag_;
 
     /// Mutex used to manage lock contention
     utilities::thread::Mutex contention_lock_;
 
     /// Condition variable used to manage lock contention
     utilities::thread::Condition contention_var_;
+
+    locks::spinlock_mutex references_lock_;
+    std::unordered_set<MemoryHeader*> references_set_;
 
     SharedState& shared_;
 
@@ -164,6 +140,34 @@ namespace rubinius {
       return this;
     }
 
+    void collect_cycle() {
+      cycle_++;
+    }
+
+    memory::CodeManager& code_manager() {
+      return code_manager_;
+    }
+
+    memory::ImmixGC* immix() {
+      return immix_;
+    }
+
+    memory::MarkSweepGC* mark_sweep() {
+      return mark_sweep_;
+    }
+
+    memory::MainHeap* main_heap() {
+      return main_heap_;
+    }
+
+    memory::Collector* collector() {
+      return collector_;
+    }
+
+    std::unordered_set<MemoryHeader*>& references() {
+      return references_set_;
+    }
+
     unsigned int cycle() {
       return cycle_;
     }
@@ -177,91 +181,25 @@ namespace rubinius {
     }
 
     void rotate_mark() {
-      mark_ = (mark_ == 2 ? 4 : 2);
+      mark_ ^= 0x3;
     }
 
-    bool can_gc() const {
-      return allow_gc_;
+    void track_reference(MemoryHeader* object) {
+      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
+
+      references_set_.insert(object);
     }
 
-    void allow_gc() {
-      allow_gc_ = true;
+    void untrack_reference(MemoryHeader* object ) {
+      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
+
+      references_set_.erase(object);
     }
-
-    void inhibit_gc() {
-      allow_gc_ = false;
-    }
-
-    void schedule_young_collection(VM* vm, metrics::metric& counter) {
-      counter++;
-
-      // Don't trigger GC if currently prohibited so we don't thrash checking.
-      if(can_gc()) {
-        interrupt_flag_ = collect_young_flag_ = true;
-        shared_.thread_nexus()->set_stop();
-      }
-    }
-
-    void schedule_full_collection(const char* trigger, metrics::metric& counter) {
-      counter++;
-      schedule_full_collection(trigger);
-    }
-
-    void schedule_full_collection(const char* trigger) {
-      // Don't trigger if already triggered.
-      if(collect_full_flag_) return;
-
-      // Don't trigger GC if currently prohibited so we don't thrash checking.
-      if(shared_.config.memory_collection_log.value) {
-        logger::write("memory: full collection: trigger: %s", trigger);
-      }
-
-      if(can_gc()) {
-        interrupt_flag_ = collect_full_flag_ = true;
-        shared_.thread_nexus()->set_stop();
-      } else if(shared_.config.memory_collection_log.value) {
-        logger::write("memory: collection: disabled");
-      }
-    }
-
-    memory::FinalizerThread* finalizer() const {
-      return shared_.finalizer();
-    }
-
-    memory::InflatedHeaders* inflated_headers() const {
-      return inflated_headers_;
-    }
-
-    capi::Handles* capi_handles() const {
-      return capi_handles_;
-    }
-
-    memory::ImmixMarker* immix_marker() const {
-      return immix_marker_;
-    }
-
-    void set_immix_marker(memory::ImmixMarker* immix_marker) {
-      immix_marker_ = immix_marker;
-    }
-
-    capi::Handle* add_capi_handle(STATE, Object* obj);
-    void make_capi_handle_cached(State*, capi::Handle* handle);
-
-    std::list<capi::Handle*>* cached_capi_handles() {
-      return &cached_capi_handles_;
-    }
-
-    std::list<capi::GlobalHandle*>* global_capi_handle_locations() {
-      return &global_capi_handle_locations_;
-    }
-
-    void add_global_capi_handle_location(STATE, capi::Handle** loc, const char* file, int line);
-    void del_global_capi_handle_location(STATE, capi::Handle** loc);
 
     ObjectArray* weak_refs_set();
 
   public:
-    Memory(VM* state, SharedState& shared);
+    Memory(STATE);
     ~Memory();
 
     void after_fork_child(STATE);
@@ -283,7 +221,7 @@ namespace rubinius {
     }
 
     // Object must be created in Immix or large object space.
-    Object* new_object(STATE, native_int bytes);
+    Object* new_object(STATE, native_int bytes, object_type type);
 
     /* Allocate a new object in any space that will accommodate it based on
      * the following priority:
@@ -317,19 +255,17 @@ namespace rubinius {
       }
       */
 
-      if(likely(obj = new_object(state, bytes))) goto set_type;
+      if(likely(obj = new_object(state, bytes, type))) goto set_type;
 
       Memory::memory_error(state);
       return NULL;
 
     set_type:
-      obj->set_obj_type(type);
+      // obj->set_obj_type(type);
 
     // set_klass:
       obj->klass(state, klass);
       obj->ivars(cNil);
-
-      obj->set_cycle(cycle_);
 
       return obj;
     }
@@ -343,7 +279,7 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object_pinned(STATE, Class* klass, native_int bytes, object_type type) {
-      Object* obj = new_object(state, bytes);
+      Object* obj = new_object(state, bytes, type);
 
       if(unlikely(!obj)) {
         Memory::memory_error(state);
@@ -351,12 +287,9 @@ namespace rubinius {
       }
 
       obj->set_pinned();
-      obj->set_obj_type(type);
 
       obj->klass(state, klass);
       obj->ivars(cNil);
-
-      obj->set_cycle(cycle_);
 
       return obj;
     }
@@ -435,6 +368,20 @@ namespace rubinius {
         T* obj = static_cast<T*>(new_object_pinned(state, klass, bytes, T::type));
 
         obj->full_size(bytes);
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object_unmanaged(STATE, Class* klass, intptr_t* mem) {
+        T* obj = reinterpret_cast<T*>(mem);
+
+        MemoryHeader::initialize(obj, state->vm()->thread_id(), eThreadRegion, T::type, false);
+
+        obj->klass(state, klass);
+        obj->ivars(cNil);
+
+        T::initialize(state, obj);
 
         return obj;
       }
@@ -528,16 +475,8 @@ namespace rubinius {
       }
 
     TypeInfo* find_type_info(Object* obj);
-    Object* promote_object(Object* obj);
 
     bool refill_slab(STATE, memory::Slab& slab);
-
-    void assign_object_id(STATE, Object* obj);
-    bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
-    LockStatus contend_for_lock(STATE, ObjectHeader* obj, size_t us, bool interrupt);
-    void release_contention(STATE);
-    bool inflate_and_lock(STATE, ObjectHeader* obj);
-    bool inflate_for_contention(STATE, ObjectHeader* obj);
 
     bool valid_object_p(Object* obj);
     void add_type_info(TypeInfo* ti);
@@ -545,118 +484,31 @@ namespace rubinius {
     void add_code_resource(STATE, memory::CodeResource* cr);
     void memstats();
 
-    void validate_handles(capi::Handles* handles);
-    void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, /* BakerGC */ void* young);
-
     ObjectPosition validate_object(Object* obj);
 
-    void collect(STATE) {
-      if(can_gc()) {
-        collect_young_flag_ = true;
-        collect_full_flag_ = true;
-        interrupt_flag_ = true;
-        state->vm()->thread_nexus()->set_stop();
-        state->vm()->checkpoint(state);
-      }
-    }
-
-    void collect_maybe(STATE);
-
     void native_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::FinalizerThread* f = this->finalizer()) {
+      if(memory::Collector* f = this->collector()) {
         f->native_finalizer(state, obj, func);
       }
     }
 
     void extension_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::FinalizerThread* f = this->finalizer()) {
+      if(memory::Collector* f = this->collector()) {
         f->extension_finalizer(state, obj, func);
       }
     }
 
     void managed_finalizer(STATE, Object* obj, Object* finalizer) {
-      if(memory::FinalizerThread* f = this->finalizer()) {
+      if(memory::Collector* f = this->collector()) {
         f->managed_finalizer(state, obj, finalizer);
       }
     }
 
-    InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
-    void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
-    void inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle);
-
-    // TODO: generalize when fixing safe points.
-    String* new_string_certain(STATE, Class* klass);
-
-    bool mature_gc_in_progress() {
-      return mature_gc_in_progress_;
-    }
-
-    void clear_mature_mark_in_progress() {
-      mature_gc_in_progress_ = false;
-    }
-
     memory::MarkStack& mature_mark_stack();
-
-    void set_interrupt() {
-      interrupt_flag_ = true;
-      atomic::memory_barrier();
-    }
-
-    void reset_interrupt() {
-      interrupt_flag_ = false;
-    }
-
-    bool& interrupt_p() {
-      return interrupt_flag_;
-    }
-
-    bool& collect_young_p() {
-      return collect_young_flag_;
-    }
-
-    bool& collect_full_p() {
-      return collect_full_flag_;
-    }
-
-    void collect_young(STATE, memory::GCData* data);
-    void collect_full(STATE);
-    void collect_full_restart(STATE, memory::GCData* data);
-    void collect_full_finish(STATE, memory::GCData* data);
 
   public:
     friend class ::TestMemory;
     friend class ::TestVM;
-
-
-    /**
-     * Object used to prevent garbage collections from running for a short
-     * period while the memory is scanned, e.g. to find referrers to an
-     * object or take a snapshot of the heap. Typically, an instance of
-     * this class is created at the start of a method that requires the
-     * heap to be stable. When the method ends, the object goes out of
-     * scope and is destroyed, re-enabling garbage collections.
-     */
-
-    class GCInhibit {
-      Memory* om_;
-
-    public:
-      GCInhibit(Memory* om)
-        : om_(om)
-      {
-        om->inhibit_gc();
-      }
-
-      GCInhibit(STATE)
-        : om_(state->memory())
-      {
-        om_->inhibit_gc();
-      }
-
-      ~GCInhibit() {
-        om_->allow_gc();
-      }
-    };
   };
 };
 

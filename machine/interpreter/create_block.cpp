@@ -12,12 +12,13 @@ namespace rubinius {
       intptr_t literal = argument(0);
 
       if(instructions::create_block(state, call_frame, literal)) {
-        call_frame->next_ip(instructions::data_create_block.width);
+        call_frame->next_ip(instructions::data_create_block.width
+            + instructions::data_unwind.width);
       } else {
-        call_frame->exception_ip();
+        call_frame->next_ip(instructions::data_create_block.width);
       }
 
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

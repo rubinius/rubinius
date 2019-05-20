@@ -3,34 +3,39 @@
 
 #include "interpreter/addresses.hpp"
 
+#include "instructions.hpp"
+
 #include "class/call_site.hpp"
 #include "class/compiled_code.hpp"
 #include "class/constant_cache.hpp"
 #include "class/location.hpp"
+#include "class/unwind_site.hpp"
+
+#include "diagnostics/measurement.hpp"
 
 namespace rubinius {
+  using namespace diagnostics;
+
   void Interpreter::prepare(STATE, CompiledCode* compiled_code, MachineCode* machine_code) {
     Tuple* lits = compiled_code->literals();
     Tuple* ops = compiled_code->iseq()->opcodes();
 
     opcode* opcodes = machine_code->opcodes;
     size_t total = machine_code->total;
+    size_t stack_size = machine_code->stack_size;
 
     size_t rcount = 0;
     size_t rindex = 0;
     size_t calls_count = 0;
     size_t constants_count = 0;
-
-    // Set exception handler IP
-    opcodes[total-1] =
-      reinterpret_cast<intptr_t>(instructions::data_run_exception.interpreter_address);
+    size_t unwind_count = 0;
 
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
-      width = Interpreter::instruction_data_(op).width;
+      width = Instructions::instruction_data(op).width;
 
       opcodes[ip] =
-        reinterpret_cast<intptr_t>(Interpreter::instruction_data_(op).interpreter_address);
+        reinterpret_cast<intptr_t>(Instructions::instruction_data(op).interpreter_address);
 
       switch(width) {
       case 4:
@@ -63,7 +68,12 @@ namespace rubinius {
       case instructions::data_object_to_s.id:
       case instructions::data_push_const.id:
       case instructions::data_find_const.id:
+      case instructions::data_setup_unwind.id:
+      case instructions::data_unwind.id:
+      case instructions::data_b_if_serial.id:
+      case instructions::data_r_load_literal.id:
         rcount++;
+        break;
       }
     }
 
@@ -75,7 +85,71 @@ namespace rubinius {
 
     for(size_t width = 0, ip = 0; ip < total; ip += width) {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
-      width = Interpreter::instruction_data_(op).width;
+      width = Instructions::instruction_data(op).width;
+
+      // Fix register offsets
+      switch(op) {
+      case instructions::data_b_if_serial.id:
+        opcodes[ip + 2] += stack_size;
+        break;
+      case instructions::data_b_if.id:
+      case instructions::data_r_load_local.id:
+      case instructions::data_r_store_local.id:
+      case instructions::data_r_load_local_depth.id:
+      case instructions::data_r_store_local_depth.id:
+      case instructions::data_r_load_stack.id:
+      case instructions::data_r_store_stack.id:
+      case instructions::data_m_log.id:
+        opcodes[ip + 1] += stack_size;
+        break;
+      case instructions::data_r_load_literal.id: {
+        machine_code->references()[rindex++] = ip + 2;
+
+        Object* value = as<Object>(lits->at(opcodes[ip + 2]));
+        opcodes[ip + 2] = reinterpret_cast<opcode>(value);
+
+        opcodes[ip + 1] += stack_size;
+        break;
+      }
+      case instructions::data_b_if_int.id:
+      case instructions::data_r_load_int.id:
+      case instructions::data_r_store_int.id:
+      case instructions::data_r_copy.id:
+      case instructions::data_n_ipopcnt.id:
+      case instructions::data_a_instance.id:
+      case instructions::data_a_kind.id:
+      case instructions::data_a_method.id:
+      case instructions::data_a_receiver_method.id:
+      case instructions::data_a_type.id:
+      case instructions::data_a_function.id:
+      case instructions::data_a_equal.id:
+      case instructions::data_a_not_equal.id:
+      case instructions::data_a_less.id:
+      case instructions::data_a_less_equal.id:
+      case instructions::data_a_greater.id:
+      case instructions::data_a_greater_equal.id:
+        opcodes[ip + 1] += stack_size;
+        opcodes[ip + 2] += stack_size;
+        break;
+      case instructions::data_n_iadd.id:
+      case instructions::data_n_isub.id:
+      case instructions::data_n_imul.id:
+      case instructions::data_n_idiv.id:
+      case instructions::data_n_iadd_o.id:
+      case instructions::data_n_isub_o.id:
+      case instructions::data_n_imul_o.id:
+      case instructions::data_n_idiv_o.id:
+      case instructions::data_n_ieq.id:
+      case instructions::data_n_ine.id:
+      case instructions::data_n_ilt.id:
+      case instructions::data_n_ile.id:
+      case instructions::data_n_igt.id:
+      case instructions::data_n_ige.id:
+        opcodes[ip + 1] += stack_size;
+        opcodes[ip + 2] += stack_size;
+        opcodes[ip + 3] += stack_size;
+        break;
+      };
 
       switch(op) {
       case instructions::data_push_int.id:
@@ -132,19 +206,22 @@ namespace rubinius {
       case instructions::data_send_stack_with_splat.id:
       case instructions::data_object_to_s.id:
       case instructions::data_check_serial.id:
-      case instructions::data_check_serial_private.id: {
+      case instructions::data_check_serial_private.id:
+      case instructions::data_b_if_serial.id: {
         machine_code->references()[rindex++] = ip + 1;
         calls_count++;
 
         Symbol* name = try_as<Symbol>(lits->at(opcodes[ip + 1]));
         if(!name) name = nil<Symbol>();
 
-        CallSite* call_site = CallSite::create(state, name, ip);
+        CallSite* call_site = CallSite::create(state, name, machine_code->serial(), ip);
 
         if(op == instructions::data_send_vcall.id) {
           allow_private = true;
           call_site->set_is_vcall();
         } else if(op == instructions::data_object_to_s.id) {
+          allow_private = true;
+        } else if(op == instructions::data_b_if_serial.id) {
           allow_private = true;
         }
 
@@ -169,40 +246,67 @@ namespace rubinius {
 
         break;
       }
+      case instructions::data_setup_unwind.id: {
+        machine_code->references()[rindex++] = ip + 1;
+        unwind_count++;
+
+        int handler = static_cast<int>(opcodes[ip + 1]);
+        UnwindSite::UnwindType type =
+            static_cast<UnwindSite::UnwindType>(opcodes[ip + 2]);
+
+        UnwindSite* unwind_site = UnwindSite::create(state, handler, type);
+
+        machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
+
+        break;
+      }
+      case instructions::data_unwind.id: {
+        machine_code->references()[rindex++] = ip + 1;
+        unwind_count++;
+
+        UnwindSite* unwind_site = UnwindSite::create(state, 0, UnwindSite::eNone);
+
+        machine_code->store_unwind_site(state, compiled_code, ip, unwind_site);
+
+        break;
+      }
+      case instructions::data_m_counter.id: {
+        machine_code->store_measurement(state,
+            compiled_code, ip, new diagnostics::Counter(state, compiled_code, ip));
+
+        break;
+      }
       }
     }
 
     machine_code->call_site_count(calls_count);
     machine_code->constant_cache_count(constants_count);
+    machine_code->unwind_site_count(unwind_count);
   }
 
   intptr_t Interpreter::execute(STATE, MachineCode* const machine_code) {
     InterpreterState is;
-    UnwindInfoSet unwinds;
     Exception* exception = 0;
     intptr_t* opcodes = (intptr_t*)machine_code->opcodes;
 
     CallFrame* call_frame = state->vm()->call_frame();
-    call_frame->ret_ip_ = machine_code->total - 2;
-    call_frame->exception_ip_ = machine_code->total - 1;
     call_frame->stack_ptr_ = call_frame->stk - 1;
     call_frame->machine_code = machine_code;
     call_frame->is = &is;
-    call_frame->unwinds = &unwinds;
 
     try {
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     } catch(TypeError& e) {
       exception = Exception::make_type_error(state, e.type, e.object, e.reason);
       exception->locations(state, Location::from_call_stack(state));
 
       call_frame->scope->flush_to_heap(state);
-    } catch(const RubyException& exc) {
+    } catch(RubyException& exc) {
       if(exc.exception->locations()->nil_p()) {
         exc.exception->locations(state, Location::from_call_stack(state));
       }
       exception = exc.exception;
-    } catch(const std::exception& e) {
+    } catch(std::exception& e) {
       exception = Exception::make_interpreter_error(state, e.what());
       exception->locations(state, Location::from_call_stack(state));
 

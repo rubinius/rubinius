@@ -7,6 +7,8 @@ class NilClass
     !!other
   end
 
+  alias_method :|, :^
+
   def to_s
     ""
   end
@@ -30,9 +32,6 @@ class NilClass
   def to_i
     0
   end
-end
-class NilClass
-  alias_method :|, :^
 
   def to_r
     Rational(0, 1)

@@ -14,6 +14,12 @@ namespace rubinius {
   void Executable::bootstrap(STATE) {
     GO(executable).set(state->memory()->new_class<Class, Executable>(
           state, G(rubinius), "Executable"));
+    G(executable)->set_const(state, "Experimental", Fixnum::from(eExperimental));
+    G(executable)->set_const(state, "Stack", Fixnum::from(eStack));
+    G(executable)->set_const(state, "Register", Fixnum::from(eRegister));
+    G(executable)->set_const(state, "Parsing", Fixnum::from(eParsing));
+    G(executable)->set_const(state, "Assertion", Fixnum::from(eAssertion));
+    G(executable)->set_const(state, "Instrumentation", Fixnum::from(eInstrumentation));
   }
 
   Executable* Executable::allocate(STATE, Object* self) {
@@ -72,7 +78,8 @@ namespace rubinius {
     for(std::vector<CompiledCode*>::const_iterator i = inliners()->inliners().begin();
         i != inliners()->inliners().end();
         ++i) {
-      (*i)->machine_code()->deoptimize(state, *i, 0);
+      // TODO: JIT inliners
+      // (*i)->machine_code()->deoptimize(state, *i, 0);
     }
 
     inliners()->inliners().clear();
@@ -80,7 +87,8 @@ namespace rubinius {
 
   void Executable::Info::mark(Object* obj, memory::ObjectMark& mark) {
     auto_mark(obj, mark);
-    mark_inliners(obj, mark);
+    // TODO: JIT inliners
+    // mark_inliners(obj, mark);
   }
 
   void Executable::Info::mark_inliners(Object* obj, memory::ObjectMark& mark) {

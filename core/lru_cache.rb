@@ -15,6 +15,8 @@ module Rubinius
         @prev_entry = nil
       end
 
+      private :initialize
+
       def insert_after(entry)
         nxt = entry.next_entry
 
@@ -64,6 +66,8 @@ module Rubinius
 
       @misses = 0
     end
+
+    private :initialize
 
     attr_reader :current
     attr_reader :misses

@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "machine_code.hpp"
 
@@ -62,19 +62,38 @@ namespace rubinius {
 
       if(mc->keywords) {
         native_int placeholder_position = splat_obj ? mc->total_args : mc->total_args - 1;
-        native_int keywords_position = placeholder_position + 1;
+        native_int keywords_position    = placeholder_position + 1;
 
-        Object* placeholder = scope->get_local(state, placeholder_position);
-        Array* ary = Array::create(state, 2);
+        // "Runtime.keyword_object?" requires keywords object to be convertable into Hash.
+        // TODO define "machine/class/hash" and use Hash::create instead of "[[key, value], ..].to_h".
 
-        for(native_int i = keywords_position; i <= mc->keywords_count; i++) {
-          ary->set(state, 0, as<Symbol>(call_frame->compiled_code->local_names()->at(state, i)));
-          ary->set(state, 1, scope->get_local(state, i));
+        Array* keywords = Array::create(state, mc->keywords_count);
 
-          placeholder->send(state, state->symbol("[]="), ary);
+        for(native_int index = 0; index < mc->keywords_count; index++) {
+          native_int keyword_position = keywords_position + index;
+          Symbol* name  = as<Symbol>(call_frame->compiled_code->local_names()->at(state, keyword_position));
+          Object* value = scope->get_local(state, keyword_position);
+
+          Array* keyword = Array::create(state, 2);
+          keyword->set(state, 0, name);
+          keyword->set(state, 1, value);
+
+          keywords->set(state, index, keyword);
         }
 
-        tup->put(state, tup_index++, scope->get_local(state, placeholder_position));
+        Object* keywords_hash = keywords->send(state, state->symbol("to_h"));
+
+        // We can receive optional arguments from "**args" at "placeholder_position".
+        // It can be "nil" or "Hash", we need to merge with it.
+
+        Object* placeholder = scope->get_local(state, placeholder_position);
+        if (!placeholder->nil_p()) {
+          Array* merge_arguments = Array::create(state, 1);
+          merge_arguments->set(state, 0, placeholder);
+          keywords_hash = keywords_hash->send(state, state->symbol("merge"), merge_arguments);
+        }
+
+        tup->put(state, tup_index++, keywords_hash);
       }
 
       CallSite* call_site = reinterpret_cast<CallSite*>(literal);
@@ -82,18 +101,16 @@ namespace rubinius {
       Arguments new_args(call_site->name(), recv, block, arg_count, 0);
       new_args.use_tuple(tup, arg_count);
 
-      Object* ret;
-
       Symbol* current_name = call_frame->original_name();
       if(call_site->name() != current_name) {
         call_site->name(state, current_name);
       }
 
-      ret = call_site->execute(state, new_args);
+      call_frame->return_value = call_site->execute(state, new_args);
 
       state->vm()->checkpoint(state);
 
-      CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(call_frame->return_value);
     }
   }
 }

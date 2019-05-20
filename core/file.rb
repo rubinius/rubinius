@@ -112,12 +112,13 @@ class File < IO
   #  File.basename("/home/gumby/work/ruby.rb", ".rb")   #=> "ruby"
   def self.basename(path, ext=undefined)
     path = Rubinius::Type.coerce_to_path(path)
+    m = Rubinius::Mirror.reflect path
 
     slash = "/"
 
     ext_not_present = undefined.equal?(ext)
 
-    if pos = path.find_string_reverse(slash, path.bytesize)
+    if pos = m.find_string_reverse(slash, path.bytesize)
       # special case. If the string ends with a /, ignore it.
       if pos == path.bytesize - 1
 
@@ -136,7 +137,8 @@ class File < IO
         return slash unless found
 
         # Now that we've trimmed the /'s at the end, search again
-        pos = path.find_string_reverse(slash, path.bytesize)
+        m = Rubinius::Mirror.reflect path
+        pos = m.find_string_reverse(slash, path.bytesize)
         if ext_not_present and !pos
           # No /'s found and ext not present, return path.
           return path
@@ -148,15 +150,17 @@ class File < IO
 
     return path if ext_not_present
 
+    m = Rubinius::Mirror.reflect path
+
     # special case. if ext is ".*", remove any extension
 
     ext = StringValue(ext)
 
     if ext == ".*"
-      if pos = path.find_string_reverse(".", path.bytesize)
+      if pos = m.find_string_reverse(".", path.bytesize)
         return path.byteslice(0, pos)
       end
-    elsif pos = path.find_string_reverse(ext, path.bytesize)
+    elsif pos = m.find_string_reverse(ext, path.bytesize)
       # Check that ext is the last thing in the string
       if pos == path.bytesize - ext.size
         return path.byteslice(0, pos)
@@ -351,7 +355,9 @@ class File < IO
     chunk_size = last_nonslash(path)
     return "/" unless chunk_size
 
-    if pos = path.find_string_reverse(slash, chunk_size)
+    m = Rubinius::Mirror.reflect path
+
+    if pos = m.find_string_reverse(slash, chunk_size)
       return "/" if pos == 0
 
       path = path.byteslice(0, pos)
@@ -434,7 +440,8 @@ class File < IO
 
         return home.dup
       else
-        unless length = path.find_string("/", 1)
+        m = Rubinius::Mirror.reflect path
+        unless length = m.find_string("/", 1)
           length = path.bytesize
         end
 
@@ -458,8 +465,9 @@ class File < IO
     items = []
     start = 0
     size = path.bytesize
+    m = Rubinius::Mirror.reflect path
 
-    while index = path.find_string("/", start) or (start < size and index = size)
+    while index = m.find_string("/", start) or (start < size and index = size)
       length = index - start
 
       if length > 0
@@ -495,13 +503,14 @@ class File < IO
   def self.extname(path)
     path = Rubinius::Type.coerce_to_path(path)
     path_size = path.bytesize
+    m = Rubinius::Mirror.reflect path
 
-    dot_idx = path.find_string_reverse(".", path_size)
+    dot_idx = m.find_string_reverse(".", path_size)
 
     # No dots at all
     return "" unless dot_idx
 
-    slash_idx = path.find_string_reverse("/", path_size)
+    slash_idx = m.find_string_reverse("/", path_size)
 
     # pretend there is / just to the left of the start of the string
     slash_idx ||= -1
@@ -986,7 +995,7 @@ class File < IO
   # Returns true if the named file is a symbolic link.
   def self.symlink?(path)
     Stat.lstat(path).symlink?
-  rescue Errno::ENOENT, Errno::ENODIR
+  rescue Errno::ENOENT, Errno::ENOTDIR
     false
   end
 
@@ -1189,7 +1198,7 @@ class File < IO
       Errno.handle path if fd < 0
 
       @path = path
-      
+
       super(fd, mode, options)
     end
   end
@@ -1221,7 +1230,7 @@ class File < IO
   end
 
   def reopen(other, mode = 'r+')
-    rewind unless closed?
+    rewind unless closed? rescue Errno::ESPIPE
     unless other.kind_of? IO
       other = Rubinius::Type.coerce_to_path(other)
     end

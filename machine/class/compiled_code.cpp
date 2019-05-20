@@ -2,11 +2,13 @@
 #include "bytecode_verifier.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
+#include "environment.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
 #include "machine_code.hpp"
 #include "on_stack.hpp"
 #include "logger.hpp"
+#include "signature.h"
 
 #include "class/call_site.hpp"
 #include "class/class.hpp"
@@ -22,9 +24,15 @@
 
 #include "memory/object_mark.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/profiler.hpp"
+#include "diagnostics/timing.hpp"
 
+#include "sodium/crypto_generichash.h"
+#include "sodium/utils.h"
+
+#include <cstdint>
 #include <ostream>
+
 
 namespace rubinius {
 
@@ -37,6 +45,8 @@ namespace rubinius {
     if(MachineCode* machine_code = code->machine_code()) {
       machine_code->finalize(state);
     }
+
+    code->lock().std::mutex::~mutex();
   }
 
   CompiledCode* CompiledCode::create(STATE) {
@@ -120,68 +130,38 @@ namespace rubinius {
 
   MachineCode* CompiledCode::internalize(STATE) {
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().machine.bytecode_internalizer_us);
+        state->vm()->metrics()->bytecode_internalizer_us);
 
-    atomic::memory_barrier();
+    std::lock_guard<std::mutex> guard(lock());
 
-    MachineCode* mcode = machine_code();
-
-    if(mcode) return mcode;
-
-    {
-      BytecodeVerifier bytecode_verifier(this);
-      bytecode_verifier.verify(state);
-    }
-
-    mcode = new MachineCode(state, this);
-
-    if(resolve_primitive(state)) {
-      mcode->fallback = execute;
-    } else {
-      mcode->setup_argument_handler();
-    }
-
-    /* There is a race here because another Thread may have run this
-     * CompiledCode instance and internalized it. We attempt to store our
-     * version assuming that we are the only ones to do so and throw away our
-     * work if someone else has beat us to it.
-     */
-    MachineCode** mcode_ptr = &_machine_code_;
-    if(atomic::compare_and_swap(reinterpret_cast<void**>(mcode_ptr), 0, mcode)) {
-      set_executor(mcode->fallback);
-      return mcode;
-    } else {
+    if(machine_code()) {
       return machine_code();
+    } else {
+      {
+        BytecodeVerifier bytecode_verifier(this);
+        bytecode_verifier.verify(state);
+      }
+
+      MachineCode* mcode = MachineCode::create(state, this);
+
+      if(resolve_primitive(state)) {
+        mcode->fallback = execute;
+      } else {
+        mcode->setup_argument_handler();
+      }
+
+      set_executor(mcode->fallback);
+
+      machine_code(mcode);
+
+      return mcode;
     }
   }
 
   Object* CompiledCode::primitive_failed(STATE,
               Executable* exec, Module* mod, Arguments& args)
   {
-    CompiledCode* code = as<CompiledCode>(exec);
-
-    Class* cls = args.recv()->direct_class(state);
-    uint64_t class_data = cls->data_raw();
-
-    MachineCode* v = code->machine_code();
-
-    executor target = v->unspecialized;
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint64_t c_id = v->specializations[i].class_data.raw;
-      executor x = v->specializations[i].execute;
-
-      if(c_id == class_data && x != 0) {
-        target = x;
-        break;
-      }
-    }
-
-    if(target) {
-      return target(state, exec, mod, args);
-    } else {
-      return MachineCode::execute(state, exec, mod, args);
-    }
+    return MachineCode::execute(state, exec, mod, args);
   }
 
   void CompiledCode::specialize(STATE, TypeInfo* ti) {
@@ -198,100 +178,6 @@ namespace rubinius {
     }
 
     return code->execute(state, exec, mod, args);
-  }
-
-  Object* CompiledCode::specialized_executor(STATE,
-                          Executable* exec, Module* mod, Arguments& args)
-  {
-    CompiledCode* code = as<CompiledCode>(exec);
-
-    Class* cls = args.recv()->direct_class(state);
-    uint64_t class_data = cls->data_raw();
-
-    MachineCode* v = code->machine_code();
-
-    executor target = v->unspecialized;
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint64_t c_id = v->specializations[i].class_data.raw;
-      executor x = v->specializations[i].execute;
-
-      if(c_id == class_data && x != 0) {
-        target = x;
-        break;
-      }
-    }
-
-    // This is a bug. We should not have this setup if there are no
-    // specializations. FIX THIS BUG!
-    if(!target) target = v->fallback;
-
-    return target(state, exec, mod, args);
-  }
-
-  bool CompiledCode::can_specialize_p() {
-    if(!machine_code()) rubinius::bug("specializing with no backend");
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(machine_code()->specializations[i].class_data.raw == 0) return true;
-    }
-
-    return false;
-  }
-
-  void CompiledCode::add_specialized(STATE,
-      uint32_t class_id, uint32_t serial_id, executor exec)
-  {
-    if(!machine_code()) {
-      logger::error("specializing with no backend");
-      return;
-    }
-
-    MachineCode* v = machine_code();
-
-    int i;
-
-    for(i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint32_t id = v->specializations[i].class_data.f.class_id;
-
-      if(id == 0 || id == class_id) break;
-    }
-
-    /* We have fixed space for specializations. If we exceed this, overwrite
-     * the first one. This should be converted to some sort of LRU cache.
-     */
-    if(i == MachineCode::cMaxSpecializations) {
-      std::ostringstream msg;
-
-      msg << "Specialization space exceeded for " <<
-        machine_code()->name()->cpp_str(state);
-      logger::warn(msg.str().c_str());
-
-      i = 0;
-    }
-
-    v->specializations[i].class_data.f.class_id = class_id;
-    v->specializations[i].class_data.f.serial_id = serial_id;
-    v->specializations[i].execute = exec;
-
-    v->set_execute_status(MachineCode::eJIT);
-    if(primitive()->nil_p()) {
-      execute = specialized_executor;
-    }
-  }
-
-  executor CompiledCode::find_specialized(Class* cls) {
-    MachineCode* v = machine_code();
-
-    if(!v) return 0;
-
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(v->specializations[i].class_data.raw == cls->data_raw()) {
-        return v->specializations[i].execute;
-      }
-    }
-
-    return 0;
   }
 
   void CompiledCode::post_marshal(STATE) {
@@ -312,6 +198,9 @@ namespace rubinius {
   }
 
   Object* CompiledCode::set_breakpoint(STATE, Fixnum* ip, Object* bp) {
+    return Primitives::failure();
+
+    /* TODO: instructions
     CompiledCode* self = this;
     OnStack<3> os(state, self, ip, bp);
 
@@ -331,9 +220,13 @@ namespace rubinius {
     self->machine_code()->run = MachineCode::debugger_interpreter;
 
     return ip;
+    */
   }
 
   Object* CompiledCode::clear_breakpoint(STATE, Fixnum* ip) {
+    return Primitives::failure();
+
+    /* TODO: instructions
     int i = ip->to_native();
     if(machine_code() == NULL) return ip;
     if(!machine_code()->validate_ip(state, i)) return Primitives::failure();
@@ -350,9 +243,13 @@ namespace rubinius {
     }
 
     return RBOOL(removed);
+    */
   }
 
   Object* CompiledCode::is_breakpoint(STATE, Fixnum* ip) {
+    return Primitives::failure();
+
+    /* TODO: instructions
     int i = ip->to_native();
     if(machine_code() == NULL) return cFalse;
     if(!machine_code()->validate_ip(state, i)) return Primitives::failure();
@@ -362,6 +259,7 @@ namespace rubinius {
     breakpoints()->fetch(state, ip, &found);
 
     return RBOOL(found);
+    */
   }
 
   CompiledCode* CompiledCode::of_sender(STATE) {
@@ -384,6 +282,19 @@ namespace rubinius {
 
   Fixnum* CompiledCode::sample_count(STATE) {
     return Fixnum::from(machine_code()->sample_count);
+  }
+
+  String* CompiledCode::stamp_id(STATE) {
+    unsigned char hash[crypto_generichash_BYTES];
+    char hash_hex[crypto_generichash_BYTES * 2 + 1];
+
+    randombytes_buf(hash, sizeof(hash));
+
+    code_id(state, String::create(state,
+          reinterpret_cast<const char*>(sodium_bin2hex(
+              hash_hex, sizeof(hash_hex), hash, sizeof(hash)))));
+
+    return code_id();
   }
 
   Object* CompiledCode::execute_script(STATE) {
@@ -438,8 +349,14 @@ namespace rubinius {
     MachineCode* mcode = code->machine_code();
     mcode->set_mark();
 
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      // TODO: JIT
+    // TODO: pass State into GC!
+    VM* vm = VM::current();
+
+    if(vm->shared.profiler()->collecting_p()) {
+      if(mcode->sample_count > vm->shared.profiler()->sample_min()) {
+        vm->shared.profiler()->add_index(mcode->serial(), mcode->name(),
+            mcode->location(), mcode->sample_count, mcode->call_count);
+      }
     }
 
     for(size_t i = 0; i < mcode->references_count(); i++) {
@@ -468,6 +385,7 @@ namespace rubinius {
     indent_attribute(level, "splat"); code->splat()->show(state, level);
     indent_attribute(level, "stack_size"); code->stack_size()->show(state, level);
     indent_attribute(level, "total_args"); code->total_args()->show(state, level);
+    indent_attribute(level, "code_id"); code->code_id()->show(state, level);
 
     indent_attribute(level, "internalized");
     if(!code->machine_code()) {

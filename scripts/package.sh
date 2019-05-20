@@ -13,7 +13,7 @@ function rbx_package_tar {
   archive="$(rbx_release_name)"
   rm -rf "$archive"
 
-  files="$(git ls-files; ls .revision; ls vendor/cache/*.gem)"
+  files="$(git ls-files; ls .revision; ls rubinius-codedb-cache.bz2*; ls build/libraries/cache/*.gem)"
 
   echo "$files" | sort | uniq | \
     bsdtar -c -s "|^|rubinius-$(rbx_revision_version)/|" -T - -f - | bzip2 > "$archive"
@@ -42,14 +42,14 @@ function rbx_package_heroku {
   rbx_digest_file "$(rbx_heroku_release_name)" "sha1"
 }
 
-function rbx_package_core {
-  echo "Packaging runtime/core..."
+function rbx_package_codedb {
+  echo "Packaging codedb/cache..."
 
-  rm -rf "$(rbx_runtime_core_name)"
+  rm -rf "$(rbx_codedb_cache_name)"
 
-  tar -c -f - runtime/core | bzip2 > "$(rbx_runtime_core_name)"
+  cat codedb/cache | bzip2 > "$(rbx_codedb_cache_name)"
 
-  rbx_digest_file "$(rbx_runtime_core_name)" "sha512"
+  rbx_digest_file "$(rbx_codedb_cache_name)" "sha512"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
@@ -66,8 +66,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     "heroku")
       rbx_package_heroku
       ;;
-    "core")
-      rbx_package_core
+    "codedb")
+      rbx_package_codedb
       ;;
     *)
       echo "Usage: ${0##*/} package_type"

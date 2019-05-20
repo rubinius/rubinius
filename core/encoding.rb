@@ -39,6 +39,8 @@ class Encoding
       @incomplete_input = nil
     end
 
+    private :initialize
+
     def incomplete_input?
       @incomplete_input
     end
@@ -160,6 +162,8 @@ class Encoding
         end
       end
     end
+
+    private :initialize
 
     def convert(str)
       str = StringValue(str)
@@ -362,47 +366,11 @@ class Encoding
 
     class TranscodingPath
       def self.paths
-        if load_cache? and cache_threshold?
-          begin
-            path = "#{Rubinius::RUNTIME_PATH}/delta/converter_paths"
-            Rubinius::CodeLoader.require_compiled path
-            cache_loaded
-          rescue Object
-            disable_cache
-          end
-        end
-
         @paths
-      end
-
-      def self.disable_cache
-        @cache_valid = false
-        @load_cache = false
-      end
-
-      def self.cache_loaded
-        @cache_valid = true
-        @load_cache = false
-      end
-
-      def self.load_cache?
-        @load_cache
-      end
-
-      def self.cache_loaded?
-        @load_cache == false and @cache_valid
-      end
-
-      def self.cache_threshold?
-        @paths.size > 5
       end
 
       def self.default_transcoders?
         @transcoders_count == TranscodingMap.size
-      end
-
-      def self.cache_valid?
-        cache_loaded? and default_transcoders?
       end
 
       def self.[](source, target)
@@ -411,7 +379,6 @@ class Encoding
         path, converters = paths[key]
 
         unless path
-          return if cache_valid?
           return unless path = search(source, target)
           paths[key] = [path]
         end

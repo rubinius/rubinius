@@ -12,196 +12,254 @@ public:
   MemoryHeader h;
 
   void setUp() {
-    MemoryHeader::initialize(&h, 0, MemoryHeader::eFirstRegion, InvalidType);
+    VMTest::setUp();
+    MemoryHeader::initialize(&h, 0, eThreadRegion, InvalidType, false);
   }
 
-  void test_memory_flag_is_64bit_machine_word() {
+  void test_memory_header_is_64bit_machine_word() {
     TS_ASSERT_EQUALS(sizeof(MemoryFlags), sizeof(uintptr_t));
     TS_ASSERT_EQUALS(sizeof(MemoryFlags), 8);
   }
 
-  void test_memory_flag_is_lock_free() {
+  void test_memory_header_is_lock_free() {
     TS_ASSERT_EQUALS(h.header.is_lock_free(), true);
   }
 
-  void test_memory_flag_forwarded() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_FORWARDED_P(h.header.load()), false);
+  void test_memory_header_extended() {
+    TS_ASSERT_EQUALS(h.extended_header_p(), false);
+
+    h.header = 0x1L;
+    TS_ASSERT_EQUALS(h.extended_header_p(), true);
+  }
+
+  void test_memory_header_forwarded() {
     TS_ASSERT_EQUALS(h.forwarded_p(), false);
 
-    h.header.store(RBX_MEMORY_SET_FORWARDED(h.header.load()));
-    TS_ASSERT_EQUALS(RBX_MEMORY_FORWARDED_P(h.header.load()), true);
+    h.header = 0x2L;
     TS_ASSERT_EQUALS(h.forwarded_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x1L);
   }
 
-  void test_memory_flag_inflated() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_INFLATED_P(h.header.load()), false);
-    TS_ASSERT_EQUALS(h.inflated_p(), false);
+  void test_memory_header_thread_id() {
+    h.header = 0x1ffcL;
 
-    h.header.store(RBX_MEMORY_SET_INFLATED(h.header.load()));
-    TS_ASSERT_EQUALS(RBX_MEMORY_INFLATED_P(h.header.load()), true);
-    TS_ASSERT_EQUALS(h.inflated_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x2L);
+    TS_ASSERT_EQUALS(h.thread_id(), 0x7ff);
+    TS_ASSERT_EQUALS(MemoryHeader::max_thread_id(), 0x7ff);
   }
 
-  void test_memory_flag_thread_id() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_THREAD_ID(h.header.load()), 0);
+  void test_memory_header_region() {
+    h.header = 0x6000L;
 
-    h.header.store(RBX_MEMORY_SET_THREAD_ID(h.header.load(), 0xffff));
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x3ffcL);
-    TS_ASSERT_EQUALS(h.thread_id(), 0xfff);
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_THREAD_ID(h.header.load()), 0xfff);
+    TS_ASSERT_EQUALS(static_cast<int>(h.region()), 3);
   }
 
-  void test_memory_flag_region() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_REGION(h.header.load()), 0);
+  void test_memory_header_pinned() {
+    TS_ASSERT_EQUALS(h.pinned_p(), false);
 
-    h.header.store(RBX_MEMORY_SET_REGION(h.header.load(), 0x7));
+    h.header = 0x80000L;
+    TS_ASSERT_EQUALS(h.pinned_p(), true);
 
-    TS_ASSERT_EQUALS(h.header.load(), 0xc000L);
-    TS_ASSERT_EQUALS(h.region(), 0x3);
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_REGION(h.header.load()), 0x3);
+    h.unset_pinned();
+    TS_ASSERT_EQUALS(h.pinned_p(), false);
+
+    h.set_pinned();
+    TS_ASSERT_EQUALS(h.pinned_p(), true);
   }
 
-  void test_memory_flag_marked() {
-    TS_ASSERT_EQUALS(h.marked_p(1), false);
-    TS_ASSERT_EQUALS(h.marked_p(2), false);
-    TS_ASSERT_EQUALS(h.marked_p(3), false);
-
-    h.mark(2);
-    TS_ASSERT_EQUALS(h.marked_p(1), false);
-    TS_ASSERT_EQUALS(h.marked_p(2), true);
-    TS_ASSERT_EQUALS(h.marked_p(3), false);
-
-    h.mark(3);
-    TS_ASSERT_EQUALS(h.header.load(), 0x30000L);
-  }
-
-  void test_memory_flag_scanned() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_SCANNED_P(h.header.load()), false);
-    TS_ASSERT_EQUALS(h.scanned_p(), false);
-
-    h.header.store(RBX_MEMORY_SET_SCANNED(h.header.load()));
-    TS_ASSERT_EQUALS(RBX_MEMORY_SCANNED_P(h.header.load()), true);
-    TS_ASSERT_EQUALS(h.scanned_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x40000L);
-  }
-
-  void test_memory_flag_referenced() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_REFERENCED(h.header.load()), 0);
-
-    h.referenced(static_cast<object_type>((1L << 4) - 1));
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x780000L);
-    TS_ASSERT_EQUALS(h.referenced(), 0xf);
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_REFERENCED(h.header.load()), 0xf);
-  }
-
-  void test_memory_flag_type_id() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_TYPE_ID(h.header.load()), 0);
-
-    h.type_id(static_cast<object_type>((1L << 16) - 1));
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x3fff800000L);
-    TS_ASSERT_EQUALS(h.type_id(), 0x7fff);
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_TYPE_ID(h.header.load()), 0x7fff);
-  }
-
-  void test_memory_flag_data() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_DATA_P(h.header.load()), false);
-    TS_ASSERT_EQUALS(h.data_p(), false);
-
-    h.header.store(RBX_MEMORY_SET_DATA(h.header.load()));
-    TS_ASSERT_EQUALS(RBX_MEMORY_DATA_P(h.header.load()), true);
-    TS_ASSERT_EQUALS(h.data_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x4000000000L);
-
-    h.header.store(RBX_MEMORY_UNSET_DATA(h.header.load()));
-    TS_ASSERT_EQUALS(h.header.load(), 0);
-    TS_ASSERT_EQUALS(h.data_p(), false);
-  }
-
-  void test_memory_flag_frozen() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_FROZEN_P(h.header.load()), false);
-    TS_ASSERT_EQUALS(h.frozen_p(), false);
-
-    h.header.store(RBX_MEMORY_SET_FROZEN(h.header.load()));
-    TS_ASSERT_EQUALS(RBX_MEMORY_FROZEN_P(h.header.load()), true);
-    TS_ASSERT_EQUALS(h.frozen_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x8000000000L);
-
-    h.header.store(RBX_MEMORY_UNSET_FROZEN(h.header.load()));
-    TS_ASSERT_EQUALS(h.header.load(), 0);
-    TS_ASSERT_EQUALS(h.frozen_p(), false);
-  }
-
-  void test_memory_flag_tainted() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_TAINTED_P(h.header.load()), 0);
-    TS_ASSERT_EQUALS(h.tainted_p(), false);
-
-    h.header.store(RBX_MEMORY_SET_TAINTED(h.header.load()));
-    TS_ASSERT_EQUALS(h.tainted_p(), true);
-    TS_ASSERT_EQUALS(h.header.load(), 0x10000000000L);
-
-    h.header.store(RBX_MEMORY_UNSET_TAINTED(h.header.load()));
-    TS_ASSERT_EQUALS(h.header.load(), 0);
-    TS_ASSERT_EQUALS(h.tainted_p(), false);
-  }
-
-  void test_memory_flag_bias_locked() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_BIAS_LOCKED_P(h.header.load()), 0);
-
-    h.header.store(RBX_MEMORY_SET_BIAS_LOCKED(h.header.load()));
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x20000000000L);
-  }
-
-  void test_memory_flag_locked_count() {
-    TS_ASSERT_EQUALS(RBX_MEMORY_GET_LOCKED_COUNT(h.header.load()), 0);
-
-    h.header.store(RBX_MEMORY_SET_LOCKED_COUNT(h.header.load(), 0xffff));
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x3c0000000000L);
-  }
-
-  void test_memory_flag_lock_inflated() {
-    TS_ASSERT_EQUALS(h.lock_inflated_p(), false);
-
-    h.header.store(RBX_MEMORY_SET_LOCK_INFLATED(h.header.load()));
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x400000000000L);
-  }
-
-  void test_memory_flag_object_id() {
-    TS_ASSERT_EQUALS(h.object_id(), 0);
-
-    h.header.store(RBX_MEMORY_SET_OBJECT_ID(h.header.load(), 0xffff));
-    TS_ASSERT_EQUALS(h.object_id(), 0xfff);
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x7ff800000000000L);
-  }
-
-  void test_memory_flag_reserved() {
-    TS_ASSERT_EQUALS(h.reserved(), 0);
-
-    h.reserved(0xf);
-    TS_ASSERT_EQUALS(h.reserved(), 0x7);
-
-    TS_ASSERT_EQUALS(h.header.load(), 0x3800000000000000L);
-  }
-
-  void test_memory_flag_visited() {
+  void test_memory_header_visited() {
+    TS_ASSERT_EQUALS(h.visited_p(0), true);
     TS_ASSERT_EQUALS(h.visited_p(1), false);
     TS_ASSERT_EQUALS(h.visited_p(2), false);
     TS_ASSERT_EQUALS(h.visited_p(3), false);
 
-    h.visited(2);
+    h.set_visited(2);
+    TS_ASSERT_EQUALS(h.visited_p(0), false);
     TS_ASSERT_EQUALS(h.visited_p(1), false);
     TS_ASSERT_EQUALS(h.visited_p(2), true);
     TS_ASSERT_EQUALS(h.visited_p(3), false);
 
-    h.visited(3);
-    TS_ASSERT_EQUALS(h.header.load(), 0xc000000000000000L);
+    h.set_visited(3);
+    TS_ASSERT_EQUALS(h.header.load(), 0x1800000L);
+  }
+
+  void test_memory_header_marked() {
+    TS_ASSERT_EQUALS(h.marked_p(0), true);
+    TS_ASSERT_EQUALS(h.marked_p(1), false);
+    TS_ASSERT_EQUALS(h.marked_p(2), false);
+    TS_ASSERT_EQUALS(h.marked_p(3), false);
+
+    h.set_marked(2);
+    TS_ASSERT_EQUALS(h.marked_p(0), false);
+    TS_ASSERT_EQUALS(h.marked_p(1), false);
+    TS_ASSERT_EQUALS(h.marked_p(2), true);
+    TS_ASSERT_EQUALS(h.marked_p(3), false);
+
+    h.set_marked(3);
+    TS_ASSERT_EQUALS(h.header.load(), 0x6000000L);
+  }
+
+  void test_memory_header_scanned() {
+    TS_ASSERT_EQUALS(h.scanned_p(), false);
+
+    h.header = 0x8000000L;
+    TS_ASSERT_EQUALS(h.scanned_p(), true);
+
+    h.unset_scanned();
+    TS_ASSERT_EQUALS(h.scanned_p(), false);
+
+    h.set_scanned();
+    TS_ASSERT_EQUALS(h.scanned_p(), true);
+  }
+
+  void test_memory_header_referenced() {
+    TS_ASSERT_EQUALS(h.referenced(), 0);
+
+    h.header = 0x78000L;
+
+    TS_ASSERT_EQUALS(h.referenced(), 15);
+  }
+
+  void test_memory_header_add_reference_adds_to_list() {
+    Object* obj = state->memory()->new_object<Object>(state, G(object));
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 0);
+
+    obj->add_reference(state);
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 1);
+  }
+
+  void test_memory_header_add_reference() {
+    Object* obj = state->memory()->new_object<Object>(state, G(object));
+
+    for(int i = 0; i < 20; i++) {
+      TS_ASSERT_EQUALS(obj->referenced(), i);
+
+      obj->add_reference(state);
+
+      TS_ASSERT_EQUALS(obj->referenced(), i+1);
+
+      if(i > 15) {
+        TS_ASSERT(obj->extended_header_p());
+      }
+    }
+  }
+
+  void test_memory_header_type_id() {
+    TS_ASSERT_EQUALS(h.type_id(), 0);
+
+    h.header = 0x1ff0000000L;
+    TS_ASSERT_EQUALS(h.type_id(), 0x1ffL);
+  }
+
+  void test_memory_header_data() {
+    TS_ASSERT_EQUALS(h.data_p(), false);
+    TS_ASSERT_EQUALS(h.object_p(), true);
+
+    h.header = 0x2000000000L;
+    TS_ASSERT_EQUALS(h.data_p(), true);
+    TS_ASSERT_EQUALS(h.object_p(), false);
+  }
+
+  void test_memory_header_frozen() {
+    TS_ASSERT_EQUALS(h.frozen_p(), false);
+
+    h.header = 0x4000000000L;
+    TS_ASSERT_EQUALS(h.frozen_p(), true);
+
+    h.unset_frozen();
+    TS_ASSERT_EQUALS(h.frozen_p(), false);
+
+    h.set_frozen();
+    TS_ASSERT_EQUALS(h.frozen_p(), true);
+  }
+
+  void test_memory_header_tainted() {
+    TS_ASSERT_EQUALS(h.tainted_p(), false);
+
+    h.header = 0x8000000000L;
+    TS_ASSERT_EQUALS(h.tainted_p(), true);
+
+    h.unset_tainted();
+    TS_ASSERT_EQUALS(h.tainted_p(), false);
+
+    h.set_tainted();
+    TS_ASSERT_EQUALS(h.tainted_p(), true);
+  }
+
+  void test_memory_header_object_id() {
+    TS_ASSERT_EQUALS(h.object_id(), 0);
+
+    h.header = 0x3ffff80000000000L;
+    TS_ASSERT_EQUALS(h.object_id(), 0x7ffffL);
+
+    TS_ASSERT_EQUALS(MemoryHeader::max_object_id(), 0x7ffffL);
+  }
+
+  void test_memory_header_set_object_id() {
+    MemoryHeader::object_id_counter = 21;
+
+    h.assign_object_id();
+
+    TS_ASSERT_EQUALS(h.object_id(), 0x15);
+
+    MemoryHeader::object_id_counter = MemoryHeader::max_object_id() + 10;
+
+    h.header = 0;
+    h.assign_object_id();
+
+    TS_ASSERT(h.extended_header_p());
+    TS_ASSERT_EQUALS(h.object_id(), MemoryHeader::max_object_id() + 10);
+  }
+
+  void test_memory_header_type_specific() {
+    TS_ASSERT_EQUALS(h.type_specific(), 0);
+
+    h.header = 0xc000000000000000L;
+    TS_ASSERT_EQUALS(h.type_specific(), 0x3L);
+  }
+
+  void test_memory_header_memory_handle() {
+    String* str = String::create(state, "");
+    MemoryHandle* handle = str->get_handle(state);
+
+    TS_ASSERT(handle);
+    TS_ASSERT(str->extended_header_p());
+    TS_ASSERT_EQUALS(str->get_handle(state), handle);
+  }
+
+  void test_memory_header_lock() {
+    h.set_thread_id(state->vm()->thread_id());
+
+    TS_ASSERT_THROWS_ASSERT(h.unlock(state),
+			    const RubyException &e,
+			    TS_ASSERT(Exception::runtime_error_p(state, e.exception)));
+
+    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count(); i++) {
+      h.lock(state);
+      TS_ASSERT_EQUALS(locked_count_field.get(h.header), i+1);
+    }
+
+    TS_ASSERT(!h.extended_header_p());
+
+    for(int i = rubinius::MemoryHeader::max_locked_count(); i > 0; i--) {
+      TS_ASSERT_EQUALS(locked_count_field.get(h.header), i);
+      h.unlock(state);
+    }
+
+    TS_ASSERT(!h.extended_header_p());
+
+    TS_ASSERT_THROWS_ASSERT(h.unlock(state),
+			    const RubyException &e,
+			    TS_ASSERT(Exception::runtime_error_p(state, e.exception)));
+
+    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count() + 2; i++) {
+      h.lock(state);
+    }
+
+    TS_ASSERT(h.extended_header_p());
+
+    for(int i = 0; i < rubinius::MemoryHeader::max_locked_count() + 1; i++) {
+      h.unlock(state);
+    }
   }
 };

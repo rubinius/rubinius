@@ -174,7 +174,13 @@ namespace rubinius {
   }
 
   Integer* Fixnum::neg(STATE) {
-    return Fixnum::from(-to_native());
+    intptr_t value = -to_native();
+
+    if(value > FIXNUM_MAX || value < FIXNUM_MIN) {
+      return Bignum::from(state, value);
+    }
+
+    return Fixnum::from(value);
   }
 
   Object* Fixnum::pow(STATE, Fixnum* exponent) {
@@ -322,43 +328,45 @@ namespace rubinius {
 
   Integer* Fixnum::left_shift(STATE, Fixnum* bits) {
     native_int shift = bits->to_native();
+
     if(shift < 0) {
+      if(shift <= FIXNUM_MIN) {
+        return force_as<Integer>(Primitives::failure());
+      }
+
       return right_shift(state, Fixnum::from(-shift));
     }
 
     native_int self = to_native();
-    if(shift >= (native_int)FIXNUM_WIDTH) {
+
+    if((self > 0 && (shift >= FIXNUM_MAX_WIDTH || self > (FIXNUM_MAX >> shift)))
+        || (self < 0 && (shift >= FIXNUM_MIN_WIDTH || self < (FIXNUM_MIN >> shift)))) {
       return Bignum::from(state, self)->left_shift(state, bits);
-    }
-
-    native_int answer = self << shift;
-    native_int check = answer >> shift;
-
-    if(self != check) {
-      return Bignum::from(state, self)->left_shift(state, bits);
-    }
-
-    if(answer > FIXNUM_MAX || answer < FIXNUM_MIN) {
-      return Bignum::from(state, answer);
     } else {
-      return Fixnum::from(answer);
+      return Fixnum::from(self << shift);
     }
   }
 
   Integer* Fixnum::right_shift(STATE, Fixnum* bits) {
     native_int shift = bits->to_native();
+
     if(shift < 0) {
+      if(shift <= FIXNUM_MIN) {
+        return force_as<Integer>(Primitives::failure());
+      }
+
       return left_shift(state, Fixnum::from(-shift));
     }
 
-    // boundary case. Don't overflow the bits back to their original
-    // value like C does, just say it's 0.
-    if(shift > (native_int)FIXNUM_WIDTH) {
-      if(to_native() >= 0) return Fixnum::from(0);
+    native_int self = to_native();
+
+    if(self > 0 && shift > FIXNUM_MAX_WIDTH) {
+      return Fixnum::from(0);
+    } else if(self < 0 && shift > FIXNUM_MIN_WIDTH) {
       return Fixnum::from(-1);
     }
 
-    return Fixnum::from(to_native() >> shift);
+    return Fixnum::from(self >> shift);
   }
 
   Integer* Fixnum::size(STATE) {
@@ -416,8 +424,10 @@ namespace rubinius {
   static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
   String* Fixnum::to_s(STATE, Fixnum* base) {
-    // Base 2 fixnum with a minus sign and null byte is the maximum length
-    char buf[FIXNUM_WIDTH + 2];
+    /* The bit width of the smallest Fixnum plus the minus sign and null byte
+     * is the maximum length.
+     */
+    char buf[FIXNUM_MIN_WIDTH + 2];
     char *b = buf + sizeof(buf);
     native_int j, k, m;
 

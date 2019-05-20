@@ -29,6 +29,7 @@
 
 namespace rubinius {
 
+  class CodeDB;
   class LookupTable;
   class Tuple;
   class Module;
@@ -48,12 +49,12 @@ namespace rubinius {
      * the constructor for Globals, again, at the END of the list. */
 
     /* classes for the core 'types' */
-    memory::TypedRoot<Class*> compiled_code, tuple, module, basicobject, object, array;
+    memory::TypedRoot<Class*> compiled_code, tuple, rtuple, module, basicobject, object, array;
     memory::TypedRoot<Class*> klass, method_table, bytearray;
     memory::TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     memory::TypedRoot<Class*> string, character, symbol, io;
     memory::TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
-    memory::TypedRoot<Class*> floatpoint, nmc, list, list_node;
+    memory::TypedRoot<Class*> floatpoint, list, list_node;
     memory::TypedRoot<Class*> channel, thread, thread_state, constantscope;
     memory::TypedRoot<Class*> constant_table, lookup_table;
     memory::TypedRoot<Class*> iseq, executable, native_function;
@@ -113,6 +114,7 @@ namespace rubinius {
     memory::TypedRoot<Class*> exc_vm_internal;
     memory::TypedRoot<Class*> exc_vm_bad_bytecode;
     memory::TypedRoot<Class*> call_site;
+    memory::TypedRoot<Class*> unwind_site;
     memory::TypedRoot<Class*> inline_cache;
     memory::TypedRoot<Class*> call_custom_cache;
     memory::TypedRoot<Class*> respond_to_cache;
@@ -131,6 +133,9 @@ namespace rubinius {
     memory::TypedRoot<JIT*> jit;
     memory::TypedRoot<Module*> runtime;
     memory::TypedRoot<Class*> codedb;
+    memory::TypedRoot<CodeDB*> coredb;
+    memory::TypedRoot<Class*> prediction;
+    memory::TypedRoot<Class*> method_prediction;
 
     memory::TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
@@ -142,6 +147,7 @@ namespace rubinius {
     Globals() :
       compiled_code(&roots),
       tuple(&roots),
+      rtuple(&roots),
       module(&roots),
       basicobject(&roots),
       object(&roots),
@@ -163,7 +169,6 @@ namespace rubinius {
       fixnum_class(&roots),
       undef_class(&roots),
       floatpoint(&roots),
-      nmc(&roots),
       list(&roots),
       list_node(&roots),
       channel(&roots),
@@ -248,6 +253,7 @@ namespace rubinius {
       exc_vm_internal(&roots),
       exc_vm_bad_bytecode(&roots),
       call_site(&roots),
+      unwind_site(&roots),
       inline_cache(&roots),
       call_custom_cache(&roots),
       respond_to_cache(&roots),
@@ -266,6 +272,9 @@ namespace rubinius {
       jit(&roots),
       runtime(&roots),
       codedb(&roots),
+      coredb(&roots),
+      prediction(&roots),
+      method_prediction(&roots),
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)

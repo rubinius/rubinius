@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 namespace rubinius {
   namespace instructions {

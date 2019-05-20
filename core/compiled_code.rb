@@ -1,7 +1,5 @@
 module Rubinius
   class CompiledCode < Executable
-    attr_accessor :name
-
     def self.allocate
       Rubinius.primitive :compiledcode_allocate
       raise PrimitiveFailure, "CompiledCode.allocate primitive failed"
@@ -15,6 +13,10 @@ module Rubinius
     def call_sites
       Rubinius.primitive :compiledcode_call_sites
       raise PrimitiveFailure, "CompiledCode#call_sites primitive failed"
+    end
+
+    def code_id
+      @code_id || stamp_id
     end
 
     def constant_caches
@@ -77,6 +79,7 @@ module Rubinius
     # This is runtime hints, added to the method by the VM to indicate how it's
     # being used.
 
+    attr_accessor :name
     attr_accessor :hints         # added by the VM to indicate how it's being used.
     attr_accessor :metadata      # [Tuple]   extra data
     attr_accessor :name          # [Symbol]  name of the method
@@ -94,6 +97,7 @@ module Rubinius
     attr_accessor :scope         # [LexicalScope] scope for looking up constants
     attr_accessor :keywords      # [Tuple] pairs of Symbol name, required flag
     attr_accessor :arity         # [Integer] number of arguments, negative if variadic.
+    attr_accessor :registers     # [Integer] number of registers used.
 
     ##
     # Compare this method with +other+. Instead of bugging out if +other+
@@ -131,14 +135,15 @@ module Rubinius
     end
 
     def equivalent_body?(other)
-      @primitive       == other.primitive     and
+      @tags            == other.tags          and
+        @primitive     == other.primitive     and
         @iseq          == other.iseq          and
         @stack_size    == other.stack_size    and
         @local_count   == other.local_count   and
         @required_args == other.required_args and
         @total_args    == other.total_args    and
         @splat         == other.splat         and
-        block_index   == other.block_index    and
+        block_index    == other.block_index   and
         @literals      == other.literals      and
         @file          == other.file          and
         @local_names   == other.local_names
@@ -178,8 +183,10 @@ module Rubinius
     #
     # @return [String]
     def inspect
-      "#<#{self.class.name}:0x#{object_id.to_s(16)} #{@name} file=#{@file}>"
+      "#<#{self.class.name}:0x#{object_id.to_s(16)} name=#{@name} file=#{@file} line=#{defined_line}>"
     end
+
+    alias_method :to_s, :inspect
 
     ##
     # Make the method change its scope so that it can act as though
@@ -217,6 +224,11 @@ module Rubinius
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
     end
 
+    def stamp_id
+      Rubinius.primitive :compiledcode_stamp_id
+      raise ArgumentError, "CompiledCode#stamp_id primitive failed"
+    end
+
     class Script
       attr_accessor :compiled_code
       attr_accessor :file_path
@@ -230,6 +242,8 @@ module Rubinius
         @eval_source = nil
         @main = false
       end
+
+      private :initialize
 
       def eval?
         @for_eval
@@ -259,8 +273,8 @@ module Rubinius
       end
 
       sc = Rubinius::Type.object_singleton_class(MAIN)
-      sc.method_table.store :__script__, nil, self, @scope, 0, :public
       VM.reset_method_cache sc, :__script__
+      sc.method_table.store :__script__, nil, self, @scope, 0, :public
 
       script
     end
@@ -612,6 +626,8 @@ module Rubinius
           @index = index
         end
 
+        private :initialize
+
         def inspect
           "literals[#{@index}]"
         end
@@ -623,6 +639,8 @@ module Rubinius
         def initialize(location)
           @location = location
         end
+
+        private :initialize
 
         def inspect
           FORMAT % @location
@@ -654,6 +672,8 @@ module Rubinius
         @compiled_code = code
         @ip = ip
       end
+
+      private :initialize
 
       # Instruction pointer
       attr_reader :ip

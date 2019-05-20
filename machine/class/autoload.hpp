@@ -21,6 +21,7 @@ namespace rubinius {
     attr_accessor(path, Object);
     attr_accessor(constant, Object);
     attr_accessor(thread, Thread);
+    attr_accessor(loading, Object);
     attr_accessor(loaded, Object);
 
     /**  Register class with the VM. */
@@ -31,6 +32,7 @@ namespace rubinius {
       obj->path(nil<Object>());
       obj->constant(nil<Object>());
       obj->thread(nil<Thread>());
+      obj->loading(nil<Object>());
       obj->loaded(nil<Object>());
     }
 

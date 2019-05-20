@@ -45,7 +45,7 @@ namespace rubinius {
                                       const char* reason = NULL);
     static Exception* make_errno_exception(STATE, Class* exc_class, Object* reason, Object* loc);
 
-    static Exception* make_argument_error(STATE, int expected, int given, Symbol* name=0);
+    static Exception* make_argument_error(STATE, int expected, int given, const char* name=0);
     static Exception* make_encoding_compatibility_error(STATE, Object* a, Object* b);
     static Exception* make_frozen_exception(STATE, Object* obj);
     static Exception* make_no_method_error(STATE, Arguments& args);

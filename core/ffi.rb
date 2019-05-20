@@ -104,6 +104,8 @@ module Rubinius
         end
       end
 
+      private :initialize
+
       def inspect
         "#<%s:0x%x %s=>%s>" % [self.class, self.object_id, @tag, @kv_map.inspect]
       end
@@ -139,6 +141,8 @@ module Rubinius
           @implementation = impl_class
         end
 
+        private :initialize
+
         attr_reader :element_type
         attr_reader :size
         attr_reader :implementation
@@ -148,6 +152,8 @@ module Rubinius
         def initialize(struct)
           @implementation = struct
         end
+
+        private :initialize
 
         attr_reader :implementation
       end
@@ -205,6 +211,8 @@ module Rubinius
           @type = type.element_type
           @size = type.size
         end
+
+        private :initialize
 
         attr_reader :size
 
@@ -433,6 +441,8 @@ module Rubinius
         end
       end
 
+      private :initialize
+
       def to_ptr
         @pointer
       end
@@ -449,6 +459,8 @@ module Rubinius
       def initialize_copy(ptr)
         @pointer = ptr.pointer.dup
       end
+
+      private :initialize
 
       def []=(field, val)
         offset, type = @cspec[field]

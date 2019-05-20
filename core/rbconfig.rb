@@ -1,6 +1,7 @@
 module RbConfig
-  unless defined? RUBY_ENGINE and RUBY_ENGINE == "rbx" then
-    raise "Looks like you loaded the Rubinius rbconfig, but this is not Rubinius."
+  unless defined? RUBY_ENGINE and RUBY_ENGINE == "rbx"
+    raise "This RbConfig is only compatible with Rubinius. " \
+          "Your RUBY_ENGINE is #{RUBY_ENGINE or "undefined"}"
   end
 
   CONFIG = {}
@@ -113,12 +114,15 @@ module RbConfig
   CONFIG["CFLAGS"]             = "-g"
   CONFIG["CXXFLAGS"]           = "-g"
   CONFIG["LDFLAGS"]            = ""
+  CONFIG["optflags"]           = ""
   if Rubinius::BUILD_CONFIG[:debug_build]
     CONFIG["CFLAGS"] << " -O0 "
     CONFIG["CXXFLAGS"] << " -O0 "
+    CONFIG["optflags"] << " -O0 "
   else
-    CONFIG["CFLAGS"] << " -O2"
-    CONFIG["CXXFLAGS"] << " -O2"
+    CONFIG["CFLAGS"] << " -O2 "
+    CONFIG["CXXFLAGS"] << " -O2 "
+    CONFIG["optflags"] << " -O2 "
   end
 
   if sys = Rubinius::BUILD_CONFIG[:system_cflags]
@@ -137,6 +141,20 @@ module RbConfig
     CONFIG["CXXFLAGS"] << " #{user}" unless user.empty?
   end
 
+  if sys = Rubinius::BUILD_CONFIG[:system_incflags]
+    unless sys.empty?
+      CONFIG["CFLAGS"] << " #{sys}"
+      CONFIG["CXXFLAGS"] << " #{sys}"
+    end
+  end
+
+  if user = Rubinius::BUILD_CONFIG[:user_incflags]
+    unless user.empty?
+      CONFIG["CFLAGS"] << " #{user}"
+      CONFIG["CXXFLAGS"] << " #{user}"
+    end
+  end
+
   if sys = Rubinius::BUILD_CONFIG[:system_ldflags]
     CONFIG["LDFLAGS"] << " #{sys}" unless sys.empty?
   end
@@ -146,6 +164,7 @@ module RbConfig
   end
 
   CONFIG["CPPFLAGS"]           = ""
+
   if sys = Rubinius::BUILD_CONFIG[:system_cppflags]
     CONFIG["CPPFLAGS"] << " #{sys}" unless sys.empty?
   end

@@ -29,15 +29,7 @@ namespace memory {
    * @param target The mature object to be added to the remember set.
    */
   void WriteBarrier::remember_object(Object* target) {
-    // TODO: GC
-    return;
-
-    utilities::thread::SpinLock::LockGuard lg(lock_);
-
-    // If it's already remembered, ignore this request
-    if(target->remembered_p()) return;
-    target->set_remember();
-    remember_set_->push_back(target);
+    target->set_remembered();
   }
 
   /**
@@ -58,16 +50,7 @@ namespace memory {
    * to be removed from the remember set.
    */
   void WriteBarrier::unremember_object(Object* target) {
-    utilities::thread::SpinLock::LockGuard lg(lock_);
-
-    for(ObjectArray::iterator oi = remember_set_->begin();
-        oi != remember_set_->end();
-        ++oi) {
-      if(*oi == target) {
-        *oi = NULL;
-        target->clear_remember();
-      }
-    }
+    target->unset_remembered();
   }
 
   /**

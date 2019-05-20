@@ -34,10 +34,7 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
       virtual void show(STATE, Object* self, int level);
     };
-
-#include "gen/instruction_names.hpp"
   };
-
 }
 
 #endif

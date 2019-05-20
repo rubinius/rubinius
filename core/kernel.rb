@@ -18,10 +18,6 @@ module Kernel
     Rubinius::Type.object_singleton_class self
   end
 
-  def singleton_class?
-    !!Rubinius::Type.singleton_class_object(self)
-  end
-
   def extend(mod)
     Rubinius::Type.object_singleton_class(self).include(mod)
     self
@@ -248,16 +244,29 @@ module Kernel
   def __method__
     scope = Rubinius::VariableScope.of_sender
 
+    return nil if scope.method.for_module_body?
+
     name = scope.method.name
 
-    return nil if scope.method.for_module_body?
     # If the name is still __block__, then it's in a script, so return nil
     return nil if name == :__block__ or name == :__script__
+
     name
   end
   module_function :__method__
 
-  alias_method :__callee__, :__method__
+  def __callee__
+    scope = Rubinius::VariableScope.of_sender
+
+    return nil if scope.method.for_module_body?
+
+    name = scope.name
+
+    # If the name is still __block__, then it's in a script, so return nil
+    return nil if name == :__block__ or name == :__script__
+
+    name
+  end
   module_function :__callee__
 
   def __dir__
@@ -345,24 +354,33 @@ module Kernel
   alias_method :iterator?, :block_given?
   module_function :iterator?
 
+  def caller_inner(start, length)
+    if start.is_a?(Range)
+      length = start.size
+      start = start.begin
+    end
+
+    # The + 2 is to skip this frame and the caller's.
+    #
+    # TODO: plumb length into mri_backtrace to save some work.
+    full_trace = Rubinius.mri_backtrace(start + 2)
+    if length
+      full_trace = full_trace.slice(0, length)
+    end
+    full_trace
+  end
+  module_function :caller_inner
+  private :caller_inner
+
   def caller(start = 1, length = nil)
-    frames = []
-
-    # The + 1 is to skip this frame
-    Rubinius.mri_backtrace(start + 1).map do |tup|
-      if length and frames.length == length
-        break
-      end
-
+    caller_inner(start, length).map do |tup|
       code     = tup[0]
       line     = tup[1]
       is_block = tup[2]
       name     = tup[3]
 
-      frames << "#{code.active_path}:#{line}:in `#{name}'"
+      "#{code.active_path}:#{line}:in `#{name}'"
     end
-
-    frames
   end
   module_function :caller
 
@@ -371,23 +389,14 @@ module Kernel
   # instances. This method is available starting with Ruby 2.0.
   #
   def caller_locations(start = 1, length = nil)
-    full_trace = Rubinius.mri_backtrace(start + 1)
-    locations  = []
-
-    full_trace.each do |tup|
-      if length and locations.length == length
-        break
-      end
-
+    caller_inner(start, length).map do |tup|
       scope    = tup[0].scope
       abs_path = tup[0].active_path
       path     = scope ? scope.active_path : abs_path
       label    = tup[3].to_s
 
-      locations << Thread::Backtrace::Location.new(label, abs_path, path, tup[1])
+      Thread::Backtrace::Location.new(label, abs_path, path, tup[1])
     end
-
-    locations
   end
   module_function :caller_locations
 
@@ -566,14 +575,15 @@ module Kernel
   module_function :lambda
 
   def load(name, wrap=false)
-    cl = Rubinius::CodeLoader.new(name)
-    cl.load(wrap)
+    Rubinius::CodeLoader.new(name).load(wrap)
+    # cl = Rubinius::CodeLoader.new(name)
+    # cl.load(wrap)
 
-    Rubinius.run_script cl.compiled_code
+    # Rubinius.run_script cl.compiled_code
 
-    Rubinius::CodeLoader.loaded_hook.trigger!(name)
+    # Rubinius::CodeLoader.loaded_hook.trigger!(name)
 
-    return true
+    # return true
   end
   module_function :load
 
@@ -848,13 +858,13 @@ module Kernel
   end
 
   def require(name)
-    Rubinius::CodeLoader.require name
+    Rubinius::CodeLoader.new(name).require
   end
   module_function :require
 
   def require_relative(name)
     scope = Rubinius::LexicalScope.of_sender
-    Rubinius::CodeLoader.require_relative(name, scope)
+    Rubinius::CodeLoader.new(name).require_relative(scope)
   end
   module_function :require_relative
 
@@ -1071,7 +1081,9 @@ module Kernel
 
   def throw(obj, value=nil)
     unless Rubinius::ThrownValue.available? obj
-      raise UncaughtThrowError, "uncaught throw #{obj.inspect}"
+      exc = UncaughtThrowError.new "uncaught throw #{obj.inspect}"
+      exc.tag = obj
+      raise exc
     end
 
     Rubinius.throw obj, value

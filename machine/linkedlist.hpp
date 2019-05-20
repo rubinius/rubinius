@@ -1,10 +1,11 @@
 #ifndef RBX_LINKEDLIST_HPP
 #define RBX_LINKEDLIST_HPP
 
+#include "spinlock.hpp"
+
 #include <stdio.h>
 #include <assert.h>
-
-#include "util/thread.hpp"
+#include <mutex>
 
 namespace rubinius{
 class LinkedList {
@@ -56,7 +57,7 @@ public:
 private:
   Node* head_;
   size_t count_;
-  utilities::thread::SpinLock lock_;
+  locks::spinlock_mutex lock_;
 
 public:
   LinkedList()
@@ -66,13 +67,14 @@ public:
   { }
 
   Node* head() {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     return head_;
   }
 
   size_t size() {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
+
     return count_;
   }
 

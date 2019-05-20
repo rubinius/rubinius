@@ -65,12 +65,12 @@ namespace rubinius {
     return exc;
   }
 
-  Exception* Exception::make_argument_error(STATE, int expected, int given, Symbol* meth) {
+  Exception* Exception::make_argument_error(STATE, int expected, int given, const char* meth) {
     Exception* exc = state->memory()->new_object<Exception>(state, G(exc_arg));
     exc->set_ivar(state, state->symbol("@given"), Fixnum::from(given));
     exc->set_ivar(state, state->symbol("@expected"), Fixnum::from(expected));
     if(meth) {
-      exc->set_ivar(state, state->symbol("@method_name"), meth);
+      exc->set_ivar(state, state->symbol("@method_name"), state->symbol(meth));
     }
     return exc;
   }
@@ -142,7 +142,7 @@ namespace rubinius {
 
   Exception* Exception::make_frozen_exception(STATE, Object* obj) {
     std::ostringstream msg;
-    msg << "can't modify frozen instance of ";
+    msg << "can't modify frozen ";
     msg << obj->class_object(state)->module_name()->debug_str(state);
 
     return Exception::make_exception(state, G(exc_rte), msg.str().c_str());

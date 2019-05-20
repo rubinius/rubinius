@@ -18,291 +18,215 @@ require "rakelib/digest_files"
 def core_clean
   rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
-           "core/signature.rb",
-           "runtime/core",
+           "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/platform.conf",
+           "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/source",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
+           "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*.*",
+           "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/Makefile",
           ],
     :verbose => $verbose
 end
 
-# TODO: Build this functionality into the compiler
-class KernelCompiler
-  def self.compile(file, output, line, transforms)
-    compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_file
+codedb_source = []
+codedb_library = []
 
-    parser = compiler.parser
-    parser.root Rubinius::ToolSets::Build::AST::Script
+codedbdir = "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}"
+platform_conf = "#{codedbdir}/platform.conf"
 
-    if transforms.kind_of? Array
-      transforms.each { |t| parser.enable_category t }
-    else
-      parser.enable_category transforms
-    end
+codedb_cache = "#{codedbdir}/cache"
+codedb_cache_next = codedb_cache + ".next"
 
-    parser.input file, line
+library_dir = "#{BUILD_CONFIG[:sourcedir]}/library"
+bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
 
-    generator = compiler.generator
-    generator.processor Rubinius::ToolSets::Build::Generator
+core_load_order = "core/load_order.txt"
 
-    writer = compiler.writer
-    writer.name = output
+def codedb_source_task(db, origin, source)
+  db << source
 
-    compiler.run
+  file source => origin do |t|
+    dir = File.dirname t.name
+    mkdir_p dir, :verbose => $verbose unless File.directory? dir
+
+    cp t.prerequisites.first, t.name, :verbose => $verbose
   end
 end
 
-# The rule for compiling all Ruby core library files
-rule ".rbc" do |t|
-  source = t.prerequisites.first
-  puts "RBC #{source}"
-  KernelCompiler.compile source, t.name, 1, [:default, :kernel]
-end
-
-# Collection of all files in the runtime core library. Modified by
-# various tasks below.
-runtime_files = FileList["runtime/platform.conf"]
-code_db_files = FileList[
-  "runtime/core/contents",
-  "runtime/core/data",
-  "runtime/core/index",
-  "runtime/core/initialize",
-  "runtime/core/signature"
-]
-code_db_scripts = []
-code_db_code = []
-code_db_data = []
-
-# All the core library files are listed in the `core_load_order`
-core_load_order = "core/load_order.txt"
-core_files = FileList[]
-
+# Add core files
 IO.foreach core_load_order do |name|
-  core_files << "core/#{name.chomp}"
+  origin = "core/#{name.chomp}"
+
+  codedb_source_task codedb_source, origin, "#{codedbdir}/source/#{origin}"
 end
 
-# Generate file tasks for all core library and load_order files.
-def file_task(re, runtime_files, signature, rb, rbc)
-  rbc ||= ((rb.sub(re, "runtime") if re) || rb) + "c"
+# Add library files
+FileList["#{library_dir}/**/*.rb"].each do |file|
+  source = "#{codedbdir}/source/#{file[(library_dir.size+1)..-1]}"
 
-  file rbc => [rb, signature]
-  runtime_files << rbc
+  codedb_source_task codedb_source, file, source
 end
 
-def core_file_task(runtime_files, signature, rb, rbc=nil)
-  file_task(/^core/, runtime_files, signature, rb, rbc)
+FileList["#{library_dir}/**/*.*"].exclude("#{library_dir}/**/*.rb").each do |file|
+  source = "#{codedbdir}/source/#{file[(library_dir.size+1)..-1]}"
+
+  unless File.directory? file
+    codedb_source_task codedb_library, file, source
+  end
 end
 
-# Generate a digest of the Rubinius runtime files
-signature_file = "core/signature.rb"
+# Add pre-installed gems
+FileList["#{bootstrap_gems_dir}/*/{lib,ext}/**/*.rb"]
+  .exclude("#{bootstrap_gems_dir}/{bundler-*,minitest-*,racc-*,rake-*,rdoc-*,*-readline*}/**/*.*")
+  .each do |file|
 
-runtime_gems_dir = BUILD_CONFIG[:runtime_gems_dir]
-bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
+  m = %r[#{bootstrap_gems_dir}/[^/]+/(lib|ext)/(.*\.rb)$].match file
 
-if runtime_gems_dir and bootstrap_gems_dir
-  ffi_files = FileList[
-    "#{bootstrap_gems_dir}/**/*.ffi"
-  ].each { |f| f.gsub!(/.ffi\z/, '') }
-
-  runtime_gem_files = FileList[
-    "#{runtime_gems_dir}/**/*.rb"
-  ].exclude("#{runtime_gems_dir}/**/spec/**/*.rb",
-            "#{runtime_gems_dir}/**/test/**/*.rb")
-
-  bootstrap_gem_files = FileList[
-    "#{bootstrap_gems_dir}/**/*.rb"
-  ].exclude("#{bootstrap_gems_dir}/**/spec/**/*.rb",
-            "#{bootstrap_gems_dir}/**/test/**/*.rb")
-
-  ext_files = FileList[
-    "#{bootstrap_gems_dir}/**/*.{c,h}pp",
-    "#{bootstrap_gems_dir}/**/grammar.y",
-    "#{bootstrap_gems_dir}/**/lex.c.*"
-  ]
-else
-  ffi_files = runtime_gem_files = bootstrap_gem_files = ext_files = []
+  if m and m[2]
+    source = "#{codedbdir}/source/#{m[2]}"
+    codedb_source_task codedb_source, file, source
+  else
+    raise RuntimeError, "pre-installed gem file not matched: #{file}"
+  end
 end
 
 config_files = FileList[
   "Rakefile",
-  "config.rb",
+  "build/config/config.rb",
   "rakelib/*.rb",
   "rakelib/*.rake"
 ]
 
-signature_files = core_files + config_files + runtime_gem_files + ext_files - ffi_files
+ext_source = FileList[
+  "#{bootstrap_gems_dir}/**/*.{c,h}pp",
+  "#{bootstrap_gems_dir}/**/grammar.y",
+  "#{bootstrap_gems_dir}/**/lex.c.*"
+]
 
-file signature_file => signature_files do
-  # Collapse the digest to a 64bit quantity
-  hd = digest_files signature_files
-  SIGNATURE_HASH = hd[0, 16].to_i(16) ^ hd[16,16].to_i(16) ^ hd[32,8].to_i(16)
+melbourne_ext = FileList["#{bootstrap_gems_dir}/rubinius-melbourne*/ext/**/extconf.rb"]
+extconf_source = FileList["#{bootstrap_gems_dir}/**/{lib,ext}/**/extconf.rb"
+                         ].exclude(melbourne_ext)
+                          .exclude("#{bootstrap_gems_dir}/{bundler-*,minitest-*,racc-*,rake-*,rdoc-*,*-readline*}/**/*.*")
 
-  File.open signature_file, "wb" do |file|
-    file.puts "# This file is generated by rakelib/core.rake. The signature"
-    file.puts "# is used to ensure that the runtime files and VM are in sync."
-    file.puts "#"
-    file.puts "Rubinius::Signature = #{SIGNATURE_HASH}"
-  end
-end
+extensions_dir = "#{BUILD_CONFIG[:builddir]}/#{BUILD_CONFIG[:archdir]}"
+directory extensions_dir
 
-signature_header = "machine/gen/signature.h"
+signature_files = codedb_source + config_files + ext_source
 
-file signature_header => signature_file do |t|
-  File.open t.name, "wb" do |file|
-    file.puts "#define RBX_SIGNATURE          #{SIGNATURE_HASH}ULL"
-  end
-end
+def build_extension(gems_dir, file)
+  FileUtils.mkdir_p "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:includedir]}/ruby/digest"
 
-# Index files for loading a particular version of the core library.
-directory(runtime_base_dir = "runtime")
-runtime_files << runtime_base_dir
+  extconf = %r[#{gems_dir}/[^/]+/(lib|ext)/(.*\.rb)$].match(file)[2]
 
-signature = "runtime/signature"
-file signature => signature_file do |t|
-  File.open t.name, "wb" do |file|
-    puts "GEN #{t.name}"
-    file.puts Rubinius::Signature
-  end
-end
-runtime_files << signature
-
-# Build the gem files
-runtime_gem_files.each do |name|
-  file_task nil, runtime_files, signature_file, name, nil
-end
-
-# Build the bootstrap gem files
-bootstrap_gem_files.each do |name|
-  file_task nil, runtime_files, signature_file, name, nil
-end
-
-namespace :compiler do
-  task :load => ['compiler:generate'] do
-    require "rubinius/bridge"
-    require "rubinius/code/toolset"
-
-    Rubinius::ToolSets.create :build do
-      require "rubinius/code/melbourne"
-      require "rubinius/code/processor"
-      require "rubinius/code/compiler"
-      require "rubinius/code/ast"
-    end
-
-    require File.expand_path("../../core/signature", __FILE__)
-  end
-
-  task :generate => [signature_file]
-end
-
-directory "runtime/core"
-
-class CodeDBCompiler
-  def self.m_id
-    @m_id ||= 0
-    (@m_id += 1).to_s
-  end
-
-  def self.compile(file, line, transforms)
-    compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_code
-
-    parser = compiler.parser
-    parser.root Rubinius::ToolSets::Build::AST::Script
-
-    if transforms.kind_of? Array
-      transforms.each { |t| parser.enable_category t }
+  Dir.chdir File.dirname(file) do
+    if file =~ /openssl/ and openssl = ENV["OPENSSL_DIR"]
+      options = "--with-cppflags=-I#{openssl}/include --with-ldflags=-L#{openssl}/lib"
     else
-      parser.enable_category transforms
+      options = nil
     end
 
-    parser.input file, line
+    unless File.exist? "Makefile"
+      begin
+        ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
 
-    generator = compiler.generator
-    generator.processor Rubinius::ToolSets::Build::Generator
-
-    compiler.run
-  end
-
-  def self.marshal(code)
-    marshaler = Rubinius::ToolSets::Build::CompiledFile::Marshal.new
-    marshaler.marshal code
-  end
-end
-
-file "runtime/core/data" => ["runtime/core", core_load_order] + runtime_files do |t|
-  puts "CodeDB: writing data..."
-
-  core_files.each do |file|
-    id = CodeDBCompiler.m_id
-
-    code_db_code << [id, CodeDBCompiler.compile(file, 1, [:default, :kernel])]
-
-    code_db_scripts << [file, id]
-  end
-
-  while x = code_db_code.shift
-    id, cc = x
-
-    cc.iseq.opcodes.each_with_index do |value, index|
-      if value.kind_of? Rubinius::CompiledCode
-        cc.iseq.opcodes[index] = i = CodeDBCompiler.m_id
-        code_db_code.unshift [i, value]
+        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems --main #{extconf} #{options}", :verbose => $verbose
+      ensure
+        ENV.delete "RBX_PREFIX_PATH"
       end
     end
 
-    marshaled = CodeDBCompiler.marshal cc
+    sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
+    sh "#{BUILD_CONFIG[:build_make]} install", :verbose => $verbose
+  end
+end
 
-    code_db_data << [id, marshaled]
+namespace :codedb do
+  task :signature => signature_files do
+    SIGNATURE_HASH = digest_files signature_files
   end
 
-  File.open t.name, "wb" do |f|
-    code_db_data.map! do |m_id, data|
-      offset = f.pos
-      f.write data
+  task :extensions => [extensions_dir, melbourne_ext] + extconf_source do
+    # It would be better to define file commands for every extension but we
+    # don't know the extension shared library without some other source
+    # parsing so we just iterate based on files.
 
-      [m_id, offset, f.pos - offset]
+    begin
+      destdir = ENV["DESTDIR"]
+      ENV.delete "DESTDIR"
+
+      ENV["CXX"] = BUILD_CONFIG[:cxx]
+      ENV["CXXFLAGS"] = BUILD_CONFIG[:system_cxxflags]
+      ENV["CPPFLAGS"] = BUILD_CONFIG[:system_cppflags]
+      ENV["INCFLAGS"] = BUILD_CONFIG[:system_incflags]
+      ENV["LDSHAREDXX"] = BUILD_CONFIG[:ldsharedxx]
+      ENV["LDFLAGS"] = BUILD_CONFIG[:system_ldflags]
+
+      melbourne_ext.each do |file|
+        build_extension bootstrap_gems_dir, file
+
+        ext_dir = %r[(#{bootstrap_gems_dir}/[^/]+)/.*$].match(file)[1]
+
+        Dir.chdir "#{ext_dir}/lib" do
+          FileList["./**/*.#{RbConfig::CONFIG["DLEXT"]}"].each do |lib|
+            lib_dir = "#{extensions_dir}/#{File.dirname(lib)}"
+            mkdir_p lib_dir
+
+            cp lib, lib_dir, :verbose => $verbose
+          end
+        end
+      end
+    ensure
+      ENV["DESTDIR"] = destdir
+
+      ENV.delete "CXX"
+      ENV.delete "CXXFLAGS"
+      ENV.delete "CPPFLAGS"
+      ENV.delete "INCFLAGS"
+      ENV.delete "LDSHAREDXX"
+      ENV.delete "LDFLAGS"
+    end
+
+    # Rebuild the CodeDB cache to include platform-specific code
+    begin
+      ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
+
+      Dir.chdir BUILD_CONFIG[:builddir] do
+        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{BUILD_CONFIG[:scriptdir]}/create_codedb_cache.rb #{codedb_cache_next}", :verbose => $verbose
+      end
+
+      mv codedb_cache_next, codedb_cache, :verbose => $verbose
+    ensure
+      ENV.delete "RBX_PREFIX_PATH"
+    end
+
+    extconf_source.each do |file|
+      build_extension bootstrap_gems_dir, file
     end
   end
 end
 
-file "runtime/core/index" => "runtime/core/data" do |t|
-  puts "CodeDB: writing index..."
+signature_header = "machine/signature.h"
 
-  File.open t.name, "wb" do |f|
-    code_db_data.each { |id, offset, length| f.puts "#{id} #{offset} #{length}" }
+file signature_header => "codedb:signature" do |t|
+  File.open t.name, "wb" do |file|
+    file.puts <<-EOC
+#ifndef RBX_SIGNATURE_H
+#define RBX_SIGNATURE_H
+
+#define RBX_SIGNATURE          #{SIGNATURE_HASH.inspect}
+
+#endif
+    EOC
   end
 end
 
-file "runtime/core/contents" => "runtime/core/data" do |t|
-  puts "CodeDB: writing contents..."
-
-  File.open t.name, "wb" do |f|
-    code_db_scripts.each { |file, id| f.puts "#{file} #{id}" }
-  end
-end
-
-file "runtime/core/initialize" => "runtime/core/data" do |t|
-  puts "CodeDB: writing initialize..."
-
-  File.open t.name, "wb" do |f|
-    code_db_scripts.each { |_, id| f.puts id }
-  end
-end
-
-file "runtime/core/signature" => signature_file do |t|
-  puts "CodeDB: writing signature..."
-
-  File.open t.name, "wb" do |f|
-    f.puts Rubinius::Signature
-  end
-end
-
-desc "Build all core library files (alias for core:build)"
+desc "Build all core library files"
 task :core => 'core:build'
 
 namespace :core do
-  desc "Build all core library files"
-  task :build => ['compiler:load'] + runtime_files + code_db_files
+  desc "Build all core and library files"
+  task :build => [platform_conf, signature_header] + codedb_source + codedb_library + ["codedb:extensions"]
 
-  desc "Delete all .rbc files"
+  desc "Delete all core and library artifacts"
   task :clean do
     core_clean
   end

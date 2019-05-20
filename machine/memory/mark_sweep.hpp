@@ -2,9 +2,11 @@
 #define RBX_MARKSWEEP_H
 
 #include "memory/gc.hpp"
+#include "memory/mark_stack.hpp"
 #include "memory/root.hpp"
 
 #include "object_position.hpp"
+
 #include "diagnostics.hpp"
 
 #include <stdint.h>
@@ -20,22 +22,10 @@ namespace rubinius {
 namespace memory {
   class MarkSweepGC : public GarbageCollector {
   public:
-    class Diagnostics : public diagnostics::MemoryDiagnostics {
-    public:
-      Diagnostics()
-        : diagnostics::MemoryDiagnostics()
-      { }
-
-      void update();
-    };
-
-  public:
-    typedef std::list<Object*> MarkStack;
-
   private:
       MarkStack mark_stack_;
 
-      Diagnostics* diagnostics_;
+      diagnostics::MarkSweep* diagnostic_;
 
   public:
     /* Data members */
@@ -53,17 +43,16 @@ namespace memory {
     Object* copy_object(Object* obj, bool& collect_now);
     void   sweep_objects();
     void   free_object(Object* obj, bool fast = false);
-    virtual Object* saw_object(Object* obj);
+    virtual Object* saw_object(void* parent, Object* child);
     virtual void scanned_object(Object* obj) {}
-    virtual bool mature_gc_in_progress();
     void after_marked();
 
     void profile(STATE);
 
     ObjectPosition validate_object(Object* obj);
 
-    Diagnostics* diagnostics() {
-      return diagnostics_;
+    diagnostics::MarkSweep* diagnostic() {
+      return diagnostic_;
     }
   };
 }

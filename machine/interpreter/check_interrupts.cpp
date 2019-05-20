@@ -6,7 +6,7 @@ namespace rubinius {
       instructions::check_interrupts(state);
 
       call_frame->next_ip(instructions::data_check_interrupts.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

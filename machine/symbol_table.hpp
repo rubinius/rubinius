@@ -4,14 +4,15 @@
 #include "memory/header.hpp"
 
 #include "defines.hpp"
+
 #include "diagnostics.hpp"
 
 #include "util/thread.hpp"
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
-#include "missing/unordered_map.hpp"
 
 /* SymbolTable provides a one-to-one map between a symbol ID
  * and a string. The hashing algorithm used to generate a
@@ -38,19 +39,9 @@ namespace rubinius {
   typedef std::vector<std::string> SymbolStrings;
   typedef std::vector<int> SymbolEncodings;
   typedef std::vector<std::size_t> SymbolIds;
-  typedef std_unordered_map<hashval, SymbolIds> SymbolMap;
+  typedef std::unordered_map<hashval, SymbolIds> SymbolMap;
 
   class SymbolTable {
-  public:
-    class Diagnostics : public diagnostics::MemoryDiagnostics {
-    public:
-      Diagnostics()
-        : diagnostics::MemoryDiagnostics()
-      { }
-
-      void update();
-    };
-
   public: // Types
 
     // We encode in the symbol some information about it, mostly
@@ -74,27 +65,22 @@ namespace rubinius {
     SymbolEncodings encodings;
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
-    Diagnostics* diagnostics_;
+    diagnostics::SymbolTable* diagnostic_;
 
   public:
 
-    SymbolTable()
-      : diagnostics_(new Diagnostics())
-    {
-      lock_.init();
-    }
+    SymbolTable();
+    virtual ~SymbolTable();
 
-    virtual ~SymbolTable() {
-      if(diagnostics()) delete diagnostics();
-    }
-
-    Diagnostics* diagnostics() {
-      return diagnostics_;
+    diagnostics::SymbolTable* diagnostic() {
+      return diagnostic_;
     }
 
     size_t size() {
       return symbols.size();
     };
+
+    void sweep(STATE);
 
     Symbol* lookup(STATE, SharedState* shared, const std::string& str);
     Symbol* lookup(STATE, const std::string& str);

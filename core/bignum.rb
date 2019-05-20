@@ -28,6 +28,10 @@ class Bignum < Integer
     redo_coerced :*, o
   end
 
+  def bit_length
+    Rubinius.invoke_primitive :bignum_bit_length, self > 0 ? self : ~self
+  end
+
   # this method is aliased to / in core
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)

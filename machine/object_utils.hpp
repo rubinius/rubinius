@@ -11,13 +11,7 @@
  *  objects, such as type checking and casting.
  */
 
-// A stupid work around for g++ changing it's behavior on 4.3
-
-#if __clang__ || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-  #define SPECIALIZATION_STORAGE
-#else
-  #define SPECIALIZATION_STORAGE static inline
-#endif
+#define SPECIALIZATION_STORAGE
 
 namespace rubinius {
 
@@ -27,7 +21,15 @@ namespace rubinius {
    *  Given builtin-class +T+, return true if +obj+ is of class +T+
    */
   template <class T>
-    static inline bool kind_of(const Object* obj) {
+    static bool kind_of(const MemoryHeader* obj) {
+      if(obj->reference_p()) {
+        return obj->type_id() == T::type;
+      }
+      return false;
+    }
+
+  template <class T>
+    static bool kind_of(const Object* obj) {
       if(obj->reference_p()) {
         return obj->type_id() == T::type;
       }
@@ -38,7 +40,7 @@ namespace rubinius {
    * A specialized version for completeness.
    */
   template <>
-    SPECIALIZATION_STORAGE bool kind_of<Object>(const Object* obj) {
+    bool kind_of<Object>(const Object* obj) {
       return true;
     }
 
@@ -50,7 +52,7 @@ namespace rubinius {
    *  one.
    */
   template <class T>
-    static inline bool instance_of(const Object* obj) {
+    static bool instance_of(const Object* obj) {
       if(obj->reference_p()) {
         return obj->type_id() == T::type;
       }
@@ -61,7 +63,7 @@ namespace rubinius {
    * A specialized version for completeness.
    */
   template <>
-    SPECIALIZATION_STORAGE bool instance_of<Object>(const Object* obj) {
+    bool instance_of<Object>(const Object* obj) {
       return obj->reference_p() && (obj->type_id() == ObjectType);
     }
 
@@ -80,7 +82,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline T* as(Object* obj) {
+    static T* as(Object* obj) {
       if(!kind_of<T>(obj)) {
         TypeError::raise(T::type, obj);
       }
@@ -97,7 +99,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline const T* as(const Object* obj) {
+    static const T* as(const Object* obj) {
       if(!kind_of<T>(obj)) {
         TypeError::raise(T::type, obj);
       }
@@ -109,7 +111,7 @@ namespace rubinius {
    * A specialized version for completeness.
    */
   template <>
-    SPECIALIZATION_STORAGE Object* as<Object>(Object* obj) {
+    Object* as<Object>(Object* obj) {
       return obj;
     }
 
@@ -117,7 +119,7 @@ namespace rubinius {
    * A specialized version for completeness.
    */
   template <>
-    SPECIALIZATION_STORAGE const Object* as<Object>(const Object* obj) {
+    const Object* as<Object>(const Object* obj) {
       return obj;
     }
 
@@ -130,7 +132,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline T* as_instance(Object* obj) {
+    static T* as_instance(Object* obj) {
       if(!instance_of<T>(obj)) {
         TypeError::raise(T::type, obj);
       }
@@ -147,7 +149,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline const T* as_instance(const Object* obj) {
+    static const T* as_instance(const Object* obj) {
       if(!instance_of<T>(obj)) {
         TypeError::raise(T::type, obj);
       }
@@ -164,7 +166,16 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline T* try_as(Object* obj) {
+    static T* try_as(MemoryHeader* obj) {
+      if(!kind_of<T>(obj)) {
+        return nullptr;
+      }
+
+      return static_cast<T*>(obj);
+    }
+
+  template <class T>
+    static T* try_as(Object* obj) {
       if(!kind_of<T>(obj)) {
         return NULL;
       }
@@ -181,7 +192,16 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline const T* try_as(const Object* obj) {
+    static const T* try_as(const MemoryHeader* obj) {
+      if(!kind_of<T>(obj)) {
+        return nullptr;
+      }
+
+      return static_cast<const T*>(obj);
+    }
+
+  template <class T>
+    static const T* try_as(const Object* obj) {
       if(!kind_of<T>(obj)) {
         return NULL;
       }
@@ -198,7 +218,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline T* try_as_instance(Object* obj) {
+    static T* try_as_instance(Object* obj) {
       if(!instance_of<T>(obj)) {
         return NULL;
       }
@@ -215,7 +235,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static inline const T* try_as_instance(const Object* obj) {
+    static const T* try_as_instance(const Object* obj) {
       if(!instance_of<T>(obj)) {
         return NULL;
       }
@@ -230,7 +250,7 @@ namespace rubinius {
    *
    */
   template <class T>
-    static inline T* nil() { return static_cast<T*>(cNil); }
+    static T* nil() { return static_cast<T*>(cNil); }
 
   /**
    *  Converts one type into another without a type check. This is
@@ -238,18 +258,18 @@ namespace rubinius {
    *  find where we're doing explicit force casts.
    */
   template <class T>
-    static inline T* force_as(ObjectHeader* obj) {
+    static T* force_as(ObjectHeader* obj) {
       return reinterpret_cast<T*>(obj);
     }
 
   template <class T>
-    static inline const T* force_as(const ObjectHeader* obj) {
+    static const T* force_as(const ObjectHeader* obj) {
       return reinterpret_cast<const T*>(obj);
     }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason);
 
-#include "gen/kind_of.hpp"
+#include "kind_of.hpp"
 
 }
 

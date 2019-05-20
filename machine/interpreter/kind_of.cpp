@@ -6,7 +6,7 @@ namespace rubinius {
       instructions::kind_of(state, call_frame);
 
       call_frame->next_ip(instructions::data_kind_of.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

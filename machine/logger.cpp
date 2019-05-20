@@ -47,6 +47,12 @@ namespace rubinius {
       loglevel_ = level;
     }
 
+    void reset() {
+      if(logger_) {
+        logger_->spinlock().reset();
+      }
+    }
+
     void lock() {
       if(logger_) {
         logger_->lock();
@@ -91,6 +97,30 @@ namespace rubinius {
 
     void set_loglevel(logger_level level) {
       loglevel_ = level;
+    }
+
+    void write(std::function<void (PrintFunction writer)> f) {
+      f(logger::write);
+    }
+
+    void fatal(std::function<void (PrintFunction writer)> f) {
+      f(logger::fatal);
+    }
+
+    void error(std::function<void (PrintFunction writer)> f) {
+      f(logger::error);
+    }
+
+    void warn(std::function<void (PrintFunction writer)> f) {
+      f(logger::warn);
+    }
+
+    void info(std::function<void (PrintFunction writer)> f) {
+      f(logger::info);
+    }
+
+    void debug(std::function<void (PrintFunction writer)> f) {
+      f(logger::debug);
     }
 
     void write(const char* message, ...) {
@@ -156,9 +186,9 @@ namespace rubinius {
 
     void fatal(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
-
         if(loglevel_ < eFatal) return;
+
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         char buf[LOGGER_MSG_SIZE];
 
@@ -170,9 +200,9 @@ namespace rubinius {
 
     void error(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
-
         if(loglevel_ < eError) return;
+
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         char buf[LOGGER_MSG_SIZE];
 
@@ -184,9 +214,9 @@ namespace rubinius {
 
     void warn(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
-
         if(loglevel_ < eWarn) return;
+
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         char buf[LOGGER_MSG_SIZE];
 
@@ -198,9 +228,9 @@ namespace rubinius {
 
     void info(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
-
         if(loglevel_ < eInfo) return;
+
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         char buf[LOGGER_MSG_SIZE];
 
@@ -212,9 +242,9 @@ namespace rubinius {
 
     void debug(const char* message, va_list args) {
       if(logger_) {
-        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
-
         if(loglevel_ < eDebug) return;
+
+        std::lock_guard<locks::spinlock_mutex> guard(logger_->spinlock());
 
         char buf[LOGGER_MSG_SIZE];
 

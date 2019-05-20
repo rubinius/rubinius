@@ -134,6 +134,8 @@ module Rubinius
           end
         end
 
+        private :initialize
+
         def redirect(options, from, to)
           case to
           when ::Fixnum

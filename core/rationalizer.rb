@@ -10,6 +10,8 @@ class String
       @value = value
     end
 
+    private :initialize
+
     def convert
       if m = PATTERN.match(@value)
         si = m[1]

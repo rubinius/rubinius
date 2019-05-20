@@ -1,6 +1,7 @@
 #include "machine/test/test.hpp"
 
 #include "machine_code.hpp"
+#include "instructions.hpp"
 
 class TestMachineCode : public CxxTest::TestSuite, public VMTest {
 public:
@@ -19,14 +20,14 @@ public:
     code->literals(state, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 1);
-    iseq->opcodes()->put(state, 0, Fixnum::from(0));
+    iseq->opcodes()->put(state, 0, Fixnum::from(31));
 
     code->iseq(state, iseq);
 
     MachineCode* mcode = new MachineCode(state, code);
 
     TS_ASSERT_EQUALS(mcode->total, 1U);
-    TS_ASSERT_EQUALS(mcode->opcodes[0], 0U);
+    TS_ASSERT_EQUALS(mcode->opcodes[0], reinterpret_cast<opcode>(instructions::data_noop.interpreter_address));
   }
 
   void test_specialize_transforms_ivars_to_slots() {
@@ -35,9 +36,9 @@ public:
     code->literals(state, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 3);
-    iseq->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
+    iseq->opcodes()->put(state, 0, Fixnum::from(instructions::data_push_ivar.id));
     iseq->opcodes()->put(state, 1, Fixnum::from(0));
-    iseq->opcodes()->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
+    iseq->opcodes()->put(state, 2, Fixnum::from(instructions::data_push_nil.id));
 
     code->iseq(state, iseq);
 
@@ -50,26 +51,8 @@ public:
     mcode->specialize(state, code, &ti);
 
     TS_ASSERT_EQUALS(mcode->total, 3U);
-    TS_ASSERT_EQUALS(mcode->opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_my_offset));
+    TS_ASSERT_EQUALS(mcode->opcodes[0], reinterpret_cast<opcode>(instructions::data_push_my_offset.interpreter_address));
     TS_ASSERT_EQUALS(mcode->opcodes[1], 33U);
-    TS_ASSERT_EQUALS(mcode->opcodes[2], static_cast<unsigned int>(InstructionSequence::insn_push_nil));
-  }
-
-  void test_validate_ip() {
-    CompiledCode* code = CompiledCode::create(state);
-    Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
-    code->literals(state, tup);
-
-    InstructionSequence* iseq = InstructionSequence::create(state, 3);
-    iseq->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
-    iseq->opcodes()->put(state, 1, Fixnum::from(0));
-    iseq->opcodes()->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
-
-    code->iseq(state, iseq);
-
-    MachineCode* mcode = new MachineCode(state, code);
-    TS_ASSERT_EQUALS(mcode->validate_ip(state, 0), true);
-    TS_ASSERT_EQUALS(mcode->validate_ip(state, 1), false);
-    TS_ASSERT_EQUALS(mcode->validate_ip(state, 2), true);
+    TS_ASSERT_EQUALS(mcode->opcodes[2], reinterpret_cast<opcode>(instructions::data_push_nil.interpreter_address));
   }
 };

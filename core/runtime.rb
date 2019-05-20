@@ -56,6 +56,14 @@ module Rubinius
       name
     end
 
+    def self.rbx_marshal_rational(obj)
+      Rubinius::Tuple[obj.numerator, obj.denominator]
+    end
+
+    def self.rbx_marshal_complex(obj)
+      Rubinius::Tuple[obj.real, obj.imaginary]
+    end
+
     def self.get_encoding(name)
       if defined?(Encoding)
         Encoding.find name

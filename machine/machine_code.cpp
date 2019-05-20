@@ -6,6 +6,7 @@
 #include "defines.hpp"
 #include "machine_code.hpp"
 #include "interpreter.hpp"
+#include "logger.hpp"
 
 #include "object_utils.hpp"
 
@@ -21,16 +22,20 @@
 #include "class/location.hpp"
 #include "class/constant_cache.hpp"
 #include "class/call_site.hpp"
+#include "class/unwind_site.hpp"
+
+#include "diagnostics/measurement.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "instructions.hpp"
-
-#include "instruments/timing.hpp"
 
 #include "raise_reason.hpp"
 #include "on_stack.hpp"
 
 #include "configuration.hpp"
 #include "dtrace/dtrace.h"
+
+#include <ostream>
 
 #ifdef RBX_WINDOWS
 #include <malloc.h>
@@ -41,15 +46,21 @@
  * method.
  */
 namespace rubinius {
+  std::atomic<uint64_t> MachineCode::code_serial;
 
   void MachineCode::bootstrap(STATE) {
+    code_serial = 0;
+  }
+
+  MachineCode* MachineCode::create(STATE, CompiledCode* code) {
+    return new MachineCode(state, code);
   }
 
   /*
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
   MachineCode::MachineCode(STATE, CompiledCode* code)
-    : run(MachineCode::interpreter)
+    : run((InterpreterRunner)Interpreter::execute)
     , total(code->iseq()->opcodes()->num_fields())
     , type(NULL)
     , keywords(!code->keywords()->nil_p())
@@ -59,21 +70,20 @@ namespace rubinius {
     , splat_position(-1)
     , stack_size(code->stack_size()->to_native())
     , number_of_locals(code->number_of_locals())
-    , iregisters(0)
-    , dregisters(0)
+    , registers(code->registers()->to_native())
     , sample_count(0)
     , call_count(0)
     , uncommon_count(0)
     , _call_site_count_(0)
     , _constant_cache_count_(0)
     , _references_count_(0)
-    , _references_(NULL)
-    , _description_(NULL)
-    , unspecialized(NULL)
-    , fallback(NULL)
+    , _references_(nullptr)
+    , _serial_(MachineCode::get_serial())
+    , _name_(code->name()->cpp_str(state))
+    , _location_()
+    , unspecialized(nullptr)
+    , fallback(nullptr)
     , execute_status_(eInterpret)
-    , name_(code->name())
-    , method_id_(state->shared().inc_method_count(state))
     , debugging(false)
     , flags(0)
   {
@@ -81,24 +91,17 @@ namespace rubinius {
       keywords_count = code->keywords()->num_fields() / 2;
     }
 
-    if(!name_->cpp_str(state).compare("a_very_special_method")) {
-      opcodes = new opcode[total+1];
+    std::ostringstream loc;
+    loc << code->file()->cpp_str(state) << ":" << code->start_line();
 
-      run = (InterpreterRunner)Interpreter::execute;
-      Interpreter::prepare(state, code, this);
-    } else {
-      opcodes = new opcode[total];
+    _location_.assign(loc.str());
 
-      fill_opcodes(state, code);
-    }
+    opcodes = new opcode[total];
+
+    Interpreter::prepare(state, code, this);
 
     if(Fixnum* pos = try_as<Fixnum>(code->splat())) {
       splat_position = pos->to_native();
-    }
-
-    for(int i = 0; i < cMaxSpecializations; i++) {
-      specializations[i].class_data.raw = 0;
-      specializations[i].execute = 0;
     }
 
     state->shared().om->add_code_resource(state, this);
@@ -116,8 +119,6 @@ namespace rubinius {
 #endif
       delete[] references();
     }
-
-    if(description()) delete description();
   }
 
   void MachineCode::finalize(STATE) {
@@ -136,162 +137,6 @@ namespace rubinius {
     return sizeof(MachineCode) +
       (total * sizeof(opcode)) + // opcodes
       (total * sizeof(void*));
-  }
-
-  void MachineCode::fill_opcodes(STATE, CompiledCode* original) {
-    Tuple* lits = original->literals();
-    Tuple* ops = original->iseq()->opcodes();
-
-    size_t rcount = 0;
-    size_t rindex = 0;
-    size_t calls_count = 0;
-    size_t constants_count = 0;
-
-    for(size_t width = 0, ip = 0; ip < total; ip += width) {
-      opcode op = opcodes[ip] = as<Fixnum>(ops->at(ip))->to_native();
-      width = InstructionSequence::instruction_width(opcodes[ip]);
-
-      switch(width) {
-      case 4:
-        opcodes[ip + 3] = as<Fixnum>(ops->at(state, ip + 3))->to_native();
-        // fall through
-      case 3:
-        opcodes[ip + 2] = as<Fixnum>(ops->at(state, ip + 2))->to_native();
-        // fall through
-      case 2:
-        opcodes[ip + 1] = as<Fixnum>(ops->at(state, ip + 1))->to_native();
-        break;
-      case 1:
-        continue;
-      }
-
-      switch(op) {
-      case InstructionSequence::insn_create_block:
-      case InstructionSequence::insn_push_literal:
-      case InstructionSequence::insn_push_memo:
-      case InstructionSequence::insn_check_serial:
-      case InstructionSequence::insn_check_serial_private:
-      case InstructionSequence::insn_send_super_stack_with_block:
-      case InstructionSequence::insn_send_super_stack_with_splat:
-      case InstructionSequence::insn_zsuper:
-      case InstructionSequence::insn_send_vcall:
-      case InstructionSequence::insn_send_method:
-      case InstructionSequence::insn_send_stack:
-      case InstructionSequence::insn_send_stack_with_block:
-      case InstructionSequence::insn_send_stack_with_splat:
-      case InstructionSequence::insn_object_to_s:
-      case InstructionSequence::insn_push_const:
-      case InstructionSequence::insn_find_const:
-        rcount++;
-      }
-    }
-
-    references_count(rcount);
-    references(new size_t[rcount]);
-
-    bool allow_private = false;
-    bool is_super = false;
-
-    for(size_t width = 0, ip = 0; ip < total; ip += width) {
-      width = InstructionSequence::instruction_width(opcodes[ip]);
-
-      switch(opcode op = opcodes[ip]) {
-      case InstructionSequence::insn_push_int:
-        opcodes[ip + 1] = reinterpret_cast<opcode>(Fixnum::from(opcodes[ip + 1]));
-        break;
-      case InstructionSequence::insn_create_block: {
-        references()[rindex++] = ip + 1;
-
-        Object* value = reinterpret_cast<Object*>(lits->at(opcodes[ip + 1]));
-
-        if(CompiledCode* code = try_as<CompiledCode>(value)) {
-          opcodes[ip + 1] = reinterpret_cast<opcode>(code);
-        } else {
-          opcodes[ip + 1] = reinterpret_cast<opcode>(as<String>(value));
-        }
-        break;
-      }
-      case InstructionSequence::insn_push_memo:
-      case InstructionSequence::insn_push_literal: {
-        references()[rindex++] = ip + 1;
-
-        Object* value = as<Object>(lits->at(opcodes[ip + 1]));
-        opcodes[ip + 1] = reinterpret_cast<opcode>(value);
-        break;
-      }
-      case InstructionSequence::insn_set_ivar:
-      case InstructionSequence::insn_push_ivar:
-      case InstructionSequence::insn_set_const:
-      case InstructionSequence::insn_set_const_at: {
-        Symbol* sym = as<Symbol>(lits->at(opcodes[ip + 1]));
-        opcodes[ip + 1] = reinterpret_cast<opcode>(sym);
-        break;
-      }
-      case InstructionSequence::insn_invoke_primitive: {
-        Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
-
-        InvokePrimitive invoker = Primitives::get_invoke_stub(state, name);
-        opcodes[ip + 1] = reinterpret_cast<intptr_t>(invoker);
-        break;
-      }
-      case InstructionSequence::insn_allow_private:
-        allow_private = true;
-
-        break;
-      case InstructionSequence::insn_send_super_stack_with_block:
-      case InstructionSequence::insn_send_super_stack_with_splat:
-      case InstructionSequence::insn_zsuper:
-        is_super = true;
-        // fall through
-      case InstructionSequence::insn_send_vcall:
-      case InstructionSequence::insn_send_method:
-      case InstructionSequence::insn_send_stack:
-      case InstructionSequence::insn_send_stack_with_block:
-      case InstructionSequence::insn_send_stack_with_splat:
-      case InstructionSequence::insn_object_to_s:
-      case InstructionSequence::insn_check_serial:
-      case InstructionSequence::insn_check_serial_private: {
-        references()[rindex++] = ip + 1;
-        calls_count++;
-
-        Symbol* name = try_as<Symbol>(lits->at(opcodes[ip + 1]));
-        if(!name) name = nil<Symbol>();
-
-        CallSite* call_site = CallSite::create(state, name, ip);
-
-        if(op == InstructionSequence::insn_send_vcall) {
-          allow_private = true;
-          call_site->set_is_vcall();
-        } else if(op == InstructionSequence::insn_object_to_s) {
-          allow_private = true;
-        }
-
-        if(allow_private) call_site->set_is_private();
-        if(is_super) call_site->set_is_super();
-
-        store_call_site(state, original, ip, call_site);
-        is_super = false;
-        allow_private = false;
-
-        break;
-      }
-      case InstructionSequence::insn_push_const:
-      case InstructionSequence::insn_find_const: {
-        references()[rindex++] = ip + 1;
-        constants_count++;
-
-        Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
-
-        ConstantCache* cache = ConstantCache::empty(state, name, original, ip);
-        store_constant_cache(state, original, ip, cache);
-
-        break;
-      }
-      }
-    }
-
-    call_site_count(calls_count);
-    constant_cache_count(constants_count);
   }
 
   CallSite* MachineCode::call_site(STATE, int ip) {
@@ -341,43 +186,28 @@ namespace rubinius {
   }
 
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
-    atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
     state->memory()->write_barrier(code, call_site);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache) {
-    atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
     state->memory()->write_barrier(code, constant_cache);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
-  void MachineCode::set_description(STATE) {
-    if(description()) return;
+  void MachineCode::store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site) {
+    opcodes[ip + 1] = reinterpret_cast<intptr_t>(unwind_site);
+    state->memory()->write_barrier(code, unwind_site);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
+  }
 
-    CallFrame* call_frame = state->vm()->call_frame();
-
-    Class* klass = call_frame->self()->class_object(state);
-    Module* method_module = call_frame->module();
-
-    std::string* desc = new std::string();
-
-    if(kind_of<SingletonClass>(method_module)) {
-      desc->append(method_module->debug_str(state));
-      desc->append(".");
-    } else if(method_module != klass) {
-      desc->append(method_module->debug_str(state));
-      desc->append("(");
-      desc->append(klass->debug_str(state));
-      desc->append(")");
-    } else {
-      desc->append(klass->debug_str(state));
-      desc->append("#");
-    }
-
-    desc->append(name()->cpp_str(state));
-
-    description(desc);
+  void MachineCode::store_measurement(STATE,
+      CompiledCode* code, int ip, diagnostics::Measurement* m)
+  {
+    opcodes[ip + 1] = reinterpret_cast<intptr_t>(m);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   // Argument handler implementations
@@ -691,28 +521,31 @@ namespace rubinius {
 
   void MachineCode::specialize(STATE, CompiledCode* original, TypeInfo* ti) {
     type = ti;
-    for(size_t i = 0; i < total;) {
-      opcode op = opcodes[i];
+    for(size_t width, i = 0; i < total; i += width) {
+      Tuple* ops = original->iseq()->opcodes();
 
-      if(op == InstructionSequence::insn_push_ivar) {
+      opcode op = as<Fixnum>(ops->at(i))->to_native();
+      width = Instructions::instruction_data(op).width;
+
+      if(op == instructions::data_push_ivar.id) {
         native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
-          opcodes[i] = InstructionSequence::insn_push_my_offset;
+          opcodes[i] = reinterpret_cast<intptr_t>(
+              instructions::data_push_my_offset.interpreter_address);
           opcodes[i + 1] = ti->slot_locations[it->second];
         }
-      } else if(op == InstructionSequence::insn_set_ivar) {
+      } else if(op == instructions::data_set_ivar.id) {
         native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
-          opcodes[i] = InstructionSequence::insn_store_my_field;
+          opcodes[i] = reinterpret_cast<intptr_t>(
+              instructions::data_store_my_field.interpreter_address);
           opcodes[i + 1] = it->second;
         }
       }
-
-      i += InstructionSequence::instruction_width(op);
     }
   }
 
@@ -775,13 +608,14 @@ namespace rubinius {
       // look in the wrong place.
       //
       // Thus, we have to cache the value in the StackVariables.
-      scope->initialize(args.recv(), args.block(), mod, mcode->number_of_locals);
+      scope->initialize(args.recv(), args.name(), args.block(), mod, mcode->number_of_locals);
 
       // If argument handling fails..
       if(ArgumentHandler::call(state, mcode, scope, args) == false) {
         if(state->vm()->thread_state()->raise_reason() == cNone) {
           Exception* exc =
-            Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
+            Exception::make_argument_error(state, mcode->total_args,
+                args.total(), args.name()->cpp_str(state).c_str());
           exc->locations(state, Location::from_call_stack(state));
           state->raise_exception(exc);
         }
@@ -789,19 +623,21 @@ namespace rubinius {
         return NULL;
       }
 
-      CallFrame* previous_frame = NULL;
-      CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+      CallFrame* previous_frame = nullptr;
+      CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
       call_frame->prepare(mcode->stack_size);
 
-      call_frame->previous = NULL;
+      call_frame->previous = nullptr;
       call_frame->lexical_scope_ = code->scope();
-      call_frame->dispatch_data = NULL;
+      call_frame->dispatch_data = nullptr;
       call_frame->compiled_code = code;
       call_frame->flags = 0;
-      call_frame->top_scope_ = NULL;
+      call_frame->top_scope_ = nullptr;
       call_frame->scope = scope;
       call_frame->arguments = &args;
+      call_frame->return_value = nullptr;
+      call_frame->unwind = nullptr;
 
       if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
         return NULL;
@@ -830,6 +666,8 @@ namespace rubinius {
   Object* MachineCode::execute_as_script(STATE, CompiledCode* code) {
     MachineCode* mcode = code->machine_code();
 
+    Symbol* name = state->symbol("__script__");
+
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
     // Originally, I tried using msg.module directly, but what happens is if
     // super is used, that field is read. If you combine that with the method
@@ -837,23 +675,25 @@ namespace rubinius {
     // look in the wrong place.
     //
     // Thus, we have to cache the value in the StackVariables.
-    scope->initialize(G(main), cNil, G(object), mcode->number_of_locals);
+    scope->initialize(G(main), name, cNil, G(object), mcode->number_of_locals);
 
     CallFrame* previous_frame = 0;
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 
-    Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
+    Arguments args(name, G(main), cNil, 0, 0);
 
-    call_frame->previous = NULL;
+    call_frame->previous = nullptr;
     call_frame->lexical_scope_ = code->scope();
-    call_frame->dispatch_data = 0;
+    call_frame->dispatch_data = nullptr;
     call_frame->compiled_code = code;
     call_frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;
-    call_frame->top_scope_ = 0;
+    call_frame->top_scope_ = nullptr;
     call_frame->scope = scope;
     call_frame->arguments = &args;
+    call_frame->return_value = nullptr;
+    call_frame->unwind = nullptr;
 
     if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
       return NULL;
@@ -871,77 +711,5 @@ namespace rubinius {
     }
 
     return value;
-  }
-
-  // If +disable+ is set, then the method is tagged as not being
-  // available for JIT.
-  void MachineCode::deoptimize(STATE, CompiledCode* original, bool disable)
-  {
-    G(jit)->start_method_update(state);
-
-    bool still_others = false;
-
-    /* TODO: JIT
-    for(int i = 0; i < cMaxSpecializations; i++) {
-      if(!rd) {
-        specializations[i].class_data.raw = 0;
-        specializations[i].execute = 0;
-        specializations[i].jit_data = 0;
-      } else if(specializations[i].jit_data == rd) {
-        specializations[i].class_data.raw = 0;
-        specializations[i].execute = 0;
-        specializations[i].jit_data = 0;
-      } else if(specializations[i].jit_data) {
-        still_others = true;
-      }
-    }
-
-    if(!rd || original->jit_data() == rd) {
-      unspecialized = 0;
-      original->jit_data(0);
-    }
-
-    if(original->jit_data()) still_others = true;
-    */
-
-    if(!still_others) {
-      execute_status_ = eInterpret;
-
-      // This resets execute to use the interpreter
-      original->set_executor(fallback);
-    }
-
-    if(disable) {
-      execute_status_ = eJITDisable;
-      original->set_executor(fallback);
-    } else if(execute_status_ == eJITDisable && still_others) {
-      execute_status_ = eJIT;
-    }
-
-    if(original->execute == CompiledCode::specialized_executor) {
-      bool found = false;
-
-      for(int i = 0; i < cMaxSpecializations; i++) {
-        if(specializations[i].execute) found = true;
-      }
-
-      if(unspecialized) found = true;
-
-      if(!found) rubinius::bug("no specializations!");
-    }
-
-    G(jit)->end_method_update(state);
-  }
-
-  /*
-   * Ensures the specified IP value is a valid address.
-   */
-  bool MachineCode::validate_ip(STATE, size_t ip) {
-    /* Ensure ip is valid */
-    MachineCode::Iterator iter(this);
-    for(; !iter.end(); iter.inc()) {
-      if(iter.position() >= ip) break;
-    }
-    return ip == iter.position();
   }
 }

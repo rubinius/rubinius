@@ -2,7 +2,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "primitives.hpp"
-#include "gen/includes.hpp"
+#include "includes.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
 
@@ -17,6 +17,6 @@ extern "C" Object* invoke_unknown_primitive(STATE,
   return 0;
 }
 
-#include "gen/invoke_primitives.cpp"
-#include "gen/invoke_resolver.cpp"
+#include "invoke_primitives.hpp"
+#include "invoke_resolver.hpp"
 }

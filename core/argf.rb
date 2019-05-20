@@ -28,6 +28,8 @@ module Rubinius
       @encoding_args = nil
     end
 
+    private :initialize
+
     #
     # Set stream into binary mode.
     #

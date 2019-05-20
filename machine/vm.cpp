@@ -2,7 +2,6 @@
 #include "state.hpp"
 #include "memory.hpp"
 #include "machine_code.hpp"
-#include "global_cache.hpp"
 #include "environment.hpp"
 #include "thread_phase.hpp"
 
@@ -41,8 +40,10 @@
 
 #include "util/thread.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
+#include <algorithm>
+#include <functional>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -80,13 +81,8 @@ namespace rubinius {
     , zombie_(false)
     , main_thread_(false)
     , thread_phase_(ThreadNexus::eUnmanaged)
-    , profile_interval_(0)
-    , profile_counter_(0)
-    , profile_(NULL)
-    , profile_sample_count_(0)
-    , profile_report_interval_(shared.config.system_profiler_interval.value)
-    , max_profile_entries_(25)
-    , min_profile_sample_count_(0)
+    , sample_interval_(0)
+    , sample_counter_(0)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -103,22 +99,10 @@ namespace rubinius {
       local_slab_.refill(0, 0);
     }
 
-    profile_ = new CompiledCode*[max_profile_entries_];
-    for(native_int i = 0; i < max_profile_entries_; i++) {
-      profile_[i] = nil<CompiledCode>();
-    }
-
-    set_profile_interval();
-
-    allocation_tracking_ = shared.config.allocation_tracking;
+    set_sample_interval();
   }
 
   VM::~VM() {
-    if(profile_) {
-      delete[] profile_;
-      profile_ = NULL;
-    }
-
     if(park_) {
       delete park_;
       park_ = NULL;
@@ -126,7 +110,7 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    state->vm()->metrics().system.threads_destroyed++;
+    state->vm()->metrics()->threads_destroyed++;
 
     delete vm;
   }
@@ -145,6 +129,19 @@ namespace rubinius {
 
   double VM::run_time() {
     return timer::time_elapsed_seconds(start_time_);
+  }
+
+  void VM::checkpoint(STATE) {
+    metrics()->checkpoints++;
+
+    thread_nexus_->check_stop(state, this, [this/*, state*/]{
+        metrics()->stops++;
+      });
+
+    if(sample_counter_++ >= sample_interval_) {
+      sample(state);
+      set_sample_interval();
+    }
   }
 
   void VM::raise_stack_error(STATE) {
@@ -307,61 +304,20 @@ namespace rubinius {
     return false;
   }
 
-  void VM::collect_maybe(STATE) {
-    memory()->collect_maybe(state);
-  }
+  void VM::sample(STATE) {
+    timer::StopWatch<timer::nanoseconds> timer(metrics()->sample_ns);
 
-  static int profile_compare(const void* a, const void* b) {
-    const CompiledCode* c_a = try_as<CompiledCode>(*(const Object**)(a));
-    const CompiledCode* c_b = try_as<CompiledCode>(*(const Object**)(b));
+    metrics()->samples++;
 
-    if(c_a && c_b) {
-      return c_b->machine_code()->sample_count - c_a->machine_code()->sample_count;
-    } else if(c_a) {
-      return 1;
-    } else if(c_b) {
-      return -1;
-    } else {
-      return 0;
-    }
-  }
+    CallFrame* frame = state->vm()->call_frame();
 
-  void VM::sort_profile() {
-    ::qsort(reinterpret_cast<void*>(profile_), max_profile_entries_,
-        sizeof(intptr_t), profile_compare);
-  }
+    while(frame) {
+      // TODO: add counters to native method frames
+      if(frame->compiled_code) {
+        frame->compiled_code->machine_code()->sample_count++;
+      }
 
-  void VM::update_profile(STATE) {
-    timer::StopWatch<timer::nanoseconds> timer(metrics().machine.profile_ns);
-
-    metrics().machine.profiles++;
-    profile_sample_count_++;
-
-    if(profile_sample_count_ > profile_report_interval_) {
-      profile_report_interval_ += state->shared().config.system_profiler_interval.value;
-      state->shared().report_profile(state);
-    }
-
-    CompiledCode* code = state->vm()->call_frame()->compiled_code;
-    code->machine_code()->sample_count++;
-
-    if(code->machine_code()->sample_count < min_profile_sample_count_) {
-      return;
-    }
-
-    for(native_int i = 0; i < max_profile_entries_; i++) {
-      if(code == profile_[i]) return;
-    }
-
-    sort_profile();
-
-    CompiledCode* pcode = try_as<CompiledCode>(profile_[0]);
-    if(!pcode || (pcode &&
-          code->machine_code()->sample_count > pcode->machine_code()->sample_count))
-    {
-      code->machine_code()->set_description(state);
-      profile_[0] = code;
-      min_profile_sample_count_ = code->machine_code()->sample_count;
+      frame = frame->previous;
     }
   }
 
@@ -376,20 +332,6 @@ namespace rubinius {
     ts.tv_nsec = delay[i++ % modulo];
 
     nanosleep(&ts, NULL);
-  }
-
-  void VM::blocking_suspend(STATE, metrics::metric& counter) {
-    timer::StopWatch<timer::milliseconds> timer(counter);
-
-    BlockPhase blocking(state);
-    suspend_thread();
-  }
-
-  void VM::sleeping_suspend(STATE, metrics::metric& counter) {
-    timer::StopWatch<timer::milliseconds> timer(counter);
-
-    UnmanagedPhase sleeping(state);
-    suspend_thread();
   }
 
   void VM::set_zombie(STATE) {
@@ -431,9 +373,10 @@ namespace rubinius {
   }
 
   void VM::after_fork_child(STATE) {
+    logger::reset();
     thread_nexus_->after_fork_child(state);
 
-    interrupt_lock_.init();
+    interrupt_lock_.unlock();
     set_main_thread();
 
     // TODO: Remove need for root_vm.
@@ -486,7 +429,7 @@ namespace rubinius {
   }
 
   bool VM::wakeup(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     set_check_local_interrupts();
     Object* wait = waiting_object_.get();
@@ -502,26 +445,30 @@ namespace rubinius {
 #endif
       interrupt_lock_.unlock();
       // Wakeup any locks hanging around with contention
-      memory()->release_contention(state);
+      // TODO: MemoryHeader
+      // memory()->release_contention(state);
       return true;
     } else if(!wait->nil_p()) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
       // other threads can grab them and deadlock.
-      InflatedHeader* ih = wait->inflated_header(state);
-      interrupt_lock_.unlock();
-      ih->wakeup(state, wait);
+      // TODO: MemoryHeader
+      // InflatedHeader* ih = wait->inflated_header(state);
+      // interrupt_lock_.unlock();
+      // ih->wakeup(state, wait);
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
-        memory()->release_contention(state);
+        // TODO: MemoryHeader
+        // memory()->release_contention(state);
         chan->send(state, cNil);
         return true;
       } else if(custom_wakeup_) {
         interrupt_lock_.unlock();
-        memory()->release_contention(state);
+        // TODO: MemoryHeader
+        // memory()->release_contention(state);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }
@@ -541,7 +488,7 @@ namespace rubinius {
   }
 
   void VM::wait_on_channel(Channel* chan) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     thread()->sleep(this, cTrue);
     waiting_channel_.set(chan);
@@ -573,13 +520,13 @@ namespace rubinius {
   }
 
   void VM::register_raise(STATE, Exception* exc) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
     interrupted_exception_.set(exc);
     set_check_local_interrupts();
   }
 
   void VM::register_kill(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(interrupt_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
     set_interrupt_by_kill();
     set_check_local_interrupts();
   }
@@ -590,12 +537,6 @@ namespace rubinius {
 
   void VM::gc_scan(memory::GarbageCollector* gc) {
     gc->walk_call_frame(call_frame_);
-
-    for(native_int i = 0; i < max_profile_entries_; i++) {
-      if(!profile_[i]->nil_p()) {
-        profile_[i] = force_as<CompiledCode>(gc->mark_object(profile_[i]));
-      }
-    }
   }
 
   void VM::gc_verify(memory::GarbageCollector* gc) {

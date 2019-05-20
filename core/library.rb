@@ -201,6 +201,8 @@ module Rubinius
       def add_function(name, func)
         # Make it available as a method callable directly..
         sc = Rubinius::Type.object_singleton_class(self)
+        Rubinius::VM.reset_method_cache sc, name
+
         sc.method_table.store name, nil, func, nil, 0, :public
 
         # and expose it as a private method for people who

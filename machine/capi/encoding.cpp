@@ -20,12 +20,10 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
-  int rb_enc_coderange_asciionly_p(VALUE obj) {
+  int rb_enc_coderange_asciionly_p(VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* val = env->get_object(obj);
-
-    if(String* str = try_as<String>(val)) {
+    if(String* str = MemoryHandle::try_as<String>(value)) {
       if(CBOOL(str->ascii_only_p(env->state()))) return Qtrue;
     } else {
       rb_raise(rb_eArgError, "ENC_CODERANGE_ASCIIONLY is only defined for String");
@@ -120,31 +118,34 @@ extern "C" {
     }
   }
 
-  rb_encoding* rb_enc_get(VALUE obj) {
+  rb_encoding* rb_enc_get(VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* val = env->get_object(obj);
-    if(!val->reference_p() && !val->symbol_p()) return 0;
-    Encoding* enc = Encoding::get_object_encoding(env->state(), val);
+    Object* name = MemoryHandle::object(value);
 
+    if(!name->reference_p() && !name->symbol_p()) return 0;
+
+    Encoding* enc = Encoding::get_object_encoding(env->state(), name);
     if(enc->nil_p()) return 0;
+
     return enc->encoding();
   }
 
   VALUE rb_obj_encoding(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Object* val = env->get_object(obj);
+    Object* val = MemoryHandle::object(obj);
     Encoding* enc = Encoding::get_object_encoding(env->state(), val);
-    return env->get_handle(enc);
+    return MemoryHandle::value(enc);
   }
 
-  int rb_enc_get_index(VALUE obj) {
+  int rb_enc_get_index(VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* val = env->get_object(obj);
-    if(!val->reference_p() && !val->symbol_p()) return -1;
+    Object* name = MemoryHandle::object(value);
 
-    Encoding* enc = Encoding::get_object_encoding(env->state(), val);
+    if(!name->reference_p() && !name->symbol_p()) return -1;
+
+    Encoding* enc = Encoding::get_object_encoding(env->state(), name);
 
     if(enc->nil_p()) return 0;
 
@@ -155,7 +156,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Encoding* enc = Encoding::from_index(env->state(), index);
-    Object* val = env->get_object(obj);
+    Object* val = MemoryHandle::object(obj);
 
     Encoding::set_object_encoding(env->state(), val, enc);
   }
@@ -188,7 +189,7 @@ extern "C" {
 
     switch(TYPE(obj)) {
     case T_ENCODING:
-      enc = c_as<Encoding>(env->get_object(obj));
+      enc = MemoryHandle::object<Encoding>(obj);
       break;
     case T_STRING:
       enc = Encoding::find(env->state(), RSTRING_PTR(obj));
@@ -219,7 +220,7 @@ extern "C" {
 
     if(!enc) return obj;
 
-    Object* val = env->get_object(obj);
+    Object* val = MemoryHandle::object(obj);
 
     if(String* str = try_as<String>(val)) {
       str->encoding(env->state(), enc);
@@ -276,7 +277,7 @@ extern "C" {
   VALUE rb_enc_from_encoding(rb_encoding *enc) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return env->get_handle(Encoding::find(env->state(), enc->name));
+    return MemoryHandle::value(Encoding::find(env->state(), enc->name));
   }
 
   int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {

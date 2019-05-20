@@ -13,10 +13,6 @@ namespace memory {
     return gc->vm();
   }
 
-  bool ObjectMark::mature_gc_in_progress() {
-    return gc->mature_gc_in_progress();
-  }
-
   /**
    * Checks the reference to the target obj, and if it is valid, notifies the GC
    * that the object is still alive.
@@ -32,7 +28,7 @@ namespace memory {
       rubinius::bug("Unspecified zone for object");
     }
 #endif
-    return gc->saw_object(obj);
+    return gc->saw_object(0, obj);
   }
 
   /**
@@ -45,6 +41,13 @@ namespace memory {
    */
   void ObjectMark::set(Object* target, Object** pos, Object* val) {
     *pos = val;
+    if(val->reference_p()) {
+      gc->memory_->write_barrier(target, val);
+    }
+  }
+
+  void ObjectMark::set_value(Object* target, Object** pos, Object* val) {
+    *reinterpret_cast<VALUE*>(pos) = MemoryHandle::value(val);
     if(val->reference_p()) {
       gc->memory_->write_barrier(target, val);
     }

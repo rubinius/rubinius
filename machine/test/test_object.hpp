@@ -1,5 +1,7 @@
 #include "machine/test/test.hpp"
 
+#include "instructions.hpp"
+
 #include "class/object.hpp"
 #include "class/compact_lookup_table.hpp"
 
@@ -90,7 +92,7 @@ public:
     Tuple* tup2 = as<Tuple>(tup->duplicate(state));
 
     TS_ASSERT_EQUALS(tup2->at(state, 0), cTrue);
-    TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
+    TS_ASSERT_DIFFERS(tup->object_id(state), tup2->object_id(state));
 
     TS_ASSERT(tup->ivars() != tup2->ivars());
 
@@ -270,24 +272,24 @@ public:
     Tuple* t1 = Tuple::create(state, 2);
     Tuple* t2 = Tuple::create(state, 2);
 
-    Integer* id1 = t1->id(state);
-    Integer* id2 = t2->id(state);
+    Integer* id1 = t1->object_id(state);
+    Integer* id2 = t2->object_id(state);
 
     TS_ASSERT(id1->to_native() > 0);
     TS_ASSERT(id2->to_native() > 0);
 
     TS_ASSERT_DIFFERS(id1, id2)
 
-    TS_ASSERT_EQUALS(id1, t1->id(state));
+    TS_ASSERT_EQUALS(id1, t1->object_id(state));
 
-    Integer* id3 = Fixnum::from(33)->id(state);
+    Integer* id3 = Fixnum::from(33)->object_id(state);
     TS_ASSERT_DIFFERS(id3, id1);
 
-    Integer* id4 = Fixnum::from(33)->id(state);
+    Integer* id4 = Fixnum::from(33)->object_id(state);
     TS_ASSERT_EQUALS(id3, id4);
     TS_ASSERT(id4->to_native() % 2 == 1);
 
-    Integer* id5 = Fixnum::from(34)->id(state);
+    Integer* id5 = Fixnum::from(34)->object_id(state);
     TS_ASSERT_DIFFERS(id4, id5);
     TS_ASSERT(id5->to_native() % 2 == 1);
   }
@@ -296,58 +298,58 @@ public:
     Object* obj1 = util_new_object();
     Object* obj2 = util_new_object();
 
-    TS_ASSERT_EQUALS(obj1->tainted_p(state), cFalse);
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj1->object_tainted_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj2->object_tainted_p(state), cFalse);
 
     obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj2->object_tainted_p(state), cFalse);
 
     obj1->taint(state);
     obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), cTrue);
+    TS_ASSERT_EQUALS(obj2->object_tainted_p(state), cTrue);
   }
 
   void test_tainted_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj->object_tainted_p(state), cFalse);
     obj->taint(state);
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cTrue);
+    TS_ASSERT_EQUALS(obj->object_tainted_p(state), cTrue);
   }
 
   void test_taint() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj->object_tainted_p(state), cFalse);
     obj->taint(state);
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cTrue);
+    TS_ASSERT_EQUALS(obj->object_tainted_p(state), cTrue);
   }
 
   void test_untaint() {
     Object* obj = util_new_object();
 
     obj->taint(state);
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cTrue);
+    TS_ASSERT_EQUALS(obj->object_tainted_p(state), cTrue);
     obj->untaint(state);
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj->object_tainted_p(state), cFalse);
   }
 
   void test_frozen_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->frozen_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj->object_frozen_p(state), cFalse);
     obj->freeze(state);
-    TS_ASSERT_EQUALS(obj->frozen_p(state), cTrue);
+    TS_ASSERT_EQUALS(obj->object_frozen_p(state), cTrue);
   }
 
   void test_freeze() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->frozen_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj->object_frozen_p(state), cFalse);
     obj->freeze(state);
-    TS_ASSERT(obj->frozen_p(state));
+    TS_ASSERT(obj->object_frozen_p(state));
   }
 
   void test_nil_class() {
@@ -397,7 +399,7 @@ public:
   CompiledCode* create_compiled_code() {
     CompiledCode* code = CompiledCode::create(state);
     code->iseq(state, InstructionSequence::create(state, 1));
-    code->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    code->iseq()->opcodes()->put(state, 0, Fixnum::from(instructions::data_ret.id));
     code->stack_size(state, Fixnum::from(10));
     code->total_args(state, Fixnum::from(0));
     code->required_args(state, code->total_args());
@@ -437,6 +439,16 @@ public:
     Bignum* big = Bignum::from(state, (native_int)13);
     TS_ASSERT_EQUALS(obj->get_type(), ObjectType);
     TS_ASSERT_EQUALS(big->get_type(), BignumType);
+  }
+
+  void test_get_handle() {
+    Object* obj = state->memory()->new_object<Object>(state, G(object));
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 0);
+
+    obj->get_handle(state);
+
+    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 1);
   }
 
   Object* util_new_object() {

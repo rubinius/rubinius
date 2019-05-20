@@ -1,4 +1,3 @@
-artifacts/
 *.a
 *.bundle
 .bundle/install.log
@@ -42,7 +41,7 @@ cscope.files
 cscope.out
 configure.log
 rakelib/ryan.rake
-runtime
+codedb
 scratch
 stamp-h1
 stats
@@ -52,11 +51,15 @@ tmtags
 /lib/site
 /share
 /work
-/staging
-/bootstrap
+/build/artifacts
 /build/bin/cc
 /build/bin/c++
-Gemfile.installed.lock
+/build/config/config.rb
+/build/rubinius
+/build/libraries/cache
+/build/libraries/gems
+/build/libraries/stdlib
+rubinius-codedb-cache.bz2*
 
 # .revision tracks configure and code revision consistency
 .revision
@@ -84,14 +87,27 @@ Gemfile.installed.lock
 # rubysl-digest installs this header
 machine/include/capi/ruby/digest.h
 
-/core/signature.rb
 /core/build_config.rb
 
-# Ignore generated DTrace header
+# Ignore generated headers
+machine/config.h
+machine/paths.h
+machine/release.h
+machine/signature.h
 machine/dtrace/probes.h
-
-# Ignore rubygems except bundled ones
-vendor/cache/*
+machine/accessor_primitives.hpp
+machine/config_variables.h
+machine/encoding_database.hpp
+machine/includes.hpp
+machine/invoke_primitives.hpp
+machine/invoke_resolver.hpp
+machine/kind_of.hpp
+machine/method_primitives.hpp
+machine/method_resolver.hpp
+machine/object_types.hpp
+machine/primitives_declare.hpp
+machine/transcoder_database.hpp
+machine/typechecks.hpp
 
 .build_ruby
 .build_signature

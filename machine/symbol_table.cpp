@@ -12,13 +12,32 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 
+#include "diagnostics/memory.hpp"
+
 #include "logger.hpp"
 
 #include <iostream>
 #include <iomanip>
 
 namespace rubinius {
-  void SymbolTable::Diagnostics::update() {
+  SymbolTable::SymbolTable()
+    : diagnostic_(new diagnostics::SymbolTable())
+  {
+    lock_.init();
+  }
+
+  SymbolTable::~SymbolTable() {
+    if(diagnostic_) {
+      delete diagnostic_;
+      diagnostic_ = nullptr;
+    }
+  }
+
+  void SymbolTable::sweep(STATE) {
+    if(state->shared().config.diagnostics_memory_enabled) {
+      diagnostic_->update();
+      state->shared().report_diagnostics(diagnostic_);
+    }
   }
 
   SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
@@ -89,15 +108,15 @@ namespace rubinius {
 
   size_t SymbolTable::add(STATE, std::string str, int enc) {
     size_t bytes = (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
-    diagnostics()->objects_++;
-    diagnostics()->bytes_ += bytes;
+    diagnostic()->objects++;
+    diagnostic()->bytes += bytes;
 
     strings.push_back(str);
     encodings.push_back(enc);
     kinds.push_back(eUnknown);
 
-    state->vm()->metrics().memory.symbols++;
-    state->vm()->metrics().memory.symbols_bytes += bytes;
+    state->shared().memory_metrics()->symbols++;
+    state->shared().memory_metrics()->symbols_bytes += bytes;
 
     return strings.size() - 1;
   }

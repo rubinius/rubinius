@@ -63,6 +63,7 @@
 #include "class/class.hpp"
 #include "class/atomic.hpp"
 #include "class/thread_state.hpp"
+#include "class/unwind_site.hpp"
 
 #include "environment.hpp"
 #include "configuration.hpp"
@@ -90,6 +91,7 @@ namespace rubinius {
      * cross-dependencies. Additionally, creating a new normal class requires
      * a few more kinds of objects, like ConstantTable and MethodTable.
      */
+    MemoryHeader::bootstrap(state);
     Class::bootstrap(state);
     BasicObject::bootstrap(state);
     Object::bootstrap(state);
@@ -128,6 +130,7 @@ namespace rubinius {
     GO(runtime).set(state->memory()->new_module<Module>(state, G(rubinius), "Runtime"));
 
     Module::bootstrap(state, G(tuple), G(rubinius), "Tuple");
+    Module::bootstrap(state, G(rtuple), G(rubinius), "RTuple");
     Module::bootstrap(state, G(constant_table), G(rubinius), "ConstantTable");
     Module::bootstrap(state, G(constant_table_bucket), G(constant_table), "Bucket");
     Module::bootstrap(state, G(lookup_table), G(rubinius), "LookupTable");
@@ -254,6 +257,7 @@ namespace rubinius {
 
     NativeMethod::bootstrap(state);
 
+    Prediction::bootstrap(state);
     CallSite::bootstrap(state);
     ConstantCache::bootstrap(state);
     Fiber::bootstrap(state);
@@ -268,6 +272,7 @@ namespace rubinius {
     CodeDB::bootstrap(state);
     Diagnostics::bootstrap(state);
     Trie::bootstrap(state);
+    UnwindSite::bootstrap(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -361,6 +366,8 @@ namespace rubinius {
       G(rubinius)->set_const(state, "PREFIX_PATH", String::create(state, prefix.c_str()));
       std::string path = prefix + RBX_RUNTIME_PATH;
       G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_CODEDB_PATH;
+      G(rubinius)->set_const(state, "CODEDB_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_BIN_PATH;
       G(rubinius)->set_const(state, "BIN_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_CORE_PATH;
@@ -371,6 +378,8 @@ namespace rubinius {
       G(rubinius)->set_const(state, "ENC_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_SITE_PATH;
       G(rubinius)->set_const(state, "SITE_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_ARCH_PATH;
+      G(rubinius)->set_const(state, "ARCH_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_VENDOR_PATH;
       G(rubinius)->set_const(state, "VENDOR_PATH", String::create(state, path.c_str()));
 
@@ -395,11 +404,11 @@ namespace rubinius {
     G(rubinius)->set_const(state, "RELEASE_DATE", String::create(state, RBX_RELEASE_DATE));
     G(rubinius)->set_const(state, "DEBUG_BUILD", RBOOL(RBX_DEBUG_BUILD));
     G(rubinius)->set_const(state, "PROFILER",
-        String::create(state, state->shared().config.system_profiler_target.value.c_str()));
-    G(rubinius)->set_const(state, "CONCURRENT_GC",
-        RBOOL(state->shared().config.gc_immix_concurrent));
+        RBOOL(state->shared().config.diagnostics_profiler_enabled));
     G(rubinius)->set_const(state, "LDSHARED", String::create(state, RBX_LDSHARED));
     G(rubinius)->set_const(state, "LDSHAREDXX", String::create(state, RBX_LDSHAREDXX));
+
+    G(rubinius)->set_const(state, "Signature", String::create(state, RBX_SIGNATURE));
 
     G(rubinius)->set_const(state, "HOST", String::create(state, RBX_HOST));
     G(rubinius)->set_const(state, "CPU", String::create(state, RBX_CPU));

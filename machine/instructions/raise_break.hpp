@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "class/location.hpp"
 
@@ -16,8 +16,6 @@ namespace rubinius {
         state->raise_exception(exc);
         return 0;
       }
-      // TODO: instruction exceptions
-      // return false;
     }
   }
 }

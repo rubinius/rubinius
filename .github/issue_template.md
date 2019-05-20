@@ -43,7 +43,7 @@ Please include a link to a gist (https://gist.github.com/) for terminal output, 
 
   - [ ] Yes, this issue involves proprietary code that I cannot share.
   - [ ] Yes, this issue involves proprietary code, but I am able to share it under certain conditions.
-  - [ ] No, this issued doesn't involve proprietary code.
+  - [ ] No, this issue doesn't involve proprietary code.
 
 9. Are you able to help us debug the issue?
 

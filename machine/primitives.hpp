@@ -86,7 +86,7 @@ namespace rubinius {
     static bool get_jit_stub(int index, JITStubResults& res);
     static InvokePrimitive get_invoke_stub(STATE, Symbol* name);
 
-#include "gen/primitives_declare.hpp"
+#include "primitives_declare.hpp"
 
   };
 }

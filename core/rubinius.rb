@@ -88,12 +88,13 @@ module Rubinius
       visibility = vis
     end
 
+    Rubinius::VM.reset_method_cache mod, name
+
     if Type.object_kind_of? executable, String
       mod.method_table.store name, executable, nil, scope, serial, visibility
     else
       mod.method_table.store name, nil, executable, scope, serial, visibility
     end
-    Rubinius::VM.reset_method_cache mod, name
 
     Rubinius.privately do
       mod.module_function name if vis == :module
@@ -160,16 +161,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.lock primitive failed"
   end
 
-  def self.uninterrupted_lock(obj)
-    Rubinius.primitive :vm_object_uninterrupted_lock
-    raise PrimitiveFailure, "Rubinius.uninterrupted_lock primitive failed"
-  end
-
-  def self.lock_timed(obj, duration)
-    Rubinius.primitive :vm_object_lock_timed
-    raise PrimitiveFailure, "Rubinius.lock primitive failed"
-  end
-
   def self.try_lock(obj)
     Rubinius.primitive :vm_object_trylock
     raise PrimitiveFailure, "Rubinius.try_lock primitive failed"
@@ -178,6 +169,11 @@ module Rubinius
   def self.locked?(obj)
     Rubinius.primitive :vm_object_locked_p
     raise PrimitiveFailure, "Rubinius.locked? primitive failed"
+  end
+
+  def self.lock_owned?(obj)
+    Rubinius.primitive :vm_object_lock_owned_p
+    raise PrimitiveFailure, "Rubinius.lock_owned? primitive failed"
   end
 
   def self.unlock(obj)
@@ -252,8 +248,7 @@ module Rubinius
       # end
     end
 
-    extra << "P" if Rubinius::PROFILER != "none"
-    extra << "C" if Rubinius::CONCURRENT_GC
+    extra << "P" if Rubinius::PROFILER
     extra << "D" if Rubinius::DEBUG_BUILD
 
     rev = BUILD_REV[0..7]

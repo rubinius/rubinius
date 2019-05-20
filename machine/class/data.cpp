@@ -10,6 +10,8 @@
 
 #include "capi/capi.hpp"
 
+#include "diagnostics/memory.hpp"
+
 namespace rubinius {
 
   void Data::bootstrap(STATE) {
@@ -21,20 +23,11 @@ namespace rubinius {
 
     data = state->memory()->new_object<Data>(state, G(data));
 
-    // Data is just a heap alias for the handle, so go ahead and create
-    // the handle and populate it as an RData now.
-    capi::Handle* handle = data->handle(state);
+    MemoryHandle* handle = data->get_handle(state);
 
-    if(handle) {
-      Exception::raise_runtime_error(state, "new Data instance already has C-API handle");
-    }
-
-    handle = state->memory()->add_capi_handle(state, data);
-
-    // Don't call ->ref() on handle! We don't want the handle to keep the object
-    // alive by default. The handle needs to have the lifetime of the object.
-
-    RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
+    // TODO: MemoryHandle
+    RDataShadow* rdata = new RDataShadow(); // = reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
+    handle->set_data(rdata, MemoryHandle::eRData);
 
     rdata->data = data_ptr;
     rdata->d.untyped.dmark = mark;
@@ -47,7 +40,7 @@ namespace rubinius {
           (memory::FinalizerFunction)&Data::finalize);
     }
 
-    state->vm()->metrics().memory.data_objects++;
+    state->shared().memory_metrics()->data_objects++;
 
     return data;
   }
@@ -57,20 +50,12 @@ namespace rubinius {
 
     data = state->memory()->new_object<Data>(state, G(data));
 
-    // Data is just a heap alias for the handle, so go ahead and create
-    // the handle and populate it as an RData now.
-    capi::Handle* handle = data->handle(state);
+    MemoryHandle* handle = data->get_handle(state);
 
-    if(handle) {
-      Exception::raise_runtime_error(state, "new Data instance already has C-API handle");
-    }
-
-    handle = state->memory()->add_capi_handle(state, data);
-
-    // Don't call ->ref() on handle! We don't want the handle to keep the object
-    // alive by default. The handle needs to have the lifetime of the object.
-
-    RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rtypeddata(0));
+    // TODO: MemoryHandle
+    // RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rtypeddata(0));
+    RDataShadow* rdata = new RDataShadow();
+    handle->set_data(rdata, MemoryHandle::eRData);
 
     rdata->data = data_ptr;
     rdata->d.typed.typed = 1;
@@ -83,7 +68,7 @@ namespace rubinius {
           (memory::FinalizerFunction)&Data::finalize);
     }
 
-    state->vm()->metrics().memory.data_objects++;
+    state->shared().memory_metrics()->data_objects++;
 
     return data;
   }
@@ -111,7 +96,8 @@ namespace rubinius {
   }
 
   void Data::finalize(STATE, Data* data) {
-    capi::Handle* handle = data->handle(state);
+    /* TODO: MemoryHandle
+    MemoryHandle* handle = data->get_handle(state);
 
     if(!handle->valid_p()) {
       logger::error("finalizer: Data object has invalid handle");
@@ -143,21 +129,13 @@ namespace rubinius {
         }
       }
     }
+    */
   }
 
   void Data::Info::mark(Object* t, memory::ObjectMark& mark) {
     auto_mark(t, mark);
 
     Data* data = force_as<Data>(t);
-
-    if(mark.mature_gc_in_progress()) {
-      // Don't scan objects concurrently since this might
-      // not be thread safe. The C library in use here
-      // might be in the process of freeing up malloc'ed
-      // resources so we would see objects in an invalid
-      // state and scan wrong pointers etc.
-      return;
-    }
 
     if(data->freed_p()) {
       logger::error("finalizer: Data mark called for already freed object");

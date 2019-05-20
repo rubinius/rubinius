@@ -20,13 +20,39 @@ namespace rubinius {
   class Symbol;
   class Tuple;
 
+  class Marshaller {
+  public:
+    STATE;
+    CompiledCode* code;
+    std::ostream& stream;
+
+    Marshaller(STATE, CompiledCode* code, std::ostream& stream)
+      : state(state)
+      , code(code)
+      , stream(stream)
+    {
+    }
+
+    void marshal();
+    void marshal(Object* obj);
+    void put_compiled_code(CompiledCode* code);
+    void put_fixnum(Object* obj);
+    void put_string(const char* type, String* str);
+    void put_rational(Object* obj);
+    void put_complex(Object* obj);
+    void put_constant(Object* obj);
+  };
+
   class UnMarshaller {
   public:
     STATE;
     std::istream& stream;
 
-    UnMarshaller(STATE, std::istream& stream) :
-      state(state), stream(stream) { }
+    UnMarshaller(STATE, std::istream& stream)
+      : state(state)
+      , stream(stream)
+    {
+    }
 
     Object* unmarshal();
 

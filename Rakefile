@@ -1,5 +1,3 @@
-require 'bundler/setup'
-require 'redcard'
 require './rakelib/configure'
 require './rakelib/build_signature'
 
@@ -27,12 +25,13 @@ if !$verbose and respond_to?(:verbose)
 end
 
 $:.unshift File.expand_path("../", __FILE__)
+$:.unshift File.expand_path("../build/scripts", __FILE__)
 
 BUILD_CONFIG = {} unless Object.const_defined? :BUILD_CONFIG
 
 def load_configuration
-  config_rb = File.expand_path "../config.rb", __FILE__
-  config_h  = File.expand_path "../machine/gen/config.h", __FILE__
+  config_rb = File.expand_path "../build/config/config.rb", __FILE__
+  config_h  = File.expand_path "../machine/config.h", __FILE__
 
   unless File.exist?(config_rb) and File.exist?(config_h)
     if $cleaning
@@ -54,22 +53,14 @@ unless verify_build_signature or $cleaning or ENV["RBX_IGNORE_BUILD_SIGNATURE"]
   exit 1
 end
 
-# Yes, this is duplicated from the configure script for now.
-unless RedCard.check :ruby, :rubinius
-  STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
-  exit 1
+unless ENV["RBX_SUPRESS_DEPRECATION"]
+  STDERR.puts "              *** DEPRECATION NOTICE ***" \
+    "\n\nUse of Rake is deprecated and will be removed in the future.\n" \
+    "Use 'build.sh' to configure, build, package, and install Rubinius.\n\n\n"
 end
 
 if BUILD_CONFIG[:build_bin]
   ENV["PATH"] = "#{BUILD_CONFIG[:build_bin]}:#{ENV["PATH"]}"
-end
-
-def libprefixdir
-  if BUILD_CONFIG[:stagingdir]
-    "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:libdir]}"
-  else
-    "#{BUILD_CONFIG[:sourcedir]}/lib"
-  end
 end
 
 # Set the build compiler to the configured compiler unless
@@ -122,18 +113,15 @@ class SpecRunner
   end
 end
 
-if BUILD_CONFIG[:stagingdir]
-  task :default => [:spec, :check_status, :install]
-else
-  task :default => :spec
-end
+task :default => [:spec, :check_status, :install]
 
 def check_status
   exit 1 unless SpecRunner.at_exit_status == 0
 end
 
 def clean_environment
-  ENV['GEM_PATH'] = ENV['GEM_HOME'] = ENV['RUBYOPT'] = nil
+  ENV['GEM_PATH'] = ENV['GEM_HOME'] = nil
+  ENV['RUBYOPT'] = "--disable-gems"
 end
 
 task :check_status do
@@ -153,7 +141,7 @@ end
 
 # See vm.rake for more information
 desc "Build Rubinius"
-task :build => %w[build:build gems:install]
+task :build => %w[build:build]
 
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]

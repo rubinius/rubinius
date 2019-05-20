@@ -6,6 +6,6 @@ describe "Rubinius::ConstantCache#location" do
   end
 
   it "returns the file and line number of the call site" do
-    @cache.location.should =~ %r{spec/core/fixtures/call_site\.rb:78$}
+    @cache.location.should =~ %r{spec/core/fixtures/call_site\.rb:86$}
   end
 end

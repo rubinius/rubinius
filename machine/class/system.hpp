@@ -31,10 +31,6 @@ namespace rubinius {
     static void bootstrap_methods(STATE);
     static void attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim);
 
-    /** Load a compiled file. */
-    // Rubinius.primitive :compiledfile_load
-    static Object*  compiledfile_load(STATE, String* path, Integer* signature, Integer* version);
-
     /**
      *  When running under GDB, stop here.
      *
@@ -246,12 +242,6 @@ namespace rubinius {
     // Rubinius.primitive :vm_find_object
     static Object* vm_find_object(STATE, Array* arg, Object* callable);
 
-    // Rubinius.primitive :vm_const_defined
-    static Object* vm_const_defined(STATE, Symbol* sym);
-
-    // Rubinius.primitive :vm_const_defined_under
-    static Object* vm_const_defined_under(STATE, Module* under, Symbol* sym, Object* send_const_missing);
-
     // Rubinius.primitive :vm_check_callable
     static Object* vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self);
 
@@ -261,26 +251,20 @@ namespace rubinius {
     // Rubinius.primitive :vm_get_user_home
     static String* vm_get_user_home(STATE, String* name);
 
-    // Rubinius.primitive :vm_dump_heap
-    static Object* vm_dump_heap(STATE, String* path);
-
     // Rubinius.primitive :vm_set_finalizer
     static Object* vm_set_finalizer(STATE, Object* obj, Object* fin);
 
     // Rubinius.primitive :vm_object_lock
     static Object* vm_object_lock(STATE, Object* obj);
 
-    // Rubinius.primitive :vm_object_uninterrupted_lock
-    static Object* vm_object_uninterrupted_lock(STATE, Object* obj);
-
-    // Rubinius.primitive :vm_object_lock_timed
-    static Object* vm_object_lock_timed(STATE, Object* obj, Integer* time);
-
     // Rubinius.primitive+ :vm_object_trylock
     static Object* vm_object_trylock(STATE, Object* obj);
 
     // Rubinius.primitive+ :vm_object_locked_p
     static Object* vm_object_locked_p(STATE, Object* obj);
+
+    // Rubinius.primitive+ :vm_object_lock_owned_p
+    static Object* vm_object_lock_owned_p(STATE, Object* obj);
 
     // Rubinius.primitive :vm_object_unlock
     static Object* vm_object_unlock(STATE, Object* obj);

@@ -1,10 +1,13 @@
-#ifndef RBX_VM_OOP_HPP
-#define RBX_VM_OOP_HPP
+#ifndef RBX_MEMORY_HEADER_HPP
+#define RBX_MEMORY_HEADER_HPP
 
-#include <atomic>
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <assert.h>
+#include <atomic>
+#include <mutex>
+#include <thread>
+
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
@@ -16,13 +19,41 @@
 #include "util/thread.hpp"
 #include "bug.hpp"
 
+#ifdef VALUE
+#undef VALUE
+#endif
+
+#define VALUE intptr_t
+
+struct RArray;
+struct RString;
+struct RData;
+struct RTypedData;
+struct RFloat;
+struct RFile;
+struct rb_io_t;
+typedef struct rb_io_t RIO;
+
 namespace rubinius {
+  class Array;
+  class Class;
+  class Data;
+  class Fixnum;
+  class Float;
+  class IO;
+  class Object;
+  class String;
+  class VM;
+
+  struct MemoryHeader;
+  struct MemoryHandle;
 
 /* We use a variable length pointer tag system: The tag represents 1 to 3 bits
  * which uniquely identify a data type.
  *
  *   1 == rest is a fixnum
- *  00 == rest is an object reference
+ * 000 == rest is a managed object reference
+ * 100 == rest is a handle pointer
  * 010 == rest is a boolean literal
  * 110 == rest is a symbol
  *
@@ -31,8 +62,12 @@ namespace rubinius {
 */
 
 #define TAG_REF          0x0L
-#define TAG_REF_MASK     3
-#define TAG_REF_WIDTH    2
+#define TAG_REF_MASK     7
+#define TAG_REF_WIDTH    3
+
+#define TAG_HANDLE       0x4L
+#define TAG_HANDLE_MASK  7
+#define TAG_HANDLE_WIDTH 3
 
 #define TAG_FIXNUM       0x1L
 #define TAG_FIXNUM_SHIFT 1
@@ -45,30 +80,29 @@ namespace rubinius {
 #define TAG_SYMBOL_MASK  7
 
 #define APPLY_FIXNUM_TAG(v) ((Object*)(((intptr_t)(v) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
-#define STRIP_FIXNUM_TAG(v) (((intptr_t)v) >> TAG_FIXNUM_SHIFT)
+#define STRIP_FIXNUM_TAG(v) (((intptr_t)(v)) >> TAG_FIXNUM_SHIFT)
 
 #define APPLY_SYMBOL_TAG(v) ((Object*)(((intptr_t)(v) << TAG_SYMBOL_SHIFT) | TAG_SYMBOL))
-#define STRIP_SYMBOL_TAG(v) (((intptr_t)v) >> TAG_SYMBOL_SHIFT)
+#define STRIP_SYMBOL_TAG(v) (((intptr_t)(v)) >> TAG_SYMBOL_SHIFT)
+
+#define APPLY_HANDLE_TAG(v) (((intptr_t)(v) & ~TAG_HANDLE_MASK) | TAG_HANDLE)
+#define STRIP_HANDLE_TAG(v) ((MemoryHandle*)((intptr_t)(v) & ~TAG_HANDLE_MASK))
 
 /* Do not use these macros in code. They define the bit patterns for the
  * various object types and are used to define predicates. Use the predicates
  * (ie reference_p(), fixnum_p(), symbol_p()) directly.
  */
-#define __REFERENCE_P__(v) (((intptr_t)(v) & TAG_REF_MASK) == TAG_REF)
-#define __FIXNUM_P__(v)    (((intptr_t)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
-#define __SYMBOL_P__(v)    (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
+#define __REFERENCE_P__(v)  ((v) && (((intptr_t)(v) & TAG_REF_MASK) == TAG_REF))
+#define __HANDLE_P__(v)     (((intptr_t)(v) & TAG_HANDLE_MASK) == TAG_HANDLE)
+#define __FIXNUM_P__(v)     (((intptr_t)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
+#define __SYMBOL_P__(v)     (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
 /* How many bits of data are available in fixnum, not including the sign. */
-#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
-#define FIXNUM_MAX   (((native_int)1 << FIXNUM_WIDTH) - 1)
+#define FIXNUM_MAX_WIDTH  ((8 * sizeof(intptr_t)) - TAG_FIXNUM_SHIFT - 1)
+#define FIXNUM_MIN_WIDTH  (FIXNUM_MAX_WIDTH + 1)
 
-/* This would naturally be (-(FIXNUM_MAX) - 1) considering the range of bits
- * and how twos-complement works. However, the libtommath library used by
- * Bignum does not store negative numbers in twos-complement. Consequently,
- * this value of FIXNUM_MIN allows for checking that a value is in the Fixnum
- * range merely by checking a count of the bits used to represent the number.
- */
-#define FIXNUM_MIN   (-(FIXNUM_MAX))
+#define FIXNUM_MAX        (((intptr_t)1 << FIXNUM_MAX_WIDTH) - 1)
+#define FIXNUM_MIN        (-1 - FIXNUM_MAX)
 
 /* Standard Rubinius Representation
  *
@@ -98,93 +132,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 // The bits that identify any nil value.
 #define NIL_MASK    0x1f
 
-#define CBOOL(v)                    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
-#define RBOOL(v)                    ((v) ? cTrue : cFalse)
+#define CBOOL(v)    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
+#define RBOOL(v)    ((v) ? cTrue : cFalse)
 
-// Some configuration flags
-
-  /* rubinius_object gc zone, takes up two bits */
-  typedef enum
-  {
-    UnspecifiedZone  = 0,
-    MatureObjectZone = 1,
-    YoungObjectZone  = 2,
-  } gc_zone;
-
-  class Class;
-  class Object;
-  class VM;
 
   typedef std::vector<Object*> ObjectArray;
 
-  enum LockStatus {
-    eUnlocked,
-    eLocked,
-    eLockTimeout,
-    eLockInterrupted,
-    eLockError
-  };
-
-  typedef enum {
-    eAuxWordEmpty    = 0,
-    eAuxWordObjID    = 1,
-    eAuxWordLock     = 2,
-    eAuxWordHandle   = 3,
-    eAuxWordInflated = 4
-  } aux_meaning;
-
-  const static int cAuxLockTIDShift = 8;
-  const static int cAuxLockRecCountMask = 0xff;
-  const static int cAuxLockRecCountMax  = 0xff - 1;
-
   const static bool cDebugThreading = false;
-
-#define OBJECT_FLAGS_OBJ_TYPE        7
-#define OBJECT_FLAGS_GC_ZONE         9
-#define OBJECT_FLAGS_AGE            13
-#define OBJECT_FLAGS_MEANING        16
-#define OBJECT_FLAGS_FORWARDED      17
-#define OBJECT_FLAGS_REMEMBER       18
-#define OBJECT_FLAGS_MARKED         21
-#define OBJECT_FLAGS_INIMMIX        22
-#define OBJECT_FLAGS_PINNED         23
-#define OBJECT_FLAGS_FROZEN         24
-#define OBJECT_FLAGS_TAINTED        25
-#define OBJECT_FLAGS_UNTRUSTED      26
-#define OBJECT_FLAGS_LOCK_CONTENDED 27
-
-  struct ObjectFlags {
-    object_type  obj_type        : 8;
-    gc_zone      zone            : 2;
-    unsigned int age             : 7;
-    aux_meaning  meaning         : 3;
-
-    unsigned int Forwarded       : 1;
-    unsigned int Remember        : 1;
-    unsigned int Marked          : 3;
-
-    unsigned int InImmix         : 1;
-    unsigned int InLarge         : 1;
-    unsigned int Pinned          : 1;
-
-    unsigned int Frozen          : 1;
-    unsigned int Tainted         : 1;
-    unsigned int LockContended   : 1;
-
-    unsigned int unused          : 1;
-    uint32_t aux_word;
-  };
-
-  union HeaderWord {
-    struct ObjectFlags f;
-    uint64_t flags64;
-
-    bool atomic_set(HeaderWord& old, HeaderWord& nw);
-  };
-
-  namespace capi {
-    class Handle;
-  }
 
   /* For clarity, using a struct of bitfields is desirable. However, there are
    * two critical downsides: 1. the C/C++ standards leave packing of struct
@@ -198,511 +152,1233 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
    * compare_exchange operations are lock-free.
    *
    * The following struct with bitfields is provided for clarity and assumes
-   * little endian architecture. The macros that implement the header
-   * operations use simple integral values and are the same regardless of
-   * endianness (but obviously, the actual memory layout of these values would
-   * depend on the endianness of the particular platform).
+   * little endian architecture. The implementation of the header operations
+   * use simple integral values and are the same regardless of endianness (but
+   * obviously, the actual memory layout of these values would depend on the
+   * endianness of the particular platform).
    *
    * This ordering of fields is rather arbitrary. They are grouped by function
    * to provide clarity.
    *
-   *   typedef struct MemoryFlags {
-   *     // Header status flags
-   *     unsigned int forwarded        : 1;
-   *     unsigned int inflated         : 1;
-   *
-   *     // Memory flags
-   *     unsigned int thread_id        : 12;
-   *     unsigned int region           : 2;
-   *
-   *     // Garbage collector flags
-   *     unsigned int marked           : 2;
-   *     unsigned int scanned          : 1;
-   *     unsigned int referenced       : 4;
-   *
-   *     // Data type flags
-   *      object_type type_id          : 15;
-   *     unsigned int data             : 1;
-   *
-   *     // Memory object flags
-   *     unsigned int frozen           : 1;
-   *     unsigned int tainted          : 1;
-   *     unsigned int bias_locked      : 1;
-   *     unsigned int locked_count     : 4;
-   *     unsigned int lock_inflated    : 1;
-   *     unsigned int object_id        : 12;
-   *     unsigned int reserved         : 3;
-   *
-   *     // Graph flags
-   *     unsigned int visited          : 2;
-   *   } MemoryFlags;
+   * The MemoryHeaderBits struct and MemoryHeader::header_bits() method are
+   * provided for easier debugging but are unused in normal code.
    */
 
-#define RBX_MEMORY_UNSET_BIT(b,f)           (f & ~(RBX_MEMORY_ ## b ## _MASK))
-#define RBX_MEMORY_SET_BIT(b,f)             (f | RBX_MEMORY_ ## b ## _BIT)
-#define RBX_MEMORY_GET_BIT(b,f)             (!!(f & RBX_MEMORY_ ## b ## _BIT))
-
-#define RBX_MEMORY_SET_FIELD(b,f,v)         (f | (((v & RBX_MEMORY_ ## b ## _VALUE_MASK) \
-                                              << RBX_MEMORY_ ## b ## _SHIFT) \
-                                              & RBX_MEMORY_ ## b ## _BIT_MASK))
-#define RBX_MEMORY_GET_FIELD(b,f)           (((f & RBX_MEMORY_ ## b ## _BIT_MASK) \
-                                              >> RBX_MEMORY_ ## b ## _SHIFT) \
-                                              & RBX_MEMORY_ ## b ## _VALUE_MASK)
-
-#define RBX_MEMORY_FORWARDED_BIT            1L
-#define RBX_MEMORY_FORWARDED_MASK           1L
-
-#define RBX_MEMORY_FORWARDED_P(f)           RBX_MEMORY_GET_BIT(FORWARDED,f)
-#define RBX_MEMORY_SET_FORWARDED(f)         RBX_MEMORY_SET_BIT(FORWARDED,f)
-#define RBX_MEMORY_UNSET_FORWARDED(f)       RBX_MEMORY_UNSET_BIT(FORWARDED,f)
-
-#define RBX_MEMORY_INFLATED_BIT             (1L << 1)
-#define RBX_MEMORY_INFLATED_MASK            (1L << 1)
-
-#define RBX_MEMORY_INFLATED_P(f)            RBX_MEMORY_GET_BIT(INFLATED,f)
-#define RBX_MEMORY_SET_INFLATED(f)          RBX_MEMORY_SET_BIT(INFLATED,f)
-#define RBX_MEMORY_UNSET_INFLATED(f)        RBX_MEMORY_UNSET_BIT(INFLATED,f)
-
-#define RBX_MEMORY_HEADER_MASK              (~0x7L)
-
-#define RBX_MEMORY_HEADER_PTR(f)            (f & RBX_MEMORY_HEADER_MASK)
-
-#define RBX_MEMORY_THREAD_ID_SHIFT          2
-#define RBX_MEMORY_THREAD_ID_VALUE_MASK     0xfffL
-#define RBX_MEMORY_THREAD_ID_BIT_MASK       (((1L << 12) - 1) << RBX_MEMORY_THREAD_ID_SHIFT)
-
-#define RBX_MEMORY_SET_THREAD_ID(f,v)       RBX_MEMORY_SET_FIELD(THREAD_ID,f,v)
-#define RBX_MEMORY_GET_THREAD_ID(f)         RBX_MEMORY_GET_FIELD(THREAD_ID,f)
-
-#define RBX_MEMORY_REGION_SHIFT             14
-#define RBX_MEMORY_REGION_VALUE_MASK        0x3L
-#define RBX_MEMORY_REGION_BIT_MASK          (((1L << 2) - 1) << RBX_MEMORY_REGION_SHIFT)
-
-#define RBX_MEMORY_SET_REGION(f,v)          RBX_MEMORY_SET_FIELD(REGION,f,v)
-#define RBX_MEMORY_GET_REGION(f)            RBX_MEMORY_GET_FIELD(REGION,f)
-
-#define RBX_MEMORY_MARKED_SHIFT             16
-#define RBX_MEMORY_MARKED_VALUE_MASK        0x3L
-#define RBX_MEMORY_MARKED_BIT_MASK          (((1L << 2) - 1) << RBX_MEMORY_MARKED_SHIFT)
-
-#define RBX_MEMORY_SET_MARKED(f,v)          RBX_MEMORY_SET_FIELD(MARKED,f,v)
-#define RBX_MEMORY_GET_MARKED(f)            RBX_MEMORY_GET_FIELD(MARKED,f)
-
-#define RBX_MEMORY_SCANNED_BIT              (1L << 18)
-#define RBX_MEMORY_SCANNED_MASK             (1L << 18)
-
-#define RBX_MEMORY_SCANNED_P(f)             RBX_MEMORY_GET_BIT(SCANNED,f)
-#define RBX_MEMORY_SET_SCANNED(f)           RBX_MEMORY_SET_BIT(SCANNED,f)
-#define RBX_MEMORY_UNSET_SCANNED(f)         RBX_MEMORY_UNSET_BIT(SCANNED,f)
-
-#define RBX_MEMORY_REFERENCED_SHIFT         19
-#define RBX_MEMORY_REFERENCED_VALUE_MASK    0xfL
-#define RBX_MEMORY_REFERENCED_BIT_MASK      (((1L << 4) - 1) << RBX_MEMORY_REFERENCED_SHIFT)
-
-#define RBX_MEMORY_SET_REFERENCED(f,v)      RBX_MEMORY_SET_FIELD(REFERENCED,f,v)
-#define RBX_MEMORY_GET_REFERENCED(f)        RBX_MEMORY_GET_FIELD(REFERENCED,f)
-
-#define RBX_MEMORY_TYPE_ID_SHIFT            23
-#define RBX_MEMORY_TYPE_ID_VALUE_MASK       0x7fffL
-#define RBX_MEMORY_TYPE_ID_BIT_MASK         (((1L << 15) - 1) << RBX_MEMORY_TYPE_ID_SHIFT)
-
-#define RBX_MEMORY_SET_TYPE_ID(f,v)         RBX_MEMORY_SET_FIELD(TYPE_ID,f,v)
-#define RBX_MEMORY_GET_TYPE_ID(f)           RBX_MEMORY_GET_FIELD(TYPE_ID,f)
-
-#define RBX_MEMORY_DATA_BIT                 (1L << 38)
-#define RBX_MEMORY_DATA_MASK                (1L << 38)
-
-#define RBX_MEMORY_DATA_P(f)                RBX_MEMORY_GET_BIT(DATA,f)
-#define RBX_MEMORY_SET_DATA(f)              RBX_MEMORY_SET_BIT(DATA,f)
-#define RBX_MEMORY_UNSET_DATA(f)            RBX_MEMORY_UNSET_BIT(DATA,f)
-
-#define RBX_MEMORY_FROZEN_BIT               (1L << 39)
-#define RBX_MEMORY_FROZEN_MASK              (1L << 39)
-
-#define RBX_MEMORY_FROZEN_P(f)              RBX_MEMORY_GET_BIT(FROZEN,f)
-#define RBX_MEMORY_SET_FROZEN(f)            RBX_MEMORY_SET_BIT(FROZEN,f)
-#define RBX_MEMORY_UNSET_FROZEN(f)          RBX_MEMORY_UNSET_BIT(FROZEN,f)
-
-#define RBX_MEMORY_TAINTED_BIT              (1L << 40)
-#define RBX_MEMORY_TAINTED_MASK             (1L << 40)
-
-#define RBX_MEMORY_TAINTED_P(f)             RBX_MEMORY_GET_BIT(TAINTED,f)
-#define RBX_MEMORY_SET_TAINTED(f)           RBX_MEMORY_SET_BIT(TAINTED,f)
-#define RBX_MEMORY_UNSET_TAINTED(f)         RBX_MEMORY_UNSET_BIT(TAINTED,f)
-
-#define RBX_MEMORY_BIAS_LOCKED_BIT          (1L << 41)
-#define RBX_MEMORY_BIAS_LOCKED_MASK         (1L << 41)
-
-#define RBX_MEMORY_BIAS_LOCKED_P(f)         RBX_MEMORY_GET_BIT(BIAS_LOCKED,f)
-#define RBX_MEMORY_SET_BIAS_LOCKED(f)       RBX_MEMORY_SET_BIT(BIAS_LOCKED,f)
-#define RBX_MEMORY_UNSET_BIAS_LOCKED(f)     RBX_MEMORY_UNSET_BIT(BIAS_LOCKED,f)
-
-#define RBX_MEMORY_LOCKED_COUNT_SHIFT       42
-#define RBX_MEMORY_LOCKED_COUNT_VALUE_MASK  0xfL
-#define RBX_MEMORY_LOCKED_COUNT_BIT_MASK    (((1L << 4) - 1) << RBX_MEMORY_LOCKED_COUNT_SHIFT)
-
-#define RBX_MEMORY_SET_LOCKED_COUNT(f,v)    RBX_MEMORY_SET_FIELD(LOCKED_COUNT,f,v)
-#define RBX_MEMORY_GET_LOCKED_COUNT(f)      RBX_MEMORY_GET_FIELD(LOCKED_COUNT,f)
-
-#define RBX_MEMORY_LOCK_INFLATED_BIT        (1L << 46)
-#define RBX_MEMORY_LOCK_INFLATED_MASK       (1L << 46)
-
-#define RBX_MEMORY_LOCK_INFLATED_P(f)       RBX_MEMORY_GET_BIT(LOCK_INFLATED,f)
-#define RBX_MEMORY_SET_LOCK_INFLATED(f)     RBX_MEMORY_SET_BIT(LOCK_INFLATED,f)
-#define RBX_MEMORY_UNSET_LOCK_INFLATED(f)   RBX_MEMORY_UNSET_BIT(LOCK_INFLATED,f)
-
-#define RBX_MEMORY_OBJECT_ID_SHIFT          47
-#define RBX_MEMORY_OBJECT_ID_VALUE_MASK     0xfffL
-#define RBX_MEMORY_OBJECT_ID_BIT_MASK       (((1L << 12) - 1) << RBX_MEMORY_OBJECT_ID_SHIFT)
-
-#define RBX_MEMORY_SET_OBJECT_ID(f,v)       RBX_MEMORY_SET_FIELD(OBJECT_ID,f,v)
-#define RBX_MEMORY_GET_OBJECT_ID(f)         RBX_MEMORY_GET_FIELD(OBJECT_ID,f)
-
-#define RBX_MEMORY_RESERVED_SHIFT           59
-#define RBX_MEMORY_RESERVED_VALUE_MASK      0x7L
-#define RBX_MEMORY_RESERVED_BIT_MASK        (((1L << 3) - 1) << RBX_MEMORY_RESERVED_SHIFT)
-
-#define RBX_MEMORY_SET_RESERVED(f,v)        RBX_MEMORY_SET_FIELD(RESERVED,f,v)
-#define RBX_MEMORY_GET_RESERVED(f)          RBX_MEMORY_GET_FIELD(RESERVED,f)
-
-#define RBX_MEMORY_VISITED_SHIFT            62
-#define RBX_MEMORY_VISITED_VALUE_MASK       0x3L
-#define RBX_MEMORY_VISITED_BIT_MASK         (((1L << 2) - 1) << RBX_MEMORY_VISITED_SHIFT)
-
-#define RBX_MEMORY_SET_VISITED(f,v)         RBX_MEMORY_SET_FIELD(VISITED,f,v)
-#define RBX_MEMORY_GET_VISITED(f)           RBX_MEMORY_GET_FIELD(VISITED,f)
-
-
-  // A machine word so that compare_exchange is lock-free. We assume 64-bit;
   typedef uintptr_t MemoryFlags;
 
-  class InflatedHeaderWord {
+  static_assert(sizeof(uintptr_t) == sizeof(uint64_t), "uintptr_t must be 64 bits");
+  static_assert(sizeof(MemoryFlags) == sizeof(uintptr_t), "MemoryFlags must be sizeof uintptr_t");
+
+  typedef struct MemoryHeaderBits {
+    // Header status flags
+    unsigned int extended;         // : 1;
+    unsigned int forwarded;        // : 1;
+
+    // Memory flags
+    unsigned int thread_id;        // : 11;
+    unsigned int region;           // : 2;
+    unsigned int referenced;       // : 4;
+    unsigned int pinned;           // : 1;
+    unsigned int weakref;          // : 1;
+    unsigned int finalizer;        // : 1;
+    unsigned int remembered;       // : 1;
+
+    // Graph flags
+    unsigned int visited;          // : 2;
+
+    // Garbage collector flags
+    unsigned int marked;           // : 2;
+    unsigned int scanned;          // : 1;
+
+    // Data type flags
+    object_type type_id;           // : 9;
+    unsigned int data;             // : 1;
+
+    // Memory object flags
+    unsigned int frozen;           // : 1;
+    unsigned int tainted;          // : 1;
+    unsigned int locked_count;     // : 3;
+    unsigned int lock_extended;
+    unsigned int lock_owner;
+    unsigned int object_id;        // : 19;
+    unsigned int type_specific;    // : 2;
+
+    MemoryHeaderBits(const MemoryHeader* header);
+  } MemoryHeaderBits;
+
+  enum MemoryRegion {
+    eThreadRegion = 0,
+    eFirstRegion,
+    eSecondRegion,
+    eLargeRegion,
   };
 
-  struct InflatedHeaderNg {
-    MemoryFlags flags;
-    int size;
-    InflatedHeaderWord words[0];
+  struct HeaderField {
+    int shift;
+    int width;
 
-    /*
-      use lowest 3 bits (7 total) as tag for kind of object at that slot:
-      A - object_id
-      B - graph_id
-      C - recursive mutex
-      D - C-API handle
-      */
-    size_t object_id() {
-      // TODO: check object_id overflow
-      return RBX_MEMORY_GET_OBJECT_ID(flags);
+    uintptr_t mask() const {
+      return (1L << width) - 1;
+    }
+
+    uintptr_t max() const {
+      return mask();
+    }
+
+    uintptr_t get(const MemoryFlags& header) const {
+      return (header & (mask() << shift)) >> shift;
+    }
+
+    uintptr_t set(const MemoryFlags& header, uintptr_t value) const {
+      return (header & ~(mask() << shift)) | ((value & mask()) << shift);
+    }
+
+    uintptr_t set(const MemoryFlags& header) const {
+      return header | (mask() << shift);
+    }
+
+    uintptr_t unset(const MemoryFlags& header) const {
+      return header & ~(mask() << shift);
     }
   };
 
-  class MemoryHeader {
-  public:
-    std::atomic<MemoryFlags> header;
+  const HeaderField constexpr size_field          = { 0,  2 };
+  const HeaderField constexpr extended_field      = { 0,  1 };
+  const HeaderField constexpr forwarded_field     = { 1,  1 };
+  const HeaderField constexpr thread_id_field     = { 2,  11 };
+  const HeaderField constexpr region_field        = { 13, 2 };
+  const HeaderField constexpr referenced_field    = { 15, 4 };
+  const HeaderField constexpr pinned_field        = { 19, 1 };
+  const HeaderField constexpr weakref_field       = { 20, 1 };
+  const HeaderField constexpr finalizer_field     = { 21, 1 };
+  const HeaderField constexpr remembered_field    = { 22, 1 };
+  const HeaderField constexpr visited_field       = { 23, 2 };
+  const HeaderField constexpr marked_field        = { 25, 2 };
+  const HeaderField constexpr scanned_field       = { 27, 1 };
+  const HeaderField constexpr type_id_field       = { 28, 9 };
+  const HeaderField constexpr data_field          = { 37, 1 };
+  const HeaderField constexpr frozen_field        = { 38, 1 };
+  const HeaderField constexpr tainted_field       = { 39, 1 };
+  const HeaderField constexpr locked_count_field  = { 40, 3 };
+  const HeaderField constexpr object_id_field     = { 43, 19 };
+  const HeaderField constexpr type_specific_field = { 62, 2 };
 
-    enum MemoryRegion {
-      eFirstRegion = 0,
-      eSecondRegion,
-      eThirdRegion,
-      eLargeRegion,
+  /* Managed objects have a header. The header (a MemoryHeader) is a single, 64bit,
+   * machine word that may be a MemoryFlags or pointer to an ExtendedHeader.
+   *
+   * The object's header field values may be single bit flags or multi-bit
+   * values.  There are two classes of multi-bit values: 1. finite,
+   * MemoryFlags-only; 2. finite, but expandable to a single machine word in
+   * the 'words' vector in an ExtendedHeader.
+   *
+   * Header values have two operations: 1. get; 2. set. There are two
+   * classes of set operations based on the two classes of multi-bit values:
+   * 1. set bits in the MemoryFlags word; 2. add a value to the
+   * ExtendedHeader 'words' vector.
+   *
+   * All changes to the managed object's header are compare-exchanged (ie
+   * CAS) into the object's first word to ensure there are not pathological
+   * read-update-write or write-write data race conditions.
+   *
+   * The values in the ExtendedHeader 'words' are stable pointers or values.
+   * When the ExtendedHeader is changed to expand the 'words' or update the
+   * MemoryFlags, the existing pointer values are unchanged, so any
+   * references to these pointers are valid before and after the header
+   * change. Only the MemoryFlags word in the MemoryHeader is updated.
+   */
+
+  struct MemoryHeader;
+
+  struct MemoryHandle {
+    enum HandleType {
+      eUnknown,
+      eRArray,
+      eRString,
+      eRData,
+      eRFloat,
+      eRIO,
+      eRFile
     };
 
-    static void initialize(
-        MemoryHeader* obj, int thread_id, MemoryRegion region, object_type type)
+    attr_field(type, HandleType);
+    attr_field(accesses, unsigned int);
+    attr_field(cycles, unsigned int);
+    attr_field(object, Object*);
+    attr_field(data, void*);
+
+    MemoryHandle(Object* object)
+      : _type_(eUnknown)
+      , _accesses_(0)
+      , _cycles_(0)
+      , _object_(object)
+      , _data_(nullptr)
     {
-      MemoryFlags flags = 0;
-
-      /* When an object is created, its three fundamental fields are:
-       *  1. thread ID
-       *  2. memory region
-       *  3. type ID
-       */
-      RBX_MEMORY_SET_THREAD_ID(flags, thread_id);
-      RBX_MEMORY_SET_REGION(flags, region);
-      RBX_MEMORY_SET_TYPE_ID(flags, type);
-
-      obj->header.store(flags);
     }
 
-    InflatedHeaderNg* inflated_header() const {
-      return const_cast<InflatedHeaderNg*>(
-          reinterpret_cast<const InflatedHeaderNg*>(
-            RBX_MEMORY_HEADER_PTR(header.load())));
+    static MemoryHandle* from(VALUE value);
+    static VALUE value(Object* object);
+    static Object* object(VALUE value);
+
+    template<typename T>
+      static T* object(VALUE value);
+
+    template<typename T>
+      static T* try_as(VALUE value);
+
+    VALUE as_value() const {
+      return reinterpret_cast<VALUE>(APPLY_HANDLE_TAG(this));
     }
 
-    bool forwarded_p() const {
-      return RBX_MEMORY_FORWARDED_P(header.load());
+    void set_data(void* data, HandleType type) {
+      this->type(type);
+      this->data(data);
     }
 
-    bool inflated_p() const {
-      return RBX_MEMORY_INFLATED_P(header.load());
+    void unset_accesses() {
+      _accesses_ = 0;
     }
 
-    int thread_id() const {
-      if(inflated_p()) {
-        return RBX_MEMORY_GET_THREAD_ID(inflated_header()->flags);
+    void access() {
+      _accesses_++;
+    }
+
+    void cycle() {
+      _cycles_++;
+    }
+
+    bool unknown_type_p() const {
+      return type() == eUnknown;
+    }
+
+    bool rarray_p() const {
+      return type() == eRArray;
+    }
+
+    RArray* get_rarray(STATE);
+    void read_rarray(STATE);
+    void write_rarray(STATE);
+
+    void set_rarray(RArray* rarray) {
+      set_data(rarray, eRArray);
+    }
+
+    bool rstring_p() const {
+      return type() == eRString;
+    }
+
+    RString* get_rstring(STATE);
+    void read_rstring(STATE);
+    void write_rstring(STATE);
+
+    void set_rstring(RString* rstring) {
+      set_data(rstring, eRString);
+    }
+
+    bool rdata_p() const {
+      return type() == eRData;
+    }
+
+    RData* get_rdata(STATE);
+
+    void set_rdata(RData* rdata) {
+      set_data(rdata, eRData);
+    }
+
+    bool rtypeddata_p() const {
+      return type() == eRData;
+    }
+
+    RTypedData* get_rtypeddata(STATE);
+
+    void set_rtypeddata(RTypedData* rtypeddata) {
+      set_data(rtypeddata, eRData);
+    }
+
+    bool rfloat_p() const {
+      return type() == eRFloat;
+    }
+
+    RFloat* get_rfloat(STATE);
+
+    void set_rfloat(RFloat* rfloat) {
+      set_data(rfloat, eRFloat);
+    }
+
+    bool rio_p() const {
+      return type() == eRIO;
+    }
+
+    RIO* get_rio(STATE);
+    IO* get_io(STATE);
+    bool rio_close(STATE);
+
+    void set_rio(RIO* rio) {
+      set_data(rio, eRIO);
+    }
+
+    bool rfile_p() const {
+      return type() == eRFile;
+    }
+
+    RFile* get_rfile(STATE);
+
+    void set_rfile(RFile* rfile) {
+      set_data(rfile, eRFile);
+    }
+  };
+
+  struct MemoryLock {
+    std::mutex lock;
+    uintptr_t thread_id;
+    uintptr_t locked_count;
+
+    MemoryLock(uintptr_t id, uintptr_t count)
+      : lock()
+      , thread_id(id)
+      , locked_count(count)
+    {
+      lock.lock();
+    }
+
+    ~MemoryLock() {
+      if(locked_count > 0) lock.unlock();
+    }
+
+    bool locked_p(STATE);
+    bool lock_owned_p(STATE);
+    bool try_lock(STATE);
+    void unlock(STATE);
+  };
+
+  struct ExtendedHeaderWord {
+    uintptr_t word;
+
+    enum WordType {
+      eUnsetWord = 1,
+      eObjectID,
+      eHandle,
+      eRefCount,
+      eLock,
+    };
+
+    ExtendedHeaderWord(unsigned int type = eUnsetWord)
+      : word(type)
+    {
+    }
+
+    unsigned int value_shift() const {
+      return 0x3;
+    }
+
+    uintptr_t type_mask() const {
+      return 0x7L;
+    }
+
+    uintptr_t type() const {
+      return word & type_mask();
+    }
+
+    uintptr_t ptr_mask() const {
+      return ~type_mask();
+    }
+
+    bool unset_p() const {
+      return type() == eUnsetWord;
+    }
+
+    bool object_id_entry_p() const {
+      return type() == eObjectID;
+    }
+
+    uintptr_t get_object_id() const {
+      if(object_id_entry_p()) {
+        return reinterpret_cast<uintptr_t>(word >> value_shift());
       }
 
-      return RBX_MEMORY_GET_THREAD_ID(header.load());
+      return 0;
     }
 
-    MemoryRegion region() const {
-      if(inflated_p()) {
-        return static_cast<MemoryRegion>(
-            RBX_MEMORY_GET_REGION(inflated_header()->flags));
-      }
-
-      return static_cast<MemoryRegion>(RBX_MEMORY_GET_REGION(header.load()));
+    void set_object_id(uintptr_t id) {
+      word = (id << value_shift()) | eObjectID;
     }
 
-    void region(MemoryRegion region) {
-      if(inflated_p()) {
-        inflated_header()->flags =
-          RBX_MEMORY_SET_REGION(inflated_header()->flags, region);
-      } else {
-        header.store(RBX_MEMORY_SET_REGION(header.load(), region));
+    bool handle_entry_p() const {
+      return type() == eHandle;
+    }
+
+    MemoryHandle* get_handle() const {
+      if(handle_entry_p()) {
+        return reinterpret_cast<MemoryHandle*>(word & ptr_mask());
+      }
+
+      return nullptr;
+    }
+
+    void set_handle(MemoryHandle* handle) {
+      word = reinterpret_cast<uintptr_t>(handle) | eHandle;
+    }
+
+    bool reference_entry_p() const {
+      return type() == eRefCount;
+    }
+
+    uintptr_t get_referenced() const {
+      if(reference_entry_p()) {
+        return reinterpret_cast<uintptr_t>(word >> value_shift());
+      }
+
+      return 0;
+    }
+
+    void set_referenced(uintptr_t refcount) {
+      word = (refcount << value_shift()) | eRefCount;
+    }
+
+    bool lock_p() const {
+      return type() == eLock;
+    }
+
+    MemoryLock* get_lock() const {
+      if(lock_p()) {
+        return reinterpret_cast<MemoryLock*>(word & ptr_mask());
+      }
+
+      return nullptr;
+    }
+
+    void set_lock(MemoryLock* lock) {
+      word = reinterpret_cast<uintptr_t>(lock) | eLock;
+    }
+  };
+
+  static_assert(sizeof(ExtendedHeaderWord) == sizeof(uintptr_t),
+      "ExtendedHeaderWord structure must be the same size as uintptr_t");
+
+  struct ExtendedHeader {
+    MemoryFlags header;
+    ExtendedHeaderWord words[0];
+
+    ExtendedHeader(const MemoryFlags h, int size)
+      : header(size_field.set(h, size))
+    {
+      ExtendedHeaderWord unset;
+
+      words[0] = unset;
+    }
+
+    ExtendedHeader(const MemoryFlags h, const ExtendedHeader* eh, int size)
+      : header(size_field.set(h, size))
+    {
+      for(int i = 0; i < eh->size(); i++) {
+        words[i] = eh->words[i];
       }
     }
 
-    bool marked_p(unsigned int mark) const {
-      if(inflated_p()) {
-        return RBX_MEMORY_GET_MARKED(inflated_header()->flags) == mark;
-      }
-
-      return RBX_MEMORY_GET_MARKED(header.load()) == mark;
-    }
-
-    void mark(unsigned int mark) {
-      if(inflated_p()) {
-        RBX_MEMORY_SET_MARKED(inflated_header()->flags, mark);
-      } else {
-        header.store(RBX_MEMORY_SET_MARKED(header.load(), mark));
+    ~ExtendedHeader() {
+      for(int i = 0; i < size(); i++) {
+        if(MemoryHandle* handle = words[i].get_handle()) {
+          delete handle;
+        } else if(MemoryLock* lock = words[i].get_lock()) {
+          delete lock;
+        }
       }
     }
 
-    bool scanned_p() const {
-      if(inflated_p()) {
-        return RBX_MEMORY_SCANNED_P(inflated_header()->flags);
-      }
+    static ExtendedHeader* create(const MemoryFlags h) {
+      uintptr_t* mem = new uintptr_t[2];
 
-      return RBX_MEMORY_SCANNED_P(header.load());
+      return new(mem) ExtendedHeader(h, 1);
     }
 
-    unsigned int referenced() const {
-      if(inflated_p()) {
-        return RBX_MEMORY_GET_REFERENCED(inflated_header()->flags);
-      }
+    static ExtendedHeader* create(const MemoryFlags h, const ExtendedHeader* eh) {
+      uintptr_t* mem = new uintptr_t[eh->size() + 2];
 
-      return RBX_MEMORY_GET_REFERENCED(header.load());
+      return new(mem) ExtendedHeader(h, eh, eh->size() + 1);
     }
 
-    void referenced(unsigned int count) {
-      if(inflated_p()) {
-        RBX_MEMORY_SET_REFERENCED(inflated_header()->flags, count);
-      } else {
-        header.store(RBX_MEMORY_SET_REFERENCED(header.load(), count));
+    static ExtendedHeader* create_copy(const MemoryFlags h, const ExtendedHeader* eh) {
+      uintptr_t* mem = new uintptr_t[eh->size() + 1];
+
+      return new(mem) ExtendedHeader(h, eh, eh->size());
+    }
+
+    static ExtendedHeader* create_object_id(const MemoryFlags h, uintptr_t id) {
+       ExtendedHeader* nh = create(h);
+       nh->words[0].set_object_id(id);
+
+       return nh;
+    }
+
+    static ExtendedHeader* create_object_id(
+        const MemoryFlags h, const ExtendedHeader* eh, uintptr_t id)
+    {
+      ExtendedHeader* nh = create(h, eh);
+      nh->words[eh->size()].set_object_id(id);
+
+      return nh;
+    }
+
+    static ExtendedHeader* create_handle(const MemoryFlags h, Object* object) {
+      ExtendedHeader* nh = create(h);
+
+      MemoryHandle* handle = new MemoryHandle(object);
+      nh->words[0].set_handle(handle);
+
+      return nh;
+    }
+
+    static ExtendedHeader* create_handle(
+        const MemoryFlags h, ExtendedHeader* eh, Object* object)
+    {
+      ExtendedHeader* nh = create(h, eh);
+
+      MemoryHandle* handle = new MemoryHandle(object);
+      nh->words[eh->size()].set_handle(handle);
+
+      return nh;
+    }
+
+    static ExtendedHeader* create_referenced(const MemoryFlags h, uintptr_t refcount) {
+      ExtendedHeader* nh = create(h);
+      nh->words[0].set_referenced(refcount);
+
+      return nh;
+    }
+
+    static ExtendedHeader* create_referenced(
+        const MemoryFlags h, const ExtendedHeader* eh, uintptr_t refcount)
+    {
+      ExtendedHeader* nh = create(h, eh);
+      nh->words[eh->size()].set_referenced(refcount);
+
+      return nh;
+    }
+
+    static ExtendedHeader* create_lock(STATE, const MemoryFlags h, unsigned int count);
+    static ExtendedHeader* create_lock(STATE, const MemoryFlags h,
+        const ExtendedHeader* eh, unsigned int count);
+
+    static ExtendedHeader* replace_lock(STATE, const MemoryFlags h,
+        const ExtendedHeader* eh, unsigned int count);
+
+    void delete_header() {
+      this->~ExtendedHeader();
+      delete[] reinterpret_cast<uintptr_t*>(this);
+    }
+
+    int size() const {
+      return size_field.get(header);
+    }
+
+    MemoryHandle* get_handle() const {
+      for(int i = 0; i < size(); i++) {
+        if(MemoryHandle* handle = words[i].get_handle()) {
+          return handle;
+        }
+      }
+
+      return nullptr;
+    }
+
+    uintptr_t get_object_id() const {
+      for(int i = 0; i < size(); i++) {
+        if(uintptr_t id = words[i].get_object_id()) {
+          return id;
+        }
+      }
+
+      return 0;
+    }
+
+    void set_object_id(uintptr_t id) {
+      for(int i = 0; i < size(); i++) {
+        if(words[i].object_id_entry_p()) {
+          words[i].set_object_id(id);
+        }
       }
     }
 
-    object_type type_id() const {
-      if(inflated_p()) {
-        return static_cast<object_type>(
-            RBX_MEMORY_GET_TYPE_ID(inflated_header()->flags));
+    uintptr_t get_referenced() const {
+      for(int i = 0; i < size(); i++) {
+        if(uintptr_t refcount = words[i].get_referenced()) {
+          return refcount;
+        }
       }
 
-      return static_cast<object_type>(RBX_MEMORY_GET_TYPE_ID(header.load()));
+      return 0;
     }
 
-    void type_id(object_type type) {
-      if(inflated_p()) {
-        inflated_header()->flags =
-          RBX_MEMORY_SET_TYPE_ID(inflated_header()->flags, type);
-      } else {
-        header.store(RBX_MEMORY_SET_TYPE_ID(header.load(), type));
+    void set_referenced(uintptr_t refcount) {
+      for(int i = 0; i < size(); i++) {
+        if(words[i].reference_entry_p()) {
+          words[i].set_referenced(refcount);
+        }
       }
     }
 
-    bool data_p() const {
-      if(inflated_p()) {
-        return RBX_MEMORY_DATA_P(inflated_header()->flags);
-      }
-
-      return RBX_MEMORY_DATA_P(header.load());
+    bool lock_extended_p() const {
+      return locked_count_field.get(header) == locked_count_field.max();
     }
 
-    bool object_p() const {
-      if(inflated_p()) {
-        return !RBX_MEMORY_DATA_P(inflated_header()->flags);
+    MemoryLock* get_lock() const {
+      for(int i = 0; i < size(); i++) {
+        if(MemoryLock* lock = words[i].get_lock()) {
+          return lock;
+        }
       }
 
-      return !RBX_MEMORY_DATA_P(header.load());
+      return nullptr;
+    }
+  };
+
+  struct MemoryHeader {
+    std::atomic<MemoryFlags> header;
+
+    static std::atomic<uintptr_t> object_id_counter;
+
+    static void bootstrap(STATE);
+
+    void initialize(int thread_id, MemoryRegion region, object_type type, bool data) {
+      MemoryFlags h = 0;
+
+      header.store(thread_id_field.set(h, thread_id)
+                   | region_field.set(h, region)
+                   | type_id_field.set(h, type)
+                   | data_field.set(h, data),
+                   std::memory_order_release);
+    }
+
+    static void initialize(MemoryHeader* obj,
+        int thread_id, MemoryRegion region, object_type type, bool data)
+    {
+      obj->initialize(thread_id, region, type, data);
+    }
+
+    static unsigned int max_thread_id() {
+      return thread_id_field.max();
+    }
+
+    static unsigned int max_referenced() {
+      return referenced_field.max();
+    }
+
+    static unsigned int max_type_id() {
+      return type_id_field.max();
+    }
+
+    static unsigned int max_object_id() {
+      return object_id_field.max();
+    }
+
+    static unsigned int max_locked_count() {
+      return locked_count_field.max() - 1;
     }
 
     bool reference_p() const {
       return __REFERENCE_P__(this);
     }
 
-    bool frozen_p() const {
-      if(inflated_p()) {
-        return RBX_MEMORY_FROZEN_P(inflated_header()->flags);
-      }
+    bool fixnum_p() const {
+      return __FIXNUM_P__(this);
+    }
 
-      return RBX_MEMORY_FROZEN_P(header.load());
+    bool integer_p() const;
+
+    bool symbol_p() const {
+      return __SYMBOL_P__(this);
+    }
+
+    static unsigned int lock_extended() {
+      return locked_count_field.max();
+    }
+
+    ExtendedHeader* extended_header() const {
+      return const_cast<ExtendedHeader*>(
+          reinterpret_cast<const ExtendedHeader*>(
+            header.load(std::memory_order_acquire) & ~0x7L));
+    }
+
+    MemoryFlags extended_flags(ExtendedHeader* h) const {
+      MemoryFlags f = reinterpret_cast<MemoryFlags>(h);
+
+      return reinterpret_cast<MemoryFlags>(extended_field.set(f));
+    }
+
+    bool extended_header_p() const {
+      return extended_field.get(header.load(std::memory_order_acquire));
+    }
+
+    MemoryHeaderBits header_bits() const;
+
+    bool lock_extended_p() const {
+      if(extended_header_p()) {
+        return extended_header()->lock_extended_p();
+      } else {
+        return locked_count_field.get(
+            header.load(std::memory_order_acquire)) == lock_extended();
+      }
+    }
+
+    unsigned int lock_owner() const {
+      if(extended_header_p()) {
+        ExtendedHeader* hh = extended_header();
+
+        if(hh->lock_extended_p()) {
+          return hh->get_lock()->thread_id;
+        } else if(locked_count_field.get(hh->header) > 0) {
+          return thread_id_field.get(hh->header);
+        } else {
+          return 0;
+        }
+      } else {
+        if(locked_count_field.get(header.load(std::memory_order_acquire)) > 0) {
+          return thread_id_field.get(header.load(std::memory_order_acquire));
+        } else {
+          return 0;
+        }
+      }
+    }
+
+    unsigned int lock_count() const {
+      if(extended_header_p()) {
+        ExtendedHeader* hh = extended_header();
+
+        if(hh->lock_extended_p()) {
+          return hh->get_lock()->locked_count;
+        } else {
+          return locked_count_field.get(hh->header);
+        }
+      } else {
+        return locked_count_field.get(header.load(std::memory_order_acquire));
+      }
+    }
+
+    uintptr_t get(const HeaderField field) const {
+      if(extended_header_p()) {
+        return field.get(extended_header()->header);
+      } else {
+        return field.get(header.load(std::memory_order_acquire));
+      }
+    }
+
+    void set(const HeaderField field, unsigned int value) {
+      while(true) {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+
+        if(extended_header_p()) {
+          ExtendedHeader* hh = extended_header();
+          ExtendedHeader* eh = ExtendedHeader::create_copy(field.set(hh->header, value), hh);
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            return;
+          }
+
+          eh->delete_header();
+        } else {
+          MemoryFlags nh = field.set(h, value);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            return;
+          }
+        }
+      }
+    }
+
+    void set(const HeaderField field) {
+      while(true) {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+
+        if(extended_header_p()) {
+          ExtendedHeader* hh = extended_header();
+          ExtendedHeader* eh = ExtendedHeader::create_copy(field.set(hh->header), hh);
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            return;
+          }
+
+          eh->delete_header();
+        } else {
+          MemoryFlags nh = field.set(h);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            return;
+          }
+        }
+      }
+    }
+
+    void unset(const HeaderField field) {
+      while(true) {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+
+        if(extended_header_p()) {
+          ExtendedHeader* hh = extended_header();
+          ExtendedHeader* eh = ExtendedHeader::create_copy(field.unset(hh->header), hh);
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            return;
+          }
+
+          eh->delete_header();
+        } else {
+          MemoryFlags nh = field.unset(h);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            return;
+          }
+        }
+      }
+    }
+
+    bool forwarded_p() const {
+      return forwarded_field.get(header.load(std::memory_order_acquire));
+    }
+
+    void set_forwarded(MemoryHeader* address) {
+      forwarded_field.set(header.load(std::memory_order_acquire));
+    }
+
+    Object* forward() const {
+      return reinterpret_cast<Object*>(header.load(std::memory_order_acquire) & ~0x7L);
+    }
+
+    int thread_id() const {
+      return get(thread_id_field);
+    }
+
+    void set_thread_id(uintptr_t id) {
+      set(thread_id_field, id);
+    }
+
+    MemoryRegion region() const {
+      return static_cast<MemoryRegion>(get(region_field));
+    }
+
+    void region(MemoryRegion region) {
+      set(region_field, region);
+    }
+
+    bool thread_region_p() const {
+      return static_cast<MemoryRegion>(get(region_field)) == eThreadRegion;
+    }
+
+    bool first_region_p() const {
+      return static_cast<MemoryRegion>(get(region_field)) == eFirstRegion;
+    }
+
+    bool second_region_p() const {
+      return static_cast<MemoryRegion>(get(region_field)) == eSecondRegion;
+    }
+
+    bool large_region_p() const {
+      return static_cast<MemoryRegion>(get(region_field)) == eLargeRegion;
+    }
+
+    unsigned int referenced() const {
+      if(extended_header_p()) {
+        ExtendedHeader* eh = extended_header();
+        uintptr_t refcount = referenced_field.get(eh->header);
+
+        if(refcount < max_referenced()) {
+          return refcount;
+        } else {
+          uintptr_t ext_refcount = eh->get_referenced();
+
+          if(ext_refcount > 0) {
+            return ext_refcount;
+          } else {
+            return refcount;
+          }
+        }
+      } else {
+        return referenced_field.get(header.load(std::memory_order_acquire));
+      }
+    }
+
+    bool pinned_p() const {
+      return get(pinned_field);
+    }
+
+    void set_pinned() {
+      set(pinned_field);
+    }
+
+    void unset_pinned() {
+      unset(pinned_field);
+    }
+
+    bool weakref_p() const {
+      return get(weakref_field);
+    }
+
+    void set_weakref(STATE) {
+      if(!weakref_p()) {
+        set(weakref_field);
+        track_reference(state);
+      }
+    }
+
+    void unset_weakref(STATE) {
+      if(weakref_p()) {
+        unset(weakref_field);
+        untrack_reference(state);
+      }
+    }
+
+    bool finalizer_p() const {
+      return get(finalizer_field);
+    }
+
+    void set_finalizer() {
+      set(finalizer_field);
+    }
+
+    void unset_finalizer() {
+      unset(finalizer_field);
+    }
+
+    bool remembered_p() const {
+      return get(remembered_field);
+    }
+
+    void set_remembered() {
+      // TODO: MemoryHeader append to references if unset
+      set(remembered_field);
+    }
+
+    void unset_remembered() {
+      unset(remembered_field);
+    }
+
+    unsigned int visited() const {
+      return get(visited_field);
+    }
+
+    bool visited_p(unsigned int flag) const {
+      return visited() == flag;
+    }
+
+    void set_visited(unsigned int flag) {
+      set(visited_field, flag);
+    }
+
+    unsigned int marked() const {
+      return get(marked_field);
+    }
+
+    bool marked_p(unsigned int mark) const {
+      return marked() == mark;
+    }
+
+    void set_marked(unsigned int mark) {
+      set(marked_field, mark);
+    }
+
+    bool scanned_p() const {
+      return get(scanned_field);
+    }
+
+    void set_scanned() {
+      set(scanned_field);
+    }
+
+    void unset_scanned() {
+      unset(scanned_field);
+    }
+
+    object_type type_id() const {
+      return static_cast<object_type>(get(type_id_field));
+    }
+
+    bool type_p(object_type type) const {
+      return static_cast<object_type>(get(type_id_field)) == type;
+    }
+
+    bool data_p() const {
+      return get(data_field);
+    }
+
+    bool object_p() const {
+      return !data_p();
+    }
+
+    bool handle_p() const {
+      return __HANDLE_P__(this);
+    }
+
+    bool frozen_p() const {
+      return get(frozen_field);
+    }
+
+    void set_frozen() {
+      set(frozen_field);
+    }
+
+    void unset_frozen() {
+      unset(frozen_field);
     }
 
     bool tainted_p() const {
-      if(inflated_p()) {
-        return RBX_MEMORY_TAINTED_P(inflated_header()->flags);
-      }
-
-      return RBX_MEMORY_TAINTED_P(header.load());
+      return get(tainted_field);
     }
 
-    bool lock_inflated_p() const {
-      if(inflated_p()) {
-        return RBX_MEMORY_LOCK_INFLATED_P(inflated_header()->flags);
-      }
-
-      return RBX_MEMORY_LOCK_INFLATED_P(header.load());
+    void set_tainted() {
+      set(tainted_field);
     }
 
-    size_t object_id() const {
-      if(inflated_p()) return inflated_header()->object_id();
-
-      return RBX_MEMORY_GET_OBJECT_ID(header.load());
+    void unset_tainted() {
+      unset(tainted_field);
     }
 
-    unsigned int reserved() {
-      if(inflated_p()) {
-        return RBX_MEMORY_GET_RESERVED(inflated_header()->flags);
-      }
+    uintptr_t object_id() const {
+      if(extended_header_p()) {
+        ExtendedHeader* hh = extended_header();
 
-      return RBX_MEMORY_GET_RESERVED(header.load());
-    }
+        uintptr_t oid = object_id_field.get(hh->header);
 
-    void reserved(unsigned int value) {
-      if(inflated_p()) {
-        inflated_header()->flags =
-          RBX_MEMORY_SET_RESERVED(inflated_header()->flags, value);
+        if(oid > 0 && oid < max_object_id()) {
+          return oid;
+        } else {
+         return hh->get_object_id();
+        }
       } else {
-        header.store(RBX_MEMORY_SET_RESERVED(header.load(), value));
+        return object_id_field.get(header.load(std::memory_order_acquire));
       }
     }
 
-    void visited(int flag) {
-      if(inflated_p()) {
-        inflated_header()->flags =
-          RBX_MEMORY_SET_VISITED(inflated_header()->flags, flag);
+    unsigned int type_specific() const {
+      return get(type_specific_field);
+    }
+
+    void set_type_specific(unsigned int value) {
+      set(type_specific_field, value);
+    }
+
+    bool memory_handle_p() const {
+      if(extended_header_p()) {
+        return extended_header()->get_handle() != nullptr;
       } else {
-        header.store(RBX_MEMORY_SET_VISITED(header.load(), flag));
+        return false;
       }
     }
 
-    bool visited_p(int flag) {
-      if(inflated_p()) {
-        return RBX_MEMORY_GET_VISITED(inflated_header()->flags) == flag;
+    // Operations on a managed object.
+
+    void lock(STATE);
+    bool try_lock(STATE);
+    bool locked_p(STATE);
+    bool lock_owned_p(STATE);
+    void unlock(STATE);
+    void unset_lock(STATE);
+
+    uintptr_t assign_object_id() {
+      uintptr_t id = object_id_counter.fetch_add(1);
+
+      while(true) {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+
+        if(uintptr_t oid = object_id()) return oid;
+
+        if(extended_header_p()) {
+          ExtendedHeader* eh;
+          ExtendedHeader* hh = extended_header();
+
+          if(id < max_object_id()) {
+            eh = ExtendedHeader::create_copy(object_id_field.set(hh->header, id), hh);
+          } else {
+            eh = ExtendedHeader::create_object_id(
+                object_id_field.set(hh->header, max_object_id()), hh, id);
+          }
+
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            return id;
+          }
+
+          eh->delete_header();
+        } else {
+          if(id < max_object_id()) {
+            MemoryFlags nh = object_id_field.set(h, id);
+
+            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+              return id;
+            }
+          } else {
+            ExtendedHeader* eh = ExtendedHeader::create_object_id(
+                object_id_field.set(h, max_object_id()), id);
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+              return id;
+            }
+
+            eh->delete_header();
+          }
+        }
       }
-
-      return RBX_MEMORY_GET_VISITED(header.load()) == flag;
-    }
-  };
-
-  /**
-   * An InflatedHeader is used on the infrequent occasions when an Object needs
-   * to store more metadata than can fit in the ObjectHeader HeaderWord struct.
-   */
-  class InflatedHeader {
-    // Treat the header as either storage for the ObjectFlags, or as a pointer
-    // to the next free InflatedHeader in the InflatedHeaders free list.
-    union {
-      capi::Handle* handle_;
-      uintptr_t next_index_;
-    };
-
-    utilities::thread::Mutex mutex_;
-    utilities::thread::Condition condition_;
-    uint32_t owner_id_;
-    int rec_lock_count_;
-
-    uint32_t object_id_;
-    unsigned int mark_;
-
-  public:
-
-    InflatedHeader()
-      : handle_(NULL)
-      , mutex_(false)
-      , owner_id_(0)
-      , rec_lock_count_(0)
-      , object_id_(0)
-      , mark_(-1)
-    {}
-
-    uintptr_t next() const {
-      return next_index_;
     }
 
-    uint32_t object_id(STATE) const {
-      return object_id_;
+    void track_reference(STATE);
+    void untrack_reference(STATE);
+
+    MemoryHandle* memory_handle(STATE, Object* object) {
+      while(true) {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+        ExtendedHeader* eh;
+
+        if(extended_header_p()) {
+          ExtendedHeader* hh = extended_header();
+
+          if(MemoryHandle* handle = hh->get_handle()) {
+            return handle;
+          }
+
+          eh = ExtendedHeader::create_handle(hh->header, hh, object);
+        } else {
+          eh = ExtendedHeader::create_handle(h, object);
+        }
+
+        MemoryFlags nh = extended_flags(eh);
+
+        if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+          track_reference(state);
+          return eh->get_handle();
+        }
+
+        eh->delete_header();
+      }
     }
 
-    void set_object_id(uint32_t id) {
-      object_id_ = id;
+    int add_reference(STATE) {
+      if(!reference_p()) return 0;
+
+      while(true) {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+
+        if(extended_header_p()) {
+          ExtendedHeader* eh;
+          ExtendedHeader* hh = extended_header();
+          uintptr_t refcount = referenced_field.get(hh->header);
+
+          if(refcount < max_referenced()) {
+            eh = ExtendedHeader::create_copy(
+                referenced_field.set(hh->header, refcount + 1), hh);
+          } else {
+            if(uintptr_t rc = hh->get_referenced()) {
+              refcount = rc;
+
+              eh = ExtendedHeader::create_copy(hh->header, hh);
+              eh->set_referenced(refcount + 1);
+            } else {
+              eh = ExtendedHeader::create_referenced(hh->header, hh, refcount + 1);
+            }
+          }
+
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            if(refcount == 0) track_reference(state);
+            return refcount + 1;
+          }
+
+          eh->delete_header();
+        } else {
+          unsigned int refcount = referenced_field.get(h);
+
+          if(refcount < max_referenced()) {
+            MemoryFlags nh = referenced_field.set(h, refcount + 1);
+
+            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+              if(refcount == 0) track_reference(state);
+              return refcount + 1;
+            }
+          } else {
+            ExtendedHeader* eh = ExtendedHeader::create_referenced(h, refcount + 1);
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+              if(refcount == 0) track_reference(state);
+              return refcount + 1;
+            }
+
+            eh->delete_header();
+          }
+        }
+      }
     }
 
-    void set_next(uintptr_t next_index) {
-      next_index_ = next_index;
+    int sub_reference(STATE) {
+      if(!reference_p()) return 0;
+
+      while(true) {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+
+        if(extended_header_p()) {
+          ExtendedHeader* eh;
+          ExtendedHeader* hh = extended_header();
+          uintptr_t refcount = referenced_field.get(hh->header);
+
+          if(refcount == 0) {
+            // TODO: MemoryHeader raise?
+            return refcount;
+          } else if(refcount < max_referenced()) {
+            eh = ExtendedHeader::create_copy(
+                referenced_field.set(hh->header, refcount - 1), hh);
+          } else {
+            if(uintptr_t rc = hh->get_referenced()) {
+              refcount = rc;
+
+              eh = ExtendedHeader::create_copy(hh->header, hh);
+              eh->set_referenced(refcount - 1);
+            } else {
+              eh = ExtendedHeader::create_referenced(hh->header, hh, refcount - 1);
+            }
+          }
+
+          MemoryFlags nh = extended_flags(eh);
+
+          if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            if(refcount == 0) untrack_reference(state);
+            return refcount - 1;
+          }
+
+          eh->delete_header();
+        } else {
+          unsigned int refcount = referenced_field.get(h);
+
+          if(refcount == 0) {
+            // TODO: MemoryHeader raise?
+            return refcount;
+          } else if(refcount < max_referenced()) {
+            MemoryFlags nh = referenced_field.set(h, refcount - 1);
+
+            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+              if(refcount == 0) track_reference(state);
+              return refcount - 1;
+            }
+          } else {
+            ExtendedHeader* eh = ExtendedHeader::create_referenced(h, refcount - 1);
+
+            MemoryFlags nh = extended_flags(eh);
+
+            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+              if(refcount == 0) track_reference(state);
+              return refcount - 1;
+            }
+
+            eh->delete_header();
+          }
+        }
+      }
     }
-
-    void clear() {
-      handle_ = 0;
-      owner_id_ = 0;
-      rec_lock_count_ = 0;
-      object_id_ = 0;
-      mark_ = 0;
-    }
-
-    bool in_use_p() const {
-      return mark_ > 0;
-    }
-
-    capi::Handle* handle(STATE) const {
-      return handle_;
-    }
-
-    void set_handle(STATE, capi::Handle* handle) {
-      atomic::write(&handle_, handle);
-    }
-
-    void clear_handle(STATE) {
-      handle_ = NULL;
-    }
-
-    bool marked_p(unsigned int which) const {
-      return (mark_ & which) == which;
-    }
-
-    void mark(Memory* om, unsigned int which) {
-      mark_ = which;
-    }
-
-    bool update(STATE, HeaderWord header);
-    void initialize_mutex(int thread_id, int count);
-    LockStatus lock_mutex(STATE, ObjectHeader* obj, size_t us, bool interrupt);
-    LockStatus lock_mutex_timed(STATE, ObjectHeader* obj, const struct timespec* ts, bool interrupt);
-    LockStatus try_lock_mutex(STATE, ObjectHeader* obj);
-    bool locked_mutex_p(STATE, ObjectHeader* obj);
-    LockStatus unlock_mutex(STATE, ObjectHeader* obj);
-    void unlock_mutex_for_terminate(STATE, ObjectHeader* obj);
-
-    void wakeup(STATE, ObjectHeader* obj);
-
-    private:
   };
 
   class DataHeader : public MemoryHeader {
-    // Provides access to bytes beyond the header without reserving memory.
     void* __body__[0];
 
   public:
@@ -716,7 +1392,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     static void initialize(
         MemoryHeader* obj, int thread_id, MemoryRegion region, object_type type)
     {
-      MemoryHeader::initialize(obj, thread_id, region, type);
+      MemoryHeader::initialize(obj, thread_id, region, type, true);
     }
 
     static size_t align(size_t bytes) {
@@ -757,9 +1433,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
   };
 
-  class ObjectHeader {
-  private:
-    HeaderWord header;
+  class ObjectHeader : public MemoryHeader {
 
 #ifdef RBX_TEST
   public:
@@ -771,7 +1445,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     attr_accessor(ivars, Object);
 
   private:
-    // Provides access to bytes beyond the header without reserving memory.
     void* __body__[0];
 
   public:
@@ -791,89 +1464,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return (bytes - sizeof(ObjectHeader)) / sizeof(Object*);
     }
 
-  public: // accessors for header members
-
-    bool inflated_header_p() const {
-      return header.f.meaning == eAuxWordInflated;
-    }
-
-    static InflatedHeader* header_to_inflated_header(STATE, HeaderWord header);
-    static InflatedHeader* header_to_inflated_header(Memory* om, HeaderWord header);
-
-    InflatedHeader* inflated_header(STATE) const {
-      return header_to_inflated_header(state, header);
-    }
-
-    bool set_inflated_header(STATE, uint32_t ih_header, HeaderWord orig);
-
-    /*
-     * We return a copy here for safe reading. This means that
-     * even though the reader might see slightly outdated information,
-     * it will not see total garbage when the race here with inflated
-     * the header.
-     *
-     * All code using these flags either checks flags that don't change
-     * such as obj_type or uses this before attempting a CAS to modify
-     * it. If there is a race the CAS will fail and will be reattempted
-     * so it will work correctly.
-     *
-     * Don't use inflated_header_p() here since that checks the current
-     * header state, but after returning it might be that the header
-     * has been inflated in the mean while.
-     */
-    ObjectFlags flags() const {
-      return header.f;
-    }
-
-    gc_zone zone() const {
-      return flags().zone;
-    }
-
-    // Only called in non contended scenario's
-    void set_zone(gc_zone zone) {
-      header.f.zone = zone;
-    }
-
-    unsigned int age() const {
-      return flags().age;
-    }
-
-    unsigned int inc_age() {
-      return ++header.f.age;
-    }
-
-    void set_cycle(unsigned int cycle) {
-      header.f.age = cycle;
-    }
-
-    void set_age(unsigned int age);
-
-    /*
-     * Method is only used on first object initialization so it's
-     * safe to not use an atomic swap here. Changing an object type
-     * after it was constructed is also a big no no anyway.
-     */
-    void set_obj_type(object_type type) {
-      header.f.obj_type = type;
-    }
-
-    capi::Handle* handle(STATE);
-
-    void set_handle(STATE, capi::Handle* handle) {
-      if(inflated_header_p()) {
-        inflated_header(state)->set_handle(state, handle);
-      } else {
-        rubinius::bug("Setting handle directly on not inflated header");
-      }
-    }
-
-    void clear_handle(STATE);
-
-    void set_handle_index(STATE, uintptr_t handle_index);
-
   public:
 
-    void initialize_copy(Memory* om, Object* other, unsigned int age);
+    void initialize_copy(STATE, Object* other);
 
     /* Copies the body of +other+ into +this+ */
     void copy_body(VM* state, Object* other);
@@ -891,26 +1484,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    /* Initialize the objects data with the most basic info. This is done
-     * right after an object is created.
-     *
-     * Can only be used when the caller is sure that the object doesn't
-     * have an inflated header, which is true of any brand new (ie fresh)
-     * objects.
-     */
-    void init_header(gc_zone loc, object_type type) {
-      header.flags64 = 0;
-      header.f.obj_type = type;
-      header.f.zone = loc;
-    }
-
     void** pointer_to_body() {
       return __body__;
     }
 
     /* It's the slow case, should be called only if there's no cached
      * instance size. */
-    size_t slow_size_in_bytes(VM* vm) const;
+    size_t compute_size_in_bytes(VM* vm) const;
 
     /* The whole point of this is inlining */
     size_t size_in_bytes(VM* vm) const {
@@ -918,7 +1498,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       if(size != 0) {
         return size;
       } else {
-        return slow_size_in_bytes(vm);
+        return compute_size_in_bytes(vm);
       }
     }
 
@@ -926,151 +1506,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return size_in_bytes(state) - sizeof(ObjectHeader);
     }
 
-    bool reference_p() const {
-      return __REFERENCE_P__(this);
-    }
-
-    bool young_object_p() const {
-      return zone() == YoungObjectZone;
-    }
-
-    bool mature_object_p() const {
-      return zone() == MatureObjectZone;
-    }
-
-    bool large_object_p() const {
-      return flags().InLarge == 1;
-    }
-
-    bool forwarded_p() const {
-      return flags().Forwarded == 1;
-    }
-
-    Object* forward() const {
-      return _ivars_;
-    }
-
     Class* reference_class() const {
       return _klass_;
     }
-
-    /**
-     *  Mark this Object forwarded by the GC.
-     *
-     *  Sets the forwarded flag and stores the given Object* in
-     *  the _klass_ field where it can be reached. This object is
-     *  no longer valid and should be accessed through the new
-     *  Object* (but code outside of the GC framework should not
-     *  really run into this much if at all.)
-     *
-     *  A forwarded object should never exist while the GC is running.
-     */
-
-    void set_forward(ObjectHeader* fwd) {
-      header.f.Forwarded = 1;
-
-      // DO NOT USE klass() because we need to get around the
-      // write barrier!
-      _ivars_ = reinterpret_cast<Object*>(fwd);
-    }
-
-    bool marked_p(unsigned int which) const {
-      return (flags().Marked & which) == which;
-    }
-
-    bool scanned_p(unsigned int which) const {
-      return flags().Marked == which + 1;
-    }
-
-    void mark(Memory* om, unsigned int which);
-    void scanned();
-
-    unsigned int which_mark() const {
-      return flags().Marked;
-    }
-
-    void clear_mark() {
-      header.f.Marked = 0;
-    }
-
-    bool pinned_p() const {
-      return flags().Pinned == 1;
-    }
-
-    bool pin();
-    void unpin();
-
-    // Only used on object initialization.
-    void set_pinned() {
-      header.f.Pinned = 1;
-    }
-
-    bool in_immix_p() const {
-      return flags().InImmix == 1;
-    }
-
-    // Only called in non contended scenario's
-    void set_in_immix() {
-      header.f.InImmix = 1;
-    }
-
-    // Only called in non contended scenario's
-    void set_in_large() {
-      header.f.InLarge = 1;
-    }
-
-    bool remembered_p() const {
-      return flags().Remember == 1;
-    }
-
-    void set_remember();
-    void clear_remember();
-    void clear_lock_contended();
-
-    bool is_frozen_p() const {
-      return flags().Frozen == 1;
-    }
-
-    void set_frozen(int val=1);
-
-    bool is_tainted_p() const {
-      if(reference_p()) {
-        return flags().Tainted == 1;
-      }
-      return false;
-    }
-
-    void set_tainted(int val=1);
-
-    uint32_t object_id(STATE) const {
-      // Pull this out into a local so that we don't see any concurrent
-      // changes to header.
-      HeaderWord tmp = header;
-
-      switch(tmp.f.meaning) {
-      case eAuxWordObjID:
-        return tmp.f.aux_word;
-      case eAuxWordInflated:
-        return header_to_inflated_header(state, tmp)->object_id(state);
-      default:
-        return 0;
-      }
-    }
-
-    void set_object_id(STATE, uint32_t id);
-
-    LockStatus lock(STATE, size_t us=0, bool interrupt=true);
-    LockStatus try_lock(STATE);
-    bool locked_p(STATE);
-    LockStatus unlock(STATE);
-    void unlock_for_terminate(STATE);
-    void unlock_object_after_fork(STATE);
-
-    // Abort if unable to lock
-    void hard_lock(STATE, size_t us=0);
-
-    // Abort if unable to unlock
-    void hard_unlock(STATE);
 
     void wait(STATE);
 
@@ -1088,14 +1526,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool undef_p() const {
       return this == reinterpret_cast<ObjectHeader*>(cUndef);
-    }
-
-    object_type type_id() const {
-      return flags().obj_type;
-    }
-
-    bool check_type(object_type type) const {
-      return reference_p() && flags().obj_type == type;
     }
 
     void validate() const {

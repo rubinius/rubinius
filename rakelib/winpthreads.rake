@@ -3,12 +3,12 @@
 require 'rakelib/git'
 
 namespace :winpthreads do
-  desc "Synchronize ./vendor/winpthreads with a current clone of winpthreads"
+  desc "Synchronize ./build/libraries/winpthreads with a current clone of winpthreads"
   task :sync do
     unless src_dir = ENV['DIR']
       raise "Use DIR= to specify a clone of winpthreads"
     end
-    dest_dir = "vendor/winpthreads"
+    dest_dir = "build/libraries/winpthreads"
 
     unless is_git_project src_dir, "winpthreads.git"
       raise "#{src_dir} is not a winpthreads clone. Clone from 'git://github.com/brixen/winpthreads.git'"

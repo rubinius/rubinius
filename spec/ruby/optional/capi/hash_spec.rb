@@ -115,7 +115,26 @@ describe "C-API Hash function" do
     end
 
     it "returns an Enumerator when no block is passed" do
-      @s.rb_hash_delete_if({:a => 1}).should be_an_instance_of(enumerator_class)
+      @s.rb_hash_delete_if({:a => 1}).should be_an_instance_of(Enumerator)
+    end
+  end
+
+  describe "rb_hash_fetch" do
+    before :each do
+      @hsh = {:a => 1, :b => 2}
+    end
+
+    it "returns the value associated with the key" do
+      @s.rb_hash_fetch(@hsh, :b).should == 2
+    end
+
+    it "raises a KeyError if the key is not found and default is set" do
+      @hsh.default = :d
+      lambda { @s.rb_hash_fetch(@hsh, :c) }.should raise_error(KeyError)
+    end
+
+    it "raises a KeyError if the key is not found and no default is set" do
+      lambda { @s.rb_hash_fetch(@hsh, :c) }.should raise_error(KeyError)
     end
   end
 

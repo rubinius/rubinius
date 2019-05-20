@@ -1,12 +1,14 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
+
+#include "class/unwind_site.hpp"
 
 namespace rubinius {
   namespace instructions {
     inline void setup_unwind(CallFrame* call_frame, intptr_t ip, intptr_t type) {
-      // TODO: needs to be in CallFrame
-      UnwindInfoSet unwinds;
+      UnwindSite* unwind_site = reinterpret_cast<UnwindSite*>(ip);
 
-      unwinds.push(ip, stack_calculate_sp(), (UnwindType)type);
+      unwind_site->stack_depth(stack_calculate_sp());
+      call_frame->push_unwind(unwind_site);
     }
   }
 }

@@ -70,7 +70,7 @@ namespace rubinius {
     GO(ascii8bit_encoding).set(binary);
     GO(utf8_encoding).set(utf8);
 
-#include "gen/encoding_database.cpp"
+#include "encoding_database.hpp"
 
     char* locale_charmap;
 
@@ -635,7 +635,7 @@ namespace rubinius {
 
     G(encoding)->set_const(state, "TranscodingMap", LookupTable::create(state));
 
-#include "gen/transcoder_database.cpp"
+#include "transcoder_database.hpp"
   }
 
   void Transcoding::initialize(STATE, Transcoding* obj) {

@@ -135,12 +135,7 @@ namespace rubinius {
 
     while(entry) {
       if(entry->name() == name) {
-        if(Autoload* autoload = try_as<Autoload>(entry->constant())) {
-          autoload->constant(state, constant);
-          autoload->thread(state, Thread::current(state));
-        } else {
-          entry->constant(state, constant);
-        }
+        entry->constant(state, constant);
         return name;
       }
 

@@ -27,11 +27,169 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 
+#include "missing/math.h"
+
 #include "detection.hpp"
 
 #define STACK_BUF_SZ 1024
 
 namespace rubinius {
+  void Marshaller::marshal() {
+    put_compiled_code(code);
+  }
+
+  void Marshaller::marshal(Object* obj) {
+    OnStack<1> os(state, obj);
+
+    if(obj->true_p()) {
+      stream << "t\n";
+    } else if(obj->false_p()) {
+      stream << "f\n";
+    } else if(obj->nil_p()) {
+      stream << "n\n";
+    } else if(obj->fixnum_p()) {
+      put_fixnum(obj);
+    } else if(Bignum* n = try_as<Bignum>(obj)) {
+      stream << "I" << n->to_s(state, Fixnum::from(16))->c_str(state) << "\n";
+    } else if(String* s = try_as<String>(obj)) {
+      put_string("s", s);
+    } else if(Symbol* s = try_as<Symbol>(obj)) {
+      put_string("x", s->to_str(state));
+    } else if(Tuple* t = try_as<Tuple>(obj)) {
+      stream << "p\n";
+      for(int i = 0; i < t->num_fields(); i++) {
+        marshal(t->at(i));
+      }
+    } else if(Float* f = try_as<Float>(obj)) {
+      stream << "d\n";
+      if(isinf(f->value())) {
+        if(f->value() < 0.0) stream << "-";
+        stream << "Infinity";
+      } else if(isnan(f->value())) {
+        stream << "NaN";
+      } else {
+#define MARSHAL_FLOAT_BUFLEN  65
+        int e;
+        double v = frexp(f->value(), &e);
+        char buf[MARSHAL_FLOAT_BUFLEN];
+
+        snprintf(buf, MARSHAL_FLOAT_BUFLEN, " %+.54f %5d", v, e);
+        stream << buf;
+      }
+      stream << "\n";
+    } else if(obj->kind_of_p(state, G(object)->get_const(state, "Rational"))) {
+      put_rational(obj);
+    } else if(obj->kind_of_p(state, G(object)->get_const(state, "Complex"))) {
+      put_complex(obj);
+    } else if(InstructionSequence* iseq = try_as<InstructionSequence>(obj)) {
+      native_int size = iseq->opcodes()->num_fields();
+
+      stream << "i\n" << size << "\n";
+
+      for(int i = 0; i < size; i++) {
+        Object* op = iseq->opcodes()->at(i);
+
+        if(!op->fixnum_p()) {
+          std::string str =  "InstructionSequence contains non Fixnum: ";
+          str.append(op->to_string(state, true));
+
+          Exception::raise_type_error(state, str.c_str());
+        }
+
+        put_fixnum(op);
+      }
+    } else if(CompiledCode* c = try_as<CompiledCode>(obj)) {
+      put_compiled_code(c);
+    } else {
+      if(CBOOL(obj->respond_to(state, state->symbol("rbx_marshal_constant"), G(sym_public)))) {
+        put_constant(obj);
+      } else {
+        std::string str = "unknown type: ";
+        str.append(obj->class_object(state)->module_name()->cpp_str(state));
+
+        Exception::raise_type_error(state, str.c_str());
+      }
+    }
+  }
+
+  void Marshaller::put_fixnum(Object* obj) {
+    stream << "I" << std::hex << as<Fixnum>(obj)->to_native() << "\n";
+  }
+
+  void Marshaller::put_string(const char* type, String* str) {
+    String* enc = str->encoding(state)->name();
+    stream << type << "\nE\n"
+           << enc->byte_size() << "\n"
+           << enc->c_str(state) << "\n"
+           << str->byte_size() << "\n"
+           << str->c_str(state) << "\n";
+  }
+
+  void Marshaller::put_rational(Object* obj) {
+    Symbol* name = state->symbol("rbx_marshal_rational");
+    Arguments args(name, G(runtime), obj);
+    Dispatch dispatch(name);
+
+    Tuple* tuple;
+    OnStack<1> os(state, tuple);
+
+    Object* result = dispatch.send(state, args);
+
+    if(result && (tuple = try_as<Tuple>(result))) {
+      if(tuple->num_fields() == 2) {
+        marshal(tuple->at(0));
+        marshal(tuple->at(1));
+      }
+    }
+  }
+
+  void Marshaller::put_complex(Object* obj) {
+    Symbol* name = state->symbol("rbx_marshal_rational");
+    Arguments args(name, G(runtime), obj);
+    Dispatch dispatch(name);
+
+    Tuple* tuple;
+    OnStack<1> os(state, tuple);
+
+    Object* result = dispatch.send(state, args);
+
+    if(result && (tuple = try_as<Tuple>(result))) {
+      if(tuple->num_fields() == 2) {
+        marshal(tuple->at(0));
+        marshal(tuple->at(1));
+      }
+    }
+  }
+
+  void Marshaller::put_constant(Object* obj) {
+    Symbol* name = state->symbol("rbx_marshal_rational");
+    Arguments args(name, G(runtime), obj);
+    Dispatch dispatch(name);
+
+    if(Object* result = dispatch.send(state, args)) {
+      marshal(result);
+    }
+  }
+
+  void Marshaller::put_compiled_code(CompiledCode* code) {
+    stream << "M\n1\n";
+    marshal(code->metadata());
+    marshal(code->primitive());
+    marshal(code->name());
+    marshal(code->iseq());
+    marshal(code->stack_size());
+    marshal(code->local_count());
+    marshal(code->required_args());
+    marshal(code->post_args());
+    marshal(code->total_args());
+    marshal(code->splat());
+    marshal(code->keywords());
+    marshal(code->arity());
+    marshal(code->literals());
+    marshal(code->lines());
+    marshal(code->file());
+    marshal(code->local_names());
+  }
 
   Object* UnMarshaller::get_constant() {
     char stack_data[STACK_BUF_SZ];
@@ -296,6 +454,7 @@ namespace rubinius {
     code->iseq(state, force_as<InstructionSequence>(unmarshal()));
     code->stack_size(state, force_as<Fixnum>(unmarshal()));
     code->local_count(state, force_as<Fixnum>(unmarshal()));
+    code->registers(state, force_as<Fixnum>(unmarshal()));
     code->required_args(state, force_as<Fixnum>(unmarshal()));
     code->post_args(state, force_as<Fixnum>(unmarshal()));
     code->total_args(state, force_as<Fixnum>(unmarshal()));
@@ -350,7 +509,6 @@ namespace rubinius {
       std::string str = "unknown marshal code: ";
       str.append( 1, code );
       Exception::raise_type_error(state, str.c_str());
-      return cNil;    // make compiler happy
     }
   }
 }

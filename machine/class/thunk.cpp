@@ -25,7 +25,8 @@ namespace rubinius {
 
     if(args.total() != 0) {
       Exception* exc =
-        Exception::make_argument_error(state, 0, args.total(), args.name());
+        Exception::make_argument_error(state, 0,
+            args.total(), args.name()->cpp_str(state).c_str());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;

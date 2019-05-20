@@ -2,7 +2,6 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "dispatch.hpp"
-#include "global_cache.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
@@ -99,14 +98,6 @@ namespace rubinius {
   }
 
   Object* Object::copy_object(STATE, Object* other) {
-    initialize_copy(state->memory(), other, age());
-
-    state->memory()->write_barrier(this, klass());
-    state->memory()->write_barrier(this, ivars());
-
-    // Don't inherit the object_id from the original.
-    reset_id(state);
-
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
      * have to check the object type to ensure we don't clobber the
@@ -118,16 +109,6 @@ namespace rubinius {
 
     // Ensure that the singleton class is not shared
     klass(state, other->class_object(state));
-
-    // HACK: If other is mature, remember it.
-    // We could inspect inspect the references we just copied to see
-    // if there are any young ones if other is mature, then and only
-    // then remember other. The up side to just remembering it like
-    // this is that other is rarely mature, and the remember_set is
-    // flushed on each collection anyway.
-    if(mature_object_p()) {
-      state->memory()->remember_object(this);
-    }
 
     // Copy ivars.
     if(other->ivars()->reference_p()) {
@@ -149,6 +130,7 @@ namespace rubinius {
     }
 
     other->infect(state, this);
+
     return this;
   }
 
@@ -172,31 +154,31 @@ namespace rubinius {
     return this;
   }
 
-  Object* Object::frozen_p(STATE) {
+  Object* Object::object_frozen_p(STATE) {
     if(reference_p()) {
-      return RBOOL(is_frozen_p());
+      return RBOOL(frozen_p());
     } else if(try_as<Symbol>(this) || try_as<Fixnum>(this)) {
       return cTrue;
     } else if(this->nil_p() || this->true_p() || this->false_p()) {
       return cTrue;
     } else {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
-      return RBOOL(tbl && tbl->is_frozen_p());
+      return RBOOL(tbl && tbl->frozen_p());
     }
     return cFalse;
   }
 
   void Object::check_frozen(STATE) {
-    if(CBOOL(frozen_p(state)) && CBOOL(frozen_mod_disallowed(state))) {
+    if(CBOOL(object_frozen_p(state)) && frozen_mod_disallowed()) {
       Exception::raise_frozen_error(state, this);
     }
   }
 
-  Object* Object::frozen_mod_disallowed(STATE) {
+  bool Object::frozen_mod_disallowed() {
 	  if(this->nil_p() || this->true_p() || this->false_p()) {
-	    return cFalse;
+	    return false;
 	  }
-	  return cTrue;
+	  return true;
   }
 
   Object* Object::get_field(STATE, size_t index) {
@@ -414,7 +396,7 @@ namespace rubinius {
         double value = flt->value();
         return String::hash_str(state, (unsigned char *)(&value), sizeof(double));
       } else {
-        return id(state)->to_native();
+        return object_id(state)->to_native();
       }
     }
   }
@@ -423,36 +405,25 @@ namespace rubinius {
     return Integer::from(state, hash(state));
   }
 
-  Integer* Object::id(STATE) {
+  Integer* Object::object_id(STATE) {
     if(reference_p()) {
-      if(object_id(state) == 0) {
-        state->memory()->assign_object_id(state, this);
-      }
+      uintptr_t id = ObjectHeader::object_id();
+      if(id == 0) id = ObjectHeader::assign_object_id();
 
-      // Shift it up so we don't waste the numeric range in the actual
-      // storage, but still present the id as always modulo 4, so it doesn't
-      // collide with the immediates, since immediates never have a tag
-      // ending in 00.
-      return Integer::from(state, object_id(state) << TAG_REF_WIDTH);
+      // Shift it so it doesn't collide with object_id for immediates.
+      return Integer::from(state, id << TAG_REF_WIDTH);
     } else {
-      /* All non-references have the pointer directly as the object id */
-      return Integer::from(state, (uintptr_t)this);
+      // All non-references have the pointer directly as the object id
+      return Integer::from(state, reinterpret_cast<uintptr_t>(this));
     }
   }
 
-  bool Object::has_id(STATE) {
-    if(!reference_p()) return true;
-    return object_id(state) > 0;
-  }
-
-  void Object::reset_id(STATE) {
-    if(reference_p()) {
-      set_object_id(state, 0);
-    }
+  bool Object::object_id_p(STATE) {
+    return !reference_p() || ObjectHeader::object_id() > 0;
   }
 
   void Object::infect(STATE, Object* other) {
-    if(is_tainted_p()) {
+    if(reference_p() && tainted_p()) {
       other->taint(state);
     }
   }
@@ -514,7 +485,9 @@ namespace rubinius {
       }
 
       infect(state, sc);
-      sc->set_frozen(is_frozen_p());
+      if(frozen_p()) {
+        sc->set_frozen();
+      }
 
       return sc;
     }
@@ -797,7 +770,7 @@ namespace rubinius {
     if(address) {
       name << reinterpret_cast<void*>(this);
     } else {
-      name << "0x" << std::hex << this->id(state)->to_native();
+      name << "0x" << std::hex << this->object_id(state)->to_native();
     }
     name << ">";
 
@@ -831,15 +804,19 @@ namespace rubinius {
   }
 
   Object* Object::taint(STATE) {
-    if(!is_tainted_p()) {
-      check_frozen(state);
-      if(reference_p()) set_tainted();
+    if(reference_p()) {
+      if(!try_as<Bignum>(this) && !try_as<Float>(this)) {
+        if(!tainted_p()) {
+          check_frozen(state);
+          set_tainted();
+        }
+      }
     }
     return this;
   }
 
-  Object* Object::tainted_p(STATE) {
-    return RBOOL(is_tainted_p());
+  Object* Object::object_tainted_p(STATE) {
+    return RBOOL(reference_p() && tainted_p());
   }
 
   TypeInfo* Object::type_info(STATE) const {
@@ -847,9 +824,9 @@ namespace rubinius {
   }
 
   Object* Object::untaint(STATE) {
-    if(is_tainted_p()) {
+    if(reference_p() && tainted_p()) {
       check_frozen(state);
-      if(reference_p()) set_tainted(0);
+      if(reference_p()) unset_tainted();
     }
     return this;
   }
@@ -898,11 +875,4 @@ namespace rubinius {
                    Location::create(state, state->vm()->call_frame()));
   }
 
-}
-
-extern "C" long __id__(rubinius::Object* obj) {
-  rubinius::State state(rubinius::VM::current());
-  long id = obj->id(&state)->to_native();
-  printf("Object: %p, id: %ld\n", obj, id);
-  return id;
 }

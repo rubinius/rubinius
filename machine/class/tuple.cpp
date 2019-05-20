@@ -12,13 +12,9 @@
 
 namespace rubinius {
 
-  uintptr_t Tuple::fields_offset;
-
   void Tuple::bootstrap(STATE) {
     GO(tuple).set(Class::bootstrap_class(state, G(object), TupleType));
-
-    Tuple* tup = ALLOCA(Tuple);
-    fields_offset = (uintptr_t)&(tup->field) - (uintptr_t)tup;
+    GO(rtuple).set(Class::bootstrap_class(state, G(tuple), RTupleType));
   }
 
   void Tuple::write_barrier(STATE, Tuple* tuple, Object* val) {
@@ -55,7 +51,9 @@ namespace rubinius {
     }
 
     field[idx] = val;
+
     state->memory()->write_barrier(this, val);
+
     return val;
   }
 
@@ -362,4 +360,83 @@ namespace rubinius {
     if(tup->num_fields() > stop) ellipsis(level);
     close_body(level);
   }
+
+  void RTuple::initialize(STATE, RTuple* obj) {
+    for(native_int i = 0; i < obj->num_fields(); i++) {
+      reinterpret_cast<VALUE*>(obj->field)[i] = MemoryHandle::value(cNil);
+    }
+  }
+
+  RTuple* RTuple::from(STATE, Tuple* tuple) {
+    RTuple* rtuple = create(state, tuple->num_fields());
+
+    for(native_int i = 0; i < tuple->num_fields(); i++) {
+      reinterpret_cast<VALUE*>(rtuple->field)[i] = MemoryHandle::value(tuple->at(i));
+    }
+
+    return rtuple;
+  }
+
+  RTuple* RTuple::create(STATE, native_int fields) {
+    if(fields < 0) {
+      Exception::raise_argument_error(state, "negative RTuple size");
+    }
+
+    RTuple* tup = state->memory()->new_fields<RTuple>(state, G(rtuple), fields);
+    RTuple::initialize(state, tup);
+
+    tup->set_pinned();
+
+    return tup;
+  }
+
+  RTuple* RTuple::allocate(STATE, Object* self, Fixnum* fields) {
+    native_int size = fields->to_native();
+
+    if(size < 0) {
+      Exception::raise_argument_error(state, "negative RTuple size");
+    }
+
+    RTuple* tuple = create(state, fields->to_native());
+    tuple->klass(state, as<Class>(self));
+
+    return tuple;
+  }
+
+  Object* RTuple::at_prim(STATE, Fixnum* idx) {
+    native_int index = idx->to_native();
+
+    if(index < 0 || num_fields() <= index) {
+      return bounds_exceeded_error(state, "RTuple::at_prim", index);
+    }
+
+    return MemoryHandle::object(reinterpret_cast<VALUE>(field[index]));
+  }
+
+  Object* RTuple::put_prim(STATE, Fixnum* idx, Object* val) {
+    native_int index = idx->to_native();
+
+    if(index < 0 || num_fields() <= index) {
+      return bounds_exceeded_error(state, "RTuple::put_prim", index);
+    }
+
+    reinterpret_cast<VALUE*>(field)[index] = MemoryHandle::value(val);
+
+    state->memory()->write_barrier(this, val);
+
+    return val;
+  }
+
+  void RTuple::Info::mark(Object* obj, memory::ObjectMark& mark) {
+    Tuple* tup = as<Tuple>(obj);
+
+    for(native_int i = 0; i < tup->num_fields(); i++) {
+      if(Object* tmp = mark.call(
+            MemoryHandle::object(reinterpret_cast<VALUE>(tup->field[i]))))
+      {
+        mark.set_value(obj, &tup->field[i], tmp);
+      }
+    }
+  }
+
 }

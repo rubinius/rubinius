@@ -1031,7 +1031,7 @@ class Array
 
     return "[...]" if Thread.detect_recursion self do
       each_with_index do |element, index|
-        temp = element.inspect
+        temp = Rubinius::Type.coerce_inspect element
         result.force_encoding(temp.encoding) if index == 0
         result << temp << comma
       end
@@ -1452,6 +1452,8 @@ class Array
     def initialize(rng)
       @rng = rng
     end
+
+    private :initialize
 
     def rand(size)
       random = Rubinius::Type.coerce_to_collection_index @rng.rand(size)

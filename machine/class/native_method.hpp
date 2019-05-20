@@ -8,11 +8,9 @@
 #include "class/class.hpp"
 #include "class/executable.hpp"
 
-#include "metrics.hpp"
+#include "diagnostics.hpp"
 
 #include "capi/tag.hpp"
-#include "capi/value.hpp"
-#include "capi/handle.hpp"
 
 namespace rubinius {
   class ExceptionPoint;
@@ -38,67 +36,30 @@ namespace rubinius {
 
     VALUE outgoing_block_;
 
-    metrics::MetricsData metrics_;
+    diagnostics::MachineMetrics* metrics_;
 
   public:   /* Class Interface */
-    NativeMethodEnvironment(STATE)
-      : state_(state->vm())
-      , current_call_frame_(0)
-      , current_native_frame_(0)
-      , current_ep_(0)
-      , outgoing_block_(0)
-      , metrics_()
-    {}
+    NativeMethodEnvironment(STATE);
 
     /** Obtain the NativeMethodEnvironment for this thread. */
     static NativeMethodEnvironment* get();
 
   public:   /* Interface methods */
 
-    /** Create or retrieve VALUE for obj. */
-    VALUE get_handle(Object* obj);
-
     /** GC marking for Objects behind VALUEs. */
     void mark_handles(memory::ObjectMark& mark);
 
-    metrics::MetricsData* metrics() {
-      return &metrics_;
+    diagnostics::MachineMetrics* metrics() {
+      return metrics_;
     }
 
     VALUE outgoing_block() const {
       return outgoing_block_;
     }
 
-    void set_outgoing_block(VALUE val) {
-      outgoing_block_ = val;
+    void set_outgoing_block(VALUE value) {
+      outgoing_block_ = value;
     }
-
-    /** Obtain the Object the VALUE represents. */
-    inline Object* get_object(VALUE val) const {
-      if(REFERENCE_P(val)) {
-        capi::Handle* handle = capi::Handle::from(val);
-        if(!handle->valid_p()) {
-          handle->debug_print();
-          rubinius::abort();
-        }
-
-        return handle->object();
-      } else if(FIXNUM_P(val) || SYMBOL_P(val)) {
-        return reinterpret_cast<Object*>(val);
-      } else if(FALSE_P(val)) {
-        return cFalse;
-      } else if(TRUE_P(val)) {
-        return cTrue;
-      } else if(NIL_P(val)) {
-        return cNil;
-      } else if(UNDEF_P(val)) {
-        return cUndef;
-      }
-
-      rubinius::bug("requested Object for unknown NativeMethod handle type");
-      return cNil; // keep compiler happy
-    }
-
 
   public:   /* Accessors */
 
@@ -136,17 +97,6 @@ namespace rubinius {
       return state_.shared();
     }
 
-    /** Set of Handles available in current Frame (convenience.) */
-    capi::HandleSet& handles();
-
-    void check_tracked_handle(capi::Handle* hdl, bool need_update=true);
-
-    /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
-    void flush_cached_data();
-
-    /** Updates cached data with changes to the Ruby objects. */
-    void update_cached_data();
-
     StackVariables* scope();
   };
 
@@ -161,11 +111,7 @@ namespace rubinius {
 
     attr_field(env, NativeMethodEnvironment*);
 
-    /** HandleSet to Objects used in this Frame. */
-    attr_field(handles, capi::HandleSet);
-
     attr_field(capi_lock_index, int);
-    attr_field(check_handles, bool);
 
     /** Handle for the block passed in **/
     attr_field(block, VALUE);
@@ -181,7 +127,6 @@ namespace rubinius {
 
   public:
     NativeMethodFrame(NativeMethodEnvironment* env, NativeMethodFrame* prev, NativeMethod* method);
-    ~NativeMethodFrame();
 
   public:     /* Interface methods */
 
@@ -190,26 +135,7 @@ namespace rubinius {
       return NativeMethodEnvironment::get()->current_native_frame();
     }
 
-    /** Create or retrieve a VALUE for the Object. */
-    VALUE get_handle(STATE, Object* obj);
-
-    void check_tracked_handle(capi::Handle* hdl, bool need_update=true);
-
-    /** Obtain the Object the VALUE represents. */
-    Object* get_object(VALUE hndl);
-
-    /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
-    void flush_cached_data();
-
-    /** Updates cached data with changes to the Ruby objects. */
-    void update_cached_data();
-
   public:     /* Accessors */
-
-    /** HandleSet to Objects used in this Frame. */
-    capi::HandleSet& handles() {
-      return _handles_;
-    }
 
     void setup(VALUE recv, VALUE blk, VALUE meth, VALUE mod) {
       receiver(recv);

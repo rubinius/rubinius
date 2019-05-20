@@ -6,7 +6,7 @@ describe "Rubinius::CallSite#invokes" do
     executable.call_sites.first.invokes.should == 0
   end
 
-  it "returns the call site invocations that do not hit the cache" do
+  it "returns the number of call site invocations" do
     obj = Class.new do
       def m(a)
         a.to_s
@@ -18,6 +18,6 @@ describe "Rubinius::CallSite#invokes" do
     obj.m :b
     obj.m "2"
 
-    obj.method(:m).executable.call_sites.first.invokes.should == 3
+    obj.method(:m).executable.call_sites.first.invokes.should == 4
   end
 end

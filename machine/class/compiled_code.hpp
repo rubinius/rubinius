@@ -9,7 +9,10 @@
 #include "class/fixnum.hpp"
 #include "class/iseq.hpp"
 #include "class/lookup_table.hpp"
+#include "class/string.hpp"
 #include "class/symbol.hpp"
+
+#include <mutex>
 
 namespace rubinius {
 
@@ -42,18 +45,15 @@ namespace rubinius {
     attr_accessor(keywords, Tuple);
     attr_accessor(arity, Fixnum);
     attr_accessor(breakpoints, LookupTable);
-    attr_accessor(iregisters, Fixnum);
-    attr_accessor(dregisters, Fixnum);
+    attr_accessor(registers, Fixnum);
+    attr_accessor(code_id, String);
 
   private:
     attr_field(machine_code, MachineCode*);
+    std::mutex _lock_;
 
   public:
     attr_accessor(literals, Tuple)
-
-    bool can_specialize_p();
-    void add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec);
-    executor find_specialized(Class* cls);
 
     /* interface */
 
@@ -78,11 +78,13 @@ namespace rubinius {
       obj->keywords(nil<Tuple>());
       obj->arity(nil<Fixnum>());
       obj->breakpoints(nil<LookupTable>());
-      obj->iregisters(Fixnum::from(0));
-      obj->dregisters(Fixnum::from(0));
+      obj->registers(Fixnum::from(0));
+      obj->code_id(nil<String>());
       obj->machine_code(NULL);
 
       obj->literals(nil<Tuple>());
+
+      new(&obj->_lock_) std::mutex;
     }
 
     static CompiledCode* create(STATE);
@@ -91,6 +93,10 @@ namespace rubinius {
     static CompiledCode* allocate(STATE, Object* self);
 
     static Object* primitive_failed(STATE, Executable* exec, Module* mod, Arguments& args);
+
+    std::mutex& lock() {
+      return _lock_;
+    }
 
     int start_line(STATE);
     int start_line();
@@ -103,7 +109,6 @@ namespace rubinius {
     void specialize(STATE, TypeInfo* ti);
 
     static Object* default_executor(STATE, Executable* exec, Module* mod, Arguments& args);
-    static Object* specialized_executor(STATE, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :compiledcode_set_breakpoint
     Object* set_breakpoint(STATE, Fixnum* ip, Object* bp);
@@ -134,6 +139,9 @@ namespace rubinius {
 
     // Rubinius.primitive :compiledcode_sample_count
     Fixnum* sample_count(STATE);
+
+    // Rubinius.primitive :compiledcode_stamp_id
+    String* stamp_id(STATE);
 
     String* full_name(STATE);
 

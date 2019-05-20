@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "class/call_site.hpp"
 #include "class/string.hpp"

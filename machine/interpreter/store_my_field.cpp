@@ -5,10 +5,14 @@ namespace rubinius {
     intptr_t store_my_field(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
       intptr_t index = argument(0);
 
-      instructions::store_my_field(state, call_frame, index);
+      if(instructions::store_my_field(state, call_frame, index)) {
+        call_frame->next_ip(instructions::data_store_my_field.width
+            + instructions::data_unwind.width);
+      } else {
+        call_frame->next_ip(instructions::data_store_my_field.width);
+      }
 
-      call_frame->next_ip(instructions::data_store_my_field.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

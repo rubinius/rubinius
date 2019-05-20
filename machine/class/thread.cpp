@@ -1,8 +1,6 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
-#include "diagnostics.hpp"
-#include "metrics.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"
@@ -22,6 +20,8 @@
 #include "class/symbol.hpp"
 #include "class/thread.hpp"
 #include "class/tuple.hpp"
+
+#include "diagnostics/machine.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -87,8 +87,6 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
-    BlockPhase blocking(state);
-
     return Thread::create(state, self,
         state->shared().thread_nexus()->new_vm(&state->shared()),
         function);
@@ -102,13 +100,13 @@ namespace rubinius {
     state->memory()->native_finalizer(state, thr,
         (memory::FinalizerFunction)&Thread::finalize);
 
-    state->vm()->metrics().system.threads_created++;
+    state->vm()->metrics()->threads_created++;
 
     return thr;
   }
 
   void Thread::finalize(STATE, Thread* thread) {
-    if(state->shared().config.machine_thread_log_finalizer.value) {
+    if(state->shared().config.log_thread_finalizer.value) {
       logger::write("thread: finalizer: %s", thread->vm()->name().c_str());
     }
 
@@ -162,8 +160,8 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    if(state->shared().config.machine_thread_log_lifetime.value) {
-      const std::regex& filter = state->shared().config.machine_thread_log_filter();
+    if(state->shared().config.log_thread_lifetime.value) {
+      const std::regex& filter = state->shared().config.log_thread_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;
@@ -199,8 +197,8 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    if(state->shared().config.machine_thread_log_lifetime.value) {
-      const std::regex& filter = state->shared().config.machine_thread_log_filter();
+    if(state->shared().config.log_thread_lifetime.value) {
+      const std::regex& filter = state->shared().config.log_thread_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;
@@ -229,21 +227,6 @@ namespace rubinius {
 
   Thread* Thread::current(STATE) {
     return state->vm()->thread();
-  }
-
-  void Thread::unlock_after_fork(STATE) {
-    unlock_object_after_fork(state);
-
-    memory::LockedObjects& los = vm()->locked_objects();
-    for(memory::LockedObjects::iterator i = los.begin();
-        i != los.end();
-        ++i) {
-      Object* obj = static_cast<Object*>(*i);
-      if(obj && obj != this) {
-        obj->unlock_object_after_fork(state);
-      }
-    }
-    los.clear();
   }
 
   Object* Thread::variable_get(STATE, Symbol* key) {
@@ -303,29 +286,19 @@ namespace rubinius {
   Object* Thread::main_thread(STATE) {
     state->vm()->managed_phase(state);
 
-    std::string& runtime = state->shared().env()->runtime_path();
-
-    G(rubinius)->set_const(state, "Signature",
-        Integer::from(state, state->shared().env()->signature()));
-
-    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
-                           runtime.c_str(), runtime.size()));
-
     state->vm()->thread()->pid(state, Fixnum::from(gettid()));
 
-    state->shared().env()->load_core(state, runtime);
+    state->shared().env()->load_core(state);
 
     state->vm()->thread_state()->clear();
 
     state->shared().start_console(state);
-    state->shared().start_metrics(state);
-    state->shared().start_diagnostics(state);
-    state->shared().start_profiler(state);
     state->shared().start_jit(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
-      rubinius::bug("unable to find class Rubinius::Loader");
+      state->shared().env()->missing_core("unable to find class Rubinius::Loader");
+      return 0;
     }
 
     Object* instance = 0;
@@ -335,7 +308,8 @@ namespace rubinius {
     if(instance) {
       state->shared().env()->set_loader(instance);
     } else {
-      rubinius::bug("unable to instantiate Rubinius::Loader");
+      state->shared().env()->missing_core("unable to instantiate Rubinius::Loader");
+      return 0;
     }
 
     // Enable the JIT after the core library has loaded
@@ -361,11 +335,13 @@ namespace rubinius {
 
     vm->thread()->pid(state, Fixnum::from(gettid()));
 
-    if(state->shared().config.machine_thread_log_lifetime.value) {
+    if(state->shared().config.log_thread_lifetime.value) {
       logger::write("thread: run: %s, %d, %#x",
           vm->name().c_str(), vm->thread()->pid()->to_native(),
           (unsigned int)thread_debug_self());
     }
+
+    vm->metrics()->start_reporting(state);
 
     NativeMethod::init_thread(state);
 
@@ -377,23 +353,17 @@ namespace rubinius {
     vm->thread()->join_lock_.lock();
     vm->thread()->stopped();
 
-    state->shared().report_profile(state);
-
-    memory::LockedObjects& locked_objects = state->vm()->locked_objects();
-    for(memory::LockedObjects::iterator i = locked_objects.begin();
-        i != locked_objects.end();
-        ++i)
-    {
-      (*i)->unlock_for_terminate(state);
-    }
-    locked_objects.clear();
-
     vm->thread()->join_cond_.broadcast();
     vm->thread()->join_lock_.unlock();
 
     NativeMethod::cleanup_thread(state);
 
-    if(state->shared().config.machine_thread_log_lifetime.value) {
+    if(vm->thread_nexus()->lock_owned_p(vm)) {
+      logger::write("thread: exiting while owning ThreadNexus lock: %s", vm->name().c_str());
+      vm->thread_nexus()->unlock(state, vm);
+    }
+
+    if(state->shared().config.log_thread_lifetime.value) {
       logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());
     }
 
@@ -452,7 +422,7 @@ namespace rubinius {
   }
 
   Object* Thread::raise(STATE, Exception* exc) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return cNil;
 
@@ -463,7 +433,7 @@ namespace rubinius {
   }
 
   Object* Thread::kill(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return cNil;
 
@@ -478,7 +448,7 @@ namespace rubinius {
   }
 
   Thread* Thread::wakeup(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!CBOOL(alive()) || !vm()) {
       return force_as<Thread>(Primitives::failure());
@@ -490,7 +460,7 @@ namespace rubinius {
   }
 
   Tuple* Thread::context(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return nil<Tuple>();
 
@@ -502,7 +472,7 @@ namespace rubinius {
   }
 
   Array* Thread::mri_backtrace(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(init_lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     if(!vm()) return nil<Array>();
 
@@ -511,10 +481,6 @@ namespace rubinius {
 
   void Thread::stopped() {
     alive(cFalse);
-  }
-
-  void Thread::init_lock() {
-    init_lock_.init();
   }
 
   Thread* Thread::join(STATE, Object* timeout) {

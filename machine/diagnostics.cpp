@@ -1,131 +1,102 @@
 #include "vm.hpp"
 #include "state.hpp"
-#include "diagnostics.hpp"
 #include "environment.hpp"
 #include "logger.hpp"
+#include "thread_phase.hpp"
 
-#include <rapidjson/writer.h>
+#include "diagnostics.hpp"
+#include "diagnostics/diagnostic.hpp"
+#include "diagnostics/emitter.hpp"
 
 #include <unistd.h>
 #include <fcntl.h>
 
 namespace rubinius {
+  using namespace utilities;
+
   namespace diagnostics {
-    DiagnosticsData::DiagnosticsData()
-      : document()
-    {
-      document.SetObject();
-
-      document.AddMember("diagnostic_type", "DiagnosticsData", document.GetAllocator());
-    }
-
-    void DiagnosticsData::set_type(const char* type) {
-      document["diagnostic_type"].SetString(type, document.GetAllocator());
-    }
-
-    void DiagnosticsData::to_string(rapidjson::StringBuffer& buffer) {
-      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-
-      document.Accept(writer);
-    }
-
-    MemoryDiagnostics::MemoryDiagnostics()
-      : DiagnosticsData()
-      , objects_(0)
-      , bytes_(0)
-    {
-      set_type("MemoryDiagnostics");
-
-      document.AddMember("objects", objects_, document.GetAllocator());
-      document.AddMember("bytes", bytes_, document.GetAllocator());
-    }
-
-    FileEmitter::FileEmitter(STATE, std::string path)
-      : DiagnosticsEmitter()
-      , path_(path)
-      , fd_(-1)
-    {
-      // TODO: Make this a proper feature of the config facility.
-      state->shared().env()->expand_config_value(
-          path_, "$PID", state->shared().pid.c_str());
-
-      if((fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660)) < 0) {
-        logger::error("%s: unable to open diagnostics file: %s",
-            strerror(errno), path_.c_str());
-      }
-    }
-
-    void FileEmitter::send_diagnostics(DiagnosticsData* data) {
-      rapidjson::StringBuffer buffer;
-
-      data->to_string(buffer);
-
-      ssize_t size = buffer.GetSize();
-
-      if(::write(fd_, buffer.GetString(), size) < size) {
-        logger::error("%s: writing diagnostics failed", strerror(errno));
-      }
-    }
-
     Diagnostics::Diagnostics(STATE)
-      : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
-      , list_()
-      , emitter_(NULL)
-      , diagnostics_lock_()
-      , diagnostics_condition_()
+      : recurring_reports_()
+      , intermittent_reports_()
+      , reporter_(nullptr)
+      , lock_()
+      , interval_(state->shared().config.diagnostics_interval)
     {
-      // TODO: socket target
-      if(false /*state->shared().config.system_diagnostics_target.value.compare("none")*/) {
-      } else {
-        emitter_ = new FileEmitter(state,
-            state->shared().config.system_diagnostics_target.value);
-      }
     }
 
-    void Diagnostics::initialize(STATE) {
+    Reporter::Reporter(STATE, Diagnostics* d)
+      : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
+      , diagnostics_(d)
+      , timer_(nullptr)
+      , emitter_(Emitter::create(state))
+    {
+    }
+
+    void Reporter::initialize(STATE) {
       MachineThread::initialize(state);
 
-      diagnostics_lock_.init();
-      diagnostics_condition_.init();
+      timer_ = new timer::Timer;
     }
 
-    void Diagnostics::wakeup(STATE) {
+    void Reporter::wakeup(STATE) {
       MachineThread::wakeup(state);
 
-      diagnostics_condition_.signal();
+      if(timer_) {
+        timer_->clear();
+        timer_->cancel();
+      }
     }
 
-    void Diagnostics::after_fork_child(STATE) {
+    void Reporter::after_fork_child(STATE) {
       MachineThread::after_fork_child(state);
     }
 
-    void Diagnostics::report(DiagnosticsData* data) {
-      utilities::thread::Mutex::LockGuard guard(diagnostics_lock_);
-
-      list_.push_front(data);
-
-      diagnostics_condition_.signal();
+    void Reporter::report() {
+      if(timer_) {
+        timer_->clear();
+        timer_->cancel();
+      }
     }
 
-    void Diagnostics::run(STATE) {
+    void Reporter::run(STATE) {
       state->vm()->unmanaged_phase(state);
 
       while(!thread_exit_) {
-        DiagnosticsData* data = 0;
+        timer_->set(diagnostics_->interval());
+
+        if(timer_->wait_for_tick() < 0) {
+          logger::error("diagnostics: error waiting for timer");
+        }
 
         {
-          utilities::thread::Mutex::LockGuard guard(diagnostics_lock_);
+          std::lock_guard<std::mutex> guard(diagnostics_->lock());
 
-          if(list_.empty()) {
-            diagnostics_condition_.wait(diagnostics_lock_);
-          } else {
-            data = list_.back();
-            list_.pop_back();
+          while(!diagnostics_->intermittent_reports().empty()) {
+            auto f = diagnostics_->intermittent_reports().back();
+            diagnostics_->intermittent_reports().pop_back();
+
+            emitter_->transmit(f);
           }
         }
 
-        // Emit data
-        if(data) emitter_->send_diagnostics(data);
+        if(timer_->canceled_p()) continue;
+
+        {
+          ManagedPhase managed(state);
+          LockWaiting<std::mutex> lock_waiting(state, diagnostics_->lock());
+
+          for(auto f : diagnostics_->recurring_reports()) {
+            f->update();
+          }
+        }
+
+        {
+          std::lock_guard<std::mutex> guard(diagnostics_->lock());
+
+          for(auto f : diagnostics_->recurring_reports()) {
+            emitter_->transmit(f);
+          }
+        }
       }
     }
   }

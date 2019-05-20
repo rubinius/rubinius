@@ -1,4 +1,3 @@
-require 'rakelib/instruction_parser'
 require 'rakelib/generator_task'
 require 'rakelib/release'
 
@@ -18,39 +17,29 @@ VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'machine/vm.exe' : 'machine/vm'
 ############################################################
 # Files, Flags, & Constants
 
-encoding_database = "machine/gen/encoding_database.cpp"
-transcoders_database = "machine/gen/transcoder_database.cpp"
+encoding_database = "machine/encoding_database.hpp"
+transcoders_database = "machine/transcoder_database.hpp"
 
 vm_release_h = BUILD_CONFIG[:vm_release_h]
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
-INSN_GEN    = %w[ machine/gen/instruction_names.cpp
-                  machine/gen/instruction_names.hpp
-                  machine/gen/instruction_sizes.hpp
-                  machine/gen/instruction_prototypes.hpp
-                  machine/gen/instruction_defines.hpp
-                  machine/gen/instruction_locations.hpp
-                  machine/gen/instruction_implementations.hpp
-                  machine/gen/instruction_visitors.hpp
-                  machine/gen/instruction_effects.hpp
-                ]
-TYPE_GEN    = %w[ machine/gen/includes.hpp
-                  machine/gen/kind_of.hpp
-                  machine/gen/object_types.hpp
-                  machine/gen/typechecks.gen.cpp
-                  machine/gen/primitives_declare.hpp
-                  machine/gen/invoke_functions.cpp
-                  machine/gen/accessor_functions.cpp
-                  machine/gen/invoke_resolver.cpp ]
+TYPE_GEN    = %w[ machine/includes.hpp
+                  machine/kind_of.hpp
+                  machine/object_types.hpp
+                  machine/typechecks.hpp
+                  machine/primitives_declare.hpp
+                  machine/invoke_functions.hpp
+                  machine/accessor_functions.hpp
+                  machine/invoke_resolver.hpp ]
 
-GENERATED = %W[ machine/gen/config_variables.h
-                machine/gen/signature.h
+GENERATED = %W[ machine/config_variables.h
+                machine/signature.h
                 machine/dtrace/probes.h
                 #{encoding_database}
                 #{transcoders_database}
                 #{vm_release_h}
-              ] + TYPE_GEN + INSN_GEN
+              ] + TYPE_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
@@ -117,12 +106,13 @@ field_extract_headers = %w[
   machine/class/code_db.hpp
   machine/class/diagnostics.hpp
   machine/class/trie.hpp
+  machine/class/unwind_site.hpp
+  machine/class/prediction.hpp
 ]
 
-transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
+transcoders_src_dir = "#{BUILD_CONFIG[:build_libdir]}/oniguruma/enc/trans"
 
-libdir = "#{BUILD_CONFIG[:build_prefix]}"
-transcoders_lib_dir = "#{libdir}/#{BUILD_CONFIG[:encdir]}"
+transcoders_lib_dir = "#{BUILD_CONFIG[:builddir]}/#{BUILD_CONFIG[:encdir]}"
 directory transcoders_lib_dir
 
 TRANSCODING_LIBS = []
@@ -150,16 +140,13 @@ namespace :build do
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => %W[
     #{VM_EXE}
-    compiler:generate
     stage:bin
     stage:extra_bins
     stage:capi_include
     core:build
-    stage:core
-    stage:runtime
+    gems:install
+    stage:site
     stage:lib
-    gems:melbourne
-    gems:extensions
     stage:documentation
     stage:manpages
   ] + TRANSCODING_LIBS
@@ -177,25 +164,21 @@ def files(targets, dependencies=nil, &block)
   end
 end
 
-directory "machine/gen"
-
-file 'machine/codegen/field_extract.rb'    => 'machine/gen'
-
 task :run_field_extract do
-  ruby 'machine/codegen/field_extract.rb', *field_extract_headers
+  ruby 'build/scripts/field_extract.rb', *field_extract_headers
 end
 
-files TYPE_GEN, field_extract_headers + %w[machine/codegen/field_extract.rb] + [:run_field_extract] do
+files TYPE_GEN, field_extract_headers + ["build/scripts/field_extract.rb", :run_field_extract] do
 end
 
-encoding_extract = 'machine/codegen/encoding_extract.rb'
+encoding_extract = 'build/scripts/encoding_extract.rb'
 
 file encoding_database => encoding_extract do |t|
-  dir = File.expand_path "../../vendor/oniguruma", __FILE__
+  dir = "#{BUILD_CONFIG[:build_libdir]}/oniguruma"
   ruby encoding_extract, dir, t.name
 end
 
-transcoders_extract = 'machine/codegen/transcoders_extract.rb'
+transcoders_extract = 'build/scripts/transcoders_extract.rb'
 
 file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
@@ -205,9 +188,9 @@ task vm_release_h do |t|
   write_release t.name
 end
 
-file 'machine/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|
+file 'machine/config_variables.h' => %w[library/rubinius/configuration.rb build/config/config.rb] do |t|
   puts "GEN #{t.name}"
-  ruby 'machine/codegen/config_vars.rb', t.name
+  ruby 'build/scripts/config_vars.rb', t.name
 end
 
 file 'machine/dtrace/probes.h' do |t|
@@ -240,68 +223,11 @@ end
 
 # Generate files for instructions and interpreters
 
-file "gen/method_primitives.cpp" => field_extract_headers
-file "gen/invoke_primitives.cpp" => field_extract_headers
-file "gen/accessor_primitives.cpp" => field_extract_headers
-file "gen/method_resolver.cpp" => field_extract_headers
-file "gen/invoke_resolver.cpp" => field_extract_headers
-
-iparser = InstructionParser.new "machine/instructions.def"
-
-def generate_instruction_file(parser, generator, name)
-  puts "GEN #{name}"
-  parser.parse
-  parser.send generator, name
-end
-
-insn_deps = %w[  machine/gen
-                 machine/instructions.def
-                 rakelib/instruction_parser.rb
-              ]
-
-file "lib/compiler/opcodes.rb" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_opcodes, t.name
-end
-
-file "lib/compiler/generator_methods.rb" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_generator_methods, t.name
-end
-
-file "machine/gen/instruction_names.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_names_header, t.name
-end
-
-file "machine/gen/instruction_names.cpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_names, t.name
-end
-
-file "machine/gen/instruction_prototypes.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_prototypes, t.name
-end
-
-file "machine/gen/instruction_sizes.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_sizes, t.name
-end
-
-file "machine/gen/instruction_defines.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_defines, t.name
-end
-
-file "machine/gen/instruction_locations.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_locations, t.name
-end
-
-file "machine/gen/instruction_implementations.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_implementations , t.name
-end
-
-file "machine/gen/instruction_visitors.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_visitors, t.name
-end
-
-file "machine/gen/instruction_effects.hpp" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_stack_effects, t.name
-end
+file "method_primitives.hpp" => field_extract_headers
+file "invoke_primitives.hpp" => field_extract_headers
+file "accessor_primitives.hpp" => field_extract_headers
+file "method_resolver.hpp" => field_extract_headers
+file "invoke_resolver.hpp" => field_extract_headers
 
 namespace :vm do
   desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
@@ -325,7 +251,6 @@ namespace :vm do
     files = FileList[
       GENERATED,
       'machine/dtrace/probes.o',
-      'machine/gen/*',
       'machine/test/runner',
       'machine/test/runner.cpp',
       'machine/test/runner.o',
@@ -339,7 +264,7 @@ namespace :vm do
       'bin/irb',
       'bin/gem',
       'machine/.deps',
-    ].exclude("machine/gen/config.h", "machine/gen/paths.h")
+    ].exclude("machine/config.h", "machine/paths.h")
 
     files.each do |filename|
       rm_rf filename, :verbose => $verbose

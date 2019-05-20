@@ -8,7 +8,7 @@ describe :keep_if, :shared => true do
   end
 
   it "returns an enumerator if no block is given" do
-    [1, 2, 3].send(@method).should be_an_instance_of(enumerator_class)
+    [1, 2, 3].send(@method).should be_an_instance_of(Enumerator)
   end
 
   before :all do
@@ -23,7 +23,7 @@ describe :keep_if, :shared => true do
     end
 
     it "returns an Enumerator if no block is given" do
-      @frozen.send(@method).should be_an_instance_of(enumerator_class)
+      @frozen.send(@method).should be_an_instance_of(Enumerator)
     end
 
     describe "with truthy block" do

@@ -12,6 +12,8 @@ module Rubinius
       @method = method
     end
 
+    private :initialize
+
     def call(called_object, called_method, *args, &block)
       @receiver.__send__(@method, *args, &block)
     end

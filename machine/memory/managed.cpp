@@ -4,7 +4,9 @@
 #include "util/thread.hpp"
 #include "memory/managed.hpp"
 #include "shared_state.hpp"
-#include "metrics.hpp"
+
+#include "diagnostics/machine.hpp"
+#include "diagnostics/memory.hpp"
 
 #include <thread>
 #include <sstream>
@@ -15,9 +17,8 @@ namespace memory {
 
   ManagedThread::ManagedThread(uint32_t id, SharedState& ss,
       ManagedThread::Kind kind, const char* name)
-    : shared_(ss)
-    , kind_(kind)
-    , metrics_()
+    : kind_(kind)
+    , metrics_(new diagnostics::MachineMetrics())
     , os_thread_(0)
     , id_(id)
   {
@@ -31,9 +32,11 @@ namespace memory {
   }
 
   ManagedThread::~ManagedThread() {
+    /* TODO: diagnostics, metrics
     if(metrics::Metrics* metrics = shared_.metrics()) {
       metrics->add_historical_metrics(metrics_);
     }
+    */
   }
 
   void ManagedThread::set_name(STATE, const char* name) {

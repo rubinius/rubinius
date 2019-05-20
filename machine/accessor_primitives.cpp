@@ -7,11 +7,11 @@
 
 #include "class/class.hpp"
 
-#include "gen/includes.hpp"
+#include "includes.hpp"
 
 #include <iostream>
 
 namespace rubinius {
 
-#include "gen/accessor_primitives.cpp"
+#include "accessor_primitives.hpp"
 }

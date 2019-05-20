@@ -19,7 +19,6 @@
 #include "class/variable_scope.hpp"
 #include "class/lexical_scope.hpp"
 #include "class/block_environment.hpp"
-#include "capi/handle.hpp"
 
 #include "arguments.hpp"
 #include "object_watch.hpp"
@@ -32,16 +31,13 @@ namespace memory {
 
   GCData::GCData(VM* state)
     : roots_(state->globals().roots)
-    , handles_(state->memory()->capi_handles())
-    , cached_handles_(state->memory()->cached_capi_handles())
-    , global_cache_(state->shared.global_cache)
+    , references_(state->memory()->references())
     , thread_nexus_(state->shared.thread_nexus())
-    , global_handle_locations_(state->memory()->global_capi_handle_locations())
+    , mark_(state->memory()->mark())
   { }
 
   GarbageCollector::GarbageCollector(Memory *om)
     : memory_(om)
-    , weak_refs_(NULL)
   { }
 
   VM* GarbageCollector::vm() {
@@ -71,12 +67,12 @@ namespace memory {
     // the phase where the object is partially scanned.
     scanned_object(obj);
 
-    if(Object* klass = saw_object(obj->klass())) {
+    if(Object* klass = saw_object(obj, obj->klass())) {
       obj->klass(memory_, force_as<Class>(klass));
     }
 
     if(obj->ivars()->reference_p()) {
-      if(Object* ivars = saw_object(obj->ivars())) {
+      if(Object* ivars = saw_object(obj, obj->ivars())) {
         obj->ivars(memory_, ivars);
       }
     }
@@ -88,8 +84,21 @@ namespace memory {
       for(native_int i = 0; i < size; i++) {
         Object* slot = tup->field[i];
         if(slot->reference_p()) {
-          if(Object* moved = saw_object(slot)) {
+          if(Object* moved = saw_object(obj, slot)) {
             tup->field[i] = moved;
+            memory_->write_barrier(tup, moved);
+          }
+        }
+      }
+    } else if(RTuple* tup = try_as<RTuple>(obj)) {
+      native_int size = tup->num_fields();
+      VALUE* ptr = reinterpret_cast<VALUE*>(tup->field);
+
+      for(native_int i = 0; i < size; i++) {
+        Object* slot = MemoryHandle::object(ptr[i]);
+        if(slot->reference_p()) {
+          if(Object* moved = saw_object(tup, slot)) {
+            ptr[i] = MemoryHandle::value(moved);
             memory_->write_barrier(tup, moved);
           }
         }
@@ -107,38 +116,35 @@ namespace memory {
    * alive any young objects if no other live references to those objects exist.
    */
   void GarbageCollector::delete_object(Object* obj) {
-    if(obj->remembered_p()) {
-      memory_->unremember_object(obj);
-    }
   }
 
   void GarbageCollector::saw_variable_scope(CallFrame* call_frame,
       StackVariables* scope)
   {
-    scope->self_ = mark_object(scope->self());
-    scope->block_ = mark_object(scope->block());
-    scope->module_ = (Module*)mark_object(scope->module());
+    scope->self_ = mark_object(scope, scope->self());
+    scope->block_ = mark_object(scope, scope->block());
+    scope->module_ = (Module*)mark_object(scope, scope->module());
 
     int locals = call_frame->compiled_code->machine_code()->number_of_locals;
     for(int i = 0; i < locals; i++) {
       Object* local = scope->get_local(i);
       if(local->reference_p()) {
-        scope->set_local(i, mark_object(local));
+        scope->set_local(i, mark_object(scope, local));
       }
     }
 
     if(scope->last_match_ && scope->last_match_->reference_p()) {
-      scope->last_match_ = mark_object(scope->last_match_);
+      scope->last_match_ = mark_object(scope, scope->last_match_);
     }
 
     VariableScope* parent = scope->parent();
     if(parent) {
-      scope->parent_ = (VariableScope*)mark_object(parent);
+      scope->parent_ = (VariableScope*)mark_object(scope, parent);
     }
 
     VariableScope* heap = scope->on_heap();
     if(heap) {
-      scope->on_heap_ = (VariableScope*)mark_object(heap);
+      scope->on_heap_ = (VariableScope*)mark_object(scope, heap);
     }
   }
 
@@ -191,11 +197,11 @@ namespace memory {
       if(frame->lexical_scope_ &&
           frame->lexical_scope_->reference_p()) {
         frame->lexical_scope_ =
-          (LexicalScope*)mark_object(frame->lexical_scope_);
+          (LexicalScope*)mark_object(frame, frame->lexical_scope_);
       }
 
       if(frame->compiled_code && frame->compiled_code->reference_p()) {
-        frame->compiled_code = (CompiledCode*)mark_object(frame->compiled_code);
+        frame->compiled_code = (CompiledCode*)mark_object(frame, frame->compiled_code);
       }
 
       if(frame->compiled_code) {
@@ -203,41 +209,41 @@ namespace memory {
         for(native_int i = 0; i < stack_size; i++) {
           Object* obj = frame->stk[i];
           if(obj && obj->reference_p()) {
-            frame->stk[i] = mark_object(obj);
+            frame->stk[i] = mark_object(frame, obj);
           }
         }
       }
 
       if(frame->multiple_scopes_p() && frame->top_scope_) {
-        frame->top_scope_ = (VariableScope*)mark_object(frame->top_scope_);
+        frame->top_scope_ = (VariableScope*)mark_object(frame, frame->top_scope_);
       }
 
       if(BlockEnvironment* env = frame->block_env()) {
-        frame->set_block_env((BlockEnvironment*)mark_object(env));
+        frame->set_block_env((BlockEnvironment*)mark_object(frame, env));
       }
 
       Arguments* args = displace(frame->arguments, offset);
 
       if(!frame->inline_method_p() && args) {
-        args->set_recv(mark_object(args->recv()));
-        args->set_block(mark_object(args->block()));
+        args->set_recv(mark_object(args, args->recv()));
+        args->set_block(mark_object(args, args->block()));
 
         if(Tuple* tup = args->argument_container()) {
-          args->update_argument_container((Tuple*)mark_object(tup));
+          args->update_argument_container((Tuple*)mark_object(args, tup));
         } else {
           Object** ary = displace(args->arguments(), offset);
           for(uint32_t i = 0; i < args->total(); i++) {
-            ary[i] = mark_object(ary[i]);
+            ary[i] = mark_object(args, ary[i]);
           }
         }
       }
 
-      if(NativeMethodFrame* nmf = frame->native_method_frame()) {
-        nmf->handles().gc_scan(this);
-      }
-
       if(frame->scope && frame->compiled_code) {
         saw_variable_scope(frame, displace(frame->scope, offset));
+      }
+
+      if(frame->return_value) {
+        frame->return_value = mark_object(frame, frame->return_value);
       }
 
       frame = frame->previous;
@@ -303,7 +309,7 @@ namespace memory {
 
   void GarbageCollector::scan(ManagedThread* thr, bool young_only) {
     for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
-      if(Object* fwd = saw_object(ri->get())) {
+      if(Object* fwd = saw_object(0, ri->get())) {
         ri->set(fwd);
       }
     }
@@ -345,10 +351,14 @@ namespace memory {
         Object** var = displace(buffer[idx], offset);
         Object* cur = *var;
 
-        if(cur && cur->reference_p() && (!young_only || cur->young_object_p())) {
-          if(Object* tmp = saw_object(cur)) {
+        if(!cur) continue;
+
+        if(cur->reference_p()) {
+          if(Object* tmp = saw_object(vrb, cur)) {
             *var = tmp;
           }
+        } else if(cur->handle_p()) {
+          // TODO: MemoryHeader mark MemoryHandle objects
         }
       }
 
@@ -365,66 +375,12 @@ namespace memory {
       for(int idx = 0; idx < i->size(); idx++) {
         Object* cur = buffer[idx];
 
-        if(cur->reference_p() && (!young_only || cur->young_object_p())) {
-          if(Object* tmp = saw_object(cur)) {
+        if(cur->reference_p()) {
+          if(Object* tmp = saw_object(buffer, cur)) {
             buffer[idx] = tmp;
           }
-        }
-      }
-    }
-  }
-
-  void GarbageCollector::clean_weakrefs(bool check_forwards) {
-    if(!weak_refs_) return;
-
-    for(ObjectArray::iterator i = weak_refs_->begin();
-        i != weak_refs_->end();
-        ++i) {
-      if(!*i) continue; // Object was removed during young gc.
-      WeakRef* ref = try_as<WeakRef>(*i);
-      if(!ref) continue; // Other type for some reason?
-
-      Object* obj = ref->object();
-      if(!obj->reference_p()) continue;
-
-      if(check_forwards) {
-        if(obj->young_object_p()) {
-          if(!obj->forwarded_p()) {
-            ref->set_object(memory_, cNil);
-          } else {
-            ref->set_object(memory_, obj->forward());
-          }
-        }
-      } else if(!obj->marked_p(memory_->mark())) {
-        ref->set_object(memory_, cNil);
-      }
-    }
-
-    delete weak_refs_;
-    weak_refs_ = NULL;
-  }
-
-  void GarbageCollector::clean_locked_objects(ManagedThread* thr, bool young_only) {
-    LockedObjects& los = thr->locked_objects();
-    for(LockedObjects::iterator i = los.begin();
-        i != los.end();) {
-      Object* obj = static_cast<Object*>(*i);
-      if(young_only) {
-        if(obj->young_object_p()) {
-          if(obj->forwarded_p()) {
-            *i = obj->forward();
-            ++i;
-          } else {
-            i = los.erase(i);
-          }
-        } else {
-          ++i;
-        }
-      } else {
-        if(!obj->marked_p(memory_->mark())) {
-          i = los.erase(i);
-        } else {
-          ++i;
+        } else if(cur->handle_p()) {
+          // TODO: MemoryHeader mark MemoryHandle objects
         }
       }
     }

@@ -8,62 +8,38 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 namespace rubinius {
-  namespace capi {
-
-    Float* capi_get_float(NativeMethodEnvironment* env, VALUE float_handle) {
-      Handle* handle = Handle::from(float_handle);
-      handle->flush(env);
-      return c_as<Float>(handle->object());
-    }
-
-    void flush_cached_rfloat(NativeMethodEnvironment* env, Handle* handle) {
-      if(handle->is_rfloat()) {
-        Float* obj = c_as<Float>(handle->object());
-        RFloat* rfloat = handle->as_rfloat(env);
-        obj->value(rfloat->value);
-      }
-    }
-
-    RFloat* Handle::as_rfloat(NativeMethodEnvironment* env) {
-      if(type_ != cRFloat) {
-        Float* float_obj = c_as<Float>(object());
-
-        RFloat* f = new RFloat;
-        f->value = float_obj->value();
-
-        type_ = cRFloat;
-        as_.rfloat = f;
-
-        flush_ = flush_cached_rfloat;
-
-        env->state()->memory()->make_capi_handle_cached(env->state(), this);
-      }
-
-      return as_.rfloat;
+  RFloat* MemoryHandle::get_rfloat(STATE) {
+    if(rfloat_p()) {
+      RFloat* rfloat = reinterpret_cast<RFloat*>(data());
+      rfloat->value = c_as<Float>(object())->value();
+      return rfloat;
+    } else if(unknown_type_p()) {
+      RFloat* rfloat = new RFloat();
+      rfloat->value = c_as<Float>(object())->value();
+      set_rfloat(rfloat);
+      return rfloat;
+    } else {
+      Exception::raise_runtime_error(state, "C-API handle invalid reference as RFloat");
     }
   }
 }
 
 extern "C" {
-  struct RFloat* capi_rfloat_struct(VALUE flt) {
+  struct RFloat* capi_rfloat_struct(VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Handle* handle = Handle::from(flt);
-    env->check_tracked_handle(handle);
-
-    return handle->as_rfloat(env);
+    return MemoryHandle::from(value)->get_rfloat(env->state());
   }
 
-  double capi_rfloat_value(VALUE flt) {
+  double capi_rfloat_value(VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Handle* handle = Handle::from(flt);
-    Float* f = c_as<Float>(handle->object());
+    Float* f = MemoryHandle::object<Float>(value);
     return f->to_double(env->state());
   }
 
   VALUE rb_float_new(double val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return env->get_handle(Float::create(env->state(), val));
+    return MemoryHandle::value(Float::create(env->state(), val));
   }
 }

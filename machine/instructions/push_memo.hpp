@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 namespace rubinius {
   namespace instructions {
@@ -7,8 +7,7 @@ namespace rubinius {
       if(val->nil_p()) {
         stack_set_top(reinterpret_cast<Object*>(literal));
       } else {
-        // TODO: instructions
-        // store_literal(reinterpret_cast<opcode>(val));
+        store_literal(call_frame, reinterpret_cast<opcode>(val));
       }
     }
   }

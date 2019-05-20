@@ -18,7 +18,7 @@ describe "Enumerable#chunk" do
   end
 
   it "returns an Enumerator if given a block" do
-    EnumerableSpecs::Numerous.new.chunk {}.should be_an_instance_of(enumerator_class)
+    EnumerableSpecs::Numerous.new.chunk {}.should be_an_instance_of(Enumerator)
   end
 
   it "yields the current element and the current chunk to the block" do

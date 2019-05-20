@@ -61,7 +61,6 @@ iseq.rb
 jit.rb
 kernel.rb
 library.rb
-loaded_features.rb
 location.rb
 logger.rb
 lookup_table.rb
@@ -85,8 +84,10 @@ numeric_mirror.rb
 object_space.rb
 options.rb
 pack.rb
+peg.rb
 pointer.rb
 pointer_accessors.rb
+prediction.rb
 proc.rb
 proc_mirror.rb
 process.rb

@@ -14,15 +14,21 @@
 #include "class/compiled_code.hpp"
 #include "memory/code_resource.hpp"
 
+#include <atomic>
 #include <stdint.h>
 
 namespace rubinius {
+  namespace diagnostics {
+    class Measurement;
+  }
+
   typedef uintptr_t opcode;
 
   class CompiledCode;
   class CallSite;
   class ConstantCache;
   class MachineCode;
+  class UnwindSite;
 
   struct CallFrame;
 
@@ -36,18 +42,13 @@ namespace rubinius {
       eCompiling = 1 << 1
     };
 
-    const static int cMaxSpecializations = 3;
-
-    struct Specialization {
-      ClassData class_data;
-      executor execute;
-    };
-
     enum ExecuteStatus {
       eInterpret,
       eJIT,
       eJITDisable,
     };
+
+    static std::atomic<uint64_t> code_serial;
 
   public:
     InterpreterRunner run;
@@ -68,8 +69,7 @@ namespace rubinius {
     native_int stack_size;
     native_int number_of_locals;
 
-    native_int iregisters;
-    native_int dregisters;
+    native_int registers;
 
     native_int sample_count;
     native_int call_count;
@@ -79,29 +79,44 @@ namespace rubinius {
     attr_field(constant_cache_count, size_t);
     attr_field(references_count, size_t);
     attr_field(references, size_t*);
-    attr_field(description, std::string*);
+    attr_field(unwind_site_count, size_t);
+    attr_field(serial, uint64_t);
 
-    Specialization specializations[cMaxSpecializations];
+    std::string _name_;
+    std::string _location_;
+
     executor unspecialized;
     executor fallback;
 
   private:
     ExecuteStatus execute_status_;
 
-    Symbol* name_;
-    uint64_t method_id_;
   public:
     uint32_t debugging;
 
   private:
     uint32_t flags; // Used to store bit flags
   public: // Methods
+    static uint64_t get_serial() {
+      return ++code_serial;
+    }
+
     static void bootstrap(STATE);
+
+    static MachineCode* create(STATE, CompiledCode* code);
 
     MachineCode(STATE, CompiledCode* code);
     virtual ~MachineCode();
     virtual void cleanup(STATE, memory::CodeManager* code) {}
     virtual int size();
+
+    const std::string& name() const {
+      return _name_;
+    }
+
+    const std::string& location() const {
+      return _location_;
+    }
 
     bool jitted_p() const {
       return execute_status_ == eJIT;
@@ -127,14 +142,6 @@ namespace rubinius {
       execute_status_ = s;
     }
 
-    Symbol* name() const {
-      return name_;
-    }
-
-    uint64_t method_id() const {
-      return method_id_;
-    }
-
     bool no_inline_p() const {
       return (flags & eNoInline) == eNoInline;
     }
@@ -153,8 +160,8 @@ namespace rubinius {
 
     void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
-
-    void set_description(STATE);
+    void store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site);
+    void store_measurement(STATE, CompiledCode* code, int ip, diagnostics::Measurement* m);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     static Object* execute(STATE, Executable* exec, Module* mod, Arguments& args);
@@ -185,94 +192,6 @@ namespace rubinius {
       bool force_deoptimization);
 
     void setup_argument_handler();
-
-    bool validate_ip(STATE, size_t ip);
-
-    void fill_opcodes(STATE, CompiledCode* original);
-
-    void deoptimize(STATE, CompiledCode* original, bool disable=false);
-
-    /*
-     * Helper class for iterating over an Opcode array.  Used to convert a
-     * MachineCode to an LLVM method.
-     */
-    class Iterator {
-    public:
-      opcode* stream_;
-      size_t position_;
-      size_t size_;
-
-      Iterator(MachineCode* mcode)
-        : stream_(mcode->opcodes)
-        , position_(0)
-        , size_(mcode->total)
-      {}
-
-      Iterator(opcode* stream, size_t size)
-        : stream_(stream)
-        , position_(0)
-        , size_(size)
-      {}
-
-      size_t position() const {
-        return position_;
-      }
-
-      size_t next_position() const {
-        return position_ + width();
-      }
-
-      void inc() {
-        position_ += width();
-      }
-
-      bool advance() {
-        size_t next = next_position();
-        if(next >= size_) return false;
-
-        position_ = next;
-        return true;
-      }
-
-      bool last_instruction() const {
-        return next_position() >= size_;
-      }
-
-      opcode op() const {
-        return stream_[position_] & 0x00ffff;
-      }
-
-      opcode operand1() const {
-        return stream_[position_ + 1];
-      }
-
-      opcode operand2() const {
-        return stream_[position_ + 2];
-      }
-
-      int next_pos() const {
-        return position_ + width();
-      }
-
-      opcode next() const {
-        return stream_[next_pos()];
-      }
-
-      size_t width() const {
-        opcode op = this->op();
-#include "gen/instruction_sizes.hpp"
-        return width;
-      }
-
-      size_t args() const {
-        return width() - 1;
-      }
-
-      bool end() const {
-        return position_ >= size_;
-      }
-    };
-
   };
 };
 

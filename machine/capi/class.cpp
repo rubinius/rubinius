@@ -23,20 +23,19 @@ extern "C" {
 
   VALUE rb_class_of(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* class_object = env->get_object(object_handle)->class_object(env->state());
-    return env->get_handle(class_object);
+    Class* class_object = MemoryHandle::object(object_handle)->class_object(env->state());
+    return MemoryHandle::value(class_object);
   }
 
-  VALUE rb_class_real(VALUE object_handle) {
-    if(object_handle == 0) return 0;
+  VALUE rb_class_real(VALUE value) {
+    if(value == 0) return 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Object* object = env->get_object(object_handle);
 
-    if(Class* cls = try_as<Class>(object)) {
-      return env->get_handle(Class::real_class(env->state(), cls));
+    if(Class* cls = MemoryHandle::try_as<Class>(value)) {
+      return MemoryHandle::value(Class::real_class(env->state(), cls));
     } else {
-      return object_handle;
+      return value;
     }
   }
 
@@ -47,20 +46,20 @@ extern "C" {
   // MUST return the immediate object in the class field, not the real class!
   VALUE CLASS_OF(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* class_object = env->get_object(object_handle)->direct_class(env->state());
-    return env->get_handle(class_object);
+    Class* class_object = MemoryHandle::object(object_handle)->direct_class(env->state());
+    return MemoryHandle::value(class_object);
   }
 
   VALUE rb_class_name(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     State* state = env->state();
-    Class* class_object = c_as<Class>(env->get_object(class_handle));
+    Class* class_object = MemoryHandle::object<Class>(class_handle);
     String* str = class_object->get_name(state);
     if(str->nil_p()) {
       std::string desc = class_object->to_string(state);
       str = String::create(state, desc.c_str(), desc.size());
     }
-    return env->get_handle(str);
+    return MemoryHandle::value(str);
   }
 
   VALUE rb_class_inherited(VALUE super_handle, VALUE class_handle)
@@ -76,13 +75,13 @@ extern "C" {
       rb_raise(rb_eTypeError, "can't make subclass of Class");
     }
 
-    if(try_as<SingletonClass>(env->get_object(super_handle))) {
+    if(MemoryHandle::try_as<SingletonClass>(super_handle)) {
       rb_raise(rb_eTypeError, "can't make subclass of virtual class");
     }
 
-    Class* klass = Class::create(env->state(), c_as<Class>(env->get_object(super_handle)));
+    Class* klass = Class::create(env->state(), MemoryHandle::object<Class>(super_handle));
 
-    return env->get_handle(klass);
+    return MemoryHandle::value(klass);
   }
 
   VALUE rb_path2class(const char* path) {
@@ -109,9 +108,9 @@ extern "C" {
       }
 
       if(Autoload* autoload = try_as<Autoload>(val)) {
-        VALUE m = capi_fast_call(env->get_handle(autoload),
-            rb_intern("call"), 1, env->get_handle(mod));
-        val = env->get_object(m);
+        VALUE m = capi_fast_call(MemoryHandle::value(autoload),
+            rb_intern("call"), 1, MemoryHandle::value(mod));
+        val = MemoryHandle::object(m);
       }
 
       if(!(mod = try_as<Module>(val))) {
@@ -122,7 +121,7 @@ extern "C" {
 
     free(pathd);
 
-    return env->get_handle(mod);
+    return MemoryHandle::value(mod);
   }
 
   VALUE rb_cv_get(VALUE module_handle, const char* name) {
@@ -150,7 +149,7 @@ extern "C" {
 
     return rb_funcall(module_handle, rb_intern("class_variable_get"),
                       1,
-                      env->get_handle(prefixed_by(env->state(), "@@", 2, name)));
+                      MemoryHandle::value(prefixed_by(env->state(), "@@", 2, name)));
   }
 
   VALUE rb_cvar_set_internal(VALUE module_handle, ID name, VALUE value) {
@@ -158,7 +157,7 @@ extern "C" {
 
     return rb_funcall(module_handle, rb_intern("class_variable_set"),
                       2,
-                      env->get_handle(prefixed_by(env->state(), "@@", 2, name)),
+                      MemoryHandle::value(prefixed_by(env->state(), "@@", 2, name)),
                       value);
   }
 
@@ -175,8 +174,8 @@ extern "C" {
   VALUE rb_define_class_id_under(VALUE outer, ID name, VALUE super) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = c_as<Module>(env->get_object(outer));
-    Class* superclass = c_as<Class>(env->get_object(super ? super : rb_cObject));
+    Module* module = MemoryHandle::object<Module>(outer);
+    Class* superclass = MemoryHandle::object<Class>(super ? super : rb_cObject);
     Symbol* constant = reinterpret_cast<Symbol*>(name);
 
     bool created = false;
@@ -201,7 +200,7 @@ extern "C" {
     // code. The problem otherwise can be that the GC runs and
     // the opened_class is GC'ed.
 
-    VALUE klass = env->get_handle(opened_class);
+    VALUE klass = MemoryHandle::value(opened_class);
     ENTER_CAPI(env->state());
 
     if(super) rb_funcall(super, rb_intern("inherited"), 1, klass);
@@ -228,13 +227,13 @@ extern "C" {
   VALUE rb_singleton_class(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Class* sc = env->get_object(object_handle)->singleton_class(env->state());
-    return env->get_handle(sc);
+    Class* sc = MemoryHandle::object(object_handle)->singleton_class(env->state());
+    return MemoryHandle::value(sc);
   }
 
   VALUE rb_path_to_class(VALUE str) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    String* string = c_as<String>(env->get_object(str));
+    String* string = MemoryHandle::object<String>(str);
 
     return rb_path2class(string->c_str(env->state()));
   }

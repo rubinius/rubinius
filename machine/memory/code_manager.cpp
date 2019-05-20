@@ -2,13 +2,14 @@
 
 #include "vm.hpp"
 #include "state.hpp"
+
 #include "memory/code_manager.hpp"
 #include "memory/code_resource.hpp"
 
+#include "diagnostics/memory.hpp"
+
 namespace rubinius {
 namespace memory {
-  void CodeManager::Diagnostics::update() {
-  }
 
   CodeManager::Chunk::Chunk(int size)
     : next(0)
@@ -28,7 +29,7 @@ namespace memory {
     , last_chunk_(0)
     , current_chunk_(0)
     , current_index_(0)
-    , diagnostics_(new Diagnostics())
+    , diagnostic_(new diagnostics::CodeManager())
   {
     first_chunk_ = new Chunk(chunk_size_);
     last_chunk_ = first_chunk_;
@@ -49,6 +50,11 @@ namespace memory {
       Chunk* next = chunk->next;
       delete chunk;
       chunk = next;
+    }
+
+    if(diagnostic_) {
+      delete diagnostic_;
+      diagnostic_ = nullptr;
     }
   }
 
@@ -79,7 +85,7 @@ namespace memory {
       if(!current_chunk_) {
         add_chunk();
         *collect_now = true;
-        diagnostics()->collections_++;
+        diagnostic()->collections++;
       }
     }
   }
@@ -102,8 +108,8 @@ namespace memory {
             chunk_used = true;
             cr->clear_mark();
 
-            diagnostics()->objects_++;
-            diagnostics()->bytes_ += cr->size();
+            diagnostic()->objects++;
+            diagnostic()->bytes += cr->size();
           }
         }
       }
@@ -130,7 +136,7 @@ namespace memory {
       } else {
         prev = chunk;
         chunk = chunk->next;
-        diagnostics()->chunks_++;
+        diagnostic()->chunks++;
       }
     }
   }

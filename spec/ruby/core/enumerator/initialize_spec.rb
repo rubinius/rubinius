@@ -4,11 +4,11 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Enumerator#initialize" do
   before(:each) do
-    @uninitialized = enumerator_class.allocate
+    @uninitialized = Enumerator.allocate
   end
 
   it "is a private method" do
-    enumerator_class.should have_private_instance_method(:initialize, false)
+    Enumerator.should have_private_instance_method(:initialize, false)
   end
 
   it "returns self when given an object" do
@@ -25,7 +25,7 @@ describe "Enumerator#initialize" do
       r = yielder.yield 3
       yielder << r << 2 << 1
     end
-    @uninitialized.should be_an_instance_of(enumerator_class)
+    @uninitialized.should be_an_instance_of(Enumerator)
     r = []
     @uninitialized.each{|x| r << x; x * 2}
     r.should == [3, 6, 2, 1]
@@ -41,6 +41,14 @@ describe "Enumerator#initialize" do
 
   it "sets size to the given size if the given size is Float::INFINITY" do
     @uninitialized.send(:initialize, Float::INFINITY) {}.size.should equal(Float::INFINITY)
+  end
+
+  it "sets size to truncated integer if the given size is a Float" do
+    @uninitialized.send(:initialize, 42.9) {}.size.should equal(42)
+  end
+
+  it "raises a TypeError if the given size is a numbered String" do
+    lambda { @uninitialized.send(:initialize, '42') {} }.should raise_error(TypeError)
   end
 
   it "sets size to the given size if the given size is a Fixnum" do

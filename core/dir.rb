@@ -138,7 +138,8 @@ class Dir
   def self.glob_split(pattern)
     result = []
     start = 0
-    while idx = pattern.find_string("\0", start)
+    m = Rubinius::Mirror.reflect pattern
+    while idx = m.find_string("\0", start)
       result << pattern.byteslice(start, idx)
       start = idx + 1
     end

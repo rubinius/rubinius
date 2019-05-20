@@ -15,13 +15,76 @@ namespace rubinius {
   public:
     const static object_type type = ArrayType;
 
-    attr_accessor(total, Fixnum);
-    attr_accessor(tuple, Tuple);
-    attr_accessor(start, Fixnum);
+    enum HeaderFlags {
+      eRArray = 1,
+    };
+
+    Fixnum* _total_;    // slot
+    Fixnum* _start_;    // slot
+    Tuple* _tuple_;     // slot
+
+    void read_rarray();
+    void write_rarray(STATE);
+    void write_rarray(VM* vm);
+
+    Fixnum* total() {
+      if(type_specific() == eRArray) {
+        read_rarray();
+      }
+
+      return _total_;
+    }
+
+    void total(Fixnum* obj) {
+      _total_ = obj;
+    }
+
+    template<typename T>
+      void total(T state, Fixnum* obj) {
+        total(obj);
+
+        if(type_specific() == eRArray) {
+          write_rarray(state);
+        }
+      }
+
+    Fixnum* start() const {
+      return _start_;
+    }
+
+    void start(Fixnum* obj) {
+      _start_ = obj;
+    }
+
+    template<typename T>
+      void start(T state, Fixnum* obj) {
+        start(obj);
+
+        if(type_specific() == eRArray) {
+          write_rarray(state);
+        }
+      }
+
+    Tuple* tuple() const {
+      return _tuple_;
+    }
+
+    void tuple(Tuple* obj) {
+      _tuple_ = obj;
+    }
+
+    template<typename T>
+      void tuple(T state, Tuple* obj) {
+        tuple(obj);
+        state->memory()->write_barrier(this, obj);
+
+        if(type_specific() == eRArray) {
+          write_rarray(state);
+        }
+      }
 
     native_int size();
     native_int offset();
-    void set_size(native_int size);
 
     static void bootstrap(STATE);
     static void initialize(STATE, Array* array) {

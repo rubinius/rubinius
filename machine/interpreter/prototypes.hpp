@@ -2,115 +2,6 @@
 #define RBX_INTERPRETER_PROTOTYPES_HPP
 
 namespace rubinius {
-  namespace instructions {
-    using namespace rubinius;
-
-    typedef enum {
-      cExceptionUnwind,
-      cExceptionContinue,
-      cExceptionReturn,
-    } ExceptionContinuation;
-
-    inline void add_scope(STATE, CallFrame* call_frame);
-    inline void allow_private();
-    inline bool cast_array(STATE, CallFrame* call_frame);
-    inline bool cast_for_multi_block_arg(STATE, CallFrame* call_frame);
-    inline bool cast_for_single_block_arg(STATE, CallFrame* call_frame);
-    inline bool cast_for_splat_block_arg(STATE, CallFrame* call_frame);
-    inline bool cast_multi_value(STATE, CallFrame* call_frame);
-    inline bool check_frozen(STATE, CallFrame* call_frame);
-    inline void check_interrupts(STATE);
-    inline void check_serial(STATE, CallFrame* call_frame, intptr_t literal, intptr_t serial);
-    inline void check_serial_private(STATE, CallFrame* call_frame, intptr_t literal, intptr_t serial);
-    inline void clear_exception(STATE);
-    inline bool create_block(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void dup(CallFrame* call_frame);
-    inline void dup_many(CallFrame* call_frame, intptr_t count);
-    inline intptr_t ensure_return(STATE, CallFrame* call_frame);
-    inline bool find_const(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void goto_(CallFrame* call_frame);
-    inline bool goto_if_equal(CallFrame* call_frame);
-    inline bool goto_if_false(CallFrame* call_frame);
-    inline bool goto_if_nil(CallFrame* call_frame);
-    inline bool goto_if_not_equal(CallFrame* call_frame);
-    inline bool goto_if_not_nil(CallFrame* call_frame);
-    inline bool goto_if_not_undefined(STATE, CallFrame* call_frame);
-    inline bool goto_if_true(CallFrame* call_frame);
-    inline bool goto_if_undefined(STATE, CallFrame* call_frame);
-    inline void instance_of(STATE, CallFrame* call_frame);
-    inline bool invoke_primitive(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
-    inline void kind_of(STATE, CallFrame* call_frame);
-    inline void make_array(STATE, CallFrame* call_frame, intptr_t count);
-    inline void move_down(CallFrame* call_frame, intptr_t positions);
-    inline void noop();
-    inline bool object_to_s(STATE, CallFrame* call_frame, intptr_t literal);
-    inline bool passed_arg(STATE, CallFrame* call_frame, intptr_t index);
-    inline bool passed_blockarg(STATE, CallFrame* call_frame, intptr_t count);
-    inline void pop(CallFrame* call_frame);
-    inline void pop_many(CallFrame* call_frame, intptr_t count);
-    inline bool pop_unwind(STATE, CallFrame* call_frame);
-    inline void push_block(STATE, CallFrame* call_frame);
-    inline bool push_block_arg(STATE, CallFrame* call_frame);
-    inline bool push_const(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void push_cpath_top(STATE, CallFrame* call_frame);
-    inline void push_current_exception(STATE, CallFrame* call_frame);
-    inline void push_exception_state(STATE, CallFrame* call_frame);
-    inline void push_false(CallFrame* call_frame);
-    inline void push_has_block(CallFrame* call_frame);
-    inline void push_int(CallFrame* call_frame, intptr_t number);
-    inline bool push_ivar(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void push_literal(CallFrame* call_frame, intptr_t literal);
-    inline void push_local(CallFrame* call_frame, intptr_t local);
-    inline bool push_local_depth(STATE, CallFrame* call_frame, intptr_t depth, intptr_t index);
-    inline void push_memo(CallFrame* call_frame, intptr_t literal);
-    inline void push_mirror(STATE, CallFrame* call_frame);
-    inline void push_my_field(STATE, CallFrame* call_frame, intptr_t index);
-    inline void push_my_offset(CallFrame* call_frame, intptr_t index);
-    inline void push_nil(CallFrame* call_frame);
-    inline bool push_proc(STATE, CallFrame* call_frame);
-    inline void push_rubinius(STATE, CallFrame* call_frame);
-    inline void push_scope(CallFrame* call_frame);
-    inline void push_self(CallFrame* call_frame);
-    inline void push_stack_local(CallFrame* call_frame, intptr_t which);
-    inline void push_true(CallFrame* call_frame);
-    inline void push_type(STATE, CallFrame* call_frame);
-    inline void push_undef(STATE, CallFrame* call_frame);
-    inline void push_variables(STATE, CallFrame* call_frame);
-    inline intptr_t raise_break(STATE, CallFrame* call_frame);
-    inline void raise_exc(STATE, CallFrame* call_frame);
-    inline void raise_return(STATE, CallFrame* call_frame);
-    inline void reraise(STATE, CallFrame* call_frame);
-    inline void restore_exception_state(STATE, CallFrame* call_frame);
-    inline intptr_t ret(STATE, CallFrame* call_frame);
-    inline void rotate(CallFrame* call_frame, intptr_t count);
-    inline ExceptionContinuation run_exception(STATE, CallFrame* call_frame);
-    inline bool send_method(STATE, CallFrame* call_frame, intptr_t literal);
-    inline bool send_stack(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
-    inline bool send_stack_with_block(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
-    inline bool send_stack_with_splat(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
-    inline bool send_super_stack_with_block(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
-    inline bool send_super_stack_with_splat(STATE, CallFrame* call_frame, intptr_t literal, intptr_t count);
-    inline bool send_vcall(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void set_call_flags(CallFrame* call_frame);
-    inline void set_const(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void set_const_at(STATE, CallFrame* call_frame, intptr_t literal);
-    inline bool set_ivar(STATE, CallFrame* call_frame, intptr_t literal);
-    inline void set_local(CallFrame* call_frame, intptr_t local);
-    inline bool set_local_depth(STATE, CallFrame* call_frame, intptr_t depth, intptr_t index);
-    inline void set_stack_local(CallFrame* call_frame, intptr_t which);
-    inline void setup_unwind(CallFrame* call_frame, intptr_t ip, intptr_t type);
-    inline void shift_array(STATE, CallFrame* call_frame);
-    inline bool store_my_field(STATE, CallFrame* call_frame, intptr_t index);
-    inline void string_append(STATE, CallFrame* call_frame);
-    inline bool string_build(STATE, CallFrame* call_frame, intptr_t count);
-    inline bool string_dup(STATE, CallFrame* call_frame);
-    inline void swap(CallFrame* call_frame);
-    inline void yield_debugger(STATE);
-    inline bool yield_splat(STATE, CallFrame* call_frame, intptr_t count);
-    inline bool yield_stack(STATE, CallFrame* call_frame, intptr_t count);
-    inline bool zsuper(STATE, CallFrame* call_frame, intptr_t literal);
-  }
-
   namespace interpreter {
     using namespace rubinius;
 
@@ -186,7 +77,7 @@ namespace rubinius {
     intptr_t restore_exception_state(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t ret(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t rotate(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
-    intptr_t run_exception(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t unwind(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t send_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t send_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t send_stack_with_block(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -212,6 +103,103 @@ namespace rubinius {
     intptr_t yield_splat(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t yield_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t zsuper(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t push_file(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // PEG instructions
+    intptr_t p_any(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_call(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_char(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_char_set(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_choice(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_commit(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_commit_back(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_commit_partial(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_end(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_fail(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_fail_twice(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_jump(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_return(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_span(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_test_any(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_test_char(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_test_char_set(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t p_init(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Instrumentation instructions
+    intptr_t m_bytes(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_counter(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_sum(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_value(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_time_stamp(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_timer_start(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_timer_stop(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_log(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t m_debug(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Branching instructions
+    intptr_t b_if_serial(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t b_if_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t b_if(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Register movement instructions
+    intptr_t r_load_local(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_local(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_local_depth(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_local_depth(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_stack(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_literal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_copy(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Native signed integer instructions
+    intptr_t n_iadd(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_isub(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_imul(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_idiv(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_iadd_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_isub_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_imul_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_idiv_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ieq(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ine(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ilt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ile(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_igt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ige(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ipopcnt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Code execution instructions
+    intptr_t e_cache_method_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_function_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_value_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_cache_value(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_receiver_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_scope_constant(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_resolve_path_constant(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_signature(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_check_signature(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_invoke_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t e_invoke_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
+    // Assertion instructions
+    intptr_t a_instance(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_kind(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_receiver_method(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_type(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_function(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_not_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_less(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_less_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_greater(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t a_greater_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
   }
 }
 

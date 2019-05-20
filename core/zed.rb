@@ -25,6 +25,8 @@ class Module
     mod, entry = lookup_method(current_name, true, false)
 
     if entry
+      Rubinius::VM.reset_method_cache self, new_name
+
       method_visibility = visibility_for_aliased_method(new_name, entry.visibility)
 
       # If we're aliasing a method we contain, just reference it directly, no
@@ -40,8 +42,6 @@ class Module
         @method_table.alias new_name, method_visibility, current_name,
                             entry.get_method, mod
       end
-
-      Rubinius::VM.reset_method_cache self, new_name
 
       if ai = Rubinius::Type.singleton_class_object(self)
         Rubinius.privately do
@@ -97,10 +97,12 @@ class Module
       sc = Rubinius::Type.object_singleton_class(self)
       args.each do |meth|
         method_name = Rubinius::Type.coerce_to_symbol meth
+
+        Rubinius::VM.reset_method_cache sc, method_name
+
         mod, entry = lookup_method(method_name)
         sc.method_table.store method_name, entry.method_id, entry.method,
           entry.scope, entry.serial, :public
-        Rubinius::VM.reset_method_cache self, method_name
         set_visibility method_name, :private
       end
     end
@@ -260,8 +262,11 @@ class Module
   def undef_method!(name)
     Rubinius.check_frozen
     name = Rubinius::Type.coerce_to_symbol(name)
-    @method_table.store name, nil, nil, nil, 0, :undef
+
     Rubinius::VM.reset_method_cache self, name
+
+    @method_table.store name, nil, nil, nil, 0, :undef
+
     if obj = Rubinius::Type.singleton_class_object(self)
       Rubinius.privately do
         obj.singleton_method_undefined(name)
@@ -281,9 +286,9 @@ class Module
       unless @method_table.lookup(name)
         raise NameError.new("method `#{name}' not defined in #{self.name}", name)
       end
-      @method_table.delete name
 
       Rubinius::VM.reset_method_cache self, name
+      @method_table.delete name
 
       if obj = Rubinius::Type.singleton_class_object(self)
         Rubinius.privately do
@@ -531,16 +536,6 @@ module Rubinius
     ]
   end
 
-  class CodeLoader
-    Lock = Object.new
-
-    # Hook support. This allows code to be told when a file was just compiled,
-    # or when it has finished loading.
-    @compiled_hook = Rubinius::Hook.new
-    @loaded_hook = Rubinius::Hook.new
-    @loaded_features_index = Hash.new(false)
-  end
-
   module CType
     Printed = Rubinius::Tuple.new 256
     i = 0
@@ -726,6 +721,8 @@ module Rubinius
           raise LoadError, "Could not open library #{name} - #{orig_error}"
         end
       end
+
+      private :initialize
 
       attr_reader :name
 
@@ -1076,8 +1073,6 @@ class Encoding
     end
   end
 end
-
-Enumerator = Enumerable::Enumerator
 
 module Errno
   FFI = Rubinius::FFI
@@ -1744,6 +1739,8 @@ class Struct
       @tutime = tutime
       @tstime = tstime
     end
+
+    private :initialize
   end
 
   def self._specialize(attrs)
@@ -1805,6 +1802,8 @@ class Struct
         self
       end
 
+      private :initialize
+
       def hash
         hash = #{hashes.size}
 
@@ -1853,7 +1852,18 @@ class Time
   }
 end
 
+class Random
+  DEFAULT = new
+end
+
 module Rubinius
+  class Prediction
+    def valid?
+      Rubinius.primitive :prediction_valid_p
+      raise PrimitiveFailure, "Rubinius::Prediction#valid? primitive failed"
+    end
+  end
+
   class CodeDB
     class << self
       undef :new
@@ -1872,3 +1882,4 @@ module Rubinius
 
   ConstantScope = LexicalScope
 end
+

@@ -19,6 +19,14 @@ module Rubinius
         Rubinius.invoke_primitive :string_byte_index, @object, value, start
       end
 
+      def find_string(pattern, start)
+        Rubinius.invoke_primitive :string_index, @object, pattern, start
+      end
+
+      def find_string_reverse(pattern, start)
+        Rubinius.invoke_primitive :string_rindex, @object, pattern, start
+      end
+
       def previous_byte_index(index)
         Rubinius.invoke_primitive :string_previous_byte_index, @object, index
       end

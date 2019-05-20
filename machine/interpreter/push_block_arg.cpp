@@ -3,10 +3,14 @@
 namespace rubinius {
   namespace interpreter {
     intptr_t push_block_arg(STATE, CallFrame* call_frame, intptr_t const opcodes[]) {
-      instructions::push_block_arg(state, call_frame);
+      if(instructions::push_block_arg(state, call_frame)) {
+        call_frame->next_ip(instructions::data_push_block_arg.width
+            + instructions::data_unwind.width);
+      } else {
+        call_frame->next_ip(instructions::data_push_block_arg.width);
+      }
 
-      call_frame->next_ip(instructions::data_push_block_arg.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

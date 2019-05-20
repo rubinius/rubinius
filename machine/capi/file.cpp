@@ -6,18 +6,15 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 namespace rubinius {
-  namespace capi {
-    RFile* Handle::as_rfile(NativeMethodEnvironment* env) {
-      if(type_ != cRFile) {
-        RFile* rfile = new RFile;
-        rfile->handle = as_value();
-        rfile->fptr = as_rio(env);
-
-        type_ = cRFile;
-        as_.rfile = rfile;
-      }
-
-      return as_.rfile;
+  RFile* MemoryHandle::get_rfile(STATE) {
+    if(rfile_p()) {
+      return reinterpret_cast<RFile*>(data());
+    } else if(unknown_type_p()) {
+      RFile* rfile = new RFile();
+      set_rfile(rfile);
+      return rfile;
+    } else {
+      Exception::raise_runtime_error(state, "C-API handle invalid reference as RFile");
     }
   }
 }
@@ -25,7 +22,7 @@ namespace rubinius {
 extern "C" {
   struct RFile* capi_rfile_struct(VALUE file) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return Handle::from(file)->as_rfile(env);
+    return MemoryHandle::from(file)->get_rfile(env->state());
   }
 
   int rb_cloexec_dup(int fd) {
@@ -34,8 +31,8 @@ extern "C" {
 
   VALUE rb_file_open(const char* name, const char* mode) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    VALUE n = env->get_handle(String::create(env->state(), name));
-    VALUE m = env->get_handle(String::create(env->state(), mode));
+    VALUE n = MemoryHandle::value(String::create(env->state(), name));
+    VALUE m = MemoryHandle::value(String::create(env->state(), mode));
 
     return rb_funcall(rb_cFile, rb_intern("open"), 2, n, m);
   }
@@ -48,8 +45,8 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     STATE = env->state();
 
-    if(!kind_of<String>(env->get_object(*obj))) {
-      *obj = rb_funcall(env->get_handle(G(type)), rb_intern("coerce_to_path"), 1, *obj);
+    if(!MemoryHandle::try_as<String>(*obj)) {
+      *obj = rb_funcall(MemoryHandle::value(G(type)), rb_intern("coerce_to_path"), 1, *obj);
     }
 
     return *obj;
@@ -57,7 +54,7 @@ extern "C" {
 
   VALUE rb_file_open_str(VALUE name, const char* mode) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    VALUE m = env->get_handle(String::create(env->state(), mode));
+    VALUE m = MemoryHandle::value(String::create(env->state(), mode));
 
     FilePathValue(name);
     return rb_funcall(rb_cFile, rb_intern("open"), 2, name, m);

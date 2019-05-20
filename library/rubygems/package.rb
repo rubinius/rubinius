@@ -182,7 +182,9 @@ class Gem::Package
 
     tar.add_file_signed 'checksums.yaml.gz', 0444, @signer do |io|
       gzip_to io do |gz_io|
+        Rubinius.synchronize(YAML) do
         YAML.dump checksums_by_algorithm, gz_io
+        end
       end
     end
   end
@@ -219,7 +221,7 @@ class Gem::Package
       next unless stat.file?
 
       tar.add_file_simple file, stat.mode, stat.size do |dst_io|
-        open file, 'rb' do |src_io|
+        File.open file, 'rb' do |src_io|
           dst_io.write src_io.read 16384 until src_io.eof?
         end
       end
@@ -380,7 +382,7 @@ EOM
 
         FileUtils.mkdir_p mkdir, mkdir_options
 
-        open destination, 'wb' do |out|
+        File.open destination, 'wb' do |out|
           out.write entry.read
           FileUtils.chmod entry.header.mode, destination
         end if entry.file?
@@ -468,7 +470,7 @@ EOM
 
     @checksums = gem.seek 'checksums.yaml.gz' do |entry|
       Zlib::GzipReader.wrap entry do |gz_io|
-        YAML.load gz_io.read
+        Gem::SafeYAML.safe_load gz_io.read
       end
     end
   end

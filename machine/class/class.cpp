@@ -21,7 +21,8 @@ namespace rubinius {
   }
 
   Class* Class::bootstrap_class(STATE, Class* super, object_type type) {
-    Class* klass = static_cast<Class*>(state->memory()->new_object(state, sizeof(Class)));
+    Class* klass = static_cast<Class*>(state->memory()->new_object(
+          state, sizeof(Class), ClassType));
     Class::bootstrap_initialize(state, klass, super, type);
 
     return klass;
@@ -33,9 +34,6 @@ namespace rubinius {
     klass->klass(state, G(klass));
     klass->ivars(cNil);
 
-    // The type of object that this class is (ie Class).
-    klass->set_obj_type(ClassType);
-
     // The type of object this class makes (eg Tuple).
     klass->instance_type(Fixnum::from(type));
     klass->type_info(state->memory()->type_info[type]);
@@ -46,9 +44,7 @@ namespace rubinius {
   }
 
   void Class::initialize_data(STATE, Class* klass) {
-    uint32_t id = state->shared().inc_class_count(state);
-    klass->_class_data_.f.class_id = id;
-    klass->_class_data_.f.serial_id = 1;
+    klass->class_data(state->shared().inc_class_count(state));
     klass->packed_size(0);
 
     klass->packed_ivar_info(nil<LookupTable>());
@@ -213,8 +209,6 @@ namespace rubinius {
 
     SingletonClass::attach(state, this, sup->singleton_class(state));
 
-    sup->track_subclass(state, this);
-
     return cNil;
   }
 
@@ -232,12 +226,12 @@ namespace rubinius {
     Class* self = this;
     OnStack<1> os(state, self);
 
-    hard_lock(state);
+    lock(state);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
     if(self->type_info()->type == PackedObject::type) {
-      self->hard_unlock(state);
+      self->unlock(state);
       return;
     }
 
@@ -246,7 +240,7 @@ namespace rubinius {
     LookupTable* lt = LookupTable::create(state);
 
     // If autopacking is enabled, figure out how many slots to use.
-    if(state->shared().config.gc_autopack) {
+    if(state->shared().config.memory_autopack) {
       Module* mod = self;
 
       int slot = 0;
@@ -287,7 +281,7 @@ namespace rubinius {
     atomic::memory_barrier();
     self->set_object_type(state, PackedObject::type);
 
-    self->hard_unlock(state);
+    self->unlock(state);
   }
 
   Class* Class::real_class(STATE, Class* klass) {
@@ -338,7 +332,6 @@ namespace rubinius {
       sc->klass(state, sc);
       Class* super = already_sc->true_superclass(state)->singleton_class_instance(state);
       sc->superclass(state, super);
-      super->track_subclass(state, sc);
     } else {
       /* If we are attaching to anything but a SingletonClass, the new
        * singleton class's class is the same as its superclass.  This is where
@@ -350,7 +343,6 @@ namespace rubinius {
       Class* super_klass = Class::real_class(state, sup)->klass();
       sc->klass(state, super_klass);
       sc->superclass(state, sup);
-      sup->track_subclass(state, sc);
     }
 
     /* Finally, attach the new SingletonClass */

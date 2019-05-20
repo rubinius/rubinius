@@ -11,8 +11,10 @@
 #include "machine_code.hpp"
 #include "object_utils.hpp"
 #include "interpreter.hpp"
+#include "instructions.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/machine.hpp"
+#include "diagnostics/timing.hpp"
 
 namespace rubinius {
   BytecodeVerifier::BytecodeVerifier(CompiledCode* code)
@@ -60,6 +62,20 @@ namespace rubinius {
     }
   }
 
+  void BytecodeVerifier::verify_jump_location(STATE, int index, int ip) {
+    if(index < 0 || index >= total_) {
+      fail(state, "invalid goto location", ip);
+    }
+  }
+
+  void BytecodeVerifier::verify_unwind(STATE, int index, int ip) {
+    opcode op = static_cast<opcode>(verify_opcode(state, index)->to_native());
+
+    if(op != instructions::data_unwind.id) {
+      fail(state, "next instruction must be unwind", ip);
+    }
+  }
+
   Object* BytecodeVerifier::verify_object(STATE, int index, int ip) {
     if(Object* obj = try_as<Object>(method_->literals()->at(index))) {
       return obj;
@@ -98,9 +114,21 @@ namespace rubinius {
     }
   }
 
+  void BytecodeVerifier::verify_register(STATE, int reg, int ip) {
+    if(reg < 0 || reg >= max_registers_) {
+      fail(state, "register value exceeds max register count", ip);
+    }
+  }
+
+  void BytecodeVerifier::verify_local(STATE, int local, int ip) {
+    if(local < 0 || local >= locals_) {
+      fail(state, "invalid local variable access", ip);
+    }
+  }
+
   void BytecodeVerifier::verify(STATE) {
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().machine.bytecode_verifier_us);
+        state->vm()->metrics()->bytecode_verifier_us);
 
     // Do this setup here instead of the constructor so we can do
     // some validation of the CompiledCode's fields we read them.
@@ -131,6 +159,12 @@ namespace rubinius {
       max_stack_allowed_ = fix->to_native();
     } else {
       fail(state, "stack_size is not a Fixnum", -1);
+    }
+
+    if(Fixnum* fix = try_as<Fixnum>(method_->registers())) {
+      max_registers_ = fix->to_native();
+    } else {
+      fail(state, "registers is not a Fixnum", -1);
     }
 
     if(Fixnum* fix = try_as<Fixnum>(method_->splat())) {
@@ -195,10 +229,6 @@ namespace rubinius {
     }
   }
 
-  namespace {
-#include "gen/instruction_effects.hpp"
-  }
-
   void BytecodeVerifier::verify_from(STATE, int sp, int ip, std::list<Section>& ips) {
     int insn_ip = ip;
 
@@ -218,7 +248,7 @@ namespace rubinius {
       }
 
       opcode op = static_cast<opcode>(verify_opcode(state, ip++)->to_native());
-      size_t width = InstructionSequence::instruction_width(op);
+      size_t width = Instructions::instruction_data(op).width;
 
       opcode arg1 = 0, arg2 = 0, arg3 = 0;
 
@@ -242,47 +272,148 @@ namespace rubinius {
       }
 
       switch(op) {
-        case InstructionSequence::insn_push_literal:
-        case InstructionSequence::insn_push_memo:
+        case instructions::data_push_literal.id:
+        case instructions::data_push_memo.id:
           verify_object(state, arg1, insn_ip);
           break;
-        case InstructionSequence::insn_create_block:
+        case instructions::data_create_block.id:
           verify_code(state, arg1, insn_ip);
           break;
-        case InstructionSequence::insn_send_vcall:
-        case InstructionSequence::insn_send_method:
-        case InstructionSequence::insn_send_stack:
-        case InstructionSequence::insn_send_stack_with_block:
-        case InstructionSequence::insn_send_stack_with_splat:
-        case InstructionSequence::insn_check_serial:
-        case InstructionSequence::insn_check_serial_private:
-        case InstructionSequence::insn_invoke_primitive:
-        case InstructionSequence::insn_set_ivar:
-        case InstructionSequence::insn_push_ivar:
-        case InstructionSequence::insn_set_const:
-        case InstructionSequence::insn_set_const_at:
-        case InstructionSequence::insn_object_to_s:
-        case InstructionSequence::insn_push_const:
-        case InstructionSequence::insn_find_const:
-        case InstructionSequence::insn_zsuper:
+        case instructions::data_send_vcall.id:
+        case instructions::data_send_method.id:
+        case instructions::data_send_stack.id:
+        case instructions::data_send_stack_with_block.id:
+        case instructions::data_send_stack_with_splat.id:
+        case instructions::data_check_serial.id:
+        case instructions::data_check_serial_private.id:
+        case instructions::data_invoke_primitive.id:
+        case instructions::data_set_ivar.id:
+        case instructions::data_push_ivar.id:
+        case instructions::data_set_const.id:
+        case instructions::data_set_const_at.id:
+        case instructions::data_object_to_s.id:
+        case instructions::data_push_const.id:
+        case instructions::data_find_const.id:
+        case instructions::data_zsuper.id:
           verify_symbol(state, arg1, insn_ip);
           break;
-        case InstructionSequence::insn_send_super_stack_with_block:
-        case InstructionSequence::insn_send_super_stack_with_splat:
+        case instructions::data_send_super_stack_with_block.id:
+        case instructions::data_send_super_stack_with_splat.id:
           verify_symbol_or_nil(state, arg1, insn_ip);
+          break;
+        case instructions::data_b_if.id:
+        case instructions::data_m_log.id:
+          verify_register(state, arg1, insn_ip);
+          break;
+        case instructions::data_b_if_int.id:
+        case instructions::data_a_instance.id:
+        case instructions::data_a_kind.id:
+        case instructions::data_a_method.id:
+        case instructions::data_a_receiver_method.id:
+        case instructions::data_a_type.id:
+        case instructions::data_a_function.id:
+        case instructions::data_a_equal.id:
+        case instructions::data_a_not_equal.id:
+        case instructions::data_a_less.id:
+        case instructions::data_a_less_equal.id:
+        case instructions::data_a_greater.id:
+        case instructions::data_a_greater_equal.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          break;
+        case instructions::data_b_if_serial.id:
+          verify_object(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          break;
+        case instructions::data_r_load_local.id:
+        case instructions::data_r_store_local.id:
+          verify_register(state, arg1, insn_ip);
+          verify_local(state, arg2, insn_ip);
+          break;
+        case instructions::data_r_load_local_depth.id:
+        case instructions::data_r_store_local_depth.id:
+          verify_register(state, arg1, insn_ip);
+          break;
+        case instructions::data_r_load_stack.id:
+        case instructions::data_r_store_stack.id:
+          verify_register(state, arg1, insn_ip);
+          break;
+        case instructions::data_r_load_literal.id:
+          verify_register(state, arg1, insn_ip);
+          verify_object(state, arg2, insn_ip);
+          break;
+        case instructions::data_r_load_int.id:
+        case instructions::data_r_store_int.id:
+        case instructions::data_r_copy.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          break;
+        case instructions::data_n_iadd.id:
+        case instructions::data_n_isub.id:
+        case instructions::data_n_imul.id:
+        case instructions::data_n_idiv.id:
+        case instructions::data_n_iadd_o.id:
+        case instructions::data_n_isub_o.id:
+        case instructions::data_n_imul_o.id:
+        case instructions::data_n_idiv_o.id:
+        case instructions::data_n_ieq.id:
+        case instructions::data_n_ine.id:
+        case instructions::data_n_ilt.id:
+        case instructions::data_n_ile.id:
+        case instructions::data_n_igt.id:
+        case instructions::data_n_ige.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
+          verify_register(state, arg3, insn_ip);
+          break;
+        case instructions::data_n_ipopcnt.id:
+          verify_register(state, arg1, insn_ip);
+          verify_register(state, arg2, insn_ip);
           break;
       }
 
-      int read = 0, write = 0;
-
-      int effect = stack_difference(op, arg1, arg2, arg3, &read, &write);
-      // TODO: instructions
-      // int effect = Interpreter::instruction_data_(op).stack_effect(arg1, arg2, arg3);
-
-      // Check for under read
-      if(sp - read < 0) {
-        fail(state, "stack underflow on read", insn_ip);
+      switch(op) {
+        case instructions::data_cast_array.id:
+        case instructions::data_cast_for_multi_block_arg.id:
+        case instructions::data_cast_for_single_block_arg.id:
+        case instructions::data_cast_for_splat_block_arg.id:
+        case instructions::data_cast_multi_value.id:
+        case instructions::data_check_frozen.id:
+        case instructions::data_create_block.id:
+        case instructions::data_ensure_return.id:
+        case instructions::data_find_const.id:
+        case instructions::data_invoke_primitive.id:
+        case instructions::data_object_to_s.id:
+        case instructions::data_passed_arg.id:
+        case instructions::data_passed_blockarg.id:
+        case instructions::data_push_block_arg.id:
+        case instructions::data_push_const.id:
+        case instructions::data_push_ivar.id:
+        case instructions::data_push_local_depth.id:
+        case instructions::data_push_proc.id:
+        case instructions::data_raise_break.id:
+        case instructions::data_raise_exc.id:
+        case instructions::data_raise_return.id:
+        case instructions::data_reraise.id:
+        case instructions::data_send_method.id:
+        case instructions::data_send_stack.id:
+        case instructions::data_send_stack_with_block.id:
+        case instructions::data_send_stack_with_splat.id:
+        case instructions::data_send_super_stack_with_block.id:
+        case instructions::data_send_super_stack_with_splat.id:
+        case instructions::data_send_vcall.id:
+        case instructions::data_set_ivar.id:
+        case instructions::data_set_local_depth.id:
+        case instructions::data_string_build.id:
+        case instructions::data_string_dup.id:
+        case instructions::data_yield_splat.id:
+        case instructions::data_yield_stack.id:
+        case instructions::data_zsuper.id:
+          verify_unwind(state, ip, ip - width);
+          break;
       }
+
+      int effect = Instructions::instruction_data(op).stack_effect(arg1, arg2, arg3);
 
       // Apply the total effect to propagate it.
       sp += effect;
@@ -299,49 +430,66 @@ namespace rubinius {
       if(sp > max_stack_seen_) max_stack_seen_ = sp;
 
       switch(op) {
-      case InstructionSequence::insn_push_local:
-      case InstructionSequence::insn_set_local:
-        if((native_int)arg1 < 0 || (native_int)arg1 >= locals_) {
-          fail(state, "invalid local variable access", insn_ip);
-        }
-        break;
-      case InstructionSequence::insn_goto:
-        if((native_int)arg1 < 0 || (native_int)arg1 >= total_) {
-          fail(state, "invalid goto location", insn_ip);
-        }
+        case instructions::data_push_local.id:
+        case instructions::data_set_local.id:
+          verify_local(state, arg1, insn_ip);
+          break;
+        case instructions::data_goto.id:
+          verify_jump_location(state, arg1, insn_ip);
 
-        // Only handle forward branches.
-        if((int)arg1 > ip) {
-          ip = (int)arg1;
-        } else {
+          // Only handle forward branches.
+          if((int)arg1 > ip) {
+            ip = (int)arg1;
+          } else {
+            return;
+          }
+          break;
+        case instructions::data_push_stack_local.id:
+        case instructions::data_set_stack_local.id:
+          if((int)arg1 > max_stack_local_) {
+            max_stack_local_ = (int)arg1;
+          }
+          break;
+        case instructions::data_goto_if_equal.id:
+        case instructions::data_goto_if_false.id:
+        case instructions::data_goto_if_nil.id:
+        case instructions::data_goto_if_not_equal.id:
+        case instructions::data_goto_if_not_nil.id:
+        case instructions::data_goto_if_not_undefined.id:
+        case instructions::data_goto_if_true.id:
+        case instructions::data_goto_if_undefined.id:
+        case instructions::data_setup_unwind.id:
+          verify_jump_location(state, arg1, insn_ip);
+
+          if((int)arg1 > ip) {
+            ips.push_back(Section(sp, arg1));
+          }
+
+          break;
+        case instructions::data_b_if.id:
+          verify_jump_location(state, arg2, insn_ip);
+
+          if((int)arg2 > ip) {
+            ips.push_back(Section(sp, arg2));
+          }
+
+          break;
+        case instructions::data_b_if_int.id:
+        case instructions::data_b_if_serial.id:
+          verify_jump_location(state, arg3, insn_ip);
+
+          if((int)arg3 > ip) {
+            ips.push_back(Section(sp, arg3));
+          }
+
+          break;
+        case instructions::data_ret.id:
+        case instructions::data_raise_exc.id:
+        case instructions::data_raise_return.id:
+        case instructions::data_ensure_return.id:
+        case instructions::data_raise_break.id:
+        case instructions::data_reraise.id:
           return;
-        }
-        break;
-      case InstructionSequence::insn_push_stack_local:
-      case InstructionSequence::insn_set_stack_local:
-        if((int)arg1 > max_stack_local_) {
-          max_stack_local_ = (int)arg1;
-        }
-        break;
-      case InstructionSequence::insn_goto_if_false:
-      case InstructionSequence::insn_goto_if_true:
-      case InstructionSequence::insn_setup_unwind:
-        if((native_int)arg1 < 0 || (native_int)arg1 >= total_) {
-          fail(state, "invalid goto location", insn_ip);
-        }
-
-        if((int)arg1 > ip) {
-          ips.push_back(Section(sp, arg1));
-        }
-
-        break;
-      case InstructionSequence::insn_ret:
-      case InstructionSequence::insn_raise_exc:
-      case InstructionSequence::insn_raise_return:
-      case InstructionSequence::insn_ensure_return:
-      case InstructionSequence::insn_raise_break:
-      case InstructionSequence::insn_reraise:
-        return;
       }
 
       // Detect falling off the end of the stream

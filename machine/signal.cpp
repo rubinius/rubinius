@@ -4,6 +4,7 @@
 #include "state.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
+#include "logger.hpp"
 #include "on_stack.hpp"
 #include "signal.hpp"
 #include "thread_phase.hpp"
@@ -19,7 +20,9 @@
 #include "class/string.hpp"
 #include "class/thread.hpp"
 
-#include "logger.hpp"
+#include "capi/capi.hpp"
+
+#include "diagnostics/machine.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -64,7 +67,7 @@ namespace rubinius {
     state->set_vm(vm_);
 
     signal_thread_ = this;
-    install_default_handlers();
+    install_default_handlers(state);
 
     NativeMethod::init_thread(state);
   }
@@ -90,7 +93,7 @@ namespace rubinius {
   void SignalThread::queue_signal(int signal) {
     if(system_exit_) return;
 
-    vm()->metrics().system.signals_received++;
+    vm()->metrics()->signals_received++;
 
     {
       thread::Mutex::LockGuard guard(lock_);
@@ -123,9 +126,21 @@ namespace rubinius {
   void SignalThread::start(STATE) {
     initialize(state);
 
-    if(state->shared().config.system_log_lifetime.value) {
+    if(state->shared().config.log_lifetime.value) {
       state->shared().signals()->print_machine_info(logger::write);
       state->shared().signals()->print_process_info(logger::write);
+
+      logger::write("process: boot stats: " \
+          "fields %lldus " \
+          "main thread: %lldus " \
+          "memory: %lldus " \
+          "ontology: %lldus " \
+          "platform: %lldus",
+          state->shared().boot_metrics()->fields_us,
+          state->shared().boot_metrics()->main_thread_us,
+          state->shared().boot_metrics()->memory_us,
+          state->shared().boot_metrics()->ontology_us,
+          state->shared().boot_metrics()->platform_us);
     }
 
     run(state);
@@ -175,14 +190,72 @@ namespace rubinius {
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
 
+    vm->metrics()->start_reporting(state);
+
     NativeMethod::init_thread(state);
 
-    thread->run(state);
+    int exit_code = 0;
 
-    // The system is halted and exit(3) has been called so the following code
-    // does not run. It is here to make the compiler happy.
+    // TODO: clean up and unify with main() exception handling.
+    try {
+      thread->run(state);
+    } catch(Assertion *e) {
+      std::cout << "VM Assertion:" << std::endl;
+      std::cout << "  " << e->reason << std::endl << std::endl;
+      e->print_backtrace();
 
-    return 0;
+      std::cout << std::endl << "Ruby backtrace:" << std::endl;
+      state->vm()->print_backtrace();
+      delete e;
+      exit_code = 1;
+    } catch(RubyException &e) {
+      std::cout << "Ruby Exception hit toplevel:\n";
+      // Prints Ruby backtrace, and VM backtrace if captured
+      e.show(state);
+      exit_code = 1;
+    } catch(TypeError &e) {
+
+      /* TypeError's here are dealt with specially so that they can deliver
+       * more information, such as _why_ there was a type error issue.
+       *
+       * This has the same name as the RubyException TypeError (run `5 + "string"`
+       * as an example), but these are NOT the same - this exception is raised
+       * internally when cNil gets passed to an array method, for instance, when
+       * an array was expected.
+       */
+      std::cout << "Type Error detected:" << std::endl;
+      TypeInfo* wanted = state->vm()->find_type(e.type);
+
+      if(!e.object->reference_p()) {
+        std::cout << "  Tried to use non-reference value " << e.object;
+      } else {
+        TypeInfo* was = state->vm()->find_type(e.object->type_id());
+        std::cout << "  Tried to use object of type " <<
+          was->type_name << " (" << was->type << ")";
+      }
+
+      std::cout << " as type " << wanted->type_name << " (" <<
+        wanted->type << ")" << std::endl;
+
+      e.print_backtrace();
+
+      std::cout << "Ruby backtrace:" << std::endl;
+      state->vm()->print_backtrace();
+      exit_code = 1;
+    } catch(VMException &e) {
+      std::cout << "Unknown VM exception detected:" << std::endl;
+      e.print_backtrace();
+      exit_code = 1;
+    } catch(std::exception& e) {
+      std::cout << "C++ exception detected: " << e.what() << std::endl;
+      exit_code = 1;
+    } catch(...) {
+      std::cout << "Unknown C++ exception detected at top level" << std::endl;
+      exit_code = 1;
+    }
+
+    // We caught an exception, so exit directly here.
+    exit(exit_code);
   }
 
   void SignalThread::run(STATE) {
@@ -208,7 +281,7 @@ namespace rubinius {
       if(signal > 0) {
         ManagedPhase managed(state);
 
-        vm()->metrics().system.signals_processed++;
+        vm()->metrics()->signals_processed++;
 
         Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(signal));
@@ -243,7 +316,7 @@ namespace rubinius {
   }
 
   void SignalThread::print_machine_info(logger::PrintFunction function) {
-    function("node info: %s %s", machine_info.nodename, machine_info.version);
+    function("node: info: %s %s", machine_info.nodename, machine_info.version);
   }
 
 #define RBX_PROCESS_INFO_LEN    256
@@ -270,7 +343,7 @@ namespace rubinius {
         RBX_VERSION, RBX_RUBY_VERSION, RBX_RELEASE_DATE, RBX_BUILD_REV,
         llvm_version, jit_status);
 
-    function("process info: %s", process_info);
+    function("process: info: %s", process_info);
   }
 
   void SignalThread::add_signal_handler(STATE, int signal, HandlerType type) {
@@ -318,7 +391,7 @@ namespace rubinius {
 
         if(NativeMethodFrame* nmf = frame->native_method_frame()) {
           stream << static_cast<void*>(frame) << ": ";
-          NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+          NativeMethod* nm = MemoryHandle::try_as<NativeMethod>(nmf->method());
           if(nm && nm->name()->symbol_p()) {
             stream << "capi:" << nm->name()->debug_str(state) << " at ";
             stream << nm->file()->c_str(state);
@@ -339,7 +412,7 @@ namespace rubinius {
                   stream << "MAIN.";
                 } else {
                   stream << "#<" << obj->class_object(state)->debug_str(state) <<
-                            ":" << (void*)obj->id(state)->to_native() << ">.";
+                            ":" << (void*)obj->object_id(state)->to_native() << ">.";
                 }
               }
             } else if(IncludedModule* im = try_as<IncludedModule>(frame->module())) {
@@ -461,14 +534,17 @@ namespace rubinius {
     signal_thread_->print_backtraces();
     logger::fatal("--- end Ruby backtraces ---");
 
+    free(symbols);
     raise(sig);
   }
 #endif
 
-  void SignalThread::install_default_handlers() {
+  void SignalThread::install_default_handlers(STATE) {
 #ifndef RBX_WINDOWS
     // Get the machine info.
     uname(&machine_info);
+
+    state->shared().nodename.assign(machine_info.nodename);
 
     struct sigaction action;
     action.sa_handler = null_func;

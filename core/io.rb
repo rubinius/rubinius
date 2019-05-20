@@ -77,7 +77,7 @@ class IO
       when "link"
         raise "cannot make link"
       else
-        new(fd, stat, io)
+        BufferedFileDescriptor.new(fd, stat, io)
       end
     end
 
@@ -169,7 +169,6 @@ class IO
       "".force_encoding(Encoding::ASCII_8BIT)
     end
 
-
     def initialize(fd, stat, io)
       @descriptor, @stat, @io = fd, stat, io
       acc_mode = FileDescriptor.get_flags(@descriptor)
@@ -197,6 +196,8 @@ class IO
         ObjectSpace.define_finalizer(self)
       end
     end
+
+    private :initialize
 
     def autoclose=(bool)
       @autoclose = bool
@@ -236,7 +237,9 @@ class IO
 
       position = FFI::Platform::POSIX.lseek(descriptor, offset, whence)
 
-      Errno.handle("seek failed") if FFI.call_failed?(position)
+      if FFI.call_failed?(position)
+        Errno.handle("seek failed: fd: #{descriptor}, offset: #{offset}, from: #{whence}")
+      end
 
       @offset = position
       determine_eof
@@ -750,6 +753,8 @@ class IO
       @eof = false # force to false
     end
 
+    private :initialize
+
     def determine_eof
       if @offset >= @total_size
         @eof = true
@@ -789,6 +794,8 @@ class IO
       @mode &= O_ACCMODE
       @sync = true
     end
+
+    private :initialize
 
     def force_read_write
       @mode &= ~(O_RDONLY | O_WRONLY)
@@ -888,8 +895,8 @@ class IO
 
     def self.make_timeval_timeout(timeout)
       if timeout
-        limit = Timeval_t.new
-        future = Timeval_t.new
+        limit = Rubinius::FFI::Platform::POSIX::TimeVal.new
+        future = Rubinius::FFI::Platform::POSIX::TimeVal.new
 
         limit[:tv_sec] = (timeout / 1_000_000.0).to_i
         limit[:tv_usec] = (timeout % 1_000_000.0).to_i
@@ -906,7 +913,7 @@ class IO
     end
 
     def self.reset_timeval_timeout(time_limit, future)
-      now = Timeval_t.new
+      now = Rubinius::FFI::Platform::POSIX::TimeVal.new
 
       if FFI.call_failed?(FFI::Platform::POSIX.gettimeofday(now, nil))
         Errno.handle("gettimeofday(2) failed")
@@ -920,12 +927,8 @@ class IO
       fd_set.zero
       fd_set.set(read_fd)
 
-      unless const_defined?(:Timeval_t)
-        # This is a complete hack.
-        Select.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
-      end
-
-      timer = Timeval_t.new # sets fields to zero by default
+      # sets fields to zero by default
+      timer = Rubinius::FFI::Platform::POSIX::TimeVal.new
 
       FFI::Platform::POSIX.select(read_fd + 1, fd_set.to_set, nil, nil, timer)
     end
@@ -943,11 +946,6 @@ class IO
       write_set, highest_write_fd = writables.nil? ? [nil, nil] : fd_set_from_array(writables)
       error_set, highest_err_fd = errorables.nil? ? [nil, nil] : fd_set_from_array(errorables)
       max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].compact.max || -1
-
-      unless const_defined?(:Timeval_t)
-        # This is a complete hack.
-        Select.class_eval(Rubinius::Config['rbx.platform.timeval.class'])
-      end
 
       time_limit, future = make_timeval_timeout(timeout)
 
@@ -1050,6 +1048,8 @@ class IO
 
       @method = read_method @from
     end
+
+    private :initialize
 
     def to_io(obj, mode)
       if obj.kind_of? IO
@@ -1995,6 +1995,8 @@ class IO
       @skip = nil
     end
 
+    private :initialize
+
     def each(&block)
       if @separator
         if @separator.empty?
@@ -2033,7 +2035,7 @@ class IO
           (@io.read_nonblock(PEEK_AHEAD_LIMIT, result, exception: false) || @io.get_empty_8bit_buffer)
           @io.internal, @io.external = internal, external
 
-          buffer += result
+          buffer << result
         end
         str, bytes_read = read_to_char_boundary(@io, str, buffer)
       else
@@ -2152,6 +2154,7 @@ class IO
     end
 
     # Method H
+    # Only ever called if separator or $/ is forced to nil
     def read_to_limit(&block)
       str = @io.get_empty_8bit_buffer
       wanted = limit = @limit.abs
@@ -2288,6 +2291,7 @@ class IO
           sep = $/
           limit = Rubinius::Type.coerce_to sep_or_limit, Integer, :to_int
           raise ArgumentError, "invalid limit: 0 for each_line" if limit.zero?
+          sep_or_limit = sep
         end
       end
     end

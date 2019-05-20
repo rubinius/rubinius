@@ -1,6 +1,31 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
+describe "Thread.abort_on_exception" do
+  before do
+    @abort_on_exception = Thread.abort_on_exception
+  end
+
+  after do
+     Thread.abort_on_exception = @abort_on_exception
+  end
+
+  it "is false by default" do
+    Thread.abort_on_exception.should == false
+  end
+
+  it "returns true when .abort_on_exception= is passed true" do
+    Thread.abort_on_exception = true
+    Thread.abort_on_exception.should be_true
+  end
+
+  it "raises the exception raised in a Thread in Thread.main when true" do
+    script = fixture __FILE__, "abort_on_exception_class.rb"
+
+    ruby_exe(script, :args => "2>&1").split("\n").join.should =~ /RuntimeError/
+  end
+end
+
 describe "Thread#abort_on_exception" do
   before do
     ThreadSpecs.clear_state
@@ -19,86 +44,10 @@ describe "Thread#abort_on_exception" do
     @thread.abort_on_exception = true
     @thread.abort_on_exception.should be_true
   end
-end
 
-describe :thread_abort_on_exception, :shared => true do
-  before do
-    @thread = Thread.new do
-      Thread.pass until ThreadSpecs.state == :run
-      raise RuntimeError, "Thread#abort_on_exception= specs"
-    end
-  end
+  it "raises the exception raised in a Thread in Thread.main when true" do
+    script = fixture __FILE__, "abort_on_exception_instance.rb"
 
-  it "causes the main thread to raise the exception raised in the thread" do
-    begin
-      ScratchPad << :before
-
-      lambda do
-        @thread.abort_on_exception = true if @object
-        ThreadSpecs.state = :run
-        @thread.join
-      end.should raise_error(RuntimeError)
-
-      ScratchPad << :after
-    rescue Object
-      ScratchPad << :rescue
-    end
-
-    ScratchPad.recorded.should == [:before, :after]
-  end
-end
-
-describe "Thread#abort_on_exception=" do
-  describe "when enabled and the thread dies due to an exception" do
-    before do
-      ScratchPad.record []
-      ThreadSpecs.clear_state
-      @stderr, $stderr = $stderr, IOStub.new
-    end
-
-    after do
-      $stderr = @stderr
-    end
-
-    it_behaves_like :thread_abort_on_exception, nil, true
-  end
-end
-
-describe "Thread.abort_on_exception" do
-  before do
-    @abort_on_exception = Thread.abort_on_exception
-  end
-
-  after do
-     Thread.abort_on_exception = @abort_on_exception
-  end
-
-  it "is false by default" do
-    Thread.abort_on_exception.should == false
-  end
-
-  it "returns true when .abort_on_exception= is passed true" do
-    Thread.abort_on_exception = true
-    Thread.abort_on_exception.should be_true
-  end
-end
-
-describe "Thread.abort_on_exception=" do
-  describe "when enabled and a non-main thread dies due to an exception" do
-    before :each do
-      ScratchPad.record []
-      ThreadSpecs.clear_state
-      @stderr, $stderr = $stderr, IOStub.new
-
-      @abort_on_exception = Thread.abort_on_exception
-      Thread.abort_on_exception = true
-    end
-
-    after :each do
-      Thread.abort_on_exception = @abort_on_exception
-      $stderr = @stderr
-    end
-
-    it_behaves_like :thread_abort_on_exception, nil, false
+    ruby_exe(script, :args => "2>&1").split("\n").join.should =~ /RuntimeError/
   end
 end

@@ -10,9 +10,10 @@
 #include "class/symbol.hpp"
 
 #include "configuration.hpp"
-#include "metrics.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/gc.hpp"
+#include "diagnostics/memory.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "logger.hpp"
 
@@ -24,16 +25,16 @@ namespace memory {
 
   MarkSweepGC::MarkSweepGC(Memory *om, Configuration& config)
     : GarbageCollector(om)
-    , diagnostics_(new Diagnostics())
+    , diagnostic_(new diagnostics::MarkSweep())
     , collection_threshold(config.gc_marksweep_threshold)
     , next_collection_bytes(collection_threshold)
   {}
 
   MarkSweepGC::~MarkSweepGC() {
-    if(diagnostics()) delete diagnostics();
-  }
-
-  void MarkSweepGC::Diagnostics::update() {
+    if(diagnostic_) {
+      delete diagnostic_;
+      diagnostic_ = nullptr;
+    }
   }
 
   void MarkSweepGC::free_objects() {
@@ -50,36 +51,31 @@ namespace memory {
 
     Object* obj = reinterpret_cast<Object*>(mem);
 
-    diagnostics()->objects_++;
-    diagnostics()->bytes_ += bytes;
+    diagnostic()->objects++;
+    diagnostic()->bytes += bytes;
 
-    memory_->vm()->metrics().memory.large_objects++;
-    memory_->vm()->metrics().memory.large_bytes += bytes;
+    memory_->shared().memory_metrics()->large_objects++;
+    memory_->shared().memory_metrics()->large_bytes += bytes;
 
     entries.push_back(obj);
 
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
-      memory_->vm()->metrics().gc.large_set++;
+      memory_->shared().gc_metrics()->large_set++;
       collect_now = true;
       next_collection_bytes = collection_threshold;
     }
-
-    obj->init_header(MatureObjectZone, InvalidType);
-    obj->set_in_large();
 
     return obj;
   }
 
   void MarkSweepGC::free_object(Object* obj, bool fast) {
-    diagnostics()->objects_--;
-    diagnostics()->bytes_ -= obj->size_in_bytes(memory_->vm());
+    diagnostic()->objects--;
+    diagnostic()->bytes -= obj->size_in_bytes(memory_->vm());
 
     if(!fast) {
       delete_object(obj);
     }
-
-    obj->set_zone(UnspecifiedZone);
 
     free(reinterpret_cast<void*>(obj));
   }
@@ -90,45 +86,30 @@ namespace memory {
     Object* obj = allocate(bytes, collect_now);
     memcpy(obj, orig, bytes);
 
-    obj->set_zone(MatureObjectZone);
-    obj->set_age(0);
-
-    orig->set_forward(obj);
+    orig->set_forwarded(obj);
 
     return obj;
   }
 
-  Object* MarkSweepGC::copy_object(Object* orig, bool& collect_now) {
-    Object* obj = allocate(orig->size_in_bytes(memory_->vm()), collect_now);
-
-    obj->initialize_full_state(memory_->vm(), orig, 0);
-
-    return obj;
-  }
-
-  Object* MarkSweepGC::saw_object(Object* obj) {
-    if(obj->marked_p(memory_->mark())) return NULL;
-    obj->mark(memory_, memory_->mark());
+  Object* MarkSweepGC::saw_object(void* parent, Object* child) {
+    if(child->marked_p(memory_->mark())) return NULL;
+    child->set_marked(memory_->mark());
 
     // Add the object to the mark stack, to be scanned later.
-    mark_stack_.push_back(obj);
+    mark_stack_.add(parent, child);
     return NULL;
   }
 
-  bool MarkSweepGC::mature_gc_in_progress() {
-    return memory_->mature_gc_in_progress();
-  }
-
   void MarkSweepGC::after_marked() {
-    metrics::MetricsData& metrics = memory_->vm()->metrics();
+    // TODO: diagnostics, metrics
+    // metrics::MetricsData& metrics = memory_->vm()->metrics();
 
-    timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
-
-    // Cleanup all weakrefs seen
-    clean_weakrefs();
+    // timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
 
     // Sweep up the garbage
     sweep_objects();
+
+    mark_stack_.finish();
   }
 
   void MarkSweepGC::sweep_objects() {

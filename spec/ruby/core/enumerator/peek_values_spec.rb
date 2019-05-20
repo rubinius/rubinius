@@ -50,6 +50,12 @@ describe "Enumerator#peek_values" do
     @e.peek_values.should == []
   end
 
+  it "always returns new array" do
+    @e.next
+    first = @e.peek_values
+    @e.peek_values.should_not equal(first)
+  end
+
   it "raises StopIteration if called on a finished enumerator" do
     7.times { @e.next }
     lambda { @e.peek_values }.should raise_error(StopIteration)

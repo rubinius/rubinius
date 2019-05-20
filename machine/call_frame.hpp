@@ -1,7 +1,6 @@
 #ifndef RBX_CALL_FRAME_HPP
 #define RBX_CALL_FRAME_HPP
 
-#include "unwind_info.hpp"
 #include "stack_variables.hpp"
 #include "dispatch.hpp"
 #include "arguments.hpp"
@@ -18,6 +17,7 @@ namespace rubinius {
   class NativeMethodFrame;
   class BlockEnvironment;
   class MachineCode;
+  class UnwindSite;
 
   namespace jit {
     class RuntimeData;
@@ -56,8 +56,6 @@ namespace rubinius {
 
     int flags;
     int ip_;
-    int ret_ip_;
-    int exception_ip_;
 
     VariableScope* top_scope_;
     StackVariables* scope;
@@ -66,8 +64,9 @@ namespace rubinius {
     Object** stack_ptr_;
     MachineCode* machine_code;
     InterpreterState* is;
-    UnwindInfoSet* unwinds;
-    UnwindInfo unwind_info;
+
+    Object* return_value;
+    UnwindSite* unwind;
 
     // Stack
     Object* stk[0];
@@ -184,16 +183,11 @@ namespace rubinius {
     }
 
     void next_ip(int width) {
-     ip_ += width;
+      ip_ += width;
     }
 
-    void ret_ip() {
-      ip_ = ret_ip_;
-    }
-
-    void exception_ip() {
-      ip_ = exception_ip_;
-    }
+    void push_unwind(UnwindSite* unwind);
+    UnwindSite* pop_unwind();
 
     /**
      *  Initialize frame for the given stack size.
@@ -227,7 +221,7 @@ namespace rubinius {
   };
 
 #define ALLOCA_CALL_FRAME(stack_size) \
-  reinterpret_cast<CallFrame*>(alloca(sizeof(CallFrame) + (sizeof(Object*) * stack_size)))
+  reinterpret_cast<CallFrame*>(alloca(sizeof(CallFrame) + (sizeof(Object*) * (stack_size))))
 };
 
 #endif

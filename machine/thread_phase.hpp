@@ -5,6 +5,7 @@
 #include "vm.hpp"
 #include "state.hpp"
 #include "thread_nexus.hpp"
+#include "memory.hpp"
 
 namespace rubinius {
   /**
@@ -12,36 +13,25 @@ namespace rubinius {
    * threads to be suspended. Upon destruction of the instance, Ruby execution
    * is resumed.
    */
-  class LockPhase {
+  class StopPhase {
     State* state_;
-    ThreadNexus::LockStatus status_;
 
   public:
-    LockPhase(STATE)
+    StopPhase(STATE)
       : state_(state)
     {
-      status_ = state->vm()->thread_nexus()->lock(state, state->vm());
-    }
-
-    ~LockPhase() {
-      if(status_ == ThreadNexus::eLocked) {
-        state_->vm()->thread_nexus()->unlock();
+      // TODO: GC make thread_nexus aware of this
+      while(true) {
+        if(!state->shared().memory()->collector()->collect_requested_p()) {
+          state->vm()->thread_nexus()->stop(state, state->vm());
+          break;
+        }
       }
     }
-  };
 
-  class BlockPhase {
-    State* state_;
-
-  public:
-    BlockPhase(STATE)
-      : state_(state)
-    {
-      state->vm()->blocking_phase(state_);
-    }
-
-    ~BlockPhase() {
-      state_->vm()->managed_phase(state_);
+    ~StopPhase() {
+      state_->vm()->thread_nexus()->unset_stop();
+      state_->vm()->thread_nexus()->unlock(state_, state_->vm());
     }
   };
 
@@ -86,9 +76,15 @@ namespace rubinius {
     {
       state->vm()->thread_nexus()->waiting_phase(state, state->vm());
 
-      lock_.lock();
+      while(true) {
+        lock_.lock();
 
-      state->vm()->thread_nexus()->managed_phase(state, state->vm());
+        if(state->vm()->thread_nexus()->try_managed_phase(state, state->vm())) {
+          return;
+        } else {
+          lock_.unlock();
+        }
+      }
     }
 
     ~LockWaiting() {

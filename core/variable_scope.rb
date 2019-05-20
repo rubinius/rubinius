@@ -7,6 +7,7 @@ module Rubinius
     attr_reader :block
     attr_reader :module
     attr_reader :self
+    attr_reader :name
 
     # CompiledCode this scope is for.
     #

@@ -8,7 +8,7 @@ namespace rubinius {
       instructions::make_array(state, call_frame, count);
 
       call_frame->next_ip(instructions::data_make_array.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

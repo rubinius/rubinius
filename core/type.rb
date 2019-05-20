@@ -70,6 +70,14 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::Type.set_module_name primitive failed"
     end
 
+    def self.coerce_inspect(obj)
+      Rubinius.asm do
+        push_local 0
+        send :inspect, 0, true
+        object_to_s :to_s
+      end
+    end
+
     def self.coerce_string_to_float(string, strict)
       value = Rubinius.invoke_primitive :string_to_f, string, strict
       raise ArgumentError, "invalid string for Float" if value.nil?
@@ -336,8 +344,15 @@ module Rubinius
       while current and object_kind_of? current, Module
         if bucket = current.constant_table.lookup(name)
           constant = bucket.constant
-          if resolve and object_kind_of? constant, Autoload
-            constant = constant.call(current)
+
+          if object_kind_of? constant, Autoload
+            if resolve
+              return constant.call(current)
+            elsif not CodeLoader.loading? constant.path
+              return constant
+            else
+              return undefined
+            end
           end
 
           return constant
@@ -353,8 +368,15 @@ module Rubinius
       if object_instance_of? mod, Module
         if bucket = Object.constant_table.lookup(name)
           constant = bucket.constant
-          if resolve and object_kind_of? constant, Autoload
-            constant = constant.call(current)
+
+          if object_kind_of? constant, Autoload
+            if resolve
+              return constant.call(current)
+            elsif not CodeLoader.loading? constant.path
+              return constant
+            else
+              return undefined
+            end
           end
 
           return constant
@@ -362,6 +384,92 @@ module Rubinius
       end
 
       resolve ? mod.const_missing(name) : undefined
+    end
+
+    def self.constant_scope_defined?(scope, name)
+      current = scope
+
+      until nil.equal? current
+        break if nil.equal? current.parent
+
+        if bucket = current.module.constant_table.lookup(name)
+          constant = bucket.constant
+
+          if object_kind_of? constant, Autoload
+            return constant.constant unless undefined.equal? constant.constant
+          end
+
+          return constant
+        end
+
+        current = current.parent
+      end
+
+      check_object = true
+      object_seen = false
+
+      unless nil.equal? scope
+        current = scope.module
+
+        until nil.equal? current
+          object_seen = true if ::Object.equal? current
+
+          if not object_seen and ::BasicObject.equal? current
+            check_object = false
+          end
+
+          if bucket = current.constant_table.lookup(name)
+            constant = bucket.constant
+
+            if object_kind_of? constant, Autoload
+              return undefined if CodeLoader.loading? constant.path
+              return constant.constant unless undefined.equal? constant.constant
+            end
+
+            return constant
+          end
+
+          current = current.direct_superclass
+        end
+      end
+
+      if check_object
+        if bucket = Object.constant_table.lookup(name)
+          constant = bucket.constant
+
+          if object_kind_of? constant, Autoload
+            return undefined if CodeLoader.loading? constant.path
+            return constant.constant unless undefined.equal? constant.constant
+          end
+
+          return constant
+        end
+      end
+
+      undefined
+    end
+
+    def self.constant_path_defined?(mod, name)
+      current = mod
+
+      begin
+        break unless object_kind_of? current, ::Module
+
+        if bucket = current.constant_table.lookup(name)
+          return undefined if bucket.private?
+
+          constant = bucket.constant
+
+          if object_kind_of? constant, Autoload
+            return undefined if CodeLoader.loading? constant.path
+            return constant.constant unless undefined.equal? constant.constant
+          end
+
+          return constant
+        end
+      end while current = current.direct_superclass
+
+      undefined
     end
 
     def self.const_exists?(mod, name, inherit = true)
@@ -390,7 +498,6 @@ module Rubinius
 
     def self.include_modules_from(included_module, klass)
       insert_at = klass
-      changed = false
       constants_changed = false
 
       mod = included_module
@@ -438,22 +545,18 @@ module Rubinius
               original_mod = mod
             end
 
+            included_module.method_table.each do |meth, obj, vis|
+              Rubinius::VM.reset_method_cache klass, meth
+            end
+
             im = Rubinius::IncludedModule.new(original_mod).attach_to insert_at
             insert_at = im
-
-            changed = true
           end
 
           constants_changed ||= mod.constant_table.size > 0
         end
 
         mod = mod.direct_superclass
-      end
-
-      if changed
-        included_module.method_table.each do |meth, obj, vis|
-          Rubinius::VM.reset_method_cache klass, meth
-        end
       end
 
       if constants_changed
@@ -605,8 +708,8 @@ module Rubinius
     end
 
     def self.coerce_to_bitwise_operand(obj)
-      if object_kind_of? obj, Float
-        raise TypeError, "can't convert Float into Integer for bitwise arithmetic"
+      unless object_kind_of? obj, Integer
+        raise TypeError, "can't convert non-Integer into Integer for bitwise arithmetic"
       end
       coerce_to obj, Integer, :to_int
     end

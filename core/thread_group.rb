@@ -4,6 +4,8 @@ class ThreadGroup
     @enclosed = false
   end
 
+  private :initialize
+
   Default = ThreadGroup.new
 
   def add(thread)

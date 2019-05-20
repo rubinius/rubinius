@@ -4,16 +4,18 @@
 #include "memory/address.hpp"
 #include "memory/immix_region.hpp"
 #include "memory/gc.hpp"
-#include "exception.hpp"
+#include "memory/mark_stack.hpp"
 
+#include "exception.hpp"
 #include "object_position.hpp"
+
+#include "diagnostics.hpp"
 
 namespace rubinius {
   class Memory;
 
 namespace memory {
   class ImmixGC;
-  class ImmixMarker;
 
   /**
    * ImmixGC uses the immix memory management strategy to perform garbage
@@ -21,22 +23,6 @@ namespace memory {
    */
 
   class ImmixGC : public GarbageCollector {
-  public:
-    class Diagnostics : public diagnostics::MemoryDiagnostics {
-    public:
-      int64_t collections_;
-      int64_t total_bytes_;
-      int64_t chunks_;
-      int64_t holes_;
-      double percentage_;
-
-      Diagnostics();
-
-      void update();
-    };
-
-  private:
-
     /**
      * Class used as an interface to the Rubinius specific object memory layout
      * by the (general purpose) Immix memory manager. By imposing this interface
@@ -105,16 +91,15 @@ namespace memory {
        * @returns true if the object is not already marked, and in the Immix
        * space; otherwise false.
        */
-      bool mark_address(Address addr, MarkStack& ms, bool push = true);
+      bool describer_mark_address(Address parent, Address child, MarkStack& ms, bool push = true);
     };
 
     GC<ObjectDescriber> gc_;
     ExpandingAllocator allocator_;
     Memory* memory_;
-    ImmixMarker* marker_;
     int chunks_left_;
     int chunks_before_collection_;
-    Diagnostics* diagnostics_;
+    diagnostics::Immix* diagnostic_;
 
   public:
     ImmixGC(Memory* om);
@@ -123,13 +108,11 @@ namespace memory {
     Object* allocate(size_t bytes, bool& collect_now);
     Object* move_object(Object* orig, size_t bytes, bool& collect_now);
 
-    virtual Object* saw_object(Object*);
+    virtual Object* saw_object(void*, Object*);
     virtual void scanned_object(Object*);
-    virtual bool mature_gc_in_progress();
     void collect(GCData* data);
-    void collect_start(GCData* data);
     void collect_finish(GCData* data);
-    void sweep();
+    void sweep(GCData* data);
 
     void walk_finalizers();
 
@@ -152,17 +135,13 @@ namespace memory {
       chunks_left_ = chunks_before_collection_;
     }
 
-    Diagnostics* diagnostics() {
-      return diagnostics_;
+    diagnostics::Immix* diagnostic() {
+      return diagnostic_;
     }
 
-    void start_marker(STATE, GCData* data);
     bool process_mark_stack();
     bool process_mark_stack(bool& exit);
     MarkStack& mark_stack();
-
-  private:
-    void collect_scan(GCData* data);
   };
 }
 }

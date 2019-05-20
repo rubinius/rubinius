@@ -1,4 +1,4 @@
-const intptr_t rubinius::Interpreter::instruction_addresses[] = {
+const intptr_t rubinius::Interpreter::interpreter_addresses[] = {
   (intptr_t)rubinius::interpreter::add_scope,
   (intptr_t)rubinius::interpreter::allow_private,
   (intptr_t)rubinius::interpreter::cast_array,

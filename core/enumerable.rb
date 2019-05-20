@@ -67,8 +67,9 @@ module Enumerable
 
   def each_entry(*pass)
     return to_enum(:each_entry, *pass) { enumerator_size } unless block_given?
-    each(*pass) do |*element|
-      yield element.size == 1 ? element[0] : element
+    each(*pass) do
+      element = Rubinius.single_block_arg
+      yield element
     end
     self
   end
@@ -339,6 +340,8 @@ module Enumerable
     def initialize(val, sort_id)
       @value, @sort_id = val, sort_id
     end
+
+    private :initialize
 
     attr_reader :value
     attr_reader :sort_id

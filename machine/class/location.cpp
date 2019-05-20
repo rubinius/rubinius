@@ -10,7 +10,10 @@
 #include "class/native_method.hpp"
 #include "class/string.hpp"
 
-#include "instruments/timing.hpp"
+#include "capi/capi.hpp"
+
+#include "diagnostics/machine.hpp"
+#include "diagnostics/timing.hpp"
 
 namespace rubinius {
   void Location::bootstrap(STATE) {
@@ -33,7 +36,8 @@ namespace rubinius {
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
     loc->method(state, call_frame->compiled_code);
-    loc->ip(state, Fixnum::from(call_frame->ip()));
+    // TODO: instructions
+    loc->ip(state, Fixnum::from(call_frame->ip()+1));
     loc->flags(state, Fixnum::from(0));
 
     if(call_frame->is_block_p(state)) {
@@ -75,15 +79,15 @@ namespace rubinius {
   }
 
   Location* Location::create(STATE, NativeMethodFrame* nmf) {
-    NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+    NativeMethod* nm = MemoryHandle::try_as<NativeMethod>(nmf->method());
     if(!nm) return Location::allocate(state, G(location));
 
     Location* loc = state->memory()->new_object<Location>(state, G(location));
-    if(Module* mod = try_as<Module>(nmf->get_object(nmf->module()))) {
+    if(Module* mod = MemoryHandle::try_as<Module>(nmf->module())) {
       loc->method_module(state, mod);
     }
 
-    loc->receiver(state, nmf->get_object(nmf->receiver()));
+    loc->receiver(state, MemoryHandle::object(nmf->receiver()));
 
     loc->method(state, nm);
     loc->ip(state, Fixnum::from(-1));
@@ -133,8 +137,8 @@ namespace rubinius {
     if(up < 0) rubinius::bug("negative skip frame value provided");
 
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().machine.backtrace_us);
-    state->vm()->metrics().machine.backtraces++;
+        state->vm()->metrics()->backtrace_us);
+    state->vm()->metrics()->backtraces++;
 
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;
@@ -168,8 +172,8 @@ namespace rubinius {
     if(up < 0) rubinius::bug("negative skip frame value provided");
 
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics().machine.backtrace_us);
-    state->vm()->metrics().machine.backtraces++;
+        state->vm()->metrics()->backtrace_us);
+    state->vm()->metrics()->backtraces++;
 
     CallFrame* base = state->vm()->call_frame();
     CallFrame* start = base;

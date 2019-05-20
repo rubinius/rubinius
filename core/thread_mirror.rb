@@ -13,8 +13,8 @@ module Rubinius
             STDERR.puts "Exception in thread: #{exception.message} (#{exception.class})"
           end
 
-          if @object.abort_on_exception or Thread.abort_on_exception
-            Thread.main.raise exception
+          if @object.abort_on_exception or ::Thread.abort_on_exception
+            ::Thread.main.raise exception
           end
         end
       end

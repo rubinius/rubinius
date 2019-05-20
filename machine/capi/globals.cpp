@@ -60,23 +60,22 @@ extern "C" {
     return rb_thread_local_aref(rb_thread_current(), rb_intern("$_"));
   }
 
-  void rb_free_global(VALUE global_handle) {
-    capi::Handle* handle = capi::Handle::from(global_handle);
-    if(REFERENCE_P(handle) && handle->object()->reference_p()) {
-      handle->deref();
-    }
-  }
-
   void capi_gc_register_address(VALUE* address, const char* file, int line) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    capi::Handle** loc = reinterpret_cast<capi::Handle**>(address);
-    env->state()->memory()->add_global_capi_handle_location(env->state(), loc, file, line);
+    Object* object = MemoryHandle::object(*address);
+
+    if(object->reference_p()) {
+      object->add_reference(env->state());
+    }
   }
 
   void rb_gc_unregister_address(VALUE* address) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    capi::Handle** loc = reinterpret_cast<capi::Handle**>(address);
-    env->state()->memory()->del_global_capi_handle_location(env->state(), loc);
+    Object* object = MemoryHandle::object(*address);
+
+    if(object->reference_p()) {
+      object->sub_reference(env->state());
+    }
   }
 
   VALUE rb_gv_get(const char* name) {
@@ -86,7 +85,7 @@ extern "C" {
     len = strlen(name);
     if((len == 1 && name[0] == '~') ||
        (len == 2 && name[0] == '$' && name[1] == '~')) {
-      return env->get_handle(Regexp::last_match_result(env->state(),
+      return MemoryHandle::value(Regexp::last_match_result(env->state(),
         Fixnum::from(0), Fixnum::from(0)));
     }
     VALUE Globals = rb_const_get(rb_mRubinius, rb_intern("Globals"));
@@ -94,7 +93,7 @@ extern "C" {
     return rb_funcall(Globals,
                       rb_intern("[]"),
                       1,
-                      env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))));
+                      MemoryHandle::value(prefixed_by(env->state(), '$', rb_intern(name))));
   }
 
   VALUE rb_gv_set(const char* name, VALUE value) {
@@ -105,7 +104,7 @@ extern "C" {
     return rb_funcall(Globals,
                       rb_intern("[]="),
                       2,
-                      env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))),
+                      MemoryHandle::value(prefixed_by(env->state(), '$', rb_intern(name))),
                       value);
   }
 
@@ -118,6 +117,6 @@ extern "C" {
 
     VALUE Globals = rb_const_get(rb_mRubinius, rb_intern("Globals"));
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    rb_funcall(Globals, rb_intern("read_only"), 1, env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))));
+    rb_funcall(Globals, rb_intern("read_only"), 1, MemoryHandle::value(prefixed_by(env->state(), '$', rb_intern(name))));
   }
 }

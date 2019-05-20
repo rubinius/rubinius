@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "class/block_environment.hpp"
 #include "class/code_db.hpp"
@@ -10,9 +10,8 @@ namespace rubinius {
       CompiledCode* code = 0;
 
       if(!(code = try_as<CompiledCode>(code_or_id))) {
-        code = CodeDB::load(state, as<String>(code_or_id));
-        // TODO: instructions
-        // store_literal(reinterpret_cast<opcode>(code));
+        code = G(coredb)->load(state, as<String>(code_or_id));
+        store_literal(call_frame, reinterpret_cast<opcode>(code));
       }
 
       Object* be = BlockEnvironment::under_call_frame(state, code, call_frame->machine_code);

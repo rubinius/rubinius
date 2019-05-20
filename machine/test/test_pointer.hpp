@@ -16,6 +16,10 @@ public:
     destroy();
   }
 
+  bool check_type(Object* obj, object_type type) {
+    return obj->reference_p() && obj->type_id() == type;
+  }
+
   void test_create() {
     int thing = 3;
     Pointer* ptr = Pointer::create(state, (void*)&thing);
@@ -232,7 +236,7 @@ public:
     Pointer* ptr = Pointer::create(state, &one);
     Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_FLOAT);
 
-    TS_ASSERT(obj->check_type(FloatType));
+    TS_ASSERT(check_type(obj, FloatType));
     TS_ASSERT_EQUALS(as<Float>(obj)->to_double(state), 1.0);
   }
 
@@ -241,7 +245,7 @@ public:
     Pointer* ptr = Pointer::create(state, &one);
     Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_DOUBLE);
 
-    TS_ASSERT(obj->check_type(FloatType));
+    TS_ASSERT(check_type(obj, FloatType));
     TS_ASSERT_EQUALS(as<Float>(obj)->to_double(state), 1.0);
   }
 
@@ -270,7 +274,7 @@ public:
     Pointer* ptr = Pointer::create(state, &val);
 
     Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_PTR);
-    TS_ASSERT(obj->check_type(PointerType));
+    TS_ASSERT(check_type(obj, PointerType));
 
     TS_ASSERT_EQUALS(as<Pointer>(obj)->pointer, val);
   }
@@ -290,7 +294,7 @@ public:
     Pointer* ptr = Pointer::create(state, &str);
 
     Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRING);
-    TS_ASSERT(obj->check_type(StringType));
+    TS_ASSERT(check_type(obj, StringType));
 
     String* so = as<String>(obj);
 
@@ -312,16 +316,16 @@ public:
     Pointer* ptr = Pointer::create(state, &str);
 
     Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRPTR);
-    TS_ASSERT(obj->check_type(ArrayType));
+    TS_ASSERT(check_type(obj, ArrayType));
 
     Array* ary = as<Array>(obj);
     TS_ASSERT_EQUALS(ary->size(), 2);
 
-    TS_ASSERT(ary->get(state, 0)->check_type(StringType));
+    TS_ASSERT(check_type(ary->get(state, 0), StringType));
     String *so = as<String>(ary->get(state, 0));
     TS_ASSERT(!strncmp(str, so->c_str(state), 4));
 
-    TS_ASSERT(ary->get(state, 1)->check_type(PointerType));
+    TS_ASSERT(check_type(ary->get(state, 1), PointerType));
     Pointer* mp = as<Pointer>(ary->get(state, 1));
     TS_ASSERT_EQUALS(mp->pointer, str);
   }
@@ -332,7 +336,7 @@ public:
     Pointer* ptr = Pointer::create(state, &str);
 
     Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRPTR);
-    TS_ASSERT(obj->check_type(ArrayType));
+    TS_ASSERT(check_type(obj, ArrayType));
 
     Array* ary = as<Array>(obj);
     TS_ASSERT_EQUALS(ary->size(), 2);

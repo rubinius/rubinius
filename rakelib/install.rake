@@ -6,13 +6,13 @@
 #
 
 desc "Install Rubinius"
-task :install => %w[build:build gems:install install:files install:done]
+task :install => %w[build:build install:files install:done]
 
 # Determine if all the targets for the install directories are writable
 # decomposing each candidate directory from the right side and checking if
 # that path is writable. If not, we require explicit permission.
 def need_permission?
-  FileList["#{BUILD_CONFIG[:stagingdir]}/*"].each do |name|
+  FileList["#{BUILD_CONFIG[:builddir]}/*"].each do |name|
     destdir = ENV['DESTDIR'] || ''
     dir = File.expand_path(File.join(destdir, BUILD_CONFIG[:prefixdir], name))
 
@@ -71,26 +71,25 @@ def install_extra_bins(prefix, target)
   install_file "#{prefix}/testrb", prefix, "#{target}#{BUILD_CONFIG[:bindir]}", :mode => 0755
 end
 
-def install_runtime(prefix, target)
+def install_codedb(prefix, target)
   FileList[
-    "#{prefix}/platform.conf",
-    "#{prefix}/core/*",
-    "#{prefix}/signature",
-    "#{prefix}/**/*.rb",
-    "#{prefix}/**/*.rb{a,c}",
-    "#{prefix}/**/*.{c,h}pp",
-    "#{prefix}/**/*.{c,h}",
-    "#{prefix}/**/*.c.*",
-    "#{prefix}/**/*.ffi",
-    "#{prefix}/**/*.#{$dlext}",
+    "#{prefix}/*",
+    "#{prefix}/*.*",
+    "#{prefix}/**/*",
+    "#{prefix}/**/*.*",
   ].each do |name|
-    install_file name, prefix, "#{target}#{BUILD_CONFIG[:runtimedir]}"
+    install_file name, prefix, "#{target}#{BUILD_CONFIG[:codedbdir]}"
   end
 end
 
-def install_core(prefix, target)
-  FileList["#{prefix}/**/*.rb"].each do |name|
-    install_file name, prefix, "#{target}#{BUILD_CONFIG[:coredir]}"
+def install_site(prefix, target)
+  FileList[
+    "#{prefix}/*",
+    "#{prefix}/*.*",
+    "#{prefix}/**/*",
+    "#{prefix}/**/*.*",
+  ].each do |name|
+    install_file name, prefix, "#{target}#{BUILD_CONFIG[:sitedir]}"
   end
 end
 
@@ -159,8 +158,8 @@ namespace :stage do
   task :bin do
     install_bin "#{BUILD_CONFIG[:sourcedir]}/machine/vm", BUILD_CONFIG[:sourcedir]
 
-    if BUILD_CONFIG[:stagingdir]
-      install_bin "#{BUILD_CONFIG[:sourcedir]}/machine/vm", BUILD_CONFIG[:stagingdir]
+    if BUILD_CONFIG[:builddir]
+      install_bin "#{BUILD_CONFIG[:sourcedir]}/machine/vm", BUILD_CONFIG[:builddir]
 
       name = BUILD_CONFIG[:program_name]
       mode = File::CREAT | File::TRUNC | File::WRONLY
@@ -171,55 +170,49 @@ namespace :stage do
 # Rubinius has been configured to be installed. This convenience
 # wrapper enables running Rubinius from the staging directories.
 
-export RBX_PREFIX_PATH=#{BUILD_CONFIG[:stagingdir]}
+export RBX_PREFIX_PATH=#{BUILD_CONFIG[:builddir]}
 EXE=$(basename $0)
 
-exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
+exec #{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
         EOS
       end
     end
   end
 
   task :extra_bins do
-    if BUILD_CONFIG[:stagingdir]
-      install_extra_bins "#{BUILD_CONFIG[:sourcedir]}/bin", BUILD_CONFIG[:stagingdir]
+    if BUILD_CONFIG[:builddir]
+      install_extra_bins "#{BUILD_CONFIG[:sourcedir]}/bin", BUILD_CONFIG[:builddir]
     end
   end
 
   task :capi_include do
-    if BUILD_CONFIG[:stagingdir]
+    if BUILD_CONFIG[:builddir]
       install_capi_include "#{BUILD_CONFIG[:capi_includedir]}",
-                           "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:"includedir"]}"
+                           "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:"includedir"]}"
     end
   end
 
   task :lib do
-    if BUILD_CONFIG[:stagingdir]
-      install_build_lib "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:stagingdir]
+    if BUILD_CONFIG[:builddir]
+      install_build_lib "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:builddir]
     end
   end
 
-  task :runtime do
-    if BUILD_CONFIG[:stagingdir]
-      install_runtime "#{BUILD_CONFIG[:sourcedir]}/runtime", BUILD_CONFIG[:stagingdir]
-    end
-  end
-
-  task :core do
-    if BUILD_CONFIG[:stagingdir]
-      install_core "#{BUILD_CONFIG[:sourcedir]}/core", BUILD_CONFIG[:stagingdir]
+  task :site do
+    if BUILD_CONFIG[:builddir]
+      install_site "#{BUILD_CONFIG[:sourcedir]}/site", BUILD_CONFIG[:builddir]
     end
   end
 
   task :documentation do
-    if BUILD_CONFIG[:stagingdir]
-      install_documentation "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:stagingdir]
+    if BUILD_CONFIG[:builddir]
+      install_documentation "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:builddir]
     end
   end
 
   task :manpages do
-    if BUILD_CONFIG[:stagingdir]
-      install_manpages "#{BUILD_CONFIG[:sourcedir]}/doc/generated/machine/man", BUILD_CONFIG[:stagingdir]
+    if BUILD_CONFIG[:builddir]
+      install_manpages "#{BUILD_CONFIG[:sourcedir]}/doc/generated/machine/man", BUILD_CONFIG[:builddir]
     end
   end
 end
@@ -228,7 +221,7 @@ namespace :install do
   desc "Install all the Rubinius files. Use DESTDIR environment variable " \
        "to specify custom installation location."
   task :files do
-    if BUILD_CONFIG[:stagingdir]
+    if BUILD_CONFIG[:builddir]
       if need_permission?
         prefix = BUILD_CONFIG[:prefixdir]
         STDERR.puts <<-EOM
@@ -236,7 +229,6 @@ Rubinius has been configured for the following paths:
 
 bin:     #{prefix}#{BUILD_CONFIG[:bindir]}
 lib:     #{prefix}#{BUILD_CONFIG[:libdir]}
-runtime: #{prefix}#{BUILD_CONFIG[:runtimedir]}
 core:    #{prefix}#{BUILD_CONFIG[:coredir]}
 site:    #{prefix}#{BUILD_CONFIG[:sitedir]}
 vendor:  #{prefix}#{BUILD_CONFIG[:vendordir]}
@@ -251,38 +243,40 @@ appropriate command to elevate permissions (eg su, sudo).
 
         exit(1)
       else
-        stagingdir = BUILD_CONFIG[:stagingdir]
+        builddir = BUILD_CONFIG[:builddir]
         destdir = ENV['DESTDIR'] || ''
         prefixdir = File.join(destdir, BUILD_CONFIG[:prefixdir])
 
-        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:includedir]}",
+        install_capi_include "#{builddir}#{BUILD_CONFIG[:includedir]}",
                              "#{prefixdir}#{BUILD_CONFIG[:includedir]}"
 
-        install_runtime "#{stagingdir}#{BUILD_CONFIG[:runtimedir]}", prefixdir
+        install_codedb "#{builddir}#{BUILD_CONFIG[:codedbdir]}", prefixdir
 
-        install_core "#{stagingdir}#{BUILD_CONFIG[:coredir]}", prefixdir
+        install_site "#{builddir}#{BUILD_CONFIG[:sitedir]}", prefixdir
 
-        install_lib "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
+        install_lib "#{builddir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
-        install_transcoders "#{stagingdir}#{BUILD_CONFIG[:encdir]}", prefixdir
+        install_transcoders "#{builddir}#{BUILD_CONFIG[:encdir]}", prefixdir
 
-        install_tooling "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
+        install_tooling "#{builddir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
-        install_documentation "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
+        install_documentation "#{builddir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
-        install_manpages "#{stagingdir}#{BUILD_CONFIG[:mandir]}", prefixdir
+        install_manpages "#{builddir}#{BUILD_CONFIG[:mandir]}", prefixdir
 
         bin = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
-        install_bin "#{stagingdir}#{bin}", prefixdir
+        install_bin "#{builddir}#{bin}", prefixdir
 
-        install_extra_bins "#{stagingdir}/#{BUILD_CONFIG[:bindir]}", prefixdir
+        install_extra_bins "#{builddir}/#{BUILD_CONFIG[:bindir]}", prefixdir
 
-        install_gems "#{stagingdir}#{BUILD_CONFIG[:gemsdir]}", prefixdir
-        install_gems_bins "#{stagingdir}#{BUILD_CONFIG[:gemsdir]}/bin", prefixdir
+        install_gems "#{builddir}#{BUILD_CONFIG[:gemsdir]}", prefixdir
+        install_gems_bins "#{builddir}#{BUILD_CONFIG[:gemsdir]}/bin", prefixdir
 
         # Install the testrb command
-        testrb = "#{prefixdir}#{BUILD_CONFIG[:bindir]}/testrb"
-        install "bin/testrb", testrb, :mode => 0755, :verbose => $verbose
+        unless BUILD_CONFIG[:sourcedir] == BUILD_CONFIG[:prefixdir]
+          testrb = "#{prefixdir}#{BUILD_CONFIG[:bindir]}/testrb"
+          install "bin/testrb", testrb, :mode => 0755, :verbose => $verbose
+        end
       end
     end
   end

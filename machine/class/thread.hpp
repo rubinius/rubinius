@@ -52,7 +52,7 @@ namespace rubinius {
     attr_accessor(fiber_value, Object);
 
   private:
-    utilities::thread::SpinLock init_lock_;
+    utilities::thread::SpinLock lock_;
     utilities::thread::Mutex join_lock_;
     utilities::thread::Condition join_cond_;
     std::mutex fiber_mutex_;
@@ -90,7 +90,7 @@ namespace rubinius {
       obj->current_fiber(nil<Fiber>());
       obj->fiber_value(nil<Object>());
 
-      obj->init_lock_.init();
+      obj->lock_.init();
       obj->join_lock_.init();
       obj->join_cond_.init();
 
@@ -195,10 +195,6 @@ namespace rubinius {
     // Rubinius.primitive :thread_join
     Thread* join(STATE, Object* timeout);
 
-    // This method must only be called after fork() with only one active
-    // thread.
-    void unlock_after_fork(STATE);
-
     // Rubinius.primitive :thread_fiber_list
     Array* fiber_list(STATE);
 
@@ -226,7 +222,6 @@ namespace rubinius {
     // Rubinius.primitive :thread_variables
     Array* variables(STATE);
 
-    void init_lock();
     void stopped();
 
     /**

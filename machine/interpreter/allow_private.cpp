@@ -6,7 +6,7 @@ namespace rubinius {
       instructions::allow_private();
 
       call_frame->next_ip(instructions::data_allow_private.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

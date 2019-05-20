@@ -8,6 +8,8 @@
 #include "class/integer.hpp"
 #include "class/randomizer.hpp"
 
+#include <mutex>
+
 template <typename T>
 static T make_mask(T x) {
   for(unsigned int i = 1; i < sizeof(T) * 8; i *= 2)
@@ -21,14 +23,14 @@ namespace rubinius {
   }
 
   void Randomizer::init_by_single(uint32_t s) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     struct random_state* rng = rng_state();
     random_init_single(rng, s);
   }
 
   void Randomizer::init_by_array(uint32_t init_key[], int key_length) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     struct random_state* rng = rng_state();
     random_init_array(rng, init_key, key_length);
@@ -36,7 +38,7 @@ namespace rubinius {
 
   /* generates a random number on [0,0xffffffff]-interval */
   uint32_t Randomizer::rb_genrand_int32() {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     return random_gen_uint32(rng_state());
   }
@@ -57,7 +59,7 @@ namespace rubinius {
   }
 
   double Randomizer::rb_genrand_real() {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     return random_gen_double(rng_state());
   }
@@ -68,7 +70,7 @@ namespace rubinius {
   }
 
   void Randomizer::initialize(STATE, Randomizer* obj) {
-    obj->lock_.init();
+    obj->lock_.unlock();
     obj->rng_data(state, ByteArray::create(state, sizeof(struct random_state)));
     random_init_single(obj->rng_state(), 5489UL);
   }

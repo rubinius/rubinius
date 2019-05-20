@@ -441,6 +441,8 @@ module Marshal
       @call = true
     end
 
+    private :initialize
+
     def const_lookup(name, type = nil)
       mod = Object
 
@@ -1141,8 +1143,9 @@ module Marshal
       if @stream
         @byte_array = stream.data
       end
-
     end
+
+    private :initialize
 
     def consume(bytes)
       raise ArgumentError, "marshal data too short" if @consumed > @stream.bytesize

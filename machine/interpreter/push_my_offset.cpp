@@ -7,8 +7,9 @@ namespace rubinius {
 
       instructions::push_my_offset(call_frame, index);
 
-      call_frame->next_ip(instructions::data_push_my_offset.width);
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      call_frame->next_ip(instructions::data_push_my_offset.width
+          + instructions::data_unwind.width);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

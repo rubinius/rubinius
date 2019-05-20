@@ -52,6 +52,8 @@ class Thread
     Thread.current.group.add self
   end
 
+  private :initialize
+
   alias_method :__thread_initialize__, :initialize
 
   def initialized?
@@ -500,6 +502,8 @@ class Thread
         @path          = path
         @lineno        = lineno
       end
+
+      private :initialize
 
       alias_method :base_label, :label
 

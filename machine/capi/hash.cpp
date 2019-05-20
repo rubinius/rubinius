@@ -37,9 +37,13 @@ extern "C" {
   VALUE rb_hash_delete_if(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    VALUE block_handle = env->get_handle(env->block());
+    VALUE block_handle = MemoryHandle::value(env->block());
 
     return rb_funcall2b(self, rb_intern("delete_if"), 0, 0, block_handle);
+  }
+
+  VALUE rb_hash_fetch(VALUE self, VALUE key) {
+    return capi_fast_call(self, rb_intern("fetch"), 1, key);
   }
 
   VALUE rb_hash_size(VALUE self) {

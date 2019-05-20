@@ -23,8 +23,12 @@ class MSpecScript
     'spec/jit',
   ]
 
+  set :instructions, [
+    'spec/instructions',
+  ]
+
   # An ordered list of the directories containing specs to run
-  set :files, get(:language) + get(:core) + get(:library) + get(:jit) +
+  set :files, get(:language) + get(:core) + get(:library) + get(:instructions) + get(:jit) +
               get(:capi) + get(:compiler) + get(:build) + get(:command_line)
 
   set :ruby, [
@@ -38,6 +42,7 @@ class MSpecScript
     'spec/ruby/language',
     'spec/ruby/command_line',
     'spec/core',
+    'spec/instructions',
     'spec/jit',
     'spec/language',
     'spec/command_line',

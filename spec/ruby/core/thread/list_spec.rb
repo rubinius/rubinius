@@ -21,13 +21,14 @@ describe "Thread.list" do
   end
 
   it "includes waiting threads" do
-    c = Channel.new
-    t = Thread.new { c.receive }
+    running = false
+    wait = true
+    t = Thread.new { running = true; Thread.pass while wait }
     begin
-      Thread.pass while t.status and t.status != 'sleep'
+      Thread.pass until running = true
       Thread.list.should include(t)
     ensure
-      c << nil
+      wait = false
       t.join
     end
   end

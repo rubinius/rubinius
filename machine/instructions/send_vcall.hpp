@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "class/call_site.hpp"
 
@@ -9,11 +9,11 @@ namespace rubinius {
       CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
       Arguments args(call_site->name(), recv, cNil, 0, 0);
-      Object* ret = call_site->execute(state, args);
+      call_frame->return_value = call_site->execute(state, args);
 
       state->vm()->checkpoint(state);
 
-      CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(call_frame->return_value);
     }
   }
 }

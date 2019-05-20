@@ -29,6 +29,8 @@ module Rubinius
       end
     end
 
+    private :initialize
+
     def self.debugger
       @debugger_proc
     end
@@ -48,29 +50,22 @@ module Rubinius
       $VERBOSE = false
     end
 
-    # Setup $LOAD_PATH.
+    # Set up $LOAD_PATH.
     def system_load_path
       @stage = "setting up system load path"
 
-      @main_lib = Rubinius::LIB_PATH
-      @main_lib_bin = File.join @main_lib, "bin"
+      @lib_bin = "#{Rubinius::CODEDB_PATH}/source/bin"
 
-      # This conforms more closely to MRI. It is necessary to support
-      # paths that mkmf adds when compiling and installing native exts.
-      additions = [
-        Rubinius::SITE_PATH,
-        "#{Rubinius::SITE_PATH}/#{RUBY_VERSION}",
-        "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
-        Rubinius::VENDOR_PATH,
-        @main_lib,
-      ]
-      additions.uniq!
+      $LOAD_PATH.unshift(Rubinius::ARCH_PATH,
+                         Rubinius::SITE_PATH,
+                         "#{Rubinius::SITE_PATH}/#{RUBY_VERSION}",
+                         Rubinius::VENDOR_PATH,
+                         "#{Rubinius::CODEDB_PATH}/source")
 
-      $LOAD_PATH.unshift(*additions)
+      if libs = ENV['RUBYLIB']
+        Rubinius::Logger.system.write "RUBYLIB: #{libs}"
 
-      if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
-        rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
-        $LOAD_PATH.unshift(*rubylib_paths)
+        $LOAD_PATH.unshift(*libs.split(File::PATH_SEPARATOR).compact)
       end
     end
 
@@ -124,7 +119,7 @@ module Rubinius
     # Checks if a subcommand with basename +base+ exists. Returns the full
     # path to the subcommand if it does; otherwise, returns nil.
     def find_subcommand(base)
-      command = File.join @main_lib_bin, "#{base}.rb"
+      command = File.join @lib_bin, "#{base}.rb"
       return command if File.exist? command
       return nil
     end
@@ -240,7 +235,7 @@ module Rubinius
         stdin = STDIN.dup
         script = STDIN.read
         STDIN.reopen(stdin)
-        CodeLoader.execute_script script
+        execute_script script
       end
 
       options.on "--", "Stop processing command line arguments" do
@@ -310,6 +305,18 @@ module Rubinius
         ext, int = enc.split(":")
         Encoding.default_external = ext if ext and !ext.empty?
         set_default_internal_encoding(int) if int and !int.empty?
+      end
+
+      options.on "--main", "PATH", "Load PATH directly from CodeDB" do |path|
+        code = Rubinius::CoreDB.load_feature path, "", false, false
+        if code
+          code.create_script false
+          Rubinius.run_script code
+          exit 0
+        else
+          puts "file not found: #{path}"
+          exit 1
+        end
       end
 
       options.on "-n", "Wrap running code in 'while(gets()) ...'" do
@@ -494,12 +501,12 @@ VM Options
     end
     private :set_default_internal_encoding
 
-    RUBYOPT_VALID_OPTIONS = "IdvwWrKT"
-
     def handle_rubyopt(options)
-      if ENV['RUBYOPT']
+      if env_opts = ENV['RUBYOPT']
+        Rubinius::Logger.system.write "RUBYOPT: #{env_opts}"
+
         options.start_parsing
-        env_opts = ENV['RUBYOPT'].strip.split(/\s+/)
+        env_opts = env_opts.strip.split(/\s+/)
 
         until env_opts.empty?
           entry = env_opts.shift
@@ -509,10 +516,6 @@ VM Options
           end
 
           opt, arg, rest = options.split entry, 2
-
-          unless RUBYOPT_VALID_OPTIONS.index opt[1, 1]
-            raise RuntimeError, "invalid option in RUBYOPT: #{opt}"
-          end
 
           options.process env_opts, entry, opt, arg
         end
@@ -552,21 +555,6 @@ Alternative: #{alt}
         STDERR.puts "Rubinius #{Rubinius::VERSION} has no deprecation notices"
         exit 0
       end
-    end
-
-    def run_compiled
-      return unless ENV["RBX_RUN_COMPILED"]
-
-      begin
-        ARGV.each do |script|
-          CodeLoader.require_compiled script
-        end
-      rescue Object => e
-        Rubinius::Logger.log_exception "Unable to run compiled file: #{script}", e
-        exit 1
-      end
-
-      exit 0
     end
 
     def load_compiler
@@ -666,7 +654,7 @@ Alternative: #{alt}
         if @script.suffix?(".rb")
           raise LoadError, "unable to find '#{@script}'"
         else
-          command = File.join @main_lib_bin, "#{@script}.rb"
+          command = File.join @lib_bin, "#{@script}.rb"
           unless File.exist? command
             raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
@@ -676,7 +664,7 @@ Alternative: #{alt}
       end
 
       set_program_name @script
-      CodeLoader.load_script @script, @debugging
+      CodeLoader.new(@script).load_script
     end
 
     #Check Ruby syntax of source
@@ -719,9 +707,13 @@ Alternative: #{alt}
         load File.join(Rubinius::GEMS_PATH, "bin", repl)
       else
         set_program_name "(eval)"
-        CodeLoader.execute_script "p #{STDIN.read}"
+        execute_script "p #{STDIN.read}"
       end
     end
+
+		def execute_script(script)
+			eval script, TOPLEVEL_BINDING
+		end
 
     def run_at_exits
       until AtExit.empty?
@@ -845,7 +837,6 @@ Alternative: #{alt}
       preamble
       system_load_path
       signals
-      run_compiled
       load_compiler
       preload
       detect_alias

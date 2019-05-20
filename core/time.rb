@@ -288,7 +288,7 @@ class Time
 
     major, minor = data.unpack 'VV'
 
-    if (major & (1 << 31)) == 0 then
+    if (major & (1 << 31)) == 0
       at major, minor
     else
       major &= ~(1 << 31)
@@ -322,7 +322,7 @@ class Time
   def _dump(limit = nil)
     tm = getgm.to_a
 
-    if (year & 0xffff) != year || year < 1900 then
+    if (year & 0xffff) != year || year < 1900
       raise ArgumentError, "year too big to marshal: #{year}"
     end
 

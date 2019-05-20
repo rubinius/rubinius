@@ -27,6 +27,7 @@ namespace rubinius {
     const static object_type type = VariableScopeType;
 
     attr_accessor(block, Object);
+    attr_accessor(name, Symbol);
     attr_accessor(method, CompiledCode);
     attr_accessor(module, Module);
     attr_accessor(parent, VariableScope);
@@ -51,6 +52,7 @@ namespace rubinius {
     static void bootstrap_methods(STATE);
     static void initialize(STATE, VariableScope* obj) {
       obj->block(nil<Object>());
+      obj->name(nil<Symbol>());
       obj->method(nil<CompiledCode>());
       obj->module(nil<Module>());
       obj->parent(nil<VariableScope>());

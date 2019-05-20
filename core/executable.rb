@@ -10,6 +10,7 @@ module Rubinius
   class Executable
     attr_accessor :serial
     attr_accessor :primitive
+    attr_accessor :tags
 
     def self.allocate
       Rubinius.primitive :executable_allocate

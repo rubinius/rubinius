@@ -1,9 +1,15 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/__method__', __FILE__)
 require File.expand_path('../fixtures/__method__', __FILE__)
 
 # Can not, must not use a shared spec because #send influences
 # __method__ on 1.8.7
+
+describe "Kernel.__method__" do
+  it_behaves_like(:kernel___method__, :__method__)
+  it_behaves_like(:kernel___method__aliased, :__method__)
+end
 
 describe "Kernel.__method__" do
   it "returns the current method, even when aliased" do

@@ -25,10 +25,10 @@ namespace memory {
     {}
 
     VM* vm();
-    bool mature_gc_in_progress();
 
     Object* call(Object*);
     void set(Object* target, Object** pos, Object* val);
+    void set_value(Object* target, Object** pos, Object* val);
     void just_set(Object* target, Object* val);
   };
 }

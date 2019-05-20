@@ -31,6 +31,8 @@ module Rubinius
       Errno.handle path unless setup(path) == 0
     end
 
+    private :initialize
+
     def setup(path)
       Rubinius.primitive :stat_stat
       path = Rubinius::Type.coerce_to_path(path)

@@ -1,7 +1,7 @@
 
 #include "type_info.hpp"
 #include "memory.hpp"
-#include "gen/includes.hpp"
+#include "includes.hpp"
 #include "class/fixnum.hpp"
 #include "class/symbol.hpp"
 #include "field_offset.hpp"
@@ -89,7 +89,7 @@ namespace rubinius {
      class_info(state, self, true);
    }
 
-#include "gen/typechecks.gen.cpp"
+#include "typechecks.hpp"
 
   /* For use in gdb. */
   extern "C" {

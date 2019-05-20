@@ -1,4 +1,4 @@
-#include "interpreter/instructions.hpp"
+#include "instructions.hpp"
 
 #include "class/call_site.hpp"
 
@@ -21,16 +21,15 @@ namespace rubinius {
         }
       }
 
-      // TODO: instructions
-      // SET_CALL_FLAGS(0);
+      SET_CALL_FLAGS(0);
 
       stack_clear(count);
 
-      Object* ret = call_site->execute(state, new_args);
+      call_frame->return_value = call_site->execute(state, new_args);
 
       state->vm()->checkpoint(state);
 
-      CHECK_AND_PUSH(ret);
+      CHECK_AND_PUSH(call_frame->return_value);
     }
   }
 }

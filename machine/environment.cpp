@@ -1,10 +1,8 @@
 #include "config.h"
-#include "signature.h"
 #include "paths.h"
 #include "defines.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
-#include "compiled_file.hpp"
 #include "memory.hpp"
 #include "exception.hpp"
 #include "thread_phase.hpp"
@@ -21,10 +19,12 @@
 #include "class/symbol.hpp"
 #include "class/thread.hpp"
 
+#include "diagnostics/codedb.hpp"
+#include "diagnostics/machine.hpp"
+
 #include "logger.hpp"
 
-#include "memory/immix_marker.hpp"
-#include "memory/finalizer.hpp"
+#include "memory/collector.hpp"
 
 #include "signal.hpp"
 #include "object_utils.hpp"
@@ -67,10 +67,9 @@ namespace rubinius {
   Environment::Environment(int argc, char** argv)
     : argc_(argc)
     , argv_(0)
-    , signature_(0)
     , fork_exec_lock_()
     , halt_lock_()
-    , finalizer_thread_(NULL)
+    , collector_(NULL)
     , loader_(NULL)
   {
     String::init_hash();
@@ -107,7 +106,7 @@ namespace rubinius {
     start_logging(state);
     log_argv();
 
-    if(config.system_log_config.value) {
+    if(config.log_config.value) {
       std::string options;
 
       config_parser.parsed_options(options);
@@ -118,9 +117,7 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    stop_logging(state);
-
-    delete finalizer_thread_;
+    delete collector_;
 
     VM::discard(state, root_vm);
     delete shared;
@@ -130,6 +127,8 @@ namespace rubinius {
       delete[] argv_[i];
     }
     delete[] argv_;
+
+    stop_logging(state);
   }
 
   void cpp_exception_bug() {
@@ -155,7 +154,7 @@ namespace rubinius {
   }
 
   void Environment::check_io_descriptors() {
-    std::string dir = config.system_tmp.value;
+    std::string dir = config.tmp_path.value;
 
     if(fcntl(STDIN_FILENO, F_GETFD) < 0 && errno == EBADF) {
       assign_io_descriptor(dir, STDIN_FILENO, "stdin");
@@ -174,40 +173,35 @@ namespace rubinius {
     logger::close();
   }
 
-  void Environment::start_finalizer(STATE) {
-    finalizer_thread_ = new memory::FinalizerThread(state);
-    finalizer_thread_->start(state);
-  }
-
   void Environment::start_logging(STATE) {
     logger::logger_level level = logger::eWarn;
 
-    if(!config.system_log_level.value.compare("fatal")) {
+    if(!config.log_level.value.compare("fatal")) {
       level = logger::eFatal;
-    } else if(!config.system_log_level.value.compare("error")) {
+    } else if(!config.log_level.value.compare("error")) {
       level = logger::eError;
-    } else if(!config.system_log_level.value.compare("warn")) {
+    } else if(!config.log_level.value.compare("warn")) {
       level = logger::eWarn;
-    } else if(!config.system_log_level.value.compare("info")) {
+    } else if(!config.log_level.value.compare("info")) {
       level = logger::eInfo;
-    } else if(!config.system_log_level.value.compare("debug")) {
+    } else if(!config.log_level.value.compare("debug")) {
       level = logger::eDebug;
     }
 
-    if(!config.system_log.value.compare("syslog")) {
+    if(!config.log_target.value.compare("syslog")) {
       logger::open(logger::eSyslog, level, RBX_PROGRAM_NAME);
-    } else if(!config.system_log.value.compare("console")) {
+    } else if(!config.log_target.value.compare("console")) {
       logger::open(logger::eConsoleLogger, level, RBX_PROGRAM_NAME);
     } else {
-      expand_config_value(config.system_log.value, "$TMPDIR", config.system_tmp);
-      expand_config_value(config.system_log.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
-      expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
+      expand_config_value(config.log_target.value, "$TMPDIR", config.tmp_path);
+      expand_config_value(config.log_target.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+      expand_config_value(config.log_target.value, "$USER", shared->username.c_str());
 
       logger::open(logger::eFileLogger, level,
-          config.system_log.value.c_str(),
-          config.system_log_limit.value,
-          config.system_log_archives.value,
-          config.system_log_access.value);
+          config.log_target.value.c_str(),
+          config.log_limit.value,
+          config.log_archives.value,
+          config.log_access.value);
     }
   }
 
@@ -347,7 +341,7 @@ namespace rubinius {
   }
 
   void Environment::set_tmp_path() {
-    if(!config.system_tmp.value.compare("$TMPDIR")) {
+    if(!config.tmp_path.value.compare("$TMPDIR")) {
       std::ostringstream path;
       const char* tmp = getenv("TMPDIR");
 
@@ -358,7 +352,7 @@ namespace rubinius {
         path << "/tmp/";
       }
 
-      config.system_tmp.value.assign(path.str());
+      config.tmp_path.value.assign(path.str());
     }
   }
 
@@ -369,32 +363,27 @@ namespace rubinius {
   }
 
   void Environment::set_pid() {
-    std::ostringstream pid;
-    pid << getpid();
-    shared->pid.assign(pid.str());
+    shared->pid.assign(std::to_string(getpid()));
   }
 
   void Environment::set_console_path() {
-    std::string path(config.system_console_path.value);
+    std::string path(config.console_path.value);
 
-    expand_config_value(path, "$TMPDIR", config.system_tmp);
+    expand_config_value(path, "$TMPDIR", config.tmp_path);
     expand_config_value(path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
     expand_config_value(path, "$USER", shared->username.c_str());
 
-    config.system_console_path.value.assign(path);
+    config.console_path.value.assign(path);
   }
 
   void Environment::set_codedb_paths() {
-    std::string core_path(config.codedb_core_path.value);
-    std::string runtime_path(system_prefix() + RBX_RUNTIME_PATH);
-
-    expand_config_value(core_path, "$RUNTIME", runtime_path.c_str());
-
-    config.codedb_core_path.value.assign(core_path);
+    if(config.codedb_core_path.value.size() == 0) {
+      config.codedb_core_path.value.assign(system_prefix() + RBX_CODEDB_PATH);
+    }
 
     std::string cache_path(config.codedb_cache_path.value);
 
-    expand_config_value(cache_path, "$TMPDIR", config.system_tmp);
+    expand_config_value(cache_path, "$TMPDIR", config.tmp_path);
     expand_config_value(cache_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
     expand_config_value(cache_path, "$USER", shared->username.c_str());
 
@@ -483,92 +472,59 @@ namespace rubinius {
     config_parser.import_many(str);
   }
 
-  void Environment::run_file(STATE, std::string file) {
-    std::ifstream stream(file.c_str());
-    if(!stream) {
-      std::string msg = std::string("Unable to open file to run: ");
-      msg.append(file);
-      throw std::runtime_error(msg);
-    }
-
-    CompiledFile* cf = CompiledFile::load(state, stream);
-    if(cf->magic != "!RBIX") {
-      std::ostringstream msg;
-      msg << "attempted to open a bytecode file with invalid magic identifier"
-          << ": path: " << file << ", magic: " << cf->magic;
-      throw std::runtime_error(msg.str().c_str());
-    }
-    if((signature_ > 0 && cf->signature != signature_)) {
-      throw BadKernelFile(file);
-    }
-
-    cf->execute(state);
-
-    if(state->vm()->thread_state()->raise_reason() == cException) {
-      Exception* exc = as<Exception>(state->vm()->thread_state()->current_exception());
-      std::ostringstream msg;
-
-      msg << "exception detected at toplevel: ";
-      if(!exc->reason_message()->nil_p()) {
-        if(String* str = try_as<String>(exc->reason_message())) {
-          msg << str->c_str(state);
-        } else {
-          msg << "<non-string Exception message>";
-        }
-      } else if(Exception::argument_error_p(state, exc)) {
-        msg << "given "
-            << as<Fixnum>(exc->get_ivar(state, state->symbol("@given")))->to_native()
-            << ", expected "
-            << as<Fixnum>(exc->get_ivar(state, state->symbol("@expected")))->to_native();
-      }
-      msg << " (" << exc->klass()->debug_str(state) << ")";
-      std::cout << msg.str() << "\n";
-      exc->print_locations(state);
-      Assertion::raise(msg.str().c_str());
-    }
-
-    delete cf;
-  }
-
-  void Environment::after_exec(STATE) {
-    halt_lock_.init();
-  }
-
   void Environment::after_fork_child(STATE) {
-    fork_exec_lock_.init();
-    halt_lock_.init();
+    fork_exec_lock_.unlock();
+    halt_lock_.try_lock();
+    halt_lock_.unlock();
 
     set_pid();
 
     restart_logging(state);
   }
 
+  void Environment::missing_core(const char* message) {
+    std::cerr << std::endl;
+    std::cerr << message << std::endl << std::endl;
+    std::cerr << "Rubinius was configured to find the directories relative to:" << std::endl;
+    std::cerr << std::endl << "  " << RBX_PREFIX_PATH << std::endl << std::endl;
+    std::cerr << "Set the environment variable RBX_PREFIX_PATH to the directory";
+    std::cerr << std::endl;
+    std::cerr << "that is the prefix of the following runtime directories:" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "      BIN_PATH: " << RBX_BIN_PATH << std::endl;
+    std::cerr << "  RUNTIME_PATH: " << RBX_RUNTIME_PATH << std::endl;
+    std::cerr << "   CODEDB_PATH: " << RBX_CODEDB_PATH << std::endl;
+    std::cerr << "     CORE_PATH: " << RBX_CORE_PATH << std::endl;
+    std::cerr << "      LIB_PATH: " << RBX_LIB_PATH << std::endl;
+    std::cerr << "     SITE_PATH: " << RBX_SITE_PATH << std::endl;
+    std::cerr << "   VENDOR_PATH: " << RBX_VENDOR_PATH << std::endl;
+    std::cerr << "     GEMS_PATH: " << RBX_GEMS_PATH << std::endl;
+    std::cerr << std::endl;
+
+    exit(1);
+  }
+
   void Environment::halt(STATE, int exit_code) {
-    utilities::thread::Mutex::LockGuard guard(halt_lock_);
+    std::lock_guard<std::mutex> guard(halt_lock_);
 
     state->shared().set_halting();
 
-    if(state->shared().config.system_log_lifetime.value) {
-      logger::write("process: exit: %s %d %fs",
-          shared->pid.c_str(), exit_code, shared->run_time());
+    if(state->shared().config.log_lifetime.value) {
+      logger::write("process: exit: %s %d %lld %fs %fs",
+          shared->pid.c_str(), exit_code,
+          shared->codedb_metrics()->load_count,
+          timer::elapsed_seconds(shared->codedb_metrics()->load_ns),
+          shared->run_time());
     }
 
-    if(Memory* om = state->memory()) {
-      if(memory::ImmixMarker* im = om->immix_marker()) {
-        im->stop(state);
-      }
-    }
+    shared->machine_threads()->shutdown(state);
 
-    {
-      UnmanagedPhase unmanaged(state);
-      shared->machine_threads()->shutdown(state);
-    }
+    shared->thread_nexus()->halt(state, state->vm());
 
-    shared->finalizer()->dispose(state);
+    shared->collector()->dispose(state);
+    shared->collector()->finish(state);
 
-    shared->thread_nexus()->lock(state, state->vm());
-
-    shared->finalizer()->finish(state);
+    if(!G(coredb)->nil_p()) G(coredb)->close(state);
 
     NativeMethod::cleanup_thread(state);
 
@@ -581,23 +537,23 @@ namespace rubinius {
    * Loads the runtime core library files stored in runtime/core. This method
    * is called after the VM has completed bootstrapping, and is ready to load
    * Ruby code.
-   *
-   * @param root The path to the /runtime directory. All core library loading
-   *             is relative to this path.
    */
-  void Environment::load_core(STATE, std::string root) {
+  void Environment::load_core(STATE) {
     try {
-      if(CodeDB::valid_database_p(state, config.codedb_core_path.value)) {
-        logger::write("codedb: loading: %s", config.codedb_core_path.value.c_str());
-        CodeDB::open(state, config.codedb_core_path.value.c_str());
-      } else {
-        std::string core = root + "/core";
-
-        logger::write("codedb: loading: %s", core.c_str());
-        CodeDB::open(state, core.c_str());
-      }
+      CodeDB::open(state,
+          config.codedb_core_path.value,
+          config.codedb_cache_path.value);
     } catch(RubyException& exc) {
       exc.show(state);
+      exit(1);
+    } catch(Assertion& exc) {
+      exc.print_backtrace();
+      exit(1);
+    } catch(TypeError& exc) {
+      exc.print_backtrace();
+      exit(1);
+    } catch(...) {
+      std::cout << "Unknown C++ exception loading CodeDB" << std::endl;
       exit(1);
     }
   }
@@ -644,41 +600,32 @@ namespace rubinius {
     return argv_[0];
   }
 
-  bool Environment::load_signature(std::string runtime) {
-    std::string path = runtime;
-
-    path += "/signature";
-
-    std::ifstream signature(path.c_str());
-    if(signature) {
-      signature >> signature_;
-
-      if(signature_ != RBX_SIGNATURE) return false;
-
-      signature.close();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool Environment::verify_paths(std::string prefix) {
+  bool Environment::verify_paths(std::string prefix, std::string& failure_reason) {
     struct stat st;
 
-    std::string dir = prefix + RBX_RUNTIME_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    std::string codedb = prefix + RBX_CODEDB_PATH;
+    if(stat(codedb.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
+      failure_reason.assign("the CodeDB path is invalid: ").append(codedb);
+      return false;
+    }
 
-    if(!load_signature(dir)) return false;
+    std::string cache = codedb + "/cache";
+    if(stat(cache.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) {
+      failure_reason.assign("the CodeDB cache path is invalid: ").append(cache);
+      return false;
+    }
 
-    dir = prefix + RBX_BIN_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    std::string source = codedb + "/source";
+    if(stat(source.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
+      failure_reason.assign("the CodeDB source path is invalid: ").append(source);
+      return false;
+    }
 
-    dir = prefix + RBX_CORE_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
-
-    dir = prefix + RBX_LIB_PATH;
-    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+    std::string bin = prefix + RBX_BIN_PATH;
+    if(stat(bin.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
+      failure_reason.assign("the bin path is invalid: ").append(bin);
+      return false;
+    }
 
     return true;
   }
@@ -686,16 +633,18 @@ namespace rubinius {
   std::string Environment::system_prefix() {
     if(!system_prefix_.empty()) return system_prefix_;
 
+    std::string failure_reason;
+
     // 1. Check if our configure prefix is overridden by the environment.
     const char* path = getenv("RBX_PREFIX_PATH");
-    if(path && verify_paths(path)) {
+    if(path && verify_paths(path, failure_reason)) {
       system_prefix_ = path;
       return path;
     }
 
     // 2. Check if our configure prefix is valid.
     path = RBX_PREFIX_PATH;
-    if(verify_paths(path)) {
+    if(verify_paths(path, failure_reason)) {
       system_prefix_ = path;
       return path;
     }
@@ -707,30 +656,54 @@ namespace rubinius {
 
     if(exe != std::string::npos) {
       std::string prefix = name.substr(0, exe - strlen(RBX_BIN_PATH));
-      if(verify_paths(prefix)) {
+      if(verify_paths(prefix, failure_reason)) {
         system_prefix_ = prefix;
         return prefix;
       }
     }
 
-    throw MissingRuntime("FATAL ERROR: unable to find Rubinius runtime directories.");
+    std::string error("Unable to find Rubinius runtime directories: ");
+    error.append(failure_reason);
+
+    missing_core(error.c_str());
   }
 
   void Environment::boot() {
-    runtime_path_ = system_prefix() + RBX_RUNTIME_PATH;
-    load_platform_conf(runtime_path_);
+    state->shared().start_diagnostics(state);
 
-    shared->om = new Memory(state->vm(), *shared);
+    std::string codedb_path = system_prefix() + RBX_CODEDB_PATH;
+
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics()->platform_us);
+
+      load_platform_conf(codedb_path);
+    }
+
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics()->memory_us);
+
+      shared->om = new Memory(state);
+    }
 
     shared->set_initialized();
 
     state->vm()->managed_phase(state);
 
-    TypeInfo::auto_learn_fields(state);
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics()->fields_us);
 
-    state->vm()->bootstrap_ontology(state);
+      TypeInfo::auto_learn_fields(state);
+    }
 
-    start_finalizer(state);
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics()->ontology_us);
+
+      state->vm()->bootstrap_ontology(state);
+    }
 
     load_argv(argc_, argv_);
 
@@ -738,8 +711,16 @@ namespace rubinius {
     Thread* main = 0;
     OnStack<1> os(state, main);
 
-    main = Thread::create(state, state->vm(), Thread::main_thread);
-    main->start_thread(state, Thread::run);
+    {
+      timer::StopWatch<timer::microseconds> timer(
+          state->shared().boot_metrics()->main_thread_us);
+
+      main = Thread::create(state, state->vm(), Thread::main_thread);
+      main->start_thread(state, Thread::run);
+    }
+
+    // TODO: GC improve this
+    shared->om->collector()->start(state);
 
     VM* vm = SignalThread::new_vm(state);
     vm->set_stack_bounds(state->vm()->stack_size());

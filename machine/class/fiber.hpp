@@ -10,7 +10,7 @@
 #include "class/string.hpp"
 #include "class/thread.hpp"
 
-#include "instruments/timing.hpp"
+#include "diagnostics/timing.hpp"
 
 #include <stdint.h>
 #include <atomic>
@@ -42,6 +42,7 @@ namespace rubinius {
     attr_accessor(fiber_id, Fixnum);
     attr_accessor(source, String);
     attr_accessor(thread, Thread);
+    attr_accessor(value, Object);
 
   private:
     attr_field(start_time, uint64_t);
@@ -61,12 +62,13 @@ namespace rubinius {
       obj->locals(LookupTable::create(state));
       obj->pid(Fixnum::from(0));
       obj->stack_size(Fixnum::from(state->shared().config.machine_fiber_stack_size.value));
-      obj->thread_name(String::create(state, state->vm()->name().c_str()));
+      obj->thread_name(nil<String>());
       obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
       obj->source(nil<String>());
-      obj->thread(state->vm()->thread());
+      obj->thread(nil<Thread>());
+      obj->value(cNil);
       obj->start_time(get_current_time());
-      obj->vm(NULL);
+      obj->vm(nullptr);
       obj->invoke_context(state->vm());
       obj->restart_context(state->vm());
       obj->status(eCreated);
@@ -97,6 +99,8 @@ namespace rubinius {
     static Fixnum* s_count(STATE);
 
     bool root_p();
+
+    bool canceled_p();
 
     Status status() {
       return status_;

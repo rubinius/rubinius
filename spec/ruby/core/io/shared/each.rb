@@ -57,7 +57,7 @@ describe :io_each, :shared => true do
     describe "when no block is given" do
       it "returns an Enumerator" do
         enum = @io.send(@method)
-        enum.should be_an_instance_of(enumerator_class)
+        enum.should be_an_instance_of(Enumerator)
 
         enum.each { |l| ScratchPad << l }
         ScratchPad.recorded.should == IOSpecs.lines
@@ -78,6 +78,14 @@ describe :io_each, :shared => true do
       it "raises an ArgumentError" do
         # must pass block so Enumerator is evaluated and raises
         lambda { @io.send(@method, 0){} }.should raise_error(ArgumentError)
+      end
+    end
+
+    describe "when limit is positive" do
+      it "returns at most +limit+ bytes per iteration" do
+        @io.send(@method, 5) do |line|
+          line.size.should <= 5
+        end
       end
     end
   end

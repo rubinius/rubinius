@@ -160,9 +160,9 @@ function rbx_deploy_travis_binary {
   echo "Deploying Travis binary $(rbx_release_name) for $os_name..."
 
   if [[ $os_name == linux ]]; then
-    export RBX_BINARY_CONFIG='--llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8'
+    export RBX_BINARY_CONFIG='--llvm-config=llvm-config --cc=clang --cxx=clang++'
   elif [[ $os_name == osx ]]; then
-    export RBX_BINARY_CONFIG='--with-include-dir=$OPENSSL_DIR/include --with-lib-dir=$OPENSSL_DIR/lib --llvm-config=llvm-config-3.8 --cc=clang-3.8 --cxx=clang++-3.8'
+    export RBX_BINARY_CONFIG='--with-include-dir=$OPENSSL_DIR/include --with-lib-dir=$OPENSSL_DIR/lib'
   fi
 
   "$__dir__/package.sh" binary || fail "unable to build binary"

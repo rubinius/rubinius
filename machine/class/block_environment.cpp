@@ -21,6 +21,9 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 
+#include "diagnostics/machine.hpp"
+
+#include <algorithm>
 #include <iostream>
 
 namespace rubinius {
@@ -69,7 +72,7 @@ namespace rubinius {
       }
     }
 
-    state->vm()->metrics().machine.blocks_invoked++;
+    state->vm()->metrics()->blocks_invoked++;
 
     if(executor ptr = mcode->unspecialized) {
       return (*((BlockExecutor)ptr))(state, env, args, invocation);
@@ -289,7 +292,7 @@ namespace rubinius {
 
       native_int X;
 
-      const native_int ON = (X = MIN(O, E)) > 0 ? X : 0;
+      const native_int ON = (X = std::min(O, E)) > 0 ? X : 0;
       const native_int RN = (RP && (X = E - ON) > 0) ? X : 0;
       const native_int PI = H + O + (RP ? 1 : 0);
       const native_int KI = RP ? T : T - 1;
@@ -310,7 +313,7 @@ namespace rubinius {
 
       // optional arguments
       if(O > 0) {
-        for(; l < H + O && a < MIN(N, H + ON); l++, a++) {
+        for(; l < H + O && a < std::min(N, H + ON); l++, a++) {
           if(unlikely(kw_remainder && !RP && (a == N - 1))) {
             scope->set_local(l, kw_remainder);
           } else {
@@ -346,7 +349,7 @@ namespace rubinius {
 
       // post arguments
       if(P > 0) {
-        const native_int N_K = (X = MIN(N, N - K)) > 0 ? X : N;
+        const native_int N_K = (X = std::min(N, N - K)) > 0 ? X : N;
 
         for(l = PI; l < PI + P && a < N_K; l++, a++) {
           scope->set_local(l, args.get_argument(a));
@@ -392,18 +395,23 @@ namespace rubinius {
     if(!mod) mod = env->module();
 
     Object* block = cNil;
+    Symbol* name = nil<Symbol>();
+
     if(VariableScope* vs = env->top_scope()) {
-      if(!vs->nil_p()) block = vs->block();
+      if(!vs->nil_p()) {
+        block = vs->block();
+        name = vs->name();
+      }
     }
 
-    scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
+    scope->initialize(invocation.self, name, block, mod, mcode->number_of_locals);
     scope->set_parent(env->scope());
 
     if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
       if(state->vm()->thread_state()->raise_reason() == cNone) {
         Exception* exc =
-          Exception::make_argument_error(state, mcode->required_args, args.total(),
-                                         mcode->name());
+          Exception::make_argument_error(state,
+              mcode->required_args, args.total(), mcode->name().c_str());
         exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);
       }
@@ -412,13 +420,15 @@ namespace rubinius {
     }
 
     CallFrame* previous_frame = NULL;
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size);
+    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 
     call_frame->lexical_scope_ = invocation.lexical_scope;
 
-    call_frame->previous = NULL;
+    call_frame->previous = nullptr;
+    call_frame->return_value = nullptr;
+    call_frame->unwind = nullptr;
     call_frame->arguments = &args;
     call_frame->dispatch_data = env;
     call_frame->compiled_code = env->compiled_code();
@@ -456,13 +466,11 @@ namespace rubinius {
     return call(state, args);
   }
 
-  Object* BlockEnvironment::call_on_object(STATE,
-                                           Arguments& args, int flags)
-  {
+  Object* BlockEnvironment::call_on_object(STATE, Arguments& args, int flags) {
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(),
-                                       compiled_code()->name());
+            compiled_code()->name()->cpp_str(state).c_str());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -481,7 +489,7 @@ namespace rubinius {
     if(args.total() < 3) {
       Exception* exc =
         Exception::make_argument_error(state, 3, args.total(),
-                                       compiled_code()->name());
+            compiled_code()->name()->cpp_str(state).c_str());
       exc->locations(state, Location::from_call_stack(state));
       state->raise_exception(exc);
       return NULL;
@@ -540,7 +548,7 @@ namespace rubinius {
 
   Object* BlockEnvironment::of_sender(STATE) {
     if(NativeMethodFrame* nmf = state->vm()->get_call_frame(1)->native_method_frame()) {
-      return state->vm()->native_method_environment->get_object(nmf->block());
+      return MemoryHandle::object(nmf->block());
     }
 
     CallFrame* frame = state->vm()->get_ruby_frame(1);

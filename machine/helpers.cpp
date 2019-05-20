@@ -1,7 +1,6 @@
 #include "arguments.hpp"
 #include "memory.hpp"
 #include "call_frame.hpp"
-#include "global_cache.hpp"
 #include "helpers.hpp"
 #include "lookup_data.hpp"
 #include "object_utils.hpp"

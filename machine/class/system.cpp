@@ -1,6 +1,7 @@
 #include "arguments.hpp"
 
 #include "class/array.hpp"
+#include "class/autoload.hpp"
 #include "class/bignum.hpp"
 #include "class/block_environment.hpp"
 #include "class/channel.hpp"
@@ -23,13 +24,11 @@
 #include "class/variable_scope.hpp"
 
 #include "call_frame.hpp"
-#include "compiled_file.hpp"
 #include "configuration.hpp"
 #include "config_parser.hpp"
 #include "dtrace/dtrace.h"
 #include "environment.hpp"
 #include "memory/walker.hpp"
-#include "global_cache.hpp"
 #include "helpers.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
@@ -39,6 +38,8 @@
 #include "signal.hpp"
 #include "thread_phase.hpp"
 #include "windows_compat.h"
+
+#include "diagnostics/machine.hpp"
 
 #include "util/sha1.h"
 #include "util/timing.h"
@@ -129,34 +130,6 @@ namespace rubinius {
   }
 
 /* Primitives */
-  //
-  // HACK: remove this when performance is better and compiled_file.rb
-  // unmarshal_data method works.
-  Object* System::compiledfile_load(STATE, String* path,
-                                    Integer* signature, Integer* version)
-  {
-    std::ifstream stream(path->c_str(state));
-    if(!stream) {
-      return Primitives::failure();
-    }
-
-    CompiledFile* cf = CompiledFile::load(state, stream);
-    if(cf->magic != "!RBIX") {
-      delete cf;
-      return Primitives::failure();
-    }
-
-    uint64_t sig = signature->to_ulong_long();
-    if((sig > 0 && cf->signature != sig)) {
-      delete cf;
-      return Primitives::failure();
-    }
-
-    Object *body = cf->body(state);
-
-    delete cf;
-    return body;
-  }
 
   Object* System::yield_gdb(STATE, Object* obj) {
     obj->show(state);
@@ -393,28 +366,16 @@ namespace rubinius {
   }
 
   static int fork_exec(STATE, int errors_fd) {
-    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
-
-    state->shared().machine_threads()->before_fork_exec(state);
-    state->memory()->set_interrupt();
-
-    ThreadNexus::LockStatus status =
-      state->vm()->thread_nexus()->fork_lock(state, state->vm());
+    StopPhase locked(state);
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
     int pid = ::fork();
 
-    state->vm()->thread_nexus()->fork_unlock(status);
-
     if(pid == 0) {
       // We're in the child...
       state->vm()->after_fork_child(state);
-    } else if(pid > 0) {
-      // We're in the parent...
-      state->shared().machine_threads()->after_fork_exec_parent(state);
     }
 
     return pid;
@@ -451,9 +412,6 @@ namespace rubinius {
     if(pid == 0) {
       // in child
       close(errors[0]);
-
-      state->vm()->thread()->init_lock();
-      state->shared().machine_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       vm_spawn_setup(state, spawn_state);
@@ -502,7 +460,7 @@ namespace rubinius {
       }
       close(errors[1]);
 
-      /* Return saved errno to parent since bugs in the logger or other 
+      /* Return saved errno to parent since bugs in the logger or other
          code after the call to execvp could overwrite errno.
       */
       exit(exec_errno);
@@ -517,8 +475,8 @@ namespace rubinius {
 
       close(errors[1]);
 
-      if(state->shared().config.system_log_lifetime.value) {
-        const std::regex& filter = state->shared().config.system_log_filter();
+      if(state->shared().config.log_lifetime.value) {
+        const std::regex& filter = state->shared().config.log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: spawn: %d: %s, %s, %s:%d",
@@ -600,9 +558,6 @@ namespace rubinius {
     }
 
     if(pid == 0) {
-      state->vm()->thread()->init_lock();
-      state->shared().machine_threads()->after_fork_exec_child(state);
-
       close(errors[0]);
       close(output[0]);
 
@@ -650,8 +605,8 @@ namespace rubinius {
       close(errors[1]);
       close(output[1]);
 
-      if(state->shared().config.system_log_lifetime.value) {
-        const std::regex& filter = state->shared().config.system_log_filter();
+      if(state->shared().config.log_lifetime.value) {
+        const std::regex& filter = state->shared().config.log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: backtick: %d: %s, %s, %s:%d",
@@ -741,16 +696,15 @@ namespace rubinius {
   }
 
   Object* System::vm_exec(STATE, String* path, Array* args) {
-    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
+    StopPhase locked(state);
 
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
      */
     ExecCommand exe(state, path, args);
 
-    if(state->shared().config.system_log_lifetime.value) {
-      const std::regex& filter = state->shared().config.system_log_filter();
+    if(state->shared().config.log_lifetime.value) {
+      const std::regex& filter = state->shared().config.log_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         logger::write("process: exec: %s, %s, %s:%d", exe.command(),
@@ -762,11 +716,6 @@ namespace rubinius {
             state->vm()->name().c_str());
       }
     }
-
-    state->shared().machine_threads()->before_exec(state);
-
-    ThreadNexus::LockStatus status =
-      state->vm()->thread_nexus()->lock(state, state->vm());
 
     void* old_handlers[NSIG];
 
@@ -810,12 +759,6 @@ namespace rubinius {
 
       sigaction(i, &action, NULL);
     }
-
-    if(status == ThreadNexus::eLocked) {
-      state->vm()->thread_nexus()->unlock();
-    }
-
-    state->shared().machine_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::raise_errno_error(state, "execvp(2) failed", erno);
@@ -894,47 +837,50 @@ namespace rubinius {
     return NULL;
   }
 
-  Fixnum* System::vm_fork(STATE)
-  {
+  Fixnum* System::vm_fork(STATE) {
 #ifdef RBX_WINDOWS
     // TODO: Windows
     return force_as<Fixnum>(Primitives::failure());
 #else
-    state->vm()->thread_nexus()->waiting_phase(state, state->vm());
-    std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->process_mutex());
+    if(Fiber* fiber = state->vm()->fiber()) {
+      if(!fiber->nil_p() && !fiber->root_p()) {
+        Exception::raise_runtime_error(state, "fork() not allowed from Fiber");
+      }
+    }
 
-    state->shared().machine_threads()->before_fork(state);
-    state->memory()->set_interrupt();
+    int pid = -1;
 
-    ThreadNexus::LockStatus status =
-      state->vm()->thread_nexus()->fork_lock(state, state->vm());
+    {
+      StopPhase locked(state);
 
-    int pid = ::fork();
+      state->shared().machine_threads()->before_fork(state);
 
-    state->vm()->thread_nexus()->fork_unlock(status);
+      pid = ::fork();
 
-    if(pid > 0) {
-      // We're in the parent...
-      state->shared().machine_threads()->after_fork_parent(state);
+      if(pid > 0) {
+        // We're in the parent...
+        state->shared().machine_threads()->after_fork_parent(state);
 
-      if(state->shared().config.system_log_lifetime.value) {
-        const std::regex& filter = state->shared().config.system_log_filter();
+        if(state->shared().config.log_lifetime.value) {
+          const std::regex& filter = state->shared().config.log_filter();
 
-        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
-          logger::write("process: fork: child: %d, %s, %s:%d", pid,
-              state->vm()->name().c_str(),
-              call_frame->file(state)->cpp_str(state).c_str(),
-              call_frame->line(state));
-        } else {
-          logger::write("process: fork: child: %d, %s", pid,
-              state->vm()->name().c_str());
+          if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+            logger::write("process: fork: child: %d, %s, %s:%d", pid,
+                state->vm()->name().c_str(),
+                call_frame->file(state)->cpp_str(state).c_str(),
+                call_frame->line(state));
+          } else {
+            logger::write("process: fork: child: %d, %s", pid,
+                state->vm()->name().c_str());
+          }
         }
       }
-    } else if(pid == 0) {
+    }
+
+    if(pid == 0) {
       // We're in the child...
       state->vm()->after_fork_child(state);
 
-      state->vm()->thread()->init_lock();
       state->shared().after_fork_child(state);
       state->shared().machine_threads()->after_fork_child(state);
 
@@ -957,7 +903,8 @@ namespace rubinius {
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
     if(CBOOL(force) || state->shared().config.gc_honor_start) {
-      state->memory()->collect(state);
+      state->memory()->collector()->collect_requested(state,
+          "collector: request to collect from managed code");
     }
     return cNil;
   }
@@ -997,13 +944,9 @@ namespace rubinius {
   }
 
   Object* System::vm_reset_method_cache(STATE, Module* mod, Symbol* name) {
-
-    if(!state->vm()->global_cache()->has_seen(state, name)) return cTrue;
-
-    state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics().machine.cache_resets++;
+    state->vm()->metrics()->cache_resets++;
 
     return cTrue;
   }
@@ -1242,8 +1185,6 @@ namespace rubinius {
       mod->add_method(state, name, as<String>(method), cNil, scope);
     }
 
-    vm_reset_method_cache(state, mod, name);
-
     if(!cc) return method;
 
     if(Class* cls = try_as<Class>(mod)) {
@@ -1301,8 +1242,6 @@ namespace rubinius {
       mod->add_method(state, name, as<String>(method), cNil, scope);
     }
 
-    vm_reset_method_cache(state, mod, name);
-
     return method;
   }
 
@@ -1356,6 +1295,9 @@ namespace rubinius {
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
+    int total = 0;
+
+    /*
     memory::ObjectWalker walker(state->memory());
     memory::GCData gc_data(state->vm());
 
@@ -1364,20 +1306,19 @@ namespace rubinius {
 
     Object* obj = walker.next();
 
-    int total = 0;
-
-    bool disable = CBOOL(o_disable);
+    // bool disable = CBOOL(o_disable);
 
     while(obj) {
       if(CompiledCode* code = try_as<CompiledCode>(obj)) {
         if(MachineCode* mcode = code->machine_code()) {
-          mcode->deoptimize(state, code, disable);
+          // mcode->deoptimize(state, code, disable);
         }
         total++;
       }
 
       obj = walker.next();
     }
+    */
 
     return Integer::from(state, total);
   }
@@ -1493,35 +1434,6 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* System::vm_const_defined(STATE, Symbol* sym) {
-    ConstantMissingReason reason = vNonExistent;
-
-    Object* res = Helpers::const_get(state, sym, &reason);
-
-    if(reason != vFound) {
-      return Primitives::failure();
-    }
-
-    return res;
-  }
-
-  Object* System::vm_const_defined_under(STATE, Module* under, Symbol* sym,
-                                         Object* send_const_missing)
-  {
-    ConstantMissingReason reason = vNonExistent;
-
-    Object* res = Helpers::const_get_under(state, under, sym, &reason);
-    if(reason != vFound) {
-      if(send_const_missing->true_p()) {
-        res = Helpers::const_missing_under(state, under, sym);
-      } else {
-        res = Primitives::failure();
-      }
-    }
-
-    return res;
-  }
-
   Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self) {
     LookupData lookup(self, obj->lookup_begin(state), G(sym_public));
     Dispatch dispatch(sym);
@@ -1598,89 +1510,35 @@ retry:
   Object* System::vm_object_lock(STATE, Object* obj) {
     if(!obj->reference_p()) return Primitives::failure();
 
-    switch(obj->lock(state)) {
-    case eLocked:
-      return cTrue;
-    case eLockTimeout:
-    case eUnlocked:
-    case eLockError:
-      return Primitives::failure();
-    case eLockInterrupted:
-      {
-        Exception* exc = state->vm()->interrupted_exception();
-        assert(!exc->nil_p());
-        state->vm()->clear_interrupted_exception();
-        exc->locations(state, Location::from_call_stack(state));
-        state->raise_exception(exc);
-        return 0;
-      }
-    }
-
-    return cNil;
-  }
-
-  Object* System::vm_object_uninterrupted_lock(STATE, Object* obj) {
-    if(!obj->reference_p()) return Primitives::failure();
-
-retry:
-    switch(obj->lock(state, false)) {
-    case eLocked:
-      return cTrue;
-    case eLockInterrupted:
-      goto retry;
-    case eLockTimeout:
-    case eUnlocked:
-    case eLockError:
-      return Primitives::failure();
-    }
-
-    return cNil;
-  }
-
-  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time) {
-    if(!obj->reference_p()) return Primitives::failure();
-
-    switch(obj->lock(state, time->to_native())) {
-    case eLocked:
-      return cTrue;
-    case eLockTimeout:
-      return cFalse;
-    case eUnlocked:
-    case eLockError:
-      return Primitives::failure();
-    case eLockInterrupted:
-      {
-        Exception* exc = state->vm()->interrupted_exception();
-        assert(!exc->nil_p());
-        state->vm()->clear_interrupted_exception();
-        exc->locations(state, Location::from_call_stack(state));
-        state->raise_exception(exc);
-        return 0;
-      }
-      return 0;
-    }
+    obj->lock(state);
 
     return cNil;
   }
 
   Object* System::vm_object_trylock(STATE, Object* obj) {
     if(!obj->reference_p()) return Primitives::failure();
-    return RBOOL(obj->try_lock(state) == eLocked);
+
+    return RBOOL(obj->try_lock(state));
   }
 
   Object* System::vm_object_locked_p(STATE, Object* obj) {
     if(!obj->reference_p()) return cFalse;
+
     return RBOOL(obj->locked_p(state));
+  }
+
+  Object* System::vm_object_lock_owned_p(STATE, Object* obj) {
+    if(!obj->reference_p()) return cFalse;
+
+    return RBOOL(obj->lock_owned_p(state));
   }
 
   Object* System::vm_object_unlock(STATE, Object* obj) {
     if(!obj->reference_p()) return Primitives::failure();
 
-    if(obj->unlock(state) == eUnlocked) return cNil;
-    if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->vm()->thread_id() << " unlock failed]" << std::endl;
-    }
-    return Primitives::failure();
+    obj->unlock(state);
+
+    return cNil;
   }
 
   Object* System::vm_memory_barrier(STATE) {

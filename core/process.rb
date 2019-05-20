@@ -505,6 +505,8 @@ module Process
       @stopsig = stopsig
     end
 
+    private :initialize
+
     def exitstatus
       @status
     end

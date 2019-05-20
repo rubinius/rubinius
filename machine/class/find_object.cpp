@@ -10,6 +10,7 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 #include "class/system.hpp"
+#include "memory/collector.hpp"
 #include "memory/gc.hpp"
 #include "memory/walker.hpp"
 #include "memory.hpp"
@@ -96,7 +97,7 @@ namespace rubinius {
     }
 
     virtual bool perform(STATE, Object* obj) {
-      return obj->has_id(state) && obj->id(state) == id_;
+      return obj->object_id_p(state) && obj->object_id(state) == id_;
     }
 
     virtual Object* immediate() {
@@ -254,7 +255,7 @@ namespace rubinius {
   }
 
   Object* System::vm_find_object(STATE, Array* arg, Object* callable) {
-    Memory::GCInhibit inhibitor(state->memory());
+    memory::Collector::Inhibit inhibitor(state);
 
     // Support an aux mode, where callable is an array and we just append
     // objects to it rather than #call it.
@@ -301,7 +302,7 @@ namespace rubinius {
     memory::GCData gc_data(state->vm());
 
     {
-      LockPhase locked(state);
+      StopPhase locked(state);
       // Seed it with the root objects.
       walker.seed(gc_data);
     }

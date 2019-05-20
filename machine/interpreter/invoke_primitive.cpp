@@ -7,12 +7,13 @@ namespace rubinius {
       intptr_t count = argument(1);
 
       if(instructions::invoke_primitive(state, call_frame, literal, count)) {
-        call_frame->next_ip(instructions::data_invoke_primitive.width);
+        call_frame->next_ip(instructions::data_invoke_primitive.width
+            + instructions::data_unwind.width);
       } else {
-        call_frame->exception_ip();
+        call_frame->next_ip(instructions::data_invoke_primitive.width);
       }
 
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }

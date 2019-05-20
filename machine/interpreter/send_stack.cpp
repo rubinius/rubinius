@@ -7,12 +7,13 @@ namespace rubinius {
       intptr_t count = argument(1);
 
       if(instructions::send_stack(state, call_frame, literal, count)) {
-        call_frame->next_ip(instructions::data_send_stack.width);
+        call_frame->next_ip(instructions::data_send_stack.width
+            + instructions::data_unwind.width);
       } else {
-        call_frame->exception_ip();
+        call_frame->next_ip(instructions::data_send_stack.width);
       }
 
-      return ((Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
+      return ((instructions::Instruction)opcodes[call_frame->ip()])(state, call_frame, opcodes);
     }
   }
 }
