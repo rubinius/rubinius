@@ -92,27 +92,16 @@ namespace memory {
   }
 
   Object* MarkSweepGC::saw_object(void* parent, Object* child) {
+    ::abort();
     if(child->marked_p(memory_->mark())) return NULL;
     child->set_marked(memory_->mark());
 
     // Add the object to the mark stack, to be scanned later.
-    mark_stack_.add(parent, child);
+    // mark_stack_.add(parent, child);
     return NULL;
   }
 
-  void MarkSweepGC::after_marked() {
-    // TODO: diagnostics, metrics
-    // metrics::MetricsData& metrics = memory_->vm()->metrics();
-
-    // timer::StopWatch<timer::microseconds> timer(metrics.gc.large_sweep_us);
-
-    // Sweep up the garbage
-    sweep_objects();
-
-    mark_stack_.finish();
-  }
-
-  void MarkSweepGC::sweep_objects() {
+  void MarkSweepGC::sweep() {
     std::list<Object*>::iterator i;
 
     for(i = entries.begin(); i != entries.end();) {

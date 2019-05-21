@@ -145,10 +145,11 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      virtual void mark(Object* obj, memory::ObjectMark& mark);
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark);
+      virtual void mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f);
+      virtual void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f);
       virtual void populate_slot_locations();
       virtual void set_field(STATE, Object*, size_t, Object*);
+      virtual void visit_object(STATE, Object* o, std::function<void (STATE, Object*)> f);
       virtual Object* get_field(STATE, Object*, size_t);
     };
 

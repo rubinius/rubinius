@@ -13,6 +13,8 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 
+#include "memory/collector.hpp"
+
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #else
@@ -115,13 +117,13 @@ namespace rubinius {
 
     if(autorelease) {
       if(!set_finalizer) {
-        state->memory()->native_finalizer(state, this,
+        state->collector()->native_finalizer(state, this,
             (memory::FinalizerFunction)&Pointer::finalize);
         set_finalizer = true;
       }
     } else {
       if(set_finalizer) {
-        state->memory()->managed_finalizer(state, this, cNil);
+        state->collector()->managed_finalizer(state, this, cNil);
         set_finalizer = false;
       }
     }
@@ -538,6 +540,6 @@ namespace rubinius {
     }
   }
 
-  void Pointer::Info::mark(Object* obj, memory::ObjectMark& mark) {
+  void Pointer::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
   }
 }

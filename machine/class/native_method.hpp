@@ -46,9 +46,6 @@ namespace rubinius {
 
   public:   /* Interface methods */
 
-    /** GC marking for Objects behind VALUEs. */
-    void mark_handles(memory::ObjectMark& mark);
-
     diagnostics::MachineMetrics* metrics() {
       return metrics_;
     }

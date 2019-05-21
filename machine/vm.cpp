@@ -535,8 +535,177 @@ namespace rubinius {
     return variable_root_buffers();
   }
 
-  void VM::gc_scan(memory::GarbageCollector* gc) {
-    gc->walk_call_frame(call_frame_);
+  void VM::visit_objects(STATE, std::function<void (STATE, Object*)> f) {
+    CallFrame* frame = call_frame_;
+
+    while(frame) {
+      if(frame->lexical_scope_ &&
+          frame->lexical_scope_->reference_p()) {
+        f(state, frame->lexical_scope_);
+      }
+
+      if(frame->compiled_code && frame->compiled_code->reference_p()) {
+        f(state, frame->compiled_code);
+      }
+
+      if(frame->compiled_code) {
+        native_int stack_size = frame->compiled_code->stack_size()->to_native();
+        for(native_int i = 0; i < stack_size; i++) {
+          Object* obj = frame->stk[i];
+          if(obj && obj->reference_p()) {
+            f(state, obj);
+          }
+        }
+      }
+
+      if(frame->multiple_scopes_p() && frame->top_scope_) {
+        f(state, frame->top_scope_);
+      }
+
+      if(BlockEnvironment* env = frame->block_env()) {
+        f(state, env);
+      }
+
+      Arguments* args = frame->arguments;
+
+      if(!frame->inline_method_p() && args) {
+        f(state, args->recv());
+        f(state, args->block());
+
+        if(Tuple* tup = args->argument_container()) {
+          f(state, tup);
+        } else {
+          Object** ary = args->arguments();
+          for(uint32_t i = 0; i < args->total(); i++) {
+            f(state, ary[i]);
+          }
+        }
+      }
+
+      if(frame->scope && frame->compiled_code) {
+        StackVariables* scope = frame->scope;
+
+        f(state, scope->self());
+        f(state, scope->block());
+        f(state, scope->module());
+
+        int locals = frame->compiled_code->machine_code()->number_of_locals;
+        for(int i = 0; i < locals; i++) {
+          Object* local = scope->get_local(i);
+          if(local->reference_p()) {
+            f(state, local);
+          }
+        }
+
+        if(scope->last_match_ && scope->last_match_->reference_p()) {
+          f(state, scope->last_match_);
+        }
+
+        VariableScope* parent = scope->parent();
+        if(parent) {
+          f(state, parent);
+        }
+
+        VariableScope* heap = scope->on_heap();
+        if(heap) {
+          f(state, heap);
+        }
+      }
+
+      if(frame->return_value) {
+        f(state, frame->return_value);
+      }
+
+      frame = frame->previous;
+    }
+  }
+
+  void VM::gc_scan(STATE, std::function<Object* (STATE, void*, Object*)> f) {
+    // gc->walk_call_frame(call_frame_);
+    CallFrame* frame = call_frame_;
+
+    while(frame) {
+      if(frame->lexical_scope_ &&
+          frame->lexical_scope_->reference_p()) {
+        frame->lexical_scope_ =
+          (LexicalScope*)f(state, frame, frame->lexical_scope_);
+      }
+
+      if(frame->compiled_code && frame->compiled_code->reference_p()) {
+        frame->compiled_code = (CompiledCode*)f(state, frame, frame->compiled_code);
+      }
+
+      if(frame->compiled_code) {
+        native_int stack_size = frame->compiled_code->stack_size()->to_native();
+        for(native_int i = 0; i < stack_size; i++) {
+          Object* obj = frame->stk[i];
+          if(obj && obj->reference_p()) {
+            frame->stk[i] = f(state, frame, obj);
+          }
+        }
+      }
+
+      if(frame->multiple_scopes_p() && frame->top_scope_) {
+        frame->top_scope_ = (VariableScope*)f(state, frame, frame->top_scope_);
+      }
+
+      if(BlockEnvironment* env = frame->block_env()) {
+        frame->set_block_env((BlockEnvironment*)f(state, frame, env));
+      }
+
+      Arguments* args = frame->arguments;
+
+      if(!frame->inline_method_p() && args) {
+        args->set_recv(f(state, args, args->recv()));
+        args->set_block(f(state, args, args->block()));
+
+        if(Tuple* tup = args->argument_container()) {
+          args->update_argument_container((Tuple*)f(state, args, tup));
+        } else {
+          Object** ary = args->arguments();
+          for(uint32_t i = 0; i < args->total(); i++) {
+            ary[i] = f(state, args, ary[i]);
+          }
+        }
+      }
+
+      if(frame->scope && frame->compiled_code) {
+        // saw_variable_scope(frame, displace(frame->scope, offset));
+        StackVariables* scope = frame->scope;
+
+        scope->self_ = f(state, scope, scope->self());
+        scope->block_ = f(state, scope, scope->block());
+        scope->module_ = (Module*)f(state, scope, scope->module());
+
+        int locals = frame->compiled_code->machine_code()->number_of_locals;
+        for(int i = 0; i < locals; i++) {
+          Object* local = scope->get_local(i);
+          if(local->reference_p()) {
+            scope->set_local(i, f(state, scope, local));
+          }
+        }
+
+        if(scope->last_match_ && scope->last_match_->reference_p()) {
+          scope->last_match_ = f(state, scope, scope->last_match_);
+        }
+
+        VariableScope* parent = scope->parent();
+        if(parent) {
+          scope->parent_ = (VariableScope*)f(state, scope, parent);
+        }
+
+        VariableScope* heap = scope->on_heap();
+        if(heap) {
+          scope->on_heap_ = (VariableScope*)f(state, scope, heap);
+        }
+      }
+
+      if(frame->return_value) {
+        frame->return_value = f(state, frame, frame->return_value);
+      }
+
+      frame = frame->previous;
+    }
   }
 
   void VM::gc_verify(memory::GarbageCollector* gc) {

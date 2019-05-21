@@ -493,5 +493,5 @@ namespace rubinius {
     show(state, self, level);
   }
 
-  void Fixnum::Info::mark(Object* t, memory::ObjectMark& mark) { }
+  void Fixnum::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) { }
 }

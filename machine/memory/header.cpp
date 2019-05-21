@@ -14,6 +14,8 @@
 #include "class/fixnum.hpp"
 #include "class/thread.hpp"
 
+#include "memory/collector.hpp"
+
 #include "diagnostics/memory.hpp"
 
 #include <assert.h>
@@ -30,13 +32,13 @@ namespace rubinius {
 
   void MemoryHeader::track_reference(STATE) {
     if(reference_p()) {
-      state->memory()->track_reference(this);
+      state->collector()->add_reference(this);
     }
   }
 
-  void MemoryHeader::untrack_reference(STATE) {
+  void MemoryHeader::track_weakref(STATE) {
     if(reference_p()) {
-      state->memory()->untrack_reference(this);
+      state->collector()->add_weakref(this);
     }
   }
 

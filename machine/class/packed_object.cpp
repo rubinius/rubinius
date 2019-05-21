@@ -66,15 +66,14 @@ namespace rubinius {
     }
   }
 
-  void PackedObject::Info::mark(Object* obj, memory::ObjectMark& mark) {
+  void PackedObject::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
     PackedObject* po = static_cast<PackedObject*>(obj);
 
     size_t fields = to_fields(object_size(obj));
     Object** body = po->body_as_array();
 
     for(size_t i = 0; i < fields; i++) {
-      if(Object* tmp = mark.call(body[i])) {
-        mark.set(obj, &body[i], tmp);
+      if(Object* tmp = f(state, obj, body[i])) {
       }
     }
   }

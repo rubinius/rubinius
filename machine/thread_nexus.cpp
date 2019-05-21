@@ -75,6 +75,27 @@ namespace rubinius {
     vm->set_thread_phase(eManaged);
   }
 
+  void ThreadNexus::check_stop(STATE, VM* vm, std::function<void ()> process) {
+    if(lock_ == vm->thread_id()) return;
+
+    while(stop_p()) {
+      if(try_lock(vm)) {
+        wait_for_all(state, vm);
+
+#ifdef RBX_GC_STACK_CHECK
+        check_stack(state, vm);
+#endif
+
+        process();
+
+        unset_stop();
+        unlock(state, vm);
+      } else {
+        yield(state, vm);
+      }
+    }
+  }
+
   void ThreadNexus::unlock(STATE, VM* vm) {
     if(lock_ != vm->thread_id()) {
       std::ostringstream msg;

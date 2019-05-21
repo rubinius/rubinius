@@ -7,6 +7,8 @@
 #include "thread_nexus.hpp"
 #include "memory.hpp"
 
+#include "memory/collector.hpp"
+
 namespace rubinius {
   /**
    * Instantiation of an instance of this class causes Ruby execution on all

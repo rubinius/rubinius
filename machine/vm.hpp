@@ -4,7 +4,6 @@
 #include "missing/time.h"
 
 #include "globals.hpp"
-#include "memory/object_mark.hpp"
 #include "memory/managed.hpp"
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
@@ -503,7 +502,8 @@ namespace rubinius {
     void register_raise(STATE, Exception* exc);
     void register_kill(STATE);
 
-    void gc_scan(memory::GarbageCollector* gc);
+    void visit_objects(STATE, std::function<void (STATE, Object*)> f);
+    void gc_scan(STATE, std::function<Object* (STATE, void*, Object*)> f);
     void gc_verify(memory::GarbageCollector* gc);
   };
 }

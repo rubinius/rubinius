@@ -28,7 +28,6 @@
 #include "config_parser.hpp"
 #include "dtrace/dtrace.h"
 #include "environment.hpp"
-#include "memory/walker.hpp"
 #include "helpers.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
@@ -38,6 +37,9 @@
 #include "signal.hpp"
 #include "thread_phase.hpp"
 #include "windows_compat.h"
+
+#include "memory/collector.hpp"
+#include "memory/visitor.hpp"
 
 #include "diagnostics/machine.hpp"
 
@@ -1503,7 +1505,7 @@ retry:
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
     if(!obj->reference_p()) return cFalse;
-    state->memory()->managed_finalizer(state, obj, fin);
+    state->collector()->managed_finalizer(state, obj, fin);
     return cTrue;
   }
 

@@ -187,8 +187,8 @@ namespace rubinius {
     }
   }
 
-  void VariableScope::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void VariableScope::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    auto_mark(state, obj, f);
 
     VariableScope* vs = as<VariableScope>(obj);
 
@@ -198,7 +198,7 @@ namespace rubinius {
       size_t locals = vs->number_of_locals();
 
       for(size_t i = 0; i < locals; i++) {
-        if(Object* tmp = mark.call(ary[i])) {
+        if(Object* tmp = f(state, obj, ary[i])) {
           ary[i] = tmp;
         }
       }

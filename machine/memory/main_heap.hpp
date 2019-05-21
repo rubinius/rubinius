@@ -25,7 +25,7 @@ namespace rubinius {
       virtual ~MainHeap() { }
 
       void collect_start(STATE, GCData* data);
-      void collect_references(STATE, std::function<Object* (STATE, Object*)> f);
+      void collect_references(STATE, std::function<Object* (STATE, void*, Object*)> f);
       void collect_finish(STATE, GCData* data);
     };
   }

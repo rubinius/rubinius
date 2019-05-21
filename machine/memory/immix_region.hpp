@@ -11,7 +11,6 @@
 
 #include "memory/address.hpp"
 #include "memory/gc_alloc.hpp"
-#include "memory/mark_stack.hpp"
 
 namespace rubinius {
 namespace memory {
@@ -1069,7 +1068,6 @@ namespace memory {
     BlockAllocator block_allocator_;
 
     Describer desc;
-    MarkStack mark_stack_;
 
   public:
     GC()
@@ -1078,10 +1076,6 @@ namespace memory {
 
     Describer& describer() {
       return desc;
-    }
-
-    MarkStack& mark_stack() {
-      return mark_stack_;
     }
 
     BlockAllocator& block_allocator() {
@@ -1137,6 +1131,7 @@ namespace memory {
      * marking of an object, it calls back to ObjectDescriber to handle this.
      */
     Address mark_address_of_object(Address parent, Address child, ImmixAllocator& alloc, bool push = true) {
+      /* TODO: GC
       Address fwd = desc.forwarding_pointer(child);
 
       if(!fwd.is_null()) {
@@ -1148,9 +1143,11 @@ namespace memory {
       if(!desc.describer_mark_address(parent, child, mark_stack_, push)) {
         return child;
       }
+      */
 
       // Find the Block the address relates to
       Block* block = Block::from_address(child);
+      /* TODO: GC
       if(block->status() == cEvacuate && !desc.pinned(child)) {
         // Block is marked for evacuation, so copy the object to a new Block
         fwd = desc.copy(child, alloc);
@@ -1159,33 +1156,12 @@ namespace memory {
         child = fwd;
         block = Block::from_address(child);
       }
+      */
 
       // Mark the line(s) in the Block that this object occupies as in use
       block->mark_address_line_in_block(child, desc.size(child));
 
       return child;
-    }
-
-    /**
-     * Calls the Describer to scan from each of the Addresses in the mark stack.
-     */
-    bool process_mark_stack(ImmixAllocator& alloc, bool& exit) {
-      Marker<Describer> mark(this, alloc);
-
-      if(mark_stack_.empty()) return false;
-
-      // Use while() since mark_stack_ is modified as we walk it.
-      while(!mark_stack_.empty() && !exit) {
-#ifdef RBX_GC_STACK_CHECK
-        MarkStackEntry& entry = mark_stack_.get();
-        Address addr = entry.child();
-#else
-        Address addr = mark_stack_.get();
-#endif
-        desc.walk_pointers(addr, mark);
-      }
-
-      return !mark_stack_.empty();
     }
 
     /**

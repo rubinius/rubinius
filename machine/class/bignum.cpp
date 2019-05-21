@@ -1209,13 +1209,13 @@ namespace rubinius {
     return storage->raw_bytes();
   }
 
-  void Bignum::Info::mark(Object* obj, memory::ObjectMark& mark) {
+  void Bignum::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
     Bignum* big = force_as<Bignum>(obj);
 
     mp_int* n = big->mp_val();
     assert(MANAGED(n));
 
-    if(Object* tmp = mark.call(static_cast<Object*>(n->managed))) {
+    if(Object* tmp = f(state, big, static_cast<Object*>(n->managed))) {
       n->managed = reinterpret_cast<void*>(tmp);
       ByteArray* ba = force_as<ByteArray>(tmp);
       n->dp = OPT_CAST(mp_digit)ba->raw_bytes();

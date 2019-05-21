@@ -219,7 +219,7 @@ namespace rubinius {
     return ba->full_size();
   }
 
-  void ByteArray::Info::mark(Object* t, memory::ObjectMark& mark) {
+  void ByteArray::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
     // @todo implement
   }
 }

@@ -4,7 +4,6 @@
 #include "memory/address.hpp"
 #include "memory/immix_region.hpp"
 #include "memory/gc.hpp"
-#include "memory/mark_stack.hpp"
 
 #include "exception.hpp"
 #include "object_position.hpp"
@@ -84,14 +83,6 @@ namespace memory {
       Address update_pointer(Address addr);
 
       int size(Address addr);
-
-      /**
-       * Called when the GC object wishes to mark an object.
-       *
-       * @returns true if the object is not already marked, and in the Immix
-       * space; otherwise false.
-       */
-      bool describer_mark_address(Address parent, Address child, MarkStack& ms, bool push = true);
     };
 
     GC<ObjectDescriber> gc_;
@@ -112,7 +103,7 @@ namespace memory {
     virtual void scanned_object(Object*);
     void collect(GCData* data);
     void collect_finish(GCData* data);
-    void sweep(GCData* data);
+    void sweep(STATE, GCData* data);
 
     void walk_finalizers();
 
@@ -121,6 +112,14 @@ namespace memory {
   public: // Inline
     Memory* memory() {
       return memory_;
+    }
+
+    ExpandingAllocator& allocator() {
+      return allocator_;
+    }
+
+    GC<ObjectDescriber>& gc_object_describer() {
+      return gc_;
     }
 
     size_t& bytes_allocated() {
@@ -138,10 +137,6 @@ namespace memory {
     diagnostics::Immix* diagnostic() {
       return diagnostic_;
     }
-
-    bool process_mark_stack();
-    bool process_mark_stack(bool& exit);
-    MarkStack& mark_stack();
   };
 }
 }

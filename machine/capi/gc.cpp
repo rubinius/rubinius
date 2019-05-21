@@ -9,16 +9,16 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 
-static utilities::thread::ThreadData<memory::ObjectMark*> _current_mark;
+static utilities::thread::ThreadData<memory::CAPITracer*> _capi_tracer;
 
 namespace rubinius {
   namespace capi {
-    void set_current_mark(memory::ObjectMark* mark) {
-      _current_mark.set(mark);
+    void set_tracer(memory::CAPITracer* tracer) {
+      _capi_tracer.set(tracer);
     }
 
-    memory::ObjectMark* current_mark() {
-      return _current_mark.get();
+    memory::CAPITracer* get_tracer() {
+      return _capi_tracer.get();
     }
   }
 }
@@ -43,7 +43,7 @@ extern "C" {
       MemoryHandle* handle = MemoryHandle::from(ptr);
       Object* obj = handle->object();
       if(obj->reference_p()) {
-        obj = capi::current_mark()->call(obj);
+        obj = capi::get_tracer()->call(obj);
         if(obj) handle->object(obj);
       }
     }

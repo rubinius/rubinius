@@ -287,8 +287,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
    * change. Only the MemoryFlags word in the MemoryHeader is updated.
    */
 
-  struct MemoryHeader;
-
   struct MemoryHandle {
     enum HandleType {
       eUnknown,
@@ -1017,14 +1015,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void set_weakref(STATE) {
       if(!weakref_p()) {
         set(weakref_field);
-        track_reference(state);
-      }
-    }
-
-    void unset_weakref(STATE) {
-      if(weakref_p()) {
-        unset(weakref_field);
-        untrack_reference(state);
+        track_weakref(state);
       }
     }
 
@@ -1223,7 +1214,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     void track_reference(STATE);
-    void untrack_reference(STATE);
+    void track_weakref(STATE);
 
     MemoryHandle* memory_handle(STATE, Object* object) {
       while(true) {
@@ -1245,7 +1236,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         MemoryFlags nh = extended_flags(eh);
 
         if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-          track_reference(state);
+          add_reference(state);
           return eh->get_handle();
         }
 
@@ -1323,27 +1314,27 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           ExtendedHeader* hh = extended_header();
           uintptr_t refcount = referenced_field.get(hh->header);
 
-          if(refcount == 0) {
-            // TODO: MemoryHeader raise?
-            return refcount;
-          } else if(refcount < max_referenced()) {
-            eh = ExtendedHeader::create_copy(
-                referenced_field.set(hh->header, refcount - 1), hh);
-          } else {
-            if(uintptr_t rc = hh->get_referenced()) {
-              refcount = rc;
-
-              eh = ExtendedHeader::create_copy(hh->header, hh);
-              eh->set_referenced(refcount - 1);
+          if(refcount > 0) {
+            if(refcount < max_referenced()) {
+              eh = ExtendedHeader::create_copy(
+                  referenced_field.set(hh->header, refcount - 1), hh);
             } else {
-              eh = ExtendedHeader::create_referenced(hh->header, hh, refcount - 1);
+              if(uintptr_t rc = hh->get_referenced()) {
+                refcount = rc;
+
+                eh = ExtendedHeader::create_copy(hh->header, hh);
+                eh->set_referenced(refcount - 1);
+              } else {
+                eh = ExtendedHeader::create_referenced(hh->header, hh, refcount - 1);
+              }
             }
+          } else {
+            return refcount;
           }
 
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            if(refcount == 0) untrack_reference(state);
             return refcount - 1;
           }
 
@@ -1351,27 +1342,26 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         } else {
           unsigned int refcount = referenced_field.get(h);
 
-          if(refcount == 0) {
-            // TODO: MemoryHeader raise?
-            return refcount;
-          } else if(refcount < max_referenced()) {
-            MemoryFlags nh = referenced_field.set(h, refcount - 1);
+          if(refcount > 0) {
+            if(refcount < max_referenced()) {
+              MemoryFlags nh = referenced_field.set(h, refcount - 1);
 
-            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-              if(refcount == 0) track_reference(state);
-              return refcount - 1;
+              if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+                return refcount - 1;
+              }
+            } else {
+              ExtendedHeader* eh = ExtendedHeader::create_referenced(h, refcount - 1);
+
+              MemoryFlags nh = extended_flags(eh);
+
+              if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+                return refcount - 1;
+              }
+
+              eh->delete_header();
             }
           } else {
-            ExtendedHeader* eh = ExtendedHeader::create_referenced(h, refcount - 1);
-
-            MemoryFlags nh = extended_flags(eh);
-
-            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-              if(refcount == 0) track_reference(state);
-              return refcount - 1;
-            }
-
-            eh->delete_header();
+            return refcount;
           }
         }
       }

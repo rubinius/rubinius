@@ -118,6 +118,7 @@ namespace memory {
      * Marks the specified Object +obj+ as live.
      */
     Object* mark_object(void* parent, Object* child) {
+      ::abort();
       if(!child || !child->reference_p()) return child;
       Object* tmp = saw_object(parent, child);
       if(tmp) return tmp;
@@ -140,8 +141,6 @@ namespace memory {
 
     void reset_stats() {
     }
-
-    friend class ObjectMark;
   };
 }
 }

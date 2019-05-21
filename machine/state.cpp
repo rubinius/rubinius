@@ -26,4 +26,8 @@ namespace rubinius {
   Object* State::park_timed(STATE, struct timespec* ts) {
     return vm_->park_->park_timed(this, ts);
   }
+
+  memory::Collector* State::collector() {
+    return memory()->collector();
+  }
 }

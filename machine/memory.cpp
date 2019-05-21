@@ -12,9 +12,9 @@
 #include "capi/tag.hpp"
 
 #include "memory/code_resource.hpp"
+#include "memory/collector.hpp"
 #include "memory/mark_sweep.hpp"
 #include "memory/immix_collector.hpp"
-#include "memory/walker.hpp"
 
 #include "environment.hpp"
 
@@ -65,9 +65,8 @@ namespace rubinius {
     , main_heap_(new memory::MainHeap(state, immix_, mark_sweep_, code_manager_))
     , cycle_(0)
     , mark_(0x1)
+    , visit_mark_(0x1)
     , slab_size_(4096)
-    , references_lock_()
-    , references_set_()
     , shared_(state->shared())
     , vm_(state->vm())
     , last_object_id(1)
@@ -155,10 +154,6 @@ namespace rubinius {
   }
 
   /* Garbage collection */
-
-  memory::MarkStack& Memory::mature_mark_stack() {
-    return immix_->mark_stack();
-  }
 
   void Memory::add_type_info(TypeInfo* ti) {
     utilities::thread::SpinLock::LockGuard guard(shared_.type_info_lock());

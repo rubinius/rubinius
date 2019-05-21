@@ -152,7 +152,7 @@ namespace rubinius {
     class Info : public Executable::Info {
     public:
       BASIC_TYPEINFO(Executable::Info)
-      virtual void mark(Object* obj, memory::ObjectMark& mark);
+      virtual void mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f);
       virtual void show(STATE, Object* self, int level);
     };
 

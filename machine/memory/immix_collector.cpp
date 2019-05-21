@@ -80,19 +80,6 @@ namespace memory {
     return addr;
   }
 
-  bool ImmixGC::ObjectDescriber::describer_mark_address(
-      Address parent, Address child, MarkStack& ms, bool push)
-  {
-    Object* obj = child.as<Object>();
-
-    if(obj->marked_p(memory_->mark())) return false;
-    obj->set_marked(memory_->mark());
-
-    if(push) ms.add(parent.as<Object>(), obj);
-
-    return obj->region() != eLargeRegion;
-  }
-
   Object* ImmixGC::allocate(size_t bytes, bool& collect_now) {
     if(bytes > cMaxObjectSize) return 0;
 
@@ -112,6 +99,7 @@ namespace memory {
   }
 
   Object* ImmixGC::saw_object(void* parent, Object* child) {
+    ::abort();
 #ifdef ENABLE_OBJECT_WATCH
     if(watched_p(child)) {
       std::cout << "detected " << child << " during immix scanning.\n";
@@ -157,8 +145,6 @@ namespace memory {
   }
 
   void ImmixGC::collect_finish(GCData* data) {
-    process_mark_stack();
-
     ObjectArray* marked_set = memory_->swap_marked_set();
     for(ObjectArray::iterator oi = marked_set->begin();
         oi != marked_set->end();
@@ -178,6 +164,7 @@ namespace memory {
     //
     // We do this in a loop because the scanning might generate new entries
     // on the mark stack.
+    /* TODO: GC
     do {
       for(auto i = data->references().begin();
           i != data->references().end();)
@@ -210,6 +197,7 @@ namespace memory {
 
         ++i;
       }
+      */
 
       /* TODO: MemoryHandle
       for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator());
@@ -225,9 +213,10 @@ namespace memory {
           }
         }
       }
-      */
     } while(process_mark_stack());
+    */
 
+    /* TODO: GC
     if(Collector* collector = memory_->collector()) {
       std::lock_guard<std::mutex> guard(collector->list_mutex());
 
@@ -236,13 +225,14 @@ namespace memory {
 
       collector->list_condition().notify_one();
     }
+    */
 
     // Clear unreachable objects from the various remember sets
     unsigned int mark = memory_->mark();
     memory_->unremember_objects(mark);
   }
 
-  void ImmixGC::sweep(GCData* data) {
+  void ImmixGC::sweep(STATE, GCData* data) {
     // Copy marks for use in new allocations
     gc_.copy_marks();
 
@@ -258,6 +248,7 @@ namespace memory {
     unsigned int remembered = 0;
     */
 
+    /* TODO: GC
     for(auto i = data->references().begin();
         i != data->references().end();)
     {
@@ -292,9 +283,7 @@ namespace memory {
             if(obj->marked_p(data->mark())) {
               TypeInfo* ti = memory_->type_info[obj->type_id()];
 
-              // TODO: MemoryHeader get rid of this construct
-              ObjectMark mark(this);
-              ti->mark_weakref(obj, mark);
+              ti->update_weakref(state, obj);
             } else {
               i = data->references().erase(i);
               continue;
@@ -322,8 +311,9 @@ namespace memory {
 
       ++i;
     }
+    */
 
-    gc_.mark_stack().finish();
+    // gc_.mark_stack().finish();
 
     /* TODO: MemoryHeader
     std::cerr <<
@@ -365,19 +355,6 @@ namespace memory {
 
     allocator_.restart(diagnostic()->percentage,
         diagnostic()->total_bytes - diagnostic()->bytes);
-  }
-
-  bool ImmixGC::process_mark_stack() {
-    bool exit = false;
-    return gc_.process_mark_stack(allocator_, exit);
-  }
-
-  bool ImmixGC::process_mark_stack(bool& exit) {
-    return gc_.process_mark_stack(allocator_, exit);
-  }
-
-  MarkStack& ImmixGC::mark_stack() {
-    return gc_.mark_stack();
   }
 }
 }

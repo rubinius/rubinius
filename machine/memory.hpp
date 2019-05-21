@@ -14,7 +14,6 @@
 #include "class/object.hpp"
 
 #include "memory/code_manager.hpp"
-#include "memory/collector.hpp"
 #include "memory/immix_collector.hpp"
 #include "memory/main_heap.hpp"
 #include "memory/write_barrier.hpp"
@@ -28,7 +27,6 @@
 #include "shared_state.hpp"
 
 #include <functional>
-#include <unordered_set>
 
 class TestMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
@@ -48,6 +46,23 @@ namespace rubinius {
     class MainHeap;
     class MarkSweepGC;
     class Slab;
+
+    class CAPITracer {
+      State* state_;
+      std::function<Object* (STATE, Object*, Object*)> tracer_;
+
+    public:
+      CAPITracer(STATE, std::function<Object* (STATE, Object*, Object*)> f)
+        : state_(state)
+        , tracer_(f)
+      {
+      }
+      virtual ~CAPITracer() { }
+
+      Object* call(Object* obj) {
+        return tracer_(state_, 0, obj);
+      }
+    };
   }
 
   /**
@@ -95,6 +110,8 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
+    unsigned int visit_mark_;
+
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
     size_t slab_size_;
@@ -104,9 +121,6 @@ namespace rubinius {
 
     /// Condition variable used to manage lock contention
     utilities::thread::Condition contention_var_;
-
-    locks::spinlock_mutex references_lock_;
-    std::unordered_set<MemoryHeader*> references_set_;
 
     SharedState& shared_;
 
@@ -164,10 +178,6 @@ namespace rubinius {
       return collector_;
     }
 
-    std::unordered_set<MemoryHeader*>& references() {
-      return references_set_;
-    }
-
     unsigned int cycle() {
       return cycle_;
     }
@@ -184,19 +194,13 @@ namespace rubinius {
       mark_ ^= 0x3;
     }
 
-    void track_reference(MemoryHeader* object) {
-      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
-
-      references_set_.insert(object);
+    unsigned int visit_mark() const {
+      return visit_mark_;
     }
 
-    void untrack_reference(MemoryHeader* object ) {
-      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
-
-      references_set_.erase(object);
+    void rotate_visit_mark() {
+      visit_mark_ ^= 0x3;
     }
-
-    ObjectArray* weak_refs_set();
 
   public:
     Memory(STATE);
@@ -485,26 +489,6 @@ namespace rubinius {
     void memstats();
 
     ObjectPosition validate_object(Object* obj);
-
-    void native_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::Collector* f = this->collector()) {
-        f->native_finalizer(state, obj, func);
-      }
-    }
-
-    void extension_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::Collector* f = this->collector()) {
-        f->extension_finalizer(state, obj, func);
-      }
-    }
-
-    void managed_finalizer(STATE, Object* obj, Object* finalizer) {
-      if(memory::Collector* f = this->collector()) {
-        f->managed_finalizer(state, obj, finalizer);
-      }
-    }
-
-    memory::MarkStack& mature_mark_stack();
 
   public:
     friend class ::TestMemory;

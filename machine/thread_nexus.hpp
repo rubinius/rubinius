@@ -135,24 +135,7 @@ namespace rubinius {
     bool try_lock(VM* vm);
     bool try_lock_wait(STATE, VM* vm);
 
-    void check_stop(STATE, VM* vm, std::function<void ()> process) {
-      while(stop_p()) {
-        if(try_lock(vm)) {
-          wait_for_all(state, vm);
-
-#ifdef RBX_GC_STACK_CHECK
-        check_stack(state, vm);
-#endif
-
-          process();
-
-          unset_stop();
-          unlock(state, vm);
-        } else {
-          yield(state, vm);
-        }
-      }
-    }
+    void check_stop(STATE, VM* vm, std::function<void ()> process);
 
     void stop(STATE, VM* vm) {
       while(set_stop()) {

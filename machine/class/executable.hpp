@@ -134,9 +134,9 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
 
-      virtual void mark(Object* obj, memory::ObjectMark& mark);
+      virtual void mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f);
 
-      void mark_inliners(Object* obj, memory::ObjectMark& mark);
+      void mark_inliners(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f);
     };
 
     friend class Info;

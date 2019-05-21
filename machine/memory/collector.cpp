@@ -37,8 +37,8 @@ namespace rubinius {
       (*finalizer_)(state, object());
     }
 
-    void NativeFinalizer::mark(ImmixGC* gc) {
-      if(Object* fwd = gc->saw_object(0, object())) {
+    void NativeFinalizer::mark(STATE, MemoryTracer* tracer) {
+      if(Object* fwd = tracer->trace_object(state, 0, object())) {
         object(fwd);
       }
     }
@@ -89,8 +89,8 @@ namespace rubinius {
       }
     }
 
-    void ExtensionFinalizer::mark(ImmixGC* gc) {
-      if(Object* fwd = gc->saw_object(0, object())) {
+    void ExtensionFinalizer::mark(STATE, MemoryTracer* tracer) {
+      if(Object* fwd = tracer->trace_object(state, 0, object())) {
         object(fwd);
       }
     }
@@ -117,12 +117,12 @@ namespace rubinius {
       }
     }
 
-    void ManagedFinalizer::mark(ImmixGC* gc) {
-      if(Object* fwd = gc->saw_object(0, finalizer_)) {
+    void ManagedFinalizer::mark(STATE, MemoryTracer* tracer) {
+      if(Object* fwd = tracer->trace_object(state, 0, finalizer_)) {
         finalizer_ = fwd;
       }
 
-      if(Object* fwd = gc->saw_object(finalizer_, object())) {
+      if(Object* fwd = tracer->trace_object(state, finalizer_, object())) {
         object(fwd);
       }
     }
@@ -145,8 +145,12 @@ namespace rubinius {
 
     Collector::Collector(STATE)
       : worker_(nullptr)
-      , live_list_()
+      , finalizer_list_()
       , process_list_()
+      , references_set_()
+      , references_lock_()
+      , weakrefs_set_()
+      , weakrefs_lock_()
       , list_mutex_()
       , list_condition_()
       , finishing_(false)
@@ -156,7 +160,7 @@ namespace rubinius {
     }
 
     Collector::~Collector() {
-      if(!live_list_.empty()) {
+      if(!finalizer_list_.empty()) {
         logger::error("collector: destructed with remaining finalizer objects");
       }
 
@@ -219,7 +223,7 @@ namespace rubinius {
     }
 
     Collector::Worker::Worker(STATE, Collector* collector,
-        FinalizerObjects& list, std::mutex& lk, std::condition_variable& cond)
+        Finalizers& list, std::mutex& lk, std::condition_variable& cond)
       : MachineThread(state, "rbx.collector", MachineThread::eLarge)
       , collector_(collector)
       , process_list_(list)
@@ -308,7 +312,7 @@ namespace rubinius {
 
       std::lock_guard<std::mutex> guard(list_mutex());
 
-      for(FinalizerObjects::iterator i = process_list_.begin();
+      for(Finalizers::iterator i = process_list_.begin();
           i != process_list_.end();
           ++i)
       {
@@ -316,8 +320,8 @@ namespace rubinius {
         fo->dispose(state);
       }
 
-      for(FinalizerObjects::iterator i = live_list_.begin();
-          i != live_list_.end();
+      for(Finalizers::iterator i = finalizer_list_.begin();
+          i != finalizer_list_.end();
           ++i)
       {
         FinalizerObject* fo = *i;
@@ -338,9 +342,9 @@ namespace rubinius {
         state->shared().gc_metrics()->objects_finalized++;
       }
 
-      while(!live_list_.empty()) {
-        FinalizerObject* fo = live_list_.back();
-        live_list_.pop_back();
+      while(!finalizer_list_.empty()) {
+        FinalizerObject* fo = finalizer_list_.back();
+        finalizer_list_.pop_back();
 
         fo->finalize(state);
         delete fo;
@@ -352,17 +356,11 @@ namespace rubinius {
     void Collector::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
-      UnmanagedPhase unmanaged(state);
-      std::lock_guard<std::mutex> guard(list_mutex());
-
       add_finalizer(state, new NativeFinalizer(state, obj, func));
     }
 
     void Collector::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
-
-      UnmanagedPhase unmanaged(state);
-      std::lock_guard<std::mutex> guard(list_mutex());
 
       add_finalizer(state, new ExtensionFinalizer(state, obj, func));
     }
@@ -381,24 +379,26 @@ namespace rubinius {
        * This must be done during a managed phase even if it were not a
        * method send because it works with managed objects.
        */
-      std::lock_guard<std::mutex> guard(list_mutex());
-
-      for(FinalizerObjects::iterator i = live_list_.begin();
-          i != live_list_.end();
-          /* advance is handled in the loop */)
       {
-        FinalizerObject* fo = *i;
+        std::lock_guard<std::mutex> guard(list_mutex());
 
-        if(fo->match_p(state, obj, finalizer)) {
-          if(finalizer->nil_p()) {
-            i = live_list_.erase(i);
-            continue;
-          } else {
-            return;
+        for(Finalizers::iterator i = finalizer_list_.begin();
+            i != finalizer_list_.end();
+            /* advance is handled in the loop */)
+        {
+          FinalizerObject* fo = *i;
+
+          if(fo->match_p(state, obj, finalizer)) {
+            if(finalizer->nil_p()) {
+              i = finalizer_list_.erase(i);
+              continue;
+            } else {
+              return;
+            }
           }
-        }
 
-        ++i;
+          ++i;
+        }
       }
 
       if(finalizer->nil_p()) return;
@@ -412,35 +412,39 @@ namespace rubinius {
     }
 
     void Collector::add_finalizer(STATE, FinalizerObject* obj) {
-      live_list_.push_back(obj);
+      UnmanagedPhase unmanaged(state);
+      std::lock_guard<std::mutex> guard(list_mutex());
+
+      finalizer_list_.push_back(obj);
       state->shared().gc_metrics()->objects_queued++;
     }
 
-    void Collector::gc_scan(ImmixGC* gc, Memory* memory) {
-      for(FinalizerObjects::iterator i = live_list_.begin();
-          i != live_list_.end();
+    void Collector::trace_finalizers(STATE, MemoryTracer* tracer) {
+      // TODO: GC: investigate if this lock is necessary since this runs in a
+      // stopped world.
+      std::lock_guard<std::mutex> guard(state->memory()->collector()->list_mutex());
+
+      for(Finalizers::iterator i = finalizer_list_.begin();
+          i != finalizer_list_.end();
           /* advance is handled in the loop */)
       {
         FinalizerObject* fo = *i;
 
-        if(!fo->object()->marked_p(memory->mark())) {
+        if(!fo->object()->marked_p(state->memory()->mark())) {
           process_list_.push_back(*i);
-          i = live_list_.erase(i);
+          i = finalizer_list_.erase(i);
         } else {
-          // It's possible that the ManagedFinalizer finalizer is a GC root.
-          fo->mark(gc);
-
           ++i;
         }
       }
 
-      for(FinalizerObjects::iterator i = process_list_.begin();
+      for(Finalizers::iterator i = process_list_.begin();
           i != process_list_.end();
           ++i)
       {
         FinalizerObject* fo = *i;
 
-        fo->mark(gc);
+        fo->mark(state, tracer);
       }
     }
   }

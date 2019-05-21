@@ -17,6 +17,7 @@
 
 #include "diagnostics/machine.hpp"
 
+#include "memory/collector.hpp"
 #include "memory/gc.hpp"
 
 #include "dtrace/dtrace.h"
@@ -286,7 +287,7 @@ namespace rubinius {
     fiber->thread(state->vm()->thread());
     fiber->thread_name(state, String::create(state, state->vm()->name().c_str()));
 
-    state->memory()->native_finalizer(state, fiber,
+    state->collector()->native_finalizer(state, fiber,
         (memory::FinalizerFunction)&Fiber::finalize);
 
     if(state->shared().config.log_fiber_lifetime.value) {

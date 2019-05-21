@@ -1175,9 +1175,9 @@ namespace rubinius {
     return ret;
   }
 
-  void NativeFunction::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
-    mark_inliners(obj, mark);
+  void NativeFunction::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    auto_mark(state, obj, f);
+    // mark_inliners(obj, mark);
 
     NativeFunction* func = force_as<NativeFunction>(obj);
 
@@ -1185,42 +1185,37 @@ namespace rubinius {
       func->ffi_data()->set_mark();
 
       if(func->ffi_data()->callable) {
-        Object* tmp = mark.call(func->ffi_data()->callable);
+        Object* tmp = f(state, obj, func->ffi_data()->callable);
         if(tmp) {
           func->ffi_data()->callable = tmp;
-          mark.just_set(obj, tmp);
         }
       }
       for(size_t i = 0; i<func->ffi_data()->arg_count; i++) {
         FFIArgInfo* arg = &func->ffi_data()->args_info[i];
         if(arg->callback) {
-          Object* tmp = mark.call(arg->callback);
+          Object* tmp = f(state, obj, arg->callback);
           if(tmp) {
             arg->callback = force_as<NativeFunction>(tmp);
-            mark.just_set(obj, tmp);
           }
         }
         if(arg->enum_obj) {
-          Object* tmp = mark.call(arg->enum_obj);
+          Object* tmp = f(state, obj, arg->enum_obj);
           if(tmp) {
             arg->enum_obj = tmp;
-            mark.just_set(obj, tmp);
           }
         }
       }
       FFIArgInfo* arg = &func->ffi_data()->ret_info;
       if(arg->callback) {
-        Object* tmp = mark.call(arg->callback);
+        Object* tmp = f(state, obj, arg->callback);
         if(tmp) {
           arg->callback = force_as<NativeFunction>(tmp);
-          mark.just_set(obj, tmp);
         }
       }
       if(arg->enum_obj) {
-        Object* tmp = mark.call(arg->enum_obj);
+        Object* tmp = f(state, obj, arg->enum_obj);
         if(tmp) {
           arg->enum_obj = tmp;
-          mark.just_set(obj, tmp);
         }
       }
       func->ffi_data()->function = func;

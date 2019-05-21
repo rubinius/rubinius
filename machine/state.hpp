@@ -20,6 +20,7 @@ namespace rubinius {
   class VMThreadState;
 
   namespace memory {
+    class Collector;
     class ManagedThread;
   }
 
@@ -81,6 +82,8 @@ namespace rubinius {
     Memory* memory() {
       return shared_.memory();
     }
+
+    memory::Collector* collector();
 
     SharedState& shared() {
       return shared_;

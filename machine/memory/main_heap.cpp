@@ -4,6 +4,7 @@
 
 #include "memory.hpp"
 
+#include "memory/collector.hpp"
 #include "memory/immix_collector.hpp"
 #include "memory/main_heap.hpp"
 #include "memory/mark_sweep.hpp"
@@ -21,9 +22,9 @@ namespace rubinius {
       immix_->collect(data);
     }
 
-    void MainHeap::collect_references(STATE, std::function<Object* (STATE, Object*)> f) {
+    void MainHeap::collect_references(STATE, std::function<Object* (STATE, void*, Object*)> f) {
       for(Roots::Iterator i(state->globals().roots); i.more(); i.advance()) {
-        if(Object* fwd = f(state, i->get())) {
+        if(Object* fwd = f(state, 0, i->get())) {
           i->set(fwd);
         }
       }
@@ -38,7 +39,7 @@ namespace rubinius {
           ManagedThread* thr = (*i);
 
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
-            if(Object* fwd = f(state, ri->get())) {
+            if(Object* fwd = f(state, 0, ri->get())) {
               ri->set(fwd);
             }
           }
@@ -56,7 +57,7 @@ namespace rubinius {
               if(!cur) continue;
 
               if(cur->reference_p()) {
-                if(Object* tmp = f(state, cur)) {
+                if(Object* tmp = f(state, 0, cur)) {
                   *var = tmp;
                 }
               } else if(cur->handle_p()) {
@@ -79,7 +80,7 @@ namespace rubinius {
               Object* cur = buffer[idx];
 
               if(cur->reference_p()) {
-                if(Object* tmp = f(state, cur)) {
+                if(Object* tmp = f(state, 0, cur)) {
                   buffer[idx] = tmp;
                 }
               } else if(cur->handle_p()) {
@@ -89,24 +90,55 @@ namespace rubinius {
           }
 
           if(VM* vm = thr->as_vm()) {
-            vm->gc_scan(state->memory()->immix());
+            vm->gc_scan(state, f);
           }
 
           // scan(*i, false);
         }
       }
 
-      for(auto i = state->memory()->references().begin();
-          i != state->memory()->references().end();
+      // TODO: GC: maybe move this into tracer
+      for(auto i = state->collector()->references().begin();
+          i != state->collector()->references().end();
           ++i)
       {
-        if((*i)->reference_p()) {
-          if((*i)->object_p()) {
-            Object* obj = reinterpret_cast<Object*>(*i);
+        MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
 
-            if(Object* fwd = f(state, obj)) {
+        if(header->referenced() > 0) {
+          if(header->memory_handle_p()) {
+            MemoryHandle* handle = header->extended_header()->get_handle();
+
+            if(!header->marked_p(state->memory()->mark())) {
+              if(handle->cycles() < 3) {
+                if(header->object_p()) {
+                  Object* obj = reinterpret_cast<Object*>(header);
+
+                  if(Object* fwd = f(state, 0, obj)) {
+                    // TODO: MemoryHeader set new address
+                  }
+                } else if(header->data_p()) {
+                  // DataHeader* data = reinterpret_cast<DataHeader*>(header);
+                  // TODO: process data (not C-API Data) instances
+                }
+
+                handle->cycle();
+              } else if(handle->rdata_p()) {
+                Object* obj = reinterpret_cast<Object*>(header);
+
+                if(Object* fwd = f(state, 0, obj)) {
+                  // TODO: MemoryHeader set new address
+                }
+              }
+            }
+          } else if(header->object_p()) {
+            Object* obj = reinterpret_cast<Object*>(header);
+
+            if(Object* fwd = f(state, 0, obj)) {
               // TODO: MemoryHeader set new address
             }
+          } else if(header->data_p()) {
+            // DataHeader* data = reinterpret_cast<DataHeader*>(header);
+            // TODO: process data (not C-API Data) instances
           }
         }
       }
@@ -116,8 +148,8 @@ namespace rubinius {
       immix_->collect_finish(data);
 
       code_manager_.sweep();
-      immix_->sweep(data);
-      mark_sweep_->after_marked();
+      immix_->sweep(state, data);
+      mark_sweep_->sweep();
 
       state->shared().symbols.sweep(state);
 

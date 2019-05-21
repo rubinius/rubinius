@@ -61,13 +61,10 @@ namespace rubinius {
     return caches;
   }
 
-  void CallSite::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void CallSite::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    auto_mark(state, obj, f);
 
     CallSite* call_site = as<CallSite>(obj);
-
-    // TODO: pass State into GC!
-    VM* vm = VM::current();
 
     if(Cache* cache = call_site->cache()) {
       // Disable if call site is unstable for caching
@@ -77,7 +74,7 @@ namespace rubinius {
 
         call_site->delete_cache(cache);
 
-        vm->metrics()->inline_cache_disabled++;
+        state->vm()->metrics()->inline_cache_disabled++;
       } else {
         // Campact and possibly reset cache
         Cache* new_cache = cache->compact();
@@ -87,7 +84,7 @@ namespace rubinius {
           call_site->delete_cache(cache);
 
           if(new_cache) {
-            vm->metrics()->inline_cache_count++;
+            state->vm()->metrics()->inline_cache_count++;
           } else {
             call_site->executor(CallSite::dispatch_once);
           }
@@ -104,30 +101,26 @@ namespace rubinius {
       for(int32_t i = 0; i < cache->size(); i++) {
         Cache::Entry* entry = cache->entries(i);
 
-        if(Object* ref = mark.call(entry->receiver_class())) {
+        if(Object* ref = f(state, obj, entry->receiver_class())) {
           entry->receiver_class(as<Class>(ref));
-          mark.just_set(call_site, ref);
         }
 
-        if(Object* ref = mark.call(entry->prediction())) {
+        if(Object* ref = f(state, obj, entry->prediction())) {
           entry->prediction(as<Prediction>(ref));
-          mark.just_set(call_site, ref);
         }
 
-        if(Object* ref = mark.call(entry->module())) {
+        if(Object* ref = f(state, obj, entry->module())) {
           entry->module(as<Module>(ref));
-          mark.just_set(call_site, ref);
         }
 
-        if(Object* ref = mark.call(entry->executable())) {
+        if(Object* ref = f(state, obj, entry->executable())) {
           entry->executable(as<Executable>(ref));
-          mark.just_set(call_site, ref);
         }
 
-        if(vm->shared.profiler()->collecting_p()) {
+        if(state->vm()->shared.profiler()->collecting_p()) {
           if(CompiledCode* code = try_as<CompiledCode>(entry->executable())) {
-            if(code->machine_code()->sample_count > vm->shared.profiler()->sample_min()) {
-              vm->shared.profiler()->add_entry(call_site->serial(), call_site->ip(),
+            if(code->machine_code()->sample_count > state->vm()->shared.profiler()->sample_min()) {
+              state->vm()->shared.profiler()->add_entry(call_site->serial(), call_site->ip(),
                   code->machine_code()->serial(), entry->hits(),
                   entry->receiver_class()->name(), entry->module()->name());
             }

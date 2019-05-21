@@ -21,6 +21,8 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 
+#include "memory/collector.hpp"
+
 #include "util/utf8.h"
 
 #include <ctype.h>
@@ -594,8 +596,8 @@ namespace rubinius {
     return n;
   }
 
-  void Encoding::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void Encoding::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    auto_mark(state, obj, f);
 
     Encoding* enc_o = force_as<Encoding>(obj);
     if(!enc_o->managed()) return;
@@ -604,18 +606,16 @@ namespace rubinius {
     if(!enc) return;
 
     ByteArray* enc_ba = ByteArray::from_body(enc);
-    if(ByteArray* tmp_ba = force_as<ByteArray>(mark.call(enc_ba))) {
+    if(ByteArray* tmp_ba = force_as<ByteArray>(f(state, obj, enc_ba))) {
       enc_o->encoding(reinterpret_cast<OnigEncodingType*>(tmp_ba->raw_bytes()));
-      mark.just_set(obj, tmp_ba);
 
       enc = enc_o->encoding();
     }
 
     if(enc->name) {
       ByteArray* ba = ByteArray::from_body(const_cast<char*>(enc->name));
-      if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
+      if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
         enc->name = reinterpret_cast<const char*>(tmp->raw_bytes());
-        mark.just_set(obj, tmp);
       }
     }
   }
@@ -729,7 +729,7 @@ namespace rubinius {
 
     c->converter(NULL);
 
-    state->memory()->native_finalizer(state, c,
+    state->collector()->native_finalizer(state, c,
         (memory::FinalizerFunction)&Converter::finalize);
 
     return c;

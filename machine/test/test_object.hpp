@@ -5,6 +5,8 @@
 #include "class/object.hpp"
 #include "class/compact_lookup_table.hpp"
 
+#include "memory/collector.hpp"
+
 class TestObject : public CxxTest::TestSuite, public VMTest {
 public:
 
@@ -444,11 +446,11 @@ public:
   void test_get_handle() {
     Object* obj = state->memory()->new_object<Object>(state, G(object));
 
-    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 0);
+    TS_ASSERT_EQUALS(state->collector()->references().count(obj), 0);
 
     obj->get_handle(state);
 
-    TS_ASSERT_EQUALS(state->memory()->references().count(obj), 1);
+    TS_ASSERT_EQUALS(state->collector()->references().count(obj), 1);
   }
 
   Object* util_new_object() {

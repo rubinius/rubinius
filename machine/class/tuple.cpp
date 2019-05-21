@@ -298,12 +298,12 @@ namespace rubinius {
     return force_as<Tuple>(obj)->full_size();
   }
 
-  void Tuple::Info::mark(Object* obj, memory::ObjectMark& mark) {
+  void Tuple::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
     Tuple* tup = as<Tuple>(obj);
 
     for(native_int i = 0; i < tup->num_fields(); i++) {
-      if(Object* tmp = mark.call(tup->field[i])) {
-        mark.set(obj, &tup->field[i], tmp);
+      if(Object* tmp = f(state, obj, tup->field[i])) {
+        tup->field[i] = tmp;
       }
     }
   }
@@ -427,16 +427,16 @@ namespace rubinius {
     return val;
   }
 
-  void RTuple::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    Tuple* tup = as<Tuple>(obj);
+  void RTuple::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    RTuple* rtup = as<RTuple>(obj);
 
-    for(native_int i = 0; i < tup->num_fields(); i++) {
-      if(Object* tmp = mark.call(
-            MemoryHandle::object(reinterpret_cast<VALUE>(tup->field[i]))))
-      {
-        mark.set_value(obj, &tup->field[i], tmp);
+    VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);
+
+    for(native_int i = 0; i < rtup->num_fields(); i++) {
+      Object* slot = MemoryHandle::object(ptr[i]);
+      if(Object* moved = f(state, rtup, slot)) {
+        ptr[i] = MemoryHandle::value(moved);
       }
     }
   }
-
 }

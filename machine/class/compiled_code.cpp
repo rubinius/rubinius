@@ -22,7 +22,7 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 
-#include "memory/object_mark.hpp"
+#include "memory/collector.hpp"
 
 #include "diagnostics/profiler.hpp"
 #include "diagnostics/timing.hpp"
@@ -57,7 +57,7 @@ namespace rubinius {
     CompiledCode* code =
       state->memory()->new_object<CompiledCode>(state, as<Class>(self));
 
-    state->memory()->native_finalizer(state, code,
+    state->collector()->native_finalizer(state, code,
         (memory::FinalizerFunction)&CompiledCode::finalize);
 
     return code;
@@ -338,10 +338,10 @@ namespace rubinius {
     return cNil;
   }
 
-  void CompiledCode::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void CompiledCode::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    auto_mark(state, obj, f);
 
-    mark_inliners(obj, mark);
+    // mark_inliners(obj, mark);
 
     CompiledCode* code = as<CompiledCode>(obj);
     if(!code->machine_code()) return;
@@ -362,9 +362,8 @@ namespace rubinius {
     for(size_t i = 0; i < mcode->references_count(); i++) {
       if(size_t ip = mcode->references()[i]) {
         Object* ref = reinterpret_cast<Object*>(mcode->opcodes[ip]);
-        if(Object* updated_ref = mark.call(ref)) {
+        if(Object* updated_ref = f(state, obj, ref)) {
           mcode->opcodes[ip] = reinterpret_cast<intptr_t>(updated_ref);
-          mark.just_set(code, updated_ref);
         }
       }
     }

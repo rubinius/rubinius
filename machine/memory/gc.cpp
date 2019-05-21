@@ -5,7 +5,7 @@
 #include "memory.hpp"
 #include "machine_code.hpp"
 
-#include "memory/object_mark.hpp"
+#include "memory/collector.hpp"
 
 #include "class/class.hpp"
 #include "class/tuple.hpp"
@@ -31,7 +31,7 @@ namespace memory {
 
   GCData::GCData(VM* state)
     : roots_(state->globals().roots)
-    , references_(state->memory()->references())
+    , references_(state->memory()->collector()->references())
     , thread_nexus_(state->shared.thread_nexus())
     , mark_(state->memory()->mark())
   { }
@@ -56,6 +56,7 @@ namespace memory {
    * /param obj The Object to be scanned for references to other Objects.
    */
   void GarbageCollector::scan_object(Object* obj) {
+    ::abort();
 #ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during scan_object.\n";
@@ -104,10 +105,11 @@ namespace memory {
         }
       }
     } else {
-      TypeInfo* ti = memory_->type_info[obj->type_id()];
+      // TODO: GC
+      // TypeInfo* ti = memory_->type_info[obj->type_id()];
 
-      ObjectMark mark(this);
-      ti->mark(obj, mark);
+      // ObjectMark mark(this);
+      // ti->mark(obj, mark);
     }
   }
 
@@ -317,8 +319,9 @@ namespace memory {
     scan(thr->variable_root_buffers(), young_only);
     scan(thr->root_buffers(), young_only);
 
+    // TODO: GC
     if(VM* vm = thr->as_vm()) {
-      vm->gc_scan(this);
+      // vm->gc_scan(this);
     }
   }
 

@@ -18,7 +18,6 @@ namespace rubinius {
   class Module;
   class Executable;
   class Array;
-  class Object;
 
   /**
    *  Object is the basic Ruby object.
@@ -353,7 +352,7 @@ namespace rubinius {
         : TypeInfo(type)
       {}
 
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
+      virtual void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {}
     };
   };
 

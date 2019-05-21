@@ -821,8 +821,8 @@ namespace rubinius {
     return cNil;
   }
 
-  void Regexp::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void Regexp::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    auto_mark(state, obj, f);
 
     Regexp* reg_o = force_as<Regexp>(obj);
     for(int i = 0; i < cCachedOnigDatas; ++i) {
@@ -831,18 +831,16 @@ namespace rubinius {
 
       ByteArray* reg_ba = ByteArray::from_body(reg);
 
-      if(ByteArray* reg_tmp = force_as<ByteArray>(mark.call(reg_ba))) {
+      if(ByteArray* reg_tmp = force_as<ByteArray>(f(state, obj, reg_ba))) {
         reg_o->onig_data[i] = reinterpret_cast<regex_t*>(reg_tmp->raw_bytes());
-        mark.just_set(obj, reg_tmp);
         reg = reg_o->onig_data[i];
       }
 
       if(reg->p) {
         ByteArray* ba = ByteArray::from_body(reg->p);
 
-        if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
+        if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->p = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
         }
       }
 
@@ -850,37 +848,33 @@ namespace rubinius {
         int exact_size = reg->exact_end - reg->exact;
         ByteArray* ba = ByteArray::from_body(reg->exact);
 
-        if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
+        if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->exact = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
           reg->exact_end = reg->exact + exact_size;
-          mark.just_set(obj, tmp);
         }
       }
 
       if(reg->int_map) {
         ByteArray* ba = ByteArray::from_body(reg->int_map);
 
-        if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
+        if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->int_map = reinterpret_cast<int*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
         }
       }
 
       if(reg->int_map_backward) {
         ByteArray* ba = ByteArray::from_body(reg->int_map_backward);
 
-        if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
+        if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->int_map_backward = reinterpret_cast<int*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
         }
       }
 
       if(reg->repeat_range) {
         ByteArray* ba = ByteArray::from_body(reg->repeat_range);
 
-        if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
+        if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
         }
       }
     }

@@ -1,9 +1,9 @@
-#include "memory.hpp"
-#include "object_utils.hpp"
 #include "logger.hpp"
 #include "memory.hpp"
+#include "object_utils.hpp"
 #include "on_stack.hpp"
 
+#include "memory/collector.hpp"
 
 #include "class/data.hpp"
 #include "class/class.hpp"
@@ -36,7 +36,7 @@ namespace rubinius {
     data->internal(rdata);
 
     if(mark || free) {
-      state->memory()->extension_finalizer(state, data,
+      state->collector()->extension_finalizer(state, data,
           (memory::FinalizerFunction)&Data::finalize);
     }
 
@@ -64,7 +64,7 @@ namespace rubinius {
     data->internal(rdata);
 
     if(type->function.dmark || type->function.dfree) {
-      state->memory()->extension_finalizer(state, data,
+      state->collector()->extension_finalizer(state, data,
           (memory::FinalizerFunction)&Data::finalize);
     }
 
@@ -132,10 +132,10 @@ namespace rubinius {
     */
   }
 
-  void Data::Info::mark(Object* t, memory::ObjectMark& mark) {
-    auto_mark(t, mark);
+  void Data::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+    auto_mark(state, obj, f);
 
-    Data* data = force_as<Data>(t);
+    Data* data = force_as<Data>(obj);
 
     if(data->freed_p()) {
       logger::error("finalizer: Data mark called for already freed object");
@@ -145,13 +145,10 @@ namespace rubinius {
     Data::MarkFunctor marker = data->mark();
 
     if(marker) {
-      memory::ObjectMark* cur = capi::current_mark();
-      capi::set_current_mark(&mark);
+      memory::CAPITracer tracer(state, f);
+      capi::set_tracer(&tracer);
 
       (*marker)(data->data());
-
-      capi::set_current_mark(cur);
     }
   }
-
 }

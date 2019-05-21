@@ -6,6 +6,8 @@
 #include "class/fsevent.hpp"
 #include "class/string.hpp"
 
+#include "memory/collector.hpp"
+
 #include "logger.hpp"
 
 namespace rubinius {
@@ -34,7 +36,7 @@ namespace rubinius {
     if(fsevent->kq() < 0) {
       logger::error("%s: unable to create kqueue", strerror(errno));
     } else {
-      state->memory()->native_finalizer(state, fsevent,
+      state->collector()->native_finalizer(state, fsevent,
           (memory::FinalizerFunction)&FSEvent::finalize);
     }
 
@@ -83,7 +85,7 @@ namespace rubinius {
     if(fsevent->in() < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));
     } else {
-      state->memory()->native_finalizer(state, fsevent,
+      state->collector()->native_finalizer(state, fsevent,
           (memory::FinalizerFunction)&FSEvent::finalize);
     }
 
