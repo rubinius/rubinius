@@ -21,7 +21,7 @@
 #include "class/system.hpp"
 
 #include "diagnostics/codedb.hpp"
-#include "diagnostics/gc.hpp"
+#include "diagnostics/collector.hpp"
 #include "diagnostics/machine.hpp"
 #include "diagnostics/memory.hpp"
 #include "diagnostics/profiler.hpp"
@@ -42,7 +42,7 @@ namespace rubinius {
     , diagnostics_(nullptr)
     , boot_metrics_(new diagnostics::BootMetrics())
     , codedb_metrics_(new diagnostics::CodeDBMetrics())
-    , gc_metrics_(new diagnostics::GCMetrics())
+    , collector_metrics_(new diagnostics::CollectorMetrics())
     , memory_metrics_(new diagnostics::MemoryMetrics())
     , profiler_(new diagnostics::Profiler())
     , capi_constant_name_map_()
@@ -248,7 +248,7 @@ namespace rubinius {
 
       boot_metrics_->start_reporting(state);
       codedb_metrics_->start_reporting(state);
-      gc_metrics_->start_reporting(state);
+      collector_metrics_->start_reporting(state);
       memory_metrics_->start_reporting(state);
       profiler_->start_reporting(state);
     }

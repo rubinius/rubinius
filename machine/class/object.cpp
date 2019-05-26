@@ -782,12 +782,14 @@ namespace rubinius {
   }
 
   Object* Object::show(STATE, int level) {
+    /* TODO: GC
     if(reference_p() && !state->memory()->valid_object_p(this)) {
       std::ostringstream msg;
       msg << "bad object in show(): " << this;
 
       rubinius::warn(msg.str().c_str());
     }
+    */
 
     type_info(state)->show(state, this, level);
 

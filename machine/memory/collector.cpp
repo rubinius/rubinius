@@ -15,12 +15,12 @@
 #include "class/native_method.hpp"
 #include "class/call_site.hpp"
 
-#include "diagnostics/gc.hpp"
+#include "diagnostics/collector.hpp"
 #include "diagnostics/timing.hpp"
 
 #include "memory/collector.hpp"
+#include "memory/large_region.hpp"
 #include "memory/tracer.hpp"
-#include "memory/mark_sweep.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -211,7 +211,7 @@ namespace rubinius {
 
     void Collector::collect(STATE) {
       timer::StopWatch<timer::milliseconds> timerx(
-          state->shared().gc_metrics()->immix_stop_ms);
+          state->shared().collector_metrics()->first_region_stop_ms);
 
       stop_for_collection(state, [this, state]{
           MemoryTracer tracer(state, state->memory()->main_heap());
@@ -292,7 +292,7 @@ namespace rubinius {
             object->finalize(state);
             delete object;
 
-            state->shared().gc_metrics()->objects_finalized++;
+            state->shared().collector_metrics()->objects_finalized++;
           }
 
           state->vm()->thread_nexus()->yield(state, state->vm());
@@ -339,7 +339,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        state->shared().gc_metrics()->objects_finalized++;
+        state->shared().collector_metrics()->objects_finalized++;
       }
 
       while(!finalizer_list_.empty()) {
@@ -349,7 +349,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        state->shared().gc_metrics()->objects_finalized++;
+        state->shared().collector_metrics()->objects_finalized++;
       }
     }
 
@@ -416,7 +416,7 @@ namespace rubinius {
       std::lock_guard<std::mutex> guard(list_mutex());
 
       finalizer_list_.push_back(obj);
-      state->shared().gc_metrics()->objects_queued++;
+      state->shared().collector_metrics()->objects_queued++;
     }
 
     void Collector::trace_finalizers(STATE, MemoryTracer* tracer) {

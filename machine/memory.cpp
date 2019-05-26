@@ -13,8 +13,9 @@
 
 #include "memory/code_resource.hpp"
 #include "memory/collector.hpp"
-#include "memory/mark_sweep.hpp"
-#include "memory/immix_collector.hpp"
+#include "memory/immix.hpp"
+#include "memory/large_region.hpp"
+#include "memory/main_heap.hpp"
 
 #include "environment.hpp"
 
@@ -38,7 +39,7 @@
 
 #include "configuration.hpp"
 
-#include "diagnostics/gc.hpp"
+#include "diagnostics/collector.hpp"
 #include "diagnostics/memory.hpp"
 #include "diagnostics/profiler.hpp"
 #include "diagnostics/timing.hpp"
@@ -59,10 +60,8 @@ namespace rubinius {
   /* Memory methods */
   Memory::Memory(STATE)
     : collector_(new memory::Collector(state))
-    , mark_sweep_(new memory::MarkSweepGC(this, state->shared().config))
-    , immix_(new memory::ImmixGC(this))
     , code_manager_(&state->shared())
-    , main_heap_(new memory::MainHeap(state, immix_, mark_sweep_, code_manager_))
+    , main_heap_(new memory::MainHeap(state, code_manager_))
     , cycle_(0)
     , mark_(0x1)
     , visit_mark_(0x1)
@@ -89,17 +88,12 @@ namespace rubinius {
   }
 
   Memory::~Memory() {
-    mark_sweep_->free_objects();
-
-    // @todo free immix data
-
     for(size_t i = 0; i < LastObjectType; i++) {
       if(type_info[i]) delete type_info[i];
     }
 
-    delete immix_;
-    delete mark_sweep_;
-    /* delete young_; */
+    delete main_heap_;
+    main_heap_ = nullptr;
   }
 
   void Memory::after_fork_child(STATE) {
@@ -107,10 +101,11 @@ namespace rubinius {
     vm_ = state->vm();
   }
 
+  /* TODO: GC
   bool Memory::refill_slab(STATE, memory::Slab& slab) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
-    memory::Address addr = memory::Address::null(); /* young_->allocate_for_slab(slab_size_); */
+    memory::Address addr = memory::Address::null(); // young_->allocate_for_slab(slab_size_);
 
     diagnostics::MemoryMetrics* metrics = state->shared().memory_metrics();
     metrics->young_objects += slab.allocations();
@@ -126,7 +121,9 @@ namespace rubinius {
       return false;
     }
   }
+  */
 
+  /* TODO: GC
   bool Memory::valid_object_p(Object* obj) {
     if(obj->true_p()) {
       return true;
@@ -152,6 +149,7 @@ namespace rubinius {
 
     return false;
   }
+  */
 
   /* Garbage collection */
 
@@ -171,9 +169,9 @@ namespace rubinius {
     bool collect_flag = false;
 
     // TODO: check if immix_ needs to trigger GC
-    if(likely(obj = immix_->allocate(bytes, collect_flag))) {
-      shared().memory_metrics()->immix_objects++;
-      shared().memory_metrics()->immix_bytes += bytes;
+    if(likely(obj = main_heap_->first_region()->allocate(state, bytes, collect_flag))) {
+      shared().memory_metrics()->first_region_objects++;
+      shared().memory_metrics()->first_region_bytes += bytes;
 
       MemoryHeader::initialize(
           obj, state->vm()->thread_id(), eFirstRegion, type, false);
@@ -188,7 +186,7 @@ namespace rubinius {
 
     collect_flag = false;
 
-    if(likely(obj = mark_sweep_->allocate(bytes, collect_flag))) {
+    if(likely(obj = main_heap_->large_region()->allocate(state, bytes, collect_flag))) {
       shared().memory_metrics()->large_objects++;
       shared().memory_metrics()->large_bytes += bytes;
 
@@ -211,19 +209,19 @@ namespace rubinius {
     return type_info[obj->type_id()];
   }
 
+  /* TODO: GC
   ObjectPosition Memory::validate_object(Object* obj) {
     ObjectPosition pos;
 
-    /*
     pos = young_->validate_object(obj);
     if(pos != cUnknown) return pos;
-    */
 
     pos = immix_->validate_object(obj);
     if(pos != cUnknown) return pos;
 
     return mark_sweep_->validate_object(obj);
   }
+  */
 
   void Memory::add_code_resource(STATE, memory::CodeResource* cr) {
     utilities::thread::SpinLock::LockGuard guard(shared_.code_resource_lock());

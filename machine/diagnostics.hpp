@@ -17,12 +17,11 @@ namespace rubinius {
     class BootMetrics;
     class CodeDBMetrics;
     class CodeManager;
-    class GCMetrics;
+    class CollectorMetrics;
     class Handles;
     class Immix;
     class ExtendedHeader;
-    class MachineMetrics;
-    class MarkSweep;
+    class LargeRegion;
     class MachineMetrics;
     class Memory;
     class MemoryMetrics;

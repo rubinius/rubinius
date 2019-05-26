@@ -1,8 +1,6 @@
 #ifndef RBX_GC_SLAB_HPP
 #define RBX_GC_SLAB_HPP
 
-#include "memory/address.hpp"
-
 #include <stdint.h>
 #include <unistd.h>
 
@@ -21,13 +19,13 @@ namespace memory {
     size_t size_;
 
     /// Starting address of the memory slab
-    Address start_;
+    uintptr_t start_;
 
     /// Address of the last byte of the memory slab
-    Address end_;
+    uintptr_t end_;
 
     /// Current position to allocate from
-    Address current_;
+    uintptr_t current_;
 
     /// The number of allocations done
     size_t allocations_;
@@ -51,7 +49,7 @@ namespace memory {
      * Slabs are refilled when they are full, or when a young generation
      * garbage collection has been performed.
      */
-    void refill(Address start, size_t size) {
+    void refill(uintptr_t start, size_t size) {
       allocations_ = 0;
       size_ = size;
       start_ = start;
@@ -59,7 +57,7 @@ namespace memory {
       current_ = start_;
     }
 
-    Slab(Address start, size_t size)
+    Slab(uintptr_t start, size_t size)
       : allocations_(0)
     {
       refill(start, size);
@@ -78,12 +76,12 @@ namespace memory {
      * If insufficient free space is available, the allocation fails and 0
      * is returned.
      */
-    Address allocate(size_t bytes) {
+    uintptr_t allocate(size_t bytes) {
       // TODO: GC
       return 0;
 
-      Address addr = current_;
-      Address new_current = addr + bytes;
+      uintptr_t addr = current_;
+      uintptr_t new_current = addr + bytes;
 
       if(new_current >= end_) return 0;
 

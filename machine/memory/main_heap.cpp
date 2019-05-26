@@ -5,21 +5,36 @@
 #include "memory.hpp"
 
 #include "memory/collector.hpp"
-#include "memory/immix_collector.hpp"
+#include "memory/immix.hpp"
+#include "memory/large_region.hpp"
 #include "memory/main_heap.hpp"
-#include "memory/mark_sweep.hpp"
 
-#include "diagnostics/gc.hpp"
+#include "diagnostics/collector.hpp"
 
 namespace rubinius {
   namespace memory {
-    void MainHeap::collect_start(STATE, GCData* data) {
+    MainHeap::MainHeap(STATE, CodeManager& cm)
+      : Heap()
+      , first_region_(new Immix(state))
+      , large_region_(new LargeRegion(state))
+      , code_manager_(cm)
+    {
+    }
+
+    MainHeap::~MainHeap() {
+      delete large_region_;
+      large_region_ = nullptr;
+
+      delete first_region_;
+      first_region_ = nullptr;
+    }
+
+    void MainHeap::collect_start(STATE) {
       state->memory()->collect_cycle();
 
       code_manager_.clear_marks();
-      immix_->reset_stats();
 
-      immix_->collect(data);
+      first_region_->clear_marks();
     }
 
     void MainHeap::collect_references(STATE, std::function<Object* (STATE, void*, Object*)> f) {
@@ -144,19 +159,20 @@ namespace rubinius {
       }
     }
 
-    void MainHeap::collect_finish(STATE, GCData* data) {
-      immix_->collect_finish(data);
-
+    void MainHeap::collect_finish(STATE) {
       code_manager_.sweep();
-      immix_->sweep(state, data);
-      mark_sweep_->sweep();
+
+      first_region_->copy_marks();
+      first_region_->sweep_blocks();
+
+      large_region_->sweep(state);
 
       state->shared().symbols.sweep(state);
 
       state->memory()->rotate_mark();
 
-      diagnostics::GCMetrics* metrics = state->shared().gc_metrics();
-      metrics->immix_count++;
+      diagnostics::CollectorMetrics* metrics = state->shared().collector_metrics();
+      metrics->first_region_count++;
       metrics->large_count++;
     }
   }

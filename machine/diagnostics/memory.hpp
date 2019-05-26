@@ -111,13 +111,13 @@ namespace rubinius {
       }
     };
 
-    class MarkSweep : public Memory {
+    class LargeRegion : public Memory {
     public:
 
-      MarkSweep()
+      LargeRegion()
         : Memory()
       {
-        set_type("MarkSweepCollector");
+        set_type("LargeRegion");
       }
     };
 
@@ -133,11 +133,9 @@ namespace rubinius {
 
     class MemoryMetrics : public Diagnostic {
     public:
-      metric young_bytes;
-      metric young_objects;
-      metric immix_bytes;
-      metric immix_objects;
-      metric immix_chunks;
+      metric first_region_bytes;
+      metric first_region_objects;
+      metric first_region_chunks;
       metric large_bytes;
       metric large_objects;
       metric symbols;
@@ -160,11 +158,9 @@ namespace rubinius {
 
       MemoryMetrics()
         : Diagnostic()
-        , young_bytes(0)
-        , young_objects(0)
-        , immix_bytes(0)
-        , immix_objects(0)
-        , immix_chunks(0)
+        , first_region_bytes(0)
+        , first_region_objects(0)
+        , first_region_chunks(0)
         , large_bytes(0)
         , large_objects(0)
         , symbols(0)
@@ -189,11 +185,9 @@ namespace rubinius {
 
         rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
-        document_.AddMember("young_bytes", young_bytes, alloc);
-        document_.AddMember("young_objects", young_objects, alloc);
-        document_.AddMember("immix_bytes", immix_bytes, alloc);
-        document_.AddMember("immix_objects", immix_objects, alloc);
-        document_.AddMember("immix_chunks", immix_chunks, alloc);
+        document_.AddMember("first_region_bytes", first_region_bytes, alloc);
+        document_.AddMember("first_region_objects", first_region_objects, alloc);
+        document_.AddMember("first_region_chunks", first_region_chunks, alloc);
         document_.AddMember("large_bytes", large_bytes, alloc);
         document_.AddMember("large_objects", large_objects, alloc);
         document_.AddMember("symbols", symbols, alloc);
@@ -218,11 +212,9 @@ namespace rubinius {
       virtual void update() {
         Diagnostic::update();
 
-        document_["young_bytes"] = young_bytes;
-        document_["young_objects"] = young_objects;
-        document_["immix_bytes"] = immix_bytes;
-        document_["immix_objects"] = immix_objects;
-        document_["immix_chunks"] = immix_chunks;
+        document_["first_region_bytes"] = first_region_bytes;
+        document_["first_region_objects"] = first_region_objects;
+        document_["first_region_chunks"] = first_region_chunks;
         document_["large_bytes"] = large_bytes;
         document_["large_objects"] = large_objects;
         document_["symbols"] = symbols;

@@ -6,27 +6,29 @@
 
 namespace rubinius {
   namespace memory {
-    class ImmixGC;
-    class MarkSweepGC;
+    class Immix;
+    class LargeRegion;
 
     class MainHeap : public Heap {
-      ImmixGC* immix_;
-      MarkSweepGC* mark_sweep_;
+      Immix* first_region_;
+      LargeRegion* large_region_;
       CodeManager& code_manager_;
 
     public:
-      MainHeap(STATE, ImmixGC* immix, MarkSweepGC* ms, CodeManager& cm)
-        : Heap()
-        , immix_(immix)
-        , mark_sweep_(ms)
-        , code_manager_(cm)
-      {
-      }
-      virtual ~MainHeap() { }
+      MainHeap(STATE, CodeManager& cm);
+      virtual ~MainHeap();
 
-      void collect_start(STATE, GCData* data);
+      Immix* first_region() {
+        return first_region_;
+      }
+
+      LargeRegion* large_region() {
+        return large_region_;
+      }
+
+      void collect_start(STATE);
       void collect_references(STATE, std::function<Object* (STATE, void*, Object*)> f);
-      void collect_finish(STATE, GCData* data);
+      void collect_finish(STATE);
     };
   }
 }

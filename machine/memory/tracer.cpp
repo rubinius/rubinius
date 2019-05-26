@@ -4,15 +4,16 @@
 
 #include "memory.hpp"
 
+#include "memory/address.hpp"
 #include "memory/collector.hpp"
+#include "memory/immix.hpp"
+#include "memory/large_region.hpp"
 #include "memory/tracer.hpp"
 
 namespace rubinius {
   namespace memory {
     void MemoryTracer::trace_heap(STATE) {
-      GCData data(state->vm());
-
-      heap_->collect_start(state, &data);
+      heap_->collect_start(state);
 
       heap_->collect_references(state, [this](STATE, void* parent, Object* obj){
           return trace_object(state, parent, obj);
@@ -57,7 +58,7 @@ namespace rubinius {
         }
       }
 
-      heap_->collect_finish(state, &data);
+      heap_->collect_finish(state);
     }
 
     void MemoryTracer::trace_mark_stack(STATE) {
@@ -117,8 +118,8 @@ namespace rubinius {
           // TODO: GC
           break;
         case eFirstRegion:
-          copy = state->memory()->immix()->gc_object_describer().mark_address_of_object(
-              parent, child, state->memory()->immix()->allocator()).as<Object>();
+          copy = state->memory()->main_heap()->first_region()->mark_address_of_object(state,
+              parent, child, state->memory()->main_heap()->first_region()->allocator());
 
           break;
         case eSecondRegion:

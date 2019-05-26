@@ -17,7 +17,6 @@
 #include "class/system.hpp"
 
 #include "memory/collector.hpp"
-#include "memory/gc.hpp"
 #include "memory/visitor.hpp"
 
 namespace rubinius {

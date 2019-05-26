@@ -89,7 +89,7 @@ namespace rubinius {
     diagnostics::Diagnostics* diagnostics_;
     diagnostics::BootMetrics* boot_metrics_;
     diagnostics::CodeDBMetrics* codedb_metrics_;
-    diagnostics::GCMetrics* gc_metrics_;
+    diagnostics::CollectorMetrics* collector_metrics_;
     diagnostics::MemoryMetrics* memory_metrics_;
     diagnostics::Profiler* profiler_;
 
@@ -244,8 +244,8 @@ namespace rubinius {
       return codedb_metrics_;
     }
 
-    diagnostics::GCMetrics* gc_metrics() {
-      return gc_metrics_;
+    diagnostics::CollectorMetrics* collector_metrics() {
+      return collector_metrics_;
     }
 
     diagnostics::MemoryMetrics* memory_metrics() {

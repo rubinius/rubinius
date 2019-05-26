@@ -4,6 +4,7 @@
 
 #include "memory.hpp"
 
+#include "memory/address.hpp"
 #include "memory/collector.hpp"
 #include "memory/visitor.hpp"
 

@@ -5,8 +5,6 @@
 #include "environment.hpp"
 #include "thread_phase.hpp"
 
-#include "memory/gc.hpp"
-
 #include "object_utils.hpp"
 
 #include "class/array.hpp"
@@ -709,6 +707,8 @@ namespace rubinius {
   }
 
   void VM::gc_verify(memory::GarbageCollector* gc) {
+    /* TODO: GC
     gc->verify_call_frame(call_frame_);
+    */
   }
 };

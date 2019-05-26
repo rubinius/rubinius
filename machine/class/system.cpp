@@ -1299,7 +1299,7 @@ namespace rubinius {
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
     int total = 0;
 
-    /*
+    /* TODO: GC: use MemoryVisitor
     memory::ObjectWalker walker(state->memory());
     memory::GCData gc_data(state->vm());
 

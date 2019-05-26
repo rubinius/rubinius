@@ -5,8 +5,6 @@
 #include "class/class.hpp"
 #include "class/weakref.hpp"
 
-#include "memory/gc.hpp"
-
 namespace rubinius {
   void WeakRef::bootstrap(STATE) {
     GO(cls_weakref).set(Class::bootstrap_class(state, G(basicobject), WeakRefType));

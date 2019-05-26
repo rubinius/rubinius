@@ -18,7 +18,6 @@
 #include "diagnostics/machine.hpp"
 
 #include "memory/collector.hpp"
-#include "memory/gc.hpp"
 
 #include "dtrace/dtrace.h"
 

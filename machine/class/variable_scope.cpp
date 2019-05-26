@@ -9,8 +9,6 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 
-#include "memory/gc.hpp"
-
 namespace rubinius {
   void VariableScope::bootstrap(STATE) {
     GO(variable_scope).set(state->memory()->new_class<Class, VariableScope>(

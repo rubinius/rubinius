@@ -5,7 +5,6 @@
 #include "memory/header.hpp"
 
 #include "type_info.hpp"
-#include "object_position.hpp"
 #include "configuration.hpp"
 #include "spinlock.hpp"
 
@@ -14,7 +13,6 @@
 #include "class/object.hpp"
 
 #include "memory/code_manager.hpp"
-#include "memory/immix_collector.hpp"
 #include "memory/main_heap.hpp"
 #include "memory/write_barrier.hpp"
 
@@ -41,10 +39,7 @@ namespace rubinius {
 
   namespace memory {
     class Collector;
-    class GCData;
-    class ImmixGC;
     class MainHeap;
-    class MarkSweepGC;
     class Slab;
 
     class CAPITracer {
@@ -92,12 +87,6 @@ namespace rubinius {
     utilities::thread::SpinLock inflation_lock_;
 
     memory::Collector* collector_;
-
-    /// MarkSweepGC used for the large object store
-    memory::MarkSweepGC* mark_sweep_;
-
-    /// ImmixGC used for the mature generation
-    memory::ImmixGC* immix_;
 
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
@@ -160,14 +149,6 @@ namespace rubinius {
 
     memory::CodeManager& code_manager() {
       return code_manager_;
-    }
-
-    memory::ImmixGC* immix() {
-      return immix_;
-    }
-
-    memory::MarkSweepGC* mark_sweep() {
-      return mark_sweep_;
     }
 
     memory::MainHeap* main_heap() {
@@ -486,9 +467,9 @@ namespace rubinius {
     void add_type_info(TypeInfo* ti);
 
     void add_code_resource(STATE, memory::CodeResource* cr);
-    void memstats();
 
-    ObjectPosition validate_object(Object* obj);
+    // TODO: GC
+    // ObjectPosition validate_object(Object* obj);
 
   public:
     friend class ::TestMemory;
