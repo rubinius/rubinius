@@ -30,7 +30,7 @@ namespace rubinius {
       LargeRegion(STATE);
       virtual ~LargeRegion();
       void   free_objects();
-      Object* allocate(STATE, size_t bytes, bool& collect_now);
+      Object* allocate(STATE, size_t bytes);
       Object* move_object(Object* orig, size_t bytes, bool& collect_now);
       Object* copy_object(Object* obj, bool& collect_now);
       void   sweep(STATE);

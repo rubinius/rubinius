@@ -138,10 +138,9 @@ namespace rubinius {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = 0;
-    bool collect_flag = false;
 
     // TODO: check if immix_ needs to trigger GC
-    if(likely(obj = main_heap_->first_region()->allocate(state, bytes, collect_flag))) {
+    if(likely(obj = main_heap_->first_region()->allocate(state, bytes))) {
       shared().memory_metrics()->first_region_objects++;
       shared().memory_metrics()->first_region_bytes += bytes;
 
@@ -151,21 +150,9 @@ namespace rubinius {
       return obj;
     }
 
-    if(collect_flag) {
-      collector()->collect_requested(state,
-          "collector: immix triggered collection request");
-    }
-
-    collect_flag = false;
-
-    if(likely(obj = main_heap_->large_region()->allocate(state, bytes, collect_flag))) {
+    if(likely(obj = main_heap_->large_region()->allocate(state, bytes))) {
       shared().memory_metrics()->large_objects++;
       shared().memory_metrics()->large_bytes += bytes;
-
-      if(collect_flag) {
-        collector()->collect_requested(state,
-            "collector: large object space triggered collection request");
-      }
 
       MemoryHeader::initialize(
           obj, state->vm()->thread_id(), eLargeRegion, type, false);

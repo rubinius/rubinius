@@ -1,6 +1,7 @@
 #ifndef RBX_MEMORY_IMMIX_HPP
 #define RBX_MEMORY_IMMIX_HPP
 
+#include "memory/collector.hpp"
 #include "memory/gc_alloc.hpp"
 
 #include "diagnostics/collector.hpp"
@@ -824,7 +825,7 @@ namespace rubinius {
     class ImmixAllocator {
     public:
       virtual ~ImmixAllocator() {}
-      virtual Object* allocate(size_t bytes, bool& collect_now) = 0;
+      virtual Object* allocate(STATE, size_t bytes) = 0;
     };
 
 
@@ -850,12 +851,13 @@ namespace rubinius {
        * @returns the Address allocated, or a null address if no space is
        * available.
        */
-      Object* allocate(size_t size, bool& collect_now) {
+      Object* allocate(STATE, size_t size) {
         size = MemoryHeader::align(size);
 
         while(cursor_ + size > limit_) {
           if(!find_hole()) {
-            collect_now = true;
+          state->collector()->collect_requested(state,
+              "collector: immix triggered collection request");
             return nullptr;
           }
         }
@@ -958,7 +960,7 @@ namespace rubinius {
        * If unsuccessful at finding space in the current Block memory, a new
        * Block is obtained from the BlockAllocator.
        */
-      Object* allocate(size_t size, bool& collect_now) {
+      Object* allocate(STATE, size_t size) {
         size = MemoryHeader::align(size);
 
         if(size > cMediumObjectLimit) {
@@ -976,7 +978,8 @@ namespace rubinius {
           if(!find_hole()) {
             if(!get_block()) {
               collection_pending_ = true;
-              collect_now = true;
+              state->collector()->collect_requested(state,
+                  "collector: immix triggered collection request");
               return nullptr;
             }
           }
@@ -1031,8 +1034,8 @@ namespace rubinius {
         return block_allocator_.get_block();
       }
 
-      Object* allocate(STATE, size_t bytes, bool& collect_now) {
-        return allocator_.allocate(bytes, collect_now);
+      Object* allocate(STATE, size_t bytes) {
+        return allocator_.allocate(state, bytes);
       }
 
       void sweep(STATE) {

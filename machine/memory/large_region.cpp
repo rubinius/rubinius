@@ -1,9 +1,10 @@
-#include "memory/large_region.hpp"
 #include "memory.hpp"
-
 #include "object_utils.hpp"
-#include "state.hpp"
 #include "shared_state.hpp"
+#include "state.hpp"
+
+#include "memory/collector.hpp"
+#include "memory/large_region.hpp"
 
 #include "class/tuple.hpp"
 #include "class/string.hpp"
@@ -45,7 +46,7 @@ namespace rubinius {
       }
     }
 
-    Object* LargeRegion::allocate(STATE, size_t bytes, bool& collect_now) {
+    Object* LargeRegion::allocate(STATE, size_t bytes) {
       void* mem = malloc(bytes);
       if(!mem) return NULL;
 
@@ -61,9 +62,11 @@ namespace rubinius {
 
       next_collection_bytes -= bytes;
       if(next_collection_bytes < 0) {
-        state->memory()->shared().collector_metrics()->large_set++;
-        collect_now = true;
         next_collection_bytes = collection_threshold;
+
+        state->memory()->shared().collector_metrics()->large_set++;
+        state->collector()->collect_requested(state,
+            "collector: large object space triggered collection request");
       }
 
       return obj;
