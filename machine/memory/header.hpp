@@ -736,6 +736,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     static void bootstrap(STATE);
 
+    static size_t align(size_t bytes) {
+      return (bytes + (sizeof(MemoryHeader*) - 1)) & ~(sizeof(MemoryHeader*) - 1);
+    }
+
     void initialize(int thread_id, MemoryRegion region, object_type type, bool data) {
       MemoryFlags h = 0;
 
@@ -1385,10 +1389,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       MemoryHeader::initialize(obj, thread_id, region, type, true);
     }
 
-    static size_t align(size_t bytes) {
-      return (bytes + (sizeof(MemoryHeader*) - 1)) & ~(sizeof(MemoryHeader*) - 1);
-    }
-
     static size_t bytes_to_fields(size_t bytes) {
       return (bytes - sizeof(DataHeader)) / sizeof(Object*);
     }
@@ -1445,10 +1445,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     ~ObjectHeader() = delete;
 
   public:
-
-    static size_t align(size_t bytes) {
-      return (bytes + (sizeof(Object*) - 1)) & ~(sizeof(Object*) - 1);
-    }
 
     static size_t bytes_to_fields(size_t bytes) {
       return (bytes - sizeof(ObjectHeader)) / sizeof(Object*);

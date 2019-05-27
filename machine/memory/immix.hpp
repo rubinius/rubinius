@@ -1,7 +1,6 @@
-#ifndef RBX_IMMIX_HPP
-#define RBX_IMMIX_HPP
+#ifndef RBX_MEMORY_IMMIX_HPP
+#define RBX_MEMORY_IMMIX_HPP
 
-#include "memory/address.hpp"
 #include "memory/gc_alloc.hpp"
 
 #include "diagnostics/collector.hpp"
@@ -103,7 +102,7 @@ namespace rubinius {
     class Block {
 
       /// Address of the start of the memory managed by this Block
-      Address address_;
+      uintptr_t address_;
 
       /// Status of the Block
       BlockStatus status_;
@@ -158,25 +157,9 @@ namespace rubinius {
       }
 
       /**
-       * Overwrites memory inside the blocks that is not used according to
-       * the lines found.
-       * Is used for debugging purposes to see easier when an object
-       * isn't properly marked.
-       */
-      void clear_memory() {
-        Address start = address_;
-        for(size_t i = 0; i < cLineTableSize; ++i) {
-          if(!lines_[i]) {
-            memset((void*)start.address_, 0xFF, cLineSize);
-          }
-          start += cLineSize;
-        }
-      }
-
-      /**
        * Sets the location of the memory managed by this Block.
        */
-      void set_address(Address addr) {
+      void set_address(uintptr_t addr) {
         address_ = addr;
       }
 
@@ -198,7 +181,7 @@ namespace rubinius {
       /**
        * Returns the Address of the start of the Block.
        */
-      Address address() const {
+      uintptr_t address() const {
         return address_;
       }
 
@@ -207,7 +190,7 @@ namespace rubinius {
        * This is not the same as the start of the Block, as the Block maintains
        * some metadata (i.e. a BlockHeader) in the first line.
        */
-      Address first_address() const {
+      uintptr_t first_address() const {
         return address_ + cLineSize; // skip line 0
       }
 
@@ -279,7 +262,7 @@ namespace rubinius {
       /**
        * Returns the memory Address of the start of the specified line.
        */
-      Address address_of_line(size_t line) const {
+      uintptr_t address_of_line(size_t line) const {
         return address_ + (line * cLineSize);
       }
 
@@ -291,9 +274,9 @@ namespace rubinius {
        * aligned at a cBlockSize boundary, and that a pointer to the managing
        * Block is stored at the start of the memory range managed by the Block.
        */
-      static Block* from_address(Address addr) {
-        Address base = addr & ~cBlockMask;
-        BlockHeader* header = base.as<BlockHeader>();
+      static Block* from_address(uintptr_t addr) {
+        uintptr_t base = Block::align(addr);
+        BlockHeader* header = reinterpret_cast<BlockHeader*>(base);
         return header->block;
       }
 
@@ -301,7 +284,7 @@ namespace rubinius {
        * Returns the Address at or below the supplied Address +addr+ that is
        * a multiple of cBlockSize.
        */
-      static Address align(Address addr) {
+      static uintptr_t align(uintptr_t addr) {
         return addr & ~cBlockMask;
       }
 
@@ -310,7 +293,7 @@ namespace rubinius {
        * bytes as being in use. This involves ensuring the line map records each
        * line occupied by the range as in use.
        */
-      void mark_address_line_in_block(Address addr, size_t size) {
+      void mark_address_line_in_block(uintptr_t addr, size_t size) {
         // Mark the line containing +addr+ as in use
         size_t offset = addr - address_;
         size_t line = offset / cLineSize;
@@ -324,7 +307,7 @@ namespace rubinius {
         if(size <= cLineSize) {
           if(line + 1 < cLineTableSize) mark_line(line + 1);
         } else {
-          size_t line_offset = (addr & cLineMask).as_int();
+          size_t line_offset = reinterpret_cast<size_t>(addr & cLineMask);
           size_t additional_lines = ((line_offset + size - 1) >> cLineBits);
 
           for(size_t i = 1; i <= additional_lines; i++) {
@@ -426,14 +409,14 @@ namespace rubinius {
       /// Address of the start of the memory range managed by this Chunk.
       /// May be different than the base_ address is the O/S gives us
       /// memory that is not aligned to an exact multiple of cBlockSize.
-      Address system_base_;
+      uintptr_t system_base_;
 
       /// Size of memory allocated to this Chunk. May be larger than cChunkSize
       /// if the memory is not cBlockSize aligned.
       std::size_t system_size_;
 
       /// Address of the first byte of memory assigned to a Block.
-      Address base_;
+      uintptr_t base_;
 
       /// Contains the metadata for all Blocks in this Chunk.
       Block blocks_[cBlocksPerChunk];
@@ -448,7 +431,7 @@ namespace rubinius {
         : system_base_(0)
         , base_(0)
       {
-        base_ = memory::gc_alloc(cChunkSize);
+        base_ = reinterpret_cast<uintptr_t>(memory::gc_alloc(cChunkSize));
 
         if(base_ == Block::align(base_)) {
           // Best case scenario - returned memory block is aligned as needed
@@ -456,9 +439,9 @@ namespace rubinius {
           system_size_ = cChunkSize;
         } else {
           // Ask for a larger chunk so we can align it as needed ourselves
-          memory::gc_free(base_, cChunkSize);
+          memory::gc_free(reinterpret_cast<void*>(base_), cChunkSize);
           system_size_ = cChunkSize + cBlockSize;
-          system_base_ = memory::gc_alloc(system_size_);
+          system_base_ = reinterpret_cast<uintptr_t>(memory::gc_alloc(system_size_));
 
           base_ = Block::align(system_base_ + cBlockSize);
         }
@@ -467,10 +450,10 @@ namespace rubinius {
       }
 
       void free() {
-        memory::gc_free(system_base_, system_size_);
+        memory::gc_free(reinterpret_cast<void*>(system_base_), system_size_);
       }
 
-      Address base() const {
+      uintptr_t base() const {
         return base_;
       }
 
@@ -478,7 +461,7 @@ namespace rubinius {
         return system_size_;
       }
 
-      Address last_address() const {
+      uintptr_t last_address() const {
         return system_base_ + system_size_;
       }
 
@@ -488,12 +471,12 @@ namespace rubinius {
       void add_blocks() {
         assert(base_ == Block::align(base_));
 
-        Address current = base_;
+        uintptr_t current = base_;
 
         for(size_t index = 0; index < cBlocksPerChunk; index++) {
           Block& block = blocks_[index];
           block.set_address(current);
-          BlockHeader* header = current.as<BlockHeader>();
+          BlockHeader* header = reinterpret_cast<BlockHeader*>(current);
           header->block = &block;
           current += cBlockSize;
         }
@@ -518,7 +501,7 @@ namespace rubinius {
       /**
        * Returns true if this Chunk contains the specified +addr+ Address.
        */
-      bool contains_address(Address addr) const {
+      bool contains_address(uintptr_t addr) const {
         return addr > base_ && addr <= last_address();
       }
     };
@@ -738,8 +721,8 @@ namespace rubinius {
      */
     class HoleFinder {
     protected:
-      Address cursor_;
-      Address limit_;
+      uintptr_t cursor_;
+      uintptr_t limit_;
       size_t hole_start_line_;
       Block* block_;
 
@@ -754,14 +737,14 @@ namespace rubinius {
       /**
        * Returns the next available address from which allocations can be made.
        */
-      Address cursor() const {
+      uintptr_t cursor() const {
         return cursor_;
       }
 
       /**
        * Returns the first non-free byte past the current cursor position.
        */
-      Address limit() const {
+      uintptr_t limit() const {
         return limit_;
       }
 
@@ -824,8 +807,8 @@ namespace rubinius {
        * Note: Relies on caller to determine that +size+ is valid, and will fit
        * the current hole.
        */
-      Address bump(size_t size) {
-        Address alloc = cursor_;
+      uintptr_t bump(size_t size) {
+        uintptr_t alloc = cursor_;
         cursor_ += size;
         return alloc;
       }
@@ -841,7 +824,7 @@ namespace rubinius {
     class ImmixAllocator {
     public:
       virtual ~ImmixAllocator() {}
-      virtual Address allocate(size_t bytes, bool& collect_now) = 0;
+      virtual Object* allocate(size_t bytes, bool& collect_now) = 0;
     };
 
 
@@ -867,15 +850,17 @@ namespace rubinius {
        * @returns the Address allocated, or a null address if no space is
        * available.
        */
-      Address allocate(size_t size, bool& collect_now) {
+      Object* allocate(size_t size, bool& collect_now) {
+        size = MemoryHeader::align(size);
+
         while(cursor_ + size > limit_) {
           if(!find_hole()) {
             collect_now = true;
-            return Address::null();
+            return nullptr;
           }
         }
 
-        return bump(size);
+        return reinterpret_cast<Object*>(bump(size));
       }
     };
 
@@ -973,16 +958,18 @@ namespace rubinius {
        * If unsuccessful at finding space in the current Block memory, a new
        * Block is obtained from the BlockAllocator.
        */
-      Address allocate(size_t size, bool& collect_now) {
+      Object* allocate(size_t size, bool& collect_now) {
+        size = MemoryHeader::align(size);
+
         if(size > cMediumObjectLimit) {
           declines_++;
-          return Address::null();
+          return nullptr;
         }
 
         // TODO: GC: Fix this hack
         if(collection_pending_) {
           spill_allocations_++;
-          return Address::null();
+          return nullptr;
         }
 
         while(cursor_ + size > limit_) {
@@ -990,13 +977,13 @@ namespace rubinius {
             if(!get_block()) {
               collection_pending_ = true;
               collect_now = true;
-              return Address::null();
+              return nullptr;
             }
           }
         }
 
         bytes_allocated_ += size;
-        return bump(size);
+        return reinterpret_cast<Object*>(bump(size));
       }
     };
 
@@ -1045,7 +1032,7 @@ namespace rubinius {
       }
 
       Object* allocate(STATE, size_t bytes, bool& collect_now) {
-        return allocator_.allocate(bytes, collect_now).as<Object>();
+        return allocator_.allocate(bytes, collect_now);
       }
 
       void sweep(STATE) {
@@ -1107,13 +1094,6 @@ namespace rubinius {
             block->set_status(cFree);
           }
         }
-#ifdef RBX_GC_DEBUG
-        AllBlockIterator iter(block_allocator_.chunks());
-
-        while(Block* block = iter.next()) {
-          block->clear_memory();
-        }
-#endif
 
         block_allocator_.reset();
       }
@@ -1128,7 +1108,7 @@ namespace rubinius {
        * for evacuation). Since this method does not actually know how to do the
        * marking of an object, it calls back to ObjectDescriber to handle this.
        */
-      Object* mark_address_of_object(STATE, Address parent, Address child, ImmixAllocator& alloc, bool push = true) {
+      Object* mark_address_of_object(STATE, void* parent, Object* child, ImmixAllocator& alloc, bool push = true) {
         /* TODO: GC
         Address fwd = desc.forwarding_pointer(child);
 
@@ -1144,7 +1124,7 @@ namespace rubinius {
         */
 
         // Find the Block the address relates to
-        Block* block = Block::from_address(child);
+        Block* block = Block::from_address(reinterpret_cast<uintptr_t>(child));
         /* TODO: GC
         if(block->status() == cEvacuate && !desc.pinned(child)) {
           // Block is marked for evacuation, so copy the object to a new Block
@@ -1157,9 +1137,10 @@ namespace rubinius {
         */
 
         // Mark the line(s) in the Block that this object occupies as in use
-        block->mark_address_line_in_block(child, child.as<Object>()->size_in_bytes(state->vm()));
+        block->mark_address_line_in_block(
+            reinterpret_cast<uintptr_t>(child), child->size_in_bytes(state->vm()));
 
-        return child.as<Object>();
+        return child;
       }
 
       /**
@@ -1200,7 +1181,7 @@ namespace rubinius {
        * Returns true if the specified Address +addr+ is contained in any of the
        * Chunks managed by our BlockAllocator.
        */
-      bool allocated_address(Address addr) {
+      bool allocated_address(uintptr_t addr) {
         Chunks& chunks = block_allocator_.chunks();
         for(Chunks::iterator i = chunks.begin();
             i != chunks.end();

@@ -4,7 +4,6 @@
 
 #include "memory.hpp"
 
-#include "memory/address.hpp"
 #include "memory/collector.hpp"
 #include "memory/immix.hpp"
 #include "memory/large_region.hpp"
@@ -65,13 +64,10 @@ namespace rubinius {
     void MemoryTracer::trace_mark_stack(STATE) {
       while(!mark_stack_.empty()) {
 #ifdef RBX_GC_STACK_CHECK
-        MarkStackEntry& entry = mark_stack_.get();
-        Address addr = entry.child();
+        scan_object(state, mark_stack_.get().child());
 #else
-        Address addr = mark_stack_.get();
+        scan_object(state, mark_stack_.get());
 #endif
-        // desc.walk_pointers(addr, mark);
-        scan_object(state, addr.as<Object>());
       }
     }
 
@@ -131,7 +127,7 @@ namespace rubinius {
           break;
       }
 
-      mark_stack_.add(Address(parent).as<Object>(), copy);
+      mark_stack_.add(parent, copy);
 
       return copy == child ? child : copy;
     }

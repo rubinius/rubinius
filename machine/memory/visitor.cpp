@@ -4,7 +4,6 @@
 
 #include "memory.hpp"
 
-#include "memory/address.hpp"
 #include "memory/collector.hpp"
 #include "memory/visitor.hpp"
 
@@ -95,12 +94,10 @@ namespace rubinius {
     void MemoryVisitor::visit_mark_stack(STATE, std::function<void (STATE, Object*)> f) {
       while(!mark_stack_.empty()) {
 #ifdef RBX_GC_STACK_CHECK
-        MarkStackEntry& entry = mark_stack_.get();
-        Address addr = entry.child();
+        scan_object(state, mark_stack_.get().child(), f);
 #else
-        Address addr = mark_stack_.get();
+        scan_object(state, mark_stack_.get(), f);
 #endif
-        scan_object(state, addr.as<Object>(), f);
       }
     }
 
