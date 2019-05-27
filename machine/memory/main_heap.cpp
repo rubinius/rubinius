@@ -162,9 +162,7 @@ namespace rubinius {
     void MainHeap::collect_finish(STATE) {
       code_manager_.sweep();
 
-      first_region_->copy_marks();
-      first_region_->sweep_blocks();
-
+      first_region_->sweep(state);
       large_region_->sweep(state);
 
       state->shared().symbols.sweep(state);

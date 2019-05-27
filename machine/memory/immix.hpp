@@ -1,6 +1,13 @@
 #ifndef RBX_IMMIX_HPP
 #define RBX_IMMIX_HPP
 
+#include "memory/address.hpp"
+#include "memory/gc_alloc.hpp"
+
+#include "diagnostics/collector.hpp"
+#include "diagnostics/memory.hpp"
+#include "diagnostics/timing.hpp"
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,9 +15,6 @@
 #include <assert.h>
 #include <list>
 #include <vector>
-
-#include "memory/address.hpp"
-#include "memory/gc_alloc.hpp"
 
 namespace rubinius {
   namespace memory {
@@ -1009,13 +1013,20 @@ namespace rubinius {
       BlockAllocator block_allocator_;
       ExpandingAllocator allocator_;
       BlockList evacuate_;
+      diagnostics::Immix* diagnostic_;
 
     public:
       Immix(STATE)
         : block_allocator_()
         , allocator_(block_allocator_)
         , evacuate_()
+        , diagnostic_(new diagnostics::Immix())
       { }
+
+      virtual ~Immix() {
+        delete diagnostic_;
+        diagnostic_ = nullptr;
+      }
 
       ExpandingAllocator& allocator() {
         return allocator_;
@@ -1025,12 +1036,52 @@ namespace rubinius {
         return block_allocator_;
       }
 
+      diagnostics::Immix* diagnostic() {
+        return diagnostic_;
+      }
+
       Block& get_block() {
         return block_allocator_.get_block();
       }
 
       Object* allocate(STATE, size_t bytes, bool& collect_now) {
         return allocator_.allocate(bytes, collect_now).as<Object>();
+      }
+
+      void sweep(STATE) {
+        copy_marks();
+        sweep_blocks();
+
+        {
+          timer::StopWatch<timer::microseconds> timer(
+              state->shared().collector_metrics()->first_region_diagnostics_us);
+
+          // Now, calculate how much space we're still using.
+          Chunks& chunks = block_allocator_.chunks();
+          AllBlockIterator iter(chunks);
+
+          diagnostic()->chunks = chunks.size();
+
+          while(Block* block = iter.next()) {
+            diagnostic()->holes += block->holes();
+            diagnostic()->objects += block->objects();
+            diagnostic()->bytes += block->object_bytes();
+            diagnostic()->total_bytes += cBlockSize;
+          }
+
+          diagnostic()->percentage =
+            (double)diagnostic()->bytes / (double)diagnostic()->total_bytes;
+
+          diagnostic()->collections++;
+
+          if(state->shared().config.diagnostics_memory_enabled) {
+            diagnostic()->update();
+            state->shared().report_diagnostics(diagnostic());
+          }
+        }
+
+        allocator_.restart(diagnostic()->percentage,
+            diagnostic()->total_bytes - diagnostic()->bytes);
       }
 
       /**

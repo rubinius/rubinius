@@ -59,6 +59,7 @@ namespace rubinius {
       }
 
       heap_->collect_finish(state);
+      mark_stack_.finish();
     }
 
     void MemoryTracer::trace_mark_stack(STATE) {
