@@ -382,12 +382,10 @@ namespace rubinius {
       Exception::raise_argument_error(state, "negative RTuple size");
     }
 
-    RTuple* tup = state->memory()->new_fields<RTuple>(state, G(rtuple), fields);
-    RTuple::initialize(state, tup);
+    RTuple* rtup = state->memory()->new_fields_pinned<RTuple>(state, G(rtuple), fields);
+    RTuple::initialize(state, rtup);
 
-    tup->set_pinned();
-
-    return tup;
+    return rtup;
   }
 
   RTuple* RTuple::allocate(STATE, Object* self, Fixnum* fields) {

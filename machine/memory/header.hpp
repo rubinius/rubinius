@@ -248,20 +248,22 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   const HeaderField constexpr thread_id_field     = { 2,  11 };
   const HeaderField constexpr region_field        = { 13, 2 };
   const HeaderField constexpr referenced_field    = { 15, 4 };
-  const HeaderField constexpr pinned_field        = { 19, 1 };
-  const HeaderField constexpr weakref_field       = { 20, 1 };
-  const HeaderField constexpr finalizer_field     = { 21, 1 };
-  const HeaderField constexpr remembered_field    = { 22, 1 };
-  const HeaderField constexpr visited_field       = { 23, 2 };
-  const HeaderField constexpr marked_field        = { 25, 2 };
-  const HeaderField constexpr scanned_field       = { 27, 1 };
-  const HeaderField constexpr type_id_field       = { 28, 9 };
-  const HeaderField constexpr data_field          = { 37, 1 };
-  const HeaderField constexpr frozen_field        = { 38, 1 };
-  const HeaderField constexpr tainted_field       = { 39, 1 };
-  const HeaderField constexpr locked_count_field  = { 40, 3 };
-  const HeaderField constexpr object_id_field     = { 43, 19 };
+  const HeaderField constexpr weakref_field       = { 19, 1 };
+  const HeaderField constexpr finalizer_field     = { 20, 1 };
+  const HeaderField constexpr remembered_field    = { 21, 1 };
+  const HeaderField constexpr visited_field       = { 22, 2 };
+  const HeaderField constexpr marked_field        = { 24, 2 };
+  const HeaderField constexpr scanned_field       = { 26, 1 };
+  const HeaderField constexpr type_id_field       = { 27, 9 };
+  const HeaderField constexpr data_field          = { 36, 1 };
+  const HeaderField constexpr frozen_field        = { 37, 1 };
+  const HeaderField constexpr tainted_field       = { 38, 1 };
+  const HeaderField constexpr locked_count_field  = { 39, 3 };
+  const HeaderField constexpr object_id_field     = { 42, 20 };
   const HeaderField constexpr type_specific_field = { 62, 2 };
+
+  // Pinned is a type-specific bit and should only be used by ByteArray
+  const HeaderField constexpr pinned_field        = { 62, 1 };
 
   /* Managed objects have a header. The header (a MemoryHeader) is a single, 64bit,
    * machine word that may be a MemoryFlags or pointer to an ExtendedHeader.

@@ -207,7 +207,7 @@ extern "C" {
     va_end(args);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    String* string = String::create(env->state(), msg);
+    String* string = String::create_pinned(env->state(), msg);
     rb_funcall(rb_mKernel, rb_intern("warn"), 1, MemoryHandle::value(string));
   }
 
@@ -220,7 +220,7 @@ extern "C" {
     va_end(args);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    String* string = String::create(env->state(), msg);
+    String* string = String::create_pinned(env->state(), msg);
     rb_funcall(rb_mKernel, rb_intern("warning"), 1, MemoryHandle::value(string));
   }
 

@@ -31,8 +31,8 @@ extern "C" {
 
   VALUE rb_file_open(const char* name, const char* mode) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    VALUE n = MemoryHandle::value(String::create(env->state(), name));
-    VALUE m = MemoryHandle::value(String::create(env->state(), mode));
+    VALUE n = MemoryHandle::value(String::create_pinned(env->state(), name));
+    VALUE m = MemoryHandle::value(String::create_pinned(env->state(), mode));
 
     return rb_funcall(rb_cFile, rb_intern("open"), 2, n, m);
   }

@@ -191,8 +191,6 @@ namespace rubinius {
     state->vm()->thread()->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
-    buffer->unset_pinned();
-
     if(bytes_read == -1) {
       if(errno == EINTR) {
         if(state->vm()->thread_interrupted_p(state)) return NULL;

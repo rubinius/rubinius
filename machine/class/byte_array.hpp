@@ -20,6 +20,7 @@ namespace rubinius {
 
     static ByteArray* create(STATE, native_int bytes);
     static ByteArray* create_pinned(STATE, native_int bytes);
+    static ByteArray* copy_pinned(STATE, ByteArray* ba);
 
     template <typename Any>
       static ByteArray* from_body(Any obj) {

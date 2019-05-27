@@ -269,7 +269,7 @@ extern "C" {
   void rb_invalid_str(const char *str, const char *type) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = String::create(env->state(), str);
+    String* string = String::create_pinned(env->state(), str);
 
     // MRI does this, probably to escape non-printing chars in the string
     VALUE s = rb_funcall(MemoryHandle::value(string), rb_intern("inspect"), 0);

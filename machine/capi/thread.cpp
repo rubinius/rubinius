@@ -303,7 +303,7 @@ extern "C" {
     State* state = env->state();
 
     NativeMethod* nm = NativeMethod::create(state,
-                        String::create(state, file), G(thread),
+                        String::create_pinned(state, file), G(thread),
                         state->symbol(name), (void*)func,
                         Fixnum::from(1), 0);
 

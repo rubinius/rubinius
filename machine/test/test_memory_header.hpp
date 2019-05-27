@@ -56,7 +56,7 @@ public:
   void test_memory_header_pinned() {
     TS_ASSERT_EQUALS(h.pinned_p(), false);
 
-    h.header = 0x80000L;
+    h.header = 0x4000000000000000L;
     TS_ASSERT_EQUALS(h.pinned_p(), true);
 
     h.unset_pinned();
@@ -79,7 +79,7 @@ public:
     TS_ASSERT_EQUALS(h.visited_p(3), false);
 
     h.set_visited(3);
-    TS_ASSERT_EQUALS(h.header.load(), 0x1800000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0xc00000L);
   }
 
   void test_memory_header_marked() {
@@ -95,13 +95,13 @@ public:
     TS_ASSERT_EQUALS(h.marked_p(3), false);
 
     h.set_marked(3);
-    TS_ASSERT_EQUALS(h.header.load(), 0x6000000L);
+    TS_ASSERT_EQUALS(h.header.load(), 0x3000000L);
   }
 
   void test_memory_header_scanned() {
     TS_ASSERT_EQUALS(h.scanned_p(), false);
 
-    h.header = 0x8000000L;
+    h.header = 0x4000000L;
     TS_ASSERT_EQUALS(h.scanned_p(), true);
 
     h.unset_scanned();
@@ -148,7 +148,7 @@ public:
   void test_memory_header_type_id() {
     TS_ASSERT_EQUALS(h.type_id(), 0);
 
-    h.header = 0x1ff0000000L;
+    h.header = 0xff8000000L;
     TS_ASSERT_EQUALS(h.type_id(), 0x1ffL);
   }
 
@@ -156,7 +156,7 @@ public:
     TS_ASSERT_EQUALS(h.data_p(), false);
     TS_ASSERT_EQUALS(h.object_p(), true);
 
-    h.header = 0x2000000000L;
+    h.header = 0x1000000000L;
     TS_ASSERT_EQUALS(h.data_p(), true);
     TS_ASSERT_EQUALS(h.object_p(), false);
   }
@@ -164,7 +164,7 @@ public:
   void test_memory_header_frozen() {
     TS_ASSERT_EQUALS(h.frozen_p(), false);
 
-    h.header = 0x4000000000L;
+    h.header = 0x2000000000L;
     TS_ASSERT_EQUALS(h.frozen_p(), true);
 
     h.unset_frozen();
@@ -177,7 +177,7 @@ public:
   void test_memory_header_tainted() {
     TS_ASSERT_EQUALS(h.tainted_p(), false);
 
-    h.header = 0x8000000000L;
+    h.header = 0x4000000000L;
     TS_ASSERT_EQUALS(h.tainted_p(), true);
 
     h.unset_tainted();
@@ -190,10 +190,10 @@ public:
   void test_memory_header_object_id() {
     TS_ASSERT_EQUALS(h.object_id(), 0);
 
-    h.header = 0x3ffff80000000000L;
+    h.header = 0x1ffffc0000000000L;
     TS_ASSERT_EQUALS(h.object_id(), 0x7ffffL);
 
-    TS_ASSERT_EQUALS(MemoryHeader::max_object_id(), 0x7ffffL);
+    TS_ASSERT_EQUALS(MemoryHeader::max_object_id(), 0xfffffL);
   }
 
   void test_memory_header_set_object_id() {

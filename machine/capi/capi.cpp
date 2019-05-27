@@ -756,7 +756,7 @@ extern "C" {
     }
 
     NativeMethod* method = NULL;
-    method = NativeMethod::create(state, String::create(state, file),
+    method = NativeMethod::create(state, String::create_pinned(state, file),
                                   module, method_name,
                                   (void*)fptr, Fixnum::from(arity),
                                   env->current_native_frame()->capi_lock_index());

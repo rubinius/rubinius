@@ -192,6 +192,7 @@ namespace rubinius {
 
     // Object must be created in Immix or large object space.
     Object* new_object(STATE, native_int bytes, object_type type);
+    Object* new_object_pinned(STATE, native_int bytes, object_type type);
 
     /* Allocate a new object in any space that will accommodate it based on
      * the following priority:
@@ -203,37 +204,8 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object(STATE, Class* klass, native_int bytes, object_type type) {
-      // TODO: GC
-    // allocate:
-      Object* obj = 0; /* state->vm()->local_slab().allocate(bytes).as<Object>();
+      Object* obj = new_object(state, bytes, type);
 
-      if(likely(obj)) {
-        state->vm()->metrics().memory.young_objects++;
-        state->vm()->metrics().memory.young_bytes += bytes;
-
-        obj->init_header(YoungObjectZone, type);
-
-        goto set_klass;
-      }
-
-      if(state->vm()->local_slab().empty_p()) {
-        if(refill_slab(state, state->vm()->local_slab())) {
-          goto allocate;
-        } else {
-          schedule_young_collection(state->vm(), state->vm()->metrics().gc.young_set);
-       }
-      }
-      */
-
-      if(likely(obj = new_object(state, bytes, type))) goto set_type;
-
-      Memory::memory_error(state);
-      return NULL;
-
-    set_type:
-      // obj->set_obj_type(type);
-
-    // set_klass:
       obj->klass(state, klass);
       obj->ivars(cNil);
 
@@ -249,14 +221,7 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object_pinned(STATE, Class* klass, native_int bytes, object_type type) {
-      Object* obj = new_object(state, bytes, type);
-
-      if(unlikely(!obj)) {
-        Memory::memory_error(state);
-        return NULL;
-      }
-
-      obj->set_pinned();
+      Object* obj = new_object_pinned(state, bytes, type);
 
       obj->klass(state, klass);
       obj->ivars(cNil);

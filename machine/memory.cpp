@@ -137,7 +137,7 @@ namespace rubinius {
   Object* Memory::new_object(STATE, native_int bytes, object_type type) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
-    Object* obj = 0;
+    Object* obj = nullptr;
 
     // TODO: check if immix_ needs to trigger GC
     if(likely(obj = main_heap_->first_region()->allocate(state, bytes))) {
@@ -160,8 +160,27 @@ namespace rubinius {
       return obj;
     }
 
-    Exception::raise_memory_error(state);
-    return NULL;
+    Memory::memory_error(state);
+    return nullptr;
+  }
+
+  Object* Memory::new_object_pinned(STATE, native_int bytes, object_type type) {
+    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
+
+    Object* obj = nullptr;
+
+    if(likely(obj = main_heap_->large_region()->allocate(state, bytes))) {
+      shared().memory_metrics()->large_objects++;
+      shared().memory_metrics()->large_bytes += bytes;
+
+      MemoryHeader::initialize(
+          obj, state->vm()->thread_id(), eLargeRegion, type, false);
+
+      return obj;
+    }
+
+    Memory::memory_error(state);
+    return nullptr;
   }
 
   TypeInfo* Memory::find_type_info(Object* obj) {

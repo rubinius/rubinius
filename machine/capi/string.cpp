@@ -31,7 +31,11 @@ namespace rubinius {
       string->unshare(state);
 
       ByteArray* byte_array = string->data();
-      byte_array->set_pinned();
+
+      if(!byte_array->pinned_p()) {
+        byte_array = ByteArray::copy_pinned(state, byte_array);
+        string->data(byte_array);
+      }
 
       char* ptr = reinterpret_cast<char*>(byte_array->raw_bytes());
 
@@ -68,7 +72,9 @@ namespace rubinius {
       RString* rstring = reinterpret_cast<RString*>(data());
 
       ByteArray* byte_array = string->data();
-      if(!byte_array->pinned_p()) byte_array->set_pinned();
+      if(!byte_array->pinned_p()) {
+        Exception::raise_runtime_error(state, "RString does not have pinned ByteArray");
+      }
 
       char* ptr = reinterpret_cast<char*>(byte_array->raw_bytes());
 
@@ -139,7 +145,7 @@ extern "C" {
   VALUE rb_str_buf_new(long capacity) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* str = String::create(env->state(), Fixnum::from(capacity));
+    String* str = String::create_pinned(env->state(), Fixnum::from(capacity));
     str->num_bytes(env->state(), Fixnum::from(0));
 
     return MemoryHandle::value(str);
@@ -213,7 +219,7 @@ extern "C" {
     if(length < 0) rb_raise(rb_eArgError, "invalid string size");
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return MemoryHandle::value(String::create(env->state(), string, length));
+    return MemoryHandle::value(String::create_pinned(env->state(), string, length));
   }
 
   VALUE rb_str_new2(const char* string) {
@@ -341,7 +347,7 @@ extern "C" {
   VALUE rb_tainted_str_new(const char* string, long size) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* str = String::create(env->state(), string, size);
+    String* str = String::create_pinned(env->state(), string, size);
     str->taint(env->state());
 
     return MemoryHandle::value(str);
@@ -467,7 +473,7 @@ extern "C" {
   VALUE rb_external_str_new_with_enc(const char* string, long size, rb_encoding* encoding) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* str = String::create(env->state(), string, size);
+    String* str = String::create_pinned(env->state(), string, size);
     str->taint(env->state());
 
     Encoding* enc = Encoding::find(env->state(), encoding->name);
@@ -580,12 +586,12 @@ extern "C" {
         PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 
     if(buffer == MAP_FAILED) {
-      return MemoryHandle::value(String::create(env->state(),
+      return MemoryHandle::value(String::create_pinned(env->state(),
             "rb_vsprintf failed to allocate space for result"));
     }
 
     native_int length = vsnprintf((char*)buffer, RBX_RB_VSPRINTF_LEN, format, varargs);
-    String* str = String::create(env->state(), (const char*)buffer, length);
+    String* str = String::create_pinned(env->state(), (const char*)buffer, length);
 
     munmap(buffer, RBX_RB_VSPRINTF_LEN);
 

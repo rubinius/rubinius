@@ -120,10 +120,6 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    // We pin this so we can pass condition_ out without worrying about
-    // us moving it.
-    self->set_pinned();
-
     struct timeval tv = {0,0};
     if(use_timed_wait) {
       gettimeofday(&tv, 0);
@@ -168,7 +164,6 @@ namespace rubinius {
     state->vm()->clear_waiter();
     state->vm()->thread()->sleep(state, cFalse);
 
-    self->unset_pinned();
     self->_waiters_--;
 
     if(exception) return NULL;
