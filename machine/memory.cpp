@@ -65,7 +65,6 @@ namespace rubinius {
     , cycle_(0)
     , mark_(0x1)
     , visit_mark_(0x1)
-    , slab_size_(4096)
     , shared_(state->shared())
     , vm_(state->vm())
     , last_object_id(1)
@@ -95,33 +94,6 @@ namespace rubinius {
     delete main_heap_;
     main_heap_ = nullptr;
   }
-
-  void Memory::after_fork_child(STATE) {
-    contention_lock_.init();
-    vm_ = state->vm();
-  }
-
-  /* TODO: GC
-  bool Memory::refill_slab(STATE, memory::Slab& slab) {
-    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
-
-    memory::Address addr = memory::Address::null(); // young_->allocate_for_slab(slab_size_);
-
-    diagnostics::MemoryMetrics* metrics = state->shared().memory_metrics();
-    metrics->young_objects += slab.allocations();
-    metrics->young_bytes += slab.bytes_used();
-
-    if(addr) {
-      slab.refill(addr, slab_size_);
-      metrics->slab_refills++;
-      return true;
-    } else {
-      slab.refill(0, 0);
-      metrics->slab_refills_fails++;
-      return false;
-    }
-  }
-  */
 
   /* TODO: GC
   bool Memory::valid_object_p(Object* obj) {

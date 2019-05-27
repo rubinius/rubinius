@@ -93,10 +93,6 @@ namespace rubinius {
     , custom_wakeup_data_(NULL)
     , thread_state_(this)
   {
-    if(memory()) {
-      local_slab_.refill(0, 0);
-    }
-
     set_sample_interval();
   }
 

@@ -282,7 +282,6 @@ namespace rubinius {
     type_info_lock_.init();
     code_resource_lock_.init();
 
-    om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
   }

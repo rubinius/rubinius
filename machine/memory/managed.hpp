@@ -2,7 +2,6 @@
 #define RBX_GC_MANAGED_THREAD
 
 #include "defines.hpp"
-#include "memory/slab.hpp"
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
 #include "memory/root.hpp"
@@ -35,7 +34,6 @@ namespace memory {
     diagnostics::MachineMetrics* metrics_;
 
   protected:
-    memory::Slab local_slab_;
     pthread_t os_thread_;
     uint32_t id_;
 
@@ -56,10 +54,6 @@ namespace memory {
 
     RootBuffers& root_buffers() {
       return root_buffers_;
-    }
-
-    memory::Slab& local_slab() {
-      return local_slab_;
     }
 
     const char* kind_name() const {

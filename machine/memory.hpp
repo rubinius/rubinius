@@ -14,7 +14,6 @@
 
 #include "memory/code_manager.hpp"
 #include "memory/main_heap.hpp"
-#include "memory/write_barrier.hpp"
 
 #include "diagnostics.hpp"
 
@@ -40,7 +39,6 @@ namespace rubinius {
   namespace memory {
     class Collector;
     class MainHeap;
-    class Slab;
 
     class CAPITracer {
       State* state_;
@@ -81,10 +79,9 @@ namespace rubinius {
    *   mautre generations independently.
    */
 
-  class Memory : public memory::WriteBarrier {
+  class Memory {
   private:
     utilities::thread::SpinLock allocation_lock_;
-    utilities::thread::SpinLock inflation_lock_;
 
     memory::Collector* collector_;
 
@@ -100,16 +97,6 @@ namespace rubinius {
     unsigned int mark_;
 
     unsigned int visit_mark_;
-
-    /// Size of slabs to be allocated to threads for lockless thread-local
-    /// allocations.
-    size_t slab_size_;
-
-    /// Mutex used to manage lock contention
-    utilities::thread::Mutex contention_lock_;
-
-    /// Condition variable used to manage lock contention
-    utilities::thread::Condition contention_var_;
 
     SharedState& shared_;
 
@@ -187,8 +174,6 @@ namespace rubinius {
     Memory(STATE);
     ~Memory();
 
-    void after_fork_child(STATE);
-
     inline void write_barrier(ObjectHeader* target, Fixnum* val) {
       /* No-op */
     }
@@ -198,11 +183,11 @@ namespace rubinius {
     }
 
     inline void write_barrier(ObjectHeader* target, ObjectHeader* val) {
-      memory::WriteBarrier::write_barrier(target, val, mark_);
+      // memory::WriteBarrier::write_barrier(target, val, mark_);
     }
 
     inline void write_barrier(ObjectHeader* target, Class* val) {
-      memory::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
+      // memory::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
     }
 
     // Object must be created in Immix or large object space.
@@ -460,8 +445,6 @@ namespace rubinius {
       }
 
     TypeInfo* find_type_info(Object* obj);
-
-    bool refill_slab(STATE, memory::Slab& slab);
 
     bool valid_object_p(Object* obj);
     void add_type_info(TypeInfo* ti);

@@ -11,7 +11,6 @@
 
 #include "memory/variable_buffer.hpp"
 #include "memory/root_buffer.hpp"
-#include "memory/slab.hpp"
 
 #include "shared_state.hpp"
 
@@ -41,7 +40,6 @@ namespace rubinius {
 
   namespace memory {
     class GarbageCollector;
-    class WriteBarrier;
   }
 
   class Assertion;
