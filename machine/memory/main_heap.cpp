@@ -120,32 +120,7 @@ namespace rubinius {
         MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
 
         if(header->referenced() > 0) {
-          if(header->memory_handle_p()) {
-            MemoryHandle* handle = header->extended_header()->get_handle();
-
-            if(!header->marked_p(state->memory()->mark())) {
-              if(handle->cycles() < 3) {
-                if(header->object_p()) {
-                  Object* obj = reinterpret_cast<Object*>(header);
-
-                  if(Object* fwd = f(state, 0, obj)) {
-                    // TODO: MemoryHeader set new address
-                  }
-                } else if(header->data_p()) {
-                  // DataHeader* data = reinterpret_cast<DataHeader*>(header);
-                  // TODO: process data (not C-API Data) instances
-                }
-
-                handle->cycle();
-              } else if(handle->rdata_p()) {
-                Object* obj = reinterpret_cast<Object*>(header);
-
-                if(Object* fwd = f(state, 0, obj)) {
-                  // TODO: MemoryHeader set new address
-                }
-              }
-            }
-          } else if(header->object_p()) {
+          if(header->object_p()) {
             Object* obj = reinterpret_cast<Object*>(header);
 
             if(Object* fwd = f(state, 0, obj)) {

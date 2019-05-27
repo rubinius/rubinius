@@ -1221,6 +1221,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void track_reference(STATE);
     void track_weakref(STATE);
+    void track_memory_handle(STATE);
 
     MemoryHandle* memory_handle(STATE, Object* object) {
       while(true) {
@@ -1242,7 +1243,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         MemoryFlags nh = extended_flags(eh);
 
         if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-          add_reference(state);
+          track_memory_handle(state);
           return eh->get_handle();
         }
 

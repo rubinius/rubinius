@@ -7,6 +7,8 @@
 
 #include "memory/collector.hpp"
 
+#include <algorithm>
+
 class TestObject : public CxxTest::TestSuite, public VMTest {
 public:
 
@@ -446,11 +448,12 @@ public:
   void test_get_handle() {
     Object* obj = state->memory()->new_object<Object>(state, G(object));
 
-    TS_ASSERT_EQUALS(state->collector()->references().count(obj), 0);
+    auto s = state->collector()->memory_handles().size();
 
     obj->get_handle(state);
 
-    TS_ASSERT_EQUALS(state->collector()->references().count(obj), 1);
+    auto ss = state->collector()->memory_handles().size();
+    TS_ASSERT(ss == s + 1);
   }
 
   Object* util_new_object() {

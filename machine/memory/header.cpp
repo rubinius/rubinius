@@ -42,6 +42,12 @@ namespace rubinius {
     }
   }
 
+  void MemoryHeader::track_memory_handle(STATE) {
+    if(reference_p()) {
+      state->collector()->add_memory_handle(this);
+    }
+  }
+
   MemoryHeaderBits::MemoryHeaderBits(const MemoryHeader* header) {
     extended = header->extended_header_p();
     forwarded = header->forwarded_p();

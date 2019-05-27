@@ -18,6 +18,37 @@ namespace rubinius {
           return trace_object(state, parent, obj);
         });
 
+      for(auto i = state->collector()->memory_handles().begin();
+          i != state->collector()->memory_handles().end();
+          ++i)
+      {
+        MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
+        MemoryHandle* handle = header->extended_header()->get_handle();
+
+        if(handle->accesses() > 0 || handle->cycles() < 3) {
+          if(header->object_p()) {
+            Object* obj = reinterpret_cast<Object*>(header);
+
+            if(Object* fwd = trace_object(state, 0, obj)) {
+              // TODO: MemoryHeader set new address
+            }
+          } else if(header->data_p()) {
+            // DataHeader* data = reinterpret_cast<DataHeader*>(header);
+            // TODO: process data (not C-API Data) instances
+          }
+
+          handle->cycle();
+          handle->unset_accesses();
+        } else if(handle->rdata_p()) {
+          // TODO: GC investigate why we are retaining these
+          Object* obj = reinterpret_cast<Object*>(header);
+
+          if(Object* fwd = trace_object(state, 0, obj)) {
+            // TODO: MemoryHeader set new address
+          }
+        }
+      }
+
       trace_mark_stack(state);
 
       state->memory()->collector()->trace_finalizers(state, this);
@@ -33,10 +64,30 @@ namespace rubinius {
           i = state->collector()->references().erase(i);
         } else {
           if(!header->marked_p(state->memory()->mark())) {
+            // TODO: GC this would be a bug because we mark anything
+            // referenced, so raise exception?
             i = state->collector()->references().erase(i);
           } else {
             ++i;
           }
+        }
+      }
+
+      for(auto i = state->collector()->memory_handles().begin();
+          i != state->collector()->memory_handles().end();)
+      {
+        MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
+
+        if(!header->marked_p(state->memory()->mark())) {
+          MemoryHandle* handle = header->extended_header()->get_handle();
+
+          if(handle->accesses() == 0 && handle->cycles() >= 3) {
+            i = state->collector()->memory_handles().erase(i);
+          } else {
+            ++i;
+          }
+        } else {
+          ++i;
         }
       }
 

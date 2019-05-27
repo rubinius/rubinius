@@ -98,6 +98,7 @@ namespace rubinius {
     typedef std::unordered_set<MemoryHeader*> References;
     typedef std::unordered_set<MemoryHeader*> Weakrefs;
 
+    typedef std::list<MemoryHeader*> MemoryHandles;
     typedef std::list<FinalizerObject*> Finalizers;
 
     class Collector {
@@ -151,6 +152,9 @@ namespace rubinius {
       Finalizers finalizer_list_;
       Finalizers process_list_;
 
+      MemoryHandles memory_handles_list_;
+      locks::spinlock_mutex memory_handles_lock_;
+
       References references_set_;
       locks::spinlock_mutex references_lock_;
 
@@ -178,6 +182,9 @@ namespace rubinius {
         return list_condition_;
       }
 
+      MemoryHandles& memory_handles() {
+        return memory_handles_list_;
+      }
 
       References& references() {
         return references_set_;
@@ -185,6 +192,14 @@ namespace rubinius {
 
       Weakrefs& weakrefs() {
         return weakrefs_set_;
+      }
+
+      void add_memory_handle(MemoryHeader* header) {
+        if(header->reference_p()) {
+          std::lock_guard<locks::spinlock_mutex> guard(memory_handles_lock_);
+
+          memory_handles_list_.push_back(header);
+        }
       }
 
       void add_reference(MemoryHeader* header) {
