@@ -62,7 +62,6 @@ namespace rubinius {
     , mark_sweep_(new memory::MarkSweepGC(this, state->shared().config))
     , immix_(new memory::ImmixGC(this))
     , code_manager_(&state->shared())
-    , main_heap_(new memory::MainHeap(state, immix_, mark_sweep_, code_manager_))
     , cycle_(0)
     , mark_(0x1)
     , slab_size_(4096)

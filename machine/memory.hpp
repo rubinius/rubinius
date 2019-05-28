@@ -15,9 +15,8 @@
 
 #include "memory/code_manager.hpp"
 #include "memory/collector.hpp"
-#include "memory/immix_collector.hpp"
-#include "memory/main_heap.hpp"
 #include "memory/write_barrier.hpp"
+#include "memory/immix_collector.hpp"
 
 #include "diagnostics.hpp"
 
@@ -27,7 +26,6 @@
 #include "state.hpp"
 #include "shared_state.hpp"
 
-#include <functional>
 #include <unordered_set>
 
 class TestMemory; // So we can friend it properly
@@ -45,7 +43,7 @@ namespace rubinius {
     class Collector;
     class GCData;
     class ImmixGC;
-    class MainHeap;
+    class ImmixMarker;
     class MarkSweepGC;
     class Slab;
   }
@@ -56,6 +54,7 @@ namespace rubinius {
    * performing garbage collection.
    *
    * It is currently split among 3 generations:
+   *   - BakerGC:     handles young objects
    *   - ImmixGC:     handles mature objects
    *   - MarkSweepGC: handles large objects
    *
@@ -76,6 +75,9 @@ namespace rubinius {
     utilities::thread::SpinLock allocation_lock_;
     utilities::thread::SpinLock inflation_lock_;
 
+    /// BakerGC used for the young generation
+    /* BakerGC* young_; */
+
     memory::Collector* collector_;
 
     /// MarkSweepGC used for the large object store
@@ -86,8 +88,6 @@ namespace rubinius {
 
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
-
-    memory::MainHeap* main_heap_;
 
     /// The number of GC cycles that have run
     unsigned int cycle_;
@@ -154,10 +154,6 @@ namespace rubinius {
 
     memory::MarkSweepGC* mark_sweep() {
       return mark_sweep_;
-    }
-
-    memory::MainHeap* main_heap() {
-      return main_heap_;
     }
 
     memory::Collector* collector() {
