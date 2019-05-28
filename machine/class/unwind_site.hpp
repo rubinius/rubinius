@@ -62,8 +62,8 @@ namespace rubinius {
           allow_user_allocate = false;
         }
 
-        void mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) { }
-        void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) { }
+        void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) { }
+        void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) { }
         void set_field(STATE, Object* target, size_t index, Object* val) { }
         Object* get_field(STATE, Object* target, size_t index) { return cNil; }
         void populate_slot_locations() { }

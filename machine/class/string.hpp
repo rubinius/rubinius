@@ -73,6 +73,10 @@ namespace rubinius {
       _num_bytes_ = num;
     }
 
+    Object** p_num_bytes() {
+      return reinterpret_cast<Object**>(&this->_num_bytes_);
+    }
+
     template<typename T>
       void num_bytes(T state, Fixnum* obj) {
         num_bytes(obj);

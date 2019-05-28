@@ -14,8 +14,8 @@ namespace rubinius {
     void MemoryTracer::trace_heap(STATE) {
       heap_->collect_start(state);
 
-      heap_->collect_references(state, [this](STATE, void* parent, Object* obj){
-          return trace_object(state, parent, obj);
+      heap_->collect_references(state, [this](STATE, Object** obj){
+          trace_p_object(state, obj);
         });
 
       for(auto i = state->collector()->memory_handles().begin();
@@ -132,21 +132,58 @@ namespace rubinius {
         trace_object(state, 0, obj);
       }
 
-      if(Object* klass = trace_object(state, obj, obj->klass())) {
-        obj->klass(state->memory(), force_as<Class>(klass));
-      }
+      trace_p_object(state, obj->p_klass());
 
       if(obj->ivars()->reference_p()) {
-        if(Object* ivars = trace_object(state, obj, obj->ivars())) {
-          obj->ivars(state->memory(), ivars);
-        }
+        trace_p_object(state, obj->p_ivars());
       }
 
       TypeInfo* ti = state->memory()->type_info[obj->type_id()];
 
+      /*
       ti->mark(state, obj, [this](STATE, Object* parent, Object* child){
           return trace_object(state, parent, child);
         });
+        */
+      ti->mark(state, obj, [this](STATE, Object** object){
+          trace_p_object(state, object);
+        });
+    }
+
+    void MemoryTracer::trace_p_object(STATE, Object** object) {
+      Object* obj = *object;
+
+      if(!obj || !obj->reference_p()) return;
+
+      if(obj->marked_p(state->memory()->mark())) return;
+
+      // Set the mark bits in the managed memory instance
+      obj->unset_scanned();
+      obj->set_marked(state->memory()->mark());
+
+      // Set the accounting bits in the region containing the instance
+      Object* copy = obj;
+
+      switch(obj->region()) {
+        case eThreadRegion:
+          // TODO: GC
+          break;
+        case eFirstRegion:
+          copy = state->memory()->main_heap()->first_region()->mark_address_of_object(state,
+              nullptr, obj, state->memory()->main_heap()->first_region()->allocator());
+
+          break;
+        case eSecondRegion:
+          // TODO: GC
+          break;
+        case eLargeRegion:
+          // Do nothing
+          break;
+      }
+
+      if(copy != obj) *object = copy;
+
+      mark_stack_.add(nullptr, copy);
     }
 
     Object* MemoryTracer::trace_object(STATE, void* parent, Object* child) {

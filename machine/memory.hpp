@@ -42,10 +42,10 @@ namespace rubinius {
 
     class CAPITracer {
       State* state_;
-      std::function<Object* (STATE, Object*, Object*)> tracer_;
+      std::function<void (STATE, Object**)> tracer_;
 
     public:
-      CAPITracer(STATE, std::function<Object* (STATE, Object*, Object*)> f)
+      CAPITracer(STATE, std::function<void (STATE, Object**)> f)
         : state_(state)
         , tracer_(f)
       {
@@ -53,7 +53,9 @@ namespace rubinius {
       virtual ~CAPITracer() { }
 
       Object* call(Object* obj) {
-        return tracer_(state_, 0, obj);
+        Object* object = obj;
+        tracer_(state_, &object);
+        return object == obj ? nullptr : object;
       }
     };
   }

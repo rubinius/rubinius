@@ -132,7 +132,7 @@ namespace rubinius {
     */
   }
 
-  void Data::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void Data::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
 
     Data* data = force_as<Data>(obj);

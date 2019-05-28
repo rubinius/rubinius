@@ -1175,7 +1175,7 @@ namespace rubinius {
     return ret;
   }
 
-  void NativeFunction::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void NativeFunction::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
     // mark_inliners(obj, mark);
 
@@ -1185,38 +1185,33 @@ namespace rubinius {
       func->ffi_data()->set_mark();
 
       if(func->ffi_data()->callable) {
-        Object* tmp = f(state, obj, func->ffi_data()->callable);
-        if(tmp) {
-          func->ffi_data()->callable = tmp;
-        }
+        Object* tmp = func->ffi_data()->callable;
+        f(state, &tmp);
+        func->ffi_data()->callable = tmp;
       }
       for(size_t i = 0; i<func->ffi_data()->arg_count; i++) {
         FFIArgInfo* arg = &func->ffi_data()->args_info[i];
         if(arg->callback) {
-          Object* tmp = f(state, obj, arg->callback);
-          if(tmp) {
-            arg->callback = force_as<NativeFunction>(tmp);
-          }
+          Object* tmp = arg->callback;
+          f(state, &tmp);
+          arg->callback = force_as<NativeFunction>(tmp);
         }
         if(arg->enum_obj) {
-          Object* tmp = f(state, obj, arg->enum_obj);
-          if(tmp) {
-            arg->enum_obj = tmp;
-          }
+          Object* tmp = arg->enum_obj;
+          f(state, &tmp);
+          arg->enum_obj = tmp;
         }
       }
       FFIArgInfo* arg = &func->ffi_data()->ret_info;
       if(arg->callback) {
-        Object* tmp = f(state, obj, arg->callback);
-        if(tmp) {
-          arg->callback = force_as<NativeFunction>(tmp);
-        }
+        Object* tmp = arg->callback;
+        f(state, &tmp);
+        arg->callback = force_as<NativeFunction>(tmp);
       }
       if(arg->enum_obj) {
-        Object* tmp = f(state, obj, arg->enum_obj);
-        if(tmp) {
-          arg->enum_obj = tmp;
-        }
+        Object* tmp = arg->enum_obj;
+        f(state, &tmp);
+        arg->enum_obj = tmp;
       }
       func->ffi_data()->function = func;
     }

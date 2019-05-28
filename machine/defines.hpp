@@ -54,6 +54,9 @@ namespace rubinius {
     void name(T state, type* obj) { \
       _ ## name ## _ = obj; \
       state->memory()->write_barrier(this, obj); \
+    } \
+    Object** p_ ## name() { \
+      return reinterpret_cast<Object**>(&this->_ ## name ## _); \
     }
 
 /**
@@ -70,6 +73,9 @@ namespace rubinius {
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
+    Object** p_ ## name() { \
+      return reinterpret_cast<Object**>(&this->_ ## name ## _); \
+    }
 
 /**
  *  Ruby-like accessor creation for a slot.
@@ -88,6 +94,9 @@ namespace rubinius {
     void name(T state, type* obj) { \
       _ ## name ## _ = obj; \
       state->memory()->write_barrier(this, obj); \
+    } \
+    Object** p_ ## name() { \
+      return reinterpret_cast<Object**>(&this->_ ## name ## _); \
     }
 
 #define attr_field(name, type) \
@@ -97,7 +106,10 @@ namespace rubinius {
     type name() const { return _ ## name ## _; } \
     void name(type value) { \
       _ ## name ## _ = value; \
-    }
+    } \
+  Object** p_ ## name() { \
+    return reinterpret_cast<Object**>(&this->_ ## name ## _); \
+  }
 }
 
 #if __GNUC__ >= 4

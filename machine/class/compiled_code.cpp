@@ -338,7 +338,7 @@ namespace rubinius {
     return cNil;
   }
 
-  void CompiledCode::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void CompiledCode::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
 
     // mark_inliners(obj, mark);
@@ -362,9 +362,12 @@ namespace rubinius {
     for(size_t i = 0; i < mcode->references_count(); i++) {
       if(size_t ip = mcode->references()[i]) {
         Object* ref = reinterpret_cast<Object*>(mcode->opcodes[ip]);
-        if(Object* updated_ref = f(state, obj, ref)) {
+        f(state, &ref);
+        /* TODO: GC
+        if(Object* updated_ref = f(state, &ref)) {
           mcode->opcodes[ip] = reinterpret_cast<intptr_t>(updated_ref);
         }
+        */
       }
     }
   }

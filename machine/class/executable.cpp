@@ -85,7 +85,7 @@ namespace rubinius {
     inliners()->inliners().clear();
   }
 
-  void Executable::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void Executable::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
     // TODO: JIT inliners
     // mark_inliners(obj, mark);

@@ -320,7 +320,7 @@ namespace rubinius {
     public:
       Info(object_type type) : TypeInfo(type) {}
       virtual ~Info() {}
-      virtual void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {}
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
     };
 
 

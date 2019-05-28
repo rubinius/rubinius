@@ -544,7 +544,7 @@ namespace rubinius {
     close_body(level);
   }
 
-  void Module::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void Module::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
   }
 

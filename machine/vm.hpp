@@ -501,7 +501,7 @@ namespace rubinius {
     void register_kill(STATE);
 
     void visit_objects(STATE, std::function<void (STATE, Object*)> f);
-    void gc_scan(STATE, std::function<Object* (STATE, void*, Object*)> f);
+    void gc_scan(STATE, std::function<void (STATE, Object**)> f);
     void gc_verify(memory::GarbageCollector* gc);
   };
 }

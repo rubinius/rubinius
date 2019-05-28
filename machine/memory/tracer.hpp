@@ -23,6 +23,7 @@ namespace rubinius {
       virtual void trace_mark_stack(STATE);
       virtual void scan_object(STATE, Object* obj);
       virtual Object* trace_object(STATE, void* parent, Object* child);
+      virtual void trace_p_object(STATE, Object** obj);
     };
   }
 }

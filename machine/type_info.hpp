@@ -61,7 +61,7 @@ namespace rubinius {
     static void init(Memory* om);
     static void auto_init(Memory* om);
     static void auto_learn_fields(STATE);
-    virtual void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) = 0;
+    virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) = 0;
     virtual void update_weakref(STATE, Object* obj) {}
     virtual void visit_object(STATE, Object* o, std::function<void (STATE, Object*)> f) { }
 
@@ -87,7 +87,7 @@ namespace rubinius {
       return state_;
     }
 
-    virtual void mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f);
+    virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
 
     virtual void set_field(STATE, Object* target, size_t index, Object* val);
     virtual Object* get_field(STATE, Object* target, size_t index);
@@ -169,7 +169,7 @@ namespace rubinius {
 
 #define BASIC_TYPEINFO(super) \
   Info(object_type type) : super(type) { } \
-  virtual void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f); \
+  virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f); \
   virtual void visit_object(STATE, Object* obj, std::function<void (STATE, Object*)> f); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
   virtual Object* get_field(STATE, Object* target, size_t index); \

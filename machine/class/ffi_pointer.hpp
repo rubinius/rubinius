@@ -124,8 +124,9 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      virtual void mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f);
-      virtual void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {}
+
+      virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
     };
   };
 }

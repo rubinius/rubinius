@@ -27,7 +27,7 @@ namespace rubinius {
       }
 
       void collect_start(STATE);
-      void collect_references(STATE, std::function<Object* (STATE, void*, Object*)> f);
+      void collect_references(STATE, std::function<void (STATE, Object**)> f);
       void collect_finish(STATE);
     };
   }

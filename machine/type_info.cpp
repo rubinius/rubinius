@@ -42,7 +42,7 @@ namespace rubinius {
   /* By default, just call auto_mark(). This exists so that
    * other types can overload this to perform work before or
    * after auto_marking is done. */
-  void TypeInfo::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void TypeInfo::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
   }
 

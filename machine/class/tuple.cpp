@@ -298,13 +298,11 @@ namespace rubinius {
     return force_as<Tuple>(obj)->full_size();
   }
 
-  void Tuple::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void Tuple::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     Tuple* tup = as<Tuple>(obj);
 
     for(native_int i = 0; i < tup->num_fields(); i++) {
-      if(Object* tmp = f(state, obj, tup->field[i])) {
-        tup->field[i] = tmp;
-      }
+      f(state, &tup->field[i]);
     }
   }
 
@@ -425,16 +423,15 @@ namespace rubinius {
     return val;
   }
 
-  void RTuple::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void RTuple::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     RTuple* rtup = as<RTuple>(obj);
 
     VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);
 
     for(native_int i = 0; i < rtup->num_fields(); i++) {
       Object* slot = MemoryHandle::object(ptr[i]);
-      if(Object* moved = f(state, rtup, slot)) {
-        ptr[i] = MemoryHandle::value(moved);
-      }
+      f(state, &slot);
+      ptr[i] = MemoryHandle::value(slot);
     }
   }
 }

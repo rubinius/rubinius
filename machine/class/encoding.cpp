@@ -468,7 +468,7 @@ namespace rubinius {
   }
 
   void Encoding::make_managed(STATE, const char* name, OnigEncodingType* enc) {
-    ByteArray* enc_ba = ByteArray::create(state, sizeof(OnigEncodingType));
+    ByteArray* enc_ba = ByteArray::create_pinned(state, sizeof(OnigEncodingType));
     memcpy(enc_ba->raw_bytes(), enc, sizeof(OnigEncodingType));
 
     encoding(reinterpret_cast<OnigEncodingType*>(enc_ba->raw_bytes()));
@@ -477,7 +477,7 @@ namespace rubinius {
     int size = strlen(name);
     if(size >= ENCODING_NAMELEN_MAX) size = ENCODING_NAMELEN_MAX-1;
 
-    ByteArray* name_ba = ByteArray::create(state, size + 1);
+    ByteArray* name_ba = ByteArray::create_pinned(state, size + 1);
     memcpy(name_ba->raw_bytes(), name, size);
     name_ba->raw_bytes()[size] = 0;
     encoding()->name = reinterpret_cast<const char*>(name_ba->raw_bytes());
@@ -596,7 +596,7 @@ namespace rubinius {
     return n;
   }
 
-  void Encoding::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void Encoding::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
 
     Encoding* enc_o = force_as<Encoding>(obj);
@@ -605,18 +605,31 @@ namespace rubinius {
     OnigEncodingType* enc = enc_o->encoding();
     if(!enc) return;
 
-    ByteArray* enc_ba = ByteArray::from_body(enc);
+    Object* enc_ba = ByteArray::from_body(enc);
+
+    // This is pinned, it will not move
+    f(state, &enc_ba);
+
+    /* TODO: GC
     if(ByteArray* tmp_ba = force_as<ByteArray>(f(state, obj, enc_ba))) {
       enc_o->encoding(reinterpret_cast<OnigEncodingType*>(tmp_ba->raw_bytes()));
 
       enc = enc_o->encoding();
     }
+    */
 
     if(enc->name) {
+      Object* ba = ByteArray::from_body(const_cast<char*>(enc->name));
+
+      // This is pinned, it will not move
+      f(state, &ba);
+
+      /* TODO: GC
       ByteArray* ba = ByteArray::from_body(const_cast<char*>(enc->name));
       if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
         enc->name = reinterpret_cast<const char*>(tmp->raw_bytes());
       }
+      */
     }
   }
 
@@ -870,7 +883,7 @@ namespace rubinius {
     }
 
     native_int buffer_size = byte_offset + byte_size;
-    ByteArray* buffer = ByteArray::create(state, buffer_size + 1);
+    ByteArray* buffer = ByteArray::create_pinned(state, buffer_size + 1);
 
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
     unsigned char* buffer_end = buffer_ptr + byte_size;
@@ -1032,7 +1045,7 @@ namespace rubinius {
       n = rb_econv_putbackable(converter());
     }
 
-    ByteArray* ba = ByteArray::create(state, n);
+    ByteArray* ba = ByteArray::create_pinned(state, n);
 
     rb_econv_putback(converter(), (unsigned char *)ba->raw_bytes(), n);
 

@@ -102,14 +102,14 @@ namespace rubinius {
     assert(reg->chain == 0);
 
     ByteArray* reg_ba =
-      state->memory()->new_bytes<ByteArray>(state, G(bytearray), sizeof(regex_t));
+      state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), sizeof(regex_t));
     memcpy(reg_ba->raw_bytes(), reg, sizeof(regex_t));
 
     reg = reinterpret_cast<regex_t*>(reg_ba->raw_bytes());
 
     if(reg->p) {
       ByteArray* pattern =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), reg->alloc);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), reg->alloc);
       memcpy(pattern->raw_bytes(), reg->p, reg->alloc);
 
       reg->p = reinterpret_cast<unsigned char*>(pattern->raw_bytes());
@@ -120,7 +120,7 @@ namespace rubinius {
     if(reg->exact) {
       int exact_size = reg->exact_end - reg->exact;
       ByteArray* exact =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), exact_size);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), exact_size);
       memcpy(exact->raw_bytes(), reg->exact, exact_size);
 
       reg->exact = reinterpret_cast<unsigned char*>(exact->raw_bytes());
@@ -133,7 +133,7 @@ namespace rubinius {
 
     if(reg->int_map) {
       ByteArray* intmap =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), int_map_size);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), int_map_size);
       memcpy(intmap->raw_bytes(), reg->int_map, int_map_size);
 
       reg->int_map = reinterpret_cast<int*>(intmap->raw_bytes());
@@ -143,7 +143,7 @@ namespace rubinius {
 
     if(reg->int_map_backward) {
       ByteArray* intmap_back =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), int_map_size);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), int_map_size);
       memcpy(intmap_back->raw_bytes(), reg->int_map_backward, int_map_size);
 
       reg->int_map_backward = reinterpret_cast<int*>(intmap_back->raw_bytes());
@@ -154,7 +154,7 @@ namespace rubinius {
     if(reg->repeat_range) {
       int rrange_size = sizeof(OnigRepeatRange) * reg->repeat_range_alloc;
       ByteArray* rrange =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), rrange_size);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), rrange_size);
       memcpy(rrange->raw_bytes(), reg->repeat_range, rrange_size);
 
       reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->raw_bytes());
@@ -450,7 +450,7 @@ namespace rubinius {
     if(data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), size);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
 
       // Dispose of the old one.
@@ -525,7 +525,7 @@ namespace rubinius {
     if(data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), size);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
 
       // Dispose of the old one.
@@ -598,7 +598,7 @@ namespace rubinius {
     if(data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba =
-        state->memory()->new_bytes<ByteArray>(state, G(bytearray), size);
+        state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
 
       // Dispose of the old one.
@@ -821,7 +821,7 @@ namespace rubinius {
     return cNil;
   }
 
-  void Regexp::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void Regexp::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
 
     Regexp* reg_o = force_as<Regexp>(obj);
@@ -829,53 +829,83 @@ namespace rubinius {
       regex_t* reg = reg_o->onig_data[i];
       if(!reg) continue;
 
-      ByteArray* reg_ba = ByteArray::from_body(reg);
+      Object* reg_ba = ByteArray::from_body(reg);
 
+      // This is pinned, it will not move
+      f(state, &reg_ba);
+
+      /* TODO: GC
       if(ByteArray* reg_tmp = force_as<ByteArray>(f(state, obj, reg_ba))) {
         reg_o->onig_data[i] = reinterpret_cast<regex_t*>(reg_tmp->raw_bytes());
         reg = reg_o->onig_data[i];
       }
+      */
 
       if(reg->p) {
-        ByteArray* ba = ByteArray::from_body(reg->p);
+        Object* ba = ByteArray::from_body(reg->p);
 
+        // This is pinned, it will not move
+        f(state, &ba);
+
+        /* TODO: GC
         if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->p = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
         }
+        */
       }
 
       if(reg->exact) {
-        int exact_size = reg->exact_end - reg->exact;
-        ByteArray* ba = ByteArray::from_body(reg->exact);
+        Object* ba = ByteArray::from_body(reg->exact);
 
+        // This is pinned, it will not move
+        f(state, &ba);
+
+        /* TODO: GC
+        int exact_size = reg->exact_end - reg->exact;
         if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->exact = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
           reg->exact_end = reg->exact + exact_size;
         }
+        */
       }
 
       if(reg->int_map) {
-        ByteArray* ba = ByteArray::from_body(reg->int_map);
+        Object* ba = ByteArray::from_body(reg->int_map);
 
+        // This is pinned, it will not move
+        f(state, &ba);
+
+        /* TODO: GC
         if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->int_map = reinterpret_cast<int*>(tmp->raw_bytes());
         }
+        */
       }
 
       if(reg->int_map_backward) {
-        ByteArray* ba = ByteArray::from_body(reg->int_map_backward);
+        Object* ba = ByteArray::from_body(reg->int_map_backward);
 
+        // This is pinned, it will not move
+        f(state, &ba);
+
+        /* TODO: GC
         if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->int_map_backward = reinterpret_cast<int*>(tmp->raw_bytes());
         }
+        */
       }
 
       if(reg->repeat_range) {
-        ByteArray* ba = ByteArray::from_body(reg->repeat_range);
+        Object* ba = ByteArray::from_body(reg->repeat_range);
 
+        // This is pinned, it will not move
+        f(state, &ba);
+
+        /* TODO: GC
         if(ByteArray* tmp = force_as<ByteArray>(f(state, obj, ba))) {
           reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->raw_bytes());
         }
+        */
       }
     }
   }

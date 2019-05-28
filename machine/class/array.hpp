@@ -35,6 +35,10 @@ namespace rubinius {
       return _total_;
     }
 
+    Object** p_total() {
+      return reinterpret_cast<Object**>(&this->_total_);
+    }
+
     void total(Fixnum* obj) {
       _total_ = obj;
     }
@@ -56,6 +60,10 @@ namespace rubinius {
       _start_ = obj;
     }
 
+    Object** p_start() {
+      return reinterpret_cast<Object**>(&this->_start_);
+    }
+
     template<typename T>
       void start(T state, Fixnum* obj) {
         start(obj);
@@ -71,6 +79,10 @@ namespace rubinius {
 
     void tuple(Tuple* obj) {
       _tuple_ = obj;
+    }
+
+    Object** p_tuple() {
+      return reinterpret_cast<Object**>(&this->_tuple_);
     }
 
     template<typename T>

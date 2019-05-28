@@ -539,7 +539,4 @@ namespace rubinius {
       rubinius::bug("Unknown FFI type");
     }
   }
-
-  void Pointer::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
-  }
 }

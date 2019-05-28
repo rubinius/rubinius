@@ -544,11 +544,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
     cpp.fields.each do |name, type, idx|
       str << <<-EOF
   {
-    Object* fwd = nullptr;
-
-    if((fwd = f(state, obj, obj->#{name}())) && fwd != obj) {
-      obj->#{name}(state, force_as<#{type}>(fwd));
-    }
+    f(state, obj->p_#{name}());
   }
 
       EOF
@@ -577,8 +573,8 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
     str = ''
 
     str << <<-EOF unless marks.empty?
-void #{@name}::Info::auto_mark(STATE, Object* o, std::function<Object* (STATE, Object*, Object*)> f) {
-  #{@name}* obj = as<#{@name}>(o);
+void #{@name}::Info::auto_mark(STATE, Object* object, std::function<void (STATE, Object**)> f) {
+  #{@name}* obj = as<#{@name}>(object);
 
 #{marks}
 }

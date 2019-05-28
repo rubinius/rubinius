@@ -352,7 +352,7 @@ namespace rubinius {
         : TypeInfo(type)
       {}
 
-      virtual void auto_mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {}
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
     };
   };
 

@@ -37,11 +37,11 @@ namespace rubinius {
       first_region_->clear_marks();
     }
 
-    void MainHeap::collect_references(STATE, std::function<Object* (STATE, void*, Object*)> f) {
+    void MainHeap::collect_references(STATE, std::function<void (STATE, Object**)> f) {
       for(Roots::Iterator i(state->globals().roots); i.more(); i.advance()) {
-        if(Object* fwd = f(state, 0, i->get())) {
-          i->set(fwd);
-        }
+        Object* fwd = i->get();
+        f(state, &fwd);
+        i->set(fwd);
       }
 
       {
@@ -54,9 +54,9 @@ namespace rubinius {
           ManagedThread* thr = (*i);
 
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
-            if(Object* fwd = f(state, 0, ri->get())) {
-              ri->set(fwd);
-            }
+            Object* fwd = ri->get();
+            f(state, &fwd);
+            ri->set(fwd);
           }
 
           //scan(thr->variable_root_buffers(), young_only);
@@ -66,6 +66,9 @@ namespace rubinius {
           while(vrb) {
             Object*** buffer = vrb->buffer();
             for(int idx = 0; idx < vrb->size(); idx++) {
+              f(state, buffer[idx]);
+
+              /* TODO: GC
               Object** var = buffer[idx];
               Object* cur = *var;
 
@@ -78,6 +81,7 @@ namespace rubinius {
               } else if(cur->handle_p()) {
                 // TODO: MemoryHeader mark MemoryHandle objects
               }
+              */
             }
 
             // vrb = displace((VariableRootBuffer*)vrb->next(), offset);
@@ -92,6 +96,9 @@ namespace rubinius {
           {
             Object** buffer = i->buffer();
             for(int idx = 0; idx < i->size(); idx++) {
+              f(state, &buffer[idx]);
+
+              /* TODO: GC
               Object* cur = buffer[idx];
 
               if(cur->reference_p()) {
@@ -101,6 +108,7 @@ namespace rubinius {
               } else if(cur->handle_p()) {
                 // TODO: MemoryHeader mark MemoryHandle objects
               }
+              */
             }
           }
 
@@ -123,9 +131,8 @@ namespace rubinius {
           if(header->object_p()) {
             Object* obj = reinterpret_cast<Object*>(header);
 
-            if(Object* fwd = f(state, 0, obj)) {
-              // TODO: MemoryHeader set new address
-            }
+            // TODO: GC update the data structure
+            f(state, &obj);
           } else if(header->data_p()) {
             // DataHeader* data = reinterpret_cast<DataHeader*>(header);
             // TODO: process data (not C-API Data) instances

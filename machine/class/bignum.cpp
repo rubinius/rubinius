@@ -147,7 +147,7 @@ namespace rubinius {
     // Cribbed and modified from bn_mp_init.c
     void mp_init_managed(STATE, mp_int* a) {
       ByteArray* storage =
-        state->memory()->new_bytes<ByteArray>(
+        state->memory()->new_bytes_pinned<ByteArray>(
             state, G(bytearray), sizeof (mp_digit) * MP_PREC);
       a->managed = reinterpret_cast<void*>(storage);
 
@@ -1195,7 +1195,7 @@ namespace rubinius {
     State* state = reinterpret_cast<State*>(s);
 
     ByteArray* storage =
-      state->memory()->new_bytes<ByteArray>(state, G(bytearray), bytes);
+      state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), bytes);
     a->managed = reinterpret_cast<void*>(storage);
 
     // Be sure to use the smaller value!
@@ -1209,17 +1209,24 @@ namespace rubinius {
     return storage->raw_bytes();
   }
 
-  void Bignum::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void Bignum::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     Bignum* big = force_as<Bignum>(obj);
 
     mp_int* n = big->mp_val();
     assert(MANAGED(n));
 
+    Object* byte_array = static_cast<Object*>(n->managed);
+
+    // This is pinned, it will not move
+    f(state, &byte_array);
+
+    /* TODO: GC
     if(Object* tmp = f(state, big, static_cast<Object*>(n->managed))) {
       n->managed = reinterpret_cast<void*>(tmp);
       ByteArray* ba = force_as<ByteArray>(tmp);
       n->dp = OPT_CAST(mp_digit)ba->raw_bytes();
     }
+    */
   }
 
   void Bignum::Info::show(STATE, Object* self, int level) {

@@ -9,7 +9,7 @@ namespace rubinius {
       virtual ~Heap() { }
 
       virtual void collect_start(STATE) = 0;
-      virtual void collect_references(STATE, std::function<Object* (STATE, void*, Object*)> f) = 0;
+      virtual void collect_references(STATE, std::function<void (STATE, Object**)> f) = 0;
       virtual void collect_finish(STATE) = 0;
     };
   }

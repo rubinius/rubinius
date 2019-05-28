@@ -61,7 +61,7 @@ namespace rubinius {
     return caches;
   }
 
-  void CallSite::Info::mark(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
+  void CallSite::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     auto_mark(state, obj, f);
 
     CallSite* call_site = as<CallSite>(obj);
@@ -101,21 +101,10 @@ namespace rubinius {
       for(int32_t i = 0; i < cache->size(); i++) {
         Cache::Entry* entry = cache->entries(i);
 
-        if(Object* ref = f(state, obj, entry->receiver_class())) {
-          entry->receiver_class(as<Class>(ref));
-        }
-
-        if(Object* ref = f(state, obj, entry->prediction())) {
-          entry->prediction(as<Prediction>(ref));
-        }
-
-        if(Object* ref = f(state, obj, entry->module())) {
-          entry->module(as<Module>(ref));
-        }
-
-        if(Object* ref = f(state, obj, entry->executable())) {
-          entry->executable(as<Executable>(ref));
-        }
+        f(state, entry->p_receiver_class());
+        f(state, entry->p_prediction());
+        f(state, entry->p_module());
+        f(state, entry->p_executable());
 
         if(state->vm()->shared.profiler()->collecting_p()) {
           if(CompiledCode* code = try_as<CompiledCode>(entry->executable())) {
