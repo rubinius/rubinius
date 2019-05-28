@@ -285,23 +285,24 @@ namespace rubinius {
       {
         if((*i)->reference_p()) {
           if((*i)->object_p()) {
+            Object* fwd = reinterpret_cast<Object*>(*i);
             Object* obj = reinterpret_cast<Object*>(*i);
 
             if(obj->referenced() > 0) {
-              if(Object* fwd = state->memory()->immix()->saw_object(0, obj)) {
+              if(( fwd = state->memory()->immix()->saw_object(0, obj))) {
                 // TODO: MemoryHeader set new address
               }
             } else if(obj->memory_handle_p()) {
               MemoryHandle* handle = obj->extended_header()->get_handle();
               if(handle->accesses() > 0) {
-                if(Object* fwd = state->memory()->immix()->saw_object(0, obj)) {
+                if(( fwd = state->memory()->immix()->saw_object(0, obj))) {
                   // TODO: MemoryHeader set new address
                 }
 
                 handle->unset_accesses();
               }
             } else if(!obj->finalizer_p() && !obj->weakref_p()) {
-              if(Object* fwd = state->memory()->immix()->saw_object(0, obj)) {
+              if(( fwd = state->memory()->immix()->saw_object(0, obj))) {
                 // TODO: MemoryHeader set new address
               }
             }

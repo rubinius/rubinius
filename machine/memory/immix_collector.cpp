@@ -184,6 +184,7 @@ namespace memory {
       {
         if((*i)->reference_p()) {
           if((*i)->object_p()) {
+            Object* fwd = reinterpret_cast<Object*>(*i);
             Object* obj = reinterpret_cast<Object*>(*i);
 
             if(obj->memory_handle_p()) {
@@ -191,7 +192,7 @@ namespace memory {
 
               if(!obj->marked_p(data->mark())) {
                 if(handle->cycles() < 3) {
-                  if(Object* fwd = saw_object(0, obj)) {
+                  if(( fwd = saw_object(0, obj))) {
                     // TODO: MemoryHeader set new address
                   }
                   handle->cycle();
