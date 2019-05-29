@@ -46,6 +46,8 @@ class Configure
     @little_endian = false
     @sizeof = {}
     @gc_stack_check = false
+    @log_concurrent_update = false
+    @raise_concurrent_update = false
 
     # Build tools
     @cc = nil
@@ -321,6 +323,14 @@ class Configure
 
     o.on "--gc-stack-check", "Emit stack trace for all threads on pause for GC" do
       @gc_stack_check = true
+    end
+
+    o.on "--log-concurrent-update", "Log when T2 updates an object created by T1" do
+      @log_concurrent_update = true
+    end
+
+    o.on "--raise-concurrent-update", "Raise a RuntimeError when T2 updates an object created by T1" do
+      @raise_concurrent_update = true
     end
 
     o.doc "\n Compiler settings"
@@ -1731,6 +1741,14 @@ int main(int argc, char* argv[]) {
 
       if @gc_stack_check
         f.puts "#define RBX_GC_STACK_CHECK   1"
+      end
+
+      if @log_concurrent_update
+        f.puts "#define RBX_LOG_CONCURRENT_UPDATE 1"
+      end
+
+      if @raise_concurrent_update
+        f.puts "#define RBX_RAISE_CONCURRENT_UPDATE 1"
       end
 
       [:windows, :darwin, :bsd, :linux].each do |platform|

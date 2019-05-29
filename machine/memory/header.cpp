@@ -7,6 +7,7 @@
 #include "memory.hpp"
 #include "on_stack.hpp"
 #include "thread_phase.hpp"
+#include "type_info.hpp"
 
 #include "class/object.hpp"
 #include "class/class.hpp"
@@ -19,9 +20,9 @@
 #include "diagnostics/memory.hpp"
 
 #include <assert.h>
-#include <sys/time.h>
-
 #include <chrono>
+#include <string>
+#include <sys/time.h>
 
 namespace rubinius {
   std::atomic<uintptr_t> MemoryHeader::object_id_counter;
@@ -396,6 +397,27 @@ namespace rubinius {
   }
 
   void MemoryHeader::write_barrier(STATE, MemoryHeader* value) {
+#ifdef RBX_LOG_CONCURRENT_UPDATE
+    if(thread_id() != state->vm()->thread_id()) {
+      TypeInfo* ti = state->memory()->type_info[type_id()];
+
+      logger::warn("Therad id: %d updating an instance of %s created by Thread id: %d",
+          state->vm()->thread_id(), ti->type_name.c_str(), thread_id());
+    }
+#endif
+
+#ifdef RBX_RAISE_CONCURRENT_UPDATE
+    if(thread_id() != state->vm()->thread_id()) {
+      TypeInfo* ti = state->memory()->type_info[type_id()];
+
+      std::ostringstream msg;
+      msg << "Thread id: " << state->vm()->thread_id() <<
+        " updating an instance of " << ti->type_name <<
+        " created by Thread id: " << thread_id();
+
+      Exception::raise_runtime_error(state, msg.str().c_str());
+    }
+#endif
   }
 
   /* TODO: write_barrier
