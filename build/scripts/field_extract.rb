@@ -919,7 +919,6 @@ write_if_new "machine/typechecks.hpp" do |f|
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo* ti = state->vm()->find_type(#{n}::type);"
-    f.puts "    ti->set_state(state);"
 
     fields = cpp.all_fields
     f.puts "    ti->slot_accessors.resize(#{fields.size});\n"

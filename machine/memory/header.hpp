@@ -16,8 +16,9 @@
 #include "object_types.hpp"
 #include "type_info.hpp"
 #include "detection.hpp"
-#include "util/thread.hpp"
 #include "bug.hpp"
+
+#include "util/thread.hpp"
 
 #ifdef VALUE
 #undef VALUE
@@ -1373,6 +1374,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         }
       }
     }
+
+    void write_barrier(STATE, MemoryHeader* value);
   };
 
   class DataHeader : public MemoryHeader {
@@ -1524,6 +1527,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     friend class TypeInfo;
     friend class Memory;
   };
+
+  namespace memory {
+    static void write_barrier(STATE, MemoryHeader* object, MemoryHeader* value) {
+      object->write_barrier(state, value);
+    }
+  }
 }
 
 #endif

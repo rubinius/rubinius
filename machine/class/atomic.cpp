@@ -23,7 +23,7 @@ namespace rubinius {
     Object** pp = &_value_;
 
     if(atomic::compare_and_swap((void**)pp, old, new_)) {
-      state->memory()->write_barrier(this, new_);
+      write_barrier(state, new_);
       return cTrue;
     } else {
       return cFalse;

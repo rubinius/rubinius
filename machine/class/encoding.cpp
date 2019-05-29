@@ -472,7 +472,7 @@ namespace rubinius {
     memcpy(enc_ba->raw_bytes(), enc, sizeof(OnigEncodingType));
 
     encoding(reinterpret_cast<OnigEncodingType*>(enc_ba->raw_bytes()));
-    state->memory()->write_barrier(this, enc_ba);
+    write_barrier(state, enc_ba);
 
     int size = strlen(name);
     if(size >= ENCODING_NAMELEN_MAX) size = ENCODING_NAMELEN_MAX-1;
@@ -481,7 +481,7 @@ namespace rubinius {
     memcpy(name_ba->raw_bytes(), name, size);
     name_ba->raw_bytes()[size] = 0;
     encoding()->name = reinterpret_cast<const char*>(name_ba->raw_bytes());
-    state->memory()->write_barrier(this, name_ba);
+    write_barrier(state, name_ba);
 
     managed(true);
   }

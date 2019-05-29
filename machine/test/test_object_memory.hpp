@@ -109,8 +109,8 @@ public:
     young->field[0] = mature;
     mature->field[0] = young;
 
-    om.write_barrier(young, mature);
-    om.write_barrier(mature, young);
+    // om.write_barrier(young, mature);
+    // om.write_barrier(mature, young);
 
     memory::Root r(roots, young);
 

@@ -17,10 +17,6 @@ namespace rubinius {
     GO(rtuple).set(Class::bootstrap_class(state, G(tuple), RTupleType));
   }
 
-  void Tuple::write_barrier(STATE, Tuple* tuple, Object* val) {
-    state->memory()->write_barrier(tuple, val);
-  }
-
   Tuple* Tuple::bounds_exceeded_error(STATE, const char* method, int index) {
     std::ostringstream msg;
 
@@ -52,7 +48,7 @@ namespace rubinius {
 
     field[idx] = val;
 
-    state->memory()->write_barrier(this, val);
+    write_barrier(state, val);
 
     return val;
   }
@@ -161,7 +157,7 @@ namespace rubinius {
         Object *obj = other->field[src];
         // but this is necessary to keep the GC happy
         field[dst] = obj;
-        state->memory()->write_barrier(this, obj);
+        write_barrier(state, obj);
       }
     }
 
@@ -277,7 +273,7 @@ namespace rubinius {
       tuple->field[i] = val;
     }
 
-    state->memory()->write_barrier(tuple, val);
+    tuple->write_barrier(state, val);
 
     return tuple;
   }
@@ -418,7 +414,7 @@ namespace rubinius {
 
     reinterpret_cast<VALUE*>(field)[index] = MemoryHandle::value(val);
 
-    state->memory()->write_barrier(this, val);
+    write_barrier(state, val);
 
     return val;
   }

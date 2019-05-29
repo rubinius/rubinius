@@ -16,13 +16,8 @@ namespace rubinius {
     auto_init(om);
   }
 
-  void TypeInfo::set_state(STATE) {
-    state_ = state->vm();
-  }
-
   TypeInfo::TypeInfo(object_type type)
-    : state_(NULL)
-    , instance_size(sizeof(Object))
+    : instance_size(sizeof(Object))
     , slots()
     , type_name()
     , type(type)

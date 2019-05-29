@@ -85,15 +85,14 @@ namespace rubinius {
       return reinterpret_cast<Object**>(&this->_tuple_);
     }
 
-    template<typename T>
-      void tuple(T state, Tuple* obj) {
-        tuple(obj);
-        state->memory()->write_barrier(this, obj);
+    void tuple(STATE, Tuple* obj) {
+      tuple(obj);
+      memory::write_barrier(state, this, obj);
 
-        if(type_specific() == eRArray) {
-          write_rarray(state);
-        }
+      if(type_specific() == eRArray) {
+        write_rarray(state);
       }
+    }
 
     native_int size();
     native_int offset();

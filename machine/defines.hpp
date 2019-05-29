@@ -20,9 +20,7 @@
 #include "util/optimize.hpp"
 
 namespace rubinius {
-
   class State;
-  class VM;
 
   /** Platform-dependent integer type large enough for pointers too. */
   typedef intptr_t native_int;
@@ -30,11 +28,16 @@ namespace rubinius {
 
   typedef native_int hashval;
 
-
   #define STATE rubinius::State* state
-  #define THREAD memory::ManagedThread* state
   #define G(whatever) state->globals().whatever.get()
   #define GO(whatever) state->globals().whatever
+
+  namespace memory {
+    template <typename A, typename B>
+    static void write_barrier(STATE, A* object, B* value) {
+      write_barrier(state, object, value);
+    }
+  }
 
 /**
  *  Create a writer method for a slot.
@@ -47,13 +50,12 @@ namespace rubinius {
   private: \
     type* _ ## name ## _; \
   public: \
-    template <class T> \
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
-    void name(T state, type* obj) { \
+    void name(STATE, type* obj) { \
       _ ## name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
+      memory::write_barrier(state, this, obj); \
     } \
     Object** p_ ## name() { \
       return reinterpret_cast<Object**>(&this->_ ## name ## _); \
@@ -90,10 +92,9 @@ namespace rubinius {
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
-    template <class T> \
-    void name(T state, type* obj) { \
+    void name(STATE, type* obj) { \
       _ ## name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
+      memory::write_barrier(state, this, obj); \
     } \
     Object** p_ ## name() { \
       return reinterpret_cast<Object**>(&this->_ ## name ## _); \

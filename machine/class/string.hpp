@@ -77,41 +77,38 @@ namespace rubinius {
       return reinterpret_cast<Object**>(&this->_num_bytes_);
     }
 
-    template<typename T>
-      void num_bytes(T state, Fixnum* obj) {
-        num_bytes(obj);
+    void num_bytes(STATE, Fixnum* obj) {
+      num_bytes(obj);
+      num_chars(nil<Fixnum>());
+
+      if(type_specific() == eRString) {
+        write_rstring(state);
+      }
+    }
+
+    void data(STATE, ByteArray* obj) {
+      data(obj);
+      write_barrier(state, obj);
+
+      if(type_specific() == eRString) {
+        write_rstring(state);
+      }
+    }
+
+    void encoding(STATE, Encoding* obj) {
+      if(obj->nil_p() || (!CBOOL(ascii_only()) && obj->ascii_compatible())) {
+        ascii_only(cNil);
         num_chars(nil<Fixnum>());
-
-        if(type_specific() == eRString) {
-          write_rstring(state);
-        }
+        valid_encoding(cNil);
       }
-
-    template<typename T>
-      void data(T state, ByteArray* obj) {
-        data(obj);
-        state->memory()->write_barrier(this, obj);
-
-        if(type_specific() == eRString) {
-          write_rstring(state);
-        }
+      if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
+        ascii_only(cTrue);
+        num_chars(Fixnum::from(0));
+        valid_encoding(cTrue);
       }
-
-    template<typename T>
-      void encoding(T state, Encoding* obj) {
-        if(obj->nil_p() || (!CBOOL(ascii_only()) && obj->ascii_compatible())) {
-          ascii_only(cNil);
-          num_chars(nil<Fixnum>());
-          valid_encoding(cNil);
-        }
-        if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
-          ascii_only(cTrue);
-          num_chars(Fixnum::from(0));
-          valid_encoding(cTrue);
-        }
-        encoding(obj);
-        state->memory()->write_barrier(this, obj);
-      }
+      encoding(obj);
+      write_barrier(state, obj);
+    }
 
     /* interface */
 
@@ -237,8 +234,7 @@ namespace rubinius {
     }
 
     void encoding_from(STATE, String* other) {
-      encoding(other->encoding());
-      state->memory()->write_barrier(this, encoding());
+      encoding(state, other->encoding());
 
       if(other->ascii_only()->true_p()) {
         ascii_only(cTrue);

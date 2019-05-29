@@ -410,7 +410,7 @@ namespace rubinius {
 
     str = String::create(state, argv[0]);
     str->encoding(state, enc);
-    state->vm()->set_const("ARG0", str);
+    G(object)->set_const(state, "ARG0", str);
 
     Array* ary = Array::create(state, argc - 1);
     int which_arg = 0;
@@ -433,7 +433,7 @@ namespace rubinius {
       ary->set(state, which_arg++, str);
     }
 
-    state->vm()->set_const("ARGV", ary);
+    G(object)->set_const(state, "ARGV", ary);
 
     // Now finish up with the config
     if(config.print_config > 1) {

@@ -166,7 +166,7 @@ namespace rubinius {
 
       // Only write the locations if there are none.
       if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
-        exc->locations(this, Location::from_call_stack(state));
+        exc->locations(state, Location::from_call_stack(state));
       }
 
       thread_state_.raise_exception(exc);
@@ -379,16 +379,6 @@ namespace rubinius {
     state->shared().env()->after_fork_child(state);
   }
 
-  void VM::set_const(const char* name, Object* val) {
-    State state(this);
-    globals().object->set_const(&state, (char*)name, val);
-  }
-
-  void VM::set_const(Module* mod, const char* name, Object* val) {
-    State state(this);
-    mod->set_const(&state, (char*)name, val);
-  }
-
   Object* VM::path2class(const char* path) {
     State state(this);
     Module* mod = shared.globals.object.get();
@@ -481,32 +471,26 @@ namespace rubinius {
     custom_wakeup_data_ = 0;
   }
 
-  void VM::wait_on_channel(Channel* chan) {
+  void VM::wait_on_channel(STATE, Channel* chan) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
-    thread()->sleep(this, cTrue);
+    thread()->sleep(state, cTrue);
     waiting_channel_.set(chan);
   }
 
-  void VM::wait_on_inflated_lock(Object* wait) {
-    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
-
-    waiting_object_.set(wait);
-  }
-
-  void VM::wait_on_custom_function(void (*func)(void*), void* data) {
+  void VM::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
     utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
 
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
   }
 
-  void VM::set_sleeping() {
-    thread()->sleep(this, cTrue);
+  void VM::set_sleeping(STATE) {
+    thread()->sleep(state, cTrue);
   }
 
-  void VM::clear_sleeping() {
-    thread()->sleep(this, cFalse);
+  void VM::clear_sleeping(STATE) {
+    thread()->sleep(state, cFalse);
   }
 
   void VM::reset_parked() {

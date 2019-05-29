@@ -395,6 +395,27 @@ namespace rubinius {
     return false;
   }
 
+  void MemoryHeader::write_barrier(STATE, MemoryHeader* value) {
+  }
+
+  /* TODO: write_barrier
+    inline void write_barrier(ObjectHeader* target, Fixnum* val) {
+      // No-op
+    }
+
+    inline void write_barrier(ObjectHeader* target, Symbol* val) {
+      // No-op
+    }
+
+    inline void write_barrier(ObjectHeader* target, ObjectHeader* val) {
+      // memory::WriteBarrier::write_barrier(target, val, mark_);
+    }
+
+    inline void write_barrier(ObjectHeader* target, Class* val) {
+      // memory::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
+    }
+  */
+
   size_t ObjectHeader::compute_size_in_bytes(VM* vm) const {
     return vm->memory()->type_info[type_id()]->object_size(this);
   }
@@ -404,11 +425,8 @@ namespace rubinius {
   }
 
   void ObjectHeader::initialize_copy(STATE, Object* other) {
-    klass(other->klass());
-    ivars(other->ivars());
-
-    state->shared().om->write_barrier(this, klass());
-    state->shared().om->write_barrier(this, ivars());
+    klass(state, other->klass());
+    ivars(state, other->ivars());
   }
 
   void ObjectHeader::copy_body(VM* state, Object* other) {

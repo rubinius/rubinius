@@ -132,7 +132,7 @@ namespace rubinius {
       return NULL;
     }
 
-    state->vm()->wait_on_channel(self);
+    state->vm()->wait_on_channel(state, self);
 
     self->inc_waiters();
 

@@ -114,7 +114,7 @@ namespace rubinius {
 
       reg->p = reinterpret_cast<unsigned char*>(pattern->raw_bytes());
 
-      state->memory()->write_barrier(obj, pattern);
+      obj->write_barrier(state, pattern);
     }
 
     if(reg->exact) {
@@ -126,7 +126,7 @@ namespace rubinius {
       reg->exact = reinterpret_cast<unsigned char*>(exact->raw_bytes());
       reg->exact_end = reg->exact + exact_size;
 
-      state->memory()->write_barrier(obj, exact);
+      obj->write_barrier(state, exact);
     }
 
     int int_map_size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
@@ -138,7 +138,7 @@ namespace rubinius {
 
       reg->int_map = reinterpret_cast<int*>(intmap->raw_bytes());
 
-      state->memory()->write_barrier(obj, intmap);
+      obj->write_barrier(state, intmap);
     }
 
     if(reg->int_map_backward) {
@@ -148,7 +148,7 @@ namespace rubinius {
 
       reg->int_map_backward = reinterpret_cast<int*>(intmap_back->raw_bytes());
 
-      state->memory()->write_barrier(obj, intmap_back);
+      obj->write_barrier(state, intmap_back);
     }
 
     if(reg->repeat_range) {
@@ -159,11 +159,11 @@ namespace rubinius {
 
       reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->raw_bytes());
 
-      state->memory()->write_barrier(obj, rrange);
+      obj->write_barrier(state, rrange);
     }
 
     obj->onig_data[enc->cache_index()] = reg;
-    state->memory()->write_barrier(obj, reg_ba);
+    obj->write_barrier(state, reg_ba);
 
     onig_free(orig);
     return reg;
@@ -458,7 +458,7 @@ namespace rubinius {
 
       data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
-      state->memory()->write_barrier(this, ba);
+      write_barrier(state, ba);
     }
 
     lock_.unlock();
@@ -533,7 +533,7 @@ namespace rubinius {
 
       data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
-      state->memory()->write_barrier(this, ba);
+      write_barrier(state, ba);
     }
 
     lock_.unlock();
@@ -606,7 +606,7 @@ namespace rubinius {
 
       data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
-      state->memory()->write_barrier(this, ba);
+      write_barrier(state, ba);
     }
 
     lock_.unlock();

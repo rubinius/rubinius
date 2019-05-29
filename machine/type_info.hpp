@@ -41,9 +41,6 @@ namespace rubinius {
     typedef std::vector<executor> AccessorPrimitives;
     typedef std::vector<uintptr_t> SlotLocations;
 
-  private: /* Instance vars */
-    VM*         state_;
-
   public:
 
     size_t      instance_size;
@@ -80,12 +77,6 @@ namespace rubinius {
     virtual ~TypeInfo();
 
   public:   /* Interface */
-
-    void set_state(STATE);
-
-    VM* state() {
-      return state_;
-    }
 
     virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
 

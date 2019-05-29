@@ -640,7 +640,7 @@ namespace rubinius {
 
         Object** baa = reinterpret_cast<Object**>(pointer_to_body());
         baa[which->to_native()] = val;
-        state->memory()->write_barrier(this, val);
+        write_barrier(state, val);
         return val;
       }
     default:

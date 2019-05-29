@@ -41,8 +41,6 @@ namespace rubinius {
 
   /** Primitives */
   public:
-    static void write_barrier(STATE, Tuple* tuple, Object* val);
-
     // Rubinius.primitive :tuple_allocate
     static Tuple* allocate(STATE, Object* self, Fixnum* fields);
 
@@ -56,7 +54,7 @@ namespace rubinius {
     Object* put(STATE, native_int idx, Object* val) {
       field[idx] = val;
 
-      Tuple::write_barrier(state, this, val);
+      write_barrier(state, val);
       return val;
     }
 
@@ -125,7 +123,7 @@ namespace rubinius {
     Object* put(STATE, native_int idx, Object* val) {
       reinterpret_cast<VALUE*>(field)[idx] = MemoryHandle::value(val);
 
-      Tuple::write_barrier(state, this, val);
+      write_barrier(state, val);
       return val;
     }
 

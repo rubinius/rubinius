@@ -475,23 +475,19 @@ namespace rubinius {
     Exception* new_exception(Class* cls, const char* msg);
     Object* current_block();
 
-    void set_const(const char* name, Object* val);
-    void set_const(Module* mod, const char* name, Object* val);
-
     Object* path2class(const char* name);
 
     void print_backtrace();
 
-    void wait_on_channel(Channel* channel);
-    void wait_on_inflated_lock(Object* wait);
-    void wait_on_custom_function(void (*func)(void*), void* data);
+    void wait_on_channel(STATE, Channel* channel);
+    void wait_on_custom_function(STATE, void (*func)(void*), void* data);
     void clear_waiter();
     bool wakeup(STATE);
 
     void reset_parked();
 
-    void set_sleeping();
-    void clear_sleeping();
+    void set_sleeping(STATE);
+    void clear_sleeping(STATE);
 
     void interrupt_with_signal() {
       interrupt_with_signal_ = true;

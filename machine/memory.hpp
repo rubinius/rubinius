@@ -176,22 +176,6 @@ namespace rubinius {
     Memory(STATE);
     ~Memory();
 
-    inline void write_barrier(ObjectHeader* target, Fixnum* val) {
-      /* No-op */
-    }
-
-    inline void write_barrier(ObjectHeader* target, Symbol* val) {
-      /* No-op */
-    }
-
-    inline void write_barrier(ObjectHeader* target, ObjectHeader* val) {
-      // memory::WriteBarrier::write_barrier(target, val, mark_);
-    }
-
-    inline void write_barrier(ObjectHeader* target, Class* val) {
-      // memory::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
-    }
-
     // Object must be created in Immix or large object space.
     Object* new_object(STATE, native_int bytes, object_type type);
     Object* new_object_pinned(STATE, native_int bytes, object_type type);

@@ -187,19 +187,19 @@ namespace rubinius {
 
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
-    state->memory()->write_barrier(code, call_site);
+    code->write_barrier(state, call_site);
     std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache) {
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
-    state->memory()->write_barrier(code, constant_cache);
+    code->write_barrier(state, constant_cache);
     std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site) {
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(unwind_site);
-    state->memory()->write_barrier(code, unwind_site);
+    code->write_barrier(state, unwind_site);
     std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 

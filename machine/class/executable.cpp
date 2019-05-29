@@ -70,7 +70,7 @@ namespace rubinius {
     }
     inliners()->inliners().push_back(code);
 
-    om->write_barrier(this, code);
+    write_barrier(state, code);
   }
 
   void Executable::clear_inliners(STATE) {
