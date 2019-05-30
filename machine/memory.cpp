@@ -14,7 +14,7 @@
 #include "memory/code_resource.hpp"
 #include "memory/collector.hpp"
 #include "memory/immix.hpp"
-#include "memory/large_region.hpp"
+#include "memory/third_region.hpp"
 #include "memory/main_heap.hpp"
 
 #include "environment.hpp"
@@ -109,7 +109,7 @@ namespace rubinius {
       return true;
     } else if(obj->symbol_p()) {
       return true;
-    } else if(obj->region() == eLargeRegion) {
+    } else if(obj->region() == eThirdRegion) {
       if(mark_sweep_->validate_object(obj) == cMatureObject) {
         return true;
       }
@@ -150,12 +150,12 @@ namespace rubinius {
       return obj;
     }
 
-    if(likely(obj = main_heap_->large_region()->allocate(state, bytes))) {
+    if(likely(obj = main_heap_->third_region()->allocate(state, bytes))) {
       shared().memory_metrics()->large_objects++;
       shared().memory_metrics()->large_bytes += bytes;
 
       MemoryHeader::initialize(
-          obj, state->vm()->thread_id(), eLargeRegion, type, false);
+          obj, state->vm()->thread_id(), eThirdRegion, type, false);
 
       return obj;
     }
@@ -169,12 +169,12 @@ namespace rubinius {
 
     Object* obj = nullptr;
 
-    if(likely(obj = main_heap_->large_region()->allocate(state, bytes))) {
+    if(likely(obj = main_heap_->third_region()->allocate(state, bytes))) {
       shared().memory_metrics()->large_objects++;
       shared().memory_metrics()->large_bytes += bytes;
 
       MemoryHeader::initialize(
-          obj, state->vm()->thread_id(), eLargeRegion, type, false);
+          obj, state->vm()->thread_id(), eThirdRegion, type, false);
 
       return obj;
     }

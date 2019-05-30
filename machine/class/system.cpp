@@ -904,7 +904,7 @@ namespace rubinius {
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
-    if(CBOOL(force) || state->shared().config.gc_honor_start) {
+    if(CBOOL(force) || state->shared().config.collector_honor_start) {
       state->memory()->collector()->collect_requested(state,
           "collector: request to collect from managed code");
     }

@@ -56,7 +56,7 @@ public:
 
     obj = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
     TS_ASSERT_EQUALS(obj->num_fields(), LARGE_OBJECT_BYTE_SIZE);
-    TS_ASSERT_EQUALS(obj->region(), eLargeRegion);
+    TS_ASSERT_EQUALS(obj->region(), eThirdRegion);
   }
 
   void test_collect_full() {
@@ -67,7 +67,7 @@ public:
 
     mature = util_new_object(om, LARGE_OBJECT_BYTE_SIZE);
 
-    TS_ASSERT_EQUALS(mature->region(), eLargeRegion);
+    TS_ASSERT_EQUALS(mature->region(), eThirdRegion);
     unsigned int mark = om.mark();
     TS_ASSERT(!mature->marked_p(mark));
     memory::Root r(roots, mature);

@@ -4,7 +4,7 @@
 #include "state.hpp"
 
 #include "memory/collector.hpp"
-#include "memory/large_region.hpp"
+#include "memory/third_region.hpp"
 
 #include "class/tuple.hpp"
 #include "class/string.hpp"
@@ -27,7 +27,7 @@ namespace rubinius {
 
     LargeRegion::LargeRegion(STATE)
       : diagnostic_(new diagnostics::LargeRegion())
-      , collection_threshold(state->shared().config.gc_marksweep_threshold)
+      , collection_threshold(state->shared().config.collector_third_region_threshold)
       , next_collection_bytes(collection_threshold)
     {}
 

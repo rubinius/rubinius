@@ -11,7 +11,7 @@ namespace rubinius {
 
     class MainHeap : public Heap {
       Immix* first_region_;
-      LargeRegion* large_region_;
+      LargeRegion* third_region_;
       CodeManager& code_manager_;
 
     public:
@@ -22,8 +22,8 @@ namespace rubinius {
         return first_region_;
       }
 
-      LargeRegion* large_region() {
-        return large_region_;
+      LargeRegion* third_region() {
+        return third_region_;
       }
 
       void collect_start(STATE);

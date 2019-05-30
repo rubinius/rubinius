@@ -398,24 +398,28 @@ namespace rubinius {
 
   void MemoryHeader::write_barrier(STATE, MemoryHeader* value) {
 #ifdef RBX_LOG_CONCURRENT_UPDATE
-    if(thread_id() != state->vm()->thread_id()) {
-      TypeInfo* ti = state->memory()->type_info[type_id()];
+    if(state->shared().config.machine_concurrent_update_log) {
+      if(thread_id() != state->vm()->thread_id()) {
+        TypeInfo* ti = state->memory()->type_info[type_id()];
 
-      logger::warn("Therad id: %d updating an instance of %s created by Thread id: %d",
-          state->vm()->thread_id(), ti->type_name.c_str(), thread_id());
+        logger::warn("Therad id: %d updating an instance of %s created by Thread id: %d",
+            state->vm()->thread_id(), ti->type_name.c_str(), thread_id());
+      }
     }
 #endif
 
 #ifdef RBX_RAISE_CONCURRENT_UPDATE
-    if(thread_id() != state->vm()->thread_id()) {
-      TypeInfo* ti = state->memory()->type_info[type_id()];
+    if(state->shared().config.machine_concurrent_update_raise) {
+      if(thread_id() != state->vm()->thread_id()) {
+        TypeInfo* ti = state->memory()->type_info[type_id()];
 
-      std::ostringstream msg;
-      msg << "Thread id: " << state->vm()->thread_id() <<
-        " updating an instance of " << ti->type_name <<
-        " created by Thread id: " << thread_id();
+        std::ostringstream msg;
+        msg << "Thread id: " << state->vm()->thread_id() <<
+          " updating an instance of " << ti->type_name <<
+          " created by Thread id: " << thread_id();
 
-      Exception::raise_runtime_error(state, msg.str().c_str());
+        Exception::raise_concurrent_update_error(state, msg.str().c_str());
+      }
     }
 #endif
   }

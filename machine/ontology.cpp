@@ -501,7 +501,7 @@ namespace rubinius {
   }
 
   void VM::bootstrap_exceptions(STATE) {
-    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sce, *type, *lje, *vme, *me;
+    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sce, *type, *lje, *vme, *me, *cue;
     Class *rng, *rte;
 
 #define dexc(name, sup) state->memory()->new_class<Class>(state, sup, G(object), #name)

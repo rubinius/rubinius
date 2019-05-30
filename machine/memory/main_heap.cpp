@@ -6,7 +6,7 @@
 
 #include "memory/collector.hpp"
 #include "memory/immix.hpp"
-#include "memory/large_region.hpp"
+#include "memory/third_region.hpp"
 #include "memory/main_heap.hpp"
 
 #include "diagnostics/collector.hpp"
@@ -16,14 +16,14 @@ namespace rubinius {
     MainHeap::MainHeap(STATE, CodeManager& cm)
       : Heap()
       , first_region_(new Immix(state))
-      , large_region_(new LargeRegion(state))
+      , third_region_(new LargeRegion(state))
       , code_manager_(cm)
     {
     }
 
     MainHeap::~MainHeap() {
-      delete large_region_;
-      large_region_ = nullptr;
+      delete third_region_;
+      third_region_ = nullptr;
 
       delete first_region_;
       first_region_ = nullptr;
@@ -145,7 +145,7 @@ namespace rubinius {
       code_manager_.sweep();
 
       first_region_->sweep(state);
-      large_region_->sweep(state);
+      third_region_->sweep(state);
 
       state->shared().symbols.sweep(state);
 

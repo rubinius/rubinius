@@ -211,7 +211,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     eThreadRegion = 0,
     eFirstRegion,
     eSecondRegion,
-    eLargeRegion,
+    eThirdRegion,
   };
 
   struct HeaderField {
@@ -978,8 +978,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return static_cast<MemoryRegion>(get(region_field)) == eSecondRegion;
     }
 
-    bool large_region_p() const {
-      return static_cast<MemoryRegion>(get(region_field)) == eLargeRegion;
+    bool third_region_p() const {
+      return static_cast<MemoryRegion>(get(region_field)) == eThirdRegion;
     }
 
     unsigned int referenced() const {

@@ -19,7 +19,7 @@
 #include "diagnostics/timing.hpp"
 
 #include "memory/collector.hpp"
-#include "memory/large_region.hpp"
+#include "memory/third_region.hpp"
 #include "memory/tracer.hpp"
 
 #include "dtrace/dtrace.h"

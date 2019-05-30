@@ -6,7 +6,7 @@
 
 #include "memory/collector.hpp"
 #include "memory/immix.hpp"
-#include "memory/large_region.hpp"
+#include "memory/third_region.hpp"
 #include "memory/tracer.hpp"
 
 namespace rubinius {
@@ -176,7 +176,7 @@ namespace rubinius {
         case eSecondRegion:
           // TODO: GC
           break;
-        case eLargeRegion:
+        case eThirdRegion:
           // Do nothing
           break;
       }
@@ -210,7 +210,7 @@ namespace rubinius {
         case eSecondRegion:
           // TODO: GC
           break;
-        case eLargeRegion:
+        case eThirdRegion:
           // Do nothing
           break;
       }
