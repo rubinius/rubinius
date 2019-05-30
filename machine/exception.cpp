@@ -32,7 +32,7 @@ namespace rubinius {
   }
 
   RubyException::RubyException(Exception* exception, bool make_backtrace)
-      : VMException(make_backtrace), exception(exception) {
+      : MachineException(make_backtrace), exception(exception) {
   }
 
   void RubyException::raise(Exception* exception, bool make_backtrace) {
@@ -48,7 +48,7 @@ namespace rubinius {
     print_backtrace();
   }
 
-  static VMException::Backtrace get_trace(size_t skip, size_t max_depth=100) {
+  static MachineException::Backtrace get_trace(size_t skip, size_t max_depth=100) {
 #ifdef USE_EXECINFO
     size_t stack_depth;
     char **stack_strings;
@@ -58,7 +58,7 @@ namespace rubinius {
     stack_depth = backtrace(stack_addrs, max_depth);
     stack_strings = backtrace_symbols(stack_addrs, stack_depth);
 
-    VMException::Backtrace s;
+    MachineException::Backtrace s;
 
     for (size_t i = skip; i < stack_depth; i++) {
       s.push_back(std::string(stack_strings[i]));
@@ -66,7 +66,7 @@ namespace rubinius {
     free(stack_strings); // malloc()ed by backtrace_symbols
     free(stack_addrs);
 #else
-    VMException::Backtrace s;
+    MachineException::Backtrace s;
     s.push_back(std::string("C++ backtrace not available"));
 #endif
 
@@ -84,7 +84,7 @@ namespace rubinius {
     str.erase(pos + 2, i - pos - 2);
   }
 
-  static void demangle(VMException::Backtrace& s) {
+  static void demangle(MachineException::Backtrace& s) {
     for (size_t i = 0; i < s.size(); i++) {
       squeeze_space(s[i]);
       const char* str = s[i].c_str();
@@ -140,7 +140,7 @@ namespace rubinius {
   }
 
   void print_backtrace(size_t max) {
-    VMException::Backtrace s = get_trace(2, max);
+    MachineException::Backtrace s = get_trace(2, max);
     demangle(s);
 
     for(size_t i = 0; i < s.size(); i++) {
@@ -149,43 +149,97 @@ namespace rubinius {
     }
   }
 
-  static VMException::Backtrace get_cpp_backtrace() {
-    VMException::Backtrace s = get_trace(2);
+  static MachineException::Backtrace get_cpp_backtrace() {
+    MachineException::Backtrace s = get_trace(2);
     demangle(s);
     return s;
   }
 
-  VMException::VMException(bool make_backtrace)
+  MachineException::MachineException(bool make_backtrace)
       : backtrace(NULL), reason(NULL) {
     if(make_backtrace) {
-      backtrace = new VMException::Backtrace(get_cpp_backtrace());
+      backtrace = new MachineException::Backtrace(get_cpp_backtrace());
     }
   }
 
-  VMException::VMException(const char* reason, bool make_backtrace)
+  MachineException::MachineException(const char* reason, bool make_backtrace)
       : backtrace(NULL), reason(NULL) {
     if(make_backtrace) {
-      backtrace = new VMException::Backtrace(get_cpp_backtrace());
+      backtrace = new MachineException::Backtrace(get_cpp_backtrace());
     }
     if(reason) this->reason = strdup(reason);
   }
 
-  VMException::VMException(const VMException& other)
+  MachineException::MachineException(const MachineException& other)
       : backtrace(NULL), reason(NULL) {
     if(other.backtrace) {
-      backtrace = new VMException::Backtrace(*other.backtrace);
+      backtrace = new MachineException::Backtrace(*other.backtrace);
     }
     if(other.reason) {
       reason = strdup(other.reason);
     }
   }
 
-  void VMException::print_backtrace() {
+  void MachineException::print_backtrace() {
     if(!backtrace) return;
 
     for(size_t i = 0; i < backtrace->size(); i++) {
       logger::warn("%s", backtrace->at(i).c_str());
       std::cout << backtrace->at(i) << std::endl;
     }
+  }
+
+  void MachineException::guard(STATE, bool exit, std::function<void ()> process) {
+    try {
+      process();
+    } catch(Assertion *e) {
+      std::cout << "Machine Assertion:" << std::endl;
+      std::cout << "  " << e->reason << std::endl << std::endl;
+      e->print_backtrace();
+
+      std::cout << std::endl << "Ruby backtrace:" << std::endl;
+      state->vm()->print_backtrace();
+      delete e;
+    } catch(RubyException &e) {
+      std::cout << "Ruby Exception hit toplevel:\n";
+      // Prints Ruby backtrace, and Machine backtrace if captured
+      e.show(state);
+    } catch(TypeError &e) {
+      /* TypeError's here are dealt with specially so that they can deliver
+       * more information, such as _why_ there was a type error issue.
+       *
+       * This has the same name as the RubyException TypeError (run `5 + "string"`
+       * as an example), but these are NOT the same - this exception is raised
+       * internally when cNil gets passed to an array method, for instance, when
+       * an array was expected.
+       */
+      std::cout << "Type Error detected:" << std::endl;
+      TypeInfo* wanted = state->vm()->find_type(e.type);
+
+      if(!e.object->reference_p()) {
+        std::cout << "  Tried to use non-reference value " << e.object;
+      } else {
+        TypeInfo* was = state->vm()->find_type(e.object->type_id());
+        std::cout << "  Tried to use object of type " <<
+          was->type_name << " (" << was->type << ")";
+      }
+
+      std::cout << " as type " << wanted->type_name << " (" <<
+        wanted->type << ")" << std::endl;
+
+      e.print_backtrace();
+
+      std::cout << "Ruby backtrace:" << std::endl;
+      state->vm()->print_backtrace();
+    } catch(MachineException &e) {
+      std::cout << "Unknown Machine exception detected:" << std::endl;
+      e.print_backtrace();
+    } catch(std::exception& e) {
+      std::cout << "C++ exception detected: " << e.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unknown C++ exception detected at top level" << std::endl;
+    }
+
+    if(exit) ::exit(1);
   }
 }

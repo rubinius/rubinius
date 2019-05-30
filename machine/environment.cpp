@@ -539,23 +539,11 @@ namespace rubinius {
    * Ruby code.
    */
   void Environment::load_core(STATE) {
-    try {
-      CodeDB::open(state,
-          config.codedb_core_path.value,
-          config.codedb_cache_path.value);
-    } catch(RubyException& exc) {
-      exc.show(state);
-      exit(1);
-    } catch(Assertion& exc) {
-      exc.print_backtrace();
-      exit(1);
-    } catch(TypeError& exc) {
-      exc.print_backtrace();
-      exit(1);
-    } catch(...) {
-      std::cout << "Unknown C++ exception loading CodeDB" << std::endl;
-      exit(1);
-    }
+    MachineException::guard(state, false, [&]{
+        CodeDB::open(state,
+            config.codedb_core_path.value,
+            config.codedb_cache_path.value);
+      });
   }
 
   std::string Environment::executable_name() {

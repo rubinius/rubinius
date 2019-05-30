@@ -501,7 +501,7 @@ namespace rubinius {
   }
 
   void VM::bootstrap_exceptions(STATE) {
-    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sce, *type, *lje, *vme;
+    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sce, *type, *lje, *vme, *me;
     Class *rng, *rte;
 
 #define dexc(name, sup) state->memory()->new_class<Class>(state, sup, G(object), #name)
@@ -535,6 +535,8 @@ namespace rubinius {
           state, G(exc_vm_internal), G(rubinius), "InvalidBytecode"));
 
     // Some special exceptions scoped under the Rubinius module
+    me = state->memory()->new_class<Class>(state, exc, G(rubinius), "MachineException");
+    cue = state->memory()->new_class<Class>(state, me, G(rubinius), "ConcurrentUpdateError");
     vme = state->memory()->new_class<Class>(state, exc, G(rubinius), "VMException");
     state->memory()->new_class<Class>(state, vme, G(rubinius), "AssertionError");
     state->memory()->new_class<Class>(
@@ -549,6 +551,7 @@ namespace rubinius {
     GO(exc_loe).set(loe);
     GO(exc_rex).set(rex);
     GO(exc_rte).set(rte);
+    GO(exc_cue).set(cue);
 
     GO(exc_primitive_failure).set(dexc(PrimitiveFailure, exc));
 

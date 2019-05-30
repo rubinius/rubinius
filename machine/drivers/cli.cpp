@@ -32,81 +32,22 @@ using namespace rubinius;
  * skins it and shows it to the user.
  */
 int main(int argc, char** argv) {
-  int exit_code = 0;
-
   {
     Environment env(argc, argv);
     env.setup_cpp_terminate();
 
-    try {
-      if(const char* var = getenv("RBX_OPTIONS")) {
-        env.load_string(var);
-      }
+    MachineException::guard(env.state, true, [&]{
+        if(const char* var = getenv("RBX_OPTIONS")) {
+          env.load_string(var);
+        }
 
-      if(const char* path = getenv("RBX_OPTFILE")) {
-        env.load_conf(path);
-      }
+        if(const char* path = getenv("RBX_OPTFILE")) {
+          env.load_conf(path);
+        }
 
-      env.boot();
-
-      // If we are here, something went wrong. Otherwise, exit(3) will always
-      // be called explicitly.
-      exit_code = -1;
-    } catch(Assertion *e) {
-      std::cout << "VM Assertion:" << std::endl;
-      std::cout << "  " << e->reason << std::endl << std::endl;
-      e->print_backtrace();
-
-      std::cout << std::endl << "Ruby backtrace:" << std::endl;
-      env.state->vm()->print_backtrace();
-      delete e;
-      exit_code = 1;
-    } catch(RubyException &e) {
-      std::cout << "Ruby Exception hit toplevel:\n";
-      // Prints Ruby backtrace, and VM backtrace if captured
-      e.show(env.state);
-      exit_code = 1;
-    } catch(TypeError &e) {
-
-      /* TypeError's here are dealt with specially so that they can deliver
-       * more information, such as _why_ there was a type error issue.
-       *
-       * This has the same name as the RubyException TypeError (run `5 + "string"`
-       * as an example), but these are NOT the same - this exception is raised
-       * internally when cNil gets passed to an array method, for instance, when
-       * an array was expected.
-       */
-      std::cout << "Type Error detected:" << std::endl;
-      TypeInfo* wanted = env.state->vm()->find_type(e.type);
-
-      if(!e.object->reference_p()) {
-        std::cout << "  Tried to use non-reference value " << e.object;
-      } else {
-        TypeInfo* was = env.state->vm()->find_type(e.object->type_id());
-        std::cout << "  Tried to use object of type " <<
-          was->type_name << " (" << was->type << ")";
-      }
-
-      std::cout << " as type " << wanted->type_name << " (" <<
-        wanted->type << ")" << std::endl;
-
-      e.print_backtrace();
-
-      std::cout << "Ruby backtrace:" << std::endl;
-      env.state->vm()->print_backtrace();
-      exit_code = 1;
-    } catch(VMException &e) {
-      std::cout << "Unknown VM exception detected:" << std::endl;
-      e.print_backtrace();
-      exit_code = 1;
-    } catch(std::exception& e) {
-      std::cout << "C++ exception detected: " << e.what() << std::endl;
-      exit_code = 1;
-    } catch(...) {
-      std::cout << "Unknown C++ exception detected at top level" << std::endl;
-      exit_code = 1;
-    }
+        env.boot();
+      });
   }
 
-  return exit_code;
+  return 1;
 }

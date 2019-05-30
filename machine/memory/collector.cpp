@@ -99,22 +99,24 @@ namespace rubinius {
     }
 
     void ManagedFinalizer::finalize(STATE) {
-      /* Rubinius specific code. If the finalizer is cTrue, then send the
-       * object the __finalize__ message.
-       */
-      if(finalizer_->true_p()) {
-        object()->send(state, state->symbol("__finalize__"));
-      } else {
-        Array* ary = Array::create(state, 1);
-        ary->set(state, 0, object()->object_id(state));
-        if(!finalizer_->send(state, G(sym_call), ary)) {
-          if(state->vm()->thread_state()->raise_reason() == cException) {
-            logger::warn(
-                "collector: an exception occurred running a Ruby finalizer: %s",
-                state->vm()->thread_state()->current_exception()->message_c_str(state));
+      MachineException::guard(state, false, [&]{
+          /* Rubinius specific code. If the finalizer is cTrue, then send the
+           * object the __finalize__ message.
+           */
+          if(finalizer_->true_p()) {
+            object()->send(state, state->symbol("__finalize__"));
+          } else {
+            Array* ary = Array::create(state, 1);
+            ary->set(state, 0, object()->object_id(state));
+            if(!finalizer_->send(state, G(sym_call), ary)) {
+              if(state->vm()->thread_state()->raise_reason() == cException) {
+                logger::warn(
+                    "collector: an exception occurred running a Ruby finalizer: %s",
+                    state->vm()->thread_state()->current_exception()->message_c_str(state));
+              }
+            }
           }
-        }
-      }
+        });
     }
 
     void ManagedFinalizer::mark(STATE, MemoryTracer* tracer) {
@@ -135,7 +137,12 @@ namespace rubinius {
           Array* args = Array::create(state, 1);
           args->set(state, 0, finalizer_);
 
-          Object* result = finalizer->send(state, G(sym_equal), args);
+          Object* result;
+
+          MachineException::guard(state, false, [&]{
+              result = finalizer->send(state, G(sym_equal), args);
+            });
+
           match = result && CBOOL(result);
         }
       }
