@@ -370,10 +370,15 @@ namespace rubinius {
   static int fork_exec(STATE, int errors_fd) {
     StopPhase locked(state);
 
+    // Hold the logger lock to avoid racing the logger
+    logger::lock();
+
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
     int pid = ::fork();
+
+    logger::unlock();
 
     if(pid == 0) {
       // We're in the child...
@@ -857,7 +862,12 @@ namespace rubinius {
 
       state->shared().machine_threads()->before_fork(state);
 
+      // Hold the logger lock to avoid racing the logger
+      logger::lock();
+
       pid = ::fork();
+
+      logger::unlock();
 
       if(pid > 0) {
         // We're in the parent...
