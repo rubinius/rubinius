@@ -14,6 +14,11 @@ module Kernel
     res
   end
 
+  def become(other)
+    Rubinius.primitive :object_become
+    raise PrimitiveFailure, "Object#become primitive failed"
+  end
+
   def singleton_class
     Rubinius::Type.object_singleton_class self
   end

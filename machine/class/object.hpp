@@ -327,6 +327,9 @@ namespace rubinius {
 
     Object* respond_to(STATE, Symbol* name, Object* priv);
 
+    // Rubinius.primitive :object_become
+    Object* become(STATE, Object* other);
+
     /**
      * Checks if object is frozen and raises RuntimeError if it is.
      * Similar to CRuby rb_check_frozen

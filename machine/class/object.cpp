@@ -2,10 +2,12 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "dispatch.hpp"
+#include "logger.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "thread_phase.hpp"
 
 #include "class/array.hpp"
 #include "class/basic_object.hpp"
@@ -27,7 +29,8 @@
 #include "class/string.hpp"
 #include "class/tuple.hpp"
 
-#include "logger.hpp"
+#include "memory/collector.hpp"
+#include "memory/visitor.hpp"
 
 #include <sstream>
 
@@ -872,9 +875,25 @@ namespace rubinius {
     }
   }
 
+  Object* Object::become(STATE, Object* other) {
+    memory::Collector::Inhibit inhibitor(state);
+    StopPhase locked(state);
+
+    memory::MemoryVisitor visitor(state);
+
+    visitor.visit_heap(state, [&](STATE, Object** obj) mutable {
+        if(*obj == this) {
+          *obj = other;
+        } else if(*obj == other) {
+          *obj = this;
+        }
+      });
+
+    return other;
+  }
+
   void Object::setup_allocation_site(STATE) {
     this->set_ivar(state, G(sym_allocation_site),
                    Location::create(state, state->vm()->call_frame()));
   }
-
 }
