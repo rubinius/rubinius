@@ -543,10 +543,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
 
     cpp.fields.each do |name, type, idx|
       str << <<-EOF
-  {
-    f(state, obj->p_#{name}());
-  }
-
+  f(state, obj->p_#{name}());
       EOF
     end
 
@@ -560,7 +557,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
 
     cpp.fields.each do |name, type, idx|
       str << <<-EOF
-  f(state, obj->#{name}());
+  f(state, obj->p_#{name}());
       EOF
     end
 
@@ -590,8 +587,8 @@ void #{@name}::Info::auto_mark(STATE, Object* object, std::function<void (STATE,
     str = ''
 
     str << <<-EOF unless visits.empty?
-void #{@name}::Info::visit_object(STATE, Object* o, std::function<void (STATE, Object*)> f) {
-  #{@name}* obj = as<#{@name}>(o);
+void #{@name}::Info::visit_object(STATE, Object* object, std::function<void (STATE, Object**)> f) {
+  #{@name}* obj = as<#{@name}>(object);
 
 #{visits}
 }

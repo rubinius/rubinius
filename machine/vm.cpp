@@ -513,49 +513,44 @@ namespace rubinius {
     return variable_root_buffers();
   }
 
-  void VM::visit_objects(STATE, std::function<void (STATE, Object*)> f) {
+  void VM::visit_objects(STATE, std::function<void (STATE, Object**)> f) {
     CallFrame* frame = call_frame_;
 
     while(frame) {
-      if(frame->lexical_scope_ &&
-          frame->lexical_scope_->reference_p()) {
-        f(state, frame->lexical_scope_);
-      }
-
-      if(frame->compiled_code && frame->compiled_code->reference_p()) {
-        f(state, frame->compiled_code);
-      }
+      f(state, reinterpret_cast<Object**>(&frame->lexical_scope_));
+      f(state, reinterpret_cast<Object**>(&frame->compiled_code));
 
       if(frame->compiled_code) {
         native_int stack_size = frame->compiled_code->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
-          Object* obj = frame->stk[i];
-          if(obj && obj->reference_p()) {
-            f(state, obj);
-          }
+          f(state, &frame->stk[i]);
         }
       }
 
-      if(frame->multiple_scopes_p() && frame->top_scope_) {
-        f(state, frame->top_scope_);
-      }
+      f(state, reinterpret_cast<Object**>(&frame->top_scope_));
 
-      if(BlockEnvironment* env = frame->block_env()) {
-        f(state, env);
-      }
+      BlockEnvironment* be = frame->block_env();
+      f(state, reinterpret_cast<Object**>(&be));
+      frame->set_block_env(be);
 
       Arguments* args = frame->arguments;
 
       if(!frame->inline_method_p() && args) {
-        f(state, args->recv());
-        f(state, args->block());
+        Object* recv = args->recv();
+        f(state, &recv);
+        args->set_recv(recv);
+
+        Object* block = args->block();
+        f(state, &block);
+        args->set_block(block);
 
         if(Tuple* tup = args->argument_container()) {
-          f(state, tup);
+          f(state, reinterpret_cast<Object**>(&tup));
+          args->update_argument_container(tup);
         } else {
           Object** ary = args->arguments();
           for(uint32_t i = 0; i < args->total(); i++) {
-            f(state, ary[i]);
+            f(state, &ary[i]);
           }
         }
       }
@@ -563,36 +558,23 @@ namespace rubinius {
       if(frame->scope && frame->compiled_code) {
         StackVariables* scope = frame->scope;
 
-        f(state, scope->self());
-        f(state, scope->block());
-        f(state, scope->module());
+        f(state, reinterpret_cast<Object**>(&scope->self_));
+        f(state, reinterpret_cast<Object**>(&scope->block_));
+        f(state, reinterpret_cast<Object**>(&scope->module_));
 
         int locals = frame->compiled_code->machine_code()->number_of_locals;
         for(int i = 0; i < locals; i++) {
           Object* local = scope->get_local(i);
-          if(local->reference_p()) {
-            f(state, local);
-          }
+          f(state, &local);
+          scope->set_local(i, local);
         }
 
-        if(scope->last_match_ && scope->last_match_->reference_p()) {
-          f(state, scope->last_match_);
-        }
-
-        VariableScope* parent = scope->parent();
-        if(parent) {
-          f(state, parent);
-        }
-
-        VariableScope* heap = scope->on_heap();
-        if(heap) {
-          f(state, heap);
-        }
+        f(state, reinterpret_cast<Object**>(&scope->last_match_));
+        f(state, reinterpret_cast<Object**>(&scope->parent_));
+        f(state, reinterpret_cast<Object**>(&scope->on_heap_));
       }
 
-      if(frame->return_value) {
-        f(state, frame->return_value);
-      }
+      f(state, &frame->return_value);
 
       frame = frame->previous;
     }

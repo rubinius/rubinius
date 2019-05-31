@@ -9,9 +9,11 @@
 
 namespace rubinius {
   namespace memory {
-    void MemoryVisitor::visit_heap(STATE, std::function<void (STATE, Object*)> f) {
+    void MemoryVisitor::visit_heap(STATE, std::function<void (STATE, Object**)> f) {
       for(Roots::Iterator i(state->globals().roots); i.more(); i.advance()) {
-        visit_object(state, i->get(), f);
+        Object* obj = i->get();
+        visit_object(state, &obj, f);
+        i->set(obj);
       }
 
       {
@@ -24,7 +26,9 @@ namespace rubinius {
           ManagedThread* thr = (*i);
 
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
-            visit_object(state, ri->get(), f);
+            Object* obj = ri->get();
+            visit_object(state, &obj, f);
+            ri->set(obj);
           }
 
           VariableRootBuffer* vrb = thr->variable_root_buffers().front();
@@ -35,10 +39,8 @@ namespace rubinius {
               Object** var = buffer[idx];
               Object* cur = *var;
 
-              if(!cur) continue;
-
               if(cur->reference_p()) {
-                visit_object(state, cur, f);
+                visit_object(state, var, f);
               } else if(cur->handle_p()) {
                 // TODO: MemoryHeader mark MemoryHandle objects
               }
@@ -57,7 +59,7 @@ namespace rubinius {
               Object* cur = buffer[idx];
 
               if(cur->reference_p()) {
-                visit_object(state, cur, f);
+                visit_object(state, &buffer[idx], f);
               } else if(cur->handle_p()) {
                 // TODO: MemoryHeader mark MemoryHandle objects
               }
@@ -79,7 +81,7 @@ namespace rubinius {
         if(header->object_p()) {
           Object* obj = reinterpret_cast<Object*>(header);
 
-          visit_object(state, obj, f);
+          visit_object(state, &obj, f);
         } else if(header->data_p()) {
           // DataHeader* data = reinterpret_cast<DataHeader*>(header);
           // TODO: process data (not C-API Data) instances
@@ -91,7 +93,7 @@ namespace rubinius {
       state->memory()->rotate_visit_mark();
     }
 
-    void MemoryVisitor::visit_mark_stack(STATE, std::function<void (STATE, Object*)> f) {
+    void MemoryVisitor::visit_mark_stack(STATE, std::function<void (STATE, Object**)> f) {
       while(!mark_stack_.empty()) {
 #ifdef RBX_GC_STACK_CHECK
         scan_object(state, mark_stack_.get().child(), f);
@@ -101,40 +103,40 @@ namespace rubinius {
       }
     }
 
-    void MemoryVisitor::scan_object(STATE, Object* obj, std::function<void (STATE, Object*)> f) {
+    void MemoryVisitor::scan_object(STATE, Object* obj,
+        std::function<void (STATE, Object**)> f)
+    {
       if(obj->scanned_p()) return;
-
       obj->set_scanned();
 
-      f(state, obj);
+      f(state, &obj);
 
-      visit_object(state, obj->klass(), f);
-
-      if(obj->ivars()->reference_p()) {
-        visit_object(state, obj->ivars(), f);
-      }
+      visit_object(state, obj->p_klass(), f);
+      visit_object(state, obj->p_ivars(), f);
 
       TypeInfo* ti = state->memory()->type_info[obj->type_id()];
 
-      ti->visit_object(state, obj, [this, f](STATE, Object* obj){
+      ti->visit_object(state, obj, [this, f](STATE, Object** obj){
           return visit_object(state, obj, f);
         });
     }
 
     void MemoryVisitor::visit_object(STATE,
-        Object* obj, std::function<void (STATE, Object*)> f)
+        Object** obj, std::function<void (STATE, Object**)> f)
     {
-      if(!obj || !obj->reference_p()) return;
+      Object* object = *obj;
 
-      if(obj->visited_p(state->memory()->visit_mark())) return;
+      if(!object || !object->reference_p()) return;
+
+      if(object->visited_p(state->memory()->visit_mark())) return;
 
       // Set the mark bits in the managed memory instance
-      obj->unset_scanned();
-      obj->set_visited(state->memory()->visit_mark());
+      object->unset_scanned();
+      object->set_visited(state->memory()->visit_mark());
 
       f(state, obj);
 
-      mark_stack_.add(0, obj);
+      mark_stack_.add(0, object);
     }
   }
 }

@@ -149,7 +149,7 @@ namespace rubinius {
       virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
       virtual void populate_slot_locations();
       virtual void set_field(STATE, Object*, size_t, Object*);
-      virtual void visit_object(STATE, Object* o, std::function<void (STATE, Object*)> f);
+      virtual void visit_object(STATE, Object* o, std::function<void (STATE, Object**)> f);
       virtual Object* get_field(STATE, Object*, size_t);
     };
 

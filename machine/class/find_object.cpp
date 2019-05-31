@@ -305,21 +305,21 @@ namespace rubinius {
 
       if(ary->nil_p()) {
         visitor.visit_heap(state,
-          [&](STATE, Object* obj) mutable {
-            if(ret && condition->perform(state, obj)) {
+          [&](STATE, Object** obj) mutable {
+            if(ret && condition->perform(state, *obj)) {
               total++;
 
-              args->set(state, 0, obj);
+              args->set(state, 0, *obj);
               ret = callable->send(state, G(sym_call), args, cNil, false);
             }
           });
       } else {
         visitor.visit_heap(state,
-          [&](STATE, Object* obj) mutable {
-            if(condition->perform(state, obj)) {
+          [&](STATE, Object** obj) mutable {
+            if(condition->perform(state, *obj)) {
               total++;
 
-              ary->append(state, obj);
+              ary->append(state, *obj);
             }
           });
       }

@@ -15,7 +15,7 @@ namespace rubinius {
       heap_->collect_start(state);
 
       heap_->collect_references(state, [this](STATE, Object** obj){
-          trace_p_object(state, obj);
+          trace_object(state, obj);
         });
 
       for(auto i = state->collector()->memory_handles().begin();
@@ -29,9 +29,8 @@ namespace rubinius {
           if(header->object_p()) {
             Object* obj = reinterpret_cast<Object*>(header);
 
-            if(Object* fwd = trace_object(state, 0, obj)) {
-              // TODO: MemoryHeader set new address
-            }
+            trace_object(state, &obj);
+            // TODO: MemoryHeader set new address
           } else if(header->data_p()) {
             // DataHeader* data = reinterpret_cast<DataHeader*>(header);
             // TODO: process data (not C-API Data) instances
@@ -43,9 +42,8 @@ namespace rubinius {
           // TODO: GC investigate why we are retaining these
           Object* obj = reinterpret_cast<Object*>(header);
 
-          if(Object* fwd = trace_object(state, 0, obj)) {
-            // TODO: MemoryHeader set new address
-          }
+          trace_object(state, &obj);
+          // TODO: MemoryHeader set new address
         }
       }
 
@@ -127,30 +125,22 @@ namespace rubinius {
         if(obj->scanned_p()) return;
 
         obj->set_scanned();
-      } else {
-        // TODO: GC this should not be possible
-        trace_object(state, 0, obj);
       }
 
-      trace_p_object(state, obj->p_klass());
+      trace_object(state, obj->p_klass());
 
       if(obj->ivars()->reference_p()) {
-        trace_p_object(state, obj->p_ivars());
+        trace_object(state, obj->p_ivars());
       }
 
       TypeInfo* ti = state->memory()->type_info[obj->type_id()];
 
-      /*
-      ti->mark(state, obj, [this](STATE, Object* parent, Object* child){
-          return trace_object(state, parent, child);
-        });
-        */
       ti->mark(state, obj, [this](STATE, Object** object){
-          trace_p_object(state, object);
+          trace_object(state, object);
         });
     }
 
-    void MemoryTracer::trace_p_object(STATE, Object** object) {
+    void MemoryTracer::trace_object(STATE, Object** object) {
       Object* obj = *object;
 
       if(!obj || !obj->reference_p()) return;
@@ -184,40 +174,6 @@ namespace rubinius {
       if(copy != obj) *object = copy;
 
       mark_stack_.add(nullptr, copy);
-    }
-
-    Object* MemoryTracer::trace_object(STATE, void* parent, Object* child) {
-      if(!child || !child->reference_p()) return child;
-
-      if(child->marked_p(state->memory()->mark())) return child;
-
-      // Set the mark bits in the managed memory instance
-      child->unset_scanned();
-      child->set_marked(state->memory()->mark());
-
-      // Set the accounting bits in the region containing the instance
-      Object* copy = child;
-
-      switch(child->region()) {
-        case eThreadRegion:
-          // TODO: GC
-          break;
-        case eFirstRegion:
-          copy = state->memory()->main_heap()->first_region()->mark_address_of_object(state,
-              parent, child, state->memory()->main_heap()->first_region()->allocator());
-
-          break;
-        case eSecondRegion:
-          // TODO: GC
-          break;
-        case eThirdRegion:
-          // Do nothing
-          break;
-      }
-
-      mark_stack_.add(parent, copy);
-
-      return copy == child ? child : copy;
     }
   }
 }

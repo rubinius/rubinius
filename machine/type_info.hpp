@@ -60,7 +60,7 @@ namespace rubinius {
     static void auto_learn_fields(STATE);
     virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) = 0;
     virtual void update_weakref(STATE, Object* obj) {}
-    virtual void visit_object(STATE, Object* o, std::function<void (STATE, Object*)> f) { }
+    virtual void visit_object(STATE, Object* o, std::function<void (STATE, Object**)> f) { }
 
   public:   /* Ctors */
 
@@ -161,7 +161,7 @@ namespace rubinius {
 #define BASIC_TYPEINFO(super) \
   Info(object_type type) : super(type) { } \
   virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f); \
-  virtual void visit_object(STATE, Object* obj, std::function<void (STATE, Object*)> f); \
+  virtual void visit_object(STATE, Object* obj, std::function<void (STATE, Object**)> f); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
   virtual Object* get_field(STATE, Object* target, size_t index); \
   virtual void populate_slot_locations();

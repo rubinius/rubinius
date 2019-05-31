@@ -38,9 +38,9 @@ namespace rubinius {
     }
 
     void NativeFinalizer::mark(STATE, MemoryTracer* tracer) {
-      if(Object* fwd = tracer->trace_object(state, 0, object())) {
-        object(fwd);
-      }
+      Object* obj = object();
+      tracer->trace_object(state, &obj);
+      if(obj != object()) object(obj);
     }
 
     void ExtensionFinalizer::dispose(STATE) {
@@ -90,9 +90,9 @@ namespace rubinius {
     }
 
     void ExtensionFinalizer::mark(STATE, MemoryTracer* tracer) {
-      if(Object* fwd = tracer->trace_object(state, 0, object())) {
-        object(fwd);
-      }
+      Object* obj = object();
+      tracer->trace_object(state, &obj);
+      if(obj != object()) object(obj);
     }
 
     void ManagedFinalizer::dispose(STATE) {
@@ -120,13 +120,13 @@ namespace rubinius {
     }
 
     void ManagedFinalizer::mark(STATE, MemoryTracer* tracer) {
-      if(Object* fwd = tracer->trace_object(state, 0, finalizer_)) {
-        finalizer_ = fwd;
-      }
+      Object* obj = finalizer_;
+      tracer->trace_object(state, &obj);
+      if(obj != finalizer_) finalizer_ = obj;
 
-      if(Object* fwd = tracer->trace_object(state, finalizer_, object())) {
-        object(fwd);
-      }
+      obj = object();
+      tracer->trace_object(state, &obj);
+      if(obj != object()) object(obj);
     }
 
     bool ManagedFinalizer::match_p(STATE, Object* object, Object* finalizer) {

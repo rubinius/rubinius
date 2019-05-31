@@ -19,10 +19,10 @@ namespace rubinius {
 
       virtual ~MemoryVisitor() { }
 
-      virtual void visit_heap(STATE, std::function<void (STATE, Object*)> f);
-      virtual void visit_mark_stack(STATE, std::function<void (STATE, Object*)> f);
-      virtual void scan_object(STATE, Object* obj, std::function<void (STATE, Object*)> f);
-      virtual void visit_object(STATE, Object* obj, std::function<void (STATE, Object*)> f);
+      virtual void visit_heap(STATE, std::function<void (STATE, Object**)> f);
+      virtual void visit_mark_stack(STATE, std::function<void (STATE, Object**)> f);
+      virtual void scan_object(STATE, Object* obj, std::function<void (STATE, Object**)> f);
+      virtual void visit_object(STATE, Object** obj, std::function<void (STATE, Object**)> f);
     };
   }
 }

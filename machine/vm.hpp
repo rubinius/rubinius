@@ -496,7 +496,7 @@ namespace rubinius {
     void register_raise(STATE, Exception* exc);
     void register_kill(STATE);
 
-    void visit_objects(STATE, std::function<void (STATE, Object*)> f);
+    void visit_objects(STATE, std::function<void (STATE, Object**)> f);
     void gc_scan(STATE, std::function<void (STATE, Object**)> f);
     void gc_verify(memory::GarbageCollector* gc);
   };
