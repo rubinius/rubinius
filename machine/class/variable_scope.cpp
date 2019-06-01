@@ -200,4 +200,20 @@ namespace rubinius {
       }
     }
   }
+
+  void VariableScope::Info::before_visit(STATE, Object* obj,
+      std::function<void (STATE, Object**)> f)
+  {
+    VariableScope* vs = as<VariableScope>(obj);
+
+    if(!vs->isolated_p()) {
+      Object** ary = vs->locals();
+
+      size_t locals = vs->number_of_locals();
+
+      for(size_t i = 0; i < locals; i++) {
+        f(state, &ary[i]);
+      }
+    }
+  }
 }

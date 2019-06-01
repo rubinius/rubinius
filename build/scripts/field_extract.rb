@@ -587,10 +587,14 @@ void #{@name}::Info::auto_mark(STATE, Object* object, std::function<void (STATE,
     str = ''
 
     str << <<-EOF unless visits.empty?
-void #{@name}::Info::visit_object(STATE, Object* object, std::function<void (STATE, Object**)> f) {
+void #{@name}::Info::visit(STATE, Object* object, std::function<void (STATE, Object**)> f) {
   #{@name}* obj = as<#{@name}>(object);
 
+  before_visit(state, object, f);
+
 #{visits}
+
+  after_visit(state, object, f);
 }
 
     EOF

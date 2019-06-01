@@ -299,14 +299,18 @@ namespace rubinius {
       stack_start_ = &stack_address;
     }
 
-    bool check_stack(STATE, void* stack_address) {
+    ssize_t stack_remaining(STATE, void* stack_address) {
       ssize_t stack_used =
         (reinterpret_cast<intptr_t>(stack_start_)
         - reinterpret_cast<intptr_t>(stack_address));
 
       if(stack_used < 0) stack_used = -stack_used;
 
-      if(static_cast<size_t>(stack_used) > stack_size_) {
+      return stack_size_ - stack_used;
+    }
+
+    bool check_stack(STATE, void* stack_address) {
+      if(stack_remaining(state, stack_address) <= 0) {
         raise_stack_error(state);
         return false;
       }

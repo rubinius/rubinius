@@ -107,6 +107,7 @@ namespace rubinius {
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
       virtual size_t object_size(const ObjectHeader* object);
+      virtual void before_visit(STATE, Object* o, std::function<void (STATE, Object**)> f);
     };
   };
 
@@ -152,6 +153,7 @@ namespace rubinius {
       }
 
       virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
+      virtual void before_visit(STATE, Object* o, std::function<void (STATE, Object**)> f);
     };
   };
 };

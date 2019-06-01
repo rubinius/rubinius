@@ -302,6 +302,14 @@ namespace rubinius {
     }
   }
 
+  void Tuple::Info::before_visit(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    Tuple* tup = as<Tuple>(obj);
+
+    for(native_int i = 0; i < tup->num_fields(); i++) {
+      f(state, &tup->field[i]);
+    }
+  }
+
   void Tuple::Info::show(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
     native_int size = tup->num_fields();
@@ -420,6 +428,18 @@ namespace rubinius {
   }
 
   void RTuple::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    RTuple* rtup = as<RTuple>(obj);
+
+    VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);
+
+    for(native_int i = 0; i < rtup->num_fields(); i++) {
+      Object* slot = MemoryHandle::object(ptr[i]);
+      f(state, &slot);
+      ptr[i] = MemoryHandle::value(slot);
+    }
+  }
+
+  void RTuple::Info::before_visit(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     RTuple* rtup = as<RTuple>(obj);
 
     VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);

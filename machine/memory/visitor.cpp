@@ -9,7 +9,23 @@
 
 namespace rubinius {
   namespace memory {
+    size_t MemoryVisitor::invocation_frame_size = 200 * sizeof(uintptr_t);
+    size_t MemoryVisitor::max_recursion_limit = 2000;
+
+    void MemoryVisitor::set_recursion_limit(STATE) {
+      uintptr_t stack_var = 1;
+
+      recursion_limit_ = state->vm()->stack_remaining(state, &stack_var)
+        / invocation_frame_size;
+
+      if(recursion_limit_ > max_recursion_limit) {
+        recursion_limit_ = max_recursion_limit;
+      }
+    }
+
     void MemoryVisitor::visit_heap(STATE, std::function<void (STATE, Object**)> f) {
+      set_recursion_limit(state);
+
       for(Roots::Iterator i(state->globals().roots); i.more(); i.advance()) {
         Object* obj = i->get();
         visit_object(state, &obj, f);
@@ -95,48 +111,51 @@ namespace rubinius {
 
     void MemoryVisitor::visit_mark_stack(STATE, std::function<void (STATE, Object**)> f) {
       while(!mark_stack_.empty()) {
+        Object* obj;
+
 #ifdef RBX_GC_STACK_CHECK
-        scan_object(state, mark_stack_.get().child(), f);
+        obj = mark_stack_.get().child();
 #else
-        scan_object(state, mark_stack_.get(), f);
+        obj = mark_stack_.get();
 #endif
+
+        visit_object(state, &obj, f);
       }
     }
 
-    void MemoryVisitor::scan_object(STATE, Object* obj,
-        std::function<void (STATE, Object**)> f)
-    {
-      if(obj->scanned_p()) return;
-      obj->set_scanned();
-
-      f(state, &obj);
-
-      visit_object(state, obj->p_klass(), f);
-      visit_object(state, obj->p_ivars(), f);
-
-      TypeInfo* ti = state->memory()->type_info[obj->type_id()];
-
-      ti->visit_object(state, obj, [this, f](STATE, Object** obj){
-          return visit_object(state, obj, f);
-        });
-    }
-
-    void MemoryVisitor::visit_object(STATE,
-        Object** obj, std::function<void (STATE, Object**)> f)
+    void MemoryVisitor::visit_object(STATE, Object** obj,
+        std::function<void (STATE, Object**)> f, size_t recursion_count)
     {
       Object* object = *obj;
 
       if(!object || !object->reference_p()) return;
 
-      if(object->visited_p(state->memory()->visit_mark())) return;
+      if(object->visited_p(state->memory()->visit_mark())) {
+        if(object->scanned_p()) return;
+      } else {
+        object->set_visited(state->memory()->visit_mark());
+        object->unset_scanned();
 
-      // Set the mark bits in the managed memory instance
-      object->unset_scanned();
-      object->set_visited(state->memory()->visit_mark());
+        f(state, obj);
+      }
 
-      f(state, obj);
+      if(!recurse_p(state, recursion_count)) {
+        mark_stack_.add(0, object);
+        return;
+      }
 
-      mark_stack_.add(0, object);
+      object->set_scanned();
+
+      recursion_count++;
+
+      visit_object(state, object->p_klass(), f, recursion_count);
+      visit_object(state, object->p_ivars(), f, recursion_count);
+
+      TypeInfo* ti = state->memory()->type_info[object->type_id()];
+
+      ti->visit(state, object, [&](STATE, Object** obj){
+          return visit_object(state, obj, f, recursion_count);
+        });
     }
   }
 }

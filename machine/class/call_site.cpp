@@ -121,4 +121,19 @@ namespace rubinius {
     // Clear dead list
     call_site->clear_dead_list();
   }
+
+  void CallSite::Info::before_visit(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    CallSite* call_site = as<CallSite>(obj);
+
+    if(Cache* cache = call_site->cache()) {
+      for(int32_t i = 0; i < cache->size(); i++) {
+        Cache::Entry* entry = cache->entries(i);
+
+        f(state, entry->p_receiver_class());
+        f(state, entry->p_prediction());
+        f(state, entry->p_module());
+        f(state, entry->p_executable());
+      }
+    }
+  }
 }
