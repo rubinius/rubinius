@@ -20,7 +20,11 @@
 #include "util/optimize.hpp"
 
 namespace rubinius {
+  class Class;
+  class Fixnum;
+  class ObjectHeader;
   class State;
+  class Symbol;
 
   /** Platform-dependent integer type large enough for pointers too. */
   typedef intptr_t native_int;
@@ -33,10 +37,10 @@ namespace rubinius {
   #define GO(whatever) state->globals().whatever
 
   namespace memory {
-    template <typename A, typename B>
-    static void write_barrier(STATE, A* object, B* value) {
-      write_barrier(state, object, value);
-    }
+    void write_barrier(STATE, ObjectHeader* object, Fixnum* value);
+    void write_barrier(STATE, ObjectHeader* object, Symbol* value);
+    void write_barrier(STATE, ObjectHeader* object, ObjectHeader* value);
+    void write_barrier(STATE, ObjectHeader* object, Class* value);
   }
 
 /**
@@ -53,7 +57,8 @@ namespace rubinius {
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
-    void name(STATE, type* obj) { \
+    template<typename T> \
+    void name(T* state, type* obj) { \
       _ ## name ## _ = obj; \
       memory::write_barrier(state, this, obj); \
     } \
@@ -92,7 +97,8 @@ namespace rubinius {
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
-    void name(STATE, type* obj) { \
+    template<typename T> \
+    void name(T* state, type* obj) { \
       _ ## name ## _ = obj; \
       memory::write_barrier(state, this, obj); \
     } \

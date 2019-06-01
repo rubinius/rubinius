@@ -461,4 +461,22 @@ namespace rubinius {
 
     memcpy(dst, src, other->body_in_bytes(state));
   }
+
+  namespace memory {
+    void write_barrier(STATE, ObjectHeader* object, Fixnum* value) {
+      // No-op
+    }
+
+    void write_barrier(STATE, ObjectHeader* object, Symbol* value) {
+      // No-op
+    }
+
+    void write_barrier(STATE, ObjectHeader* object, ObjectHeader* value) {
+      object->write_barrier(state, value);
+    }
+
+    void write_barrier(STATE, ObjectHeader* object, Class* value) {
+      object->write_barrier(state, value);
+    }
+  }
 }

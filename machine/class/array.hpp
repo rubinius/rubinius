@@ -85,7 +85,8 @@ namespace rubinius {
       return reinterpret_cast<Object**>(&this->_tuple_);
     }
 
-    void tuple(STATE, Tuple* obj) {
+    template<typename T>
+    void tuple(T* state, Tuple* obj) {
       tuple(obj);
       memory::write_barrier(state, this, obj);
 

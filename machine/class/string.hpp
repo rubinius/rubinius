@@ -86,7 +86,8 @@ namespace rubinius {
       }
     }
 
-    void data(STATE, ByteArray* obj) {
+    template<typename T>
+    void data(T* state, ByteArray* obj) {
       data(obj);
       write_barrier(state, obj);
 
@@ -95,7 +96,8 @@ namespace rubinius {
       }
     }
 
-    void encoding(STATE, Encoding* obj) {
+    template<typename T>
+    void encoding(T* state, Encoding* obj) {
       if(obj->nil_p() || (!CBOOL(ascii_only()) && obj->ascii_compatible())) {
         ascii_only(cNil);
         num_chars(nil<Fixnum>());

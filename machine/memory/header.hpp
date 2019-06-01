@@ -1529,9 +1529,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   };
 
   namespace memory {
-    static void write_barrier(STATE, MemoryHeader* object, MemoryHeader* value) {
-      object->write_barrier(state, value);
-    }
+    void write_barrier(STATE, ObjectHeader* object, Fixnum* value);
+    void write_barrier(STATE, ObjectHeader* object, Symbol* value);
+    void write_barrier(STATE, ObjectHeader* object, ObjectHeader* value);
+    void write_barrier(STATE, ObjectHeader* object, Class* value);
   }
 }
 
