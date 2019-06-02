@@ -29,8 +29,6 @@ namespace rubinius {
 
       stack_clear(count);
 
-      state->vm()->checkpoint(state);
-
       CHECK_AND_PUSH(call_frame->return_value);
     }
   }

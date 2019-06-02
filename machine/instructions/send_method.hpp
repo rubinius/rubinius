@@ -14,8 +14,6 @@ namespace rubinius {
 
       call_frame->return_value = call_site->execute(state, args);
 
-      state->vm()->checkpoint(state);
-
       CHECK_AND_PUSH(call_frame->return_value);
     }
   }
