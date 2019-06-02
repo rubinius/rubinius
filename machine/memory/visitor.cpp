@@ -111,13 +111,7 @@ namespace rubinius {
 
     void MemoryVisitor::visit_mark_stack(STATE, std::function<void (STATE, Object**)> f) {
       while(!mark_stack_.empty()) {
-        Object* obj;
-
-#ifdef RBX_GC_STACK_CHECK
-        obj = mark_stack_.get().child();
-#else
-        obj = mark_stack_.get();
-#endif
+        Object* obj = mark_stack_.get();
 
         visit_object(state, &obj, f);
       }
@@ -154,7 +148,7 @@ namespace rubinius {
       TypeInfo* ti = state->memory()->type_info[object->type_id()];
 
       ti->visit(state, object, [&](STATE, Object** obj){
-          return visit_object(state, obj, f, recursion_count);
+          visit_object(state, obj, f, recursion_count);
         });
     }
   }

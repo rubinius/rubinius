@@ -220,7 +220,7 @@ namespace rubinius {
       timer::StopWatch<timer::milliseconds> timerx(
           state->shared().collector_metrics()->first_region_stop_ms);
 
-      stop_for_collection(state, [this, state]{
+      stop_for_collection(state, [&]{
           MemoryTracer tracer(state, state->memory()->main_heap());
 
           tracer.trace_heap(state);
@@ -231,7 +231,7 @@ namespace rubinius {
 
     Collector::Worker::Worker(STATE, Collector* collector,
         Finalizers& list, std::mutex& lk, std::condition_variable& cond)
-      : MachineThread(state, "rbx.collector", MachineThread::eLarge)
+      : MachineThread(state, "rbx.collector", MachineThread::eXLarge)
       , collector_(collector)
       , process_list_(list)
       , list_mutex_(lk)

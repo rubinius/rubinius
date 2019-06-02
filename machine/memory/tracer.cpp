@@ -9,9 +9,27 @@
 #include "memory/third_region.hpp"
 #include "memory/tracer.hpp"
 
+#include "logger.hpp"
+
 namespace rubinius {
   namespace memory {
+    size_t MemoryTracer::invocation_frame_size = 100 * sizeof(uintptr_t);
+    size_t MemoryTracer::max_recursion_limit = 10000;
+
+    void MemoryTracer::set_recursion_limit(STATE) {
+      uintptr_t stack_var = 1;
+
+      recursion_limit_ = state->vm()->stack_remaining(state, &stack_var)
+        / invocation_frame_size;
+
+      if(recursion_limit_ > max_recursion_limit) {
+        recursion_limit_ = max_recursion_limit;
+      }
+    }
+
     void MemoryTracer::trace_heap(STATE) {
+      set_recursion_limit(state);
+
       heap_->collect_start(state);
 
       heap_->collect_references(state, [this](STATE, Object** obj){
@@ -107,62 +125,34 @@ namespace rubinius {
       }
 
       heap_->collect_finish(state);
-      mark_stack_.finish();
+
+      logger::info("memory tracer: max recursion: %ld, max mark stack size: %ld",
+          max_recursion_, max_mark_stack_size_);
     }
 
     void MemoryTracer::trace_mark_stack(STATE) {
       while(!mark_stack_.empty()) {
-#ifdef RBX_GC_STACK_CHECK
-        scan_object(state, mark_stack_.get().child());
-#else
-        scan_object(state, mark_stack_.get());
-#endif
+        Object* obj = mark_stack_.get();
+
+        trace_object(state, &obj);
       }
     }
 
-    void MemoryTracer::scan_object(STATE, Object* obj) {
-      if(obj->marked_p(state->memory()->mark())) {
-        if(obj->scanned_p()) return;
+    void MemoryTracer::mark_object_region(STATE, Object** obj) {
+      Object* object = *obj;
 
-        obj->set_scanned();
-      }
-
-      trace_object(state, obj->p_klass());
-
-      if(obj->ivars()->reference_p()) {
-        trace_object(state, obj->p_ivars());
-      }
-
-      TypeInfo* ti = state->memory()->type_info[obj->type_id()];
-
-      ti->mark(state, obj, [this](STATE, Object** object){
-          trace_object(state, object);
-        });
-    }
-
-    void MemoryTracer::trace_object(STATE, Object** object) {
-      Object* obj = *object;
-
-      if(!obj || !obj->reference_p()) return;
-
-      if(obj->marked_p(state->memory()->mark())) return;
-
-      // Set the mark bits in the managed memory instance
-      obj->unset_scanned();
-      obj->set_marked(state->memory()->mark());
-
-      // Set the accounting bits in the region containing the instance
-      Object* copy = obj;
-
-      switch(obj->region()) {
+      switch(object->region()) {
         case eThreadRegion:
           // TODO: GC
           break;
-        case eFirstRegion:
-          copy = state->memory()->main_heap()->first_region()->mark_address_of_object(state,
-              nullptr, obj, state->memory()->main_heap()->first_region()->allocator());
+        case eFirstRegion: {
+          Object* copy = state->memory()->main_heap()->first_region()->mark_address_of_object(
+              state, nullptr, object, state->memory()->main_heap()->first_region()->allocator());
+
+          if(copy != object) *obj = copy;
 
           break;
+        }
         case eSecondRegion:
           // TODO: GC
           break;
@@ -170,10 +160,48 @@ namespace rubinius {
           // Do nothing
           break;
       }
+    }
 
-      if(copy != obj) *object = copy;
+    void MemoryTracer::trace_object(STATE, Object** obj, size_t recursion_count) {
+      Object* object = *obj;
 
-      mark_stack_.add(nullptr, copy);
+      if(!object || !object->reference_p()) return;
+
+      if(object->marked_p(state->memory()->mark())) {
+        if(object->scanned_p()) return;
+      } else {
+        mark_object_region(state, obj);
+
+        object->set_marked(state->memory()->mark());
+        object->unset_scanned();
+      }
+
+      if(!recurse_p(state, recursion_count)) {
+        mark_stack_.add(0, object);
+
+        if(mark_stack_.size() > max_mark_stack_size_) {
+          max_mark_stack_size_ = mark_stack_.size();
+        }
+
+        return;
+      }
+
+      object->set_scanned();
+
+      recursion_count++;
+
+      if(recursion_count > max_recursion_) {
+        max_recursion_ = recursion_count;
+      }
+
+      trace_object(state, object->p_klass(), recursion_count);
+      trace_object(state, object->p_ivars(), recursion_count);
+
+      TypeInfo* ti = state->memory()->type_info[object->type_id()];
+
+      ti->mark(state, object, [&](STATE, Object** obj){
+          trace_object(state, obj, recursion_count);
+        });
     }
   }
 }
