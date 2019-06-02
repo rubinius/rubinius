@@ -427,7 +427,6 @@ namespace rubinius {
     call_frame->lexical_scope_ = invocation.lexical_scope;
 
     call_frame->previous = nullptr;
-    call_frame->return_value = nullptr;
     call_frame->unwind = nullptr;
     call_frame->arguments = &args;
     call_frame->dispatch_data = env;

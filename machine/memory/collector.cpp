@@ -62,7 +62,6 @@ namespace rubinius {
       call_frame->top_scope_ = nullptr;
       call_frame->scope = nullptr;
       call_frame->arguments = nullptr;
-      call_frame->return_value = nullptr;
       call_frame->unwind = nullptr;
 
       env->set_current_call_frame(0);

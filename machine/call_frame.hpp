@@ -65,7 +65,6 @@ namespace rubinius {
     MachineCode* machine_code;
     InterpreterState* is;
 
-    Object* return_value;
     UnwindSite* unwind;
 
     // Stack

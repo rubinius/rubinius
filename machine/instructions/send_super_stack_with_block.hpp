@@ -14,9 +14,9 @@ namespace rubinius {
 
       stack_clear(count);
 
-      call_frame->return_value = call_site->execute(state, new_args);
+      Object* value = call_site->execute(state, new_args);
 
-      CHECK_AND_PUSH(call_frame->return_value);
+      CHECK_AND_PUSH(value);
     }
   }
 }

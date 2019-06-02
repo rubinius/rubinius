@@ -636,7 +636,6 @@ namespace rubinius {
       call_frame->top_scope_ = nullptr;
       call_frame->scope = scope;
       call_frame->arguments = &args;
-      call_frame->return_value = nullptr;
       call_frame->unwind = nullptr;
 
       if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
@@ -692,7 +691,6 @@ namespace rubinius {
     call_frame->top_scope_ = nullptr;
     call_frame->scope = scope;
     call_frame->arguments = &args;
-    call_frame->return_value = nullptr;
     call_frame->unwind = nullptr;
 
     if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {

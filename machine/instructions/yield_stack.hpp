@@ -8,22 +8,23 @@ namespace rubinius {
     inline bool yield_stack(STATE, CallFrame* call_frame, intptr_t count) {
       Object* t1 = call_frame->scope->block();
       Arguments args(G(sym_call), t1, count, stack_back_position(count));
+      Object* value;
 
       if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-        call_frame->return_value = env->call(state, args);
+        value = env->call(state, args);
       } else if(Proc* proc = try_as<Proc>(t1)) {
-        call_frame->return_value = proc->yield(state, args);
+        value = proc->yield(state, args);
       } else if(t1->nil_p()) {
         state->raise_exception(Exception::make_lje(state));
-        call_frame->return_value = NULL;
+        value = nullptr;
       } else {
         Dispatch dispatch(G(sym_call));
-        call_frame->return_value = dispatch.send(state, args);
+        value = dispatch.send(state, args);
       }
 
       stack_clear(count);
 
-      CHECK_AND_PUSH(call_frame->return_value);
+      CHECK_AND_PUSH(value);
     }
   }
 }

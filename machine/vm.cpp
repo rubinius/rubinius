@@ -574,8 +574,6 @@ namespace rubinius {
         f(state, reinterpret_cast<Object**>(&scope->on_heap_));
       }
 
-      f(state, &frame->return_value);
-
       frame = frame->previous;
     }
   }
@@ -646,8 +644,6 @@ namespace rubinius {
         f(state, reinterpret_cast<Object**>(&scope->parent_));
         f(state, reinterpret_cast<Object**>(&scope->on_heap_));
       }
-
-      f(state, &frame->return_value);
 
       frame = frame->previous;
     }
