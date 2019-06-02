@@ -190,7 +190,7 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object(STATE, Class* klass, native_int bytes, object_type type) {
-      Object* obj = new_object(state, bytes, type);
+      Object* obj = state->vm()->allocate_object(state, bytes, type);
 
       obj->klass(state, klass);
       obj->ivars(cNil);

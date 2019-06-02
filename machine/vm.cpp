@@ -63,6 +63,7 @@ namespace rubinius {
     , call_frame_(NULL)
     , thread_nexus_(shared.thread_nexus())
     , park_(new Park)
+    , thca_(new memory::OpenTHCA)
     , stack_start_(0)
     , stack_size_(0)
     , stack_cushion_(shared.config.machine_stack_cushion.value)
@@ -123,6 +124,10 @@ namespace rubinius {
 
   double VM::run_time() {
     return timer::time_elapsed_seconds(start_time_);
+  }
+
+  Object* VM::allocate_object(STATE, native_int bytes, object_type type) {
+    return thca_->allocate(state, bytes, type);
   }
 
   void VM::checkpoint(STATE) {

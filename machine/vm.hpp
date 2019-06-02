@@ -3,14 +3,15 @@
 
 #include "missing/time.h"
 
-#include "globals.hpp"
 #include "memory/managed.hpp"
+#include "memory/root_buffer.hpp"
+#include "memory/thca.hpp"
+#include "memory/variable_buffer.hpp"
+
+#include "globals.hpp"
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
 #include "spinlock.hpp"
-
-#include "memory/variable_buffer.hpp"
-#include "memory/root_buffer.hpp"
 
 #include "shared_state.hpp"
 
@@ -93,6 +94,7 @@ namespace rubinius {
     CallFrame* call_frame_;
     ThreadNexus* thread_nexus_;
     Park* park_;
+    memory::THCA* thca_;
 
     void* stack_start_;
     size_t stack_size_;
@@ -270,6 +272,8 @@ namespace rubinius {
     Memory* memory() {
       return shared.memory();
     }
+
+    Object* allocate_object(STATE, native_int bytes, object_type type);
 
     bool limited_wait_for(std::function<bool ()> f) {
       bool status = false;
