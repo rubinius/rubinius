@@ -58,7 +58,9 @@ namespace rubinius {
     /// recycled block rapidly diminishes as the number of lines increases,
     /// we don't bother searching partially free blocks if the size of the
     /// object is at or above this number of lines.
-    const size_t cMediumObjectLimit = cLineSize * 4; //< @todo calculate this
+    const size_t cMediumObjectLimit = cLineSize * 16; //< @todo calculate this
+
+    const size_t cMinRegionSize = cLineSize;
 
     /**
      * Enumeration of possible block states.
@@ -955,6 +957,40 @@ namespace rubinius {
         }
       }
 
+      Object* allocate_region(STATE, size_t bytes, size_t* allocated) {
+        if(collection_pending_) {
+          declines_++;
+          return nullptr;
+        }
+
+        bytes = MemoryHeader::align(bytes);
+
+        while(true) {
+          if(cursor_ + bytes < limit_) break;
+
+          size_t remainder = MemoryHeader::align(limit_ - cursor_);
+
+          if(remainder >= cMinRegionSize) {
+            bytes = remainder;
+            break;
+          }
+
+          if(!find_hole()) {
+            if(!get_block()) {
+              collection_pending_ = true;
+              state->collector()->collect_requested(state,
+                  "collector: immix allocate region triggered collection request");
+              return nullptr;
+            }
+          }
+        }
+
+        bytes_allocated_ += bytes;
+
+        *allocated = bytes;
+        return reinterpret_cast<Object*>(bump(bytes));
+      }
+
       /**
        * Attempts to allocate space for an object of the specified +size+.
        * If unsuccessful at finding space in the current Block memory, a new
@@ -1036,6 +1072,10 @@ namespace rubinius {
 
       Object* allocate(STATE, size_t bytes) {
         return allocator_.allocate(state, bytes);
+      }
+
+      Object* allocate_region(STATE, size_t bytes, size_t* allocated) {
+        return allocator_.allocate_region(state, bytes, allocated);
       }
 
       void sweep(STATE) {

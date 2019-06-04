@@ -136,6 +136,10 @@ namespace rubinius {
       cycle_++;
     }
 
+    utilities::thread::SpinLock& allocation_lock() {
+      return allocation_lock_;
+    }
+
     memory::CodeManager& code_manager() {
       return code_manager_;
     }

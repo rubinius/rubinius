@@ -53,9 +53,6 @@ namespace rubinius {
             // DataHeader* data = reinterpret_cast<DataHeader*>(header);
             // TODO: process data (not C-API Data) instances
           }
-
-          handle->cycle();
-          handle->unset_accesses();
         } else if(handle->rdata_p()) {
           // TODO: GC investigate why we are retaining these
           Object* obj = reinterpret_cast<Object*>(header);
@@ -63,6 +60,9 @@ namespace rubinius {
           trace_object(state, &obj);
           // TODO: MemoryHeader set new address
         }
+
+        handle->cycle();
+        handle->unset_accesses();
       }
 
       trace_mark_stack(state);
@@ -79,13 +79,7 @@ namespace rubinius {
         if(header->referenced() == 0) {
           i = state->collector()->references().erase(i);
         } else {
-          if(!header->marked_p(state->memory()->mark())) {
-            // TODO: GC this would be a bug because we mark anything
-            // referenced, so raise exception?
-            i = state->collector()->references().erase(i);
-          } else {
-            ++i;
-          }
+          ++i;
         }
       }
 
@@ -95,13 +89,7 @@ namespace rubinius {
         MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
 
         if(!header->marked_p(state->memory()->mark())) {
-          MemoryHandle* handle = header->extended_header()->get_handle();
-
-          if(handle->accesses() == 0 && handle->cycles() >= 3) {
-            i = state->collector()->memory_handles().erase(i);
-          } else {
-            ++i;
-          }
+          i = state->collector()->memory_handles().erase(i);
         } else {
           ++i;
         }

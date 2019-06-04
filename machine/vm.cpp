@@ -100,7 +100,12 @@ namespace rubinius {
   VM::~VM() {
     if(park_) {
       delete park_;
-      park_ = NULL;
+      park_ = nullptr;
+    }
+
+    if(thca_) {
+      delete thca_;
+      thca_ = nullptr;
     }
   }
 
@@ -124,10 +129,6 @@ namespace rubinius {
 
   double VM::run_time() {
     return timer::time_elapsed_seconds(start_time_);
-  }
-
-  Object* VM::allocate_object(STATE, native_int bytes, object_type type) {
-    return thca_->allocate(state, bytes, type);
   }
 
   void VM::checkpoint(STATE) {
@@ -584,7 +585,8 @@ namespace rubinius {
   }
 
   void VM::gc_scan(STATE, std::function<void (STATE, Object**)> f) {
-    // gc->walk_call_frame(call_frame_);
+    thca_->collect(state);
+
     CallFrame* frame = call_frame_;
 
     while(frame) {

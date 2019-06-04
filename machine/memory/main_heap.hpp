@@ -1,6 +1,8 @@
 #ifndef RBX_MEMORY_MAIN_HEAP_HPP
 #define RBX_MEMORY_MAIN_HEAP_HPP
 
+#include "object_types.hpp"
+
 #include "memory/code_manager.hpp"
 #include "memory/heap.hpp"
 
@@ -25,6 +27,8 @@ namespace rubinius {
       LargeRegion* third_region() {
         return third_region_;
       }
+
+      Object* allocate(STATE, native_int bytes, object_type type);
 
       void collect_start(STATE);
       void collect_references(STATE, std::function<void (STATE, Object**)> f);

@@ -273,7 +273,10 @@ namespace rubinius {
       return shared.memory();
     }
 
-    Object* allocate_object(STATE, native_int bytes, object_type type);
+    Object* allocate_object(STATE, native_int bytes, object_type type) {
+      return thca_->allocate(state, bytes, type);
+    }
+
 
     bool limited_wait_for(std::function<bool ()> f) {
       bool status = false;

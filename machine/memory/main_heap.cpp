@@ -29,6 +29,33 @@ namespace rubinius {
       first_region_ = nullptr;
     }
 
+    Object* MainHeap::allocate(STATE, native_int bytes, object_type type) {
+      utilities::thread::SpinLock::LockGuard guard(state->memory()->allocation_lock());
+
+      if(Object* obj = first_region()->allocate(state, bytes)) {
+        state->shared().memory_metrics()->first_region_objects++;
+        state->shared().memory_metrics()->first_region_bytes += bytes;
+
+        MemoryHeader::initialize(
+            obj, state->vm()->thread_id(), eFirstRegion, type, false);
+
+        return obj;
+      }
+
+      if(Object* obj = third_region()->allocate(state, bytes)) {
+        state->shared().memory_metrics()->large_objects++;
+        state->shared().memory_metrics()->large_bytes += bytes;
+
+        MemoryHeader::initialize(
+            obj, state->vm()->thread_id(), eThirdRegion, type, false);
+
+        return obj;
+      }
+
+      Memory::memory_error(state);
+      return nullptr;
+    }
+
     void MainHeap::collect_start(STATE) {
       state->memory()->collect_cycle();
 
@@ -115,8 +142,6 @@ namespace rubinius {
           if(VM* vm = thr->as_vm()) {
             vm->gc_scan(state, f);
           }
-
-          // scan(*i, false);
         }
       }
 

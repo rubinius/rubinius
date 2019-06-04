@@ -3,6 +3,8 @@
 
 #include "object_types.hpp"
 
+#include "logger.hpp"
+
 namespace rubinius {
   class Object;
 
@@ -14,14 +16,34 @@ namespace rubinius {
      * objects.
      */
     class THCA {
-    public:
-      THCA() { }
-      virtual ~THCA() { }
+    protected:
+      uintptr_t address_;
+      size_t available_;
+      uint64_t objects_;
+      uint64_t regions_;
 
-      virtual Object* allocate(STATE, native_int bytes, object_type type) = 0;
+    public:
+      THCA()
+        : address_(0)
+        , available_(0)
+        , objects_(0)
+        , regions_(0)
+      { }
+
+      virtual ~THCA() {
+        logger::info("THCA allocated: regions: %ld, objects: %ld", regions_, objects_);
+      }
+
+      virtual Object* allocate(STATE, native_int bytes, object_type type);
+      virtual void collect(STATE) {
+        address_ = 0;
+        available_ = 0;
+      }
     };
 
     class OpenTHCA : public THCA {
+      static size_t region_size;
+
     public:
       OpenTHCA()
         : THCA()
@@ -29,6 +51,8 @@ namespace rubinius {
       virtual ~OpenTHCA() { }
 
       virtual Object* allocate(STATE, native_int bytes, object_type type);
+      Object* allocate_object(STATE, native_int bytes, object_type type);
+      bool allocate_region(STATE);
     };
 
     class ClosedTHCA : public THCA {
