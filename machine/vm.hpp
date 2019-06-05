@@ -129,8 +129,11 @@ namespace rubinius {
 
     std::atomic<ThreadNexus::Phase> thread_phase_;
 
-    uint32_t sample_interval_;
-    uint32_t sample_counter_;
+    uint64_t sample_interval_;
+    uint64_t sample_counter_;
+
+    diagnostics::metric checkpoints_;
+    diagnostics::metric stops_;
 
   public:
     /* Data members */
@@ -458,7 +461,18 @@ namespace rubinius {
       sample_counter_ = 0;
     }
 
-    void checkpoint(STATE);
+    void checkpoint(STATE) {
+      ++checkpoints_;
+
+      if(thread_nexus_->check_stop(state, this)) {
+        ++stops_;
+      }
+
+      if(sample_counter_++ >= sample_interval_) {
+        sample(state);
+        set_sample_interval();
+      }
+    }
 
     void managed_phase(STATE) {
       thread_nexus_->managed_phase(state, this);

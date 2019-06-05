@@ -31,10 +31,11 @@
 #include "config.h"
 
 #include "call_frame.hpp"
-#include "signal.hpp"
 #include "configuration.hpp"
 #include "helpers.hpp"
+#include "logger.hpp"
 #include "park.hpp"
+#include "signal.hpp"
 
 #include "util/thread.hpp"
 
@@ -82,6 +83,8 @@ namespace rubinius {
     , thread_phase_(ThreadNexus::eUnmanaged)
     , sample_interval_(0)
     , sample_counter_(0)
+    , checkpoints_(0)
+    , stops_(0)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -98,6 +101,9 @@ namespace rubinius {
   }
 
   VM::~VM() {
+    logger::info("%s: checkpoints: %ld, stops: %ld",
+        name().c_str(), checkpoints_, stops_);
+
     if(park_) {
       delete park_;
       park_ = nullptr;
@@ -129,19 +135,6 @@ namespace rubinius {
 
   double VM::run_time() {
     return timer::time_elapsed_seconds(start_time_);
-  }
-
-  void VM::checkpoint(STATE) {
-    metrics()->checkpoints++;
-
-    thread_nexus_->check_stop(state, this, [this/*, state*/]{
-        metrics()->stops++;
-      });
-
-    if(sample_counter_++ >= sample_interval_) {
-      sample(state);
-      set_sample_interval();
-    }
   }
 
   void VM::raise_stack_error(STATE) {
@@ -585,6 +578,9 @@ namespace rubinius {
   }
 
   void VM::gc_scan(STATE, std::function<void (STATE, Object**)> f) {
+    metrics()->checkpoints = checkpoints_;
+    metrics()->stops = stops_;
+
     thca_->collect(state);
 
     CallFrame* frame = call_frame_;
