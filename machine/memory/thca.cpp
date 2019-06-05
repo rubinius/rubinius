@@ -51,10 +51,12 @@ namespace rubinius {
     Object* OpenTHCA::allocate(STATE, native_int bytes, object_type type) {
       bytes = MemoryHeader::align(bytes);
 
-      if(Object* obj = allocate_object(state, bytes, type)) {
-        return obj;
-      } else if(allocate_region(state)) {
-        if(Object* obj = allocate_object(state, bytes, type)) return obj;
+      if(bytes <= cMediumObjectLimit) {
+        if(Object* obj = allocate_object(state, bytes, type)) {
+          return obj;
+        } else if(allocate_region(state)) {
+          if(Object* obj = allocate_object(state, bytes, type)) return obj;
+        }
       }
 
       return THCA::allocate(state, bytes, type);
