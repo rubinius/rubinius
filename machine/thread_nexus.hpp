@@ -141,17 +141,7 @@ namespace rubinius {
       if(can_stop_p(state, vm)) return false;
 
       while(stop_p()) {
-        if(try_lock(vm)) {
-          wait_for_all(state, vm);
-
-#ifdef RBX_GC_STACK_CHECK
-          check_stack(state, vm);
-#endif
-          unset_stop();
-          unlock(state, vm);
-        } else {
-          yield(state, vm);
-        }
+        yield(state, vm);
 
         return true;
       }
