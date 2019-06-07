@@ -3,6 +3,7 @@
 
 #include "class/class.hpp"
 #include "class/lexical_scope.hpp"
+#include "class/lookup_table.hpp"
 #include "class/system.hpp"
 
 namespace rubinius {
@@ -62,7 +63,8 @@ namespace rubinius {
     LexicalScope* scope = as<LexicalScope>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "module"); scope->module()->show(state, level);
+    indent_attribute(++level, "functions"); scope->functions()->show(state, level);
+    indent_attribute(level, "module"); scope->module()->show(state, level);
     indent_attribute(level, "current_module"); scope->current_module()->show(state, level);
     indent_attribute(level, "parent"); scope->parent()->show(state, level);
     close_body(level);
