@@ -429,6 +429,19 @@ module Rubinius
     return obj
   end
 
+  def self.add_function(name, executable, lexical_scope)
+    scope = lexical_scope
+    while scope.parent
+      scope = scope.parent
+    end
+
+    unless scope.functions.kind_of? Rubinius::LookupTable
+      scope.functions = Rubinius::LookupTable.new
+    end
+
+    scope.functions[name] = executable
+  end
+
   def self.add_defn_method(name, executable, lexical_scope, vis)
     # TODO: puts serial on MethodTable entry
     unless Type.object_kind_of? executable, String

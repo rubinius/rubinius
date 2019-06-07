@@ -8,6 +8,9 @@ namespace rubinius {
       LexicalScope* scope = LexicalScope::create(state);
       scope->module(state, mod);
       scope->parent(state, call_frame->lexical_scope());
+      if(!scope->parent()->nil_p()) {
+        scope->functions(state, call_frame->lexical_scope()->functions());
+      }
       call_frame->lexical_scope_ = scope;
     }
   }
