@@ -93,7 +93,7 @@ namespace rubinius {
       return vm_->check_local_interrupts();
     }
 
-    void raise_stack_error(STATE);
+    void raise_stack_error();
 
     Object* park(STATE);
     Object* park_timed(STATE, struct timespec* ts);

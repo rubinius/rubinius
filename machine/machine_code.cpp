@@ -623,12 +623,10 @@ namespace rubinius {
         return NULL;
       }
 
-      CallFrame* previous_frame = nullptr;
       CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
       call_frame->prepare(mcode->stack_size);
 
-      call_frame->previous = nullptr;
       call_frame->lexical_scope_ = code->scope();
       call_frame->dispatch_data = nullptr;
       call_frame->compiled_code = code;
@@ -638,7 +636,7 @@ namespace rubinius {
       call_frame->arguments = &args;
       call_frame->unwind = nullptr;
 
-      if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      if(!state->vm()->push_call_frame(state, call_frame)) {
         return NULL;
       }
 
@@ -650,7 +648,7 @@ namespace rubinius {
       value = (*mcode->run)(state, mcode);
       RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
 
-      if(!state->vm()->pop_call_frame(state, previous_frame)) {
+      if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
         return NULL;
       }
 
@@ -676,14 +674,12 @@ namespace rubinius {
     // Thus, we have to cache the value in the StackVariables.
     scope->initialize(G(main), name, cNil, G(object), mcode->number_of_locals);
 
-    CallFrame* previous_frame = 0;
     CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 
     Arguments args(name, G(main), cNil, 0, 0);
 
-    call_frame->previous = nullptr;
     call_frame->lexical_scope_ = code->scope();
     call_frame->dispatch_data = nullptr;
     call_frame->compiled_code = code;
@@ -693,7 +689,7 @@ namespace rubinius {
     call_frame->arguments = &args;
     call_frame->unwind = nullptr;
 
-    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+    if(!state->vm()->push_call_frame(state, call_frame)) {
       return NULL;
     }
 
@@ -704,7 +700,7 @@ namespace rubinius {
 
     Object* value = (*mcode->run)(state, mcode);
 
-    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+    if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
       return NULL;
     }
 

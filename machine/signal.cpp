@@ -207,7 +207,7 @@ namespace rubinius {
 #ifndef RBX_WINDOWS
     sigset_t set;
     sigfillset(&set);
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
 #endif
 
     while(!system_exit_) {
@@ -309,7 +309,7 @@ namespace rubinius {
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
 
-    sigaction(signal, &action, NULL);
+    sigaction(signal, &action, nullptr);
 #endif
   }
 
@@ -430,18 +430,21 @@ namespace rubinius {
     }
   }
 
-  static void abandon_ship_handler(int sig) {
+  static void abandon_ship_handler(int sig, siginfo_t* info, void*) {
     struct sigaction action;
 
     // Unset our handler for this signal.
+    memset(&action, 0, sizeof(action));
+    sigfillset(&action.sa_mask);
+
     action.sa_handler = SIG_DFL;
     action.sa_flags = 0;
-    sigaction(sig, &action, NULL);
+    sigaction(sig, &action, nullptr);
 
     char* pause_env = getenv("RBX_PAUSE_ON_CRASH");
 
     if(pause_env) {
-      long timeout = strtol(pause_env, NULL, 10);
+      long timeout = strtol(pause_env, nullptr, 10);
       if(timeout <= 0) {
         timeout = 60;
       } else {
@@ -490,29 +493,37 @@ namespace rubinius {
     state->shared().nodename.assign(machine_info.nodename);
 
     struct sigaction action;
+
+    memset(&action, 0, sizeof(action));
+    sigfillset(&action.sa_mask);
+
     action.sa_handler = null_func;
     action.sa_flags = 0;
-    sigfillset(&action.sa_mask);
-    sigaction(SIGVTALRM, &action, NULL);
+    sigaction(SIGVTALRM, &action, nullptr);
 
     // Some extensions expect SIGALRM to be defined, because MRI does.
     // We'll just use a noop for it.
     action.sa_handler = null_func;
-    sigaction(SIGALRM, &action, NULL);
+    sigaction(SIGALRM, &action, nullptr);
 
     // Ignore sigpipe.
     action.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &action, NULL);
+    sigaction(SIGPIPE, &action, nullptr);
 
 #ifdef USE_EXECINFO
     // If we have execinfo, setup some crash handlers
     if(!getenv("DISABLE_SEGV")) {
-      action.sa_handler = abandon_ship_handler;
-      sigaction(SIGSEGV, &action, NULL);
-      sigaction(SIGBUS,  &action, NULL);
-      sigaction(SIGILL,  &action, NULL);
-      sigaction(SIGFPE,  &action, NULL);
-      sigaction(SIGABRT, &action, NULL);
+      memset(&action, 0, sizeof(action));
+      sigfillset(&action.sa_mask);
+
+      action.sa_flags = SA_SIGINFO;
+      action.sa_sigaction = abandon_ship_handler;
+
+      sigaction(SIGSEGV, &action, nullptr);
+      sigaction(SIGBUS,  &action, nullptr);
+      sigaction(SIGILL,  &action, nullptr);
+      sigaction(SIGFPE,  &action, nullptr);
+      sigaction(SIGABRT, &action, nullptr);
     }
 #endif  // USE_EXEC_INFO
 #else

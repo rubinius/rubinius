@@ -66,8 +66,11 @@ namespace rubinius {
     , park_(new Park)
     , thca_(new memory::OpenTHCA)
     , stack_start_(0)
+    , stack_barrier_start_(0)
+    , stack_barrier_end_(0)
     , stack_size_(0)
     , stack_cushion_(shared.config.machine_stack_cushion.value)
+    , stack_probe_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
     , check_local_interrupts_(false)
@@ -137,24 +140,18 @@ namespace rubinius {
     return timer::time_elapsed_seconds(start_time_);
   }
 
+  void VM::set_previous_frame(CallFrame* frame) {
+    frame->previous = call_frame_;
+  }
+
   void VM::raise_stack_error(STATE) {
-    state->raise_stack_error(state);
+    state->raise_stack_error();
   }
 
   void VM::validate_stack_size(STATE, size_t size) {
     if(stack_cushion_ > size) {
       Exception::raise_runtime_error(state, "requested stack size is invalid");
     }
-  }
-
-  bool VM::push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame) {
-    if(!check_stack(state, frame)) return false;
-
-    previous_frame = call_frame_;
-    frame->previous = call_frame_;
-    call_frame_ = frame;
-
-    return true;
   }
 
   bool VM::check_thread_raise_or_kill(STATE) {

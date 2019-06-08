@@ -51,10 +51,8 @@ namespace rubinius {
       NativeMethodFrame nmf(env, 0, 0);
       ExceptionPoint ep(env);
 
-      CallFrame* previous_frame = nullptr;
       CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
 
-      call_frame->previous = nullptr;
       call_frame->lexical_scope_ = nullptr;
       call_frame->dispatch_data = (void*)&nmf;
       call_frame->compiled_code = nullptr;
@@ -68,7 +66,7 @@ namespace rubinius {
       env->set_current_native_frame(&nmf);
 
       // Register the CallFrame, because we might GC below this.
-      if(state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      if(state->vm()->push_call_frame(state, call_frame)) {
         nmf.setup(Qnil, Qnil, Qnil, Qnil);
 
         PLACE_EXCEPTION_POINT(ep);
@@ -80,7 +78,7 @@ namespace rubinius {
           (*finalizer_)(state, object());
         }
 
-        state->vm()->pop_call_frame(state, previous_frame);
+        state->vm()->pop_call_frame(state, call_frame->previous);
         env->set_current_call_frame(0);
         env->set_current_native_frame(0);
       } else {

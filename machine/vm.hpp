@@ -96,9 +96,13 @@ namespace rubinius {
     Park* park_;
     memory::THCA* thca_;
 
-    void* stack_start_;
+    int8_t* stack_start_;
+    int8_t* stack_barrier_start_;
+    int8_t* stack_barrier_end_;
+
     size_t stack_size_;
     size_t stack_cushion_;
+    ssize_t stack_probe_;
 
     bool interrupt_with_signal_;
     bool interrupt_by_kill_;
@@ -296,6 +300,7 @@ namespace rubinius {
     double run_time();
 
     void raise_stack_error(STATE);
+
     void validate_stack_size(STATE, size_t size);
 
     size_t stack_size() {
@@ -303,24 +308,43 @@ namespace rubinius {
     }
 
     void set_stack_bounds(size_t size) {
-      void* stack_address;
+      int8_t stack_address;
 
       stack_size_ = size - stack_cushion_;
       stack_start_ = &stack_address;
+
+      // Determine the direction of the stack
+      set_stack_barrier();
     }
 
-    ssize_t stack_remaining(STATE, void* stack_address) {
-      ssize_t stack_used =
-        (reinterpret_cast<intptr_t>(stack_start_)
-        - reinterpret_cast<intptr_t>(stack_address));
+    void set_stack_barrier() {
+      int8_t barrier;
+
+      if(stack_start_ - &barrier < 0) {
+        // barrier = reinterpret_cast<int8_t*>(stack_start_ + stack_size_ - 2 * stack_cushion_);
+        stack_probe_ = stack_cushion_ / 2;
+        stack_barrier_start_ = stack_start_ + stack_size_ - 2 * stack_cushion_;
+        stack_barrier_end_ = stack_barrier_start_ + stack_cushion_;
+      } else {
+        // barrier = reinterpret_cast<void*>(ss - stack_size_ + stack_cushion_);
+        stack_probe_ = -(stack_cushion_ / 2);
+        stack_barrier_end_ = stack_start_ - stack_size_ + stack_cushion_;
+        stack_barrier_start_ = stack_barrier_end_ - stack_cushion_;
+      }
+    }
+
+    ssize_t stack_remaining(STATE, int8_t* stack_address) {
+      ssize_t stack_used = stack_start_ - stack_address;
 
       if(stack_used < 0) stack_used = -stack_used;
 
       return stack_size_ - stack_used;
     }
 
-    bool check_stack(STATE, void* stack_address) {
-      if(stack_remaining(state, stack_address) <= 0) {
+    bool check_stack(STATE, void* address) {
+      int8_t* probe = reinterpret_cast<int8_t*>(address) + stack_probe_;
+
+      if(probe > stack_barrier_start_ && probe <= stack_barrier_end_) {
         raise_stack_error(state);
         return false;
       }
@@ -328,7 +352,16 @@ namespace rubinius {
       return true;
     }
 
-    bool push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame);
+    void set_previous_frame(CallFrame* frame);
+
+    bool push_call_frame(STATE, CallFrame* frame) {
+      if(!check_stack(state, frame)) return false;
+
+      set_previous_frame(frame);
+      call_frame_ = frame;
+
+      return true;
+    }
 
     bool pop_call_frame(STATE, CallFrame* frame) {
       call_frame_ = frame;

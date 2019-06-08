@@ -13,7 +13,7 @@ namespace rubinius {
     size_t MemoryVisitor::max_recursion_limit = 2000;
 
     void MemoryVisitor::set_recursion_limit(STATE) {
-      uintptr_t stack_var = 1;
+      int8_t stack_var;
 
       recursion_limit_ = state->vm()->stack_remaining(state, &stack_var)
         / invocation_frame_size;

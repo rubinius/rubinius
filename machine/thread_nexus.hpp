@@ -28,7 +28,6 @@ namespace rubinius {
     std::atomic<uint32_t> halt_;
     std::atomic<uint32_t> lock_;
 
-
     std::mutex threads_mutex_;
     std::mutex halting_mutex_;
     std::mutex waiting_mutex_;
@@ -98,7 +97,7 @@ namespace rubinius {
 
     void set_managed(STATE, VM* vm);
 
-    void each_thread(STATE, std::function<void (STATE, VM*)> process);
+    void each_thread(std::function<void (VM*)> process);
 
     bool valid_thread_p(STATE, unsigned int thread_id);
 
