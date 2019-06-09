@@ -23,6 +23,8 @@ namespace rubinius {
     intptr_t ensure_return(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t find_const(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t goto_(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t goto_past(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t goto_future(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t goto_if_equal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t goto_if_false(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t goto_if_nil(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -151,6 +153,11 @@ namespace rubinius {
     intptr_t r_load_literal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_store_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_0(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_1(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_nil(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_false(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_true(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_copy(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Native signed integer instructions
