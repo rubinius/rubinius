@@ -188,6 +188,11 @@ namespace rubinius {
     inline bool zsuper(STATE, CF, LITERAL);
     inline void push_file(STATE, CF);
 
+    // Function instructions
+    inline bool call_send(STATE, CF, LITERAL, COUNT);
+    inline bool call(STATE, CF, LITERAL, COUNT);
+    inline bool call_0(STATE, CF, LITERAL);
+
     // PEG instructions
     inline bool p_any(STATE, CF, const intptr_t n);
     inline void p_call(STATE, CF);

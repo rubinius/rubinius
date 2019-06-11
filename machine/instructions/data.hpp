@@ -793,6 +793,18 @@ namespace rubinius {
       "r_load_true", 187, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_true
     };
+    const InstructionData constexpr data_call_send = {
+      "call_send", 188, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::call_send
+    };
+    const InstructionData constexpr data_call = {
+      "call", 189, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::call
+    };
+    const InstructionData constexpr data_call_0 = {
+      "call_0", 190, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::call_0
+    };
   }
 
   struct Instructions {

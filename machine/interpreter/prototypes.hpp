@@ -107,6 +107,11 @@ namespace rubinius {
     intptr_t zsuper(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t push_file(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
+    // Function instructions
+    intptr_t call_send(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t call(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t call_0(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
     // PEG instructions
     intptr_t p_any(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t p_call(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

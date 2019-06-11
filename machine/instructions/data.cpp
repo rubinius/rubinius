@@ -183,5 +183,15 @@ namespace rubinius {
     instructions::data_a_less_equal,
     instructions::data_a_greater,
     instructions::data_a_greater_equal,
+    instructions::data_goto_past,
+    instructions::data_goto_future,
+    instructions::data_r_load_0,
+    instructions::data_r_load_1,
+    instructions::data_r_load_nil,
+    instructions::data_r_load_false,
+    instructions::data_r_load_true,
+    instructions::data_call_send,
+    instructions::data_call,
+    instructions::data_call_0,
   };
 }
