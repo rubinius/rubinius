@@ -404,10 +404,6 @@ namespace rubinius {
     }
   }
 
-  void VM::print_backtrace() {
-    abort();
-  }
-
   bool VM::wakeup(STATE) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 

@@ -535,8 +535,6 @@ namespace rubinius {
 
     Object* path2class(const char* name);
 
-    void print_backtrace();
-
     void wait_on_channel(STATE, Channel* channel);
     void wait_on_custom_function(STATE, void (*func)(void*), void* data);
     void clear_waiter();

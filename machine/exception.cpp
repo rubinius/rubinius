@@ -196,9 +196,6 @@ namespace rubinius {
       std::cout << "Machine Assertion:" << std::endl;
       std::cout << "  " << e->reason << std::endl << std::endl;
       e->print_backtrace();
-
-      std::cout << std::endl << "Ruby backtrace:" << std::endl;
-      state->vm()->print_backtrace();
       delete e;
     } catch(RubyException &e) {
       std::cout << "Ruby Exception hit toplevel:\n";
@@ -228,9 +225,6 @@ namespace rubinius {
         wanted->type << ")" << std::endl;
 
       e.print_backtrace();
-
-      std::cout << "Ruby backtrace:" << std::endl;
-      state->vm()->print_backtrace();
     } catch(MachineException &e) {
       std::cout << "Unknown Machine exception detected:" << std::endl;
       e.print_backtrace();

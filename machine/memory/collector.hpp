@@ -254,7 +254,7 @@ namespace rubinius {
       }
 
       bool collect_requested_p() {
-        return collect_requested_;
+        return collect_requested_.load(std::memory_order_acquire);
       }
 
       void collect_requested(STATE, const char* reason) {

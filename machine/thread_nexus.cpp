@@ -308,7 +308,9 @@ namespace rubinius {
         Exception::raise_assertion_error(state, msg.str().c_str());
       }
 
-      yield(state, vm);
+      if(can_stop_p(state, vm)) {
+        yield(state, vm);
+      }
 
       limit += wait();
 
