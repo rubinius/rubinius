@@ -99,8 +99,17 @@ namespace rubinius {
       case instructions::data_r_store_local_depth.id:
       case instructions::data_r_load_stack.id:
       case instructions::data_r_store_stack.id:
+      case instructions::data_r_load_0.id:
+      case instructions::data_r_load_1.id:
+      case instructions::data_r_load_false.id:
+      case instructions::data_r_load_true.id:
       case instructions::data_m_log.id:
         opcodes[ip + 1] += stack_size;
+        break;
+      case instructions::data_r_load_nil.id:
+        opcodes[ip + 1] += stack_size;
+        // TODO: tag this nil
+        opcodes[ip + 2] = reinterpret_cast<opcode>(cNil);
         break;
       case instructions::data_r_load_literal.id: {
         machine_code->references()[rindex++] = ip + 2;

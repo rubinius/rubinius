@@ -68,6 +68,18 @@ namespace rubinius {
     }
   }
 
+  void BytecodeVerifier::verify_past_location(STATE, int index, int ip) {
+    if(index < 0 || index >= ip) {
+      fail(state, "invalid goto_past location", ip);
+    }
+  }
+
+  void BytecodeVerifier::verify_future_location(STATE, int index, int ip) {
+    if(index <= (ip + 1) || index >= total_) {
+      fail(state, "invalid goto_future location", ip);
+    }
+  }
+
   void BytecodeVerifier::verify_unwind(STATE, int index, int ip) {
     opcode op = static_cast<opcode>(verify_opcode(state, index)->to_native());
 
@@ -76,7 +88,7 @@ namespace rubinius {
     }
   }
 
-  Object* BytecodeVerifier::verify_object(STATE, int index, int ip) {
+  Object* BytecodeVerifier::verify_literal(STATE, int index, int ip) {
     if(Object* obj = try_as<Object>(method_->literals()->at(index))) {
       return obj;
     } else {
@@ -274,7 +286,7 @@ namespace rubinius {
       switch(op) {
         case instructions::data_push_literal.id:
         case instructions::data_push_memo.id:
-          verify_object(state, arg1, insn_ip);
+          verify_literal(state, arg1, insn_ip);
           break;
         case instructions::data_create_block.id:
           verify_code(state, arg1, insn_ip);
@@ -322,7 +334,7 @@ namespace rubinius {
           verify_register(state, arg2, insn_ip);
           break;
         case instructions::data_b_if_serial.id:
-          verify_object(state, arg1, insn_ip);
+          verify_literal(state, arg1, insn_ip);
           verify_register(state, arg2, insn_ip);
           break;
         case instructions::data_r_load_local.id:
@@ -340,7 +352,16 @@ namespace rubinius {
           break;
         case instructions::data_r_load_literal.id:
           verify_register(state, arg1, insn_ip);
-          verify_object(state, arg2, insn_ip);
+          verify_literal(state, arg2, insn_ip);
+          break;
+        case instructions::data_r_load_nil.id:
+          verify_register(state, arg1, insn_ip);
+          break;
+        case instructions::data_r_load_0.id:
+        case instructions::data_r_load_1.id:
+        case instructions::data_r_load_false.id:
+        case instructions::data_r_load_true.id:
+          verify_register(state, arg1, insn_ip);
           break;
         case instructions::data_r_load_int.id:
         case instructions::data_r_store_int.id:
@@ -433,6 +454,12 @@ namespace rubinius {
         case instructions::data_push_local.id:
         case instructions::data_set_local.id:
           verify_local(state, arg1, insn_ip);
+          break;
+        case instructions::data_goto_past.id:
+          verify_jump_location(state, arg1, insn_ip);
+          break;
+        case instructions::data_goto_future.id:
+          verify_jump_location(state, arg1, insn_ip);
           break;
         case instructions::data_goto.id:
           verify_jump_location(state, arg1, insn_ip);
