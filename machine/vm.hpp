@@ -341,10 +341,14 @@ namespace rubinius {
       return stack_size_ - stack_used;
     }
 
-    bool check_stack(STATE, void* address) {
+    bool stack_limit_p(void* address) {
       int8_t* probe = reinterpret_cast<int8_t*>(address) + stack_probe_;
 
-      if(probe > stack_barrier_start_ && probe <= stack_barrier_end_) {
+      return probe > stack_barrier_start_ && probe <= stack_barrier_end_;
+    }
+
+    bool check_stack(STATE, void* address) {
+      if(stack_limit_p(address)) {
         raise_stack_error(state);
         return false;
       }

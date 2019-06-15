@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <atomic>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -107,7 +108,7 @@ namespace rubinius {
     VM* root_vm_;
     Environment* env_;
 
-    utilities::thread::Mutex codedb_lock_;
+    std::recursive_mutex codedb_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
@@ -309,7 +310,7 @@ namespace rubinius {
       return &check_global_interrupts_;
     }
 
-    utilities::thread::Mutex& codedb_lock() {
+    std::recursive_mutex& codedb_lock() {
       return codedb_lock_;
     }
 

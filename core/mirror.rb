@@ -23,6 +23,14 @@ module Rubinius
 
     class Object < Mirror
       self.subject = ::Object
+
+      def nil_code_id
+        Rubinius.invoke_primitive :object_nil_code_id, @object
+      end
+
+      def nil_ip
+        Rubinius.invoke_primitive :object_nil_ip, @object
+      end
     end
 
     def instance_fields

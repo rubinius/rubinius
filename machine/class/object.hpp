@@ -330,6 +330,12 @@ namespace rubinius {
     // Rubinius.primitive :object_become
     Object* become(STATE, Object* other);
 
+    // Rubinius.primitive :object_nil_code_id
+    Object* nil_code_id(STATE);
+
+    // Rubinius.primitive :object_nil_ip
+    Object* nil_ip(STATE);
+
     /**
      * Checks if object is frozen and raises RuntimeError if it is.
      * Similar to CRuby rb_check_frozen

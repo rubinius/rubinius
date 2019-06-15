@@ -10,23 +10,13 @@ namespace rubinius {
     class MemoryTracer {
       MarkStack mark_stack_;
       Heap* heap_;
-      size_t recursion_limit_;
       size_t max_recursion_;
       size_t max_mark_stack_size_;
-
-      void set_recursion_limit(STATE);
-      bool recurse_p(STATE, size_t count) {
-        return count < recursion_limit_;
-      }
-
-      static size_t invocation_frame_size;
-      static size_t max_recursion_limit;
 
     public:
       MemoryTracer(STATE, Heap* heap)
         : mark_stack_()
         , heap_(heap)
-        , recursion_limit_(1)
         , max_recursion_(0)
         , max_mark_stack_size_(0)
       { }

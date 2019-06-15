@@ -892,6 +892,18 @@ namespace rubinius {
     return other;
   }
 
+  Object* Object::nil_code_id(STATE) {
+    if(!nil_p()) return cNil;
+
+    return Fixnum::from(NIL_TAG_ID(this));
+  }
+
+  Object* Object::nil_ip(STATE) {
+    if(!nil_p()) return cNil;
+
+    return Fixnum::from(NIL_TAG_IP(this));
+  }
+
   void Object::setup_allocation_site(STATE) {
     this->set_ivar(state, G(sym_allocation_site),
                    Location::create(state, state->vm()->call_frame()));

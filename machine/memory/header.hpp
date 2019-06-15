@@ -131,7 +131,21 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define FALSE_MASK  0xf
 
 // The bits that identify any nil value.
-#define NIL_MASK    0x1f
+#define NIL_BITS      0x1aL
+#define NIL_MASK      0x1fL
+
+#define NIL_IP_SHIFT  0x5L
+#define NIL_IP_MASK   0xffffL
+
+#define NIL_ID_SHIFT  0x15L
+#define NIL_ID_MASK   0xffffffffL
+
+#define APPLY_NIL_TAG(id,ip)  (0x0L \
+                                | ((id & NIL_ID_MASK) << NIL_ID_SHIFT) \
+                                | ((ip & NIL_IP_MASK) << NIL_IP_SHIFT) \
+                                | NIL_BITS)
+#define NIL_TAG_ID(n)         ((reinterpret_cast<uintptr_t>(n) >> NIL_ID_SHIFT) & NIL_ID_MASK)
+#define NIL_TAG_IP(n)         ((reinterpret_cast<uintptr_t>(n) >> NIL_IP_SHIFT) & NIL_IP_MASK)
 
 #define CBOOL(v)    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
 #define RBOOL(v)    ((v) ? cTrue : cFalse)

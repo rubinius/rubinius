@@ -9,23 +9,7 @@
 
 namespace rubinius {
   namespace memory {
-    size_t MemoryVisitor::invocation_frame_size = 200 * sizeof(uintptr_t);
-    size_t MemoryVisitor::max_recursion_limit = 2000;
-
-    void MemoryVisitor::set_recursion_limit(STATE) {
-      int8_t stack_var;
-
-      recursion_limit_ = state->vm()->stack_remaining(state, &stack_var)
-        / invocation_frame_size;
-
-      if(recursion_limit_ > max_recursion_limit) {
-        recursion_limit_ = max_recursion_limit;
-      }
-    }
-
     void MemoryVisitor::visit_heap(STATE, std::function<void (STATE, Object**)> f) {
-      set_recursion_limit(state);
-
       for(Roots::Iterator i(state->globals().roots); i.more(); i.advance()) {
         Object* obj = i->get();
         visit_object(state, &obj, f);
@@ -118,7 +102,7 @@ namespace rubinius {
     }
 
     void MemoryVisitor::visit_object(STATE, Object** obj,
-        std::function<void (STATE, Object**)> f, size_t recursion_count)
+        std::function<void (STATE, Object**)> f)
     {
       Object* object = *obj;
 
@@ -133,22 +117,20 @@ namespace rubinius {
         f(state, obj);
       }
 
-      if(!recurse_p(state, recursion_count)) {
+      if(state->vm()->stack_limit_p(&object)) {
         mark_stack_.add(0, object);
         return;
       }
 
       object->set_scanned();
 
-      recursion_count++;
-
-      visit_object(state, object->p_klass(), f, recursion_count);
-      visit_object(state, object->p_ivars(), f, recursion_count);
+      visit_object(state, object->p_klass(), f);
+      visit_object(state, object->p_ivars(), f);
 
       TypeInfo* ti = state->memory()->type_info[object->type_id()];
 
       ti->visit(state, object, [&](STATE, Object** obj){
-          visit_object(state, obj, f, recursion_count);
+          visit_object(state, obj, f);
         });
     }
   }

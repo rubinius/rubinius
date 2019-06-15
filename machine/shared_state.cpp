@@ -55,7 +55,7 @@ namespace rubinius {
     , check_gc_(false)
     , root_vm_(nullptr)
     , env_(env)
-    , codedb_lock_(true)
+    , codedb_lock_()
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
@@ -274,7 +274,6 @@ namespace rubinius {
 
   void SharedState::after_fork_child(STATE) {
     // Reinit the locks for this object
-    codedb_lock_.init(true);
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();

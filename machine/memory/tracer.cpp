@@ -13,23 +13,7 @@
 
 namespace rubinius {
   namespace memory {
-    size_t MemoryTracer::invocation_frame_size = 100 * sizeof(uintptr_t);
-    size_t MemoryTracer::max_recursion_limit = 10000;
-
-    void MemoryTracer::set_recursion_limit(STATE) {
-      int8_t stack_var;
-
-      recursion_limit_ = state->vm()->stack_remaining(state, &stack_var)
-        / invocation_frame_size;
-
-      if(recursion_limit_ > max_recursion_limit) {
-        recursion_limit_ = max_recursion_limit;
-      }
-    }
-
     void MemoryTracer::trace_heap(STATE) {
-      set_recursion_limit(state);
-
       heap_->collect_start(state);
 
       heap_->collect_references(state, [this](STATE, Object** obj){
@@ -164,7 +148,7 @@ namespace rubinius {
         object->unset_scanned();
       }
 
-      if(!recurse_p(state, recursion_count)) {
+      if(state->vm()->stack_limit_p(&object)) {
         mark_stack_.add(0, object);
 
         if(mark_stack_.size() > max_mark_stack_size_) {
