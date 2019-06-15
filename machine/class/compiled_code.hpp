@@ -3,6 +3,7 @@
 
 #include "object_utils.hpp"
 #include "memory.hpp"
+#include "spinlock.hpp"
 
 #include "class/lexical_scope.hpp"
 #include "class/executable.hpp"
@@ -11,8 +12,6 @@
 #include "class/lookup_table.hpp"
 #include "class/string.hpp"
 #include "class/symbol.hpp"
-
-#include <mutex>
 
 namespace rubinius {
 
@@ -50,7 +49,7 @@ namespace rubinius {
 
   private:
     attr_field(machine_code, MachineCode*);
-    std::mutex _lock_;
+    locks::spinlock_mutex _lock_;
 
   public:
     attr_accessor(literals, Tuple)
@@ -84,7 +83,7 @@ namespace rubinius {
 
       obj->literals(nil<Tuple>());
 
-      new(&obj->_lock_) std::mutex;
+      obj->_lock_.reset();
     }
 
     static CompiledCode* create(STATE);
@@ -94,7 +93,7 @@ namespace rubinius {
 
     static Object* primitive_failed(STATE, Executable* exec, Module* mod, Arguments& args);
 
-    std::mutex& lock() {
+    locks::spinlock_mutex& lock() {
       return _lock_;
     }
 

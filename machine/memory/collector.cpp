@@ -360,13 +360,17 @@ namespace rubinius {
     void Collector::native_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
-      add_finalizer(state, new NativeFinalizer(state, obj, func));
+      MachineException::guard(state, false, [&]{
+          add_finalizer(state, new NativeFinalizer(state, obj, func));
+        });
     }
 
     void Collector::extension_finalizer(STATE, Object* obj, FinalizerFunction func) {
       if(finishing_) return;
 
-      add_finalizer(state, new ExtensionFinalizer(state, obj, func));
+      MachineException::guard(state, false, [&]{
+          add_finalizer(state, new ExtensionFinalizer(state, obj, func));
+        });
     }
 
     void Collector::managed_finalizer(STATE, Object* obj, Object* finalizer) {
@@ -411,8 +415,10 @@ namespace rubinius {
        * send the object __finalize__. We mark that the user wants this by
        * putting cTrue as the ruby_finalizer.
        */
-      add_finalizer(state, new ManagedFinalizer(state, obj,
-            obj == finalizer ? cTrue : finalizer));
+      MachineException::guard(state, false, [&]{
+          add_finalizer(state, new ManagedFinalizer(state, obj,
+                obj == finalizer ? cTrue : finalizer));
+        });
     }
 
     void Collector::add_finalizer(STATE, FinalizerObject* obj) {

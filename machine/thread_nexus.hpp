@@ -137,7 +137,7 @@ namespace rubinius {
     bool can_stop_p(STATE, VM* vm);
 
     bool check_stop(STATE, VM* vm) {
-      if(can_stop_p(state, vm)) return false;
+      if(!can_stop_p(state, vm)) return false;
 
       while(stop_p()) {
         yield(state, vm);

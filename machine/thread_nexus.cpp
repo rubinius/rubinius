@@ -6,6 +6,7 @@
 
 #include "class/thread.hpp"
 
+#include "memory/collector.hpp"
 #include "memory/managed.hpp"
 
 #include "util/atomic.hpp"
@@ -41,7 +42,12 @@ namespace rubinius {
       halting_mutex_.lock();
     }
 
-    lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
+    if(can_stop_p(state, vm)) {
+      lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
+    } else {
+      // We already own the lock
+      vm->set_thread_phase(eManaged);
+    }
   }
 
 
@@ -58,7 +64,7 @@ namespace rubinius {
   }
 
   void ThreadNexus::waiting_phase(STATE, VM* vm) {
-    if(lock_ == vm->thread_id()) {
+    if(!can_stop_p(state, vm)) {
       std::ostringstream msg;
 
       msg << "waiting while holding process-critical lock: id: "
@@ -76,11 +82,11 @@ namespace rubinius {
   }
 
   bool ThreadNexus::can_stop_p(STATE, VM* vm) {
-    return lock_ == vm->thread_id();
+    return lock_ != vm->thread_id();
   }
 
   void ThreadNexus::unlock(STATE, VM* vm) {
-    if(lock_ != vm->thread_id()) {
+    if(can_stop_p(state, vm)) {
       std::ostringstream msg;
 
       msg << "process-critical lock being unlocked by the wrong Thread: id: "
@@ -299,16 +305,7 @@ namespace rubinius {
     uint64_t limit = 0;
 
     while(!try_lock(vm)) {
-      if(lock_ == vm->thread_id()) {
-        std::ostringstream msg;
-
-        msg << "yielding while holding process-critical lock: id: "
-            << vm->thread_id();
-
-        Exception::raise_assertion_error(state, msg.str().c_str());
-      }
-
-      if(can_stop_p(state, vm)) {
+      if(state->shared().memory()->collector()->collect_requested_p()) {
         yield(state, vm);
       }
 

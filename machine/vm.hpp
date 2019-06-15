@@ -333,14 +333,6 @@ namespace rubinius {
       }
     }
 
-    ssize_t stack_remaining(STATE, int8_t* stack_address) {
-      ssize_t stack_used = stack_start_ - stack_address;
-
-      if(stack_used < 0) stack_used = -stack_used;
-
-      return stack_size_ - stack_used;
-    }
-
     bool stack_limit_p(void* address) {
       int8_t* probe = reinterpret_cast<int8_t*>(address) + stack_probe_;
 

@@ -45,8 +45,6 @@ namespace rubinius {
     if(MachineCode* machine_code = code->machine_code()) {
       machine_code->finalize(state);
     }
-
-    code->lock().std::mutex::~mutex();
   }
 
   CompiledCode* CompiledCode::create(STATE) {
@@ -132,7 +130,7 @@ namespace rubinius {
     timer::StopWatch<timer::microseconds> timer(
         state->vm()->metrics()->bytecode_internalizer_us);
 
-    std::lock_guard<std::mutex> guard(lock());
+    std::lock_guard<locks::spinlock_mutex> guard(lock());
 
     if(machine_code()) {
       return machine_code();
