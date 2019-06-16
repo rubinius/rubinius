@@ -193,5 +193,6 @@ namespace rubinius {
     instructions::data_call_send,
     instructions::data_call,
     instructions::data_call_0,
+    instructions::data_push_tagged_nil,
   };
 }

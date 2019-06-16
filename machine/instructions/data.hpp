@@ -805,6 +805,10 @@ namespace rubinius {
       "call_0", 190, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::call_0
     };
+    const InstructionData constexpr data_push_tagged_nil = {
+      "push_tagged_nil", 191, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::push_tagged_nil
+    };
   }
 
   struct Instructions {

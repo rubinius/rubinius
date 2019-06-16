@@ -186,6 +186,9 @@ namespace rubinius {
       case instructions::data_push_int.id:
         opcodes[ip + 1] = reinterpret_cast<opcode>(Fixnum::from(opcodes[ip + 1]));
         break;
+      case instructions::data_push_tagged_nil.id:
+        opcodes[ip + 1] = reinterpret_cast<opcode>(APPLY_NIL_TAG(nil_id_tag, ip));
+        break;
       case instructions::data_create_block.id: {
         machine_code->references()[rindex++] = ip + 1;
 

@@ -63,6 +63,7 @@ namespace rubinius {
     intptr_t push_my_field(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t push_my_offset(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t push_nil(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t push_tagged_nil(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t push_proc(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t push_rubinius(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t push_scope(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

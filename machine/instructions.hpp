@@ -144,6 +144,7 @@ namespace rubinius {
     inline void push_my_field(STATE, CF, INDEX);
     inline void push_my_offset(CF, INDEX);
     inline void push_nil(CF);
+    inline void push_tagged_nil(CF, intptr_t nil);
     inline bool push_proc(STATE, CF);
     inline void push_rubinius(STATE, CF);
     inline void push_scope(CF);
