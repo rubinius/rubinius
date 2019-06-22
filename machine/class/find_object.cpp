@@ -177,21 +177,21 @@ namespace rubinius {
 
       for(native_int i = 0; i < tmp_->size(); i++) {
         if(Symbol* sym = try_as<Symbol>(tmp_->get(state, i))) {
-          if(obj->get_ivar(state, sym) == target_) return true;
+          if(obj->get_ivar(state, sym)->equal_p(target_)) return true;
         }
       }
 
       // Check a tuples body.
       if(Tuple* tup = try_as<Tuple>(obj)) {
         for(native_int i = 0; i < tup->num_fields(); i++) {
-          if(tup->at(i) == target_) return true;
+          if(tup->at(i)->equal_p(target_)) return true;
         }
       }
 
       // Check a VariableScope's locals
       if(VariableScope* vs = try_as<VariableScope>(obj)) {
         for(int i = 0; i < vs->number_of_locals(); i++) {
-          if(vs->get_local(state, i) == target_) return true;
+          if(vs->get_local(state, i)->equal_p(target_)) return true;
         }
       }
 

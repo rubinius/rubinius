@@ -144,8 +144,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
                                 | ((id & NIL_ID_MASK) << NIL_ID_SHIFT) \
                                 | ((ip & NIL_IP_MASK) << NIL_IP_SHIFT) \
                                 | NIL_BITS)
-#define NIL_TAG_ID(n)         ((reinterpret_cast<uintptr_t>(n) >> NIL_ID_SHIFT) & NIL_ID_MASK)
-#define NIL_TAG_IP(n)         ((reinterpret_cast<uintptr_t>(n) >> NIL_IP_SHIFT) & NIL_IP_MASK)
+#define NIL_TAG_ID(n)         ((reinterpret_cast<intptr_t>(n) >> NIL_ID_SHIFT) & NIL_ID_MASK)
+#define NIL_TAG_IP(n)         ((reinterpret_cast<intptr_t>(n) >> NIL_IP_SHIFT) & NIL_IP_MASK)
+
+#define NIL_EQUAL_P(a,b)      ((a)->nil_p() && (b)->nil_p())
 
 #define CBOOL(v)    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
 #define RBOOL(v)    ((v) ? cTrue : cFalse)
@@ -1517,6 +1519,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     void wait(STATE);
+
+    bool equal_p(const ObjectHeader* other) const {
+      return (this == other) || NIL_EQUAL_P(this, other);
+    }
 
     bool nil_p() const {
       return (reinterpret_cast<intptr_t>(this) & NIL_MASK) == reinterpret_cast<intptr_t>(cNil);

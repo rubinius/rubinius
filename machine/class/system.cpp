@@ -1282,7 +1282,7 @@ namespace rubinius {
   }
 
   Object* System::vm_object_equal(STATE, Object* a, Object* b) {
-    return RBOOL(a == b);
+    return RBOOL(a->equal_p(b));
   }
 
   Object* System::vm_object_kind_of(STATE, Object* obj, Module* mod) {
@@ -1375,7 +1375,7 @@ namespace rubinius {
     Object* ret = dispatch.send(state, lookup, args);
 
     if(!ret && state->vm()->thread_state()->raise_reason() == cCatchThrow) {
-      if(state->vm()->thread_state()->throw_dest() == dest) {
+      if(state->vm()->thread_state()->throw_dest()->equal_p(dest)) {
         Object* val = state->vm()->thread_state()->raise_value();
         state->vm()->thread_state()->clear_return();
         return val;

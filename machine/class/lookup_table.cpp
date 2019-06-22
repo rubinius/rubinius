@@ -118,7 +118,7 @@ namespace rubinius {
     entry = try_as<LookupTableBucket>(values()->at(state, bin));
 
     while(entry) {
-      if(entry->key() == key) {
+      if(entry->key()->equal_p(key)) {
         entry->value(state, val);
         return val;
       }
@@ -144,7 +144,7 @@ namespace rubinius {
     LookupTableBucket *entry = try_as<LookupTableBucket>(values()->at(state, bin));
 
     while(entry) {
-      if(entry->key() == key) {
+      if(entry->key()->equal_p(key)) {
         return entry;
       }
       entry = try_as<LookupTableBucket>(entry->next());
@@ -217,7 +217,7 @@ namespace rubinius {
     entry = try_as<LookupTableBucket>(values()->at(state, bin));
 
     while(entry) {
-      if(entry->key() == key) {
+      if(entry->key()->equal_p(key)) {
         Object *val = entry->value();
         if(last) {
           last->next(state, entry->next());

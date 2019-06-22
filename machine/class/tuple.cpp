@@ -168,12 +168,12 @@ namespace rubinius {
     native_int rend = lend + len;
     native_int i = lend;
     while(i < rend) {
-      if(this->at(i) == obj) {
+      if(at(i)->equal_p(obj)) {
         native_int j = i;
         ++i;
         while(i < rend) {
           Object *val = field[i];
-          if(val != obj) {
+          if(!val->equal_p(obj)) {
             // no need to set write_barrier since it's already
             // referenced to this object
             field[j] = val;

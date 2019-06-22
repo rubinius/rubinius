@@ -152,7 +152,7 @@ namespace rubinius {
 
     // Rubinius.primitive+ :string_equal
     Object* equal(STATE, String* other) {
-      if(encoding() != other->encoding() &&
+      if(!encoding()->equal_p(other->encoding()) &&
          Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(

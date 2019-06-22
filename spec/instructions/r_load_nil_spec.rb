@@ -14,6 +14,10 @@ describe "Instruction r_load_nil" do
   it "loads nil in the register" do
     @spec.run.should be_nil
   end
+
+  it "loads a value that is an instance of NilClass in the register" do
+    @spec.run.should be_an_instance_of(NilClass)
+  end
 end
 
 describe "Instruction r_load_nil" do
@@ -33,7 +37,7 @@ describe "Instruction r_load_nil" do
 
   it "loads a nil tagged with the CompiledCode ID" do
     m = Rubinius::Mirror::Object.reflect(@spec.run)
-    m.nil_code_id.to_s(16).should == @spec.code.code_id[0...8]
+    m.nil_code_id.should == @spec.code.code_id[0...8]
   end
 
   it "loads a nil tagged with the instruction address (IP)" do

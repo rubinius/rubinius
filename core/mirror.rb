@@ -25,7 +25,7 @@ module Rubinius
       self.subject = ::Object
 
       def nil_code_id
-        Rubinius.invoke_primitive :object_nil_code_id, @object
+        "%08x" % Rubinius.invoke_primitive(:object_nil_code_id, @object)
       end
 
       def nil_ip

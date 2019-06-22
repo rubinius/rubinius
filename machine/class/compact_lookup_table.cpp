@@ -28,7 +28,7 @@ namespace rubinius {
 
   Object* CompactLookupTable::fetch(STATE, Object* key, bool* found) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(state, i) == key) {
+      if(at(state, i)->equal_p(key)) {
         *found = true;
         return at(state, i + 1);
       }
@@ -39,7 +39,7 @@ namespace rubinius {
 
   Object* CompactLookupTable::remove(STATE, Object* key, bool* removed) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(state, i) == key) {
+      if(at(state, i)->equal_p(key)) {
         Object* val = at(state, i + 1);
 
         put(state, i, cNil);
@@ -55,7 +55,7 @@ namespace rubinius {
   Object* CompactLookupTable::store(STATE, Object* key, Object* val) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
       Object* tmp = at(state, i);
-      if(tmp == key || tmp->nil_p()) {
+      if(tmp->equal_p(key) || tmp->nil_p()) {
         put(state, i, key);
         put(state, i + 1, val);
         return cTrue;
@@ -67,7 +67,7 @@ namespace rubinius {
 
   Object* CompactLookupTable::has_key(STATE, Object* key) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(state, i) == key) return cTrue;
+      if(at(state, i)->equal_p(key)) return cTrue;
     }
 
     return cFalse;

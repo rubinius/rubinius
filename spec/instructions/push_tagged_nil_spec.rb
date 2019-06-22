@@ -16,9 +16,13 @@ describe "Instruction push_tagged_nil" do
     @spec.run.should be_nil
   end
 
+  it "adds a value that is an instance of NilClass to the bottom of the stack" do
+    @spec.run.should be_an_instance_of(NilClass)
+  end
+
   it "adds a nil tagged with the CompiledCode ID to the bottom of the stack" do
     m = Rubinius::Mirror::Object.reflect(@spec.run)
-    m.nil_code_id.to_s(16).should == @spec.code.code_id[0...8]
+    m.nil_code_id.should == @spec.code.code_id[0...8]
   end
 
   it "adds a nil tagged with the instruction address (IP) to the bottom of the stack" do

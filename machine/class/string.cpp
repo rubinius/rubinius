@@ -792,7 +792,7 @@ namespace rubinius {
     native_int length = other->byte_size();
     native_int data_length = as<ByteArray>(other->data())->size();
 
-    if(encoding() != other->encoding()) {
+    if(!encoding()->equal_p(other->encoding())) {
       Encoding* new_encoding = Encoding::compatible_p(state, this, other);
       if(new_encoding->nil_p()) {
         Exception::raise_encoding_compatibility_error(state, other, this);
