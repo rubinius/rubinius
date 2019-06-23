@@ -30,6 +30,7 @@
 #include "sodium/crypto_generichash.h"
 #include "sodium/utils.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <ostream>
 
@@ -293,6 +294,29 @@ namespace rubinius {
               hash_hex, sizeof(hash_hex), hash, sizeof(hash)))));
 
     return code_id();
+  }
+
+  uint32_t CompiledCode::nil_id(STATE) {
+    if(code_id()->nil_p()) {
+      stamp_id(state);
+    }
+
+    const uint8_t* bytes = code_id()->byte_address();
+
+    uint32_t nil_id = 0;
+
+    sodium_hex2bin(reinterpret_cast<uint8_t*>(&nil_id), sizeof(nil_id),
+        reinterpret_cast<const char*>(bytes), 2 * sizeof(uint32_t),
+        nullptr, nullptr, nullptr);
+
+#ifdef RBX_LITTLE_ENDIAN
+    char* begin = reinterpret_cast<char*>(&nil_id);
+    char* end = begin + sizeof(uint32_t);
+
+    std::reverse(begin, end);
+#endif
+
+    return nil_id;
   }
 
   Object* CompiledCode::execute_script(STATE) {

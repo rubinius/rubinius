@@ -13,35 +13,12 @@
 
 #include "diagnostics/measurement.hpp"
 
-#include "sodium/utils.h"
-
-#include <algorithm>
-
 namespace rubinius {
   using namespace diagnostics;
 
   void Interpreter::prepare(STATE, CompiledCode* compiled_code, MachineCode* machine_code) {
     Tuple* lits = compiled_code->literals();
     Tuple* ops = compiled_code->iseq()->opcodes();
-
-    if(compiled_code->code_id()->nil_p()) {
-      compiled_code->stamp_id(state);
-    }
-
-    const uint8_t* code_id = compiled_code->code_id()->byte_address();
-
-    uint32_t nil_id_tag = 0;
-
-    sodium_hex2bin(reinterpret_cast<uint8_t*>(&nil_id_tag), sizeof(nil_id_tag),
-        reinterpret_cast<const char*>(code_id), 2 * sizeof(uint32_t),
-        nullptr, nullptr, nullptr);
-
-#ifdef RBX_LITTLE_ENDIAN
-    char* begin = reinterpret_cast<char*>(&nil_id_tag);
-    char* end = begin + sizeof(uint32_t);
-
-    std::reverse(begin, end);
-#endif
 
     opcode* opcodes = machine_code->opcodes;
     size_t total = machine_code->total;
@@ -131,7 +108,7 @@ namespace rubinius {
         break;
       case instructions::data_r_load_nil.id:
         opcodes[ip + 1] += stack_size;
-        opcodes[ip + 2] = reinterpret_cast<opcode>(APPLY_NIL_TAG(nil_id_tag, ip));
+        opcodes[ip + 2] = reinterpret_cast<opcode>(APPLY_NIL_TAG(machine_code->nil_id(), ip));
         break;
       case instructions::data_r_load_literal.id: {
         machine_code->references()[rindex++] = ip + 2;
@@ -187,7 +164,7 @@ namespace rubinius {
         opcodes[ip + 1] = reinterpret_cast<opcode>(Fixnum::from(opcodes[ip + 1]));
         break;
       case instructions::data_push_tagged_nil.id:
-        opcodes[ip + 1] = reinterpret_cast<opcode>(APPLY_NIL_TAG(nil_id_tag, ip));
+        opcodes[ip + 1] = reinterpret_cast<opcode>(APPLY_NIL_TAG(machine_code->nil_id(), ip));
         break;
       case instructions::data_create_block.id: {
         machine_code->references()[rindex++] = ip + 1;

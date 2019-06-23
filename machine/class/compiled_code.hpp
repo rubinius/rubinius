@@ -148,6 +148,8 @@ namespace rubinius {
 
     Object* execute_script(STATE);
 
+    uint32_t nil_id(STATE);
+
     class Info : public Executable::Info {
     public:
       BASIC_TYPEINFO(Executable::Info)

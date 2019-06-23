@@ -79,6 +79,7 @@ namespace rubinius {
     , _references_count_(0)
     , _references_(nullptr)
     , _serial_(MachineCode::get_serial())
+    , _nil_id_(code->nil_id(state))
     , _name_(code->name()->cpp_str(state))
     , _location_()
     , unspecialized(nullptr)

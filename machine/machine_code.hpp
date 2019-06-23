@@ -81,6 +81,7 @@ namespace rubinius {
     attr_field(references, size_t*);
     attr_field(unwind_site_count, size_t);
     attr_field(serial, uint64_t);
+    attr_field(nil_id, uint32_t);
 
     std::string _name_;
     std::string _location_;
