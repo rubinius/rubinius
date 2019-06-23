@@ -26,6 +26,10 @@ class NilClass
     true
   end
 
+  def !
+    true
+  end
+
   def !=(other)
     other.nil? ? false : true
   end
@@ -122,6 +126,9 @@ class Class
 end
 
 module Kernel
+  def nil?
+    false
+  end
 
   # Return the Class object this object is an instance of.
   #

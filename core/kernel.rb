@@ -642,10 +642,6 @@ module Kernel
     return methods - undefs
   end
 
-  def nil?
-    false
-  end
-
   def object_id
     Rubinius.primitive :object_id
     raise PrimitiveFailure, "Kernel#object_id primitive failed"

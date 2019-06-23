@@ -138,7 +138,7 @@ namespace rubinius {
   }
 
   Object* Object::equal(STATE, Object* other) {
-    return RBOOL(this == other);
+    return RBOOL(equal_p(other));
   }
 
   Object* Object::freeze(STATE) {
@@ -367,9 +367,15 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
-
 #ifdef IS_64BIT_ARCH
-      uintptr_t key = reinterpret_cast<uintptr_t>(this);
+      uintptr_t key;
+
+      if(nil_p()) {
+        key = reinterpret_cast<uintptr_t>(cNil);
+      } else {
+        key = reinterpret_cast<uintptr_t>(this);
+      }
+
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
       key = key ^ (key >> 24);
       key = (key + (key << 3)) + (key << 8); // key * 265
@@ -380,7 +386,14 @@ namespace rubinius {
       return key & FIXNUM_MAX;
 #else
       // See http://burtleburtle.net/bob/hash/integer.html
-      uint32_t a = (uint32_t)this;
+      uint32_t a;
+
+      if(nil_p()) {
+        a = reinterpret_cast<uint32_t>(cNil);
+      } else {
+        a = reinterpret_cast<uint32_t>(this);
+      }
+
       a = (a+0x7ed55d16) + (a<<12);
       a = (a^0xc761c23c) ^ (a>>19);
       a = (a+0x165667b1) + (a<<5);
@@ -415,6 +428,8 @@ namespace rubinius {
 
       // Shift it so it doesn't collide with object_id for immediates.
       return Integer::from(state, id << TAG_REF_WIDTH);
+    } else if(nil_p()) {
+      return Integer::from(state, reinterpret_cast<uintptr_t>(cNil));
     } else {
       // All non-references have the pointer directly as the object id
       return Integer::from(state, reinterpret_cast<uintptr_t>(this));
