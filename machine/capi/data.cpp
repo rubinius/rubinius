@@ -52,7 +52,6 @@ extern "C" {
     if(RData* rdata = handle->get_rdata(env->state())) {
       return rdata;
     } else {
-      // TODO: MemoryHandle
       rdata = new RData();
       handle->set_rdata(rdata);
       return rdata;
@@ -82,7 +81,6 @@ extern "C" {
     if(RTypedData* rdata = handle->get_rtypeddata(env->state())) {
       return rdata;
     } else {
-      // TODO: MemoryHandle
       rdata = new RTypedData();
       handle->set_rtypeddata(rdata);
       return rdata;

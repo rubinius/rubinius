@@ -594,20 +594,19 @@ failed: /* try next '*' position */
   }
 
   Object* RIOStream::close(STATE, Object* io, Object* allow_exception) {
-    // If there is a handle for this IO, and it's been promoted into
-    // a lowlevel RIO struct using fdopen, then we MUST use fclose
-    // to close it.
+    /* If there is a handle for this IO, and it's been promoted into a
+     * lowlevel RIO struct using fdopen, then we MUST use fclose to close it.
+     */
 
-      /* TODO: MemoryHandle
-    if(MemoryHandle* handle = io->get_handle()) {
-      if(handle->is_rio()) {
-        if(!handle->rio_close() && CBOOL(allow_exception)) {
+    if(MemoryHandle* handle = io->get_handle(state)) {
+      if(handle->rio_p()) {
+        if(!handle->rio_close(state) && CBOOL(allow_exception)) {
           Exception::raise_errno_error(state, "failed to close RIOStream");
         }
         return cTrue;
       }
     }
-      */
+
     return cFalse;
   }
 }

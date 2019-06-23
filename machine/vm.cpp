@@ -420,31 +420,19 @@ namespace rubinius {
       pthread_kill(os_thread_, SIGVTALRM);
 #endif
       interrupt_lock_.unlock();
-      // Wakeup any locks hanging around with contention
-      // TODO: MemoryHeader
-      // memory()->release_contention(state);
       return true;
     } else if(!wait->nil_p()) {
-      // We shouldn't hold the VM lock and the IH lock at the same time,
-      // other threads can grab them and deadlock.
-      // TODO: MemoryHeader
-      // InflatedHeader* ih = wait->inflated_header(state);
-      // interrupt_lock_.unlock();
-      // ih->wakeup(state, wait);
+      interrupt_lock_.unlock();
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
-        // TODO: MemoryHeader
-        // memory()->release_contention(state);
         chan->send(state, cNil);
         return true;
       } else if(custom_wakeup_) {
         interrupt_lock_.unlock();
-        // TODO: MemoryHeader
-        // memory()->release_contention(state);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }

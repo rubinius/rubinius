@@ -25,8 +25,7 @@ namespace rubinius {
 
     MemoryHandle* handle = data->get_handle(state);
 
-    // TODO: MemoryHandle
-    RDataShadow* rdata = new RDataShadow(); // = reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
+    RDataShadow* rdata = new RDataShadow();
     handle->set_data(rdata, MemoryHandle::eRData);
 
     rdata->data = data_ptr;
@@ -52,8 +51,6 @@ namespace rubinius {
 
     MemoryHandle* handle = data->get_handle(state);
 
-    // TODO: MemoryHandle
-    // RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rtypeddata(0));
     RDataShadow* rdata = new RDataShadow();
     handle->set_data(rdata, MemoryHandle::eRData);
 
@@ -96,13 +93,7 @@ namespace rubinius {
   }
 
   void Data::finalize(STATE, Data* data) {
-    /* TODO: MemoryHandle
     MemoryHandle* handle = data->get_handle(state);
-
-    if(!handle->valid_p()) {
-      logger::error("finalizer: Data object has invalid handle");
-      return;
-    }
 
     if(handle->object() != data) {
       logger::error("finalizer: Data object handle does not reference the object");
@@ -119,9 +110,10 @@ namespace rubinius {
     if(void* data_ptr = data->data()) {
       Data::FreeFunctor f = data->free();
       if(f) {
-        // If the user specifies -1, then we call free. We check here rather
-        // than when Data_Make_Struct is called because the user is allowed to
-        // change dfree.
+        /* If the user specifies -1, then we call free. We check here rather
+         * than when Data_Make_Struct is called because the user is allowed to
+         * change dfree.
+         */
         if(reinterpret_cast<intptr_t>(f) == -1) {
           ::free(data_ptr);
         } else {
@@ -129,7 +121,6 @@ namespace rubinius {
         }
       }
     }
-    */
   }
 
   void Data::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
