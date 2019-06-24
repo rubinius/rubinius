@@ -31,10 +31,6 @@ namespace rubinius {
     // Not reached.
   }
 
-  RubyException::RubyException(Exception* exception, bool make_backtrace)
-      : MachineException(make_backtrace), exception(exception) {
-  }
-
   void RubyException::raise(Exception* exception, bool make_backtrace) {
     throw RubyException(exception, make_backtrace);
     // Not reached.

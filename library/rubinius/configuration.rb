@@ -127,6 +127,9 @@ Rubinius::ConfigurationVariables.define do |cv|
     s.vm_variable "filter", /^core\/.*$/,
       "Filter paths matching pattern when logging events"
 
+    s.vm_variable "exceptions", false,
+      "Log exceptions when they are raised"
+
     s.section "collector" do |c|
       c.vm_variable "set", false,
         "Log when garbage collector is activated"

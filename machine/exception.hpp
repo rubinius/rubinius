@@ -66,7 +66,9 @@ namespace rubinius {
     /**
      *  Use Assertion::raise to throw an Assertion exception.
      */
-    Assertion(const char* reason) : MachineException(reason) { }
+    Assertion(const char* reason)
+      : MachineException(reason)
+    { }
 
   public:   /* Interface */
 
@@ -85,7 +87,8 @@ namespace rubinius {
   public:   /* Ctors */
 
     TypeError(object_type type, Object* obj, const char* reason = NULL)
-      : MachineException(reason), type(type), object(obj) { }
+      : MachineException(reason), type(type), object(obj)
+    { }
 
   public:   /* Interface */
 
@@ -105,7 +108,9 @@ namespace rubinius {
 
   public:   /* Ctors */
 
-    RubyException(Exception* exception, bool make_backtrace);
+    RubyException(Exception* exception, bool make_backtrace)
+      : MachineException(make_backtrace), exception(exception)
+    { }
 
   public:   /* Interface */
 

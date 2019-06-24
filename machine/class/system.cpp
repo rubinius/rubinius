@@ -1337,6 +1337,12 @@ namespace rubinius {
 
   Object* System::vm_raise_exception(STATE, Exception* exc) {
     state->raise_exception(exc);
+
+    if(state->shared().config.log_exceptions.value) {
+      logger::write("exception: %s: %s",
+          exc->class_object(state)->module_name()->cpp_str(state).c_str(), exc->message_c_str(state));
+    }
+
     return NULL;
   }
 
