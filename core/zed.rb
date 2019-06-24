@@ -1411,7 +1411,27 @@ module Kernel
     # A separate case for nil, because people like to patch methods to
     # nil, so we can't call methods on it reliably.
     elsif nil.equal?(self)
-      msg << " on nil:NilClass."
+      msg << " on nil:NilClass"
+
+      if $rbx_show_nil_location
+        m = Rubinius::Mirror::Object.reflect self
+        code_id = m.nil_code_id
+
+        # TODO: implement in CodeDB
+        code = nil
+
+        ObjectSpace.each_object(Rubinius::CompiledCode).each do |c|
+          code = c if c.code_id.start_with? code_id
+        end
+
+
+        if code
+          ip = m.nil_ip
+          msg << " originating in '#{code.name}' at #{code.file}:#{code.line_from_ip(ip)}+#{ip}"
+        end
+      end
+
+      msg << "."
     elsif ImmediateValue === self
       msg << " on #{self}:#{object_class}."
     else
