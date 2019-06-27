@@ -99,13 +99,11 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
 
   void test_sub_a_bignum() {
     Fixnum* one  = as<Fixnum>(Fixnum::from(13));
-    Bignum* obj = Bignum::from(state, (native_int)FIXNUM_MAX + 28);
+    Bignum* obj = Bignum::from(state, (long long)FIXNUM_MAX + 28);
     Integer* res = one->sub(state, obj);
 
-    TS_ASSERT(kind_of<Fixnum>(res));
-    //TS_ASSERT(kind_of<Bignum>(res));
-    //TS_ASSERT_EQUALS(res->to_native(), 13 - (FIXNUM_MAX + 28));
-    //Error: Expected (res->to_native() == 13 - ((((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1) + 28)), found (-14 != -4611686018427387918)
+    TS_ASSERT(kind_of<Bignum>(res));
+    TS_ASSERT_EQUALS(res->to_native(), 13 - (FIXNUM_MAX + 28));
   }
 
   void test_sub_a_float() {

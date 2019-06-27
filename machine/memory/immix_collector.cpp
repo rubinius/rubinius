@@ -184,7 +184,7 @@ namespace memory {
       {
         if((*i)->reference_p()) {
           if((*i)->object_p()) {
-            Object* fwd = reinterpret_cast<Object*>(*i);
+            Object* fwd = NULL; 
             Object* obj = reinterpret_cast<Object*>(*i);
 
             if(obj->memory_handle_p()) {

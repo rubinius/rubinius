@@ -107,7 +107,7 @@ public:
   }
 
   void test_mod() {
-/*    Float* f = Float::create(state, 2.2);
+    Float* f = Float::create(state, 2.2);
     Float* a = f->mod(state, Float::create(state, 0.5));
     check_float(a, Float::create(state, 0.2));
 
@@ -126,7 +126,7 @@ public:
     f = Float::create(state, 2.2);
     a = f->mod(state, Fixnum::from(1));
     check_float(a, Float::create(state, 0.2));
-  */}
+  }
 
   void test_divmod() {
     Float*  f  = Float::create(state, 2.2);

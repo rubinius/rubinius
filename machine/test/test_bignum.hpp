@@ -158,22 +158,19 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Bignum>(sum));
     TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
 
-    Bignum* big = Bignum::from(state, FIXNUM_MAX+2);
+    Bignum* big = Bignum::from(state,(long long) FIXNUM_MAX+2);
     sum = big->add(state, Bignum::from(state, -1));
 
-    TS_ASSERT(kind_of<Fixnum>(sum));
-    //TS_ASSERT(kind_of<Bignum>(sum));
-    //TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
-    //Error: Expected ((((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)+1 == sum->to_native()), found (4611686018427387904 != 0)
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
   }
 
   void test_add_negative_range() {
-    Bignum* fix = Bignum::from(state, FIXNUM_MIN-1);
+    Bignum* fix = Bignum::from(state,(long long) FIXNUM_MIN-1);
     Integer* sum = fix->add(state, Bignum::from(state, 1));
 
     TS_ASSERT(kind_of<Fixnum>(sum));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) == sum->to_native()), found (-4611686018427387904 != 0)
+    TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
 
     fix = Bignum::from(state, FIXNUM_MIN+1);
     sum = fix->add(state, Bignum::from(state, -1));
@@ -181,13 +178,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(sum));
     TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
 
-    fix = Bignum::from(state, FIXNUM_MIN-2);
+    fix = Bignum::from(state,(long long) FIXNUM_MIN-2);
     sum = fix->add(state, Bignum::from(state, 1));
 
-    TS_ASSERT(kind_of<Fixnum>(sum));
-    //TS_ASSERT(kind_of<Bignum>(sum));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1))-1 == sum->to_native()), found (-4611686018427387905 != -1)
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
 
     fix = Bignum::from(state, FIXNUM_MIN);
     sum = fix->add(state, Bignum::from(state, -1));
@@ -205,12 +200,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(sum));
     TS_ASSERT_EQUALS(FIXNUM_MAX, sum->to_native());
 
-    fix = Bignum::from(state, FIXNUM_MIN-1);
+    fix = Bignum::from(state,(long long) FIXNUM_MIN-1);
     sum = fix->add(state, one);
 
     TS_ASSERT(kind_of<Fixnum>(sum));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) == sum->to_native()), found (-4611686018427387904 != 0)
+    TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
 
     Bignum* big = Bignum::from(state, FIXNUM_MAX);
     sum = big->add(state, one);
@@ -218,13 +212,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Bignum>(sum));
     TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
 
-    big = Bignum::from(state, FIXNUM_MIN-2);
+    big = Bignum::from(state,(long long) FIXNUM_MIN-2);
     sum = big->add(state, one);
 
-    TS_ASSERT(kind_of<Fixnum>(sum));
-    //TS_ASSERT(kind_of<Bignum>(sum));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1))-1 == sum->to_native()), found (-4611686018427387905 != -1)
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
   }
 
   void test_add_with_negative_fixnum() {
@@ -242,13 +234,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(sum));
     TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
 
-    Bignum* big = Bignum::from(state, FIXNUM_MAX+2);
+    Bignum* big = Bignum::from(state,(long long) FIXNUM_MAX+2);
     sum = big->add(state, neg_one);
 
-    TS_ASSERT(kind_of<Fixnum>(sum));
-    //TS_ASSERT(kind_of<Bignum>(sum));
-    //TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
-    //Error: Expected ((((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)+1 == sum->to_native()), found (4611686018427387904 != 0)
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
 
     big = Bignum::from(state, FIXNUM_MIN);
     sum = big->add(state, neg_one);
@@ -276,13 +266,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(diff));
     TS_ASSERT_EQUALS(FIXNUM_MAX, diff->to_native());
 
-    fix = Bignum::from(state, FIXNUM_MAX+2);
+    fix = Bignum::from(state,(long long) FIXNUM_MAX+2);
     diff = fix->sub(state, Bignum::from(state, 1));
 
-    TS_ASSERT(kind_of<Fixnum>(diff));
-    //TS_ASSERT(kind_of<Bignum>(diff));
-    //TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
-    //Error: Expected ((((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)+1 == diff->to_native()), found (4611686018427387904 != 0)
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
 
     Bignum* big = Bignum::from(state, FIXNUM_MAX);
     diff = big->sub(state, Bignum::from(state, -1));
@@ -298,12 +286,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(diff));
     TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
 
-    fix = Bignum::from(state, FIXNUM_MIN-1);
+    fix = Bignum::from(state,(long long) FIXNUM_MIN-1);
     diff = fix->sub(state, Bignum::from(state, -1));
 
     TS_ASSERT(kind_of<Fixnum>(diff));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) == diff->to_native()), found (-4611686018427387904 != 0)
+    TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
 
     fix = Bignum::from(state, FIXNUM_MIN);
     diff = fix->sub(state, Bignum::from(state, 1));
@@ -311,13 +298,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Bignum>(diff));
     TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
 
-    fix = Bignum::from(state, FIXNUM_MIN-2);
+    fix = Bignum::from(state,(long long) FIXNUM_MIN-2);
     diff = fix->sub(state, Bignum::from(state, -1));
 
-    TS_ASSERT(kind_of<Fixnum>(diff));
-    //TS_ASSERT(kind_of<Bignum>(diff));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1))-1 == diff->to_native()), found (-4611686018427387905 != -1)
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
   }
 
   void test_sub_with_positive_fixnum() {
@@ -335,13 +320,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(diff));
     TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
 
-    Bignum* big = Bignum::from(state, FIXNUM_MAX+2);
+    Bignum* big = Bignum::from(state,(long long) FIXNUM_MAX+2);
     diff = big->sub(state, one);
 
-    TS_ASSERT(kind_of<Fixnum>(diff));
-    //TS_ASSERT(kind_of<Bignum>(diff));
-    //TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
-    //Error: Expected ((((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)+1 == diff->to_native()), found (4611686018427387904 != 0)
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
 
     big = Bignum::from(state, FIXNUM_MIN);
     diff = big->sub(state, one);
@@ -359,12 +342,10 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(diff));
     TS_ASSERT_EQUALS(FIXNUM_MAX, diff->to_native());
 
-    fix = Bignum::from(state, FIXNUM_MIN-1);
+    fix = Bignum::from(state,(long long) FIXNUM_MIN-1);
     diff = fix->sub(state, neg_one);
 
-    TS_ASSERT(kind_of<Fixnum>(diff));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) == diff->to_native()), found (-4611686018427387904 != 0)
+    TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
 
     Bignum* big = Bignum::from(state, FIXNUM_MAX);
     diff = big->sub(state, neg_one);
@@ -372,13 +353,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Bignum>(diff));
     TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
 
-    big = Bignum::from(state, FIXNUM_MIN-2);
+    big = Bignum::from(state,(long long) FIXNUM_MIN-2);
     diff = big->sub(state, neg_one);
 
-    TS_ASSERT(kind_of<Fixnum>(diff));
-    //TS_ASSERT(kind_of<Bignum>(diff));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1))-1 == diff->to_native()), found (-4611686018427387905 != -1)
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
   }
 
   void test_sub_with_float() {
@@ -504,32 +483,27 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
 
     unsigned long big_int = FIXNUM_MAX + 1;
 
-    Bignum* big = Bignum::from(state, big_int * 2);
+    Bignum* big = Bignum::from(state,(unsigned long long) big_int * 2);
     Integer* b = big->div(state, two);
 
-    TS_ASSERT(kind_of<Fixnum>(b));
-    //TS_ASSERT(kind_of<Bignum>(b));
-    //TS_ASSERT_EQUALS(FIXNUM_MAX+1, b->to_native());
-    //Error: Expected ((((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)+1 == b->to_native()), found (4611686018427387904 != 0)
+    TS_ASSERT(kind_of<Bignum>(b));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, b->to_native());
 
     b = big->div(state, neg_two);
 
     TS_ASSERT(kind_of<Fixnum>(b));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN, b->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) == b->to_native()), found (-4611686018427387904 != 0)
+    TS_ASSERT_EQUALS(FIXNUM_MIN, b->to_native());
 
-    big = Bignum::from(state, FIXNUM_MAX * 2);
+    big = Bignum::from(state,(long long) FIXNUM_MAX * 2);
     b = big->div(state, two);
 
     TS_ASSERT(kind_of<Fixnum>(b));
-    //TS_ASSERT_EQUALS(FIXNUM_MAX, b->to_native());
-    //Error: Expected ((((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1) == b->to_native()), found (4611686018427387903 != 2305843009213693951)
+    TS_ASSERT_EQUALS(FIXNUM_MAX, b->to_native());
 
     b = big->div(state, neg_two);
 
     TS_ASSERT(kind_of<Fixnum>(b));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN + 1, b->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) + 1 == b->to_native()), found (-4611686018427387903 != -2305843009213693951)
+    TS_ASSERT_EQUALS(FIXNUM_MIN + 1, b->to_native());
 
     Bignum* zero = Bignum::from(state, (native_int)0);
     TS_ASSERT_THROWS_ASSERT(b1->div(state, zero), const RubyException &e,
@@ -609,30 +583,30 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_mod() {
-/*    Bignum* neg = Bignum::from(state, FIXNUM_MIN-2);
-    Integer* b = neg->mod(state, Bignum::from(state, FIXNUM_MAX+1));
+    Bignum* neg = Bignum::from(state,(long long) FIXNUM_MIN-2);
+    Integer* b = neg->mod(state, Bignum::from(state,(long long) FIXNUM_MAX+1));
 
     TS_ASSERT(kind_of<Fixnum>(b));
     TS_ASSERT_EQUALS(FIXNUM_MAX - 1, b->to_native());
 
-    Bignum* pos = Bignum::from(state, FIXNUM_MAX+2);
-    b = pos->mod(state, Bignum::from(state, FIXNUM_MIN-1));
+    Bignum* pos = Bignum::from(state,(long long) FIXNUM_MAX+2);
+    b = pos->mod(state, Bignum::from(state,(long long) FIXNUM_MIN-1));
 
     TS_ASSERT(kind_of<Fixnum>(b));
     TS_ASSERT_EQUALS(0, b->to_native());
 
-    neg = Bignum::from(state, FIXNUM_MIN-3);
-    Integer* big = neg->mod(state, Bignum::from(state, FIXNUM_MAX+2));
+    neg = Bignum::from(state,(long long) FIXNUM_MIN-3);
+    Integer* big = neg->mod(state, Bignum::from(state,(long long) FIXNUM_MAX+2));
 
     TS_ASSERT(kind_of<Fixnum>(big));
     TS_ASSERT_EQUALS(FIXNUM_MAX, big->to_native());
 
-    pos = Bignum::from(state, FIXNUM_MAX+3);
-    big = pos->mod(state, Bignum::from(state, FIXNUM_MIN-2));
+    pos = Bignum::from(state,(long long) FIXNUM_MAX+3);
+    big = pos->mod(state, Bignum::from(state,(long long) FIXNUM_MIN-2));
 
     TS_ASSERT(kind_of<Fixnum>(big));
     TS_ASSERT_EQUALS(0, big->to_native());
-*/  }
+  }
 
   void test_mod_with_fixnum() {
     Bignum* neg = Bignum::from(state, FIXNUM_MIN-1);
@@ -877,12 +851,10 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(1L<<FIXNUM_MAX_WIDTH, big->to_native());
 
     neg = Bignum::from(state, FIXNUM_MIN);
-    big = neg->bit_and(state, Bignum::from(state, FIXNUM_MIN-1));
+    big = neg->bit_and(state, Bignum::from(state,(long long) FIXNUM_MIN-1));
 
-    TS_ASSERT(kind_of<Fixnum>(big));
-    //TS_ASSERT(kind_of<Bignum>(big));
-    //TS_ASSERT_EQUALS(1L << FIXNUM_MIN_WIDTH, big->to_native());
-    //Error: Expected (1L << (((8 * sizeof(intptr_t)) - 0x1 - 1) + 1) == big->to_native()), found (-0 != -4611686018427387904)
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(1L << FIXNUM_MIN_WIDTH, big->to_native());
   }
 
   void test_bit_and_with_fixnum() {
@@ -946,12 +918,10 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(FIXNUM_MAX, a->to_native());
 
     Bignum* neg = Bignum::from(state, 1);
-    a = neg->bit_xor(state, Bignum::from(state, FIXNUM_MIN-1));
+    a = neg->bit_xor(state, Bignum::from(state,(long long) FIXNUM_MIN-1));
 
-    TS_ASSERT(kind_of<Fixnum>(a));
-    //TS_ASSERT(kind_of<Bignum>(a));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN - 2, a->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) - 2 == a->to_native()), found (-4611686018427387906 != -2)
+    TS_ASSERT(kind_of<Bignum>(a));
+    TS_ASSERT_EQUALS(FIXNUM_MIN - 2, a->to_native());
 
     pos = Bignum::from(state, (FIXNUM_MAX+1)|FIXNUM_MAX);
     Integer* b = pos->bit_xor(state, Bignum::from(state, FIXNUM_MAX));
@@ -973,13 +943,11 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(kind_of<Fixnum>(a));
     TS_ASSERT_EQUALS(FIXNUM_MAX, a->to_native());
 
-    Bignum* neg = Bignum::from(state, FIXNUM_MIN-1);
+    Bignum* neg = Bignum::from(state,(long long) FIXNUM_MIN-1);
     a = neg->bit_xor(state, Fixnum::from(1));
 
-    TS_ASSERT(kind_of<Fixnum>(a));
-    //TS_ASSERT(kind_of<Bignum>(a));
-    //TS_ASSERT_EQUALS(FIXNUM_MIN - 2, a->to_native());
-    //Error: Expected ((-1 - (((intptr_t)1 << ((8 * sizeof(intptr_t)) - 0x1 - 1)) - 1)) - 2 == a->to_native()), found (-4611686018427387906 != -2)
+    TS_ASSERT(kind_of<Bignum>(a));
+    TS_ASSERT_EQUALS(FIXNUM_MIN - 2, a->to_native());
   }
 
   void test_gt() {
