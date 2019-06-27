@@ -503,12 +503,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return type() == eUnsetWord;
     }
 
-    bool object_id_p() const {
+    bool object_id_entry_p() const {
       return type() == eObjectID;
     }
 
     uintptr_t get_object_id() const {
-      if(object_id_p()) {
+      if(object_id_entry_p()) {
         return reinterpret_cast<uintptr_t>(word >> value_shift());
       }
 
@@ -519,12 +519,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       word = (id << value_shift()) | eObjectID;
     }
 
-    bool handle_p() const {
+    bool handle_entry_p() const {
       return type() == eHandle;
     }
 
     MemoryHandle* get_handle() const {
-      if(handle_p()) {
+      if(handle_entry_p()) {
         return reinterpret_cast<MemoryHandle*>(word & ptr_mask());
       }
 
@@ -535,12 +535,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       word = reinterpret_cast<uintptr_t>(handle) | eHandle;
     }
 
-    bool referenced_p() const {
+    bool referenced_entry_p() const {
       return type() == eRefCount;
     }
 
     uintptr_t get_referenced() const {
-      if(referenced_p()) {
+      if(referenced_entry_p()) {
         return reinterpret_cast<uintptr_t>(word >> value_shift());
       }
 
@@ -709,7 +709,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_object_id(uintptr_t id) {
       for(int i = 0; i < size(); i++) {
-        if(words[i].object_id_p()) {
+        if(words[i].object_id_entry_p()) {
           words[i].set_object_id(id);
         }
       }
@@ -727,7 +727,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_referenced(uintptr_t refcount) {
       for(int i = 0; i < size(); i++) {
-        if(words[i].referenced_p()) {
+        if(words[i].referenced_entry_p()) {
           words[i].set_referenced(refcount);
         }
       }

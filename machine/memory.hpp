@@ -66,7 +66,6 @@ namespace rubinius {
    * performing garbage collection.
    *
    * It is currently split among 3 generations:
-   *   - BakerGC:     handles young objects
    *   - ImmixGC:     handles mature objects
    *   - MarkSweepGC: handles large objects
    *
@@ -86,13 +85,12 @@ namespace rubinius {
   private:
     utilities::thread::SpinLock allocation_lock_;
 
-    /// BakerGC used for the young generation
-    /* BakerGC* young_; */
-
     memory::Collector* collector_;
 
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
+
+    memory::MainHeap* main_heap_;
 
     /// The number of GC cycles that have run
     unsigned int cycle_;
@@ -144,6 +142,10 @@ namespace rubinius {
 
     memory::CodeManager& code_manager() {
       return code_manager_;
+    }
+
+    memory::MainHeap* main_heap() {
+      return main_heap_;
     }
 
     memory::Collector* collector() {
