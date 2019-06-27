@@ -535,12 +535,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       word = reinterpret_cast<uintptr_t>(handle) | eHandle;
     }
 
-    bool referenced_entry_p() const {
+    bool reference_entry_p() const {
       return type() == eRefCount;
     }
 
     uintptr_t get_referenced() const {
-      if(referenced_entry_p()) {
+      if(reference_entry_p()) {
         return reinterpret_cast<uintptr_t>(word >> value_shift());
       }
 
@@ -727,7 +727,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_referenced(uintptr_t refcount) {
       for(int i = 0; i < size(); i++) {
-        if(words[i].referenced_entry_p()) {
+        if(words[i].reference_entry_p()) {
           words[i].set_referenced(refcount);
         }
       }
