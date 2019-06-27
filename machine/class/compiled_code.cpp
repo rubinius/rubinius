@@ -22,7 +22,7 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 
-#include "memory/object_mark.hpp"
+#include "memory/collector.hpp"
 
 #include "diagnostics/profiler.hpp"
 #include "diagnostics/timing.hpp"
@@ -30,6 +30,7 @@
 #include "sodium/crypto_generichash.h"
 #include "sodium/utils.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <ostream>
 
@@ -45,8 +46,6 @@ namespace rubinius {
     if(MachineCode* machine_code = code->machine_code()) {
       machine_code->finalize(state);
     }
-
-    code->lock().std::mutex::~mutex();
   }
 
   CompiledCode* CompiledCode::create(STATE) {
@@ -57,7 +56,7 @@ namespace rubinius {
     CompiledCode* code =
       state->memory()->new_object<CompiledCode>(state, as<Class>(self));
 
-    state->memory()->native_finalizer(state, code,
+    state->collector()->native_finalizer(state, code,
         (memory::FinalizerFunction)&CompiledCode::finalize);
 
     return code;
@@ -132,7 +131,7 @@ namespace rubinius {
     timer::StopWatch<timer::microseconds> timer(
         state->vm()->metrics()->bytecode_internalizer_us);
 
-    std::lock_guard<std::mutex> guard(lock());
+    std::lock_guard<locks::spinlock_mutex> guard(lock());
 
     if(machine_code()) {
       return machine_code();
@@ -297,6 +296,29 @@ namespace rubinius {
     return code_id();
   }
 
+  uint32_t CompiledCode::nil_id(STATE) {
+    if(code_id()->nil_p()) {
+      stamp_id(state);
+    }
+
+    const uint8_t* bytes = code_id()->byte_address();
+
+    uint32_t nil_id = 0;
+
+    sodium_hex2bin(reinterpret_cast<uint8_t*>(&nil_id), sizeof(nil_id),
+        reinterpret_cast<const char*>(bytes), 2 * sizeof(uint32_t),
+        nullptr, nullptr, nullptr);
+
+#ifdef RBX_LITTLE_ENDIAN
+    char* begin = reinterpret_cast<char*>(&nil_id);
+    char* end = begin + sizeof(uint32_t);
+
+    std::reverse(begin, end);
+#endif
+
+    return nil_id;
+  }
+
   Object* CompiledCode::execute_script(STATE) {
     state->thread_state()->clear();
 
@@ -338,10 +360,10 @@ namespace rubinius {
     return cNil;
   }
 
-  void CompiledCode::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void CompiledCode::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    auto_mark(state, obj, f);
 
-    mark_inliners(obj, mark);
+    // mark_inliners(obj, mark);
 
     CompiledCode* code = as<CompiledCode>(obj);
     if(!code->machine_code()) return;
@@ -362,10 +384,12 @@ namespace rubinius {
     for(size_t i = 0; i < mcode->references_count(); i++) {
       if(size_t ip = mcode->references()[i]) {
         Object* ref = reinterpret_cast<Object*>(mcode->opcodes[ip]);
-        if(Object* updated_ref = mark.call(ref)) {
+        f(state, &ref);
+        /* TODO: GC
+        if(Object* updated_ref = f(state, &ref)) {
           mcode->opcodes[ip] = reinterpret_cast<intptr_t>(updated_ref);
-          mark.just_set(code, updated_ref);
         }
+        */
       }
     }
   }

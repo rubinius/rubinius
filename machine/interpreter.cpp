@@ -1,9 +1,9 @@
+#include "config.h"
+#include "instructions.hpp"
 #include "interpreter.hpp"
 #include "machine_code.hpp"
 
 #include "interpreter/addresses.hpp"
-
-#include "instructions.hpp"
 
 #include "class/call_site.hpp"
 #include "class/compiled_code.hpp"
@@ -99,8 +99,16 @@ namespace rubinius {
       case instructions::data_r_store_local_depth.id:
       case instructions::data_r_load_stack.id:
       case instructions::data_r_store_stack.id:
+      case instructions::data_r_load_0.id:
+      case instructions::data_r_load_1.id:
+      case instructions::data_r_load_false.id:
+      case instructions::data_r_load_true.id:
       case instructions::data_m_log.id:
         opcodes[ip + 1] += stack_size;
+        break;
+      case instructions::data_r_load_nil.id:
+        opcodes[ip + 1] += stack_size;
+        opcodes[ip + 2] = reinterpret_cast<opcode>(APPLY_NIL_TAG(machine_code->nil_id(), ip));
         break;
       case instructions::data_r_load_literal.id: {
         machine_code->references()[rindex++] = ip + 2;
@@ -154,6 +162,9 @@ namespace rubinius {
       switch(op) {
       case instructions::data_push_int.id:
         opcodes[ip + 1] = reinterpret_cast<opcode>(Fixnum::from(opcodes[ip + 1]));
+        break;
+      case instructions::data_push_tagged_nil.id:
+        opcodes[ip + 1] = reinterpret_cast<opcode>(APPLY_NIL_TAG(machine_code->nil_id(), ip));
         break;
       case instructions::data_create_block.id: {
         machine_code->references()[rindex++] = ip + 1;

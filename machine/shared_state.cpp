@@ -21,7 +21,7 @@
 #include "class/system.hpp"
 
 #include "diagnostics/codedb.hpp"
-#include "diagnostics/gc.hpp"
+#include "diagnostics/collector.hpp"
 #include "diagnostics/machine.hpp"
 #include "diagnostics/memory.hpp"
 #include "diagnostics/profiler.hpp"
@@ -42,7 +42,7 @@ namespace rubinius {
     , diagnostics_(nullptr)
     , boot_metrics_(new diagnostics::BootMetrics())
     , codedb_metrics_(new diagnostics::CodeDBMetrics())
-    , gc_metrics_(new diagnostics::GCMetrics())
+    , collector_metrics_(new diagnostics::CollectorMetrics())
     , memory_metrics_(new diagnostics::MemoryMetrics())
     , profiler_(new diagnostics::Profiler())
     , capi_constant_name_map_()
@@ -55,7 +55,7 @@ namespace rubinius {
     , check_gc_(false)
     , root_vm_(nullptr)
     , env_(env)
-    , codedb_lock_(true)
+    , codedb_lock_()
     , capi_ds_lock_()
     , capi_locks_lock_()
     , capi_constant_lock_()
@@ -248,7 +248,7 @@ namespace rubinius {
 
       boot_metrics_->start_reporting(state);
       codedb_metrics_->start_reporting(state);
-      gc_metrics_->start_reporting(state);
+      collector_metrics_->start_reporting(state);
       memory_metrics_->start_reporting(state);
       profiler_->start_reporting(state);
     }
@@ -274,7 +274,6 @@ namespace rubinius {
 
   void SharedState::after_fork_child(STATE) {
     // Reinit the locks for this object
-    codedb_lock_.init(true);
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
@@ -282,7 +281,6 @@ namespace rubinius {
     type_info_lock_.init();
     code_resource_lock_.init();
 
-    om->after_fork_child(state);
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
   }

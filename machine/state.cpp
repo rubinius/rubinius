@@ -12,7 +12,7 @@
 #include "class/fiber.hpp"
 
 namespace rubinius {
-  void State::raise_stack_error(STATE) {
+  void State::raise_stack_error() {
     Class* stack_error = globals().stack_error.get();
     Exception* exc = memory()->new_object<Exception>(this, stack_error);
     exc->locations(this, Location::from_call_stack(this));
@@ -25,5 +25,9 @@ namespace rubinius {
 
   Object* State::park_timed(STATE, struct timespec* ts) {
     return vm_->park_->park_timed(this, ts);
+  }
+
+  memory::Collector* State::collector() {
+    return memory()->collector();
   }
 }

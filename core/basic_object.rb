@@ -12,8 +12,8 @@ class BasicObject
   alias_method :==, :equal?
 
   def !
-    Rubinius::Type.object_equal(self, false) ||
-      Rubinius::Type.object_equal(self, nil) ? true : false
+    Rubinius.invoke_primitive(:object_equal, self, false) ||
+      Rubinius.invoke_primitive(:object_equal, self, nil) ? true : false
   end
 
   def !=(other)

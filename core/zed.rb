@@ -429,6 +429,19 @@ module Rubinius
     return obj
   end
 
+  def self.add_function(name, executable, lexical_scope)
+    scope = lexical_scope
+    while scope.parent
+      scope = scope.parent
+    end
+
+    unless scope.functions.kind_of? Rubinius::LookupTable
+      scope.functions = Rubinius::LookupTable.new
+    end
+
+    scope.functions[name] = executable
+  end
+
   def self.add_defn_method(name, executable, lexical_scope, vis)
     # TODO: puts serial on MethodTable entry
     unless Type.object_kind_of? executable, String
@@ -1398,7 +1411,27 @@ module Kernel
     # A separate case for nil, because people like to patch methods to
     # nil, so we can't call methods on it reliably.
     elsif nil.equal?(self)
-      msg << " on nil:NilClass."
+      msg << " on nil:NilClass"
+
+      if $rbx_show_nil_location
+        m = Rubinius::Mirror::Object.reflect self
+        code_id = m.nil_code_id
+
+        # TODO: implement in CodeDB
+        code = nil
+
+        ObjectSpace.each_object(Rubinius::CompiledCode).each do |c|
+          code = c if c.code_id.start_with? code_id
+        end
+
+
+        if code
+          ip = m.nil_ip
+          msg << " originating in '#{code.name}' at #{code.file}:#{code.line_from_ip(ip)}+#{ip}"
+        end
+      end
+
+      msg << "."
     elsif ImmediateValue === self
       msg << " on #{self}:#{object_class}."
     else

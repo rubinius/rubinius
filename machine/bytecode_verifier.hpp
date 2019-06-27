@@ -45,12 +45,14 @@ namespace rubinius {
 
     void verify_width(STATE, int ip);
     void verify_jump_location(STATE, int index, int ip);
+    void verify_past_location(STATE, int index, int ip);
+    void verify_future_location(STATE, int index, int ip);
     void verify_unwind(STATE, int ip, int width);
     void verify_register(STATE, int reg, int ip);
     void verify_local(STATE, int local, int ip);
     Fixnum* verify_opcode(STATE, int ip);
     Fixnum* verify_argument(STATE, int ip);
-    Object* verify_object(STATE, int index, int ip);
+    Object* verify_literal(STATE, int index, int ip);
     Symbol* verify_symbol(STATE, int index, int ip);
     Object* verify_symbol_or_nil(STATE, int index, int ip);
     Object* verify_code(STATE, int index, int ip);

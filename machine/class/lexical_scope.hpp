@@ -10,11 +10,13 @@
 namespace rubinius {
 
   class Module;
+  class LookupTable;
 
   class LexicalScope : public Object {
   public:
     const static object_type type = LexicalScopeType;
 
+    attr_accessor(functions, LookupTable);
     attr_accessor(module, Module);
 
     /* This is used like the ruby_class MRI variable. It lets us manipulate
@@ -27,6 +29,7 @@ namespace rubinius {
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
     static void initialize(STATE, LexicalScope* obj) {
+      obj->functions(nil<LookupTable>());
       obj->module(nil<Module>());
       obj->current_module(nil<Module>());
       obj->parent(nil<LexicalScope>());

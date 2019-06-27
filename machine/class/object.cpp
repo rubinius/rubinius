@@ -2,10 +2,12 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "dispatch.hpp"
+#include "logger.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "thread_phase.hpp"
 
 #include "class/array.hpp"
 #include "class/basic_object.hpp"
@@ -27,7 +29,8 @@
 #include "class/string.hpp"
 #include "class/tuple.hpp"
 
-#include "logger.hpp"
+#include "memory/collector.hpp"
+#include "memory/visitor.hpp"
 
 #include <sstream>
 
@@ -135,7 +138,7 @@ namespace rubinius {
   }
 
   Object* Object::equal(STATE, Object* other) {
-    return RBOOL(this == other);
+    return RBOOL(equal_p(other));
   }
 
   Object* Object::freeze(STATE) {
@@ -364,9 +367,15 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
-
 #ifdef IS_64BIT_ARCH
-      uintptr_t key = reinterpret_cast<uintptr_t>(this);
+      uintptr_t key;
+
+      if(nil_p()) {
+        key = reinterpret_cast<uintptr_t>(cNil);
+      } else {
+        key = reinterpret_cast<uintptr_t>(this);
+      }
+
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
       key = key ^ (key >> 24);
       key = (key + (key << 3)) + (key << 8); // key * 265
@@ -377,7 +386,14 @@ namespace rubinius {
       return key & FIXNUM_MAX;
 #else
       // See http://burtleburtle.net/bob/hash/integer.html
-      uint32_t a = (uint32_t)this;
+      uint32_t a;
+
+      if(nil_p()) {
+        a = reinterpret_cast<uint32_t>(cNil);
+      } else {
+        a = reinterpret_cast<uint32_t>(this);
+      }
+
       a = (a+0x7ed55d16) + (a<<12);
       a = (a^0xc761c23c) ^ (a>>19);
       a = (a+0x165667b1) + (a<<5);
@@ -412,6 +428,8 @@ namespace rubinius {
 
       // Shift it so it doesn't collide with object_id for immediates.
       return Integer::from(state, id << TAG_REF_WIDTH);
+    } else if(nil_p()) {
+      return Integer::from(state, reinterpret_cast<uintptr_t>(cNil));
     } else {
       // All non-references have the pointer directly as the object id
       return Integer::from(state, reinterpret_cast<uintptr_t>(this));
@@ -640,7 +658,7 @@ namespace rubinius {
 
         Object** baa = reinterpret_cast<Object**>(pointer_to_body());
         baa[which->to_native()] = val;
-        state->memory()->write_barrier(this, val);
+        write_barrier(state, val);
         return val;
       }
     default:
@@ -782,12 +800,14 @@ namespace rubinius {
   }
 
   Object* Object::show(STATE, int level) {
+    /* TODO: GC
     if(reference_p() && !state->memory()->valid_object_p(this)) {
       std::ostringstream msg;
       msg << "bad object in show(): " << this;
 
       rubinius::warn(msg.str().c_str());
     }
+    */
 
     type_info(state)->show(state, this, level);
 
@@ -870,9 +890,37 @@ namespace rubinius {
     }
   }
 
+  Object* Object::become(STATE, Object* other) {
+    memory::Collector::Inhibit inhibitor(state);
+    StopPhase locked(state);
+
+    memory::MemoryVisitor visitor(state);
+
+    visitor.visit_heap(state, [&](STATE, Object** obj) mutable {
+        if(*obj == this) {
+          *obj = other;
+        } else if(*obj == other) {
+          *obj = this;
+        }
+      });
+
+    return other;
+  }
+
+  Object* Object::nil_code_id(STATE) {
+    if(!nil_p()) return cNil;
+
+    return Fixnum::from(NIL_TAG_ID(this));
+  }
+
+  Object* Object::nil_ip(STATE) {
+    if(!nil_p()) return cNil;
+
+    return Fixnum::from(NIL_TAG_IP(this));
+  }
+
   void Object::setup_allocation_site(STATE) {
     this->set_ivar(state, G(sym_allocation_site),
                    Location::create(state, state->vm()->call_frame()));
   }
-
 }

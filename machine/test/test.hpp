@@ -178,7 +178,6 @@ public:
     cf->top_scope_ = nullptr;
     cf->scope = scope;
     cf->arguments = nullptr;
-    cf->return_value = nullptr;
     cf->unwind = nullptr;
   }
 

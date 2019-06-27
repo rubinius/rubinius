@@ -765,6 +765,50 @@ namespace rubinius {
       "a_greater_equal", 180, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::a_greater_equal
     };
+    const InstructionData constexpr data_goto_past = {
+      "goto_past", 181, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::goto_past
+    };
+    const InstructionData constexpr data_goto_future = {
+      "goto_future", 182, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::goto_future
+    };
+    const InstructionData constexpr data_r_load_0 = {
+      "r_load_0", 183, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_0
+    };
+    const InstructionData constexpr data_r_load_1 = {
+      "r_load_1", 184, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_1
+    };
+    const InstructionData constexpr data_r_load_nil {
+      "r_load_nil", 185, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_nil
+    };
+    const InstructionData constexpr data_r_load_false {
+      "r_load_false", 186, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_false
+    };
+    const InstructionData constexpr data_r_load_true {
+      "r_load_true", 187, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_true
+    };
+    const InstructionData constexpr data_call_send = {
+      "call_send", 188, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::call_send
+    };
+    const InstructionData constexpr data_call = {
+      "call", 189, 3, 1, 0, 1, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::call
+    };
+    const InstructionData constexpr data_call_0 = {
+      "call_0", 190, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::call_0
+    };
+    const InstructionData constexpr data_push_tagged_nil = {
+      "push_tagged_nil", 191, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::push_tagged_nil
+    };
   }
 
   struct Instructions {

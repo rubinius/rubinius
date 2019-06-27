@@ -63,6 +63,7 @@ namespace rubinius {
     NORETURN(static void raise_io_error(STATE, const char* reason));
     NORETURN(static void raise_range_error(STATE, const char* reason));
     NORETURN(static void raise_runtime_error(STATE, const char* reason));
+    NORETURN(static void raise_concurrent_update_error(STATE, const char* reason));
 
     NORETURN(static void raise_assertion_error(STATE, const char* reason = NULL));
     NORETURN(static void raise_object_bounds_exceeded_error(STATE, Object* obj, int index));
@@ -131,6 +132,7 @@ namespace rubinius {
     static Class* get_fiber_error(STATE);
     static Class* get_errno_error(STATE, Fixnum* ern);
     static Class* get_runtime_error(STATE);
+    static Class* get_concurrent_update_error(STATE);
     static Class* get_encoding_compatibility_error(STATE);
     static Class* get_not_implemented_error(STATE);
     static Class* get_no_method_error(STATE);

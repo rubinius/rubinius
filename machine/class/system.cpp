@@ -28,7 +28,6 @@
 #include "config_parser.hpp"
 #include "dtrace/dtrace.h"
 #include "environment.hpp"
-#include "memory/walker.hpp"
 #include "helpers.hpp"
 #include "lookup_data.hpp"
 #include "memory.hpp"
@@ -38,6 +37,9 @@
 #include "signal.hpp"
 #include "thread_phase.hpp"
 #include "windows_compat.h"
+
+#include "memory/collector.hpp"
+#include "memory/visitor.hpp"
 
 #include "diagnostics/machine.hpp"
 
@@ -368,10 +370,15 @@ namespace rubinius {
   static int fork_exec(STATE, int errors_fd) {
     StopPhase locked(state);
 
+    // Hold the logger lock to avoid racing the logger
+    logger::lock();
+
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
     int pid = ::fork();
+
+    logger::unlock();
 
     if(pid == 0) {
       // We're in the child...
@@ -855,7 +862,12 @@ namespace rubinius {
 
       state->shared().machine_threads()->before_fork(state);
 
+      // Hold the logger lock to avoid racing the logger
+      logger::lock();
+
       pid = ::fork();
+
+      logger::unlock();
 
       if(pid > 0) {
         // We're in the parent...
@@ -902,7 +914,7 @@ namespace rubinius {
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
-    if(CBOOL(force) || state->shared().config.gc_honor_start) {
+    if(CBOOL(force) || state->shared().config.collector_honor_start) {
       state->memory()->collector()->collect_requested(state,
           "collector: request to collect from managed code");
     }
@@ -1270,7 +1282,7 @@ namespace rubinius {
   }
 
   Object* System::vm_object_equal(STATE, Object* a, Object* b) {
-    return RBOOL(a == b);
+    return RBOOL(a->equal_p(b));
   }
 
   Object* System::vm_object_kind_of(STATE, Object* obj, Module* mod) {
@@ -1297,7 +1309,7 @@ namespace rubinius {
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
     int total = 0;
 
-    /*
+    /* TODO: GC: use MemoryVisitor
     memory::ObjectWalker walker(state->memory());
     memory::GCData gc_data(state->vm());
 
@@ -1325,6 +1337,12 @@ namespace rubinius {
 
   Object* System::vm_raise_exception(STATE, Exception* exc) {
     state->raise_exception(exc);
+
+    if(state->shared().config.log_exceptions.value) {
+      logger::write("exception: %s: %s",
+          exc->class_object(state)->module_name()->cpp_str(state).c_str(), exc->message_c_str(state));
+    }
+
     return NULL;
   }
 
@@ -1363,7 +1381,7 @@ namespace rubinius {
     Object* ret = dispatch.send(state, lookup, args);
 
     if(!ret && state->vm()->thread_state()->raise_reason() == cCatchThrow) {
-      if(state->vm()->thread_state()->throw_dest() == dest) {
+      if(state->vm()->thread_state()->throw_dest()->equal_p(dest)) {
         Object* val = state->vm()->thread_state()->raise_value();
         state->vm()->thread_state()->clear_return();
         return val;
@@ -1503,7 +1521,7 @@ retry:
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
     if(!obj->reference_p()) return cFalse;
-    state->memory()->managed_finalizer(state, obj, fin);
+    state->collector()->managed_finalizer(state, obj, fin);
     return cTrue;
   }
 

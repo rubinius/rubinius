@@ -400,6 +400,10 @@ module Rubinius
         end
       end
 
+      options.on "--show-nil-location", "Show where nil value originated when NoMethodError on nil is raised" do
+        $rbx_show_nil_location = true
+      end
+
       options.on "--deprecated", "Display any deprecations" do
         @deprecations = true
       end

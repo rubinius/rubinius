@@ -419,15 +419,12 @@ namespace rubinius {
       return NULL;
     }
 
-    CallFrame* previous_frame = NULL;
     CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 
     call_frame->lexical_scope_ = invocation.lexical_scope;
 
-    call_frame->previous = nullptr;
-    call_frame->return_value = nullptr;
     call_frame->unwind = nullptr;
     call_frame->arguments = &args;
     call_frame->dispatch_data = env;
@@ -437,7 +434,7 @@ namespace rubinius {
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
-    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+    if(!state->vm()->push_call_frame(state, call_frame)) {
       return NULL;
     }
 
@@ -445,7 +442,7 @@ namespace rubinius {
 
     value = (*mcode->run)(state, mcode);
 
-    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+    if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
       return NULL;
     }
 

@@ -28,7 +28,6 @@ namespace rubinius {
     std::atomic<uint32_t> halt_;
     std::atomic<uint32_t> lock_;
 
-
     std::mutex threads_mutex_;
     std::mutex halting_mutex_;
     std::mutex waiting_mutex_;
@@ -98,7 +97,7 @@ namespace rubinius {
 
     void set_managed(STATE, VM* vm);
 
-    void each_thread(STATE, std::function<void (STATE, VM*)> process);
+    void each_thread(std::function<void (VM*)> process);
 
     bool valid_thread_p(STATE, unsigned int thread_id);
 
@@ -135,23 +134,18 @@ namespace rubinius {
     bool try_lock(VM* vm);
     bool try_lock_wait(STATE, VM* vm);
 
-    void check_stop(STATE, VM* vm, std::function<void ()> process) {
+    bool can_stop_p(STATE, VM* vm);
+
+    bool check_stop(STATE, VM* vm) {
+      if(!can_stop_p(state, vm)) return false;
+
       while(stop_p()) {
-        if(try_lock(vm)) {
-          wait_for_all(state, vm);
+        yield(state, vm);
 
-#ifdef RBX_GC_STACK_CHECK
-        check_stack(state, vm);
-#endif
-
-          process();
-
-          unset_stop();
-          unlock(state, vm);
-        } else {
-          yield(state, vm);
-        }
+        return true;
       }
+
+      return false;
     }
 
     void stop(STATE, VM* vm) {

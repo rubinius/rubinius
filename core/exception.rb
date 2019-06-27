@@ -517,6 +517,12 @@ end
 ##
 # Base class for various exceptions raised in the VM.
 
+class Rubinius::MachineException < Exception
+end
+
+class Rubinius::ConcurrentUpdateError < Rubinius::MachineException
+end
+
 class Rubinius::VMException < Exception
 end
 

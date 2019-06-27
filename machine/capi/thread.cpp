@@ -146,7 +146,7 @@ extern "C" {
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
       state->vm()->interrupt_with_signal();
     } else {
-      state->vm()->wait_on_custom_function(ubf, ubf_data);
+      state->vm()->wait_on_custom_function(env->state(), ubf, ubf_data);
     }
     LEAVE_CAPI(env->state());
     {
@@ -175,7 +175,7 @@ extern "C" {
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
       state->vm()->interrupt_with_signal();
     } else {
-      state->vm()->wait_on_custom_function(ubf, ubf_data);
+      state->vm()->wait_on_custom_function(env->state(), ubf, ubf_data);
     }
     LEAVE_CAPI(env->state());
     {
@@ -207,7 +207,7 @@ extern "C" {
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
       state->vm()->interrupt_with_signal();
     } else {
-      state->vm()->wait_on_custom_function(ubf, ubf_data);
+      state->vm()->wait_on_custom_function(env->state(), ubf, ubf_data);
     }
     LEAVE_CAPI(env->state());
     {
@@ -303,7 +303,7 @@ extern "C" {
     State* state = env->state();
 
     NativeMethod* nm = NativeMethod::create(state,
-                        String::create(state, file), G(thread),
+                        String::create_pinned(state, file), G(thread),
                         state->symbol(name), (void*)func,
                         Fixnum::from(1), 0);
 

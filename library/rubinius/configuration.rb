@@ -54,7 +54,7 @@ Rubinius::ConfigurationVariables.define do |cv|
         "Emit Console diagnostics"
     end
 
-    s.section "gc" do |g|
+    s.section "collector" do |g|
       g.vm_variable "enabled", false,
         "Emit Garbage Collector diagnostics"
     end
@@ -86,11 +86,11 @@ Rubinius::ConfigurationVariables.define do |cv|
     end
   end
 
-  cv.section "gc" do |s|
+  cv.section "collector" do |s|
     s.vm_variable "honor_start", false,
       "Control whether or not GC.start is honored when called"
 
-    s.vm_variable "marksweep_threshold", (25 * 1024 * 1024),
+    s.vm_variable "third_region_threshold", (25 * 1024 * 1024),
       "The number of bytes allocated before the marksweep GC region is collected"
 
     s.vm_variable "malloc_threshold", (25 * 1024 * 1024),
@@ -127,10 +127,13 @@ Rubinius::ConfigurationVariables.define do |cv|
     s.vm_variable "filter", /^core\/.*$/,
       "Filter paths matching pattern when logging events"
 
-    s.section "gc" do |gc|
-      gc.vm_variable "set", false,
+    s.vm_variable "exceptions", false,
+      "Log exceptions when they are raised"
+
+    s.section "collector" do |c|
+      c.vm_variable "set", false,
         "Log when garbage collector is activated"
-      gc.vm_variable "run", false,
+      c.vm_variable "run", false,
         "Log when garbage collector runs"
     end
 
@@ -182,6 +185,16 @@ Rubinius::ConfigurationVariables.define do |cv|
     s.section "unwind_site" do |u|
       u.vm_variable "limit", 3,
         "Maximum number of caches at unwind sites"
+    end
+
+    s.section "concurrent" do |c|
+      c.section "update" do |u|
+        u.vm_variable "log", false,
+          "Log when T2 updates an object created by T1"
+
+        u.vm_variable "raise", false,
+          "Raise Rubinius::ConcurrentUpdateError when T2 updates an object created by T1"
+      end
     end
   end
 

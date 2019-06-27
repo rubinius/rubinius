@@ -17,10 +17,6 @@ namespace rubinius {
     GO(rtuple).set(Class::bootstrap_class(state, G(tuple), RTupleType));
   }
 
-  void Tuple::write_barrier(STATE, Tuple* tuple, Object* val) {
-    state->memory()->write_barrier(tuple, val);
-  }
-
   Tuple* Tuple::bounds_exceeded_error(STATE, const char* method, int index) {
     std::ostringstream msg;
 
@@ -52,7 +48,7 @@ namespace rubinius {
 
     field[idx] = val;
 
-    state->memory()->write_barrier(this, val);
+    write_barrier(state, val);
 
     return val;
   }
@@ -161,7 +157,7 @@ namespace rubinius {
         Object *obj = other->field[src];
         // but this is necessary to keep the GC happy
         field[dst] = obj;
-        state->memory()->write_barrier(this, obj);
+        write_barrier(state, obj);
       }
     }
 
@@ -172,12 +168,12 @@ namespace rubinius {
     native_int rend = lend + len;
     native_int i = lend;
     while(i < rend) {
-      if(this->at(i) == obj) {
+      if(at(i)->equal_p(obj)) {
         native_int j = i;
         ++i;
         while(i < rend) {
           Object *val = field[i];
-          if(val != obj) {
+          if(!val->equal_p(obj)) {
             // no need to set write_barrier since it's already
             // referenced to this object
             field[j] = val;
@@ -277,7 +273,7 @@ namespace rubinius {
       tuple->field[i] = val;
     }
 
-    state->memory()->write_barrier(tuple, val);
+    tuple->write_barrier(state, val);
 
     return tuple;
   }
@@ -298,13 +294,19 @@ namespace rubinius {
     return force_as<Tuple>(obj)->full_size();
   }
 
-  void Tuple::Info::mark(Object* obj, memory::ObjectMark& mark) {
+  void Tuple::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     Tuple* tup = as<Tuple>(obj);
 
     for(native_int i = 0; i < tup->num_fields(); i++) {
-      if(Object* tmp = mark.call(tup->field[i])) {
-        mark.set(obj, &tup->field[i], tmp);
-      }
+      f(state, &tup->field[i]);
+    }
+  }
+
+  void Tuple::Info::before_visit(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    Tuple* tup = as<Tuple>(obj);
+
+    for(native_int i = 0; i < tup->num_fields(); i++) {
+      f(state, &tup->field[i]);
     }
   }
 
@@ -382,12 +384,10 @@ namespace rubinius {
       Exception::raise_argument_error(state, "negative RTuple size");
     }
 
-    RTuple* tup = state->memory()->new_fields<RTuple>(state, G(rtuple), fields);
-    RTuple::initialize(state, tup);
+    RTuple* rtup = state->memory()->new_fields_pinned<RTuple>(state, G(rtuple), fields);
+    RTuple::initialize(state, rtup);
 
-    tup->set_pinned();
-
-    return tup;
+    return rtup;
   }
 
   RTuple* RTuple::allocate(STATE, Object* self, Fixnum* fields) {
@@ -422,21 +422,32 @@ namespace rubinius {
 
     reinterpret_cast<VALUE*>(field)[index] = MemoryHandle::value(val);
 
-    state->memory()->write_barrier(this, val);
+    write_barrier(state, val);
 
     return val;
   }
 
-  void RTuple::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    Tuple* tup = as<Tuple>(obj);
+  void RTuple::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    RTuple* rtup = as<RTuple>(obj);
 
-    for(native_int i = 0; i < tup->num_fields(); i++) {
-      if(Object* tmp = mark.call(
-            MemoryHandle::object(reinterpret_cast<VALUE>(tup->field[i]))))
-      {
-        mark.set_value(obj, &tup->field[i], tmp);
-      }
+    VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);
+
+    for(native_int i = 0; i < rtup->num_fields(); i++) {
+      Object* slot = MemoryHandle::object(ptr[i]);
+      f(state, &slot);
+      ptr[i] = MemoryHandle::value(slot);
     }
   }
 
+  void RTuple::Info::before_visit(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    RTuple* rtup = as<RTuple>(obj);
+
+    VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);
+
+    for(native_int i = 0; i < rtup->num_fields(); i++) {
+      Object* slot = MemoryHandle::object(ptr[i]);
+      f(state, &slot);
+      ptr[i] = MemoryHandle::value(slot);
+    }
+  }
 }

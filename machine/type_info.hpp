@@ -2,6 +2,7 @@
 #define RBX_VM_TYPE_INFO_HPP
 
 #include <stdlib.h>
+#include <functional>
 #include <map>
 #include <stdexcept>
 #include <vector>
@@ -18,10 +19,6 @@ namespace rubinius {
   class Memory;
   class DataHeader;
   class ObjectHeader;
-
-  namespace memory {
-    class ObjectMark;
-  }
 
   /**
    *  Static type information for the VM.
@@ -44,9 +41,6 @@ namespace rubinius {
     typedef std::vector<executor> AccessorPrimitives;
     typedef std::vector<uintptr_t> SlotLocations;
 
-  private: /* Instance vars */
-    VM*         state_;
-
   public:
 
     size_t      instance_size;
@@ -64,8 +58,14 @@ namespace rubinius {
     static void init(Memory* om);
     static void auto_init(Memory* om);
     static void auto_learn_fields(STATE);
-    virtual void auto_mark(Object* obj, memory::ObjectMark& mark) = 0;
-    virtual void mark_weakref(Object* obj, memory::ObjectMark& mark) {}
+    virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) = 0;
+    virtual void update_weakref(STATE, Object* obj) {}
+    virtual void before_visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {}
+    virtual void after_visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {}
+    virtual void visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {
+      before_visit(state, o, f);
+      after_visit(state, o, f);
+    }
 
   public:   /* Ctors */
 
@@ -83,13 +83,7 @@ namespace rubinius {
 
   public:   /* Interface */
 
-    void set_state(STATE);
-
-    VM* state() {
-      return state_;
-    }
-
-    virtual void mark(Object* obj, memory::ObjectMark& mark);
+    virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
 
     virtual void set_field(STATE, Object* target, size_t index, Object* val);
     virtual Object* get_field(STATE, Object* target, size_t index);
@@ -171,9 +165,12 @@ namespace rubinius {
 
 #define BASIC_TYPEINFO(super) \
   Info(object_type type) : super(type) { } \
-  virtual void auto_mark(Object* obj, memory::ObjectMark& mark); \
+  virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
   virtual Object* get_field(STATE, Object* target, size_t index); \
-  virtual void populate_slot_locations();
+  virtual void populate_slot_locations(); \
+  virtual void before_visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {} \
+  virtual void after_visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {} \
+  virtual void visit(STATE, Object* o, std::function<void (STATE, Object**)> f); \
 
 #endif

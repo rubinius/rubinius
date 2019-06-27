@@ -106,11 +106,9 @@ namespace rubinius {
         call_site->name(state, current_name);
       }
 
-      call_frame->return_value = call_site->execute(state, new_args);
+      Object* value = call_site->execute(state, new_args);
 
-      state->vm()->checkpoint(state);
-
-      CHECK_AND_PUSH(call_frame->return_value);
+      CHECK_AND_PUSH(value);
     }
   }
 }

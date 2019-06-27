@@ -328,7 +328,7 @@ namespace rubinius {
     native_int cnt = total()->to_native();
 
     for(native_int i = 0; i < cnt; i++) {
-      if(get(state, i) == val) return true;
+      if(get(state, i)->equal_p(val)) return true;
     }
 
     return false;

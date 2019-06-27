@@ -9,6 +9,8 @@
 #include "class/fixnum.hpp"
 #include "class/string.hpp"
 
+#include "memory/collector.hpp"
+
 namespace rubinius {
   rubinius::locks::spinlock_mutex Dir::readdir_lock_;
 
@@ -20,7 +22,7 @@ namespace rubinius {
     Dir* d = Dir::allocate(state, G(dir));
     d->os(0);
 
-    state->memory()->native_finalizer(state, d,
+    state->collector()->native_finalizer(state, d,
         (memory::FinalizerFunction)&Dir::finalize);
 
     return d;

@@ -48,6 +48,9 @@ module Rubinius
     # Source code of this scope.
     attr_accessor :script
 
+    # The function map for this scope references its top-most parent's map
+    attr_accessor :functions
+
     # Module or class this lexical scope enclosed into.
     attr_reader   :module
 

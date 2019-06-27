@@ -84,7 +84,7 @@ namespace rubinius {
     ListNode* n = first();
     first(state, first()->next());
 
-    if(last() == n) {
+    if(last()->equal_p(n)) {
       last(state, nil<ListNode>());
     }
 
@@ -106,7 +106,7 @@ namespace rubinius {
     while(!node->nil_p()) {
       nxt = node->next();
 
-      if(node->object() == obj) {
+      if(node->object()->equal_p(obj)) {
         deleted++;
         if(lst->nil_p()) {
           first(state, nxt);
@@ -114,7 +114,7 @@ namespace rubinius {
           lst->next(state, nxt);
         }
 
-        if(last() == node) {
+        if(last()->equal_p(node)) {
           last(state, lst);
         }
 

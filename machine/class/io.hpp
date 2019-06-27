@@ -50,7 +50,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      void auto_mark(Object* obj, memory::ObjectMark& mark) { }
+      void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) { }
       void set_field(STATE, Object* target, size_t index, Object* val) { }
       Object* get_field(STATE, Object* target, size_t index) { return cNil; }
       void populate_slot_locations() { }
@@ -89,7 +89,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      void auto_mark(Object* obj, memory::ObjectMark& mark) { }
+      void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) { }
       void set_field(STATE, Object* target, size_t index, Object* val) { }
       Object* get_field(STATE, Object* target, size_t index) { return cNil; }
       void populate_slot_locations() { }
@@ -108,7 +108,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      void auto_mark(Object* obj, memory::ObjectMark& mark) { }
+      void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) { }
       void set_field(STATE, Object* target, size_t index, Object* val) { }
       Object* get_field(STATE, Object* target, size_t index) { return cNil; }
       void populate_slot_locations() { }

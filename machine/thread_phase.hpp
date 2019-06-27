@@ -7,6 +7,8 @@
 #include "thread_nexus.hpp"
 #include "memory.hpp"
 
+#include "memory/collector.hpp"
+
 namespace rubinius {
   /**
    * Instantiation of an instance of this class causes Ruby execution on all
@@ -20,9 +22,10 @@ namespace rubinius {
     StopPhase(STATE)
       : state_(state)
     {
-      // TODO: GC make thread_nexus aware of this
       while(true) {
-        if(!state->shared().memory()->collector()->collect_requested_p()) {
+        if(state->shared().memory()->collector()->collect_requested_p()) {
+          state->vm()->thread_nexus()->yield(state, state->vm());
+        } else {
           state->vm()->thread_nexus()->stop(state, state->vm());
           break;
         }

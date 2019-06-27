@@ -5,7 +5,6 @@
 #include "memory/header.hpp"
 
 #include "type_info.hpp"
-#include "object_position.hpp"
 #include "configuration.hpp"
 #include "spinlock.hpp"
 
@@ -14,9 +13,7 @@
 #include "class/object.hpp"
 
 #include "memory/code_manager.hpp"
-#include "memory/collector.hpp"
-#include "memory/write_barrier.hpp"
-#include "memory/immix_collector.hpp"
+#include "memory/main_heap.hpp"
 
 #include "diagnostics.hpp"
 
@@ -26,7 +23,7 @@
 #include "state.hpp"
 #include "shared_state.hpp"
 
-#include <unordered_set>
+#include <functional>
 
 class TestMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
@@ -41,11 +38,26 @@ namespace rubinius {
 
   namespace memory {
     class Collector;
-    class GCData;
-    class ImmixGC;
-    class ImmixMarker;
-    class MarkSweepGC;
-    class Slab;
+    class MainHeap;
+
+    class CAPITracer {
+      State* state_;
+      std::function<void (STATE, Object**)> tracer_;
+
+    public:
+      CAPITracer(STATE, std::function<void (STATE, Object**)> f)
+        : state_(state)
+        , tracer_(f)
+      {
+      }
+      virtual ~CAPITracer() { }
+
+      Object* call(Object* obj) {
+        Object* object = obj;
+        tracer_(state_, &object);
+        return object == obj ? nullptr : object;
+      }
+    };
   }
 
   /**
@@ -70,21 +82,14 @@ namespace rubinius {
    *   mautre generations independently.
    */
 
-  class Memory : public memory::WriteBarrier {
+  class Memory {
   private:
     utilities::thread::SpinLock allocation_lock_;
-    utilities::thread::SpinLock inflation_lock_;
 
     /// BakerGC used for the young generation
     /* BakerGC* young_; */
 
     memory::Collector* collector_;
-
-    /// MarkSweepGC used for the large object store
-    memory::MarkSweepGC* mark_sweep_;
-
-    /// ImmixGC used for the mature generation
-    memory::ImmixGC* immix_;
 
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
@@ -95,18 +100,7 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
-    /// Size of slabs to be allocated to threads for lockless thread-local
-    /// allocations.
-    size_t slab_size_;
-
-    /// Mutex used to manage lock contention
-    utilities::thread::Mutex contention_lock_;
-
-    /// Condition variable used to manage lock contention
-    utilities::thread::Condition contention_var_;
-
-    locks::spinlock_mutex references_lock_;
-    std::unordered_set<MemoryHeader*> references_set_;
+    unsigned int visit_mark_;
 
     SharedState& shared_;
 
@@ -144,24 +138,16 @@ namespace rubinius {
       cycle_++;
     }
 
+    utilities::thread::SpinLock& allocation_lock() {
+      return allocation_lock_;
+    }
+
     memory::CodeManager& code_manager() {
       return code_manager_;
     }
 
-    memory::ImmixGC* immix() {
-      return immix_;
-    }
-
-    memory::MarkSweepGC* mark_sweep() {
-      return mark_sweep_;
-    }
-
     memory::Collector* collector() {
       return collector_;
-    }
-
-    std::unordered_set<MemoryHeader*>& references() {
-      return references_set_;
     }
 
     unsigned int cycle() {
@@ -180,44 +166,21 @@ namespace rubinius {
       mark_ ^= 0x3;
     }
 
-    void track_reference(MemoryHeader* object) {
-      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
-
-      references_set_.insert(object);
+    unsigned int visit_mark() const {
+      return visit_mark_;
     }
 
-    void untrack_reference(MemoryHeader* object ) {
-      std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
-
-      references_set_.erase(object);
+    void rotate_visit_mark() {
+      visit_mark_ ^= 0x3;
     }
-
-    ObjectArray* weak_refs_set();
 
   public:
     Memory(STATE);
     ~Memory();
 
-    void after_fork_child(STATE);
-
-    inline void write_barrier(ObjectHeader* target, Fixnum* val) {
-      /* No-op */
-    }
-
-    inline void write_barrier(ObjectHeader* target, Symbol* val) {
-      /* No-op */
-    }
-
-    inline void write_barrier(ObjectHeader* target, ObjectHeader* val) {
-      memory::WriteBarrier::write_barrier(target, val, mark_);
-    }
-
-    inline void write_barrier(ObjectHeader* target, Class* val) {
-      memory::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
-    }
-
     // Object must be created in Immix or large object space.
     Object* new_object(STATE, native_int bytes, object_type type);
+    Object* new_object_pinned(STATE, native_int bytes, object_type type);
 
     /* Allocate a new object in any space that will accommodate it based on
      * the following priority:
@@ -229,37 +192,8 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object(STATE, Class* klass, native_int bytes, object_type type) {
-      // TODO: GC
-    // allocate:
-      Object* obj = 0; /* state->vm()->local_slab().allocate(bytes).as<Object>();
+      Object* obj = state->vm()->allocate_object(state, bytes, type);
 
-      if(likely(obj)) {
-        state->vm()->metrics().memory.young_objects++;
-        state->vm()->metrics().memory.young_bytes += bytes;
-
-        obj->init_header(YoungObjectZone, type);
-
-        goto set_klass;
-      }
-
-      if(state->vm()->local_slab().empty_p()) {
-        if(refill_slab(state, state->vm()->local_slab())) {
-          goto allocate;
-        } else {
-          schedule_young_collection(state->vm(), state->vm()->metrics().gc.young_set);
-       }
-      }
-      */
-
-      if(likely(obj = new_object(state, bytes, type))) goto set_type;
-
-      Memory::memory_error(state);
-      return NULL;
-
-    set_type:
-      // obj->set_obj_type(type);
-
-    // set_klass:
       obj->klass(state, klass);
       obj->ivars(cNil);
 
@@ -275,14 +209,7 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object_pinned(STATE, Class* klass, native_int bytes, object_type type) {
-      Object* obj = new_object(state, bytes, type);
-
-      if(unlikely(!obj)) {
-        Memory::memory_error(state);
-        return NULL;
-      }
-
-      obj->set_pinned();
+      Object* obj = new_object_pinned(state, bytes, type);
 
       obj->klass(state, klass);
       obj->ivars(cNil);
@@ -472,35 +399,13 @@ namespace rubinius {
 
     TypeInfo* find_type_info(Object* obj);
 
-    bool refill_slab(STATE, memory::Slab& slab);
-
     bool valid_object_p(Object* obj);
     void add_type_info(TypeInfo* ti);
 
     void add_code_resource(STATE, memory::CodeResource* cr);
-    void memstats();
 
-    ObjectPosition validate_object(Object* obj);
-
-    void native_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::Collector* f = this->collector()) {
-        f->native_finalizer(state, obj, func);
-      }
-    }
-
-    void extension_finalizer(STATE, Object* obj, memory::FinalizerFunction func) {
-      if(memory::Collector* f = this->collector()) {
-        f->extension_finalizer(state, obj, func);
-      }
-    }
-
-    void managed_finalizer(STATE, Object* obj, Object* finalizer) {
-      if(memory::Collector* f = this->collector()) {
-        f->managed_finalizer(state, obj, finalizer);
-      }
-    }
-
-    memory::MarkStack& mature_mark_stack();
+    // TODO: GC
+    // ObjectPosition validate_object(Object* obj);
 
   public:
     friend class ::TestMemory;

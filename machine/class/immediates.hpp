@@ -16,10 +16,10 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* t, memory::ObjectMark& mark);
+      virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
     };
   };
 
@@ -35,9 +35,9 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* t, memory::ObjectMark& mark);
+      virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
       virtual void show(STATE, Object* self, int level);
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
     };
   };
 
@@ -53,9 +53,9 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* t, memory::ObjectMark& mark);
+      virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
       virtual void show(STATE, Object* self, int level);
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
     };
   };
 }

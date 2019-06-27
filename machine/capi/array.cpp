@@ -70,7 +70,7 @@ namespace rubinius {
         if(rarray->len <= array->tuple()->num_fields() - array->offset()) {
           array->total(Fixnum::from(rarray->len));
         } else {
-          // TODO: MemoryHeader raise error rarray->len set beyond capa
+          Exception::raise_runtime_error(state, "RArray length attribute is greater than capacity");
         }
       }
     }

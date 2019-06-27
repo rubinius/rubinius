@@ -7,6 +7,7 @@
 #include "memory.hpp"
 #include "on_stack.hpp"
 #include "thread_phase.hpp"
+#include "type_info.hpp"
 
 #include "class/object.hpp"
 #include "class/class.hpp"
@@ -14,12 +15,14 @@
 #include "class/fixnum.hpp"
 #include "class/thread.hpp"
 
+#include "memory/collector.hpp"
+
 #include "diagnostics/memory.hpp"
 
 #include <assert.h>
-#include <sys/time.h>
-
 #include <chrono>
+#include <string>
+#include <sys/time.h>
 
 namespace rubinius {
   std::atomic<uintptr_t> MemoryHeader::object_id_counter;
@@ -30,13 +33,19 @@ namespace rubinius {
 
   void MemoryHeader::track_reference(STATE) {
     if(reference_p()) {
-      state->memory()->track_reference(this);
+      state->collector()->add_reference(this);
     }
   }
 
-  void MemoryHeader::untrack_reference(STATE) {
+  void MemoryHeader::track_weakref(STATE) {
     if(reference_p()) {
-      state->memory()->untrack_reference(this);
+      state->collector()->add_weakref(this);
+    }
+  }
+
+  void MemoryHeader::track_memory_handle(STATE) {
+    if(reference_p()) {
+      state->collector()->add_memory_handle(this);
     }
   }
 
@@ -387,6 +396,52 @@ namespace rubinius {
     return false;
   }
 
+  void MemoryHeader::write_barrier(STATE, MemoryHeader* value) {
+#ifdef RBX_LOG_CONCURRENT_UPDATE
+    if(state->shared().config.machine_concurrent_update_log) {
+      if(thread_id() != state->vm()->thread_id()) {
+        TypeInfo* ti = state->memory()->type_info[type_id()];
+
+        logger::warn("Therad id: %d updating an instance of %s created by Thread id: %d",
+            state->vm()->thread_id(), ti->type_name.c_str(), thread_id());
+      }
+    }
+#endif
+
+#ifdef RBX_RAISE_CONCURRENT_UPDATE
+    if(state->shared().config.machine_concurrent_update_raise) {
+      if(thread_id() != state->vm()->thread_id()) {
+        TypeInfo* ti = state->memory()->type_info[type_id()];
+
+        std::ostringstream msg;
+        msg << "Thread id: " << state->vm()->thread_id() <<
+          " updating an instance of " << ti->type_name <<
+          " created by Thread id: " << thread_id();
+
+        Exception::raise_concurrent_update_error(state, msg.str().c_str());
+      }
+    }
+#endif
+  }
+
+  /* TODO: write_barrier
+    inline void write_barrier(ObjectHeader* target, Fixnum* val) {
+      // No-op
+    }
+
+    inline void write_barrier(ObjectHeader* target, Symbol* val) {
+      // No-op
+    }
+
+    inline void write_barrier(ObjectHeader* target, ObjectHeader* val) {
+      // memory::WriteBarrier::write_barrier(target, val, mark_);
+    }
+
+    inline void write_barrier(ObjectHeader* target, Class* val) {
+      // memory::WriteBarrier::write_barrier(target, reinterpret_cast<Object*>(val), mark_);
+    }
+  */
+
   size_t ObjectHeader::compute_size_in_bytes(VM* vm) const {
     return vm->memory()->type_info[type_id()]->object_size(this);
   }
@@ -396,11 +451,8 @@ namespace rubinius {
   }
 
   void ObjectHeader::initialize_copy(STATE, Object* other) {
-    klass(other->klass());
-    ivars(other->ivars());
-
-    state->shared().om->write_barrier(this, klass());
-    state->shared().om->write_barrier(this, ivars());
+    klass(state, other->klass());
+    ivars(state, other->ivars());
   }
 
   void ObjectHeader::copy_body(VM* state, Object* other) {
@@ -408,5 +460,23 @@ namespace rubinius {
     void* dst = this->__body__;
 
     memcpy(dst, src, other->body_in_bytes(state));
+  }
+
+  namespace memory {
+    void write_barrier(STATE, ObjectHeader* object, Fixnum* value) {
+      // No-op
+    }
+
+    void write_barrier(STATE, ObjectHeader* object, Symbol* value) {
+      // No-op
+    }
+
+    void write_barrier(STATE, ObjectHeader* object, ObjectHeader* value) {
+      object->write_barrier(state, value);
+    }
+
+    void write_barrier(STATE, ObjectHeader* object, Class* value) {
+      object->write_barrier(state, value);
+    }
   }
 }

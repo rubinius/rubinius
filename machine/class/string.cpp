@@ -94,6 +94,34 @@ namespace rubinius {
     return so;
   }
 
+  String* String::create_pinned(STATE, const char* str) {
+    if(!str) return String::create(state, Fixnum::from(0));
+
+    native_int bytes = strlen(str);
+
+    return String::create_pinned(state, str, bytes);
+  }
+
+  String* String::create_pinned(STATE, const char* str, native_int bytes) {
+    String* so = state->memory()->new_object<String>(state, G(string));
+
+    so->num_bytes(Fixnum::from(bytes));
+
+    ByteArray* ba =
+      state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), bytes + 1);
+    ba->set_pinned();
+
+    if(str) {
+      memcpy(ba->raw_bytes(), str, bytes);
+      ba->raw_bytes()[bytes] = 0;
+    } else {
+      memset(ba->raw_bytes(), 0, bytes + 1);
+    }
+
+    so->data(state, ba);
+    return so;
+  }
+
   String* String::create(STATE, const char* str) {
     if(!str) return String::create(state, Fixnum::from(0));
 
@@ -764,7 +792,7 @@ namespace rubinius {
     native_int length = other->byte_size();
     native_int data_length = as<ByteArray>(other->data())->size();
 
-    if(encoding() != other->encoding()) {
+    if(!encoding()->equal_p(other->encoding())) {
       Encoding* new_encoding = Encoding::compatible_p(state, this, other);
       if(new_encoding->nil_p()) {
         Exception::raise_encoding_compatibility_error(state, other, this);

@@ -18,7 +18,6 @@ namespace rubinius {
   class Module;
   class Executable;
   class Array;
-  class Object;
 
   /**
    *  Object is the basic Ruby object.
@@ -328,6 +327,15 @@ namespace rubinius {
 
     Object* respond_to(STATE, Symbol* name, Object* priv);
 
+    // Rubinius.primitive :object_become
+    Object* become(STATE, Object* other);
+
+    // Rubinius.primitive :object_nil_code_id
+    Object* nil_code_id(STATE);
+
+    // Rubinius.primitive :object_nil_ip
+    Object* nil_ip(STATE);
+
     /**
      * Checks if object is frozen and raises RuntimeError if it is.
      * Similar to CRuby rb_check_frozen
@@ -353,7 +361,7 @@ namespace rubinius {
         : TypeInfo(type)
       {}
 
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
     };
   };
 

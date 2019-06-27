@@ -21,6 +21,8 @@
 #include "class/thread.hpp"
 #include "class/tuple.hpp"
 
+#include "memory/collector.hpp"
+
 #include "diagnostics/machine.hpp"
 
 #include "dtrace/dtrace.h"
@@ -97,7 +99,7 @@ namespace rubinius {
 
     thr->function(function);
 
-    state->memory()->native_finalizer(state, thr,
+    state->collector()->native_finalizer(state, thr,
         (memory::FinalizerFunction)&Thread::finalize);
 
     state->vm()->metrics()->threads_created++;

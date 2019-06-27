@@ -194,68 +194,11 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
-    int exit_code = 0;
+    MachineException::guard(state, true, [&]{
+        thread->run(state);
+      });
 
-    // TODO: clean up and unify with main() exception handling.
-    try {
-      thread->run(state);
-    } catch(Assertion *e) {
-      std::cout << "VM Assertion:" << std::endl;
-      std::cout << "  " << e->reason << std::endl << std::endl;
-      e->print_backtrace();
-
-      std::cout << std::endl << "Ruby backtrace:" << std::endl;
-      state->vm()->print_backtrace();
-      delete e;
-      exit_code = 1;
-    } catch(RubyException &e) {
-      std::cout << "Ruby Exception hit toplevel:\n";
-      // Prints Ruby backtrace, and VM backtrace if captured
-      e.show(state);
-      exit_code = 1;
-    } catch(TypeError &e) {
-
-      /* TypeError's here are dealt with specially so that they can deliver
-       * more information, such as _why_ there was a type error issue.
-       *
-       * This has the same name as the RubyException TypeError (run `5 + "string"`
-       * as an example), but these are NOT the same - this exception is raised
-       * internally when cNil gets passed to an array method, for instance, when
-       * an array was expected.
-       */
-      std::cout << "Type Error detected:" << std::endl;
-      TypeInfo* wanted = state->vm()->find_type(e.type);
-
-      if(!e.object->reference_p()) {
-        std::cout << "  Tried to use non-reference value " << e.object;
-      } else {
-        TypeInfo* was = state->vm()->find_type(e.object->type_id());
-        std::cout << "  Tried to use object of type " <<
-          was->type_name << " (" << was->type << ")";
-      }
-
-      std::cout << " as type " << wanted->type_name << " (" <<
-        wanted->type << ")" << std::endl;
-
-      e.print_backtrace();
-
-      std::cout << "Ruby backtrace:" << std::endl;
-      state->vm()->print_backtrace();
-      exit_code = 1;
-    } catch(VMException &e) {
-      std::cout << "Unknown VM exception detected:" << std::endl;
-      e.print_backtrace();
-      exit_code = 1;
-    } catch(std::exception& e) {
-      std::cout << "C++ exception detected: " << e.what() << std::endl;
-      exit_code = 1;
-    } catch(...) {
-      std::cout << "Unknown C++ exception detected at top level" << std::endl;
-      exit_code = 1;
-    }
-
-    // We caught an exception, so exit directly here.
-    exit(exit_code);
+    return nullptr;
   }
 
   void SignalThread::run(STATE) {
@@ -264,7 +207,7 @@ namespace rubinius {
 #ifndef RBX_WINDOWS
     sigset_t set;
     sigfillset(&set);
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
 #endif
 
     while(!system_exit_) {
@@ -366,7 +309,7 @@ namespace rubinius {
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
 
-    sigaction(signal, &action, NULL);
+    sigaction(signal, &action, nullptr);
 #endif
   }
 
@@ -487,18 +430,21 @@ namespace rubinius {
     }
   }
 
-  static void abandon_ship_handler(int sig) {
+  static void abandon_ship_handler(int sig, siginfo_t* info, void*) {
     struct sigaction action;
 
     // Unset our handler for this signal.
+    memset(&action, 0, sizeof(action));
+    sigfillset(&action.sa_mask);
+
     action.sa_handler = SIG_DFL;
     action.sa_flags = 0;
-    sigaction(sig, &action, NULL);
+    sigaction(sig, &action, nullptr);
 
     char* pause_env = getenv("RBX_PAUSE_ON_CRASH");
 
     if(pause_env) {
-      long timeout = strtol(pause_env, NULL, 10);
+      long timeout = strtol(pause_env, nullptr, 10);
       if(timeout <= 0) {
         timeout = 60;
       } else {
@@ -547,29 +493,37 @@ namespace rubinius {
     state->shared().nodename.assign(machine_info.nodename);
 
     struct sigaction action;
+
+    memset(&action, 0, sizeof(action));
+    sigfillset(&action.sa_mask);
+
     action.sa_handler = null_func;
     action.sa_flags = 0;
-    sigfillset(&action.sa_mask);
-    sigaction(SIGVTALRM, &action, NULL);
+    sigaction(SIGVTALRM, &action, nullptr);
 
     // Some extensions expect SIGALRM to be defined, because MRI does.
     // We'll just use a noop for it.
     action.sa_handler = null_func;
-    sigaction(SIGALRM, &action, NULL);
+    sigaction(SIGALRM, &action, nullptr);
 
     // Ignore sigpipe.
     action.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &action, NULL);
+    sigaction(SIGPIPE, &action, nullptr);
 
 #ifdef USE_EXECINFO
     // If we have execinfo, setup some crash handlers
     if(!getenv("DISABLE_SEGV")) {
-      action.sa_handler = abandon_ship_handler;
-      sigaction(SIGSEGV, &action, NULL);
-      sigaction(SIGBUS,  &action, NULL);
-      sigaction(SIGILL,  &action, NULL);
-      sigaction(SIGFPE,  &action, NULL);
-      sigaction(SIGABRT, &action, NULL);
+      memset(&action, 0, sizeof(action));
+      sigfillset(&action.sa_mask);
+
+      action.sa_flags = SA_SIGINFO;
+      action.sa_sigaction = abandon_ship_handler;
+
+      sigaction(SIGSEGV, &action, nullptr);
+      sigaction(SIGBUS,  &action, nullptr);
+      sigaction(SIGILL,  &action, nullptr);
+      sigaction(SIGFPE,  &action, nullptr);
+      sigaction(SIGABRT, &action, nullptr);
     }
 #endif  // USE_EXEC_INFO
 #else

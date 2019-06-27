@@ -114,7 +114,7 @@ extern "C" {
                             const char* method_name, bool raise=false)
   {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    VALUE name = MemoryHandle::value(String::create(env->state(), method_name));
+    VALUE name = MemoryHandle::value(String::create_pinned(env->state(), method_name));
 
     if(RTEST(rb_funcall(object, rb_intern("respond_to?"), 1, name)) ) {
       return rb_funcall2(object, rb_intern(method_name), 0, NULL);

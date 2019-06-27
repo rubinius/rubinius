@@ -12,9 +12,10 @@
 #include "capi/tag.hpp"
 
 #include "memory/code_resource.hpp"
-#include "memory/mark_sweep.hpp"
-#include "memory/immix_collector.hpp"
-#include "memory/walker.hpp"
+#include "memory/collector.hpp"
+#include "memory/immix.hpp"
+#include "memory/third_region.hpp"
+#include "memory/main_heap.hpp"
 
 #include "environment.hpp"
 
@@ -38,7 +39,7 @@
 
 #include "configuration.hpp"
 
-#include "diagnostics/gc.hpp"
+#include "diagnostics/collector.hpp"
 #include "diagnostics/memory.hpp"
 #include "diagnostics/profiler.hpp"
 #include "diagnostics/timing.hpp"
@@ -59,14 +60,11 @@ namespace rubinius {
   /* Memory methods */
   Memory::Memory(STATE)
     : collector_(new memory::Collector(state))
-    , mark_sweep_(new memory::MarkSweepGC(this, state->shared().config))
-    , immix_(new memory::ImmixGC(this))
     , code_manager_(&state->shared())
+    , main_heap_(new memory::MainHeap(state, code_manager_))
     , cycle_(0)
     , mark_(0x1)
-    , slab_size_(4096)
-    , references_lock_()
-    , references_set_()
+    , visit_mark_(0x1)
     , shared_(state->shared())
     , vm_(state->vm())
     , last_object_id(1)
@@ -89,44 +87,15 @@ namespace rubinius {
   }
 
   Memory::~Memory() {
-    mark_sweep_->free_objects();
-
-    // @todo free immix data
-
     for(size_t i = 0; i < LastObjectType; i++) {
       if(type_info[i]) delete type_info[i];
     }
 
-    delete immix_;
-    delete mark_sweep_;
-    /* delete young_; */
+    delete main_heap_;
+    main_heap_ = nullptr;
   }
 
-  void Memory::after_fork_child(STATE) {
-    contention_lock_.init();
-    vm_ = state->vm();
-  }
-
-  bool Memory::refill_slab(STATE, memory::Slab& slab) {
-    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
-
-    memory::Address addr = memory::Address::null(); /* young_->allocate_for_slab(slab_size_); */
-
-    diagnostics::MemoryMetrics* metrics = state->shared().memory_metrics();
-    metrics->young_objects += slab.allocations();
-    metrics->young_bytes += slab.bytes_used();
-
-    if(addr) {
-      slab.refill(addr, slab_size_);
-      metrics->slab_refills++;
-      return true;
-    } else {
-      slab.refill(0, 0);
-      metrics->slab_refills_fails++;
-      return false;
-    }
-  }
-
+  /* TODO: GC
   bool Memory::valid_object_p(Object* obj) {
     if(obj->true_p()) {
       return true;
@@ -140,7 +109,7 @@ namespace rubinius {
       return true;
     } else if(obj->symbol_p()) {
       return true;
-    } else if(obj->region() == eLargeRegion) {
+    } else if(obj->region() == eThirdRegion) {
       if(mark_sweep_->validate_object(obj) == cMatureObject) {
         return true;
       }
@@ -152,12 +121,9 @@ namespace rubinius {
 
     return false;
   }
+  */
 
   /* Garbage collection */
-
-  memory::MarkStack& Memory::mature_mark_stack() {
-    return immix_->mark_stack();
-  }
 
   void Memory::add_type_info(TypeInfo* ti) {
     utilities::thread::SpinLock::LockGuard guard(shared_.type_info_lock());
@@ -169,65 +135,45 @@ namespace rubinius {
   }
 
   Object* Memory::new_object(STATE, native_int bytes, object_type type) {
+    return state->vm()->allocate_object(state, bytes, type);
+  }
+
+  Object* Memory::new_object_pinned(STATE, native_int bytes, object_type type) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
-    Object* obj = 0;
-    bool collect_flag = false;
+    Object* obj = nullptr;
 
-    // TODO: check if immix_ needs to trigger GC
-    if(likely(obj = immix_->allocate(bytes, collect_flag))) {
-      shared().memory_metrics()->immix_objects++;
-      shared().memory_metrics()->immix_bytes += bytes;
-
-      MemoryHeader::initialize(
-          obj, state->vm()->thread_id(), eFirstRegion, type, false);
-
-      return obj;
-    }
-
-    if(collect_flag) {
-      collector()->collect_requested(state,
-          "collector: immix triggered collection request");
-    }
-
-    collect_flag = false;
-
-    if(likely(obj = mark_sweep_->allocate(bytes, collect_flag))) {
+    if(likely(obj = main_heap_->third_region()->allocate(state, bytes))) {
       shared().memory_metrics()->large_objects++;
       shared().memory_metrics()->large_bytes += bytes;
 
-      if(collect_flag) {
-        collector()->collect_requested(state,
-            "collector: large object space triggered collection request");
-      }
-
       MemoryHeader::initialize(
-          obj, state->vm()->thread_id(), eLargeRegion, type, false);
+          obj, state->vm()->thread_id(), eThirdRegion, type, false);
 
       return obj;
     }
 
-    Exception::raise_memory_error(state);
-    return NULL;
+    Memory::memory_error(state);
+    return nullptr;
   }
 
   TypeInfo* Memory::find_type_info(Object* obj) {
     return type_info[obj->type_id()];
   }
 
+  /* TODO: GC
   ObjectPosition Memory::validate_object(Object* obj) {
     ObjectPosition pos;
 
-    /*
     pos = young_->validate_object(obj);
     if(pos != cUnknown) return pos;
-    */
 
     pos = immix_->validate_object(obj);
     if(pos != cUnknown) return pos;
 
     return mark_sweep_->validate_object(obj);
   }
+  */
 
   void Memory::add_code_resource(STATE, memory::CodeResource* cr) {
     utilities::thread::SpinLock::LockGuard guard(shared_.code_resource_lock());

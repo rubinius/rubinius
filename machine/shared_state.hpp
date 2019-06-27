@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <atomic>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -89,7 +90,7 @@ namespace rubinius {
     diagnostics::Diagnostics* diagnostics_;
     diagnostics::BootMetrics* boot_metrics_;
     diagnostics::CodeDBMetrics* codedb_metrics_;
-    diagnostics::GCMetrics* gc_metrics_;
+    diagnostics::CollectorMetrics* collector_metrics_;
     diagnostics::MemoryMetrics* memory_metrics_;
     diagnostics::Profiler* profiler_;
 
@@ -107,7 +108,7 @@ namespace rubinius {
     VM* root_vm_;
     Environment* env_;
 
-    utilities::thread::Mutex codedb_lock_;
+    std::recursive_mutex codedb_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
@@ -244,8 +245,8 @@ namespace rubinius {
       return codedb_metrics_;
     }
 
-    diagnostics::GCMetrics* gc_metrics() {
-      return gc_metrics_;
+    diagnostics::CollectorMetrics* collector_metrics() {
+      return collector_metrics_;
     }
 
     diagnostics::MemoryMetrics* memory_metrics() {
@@ -309,7 +310,7 @@ namespace rubinius {
       return &check_global_interrupts_;
     }
 
-    utilities::thread::Mutex& codedb_lock() {
+    std::recursive_mutex& codedb_lock() {
       return codedb_lock_;
     }
 

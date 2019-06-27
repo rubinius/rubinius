@@ -77,7 +77,7 @@ extern "C" {
       }
     }
 
-    String* bytes = String::create(env->state(), Fixnum::from(numbytes));
+    String* bytes = String::create_pinned(env->state(), Fixnum::from(numbytes));
     memset(bytes->byte_address(), 0, numbytes);
 
     VALUE result = rb_funcall(rb_mCAPI, rb_intern("rb_integer_pack"), 6,

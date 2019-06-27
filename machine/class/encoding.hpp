@@ -136,11 +136,14 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* obj, memory::ObjectMark& mark);
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark);
+      virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f);
       virtual void set_field(STATE, Object* target, size_t index, Object* val);
       virtual Object* get_field(STATE, Object* target, size_t index);
       virtual void populate_slot_locations();
+      virtual void before_visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {}
+      virtual void after_visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {}
+      virtual void visit(STATE, Object* o, std::function<void (STATE, Object**)> f);
       virtual void show(STATE, Object* self, int level);
     };
   };

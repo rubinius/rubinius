@@ -35,6 +35,10 @@ namespace rubinius {
       return _total_;
     }
 
+    Object** p_total() {
+      return reinterpret_cast<Object**>(&this->_total_);
+    }
+
     void total(Fixnum* obj) {
       _total_ = obj;
     }
@@ -56,6 +60,10 @@ namespace rubinius {
       _start_ = obj;
     }
 
+    Object** p_start() {
+      return reinterpret_cast<Object**>(&this->_start_);
+    }
+
     template<typename T>
       void start(T state, Fixnum* obj) {
         start(obj);
@@ -73,15 +81,19 @@ namespace rubinius {
       _tuple_ = obj;
     }
 
-    template<typename T>
-      void tuple(T state, Tuple* obj) {
-        tuple(obj);
-        state->memory()->write_barrier(this, obj);
+    Object** p_tuple() {
+      return reinterpret_cast<Object**>(&this->_tuple_);
+    }
 
-        if(type_specific() == eRArray) {
-          write_rarray(state);
-        }
+    template<typename T>
+    void tuple(T* state, Tuple* obj) {
+      tuple(obj);
+      memory::write_barrier(state, this, obj);
+
+      if(type_specific() == eRArray) {
+        write_rarray(state);
       }
+    }
 
     native_int size();
     native_int offset();

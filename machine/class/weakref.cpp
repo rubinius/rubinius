@@ -5,8 +5,6 @@
 #include "class/class.hpp"
 #include "class/weakref.hpp"
 
-#include "memory/gc.hpp"
-
 namespace rubinius {
   void WeakRef::bootstrap(STATE) {
     GO(cls_weakref).set(Class::bootstrap_class(state, G(basicobject), WeakRefType));
@@ -21,11 +19,11 @@ namespace rubinius {
     return ref;
   }
 
-  void WeakRef::Info::mark_weakref(Object* obj, memory::ObjectMark& mark) {
+  void WeakRef::Info::update_weakref(STATE, Object* obj) {
     WeakRef* ref = as<WeakRef>(obj);
 
     if(ref->object()->reference_p()) {
-      if(!ref->object()->marked_p(mark.vm()->memory()->mark())) {
+      if(!ref->object()->marked_p(state->memory()->mark())) {
         ref->object(cNil);
       }
     }

@@ -73,41 +73,44 @@ namespace rubinius {
       _num_bytes_ = num;
     }
 
+    Object** p_num_bytes() {
+      return reinterpret_cast<Object**>(&this->_num_bytes_);
+    }
+
+    void num_bytes(STATE, Fixnum* obj) {
+      num_bytes(obj);
+      num_chars(nil<Fixnum>());
+
+      if(type_specific() == eRString) {
+        write_rstring(state);
+      }
+    }
+
     template<typename T>
-      void num_bytes(T state, Fixnum* obj) {
-        num_bytes(obj);
+    void data(T* state, ByteArray* obj) {
+      data(obj);
+      write_barrier(state, obj);
+
+      if(type_specific() == eRString) {
+        write_rstring(state);
+      }
+    }
+
+    template<typename T>
+    void encoding(T* state, Encoding* obj) {
+      if(obj->nil_p() || (!CBOOL(ascii_only()) && obj->ascii_compatible())) {
+        ascii_only(cNil);
         num_chars(nil<Fixnum>());
-
-        if(type_specific() == eRString) {
-          write_rstring(state);
-        }
+        valid_encoding(cNil);
       }
-
-    template<typename T>
-      void data(T state, ByteArray* obj) {
-        data(obj);
-        state->memory()->write_barrier(this, obj);
-
-        if(type_specific() == eRString) {
-          write_rstring(state);
-        }
+      if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
+        ascii_only(cTrue);
+        num_chars(Fixnum::from(0));
+        valid_encoding(cTrue);
       }
-
-    template<typename T>
-      void encoding(T state, Encoding* obj) {
-        if(obj->nil_p() || (!CBOOL(ascii_only()) && obj->ascii_compatible())) {
-          ascii_only(cNil);
-          num_chars(nil<Fixnum>());
-          valid_encoding(cNil);
-        }
-        if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
-          ascii_only(cTrue);
-          num_chars(Fixnum::from(0));
-          valid_encoding(cTrue);
-        }
-        encoding(obj);
-        state->memory()->write_barrier(this, obj);
-      }
+      encoding(obj);
+      write_barrier(state, obj);
+    }
 
     /* interface */
 
@@ -135,6 +138,8 @@ namespace rubinius {
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
+    static String* create_pinned(STATE, const char* str);
+    static String* create_pinned(STATE, const char* str, native_int bytes);
 
     static uint64_t siphash(const unsigned char *bp, unsigned int sz, uint32_t seed);
 
@@ -147,7 +152,7 @@ namespace rubinius {
 
     // Rubinius.primitive+ :string_equal
     Object* equal(STATE, String* other) {
-      if(encoding() != other->encoding() &&
+      if(!encoding()->equal_p(other->encoding()) &&
          Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
@@ -231,8 +236,7 @@ namespace rubinius {
     }
 
     void encoding_from(STATE, String* other) {
-      encoding(other->encoding());
-      state->memory()->write_barrier(this, encoding());
+      encoding(state, other->encoding());
 
       if(other->ascii_only()->true_p()) {
         ascii_only(cTrue);

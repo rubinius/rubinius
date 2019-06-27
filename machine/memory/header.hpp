@@ -16,8 +16,9 @@
 #include "object_types.hpp"
 #include "type_info.hpp"
 #include "detection.hpp"
-#include "util/thread.hpp"
 #include "bug.hpp"
+
+#include "util/thread.hpp"
 
 #ifdef VALUE
 #undef VALUE
@@ -130,7 +131,23 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define FALSE_MASK  0xf
 
 // The bits that identify any nil value.
-#define NIL_MASK    0x1f
+#define NIL_BITS      0x1aL
+#define NIL_MASK      0x1fL
+
+#define NIL_IP_SHIFT  0x5L
+#define NIL_IP_MASK   0xffffL
+
+#define NIL_ID_SHIFT  0x15L
+#define NIL_ID_MASK   0xffffffffL
+
+#define APPLY_NIL_TAG(id,ip)  (0x0L \
+                                | ((id & NIL_ID_MASK) << NIL_ID_SHIFT) \
+                                | ((ip & NIL_IP_MASK) << NIL_IP_SHIFT) \
+                                | NIL_BITS)
+#define NIL_TAG_ID(n)         ((reinterpret_cast<intptr_t>(n) >> NIL_ID_SHIFT) & NIL_ID_MASK)
+#define NIL_TAG_IP(n)         ((reinterpret_cast<intptr_t>(n) >> NIL_IP_SHIFT) & NIL_IP_MASK)
+
+#define NIL_EQUAL_P(a,b)      ((a)->nil_p() && (b)->nil_p())
 
 #define CBOOL(v)    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
 #define RBOOL(v)    ((v) ? cTrue : cFalse)
@@ -210,7 +227,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     eThreadRegion = 0,
     eFirstRegion,
     eSecondRegion,
-    eLargeRegion,
+    eThirdRegion,
   };
 
   struct HeaderField {
@@ -248,20 +265,22 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   const HeaderField constexpr thread_id_field     = { 2,  11 };
   const HeaderField constexpr region_field        = { 13, 2 };
   const HeaderField constexpr referenced_field    = { 15, 4 };
-  const HeaderField constexpr pinned_field        = { 19, 1 };
-  const HeaderField constexpr weakref_field       = { 20, 1 };
-  const HeaderField constexpr finalizer_field     = { 21, 1 };
-  const HeaderField constexpr remembered_field    = { 22, 1 };
-  const HeaderField constexpr visited_field       = { 23, 2 };
-  const HeaderField constexpr marked_field        = { 25, 2 };
-  const HeaderField constexpr scanned_field       = { 27, 1 };
-  const HeaderField constexpr type_id_field       = { 28, 9 };
-  const HeaderField constexpr data_field          = { 37, 1 };
-  const HeaderField constexpr frozen_field        = { 38, 1 };
-  const HeaderField constexpr tainted_field       = { 39, 1 };
-  const HeaderField constexpr locked_count_field  = { 40, 3 };
-  const HeaderField constexpr object_id_field     = { 43, 19 };
+  const HeaderField constexpr weakref_field       = { 19, 1 };
+  const HeaderField constexpr finalizer_field     = { 20, 1 };
+  const HeaderField constexpr remembered_field    = { 21, 1 };
+  const HeaderField constexpr visited_field       = { 22, 2 };
+  const HeaderField constexpr marked_field        = { 24, 2 };
+  const HeaderField constexpr scanned_field       = { 26, 1 };
+  const HeaderField constexpr type_id_field       = { 27, 9 };
+  const HeaderField constexpr data_field          = { 36, 1 };
+  const HeaderField constexpr frozen_field        = { 37, 1 };
+  const HeaderField constexpr tainted_field       = { 38, 1 };
+  const HeaderField constexpr locked_count_field  = { 39, 3 };
+  const HeaderField constexpr object_id_field     = { 42, 20 };
   const HeaderField constexpr type_specific_field = { 62, 2 };
+
+  // Pinned is a type-specific bit and should only be used by ByteArray
+  const HeaderField constexpr pinned_field        = { 62, 1 };
 
   /* Managed objects have a header. The header (a MemoryHeader) is a single, 64bit,
    * machine word that may be a MemoryFlags or pointer to an ExtendedHeader.
@@ -286,8 +305,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
    * references to these pointers are valid before and after the header
    * change. Only the MemoryFlags word in the MemoryHeader is updated.
    */
-
-  struct MemoryHeader;
 
   struct MemoryHandle {
     enum HandleType {
@@ -738,6 +755,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     static void bootstrap(STATE);
 
+    static size_t align(size_t bytes) {
+      return (bytes + (sizeof(MemoryHeader*) - 1)) & ~(sizeof(MemoryHeader*) - 1);
+    }
+
     void initialize(int thread_id, MemoryRegion region, object_type type, bool data) {
       MemoryFlags h = 0;
 
@@ -973,8 +994,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return static_cast<MemoryRegion>(get(region_field)) == eSecondRegion;
     }
 
-    bool large_region_p() const {
-      return static_cast<MemoryRegion>(get(region_field)) == eLargeRegion;
+    bool third_region_p() const {
+      return static_cast<MemoryRegion>(get(region_field)) == eThirdRegion;
     }
 
     unsigned int referenced() const {
@@ -1017,14 +1038,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void set_weakref(STATE) {
       if(!weakref_p()) {
         set(weakref_field);
-        track_reference(state);
-      }
-    }
-
-    void unset_weakref(STATE) {
-      if(weakref_p()) {
-        unset(weakref_field);
-        untrack_reference(state);
+        track_weakref(state);
       }
     }
 
@@ -1223,7 +1237,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     void track_reference(STATE);
-    void untrack_reference(STATE);
+    void track_weakref(STATE);
+    void track_memory_handle(STATE);
 
     MemoryHandle* memory_handle(STATE, Object* object) {
       while(true) {
@@ -1245,7 +1260,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         MemoryFlags nh = extended_flags(eh);
 
         if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-          track_reference(state);
+          track_memory_handle(state);
           return eh->get_handle();
         }
 
@@ -1323,27 +1338,27 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           ExtendedHeader* hh = extended_header();
           uintptr_t refcount = referenced_field.get(hh->header);
 
-          if(refcount == 0) {
-            // TODO: MemoryHeader raise?
-            return refcount;
-          } else if(refcount < max_referenced()) {
-            eh = ExtendedHeader::create_copy(
-                referenced_field.set(hh->header, refcount - 1), hh);
-          } else {
-            if(uintptr_t rc = hh->get_referenced()) {
-              refcount = rc;
-
-              eh = ExtendedHeader::create_copy(hh->header, hh);
-              eh->set_referenced(refcount - 1);
+          if(refcount > 0) {
+            if(refcount < max_referenced()) {
+              eh = ExtendedHeader::create_copy(
+                  referenced_field.set(hh->header, refcount - 1), hh);
             } else {
-              eh = ExtendedHeader::create_referenced(hh->header, hh, refcount - 1);
+              if(uintptr_t rc = hh->get_referenced()) {
+                refcount = rc;
+
+                eh = ExtendedHeader::create_copy(hh->header, hh);
+                eh->set_referenced(refcount - 1);
+              } else {
+                eh = ExtendedHeader::create_referenced(hh->header, hh, refcount - 1);
+              }
             }
+          } else {
+            return refcount;
           }
 
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            if(refcount == 0) untrack_reference(state);
             return refcount - 1;
           }
 
@@ -1351,31 +1366,32 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         } else {
           unsigned int refcount = referenced_field.get(h);
 
-          if(refcount == 0) {
-            // TODO: MemoryHeader raise?
-            return refcount;
-          } else if(refcount < max_referenced()) {
-            MemoryFlags nh = referenced_field.set(h, refcount - 1);
+          if(refcount > 0) {
+            if(refcount < max_referenced()) {
+              MemoryFlags nh = referenced_field.set(h, refcount - 1);
 
-            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-              if(refcount == 0) track_reference(state);
-              return refcount - 1;
+              if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+                return refcount - 1;
+              }
+            } else {
+              ExtendedHeader* eh = ExtendedHeader::create_referenced(h, refcount - 1);
+
+              MemoryFlags nh = extended_flags(eh);
+
+              if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+                return refcount - 1;
+              }
+
+              eh->delete_header();
             }
           } else {
-            ExtendedHeader* eh = ExtendedHeader::create_referenced(h, refcount - 1);
-
-            MemoryFlags nh = extended_flags(eh);
-
-            if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-              if(refcount == 0) track_reference(state);
-              return refcount - 1;
-            }
-
-            eh->delete_header();
+            return refcount;
           }
         }
       }
     }
+
+    void write_barrier(STATE, MemoryHeader* value);
   };
 
   class DataHeader : public MemoryHeader {
@@ -1393,10 +1409,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         MemoryHeader* obj, int thread_id, MemoryRegion region, object_type type)
     {
       MemoryHeader::initialize(obj, thread_id, region, type, true);
-    }
-
-    static size_t align(size_t bytes) {
-      return (bytes + (sizeof(MemoryHeader*) - 1)) & ~(sizeof(MemoryHeader*) - 1);
     }
 
     static size_t bytes_to_fields(size_t bytes) {
@@ -1456,10 +1468,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
   public:
 
-    static size_t align(size_t bytes) {
-      return (bytes + (sizeof(Object*) - 1)) & ~(sizeof(Object*) - 1);
-    }
-
     static size_t bytes_to_fields(size_t bytes) {
       return (bytes - sizeof(ObjectHeader)) / sizeof(Object*);
     }
@@ -1512,6 +1520,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void wait(STATE);
 
+    bool equal_p(const ObjectHeader* other) const {
+      return (this == other) || NIL_EQUAL_P(this, other);
+    }
+
     bool nil_p() const {
       return (reinterpret_cast<intptr_t>(this) & NIL_MASK) == reinterpret_cast<intptr_t>(cNil);
     }
@@ -1535,6 +1547,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     friend class TypeInfo;
     friend class Memory;
   };
+
+  namespace memory {
+    void write_barrier(STATE, ObjectHeader* object, Fixnum* value);
+    void write_barrier(STATE, ObjectHeader* object, Symbol* value);
+    void write_barrier(STATE, ObjectHeader* object, ObjectHeader* value);
+    void write_barrier(STATE, ObjectHeader* object, Class* value);
+  }
 }
 
 #endif

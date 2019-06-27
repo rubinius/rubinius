@@ -21,6 +21,28 @@
 # NOTE: The order of these definitions is important. Do not
 #       change it without consultation.
 
+class NilClass
+  def nil?
+    true
+  end
+
+  def !
+    true
+  end
+
+  def !=(other)
+    other.nil? ? false : true
+  end
+
+  def ==(other)
+    other.nil? ? true : false
+  end
+
+  # alias_method is not available yet
+  def equal?(other)
+    other.nil? ? true : false
+  end
+end
 
 # This class encapsulates primitives that involve the VM itself rather than
 # something in Ruby-land.
@@ -104,6 +126,9 @@ class Class
 end
 
 module Kernel
+  def nil?
+    false
+  end
 
   # Return the Class object this object is an instance of.
   #

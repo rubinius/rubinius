@@ -5,8 +5,6 @@
 #include "environment.hpp"
 #include "thread_phase.hpp"
 
-#include "memory/gc.hpp"
-
 #include "object_utils.hpp"
 
 #include "class/array.hpp"
@@ -33,10 +31,11 @@
 #include "config.h"
 
 #include "call_frame.hpp"
-#include "signal.hpp"
 #include "configuration.hpp"
 #include "helpers.hpp"
+#include "logger.hpp"
 #include "park.hpp"
+#include "signal.hpp"
 
 #include "util/thread.hpp"
 
@@ -65,9 +64,13 @@ namespace rubinius {
     , call_frame_(NULL)
     , thread_nexus_(shared.thread_nexus())
     , park_(new Park)
+    , thca_(new memory::OpenTHCA)
     , stack_start_(0)
+    , stack_barrier_start_(0)
+    , stack_barrier_end_(0)
     , stack_size_(0)
     , stack_cushion_(shared.config.machine_stack_cushion.value)
+    , stack_probe_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
     , check_local_interrupts_(false)
@@ -83,6 +86,8 @@ namespace rubinius {
     , thread_phase_(ThreadNexus::eUnmanaged)
     , sample_interval_(0)
     , sample_counter_(0)
+    , checkpoints_(0)
+    , stops_(0)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -95,17 +100,21 @@ namespace rubinius {
     , custom_wakeup_data_(NULL)
     , thread_state_(this)
   {
-    if(memory()) {
-      local_slab_.refill(0, 0);
-    }
-
     set_sample_interval();
   }
 
   VM::~VM() {
+    logger::info("%s: checkpoints: %ld, stops: %ld",
+        name().c_str(), checkpoints_, stops_);
+
     if(park_) {
       delete park_;
-      park_ = NULL;
+      park_ = nullptr;
+    }
+
+    if(thca_) {
+      delete thca_;
+      thca_ = nullptr;
     }
   }
 
@@ -131,37 +140,18 @@ namespace rubinius {
     return timer::time_elapsed_seconds(start_time_);
   }
 
-  void VM::checkpoint(STATE) {
-    metrics()->checkpoints++;
-
-    thread_nexus_->check_stop(state, this, [this/*, state*/]{
-        metrics()->stops++;
-      });
-
-    if(sample_counter_++ >= sample_interval_) {
-      sample(state);
-      set_sample_interval();
-    }
+  void VM::set_previous_frame(CallFrame* frame) {
+    frame->previous = call_frame_;
   }
 
   void VM::raise_stack_error(STATE) {
-    state->raise_stack_error(state);
+    state->raise_stack_error();
   }
 
   void VM::validate_stack_size(STATE, size_t size) {
     if(stack_cushion_ > size) {
       Exception::raise_runtime_error(state, "requested stack size is invalid");
     }
-  }
-
-  bool VM::push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame) {
-    if(!check_stack(state, frame)) return false;
-
-    previous_frame = call_frame_;
-    frame->previous = call_frame_;
-    call_frame_ = frame;
-
-    return true;
   }
 
   bool VM::check_thread_raise_or_kill(STATE) {
@@ -172,7 +162,7 @@ namespace rubinius {
 
       // Only write the locations if there are none.
       if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
-        exc->locations(this, Location::from_call_stack(state));
+        exc->locations(state, Location::from_call_stack(state));
       }
 
       thread_state_.raise_exception(exc);
@@ -385,16 +375,6 @@ namespace rubinius {
     state->shared().env()->after_fork_child(state);
   }
 
-  void VM::set_const(const char* name, Object* val) {
-    State state(this);
-    globals().object->set_const(&state, (char*)name, val);
-  }
-
-  void VM::set_const(Module* mod, const char* name, Object* val) {
-    State state(this);
-    mod->set_const(&state, (char*)name, val);
-  }
-
   Object* VM::path2class(const char* path) {
     State state(this);
     Module* mod = shared.globals.object.get();
@@ -424,10 +404,6 @@ namespace rubinius {
     }
   }
 
-  void VM::print_backtrace() {
-    abort();
-  }
-
   bool VM::wakeup(STATE) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
@@ -444,31 +420,19 @@ namespace rubinius {
       pthread_kill(os_thread_, SIGVTALRM);
 #endif
       interrupt_lock_.unlock();
-      // Wakeup any locks hanging around with contention
-      // TODO: MemoryHeader
-      // memory()->release_contention(state);
       return true;
     } else if(!wait->nil_p()) {
-      // We shouldn't hold the VM lock and the IH lock at the same time,
-      // other threads can grab them and deadlock.
-      // TODO: MemoryHeader
-      // InflatedHeader* ih = wait->inflated_header(state);
-      // interrupt_lock_.unlock();
-      // ih->wakeup(state, wait);
+      interrupt_lock_.unlock();
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
-        // TODO: MemoryHeader
-        // memory()->release_contention(state);
         chan->send(state, cNil);
         return true;
       } else if(custom_wakeup_) {
         interrupt_lock_.unlock();
-        // TODO: MemoryHeader
-        // memory()->release_contention(state);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }
@@ -487,32 +451,26 @@ namespace rubinius {
     custom_wakeup_data_ = 0;
   }
 
-  void VM::wait_on_channel(Channel* chan) {
+  void VM::wait_on_channel(STATE, Channel* chan) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
-    thread()->sleep(this, cTrue);
+    thread()->sleep(state, cTrue);
     waiting_channel_.set(chan);
   }
 
-  void VM::wait_on_inflated_lock(Object* wait) {
-    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
-
-    waiting_object_.set(wait);
-  }
-
-  void VM::wait_on_custom_function(void (*func)(void*), void* data) {
+  void VM::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
     utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
 
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
   }
 
-  void VM::set_sleeping() {
-    thread()->sleep(this, cTrue);
+  void VM::set_sleeping(STATE) {
+    thread()->sleep(state, cTrue);
   }
 
-  void VM::clear_sleeping() {
-    thread()->sleep(this, cFalse);
+  void VM::clear_sleeping(STATE) {
+    thread()->sleep(state, cFalse);
   }
 
   void VM::reset_parked() {
@@ -535,11 +493,149 @@ namespace rubinius {
     return variable_root_buffers();
   }
 
-  void VM::gc_scan(memory::GarbageCollector* gc) {
-    gc->walk_call_frame(call_frame_);
+  void VM::visit_objects(STATE, std::function<void (STATE, Object**)> f) {
+    CallFrame* frame = call_frame_;
+
+    while(frame) {
+      f(state, reinterpret_cast<Object**>(&frame->lexical_scope_));
+      f(state, reinterpret_cast<Object**>(&frame->compiled_code));
+
+      if(frame->compiled_code) {
+        native_int stack_size = frame->compiled_code->stack_size()->to_native();
+        for(native_int i = 0; i < stack_size; i++) {
+          f(state, &frame->stk[i]);
+        }
+      }
+
+      f(state, reinterpret_cast<Object**>(&frame->top_scope_));
+
+      BlockEnvironment* be = frame->block_env();
+      f(state, reinterpret_cast<Object**>(&be));
+      frame->set_block_env(be);
+
+      Arguments* args = frame->arguments;
+
+      if(!frame->inline_method_p() && args) {
+        Object* recv = args->recv();
+        f(state, &recv);
+        args->set_recv(recv);
+
+        Object* block = args->block();
+        f(state, &block);
+        args->set_block(block);
+
+        if(Tuple* tup = args->argument_container()) {
+          f(state, reinterpret_cast<Object**>(&tup));
+          args->update_argument_container(tup);
+        } else {
+          Object** ary = args->arguments();
+          for(uint32_t i = 0; i < args->total(); i++) {
+            f(state, &ary[i]);
+          }
+        }
+      }
+
+      if(frame->scope && frame->compiled_code) {
+        StackVariables* scope = frame->scope;
+
+        f(state, reinterpret_cast<Object**>(&scope->self_));
+        f(state, reinterpret_cast<Object**>(&scope->block_));
+        f(state, reinterpret_cast<Object**>(&scope->module_));
+
+        int locals = frame->compiled_code->machine_code()->number_of_locals;
+        for(int i = 0; i < locals; i++) {
+          Object* local = scope->get_local(i);
+          f(state, &local);
+          scope->set_local(i, local);
+        }
+
+        f(state, reinterpret_cast<Object**>(&scope->last_match_));
+        f(state, reinterpret_cast<Object**>(&scope->parent_));
+        f(state, reinterpret_cast<Object**>(&scope->on_heap_));
+      }
+
+      frame = frame->previous;
+    }
+  }
+
+  void VM::gc_scan(STATE, std::function<void (STATE, Object**)> f) {
+    metrics()->checkpoints = checkpoints_;
+    metrics()->stops = stops_;
+
+    thca_->collect(state);
+
+    CallFrame* frame = call_frame_;
+
+    while(frame) {
+      f(state, reinterpret_cast<Object**>(&frame->lexical_scope_));
+
+      f(state, reinterpret_cast<Object**>(&frame->compiled_code));
+
+      if(frame->compiled_code) {
+        native_int stack_size = frame->compiled_code->stack_size()->to_native();
+        for(native_int i = 0; i < stack_size; i++) {
+          f(state, &frame->stk[i]);
+        }
+      }
+
+      if(frame->multiple_scopes_p() && frame->top_scope_) {
+        f(state, reinterpret_cast<Object**>(&frame->top_scope_));
+      }
+
+      if(BlockEnvironment* env = frame->block_env()) {
+        f(state, reinterpret_cast<Object**>(&env));
+        frame->set_block_env(env);
+      }
+
+      Arguments* args = frame->arguments;
+
+      if(!frame->inline_method_p() && args) {
+        Object* recv = args->recv();
+        f(state, &recv);
+        args->set_recv(recv);
+
+        Object* block = args->block();
+        f(state, &block);
+        args->set_block(block);
+
+        if(Tuple* tup = args->argument_container()) {
+          f(state, reinterpret_cast<Object**>(&tup));
+          args->update_argument_container(tup);
+        } else {
+          Object** ary = args->arguments();
+          for(uint32_t i = 0; i < args->total(); i++) {
+            f(state, &ary[i]);
+          }
+        }
+      }
+
+      if(frame->scope && frame->compiled_code) {
+        // saw_variable_scope(frame, displace(frame->scope, offset));
+        StackVariables* scope = frame->scope;
+
+        f(state, reinterpret_cast<Object**>(&scope->self_));
+        f(state, reinterpret_cast<Object**>(&scope->block_));
+        f(state, reinterpret_cast<Object**>(&scope->module_));
+
+        int locals = frame->compiled_code->machine_code()->number_of_locals;
+        for(int i = 0; i < locals; i++) {
+          Object* local = scope->get_local(i);
+          f(state, &local);
+          scope->set_local(i, local);
+        }
+
+        f(state, reinterpret_cast<Object**>(&scope->last_match_));
+        f(state, reinterpret_cast<Object**>(&scope->parent_));
+        f(state, reinterpret_cast<Object**>(&scope->on_heap_));
+      }
+
+      frame = frame->previous;
+    }
   }
 
   void VM::gc_verify(memory::GarbageCollector* gc) {
+    /* TODO: GC
     gc->verify_call_frame(call_frame_);
+    */
   }
 };

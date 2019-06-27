@@ -61,13 +61,10 @@ namespace rubinius {
     return caches;
   }
 
-  void CallSite::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void CallSite::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    auto_mark(state, obj, f);
 
     CallSite* call_site = as<CallSite>(obj);
-
-    // TODO: pass State into GC!
-    VM* vm = VM::current();
 
     if(Cache* cache = call_site->cache()) {
       // Disable if call site is unstable for caching
@@ -77,7 +74,7 @@ namespace rubinius {
 
         call_site->delete_cache(cache);
 
-        vm->metrics()->inline_cache_disabled++;
+        state->vm()->metrics()->inline_cache_disabled++;
       } else {
         // Campact and possibly reset cache
         Cache* new_cache = cache->compact();
@@ -87,7 +84,7 @@ namespace rubinius {
           call_site->delete_cache(cache);
 
           if(new_cache) {
-            vm->metrics()->inline_cache_count++;
+            state->vm()->metrics()->inline_cache_count++;
           } else {
             call_site->executor(CallSite::dispatch_once);
           }
@@ -104,30 +101,15 @@ namespace rubinius {
       for(int32_t i = 0; i < cache->size(); i++) {
         Cache::Entry* entry = cache->entries(i);
 
-        if(Object* ref = mark.call(entry->receiver_class())) {
-          entry->receiver_class(as<Class>(ref));
-          mark.just_set(call_site, ref);
-        }
+        f(state, entry->p_receiver_class());
+        f(state, entry->p_prediction());
+        f(state, entry->p_module());
+        f(state, entry->p_executable());
 
-        if(Object* ref = mark.call(entry->prediction())) {
-          entry->prediction(as<Prediction>(ref));
-          mark.just_set(call_site, ref);
-        }
-
-        if(Object* ref = mark.call(entry->module())) {
-          entry->module(as<Module>(ref));
-          mark.just_set(call_site, ref);
-        }
-
-        if(Object* ref = mark.call(entry->executable())) {
-          entry->executable(as<Executable>(ref));
-          mark.just_set(call_site, ref);
-        }
-
-        if(vm->shared.profiler()->collecting_p()) {
+        if(state->vm()->shared.profiler()->collecting_p()) {
           if(CompiledCode* code = try_as<CompiledCode>(entry->executable())) {
-            if(code->machine_code()->sample_count > vm->shared.profiler()->sample_min()) {
-              vm->shared.profiler()->add_entry(call_site->serial(), call_site->ip(),
+            if(code->machine_code()->sample_count > state->vm()->shared.profiler()->sample_min()) {
+              state->vm()->shared.profiler()->add_entry(call_site->serial(), call_site->ip(),
                   code->machine_code()->serial(), entry->hits(),
                   entry->receiver_class()->name(), entry->module()->name());
             }
@@ -138,5 +120,20 @@ namespace rubinius {
 
     // Clear dead list
     call_site->clear_dead_list();
+  }
+
+  void CallSite::Info::before_visit(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    CallSite* call_site = as<CallSite>(obj);
+
+    if(Cache* cache = call_site->cache()) {
+      for(int32_t i = 0; i < cache->size(); i++) {
+        Cache::Entry* entry = cache->entries(i);
+
+        f(state, entry->p_receiver_class());
+        f(state, entry->p_prediction());
+        f(state, entry->p_module());
+        f(state, entry->p_executable());
+      }
+    }
   }
 }

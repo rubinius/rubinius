@@ -70,7 +70,7 @@ namespace rubinius {
     }
     inliners()->inliners().push_back(code);
 
-    om->write_barrier(this, code);
+    write_barrier(state, code);
   }
 
   void Executable::clear_inliners(STATE) {
@@ -85,13 +85,13 @@ namespace rubinius {
     inliners()->inliners().clear();
   }
 
-  void Executable::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void Executable::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    auto_mark(state, obj, f);
     // TODO: JIT inliners
     // mark_inliners(obj, mark);
   }
 
-  void Executable::Info::mark_inliners(Object* obj, memory::ObjectMark& mark) {
+  void Executable::Info::mark_inliners(STATE, Object* obj, std::function<Object* (STATE, Object*, Object*)> f) {
     Executable* exc = static_cast<Executable*>(obj);
     if(!exc->inliners() || exc->inliners() == (Inliners*)cNil) return;
 
@@ -105,9 +105,8 @@ namespace rubinius {
         ++i) {
       CompiledCode* code = *i;
 
-      if(Object* tmp = mark.call(code)) {
+      if(Object* tmp = f(state, obj, code)) {
         *i = static_cast<CompiledCode*>(tmp);
-        mark.just_set(obj, tmp);
       }
     }
   }

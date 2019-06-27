@@ -3,16 +3,15 @@
 
 #include "missing/time.h"
 
-#include "globals.hpp"
-#include "memory/object_mark.hpp"
 #include "memory/managed.hpp"
+#include "memory/root_buffer.hpp"
+#include "memory/thca.hpp"
+#include "memory/variable_buffer.hpp"
+
+#include "globals.hpp"
 #include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
 #include "spinlock.hpp"
-
-#include "memory/variable_buffer.hpp"
-#include "memory/root_buffer.hpp"
-#include "memory/slab.hpp"
 
 #include "shared_state.hpp"
 
@@ -42,7 +41,6 @@ namespace rubinius {
 
   namespace memory {
     class GarbageCollector;
-    class WriteBarrier;
   }
 
   class Assertion;
@@ -96,10 +94,15 @@ namespace rubinius {
     CallFrame* call_frame_;
     ThreadNexus* thread_nexus_;
     Park* park_;
+    memory::THCA* thca_;
 
-    void* stack_start_;
+    int8_t* stack_start_;
+    int8_t* stack_barrier_start_;
+    int8_t* stack_barrier_end_;
+
     size_t stack_size_;
     size_t stack_cushion_;
+    ssize_t stack_probe_;
 
     bool interrupt_with_signal_;
     bool interrupt_by_kill_;
@@ -130,8 +133,11 @@ namespace rubinius {
 
     std::atomic<ThreadNexus::Phase> thread_phase_;
 
-    uint32_t sample_interval_;
-    uint32_t sample_counter_;
+    uint64_t sample_interval_;
+    uint64_t sample_counter_;
+
+    diagnostics::metric checkpoints_;
+    diagnostics::metric stops_;
 
   public:
     /* Data members */
@@ -274,6 +280,11 @@ namespace rubinius {
       return shared.memory();
     }
 
+    Object* allocate_object(STATE, native_int bytes, object_type type) {
+      return thca_->allocate(state, bytes, type);
+    }
+
+
     bool limited_wait_for(std::function<bool ()> f) {
       bool status = false;
 
@@ -289,6 +300,7 @@ namespace rubinius {
     double run_time();
 
     void raise_stack_error(STATE);
+
     void validate_stack_size(STATE, size_t size);
 
     size_t stack_size() {
@@ -296,20 +308,39 @@ namespace rubinius {
     }
 
     void set_stack_bounds(size_t size) {
-      void* stack_address;
+      int8_t stack_address;
 
       stack_size_ = size - stack_cushion_;
       stack_start_ = &stack_address;
+
+      // Determine the direction of the stack
+      set_stack_barrier();
     }
 
-    bool check_stack(STATE, void* stack_address) {
-      ssize_t stack_used =
-        (reinterpret_cast<intptr_t>(stack_start_)
-        - reinterpret_cast<intptr_t>(stack_address));
+    void set_stack_barrier() {
+      int8_t barrier;
 
-      if(stack_used < 0) stack_used = -stack_used;
+      if(stack_start_ - &barrier < 0) {
+        // barrier = reinterpret_cast<int8_t*>(stack_start_ + stack_size_ - 2 * stack_cushion_);
+        stack_probe_ = stack_cushion_ / 2;
+        stack_barrier_start_ = stack_start_ + stack_size_ - 2 * stack_cushion_;
+        stack_barrier_end_ = stack_barrier_start_ + stack_cushion_;
+      } else {
+        // barrier = reinterpret_cast<void*>(ss - stack_size_ + stack_cushion_);
+        stack_probe_ = -(stack_cushion_ / 2);
+        stack_barrier_end_ = stack_start_ - stack_size_ + stack_cushion_;
+        stack_barrier_start_ = stack_barrier_end_ - stack_cushion_;
+      }
+    }
 
-      if(static_cast<size_t>(stack_used) > stack_size_) {
+    bool stack_limit_p(void* address) {
+      int8_t* probe = reinterpret_cast<int8_t*>(address) + stack_probe_;
+
+      return probe > stack_barrier_start_ && probe <= stack_barrier_end_;
+    }
+
+    bool check_stack(STATE, void* address) {
+      if(stack_limit_p(address)) {
         raise_stack_error(state);
         return false;
       }
@@ -317,7 +348,16 @@ namespace rubinius {
       return true;
     }
 
-    bool push_call_frame(STATE, CallFrame* frame, CallFrame*& previous_frame);
+    void set_previous_frame(CallFrame* frame);
+
+    bool push_call_frame(STATE, CallFrame* frame) {
+      if(!check_stack(state, frame)) return false;
+
+      set_previous_frame(frame);
+      call_frame_ = frame;
+
+      return true;
+    }
 
     bool pop_call_frame(STATE, CallFrame* frame) {
       call_frame_ = frame;
@@ -450,7 +490,18 @@ namespace rubinius {
       sample_counter_ = 0;
     }
 
-    void checkpoint(STATE);
+    void checkpoint(STATE) {
+      ++checkpoints_;
+
+      if(thread_nexus_->check_stop(state, this)) {
+        ++stops_;
+      }
+
+      if(sample_counter_++ >= sample_interval_) {
+        sample(state);
+        set_sample_interval();
+      }
+    }
 
     void managed_phase(STATE) {
       thread_nexus_->managed_phase(state, this);
@@ -478,23 +529,17 @@ namespace rubinius {
     Exception* new_exception(Class* cls, const char* msg);
     Object* current_block();
 
-    void set_const(const char* name, Object* val);
-    void set_const(Module* mod, const char* name, Object* val);
-
     Object* path2class(const char* name);
 
-    void print_backtrace();
-
-    void wait_on_channel(Channel* channel);
-    void wait_on_inflated_lock(Object* wait);
-    void wait_on_custom_function(void (*func)(void*), void* data);
+    void wait_on_channel(STATE, Channel* channel);
+    void wait_on_custom_function(STATE, void (*func)(void*), void* data);
     void clear_waiter();
     bool wakeup(STATE);
 
     void reset_parked();
 
-    void set_sleeping();
-    void clear_sleeping();
+    void set_sleeping(STATE);
+    void clear_sleeping(STATE);
 
     void interrupt_with_signal() {
       interrupt_with_signal_ = true;
@@ -503,7 +548,8 @@ namespace rubinius {
     void register_raise(STATE, Exception* exc);
     void register_kill(STATE);
 
-    void gc_scan(memory::GarbageCollector* gc);
+    void visit_objects(STATE, std::function<void (STATE, Object**)> f);
+    void gc_scan(STATE, std::function<void (STATE, Object**)> f);
     void gc_verify(memory::GarbageCollector* gc);
   };
 }

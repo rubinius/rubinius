@@ -52,7 +52,7 @@ namespace rubinius {
 
     Object* retrieve(STATE, LexicalScope* scope) {
       if(serial() == state->shared().global_serial() &&
-         lexical_scope() == scope) {
+         lexical_scope()->equal_p(scope)) {
         return value();
       }
       return NULL;
@@ -60,8 +60,8 @@ namespace rubinius {
 
     Object* retrieve(STATE, Module* mod, LexicalScope* scope) {
       if(serial() == state->shared().global_serial() &&
-         lexical_scope() == scope &&
-         module() == mod) {
+         lexical_scope()->equal_p(scope) &&
+         module()->equal_p(mod)) {
         return value();
       }
       return NULL;

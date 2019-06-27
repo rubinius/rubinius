@@ -1,4 +1,8 @@
 class NilClass
+  alias_method :eql?, :equal?
+  alias_method :==,  :equal?
+  alias_method :===, :equal?
+
   def &(other)
     false
   end
@@ -15,10 +19,6 @@ class NilClass
 
   def inspect
     "nil"
-  end
-
-  def nil?
-    true
   end
 
   def to_a

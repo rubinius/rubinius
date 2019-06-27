@@ -23,6 +23,7 @@ def core_clean
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
            "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*.*",
            "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/Makefile",
+           "#{BUILD_CONFIG[:bootstrap_gems_dir]}/**/.RUBYARCHDIR.*",
           ],
     :verbose => $verbose
 end

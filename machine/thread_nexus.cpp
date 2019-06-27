@@ -6,6 +6,7 @@
 
 #include "class/thread.hpp"
 
+#include "memory/collector.hpp"
 #include "memory/managed.hpp"
 
 #include "util/atomic.hpp"
@@ -41,7 +42,12 @@ namespace rubinius {
       halting_mutex_.lock();
     }
 
-    lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
+    if(can_stop_p(state, vm)) {
+      lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
+    } else {
+      // We already own the lock
+      vm->set_thread_phase(eManaged);
+    }
   }
 
 
@@ -58,7 +64,7 @@ namespace rubinius {
   }
 
   void ThreadNexus::waiting_phase(STATE, VM* vm) {
-    if(lock_ == vm->thread_id()) {
+    if(!can_stop_p(state, vm)) {
       std::ostringstream msg;
 
       msg << "waiting while holding process-critical lock: id: "
@@ -75,8 +81,12 @@ namespace rubinius {
     vm->set_thread_phase(eManaged);
   }
 
+  bool ThreadNexus::can_stop_p(STATE, VM* vm) {
+    return lock_ != vm->thread_id();
+  }
+
   void ThreadNexus::unlock(STATE, VM* vm) {
-    if(lock_ != vm->thread_id()) {
+    if(can_stop_p(state, vm)) {
       std::ostringstream msg;
 
       msg << "process-critical lock being unlocked by the wrong Thread: id: "
@@ -220,18 +230,19 @@ namespace rubinius {
     }
   }
 
-  void ThreadNexus::each_thread(STATE, std::function<void (STATE, VM* vm)> process) {
-    LockWaiting<std::mutex> guard(state, threads_mutex_);
+  void ThreadNexus::each_thread(std::function<void (VM* vm)> process) {
+    std::lock_guard<std::mutex> guard(threads_mutex_);
+    // LockWaiting<std::mutex> guard(state, threads_mutex_);
 
     for(auto vm : threads_) {
-      process(state, reinterpret_cast<VM*>(vm));
+      process(reinterpret_cast<VM*>(vm));
     }
   }
 
   bool ThreadNexus::valid_thread_p(STATE, unsigned int thread_id) {
     bool valid = false;
 
-    each_thread(state, [thread_id, &valid](STATE, VM* vm) {
+    each_thread([&](VM* vm) {
         if(thread_id == vm->thread_id()) valid = true;
       });
 
@@ -294,16 +305,9 @@ namespace rubinius {
     uint64_t limit = 0;
 
     while(!try_lock(vm)) {
-      if(lock_ == vm->thread_id()) {
-        std::ostringstream msg;
-
-        msg << "yielding while holding process-critical lock: id: "
-            << vm->thread_id();
-
-        Exception::raise_assertion_error(state, msg.str().c_str());
+      if(state->shared().memory()->collector()->collect_requested_p()) {
+        yield(state, vm);
       }
-
-      yield(state, vm);
 
       limit += wait();
 

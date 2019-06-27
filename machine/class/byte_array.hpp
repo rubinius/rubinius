@@ -20,6 +20,7 @@ namespace rubinius {
 
     static ByteArray* create(STATE, native_int bytes);
     static ByteArray* create_pinned(STATE, native_int bytes);
+    static ByteArray* copy_pinned(STATE, ByteArray* ba);
 
     template <typename Any>
       static ByteArray* from_body(Any obj) {
@@ -80,8 +81,8 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* t, memory::ObjectMark& mark);
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
+      virtual void mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
       virtual size_t object_size(const ObjectHeader* object);
     };
 

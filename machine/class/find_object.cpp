@@ -2,6 +2,11 @@
 // because it uses a whole bunch of local classes and it's cleaner to have
 // all that be in it's own file.
 
+#include "object_utils.hpp"
+#include "memory.hpp"
+#include "on_stack.hpp"
+#include "thread_phase.hpp"
+
 #include "class/array.hpp"
 #include "class/class.hpp"
 #include "class/exception.hpp"
@@ -10,13 +15,9 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 #include "class/system.hpp"
+
 #include "memory/collector.hpp"
-#include "memory/gc.hpp"
-#include "memory/walker.hpp"
-#include "memory.hpp"
-#include "object_utils.hpp"
-#include "on_stack.hpp"
-#include "thread_phase.hpp"
+#include "memory/visitor.hpp"
 
 namespace rubinius {
   class QueryCondition {
@@ -176,21 +177,21 @@ namespace rubinius {
 
       for(native_int i = 0; i < tmp_->size(); i++) {
         if(Symbol* sym = try_as<Symbol>(tmp_->get(state, i))) {
-          if(obj->get_ivar(state, sym) == target_) return true;
+          if(obj->get_ivar(state, sym)->equal_p(target_)) return true;
         }
       }
 
       // Check a tuples body.
       if(Tuple* tup = try_as<Tuple>(obj)) {
         for(native_int i = 0; i < tup->num_fields(); i++) {
-          if(tup->at(i) == target_) return true;
+          if(tup->at(i)->equal_p(target_)) return true;
         }
       }
 
       // Check a VariableScope's locals
       if(VariableScope* vs = try_as<VariableScope>(obj)) {
         for(int i = 0; i < vs->number_of_locals(); i++) {
-          if(vs->get_local(state, i) == target_) return true;
+          if(vs->get_local(state, i)->equal_p(target_)) return true;
         }
       }
 
@@ -266,13 +267,14 @@ namespace rubinius {
 
     int total = 0;
 
+    Object* ret = cNil;
+
     QueryCondition* condition = create_condition(state, arg);
     if(!condition) return Fixnum::from(0);
 
-    Object* ret = cNil;
-
     // Special case for looking for an immediate
     if(Object* obj = condition->immediate()) {
+
       if(Symbol* sym = try_as<Symbol>(obj)) {
         // Check whether this is actually a valid symbol, not
         // some random non existing symbol.
@@ -296,46 +298,31 @@ namespace rubinius {
       return Fixnum::from(1);
     }
 
-    OnStack<2> os(state, ary, args);
-
-    memory::ObjectWalker walker(state->memory());
-    memory::GCData gc_data(state->vm());
-
     {
       StopPhase locked(state);
-      // Seed it with the root objects.
-      walker.seed(gc_data);
-    }
 
-    Object* obj = walker.next();
+      memory::MemoryVisitor visitor(state);
 
-    while(obj) {
-      if(condition->perform(state, obj)) {
-        total++;
+      if(ary->nil_p()) {
+        visitor.visit_heap(state,
+          [&](STATE, Object** obj) mutable {
+            if(ret && condition->perform(state, *obj)) {
+              total++;
 
-        if(!ary->nil_p()) {
-          ary->append(state, obj);
-        } else {
-          // We call back into Ruby land here, so that might trigger a GC
-          // This ensures we mark all the locations of the current search
-          // queue for the walker, so we update these object references
-          // properly.
-          Object** stack_buf = walker.stack_buf();
-          size_t stack_size  = walker.stack_size();
+              args->set(state, 0, *obj);
+              ret = callable->send(state, G(sym_call), args, cNil, false);
+            }
+          });
+      } else {
+        visitor.visit_heap(state,
+          [&](STATE, Object** obj) mutable {
+            if(condition->perform(state, *obj)) {
+              total++;
 
-          Object** variable_buffer[stack_size];
-          for(size_t i = 0; i < stack_size; ++i) {
-            variable_buffer[i] = &stack_buf[i];
-          }
-          memory::VariableRootBuffer vrb(state->vm()->current_root_buffers(),
-                                 variable_buffer, stack_size);
-          args->set(state, 0, obj);
-          ret = callable->send(state, G(sym_call), args, cNil, false);
-          if(!ret) break;
-        }
+              ary->append(state, *obj);
+            }
+          });
       }
-
-      obj = walker.next();
     }
 
     delete condition;

@@ -1,12 +1,9 @@
-
 #include "type_info.hpp"
 #include "memory.hpp"
 #include "includes.hpp"
 #include "class/fixnum.hpp"
 #include "class/symbol.hpp"
 #include "field_offset.hpp"
-
-#include "memory/gc.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -18,13 +15,8 @@ namespace rubinius {
     auto_init(om);
   }
 
-  void TypeInfo::set_state(STATE) {
-    state_ = state->vm();
-  }
-
   TypeInfo::TypeInfo(object_type type)
-    : state_(NULL)
-    , instance_size(sizeof(Object))
+    : instance_size(sizeof(Object))
     , slots()
     , type_name()
     , type(type)
@@ -44,8 +36,8 @@ namespace rubinius {
   /* By default, just call auto_mark(). This exists so that
    * other types can overload this to perform work before or
    * after auto_marking is done. */
-  void TypeInfo::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void TypeInfo::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    auto_mark(state, obj, f);
   }
 
   void TypeInfo::class_info(STATE, const Object* self, bool newline) {
@@ -95,6 +87,7 @@ namespace rubinius {
   extern "C" {
     /* A wrapper because gdb can't do virtual dispatch. */
     void __show__(Object* obj) {
+      /* TODO: GC
       rubinius::State state(rubinius::VM::current());
 
       if(obj->reference_p()) {
@@ -109,10 +102,12 @@ namespace rubinius {
       } else {
         obj->show(&state);
       }
+      */
     }
 
     /* Similar to __show__ but only outputs #<SomeClass:0x2428999> */
     void __show_simple__(Object* obj) {
+      /* TODO: GC
       rubinius::State state(rubinius::VM::current());
 
       if(obj->reference_p()) {
@@ -127,6 +122,7 @@ namespace rubinius {
       } else {
         obj->show_simple(&state);
       }
+      */
     }
   }
 }

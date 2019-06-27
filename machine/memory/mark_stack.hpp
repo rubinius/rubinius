@@ -9,113 +9,41 @@
 namespace rubinius {
   class Object;
 
-namespace memory {
-#ifdef RBX_GC_STACK_CHECK
-  class MarkStackEntry {
-    void* parent_;
-    Object* child_;
+  namespace memory {
+    typedef Object* MarkStackEntry;
 
-  public:
-    MarkStackEntry(void* parent, Object* child)
-      : parent_(parent)
-      , child_(child)
-    {
-    }
+    class MarkStack {
+      typedef std::vector<MarkStackEntry> Stack;
 
-    ~MarkStackEntry() { }
+      Stack stack_;
 
-    void* parent() {
-      return parent_;
-    }
-
-    Object* child() {
-      return child_;
-    }
-  };
-
-  class MarkStack {
-    typedef std::vector<MarkStackEntry> Stack;
-
-    Stack stack_;
-
-    Stack::size_type index_;
-
-  public:
-    MarkStack()
-      : stack_()
-      , index_(0)
-    {
-    }
-
-    ~MarkStack() {
-      finish();
-    }
-
-    void add(void* parent, Object* child) {
-      stack_.push_back(MarkStackEntry(parent, child));
-    }
-
-    bool empty() {
-      return index_ >= stack_.size();
-    }
-
-    MarkStackEntry& get() {
-      return stack_.at(index_++);
-    }
-
-    void finish() {
-      stack_.erase(stack_.begin(), stack_.end());
-      index_ = 0;
-    }
-
-    void find(void* obj) {
-      for(auto i = stack_.begin(); i != stack_.end(); ++i) {
-        MarkStackEntry& entry = *i;
-
-        if(entry.child() == obj) {
-          std::cerr << "obj: " << obj << " child of parent: " << entry.parent() << std::endl;
-        } else if(entry.parent() == obj) {
-          std::cerr << "obj: " << obj << " parent of child: " << entry.child() << std::endl;
-        }
+    public:
+      MarkStack()
+        : stack_()
+      {
       }
-    }
-  };
-#else
-  typedef Object* MarkStackEntry;
 
-  class MarkStack {
-    typedef std::vector<MarkStackEntry> Stack;
+      ~MarkStack() { }
 
-    Stack stack_;
+      void add(void* parent, Object* child) {
+        stack_.push_back(child);
+      }
 
-  public:
-    MarkStack()
-      : stack_()
-    {
-    }
+      size_t size() const {
+        return stack_.size();
+      }
 
-    ~MarkStack() { }
+      bool empty() {
+        return stack_.empty();
+      }
 
-    void add(void* parent, Object* child) {
-      stack_.push_back(child);
-    }
+      MarkStackEntry get() {
+        MarkStackEntry entry = stack_.back();
+        stack_.pop_back();
 
-    bool empty() {
-      return stack_.empty();
-    }
-
-    MarkStackEntry get() {
-      MarkStackEntry entry = stack_.back();
-      stack_.pop_back();
-
-      return entry;
-    }
-
-    void finish() {
-      // Do nothing
-    }
-  };
-#endif  // RBX_GC_STACK_CHECK
-};
-};
+        return entry;
+      }
+    };
+  }
+}
 #endif

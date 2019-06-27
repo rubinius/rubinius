@@ -12,11 +12,9 @@ namespace rubinius {
 
       (void)stack_pop();
 
-      call_frame->return_value = call_site->execute(state, args);
+      Object* value = call_site->execute(state, args);
 
-      state->vm()->checkpoint(state);
-
-      CHECK_AND_PUSH(call_frame->return_value);
+      CHECK_AND_PUSH(value);
     }
   }
 }

@@ -1,15 +1,16 @@
 #ifndef RBX_EXCEPTION_HPP
 #define RBX_EXCEPTION_HPP
 
-#include <string>
-#include <stdlib.h>
-#include <string.h>
-
 #include "object_types.hpp"
 #include "defines.hpp"
 #include "class/object.hpp"
 
 #include "bug.hpp"
+
+#include <functional>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
 
 namespace rubinius {
   class Exception;
@@ -29,7 +30,7 @@ namespace rubinius {
    *
    *  throw Assertion(type, obj, reason);
    */
-  class VMException {
+  class MachineException {
   public:   /* Instance vars */
 
     typedef std::vector<std::string> Backtrace;
@@ -39,15 +40,15 @@ namespace rubinius {
 
   public:   /* Ctors */
 
-    VMException(bool make_backtrace = true);
-    VMException(const char* reason, bool make_backtrace = true);
-    ~VMException() {
+    MachineException(bool make_backtrace = true);
+    MachineException(const char* reason, bool make_backtrace = true);
+    ~MachineException() {
       if(backtrace) delete backtrace;
       if(reason) free(reason);
     }
-    VMException(const VMException&);
+    MachineException(const MachineException&);
 
-  public:   /* Interface */
+    static void guard(STATE, bool exit, std::function<void ()> f);
 
     void print_backtrace();
   };
@@ -59,13 +60,15 @@ namespace rubinius {
    *
    *   Exception::assertion_error(state, reason);
    */
-  class Assertion : public VMException {
+  class Assertion : public MachineException {
   public:   /* Ctors */
 
     /**
      *  Use Assertion::raise to throw an Assertion exception.
      */
-    Assertion(const char* reason) : VMException(reason) { }
+    Assertion(const char* reason)
+      : MachineException(reason)
+    { }
 
   public:   /* Interface */
 
@@ -75,7 +78,7 @@ namespace rubinius {
     NORETURN(static void raise(const char* reason));
   };
 
-  class TypeError : public VMException {
+  class TypeError : public MachineException {
   public:   /* Instance vars */
 
     object_type type;
@@ -84,7 +87,8 @@ namespace rubinius {
   public:   /* Ctors */
 
     TypeError(object_type type, Object* obj, const char* reason = NULL)
-      : VMException(reason), type(type), object(obj) { }
+      : MachineException(reason), type(type), object(obj)
+    { }
 
   public:   /* Interface */
 
@@ -97,14 +101,16 @@ namespace rubinius {
    * of using this exception directly, use the appropriate static
    * method on the builtin class Exception.
    */
-  class RubyException : public VMException {
+  class RubyException : public MachineException {
   public:   /* Instance vars */
 
     Exception* exception;
 
   public:   /* Ctors */
 
-    RubyException(Exception* exception, bool make_backtrace);
+    RubyException(Exception* exception, bool make_backtrace)
+      : MachineException(make_backtrace), exception(exception)
+    { }
 
   public:   /* Interface */
 

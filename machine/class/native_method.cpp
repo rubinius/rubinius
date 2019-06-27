@@ -530,9 +530,7 @@ namespace rubinius {
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
 
     NativeMethodFrame nmf(env, env->current_native_frame(), nm);
-    CallFrame* previous_frame = nullptr;
     CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
-    call_frame->previous = nullptr;
     call_frame->lexical_scope_ = nullptr;
     call_frame->dispatch_data = (void*)&nmf;
     call_frame->compiled_code = nullptr;
@@ -540,7 +538,6 @@ namespace rubinius {
     call_frame->top_scope_ = nullptr;
     call_frame->scope = nullptr;
     call_frame->arguments = &args;
-    call_frame->return_value = nullptr;
     call_frame->unwind = nullptr;
 
     CallFrame* saved_frame = env->current_call_frame();
@@ -548,7 +545,7 @@ namespace rubinius {
     env->set_current_native_frame(&nmf);
 
     // Register the CallFrame, because we might GC below this.
-    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+    if(!state->vm()->push_call_frame(state, call_frame)) {
       return NULL;
     }
 
@@ -581,7 +578,7 @@ namespace rubinius {
     } catch(const RubyException& exc) {
       LEAVE_CAPI(state);
 
-      state->vm()->pop_call_frame(state, previous_frame);
+      state->vm()->pop_call_frame(state, call_frame->previous);
       env->set_current_call_frame(saved_frame);
       env->set_current_native_frame(nmf.previous());
       ep.pop(env);
@@ -591,7 +588,7 @@ namespace rubinius {
 
     LEAVE_CAPI(state);
 
-    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+    if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
       value = NULL;
     }
 

@@ -9,8 +9,6 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 
-#include "memory/gc.hpp"
-
 namespace rubinius {
   void VariableScope::bootstrap(STATE) {
     GO(variable_scope).set(state->memory()->new_class<Class, VariableScope>(
@@ -187,8 +185,8 @@ namespace rubinius {
     }
   }
 
-  void VariableScope::Info::mark(Object* obj, memory::ObjectMark& mark) {
-    auto_mark(obj, mark);
+  void VariableScope::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    auto_mark(state, obj, f);
 
     VariableScope* vs = as<VariableScope>(obj);
 
@@ -198,9 +196,23 @@ namespace rubinius {
       size_t locals = vs->number_of_locals();
 
       for(size_t i = 0; i < locals; i++) {
-        if(Object* tmp = mark.call(ary[i])) {
-          ary[i] = tmp;
-        }
+        f(state, &ary[i]);
+      }
+    }
+  }
+
+  void VariableScope::Info::before_visit(STATE, Object* obj,
+      std::function<void (STATE, Object**)> f)
+  {
+    VariableScope* vs = as<VariableScope>(obj);
+
+    if(!vs->isolated_p()) {
+      Object** ary = vs->locals();
+
+      size_t locals = vs->number_of_locals();
+
+      for(size_t i = 0; i < locals; i++) {
+        f(state, &ary[i]);
       }
     }
   }

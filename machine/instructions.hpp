@@ -77,6 +77,7 @@ namespace rubinius {
 #define CF        CallFrame* call_frame
 #define COUNT     const intptr_t count
 #define LITERAL   const intptr_t literal
+#define RVALUE    const intptr_t rvalue
 #define LOCAL     const intptr_t local
 #define DEPTH     const intptr_t depth
 #define INDEX     const intptr_t index
@@ -103,6 +104,8 @@ namespace rubinius {
     inline intptr_t ensure_return(STATE, CF);
     inline bool find_const(STATE, CF, LITERAL);
     inline void goto_(CF);
+    inline void goto_past(STATE, CF);
+    inline void goto_future(CF);
     inline bool goto_if_equal(CF);
     inline bool goto_if_false(CF);
     inline bool goto_if_nil(CF);
@@ -141,6 +144,7 @@ namespace rubinius {
     inline void push_my_field(STATE, CF, INDEX);
     inline void push_my_offset(CF, INDEX);
     inline void push_nil(CF);
+    inline void push_tagged_nil(CF, intptr_t nil);
     inline bool push_proc(STATE, CF);
     inline void push_rubinius(STATE, CF);
     inline void push_scope(CF);
@@ -184,6 +188,11 @@ namespace rubinius {
     inline bool yield_stack(STATE, CF, COUNT);
     inline bool zsuper(STATE, CF, LITERAL);
     inline void push_file(STATE, CF);
+
+    // Function instructions
+    inline bool call_send(STATE, CF, LITERAL, COUNT);
+    inline bool call(STATE, CF, LITERAL, COUNT);
+    inline bool call_0(STATE, CF, LITERAL);
 
     // PEG instructions
     inline bool p_any(STATE, CF, const intptr_t n);
@@ -231,6 +240,11 @@ namespace rubinius {
     inline void r_load_literal(CF, R0, LITERAL);
     inline void r_load_int(STATE, CF, R0, R1);
     inline void r_store_int(CF, R0, R1);
+    inline void r_load_0(CF, R0);
+    inline void r_load_1(CF, R0);
+    inline void r_load_nil(CF, R0, RVALUE);
+    inline void r_load_false(CF, R0);
+    inline void r_load_true(STATE, CF, R0);
     inline void r_copy(CF, R0, R1);
 
     // Native signed integer instructions

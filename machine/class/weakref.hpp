@@ -45,8 +45,8 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
-      virtual void auto_mark(Object* obj, memory::ObjectMark& mark) {}
-      virtual void mark_weakref(Object* obj, memory::ObjectMark& mark);
+      virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {}
+      virtual void update_weakref(STATE, Object* obj);
     };
   };
 }

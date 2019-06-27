@@ -509,8 +509,6 @@ namespace rubinius {
     snprintf(buf, sz, "%+.17e", value());
   }
 
-  void Float::Info::mark(Object* t, memory::ObjectMark& mark) { }
-
   void Float::Info::show(STATE, Object* self, int level) {
     Float* f = as<Float>(self);
     std::cout << f->value() << std::endl;

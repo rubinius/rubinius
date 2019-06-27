@@ -543,18 +543,11 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
 
     cpp.fields.each do |name, type, idx|
       str << <<-EOF
-  {
-    if(target->#{name}()->reference_p()) {
-      Object* old = target->#{name}();
-      Object* cur = mark.call(old);
-      if(cur && cur != old) target->#{name}(mark.vm(), force_as<#{type}>(cur));
-    }
-  }
-
+  f(state, obj->p_#{name}());
       EOF
     end
 
-    return str
+    str
   end
 
   def generate_visits(cpp)
@@ -564,12 +557,11 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
 
     cpp.fields.each do |name, type, idx|
       str << <<-EOF
-    visit.call(target->#{name}());
+  f(state, obj->p_#{name}());
       EOF
     end
 
-    return str
-
+    str
   end
 
   def generate_mark
@@ -578,10 +570,31 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
     str = ''
 
     str << <<-EOF unless marks.empty?
-void #{@name}::Info::auto_mark(Object* _t, memory::ObjectMark& mark) {
-  #{@name}* target = as<#{@name}>(_t);
+void #{@name}::Info::auto_mark(STATE, Object* object, std::function<void (STATE, Object**)> f) {
+  #{@name}* obj = as<#{@name}>(object);
 
 #{marks}
+}
+
+    EOF
+
+    str
+  end
+
+  def generate_visit
+    visits = generate_visits(self).rstrip
+
+    str = ''
+
+    str << <<-EOF unless visits.empty?
+void #{@name}::Info::visit(STATE, Object* object, std::function<void (STATE, Object**)> f) {
+  #{@name}* obj = as<#{@name}>(object);
+
+  before_visit(state, object, f);
+
+#{visits}
+
+  after_visit(state, object, f);
 }
 
     EOF
@@ -907,7 +920,6 @@ write_if_new "machine/typechecks.hpp" do |f|
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo* ti = state->vm()->find_type(#{n}::type);"
-    f.puts "    ti->set_state(state);"
 
     fields = cpp.all_fields
     f.puts "    ti->slot_accessors.resize(#{fields.size});\n"
@@ -947,6 +959,7 @@ write_if_new "machine/typechecks.hpp" do |f|
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts cpp.generate_typechecks
     f.puts cpp.generate_mark
+    f.puts cpp.generate_visit
   end
 end
 

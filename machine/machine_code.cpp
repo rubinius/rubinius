@@ -79,6 +79,7 @@ namespace rubinius {
     , _references_count_(0)
     , _references_(nullptr)
     , _serial_(MachineCode::get_serial())
+    , _nil_id_(code->nil_id(state))
     , _name_(code->name()->cpp_str(state))
     , _location_()
     , unspecialized(nullptr)
@@ -187,19 +188,19 @@ namespace rubinius {
 
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
-    state->memory()->write_barrier(code, call_site);
+    code->write_barrier(state, call_site);
     std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache) {
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
-    state->memory()->write_barrier(code, constant_cache);
+    code->write_barrier(state, constant_cache);
     std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
   void MachineCode::store_unwind_site(STATE, CompiledCode* code, int ip, UnwindSite* unwind_site) {
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(unwind_site);
-    state->memory()->write_barrier(code, unwind_site);
+    code->write_barrier(state, unwind_site);
     std::atomic_thread_fence(std::memory_order_acq_rel);
   }
 
@@ -623,12 +624,10 @@ namespace rubinius {
         return NULL;
       }
 
-      CallFrame* previous_frame = nullptr;
       CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
       call_frame->prepare(mcode->stack_size);
 
-      call_frame->previous = nullptr;
       call_frame->lexical_scope_ = code->scope();
       call_frame->dispatch_data = nullptr;
       call_frame->compiled_code = code;
@@ -636,10 +635,9 @@ namespace rubinius {
       call_frame->top_scope_ = nullptr;
       call_frame->scope = scope;
       call_frame->arguments = &args;
-      call_frame->return_value = nullptr;
       call_frame->unwind = nullptr;
 
-      if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+      if(!state->vm()->push_call_frame(state, call_frame)) {
         return NULL;
       }
 
@@ -651,7 +649,7 @@ namespace rubinius {
       value = (*mcode->run)(state, mcode);
       RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
 
-      if(!state->vm()->pop_call_frame(state, previous_frame)) {
+      if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
         return NULL;
       }
 
@@ -677,14 +675,12 @@ namespace rubinius {
     // Thus, we have to cache the value in the StackVariables.
     scope->initialize(G(main), name, cNil, G(object), mcode->number_of_locals);
 
-    CallFrame* previous_frame = 0;
     CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
 
     call_frame->prepare(mcode->stack_size);
 
     Arguments args(name, G(main), cNil, 0, 0);
 
-    call_frame->previous = nullptr;
     call_frame->lexical_scope_ = code->scope();
     call_frame->dispatch_data = nullptr;
     call_frame->compiled_code = code;
@@ -692,10 +688,9 @@ namespace rubinius {
     call_frame->top_scope_ = nullptr;
     call_frame->scope = scope;
     call_frame->arguments = &args;
-    call_frame->return_value = nullptr;
     call_frame->unwind = nullptr;
 
-    if(!state->vm()->push_call_frame(state, call_frame, previous_frame)) {
+    if(!state->vm()->push_call_frame(state, call_frame)) {
       return NULL;
     }
 
@@ -706,7 +701,7 @@ namespace rubinius {
 
     Object* value = (*mcode->run)(state, mcode);
 
-    if(!state->vm()->pop_call_frame(state, previous_frame)) {
+    if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
       return NULL;
     }
 

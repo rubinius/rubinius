@@ -3,7 +3,9 @@
 
 #include "machine_threads.hpp"
 #include "logger.hpp"
+#include "state.hpp"
 
+#include "memory/header.hpp"
 #include "memory/root.hpp"
 
 #include <atomic>
@@ -11,6 +13,7 @@
 #include <functional>
 #include <list>
 #include <mutex>
+#include <unordered_set>
 
 namespace rubinius {
   class VM;
@@ -20,7 +23,7 @@ namespace rubinius {
   struct CallFrame;
 
   namespace memory {
-    class ImmixGC;
+    class MemoryTracer;
 
     typedef void (*FinalizerFunction)(STATE, Object*);
 
@@ -43,7 +46,7 @@ namespace rubinius {
 
       virtual void dispose(STATE) = 0;
       virtual void finalize(STATE) = 0;
-      virtual void mark(ImmixGC* gc) = 0;
+      virtual void mark(STATE, MemoryTracer* tracer) = 0;
       virtual bool match_p(STATE, Object* object, Object* finalizer) = 0;
     };
 
@@ -58,7 +61,7 @@ namespace rubinius {
 
       void dispose(STATE);
       void finalize(STATE);
-      void mark(ImmixGC* gc);
+      void mark(STATE, MemoryTracer* tracer);
       bool match_p(STATE, Object* object, Object* finalizer) { return false; }
     };
 
@@ -73,7 +76,7 @@ namespace rubinius {
 
       void dispose(STATE);
       void finalize(STATE);
-      void mark(ImmixGC* gc);
+      void mark(STATE, MemoryTracer* tracer);
       bool match_p(STATE, Object* object, Object* finalizer) { return false; }
     };
 
@@ -88,11 +91,15 @@ namespace rubinius {
 
       void dispose(STATE);
       void finalize(STATE);
-      void mark(ImmixGC* gc);
+      void mark(STATE, MemoryTracer* tracer);
       bool match_p(STATE, Object* object, Object* finalizer);
     };
 
-    typedef std::list<FinalizerObject*> FinalizerObjects;
+    typedef std::unordered_set<MemoryHeader*> References;
+    typedef std::unordered_set<MemoryHeader*> Weakrefs;
+
+    typedef std::list<MemoryHeader*> MemoryHandles;
+    typedef std::list<FinalizerObject*> Finalizers;
 
     class Collector {
     public:
@@ -122,14 +129,14 @@ namespace rubinius {
       class Worker : public MachineThread {
         Collector* collector_;
 
-        FinalizerObjects& process_list_;
+        Finalizers& process_list_;
 
         std::mutex& list_mutex_;
         std::condition_variable& list_condition_;
 
       public:
         Worker(STATE, Collector* collector,
-            FinalizerObjects& list, std::mutex& lk, std::condition_variable& cond);
+            Finalizers& list, std::mutex& lk, std::condition_variable& cond);
         ~Worker() { }
 
         void initialize(STATE);
@@ -142,8 +149,17 @@ namespace rubinius {
     private:
       Worker* worker_;
 
-      FinalizerObjects live_list_;
-      FinalizerObjects process_list_;
+      Finalizers finalizer_list_;
+      Finalizers process_list_;
+
+      MemoryHandles memory_handles_list_;
+      locks::spinlock_mutex memory_handles_lock_;
+
+      References references_set_;
+      locks::spinlock_mutex references_lock_;
+
+      Weakrefs weakrefs_set_;
+      locks::spinlock_mutex weakrefs_lock_;
 
       std::mutex collector_mutex_;
       std::mutex list_mutex_;
@@ -166,6 +182,42 @@ namespace rubinius {
         return list_condition_;
       }
 
+      MemoryHandles& memory_handles() {
+        return memory_handles_list_;
+      }
+
+      References& references() {
+        return references_set_;
+      }
+
+      Weakrefs& weakrefs() {
+        return weakrefs_set_;
+      }
+
+      void add_memory_handle(MemoryHeader* header) {
+        if(header->reference_p()) {
+          std::lock_guard<locks::spinlock_mutex> guard(memory_handles_lock_);
+
+          memory_handles_list_.push_back(header);
+        }
+      }
+
+      void add_reference(MemoryHeader* header) {
+        if(header->reference_p()) {
+          std::lock_guard<locks::spinlock_mutex> guard(references_lock_);
+
+          references_set_.insert(header);
+        }
+      }
+
+      void add_weakref(MemoryHeader* header) {
+        if(header->reference_p()) {
+          std::lock_guard<locks::spinlock_mutex> guard(weakrefs_lock_);
+
+          weakrefs_set_.insert(header);
+        }
+      }
+
       void finish(STATE);
       void dispose(STATE);
 
@@ -175,7 +227,7 @@ namespace rubinius {
 
       void add_finalizer(STATE, FinalizerObject* obj);
 
-      void gc_scan(ImmixGC* gc, Memory* memory);
+      void trace_finalizers(STATE, MemoryTracer* tracer);
 
       void start(STATE);
       void stop(STATE);
@@ -202,7 +254,7 @@ namespace rubinius {
       }
 
       bool collect_requested_p() {
-        return collect_requested_;
+        return collect_requested_.load(std::memory_order_acquire);
       }
 
       void collect_requested(STATE, const char* reason) {

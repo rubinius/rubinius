@@ -20,9 +20,11 @@
 #include "util/optimize.hpp"
 
 namespace rubinius {
-
+  class Class;
+  class Fixnum;
+  class ObjectHeader;
   class State;
-  class VM;
+  class Symbol;
 
   /** Platform-dependent integer type large enough for pointers too. */
   typedef intptr_t native_int;
@@ -30,11 +32,16 @@ namespace rubinius {
 
   typedef native_int hashval;
 
-
   #define STATE rubinius::State* state
-  #define THREAD memory::ManagedThread* state
   #define G(whatever) state->globals().whatever.get()
   #define GO(whatever) state->globals().whatever
+
+  namespace memory {
+    void write_barrier(STATE, ObjectHeader* object, Fixnum* value);
+    void write_barrier(STATE, ObjectHeader* object, Symbol* value);
+    void write_barrier(STATE, ObjectHeader* object, ObjectHeader* value);
+    void write_barrier(STATE, ObjectHeader* object, Class* value);
+  }
 
 /**
  *  Create a writer method for a slot.
@@ -47,13 +54,16 @@ namespace rubinius {
   private: \
     type* _ ## name ## _; \
   public: \
-    template <class T> \
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
-    void name(T state, type* obj) { \
+    template<typename T> \
+    void name(T* state, type* obj) { \
       _ ## name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
+      memory::write_barrier(state, this, obj); \
+    } \
+    Object** p_ ## name() { \
+      return reinterpret_cast<Object**>(&this->_ ## name ## _); \
     }
 
 /**
@@ -70,6 +80,9 @@ namespace rubinius {
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
+    Object** p_ ## name() { \
+      return reinterpret_cast<Object**>(&this->_ ## name ## _); \
+    }
 
 /**
  *  Ruby-like accessor creation for a slot.
@@ -84,10 +97,13 @@ namespace rubinius {
     void name(type* obj) { \
       _ ## name ## _ = obj; \
     } \
-    template <class T> \
-    void name(T state, type* obj) { \
+    template<typename T> \
+    void name(T* state, type* obj) { \
       _ ## name ## _ = obj; \
-      state->memory()->write_barrier(this, obj); \
+      memory::write_barrier(state, this, obj); \
+    } \
+    Object** p_ ## name() { \
+      return reinterpret_cast<Object**>(&this->_ ## name ## _); \
     }
 
 #define attr_field(name, type) \
@@ -97,7 +113,10 @@ namespace rubinius {
     type name() const { return _ ## name ## _; } \
     void name(type value) { \
       _ ## name ## _ = value; \
-    }
+    } \
+  Object** p_ ## name() { \
+    return reinterpret_cast<Object**>(&this->_ ## name ## _); \
+  }
 }
 
 #if __GNUC__ >= 4
