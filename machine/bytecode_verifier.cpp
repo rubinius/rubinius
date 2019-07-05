@@ -457,10 +457,10 @@ namespace rubinius {
           break;
         case instructions::data_goto_past.id:
           verify_jump_location(state, arg1, insn_ip);
+          // Don't continue because we are jumping back
+          return;
           break;
         case instructions::data_goto_future.id:
-          verify_jump_location(state, arg1, insn_ip);
-          break;
         case instructions::data_goto.id:
           verify_jump_location(state, arg1, insn_ip);
 
