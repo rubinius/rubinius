@@ -99,7 +99,13 @@ Rubinius::ConfigurationVariables.define do |cv|
 
   cv.section "jit" do |s|
     s.vm_variable "enabled", false,
-      "Just-in-time compile managed code to native code"
+      "Just-in-time (JIT) compile managed code to optimized code"
+
+    s.vm_variable "inline", false,
+      "Inline methods and funtions when JIT compiling"
+
+    s.vm_variable "tier", 0,
+      "Set max JIT tier to enable, 0: bytecode, 1: non-inlining, 2: inlining"
   end
 
   cv.section "log" do |s|
@@ -158,6 +164,17 @@ Rubinius::ConfigurationVariables.define do |cv|
       t.vm_variable "filter", /^core\/.*$/,
         "Filter paths matching pattern when logging events"
     end
+
+    s.section "jit" do |j|
+      j.vm_variable "candidate", false,
+        "Log when a function or method is considered for JIT"
+
+      j.vm_variable "compile", false,
+        "Log when a function or method is compiled and installed"
+
+      j.vm_variable "inline", false,
+        "Log when a function or method is inlined"
+    end
   end
 
   cv.section "machine" do |s|
@@ -208,7 +225,7 @@ Rubinius::ConfigurationVariables.define do |cv|
 
   cv.vm_variable "config.print", 0,
     :as => "print_config",
-    :description => "blank or 1 == names and values, 2 == description as well"
+    :description => "blank or 1: names and values, 2: description as well"
 
   cv.vm_variable "serial.debug", false,
     "Print out when the global serial increases"
