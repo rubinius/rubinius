@@ -9,7 +9,7 @@ rake-12.3.0.gem
 rb-readline-0.5.5.gem
 rdoc-5.1.0.gem
 redcard-1.1.0.gem
-rubinius-ast-3.17.gem
+rubinius-ast-3.18.gem
 rubinius-bridge-3.0.gem
 rubinius-code-3.0.gem
 rubinius-compiler-3.36.gem
