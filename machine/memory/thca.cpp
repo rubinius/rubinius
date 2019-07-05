@@ -14,6 +14,8 @@ namespace rubinius {
     bool OpenTHCA::allocate_region(STATE) {
       Object* region = nullptr;
 
+      state->vm()->set_checkpoint();
+
       {
         utilities::thread::SpinLock::LockGuard guard(state->memory()->allocation_lock());
 

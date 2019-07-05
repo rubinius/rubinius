@@ -136,6 +136,8 @@ namespace rubinius {
     uint64_t sample_interval_;
     uint64_t sample_counter_;
 
+    bool checkpoint_;
+
     diagnostics::metric checkpoints_;
     diagnostics::metric stops_;
 
@@ -490,13 +492,21 @@ namespace rubinius {
       sample_counter_ = 0;
     }
 
+    void set_checkpoint() {
+      checkpoint_ = true;
+    }
+
     void checkpoint(STATE) {
+      if(!checkpoint_) return;
+
       ++checkpoints_;
 
       if(thread_nexus_->check_stop(state, this)) {
         ++stops_;
+        checkpoint_ = false;
       }
 
+      // TODO: profiler
       if(sample_counter_++ >= sample_interval_) {
         sample(state);
         set_sample_interval();
