@@ -7,7 +7,6 @@
 #include "memory/root_buffer.hpp"
 
 #include "globals.hpp"
-#include "jit.hpp"
 #include "machine_threads.hpp"
 #include "primitives.hpp"
 #include "spinlock.hpp"
@@ -35,6 +34,10 @@
 namespace rubinius {
   namespace console {
     class Console;
+  }
+
+  namespace jit {
+    class MachineJIT;
   }
 
   namespace memory {
@@ -85,7 +88,7 @@ namespace rubinius {
     MachineThreads* machine_threads_;
     SignalThread* signals_;
     console::Console* console_;
-    jit::JIT* jit_;
+    jit::MachineJIT* jit_;
 
     diagnostics::Diagnostics* diagnostics_;
     diagnostics::BootMetrics* boot_metrics_;
@@ -258,9 +261,9 @@ namespace rubinius {
       return profiler_;
     }
 
-    jit::JIT* start_jit(STATE);
+    jit::MachineJIT* start_jit(STATE);
 
-    jit::JIT* jit() const {
+    jit::MachineJIT* jit() const {
       return jit_;
     }
 

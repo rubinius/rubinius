@@ -4,6 +4,7 @@
 #include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "config.h"
+#include "machine_jit.hpp"
 #include "memory.hpp"
 #include "environment.hpp"
 
@@ -262,10 +263,10 @@ namespace rubinius {
     }
   }
 
-  jit::JIT* SharedState::start_jit(STATE) {
+  jit::MachineJIT* SharedState::start_jit(STATE) {
     if(!jit_) {
       if(config.jit_enabled.value) {
-        jit_ = new jit::JIT(state);
+        jit_ = new jit::MachineJIT(state);
       }
     }
 
