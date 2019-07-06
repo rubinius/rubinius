@@ -57,6 +57,7 @@ public:
     TS_ASSERT_EQUALS(h.pinned_p(), false);
 
     h.header = 0x4000000000000000L;
+    h.header = type_id_field.set(h.header, ByteArrayType);
     TS_ASSERT_EQUALS(h.pinned_p(), true);
 
     h.unset_pinned();

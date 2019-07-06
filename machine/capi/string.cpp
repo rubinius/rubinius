@@ -72,9 +72,7 @@ namespace rubinius {
       RString* rstring = reinterpret_cast<RString*>(data());
 
       ByteArray* byte_array = string->data();
-      if(!byte_array->pinned_p()) {
-        Exception::raise_runtime_error(state, "RString does not have pinned ByteArray");
-      }
+      if(!byte_array->pinned_p()) byte_array->set_pinned();
 
       char* ptr = reinterpret_cast<char*>(byte_array->raw_bytes());
 

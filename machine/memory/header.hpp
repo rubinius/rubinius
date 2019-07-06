@@ -195,7 +195,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int thread_id;        // : 11;
     unsigned int region;           // : 2;
     unsigned int referenced;       // : 4;
-    unsigned int pinned;           // : 1;
     unsigned int weakref;          // : 1;
     unsigned int finalizer;        // : 1;
     unsigned int remembered;       // : 1;
@@ -219,6 +218,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int lock_owner;
     unsigned int object_id;        // : 19;
     unsigned int type_specific;    // : 2;
+
+    // Pinned is a type-specific bit and should only be used by ByteArray
+    unsigned int pinned;           // : 1;
 
     MemoryHeaderBits(const MemoryHeader* header);
   } MemoryHeaderBits;
@@ -1020,7 +1022,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool pinned_p() const {
-      return get(pinned_field);
+      return (type_id() == ByteArrayType) && get(pinned_field);
     }
 
     void set_pinned() {
