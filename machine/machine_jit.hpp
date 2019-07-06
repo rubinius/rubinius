@@ -2,6 +2,8 @@
 #define RBX_MACHINE_JIT_HPP
 
 #include <llvm/Config/llvm-config.h>
+
+#if LLVM_VERSION_MAJOR >= 9
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/JITSymbol.h>
 #include <llvm/ExecutionEngine/Orc/CompileUtils.h>
@@ -18,6 +20,7 @@
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
+#endif
 
 #include "machine_threads.hpp"
 
@@ -29,14 +32,15 @@
 namespace rubinius {
 	namespace jit {
 
-		using namespace llvm;
-    using namespace llvm::orc;
-
     class CompileRequest;
 
     typedef std::list<CompileRequest*> CompileList;
 
 #if LLVM_VERSION_MAJOR >= 9
+
+    using namespace llvm;
+    using namespace llvm::orc;
+
     class Compiler {
 			ExecutionSession ES;
 			RTDyldObjectLinkingLayer ObjectLayer;
