@@ -258,7 +258,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
 
     FileUtils.mkdir_p @tempdir
 
-    # This makes the tempdir consistent on OS X.
+    # This makes the tempdir consistent on macOS.
     # File.expand_path Dir.tmpdir                      #=> "/var/..."
     # Dir.chdir Dir.tmpdir do File.expand_path '.' end #=> "/private/var/..."
     # TODO use File#realpath above instead of #expand_path once 1.8 support is
@@ -572,7 +572,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
 
   def create_tmpdir
     tmpdir = nil
-    Dir.chdir Dir.tmpdir do tmpdir = Dir.pwd end # HACK OSX /private/tmp
+    Dir.chdir Dir.tmpdir do tmpdir = Dir.pwd end # HACK macOS /private/tmp
     tmpdir = File.join tmpdir, "test_rubygems_#{$$}"
     FileUtils.mkdir_p tmpdir
     return tmpdir

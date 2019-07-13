@@ -10,7 +10,7 @@ Daedalus.blueprint do |i|
   # First define all flags that all code needs to be build with.
 
   # -fno-omit-frame-pointer is needed to get a backtrace on FreeBSD.
-  # It is enabled by default on OS X, on the other hand, not on Linux.
+  # It is enabled by default on macOS, on the other hand, not on Linux.
   # To use same build flags across platforms, it is added explicitly.
   gcc.cflags << "-pipe -fPIC -fno-omit-frame-pointer -g"
 

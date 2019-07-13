@@ -79,7 +79,7 @@ tested:
 | PowerPC 64-bit  | AIX              | IBM XL C                |
 | PowerPC         | AMIGA            | GCC                     |
 | PowerPC         | Linux            | GCC                     |
-| PowerPC         | Mac OSX          | GCC                     |
+| PowerPC         | macOS            | GCC                     |
 | PowerPC         | FreeBSD          | GCC                     |
 | PowerPC 64-bit  | FreeBSD          | GCC                     |
 | PowerPC 64-bit  | Linux ELFv1      | GCC                     |
@@ -99,7 +99,7 @@ tested:
 | X86             | Interix          | GCC                     |
 | X86             | kFreeBSD         | GCC                     |
 | X86             | Linux            | GCC                     |
-| X86             | Mac OSX          | GCC                     |
+| X86             | macOS            | GCC                     |
 | X86             | OpenBSD          | GCC                     |
 | X86             | OS/2             | GCC                     |
 | X86             | Solaris          | GCC                     |
@@ -210,7 +210,7 @@ See the git log for details at http://github.com/atgreen/libffi.
 	Build fix for m68000 targets.
 	Build fix for soft-float Power targets.
 	Fix the install dir location for some platforms when building
-	  with GCC (OS X, Solaris).
+	  with GCC (macOS, Solaris).
 	Fix Cygwin regression.
 
 3.0.12 Feb-11-13

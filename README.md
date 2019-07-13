@@ -6,7 +6,7 @@ Rubinius is a modern language platform that supports a number of programming lan
 
 Rubinius includes a bytecode virtual machine, generational garbage collector, and just-in-time (JIT) native machine code compiler. Rubinius provides concurrency support via native OS threads with no global interpreter lock.
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems. Microsoft Windows is not yet supported.
+Rubinius runs on macOS and many Unix/Linux operating systems. Microsoft Windows is not yet supported.
 
 ### Code of Conduct
 

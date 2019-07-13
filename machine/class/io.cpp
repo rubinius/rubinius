@@ -213,7 +213,7 @@ namespace rubinius {
     switch(type->to_native()) {
     case 1: // ip
       // Hack from MRI:
-      // OSX doesn't return a 'from' result from recvfrom for connection-oriented sockets
+      // macOS doesn't return a 'from' result from recvfrom for connection-oriented sockets
       if(alen && alen != sizeof(buf)) {
         ary->set(state, 1, ipaddr(state, (struct sockaddr*)buf, alen));
       } else {

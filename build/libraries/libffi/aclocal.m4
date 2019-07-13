@@ -716,7 +716,7 @@ AC_SUBST([LIBADD_SHL_LOAD])
 
 case $host_os in
 darwin[[1567]].*)
-# We only want this for pre-Mac OS X 10.4.
+# We only want this for pre-macOS 10.4.
   AC_CHECK_FUNC([_dyld_func_lookup],
 	[AC_DEFINE([HAVE_DYLD], [1],
 		   [Define if you have the _dyld_func_lookup function.])

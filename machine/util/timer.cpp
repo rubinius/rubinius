@@ -50,7 +50,7 @@ namespace rubinius {
         ts_.tv_sec = 0;
         ts_.tv_nsec = 1500000;
 
-        // On OS X, fflags can specify the resolute of the timer, but this is
+        // On macOS, fflags can specify the resolute of the timer, but this is
         // not portable, so it is unset (ie 0), which means milliseconds.
         EV_SET(&filter_, 0, EVFILT_TIMER, EV_ADD | EV_ENABLE, 0, 1, &ts_);
 

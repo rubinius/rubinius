@@ -53,7 +53,7 @@
 #define LSYM(x) x
 #endif
 
-/* Use the SOFTFP return value ABI on Mac OS X, as per the iOS ABI
+/* Use the SOFTFP return value ABI on macOS, as per the iOS ABI
   Function Call Guide */
 #ifdef __APPLE__
 #define __SOFTFP__

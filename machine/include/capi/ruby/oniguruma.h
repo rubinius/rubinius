@@ -50,7 +50,7 @@ extern "C" {
 # endif
 #endif
 
-/* escape Mac OS X/Xcode 2.4/gcc 4.0.1 problem */
+/* escape macOS/Xcode 2.4/gcc 4.0.1 problem */
 #if defined(__APPLE__) && defined(__GNUC__) && __GNUC__ >= 4
 # ifndef  HAVE_STDARG_PROTOTYPES
 #  define HAVE_STDARG_PROTOTYPES 1

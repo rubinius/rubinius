@@ -47,7 +47,7 @@
 #define LOG2_GPR_BYTES	MODE_CHOICE(2,3)	/* log2(GPR_BYTES) */
 #define g_long		MODE_CHOICE(long, quad)	/* usage is ".g_long" */
 
-; From the ABI doc: "Mac OS X ABI Function Call Guide" Version 2009-02-04.
+; From the ABI doc: "macOS ABI Function Call Guide" Version 2009-02-04.
 #define LINKAGE_SIZE	MODE_CHOICE(24,48)
 #define PARAM_AREA	MODE_CHOICE(32,64)
 
