@@ -476,7 +476,7 @@ namespace rubinius {
        * descriptor, but will fail if the region is already allocated. So, we
        * make the call and ignore any failure.
        */
-      ftruncate(fd, shm_size_);
+      (void)ftruncate(fd, shm_size_);
 
       if((rotate_shm_ = ::mmap(NULL, shm_size_,
                 PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED)
