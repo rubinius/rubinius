@@ -190,6 +190,10 @@ namespace rubinius {
     void Collector::stop_for_collection(STATE, std::function<void ()> process) {
       logger::info("collector: collection cycle started");
 
+      if(state->shared().config.log_collector_terminal.value) {
+        std::cerr << std::endl << "------------------------- Rubinius garbage collection -------------------------" << std::endl;
+      }
+
       if(state->vm()->thread_nexus()->try_lock_wait(state, state->vm())) {
         state->vm()->metrics()->stops++;
         state->vm()->thread_nexus()->set_stop();

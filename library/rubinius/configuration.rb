@@ -141,6 +141,8 @@ Rubinius::ConfigurationVariables.define do |cv|
         "Log when garbage collector is activated"
       c.vm_variable "run", false,
         "Log when garbage collector runs"
+      c.vm_variable "terminal", false,
+        "Log a separator line to the terminal when garbage collector runs"
     end
 
     s.section "fiber" do |f|
