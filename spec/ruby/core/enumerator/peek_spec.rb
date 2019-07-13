@@ -33,4 +33,19 @@ describe "Enumerator#peek" do
     5.times { @e.next }
     lambda { @e.peek }.should raise_error(StopIteration)
   end
+
+  context "when yielded with multiple arguments" do
+    before do
+      object = Object.new
+      def object.each
+        yield 1, 2
+      end
+      @multiple = object.to_enum
+    end
+
+    it "always returns new array" do
+      @multiple.peek.should == [1, 2]
+      @multiple.peek.should_not equal(@multiple.peek)
+    end
+  end
 end

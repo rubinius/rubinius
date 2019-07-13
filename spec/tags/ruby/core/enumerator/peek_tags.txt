@@ -1,0 +1,1 @@
+fails:Enumerator#peek when yielded with multiple arguments always returns new array
