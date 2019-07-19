@@ -25,7 +25,7 @@
 #define HAS_UCONTEXT
 #endif
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__NetBSD__)
 #define HAS_UCONTEXT
 #endif
 

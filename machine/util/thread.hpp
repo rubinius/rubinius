@@ -192,6 +192,13 @@ namespace thread {
       struct sched_param params;
 
       pthread_check(pthread_getschedparam(native_, &_policy, &params));
+
+#if defined(__NetBSD__)
+      // priority for SCHED_OTHER cannot be changed
+      if (_policy == SCHED_OTHER)
+        return true;
+#endif
+
 #ifdef __OpenBSD__
       // The shed_get_priority_max function is not exposed.
       int max = 31;

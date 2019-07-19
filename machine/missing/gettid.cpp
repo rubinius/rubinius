@@ -5,6 +5,8 @@
 #define _DARWIN_C_SOURCE
 #include <pthread.h>
 #include <stdint.h>
+#elif defined(__NetBSD__)
+#include <lwp.h>
 #else
 #include <sys/syscall.h>
 #endif
@@ -18,6 +20,8 @@ pid_t gettid(void) {
   long tid;
   syscall(SYS_thr_self, &tid);
   return (pid_t)(tid);
+#elif defined(__NetBSD__)
+  return (pid_t)_lwp_self();
 #elif defined(SYS_gettid)
   return (pid_t)syscall(SYS_gettid);
 #else

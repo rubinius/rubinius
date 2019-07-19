@@ -58,7 +58,7 @@
 #include <mach-o/dyld.h>
 #endif
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__NetBSD__)
 #include <sys/sysctl.h>
 #endif
 
@@ -557,14 +557,20 @@ namespace rubinius {
     } else if(realpath(argv_[0], name)) {
       return name;
     }
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__)
     size_t size = PATH_MAX;
     int oid[4];
 
     oid[0] = CTL_KERN;
+#if defined(__FreeBSD__)
     oid[1] = KERN_PROC;
     oid[2] = KERN_PROC_PATHNAME;
     oid[3] = getpid();
+#else
+    oid[1] = KERN_PROC_ARGS;
+    oid[2] = getpid();
+    oid[3] = KERN_PROC_PATHNAME;
+#endif
 
     if(sysctl(oid, 4, name, &size, 0, 0) == 0) {
       return name;
