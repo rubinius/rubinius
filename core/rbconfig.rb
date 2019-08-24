@@ -35,7 +35,7 @@ module RbConfig
   major, minor, teeny = RUBY_VERSION.split(".")
   CONFIG["MAJOR"]              = major
   CONFIG["MINOR"]              = minor
-  CONFIG["TEENY"]              = teeny
+  CONFIG["TEENY"]              = teeny || 0
   CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR)"
   CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::VERSION}"
   CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"

@@ -9,7 +9,7 @@ File.open File.expand_path("../ext/rubyspec_version.h", __FILE__), "w" do |f|
   major, minor, teeny = RUBY_VERSION.split(".")
   f.puts "#define RUBY_VERSION_MAJOR  #{major}"
   f.puts "#define RUBY_VERSION_MINOR  #{minor}"
-  f.puts "#define RUBY_VERSION_TEENY  #{teeny}"
+  f.puts "#define RUBY_VERSION_TEENY  #{teeny || 0}"
 end
 
 CAPI_RUBY_SIGNATURE = "#{RUBY_NAME}-#{RUBY_VERSION}"
