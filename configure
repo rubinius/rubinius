@@ -138,7 +138,7 @@ class Configure
     @build_libdir = File.join(root, "/build/libraries")
 
     # Ruby compatibility version
-    @ruby_version = "2.3.1"
+    @ruby_version = "10.0"
     @ruby_libversion = @ruby_version.split(/\./)[0..1].join.to_i
 
     @build_bin = "#{@sourcedir}/build/bin"
