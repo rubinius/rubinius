@@ -105,6 +105,71 @@ describe "Regexp#match" do
   end
 end
 
+describe "Regexp#match?" do
+  it "returns false if there is no match" do
+    /xyz/.match?("abxyc").should be_false
+  end
+
+  it "returns false if the object is nil" do
+    /\w+/.match?(nil).should be_false
+  end
+
+  it "does not yield to a block" do
+    ScratchPad.clear
+    (/.+2/.match?("abc2") { }).should be_true
+    ScratchPad.recorded.should be_nil
+  end
+
+  describe "with [string, position]" do
+    describe "when given a positive position" do
+      it "returns true when it matches the input at a given position" do
+        /(.).(.)/.match?("01234", 1).should be_true
+      end
+
+      it "returns true when a character matches" do
+        /(.).(.)/.match?("零一二三四", 1).should be_true
+      end
+
+      it "raises an ArgumentError for an invalid encoding" do
+        lambda { /(.).(.)/.match?("Hello, \x96 world!", 1) }.should raise_error(ArgumentError)
+      end
+    end
+
+    describe "when given a negative position" do
+      it "returns true when it matches the input at a given position" do
+        /(.).(.)/.match?("01234", -4).should be_true
+      end
+
+      it "returns true when a character matches" do
+        /(.).(.)/.match?("零一二三四", -4).should be_true
+      end
+
+      it "raises an ArgumentError for an invalid encoding" do
+        lambda { /(.).(.)/.match?("Hello, \x96 world!", -1) }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
+  it "does not resets $~ if passed nil" do
+    # set $~
+    /./.match("a")
+    $~.should be_kind_of(MatchData)
+
+    /1/.match?(nil)
+    $~.should be_kind_of(MatchData)
+  end
+
+  it "raises TypeError when the given argument cannot be coarce to String" do
+    f = 1
+    lambda { /foo/.match?(f)[0] }.should raise_error(TypeError)
+  end
+
+  it "raises TypeError when the given argument is an Exception" do
+    f = Exception.new("foo")
+    lambda { /foo/.match?(f)[0] }.should raise_error(TypeError)
+  end
+end
+
 describe "Regexp#~" do
   it "matches against the contents of $_" do
     $_ = "input data"

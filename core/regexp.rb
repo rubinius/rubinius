@@ -191,6 +191,19 @@ class Regexp
     end
   end
 
+  def match?(str, pos=0)
+    return false unless str
+
+    str = str.to_s if str.is_a?(Symbol)
+    str = StringValue(str)
+
+    m = Rubinius::Mirror.reflect str
+    pos = pos < 0 ? pos + str.size : pos
+    pos = m.character_to_byte_index pos
+
+    search_region(str, pos, str.bytesize, true) ? true : false
+  end
+
   # Returns the index of the first character in the region that
   # matched or nil if there was no match. See #match for returning
   # the MatchData instead.
