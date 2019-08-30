@@ -1279,6 +1279,7 @@ class Array
 
     concat args
   end
+  alias_method :append, :push
 
   def rassoc(obj)
     each do |elem|
@@ -1979,6 +1980,7 @@ class Array
     @total += values.size
     self
   end
+  alias_method :prepend, :unshift
 
   def values_at(*args)
     out = []
