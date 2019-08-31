@@ -34,9 +34,7 @@ describe "Array#<<" do
     lambda { ArraySpecs.frozen_array << 5 }.should raise_error(RuntimeError)
   end
 
-  ruby_version_is "2.5" do
-    describe "Array#append" do
-      it_behaves_like :array_push, :append
-    end
+  describe "Array#append" do
+    it_behaves_like :array_push, :append
   end
 end
