@@ -50,6 +50,16 @@ To install Rubinius, use the following steps:
 
 When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH.
 
+Certain setups of openssl require you to pass along additional options, `--with-lib-dir` and `--with-include-dir`
+pointing to include the relevant openssl directories. 
+
+E.g If you are installing via RVM / homebrew on OS X.
+```
+rvm install rbx-3 -C \
+  --with-lib-dir=$(brew --prefix openssl)/lib \
+  --with-include-dir=$(brew --prefix openssl)/include
+```
+
 ### Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
