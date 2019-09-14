@@ -690,6 +690,21 @@ class String
     end
   end
 
+  def delete_prefix(prefix)
+    prefix = Rubinius::Type.check_convert_type prefix, String, :to_str
+    return self[prefix.size..-1] if self.start_with?(prefix)
+    dup
+  end
+
+  def delete_prefix!(prefix)
+    Rubinius.check_frozen
+    result = delete_prefix(prefix)
+    return nil if result == self
+
+    replace(result)
+    self
+  end
+
   def start_with?(*prefixes)
     prefixes.each do |prefix|
       prefix = Rubinius::Type.check_convert_type prefix, String, :to_str
