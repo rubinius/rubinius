@@ -13,6 +13,7 @@
 #include <llvm/ExecutionEngine/Orc/IRTransformLayer.h>
 #include <llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h>
 #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
+#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/DataLayout.h>
 #include <llvm/IR/LLVMContext.h>
@@ -51,6 +52,7 @@ namespace rubinius {
 			MangleAndInterner Mangle;
 			ThreadSafeContext Ctx;
 
+    public:
 			Compiler(JITTargetMachineBuilder JTMB, DataLayout DL)
         : ObjectLayer(ES, []() { return llvm::make_unique<SectionMemoryManager>(); })
         , CompileLayer(ES, ObjectLayer, ConcurrentIRCompiler(std::move(JTMB)))
@@ -82,7 +84,7 @@ namespace rubinius {
 				return llvm::make_unique<Compiler>(std::move(*JTMB), std::move(*DL));
 			}
 
-			Error addModule(std::unique_ptr<Module> M) {
+			Error addModule(std::unique_ptr<llvm::Module> M) {
 				return OptimizeLayer.add(ES.getMainJITDylib(),
 																 ThreadSafeModule(std::move(M), Ctx));
 			}
