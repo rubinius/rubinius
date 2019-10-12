@@ -37,7 +37,7 @@ namespace rubinius {
   }
 
   namespace jit {
-    class MachineJIT;
+    class MachineCompiler;
   }
 
   namespace memory {
@@ -88,7 +88,7 @@ namespace rubinius {
     MachineThreads* machine_threads_;
     SignalThread* signals_;
     console::Console* console_;
-    jit::MachineJIT* jit_;
+    jit::MachineCompiler* compiler_;
 
     diagnostics::Diagnostics* diagnostics_;
     diagnostics::BootMetrics* boot_metrics_;
@@ -261,10 +261,10 @@ namespace rubinius {
       return profiler_;
     }
 
-    jit::MachineJIT* start_jit(STATE);
+    jit::MachineCompiler* start_compiler(STATE);
 
-    jit::MachineJIT* jit() const {
-      return jit_;
+    jit::MachineCompiler* compiler() const {
+      return compiler_;
     }
 
     Environment* env() const {

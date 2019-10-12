@@ -1,12 +1,12 @@
 #include "vm.hpp"
 #include "state.hpp"
-#include "machine_jit.hpp"
+#include "machine_compiler.hpp"
 #include "environment.hpp"
 #include "logger.hpp"
 
 namespace rubinius {
   namespace jit {
-    MachineJIT::MachineJIT(STATE)
+    MachineCompiler::MachineCompiler(STATE)
       : MachineThread(state, "rbx.jit", MachineThread::eXLarge)
       , list_()
       , list_mutex_()
@@ -14,23 +14,23 @@ namespace rubinius {
     {
     }
 
-    void MachineJIT::initialize(STATE) {
+    void MachineCompiler::initialize(STATE) {
       MachineThread::initialize(state);
     }
 
-    void MachineJIT::wakeup(STATE) {
+    void MachineCompiler::wakeup(STATE) {
       MachineThread::wakeup(state);
 
       list_condition_.notify_one();
     }
 
-    void MachineJIT::after_fork_child(STATE) {
+    void MachineCompiler::after_fork_child(STATE) {
       MachineThread::after_fork_child(state);
 
       list_.clear();
     }
 
-    void MachineJIT::run(STATE) {
+    void MachineCompiler::run(STATE) {
       state->vm()->unmanaged_phase(state);
 
       while(!thread_exit_) {

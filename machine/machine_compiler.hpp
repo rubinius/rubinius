@@ -116,16 +116,16 @@ namespace rubinius {
     };
 #endif
 
-		class MachineJIT : public MachineThread {
+		class MachineCompiler : public MachineThread {
       CompileList list_;
 
       std::mutex list_mutex_;
       std::condition_variable list_condition_;
 
 		public:
-			MachineJIT(STATE);
+			MachineCompiler(STATE);
 
-      virtual ~MachineJIT() { }
+      virtual ~MachineCompiler() { }
 
       void initialize(STATE);
       void after_fork_child(STATE);

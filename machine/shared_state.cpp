@@ -4,7 +4,7 @@
 #include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "config.h"
-#include "machine_jit.hpp"
+#include "machine_compiler.hpp"
 #include "memory.hpp"
 #include "environment.hpp"
 
@@ -39,7 +39,7 @@ namespace rubinius {
     , machine_threads_(nullptr)
     , signals_(nullptr)
     , console_(nullptr)
-    , jit_(nullptr)
+    , compiler_(nullptr)
     , diagnostics_(nullptr)
     , boot_metrics_(new diagnostics::BootMetrics())
     , codedb_metrics_(new diagnostics::CodeDBMetrics())
@@ -90,9 +90,9 @@ namespace rubinius {
       console_ = nullptr;
     }
 
-    if(jit_) {
-      delete jit_;
-      jit_ = nullptr;
+    if(compiler_) {
+      delete compiler_;
+      compiler_ = nullptr;
     }
 
     if(diagnostics_) {
@@ -263,14 +263,14 @@ namespace rubinius {
     }
   }
 
-  jit::MachineJIT* SharedState::start_jit(STATE) {
-    if(!jit_) {
+  jit::MachineCompiler* SharedState::start_compiler(STATE) {
+    if(!compiler_) {
       if(config.jit_enabled.value) {
-        jit_ = new jit::MachineJIT(state);
+        compiler_ = new jit::MachineCompiler(state);
       }
     }
 
-    return jit_;
+    return compiler_;
   }
 
   void SharedState::after_fork_child(STATE) {

@@ -295,7 +295,7 @@ namespace rubinius {
     state->vm()->thread_state()->clear();
 
     state->shared().start_console(state);
-    state->shared().start_jit(state);
+    state->shared().start_compiler(state);
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
