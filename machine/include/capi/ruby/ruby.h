@@ -1004,6 +1004,7 @@ struct RTypedData {
   VALUE   rb_ary_new3(unsigned long length, ...);
 
 #define rb_ary_new_from_args rb_ary_new3
+#define rb_ary_tmp_new       rb_ary_new2
 
   /** New Array of given length, filled with copies of given object. */
   VALUE   rb_ary_new4(unsigned long length, const VALUE* object);
@@ -1303,10 +1304,21 @@ struct RTypedData {
   void    rb_define_const(VALUE module, const char* name, VALUE object);
 
   /** Generate a NativeMethod to represent a method defined as a C function. Records file. */
-  #define rb_define_method(mod, name, fptr, arity) \
+#define rb_define_method(mod, name, fptr, arity) \
           capi_define_method(__FILE__, (mod), (name), \
                                            (CApiGenericFunction)(fptr), (arity), \
                                            cCApiPublicMethod)
+
+#define UNLIMITED_ARGUMENTS (-1)
+
+  NORETURN(void rb_error_arity(int, int, int));
+
+  static inline int rb_check_arity(int argc, int min, int max) {
+    if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max)) {
+      rb_error_arity(argc, min, max);
+    }
+    return argc;
+  }
 
   /** Defines the method on Kernel. */
   void    rb_define_global_function(const char* name, CApiGenericFunction func, int argc);
@@ -1983,6 +1995,8 @@ struct RTypedData {
 
   void    rb_str_modify(VALUE str);
 
+  void    rb_str_modify_expand(VALUE str, long expand);
+
   /** Deprecated alias for rb_obj_freeze */
   VALUE   rb_str_freeze(VALUE str);
 
@@ -2259,6 +2273,8 @@ struct RTypedData {
 #define rb_obj_hide(obj) obj
 #define rb_obj_reveal(obj, klass) obj
 #define rb_str_resurrect(obj) obj
+
+  int rb_during_gc(void);
 
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H

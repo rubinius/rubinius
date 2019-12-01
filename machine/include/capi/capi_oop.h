@@ -104,6 +104,7 @@
 #define IMMEDIATE_P(x)      (!REFERENCE_P(x))
 
 #define FIXNUM_P(v)         (((VALUE)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
+#define RB_FIXNUM_P(v)      (FIXNUM_P(v))
 #define SYMBOL_P(v)         (((VALUE)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
 #define CAPI_TAG_FIXNUM(v)  ((VALUE)(((VALUE)((uintptr_t)(v)) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))

@@ -35,6 +35,10 @@ class Module
 
   private :initialize
 
+  def deprecate_constant(*syms)
+    # no-op for now
+  end
+
   def const_get(name, inherit=true)
     Rubinius::Type.const_get self, name, inherit
   end

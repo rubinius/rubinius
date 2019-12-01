@@ -125,6 +125,35 @@ extern "C" {
     string->unshare(env->state());
   }
 
+  void rb_str_modify_expand(VALUE self, long expand) {
+    if (expand < 0) {
+      rb_raise(rb_eArgError, "negative expanding string size");
+    }
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* string = MemoryHandle::object<String>(self);
+
+    string->unshare(env->state());
+
+    size_t new_len = string->byte_size() + expand;
+
+    if(new_len > FIXNUM_MAX) {
+      rb_raise(rb_eArgError, "string size too big");
+    }
+
+    ByteArray* bytes = c_as<ByteArray>(string->data());
+    size_t capacity = bytes->size();
+    if(capacity >= new_len) return;
+
+    rb_encoding* enc = rb_enc_get(self);
+
+    ByteArray* new_bytes = ByteArray::create_pinned(env->state(),
+        new_len + rb_enc_mbminlen(enc));
+
+    memcpy(new_bytes->raw_bytes(), bytes->raw_bytes(), string->byte_size() + 1);
+    string->data(env->state(), new_bytes);
+  }
+
   VALUE rb_str_freeze(VALUE string) {
     return rb_obj_freeze(string);
   }

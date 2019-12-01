@@ -13,6 +13,24 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
+  int rb_during_gc(void) {
+    return 0;
+  }
+
+  void rb_error_arity(int argc, int min, int max) {
+    VALUE err_mess = 0;
+
+    if (min == max) {
+      err_mess = rb_sprintf("wrong number of arguments (given %d, expected %d)", argc, min);
+    } else if (max == UNLIMITED_ARGUMENTS) {
+      err_mess = rb_sprintf("wrong number of arguments (given %d, expected %d+)", argc, min);
+    } else {
+      err_mess = rb_sprintf("wrong number of arguments (given %d, expected %d..%d)", argc, min, max);
+    }
+
+    rb_exc_raise(rb_exc_new3(rb_eArgError, err_mess));
+  }
+
   void rb_error_frozen(const char* what) {
     rb_raise(rb_eRuntimeError, "can't modify frozen %s", what);
   }
