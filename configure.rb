@@ -92,6 +92,7 @@ class Configure
     @encdir       = nil
     @runtimedir   = nil
     @codedbdir    = nil
+    @stdlibdir    = nil
     @coredir      = nil
     @sitedir      = nil
     @archdir      = nil
@@ -265,6 +266,7 @@ class Configure
     FileUtils.mkdir_p @builddir
 
     @bootstrap_gems_dir ||= "#{@sourcedir}/build/libraries/gems"
+    @stdlibdir = "#{@sourcedir}/build/stdlib"
   end
 
   def add_opt_dir(dir)
@@ -1982,6 +1984,33 @@ int main(int argc, char* argv[]) {
     end
   end
 
+  def setup_stdlib
+    @log.write "\nSetting up stdlib..."
+
+    stdlib_cache = "rubinius-stdlib-cache"
+    cache_bzip = "#{stdlib_cache}.bz2"
+    cache_digest = "#{cache_bzip}.sha512"
+
+    unless Dir.exist? @stdlibdir
+      url = "https://rubinius-binaries-rubinius-com.s3.amazonaws.com/stdlib/"
+
+      unless File.file? cache_bzip
+        download "#{url}#{cache_bzip}", cache_bzip
+      end
+
+      unless File.file? cache_digest
+        download "#{url}#{cache_digest}", cache_digest
+      end
+
+      if Digest::SHA512.file(cache_bzip).hexdigest ==
+          File.read(cache_digest).strip.split(" ").first
+        FileUtils.mkdir_p @stdlibdir
+        @log.write "#{@tar} -C #{@stdlibdir} -xzf #{@sourcedir}/#{cache_bzip}"
+        system("#{@tar} -C #{@stdlibdir} -xzf #{@sourcedir}/#{cache_bzip}")
+      end
+    end
+  end
+
   # Create directories that don't have to be created by the end user
   # themselves.
   def create_directories
@@ -2017,6 +2046,7 @@ int main(int argc, char* argv[]) {
     end
     setup_gems
     setup_codedb
+    setup_stdlib
     write_configure_files
     write_build_signature
 
