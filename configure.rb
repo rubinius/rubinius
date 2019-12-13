@@ -92,6 +92,7 @@ class Configure
     @encdir       = nil
     @runtimedir   = nil
     @codedbdir    = nil
+    @codetoolsdir = nil
     @stdlibdir    = nil
     @coredir      = nil
     @sitedir      = nil
@@ -266,6 +267,7 @@ class Configure
     FileUtils.mkdir_p @builddir
 
     @bootstrap_gems_dir ||= "#{@sourcedir}/build/libraries/gems"
+    @codetoolsdir = "#{@sourcedir}/build/codetools"
     @stdlibdir = "#{@sourcedir}/build/stdlib"
   end
 
@@ -2011,6 +2013,33 @@ int main(int argc, char* argv[]) {
     end
   end
 
+  def setup_codetools
+    @log.write "\nSetting up codetools..."
+
+    codetools_cache = "rubinius-codetools-cache"
+    cache_bzip = "#{codetools_cache}.bz2"
+    cache_digest = "#{cache_bzip}.sha512"
+
+    unless Dir.exist? @codetoolsdir
+      url = "https://rubinius-binaries-rubinius-com.s3.amazonaws.com/codetools/"
+
+      unless File.file? cache_bzip
+        download "#{url}#{cache_bzip}", cache_bzip
+      end
+
+      unless File.file? cache_digest
+        download "#{url}#{cache_digest}", cache_digest
+      end
+
+      if Digest::SHA512.file(cache_bzip).hexdigest ==
+          File.read(cache_digest).strip.split(" ").first
+        FileUtils.mkdir_p @codetoolsdir
+        @log.write "#{@tar} -C #{@codetoolsdir} -xzf #{@sourcedir}/#{cache_bzip}"
+        system("#{@tar} -C #{@codetoolsdir} -xzf #{@sourcedir}/#{cache_bzip}")
+      end
+    end
+  end
+
   # Create directories that don't have to be created by the end user
   # themselves.
   def create_directories
@@ -2046,6 +2075,7 @@ int main(int argc, char* argv[]) {
     end
     setup_gems
     setup_codedb
+    setup_codetools
     setup_stdlib
     write_configure_files
     write_build_signature
