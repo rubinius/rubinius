@@ -36,5 +36,7 @@ def build_signature
 end
 
 def verify_build_signature
+  return true if ENV["RBX_IGNORE_BUILD_SIGNATURE"]
+
   load_build_signature == build_signature
 end

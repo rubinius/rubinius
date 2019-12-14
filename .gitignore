@@ -52,14 +52,17 @@ tmtags
 /share
 /work
 /build/artifacts
-/build/bin/cc
 /build/bin/c++
+/build/bin/cc
+/build/codetools
 /build/config/config.rb
-/build/rubinius
 /build/libraries/cache
 /build/libraries/gems
-/build/libraries/stdlib
+/build/rubinius
+/build/stdlib
 rubinius-codedb-cache.bz2*
+rubinius-codetools-cache.bz2*
+rubinius-stdlib-cache.bz2*
 
 # .revision tracks configure and code revision consistency
 .revision

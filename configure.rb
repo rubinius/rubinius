@@ -129,7 +129,6 @@ class Configure
       "rake-12.3.0.gem",
       "rdoc-5.1.0.gem",
       "rb-readline-0.5.5.gem",
-      "rubysl-readline-2.0.2.gem",
       "test-unit-3.2.7.gem",
      ]
 
@@ -1647,6 +1646,8 @@ int main(int argc, char* argv[]) {
       :encdir             => @encdir,
       :runtimedir         => @runtimedir,
       :codedbdir          => @codedbdir,
+      :codetoolsdir       => @codetoolsdir,
+      :stdlibdir          => @stdlibdir,
       :coredir            => @coredir,
       :sitedir            => @sitedir,
       :archdir            => @archdir,
@@ -1993,7 +1994,7 @@ int main(int argc, char* argv[]) {
     cache_bzip = "#{stdlib_cache}.bz2"
     cache_digest = "#{cache_bzip}.sha512"
 
-    unless Dir.exist? @stdlibdir
+    unless File.file? cache_bzip
       url = "https://rubinius-binaries-rubinius-com.s3.amazonaws.com/stdlib/"
 
       unless File.file? cache_bzip
@@ -2020,7 +2021,7 @@ int main(int argc, char* argv[]) {
     cache_bzip = "#{codetools_cache}.bz2"
     cache_digest = "#{cache_bzip}.sha512"
 
-    unless Dir.exist? @codetoolsdir
+    unless File.file? cache_bzip
       url = "https://rubinius-binaries-rubinius-com.s3.amazonaws.com/codetools/"
 
       unless File.file? cache_bzip
