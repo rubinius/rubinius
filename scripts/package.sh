@@ -13,7 +13,7 @@ function rbx_package_tar {
   archive="$(rbx_release_name)"
   rm -rf "$archive"
 
-  files="$(git ls-files; ls .revision; ls rubinius-codedb-cache.bz2*; ls build/libraries/cache/*.gem)"
+  files="$(git ls-files; ls .revision; ls rubinius-codedb-cache.bz2*; ls rubinius-codetools-cache.bz2*; ls rubinius-stdlib-cache.bz2*; ls build/libraries/cache/*.gem)"
 
   echo "$files" | sort | uniq | \
     bsdtar -c -s "|^|rubinius-$(rbx_revision_version)/|" -T - -f - | bzip2 > "$archive"
