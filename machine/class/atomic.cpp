@@ -19,14 +19,13 @@ namespace rubinius {
     return ref;
   }
 
-  Object* AtomicReference::compare_and_set(STATE, Object* old, Object* new_) {
-    Object** pp = &_value_;
+  void AtomicReference::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
+    AtomicReference* ref = force_as<AtomicReference>(obj);
 
-    if(atomic::compare_and_swap((void**)pp, old, new_)) {
-      write_barrier(state, new_);
-      return cTrue;
-    } else {
-      return cFalse;
-    }
+    Object* value = ref->value();
+
+    f(state, &value);
+
+    ref->value(value);
   }
 }
