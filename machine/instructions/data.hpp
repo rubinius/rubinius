@@ -781,15 +781,15 @@ namespace rubinius {
       "r_load_1", 184, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_1
     };
-    const InstructionData constexpr data_r_load_nil {
+    const InstructionData constexpr data_r_load_nil = {
       "r_load_nil", 185, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_nil
     };
-    const InstructionData constexpr data_r_load_false {
+    const InstructionData constexpr data_r_load_false = {
       "r_load_false", 186, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_false
     };
-    const InstructionData constexpr data_r_load_true {
+    const InstructionData constexpr data_r_load_true = {
       "r_load_true", 187, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_true
     };
@@ -808,6 +808,22 @@ namespace rubinius {
     const InstructionData constexpr data_push_tagged_nil = {
       "push_tagged_nil", 191, 2, 0, 0, 0, 0, 1, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::push_tagged_nil
+    };
+    const InstructionData constexpr data_r_load_bool = {
+      "r_load_bool", 192, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_bool
+    };
+    const InstructionData constexpr data_r_load_m_binops = {
+      "r_load_m_binops", 193, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_m_binops
+    };
+    const InstructionData constexpr data_r_load_f_binops = {
+      "r_load_f_binops", 194, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_f_binops
+    };
+    const InstructionData constexpr data_r_ret = {
+      "r_ret", 195, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_ret
     };
   }
 

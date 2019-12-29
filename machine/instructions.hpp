@@ -244,8 +244,12 @@ namespace rubinius {
     inline void r_load_1(CF, R0);
     inline void r_load_nil(CF, R0, RVALUE);
     inline void r_load_false(CF, R0);
-    inline void r_load_true(STATE, CF, R0);
+    inline void r_load_true(CF, R0);
+    inline void r_load_bool(CF, R0, R1);
+    inline void r_load_m_binops(CF, R0, R1);
+    inline void r_load_f_binops(CF, R0, R1);
     inline void r_copy(CF, R0, R1);
+    inline intptr_t r_ret(STATE, CF, R0);
 
     // Native signed integer instructions
     inline void n_iadd(CF, R0, R1, R2);

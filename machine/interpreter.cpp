@@ -103,6 +103,7 @@ namespace rubinius {
       case instructions::data_r_load_1.id:
       case instructions::data_r_load_false.id:
       case instructions::data_r_load_true.id:
+      case instructions::data_r_ret.id:
       case instructions::data_m_log.id:
         opcodes[ip + 1] += stack_size;
         break;
@@ -122,6 +123,9 @@ namespace rubinius {
       case instructions::data_b_if_int.id:
       case instructions::data_r_load_int.id:
       case instructions::data_r_store_int.id:
+      case instructions::data_r_load_bool.id:
+      case instructions::data_r_load_m_binops.id:
+      case instructions::data_r_load_f_binops.id:
       case instructions::data_r_copy.id:
       case instructions::data_n_ipopcnt.id:
       case instructions::data_a_instance.id:

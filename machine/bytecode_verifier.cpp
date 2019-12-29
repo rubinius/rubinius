@@ -361,10 +361,14 @@ namespace rubinius {
         case instructions::data_r_load_1.id:
         case instructions::data_r_load_false.id:
         case instructions::data_r_load_true.id:
+        case instructions::data_r_ret.id:
           verify_register(state, arg1, insn_ip);
           break;
         case instructions::data_r_load_int.id:
         case instructions::data_r_store_int.id:
+        case instructions::data_r_load_bool.id:
+        case instructions::data_r_load_m_binops.id:
+        case instructions::data_r_load_f_binops.id:
         case instructions::data_r_copy.id:
           verify_register(state, arg1, insn_ip);
           verify_register(state, arg2, insn_ip);
@@ -516,6 +520,7 @@ namespace rubinius {
         case instructions::data_ensure_return.id:
         case instructions::data_raise_break.id:
         case instructions::data_reraise.id:
+        case instructions::data_r_ret.id:
           return;
       }
 

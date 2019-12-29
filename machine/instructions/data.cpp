@@ -194,5 +194,9 @@ namespace rubinius {
     instructions::data_call,
     instructions::data_call_0,
     instructions::data_push_tagged_nil,
+    instructions::data_r_load_bool,
+    instructions::data_r_load_m_binops,
+    instructions::data_r_load_f_binops,
+    instructions::data_r_ret,
   };
 }

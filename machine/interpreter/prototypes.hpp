@@ -164,7 +164,11 @@ namespace rubinius {
     intptr_t r_load_nil(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_false(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_true(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_bool(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_m_binops(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_f_binops(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_copy(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_ret(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Native signed integer instructions
     intptr_t n_iadd(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
