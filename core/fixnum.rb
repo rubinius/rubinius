@@ -24,12 +24,54 @@ class Fixnum < Integer
   # binary math operators
 
   def +(o)
-    Rubinius.primitive :fixnum_add
+    Rubinius.asm(o) do |o|
+      add = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      push_self
+      r_load_stack r0
+      r_load_local r1, 0
+
+      b_if_int r0, r1, add
+      goto done
+
+      add.set!
+      n_iadd_o r0, r0, r1
+      r_store_stack r0
+      ret
+
+      done.set!
+    end
+
     redo_coerced :+, o
   end
 
   def -(o)
-    Rubinius.primitive :fixnum_sub
+    Rubinius.asm(o) do |o|
+      add = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      push_self
+      r_load_stack r0
+      r_load_local r1, 0
+
+      b_if_int r0, r1, add
+      goto done
+
+      add.set!
+      n_isub_o r0, r0, r1
+      r_store_stack r0
+      ret
+
+      done.set!
+    end
+
     redo_coerced :-, o
   end
 
