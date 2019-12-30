@@ -31,19 +31,19 @@ class Fixnum < Integer
       r0 = new_register
       r1 = new_register
 
-      push_self
-      r_load_stack r0
-      r_load_local r1, 0
+      r_load_m_binops r0, r1
 
       b_if_int r0, r1, add
       goto done
 
       add.set!
       n_iadd_o r0, r0, r1
-      r_store_stack r0
-      ret
+      r_ret r0
 
       done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
     end
 
     redo_coerced :+, o
@@ -51,32 +51,55 @@ class Fixnum < Integer
 
   def -(o)
     Rubinius.asm(o) do |o|
-      add = new_label
+      sub = new_label
       done = new_label
 
       r0 = new_register
       r1 = new_register
 
-      push_self
-      r_load_stack r0
-      r_load_local r1, 0
+      r_load_m_binops r0, r1
 
-      b_if_int r0, r1, add
+      b_if_int r0, r1, sub
       goto done
 
-      add.set!
+      sub.set!
       n_isub_o r0, r0, r1
       r_store_stack r0
       ret
 
       done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
     end
 
     redo_coerced :-, o
   end
 
   def *(o)
-    Rubinius.primitive :fixnum_mul
+    Rubinius.asm(o) do |o|
+      mul = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, mul
+      goto done
+
+      mul.set!
+      n_imul_o r0, r0, r1
+      r_store_stack r0
+      ret
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     redo_coerced :*, o
   end
 
@@ -146,7 +169,30 @@ class Fixnum < Integer
   # comparison operators
 
   def ==(o)
-    Rubinius.primitive :fixnum_equal
+    Rubinius.asm(o) do |o|
+      cmp = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+      goto done
+
+      cmp.set!
+      n_ieq r0, r0, r1
+
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     o == self
   end
 
@@ -167,28 +213,116 @@ class Fixnum < Integer
   end
 
   def <(other)
-    Rubinius.primitive :fixnum_lt
+    Rubinius.asm(o) do |o|
+      cmp = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+      goto done
+
+      cmp.set!
+      n_ilt r0, r0, r1
+
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
 
     b, a = math_coerce other, :compare_error
     a < b
   end
 
   def <=(other)
-    Rubinius.primitive :fixnum_le
+    Rubinius.asm(o) do |o|
+      cmp = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+      goto done
+
+      cmp.set!
+      n_ile r0, r0, r1
+
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
 
     b, a = math_coerce other, :compare_error
     a <= b
   end
 
   def >(other)
-    Rubinius.primitive :fixnum_gt
+    Rubinius.asm(o) do |o|
+      cmp = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+      goto done
+
+      cmp.set!
+      n_igt r0, r0, r1
+
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
 
     b, a = math_coerce other, :compare_error
     a > b
   end
 
   def >=(other)
-    Rubinius.primitive :fixnum_ge
+    Rubinius.asm(o) do |o|
+      cmp = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+      goto done
+
+      cmp.set!
+      n_ige r0, r0, r1
+
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
 
     b, a = math_coerce other, :compare_error
     a >= b

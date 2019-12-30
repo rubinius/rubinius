@@ -25,6 +25,6 @@ describe "Instruction r_load_bool" do
   end
 
   it "loads false in the register if the value of the register is zero" do
-    @spec.run(0).should be_true
+    @spec.run(0).should be_false
   end
 end
