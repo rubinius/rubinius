@@ -25,10 +25,6 @@ def core_clean
            "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/source",
            "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*",
            "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*.*",
-           "#{BUILD_CONFIG[:codetoolsdir]}/**/*",
-           "#{BUILD_CONFIG[:codetoolsdir]}/**/*.*",
-           "#{BUILD_CONFIG[:stdlibdir]}/**/*",
-           "#{BUILD_CONFIG[:stdlibdir]}/**/*.*",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
           ],
     :verbose => $verbose
