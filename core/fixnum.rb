@@ -106,7 +106,29 @@ class Fixnum < Integer
   # this method is aliased to / in core
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)
-    Rubinius.primitive :fixnum_div
+    Rubinius.asm(o) do |o|
+      div = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, div
+      goto done
+
+      div.set!
+      n_idiv_o r0, r0, r1
+      r_store_stack r0
+      ret
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     redo_coerced :/, o
   end
   alias_method :/, :divide
