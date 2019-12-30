@@ -35,7 +35,6 @@ def core_clean
 end
 
 codedb_source = []
-codedb_library = []
 
 codedbdir = "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}"
 platform_conf = "#{codedbdir}/platform.conf"
@@ -67,25 +66,30 @@ IO.foreach core_load_order do |name|
   codedb_source_task codedb_source, origin, "#{codedbdir}/source/#{origin}"
 end
 
-# Add library files
-FileList["#{library_dir}/**/*.rb"].each do |file|
-  source = "#{codedbdir}/source/#{file[(library_dir.size+1)..-1]}"
-
-  codedb_source_task codedb_source, file, source
-end
-
-FileList["#{library_dir}/**/*.*"].exclude("#{library_dir}/**/*.rb").each do |file|
+FileList["#{library_dir}/**/*.*"].each do |file|
   source = "#{codedbdir}/source/#{file[(library_dir.size+1)..-1]}"
 
   unless File.directory? file
-    codedb_source_task codedb_library, file, source
+    codedb_source_task codedb_source, file, source
   end
 end
 
-# Add codetools and stdlib
-FileList["#{codetools_dir}/*/{lib,ext}/**/*.rb",
-         "#{stdlib_dir}/*/{lib,ext}/**/*.rb"].each do |file|
-  codedb_source << file
+# Add codetools
+FileList["#{codetools_dir}/{lib,ext}/**/*.rb"].each do |file|
+  source = "#{codedbdir}/source/#{file[(codetools_dir.size+5)..-1]}"
+
+  unless File.directory? file
+    codedb_source_task codedb_source, file, source
+  end
+end
+
+# Add stdlib
+FileList["#{stdlib_dir}/{lib,ext}/**/*.rb"].each do |file|
+  source = "#{codedbdir}/source/#{file[(stdlib_dir.size+5)..-1]}"
+
+  unless File.directory? file
+    codedb_source_task codedb_source, file, source
+  end
 end
 
 config_files = FileList[
@@ -220,7 +224,7 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => [platform_conf, signature_header] + codedb_source + codedb_library + ["codedb:extensions"]
+  task :build => [platform_conf, signature_header] + codedb_source + ["codedb:extensions"]
 
   desc "Delete all core and library artifacts"
   task :clean do

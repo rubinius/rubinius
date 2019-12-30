@@ -63,11 +63,6 @@ class CodeDBWriter
     @source_files << source
   end
 
-  def clear_source
-    @init_files = []
-    @source_files = []
-  end
-
   def add_code(name, id, code)
     @contents << "#{name.size} #{name} 0 0 #{id} 0\n"
 
@@ -148,21 +143,6 @@ Dir.chdir "#{Rubinius::BUILD_CONFIG[:builddir]}#{Rubinius::BUILD_CONFIG[:codedbd
   end
 
   db_writer.compile
-end
-
-["#{Rubinius::BUILD_CONFIG[:codetoolsdir]}/ext",
- "#{Rubinius::BUILD_CONFIG[:codetoolsdir]}/lib",
- "#{Rubinius::BUILD_CONFIG[:stdlibdir]}/lib",
-].each do |dir|
-  db_writer.clear_source
-
-  Dir.chdir dir do
-    Dir["**/*.rb"].each do |name|
-      db_writer.add_source name
-    end
-
-    db_writer.compile
-  end
 end
 
 db_writer.write
