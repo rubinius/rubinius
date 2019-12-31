@@ -105,6 +105,8 @@ namespace rubinius {
 #define FIXNUM_MAX        (((intptr_t)1 << FIXNUM_MAX_WIDTH) - 1)
 #define FIXNUM_MIN        (-1 - FIXNUM_MAX)
 
+#define FIXNUM_NEG_ONE    (Object*)(~0UL)
+
 /* Standard Rubinius Representation
  *
  * Bit layout of special literals:

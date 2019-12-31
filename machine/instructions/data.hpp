@@ -825,6 +825,54 @@ namespace rubinius {
       "r_ret", 195, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_ret
     };
+    const InstructionData constexpr data_n_imod = {
+      "data_n_imod", 196, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_imod
+    };
+    const InstructionData constexpr data_n_ineg = {
+      "data_n_ineg", 197, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ineg
+    };
+    const InstructionData constexpr data_n_inot = {
+      "data_n_inot", 198, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_inot
+    };
+    const InstructionData constexpr data_n_iand = {
+      "data_n_iand", 199, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_iand
+    };
+    const InstructionData constexpr data_n_ior = {
+      "data_n_ior", 200, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ior
+    };
+    const InstructionData constexpr data_n_ixor = {
+      "data_n_ixor", 201, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ixor
+    };
+    const InstructionData constexpr data_n_ishl = {
+      "data_n_ishl", 202, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ishl
+    };
+    const InstructionData constexpr data_n_ishr = {
+      "data_n_ishr", 203, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ishr
+    };
+    const InstructionData constexpr data_n_imod_o = {
+      "data_n_imod_o", 204, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_imod_o
+    };
+    const InstructionData constexpr data_n_ineg_o = {
+      "data_n_ineg_o", 205, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ineg_o
+    };
+    const InstructionData constexpr data_n_ishl_o = {
+      "data_n_ishl_o", 206, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ishl_o
+    };
+    const InstructionData constexpr data_n_ishr_o = {
+      "data_n_ishr_o", 207, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ishr_o
+    };
   }
 
   struct Instructions {

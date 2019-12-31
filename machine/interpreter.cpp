@@ -120,6 +120,9 @@ namespace rubinius {
         opcodes[ip + 1] += stack_size;
         break;
       }
+      case instructions::data_n_ineg.id:
+      case instructions::data_n_ineg_o.id:
+      case instructions::data_n_inot.id:
       case instructions::data_b_if_int.id:
       case instructions::data_r_load_int.id:
       case instructions::data_r_store_int.id:
@@ -147,10 +150,19 @@ namespace rubinius {
       case instructions::data_n_isub.id:
       case instructions::data_n_imul.id:
       case instructions::data_n_idiv.id:
+      case instructions::data_n_imod.id:
+      case instructions::data_n_iand.id:
+      case instructions::data_n_ior.id:
+      case instructions::data_n_ixor.id:
+      case instructions::data_n_ishl.id:
+      case instructions::data_n_ishr.id:
       case instructions::data_n_iadd_o.id:
       case instructions::data_n_isub_o.id:
       case instructions::data_n_imul_o.id:
       case instructions::data_n_idiv_o.id:
+      case instructions::data_n_imod_o.id:
+      case instructions::data_n_ishl_o.id:
+      case instructions::data_n_ishr_o.id:
       case instructions::data_n_ieq.id:
       case instructions::data_n_ine.id:
       case instructions::data_n_ilt.id:

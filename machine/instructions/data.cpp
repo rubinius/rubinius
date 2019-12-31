@@ -198,5 +198,17 @@ namespace rubinius {
     instructions::data_r_load_m_binops,
     instructions::data_r_load_f_binops,
     instructions::data_r_ret,
+    instructions::data_n_imod,
+    instructions::data_n_ineg,
+    instructions::data_n_inot,
+    instructions::data_n_iand,
+    instructions::data_n_ior,
+    instructions::data_n_ixor,
+    instructions::data_n_ishl,
+    instructions::data_n_ishr,
+    instructions::data_n_imod_o,
+    instructions::data_n_ineg_o,
+    instructions::data_n_ishl_o,
+    instructions::data_n_ishr_o,
   };
 }

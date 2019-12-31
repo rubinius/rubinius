@@ -165,7 +165,7 @@ class ConfigurationVariables
       var = Variable.new full_name(name)
 
       case default
-      when Fixnum
+      when Integer
         var.default = default
         var.type = "config::Integer"
       when :integer
