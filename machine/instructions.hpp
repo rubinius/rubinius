@@ -238,7 +238,7 @@ namespace rubinius {
     inline void r_load_stack(CF, R0);
     inline void r_store_stack(CF, R0);
     inline void r_load_literal(CF, R0, LITERAL);
-    inline void r_load_int(STATE, CF, R0, R1);
+    inline void r_load_int(CF, R0, R1);
     inline void r_store_int(CF, R0, R1);
     inline void r_load_0(CF, R0);
     inline void r_load_1(CF, R0);
