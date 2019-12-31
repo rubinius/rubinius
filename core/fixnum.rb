@@ -165,7 +165,42 @@ class Fixnum < Integer
   end
 
   def <<(other)
-    Rubinius.primitive :fixnum_left_shift
+    Rubinius.asm(o) do |o|
+      shr = new_label
+      neg = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, neg
+      goto done
+
+      neg.set!
+      r_load_int r2, r1
+      r_load_0 r3
+
+      n_ige r3, r2, r3
+      b_if r3, shr
+
+      n_ineg r1, r2
+      r_store_int r1, r1
+      n_ishr_o r0, r0, r1
+      r_ret r0
+
+      shr.set!
+      n_ishl_o r0, r0, r1
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
 
@@ -179,7 +214,42 @@ class Fixnum < Integer
   end
 
   def >>(other)
-    Rubinius.primitive :fixnum_right_shift
+    Rubinius.asm(o) do |o|
+      shr = new_label
+      neg = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, neg
+      goto done
+
+      neg.set!
+      r_load_int r2, r1
+      r_load_0 r3
+
+      n_ige r3, r2, r3
+      b_if r3, shr
+
+      n_ineg r1, r2
+      r_store_int r1, r1
+      n_ishl_o r0, r0, r1
+      r_ret r0
+
+      shr.set!
+      n_ishr_o r0, r0, r1
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
 

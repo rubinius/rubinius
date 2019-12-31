@@ -10,10 +10,10 @@ describe "Fixnum#<< with n << m" do
   end
 
   it "raises a RangeError when m < 0 and the Integer argument is not in Fixnum range" do
-    lambda { 3 << -(fixnum_max() + 1) }.should raise_error(RangeError)
+    lambda { 3 << (fixnum_min() - 1) }.should raise_error(RangeError)
   end
 
   it "raises a RangeError when m < 0 the Float argument is not in Fixnum range" do
-    lambda { 3 << -(fixnum_max() + 1).to_f }.should raise_error(RangeError)
+    lambda { 3 << (fixnum_min() - 1).to_f }.should raise_error(RangeError)
   end
 end
