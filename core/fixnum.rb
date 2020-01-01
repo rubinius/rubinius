@@ -36,13 +36,41 @@ class Fixnum < Integer
   end
 
   def ~
-    Rubinius.primitive :fixnum_invert
-    raise PrimitiveFailure, "Fixnum#~ primitive failed"
+    Rubinius.asm do
+      push_self
+
+      r0 = new_register
+
+      r_load_stack r0
+      pop
+
+      r_load_int r0, r0
+      n_inot r0, r0
+      r_store_int r0, r0
+
+      r_ret r0
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
   end
 
   def -@
-    Rubinius.primitive :fixnum_neg
-    raise PrimitiveFailure, "Fixnum#-@ primitive failed"
+    Rubinius.asm do
+      push_self
+
+      r0 = new_register
+
+      r_load_stack r0
+      pop
+
+      n_ineg_o r0, r0
+
+      r_ret r0
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
   end
 
   # binary math operators
@@ -88,8 +116,7 @@ class Fixnum < Integer
 
       sub.set!
       n_isub_o r0, r0, r1
-      r_store_stack r0
-      ret
+      r_ret r0
 
       done.set!
 
@@ -115,8 +142,7 @@ class Fixnum < Integer
 
       mul.set!
       n_imul_o r0, r0, r1
-      r_store_stack r0
-      ret
+      r_ret r0
 
       done.set!
 
@@ -144,8 +170,7 @@ class Fixnum < Integer
 
       div.set!
       n_idiv_o r0, r0, r1
-      r_store_stack r0
-      ret
+      r_ret r0
 
       done.set!
 
@@ -158,7 +183,28 @@ class Fixnum < Integer
   alias_method :/, :divide
 
   def %(o)
-    Rubinius.primitive :fixnum_mod
+    Rubinius.asm(o) do |o|
+      div = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, div
+      goto done
+
+      div.set!
+      n_imod_o r0, r0, r1
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     redo_coerced :%, o
   end
 
@@ -169,19 +215,103 @@ class Fixnum < Integer
 
   # bitwise binary operators
 
-  def &(o)
-    Rubinius.primitive :fixnum_and
-    super(o)
+  def &(other)
+    Rubinius.asm do
+      op = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, op
+      goto done
+
+      op.set!
+      r_load_int r0, r0
+      r_load_int r1, r1
+
+      n_iand r0, r0, r1
+
+      r_store_int r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    other = Rubinius::Type.coerce_to_bitwise_operand other
+
+    other & self
   end
 
-  def |(o)
-    Rubinius.primitive :fixnum_or
-    super(o)
+  def |(other)
+    Rubinius.asm do
+      op = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, op
+      goto done
+
+      op.set!
+      r_load_int r0, r0
+      r_load_int r1, r1
+
+      n_ior r0, r0, r1
+
+      r_store_int r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    other = Rubinius::Type.coerce_to_bitwise_operand other
+
+    other | self
   end
 
-  def ^(o)
-    Rubinius.primitive :fixnum_xor
-    super(o)
+  def ^(other)
+    Rubinius.asm do
+      op = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, op
+      goto done
+
+      op.set!
+      r_load_int r0, r0
+      r_load_int r1, r1
+
+      n_ixor r0, r0, r1
+
+      r_store_int r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    other = Rubinius::Type.coerce_to_bitwise_operand other
+
+    other ^ self
   end
 
   def <<(other)
