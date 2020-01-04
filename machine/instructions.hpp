@@ -282,6 +282,41 @@ namespace rubinius {
 
     inline void n_promote(STATE, CF, R0, R1, R2);
 
+    // Native signed extended integer instructions
+    inline void n_eadd(CF, R0, R1, R2);
+    inline void n_esub(CF, R0, R1, R2);
+    inline void n_emul(CF, R0, R1, R2);
+    inline void n_ediv(STATE, CF, R0, R1, R2);
+    inline void n_emod(CF, R0, R1, R2);
+    inline void n_eneg(CF, R0, R1);
+    inline void n_enot(CF, R0, R1);
+    inline void n_eand(CF, R0, R1, R2);
+    inline void n_eor(CF, R0, R1, R2);
+    inline void n_exor(CF, R0, R1, R2);
+    inline void n_eshl(CF, R0, R1, R2);
+    inline void n_eshr(CF, R0, R1, R2);
+    inline void n_epopcnt(CF, R0, R1);
+    inline void n_eeq(CF, R0, R1, R2);
+    inline void n_ene(CF, R0, R1, R2);
+    inline void n_elt(CF, R0, R1, R2);
+    inline void n_ele(CF, R0, R1, R2);
+    inline void n_egt(CF, R0, R1, R2);
+    inline void n_ege(CF, R0, R1, R2);
+
+    // Native double floating point instructions
+    inline void n_dadd(CF, R0, R1, R2);
+    inline void n_dsub(CF, R0, R1, R2);
+    inline void n_dmul(CF, R0, R1, R2);
+    inline void n_ddiv(STATE, CF, R0, R1, R2);
+    inline void n_dmod(CF, R0, R1, R2);
+    inline void n_dneg(CF, R0, R1);
+    inline void n_deq(CF, R0, R1, R2);
+    inline void n_dne(CF, R0, R1, R2);
+    inline void n_dlt(CF, R0, R1, R2);
+    inline void n_dle(CF, R0, R1, R2);
+    inline void n_dgt(CF, R0, R1, R2);
+    inline void n_dge(CF, R0, R1, R2);
+
     // Code execution instructions
     inline void e_cache_method_p(STATE, CF, R0, R1);
     inline void e_cache_function_p(STATE, CF, R0, R1);

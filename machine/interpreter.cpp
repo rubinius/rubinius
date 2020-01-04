@@ -123,6 +123,9 @@ namespace rubinius {
       case instructions::data_n_ineg.id:
       case instructions::data_n_ineg_o.id:
       case instructions::data_n_inot.id:
+      case instructions::data_n_eneg.id:
+      case instructions::data_n_enot.id:
+      case instructions::data_n_dneg.id:
       case instructions::data_b_if_int.id:
       case instructions::data_r_load_int.id:
       case instructions::data_r_store_int.id:
@@ -170,6 +173,34 @@ namespace rubinius {
       case instructions::data_n_igt.id:
       case instructions::data_n_ige.id:
       case instructions::data_n_promote.id:
+      case instructions::data_n_eadd.id:
+      case instructions::data_n_esub.id:
+      case instructions::data_n_emul.id:
+      case instructions::data_n_ediv.id:
+      case instructions::data_n_emod.id:
+      case instructions::data_n_eand.id:
+      case instructions::data_n_eor.id:
+      case instructions::data_n_exor.id:
+      case instructions::data_n_eshl.id:
+      case instructions::data_n_eshr.id:
+      case instructions::data_n_epopcnt.id:
+      case instructions::data_n_eeq.id:
+      case instructions::data_n_ene.id:
+      case instructions::data_n_elt.id:
+      case instructions::data_n_ele.id:
+      case instructions::data_n_egt.id:
+      case instructions::data_n_ege.id:
+      case instructions::data_n_dadd.id:
+      case instructions::data_n_dsub.id:
+      case instructions::data_n_dmul.id:
+      case instructions::data_n_ddiv.id:
+      case instructions::data_n_dmod.id:
+      case instructions::data_n_deq.id:
+      case instructions::data_n_dne.id:
+      case instructions::data_n_dlt.id:
+      case instructions::data_n_dle.id:
+      case instructions::data_n_dgt.id:
+      case instructions::data_n_dge.id:
         opcodes[ip + 1] += stack_size;
         opcodes[ip + 2] += stack_size;
         opcodes[ip + 3] += stack_size;
