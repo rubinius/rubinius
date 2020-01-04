@@ -873,6 +873,10 @@ namespace rubinius {
       "data_n_ishr_o", 207, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::n_ishr_o
     };
+    const InstructionData constexpr data_n_promote = {
+      "data_n_promote", 208, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_promote
+    };
   }
 
   struct Instructions {

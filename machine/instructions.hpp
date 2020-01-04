@@ -280,6 +280,8 @@ namespace rubinius {
     inline void n_ige(CF, R0, R1, R2);
     inline void n_ipopcnt(CF, R0, R1);
 
+    inline void n_promote(STATE, CF, R0, R1, R2);
+
     // Code execution instructions
     inline void e_cache_method_p(STATE, CF, R0, R1);
     inline void e_cache_function_p(STATE, CF, R0, R1);

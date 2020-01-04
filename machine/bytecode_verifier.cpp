@@ -387,6 +387,7 @@ namespace rubinius {
         case instructions::data_n_ile.id:
         case instructions::data_n_igt.id:
         case instructions::data_n_ige.id:
+        case instructions::data_n_promote.id:
           verify_register(state, arg1, insn_ip);
           verify_register(state, arg2, insn_ip);
           verify_register(state, arg3, insn_ip);

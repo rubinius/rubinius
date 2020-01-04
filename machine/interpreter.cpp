@@ -169,6 +169,7 @@ namespace rubinius {
       case instructions::data_n_ile.id:
       case instructions::data_n_igt.id:
       case instructions::data_n_ige.id:
+      case instructions::data_n_promote.id:
         opcodes[ip + 1] += stack_size;
         opcodes[ip + 2] += stack_size;
         opcodes[ip + 3] += stack_size;

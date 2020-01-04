@@ -199,6 +199,8 @@ namespace rubinius {
     intptr_t n_ige(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ipopcnt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
+    intptr_t n_promote(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+
     // Code execution instructions
     intptr_t e_cache_method_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t e_cache_function_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

@@ -210,5 +210,6 @@ namespace rubinius {
     instructions::data_n_ineg_o,
     instructions::data_n_ishl_o,
     instructions::data_n_ishr_o,
+    instructions::data_n_promote,
   };
 }
