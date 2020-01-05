@@ -2,7 +2,7 @@
 
 namespace rubinius {
   namespace instructions {
-    inline void n_elt(CF, R0, R1, R2) {
+    inline void n_elt(STATE, CF, R0, R1, R2) {
     }
   }
 }

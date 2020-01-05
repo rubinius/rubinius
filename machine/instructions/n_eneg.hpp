@@ -2,7 +2,7 @@
 
 namespace rubinius {
   namespace instructions {
-    inline void n_eneg(CF, R0, R1) {
+    inline void n_eneg(STATE, CF, R0, R1) {
     }
   }
 }

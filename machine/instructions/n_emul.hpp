@@ -2,7 +2,7 @@
 
 namespace rubinius {
   namespace instructions {
-    inline void n_emul(CF, R0, R1, R2) {
+    inline void n_emul(STATE, CF, R0, R1, R2) {
     }
   }
 }

@@ -36,8 +36,9 @@ namespace rubinius {
 #define STACK_PTR call_frame->stack_ptr_
 #define REGISTERS call_frame->stk
 
-#define RVAL(r) (reinterpret_cast<Object**>(REGISTERS)[r])
 #define REG(r)  (reinterpret_cast<intptr_t*>(REGISTERS)[r])
+#define RVAL(r) (reinterpret_cast<Object**>(REGISTERS)[r])
+#define RFLT(r)  (reinterpret_cast<double*>(REGISTERS)[r])
 
 /* We have to use the local here we need to evaluate val before we alter the
  * stack. The reason is evaluating val might throw an exception. The old code
@@ -283,25 +284,25 @@ namespace rubinius {
     inline void n_promote(STATE, CF, R0, R1, R2);
 
     // Native signed extended integer instructions
-    inline void n_eadd(CF, R0, R1, R2);
-    inline void n_esub(CF, R0, R1, R2);
-    inline void n_emul(CF, R0, R1, R2);
+    inline void n_eadd(STATE, CF, R0, R1, R2);
+    inline void n_esub(STATE, CF, R0, R1, R2);
+    inline void n_emul(STATE, CF, R0, R1, R2);
     inline void n_ediv(STATE, CF, R0, R1, R2);
-    inline void n_emod(CF, R0, R1, R2);
-    inline void n_eneg(CF, R0, R1);
-    inline void n_enot(CF, R0, R1);
-    inline void n_eand(CF, R0, R1, R2);
-    inline void n_eor(CF, R0, R1, R2);
-    inline void n_exor(CF, R0, R1, R2);
-    inline void n_eshl(CF, R0, R1, R2);
-    inline void n_eshr(CF, R0, R1, R2);
-    inline void n_epopcnt(CF, R0, R1);
-    inline void n_eeq(CF, R0, R1, R2);
-    inline void n_ene(CF, R0, R1, R2);
-    inline void n_elt(CF, R0, R1, R2);
-    inline void n_ele(CF, R0, R1, R2);
-    inline void n_egt(CF, R0, R1, R2);
-    inline void n_ege(CF, R0, R1, R2);
+    inline void n_emod(STATE, CF, R0, R1, R2);
+    inline void n_eneg(STATE, CF, R0, R1);
+    inline void n_enot(STATE, CF, R0, R1);
+    inline void n_eand(STATE, CF, R0, R1, R2);
+    inline void n_eor(STATE, CF, R0, R1, R2);
+    inline void n_exor(STATE, CF, R0, R1, R2);
+    inline void n_eshl(STATE, CF, R0, R1, R2);
+    inline void n_eshr(STATE, CF, R0, R1, R2);
+    inline void n_epopcnt(STATE, CF, R0, R1);
+    inline void n_eeq(STATE, CF, R0, R1, R2);
+    inline void n_ene(STATE, CF, R0, R1, R2);
+    inline void n_elt(STATE, CF, R0, R1, R2);
+    inline void n_ele(STATE, CF, R0, R1, R2);
+    inline void n_egt(STATE, CF, R0, R1, R2);
+    inline void n_ege(STATE, CF, R0, R1, R2);
 
     // Native double floating point instructions
     inline void n_dadd(CF, R0, R1, R2);

@@ -119,12 +119,6 @@ class Bignum < Integer
     redo_compare :>=, other
   end
 
-  def ==(o)
-    Rubinius.primitive :bignum_equal
-    # This is to make sure the return value is true or false
-    o == self ? true : false
-  end
-
   def <=>(other)
     Rubinius.primitive :bignum_compare
 

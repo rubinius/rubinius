@@ -215,64 +215,6 @@ class Fixnum < Integer
 
   # comparison operators
 
-  def !=(o)
-    Rubinius.asm(o) do |o|
-      cmp = new_label
-      done = new_label
-
-      r0 = new_register
-      r1 = new_register
-
-      r_load_m_binops r0, r1
-
-      b_if_int r0, r1, cmp
-      goto done
-
-      cmp.set!
-      n_ine r0, r0, r1
-
-      r_load_bool r0, r0
-      r_ret r0
-
-      done.set!
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-
-    o != self
-  end
-
-  def ==(o)
-    Rubinius.asm(o) do |o|
-      cmp = new_label
-      done = new_label
-
-      r0 = new_register
-      r1 = new_register
-
-      r_load_m_binops r0, r1
-
-      b_if_int r0, r1, cmp
-      goto done
-
-      cmp.set!
-      n_ieq r0, r0, r1
-
-      r_load_bool r0, r0
-      r_ret r0
-
-      done.set!
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-
-    o == self
-  end
-
-  alias_method :===, :==
-
   def <=>(other)
     Rubinius.primitive :fixnum_compare
 
@@ -288,7 +230,7 @@ class Fixnum < Integer
   end
 
   def <(other)
-    Rubinius.asm(o) do |o|
+    Rubinius.asm do
       cmp = new_label
       done = new_label
 

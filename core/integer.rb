@@ -10,6 +10,108 @@ class Integer < Numeric
     end
   end
 
+  # comparison operators
+
+  def !=(other)
+    Rubinius.asm do
+      cmp = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_ene r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dne r0, r0, r1
+      goto val
+
+      cmp.set!
+      n_ine r0, r0, r1
+
+      val.set!
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    other != self ? true : false
+  end
+
+  def ==(other)
+    Rubinius.asm do
+      cmp = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_eeq r0, r0, r1
+      goto val
+
+      flt.set!
+      n_deq r0, r0, r1
+      goto val
+
+      cmp.set!
+      n_ieq r0, r0, r1
+
+      val.set!
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    other == self ? true : false
+  end
+
+  alias_method :===, :==
+
   # bitwise binary operators
 
   def &(other)

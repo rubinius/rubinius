@@ -1,8 +1,11 @@
 #include "instructions.hpp"
 
+#include "class/bignum.hpp"
+
 namespace rubinius {
   namespace instructions {
-    inline void n_ene(CF, R0, R1, R2) {
+    inline void n_ene(STATE, CF, R0, R1, R2) {
+      REG(r0) = CBOOL(!as<Bignum>(RVAL(r1))->equal(state, as<Bignum>(RVAL(r2))));
     }
   }
 }

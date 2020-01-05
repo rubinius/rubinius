@@ -2,7 +2,7 @@
 
 namespace rubinius {
   namespace instructions {
-    inline void n_enot(CF, R0, R1) {
+    inline void n_enot(STATE, CF, R0, R1) {
     }
   }
 }
