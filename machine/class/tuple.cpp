@@ -29,7 +29,7 @@ namespace rubinius {
 
   /* The Tuple#at primitive. */
   Object* Tuple::at_prim(STATE, Fixnum* index_obj) {
-    native_int index = index_obj->to_native();
+    intptr_t index = index_obj->to_native();
 
     if(index < 0 || num_fields() <= index) {
       return bounds_exceeded_error(state, "Tuple::at_prim", index);
@@ -40,7 +40,7 @@ namespace rubinius {
 
   /* The Tuple#put primitive. */
   Object* Tuple::put_prim(STATE, Fixnum* index, Object* val) {
-    native_int idx = index->to_native();
+    intptr_t idx = index->to_native();
 
     if(idx < 0 || num_fields() <= idx) {
       return bounds_exceeded_error(state, "Tuple::put_prim", idx);
@@ -58,7 +58,7 @@ namespace rubinius {
     return Integer::from(state, num_fields());
   }
 
-  Tuple* Tuple::create(STATE, native_int fields) {
+  Tuple* Tuple::create(STATE, intptr_t fields) {
     if(fields < 0) {
       Exception::raise_argument_error(state, "negative tuple size");
     }
@@ -70,7 +70,7 @@ namespace rubinius {
   }
 
   Tuple* Tuple::allocate(STATE, Object* self, Fixnum* fields) {
-    native_int size = fields->to_native();
+    intptr_t size = fields->to_native();
 
     if(size < 0) {
       Exception::raise_argument_error(state, "negative tuple size");
@@ -81,12 +81,12 @@ namespace rubinius {
     return tuple;
   }
 
-  Tuple* Tuple::from(STATE, native_int fields, ...) {
+  Tuple* Tuple::from(STATE, intptr_t fields, ...) {
     Tuple* tup = Tuple::create(state, fields);
     va_list ar;
 
     va_start(ar, fields);
-    for(native_int i = 0; i < fields; i++) {
+    for(intptr_t i = 0; i < fields; i++) {
       Object *obj = va_arg(ar, Object*);
       // fields equals size so bounds checking is unecessary
       tup->put(state, i, obj);
@@ -97,12 +97,12 @@ namespace rubinius {
   }
 
   Tuple* Tuple::copy_from(STATE, Tuple* other, Fixnum* start, Fixnum *length, Fixnum* dest) {
-    native_int osize = other->num_fields();
-    native_int size = this->num_fields();
+    intptr_t osize = other->num_fields();
+    intptr_t size = this->num_fields();
 
-    native_int src_start = start->to_native();
-    native_int dst_start = dest->to_native();
-    native_int len = length->to_native();
+    intptr_t src_start = start->to_native();
+    intptr_t dst_start = dest->to_native();
+    intptr_t len = length->to_native();
 
     // left end should be within range
     if(src_start < 0 || src_start > osize) {
@@ -132,7 +132,7 @@ namespace rubinius {
       if(src_start == dst_start) return this;
       // right shift
       if(src_start < dst_start) {
-        for(native_int dest_idx = dst_start + len - 1,
+        for(intptr_t dest_idx = dst_start + len - 1,
                        src_idx  = src_start + len - 1;
             src_idx >= src_start;
             src_idx--, dest_idx--) {
@@ -140,7 +140,7 @@ namespace rubinius {
         }
       } else {
         // left shift
-        for(native_int dest_idx = dst_start,
+        for(intptr_t dest_idx = dst_start,
                        src_idx  = src_start;
             src_idx < src_start + len;
             src_idx++, dest_idx++) {
@@ -149,7 +149,7 @@ namespace rubinius {
       }
 
     } else {
-      for(native_int src = src_start, dst = dst_start;
+      for(intptr_t src = src_start, dst = dst_start;
           src < (src_start + len);
           ++src, ++dst) {
         // Since we have carefully checked the bounds we don't need
@@ -164,12 +164,12 @@ namespace rubinius {
     return this;
   }
 
-  native_int Tuple::delete_inplace(native_int lend, native_int len, Object* obj) {
-    native_int rend = lend + len;
-    native_int i = lend;
+  intptr_t Tuple::delete_inplace(intptr_t lend, intptr_t len, Object* obj) {
+    intptr_t rend = lend + len;
+    intptr_t i = lend;
     while(i < rend) {
       if(at(i)->equal_p(obj)) {
-        native_int j = i;
+        intptr_t j = i;
         ++i;
         while(i < rend) {
           Object *val = field[i];
@@ -195,10 +195,10 @@ namespace rubinius {
   }
 
   Fixnum* Tuple::delete_inplace_prim(STATE, Fixnum *start, Fixnum *length, Object *obj) {
-    native_int size = this->num_fields();
-    native_int len  = length->to_native();
-    native_int lend = start->to_native();
-    native_int rend = lend + len;
+    intptr_t size = this->num_fields();
+    intptr_t len  = length->to_native();
+    intptr_t lend = start->to_native();
+    intptr_t rend = lend + len;
 
     if(size == 0 || len == 0) return Fixnum::from(0);
     if(lend < 0 || lend >= size) {
@@ -216,14 +216,14 @@ namespace rubinius {
    *  evaluate corner cases, and add tests... --rue
    */
   Tuple* Tuple::lshift_inplace(STATE, Fixnum* shift) {
-    native_int size = this->num_fields();
-    const native_int start = shift->to_native();
+    intptr_t size = this->num_fields();
+    const intptr_t start = shift->to_native();
 
     assert(start >= 0);
 
     if(start > 0) {
-      native_int i = 0;
-      native_int j = start;
+      intptr_t i = 0;
+      intptr_t j = start;
 
       while(j < size) {
         this->field[i++] = this->field[j++];
@@ -238,12 +238,12 @@ namespace rubinius {
   }
 
   Object* Tuple::reverse(STATE, Fixnum* o_start, Fixnum* o_total) {
-    native_int start = o_start->to_native();
-    native_int total = o_total->to_native();
+    intptr_t start = o_start->to_native();
+    intptr_t total = o_total->to_native();
 
     if(total <= 0 || start < 0 || start >= num_fields()) return this;
 
-    native_int end = start + total - 1;
+    intptr_t end = start + total - 1;
     if(end >= num_fields()) end = num_fields() - 1;
 
     Object** pos1 = field + start;
@@ -261,7 +261,7 @@ namespace rubinius {
 
   // @todo performance primitive; could be replaced with Ruby
   Tuple* Tuple::pattern(STATE, Fixnum* size, Object* val) {
-    native_int cnt = size->to_native();
+    intptr_t cnt = size->to_native();
 
     if(cnt < 0) {
       Exception::raise_argument_error(state, "negative tuple size");
@@ -269,7 +269,7 @@ namespace rubinius {
 
     Tuple* tuple = state->memory()->new_fields<Tuple>(state, G(tuple), cnt);
 
-    for(native_int i = 0; i < cnt; i++) {
+    for(intptr_t i = 0; i < cnt; i++) {
       tuple->field[i] = val;
     }
 
@@ -279,11 +279,11 @@ namespace rubinius {
   }
 
   Tuple* Tuple::tuple_dup(STATE) {
-    native_int fields = num_fields();
+    intptr_t fields = num_fields();
 
     Tuple* tup = Tuple::create(state, fields);
 
-    for(native_int i = 0; i < fields; i++) {
+    for(intptr_t i = 0; i < fields; i++) {
       tup->put(state, i, field[i]);
     }
 
@@ -297,7 +297,7 @@ namespace rubinius {
   void Tuple::Info::mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     Tuple* tup = as<Tuple>(obj);
 
-    for(native_int i = 0; i < tup->num_fields(); i++) {
+    for(intptr_t i = 0; i < tup->num_fields(); i++) {
       f(state, &tup->field[i]);
     }
   }
@@ -305,15 +305,15 @@ namespace rubinius {
   void Tuple::Info::before_visit(STATE, Object* obj, std::function<void (STATE, Object**)> f) {
     Tuple* tup = as<Tuple>(obj);
 
-    for(native_int i = 0; i < tup->num_fields(); i++) {
+    for(intptr_t i = 0; i < tup->num_fields(); i++) {
       f(state, &tup->field[i]);
     }
   }
 
   void Tuple::Info::show(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
-    native_int size = tup->num_fields();
-    native_int stop = size < 6 ? size : 6;
+    intptr_t size = tup->num_fields();
+    intptr_t stop = size < 6 ? size : 6;
 
     if(size == 0) {
       class_info(state, self, true);
@@ -323,7 +323,7 @@ namespace rubinius {
     class_info(state, self);
     std::cout << ": " << size << std::endl;
     ++level;
-    for(native_int i = 0; i < stop; i++) {
+    for(intptr_t i = 0; i < stop; i++) {
       indent(level);
       Object* obj = tup->at(state, i);
       if(obj == tup) {
@@ -338,8 +338,8 @@ namespace rubinius {
 
   void Tuple::Info::show_simple(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
-    native_int size = tup->num_fields();
-    native_int stop = size < 6 ? size : 6;
+    intptr_t size = tup->num_fields();
+    intptr_t stop = size < 6 ? size : 6;
 
     if(size == 0) {
       class_info(state, self, true);
@@ -349,7 +349,7 @@ namespace rubinius {
     class_info(state, self);
     std::cout << ": " << size << std::endl;
     ++level;
-    for(native_int i = 0; i < stop; i++) {
+    for(intptr_t i = 0; i < stop; i++) {
       indent(level);
       Object* obj = tup->at(state, i);
       if(Tuple* t = try_as<Tuple>(obj)) {
@@ -364,7 +364,7 @@ namespace rubinius {
   }
 
   void RTuple::initialize(STATE, RTuple* obj) {
-    for(native_int i = 0; i < obj->num_fields(); i++) {
+    for(intptr_t i = 0; i < obj->num_fields(); i++) {
       reinterpret_cast<VALUE*>(obj->field)[i] = MemoryHandle::value(cNil);
     }
   }
@@ -372,14 +372,14 @@ namespace rubinius {
   RTuple* RTuple::from(STATE, Tuple* tuple) {
     RTuple* rtuple = create(state, tuple->num_fields());
 
-    for(native_int i = 0; i < tuple->num_fields(); i++) {
+    for(intptr_t i = 0; i < tuple->num_fields(); i++) {
       reinterpret_cast<VALUE*>(rtuple->field)[i] = MemoryHandle::value(tuple->at(i));
     }
 
     return rtuple;
   }
 
-  RTuple* RTuple::create(STATE, native_int fields) {
+  RTuple* RTuple::create(STATE, intptr_t fields) {
     if(fields < 0) {
       Exception::raise_argument_error(state, "negative RTuple size");
     }
@@ -391,7 +391,7 @@ namespace rubinius {
   }
 
   RTuple* RTuple::allocate(STATE, Object* self, Fixnum* fields) {
-    native_int size = fields->to_native();
+    intptr_t size = fields->to_native();
 
     if(size < 0) {
       Exception::raise_argument_error(state, "negative RTuple size");
@@ -404,7 +404,7 @@ namespace rubinius {
   }
 
   Object* RTuple::at_prim(STATE, Fixnum* idx) {
-    native_int index = idx->to_native();
+    intptr_t index = idx->to_native();
 
     if(index < 0 || num_fields() <= index) {
       return bounds_exceeded_error(state, "RTuple::at_prim", index);
@@ -414,7 +414,7 @@ namespace rubinius {
   }
 
   Object* RTuple::put_prim(STATE, Fixnum* idx, Object* val) {
-    native_int index = idx->to_native();
+    intptr_t index = idx->to_native();
 
     if(index < 0 || num_fields() <= index) {
       return bounds_exceeded_error(state, "RTuple::put_prim", index);
@@ -432,7 +432,7 @@ namespace rubinius {
 
     VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);
 
-    for(native_int i = 0; i < rtup->num_fields(); i++) {
+    for(intptr_t i = 0; i < rtup->num_fields(); i++) {
       Object* slot = MemoryHandle::object(ptr[i]);
       f(state, &slot);
       ptr[i] = MemoryHandle::value(slot);
@@ -444,7 +444,7 @@ namespace rubinius {
 
     VALUE* ptr = reinterpret_cast<VALUE*>(rtup->field);
 
-    for(native_int i = 0; i < rtup->num_fields(); i++) {
+    for(intptr_t i = 0; i < rtup->num_fields(); i++) {
       Object* slot = MemoryHandle::object(ptr[i]);
       f(state, &slot);
       ptr[i] = MemoryHandle::value(slot);

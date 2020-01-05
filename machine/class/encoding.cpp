@@ -486,7 +486,7 @@ namespace rubinius {
     managed(true);
   }
 
-  native_int Encoding::find_non_ascii_index(const uint8_t* start, const uint8_t* end) {
+  intptr_t Encoding::find_non_ascii_index(const uint8_t* start, const uint8_t* end) {
     uint8_t* p = (uint8_t*) start;
     while(p < end) {
       if(!ISASCII(*p)) {
@@ -497,12 +497,12 @@ namespace rubinius {
     return -1;
   }
 
-  native_int Encoding::find_byte_character_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc) {
+  intptr_t Encoding::find_byte_character_index(const uint8_t* start, const uint8_t* end, intptr_t index, OnigEncodingType* enc) {
     uint8_t* p = (uint8_t*) start;
-    native_int char_index = 0;
+    intptr_t char_index = 0;
 
     while(p < end && index > 0) {
-      native_int char_len = mbclen(p, end, enc);
+      intptr_t char_len = mbclen(p, end, enc);
       p += char_len;
       index -= char_len;
       char_index++;
@@ -511,7 +511,7 @@ namespace rubinius {
     return char_index;
   }
 
-  native_int Encoding::find_character_byte_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc) {
+  intptr_t Encoding::find_character_byte_index(const uint8_t* start, const uint8_t* end, intptr_t index, OnigEncodingType* enc) {
     uint8_t* p = (uint8_t*) start;
     while(p < end && index--) {
       p += mbclen(p, end, enc);
@@ -521,8 +521,8 @@ namespace rubinius {
     return p - start;
   }
 
-  native_int Encoding::string_character_length(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
-    native_int chars;
+  intptr_t Encoding::string_character_length(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
+    intptr_t chars;
 
     for(chars = 0; p < e; chars++) {
       int n = Encoding::precise_mbclen(p, e, enc);
@@ -788,8 +788,8 @@ namespace rubinius {
     const unsigned char* source_ptr = 0;
     const unsigned char* source_end = 0;
 
-    native_int byte_offset = offset->to_native();
-    native_int byte_size = size->to_native();
+    intptr_t byte_offset = offset->to_native();
+    intptr_t byte_size = size->to_native();
 
   retry:
 
@@ -833,7 +833,7 @@ namespace rubinius {
         as<Array>(self->replacement_converters()->get(state, i + 1));
       }
 
-      native_int byte_size = self->replacement()->byte_size();
+      intptr_t byte_size = self->replacement()->byte_size();
       char* buf = (char*)XMALLOC(byte_size + 1);
       strncpy(buf, self->replacement()->c_str(state), byte_size + 1);
       self->converter()->replacement_str = (const unsigned char*)buf;
@@ -882,7 +882,7 @@ namespace rubinius {
       source_ptr = source_end = NULL;
     }
 
-    native_int buffer_size = byte_offset + byte_size;
+    intptr_t buffer_size = byte_offset + byte_size;
     ByteArray* buffer = ByteArray::create_pinned(state, buffer_size + 1);
 
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
@@ -891,7 +891,7 @@ namespace rubinius {
     rb_econv_result_t result = econv_convert(self->converter(), &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);
 
-    native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
+    intptr_t output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
 
     if(result == econv_destination_buffer_full && size->to_native() == -1) {
       rb_econv_free(self->converter());
@@ -913,9 +913,9 @@ namespace rubinius {
 
     if(src) {
       // Removing consumed bytes from src.
-      native_int bytes_to_drop = source_ptr - (const unsigned char*)src->c_str(state);
-      native_int index = bytes_to_drop;
-      native_int length = src->byte_size() - index;
+      intptr_t bytes_to_drop = source_ptr - (const unsigned char*)src->c_str(state);
+      intptr_t index = bytes_to_drop;
+      intptr_t length = src->byte_size() - index;
 
       String *replacement = src->byte_substring(state, index, length);
       src->data(state, replacement->data());
@@ -1032,8 +1032,8 @@ namespace rubinius {
   }
 
   String* Converter::putback(STATE, Object* maxbytes) {
-    native_int n;
-    native_int putbackable;
+    intptr_t n;
+    intptr_t putbackable;
 
     if(Fixnum* max_bytes = try_as<Fixnum>(maxbytes)) {
       n = max_bytes->to_native();

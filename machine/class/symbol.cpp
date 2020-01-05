@@ -19,7 +19,7 @@ namespace rubinius {
     GO(symbol).set(state->memory()->new_class<Class, Symbol>(state, "Symbol"));
   }
 
-  native_int Symbol::index() const {
+  intptr_t Symbol::index() const {
     return STRIP_SYMBOL_TAG(this);
   }
 

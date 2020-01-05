@@ -13,8 +13,8 @@ namespace rubinius {
     // Rubinius.primitive :character_allocate
     static Character* allocate(STATE, Object* self);
 
-    static Character* create(STATE, native_int size);
-    static Character* create(STATE, const char* bytes, native_int size);
+    static Character* create(STATE, intptr_t size);
+    static Character* create(STATE, const char* bytes, intptr_t size);
     static Character* create_from(STATE, String* str, Fixnum* byte);
 
     // Rubinius.primitive+ :character_alphabetical_p

@@ -410,7 +410,7 @@ public:
 
   void test_set_field_int_bignum() {
     int buffer[1024];
-    Object* one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (intptr_t)1);
 
     buffer[0] = 0;
 
@@ -432,7 +432,7 @@ public:
 
   void test_set_field_uint_bignum() {
     unsigned int buffer[1024];
-    Object* one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (intptr_t)1);
 
     buffer[0] = 0;
 
@@ -454,7 +454,7 @@ public:
 
   void test_set_field_long_bignum() {
     long buffer[1024];
-    Object* one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (intptr_t)1);
 
     buffer[0] = 0;
 
@@ -476,7 +476,7 @@ public:
 
   void test_set_field_ulong_bignum() {
     unsigned long buffer[1024];
-    Object* one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (intptr_t)1);
 
     buffer[0] = 0;
 
@@ -520,7 +520,7 @@ public:
 
   void test_set_field_ll_bignum() {
     long long buffer[1024];
-    Object* one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (intptr_t)1);
 
     buffer[0] = 0;
 
@@ -542,7 +542,7 @@ public:
 
   void test_set_field_ull_bignum() {
     unsigned long long buffer[1024];
-    Object* one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (intptr_t)1);
 
     buffer[0] = 0;
 

@@ -31,7 +31,7 @@
 namespace rubinius {
 
   namespace unpack {
-    void inline increment(native_int& index, native_int n, native_int limit) {
+    void inline increment(intptr_t& index, intptr_t n, intptr_t limit) {
       if(index + n < limit) {
         index += n;
       } else {
@@ -100,7 +100,7 @@ namespace rubinius {
     }
 
     String* quotable_printable(STATE, const char*& bytes,
-                               const char* bytes_end, native_int remainder)
+                               const char* bytes_end, intptr_t remainder)
     {
       if(remainder == 0) {
         return String::create(state, 0, 0);
@@ -160,7 +160,7 @@ namespace rubinius {
     };
 
     String* base64_decode(STATE, const char*& bytes,
-                          const char* bytes_end, native_int remainder)
+                          const char* bytes_end, intptr_t remainder)
     {
       if(remainder == 0) {
         String* str = String::create(state, 0, 0);
@@ -170,7 +170,7 @@ namespace rubinius {
         return str;
       }
 
-      native_int num_bytes = (bytes_end - bytes) * 3 / 4;
+      intptr_t num_bytes = (bytes_end - bytes) * 3 / 4;
       String* str = String::create(state, 0, num_bytes);
       uint8_t *buf = str->byte_address();
 
@@ -229,18 +229,18 @@ namespace rubinius {
     }
 
     String* uu_decode(STATE, const char*& bytes,
-                      const char* bytes_end, native_int remainder)
+                      const char* bytes_end, intptr_t remainder)
     {
       if(remainder == 0) {
         return String::create(state, 0, 0);
       }
 
-      native_int length = 0, num_bytes = (bytes_end - bytes) * 3 / 4;
+      intptr_t length = 0, num_bytes = (bytes_end - bytes) * 3 / 4;
       String* str = String::create(state, 0, num_bytes);
       uint8_t *buf = str->byte_address();
 
       while(bytes < bytes_end && *bytes > ' ' && *bytes < 'a') {
-        native_int line = (*bytes++ - ' ') & 0x3f;
+        intptr_t line = (*bytes++ - ' ') & 0x3f;
         length += line;
         if(length > num_bytes) {
           line -= length - num_bytes;
@@ -300,12 +300,12 @@ namespace rubinius {
 
     void utf8_decode(STATE, Array* array,
                      const char* bytes, const char* bytes_end,
-                     native_int count, native_int& index)
+                     intptr_t count, intptr_t& index)
     {
       int length;
 
       for(; count > 0 && bytes < bytes_end; count--) {
-        native_int remainder = bytes_end - bytes;
+        intptr_t remainder = bytes_end - bytes;
         uint32_t c = *bytes++ & 0xff, value = c;
         int n = 0;
         length = 1;
@@ -368,7 +368,7 @@ namespace rubinius {
     static const unsigned long ber_mask = 0xfeUL << ((sizeof(unsigned long) - 1) * 8);
     void ber_decode(STATE, Array* array,
                      const char*& bytes, const char* bytes_end,
-                     native_int count, native_int& index)
+                     intptr_t count, intptr_t& index)
     {
       Fixnum* base = Fixnum::from(128);
       unsigned long value = 0;
@@ -412,12 +412,12 @@ namespace rubinius {
       }
     }
 
-    String* bit_high(STATE, const char*& bytes, native_int count) {
+    String* bit_high(STATE, const char*& bytes, intptr_t count) {
       String* str = String::create(state, 0, count);
       uint8_t *buf = str->byte_address();
       int bits = 0;
 
-      for(native_int i = 0; i < count; i++) {
+      for(intptr_t i = 0; i < count; i++) {
         if(i & 7) {
           bits <<= 1;
         } else {
@@ -430,12 +430,12 @@ namespace rubinius {
       return str;
     }
 
-    String* bit_low(STATE, const char*& bytes, native_int count) {
+    String* bit_low(STATE, const char*& bytes, intptr_t count) {
       String* str = String::create(state, 0, count);
       uint8_t *buf = str->byte_address();
       int bits = 0;
 
-      for(native_int i = 0; i < count; i++) {
+      for(intptr_t i = 0; i < count; i++) {
         if(i & 7) {
           bits >>= 1;
         } else {
@@ -450,12 +450,12 @@ namespace rubinius {
 
     static const char hexdigits[] = "0123456789abcdef0123456789ABCDEFx";
 
-    String* hex_high(STATE, const char*& bytes, native_int count) {
+    String* hex_high(STATE, const char*& bytes, intptr_t count) {
       String* str = String::create(state, 0, count);
       uint8_t *buf = str->byte_address();
       int bits = 0;
 
-      for(native_int i = 0; i < count; i++) {
+      for(intptr_t i = 0; i < count; i++) {
         if(i & 1) {
           bits <<= 4;
         } else {
@@ -468,12 +468,12 @@ namespace rubinius {
       return str;
     }
 
-    String* hex_low(STATE, const char*& bytes, native_int count) {
+    String* hex_low(STATE, const char*& bytes, intptr_t count) {
       String* str = String::create(state, 0, count);
       uint8_t *buf = str->byte_address();
       int bits = 0;
 
-      for(native_int i = 0; i < count; i++) {
+      for(intptr_t i = 0; i < count; i++) {
         if(i & 1) {
           bits >>= 4;
         } else {
@@ -489,7 +489,7 @@ namespace rubinius {
     ByteArray* prepare_directives(STATE, String* directives,
                                   const char** p, const char** pe)
     {
-      native_int size = directives->byte_size();
+      intptr_t size = directives->byte_size();
       ByteArray* ba = ByteArray::create_pinned(state, size + 1);
       char* b = reinterpret_cast<char*>(ba->raw_bytes());
       char* d = reinterpret_cast<char*>(directives->byte_address());
@@ -635,12 +635,12 @@ namespace rubinius {
     const char* bytes = 0;
     const char* bytes_end = 0;
 
-    native_int bytes_size = self->byte_size();
-    native_int index UNUSED = 0;
-    native_int stop = 0;
-    native_int width = 0;
-    native_int count UNUSED = 0;
-    native_int remainder = 0;
+    intptr_t bytes_size = self->byte_size();
+    intptr_t index UNUSED = 0;
+    intptr_t stop = 0;
+    intptr_t width = 0;
+    intptr_t count UNUSED = 0;
+    intptr_t remainder = 0;
     bool rest UNUSED = false;
 
 
@@ -4600,7 +4600,7 @@ _resume:
     String* string;
 
     if(count > 0) {
-      native_int i;
+      intptr_t i;
       for(i = count; i > 0; i--) {
         uint8_t c = bytes[i-1];
         if(c != ' ' && c != '\0')
@@ -4624,7 +4624,7 @@ _resume:
 	break;
 	case 68:
 	{
-    native_int c;
+    intptr_t c;
     for(c = 0; c < count; c++) {
       if(bytes[c] == '\0') break;
     }
@@ -5086,7 +5086,7 @@ _again:
     String* string;
 
     if(count > 0) {
-      native_int i;
+      intptr_t i;
       for(i = count; i > 0; i--) {
         uint8_t c = bytes[i-1];
         if(c != ' ' && c != '\0')
@@ -5110,7 +5110,7 @@ _again:
 	break;
 	case 68:
 	{
-    native_int c;
+    intptr_t c;
     for(c = 0; c < count; c++) {
       if(bytes[c] == '\0') break;
     }

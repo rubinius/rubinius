@@ -134,11 +134,11 @@ namespace rubinius {
     type_info[ti->type] = ti;
   }
 
-  Object* Memory::new_object(STATE, native_int bytes, object_type type) {
+  Object* Memory::new_object(STATE, intptr_t bytes, object_type type) {
     return state->vm()->allocate_object(state, bytes, type);
   }
 
-  Object* Memory::new_object_pinned(STATE, native_int bytes, object_type type) {
+  Object* Memory::new_object_pinned(STATE, intptr_t bytes, object_type type) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = nullptr;

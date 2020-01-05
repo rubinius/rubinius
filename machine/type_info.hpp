@@ -36,7 +36,7 @@ namespace rubinius {
   class TypeInfo {
   public: // Types
 
-    typedef std::map<native_int, long> Slots;
+    typedef std::map<intptr_t, long> Slots;
     typedef std::vector<object_type> SlotTypes;
     typedef std::vector<executor> AccessorPrimitives;
     typedef std::vector<uintptr_t> SlotLocations;

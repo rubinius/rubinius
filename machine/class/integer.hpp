@@ -20,7 +20,7 @@ namespace rubinius {
 
   class Integer : public Numeric {
   private:
-    native_int bignum_to_native();
+    intptr_t bignum_to_native();
   public:
     static const object_type type = IntegerType;
 
@@ -46,7 +46,7 @@ namespace rubinius {
 
     bool positive_p();
 
-    native_int to_native() {
+    intptr_t to_native() {
       if(fixnum_p()) return STRIP_FIXNUM_TAG(this);
       return bignum_to_native();
     }

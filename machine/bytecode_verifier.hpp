@@ -16,13 +16,13 @@ namespace rubinius {
     CompiledCode* method_;
 
     Tuple* ops_;
-    native_int total_;
+    intptr_t total_;
 
     int max_stack_allowed_;
     int max_stack_seen_;
     int32_t* stack_;
 
-    native_int locals_;
+    intptr_t locals_;
     int max_stack_local_;
 
     int max_registers_;

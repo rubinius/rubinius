@@ -405,8 +405,8 @@ namespace rubinius {
     max = string->byte_size();
     str = (UChar*)string->byte_address();
 
-    native_int i_start = start->to_native();
-    native_int i_end = end->to_native();
+    intptr_t i_start = start->to_native();
+    intptr_t i_end = end->to_native();
 
     // Bounds check.
     if(i_start < 0 || i_end < 0 || i_start > max || i_end > max) {
@@ -448,7 +448,7 @@ namespace rubinius {
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
     if(data->int_map_backward != back_match) {
-      native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      intptr_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba =
         state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
@@ -489,7 +489,7 @@ namespace rubinius {
     }
 
     max = string->byte_size();
-    native_int pos = start->to_native();
+    intptr_t pos = start->to_native();
 
     str = (UChar*)string->byte_address();
     fin = str + max;
@@ -523,7 +523,7 @@ namespace rubinius {
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
     if(data->int_map_backward != back_match) {
-      native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      intptr_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba =
         state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
@@ -568,7 +568,7 @@ namespace rubinius {
     if(!data) return 0;
 
     max = string->byte_size();
-    native_int pos = start->to_native();
+    intptr_t pos = start->to_native();
 
     str = (UChar*)string->byte_address();
     fin = str + max;
@@ -596,7 +596,7 @@ namespace rubinius {
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
     if(data->int_map_backward != back_match) {
-      native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      intptr_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba =
         state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), size);
       memcpy(ba->raw_bytes(), data->int_map_backward, size);
@@ -624,9 +624,9 @@ namespace rubinius {
     Fixnum* beg = as<Fixnum>(full()->at(state, 0));
     Fixnum* fin = as<Fixnum>(full()->at(state, 1));
 
-    native_int max = source()->byte_size();
-    native_int f = fin->to_native();
-    native_int b = beg->to_native();
+    intptr_t max = source()->byte_size();
+    intptr_t f = fin->to_native();
+    intptr_t b = beg->to_native();
 
     String* string;
 
@@ -634,7 +634,7 @@ namespace rubinius {
       string = String::create(state, 0, 0);
     } else {
       const char* str = (char*)source()->byte_address();
-      native_int sz = fin->to_native() - beg->to_native();
+      intptr_t sz = fin->to_native() - beg->to_native();
 
       string = String::create(state, str + beg->to_native(), sz);
     }
@@ -649,8 +649,8 @@ namespace rubinius {
   String* MatchData::pre_matched(STATE) {
     Fixnum* beg = as<Fixnum>(full()->at(state, 0));
 
-    native_int max = source()->byte_size();
-    native_int sz = beg->to_native();
+    intptr_t max = source()->byte_size();
+    intptr_t sz = beg->to_native();
 
     String* string;
 
@@ -674,8 +674,8 @@ namespace rubinius {
   String* MatchData::post_matched(STATE) {
     Fixnum* fin = as<Fixnum>(full()->at(state, 1));
 
-    native_int f = fin->to_native();
-    native_int max = source()->byte_size();
+    intptr_t f = fin->to_native();
+    intptr_t max = source()->byte_size();
 
     String* string;
 
@@ -683,7 +683,7 @@ namespace rubinius {
       string = String::create(state, 0, 0);
     } else {
       const char* str = (char*)source()->byte_address();
-      native_int sz = max - f;
+      intptr_t sz = max - f;
 
       if(sz > max) sz = max;
 
@@ -697,7 +697,7 @@ namespace rubinius {
     return string;
   }
 
-  String* MatchData::nth_capture(STATE, native_int which) {
+  String* MatchData::nth_capture(STATE, intptr_t which) {
     if(region()->num_fields() <= which) return nil<String>();
 
     Tuple* sub = try_as<Tuple>(region()->at(state, which));
@@ -706,9 +706,9 @@ namespace rubinius {
     Fixnum* beg = as<Fixnum>(sub->at(state, 0));
     Fixnum* fin = as<Fixnum>(sub->at(state, 1));
 
-    native_int b = beg->to_native();
-    native_int f = fin->to_native();
-    native_int max = source()->byte_size();
+    intptr_t b = beg->to_native();
+    intptr_t f = fin->to_native();
+    intptr_t max = source()->byte_size();
 
     if(f > max ||
        b < 0) {
@@ -716,7 +716,7 @@ namespace rubinius {
     }
 
     const char* str = (char*)source()->byte_address();
-    native_int sz = f - b;
+    intptr_t sz = f - b;
 
     if(sz > max) sz = max;
 
@@ -730,7 +730,7 @@ namespace rubinius {
 
   String* MatchData::last_capture(STATE) {
     if(region()->num_fields() == 0) return nil<String>();
-    native_int captures = region()->num_fields();
+    intptr_t captures = region()->num_fields();
     while(captures--) {
       String* capture = nth_capture(state, captures);
       if(!capture->nil_p()) {
@@ -775,7 +775,7 @@ namespace rubinius {
       if(args.total() == 0) return match;
       if(args.total() > 1) return Primitives::failure();
 
-      native_int which = as<Fixnum>(args.get_argument(0))->to_native();
+      intptr_t which = as<Fixnum>(args.get_argument(0))->to_native();
 
       if(which == 0) {
         return match->matched_string(state);

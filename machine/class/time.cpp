@@ -184,7 +184,7 @@ namespace rubinius {
       return offset();
     }
 
-    native_int off;
+    intptr_t off;
 
 #ifdef HAVE_TM_NAME
     struct tm tm = get_tm();

@@ -7,7 +7,7 @@ namespace rubinius {
   namespace memory {
     size_t OpenTHCA::region_size = 16384;
 
-    Object* THCA::allocate(STATE, native_int bytes, object_type type) {
+    Object* THCA::allocate(STATE, intptr_t bytes, object_type type) {
       return state->memory()->main_heap()->allocate(state, bytes, type);
     }
 
@@ -33,7 +33,7 @@ namespace rubinius {
       return false;
     }
 
-    Object* OpenTHCA::allocate_object(STATE, native_int bytes, object_type type) {
+    Object* OpenTHCA::allocate_object(STATE, intptr_t bytes, object_type type) {
       if(available_ >= bytes) {
         Object* obj = reinterpret_cast<Object*>(address_);
 
@@ -50,7 +50,7 @@ namespace rubinius {
       return nullptr;
     }
 
-    Object* OpenTHCA::allocate(STATE, native_int bytes, object_type type) {
+    Object* OpenTHCA::allocate(STATE, intptr_t bytes, object_type type) {
       bytes = MemoryHeader::align(bytes);
 
       if(bytes <= cMediumObjectLimit) {
@@ -64,11 +64,11 @@ namespace rubinius {
       return THCA::allocate(state, bytes, type);
     }
 
-    Object* ClosedTHCA::allocate(STATE, native_int bytes, object_type type) {
+    Object* ClosedTHCA::allocate(STATE, intptr_t bytes, object_type type) {
       return state->memory()->main_heap()->allocate(state, bytes, type);
     }
 
-    Object* IsolatedTHCA::allocate(STATE, native_int bytes, object_type type) {
+    Object* IsolatedTHCA::allocate(STATE, intptr_t bytes, object_type type) {
       return state->memory()->main_heap()->allocate(state, bytes, type);
     }
   }

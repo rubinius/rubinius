@@ -33,17 +33,17 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
 
     for(size_t i = 1; i <= mag; i++) {
       b = ByteArray::create(state, i);
-      TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)mag);
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), (intptr_t)mag);
     }
 
     for(size_t i = mag + 1; i <= 2 * mag; i++) {
       b = ByteArray::create(state, i);
-      TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)(2 * mag));
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), (intptr_t)(2 * mag));
     }
 
     for(size_t i = 5 * mag + 1; i <= 6 * mag; i++) {
       b = ByteArray::create(state, i);
-      TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)(6 * mag));
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), (intptr_t)(6 * mag));
     }
   }
 
@@ -65,7 +65,7 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
 
   void test_get_byte_index_out_of_bounds() {
     ByteArray* b = new_bytearray("xyz");
-    native_int sz = b->size(state)->to_native();
+    intptr_t sz = b->size(state)->to_native();
     TS_ASSERT_THROWS_ASSERT(b->get_byte(state, Fixnum::from(sz)), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
     TS_ASSERT_THROWS_ASSERT(b->get_byte(state, Fixnum::from(sz+1)), const RubyException &e,
@@ -84,7 +84,7 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
 
   void test_set_byte_out_of_bounds() {
     ByteArray* b = new_bytearray("xyz");
-    native_int sz = b->size(state)->to_native();
+    intptr_t sz = b->size(state)->to_native();
     TS_ASSERT_THROWS_ASSERT(b->set_byte(state, Fixnum::from(sz), Fixnum::from('0')),
         const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));

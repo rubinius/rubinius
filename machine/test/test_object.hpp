@@ -163,8 +163,8 @@ public:
     TS_ASSERT_DIFFERS(Fixnum::from(-1)->hash(state), Fixnum::from(1)->hash(state));
     TS_ASSERT_DIFFERS(Fixnum::from(-2)->hash(state), Fixnum::from(-1)->hash(state));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)13)->hash(state), Bignum::from(state, (native_int)13)->hash(state));
-    TS_ASSERT(Bignum::from(state, (native_int)13)->hash(state) > 0);
+    TS_ASSERT_EQUALS(Bignum::from(state, (intptr_t)13)->hash(state), Bignum::from(state, (intptr_t)13)->hash(state));
+    TS_ASSERT(Bignum::from(state, (intptr_t)13)->hash(state) > 0);
 
     TS_ASSERT_EQUALS(Float::create(state, 15.0)->hash(state), Float::create(state, 15.0)->hash(state));
     TS_ASSERT(Float::create(state, 15.0)->hash(state) > 0);
@@ -440,7 +440,7 @@ public:
     TS_ASSERT_EQUALS(cFalse->get_type(), FalseType);
     TS_ASSERT_EQUALS(state->symbol("blah")->get_type(), SymbolType);
     Object* obj = util_new_object();
-    Bignum* big = Bignum::from(state, (native_int)13);
+    Bignum* big = Bignum::from(state, (intptr_t)13);
     TS_ASSERT_EQUALS(obj->get_type(), ObjectType);
     TS_ASSERT_EQUALS(big->get_type(), BignumType);
   }

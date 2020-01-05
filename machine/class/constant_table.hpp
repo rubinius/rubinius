@@ -55,7 +55,7 @@ namespace rubinius {
   private:
     utilities::thread::SpinLock lock_;
 
-    void   redistribute(STATE, native_int size);
+    void   redistribute(STATE, intptr_t size);
 
   public:
     static void bootstrap(STATE);
@@ -66,8 +66,8 @@ namespace rubinius {
       obj->lock_.init();
     }
 
-    static ConstantTable* create(STATE, native_int size = 0);
-    void setup(STATE, native_int size);
+    static ConstantTable* create(STATE, intptr_t size = 0);
+    void setup(STATE, intptr_t size);
 
     // Rubinius.primitive :constant_table_allocate
     static ConstantTable* allocate(STATE, Object* self);

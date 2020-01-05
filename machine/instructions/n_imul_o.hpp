@@ -8,7 +8,7 @@ namespace rubinius {
     inline void n_imul_o(STATE, CF, R0, R1, R2) {
 // Adapted from the logic in 1.9
 // tests if N*N would overflow
-#define SQRT_LONG_MAX ((native_int)1<<((sizeof(native_int)*CHAR_BIT-1)/2))
+#define SQRT_LONG_MAX ((intptr_t)1<<((sizeof(intptr_t)*CHAR_BIT-1)/2))
 #define FIT_SQRT(n) (((n)<SQRT_LONG_MAX)&&((n)>-SQRT_LONG_MAX))
 #define NO_OVERFLOW_MUL(a,b) (FIT_SQRT(a)&&FIT_SQRT(b))
 #define OVERFLOW_MUL(a,b) (!(NO_OVERFLOW_MUL(a,b)))

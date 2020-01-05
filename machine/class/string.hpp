@@ -134,12 +134,12 @@ namespace rubinius {
 
     // Rubinius.primitive :string_from_bytearray
     static String* from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count);
-    static String* from_bytearray(STATE, ByteArray* ba, native_int size);
+    static String* from_bytearray(STATE, ByteArray* ba, intptr_t size);
     static String* create(STATE, const char* str);
-    static String* create(STATE, const char* str, native_int bytes);
+    static String* create(STATE, const char* str, intptr_t bytes);
     static String* create_pinned(STATE, Fixnum* size);
     static String* create_pinned(STATE, const char* str);
-    static String* create_pinned(STATE, const char* str, native_int bytes);
+    static String* create_pinned(STATE, const char* str, intptr_t bytes);
 
     static uint64_t siphash(const unsigned char *bp, unsigned int sz, uint32_t seed);
 
@@ -168,15 +168,15 @@ namespace rubinius {
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    native_int byte_size() {
+    intptr_t byte_size() {
       return num_bytes()->to_native();
     }
 
-    native_int get_byte_size() {
+    intptr_t get_byte_size() {
       return _num_bytes_->to_native();
     }
 
-    native_int char_size(STATE);
+    intptr_t char_size(STATE);
 
     // Rubinius.primitive+ :string_size
     Fixnum* size(STATE);
@@ -274,12 +274,12 @@ namespace rubinius {
      *  If the C string may contain NUL bytes, use the version
      *  that takes a length argument instead. Returns self.
      *
-     *  @see String::append(VM*, const char*, native_int)
+     *  @see String::append(VM*, const char*, intptr_t)
      */
     String* append(STATE, const char* other);
 
     /** Append length bytes from C string. Returns self. */
-    String* append(STATE, const char* other, native_int length);
+    String* append(STATE, const char* other, intptr_t length);
 
     // Rubinius.primitive :string_to_f
     Float* to_f(STATE, Object* strict = cTrue);
@@ -294,7 +294,7 @@ namespace rubinius {
 
     // Rubinius.primitive :string_tr_expand
     Fixnum* tr_expand(STATE, Object* limit, Object* invalid_as_empty);
-    native_int tr_replace(STATE, native_int first, native_int last, native_int start, native_int finish);
+    intptr_t tr_replace(STATE, intptr_t first, intptr_t last, intptr_t start, intptr_t finish);
 
     // Rubinius.primitive :string_copy_from
     String* copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest);
@@ -320,11 +320,11 @@ namespace rubinius {
     // Rubinius.primitive :string_byte_substring
     String* byte_substring(STATE, Fixnum* index, Fixnum* length);
 
-    String* byte_substring(STATE, native_int index, native_int length);
-    String* char_substring(STATE, native_int index, native_int length);
+    String* byte_substring(STATE, intptr_t index, intptr_t length);
+    String* char_substring(STATE, intptr_t index, intptr_t length);
 
-    native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
-    native_int find_byte_character_index(STATE, native_int index, native_int start = 0);
+    intptr_t find_character_byte_index(STATE, intptr_t index, intptr_t start = 0);
+    intptr_t find_byte_character_index(STATE, intptr_t index, intptr_t start = 0);
 
     // Rubinius.primitive :string_character_byte_index
     Fixnum* find_character_byte_index_prim(STATE, Fixnum* index, Fixnum* start);

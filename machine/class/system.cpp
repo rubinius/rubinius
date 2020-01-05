@@ -288,8 +288,8 @@ namespace rubinius {
       if(Array* env = try_as<Array>(
             table->fetch(state, state->symbol("env"))))
       {
-        native_int size = env->size();
-        for(native_int i = 0; i < size; i += 2) {
+        intptr_t size = env->size();
+        for(intptr_t i = 0; i < size; i += 2) {
           const char* key = as<String>(env->get(state, i))->c_str_null_safe(state);
           Object* value = env->get(state, i + 1);
 
@@ -339,8 +339,8 @@ namespace rubinius {
       if(Array* assign = try_as<Array>(
             table->fetch(state, state->symbol("assign_fd"))))
       {
-        native_int size = assign->size();
-        for(native_int i = 0; i < size; i += 4) {
+        intptr_t size = assign->size();
+        for(intptr_t i = 0; i < size; i += 4) {
           int from = as<Fixnum>(assign->get(state, i))->to_native();
           int to = IO::open_with_cloexec(state,
               as<String>(assign->get(state, i + 1))->c_str(state),
@@ -354,8 +354,8 @@ namespace rubinius {
       if(Array* redirect = try_as<Array>(
             table->fetch(state, state->symbol("redirect_fd"))))
       {
-        native_int size = redirect->size();
-        for(native_int i = 0; i < size; i += 2) {
+        intptr_t size = redirect->size();
+        for(intptr_t i = 0; i < size; i += 2) {
           int from = as<Fixnum>(redirect->get(state, i))->to_native();
           int to = as<Fixnum>(redirect->get(state, i + 1))->to_native();
 
@@ -989,7 +989,7 @@ namespace rubinius {
     SignalThread* st = state->shared().signals();
 
     if(st) {
-      native_int i = sig->to_native();
+      intptr_t i = sig->to_native();
       if(i < 0) {
         st->add_signal_handler(state, -i, SignalThread::eDefault);
       } else if(i > 0) {
@@ -1228,7 +1228,7 @@ namespace rubinius {
       }
 
       Tuple* lits = cc->literals();
-      for(native_int i = 0; i < lits->num_fields(); i++) {
+      for(intptr_t i = 0; i < lits->num_fields(); i++) {
         if(Symbol* sym = try_as<Symbol>(lits->at(state, i))) {
           if(CBOOL(sym->is_ivar_p(state))) {
             if(!ary->includes_p(state, sym)) ary->append(state, sym);
@@ -1675,8 +1675,8 @@ retry:
 #define HASH_TRIE_BIT_MASK    0x3f
 
   static inline size_t hash_trie_bit(Fixnum* hash, Fixnum* level) {
-    native_int h = hash->to_native();
-    native_int l = level->to_native();
+    intptr_t h = hash->to_native();
+    intptr_t l = level->to_native();
 
     size_t width = HASH_TRIE_BIT_WIDTH;
     size_t mask = HASH_TRIE_BIT_MASK;

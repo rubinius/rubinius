@@ -60,20 +60,20 @@ namespace rubinius {
 
     bool keywords;
 
-    native_int total_args;
-    native_int required_args;
-    native_int post_args;
-    native_int splat_position;
-    native_int keywords_count;
+    intptr_t total_args;
+    intptr_t required_args;
+    intptr_t post_args;
+    intptr_t splat_position;
+    intptr_t keywords_count;
 
-    native_int stack_size;
-    native_int number_of_locals;
+    intptr_t stack_size;
+    intptr_t number_of_locals;
 
-    native_int registers;
+    intptr_t registers;
 
-    native_int sample_count;
-    native_int call_count;
-    native_int uncommon_count;
+    intptr_t sample_count;
+    intptr_t call_count;
+    intptr_t uncommon_count;
 
     attr_field(call_site_count, size_t);
     attr_field(constant_cache_count, size_t);
@@ -188,7 +188,7 @@ namespace rubinius {
                                        UnwindInfoSet& unwinds);
 
     static Object* uncommon_interpreter(STATE, MachineCode* const mcode,
-      CallFrame* const call_frame, int32_t entry_ip, native_int sp,
+      CallFrame* const call_frame, int32_t entry_ip, intptr_t sp,
       CallFrame* const method_call_frame, UnwindInfoSet& unwinds,
       bool force_deoptimization);
 

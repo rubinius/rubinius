@@ -43,12 +43,12 @@ namespace rubinius {
     return random_gen_uint32(rng_state());
   }
 
-  native_uint Randomizer::limited_rand(native_uint limit) {
-    native_uint mask = make_mask(limit);
+  uintptr_t Randomizer::limited_rand(uintptr_t limit) {
+    uintptr_t mask = make_mask(limit);
 
   retry:
-    native_uint val = 0;
-    for(int i = sizeof(native_uint)/4-1; 0 <= i; i--) {
+    uintptr_t val = 0;
+    for(int i = sizeof(uintptr_t)/4-1; 0 <= i; i--) {
       if(mask >> (i * 32)) {
         val |= rb_genrand_int32() << (i * 32);
         val &= mask;
@@ -99,18 +99,18 @@ namespace rubinius {
       seed = as<Bignum>(seed)->abs(state);
 
     if(seed->fixnum_p()) {
-      native_uint s = seed->to_native();
+      uintptr_t s = seed->to_native();
 
       // Remove the sign bit, for no good reason... but that's what MRI
       // does.
-      s &= ~((native_uint)1 << (sizeof(native_uint) * 8 - 1));
+      s &= ~((uintptr_t)1 << (sizeof(uintptr_t) * 8 - 1));
 
       if(s <= 0xffffffffUL) {
         init_by_single((uint32_t)s);
         return cNil;
       }
 
-      longs = sizeof(native_uint) / 4;
+      longs = sizeof(uintptr_t) / 4;
       uint32_t data[longs];
       for(unsigned int i = 0; i < longs; i++) {
         data[i] = (uint32_t)(s >> (i * 32));
@@ -133,8 +133,8 @@ namespace rubinius {
 
   Integer* Randomizer::rand_int(STATE, Integer* max) {
     if(max->fixnum_p()) {
-      native_uint max_i = max->to_native();
-      native_uint result = limited_rand(max_i);
+      uintptr_t max_i = max->to_native();
+      uintptr_t result = limited_rand(max_i);
       return Integer::from(state, result);
     }
 

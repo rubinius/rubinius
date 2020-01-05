@@ -9,15 +9,15 @@ namespace rubinius {
   class Tuple : public Object {
   public:
     const static object_type type = TupleType;
-    const static uintptr_t fields_offset = sizeof(Object) + sizeof(native_int);
+    const static uintptr_t fields_offset = sizeof(Object) + sizeof(intptr_t);
 
-    attr_field(full_size, native_int);
+    attr_field(full_size, intptr_t);
 
     /* Body access */
     Object* field[0];
 
   public:
-    native_int num_fields() const {
+    intptr_t num_fields() const {
       return (full_size() - fields_offset) / sizeof(Object*);
     }
 
@@ -27,13 +27,13 @@ namespace rubinius {
      * initialization but available for use (eg CompactLookupTable).
      */
     static void initialize(STATE, Tuple* obj) {
-      for(native_int i = 0; i < obj->num_fields(); i++) {
+      for(intptr_t i = 0; i < obj->num_fields(); i++) {
         obj->field[i] = cNil;
       }
     }
 
-    static Tuple* create(STATE, native_int fields);
-    static Tuple* from(STATE, native_int fields, ...);
+    static Tuple* create(STATE, intptr_t fields);
+    static Tuple* from(STATE, intptr_t fields, ...);
 
     /** Shift all elements leftward, clear old slots. */
     Tuple* lshift_inplace(STATE, Fixnum* shift);
@@ -47,11 +47,11 @@ namespace rubinius {
     // Rubinius.primitive :tuple_at
     Object* at_prim(STATE, Fixnum* pos);
 
-    void put_nil(native_int idx) {
+    void put_nil(intptr_t idx) {
       field[idx] = cNil;
     }
 
-    Object* put(STATE, native_int idx, Object* val) {
+    Object* put(STATE, intptr_t idx, Object* val) {
       field[idx] = val;
 
       write_barrier(state, val);
@@ -70,7 +70,7 @@ namespace rubinius {
     // Rubinius.primitive :tuple_copy_from
     Tuple* copy_from(STATE, Tuple* other, Fixnum *start, Fixnum *length, Fixnum *dest);
 
-    native_int delete_inplace(native_int start, native_int length, Object* obj);
+    intptr_t delete_inplace(intptr_t start, intptr_t length, Object* obj);
     // Rubinius.primitive :tuple_delete_inplace
     Fixnum* delete_inplace_prim(STATE, Fixnum *start, Fixnum *length, Object *obj);
 
@@ -83,13 +83,13 @@ namespace rubinius {
     Tuple* tuple_dup(STATE);
 
   public: // Inline Functions
-    Object* at(native_int index) {
+    Object* at(intptr_t index) {
       if(index < 0 || num_fields() <= index) return cNil;
 
       return field[index];
     }
 
-    Object* at(STATE, native_int index) {
+    Object* at(STATE, intptr_t index) {
       return at(index);
     }
 
@@ -115,13 +115,13 @@ namespace rubinius {
   public:
     const static object_type type = RTupleType;
 
-    Object* at(native_int index) {
+    Object* at(intptr_t index) {
       if(index < 0 || num_fields() <= index) return cNil;
 
       return MemoryHandle::object(reinterpret_cast<VALUE>(field[index]));
     }
 
-    Object* put(STATE, native_int idx, Object* val) {
+    Object* put(STATE, intptr_t idx, Object* val) {
       reinterpret_cast<VALUE*>(field)[idx] = MemoryHandle::value(val);
 
       write_barrier(state, val);
@@ -130,7 +130,7 @@ namespace rubinius {
 
     static void initialize(STATE, RTuple* obj);
 
-    static RTuple* create(STATE, native_int fields);
+    static RTuple* create(STATE, intptr_t fields);
     static RTuple* from(STATE, Tuple* tuple);
 
     // Rubinius.primitive :rtuple_allocate

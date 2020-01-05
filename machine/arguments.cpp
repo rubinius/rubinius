@@ -14,7 +14,7 @@ namespace rubinius {
     }
 
     uint32_t n = total();
-    for(native_int i = 0; i < ary->size(); i++, n++) {
+    for(intptr_t i = 0; i < ary->size(); i++, n++) {
       tup->put(state, n, ary->get(state, i));
     }
 
@@ -24,11 +24,11 @@ namespace rubinius {
   void Arguments::prepend(STATE, Array* ary) {
     Tuple* tup = Tuple::create(state, ary->size() + total());
 
-    for(native_int i = 0; i < ary->size(); i++) {
+    for(intptr_t i = 0; i < ary->size(); i++) {
       tup->put(state, i, ary->get(state, i));
     }
 
-    native_int n = ary->size();
+    intptr_t n = ary->size();
     for(uint32_t i = 0; i < total(); i++, n++) {
       tup->put(state, n, get_argument(i));
     }

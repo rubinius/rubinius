@@ -17,11 +17,11 @@ namespace rubinius {
 
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
-    static Fixnum* from(native_int num) {
+    static Fixnum* from(intptr_t num) {
       return reinterpret_cast<Fixnum*>(APPLY_FIXNUM_TAG(num));
     }
 
-    native_int to_native() const {
+    intptr_t to_native() const {
       return STRIP_FIXNUM_TAG(this);
     }
 
@@ -41,7 +41,7 @@ namespace rubinius {
 
     // Rubinius.primitive! :fixnum_add
     Integer* add(STATE, Fixnum* other) {
-      native_int r = to_native() + other->to_native();
+      intptr_t r = to_native() + other->to_native();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
         return Bignum::from(state, r);
       } else {
@@ -57,7 +57,7 @@ namespace rubinius {
 
     // Rubinius.primitive! :fixnum_sub
     Integer* sub(STATE, Fixnum* other) {
-      native_int r = to_native() - other->to_native();
+      intptr_t r = to_native() - other->to_native();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
         return Bignum::from(state, r);
       } else {

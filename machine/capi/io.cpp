@@ -57,7 +57,7 @@ namespace rubinius {
     if(rio_p()) {
       return reinterpret_cast<RIO*>(data());
     } else if(unknown_type_p()) {
-      native_int fd = -1;
+      intptr_t fd = -1;
       VALUE fileno = rb_funcall(jobj, id_descriptor, 0);
       Fixnum* tmp_fd = MemoryHandle::try_as<Fixnum>(fileno);
 

@@ -21,7 +21,7 @@ namespace rubinius {
     return state->memory()->new_object<Character>(state, as<Class>(self));
   }
 
-  Character* Character::create(STATE, native_int size) {
+  Character* Character::create(STATE, intptr_t size) {
     Character* chr = Character::allocate(state, G(character));
 
     chr->num_bytes(state, Fixnum::from(size));
@@ -40,7 +40,7 @@ namespace rubinius {
     return chr;
   }
 
-  Character* Character::create(STATE, const char* bytes, native_int size) {
+  Character* Character::create(STATE, const char* bytes, intptr_t size) {
     Character* chr = Character::create(state, size);
 
     if(bytes) memcpy(chr->byte_address(), bytes, size);
@@ -49,8 +49,8 @@ namespace rubinius {
   }
 
   Character* Character::create_from(STATE, String* str, Fixnum* byte) {
-    native_int i = byte->to_native();
-    native_int size = str->byte_size();
+    intptr_t i = byte->to_native();
+    intptr_t size = str->byte_size();
 
     if(i < 0 || i >= size) return nil<Character>();
 

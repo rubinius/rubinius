@@ -251,7 +251,7 @@ namespace rubinius {
       response_cond_.signal();
     }
 
-    void Response::write_response(STATE, const char* response, native_int size) {
+    void Response::write_response(STATE, const char* response, intptr_t size) {
       file::LockGuard guard(fd_, LOCK_EX);
 
       if(guard.status() != file::eLockSucceeded) {

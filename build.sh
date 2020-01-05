@@ -1,5 +1,3 @@
 #!/bin/bash
 
-./configure $@
-
-rake -q
+./configure $@ && rake -q

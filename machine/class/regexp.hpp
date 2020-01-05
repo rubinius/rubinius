@@ -41,7 +41,7 @@ namespace rubinius {
     String* pre_matched(STATE);
     String* post_matched(STATE);
     String* last_capture(STATE);
-    String* nth_capture(STATE, native_int which);
+    String* nth_capture(STATE, intptr_t which);
 
     /* interface */
     static void initialize(STATE, MatchData* obj) {

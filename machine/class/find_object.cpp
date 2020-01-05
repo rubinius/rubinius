@@ -102,7 +102,7 @@ namespace rubinius {
     }
 
     virtual Object* immediate() {
-      native_int id = id_->to_native();
+      intptr_t id = id_->to_native();
 
       if(id & TAG_REF_MASK) {
         Object* obj = reinterpret_cast<Object*>(id);
@@ -175,7 +175,7 @@ namespace rubinius {
 
       obj->ivar_names(state, tmp_);
 
-      for(native_int i = 0; i < tmp_->size(); i++) {
+      for(intptr_t i = 0; i < tmp_->size(); i++) {
         if(Symbol* sym = try_as<Symbol>(tmp_->get(state, i))) {
           if(obj->get_ivar(state, sym)->equal_p(target_)) return true;
         }
@@ -183,7 +183,7 @@ namespace rubinius {
 
       // Check a tuples body.
       if(Tuple* tup = try_as<Tuple>(obj)) {
-        for(native_int i = 0; i < tup->num_fields(); i++) {
+        for(intptr_t i = 0; i < tup->num_fields(); i++) {
           if(tup->at(i)->equal_p(target_)) return true;
         }
       }

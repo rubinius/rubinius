@@ -26,7 +26,7 @@ namespace rubinius {
           state, G(numeric), "Integer"));
   }
 
-  native_int Integer::bignum_to_native() {
+  intptr_t Integer::bignum_to_native() {
     return as<Bignum>(this)->to_native();
   }
 
@@ -82,7 +82,7 @@ namespace rubinius {
 #ifndef IS_64BIT_ARCH
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       /* Number is too big for Fixnum. Use Bignum. */
-      return Bignum::from(state, (native_int)num);
+      return Bignum::from(state, (intptr_t)num);
     }
 #endif
     return (Fixnum*)APPLY_FIXNUM_TAG(num);
@@ -94,35 +94,35 @@ namespace rubinius {
       return Bignum::from(state, (unsigned long)num);
     }
 #endif
-    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
+    return (Fixnum*)APPLY_FIXNUM_TAG((intptr_t)num);
   }
 
   Integer* Integer::from(STATE, unsigned long num) {
     if(num > FIXNUM_MAX) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
+    return (Fixnum*)APPLY_FIXNUM_TAG((intptr_t)num);
   }
 
   Integer* Integer::from(STATE, long num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
+    return (Fixnum*)APPLY_FIXNUM_TAG((intptr_t)num);
   }
 
   Integer* Integer::from(STATE, long long num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
+    return (Fixnum*)APPLY_FIXNUM_TAG((intptr_t)num);
   }
 
   Integer* Integer::from(STATE, unsigned long long num) {
     if(num > FIXNUM_MAX) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
+    return (Fixnum*)APPLY_FIXNUM_TAG((intptr_t)num);
   }
 
   // Adapted from MRI.

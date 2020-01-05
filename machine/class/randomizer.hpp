@@ -30,7 +30,7 @@ namespace rubinius {
     void init_by_array(uint32_t bootstrap_key[], int key_length);
     uint32_t rb_genrand_int32();
     double rb_genrand_real();
-    native_uint limited_rand(native_uint limit);
+    uintptr_t limited_rand(uintptr_t limit);
 
   public:
     static void bootstrap(STATE);

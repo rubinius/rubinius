@@ -26,9 +26,9 @@ namespace rubinius {
     static void initialize(STATE, IO* obj) { }
 
     static IO* create(STATE, int fd);
-    static native_int open_with_cloexec(STATE, const char* path, int mode, int permissions);
+    static intptr_t open_with_cloexec(STATE, const char* path, int mode, int permissions);
 
-    native_int descriptor(STATE);
+    intptr_t descriptor(STATE);
     void ensure_open(STATE);
 
   /* Class primitives */

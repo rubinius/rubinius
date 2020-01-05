@@ -65,7 +65,7 @@ namespace rubinius {
     return Float::coerce(state, this)->sub(state, other);
   }
 
-#define SQRT_LONG_MAX ((native_int)1<<((sizeof(native_int)*CHAR_BIT-1)/2))
+#define SQRT_LONG_MAX ((intptr_t)1<<((sizeof(intptr_t)*CHAR_BIT-1)/2))
 /*tests if N*N would overflow*/
 #define FIT_SQRT(n) (((n)<SQRT_LONG_MAX)&&((n)>-SQRT_LONG_MAX))
 // Adapted from the logic in 1.9
@@ -73,8 +73,8 @@ namespace rubinius {
 #define OVERFLOW_MUL(a,b) (!(NO_OVERFLOW_MUL(a,b)))
 
   Integer* Fixnum::mul(STATE, Fixnum* other) {
-    native_int a  = to_native();
-    native_int b  = other->to_native();
+    intptr_t a  = to_native();
+    intptr_t b  = other->to_native();
 
     if(a == 0 || b == 0) return Fixnum::from(0);
 
@@ -97,9 +97,9 @@ namespace rubinius {
     if(other->to_native() == 0) {
       Exception::raise_zero_division_error(state, "divided by 0");
     }
-    native_int numerator = to_native();
-    native_int denominator = other->to_native();
-    native_int quotient;
+    intptr_t numerator = to_native();
+    intptr_t denominator = other->to_native();
+    intptr_t quotient;
 
     if(denominator < 0) {
       if(numerator < 0) {
@@ -115,7 +115,7 @@ namespace rubinius {
       }
     }
 
-    native_int mod = numerator - (quotient * denominator);
+    intptr_t mod = numerator - (quotient * denominator);
     if((mod < 0 && denominator > 0) || (mod > 0 && denominator < 0)) {
       quotient--;
     }
@@ -132,10 +132,10 @@ namespace rubinius {
   }
 
   Integer* Fixnum::mod(STATE, Fixnum* other) {
-    native_int numerator = to_native();
-    native_int denominator = other->to_native();
-    native_int quotient = div(state, other)->to_native();
-    native_int modulo = numerator - denominator * quotient;
+    intptr_t numerator = to_native();
+    intptr_t denominator = other->to_native();
+    intptr_t quotient = div(state, other)->to_native();
+    intptr_t modulo = numerator - denominator * quotient;
 
     if((modulo < 0 && denominator > 0) || (modulo > 0 && denominator < 0)) {
       return Fixnum::from(modulo + denominator);
@@ -156,9 +156,9 @@ namespace rubinius {
     if(other->to_native() == 0) {
       Exception::raise_zero_division_error(state, "divided by 0");
     }
-    native_int numerator = to_native();
-    native_int denominator = other->to_native();
-    native_int fraction = div(state, other)->to_native();
+    intptr_t numerator = to_native();
+    intptr_t denominator = other->to_native();
+    intptr_t fraction = div(state, other)->to_native();
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, Fixnum::from(fraction));
     ary->set(state, 1, Fixnum::from(numerator - denominator * fraction));
@@ -184,8 +184,8 @@ namespace rubinius {
   }
 
   Object* Fixnum::pow(STATE, Fixnum* exponent) {
-    native_int base = to_native();
-    native_int exp = exponent->to_native();
+    intptr_t base = to_native();
+    intptr_t exp = exponent->to_native();
 
     if(exp < 0) {
       return Primitives::failure();
@@ -196,7 +196,7 @@ namespace rubinius {
 
     if(base == 0) return Fixnum::from(0);
 
-    native_int result = 1;
+    intptr_t result = 1;
 
     /*
      * Exponentiation by squaring algorithm
@@ -229,7 +229,7 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    native_int i = to_native();
+    intptr_t i = to_native();
     if(i == 0 || i == 1) return this;
     if(i == -1) return Fixnum::from(exponent->even_p() ? 1 : -1);
     return Bignum::from(state, to_native())->pow(state, exponent);
@@ -252,8 +252,8 @@ namespace rubinius {
   }
 
   Object* Fixnum::compare(STATE, Fixnum* other) {
-    native_int left  = to_native();
-    native_int right = other->to_native();
+    intptr_t left  = to_native();
+    intptr_t right = other->to_native();
     if(left == right) {
       return Fixnum::from(0);
     } else if(left < right) {
@@ -264,7 +264,7 @@ namespace rubinius {
   }
 
   Object* Fixnum::compare(STATE, Bignum* other) {
-    native_int res = as<Fixnum>(other->compare(state, this))->to_native();
+    intptr_t res = as<Fixnum>(other->compare(state, this))->to_native();
     if(res == 0) {
       return Fixnum::from(0);
     } else if(res < 0) {
@@ -327,7 +327,7 @@ namespace rubinius {
   }
 
   Integer* Fixnum::left_shift(STATE, Fixnum* bits) {
-    native_int shift = bits->to_native();
+    intptr_t shift = bits->to_native();
 
     if(shift < 0) {
       if(shift <= FIXNUM_MIN) {
@@ -337,7 +337,7 @@ namespace rubinius {
       return right_shift(state, Fixnum::from(-shift));
     }
 
-    native_int self = to_native();
+    intptr_t self = to_native();
 
     if((self > 0 && (shift >= FIXNUM_MAX_WIDTH || self > (FIXNUM_MAX >> shift)))
         || (self < 0 && (shift >= FIXNUM_MIN_WIDTH || self < (FIXNUM_MIN >> shift)))) {
@@ -348,7 +348,7 @@ namespace rubinius {
   }
 
   Integer* Fixnum::right_shift(STATE, Fixnum* bits) {
-    native_int shift = bits->to_native();
+    intptr_t shift = bits->to_native();
 
     if(shift < 0) {
       if(shift <= FIXNUM_MIN) {
@@ -358,7 +358,7 @@ namespace rubinius {
       return left_shift(state, Fixnum::from(-shift));
     }
 
-    native_int self = to_native();
+    intptr_t self = to_native();
 
     if(self > 0 && shift > FIXNUM_MAX_WIDTH) {
       return Fixnum::from(0);
@@ -370,7 +370,7 @@ namespace rubinius {
   }
 
   Integer* Fixnum::size(STATE) {
-    return Fixnum::from(sizeof(native_int));
+    return Fixnum::from(sizeof(intptr_t));
   }
 
   Integer* Fixnum::bit_and(STATE, Fixnum* other) {
@@ -429,7 +429,7 @@ namespace rubinius {
      */
     char buf[FIXNUM_MIN_WIDTH + 2];
     char *b = buf + sizeof(buf);
-    native_int j, k, m;
+    intptr_t j, k, m;
 
     j = base->to_native();
     k = to_native();

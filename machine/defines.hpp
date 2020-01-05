@@ -26,11 +26,7 @@ namespace rubinius {
   class State;
   class Symbol;
 
-  /** Platform-dependent integer type large enough for pointers too. */
-  typedef intptr_t native_int;
-  typedef uintptr_t native_uint;
-
-  typedef native_int hashval;
+  typedef intptr_t hashval;
 
   #define STATE rubinius::State* state
   #define G(whatever) state->globals().whatever.get()

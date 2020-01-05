@@ -356,7 +356,7 @@ extern "C" {
     VALUE str = rb_string_value(object_variable);
     String* string = MemoryHandle::object<String>(str);
 
-    if(string->byte_size() != (native_int)strlen(string->c_str(env->state()))) {
+    if(string->byte_size() != (intptr_t)strlen(string->c_str(env->state()))) {
       rb_raise(rb_eArgError, "string contains NULL byte");
     }
 
@@ -617,7 +617,7 @@ extern "C" {
             "rb_vsprintf failed to allocate space for result"));
     }
 
-    native_int length = vsnprintf((char*)buffer, RBX_RB_VSPRINTF_LEN, format, varargs);
+    intptr_t length = vsnprintf((char*)buffer, RBX_RB_VSPRINTF_LEN, format, varargs);
     String* str = String::create_pinned(env->state(), (const char*)buffer, length);
 
     munmap(buffer, RBX_RB_VSPRINTF_LEN);

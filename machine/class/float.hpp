@@ -30,7 +30,7 @@ namespace rubinius {
 
     static Float* create(STATE, double val);
     static Float* create(STATE, float val);
-    static Float* create(STATE, native_int val);
+    static Float* create(STATE, intptr_t val);
     static Float* coerce(STATE, Object* value);
     double to_double(STATE) { return value(); }
     void into_string(STATE, char* buf, size_t sz);

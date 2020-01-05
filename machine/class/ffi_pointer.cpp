@@ -156,7 +156,7 @@ namespace rubinius {
   Pointer* Pointer::write_string(STATE, String* str, Fixnum* len) {
     if(!pointer) Exception::raise_argument_error(state, "invalid pointer to write string");
 
-    native_int n = len->to_native();
+    intptr_t n = len->to_native();
     if(str->byte_size() < n) n = str->byte_size();
     memcpy(pointer, (void*)str->byte_address(), n);
     return this;
@@ -292,7 +292,7 @@ namespace rubinius {
 
     if(!pointer) Exception::raise_argument_error(state, "invalid pointer to network order value");
 
-    native_int size = intsize->to_native();
+    intptr_t size = intsize->to_native();
 
     char* pos = ((char*)pointer) + offset->to_native();
 

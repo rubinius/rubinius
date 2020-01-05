@@ -33,7 +33,7 @@ namespace rubinius {
 
   struct RTypedDataShadow {
     const struct rb_data_type_struct_shadow* type;
-    native_int typed;
+    intptr_t typed;
   };
 
   struct RDataShadow {

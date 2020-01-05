@@ -21,7 +21,7 @@ namespace rubinius {
     bytes_offset = (uintptr_t)&(ba->bytes) - (uintptr_t)ba;
   }
 
-  ByteArray* ByteArray::create(STATE, native_int bytes) {
+  ByteArray* ByteArray::create(STATE, intptr_t bytes) {
     if(bytes < 0) {
       Exception::raise_argument_error(state, "negative byte array size");
     } else if(bytes == 0) {
@@ -35,7 +35,7 @@ namespace rubinius {
     return ba;
   }
 
-  ByteArray* ByteArray::create_pinned(STATE, native_int bytes) {
+  ByteArray* ByteArray::create_pinned(STATE, intptr_t bytes) {
     if(bytes < 0) {
       Exception::raise_argument_error(state, "negative byte array size");
     } else if(bytes == 0) {
@@ -73,7 +73,7 @@ namespace rubinius {
   }
 
   Fixnum* ByteArray::get_byte(STATE, Fixnum* index) {
-    native_int idx = index->to_native();
+    intptr_t idx = index->to_native();
 
     if(idx < 0 || idx >= size()) {
       Exception::raise_object_bounds_exceeded_error(state, "index out of bounds");
@@ -83,7 +83,7 @@ namespace rubinius {
   }
 
   Fixnum* ByteArray::set_byte(STATE, Fixnum* index, Fixnum* value) {
-    native_int idx = index->to_native();
+    intptr_t idx = index->to_native();
 
     if(idx < 0 || idx >= size()) {
       Exception::raise_object_bounds_exceeded_error(state, "index out of bounds");
@@ -94,9 +94,9 @@ namespace rubinius {
   }
 
   Fixnum* ByteArray::move_bytes(STATE, Fixnum* start, Fixnum* count, Fixnum* dest) {
-    native_int src = start->to_native();
-    native_int cnt = count->to_native();
-    native_int dst = dest->to_native();
+    intptr_t src = start->to_native();
+    intptr_t cnt = count->to_native();
+    intptr_t dst = dest->to_native();
 
     if(src < 0) {
       Exception::raise_object_bounds_exceeded_error(state, "start less than zero");
@@ -116,8 +116,8 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::fetch_bytes(STATE, Fixnum* start, Fixnum* count) {
-    native_int src = start->to_native();
-    native_int cnt = count->to_native();
+    intptr_t src = start->to_native();
+    intptr_t cnt = count->to_native();
 
     if(src < 0) {
       Exception::raise_object_bounds_exceeded_error(state, "start less than zero");
@@ -145,8 +145,8 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::reverse(STATE, Fixnum* o_start, Fixnum* o_total) {
-    native_int start = o_start->to_native();
-    native_int total = o_total->to_native();
+    intptr_t start = o_start->to_native();
+    intptr_t total = o_total->to_native();
 
     if(total <= 0 || start < 0 || start >= size()) return this;
 
@@ -164,8 +164,8 @@ namespace rubinius {
   }
 
   Fixnum* ByteArray::compare_bytes(STATE, ByteArray* other, Fixnum* a, Fixnum* b) {
-    native_int slim = a->to_native();
-    native_int olim = b->to_native();
+    intptr_t slim = a->to_native();
+    intptr_t olim = b->to_native();
 
     if(slim < 0) {
       Exception::raise_object_bounds_exceeded_error(state,
@@ -176,13 +176,13 @@ namespace rubinius {
     }
 
     // clamp limits to actual sizes
-    native_int m = size() < slim ? size() : slim;
-    native_int n = other->size() < olim ? other->size() : olim;
+    intptr_t m = size() < slim ? size() : slim;
+    intptr_t n = other->size() < olim ? other->size() : olim;
 
     // only compare the shortest string
-    native_int len = m < n ? m : n;
+    intptr_t len = m < n ? m : n;
 
-    native_int cmp = memcmp(this->bytes, other->bytes, len);
+    intptr_t cmp = memcmp(this->bytes, other->bytes, len);
 
     // even if substrings are equal, check actual requested limits
     // of comparison e.g. "xyz", "xyzZ"
@@ -201,8 +201,8 @@ namespace rubinius {
 
   Object* ByteArray::locate(STATE, String* pattern, Fixnum* start, Fixnum* max_o) {
     const uint8_t* pat = pattern->byte_address();
-    native_int len = pattern->byte_size();
-    native_int max = max_o->to_native();
+    intptr_t len = pattern->byte_size();
+    intptr_t max = max_o->to_native();
 
     if(len == 0) return start;
     if(max == 0) return cNil;
@@ -210,9 +210,9 @@ namespace rubinius {
     if(max > size()) max = size();
     max -= (len - 1);
 
-    for(native_int i = start->to_native(); i < max; i++) {
+    for(intptr_t i = start->to_native(); i < max; i++) {
       if(this->bytes[i] == pat[0]) {
-        native_int j;
+        intptr_t j;
         // match the rest of the pattern string
         for(j = 1; j < len; j++) {
           if(this->bytes[i+j] != pat[j]) break;

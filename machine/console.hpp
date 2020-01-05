@@ -118,7 +118,7 @@ namespace rubinius {
       void clear_requests();
 
       void send_request(STATE, const char* request);
-      void write_response(STATE, const char* response, native_int size);
+      void write_response(STATE, const char* response, intptr_t size);
     };
 
     class Request : public MachineThread {

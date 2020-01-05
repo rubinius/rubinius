@@ -57,7 +57,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     if(Fixnum* f = MemoryHandle::try_as<Fixnum>(value)) {
-      native_int v = f->to_native();
+      intptr_t v = f->to_native();
 
       if(v == 0) return 0;
 

@@ -466,7 +466,7 @@ namespace rubinius {
         if(feature_set()->size() != loaded_features()->size()) {
           feature_set()->clear();
 
-          for(native_int i = 0; i < loaded_features()->size(); i++) {
+          for(intptr_t i = 0; i < loaded_features()->size(); i++) {
             if(String* feature = try_as<String>(loaded_features()->get(state, i))) {
               feature_set()->insert(feature->c_str(state));
             }

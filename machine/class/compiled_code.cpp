@@ -114,8 +114,8 @@ namespace rubinius {
   int CompiledCode::line(int ip) {
     if(lines()->nil_p()) return -3;
 
-    native_int fin = lines()->num_fields() - 2;
-    for(native_int i = 0; i < fin; i += 2) {
+    intptr_t fin = lines()->num_fields() - 2;
+    for(intptr_t i = 0; i < fin; i += 2) {
       Fixnum* start_ip = as<Fixnum>(lines()->at(i));
       Fixnum* end_ip   = as<Fixnum>(lines()->at(i+2));
 

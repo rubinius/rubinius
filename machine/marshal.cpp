@@ -82,7 +82,7 @@ namespace rubinius {
     } else if(obj->kind_of_p(state, G(object)->get_const(state, "Complex"))) {
       put_complex(obj);
     } else if(InstructionSequence* iseq = try_as<InstructionSequence>(obj)) {
-      native_int size = iseq->opcodes()->num_fields();
+      intptr_t size = iseq->opcodes()->num_fields();
 
       stream << "i\n" << size << "\n";
 

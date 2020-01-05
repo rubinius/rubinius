@@ -127,14 +127,14 @@ namespace rubinius {
       }
     }
 
-    native_int num_entries = entries()->to_native();
-    native_int num_bins = bins()->to_native();
+    intptr_t num_entries = entries()->to_native();
+    intptr_t num_bins = bins()->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
     }
 
-    native_int bin = find_bin(key_hash(name), num_bins);
+    intptr_t bin = find_bin(key_hash(name), num_bins);
 
     MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, bin));
     MethodTableBucket* last = NULL;
@@ -192,14 +192,14 @@ namespace rubinius {
 
     Alias* method = Alias::create(state, orig_name, orig_mod, orig_exec);
 
-    native_int num_entries = entries()->to_native();
-    native_int num_bins = bins()->to_native();
+    intptr_t num_entries = entries()->to_native();
+    intptr_t num_bins = bins()->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
     }
 
-    native_int bin = find_bin(key_hash(name), num_bins);
+    intptr_t bin = find_bin(key_hash(name), num_bins);
 
     MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, bin));
     MethodTableBucket* last = NULL;
@@ -281,15 +281,15 @@ namespace rubinius {
 
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    native_int num_entries = entries()->to_native();
-    native_int num_bins = bins()->to_native();
+    intptr_t num_entries = entries()->to_native();
+    intptr_t num_bins = bins()->to_native();
 
     if(min_density_p(num_entries, num_bins) &&
          (num_bins >> 1) >= METHODTABLE_MIN_SIZE) {
       redistribute(state, num_bins >>= 1);
     }
 
-    native_int bin = find_bin(key_hash(name), num_bins);
+    intptr_t bin = find_bin(key_hash(name), num_bins);
     MethodTableBucket* entry = try_as<MethodTableBucket>(values()->at(state, bin));
     MethodTableBucket* last = NULL;
 

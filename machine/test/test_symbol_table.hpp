@@ -143,7 +143,7 @@ public:
     Array* ary = symbols->all_as_array(state);
     TS_ASSERT_EQUALS(ary->size(), 6);
 
-    for(native_int i = 0; i < ary->size(); i++) {
+    for(intptr_t i = 0; i < ary->size(); i++) {
       TS_ASSERT(std::find(syms.begin(), syms.end(), ary->get(state, i)) != syms.end());
     }
   }

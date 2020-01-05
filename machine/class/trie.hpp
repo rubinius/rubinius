@@ -11,13 +11,13 @@ namespace rubinius {
     const static object_type type = TrieType;
     static uintptr_t fields_offset;
 
-    attr_field(full_size, native_int);
-    attr_field(bitmap, native_int);
+    attr_field(full_size, intptr_t);
+    attr_field(bitmap, intptr_t);
 
     Object* field[0];
 
   public:
-    native_int num_fields() const {
+    intptr_t num_fields() const {
       return (full_size() - fields_offset) / sizeof(Object*);
     }
 

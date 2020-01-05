@@ -922,6 +922,29 @@ not support #{name} compiler, please email contact@rubinius.com
     @sizeof[sizeof_typename(type)] or failure("Unknown type: '#{type}'.")
   end
 
+  def assert_sizeof
+    @log.print "Checking sizeof(intptr_t) == sizeof(int64_t): "
+
+    status = check_program do |f|
+      src = <<-EOP
+#include <stdint.h>
+
+int main(int argc, char* argv[]) {
+  return sizeof(intptr_t) == sizeof(int64_t);
+}
+      EOP
+      f.puts src
+      @log.log src
+    end
+
+    if status == 1
+      @log.write "yes"
+    else
+      @log.write "no"
+      failure "\nRubinius requires that sizeof(intptr_t) == sizeof(int64_t)"
+    end
+  end
+
   def detect_sizeof(type, includes=[])
     @log.print "Checking sizeof(#{type}): "
 
@@ -929,6 +952,7 @@ not support #{name} compiler, please email contact@rubinius.com
       src = includes.map { |include| "#include <#{include}>\n" }.join
       src += <<-EOP
 #include <stddef.h>
+#include <stdint.h>
 
 int main() { return sizeof(#{type}); }
       EOP
@@ -1475,9 +1499,13 @@ int main(int argc, char* argv[]) {
 
     @log.write ""
 
+    assert_sizeof
+
     detect_sizeof("short")
     detect_sizeof("int")
     detect_sizeof("void*")
+    detect_sizeof("intptr_t")
+    detect_sizeof("uintptr_t")
     detect_sizeof("size_t")
     detect_sizeof("long")
     detect_sizeof("long long")
@@ -1626,7 +1654,18 @@ int main(int argc, char* argv[]) {
       :vendor             => @vendor,
       :os                 => @os,
       :little_endian      => @little_endian,
+      :sizeof_short       => sizeof("short"),
+      :sizeof_int         => sizeof("int"),
+      :sizeof_void_ptr    => sizeof("void*"),
+      :sizeof_intptr_t    => sizeof("intptr_t"),
+      :sizeof_uintptr_t   => sizeof("uintptr_t"),
+      :sizeof_size_t      => sizeof("size_t"),
       :sizeof_long        => sizeof("long"),
+      :sizeof_long_long   => sizeof("long long"),
+      :sizeof_float       => sizeof("float"),
+      :sizeof_double      => sizeof("double"),
+      :sizeof_off_t       => sizeof("off_t"),
+      :sizeof_time_t      => sizeof("time_t"),
       :x86_64             => @x86_64,
       :aarch64            => @aarch64,
       :dtrace             => @dtrace,

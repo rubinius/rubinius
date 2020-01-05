@@ -169,17 +169,17 @@ namespace rubinius {
        *
        */
 
-      native_int N = args.total();
-      const native_int T = mcode->total_args;
-      const native_int M = mcode->required_args;
-      const native_int O = T - M - (mcode->keywords ? 1 : 0);
+      intptr_t N = args.total();
+      const intptr_t T = mcode->total_args;
+      const intptr_t M = mcode->required_args;
+      const intptr_t O = T - M - (mcode->keywords ? 1 : 0);
 
 
       /* TODO: Clean up usage to uniformly refer to 'splat' as N arguments
        * passed from sender at a single position and 'rest' as N arguments
        * collected into a single argument at the receiver.
        */
-      const native_int RI = mcode->splat_position;
+      const intptr_t RI = mcode->splat_position;
       const bool RP = (RI >= 0);
 
       // expecting 0, got 0.
@@ -234,8 +234,8 @@ namespace rubinius {
         }
       }
 
-      const native_int P = mcode->post_args;
-      const native_int H = M - P;
+      const intptr_t P = mcode->post_args;
+      const intptr_t H = M - P;
 
       // Too many args (no rest argument!)
       if(!RP && N > T) {
@@ -286,19 +286,19 @@ namespace rubinius {
         N = T - 1;
       }
 
-      const native_int K = (KP && !KA && N > M) ? 1 : 0;
-      const native_int N_M_K = N - M - K;
-      const native_int E = N_M_K > 0 ? N_M_K : 0;
+      const intptr_t K = (KP && !KA && N > M) ? 1 : 0;
+      const intptr_t N_M_K = N - M - K;
+      const intptr_t E = N_M_K > 0 ? N_M_K : 0;
 
-      native_int X;
+      intptr_t X;
 
-      const native_int ON = (X = std::min(O, E)) > 0 ? X : 0;
-      const native_int RN = (RP && (X = E - ON) > 0) ? X : 0;
-      const native_int PI = H + O + (RP ? 1 : 0);
-      const native_int KI = RP ? T : T - 1;
+      const intptr_t ON = (X = std::min(O, E)) > 0 ? X : 0;
+      const intptr_t RN = (RP && (X = E - ON) > 0) ? X : 0;
+      const intptr_t PI = H + O + (RP ? 1 : 0);
+      const intptr_t KI = RP ? T : T - 1;
 
-      native_int a = 0;   // argument index
-      native_int l = 0;   // local index
+      intptr_t a = 0;   // argument index
+      intptr_t l = 0;   // local index
 
       // head arguments
       if(H > 0) {
@@ -349,7 +349,7 @@ namespace rubinius {
 
       // post arguments
       if(P > 0) {
-        const native_int N_K = (X = std::min(N, N - K)) > 0 ? X : N;
+        const intptr_t N_K = (X = std::min(N, N - K)) > 0 ? X : N;
 
         for(l = PI; l < PI + P && a < N_K; l++, a++) {
           scope->set_local(l, args.get_argument(a));

@@ -501,8 +501,8 @@ namespace rubinius {
       f(state, reinterpret_cast<Object**>(&frame->compiled_code));
 
       if(frame->compiled_code) {
-        native_int stack_size = frame->compiled_code->stack_size()->to_native();
-        for(native_int i = 0; i < stack_size; i++) {
+        intptr_t stack_size = frame->compiled_code->stack_size()->to_native();
+        for(intptr_t i = 0; i < stack_size; i++) {
           f(state, &frame->stk[i]);
         }
       }
@@ -572,8 +572,8 @@ namespace rubinius {
       f(state, reinterpret_cast<Object**>(&frame->compiled_code));
 
       if(frame->compiled_code) {
-        native_int stack_size = frame->compiled_code->stack_size()->to_native();
-        for(native_int i = 0; i < stack_size; i++) {
+        intptr_t stack_size = frame->compiled_code->stack_size()->to_native();
+        for(intptr_t i = 0; i < stack_size; i++) {
           f(state, &frame->stk[i]);
         }
       }

@@ -29,7 +29,7 @@ namespace rubinius {
       first_region_ = nullptr;
     }
 
-    Object* MainHeap::allocate(STATE, native_int bytes, object_type type) {
+    Object* MainHeap::allocate(STATE, intptr_t bytes, object_type type) {
       utilities::thread::SpinLock::LockGuard guard(state->memory()->allocation_lock());
 
       if(Object* obj = first_region()->allocate(state, bytes)) {

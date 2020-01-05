@@ -30,7 +30,7 @@ public:
     Float* coerced = Float::coerce(state, o);
     TS_ASSERT(kind_of<Float>(coerced));
 
-    Bignum* bn = Bignum::from(state, (native_int)2147483647);
+    Bignum* bn = Bignum::from(state, (intptr_t)2147483647);
     Float* coercedBn = Float::coerce(state, bn);
     TS_ASSERT(kind_of<Float>(coercedBn));
 
@@ -101,7 +101,7 @@ public:
     a = f->div(state, Fixnum::from(10));
     check_float(a, Float::create(state, 0.02));
 
-    f = Float::create(state, (native_int)100000);
+    f = Float::create(state, (intptr_t)100000);
     a = f->div(state, Bignum::from(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, 100000 / ((double)FIXNUM_MAX + 10)));
   }

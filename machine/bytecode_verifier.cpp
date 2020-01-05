@@ -217,7 +217,7 @@ namespace rubinius {
     total_ = ops_->num_fields();
     stack_ = new int32_t[total_];
 
-    for(native_int i = 0; i < total_; i++) {
+    for(intptr_t i = 0; i < total_; i++) {
       stack_[i] = -1;
     }
 

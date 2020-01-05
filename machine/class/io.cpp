@@ -59,7 +59,7 @@ namespace rubinius {
     return io;
   }
 
-  native_int IO::open_with_cloexec(STATE, const char* path, int mode, int permissions) {
+  intptr_t IO::open_with_cloexec(STATE, const char* path, int mode, int permissions) {
     if(Class* fd_class = try_as<Class>(G(io)->get_const(state, "FileDescriptor"))) {
       Tuple* args = Tuple::from(state, 3,
           String::create(state, path),
@@ -79,7 +79,7 @@ namespace rubinius {
     }
   }
 
-  native_int IO::descriptor(STATE) {
+  intptr_t IO::descriptor(STATE) {
     if(Fixnum* fd = try_as<Fixnum>(send(state, state->symbol("descriptor")))) {
       return fd->to_native();
     }
@@ -173,7 +173,7 @@ namespace rubinius {
     OnStack<1> variables(state, buffer);
 
     ssize_t bytes_read;
-    native_int t = type->to_native();
+    intptr_t t = type->to_native();
 
   retry:
     state->vm()->interrupt_with_signal();
@@ -564,7 +564,7 @@ failed: /* try next '*' position */
   }
 
   Object* FDSet::set(STATE, Fixnum* descriptor) {
-    native_int fd = descriptor->to_native();
+    intptr_t fd = descriptor->to_native();
 
     FD_SET((int_fd_t)fd, (fd_set*)descriptor_set);
 
@@ -572,7 +572,7 @@ failed: /* try next '*' position */
   }
 
   Object* FDSet::is_set(STATE, Fixnum* descriptor) {
-    native_int fd = descriptor->to_native();
+    intptr_t fd = descriptor->to_native();
 
     if (FD_ISSET(fd, (fd_set*)descriptor_set)) {
       return cTrue;

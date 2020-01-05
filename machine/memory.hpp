@@ -181,8 +181,8 @@ namespace rubinius {
     ~Memory();
 
     // Object must be created in Immix or large object space.
-    Object* new_object(STATE, native_int bytes, object_type type);
-    Object* new_object_pinned(STATE, native_int bytes, object_type type);
+    Object* new_object(STATE, intptr_t bytes, object_type type);
+    Object* new_object_pinned(STATE, intptr_t bytes, object_type type);
 
     /* Allocate a new object in any space that will accommodate it based on
      * the following priority:
@@ -193,7 +193,7 @@ namespace rubinius {
      * The resulting object is UNINITIALIZED. The caller is responsible for
      * initializing all reference fields other than _klass_ and _ivars_.
      */
-    Object* new_object(STATE, Class* klass, native_int bytes, object_type type) {
+    Object* new_object(STATE, Class* klass, intptr_t bytes, object_type type) {
       Object* obj = state->vm()->allocate_object(state, bytes, type);
 
       obj->klass(state, klass);
@@ -210,7 +210,7 @@ namespace rubinius {
      * The resulting object is UNINITIALIZED. The caller is responsible for
      * initializing all reference fields other than _klass_ and _ivars_.
      */
-    Object* new_object_pinned(STATE, Class* klass, native_int bytes, object_type type) {
+    Object* new_object_pinned(STATE, Class* klass, intptr_t bytes, object_type type) {
       Object* obj = new_object_pinned(state, bytes, type);
 
       obj->klass(state, klass);
@@ -220,7 +220,7 @@ namespace rubinius {
     }
 
     template <class T>
-      T* new_object(STATE, Class* klass, native_int bytes, object_type type) {
+      T* new_object(STATE, Class* klass, intptr_t bytes, object_type type) {
         T* obj = new_object(state, klass, bytes, type);
         T::initialize(state, obj, bytes, type);
 
@@ -236,7 +236,7 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_object(STATE, Class *klass, native_int bytes) {
+      T* new_object(STATE, Class *klass, intptr_t bytes) {
         return static_cast<T*>(new_object(state, klass, bytes, T::type));
       }
 
@@ -250,7 +250,7 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_bytes(STATE, Class* klass, native_int bytes) {
+      T* new_bytes(STATE, Class* klass, intptr_t bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = static_cast<T*>(new_object(state, klass, bytes, T::type));
 
@@ -260,8 +260,8 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_fields(STATE, Class* klass, native_int fields) {
-        native_int bytes = sizeof(T) + (fields * sizeof(Object*));
+      T* new_fields(STATE, Class* klass, intptr_t fields) {
+        intptr_t bytes = sizeof(T) + (fields * sizeof(Object*));
         T* obj = static_cast<T*>(new_object(state, klass, bytes, T::type));
 
         obj->full_size(bytes);
@@ -278,7 +278,7 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_bytes_pinned(STATE, Class* klass, native_int bytes) {
+      T* new_bytes_pinned(STATE, Class* klass, intptr_t bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = static_cast<T*>(new_object_pinned(state, klass, bytes, T::type));
 
@@ -288,8 +288,8 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_fields_pinned(STATE, Class* klass, native_int fields) {
-        native_int bytes = sizeof(T) + (fields * sizeof(Object*));
+      T* new_fields_pinned(STATE, Class* klass, intptr_t fields) {
+        intptr_t bytes = sizeof(T) + (fields * sizeof(Object*));
         T* obj = static_cast<T*>(new_object_pinned(state, klass, bytes, T::type));
 
         obj->full_size(bytes);

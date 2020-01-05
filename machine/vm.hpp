@@ -282,7 +282,7 @@ namespace rubinius {
       return shared.memory();
     }
 
-    Object* allocate_object(STATE, native_int bytes, object_type type) {
+    Object* allocate_object(STATE, intptr_t bytes, object_type type) {
       return thca_->allocate(state, bytes, type);
     }
 

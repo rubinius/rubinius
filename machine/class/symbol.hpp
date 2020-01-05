@@ -20,7 +20,7 @@ namespace rubinius {
       return reinterpret_cast<Symbol*>(APPLY_SYMBOL_TAG(index));
     }
 
-    native_int index() const;
+    intptr_t index() const;
 
     // Rubinius.primitive+ :symbol_s_eqq
     static Object* is_symbol(STATE, Object* obj) {

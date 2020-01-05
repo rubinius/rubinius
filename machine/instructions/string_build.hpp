@@ -23,8 +23,8 @@ namespace rubinius {
         String* str = try_as<String>(obj);
 
         if(str) {
-          native_int cur_size = str->byte_size();
-          native_int data_size = as<ByteArray>(str->data())->size();
+          intptr_t cur_size = str->byte_size();
+          intptr_t data_size = as<ByteArray>(str->data())->size();
           if(unlikely(cur_size > data_size)) {
             cur_size = data_size;
           }
@@ -38,8 +38,8 @@ namespace rubinius {
           str = obj->to_s(state, false);
 
           tainted |= str->tainted_p();
-          native_int cur_size = str->byte_size();
-          native_int data_size = as<ByteArray>(str->data())->size();
+          intptr_t cur_size = str->byte_size();
+          intptr_t data_size = as<ByteArray>(str->data())->size();
           if(unlikely(cur_size > data_size)) {
             cur_size = data_size;
           }
@@ -71,7 +71,7 @@ namespace rubinius {
 #endif
 
       uint8_t* pos = str->byte_address();
-      native_int str_size = 0;
+      intptr_t str_size = 0;
 
       for(int i = count - 1; i >= 0; i--) {
         Object* obj = stack_back(i);
@@ -79,8 +79,8 @@ namespace rubinius {
         // We can force here because we've typed check them above.
         String* sub = force_as<String>(obj);
 
-        native_int sub_size = sub->byte_size();
-        native_int data_size = as<ByteArray>(sub->data())->size();
+        intptr_t sub_size = sub->byte_size();
+        intptr_t data_size = as<ByteArray>(sub->data())->size();
         if(unlikely(sub_size > data_size)) {
           sub_size = data_size;
         }

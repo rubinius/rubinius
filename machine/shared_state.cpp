@@ -132,7 +132,7 @@ namespace rubinius {
   Fixnum* SharedState::vm_threads_count(STATE) {
     std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
 
-    native_int count = 0;
+    intptr_t count = 0;
 
     for(ThreadList::iterator i = thread_nexus_->threads()->begin();
         i != thread_nexus_->threads()->end();
@@ -174,7 +174,7 @@ namespace rubinius {
   Fixnum* SharedState::vm_fibers_count(STATE) {
     std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
 
-    native_int count = 0;
+    intptr_t count = 0;
 
     for(ThreadList::iterator i = thread_nexus_->threads()->begin();
         i != thread_nexus_->threads()->end();

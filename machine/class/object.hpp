@@ -52,7 +52,7 @@ namespace rubinius {
 
     static void bootstrap(STATE);
     static void initialize(STATE, Object* obj) { }
-    static void initialize(STATE, Object* obj, native_int bytes, object_type type) {
+    static void initialize(STATE, Object* obj, intptr_t bytes, object_type type) {
       obj->initialize_fields(bytes);
     }
 

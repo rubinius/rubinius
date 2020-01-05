@@ -268,9 +268,9 @@ namespace rubinius {
     static bool call(STATE, MachineCode* mcode, StackVariables* scope,
                      Arguments& args)
     {
-      if((native_int)args.total() != mcode->total_args) return false;
+      if((intptr_t)args.total() != mcode->total_args) return false;
 
-      for(native_int i = 0; i < mcode->total_args; i++) {
+      for(intptr_t i = 0; i < mcode->total_args; i++) {
         scope->set_local(i, args.get_argument(i));
       }
 
@@ -378,16 +378,16 @@ namespace rubinius {
        *
        */
 
-      const native_int N = args.total();
-      const native_int T = mcode->total_args;
-      const native_int M = mcode->required_args;
-      const native_int O = T - M - (mcode->keywords ? 1 : 0);
+      const intptr_t N = args.total();
+      const intptr_t T = mcode->total_args;
+      const intptr_t M = mcode->required_args;
+      const intptr_t O = T - M - (mcode->keywords ? 1 : 0);
 
       /* TODO: Clean up usage to uniformly refer to 'splat' as N arguments
        * passed from sender at a single position and 'rest' as N arguments
        * collected into a single argument at the receiver.
        */
-      const native_int RI = mcode->splat_position;
+      const intptr_t RI = mcode->splat_position;
       const bool RP = (RI >= 0);
 
       // expecting 0, got 0.
@@ -405,8 +405,8 @@ namespace rubinius {
       // Too many args (no rest argument!)
       if(!RP && N > T) return false;
 
-      const native_int P  = mcode->post_args;
-      const native_int H  = M - P;
+      const intptr_t P  = mcode->post_args;
+      const intptr_t H  = M - P;
 
       Object* kw = 0;
       Object* kw_remainder = 0;
@@ -437,21 +437,21 @@ namespace rubinius {
         }
       }
 
-      const native_int K = (KP && !KA && N > M) ? 1 : 0;
-      const native_int E = N - M - K;
+      const intptr_t K = (KP && !KA && N > M) ? 1 : 0;
+      const intptr_t E = N - M - K;
 
       // Too many arguments
       if(mcode->keywords && !RP && !KP && E > O) return false;
 
-      native_int X;
+      intptr_t X;
 
-      const native_int ON = (X = MIN(O, E)) > 0 ? X : 0;
-      const native_int RN = (RP && (X = E - ON) > 0) ? X : 0;
-      const native_int PI = H + O + (RP ? 1 : 0);
-      const native_int KI = RP ? T : T - 1;
+      const intptr_t ON = (X = MIN(O, E)) > 0 ? X : 0;
+      const intptr_t RN = (RP && (X = E - ON) > 0) ? X : 0;
+      const intptr_t PI = H + O + (RP ? 1 : 0);
+      const intptr_t KI = RP ? T : T - 1;
 
-      native_int a = 0;   // argument index
-      native_int l = 0;   // local index
+      intptr_t a = 0;   // argument index
+      intptr_t l = 0;   // local index
 
       // head arguments
       if(H > 0) {
@@ -529,7 +529,7 @@ namespace rubinius {
       width = Instructions::instruction_data(op).width;
 
       if(op == instructions::data_push_ivar.id) {
-        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+        intptr_t sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
@@ -538,7 +538,7 @@ namespace rubinius {
           opcodes[i + 1] = ti->slot_locations[it->second];
         }
       } else if(op == instructions::data_set_ivar.id) {
-        native_int sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
+        intptr_t sym = as<Symbol>(reinterpret_cast<Object*>(opcodes[i + 1]))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {

@@ -34,7 +34,7 @@ namespace rubinius {
         logger::info("THCA allocated: regions: %ld, objects: %ld", regions_, objects_);
       }
 
-      virtual Object* allocate(STATE, native_int bytes, object_type type);
+      virtual Object* allocate(STATE, intptr_t bytes, object_type type);
       virtual void collect(STATE) {
         address_ = 0;
         available_ = 0;
@@ -50,8 +50,8 @@ namespace rubinius {
       { }
       virtual ~OpenTHCA() { }
 
-      virtual Object* allocate(STATE, native_int bytes, object_type type);
-      Object* allocate_object(STATE, native_int bytes, object_type type);
+      virtual Object* allocate(STATE, intptr_t bytes, object_type type);
+      Object* allocate_object(STATE, intptr_t bytes, object_type type);
       bool allocate_region(STATE);
     };
 
@@ -62,7 +62,7 @@ namespace rubinius {
       { }
       virtual ~ClosedTHCA() { }
 
-      virtual Object* allocate(STATE, native_int bytes, object_type type);
+      virtual Object* allocate(STATE, intptr_t bytes, object_type type);
     };
 
     class IsolatedTHCA : public THCA {
@@ -72,7 +72,7 @@ namespace rubinius {
       { }
       virtual ~IsolatedTHCA() { }
 
-      virtual Object* allocate(STATE, native_int bytes, object_type type);
+      virtual Object* allocate(STATE, intptr_t bytes, object_type type);
     };
   }
 }

@@ -10,7 +10,7 @@ namespace rubinius {
     static uintptr_t bytes_offset;
 
   private:
-    attr_field(full_size, native_int);
+    attr_field(full_size, intptr_t);
 
     // Body access
     uint8_t bytes[0];
@@ -18,8 +18,8 @@ namespace rubinius {
   public:
     static void bootstrap(STATE);
 
-    static ByteArray* create(STATE, native_int bytes);
-    static ByteArray* create_pinned(STATE, native_int bytes);
+    static ByteArray* create(STATE, intptr_t bytes);
+    static ByteArray* create_pinned(STATE, intptr_t bytes);
     static ByteArray* copy_pinned(STATE, ByteArray* ba);
 
     template <typename Any>
@@ -35,7 +35,7 @@ namespace rubinius {
     Fixnum* size(STATE);
 
     // Return the number of bytes this ByteArray contains
-    native_int size() const {
+    intptr_t size() const {
       return full_size() - bytes_offset;
     }
 

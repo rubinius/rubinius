@@ -54,7 +54,7 @@ namespace rubinius {
     return Float::create(state, (double)val);
   }
 
-  Float* Float::create(STATE, native_int val) {
+  Float* Float::create(STATE, intptr_t val) {
     return Float::create(state, (double)val);
   }
 
@@ -86,7 +86,7 @@ namespace rubinius {
       str++;
     }
 
-    native_int len = end - str;
+    intptr_t len = end - str;
 
     // Skip trailing whitespace.
     if (str != end) {

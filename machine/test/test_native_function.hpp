@@ -282,7 +282,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)13);
 
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (int)2147483647));
@@ -292,7 +292,7 @@ public:
     out = func->call(state, args_obj2);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)2147483647);
   }
 
   void test_bind_with_unsigned_int() {
@@ -315,7 +315,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)13);
 
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (unsigned int)2147483647));
@@ -325,7 +325,7 @@ public:
     out = func->call(state, args_obj2);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)2147483647);
   }
 
   void test_bind_with_long() {
@@ -348,7 +348,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)13);
 
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (long)2147483647));
@@ -358,7 +358,7 @@ public:
     out = func->call(state, args_obj2);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)2147483647);
   }
 
   void test_bind_with_unsigned_long() {
@@ -381,7 +381,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)13);
 
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (unsigned long)2147483647));
@@ -391,7 +391,7 @@ public:
     out = func->call(state, args_obj2);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)2147483647);
   }
 
   void test_bind_with_long_long() {
@@ -414,7 +414,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)13);
 
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, 9223372036854775807LL));
@@ -447,7 +447,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (intptr_t)13);
 
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, 9223372036854775808ULL));

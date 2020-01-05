@@ -993,14 +993,14 @@ namespace rubinius {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->vm()->managed_phase(state);
-      ret = Fixnum::from((native_int)result);
+      ret = Fixnum::from((intptr_t)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->vm()->managed_phase(state);
-      ret = Fixnum::from((native_int)result);
+      ret = Fixnum::from((intptr_t)result);
       break;
     }
     case RBX_FFI_TYPE_BOOL: {
@@ -1014,21 +1014,21 @@ namespace rubinius {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->vm()->managed_phase(state);
-      ret = Fixnum::from((native_int)result);
+      ret = Fixnum::from((intptr_t)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->vm()->managed_phase(state);
-      ret = Fixnum::from((native_int)result);
+      ret = Fixnum::from((intptr_t)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result = 0;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->vm()->managed_phase(state);
-      ret = Integer::from(state, (native_int)result);
+      ret = Integer::from(state, (intptr_t)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
@@ -1098,7 +1098,7 @@ namespace rubinius {
       state->vm()->managed_phase(state);
 
       Array* ary = Array::create(state, 1);
-      ary->set(state, 0, Integer::from(state, (native_int)result));
+      ary->set(state, 0, Integer::from(state, (intptr_t)result));
 
       ret = ffi_data()->ret_info.enum_obj->send(state, state->symbol("symbol"), ary);
       break;

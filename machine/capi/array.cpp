@@ -44,7 +44,7 @@ namespace rubinius {
       RTuple* rtuple = RTuple::from(state, array->tuple());
       array->tuple(state, rtuple);
 
-      native_int size = array->size();
+      intptr_t size = array->size();
       VALUE* ptr = reinterpret_cast<VALUE*>(rtuple->field + array->offset());
 
       RArray* rarray = new RArray;
@@ -90,7 +90,7 @@ namespace rubinius {
         array->tuple(state, rtuple);
       }
 
-      native_int size = array->size();
+      intptr_t size = array->size();
       VALUE* ptr = reinterpret_cast<VALUE*>(rtuple->field + array->offset());
 
       rarray->dmwmb = rarray->ptr = ptr;
@@ -156,7 +156,7 @@ extern "C" {
 
     Array* array = MemoryHandle::object<Array>(self);
 
-    for(native_int i = 0; i < array->size(); i++) {
+    for(intptr_t i = 0; i < array->size(); i++) {
       rb_yield(MemoryHandle::value(array->get(env->state(), i)));
     }
 
@@ -273,7 +273,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = MemoryHandle::object<Array>(self);
-    native_int total = array->size();
+    intptr_t total = array->size();
 
     if(index < 0) {
       index += total;

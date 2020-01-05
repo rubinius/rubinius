@@ -93,21 +93,21 @@ namespace rubinius {
      * Encoding handling methods that can are used by string but can
      * also be used for implementing certain C-API methods
      */
-    static native_int find_non_ascii_index(const uint8_t* start, const uint8_t* end);
-    static native_int find_byte_character_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
-    static native_int find_byte_character_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
+    static intptr_t find_non_ascii_index(const uint8_t* start, const uint8_t* end);
+    static intptr_t find_byte_character_index(const uint8_t* start, const uint8_t* end, intptr_t index, OnigEncodingType* enc);
+    static intptr_t find_byte_character_index_utf8(const uint8_t* start, const uint8_t* end, intptr_t index) {
       return utf8_find_byte_character_index(start, end, index);
     }
 
-    static native_int find_character_byte_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
+    static intptr_t find_character_byte_index(const uint8_t* start, const uint8_t* end, intptr_t index, OnigEncodingType* enc);
 
-    static native_int find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
+    static intptr_t find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, intptr_t index) {
       return utf8_find_character_byte_index(start, end, index);
     }
 
-    static native_int string_character_length(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
+    static intptr_t string_character_length(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
 
-    static native_int string_character_length_utf8(const uint8_t* start, const uint8_t* end) {
+    static intptr_t string_character_length_utf8(const uint8_t* start, const uint8_t* end) {
       return utf8_string_length(start, end);
     }
 

@@ -31,9 +31,9 @@ namespace rubinius {
       }
 
       Tuple* tup = Tuple::create(state, arg_count);
-      native_int tup_index = 0;
+      intptr_t tup_index = 0;
 
-      native_int fixed_args;
+      intptr_t fixed_args;
       if(splat) {
         fixed_args = mc->splat_position;
       } else if(mc->keywords) {
@@ -41,12 +41,12 @@ namespace rubinius {
       } else {
         fixed_args = mc->total_args;
       }
-      for(native_int i = 0; i < fixed_args; i++) {
+      for(intptr_t i = 0; i < fixed_args; i++) {
         tup->put(state, tup_index++, scope->get_local(state, i));
       }
 
       if(splat) {
-        for(native_int i = 0; i < splat->size(); i++) {
+        for(intptr_t i = 0; i < splat->size(); i++) {
           tup->put(state, tup_index++, splat->get(state, i));
         }
       } else if(splat_obj) {
@@ -54,23 +54,23 @@ namespace rubinius {
       }
 
       if(mc->post_args) {
-        native_int post_position = mc->splat_position + 1;
-        for(native_int i = post_position; i < post_position + mc->post_args; i++) {
+        intptr_t post_position = mc->splat_position + 1;
+        for(intptr_t i = post_position; i < post_position + mc->post_args; i++) {
           tup->put(state, tup_index++, scope->get_local(state, i));
         }
       }
 
       if(mc->keywords) {
-        native_int placeholder_position = splat_obj ? mc->total_args : mc->total_args - 1;
-        native_int keywords_position    = placeholder_position + 1;
+        intptr_t placeholder_position = splat_obj ? mc->total_args : mc->total_args - 1;
+        intptr_t keywords_position    = placeholder_position + 1;
 
         // "Runtime.keyword_object?" requires keywords object to be convertable into Hash.
         // TODO define "machine/class/hash" and use Hash::create instead of "[[key, value], ..].to_h".
 
         Array* keywords = Array::create(state, mc->keywords_count);
 
-        for(native_int index = 0; index < mc->keywords_count; index++) {
-          native_int keyword_position = keywords_position + index;
+        for(intptr_t index = 0; index < mc->keywords_count; index++) {
+          intptr_t keyword_position = keywords_position + index;
           Symbol* name  = as<Symbol>(call_frame->compiled_code->local_names()->at(state, keyword_position));
           Object* value = scope->get_local(state, keyword_position);
 

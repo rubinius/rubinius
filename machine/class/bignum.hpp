@@ -33,7 +33,7 @@ namespace rubinius {
       return &mp_val_;
     }
 
-    native_int         to_native();
+    intptr_t         to_native();
 
     int                to_int();
     unsigned int       to_uint();
