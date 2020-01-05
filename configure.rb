@@ -474,7 +474,7 @@ class Configure
     feature "vendor-libsodium", true
     feature "alloc-tracking", false
     feature "dtrace", false
-    feature "rpath", true
+    feature "rpath", false
 
     o.doc "\n Help!"
 
