@@ -99,7 +99,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
 
   void test_sub_a_bignum() {
     Fixnum* one  = as<Fixnum>(Fixnum::from(13));
-    Bignum* obj = Bignum::from(state, (native_int)FIXNUM_MAX + 28);
+    Bignum* obj = Bignum::from(state, (long long)FIXNUM_MAX + 28);
     Integer* res = one->sub(state, obj);
 
     TS_ASSERT(kind_of<Bignum>(res));
