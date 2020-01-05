@@ -1,102 +1,108 @@
-## Contributing To Rubinius
+# We :heart: Your Contributions
 
-We want to start off by saying thank you for using Rubinius. This project is a
-labor of love, and we appreciate all of the users that catch bugs, make
-performance improvements, and help with documentation. Every contribution is
-meaningful, so thank you for participating. That being said, here are a few
-guidelines that we ask you to follow so we can successfully address your issue.
+Thank you for taking your time to contribute to Rubinius. This guide will help you spend your time well, and help us keep Rubinius focused and making valuable progress.
 
-### Version Managers
+Above all, life is short. Make it sweet. Be kind. :smile:
 
-We can *not* help you with any issues that might be caused by a Ruby version
-manager. In the event of any issues please try building from source instead to
-see if the issue is caused by Rubinius itself or your version manager of choice.
+Now, let's dive into the beautiful :boom: messes. Of the many things that can go wrong, most fall into a pretty small set of categories:
 
-Issues involving version managers will be closed if they can either not be
-reproduced when building from source, or when the original report makes no
-mention about the author having tried building from source.
+1. Build & Packaging
+1. OS & Platform
+1. Ruby Compatibility
+1. C-API Compatibility
+1. Process Abort | Hang
+1. Performance
+1. Rubinius Capabilities
+1. Feature Requests
 
-Note that this only applies to the installation procedure. Problems with the
-runtime can of course still be reported, even when using a version manager.
+Each of these has specific notes that will help you in the guides below, but there are a few things that all contributors should keep in mind.
 
-### Rubinius Versions
+## General Notes
 
-Rubinius releases quite often, at least more often than most other
-implementations. As such we ask users to try out the latest version prior to
-reporting an issue. This ensures we don't have to start digging through the
-code, only to find out the problem has already been resolved in a more recent
-release.
+It can feel intimidating to contribute to a complex project, but it can also be exhilerating and fun. These general notes will help everyone participate in this communal activity.
 
-### Running Specs
+1. Follow the [Code of Conduct](https://rubinius.com/code-of-conduct/)
+1. There are no "getting started"-type tickets or labels because everyone is encouraged to dive into whatever interests them. There's no expectation that you "work you way up" by doing documentation or clean-up tasks. Just pick something you're curious about and start working on it.
+1. The Rubinius experiment has its own perspective, it's not trying to immitate another project. Be open to learning about it.
+1. Small changes make huge differences. We will happily accept a PR making a single character change if it helps move forward. Don't wait to have everything working.
+1. What you choose to spend your time on is a powerful vote about what is important. Tickets that don't have any code contributed for them will be closed after one month with an explanation and reference to this guide.
+1. Check the closed issues before opening your issue. If an issue was closed previously because no code was contributed, a new issue without code will be closed as a duplicate.
+1. Try to follow the existing style of the code (there's a lot of code). When in doubt, just ask.
+1. Life is hard. Make it a bit softer. Be kind. :smile:
 
-MSpec provides several different scripts to run the specs under different
-conditions. The default behavior is to simply run all the specs. If you invoke
-the following command, it will run all the Ruby Array specs:
+The focus for Rubinius in the near term is on the following capabilities:
 
-    $ bin/mspec core/array
+1. Instruction set
+1. Debugger
+1. Profiler
+1. Just-in-time compiler
+1. Concurrency
+1. Garbage collector
 
-The `-t` option specifies which Ruby implementation to run the specs under. The
-default in Rubinius is to run them with Rubinius, so `-tx` is implied. You can
-easily run with another target by giving the name of an executable on your PATH
-or the full path to an executable. Since the specs are intended to show the
-behavior of MRI, if you are writing new specs you need to run them under the
-current stable release of MRI 2.0. For example, if you have a `ruby2.0.0`
-executable on your `PATH`, you can do the following:
+Contributions in the form of PRs for any of these areas are appreciated. Once these capabilities are more developed, all the categories below will be much easier to work on.
 
-    $ bin/mspec -t ruby2.0.0 core/array
+## Build & Packaging
 
-Finally, if you are running `bin/mspec` in the Rubinius source directory, the
-location of the RubySpecs are known (`spec/ruby/`), so you can use the full path
-or the shortened version `core/array` above.
+The current build system depends on having Ruby installed. This dependency is being removed. Once it is, Rubinius will be much easier to package for various operating systems and packaging systems.
 
-### Fixing A Bug
+Issues for building or packaging on macOS and Ubuntu (Rubinius runs CI on Travis on Ubuntu) will be fixed.
 
-* Fork the repo, create a topic branch, and include a spec, if appropriate.
-  Pull requests that need a spec but are submitted without one will be delayed
-until one is written. The spec should be in a separate commit.
-* Please follow the [Coding Style
-  Guide](http://rubini.us/doc/en/contributing/style-guide)
-* **Always run the full spec suite**. `rake` will run the VM specs plus
-  RubySpec.
-* Please add a detailed commit message. Here is a [fantastic
-  example](https://github.com/rubinius/rubinius/commit/1f9ddd1) by @ryoqun .
-The preference is for a (max) 50 character summary as line one, a blank line,
-then any number of lines, no longer than 80 characters.
-* Send in that pull request!
-* Follow up with us on the ticket if we haven't merged or commented in a few
-  days. We strive to address issues in a reasonable time. If we miss yours,
-please remind us.
-* When unsure about the changes, associated specs or other topics, please ask!
-  We're more than eager to help.
+Pull requests to fix issues for building or packaging on other operating systems or package managers will be happily accepted, but issues without code fixes will be closed as noted above.
 
-### Writing Specs
+Tag your issue with "Build & Packaging".
 
-A lot of this is already covered in [How To Write A
-Spec](http://rubini.us/doc/en/how-to/write-a-spec/) but the basic gist of it is
-as following:
+## OS & Platform
 
-* Spec descriptions (for both `describe` and `it` blocks) should be written in
-  natural English.
-* Specs should include only the bare minimum that is required to test
-  something.
-* Setup code that is re-used between examples should be placed in a `before()`
-  block
-* When unsure, please ask!
+The same guidelines apply to operating system and platform issues as for build and packaging issues above.
 
-### Performance Patches
+Tag your issue with "OS & Platform".
 
-We love these!
+## Ruby Compatibility
 
-* Include benchmarks before and after the change. Please include your hardware
-  specs, namely CPU speed, # of cores, speed of hard drive (if SSD, then SSD is
-fine) and amount of RAM.
-* **Always run the full spec suite**. `rake` will ensure you didn't
-  accidentally break anything.
+Rubinius will continue to maintain compatibility with the current stable version of Matz's Ruby Implementation (MRI) to the extent possible.
 
-For more details on how to contribute, please see [Contributing to
-Rubinius](http://rubini.us/2011/10/18/contributing-to-rubinius/).
+To support Ruby compatibility, we need specs and code. If you contribute code, be aware of any licensing issues that may affect the code you contribute.
 
-For more help, visit the [Rubinius Gitter chat
-room](https://gitter.im/rubinius/rubinius)
+Tag your issue with "Ruby Language Compatibility".
 
-Again, thank you!
+## C-API Compatibility
+
+In general, the MRI C-API for Rubinius is deprecated, but that doesn't mean it will be going anywhere soon.
+
+Compatibility for C-extensions will continue to be evaluated on a case-by-case basis. However, C-extensions that depend on functions that examine or manipulate built-in MRI data structures will never be supported.
+
+Tag your issue with "C-API Compatibility".
+
+## Process Abort | Hang
+
+Much of the internals of Rubinius have been mostly or completely rewritten in the past couple years. This includes the garbage collector, concurrency facilities, Fibers, much of the instruction set, and a migration away from "primitive" functions that implement Ruby features.
+
+Tag your issue with "Process Abort | Hang".
+
+## Performance
+
+Performance is a complex affair, but it generally reduces to a simple concept: To go faster, do less.
+
+Until the core capabilities listed above are more developed, most performance work is very difficult. But we gladly accept PRs that fix performance issues.
+
+Tag your issue with "Performance".
+
+## Rubinius Capabilities
+
+See the list above of the near term focus for Rubinius.
+
+Tag your issue with "System Capabilities".
+
+## Feature Requests
+
+In general, Rubinius enthusiastically supports experimentation and welcomes ideas for features that enhance developer ability to create amazing software.
+
+Some features won't be quite right for Rubinius, but the best way to know is to have working code we can play with and react to, so consider adding some code (even a little bit) to your feature request. If feature requests don't get any code votes, the issue will be closed according to the policy listed above.
+
+Tag your issue with "Feature Request".
+
+## We Missed Something :sweat_smile:
+
+If you don't see what you need here, come ask us a question :point_right: <a href="https://gitter.im/rubinius/rubinius?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" /></a>
+
+Thank you! :rocket: :rainbow: :unicorn:
