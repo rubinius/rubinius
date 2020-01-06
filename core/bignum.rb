@@ -13,11 +13,6 @@ class Bignum < Integer
 
   # binary math operators
 
-  def +(o)
-    Rubinius.primitive :bignum_add
-    redo_coerced :+, o
-  end
-
   def -(o)
     Rubinius.primitive :bignum_sub
     redo_coerced :-, o
@@ -98,26 +93,6 @@ class Bignum < Integer
   end
 
   # comparison operators
-
-  def <(other)
-    Rubinius.primitive :bignum_lt
-    redo_compare :<, other
-  end
-
-  def <=(other)
-    Rubinius.primitive :bignum_le
-    redo_compare :<=, other
-  end
-
-  def >(other)
-    Rubinius.primitive :bignum_gt
-    redo_compare :>, other
-  end
-
-  def >=(other)
-    Rubinius.primitive :bignum_ge
-    redo_compare :>=, other
-  end
 
   def <=>(other)
     Rubinius.primitive :bignum_compare

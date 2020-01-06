@@ -10,6 +10,58 @@ class Integer < Numeric
     end
   end
 
+  # binary math operators
+
+  def +(other)
+    Rubinius.asm do
+      int = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_eadd r0, r0, r1
+      goto val
+
+      flt.set!
+      # TODO: r_store_float
+      # n_dadd r0, r0, r1
+      # goto val
+      goto done
+
+      int.set!
+      n_iadd_o r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    redo_coerced :+, other
+  end
+
   # comparison operators
 
   def !=(other)
@@ -111,6 +163,206 @@ class Integer < Numeric
   end
 
   alias_method :===, :==
+
+  def <(other)
+    Rubinius.asm do
+      cmp = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_elt r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dlt r0, r0, r1
+      goto val
+
+      cmp.set!
+      n_ilt r0, r0, r1
+
+      val.set!
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    b, a = math_coerce other, :compare_error
+    a < b ? true : false
+  end
+
+  def <=(other)
+    Rubinius.asm do
+      cmp = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_ele r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dle r0, r0, r1
+      goto val
+
+      cmp.set!
+      n_ile r0, r0, r1
+
+      val.set!
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    b, a = math_coerce other, :compare_error
+    a <= b ? true : false
+  end
+
+  def >(other)
+    Rubinius.asm do
+      cmp = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_egt r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dgt r0, r0, r1
+      goto val
+
+      cmp.set!
+      n_igt r0, r0, r1
+
+      val.set!
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    b, a = math_coerce other, :compare_error
+    a > b ? true : false
+  end
+
+  def >=(other)
+    Rubinius.asm do
+      cmp = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, cmp
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_ege r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dge r0, r0, r1
+      goto val
+
+      cmp.set!
+      n_ige r0, r0, r1
+
+      val.set!
+      r_load_bool r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    b, a = math_coerce other, :compare_error
+    a >= b ? true : false
+  end
 
   # bitwise binary operators
 
