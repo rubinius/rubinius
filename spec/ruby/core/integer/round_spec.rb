@@ -37,7 +37,7 @@ describe "Integer#round" do
   end
 
   it "raises a RangeError when passed a beyond signed int" do
-    lambda { 42.round(1<<31) }.should raise_error(RangeError)
+    lambda { 42.round(fixnum_max() + 1) }.should raise_error(RangeError)
   end
 
   it "raises a TypeError when passed a String" do
