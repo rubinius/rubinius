@@ -1,16 +1,6 @@
 class Bignum < Integer
   # unary operators
 
-  def ~
-    Rubinius.primitive :bignum_invert
-    raise PrimitiveFailure, "Bignum#~ primitive failed"
-  end
-
-  def -@
-    Rubinius.primitive :bignum_neg
-    raise PrimitiveFailure, "Bignum#-@ primitive failed"
-  end
-
   # binary math operators
 
   def bit_length

@@ -31,48 +31,6 @@ class Fixnum < Integer
 
   # unary operators
 
-  def !
-    false
-  end
-
-  def ~
-    Rubinius.asm do
-      push_self
-
-      r0 = new_register
-
-      r_load_stack r0
-      pop
-
-      r_load_int r0, r0
-      n_inot r0, r0
-      r_store_int r0, r0
-
-      r_ret r0
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-  end
-
-  def -@
-    Rubinius.asm do
-      push_self
-
-      r0 = new_register
-
-      r_load_stack r0
-      pop
-
-      n_ineg_o r0, r0
-
-      r_ret r0
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-  end
-
   # binary math operators
 
   def divmod(other)

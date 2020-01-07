@@ -10,6 +10,105 @@ class Integer < Numeric
     end
   end
 
+  # unary operators
+
+  def !
+    false
+  end
+
+  def ~
+    Rubinius.asm do
+      eint = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+      r4 = new_register
+
+      push_self
+      r_load_stack r0
+      pop
+
+      n_promote r1, r0, r0
+
+      r_load_1 r2
+      n_iadd r3, r2, r2
+      n_ieq r4, r1, r3
+      b_if r4, eint
+
+      n_iadd r3, r3, r2
+      n_ine r4, r1, r3
+      b_if r4, done
+
+      r_load_int r0, r0
+      n_inot r0, r0
+      r_store_int r0, r0
+      goto val
+
+      eint.set!
+      n_enot r0, r0
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    super
+  end
+
+  def -@
+    Rubinius.asm do
+      eint = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+      r4 = new_register
+
+      push_self
+      r_load_stack r0
+      pop
+
+      n_promote r1, r0, r0
+
+      r_load_1 r2
+      n_iadd r3, r2, r2
+      n_ieq r4, r1, r3
+      b_if r4, eint
+
+      n_iadd r3, r3, r2
+      n_ine r4, r1, r3
+      b_if r4, done
+
+      n_ineg_o r0, r0
+      goto val
+
+      eint.set!
+      n_eneg r0, r0
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    super
+  end
+
+
   # binary math operators
 
   def +(other)
