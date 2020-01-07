@@ -33,21 +33,6 @@ class Bignum < Integer
 
   # bitwise binary operators
 
-  def &(o)
-    Rubinius.primitive :bignum_and
-    super(o)
-  end
-
-  def |(o)
-    Rubinius.primitive :bignum_or
-    super(o)
-  end
-
-  def ^(o)
-    Rubinius.primitive :bignum_xor
-    super(o)
-  end
-
   def <<(other)
     Rubinius.primitive :bignum_left_shift
 

@@ -567,18 +567,29 @@ class Integer < Numeric
 
   def &(other)
     Rubinius.asm do
-      op = new_label
+      int = new_label
       done = new_label
 
       r0 = new_register
       r1 = new_register
+      r2 = new_register
+      r3 = new_register
 
       r_load_m_binops r0, r1
 
-      b_if_int r0, r1, op
-      goto done
+      b_if_int r0, r1, int
 
-      op.set!
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_iadd r3, r3, r3
+      n_ine r2, r2, r3
+      b_if r2, done
+
+      n_eand r0, r0, r1
+      r_ret r0
+
+      int.set!
       r_load_int r0, r0
       r_load_int r1, r1
 
@@ -600,18 +611,29 @@ class Integer < Numeric
 
   def |(other)
     Rubinius.asm do
-      op = new_label
+      int = new_label
       done = new_label
 
       r0 = new_register
       r1 = new_register
+      r2 = new_register
+      r3 = new_register
 
       r_load_m_binops r0, r1
 
-      b_if_int r0, r1, op
-      goto done
+      b_if_int r0, r1, int
 
-      op.set!
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_iadd r3, r3, r3
+      n_ine r2, r2, r3
+      b_if r2, done
+
+      n_eor r0, r0, r1
+      r_ret r0
+
+      int.set!
       r_load_int r0, r0
       r_load_int r1, r1
 
@@ -633,18 +655,29 @@ class Integer < Numeric
 
   def ^(other)
     Rubinius.asm do
-      op = new_label
+      int = new_label
       done = new_label
 
       r0 = new_register
       r1 = new_register
+      r2 = new_register
+      r3 = new_register
 
       r_load_m_binops r0, r1
 
-      b_if_int r0, r1, op
-      goto done
+      b_if_int r0, r1, int
 
-      op.set!
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_iadd r3, r3, r3
+      n_ine r2, r2, r3
+      b_if r2, done
+
+      n_exor r0, r0, r1
+      r_ret r0
+
+      int.set!
       r_load_int r0, r0
       r_load_int r1, r1
 
@@ -668,17 +701,19 @@ class Integer < Numeric
     Rubinius.asm do
       shr = new_label
       neg = new_label
+      eint = new_label
       done = new_label
 
       r0 = new_register
       r1 = new_register
       r2 = new_register
       r3 = new_register
+      r4 = new_register
 
       r_load_m_binops r0, r1
 
       b_if_int r0, r1, neg
-      goto done
+      goto eint
 
       neg.set!
       r_load_int r2, r1
@@ -694,6 +729,21 @@ class Integer < Numeric
 
       shr.set!
       n_ishl_o r0, r0, r1
+      r_ret r0
+
+      eint.set!
+      n_promote r2, r0, r0
+      r_load_1 r3
+      n_iadd r4, r3, r3
+      n_ine r2, r2, r4
+      b_if r2, done
+
+      n_promote r2, r1, r1
+      n_iadd r4, r4, r3
+      n_ine r2, r2, r4
+      b_if r2, done
+
+      n_eshl r0, r0, r1
       r_ret r0
 
       done.set!
