@@ -121,33 +121,141 @@ class Float < Numeric
   end
 
   def +(other)
-    Rubinius.primitive :float_add
+    Rubinius.asm do
+      flt = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+      goto done
+
+      flt.set!
+      n_dadd r0, r0, r1
+      r_store_float r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     b, a = math_coerce other
     a + b
   end
 
   def -(other)
-    Rubinius.primitive :float_sub
+    Rubinius.asm do
+      flt = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+      goto done
+
+      flt.set!
+      n_dsub r0, r0, r1
+      r_store_float r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     b, a = math_coerce other
     a - b
   end
 
   def *(other)
-    Rubinius.primitive :float_mul
+    Rubinius.asm do
+      flt = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+      goto done
+
+      flt.set!
+      n_dmul r0, r0, r1
+      r_store_float r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     b, a = math_coerce other
     a * b
   end
 
-  #--
-  # see README-DEVELOPERS regarding safe math compiler plugin
-  #++
+  def /(other)
+    Rubinius.asm do
+      flt = new_label
+      done = new_label
 
-  def divide(other)
-    Rubinius.primitive :float_div
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+      goto done
+
+      flt.set!
+      n_ddiv r0, r0, r1
+      r_store_float r0, r0
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
     redo_coerced :/, other
   end
 
-  alias_method :/, :divide
+  alias_method :divide, :/
   alias_method :quo, :/
   alias_method :fdiv, :/
 

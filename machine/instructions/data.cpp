@@ -242,5 +242,7 @@ namespace rubinius {
     instructions::data_n_dle,
     instructions::data_n_dgt,
     instructions::data_n_dge,
+    instructions::data_r_load_float,
+    instructions::data_r_store_float,
   };
 }

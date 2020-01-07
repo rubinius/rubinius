@@ -75,113 +75,6 @@ class Fixnum < Integer
 
   # binary math operators
 
-  def -(o)
-    Rubinius.asm(o) do |o|
-      sub = new_label
-      done = new_label
-
-      r0 = new_register
-      r1 = new_register
-
-      r_load_m_binops r0, r1
-
-      b_if_int r0, r1, sub
-      goto done
-
-      sub.set!
-      n_isub_o r0, r0, r1
-      r_ret r0
-
-      done.set!
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-
-    redo_coerced :-, o
-  end
-
-  def *(o)
-    Rubinius.asm(o) do |o|
-      mul = new_label
-      done = new_label
-
-      r0 = new_register
-      r1 = new_register
-
-      r_load_m_binops r0, r1
-
-      b_if_int r0, r1, mul
-      goto done
-
-      mul.set!
-      n_imul_o r0, r0, r1
-      r_ret r0
-
-      done.set!
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-
-    redo_coerced :*, o
-  end
-
-  # this method is aliased to / in core
-  # see README-DEVELOPERS regarding safe math compiler plugin
-  def divide(o)
-    Rubinius.asm(o) do |o|
-      div = new_label
-      done = new_label
-
-      r0 = new_register
-      r1 = new_register
-
-      r_load_m_binops r0, r1
-
-      b_if_int r0, r1, div
-      goto done
-
-      div.set!
-      n_idiv_o r0, r0, r1
-      r_ret r0
-
-      done.set!
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-
-    redo_coerced :/, o
-  end
-  alias_method :/, :divide
-
-  def %(o)
-    Rubinius.asm(o) do |o|
-      div = new_label
-      done = new_label
-
-      r0 = new_register
-      r1 = new_register
-
-      r_load_m_binops r0, r1
-
-      b_if_int r0, r1, div
-      goto done
-
-      div.set!
-      n_imod_o r0, r0, r1
-      r_ret r0
-
-      done.set!
-
-      # TODO: teach the bytecode compiler better
-      push_true
-    end
-
-    redo_coerced :%, o
-  end
-
   def divmod(other)
     Rubinius.primitive :fixnum_divmod
     redo_coerced :divmod, other
@@ -255,9 +148,6 @@ class Fixnum < Integer
   #--
   # see README-DEVELOPERS regarding safe math compiler plugin
   #++
-
-  alias_method :/, :divide
-  alias_method :modulo, :%
 
   def bit_length
     Math.log2(self < 0 ? -self : self+1).ceil

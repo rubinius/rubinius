@@ -240,7 +240,9 @@ namespace rubinius {
     inline void r_store_stack(CF, R0);
     inline void r_load_literal(CF, R0, LITERAL);
     inline void r_load_int(CF, R0, R1);
-    inline void r_store_int(CF, R0, R1);
+    inline void r_store_int(STATE, CF, R0, R1);
+    inline void r_load_int(CF, R0, R1);
+    inline void r_store_int(STATE, CF, R0, R1);
     inline void r_load_0(CF, R0);
     inline void r_load_1(CF, R0);
     inline void r_load_nil(CF, R0, RVALUE);
@@ -309,7 +311,7 @@ namespace rubinius {
     inline void n_dsub(CF, R0, R1, R2);
     inline void n_dmul(CF, R0, R1, R2);
     inline void n_ddiv(STATE, CF, R0, R1, R2);
-    inline void n_dmod(CF, R0, R1, R2);
+    inline void n_dmod(STATE, CF, R0, R1, R2);
     inline void n_dneg(CF, R0, R1);
     inline void n_deq(CF, R0, R1, R2);
     inline void n_dne(CF, R0, R1, R2);

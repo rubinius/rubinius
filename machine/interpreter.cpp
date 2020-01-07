@@ -129,6 +129,8 @@ namespace rubinius {
       case instructions::data_b_if_int.id:
       case instructions::data_r_load_int.id:
       case instructions::data_r_store_int.id:
+      case instructions::data_r_load_float.id:
+      case instructions::data_r_store_float.id:
       case instructions::data_r_load_bool.id:
       case instructions::data_r_load_m_binops.id:
       case instructions::data_r_load_f_binops.id:

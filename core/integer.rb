@@ -42,10 +42,9 @@ class Integer < Numeric
       goto val
 
       flt.set!
-      # TODO: r_store_float
-      # n_dadd r0, r0, r1
-      # goto val
-      goto done
+      n_dadd r0, r0, r1
+      r_store_float r0, r0
+      goto val
 
       int.set!
       n_iadd_o r0, r0, r1
@@ -61,6 +60,206 @@ class Integer < Numeric
 
     redo_coerced :+, other
   end
+
+  def -(other)
+    Rubinius.asm do
+      int = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_esub r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dsub r0, r0, r1
+      r_store_float r0, r0
+      goto val
+
+      int.set!
+      n_isub_o r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    redo_coerced :-, other
+  end
+
+  def *(other)
+    Rubinius.asm do
+      int = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_emul r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dmul r0, r0, r1
+      r_store_float r0, r0
+      goto val
+
+      int.set!
+      n_imul_o r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    redo_coerced :*, other
+  end
+
+  def /(other)
+    Rubinius.asm do
+      int = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_ediv r0, r0, r1
+      goto val
+
+      flt.set!
+      n_ddiv r0, r0, r1
+      r_store_float r0, r0
+      goto val
+
+      int.set!
+      n_idiv_o r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    redo_coerced :/, other
+  end
+
+  alias_method :divide, :/
+
+  def %(other)
+    Rubinius.asm do
+      int = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      n_emod r0, r0, r1
+      goto val
+
+      flt.set!
+      n_dmod r0, r0, r1
+      r_store_float r0, r0
+      goto val
+
+      int.set!
+      n_imod_o r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    redo_coerced :%, other
+  end
+
+  alias_method :modulo, :%
 
   # comparison operators
 

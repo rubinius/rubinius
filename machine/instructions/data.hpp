@@ -1000,6 +1000,14 @@ namespace rubinius {
       "n_dge", 239, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::n_dge
     };
+    const InstructionData constexpr data_r_load_float = {
+      "r_load_float", 240, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_float
+    };
+    const InstructionData constexpr data_r_store_float = {
+      "r_store_float", 241, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_float
+    };
   }
 
   struct Instructions {

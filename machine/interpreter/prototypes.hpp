@@ -159,6 +159,8 @@ namespace rubinius {
     intptr_t r_load_literal(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_store_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_0(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_1(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_nil(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

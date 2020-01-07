@@ -372,6 +372,8 @@ namespace rubinius {
         case instructions::data_n_dneg.id:
         case instructions::data_r_load_int.id:
         case instructions::data_r_store_int.id:
+        case instructions::data_r_load_float.id:
+        case instructions::data_r_store_float.id:
         case instructions::data_r_load_bool.id:
         case instructions::data_r_load_m_binops.id:
         case instructions::data_r_load_f_binops.id:

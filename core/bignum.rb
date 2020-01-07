@@ -13,25 +13,8 @@ class Bignum < Integer
 
   # binary math operators
 
-  def -(o)
-    Rubinius.primitive :bignum_sub
-    redo_coerced :-, o
-  end
-
-  def *(o)
-    Rubinius.primitive :bignum_mul
-    redo_coerced :*, o
-  end
-
   def bit_length
     Rubinius.invoke_primitive :bignum_bit_length, self > 0 ? self : ~self
-  end
-
-  # this method is aliased to / in core
-  # see README-DEVELOPERS regarding safe math compiler plugin
-  def divide(o)
-    Rubinius.primitive :bignum_div
-    redo_coerced :/, o
   end
 
   # This is separate from divide because it calls a different method
@@ -41,11 +24,6 @@ class Bignum < Integer
   def div(other)
     Rubinius.primitive :bignum_div
     redo_coerced :div, other
-  end
-
-  def %(other)
-    Rubinius.primitive :bignum_mod
-    redo_coerced :%, other
   end
 
   def divmod(other)
@@ -140,14 +118,9 @@ class Bignum < Integer
     raise PrimitiveFailure, "Bignum#size primitive failed"
   end
 
-  # see README-DEVELOPERS regarding safe math compiler plugin
-  alias_method :/, :divide
-
   def eql?(value)
     value.is_a?(Bignum) && self == value
   end
-
-  alias_method :modulo, :%
 
   def fdiv(n)
     to_f / n
