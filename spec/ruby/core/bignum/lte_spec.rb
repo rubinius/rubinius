@@ -12,11 +12,6 @@ describe "Bignum#<=" do
     (@bignum <= 4.999).should == false
   end
 
-  it "returns false if compares with near float" do
-    (@bignum <= (@bignum + 0.0)).should == false
-    (@bignum <= (@bignum + 0.5)).should == false
-  end
-
   it "raises an ArgumentError when given a non-Integer" do
     lambda { @bignum <= "4" }.should raise_error(ArgumentError)
     lambda { @bignum <= mock('str') }.should raise_error(ArgumentError)
