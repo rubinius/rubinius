@@ -357,8 +357,10 @@ namespace rubinius {
         case instructions::data_r_load_nil.id:
           verify_register(state, arg1, insn_ip);
           break;
+        case instructions::data_r_load_neg1.id:
         case instructions::data_r_load_0.id:
         case instructions::data_r_load_1.id:
+        case instructions::data_r_load_2.id:
         case instructions::data_r_load_false.id:
         case instructions::data_r_load_true.id:
         case instructions::data_r_ret.id:
@@ -367,8 +369,12 @@ namespace rubinius {
         case instructions::data_n_ineg.id:
         case instructions::data_n_ineg_o.id:
         case instructions::data_n_inot.id:
+        case instructions::data_n_iinc.id:
+        case instructions::data_n_idec.id:
+        case instructions::data_n_isize.id:
         case instructions::data_n_eneg.id:
         case instructions::data_n_enot.id:
+        case instructions::data_n_esize.id:
         case instructions::data_n_dneg.id:
         case instructions::data_r_load_int.id:
         case instructions::data_r_store_int.id:
@@ -543,6 +549,8 @@ namespace rubinius {
 
           break;
         case instructions::data_b_if_int.id:
+        case instructions::data_b_if_eint.id:
+        case instructions::data_b_if_float.id:
         case instructions::data_b_if_serial.id:
           verify_jump_location(state, arg3, insn_ip);
 

@@ -1008,6 +1008,38 @@ namespace rubinius {
       "r_store_float", 241, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_store_float
     };
+    const InstructionData constexpr data_b_if_eint = {
+      "b_if_eint", 242, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::b_if_eint
+    };
+    const InstructionData constexpr data_b_if_float = {
+      "b_if_float", 243, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::b_if_float
+    };
+    const InstructionData constexpr data_r_load_2 = {
+      "r_load_2", 244, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_2
+    };
+    const InstructionData constexpr data_r_load_neg1 = {
+      "r_load_neg1", 245, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_neg1
+    };
+    const InstructionData constexpr data_n_iinc = {
+      "n_iinc", 246, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_iinc
+    };
+    const InstructionData constexpr data_n_idec = {
+      "n_idec", 247, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_idec
+    };
+    const InstructionData constexpr data_n_isize = {
+      "n_isize", 248, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_isize
+    };
+    const InstructionData constexpr data_n_esize = {
+      "n_esize", 249, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_esize
+    };
   }
 
   struct Instructions {

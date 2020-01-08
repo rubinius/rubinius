@@ -147,6 +147,8 @@ namespace rubinius {
     // Branching instructions
     intptr_t b_if_serial(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t b_if_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t b_if_eint(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t b_if_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t b_if(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Register movement instructions
@@ -161,8 +163,10 @@ namespace rubinius {
     intptr_t r_store_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_store_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_neg1(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_0(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_1(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_2(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_nil(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_false(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_true(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -179,6 +183,9 @@ namespace rubinius {
     intptr_t n_idiv(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_imod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ineg(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_iinc(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_idec(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_isize(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_inot(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_iand(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ior(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -210,6 +217,7 @@ namespace rubinius {
     intptr_t n_ediv(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_emod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eneg(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_esize(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_enot(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eand(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eor(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

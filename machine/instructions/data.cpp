@@ -244,5 +244,13 @@ namespace rubinius {
     instructions::data_n_dge,
     instructions::data_r_load_float,
     instructions::data_r_store_float,
+    instructions::data_b_if_eint,
+    instructions::data_b_if_float,
+    instructions::data_r_load_2,
+    instructions::data_r_load_neg1,
+    instructions::data_n_iinc,
+    instructions::data_n_idec,
+    instructions::data_n_isize,
+    instructions::data_n_esize,
   };
 }

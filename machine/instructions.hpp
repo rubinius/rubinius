@@ -229,6 +229,8 @@ namespace rubinius {
     // Branching instructions
     inline bool b_if_serial(CF, LITERAL, R0);
     inline bool b_if_int(CF, R0, R1);
+    inline bool b_if_eint(CF, R0, R1);
+    inline bool b_if_float(CF, R0, R1);
     inline bool b_if(CF, R0);
 
     // Register movement instructions
@@ -243,8 +245,10 @@ namespace rubinius {
     inline void r_store_int(STATE, CF, R0, R1);
     inline void r_load_int(CF, R0, R1);
     inline void r_store_int(STATE, CF, R0, R1);
+    inline void r_load_neg1(CF, R0);
     inline void r_load_0(CF, R0);
     inline void r_load_1(CF, R0);
+    inline void r_load_2(CF, R0);
     inline void r_load_nil(CF, R0, RVALUE);
     inline void r_load_false(CF, R0);
     inline void r_load_true(CF, R0);
@@ -262,6 +266,9 @@ namespace rubinius {
     inline void n_imod(CF, R0, R1, R2);
     inline void n_ineg(CF, R0, R1);
     inline void n_inot(CF, R0, R1);
+    inline void n_iinc(CF, R0, R1);
+    inline void n_idec(CF, R0, R1);
+    inline void n_isize(CF, R0, R1);
     inline void n_iand(CF, R0, R1, R2);
     inline void n_ior(CF, R0, R1, R2);
     inline void n_ixor(CF, R0, R1, R2);
@@ -292,6 +299,7 @@ namespace rubinius {
     inline void n_ediv(STATE, CF, R0, R1, R2);
     inline void n_emod(STATE, CF, R0, R1, R2);
     inline void n_eneg(STATE, CF, R0, R1);
+    inline void n_esize(STATE, CF, R0, R1);
     inline void n_enot(STATE, CF, R0, R1);
     inline void n_eand(STATE, CF, R0, R1, R2);
     inline void n_eor(STATE, CF, R0, R1, R2);
