@@ -21,30 +21,6 @@ class Bignum < Integer
     redo_coerced :divmod, other
   end
 
-  # bitwise binary operators
-
-  def <<(other)
-    Rubinius.primitive :bignum_left_shift
-
-    other = Rubinius::Type.coerce_to other, Integer, :to_int
-    unless other.kind_of? Fixnum
-      raise RangeError, "argument is out of range for a Fixnum"
-    end
-
-    self << other
-  end
-
-  def >>(other)
-    Rubinius.primitive :bignum_right_shift
-
-    other = Rubinius::Type.coerce_to other, Integer, :to_int
-    unless other.kind_of? Fixnum
-      raise RangeError, "argument is out of range for a Fixnum"
-    end
-
-    self >> other
-  end
-
   # comparison operators
 
   def <=>(other)
@@ -63,11 +39,6 @@ class Bignum < Integer
   end
 
   # conversions
-
-  def self.from_float(value)
-    Rubinius.primitive :bignum_from_float
-    raise PrimitiveFailure, "Bignum.from_float primitive failed"
-  end
 
   def coerce(other)
     Rubinius.primitive :bignum_coerce

@@ -26,7 +26,6 @@ class Integer < Numeric
       r1 = new_register
       r2 = new_register
       r3 = new_register
-      r4 = new_register
 
       push_self
       r_load_stack r0
@@ -34,14 +33,13 @@ class Integer < Numeric
 
       n_promote r1, r0, r0
 
-      r_load_1 r2
-      n_iadd r3, r2, r2
-      n_ieq r4, r1, r3
-      b_if r4, eint
+      r_load_2 r2
+      n_ieq r3, r1, r2
+      b_if r3, eint
 
-      n_iadd r3, r3, r2
-      n_ine r4, r1, r3
-      b_if r4, done
+      n_iinc r2, r2
+      n_ine r3, r1, r2
+      b_if r3, done
 
       r_load_int r0, r0
       n_inot r0, r0
@@ -73,7 +71,6 @@ class Integer < Numeric
       r1 = new_register
       r2 = new_register
       r3 = new_register
-      r4 = new_register
 
       push_self
       r_load_stack r0
@@ -81,14 +78,13 @@ class Integer < Numeric
 
       n_promote r1, r0, r0
 
-      r_load_1 r2
-      n_iadd r3, r2, r2
-      n_ieq r4, r1, r3
-      b_if r4, eint
+      r_load_2 r2
+      n_ieq r3, r1, r2
+      b_if r3, eint
 
-      n_iadd r3, r3, r2
-      n_ine r4, r1, r3
-      b_if r4, done
+      n_iinc r2, r2
+      n_ine r3, r1, r2
+      b_if r3, done
 
       n_ineg_o r0, r0
       goto val
@@ -798,7 +794,7 @@ class Integer < Numeric
 
   def <<(other)
     Rubinius.asm do
-      shr = new_label
+      shl = new_label
       neg = new_label
       eint = new_label
       done = new_label
@@ -807,7 +803,6 @@ class Integer < Numeric
       r1 = new_register
       r2 = new_register
       r3 = new_register
-      r4 = new_register
 
       r_load_m_binops r0, r1
 
@@ -819,29 +814,29 @@ class Integer < Numeric
       r_load_0 r3
 
       n_ige r3, r2, r3
-      b_if r3, shr
+      b_if r3, shl
 
       n_ineg r1, r2
       r_store_int r1, r1
       n_ishr_o r0, r0, r1
       r_ret r0
 
-      shr.set!
+      shl.set!
       n_ishl_o r0, r0, r1
       r_ret r0
 
       eint.set!
       n_promote r2, r0, r0
-      r_load_1 r3
-      n_iadd r4, r3, r3
-      n_ine r2, r2, r4
+      r_load_2 r3
+      n_ine r2, r2, r3
       b_if r2, done
 
       n_promote r2, r1, r1
-      n_iadd r4, r4, r3
-      n_ine r2, r2, r4
+      n_iinc r3, r3
+      n_ine r2, r2, r3
       b_if r2, done
 
+      r_load_int r1, r1
       n_eshl r0, r0, r1
       r_ret r0
 
@@ -866,6 +861,7 @@ class Integer < Numeric
     Rubinius.asm do
       shr = new_label
       neg = new_label
+      eint = new_label
       done = new_label
 
       r0 = new_register
@@ -876,7 +872,7 @@ class Integer < Numeric
       r_load_m_binops r0, r1
 
       b_if_int r0, r1, neg
-      goto done
+      goto eint
 
       neg.set!
       r_load_int r2, r1
@@ -892,6 +888,21 @@ class Integer < Numeric
 
       shr.set!
       n_ishr_o r0, r0, r1
+      r_ret r0
+
+      eint.set!
+      n_promote r2, r0, r0
+      r_load_2 r3
+      n_ine r2, r2, r3
+      b_if r2, done
+
+      n_promote r2, r1, r1
+      n_iinc r3, r3
+      n_ine r2, r2, r3
+      b_if r2, done
+
+      r_load_int r1, r1
+      n_eshr r0, r0, r1
       r_ret r0
 
       done.set!
