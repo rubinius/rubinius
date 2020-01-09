@@ -81,11 +81,6 @@ class Fixnum < Integer
     raise PrimitiveFailure, "Fixnum#to_f primitive failed"
   end
 
-  def size
-    Rubinius.primitive :fixnum_size
-    raise PrimitiveFailure, "Fixnum#size primitive failed"
-  end
-
   def self.induced_from(obj)
     case obj
     when Fixnum

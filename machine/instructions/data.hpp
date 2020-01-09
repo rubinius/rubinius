@@ -1040,6 +1040,18 @@ namespace rubinius {
       "n_esize", 249, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::n_esize
     };
+    const InstructionData constexpr data_n_ibits = {
+      "n_ibits", 250, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ibits
+    };
+    const InstructionData constexpr data_n_ebits = {
+      "n_ebits", 251, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ebits
+    };
+    const InstructionData constexpr data_r_load_self = {
+      "r_load_self", 252, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_self
+    };
   }
 
   struct Instructions {

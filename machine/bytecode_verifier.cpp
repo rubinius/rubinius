@@ -357,6 +357,7 @@ namespace rubinius {
         case instructions::data_r_load_nil.id:
           verify_register(state, arg1, insn_ip);
           break;
+        case instructions::data_r_load_self.id:
         case instructions::data_r_load_neg1.id:
         case instructions::data_r_load_0.id:
         case instructions::data_r_load_1.id:
@@ -371,9 +372,11 @@ namespace rubinius {
         case instructions::data_n_inot.id:
         case instructions::data_n_iinc.id:
         case instructions::data_n_idec.id:
+        case instructions::data_n_ibits.id:
         case instructions::data_n_isize.id:
         case instructions::data_n_eneg.id:
         case instructions::data_n_enot.id:
+        case instructions::data_n_ebits.id:
         case instructions::data_n_esize.id:
         case instructions::data_n_dneg.id:
         case instructions::data_r_load_int.id:

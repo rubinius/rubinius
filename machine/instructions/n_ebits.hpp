@@ -4,8 +4,8 @@
 
 namespace rubinius {
   namespace instructions {
-    inline void n_esize(STATE, CF, R0, R1) {
-      RVAL(r0) = as<Bignum>(RVAL(r1))->size(state);
+    inline void n_ebits(STATE, CF, R0, R1) {
+      RVAL(r0) = as<Bignum>(RVAL(r1))->bit_length(state);
     }
   }
 }

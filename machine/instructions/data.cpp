@@ -252,5 +252,8 @@ namespace rubinius {
     instructions::data_n_idec,
     instructions::data_n_isize,
     instructions::data_n_esize,
+    instructions::data_n_ibits,
+    instructions::data_n_ebits,
+    instructions::data_r_load_self,
   };
 }

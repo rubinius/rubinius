@@ -163,6 +163,7 @@ namespace rubinius {
     intptr_t r_store_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_store_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_self(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_neg1(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_0(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_1(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -185,6 +186,7 @@ namespace rubinius {
     intptr_t n_ineg(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_iinc(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_idec(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ibits(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_isize(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_inot(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_iand(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -217,6 +219,7 @@ namespace rubinius {
     intptr_t n_ediv(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_emod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eneg(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ebits(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_esize(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_enot(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eand(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

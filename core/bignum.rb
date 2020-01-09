@@ -59,11 +59,6 @@ class Bignum < Integer
     Rubinius.invoke_primitive :bignum_to_s, self, 10
   end
 
-  def size
-    Rubinius.primitive :bignum_size
-    raise PrimitiveFailure, "Bignum#size primitive failed"
-  end
-
   def eql?(value)
     value.is_a?(Bignum) && self == value
   end

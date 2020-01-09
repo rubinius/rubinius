@@ -245,6 +245,7 @@ namespace rubinius {
     inline void r_store_int(STATE, CF, R0, R1);
     inline void r_load_int(CF, R0, R1);
     inline void r_store_int(STATE, CF, R0, R1);
+    inline void r_load_self(CF, R0);
     inline void r_load_neg1(CF, R0);
     inline void r_load_0(CF, R0);
     inline void r_load_1(CF, R0);
@@ -268,6 +269,7 @@ namespace rubinius {
     inline void n_inot(CF, R0, R1);
     inline void n_iinc(CF, R0, R1);
     inline void n_idec(CF, R0, R1);
+    inline void n_ibits(CF, R0, R1);
     inline void n_isize(CF, R0, R1);
     inline void n_iand(CF, R0, R1, R2);
     inline void n_ior(CF, R0, R1, R2);
@@ -299,6 +301,7 @@ namespace rubinius {
     inline void n_ediv(STATE, CF, R0, R1, R2);
     inline void n_emod(STATE, CF, R0, R1, R2);
     inline void n_eneg(STATE, CF, R0, R1);
+    inline void n_ebits(STATE, CF, R0, R1);
     inline void n_esize(STATE, CF, R0, R1);
     inline void n_enot(STATE, CF, R0, R1);
     inline void n_eand(STATE, CF, R0, R1, R2);

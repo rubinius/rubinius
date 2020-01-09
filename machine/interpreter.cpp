@@ -99,6 +99,7 @@ namespace rubinius {
       case instructions::data_r_store_local_depth.id:
       case instructions::data_r_load_stack.id:
       case instructions::data_r_store_stack.id:
+      case instructions::data_r_load_self.id:
       case instructions::data_r_load_neg1.id:
       case instructions::data_r_load_0.id:
       case instructions::data_r_load_1.id:
@@ -127,9 +128,11 @@ namespace rubinius {
       case instructions::data_n_inot.id:
       case instructions::data_n_iinc.id:
       case instructions::data_n_idec.id:
+      case instructions::data_n_ibits.id:
       case instructions::data_n_isize.id:
       case instructions::data_n_eneg.id:
       case instructions::data_n_enot.id:
+      case instructions::data_n_ebits.id:
       case instructions::data_n_esize.id:
       case instructions::data_n_dneg.id:
       case instructions::data_b_if_int.id:
