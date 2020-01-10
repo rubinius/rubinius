@@ -374,10 +374,12 @@ namespace rubinius {
         case instructions::data_n_idec.id:
         case instructions::data_n_ibits.id:
         case instructions::data_n_isize.id:
+        case instructions::data_n_iflt.id:
         case instructions::data_n_eneg.id:
         case instructions::data_n_enot.id:
         case instructions::data_n_ebits.id:
         case instructions::data_n_esize.id:
+        case instructions::data_n_eflt.id:
         case instructions::data_n_dneg.id:
         case instructions::data_r_load_int.id:
         case instructions::data_r_store_int.id:
@@ -398,30 +400,39 @@ namespace rubinius {
         case instructions::data_n_isub_o.id:
         case instructions::data_n_imul_o.id:
         case instructions::data_n_idiv_o.id:
+        case instructions::data_n_imod_o.id:
+        case instructions::data_n_idivmod.id:
+        case instructions::data_n_ipow_o.id:
+        case instructions::data_n_icmp.id:
         case instructions::data_n_ieq.id:
         case instructions::data_n_ine.id:
         case instructions::data_n_ilt.id:
         case instructions::data_n_ile.id:
         case instructions::data_n_igt.id:
         case instructions::data_n_ige.id:
+        case instructions::data_n_istr.id:
         case instructions::data_n_promote.id:
         case instructions::data_n_eadd.id:
         case instructions::data_n_esub.id:
         case instructions::data_n_emul.id:
         case instructions::data_n_ediv.id:
         case instructions::data_n_emod.id:
+        case instructions::data_n_edivmod.id:
+        case instructions::data_n_epow.id:
         case instructions::data_n_eand.id:
         case instructions::data_n_eor.id:
         case instructions::data_n_exor.id:
         case instructions::data_n_eshl.id:
         case instructions::data_n_eshr.id:
         case instructions::data_n_epopcnt.id:
+        case instructions::data_n_ecmp.id:
         case instructions::data_n_eeq.id:
         case instructions::data_n_ene.id:
         case instructions::data_n_elt.id:
         case instructions::data_n_ele.id:
         case instructions::data_n_egt.id:
         case instructions::data_n_ege.id:
+        case instructions::data_n_estr.id:
         case instructions::data_n_dadd.id:
         case instructions::data_n_dsub.id:
         case instructions::data_n_dmul.id:

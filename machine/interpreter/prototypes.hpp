@@ -199,9 +199,12 @@ namespace rubinius {
     intptr_t n_imul_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_idiv_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_imod_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_idivmod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ipow_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ineg_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ishl_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ishr_o(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_icmp(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ieq(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ine(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ilt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -209,6 +212,8 @@ namespace rubinius {
     intptr_t n_igt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ige(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ipopcnt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_istr(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_iflt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     intptr_t n_promote(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
@@ -218,6 +223,8 @@ namespace rubinius {
     intptr_t n_emul(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ediv(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_emod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_edivmod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_epow(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eneg(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ebits(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_esize(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -228,12 +235,15 @@ namespace rubinius {
     intptr_t n_eshl(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eshr(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_epopcnt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ecmp(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_eeq(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ene(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_elt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ele(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_egt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ege(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_estr(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_eflt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Native double floating point instructions
     intptr_t n_dadd(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

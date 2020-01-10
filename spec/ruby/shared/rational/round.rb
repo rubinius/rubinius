@@ -58,7 +58,7 @@ describe :rational_round, :shared => true do
 
     # #6605
     it "doesn't fail when rounding to an absurdly large positive precision" do
-      Rational(3, 2).round(2_097_171).should == Rational(3, 2)
+      Rational(3, 2).round(200_971).should == Rational(3, 2)
     end
   end
 end

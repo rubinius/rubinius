@@ -280,10 +280,13 @@ namespace rubinius {
     inline void n_isub_o(STATE, CF, R0, R1, R2);
     inline void n_imul_o(STATE, CF, R0, R1, R2);
     inline void n_idiv_o(STATE, CF, R0, R1, R2);
+    inline void n_idivmod(STATE, CF, R0, R1, R2);
+    inline void n_ipow_o(STATE, CF, R0, R1, R2);
     inline void n_imod_o(STATE, CF, R0, R1, R2);
     inline void n_ineg_o(STATE, CF, R0, R1);
     inline void n_ishl_o(STATE, CF, R0, R1, R2);
     inline void n_ishr_o(STATE, CF, R0, R1, R2);
+    inline void n_icmp(CF, R0, R1, R2);
     inline void n_ieq(CF, R0, R1, R2);
     inline void n_ine(CF, R0, R1, R2);
     inline void n_ilt(CF, R0, R1, R2);
@@ -291,6 +294,8 @@ namespace rubinius {
     inline void n_igt(CF, R0, R1, R2);
     inline void n_ige(CF, R0, R1, R2);
     inline void n_ipopcnt(CF, R0, R1);
+    inline void n_istr(CF, R0, R1, R2);
+    inline void n_iflt(CF, R0, R1);
 
     inline void n_promote(STATE, CF, R0, R1, R2);
 
@@ -300,6 +305,8 @@ namespace rubinius {
     inline void n_emul(STATE, CF, R0, R1, R2);
     inline void n_ediv(STATE, CF, R0, R1, R2);
     inline void n_emod(STATE, CF, R0, R1, R2);
+    inline void n_edivmod(CF, R0, R1, R2);
+    inline void n_epow(STATE, CF, R0, R1, R2);
     inline void n_eneg(STATE, CF, R0, R1);
     inline void n_ebits(STATE, CF, R0, R1);
     inline void n_esize(STATE, CF, R0, R1);
@@ -310,12 +317,15 @@ namespace rubinius {
     inline void n_eshl(STATE, CF, R0, R1, R2);
     inline void n_eshr(STATE, CF, R0, R1, R2);
     inline void n_epopcnt(STATE, CF, R0, R1);
+    inline void n_ecmp(STATE, CF, R0, R1, R2);
     inline void n_eeq(STATE, CF, R0, R1, R2);
     inline void n_ene(STATE, CF, R0, R1, R2);
     inline void n_elt(STATE, CF, R0, R1, R2);
     inline void n_ele(STATE, CF, R0, R1, R2);
     inline void n_egt(STATE, CF, R0, R1, R2);
     inline void n_ege(STATE, CF, R0, R1, R2);
+    inline void n_istr(CF, R0, R1, R2);
+    inline void n_iflt(CF, R0, R1);
 
     // Native double floating point instructions
     inline void n_dadd(CF, R0, R1, R2);

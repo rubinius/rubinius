@@ -714,7 +714,7 @@ namespace rubinius {
     intptr_t exp = exponent->to_native();
 
     if(exp < 0) {
-      return Primitives::failure();
+      Exception::raise_argument_error(state, "exponent must be >= 0");
     }
 
     mp_expt_d(XST, mp_val(), exp, n);

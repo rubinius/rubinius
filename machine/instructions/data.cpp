@@ -255,5 +255,15 @@ namespace rubinius {
     instructions::data_n_ibits,
     instructions::data_n_ebits,
     instructions::data_r_load_self,
+    instructions::data_n_istr,
+    instructions::data_n_iflt,
+    instructions::data_n_icmp,
+    instructions::data_n_idivmod,
+    instructions::data_n_ipow_o,
+    instructions::data_n_estr,
+    instructions::data_n_eflt,
+    instructions::data_n_ecmp,
+    instructions::data_n_edivmod,
+    instructions::data_n_epow,
   };
 }

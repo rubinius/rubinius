@@ -188,7 +188,7 @@ namespace rubinius {
     intptr_t exp = exponent->to_native();
 
     if(exp < 0) {
-      return Primitives::failure();
+      Exception::raise_argument_error(state, "exponent must be >= 0");
     }
 
     if(exp == 0) return Fixnum::from(1);

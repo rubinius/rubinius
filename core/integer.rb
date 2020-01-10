@@ -357,6 +357,14 @@ class Integer < Numeric
 
   alias_method :divide, :/
 
+  def div(o)
+    if o.is_a?(Float) && o == 0.0
+      raise ZeroDivisionError, "division by zero"
+    end
+
+    (self / o).floor
+  end
+
   def %(other)
     Rubinius.asm do
       int = new_label
@@ -407,6 +415,80 @@ class Integer < Numeric
   end
 
   alias_method :modulo, :%
+
+  def **(o)
+    Rubinius.asm do
+      int = new_label
+      eint = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_2 r3
+      n_ieq r3, r3, r2
+      b_if r3, eint
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      goto done
+
+      int.set!
+      r_load_0 r2
+      n_ilt r3, r1, r2
+      b_if r3, done
+
+      n_ipow_o r0, r0, r1
+      goto val
+
+      eint.set!
+      r_load_0 r2
+      r_store_int r2, r2
+      n_promote r3, r0, r2
+
+      n_elt r3, r1, r2
+      b_if r3, done
+
+      n_epow r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      flt.set!
+      # TODO: add n_dpow
+      r_store_float r0, r0
+      r_store_float r1, r1
+      r_store_stack r0
+      r_store_stack r1
+      send :**, 1
+      ret
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    if o.is_a?(Float) && self < 0 && o != o.round
+      return Complex.new(self, 0) ** o
+    elsif o.is_a?(Integer) && o < 0
+      return Rational.new(self, 1) ** o
+    end
+
+    redo_coerced :**, o
+  end
 
   # comparison operators
 
@@ -1104,14 +1186,6 @@ class Integer < Numeric
     index < 0 ? 0 : (self >> index) & 1
   end
 
-  # FIXME: implement a fast way to calculate bignum exponents
-  def **(exp)
-    if exp.is_a?(Bignum)
-      raise TypeError, "Bignum exponent #{exp} too large"
-    end
-    super(exp)
-  end
-
   def next
     self + 1
   end
@@ -1252,5 +1326,9 @@ class Integer < Numeric
     end
 
     super other
+  end
+
+  def imaginary
+    0
   end
 end

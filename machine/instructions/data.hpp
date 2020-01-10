@@ -1052,6 +1052,46 @@ namespace rubinius {
       "r_load_self", 252, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_self
     };
+    const InstructionData constexpr data_n_istr = {
+      "n_istr", 253, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_istr
+    };
+    const InstructionData constexpr data_n_iflt = {
+      "n_iflt", 254, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_iflt
+    };
+    const InstructionData constexpr data_n_icmp = {
+      "n_icmp", 255, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_icmp
+    };
+    const InstructionData constexpr data_n_idivmod = {
+      "n_idivmod", 256, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_idivmod
+    };
+    const InstructionData constexpr data_n_ipow_o = {
+      "n_ipow_o", 257, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ipow_o
+    };
+    const InstructionData constexpr data_n_estr = {
+      "n_estr", 258, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_estr
+    };
+    const InstructionData constexpr data_n_eflt = {
+      "n_eflt", 259, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_eflt
+    };
+    const InstructionData constexpr data_n_ecmp = {
+      "n_ecmp", 260, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ecmp
+    };
+    const InstructionData constexpr data_n_edivmod = {
+      "n_edivmod", 261, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_edivmod
+    };
+    const InstructionData constexpr data_n_epow = {
+      "n_epow", 262, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_epow
+    };
   }
 
   struct Instructions {
