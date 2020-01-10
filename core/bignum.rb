@@ -3,10 +3,6 @@ class Bignum < Integer
 
   # binary math operators
 
-  def bit_length
-    Rubinius.invoke_primitive :bignum_bit_length, self > 0 ? self : ~self
-  end
-
   # This is separate from divide because it calls a different method
   # if it has to coerce. This is important because Bignum#div(Float) and
   # Bignum#/(Float) return different things.

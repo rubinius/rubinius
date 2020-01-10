@@ -27,9 +27,7 @@ class Integer < Numeric
       r2 = new_register
       r3 = new_register
 
-      push_self
-      r_load_stack r0
-      pop
+      r_load_self r0
 
       n_promote r1, r0, r0
 
@@ -72,9 +70,7 @@ class Integer < Numeric
       r2 = new_register
       r3 = new_register
 
-      push_self
-      r_load_stack r0
-      pop
+      r_load_self r0
 
       n_promote r1, r0, r0
 
@@ -104,6 +100,62 @@ class Integer < Numeric
     super
   end
 
+  def bit_length
+    Rubinius.asm do
+      eint = new_label
+      bits = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_self r0
+
+      n_promote r1, r0, r0
+
+      r_load_2 r2
+      n_ieq r3, r1, r2
+      b_if r3, eint
+
+      n_iinc r2, r2
+      n_ine r3, r1, r2
+      b_if r3, done
+
+      r_load_int r0, r0
+      n_ibits r0, r0
+      r_store_int r0, r0
+      goto val
+
+      eint.set!
+      r_load_0 r1
+      r_store_int r1, r1
+      n_promote r2, r0, r1
+
+      r_load_2 r3
+      n_ine r3, r2, r3
+      b_if r3, done
+
+      n_egt r2, r0, r1
+      b_if r2, bits
+      n_enot r0, r0
+
+      bits.set!
+      n_ebits r0, r0
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    super
+  end
 
   # binary math operators
 
@@ -1097,9 +1149,7 @@ class Integer < Numeric
       r2 = new_register
       r3 = new_register
 
-      push_self
-      r_load_stack r0
-      pop
+      r_load_self r0
 
       n_promote r1, r0, r0
 
