@@ -36,11 +36,6 @@ class Bignum < Integer
 
   # conversions
 
-  def coerce(other)
-    Rubinius.primitive :bignum_coerce
-    super other
-  end
-
   def to_f
     Rubinius.primitive :bignum_to_float
     raise PrimitiveFailure, "Bignum#to_f primitive failed"

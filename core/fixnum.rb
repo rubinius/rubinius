@@ -62,11 +62,6 @@ class Fixnum < Integer
 
   # conversions
 
-  def coerce(other)
-    Rubinius.primitive :fixnum_coerce
-    super other
-  end
-
   def to_s(base=10)
     Rubinius.invoke_primitive :fixnum_to_s, self, base
   end
