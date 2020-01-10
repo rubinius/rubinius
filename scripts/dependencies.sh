@@ -1,4 +1,4 @@
 #!/bin/bash
 
 sudo apt-get update
-sudo apt-get install -y libc++-dev libc++abi-dev bsdtar libedit-dev gdbm
+sudo apt-get install -y libc++-dev libc++abi-dev bsdtar libedit-dev libgdbm-dev
