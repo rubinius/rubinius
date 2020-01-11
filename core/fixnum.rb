@@ -62,15 +62,6 @@ class Fixnum < Integer
 
   # conversions
 
-  def to_s(base=10)
-    Rubinius.invoke_primitive :fixnum_to_s, self, base
-  end
-
-  # We do not alias this to #to_s in case someone overrides #to_s.
-  def inspect
-    Rubinius.invoke_primitive :fixnum_to_s, self, 10
-  end
-
   def to_f
     Rubinius.primitive :fixnum_to_f
     raise PrimitiveFailure, "Fixnum#to_f primitive failed"

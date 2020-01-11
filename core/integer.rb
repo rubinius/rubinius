@@ -1331,4 +1331,97 @@ class Integer < Numeric
   def imaginary
     0
   end
+
+  def to_s(base=10)
+    Rubinius.asm do
+      int = new_label
+      eint = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      b_if_int r1, r1, eint
+      goto done
+
+      eint.set!
+      n_promote r2, r0, r0
+      r_load_2 r3
+      n_ine r3, r3, r2
+      b_if r3, done
+
+      n_estr r0, r0, r1
+      goto val
+
+      int.set!
+      n_istr r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    super base
+  end
+
+  # We do not alias this to #to_s in case someone overrides #to_s.
+  def inspect
+    Rubinius.asm do
+      eint = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_self r0
+
+      n_promote r1, r0, r0
+
+      r_load_2 r2
+      n_ieq r3, r1, r2
+      b_if r3, eint
+
+      n_iinc r2, r2
+      n_ine r3, r1, r2
+      b_if r3, done
+
+      n_iinc r2, r2
+      n_iinc r2, r2
+      n_iadd r2, r2, r2
+
+      r_store_int r2, r2
+      n_istr r0, r0, r2
+      r_ret r0
+
+      eint.set!
+      n_iinc r2, r2
+      n_iinc r2, r2
+      n_iinc r2, r2
+      n_iadd r2, r2, r2
+
+      r_store_int r2, r2
+      n_estr r0, r0, r1
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    super
+  end
 end

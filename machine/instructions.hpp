@@ -294,7 +294,7 @@ namespace rubinius {
     inline void n_igt(CF, R0, R1, R2);
     inline void n_ige(CF, R0, R1, R2);
     inline void n_ipopcnt(CF, R0, R1);
-    inline void n_istr(CF, R0, R1, R2);
+    inline void n_istr(STATE, CF, R0, R1, R2);
     inline void n_iflt(CF, R0, R1);
 
     inline void n_promote(STATE, CF, R0, R1, R2);
@@ -324,7 +324,7 @@ namespace rubinius {
     inline void n_ele(STATE, CF, R0, R1, R2);
     inline void n_egt(STATE, CF, R0, R1, R2);
     inline void n_ege(STATE, CF, R0, R1, R2);
-    inline void n_istr(CF, R0, R1, R2);
+    inline void n_estr(STATE, CF, R0, R1, R2);
     inline void n_iflt(CF, R0, R1);
 
     // Native double floating point instructions
