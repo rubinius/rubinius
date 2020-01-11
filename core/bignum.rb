@@ -36,20 +36,6 @@ class Bignum < Integer
 
   # conversions
 
-  def to_f
-    Rubinius.primitive :bignum_to_float
-    raise PrimitiveFailure, "Bignum#to_f primitive failed"
-  end
-
-  def to_s(base=10)
-    Rubinius.invoke_primitive :bignum_to_s, self, base
-  end
-
-  # We do not alias this to #to_s in case someone overrides #to_s.
-  def inspect
-    Rubinius.invoke_primitive :bignum_to_s, self, 10
-  end
-
   def eql?(value)
     value.is_a?(Bignum) && self == value
   end

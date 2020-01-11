@@ -62,11 +62,6 @@ class Fixnum < Integer
 
   # conversions
 
-  def to_f
-    Rubinius.primitive :fixnum_to_f
-    raise PrimitiveFailure, "Fixnum#to_f primitive failed"
-  end
-
   def self.induced_from(obj)
     case obj
     when Fixnum
