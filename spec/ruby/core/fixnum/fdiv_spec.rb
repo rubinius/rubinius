@@ -41,9 +41,4 @@ describe "Fixnum#fdiv" do
   it "raises an ArgumentError when passed multiple arguments" do
     lambda { 1.fdiv(6,0.2) }.should raise_error(ArgumentError)
   end
-
-  it "follows the coercion protocol" do
-    (obj = mock('10')).should_receive(:coerce).with(1).and_return([1, 10])
-    1.fdiv(obj).should == 0.1
-  end
 end

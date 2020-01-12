@@ -1,15 +1,4 @@
 class Integer < Numeric
-  def self.induced_from(obj)
-    case obj
-    when Fixnum, Bignum
-      obj
-    when Float
-      obj.to_i
-    else
-      raise TypeError, "failed to convert #{obj.class} into Integer"
-    end
-  end
-
   # unary operators
 
   def !
@@ -365,6 +354,10 @@ class Integer < Numeric
     (self / o).floor
   end
 
+  def fdiv(other)
+    to_f / other
+  end
+
   def %(other)
     Rubinius.asm do
       int = new_label
@@ -415,6 +408,57 @@ class Integer < Numeric
   end
 
   alias_method :modulo, :%
+
+  def divmod(other)
+    Rubinius.asm do
+      int = new_label
+      flt = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_1 r3
+      n_ieq r3, r3, r2
+      b_if r3, flt
+
+      r_load_0 r3
+      n_ieq r3, r3, r2
+      b_if r3, done
+
+      n_edivmod r2, r0, r1
+      goto val
+
+      flt.set!
+      n_ddivmod r2, r0, r1
+      goto val
+
+      int.set!
+      n_idivmod r2, r0, r1
+
+      val.set!
+      r_store_stack r0
+      r_store_stack r1
+      make_array 2
+      ret
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    redo_coerced :divmod, other
+  end
 
   def **(o)
     Rubinius.asm do
@@ -539,6 +583,10 @@ class Integer < Numeric
     end
 
     other != self ? true : false
+  end
+
+  def eql?(other)
+    other.is_a?(Integer) && self == other
   end
 
   def ==(other)
@@ -1464,4 +1512,11 @@ class Integer < Numeric
 
     super
   end
+
+  # predicates
+
+  def zero?
+    self == 0
+  end
+
 end

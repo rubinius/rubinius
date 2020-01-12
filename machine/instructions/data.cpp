@@ -265,5 +265,10 @@ namespace rubinius {
     instructions::data_n_ecmp,
     instructions::data_n_edivmod,
     instructions::data_n_epow,
+    instructions::data_n_dstr,
+    instructions::data_n_dcmp,
+    instructions::data_n_ddivmod,
+    instructions::data_n_dpow,
+    instructions::data_n_demote,
   };
 }

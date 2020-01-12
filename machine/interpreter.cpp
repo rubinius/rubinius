@@ -192,6 +192,7 @@ namespace rubinius {
       case instructions::data_n_ige.id:
       case instructions::data_n_istr.id:
       case instructions::data_n_promote.id:
+      case instructions::data_n_demote.id:
       case instructions::data_n_eadd.id:
       case instructions::data_n_esub.id:
       case instructions::data_n_emul.id:
@@ -218,12 +219,16 @@ namespace rubinius {
       case instructions::data_n_dmul.id:
       case instructions::data_n_ddiv.id:
       case instructions::data_n_dmod.id:
+      case instructions::data_n_ddivmod.id:
+      case instructions::data_n_dpow.id:
+      case instructions::data_n_dcmp.id:
       case instructions::data_n_deq.id:
       case instructions::data_n_dne.id:
       case instructions::data_n_dlt.id:
       case instructions::data_n_dle.id:
       case instructions::data_n_dgt.id:
       case instructions::data_n_dge.id:
+      case instructions::data_n_dstr.id:
         opcodes[ip + 1] += stack_size;
         opcodes[ip + 2] += stack_size;
         opcodes[ip + 3] += stack_size;

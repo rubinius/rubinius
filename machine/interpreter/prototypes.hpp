@@ -216,6 +216,7 @@ namespace rubinius {
     intptr_t n_iflt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     intptr_t n_promote(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_demote(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Native signed extended integer instructions
     intptr_t n_eadd(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -251,13 +252,17 @@ namespace rubinius {
     intptr_t n_dmul(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_ddiv(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dmod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_ddivmod(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_dpow(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dneg(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_dcmp(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_deq(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dne(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dlt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dle(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dgt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dge(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_dstr(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Code execution instructions
     intptr_t e_cache_method_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);

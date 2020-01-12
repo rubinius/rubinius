@@ -1,13 +1,4 @@
 class Float < Numeric
-  def self.induced_from(obj)
-    case obj
-    when Float, Bignum, Fixnum
-      obj.to_f
-    else
-      raise TypeError, "failed to convert #{obj.class} into Float"
-    end
-  end
-
   def **(other)
     Rubinius.primitive :float_pow
 

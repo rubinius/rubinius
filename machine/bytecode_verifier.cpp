@@ -89,10 +89,14 @@ namespace rubinius {
   }
 
   Object* BytecodeVerifier::verify_literal(STATE, int index, int ip) {
+    if(index < 0 || index >= method_->literals()->num_fields()) {
+      fail(state, "literal index is not within bounds", ip);
+    }
+
     if(Object* obj = try_as<Object>(method_->literals()->at(index))) {
       return obj;
     } else {
-      fail(state, "instruction argument is not an Object", ip);
+      fail(state, "literal at index is not an Object", ip);
     }
   }
 
@@ -412,6 +416,7 @@ namespace rubinius {
         case instructions::data_n_ige.id:
         case instructions::data_n_istr.id:
         case instructions::data_n_promote.id:
+        case instructions::data_n_demote.id:
         case instructions::data_n_eadd.id:
         case instructions::data_n_esub.id:
         case instructions::data_n_emul.id:
@@ -438,12 +443,16 @@ namespace rubinius {
         case instructions::data_n_dmul.id:
         case instructions::data_n_ddiv.id:
         case instructions::data_n_dmod.id:
+        case instructions::data_n_ddivmod.id:
+        case instructions::data_n_dpow.id:
+        case instructions::data_n_dcmp.id:
         case instructions::data_n_deq.id:
         case instructions::data_n_dne.id:
         case instructions::data_n_dlt.id:
         case instructions::data_n_dle.id:
         case instructions::data_n_dgt.id:
         case instructions::data_n_dge.id:
+        case instructions::data_n_dstr.id:
           verify_register(state, arg1, insn_ip);
           verify_register(state, arg2, insn_ip);
           verify_register(state, arg3, insn_ip);

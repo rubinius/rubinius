@@ -1,24 +1,4 @@
 class Bignum < Integer
-  # unary operators
-
-  # binary math operators
-
-  # This is separate from divide because it calls a different method
-  # if it has to coerce. This is important because Bignum#div(Float) and
-  # Bignum#/(Float) return different things.
-  #
-  def div(other)
-    Rubinius.primitive :bignum_div
-    redo_coerced :div, other
-  end
-
-  def divmod(other)
-    Rubinius.primitive :bignum_divmod
-    redo_coerced :divmod, other
-  end
-
-  # comparison operators
-
   def <=>(other)
     Rubinius.primitive :bignum_compare
 
@@ -32,15 +12,5 @@ class Bignum < Integer
     rescue
       return nil
     end
-  end
-
-  # conversions
-
-  def eql?(value)
-    value.is_a?(Bignum) && self == value
-  end
-
-  def fdiv(n)
-    to_f / n
   end
 end

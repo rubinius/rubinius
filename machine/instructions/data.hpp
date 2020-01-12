@@ -1092,6 +1092,26 @@ namespace rubinius {
       "n_epow", 262, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::n_epow
     };
+    const InstructionData constexpr data_n_dstr = {
+      "n_dstr", 263, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_dstr
+    };
+    const InstructionData constexpr data_n_dcmp = {
+      "n_dcmp", 264, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_dcmp
+    };
+    const InstructionData constexpr data_n_ddivmod = {
+      "n_ddivmod", 265, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_ddivmod
+    };
+    const InstructionData constexpr data_n_dpow = {
+      "n_dpow", 266, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_dpow
+    };
+    const InstructionData constexpr data_n_demote = {
+      "n_demote", 267, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_demote
+    };
   }
 
   struct Instructions {
