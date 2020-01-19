@@ -5,11 +5,10 @@ class Integer < Numeric
       done = new_label
 
       r0 = new_register
-      r1 = new_register
 
-      r_load_m_binops r0, r1
+      r_load_local r0, 0
 
-      b_if_int r1, r1, int
+      b_if_int r0, r0, int
       goto done
 
       int.set!
