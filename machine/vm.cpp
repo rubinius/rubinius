@@ -369,6 +369,8 @@ namespace rubinius {
     interrupt_lock_.unlock();
     set_main_thread();
 
+    state->vm()->set_start_time();
+
     // TODO: Remove need for root_vm.
     state->shared().env()->set_root_vm(state->vm());
 
