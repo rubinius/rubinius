@@ -1,6 +1,6 @@
 language: cpp
 sudo: required
-dist: bionic
+dist: trusty
 compiler:
 - clang
 os:
