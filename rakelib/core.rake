@@ -122,20 +122,30 @@ def build_extension(file, melbourne=false)
       options = nil
     end
 
+    ignore = false
+
     unless File.exist? "Makefile"
       begin
         ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:builddir]
 
         extconf = melbourne ? "--main rubinius/code/melbourne/extconf.rb" : "extconf.rb"
 
-        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{extconf} #{options}", :verbose => $verbose
+        sh "#{BUILD_CONFIG[:build_exe]} -v --disable-gems #{extconf} #{options}",
+           :verbose => $verbose do |ok, result|
+          unless ok
+            puts "#{file} failed to run, skipping C-extension"
+            ignore = true
+          end
+       end
       ensure
         ENV.delete "RBX_PREFIX_PATH"
       end
     end
 
-    sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
-    sh "#{BUILD_CONFIG[:build_make]} install", :verbose => $verbose
+    unless ignore
+      sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
+      sh "#{BUILD_CONFIG[:build_make]} install", :verbose => $verbose
+    end
   end
 end
 
