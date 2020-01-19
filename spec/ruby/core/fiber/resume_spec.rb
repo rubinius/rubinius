@@ -83,41 +83,40 @@ with_feature :fiber do
       fiber = Fiber.new { break; }
       lambda { fiber.resume }.should raise_error(LocalJumpError)
     end
+  end
+
+  describe "Fiber#resume with ensure clause" do
+    before do
+      ScratchPad.record []
+    end
 
     # ruby_bug "redmine #595", "2.1.0"
-    it "executes the ensure clause" do
-      rd, wr = IO.pipe
-
-      pid = Kernel::fork do
-        rd.close
-        f = Fiber.new do
-          begin
-            Fiber.yield
-          ensure
-            wr.write "executed"
-          end
+    it "executes the ensure clause only when control exits the begin clause" do
+      f = Fiber.new do
+        begin
+          ScratchPad << :before_yield
+          Fiber.yield
+          ScratchPad << :after_yield
+        ensure
+          ScratchPad << :in_ensure
         end
-
-        # The apparent issue is that when Fiber.yield executes, control
-        # "leaves" the "ensure block" and so the ensure clause should run. But
-        # control really does NOT leave the ensure block when Fiber.yield
-        # executes. It merely pauses there. To require ensure to run when a
-        # Fiber is suspended then makes ensure-in-a-Fiber-context different
-        # than ensure-in-a-Thread-context and this would be very confusing.
-        f.resume
-
-        # When we execute the second #resume call, the ensure block DOES exit,
-        # the ensure clause runs. This is Ruby behavior as of 2.3.1.
-        f.resume
-
-        exit 0
       end
 
-      wr.close
-      Process.waitpid pid
+      # The apparent issue is that when Fiber.yield executes, control
+      # "leaves" the "ensure block" and so the ensure clause should run. But
+      # control really does NOT leave the ensure block when Fiber.yield
+      # executes. It merely pauses there. To require ensure to run when a
+      # Fiber is suspended then makes ensure-in-a-Fiber-context different
+      # than ensure-in-a-Thread-context and this would be very confusing.
+      f.resume
 
-      rd.read.should == "executed"
-      rd.close
+      ScratchPad.recorded.should == [:before_yield]
+
+      # When we execute the second #resume call, the ensure block DOES exit,
+      # the ensure clause runs. This is Ruby behavior as of 2.3.1.
+      f.resume
+
+      ScratchPad.recorded.should == [:before_yield, :after_yield, :in_ensure]
     end
   end
 end
