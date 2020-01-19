@@ -63,8 +63,8 @@ namespace rubinius {
     // Rubinius.primitive :vm_backtick
     static Object*  vm_backtick(STATE, String* str);
 
-    // Rubinius.primitive :vm_wait_pid
-    static Object*  vm_wait_pid(STATE, Fixnum* pid, Object* no_hang);
+    // Rubinius.primitive :vm_waitpid
+    static Object*  vm_waitpid(STATE, Fixnum* pid, Object* no_hang);
 
     // Rubinius.primitive :vm_exit
     static Object*  vm_exit(STATE, Fixnum* code);

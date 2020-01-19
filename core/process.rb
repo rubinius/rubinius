@@ -1,9 +1,4 @@
 module Process
-  def self.wait_pid_prim(pid, no_hang)
-    Rubinius.primitive :vm_wait_pid
-    raise PrimitiveFailure, "Process.wait_pid primitive failed"
-  end
-
   def self.time
     Rubinius.primitive :vm_time
     raise PrimitiveFailure, "Process.time primitive failed"
@@ -361,19 +356,19 @@ module Process
     input_pid = Rubinius::Type.coerce_to input_pid, Integer, :to_int
 
     if flags and (flags & WNOHANG) == WNOHANG
-      value = wait_pid_prim input_pid, true
+      value = Rubinius.invoke_primitive :vm_waitpid, input_pid, true
       return if value.nil?
     else
-      value = wait_pid_prim input_pid, false
+      value = Rubinius.invoke_primitive :vm_waitpid, input_pid, false
     end
 
     if value == false
       raise Errno::ECHILD, "No child process: #{input_pid}"
     end
 
-    # wait_pid_prim returns a tuple when wait needs to communicate
-    # the pid that was actually detected as stopped (since wait
-    # can wait for all child pids, groups, etc)
+    # vm_waitpid returns a tuple when wait needs to communicate the pid that
+    # was actually detected as stopped (since wait can wait for all child
+    # pids, groups, etc)
     status, termsig, stopsig, pid = value
 
     status = Process::Status.new(pid, status, termsig, stopsig)

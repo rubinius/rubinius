@@ -773,43 +773,35 @@ namespace rubinius {
     return NULL;
   }
 
-  Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang) {
+  Object* System::vm_waitpid(STATE, Fixnum* pid_obj, Object* no_hang) {
 #ifdef RBX_WINDOWS
     // TODO: Windows
     return Primitives::failure();
 #else
     pid_t input_pid = pid_obj->to_native();
-    int options = 0;
+    int options = WNOHANG;
     int status;
     pid_t pid;
-
-    if(CBOOL(no_hang)) {
-      options |= WNOHANG;
-    }
-
-    typedef void (*rbx_sighandler_t)(int);
-
-    rbx_sighandler_t hup_func;
-    rbx_sighandler_t quit_func;
-    rbx_sighandler_t int_func;
+    bool request_nohang = CBOOL(no_hang);
 
   retry:
-
-    hup_func  = signal(SIGHUP, SIG_IGN);
-    quit_func = signal(SIGQUIT, SIG_IGN);
-    int_func  = signal(SIGINT, SIG_IGN);
 
     {
       UnmanagedPhase unmanaged(state);
       pid = waitpid(input_pid, &status, options);
     }
 
-    signal(SIGHUP, hup_func);
-    signal(SIGQUIT, quit_func);
-    signal(SIGINT, int_func);
+    if(pid == 0) {
+      if(request_nohang) {
+        return cNil;
+      } else {
+        goto retry;
+      }
+    }
 
     if(pid == -1) {
       if(errno == ECHILD) return cFalse;
+
       if(errno == EINTR) {
         if(state->vm()->thread_interrupted_p(state)) return NULL;
         goto retry;
@@ -817,10 +809,6 @@ namespace rubinius {
 
       // TODO handle other errnos?
       return cFalse;
-    }
-
-    if(CBOOL(no_hang) && pid == 0) {
-      return cNil;
     }
 
     Object* output  = cNil;
