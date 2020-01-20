@@ -472,13 +472,47 @@ class Float < Numeric
   end
 
   def nan?
-    Rubinius.primitive :float_isnan
-    raise PrimitiveFailure, "Float#nan? primitive failed"
+    Rubinius.asm do
+      r0 = new_register
+      r1 = new_register
+
+      r_load_self r0
+      r_load_float r0, r0
+      n_dnan r1, r0
+      r_load_bool r0, r1
+      r_ret r0
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
   end
 
   def infinite?
-    Rubinius.primitive :float_isinf
-    raise PrimitiveFailure, "Float#infinite? primitive failed"
+    Rubinius.asm do
+      no = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+
+      r_load_self r0
+      r_load_float r0, r0
+      n_dinf r1, r0
+
+      r_load_0 r0
+      n_ieq r2, r1, r0
+      b_if r2, no
+
+      r_store_int r0, r1
+      r_ret r0
+
+      no.set!
+      r_load_nil r0, 0
+      r_ret r0
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
   end
 
   def finite?
