@@ -865,6 +865,56 @@ class Integer < Numeric
     a >= b ? true : false
   end
 
+  def <=>(other)
+    Rubinius.asm do
+      int = new_label
+      val = new_label
+      done = new_label
+
+      r0 = new_register
+      r1 = new_register
+      r2 = new_register
+      r3 = new_register
+
+      r_load_m_binops r0, r1
+
+      b_if_int r0, r1, int
+
+      n_promote r2, r0, r1
+
+      r_load_2 r3
+      n_ine r3, r2, r3
+      b_if r3, done
+
+      n_ecmp r0, r0, r1
+      goto val
+
+      int.set!
+      n_icmp r0, r0, r1
+
+      val.set!
+      r_ret r0
+
+      done.set!
+
+      # TODO: teach the bytecode compiler better
+      push_true
+    end
+
+    if other.kind_of? Float
+      return nil if other.nan?
+      return -1 if other.infinite? == 1
+      return 1 if other.infinite? == -1
+    end
+
+    begin
+      b, a = math_coerce other, :compare_error
+      return a <=> b
+    rescue ArgumentError, TypeError
+      return nil
+    end
+  end
+
   # bitwise binary operators
 
   def &(other)
@@ -1449,27 +1499,25 @@ class Integer < Numeric
     Rubinius.asm do
       int = new_label
       eint = new_label
+      base = new_label
       val = new_label
       done = new_label
 
       r0 = new_register
       r1 = new_register
-      r2 = new_register
-      r3 = new_register
 
       r_load_m_binops r0, r1
 
       b_if_int r0, r1, int
 
+      b_if_eint r0, r0, base
+      goto done
+
+      base.set!
       b_if_int r1, r1, eint
       goto done
 
       eint.set!
-      n_promote r2, r0, r0
-      r_load_2 r3
-      n_ine r3, r3, r2
-      b_if r3, done
-
       n_estr r0, r0, r1
       goto val
 
@@ -1491,42 +1539,28 @@ class Integer < Numeric
   # We do not alias this to #to_s in case someone overrides #to_s.
   def inspect
     Rubinius.asm do
+      int = new_label
       eint = new_label
       done = new_label
 
       r0 = new_register
       r1 = new_register
       r2 = new_register
-      r3 = new_register
+
+      r_load_literal r2, 10
 
       r_load_self r0
 
-      n_promote r1, r0, r0
+      b_if_int r0, r0, int
+      b_if_eint r0, r0, eint
+      goto done
 
-      r_load_2 r2
-      n_ieq r3, r1, r2
-      b_if r3, eint
-
-      n_iinc r2, r2
-      n_ine r3, r1, r2
-      b_if r3, done
-
-      n_iinc r2, r2
-      n_iinc r2, r2
-      n_iadd r2, r2, r2
-
-      r_store_int r2, r2
+      int.set!
       n_istr r0, r0, r2
       r_ret r0
 
       eint.set!
-      n_iinc r2, r2
-      n_iinc r2, r2
-      n_iinc r2, r2
-      n_iadd r2, r2, r2
-
-      r_store_int r2, r2
-      n_estr r0, r0, r1
+      n_estr r0, r0, r2
       r_ret r0
 
       done.set!

@@ -7,7 +7,6 @@ atomic.rb
 autoload.rb
 backtrace.rb
 basic_object.rb
-bignum.rb
 binding.rb
 block_environment.rb
 byte_array.rb
@@ -46,7 +45,6 @@ ffi.rb
 fiber.rb
 file.rb
 file_test.rb
-fixnum.rb
 float.rb
 fsevent.rb
 gc.rb

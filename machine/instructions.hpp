@@ -78,7 +78,7 @@ namespace rubinius {
 #define CF        CallFrame* call_frame
 #define COUNT     const intptr_t count
 #define LITERAL   const intptr_t literal
-#define RVALUE    const intptr_t rvalue
+#define OBJECT    const intptr_t object
 #define LOCAL     const intptr_t local
 #define DEPTH     const intptr_t depth
 #define INDEX     const intptr_t index
@@ -216,11 +216,11 @@ namespace rubinius {
     inline void p_init(STATE, CF, const intptr_t subject, const intptr_t captures);
 
     // Instrumentation instructions
-    inline void m_bytes(STATE, CF, intptr_t value, R0);
-    inline void m_counter(STATE, CF, intptr_t value);
-    inline void m_sum(STATE, CF, intptr_t value, R0);
-    inline void m_value(STATE, CF, intptr_t value, R0);
-    inline void m_time_stamp(STATE, CF, intptr_t value, const intptr_t flag);
+    inline void m_bytes(STATE, CF, OBJECT, R0);
+    inline void m_counter(STATE, CF, OBJECT);
+    inline void m_sum(STATE, CF, OBJECT, R0);
+    inline void m_value(STATE, CF, OBJECT, R0);
+    inline void m_time_stamp(STATE, CF, OBJECT, const intptr_t flag);
     inline void m_timer_start(STATE, CF, intptr_t timer);
     inline void m_timer_stop(STATE, CF, IP, const intptr_t flag);
     inline void m_log(STATE, CF, R0);
@@ -250,7 +250,7 @@ namespace rubinius {
     inline void r_load_0(CF, R0);
     inline void r_load_1(CF, R0);
     inline void r_load_2(CF, R0);
-    inline void r_load_nil(CF, R0, RVALUE);
+    inline void r_load_nil(CF, R0, OBJECT);
     inline void r_load_false(CF, R0);
     inline void r_load_true(CF, R0);
     inline void r_load_bool(CF, R0, R1);
