@@ -156,6 +156,7 @@ task :clean => %w[
 desc 'Remove rubinius build files and external library build files'
 task :distclean => %w[
   clean
+  core:distclean
   vm:distclean
 ]
 

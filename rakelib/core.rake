@@ -18,9 +18,6 @@ require "rakelib/digest_files"
 def core_clean
   rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
-           "#{BUILD_CONFIG[:sourcedir]}/rubinius-codedb-cache*",
-           "#{BUILD_CONFIG[:sourcedir]}/rubinius-codetools-cache*",
-           "#{BUILD_CONFIG[:sourcedir]}/rubinius-stdlib-cache*",
            "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/platform.conf",
            "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/source",
            "#{BUILD_CONFIG[:prefixdir]}/#{BUILD_CONFIG[:archdir]}/**/*",
@@ -39,10 +36,34 @@ codedb_cache = "#{codedbdir}/cache"
 codedb_cache_next = codedb_cache + ".next"
 
 library_dir = "#{BUILD_CONFIG[:sourcedir]}/library"
-codetools_dir = BUILD_CONFIG[:codetoolsdir]
-stdlib_dir = BUILD_CONFIG[:stdlibdir]
+codetoolsdir = BUILD_CONFIG[:codetoolsdir]
+stdlibdir = BUILD_CONFIG[:stdlibdir]
 
 core_load_order = "core/load_order.txt"
+
+bzip = BUILD_CONFIG[:bzip]
+tar = BUILD_CONFIG[:tar]
+
+# TODO: these should be proper dependencies
+codedb_cachedir = "#{BUILD_CONFIG[:builddir]}#{BUILD_CONFIG[:codedbdir]}/cache"
+codedb_cache_bzip = "rubinius-codedb-cache.bz2"
+if File.exist? codedb_cache_bzip and not File.directory? codedb_cachedir
+  mkdir_p codedbdir
+  sh "#{bzip} -c -d #{codedb_cache_bzip} > #{codedb_cachedir}"
+end
+
+codetools_cache_bzip = "rubinius-codetools-cache.bz2"
+if File.exist? codetools_cache_bzip and not File.directory? codetoolsdir
+
+  mkdir_p codetoolsdir
+  sh "#{tar} -C #{codetoolsdir} -xzf #{BUILD_CONFIG[:sourcedir]}/#{codetools_cache_bzip}"
+end
+
+stdlib_cache_bzip = "rubinius-stdlib-cache.bz2"
+if File.exist? stdlib_cache_bzip and not File.directory? stdlibdir
+  mkdir_p stdlibdir
+  sh "#{tar} -C #{stdlibdir} -xzf #{BUILD_CONFIG[:sourcedir]}/#{stdlib_cache_bzip}"
+end
 
 def codedb_source_task(db, origin, source)
   db << source
@@ -71,8 +92,8 @@ FileList["#{library_dir}/**/*.*"].each do |file|
 end
 
 # Add codetools
-FileList["#{codetools_dir}/{lib,ext}/**/*.rb"].each do |file|
-  source = "#{codedbdir}/source/#{file[(codetools_dir.size+5)..-1]}"
+FileList["#{codetoolsdir}/{lib,ext}/**/*.rb"].each do |file|
+  source = "#{codedbdir}/source/#{file[(codetoolsdir.size+5)..-1]}"
 
   unless File.directory? file
     codedb_source_task codedb_source, file, source
@@ -80,8 +101,8 @@ FileList["#{codetools_dir}/{lib,ext}/**/*.rb"].each do |file|
 end
 
 # Add stdlib
-FileList["#{stdlib_dir}/{lib,ext}/**/*.rb"].each do |file|
-  source = "#{codedbdir}/source/#{file[(stdlib_dir.size+5)..-1]}"
+FileList["#{stdlibdir}/{lib,ext}/**/*.rb"].each do |file|
+  source = "#{codedbdir}/source/#{file[(stdlibdir.size+5)..-1]}"
 
   unless File.directory? file
     codedb_source_task codedb_source, file, source
@@ -96,16 +117,16 @@ config_files = FileList[
 ]
 
 ext_source = FileList[
-  "#{stdlib_dir}/**/*.{c,h}pp",
-  "#{stdlib_dir}/**/grammar.y",
-  "#{stdlib_dir}/**/lex.c.*",
-  "#{codetools_dir}/**/*.{c,h}pp",
-  "#{codetools_dir}/**/grammar.y",
-  "#{codetools_dir}/**/lex.c.*",
+  "#{stdlibdir}/**/*.{c,h}pp",
+  "#{stdlibdir}/**/grammar.y",
+  "#{stdlibdir}/**/lex.c.*",
+  "#{codetoolsdir}/**/*.{c,h}pp",
+  "#{codetoolsdir}/**/grammar.y",
+  "#{codetoolsdir}/**/lex.c.*",
 ]
 
-melbourne_ext = FileList["#{codetools_dir}/ext/**/melbourne/extconf.rb"].first
-extconf_source = FileList["#{stdlib_dir}/ext/**/extconf.rb"]
+melbourne_ext = FileList["#{codetoolsdir}/ext/**/melbourne/extconf.rb"].first
+extconf_source = FileList["#{stdlibdir}/ext/**/extconf.rb"]
 
 extensions_dir = "#{BUILD_CONFIG[:builddir]}/#{BUILD_CONFIG[:archdir]}"
 directory extensions_dir
@@ -172,7 +193,7 @@ namespace :codedb do
 
       build_extension melbourne_ext, true
 
-      Dir.chdir "#{codetools_dir}/lib" do
+      Dir.chdir "#{codetoolsdir}/lib" do
         FileList["./**/*.#{RbConfig::CONFIG["DLEXT"]}"].each do |lib|
           lib_dir = "#{extensions_dir}/#{File.dirname(lib)}"
           mkdir_p lib_dir
@@ -230,10 +251,23 @@ task :core => 'core:build'
 
 namespace :core do
   desc "Build all core and library files"
-  task :build => [platform_conf, signature_header] + codedb_source + ["codedb:extensions"]
+  task :build => [platform_conf, signature_header] +
+                 [codedbdir, codetoolsdir, stdlibdir] +
+                 codedb_source + ["codedb:extensions"]
 
   desc "Delete all core and library artifacts"
   task :clean do
     core_clean
+  end
+
+  task :distclean => :clean do
+  rm_rf Dir["#{BUILD_CONFIG[:sourcedir]}/rubinius-codedb-cache*",
+           "#{BUILD_CONFIG[:sourcedir]}/rubinius-codetools-cache*",
+           "#{BUILD_CONFIG[:sourcedir]}/rubinius-stdlib-cache*",
+           codedbdir,
+           codetoolsdir,
+           stdlibdir,
+          ],
+    :verbose => $verbose
   end
 end

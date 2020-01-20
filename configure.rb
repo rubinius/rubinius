@@ -1632,6 +1632,12 @@ int main(int argc, char* argv[]) {
       :llvm_ldflags       => @llvm_ldflags,
       :cc                 => @cc,
       :cxx                => @cxx,
+      :make               => @make,
+      :rake               => @rake,
+      :tar                => @tar,
+      :bzip               => @bzip,
+      :perl               => @perl,
+      :gem                => @gem,
       :ldshared           => @ldshared,
       :ldsharedxx         => @ldsharedxx,
       :gcc_major          => @gcc_major,
@@ -2018,10 +2024,9 @@ int main(int argc, char* argv[]) {
         download "#{url}#{cache_digest}", cache_digest
       end
 
-      if Digest::SHA512.file(cache_bzip).hexdigest ==
+      if Digest::SHA512.file(cache_bzip).hexdigest !=
           File.read(cache_digest).strip.split(" ").first
-        FileUtils.mkdir_p dir
-        system("#{@bzip} -c -d #{cache_bzip} > #{codedb_cache}")
+        failure "CodeDB cache SHA does not match"
       end
     end
   end
@@ -2044,11 +2049,9 @@ int main(int argc, char* argv[]) {
         download "#{url}#{cache_digest}", cache_digest
       end
 
-      if Digest::SHA512.file(cache_bzip).hexdigest ==
+      if Digest::SHA512.file(cache_bzip).hexdigest !=
           File.read(cache_digest).strip.split(" ").first
-        FileUtils.mkdir_p @stdlibdir
-        @log.write "#{@tar} -C #{@stdlibdir} -xzf #{@sourcedir}/#{cache_bzip}"
-        system("#{@tar} -C #{@stdlibdir} -xzf #{@sourcedir}/#{cache_bzip}")
+        failure "Stdlib cache SHA does not match"
       end
     end
   end
@@ -2071,11 +2074,9 @@ int main(int argc, char* argv[]) {
         download "#{url}#{cache_digest}", cache_digest
       end
 
-      if Digest::SHA512.file(cache_bzip).hexdigest ==
+      if Digest::SHA512.file(cache_bzip).hexdigest !=
           File.read(cache_digest).strip.split(" ").first
-        FileUtils.mkdir_p @codetoolsdir
-        @log.write "#{@tar} -C #{@codetoolsdir} -xzf #{@sourcedir}/#{cache_bzip}"
-        system("#{@tar} -C #{@codetoolsdir} -xzf #{@sourcedir}/#{cache_bzip}")
+        failure "Codetools cache SHA does not match"
       end
     end
   end
