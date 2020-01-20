@@ -22,7 +22,6 @@ namespace rubinius {
 
     opcode* opcodes = machine_code->opcodes;
     size_t total = machine_code->total;
-    size_t stack_size = machine_code->stack_size;
 
     size_t rcount = 0;
     size_t rindex = 0;
@@ -87,31 +86,8 @@ namespace rubinius {
       opcode op = as<Fixnum>(ops->at(ip))->to_native();
       width = Instructions::instruction_data(op).width;
 
-      // Fix register offsets
       switch(op) {
-      case instructions::data_b_if_serial.id:
-        opcodes[ip + 2] += stack_size;
-        break;
-      case instructions::data_b_if.id:
-      case instructions::data_r_load_local.id:
-      case instructions::data_r_store_local.id:
-      case instructions::data_r_load_local_depth.id:
-      case instructions::data_r_store_local_depth.id:
-      case instructions::data_r_load_stack.id:
-      case instructions::data_r_store_stack.id:
-      case instructions::data_r_load_self.id:
-      case instructions::data_r_load_neg1.id:
-      case instructions::data_r_load_0.id:
-      case instructions::data_r_load_1.id:
-      case instructions::data_r_load_2.id:
-      case instructions::data_r_load_false.id:
-      case instructions::data_r_load_true.id:
-      case instructions::data_r_ret.id:
-      case instructions::data_m_log.id:
-        opcodes[ip + 1] += stack_size;
-        break;
       case instructions::data_r_load_nil.id:
-        opcodes[ip + 1] += stack_size;
         opcodes[ip + 2] = reinterpret_cast<opcode>(APPLY_NIL_TAG(machine_code->nil_id(), ip));
         break;
       case instructions::data_r_load_literal.id: {
@@ -119,123 +95,8 @@ namespace rubinius {
 
         Object* value = as<Object>(lits->at(opcodes[ip + 2]));
         opcodes[ip + 2] = reinterpret_cast<opcode>(value);
-
-        opcodes[ip + 1] += stack_size;
         break;
       }
-      case instructions::data_n_ineg.id:
-      case instructions::data_n_ineg_o.id:
-      case instructions::data_n_inot.id:
-      case instructions::data_n_iinc.id:
-      case instructions::data_n_idec.id:
-      case instructions::data_n_ibits.id:
-      case instructions::data_n_isize.id:
-      case instructions::data_n_iflt.id:
-      case instructions::data_n_eneg.id:
-      case instructions::data_n_enot.id:
-      case instructions::data_n_ebits.id:
-      case instructions::data_n_esize.id:
-      case instructions::data_n_eflt.id:
-      case instructions::data_n_dneg.id:
-      case instructions::data_n_dinf.id:
-      case instructions::data_n_dnan.id:
-      case instructions::data_n_dclass.id:
-      case instructions::data_b_if_int.id:
-      case instructions::data_b_if_eint.id:
-      case instructions::data_b_if_float.id:
-      case instructions::data_r_load_int.id:
-      case instructions::data_r_store_int.id:
-      case instructions::data_r_load_float.id:
-      case instructions::data_r_store_float.id:
-      case instructions::data_r_load_bool.id:
-      case instructions::data_r_load_m_binops.id:
-      case instructions::data_r_load_f_binops.id:
-      case instructions::data_r_copy.id:
-      case instructions::data_n_ipopcnt.id:
-      case instructions::data_a_instance.id:
-      case instructions::data_a_kind.id:
-      case instructions::data_a_method.id:
-      case instructions::data_a_receiver_method.id:
-      case instructions::data_a_type.id:
-      case instructions::data_a_function.id:
-      case instructions::data_a_equal.id:
-      case instructions::data_a_not_equal.id:
-      case instructions::data_a_less.id:
-      case instructions::data_a_less_equal.id:
-      case instructions::data_a_greater.id:
-      case instructions::data_a_greater_equal.id:
-        opcodes[ip + 1] += stack_size;
-        opcodes[ip + 2] += stack_size;
-        break;
-      case instructions::data_n_iadd.id:
-      case instructions::data_n_isub.id:
-      case instructions::data_n_imul.id:
-      case instructions::data_n_idiv.id:
-      case instructions::data_n_imod.id:
-      case instructions::data_n_iand.id:
-      case instructions::data_n_ior.id:
-      case instructions::data_n_ixor.id:
-      case instructions::data_n_ishl.id:
-      case instructions::data_n_ishr.id:
-      case instructions::data_n_iadd_o.id:
-      case instructions::data_n_isub_o.id:
-      case instructions::data_n_imul_o.id:
-      case instructions::data_n_idiv_o.id:
-      case instructions::data_n_imod_o.id:
-      case instructions::data_n_idivmod.id:
-      case instructions::data_n_ipow_o.id:
-      case instructions::data_n_ishl_o.id:
-      case instructions::data_n_ishr_o.id:
-      case instructions::data_n_icmp.id:
-      case instructions::data_n_ieq.id:
-      case instructions::data_n_ine.id:
-      case instructions::data_n_ilt.id:
-      case instructions::data_n_ile.id:
-      case instructions::data_n_igt.id:
-      case instructions::data_n_ige.id:
-      case instructions::data_n_istr.id:
-      case instructions::data_n_promote.id:
-      case instructions::data_n_demote.id:
-      case instructions::data_n_eadd.id:
-      case instructions::data_n_esub.id:
-      case instructions::data_n_emul.id:
-      case instructions::data_n_ediv.id:
-      case instructions::data_n_emod.id:
-      case instructions::data_n_edivmod.id:
-      case instructions::data_n_epow.id:
-      case instructions::data_n_eand.id:
-      case instructions::data_n_eor.id:
-      case instructions::data_n_exor.id:
-      case instructions::data_n_eshl.id:
-      case instructions::data_n_eshr.id:
-      case instructions::data_n_epopcnt.id:
-      case instructions::data_n_ecmp.id:
-      case instructions::data_n_eeq.id:
-      case instructions::data_n_ene.id:
-      case instructions::data_n_elt.id:
-      case instructions::data_n_ele.id:
-      case instructions::data_n_egt.id:
-      case instructions::data_n_ege.id:
-      case instructions::data_n_estr.id:
-      case instructions::data_n_dadd.id:
-      case instructions::data_n_dsub.id:
-      case instructions::data_n_dmul.id:
-      case instructions::data_n_ddiv.id:
-      case instructions::data_n_dmod.id:
-      case instructions::data_n_ddivmod.id:
-      case instructions::data_n_dpow.id:
-      case instructions::data_n_dcmp.id:
-      case instructions::data_n_deq.id:
-      case instructions::data_n_dne.id:
-      case instructions::data_n_dlt.id:
-      case instructions::data_n_dle.id:
-      case instructions::data_n_dgt.id:
-      case instructions::data_n_dge.id:
-      case instructions::data_n_dstr.id:
-        opcodes[ip + 1] += stack_size;
-        opcodes[ip + 2] += stack_size;
-        opcodes[ip + 3] += stack_size;
-        break;
       };
 
       switch(op) {

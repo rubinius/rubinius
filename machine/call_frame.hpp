@@ -62,6 +62,7 @@ namespace rubinius {
 
     Arguments* arguments;
     Object** stack_ptr_;
+    Object** registers;
     MachineCode* machine_code;
     InterpreterState* is;
 
@@ -197,6 +198,8 @@ namespace rubinius {
       for(int i = 0; i < stack; i++) {
         stk[i] = cNil;
       }
+
+      registers = stk + stack;
     }
 
     VariableScope* promote_scope_full(STATE);

@@ -34,7 +34,7 @@ namespace rubinius {
 #define store_literal(f, x)  (f->machine_code->opcodes[f->ip()+1] = (x))
 
 #define STACK_PTR call_frame->stack_ptr_
-#define REGISTERS call_frame->stk
+#define REGISTERS call_frame->registers
 
 #define REG(r)  (reinterpret_cast<intptr_t*>(REGISTERS)[r])
 #define RVAL(r) (reinterpret_cast<Object**>(REGISTERS)[r])

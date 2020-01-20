@@ -68,6 +68,7 @@ namespace rubinius {
     , required_args(code->required_args()->to_native())
     , post_args(code->post_args()->to_native())
     , splat_position(-1)
+    , keywords_count(0)
     , stack_size(code->stack_size()->to_native())
     , number_of_locals(code->number_of_locals())
     , registers(code->registers()->to_native())
