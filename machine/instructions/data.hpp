@@ -1112,6 +1112,18 @@ namespace rubinius {
       "n_demote", 267, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::n_demote
     };
+    const InstructionData constexpr data_n_dinf = {
+      "n_dinf", 268, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_dinf
+    };
+    const InstructionData constexpr data_n_dnan = {
+      "n_dnan", 269, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_dnan
+    };
+    const InstructionData constexpr data_n_dclass = {
+      "n_dclass", 270, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_dclass
+    };
   }
 
   struct Instructions {

@@ -270,5 +270,8 @@ namespace rubinius {
     instructions::data_n_ddivmod,
     instructions::data_n_dpow,
     instructions::data_n_demote,
+    instructions::data_n_dinf,
+    instructions::data_n_dnan,
+    instructions::data_n_dclass,
   };
 }

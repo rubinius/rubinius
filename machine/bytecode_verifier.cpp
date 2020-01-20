@@ -385,6 +385,9 @@ namespace rubinius {
         case instructions::data_n_esize.id:
         case instructions::data_n_eflt.id:
         case instructions::data_n_dneg.id:
+        case instructions::data_n_dinf.id:
+        case instructions::data_n_dnan.id:
+        case instructions::data_n_dclass.id:
         case instructions::data_r_load_int.id:
         case instructions::data_r_store_int.id:
         case instructions::data_r_load_float.id:

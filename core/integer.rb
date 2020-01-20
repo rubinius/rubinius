@@ -1545,9 +1545,8 @@ class Integer < Numeric
 
       r0 = new_register
       r1 = new_register
-      r2 = new_register
 
-      r_load_literal r2, 10
+      r_load_literal r1, 10
 
       r_load_self r0
 
@@ -1556,11 +1555,11 @@ class Integer < Numeric
       goto done
 
       int.set!
-      n_istr r0, r0, r2
+      n_istr r0, r0, r1
       r_ret r0
 
       eint.set!
-      n_estr r0, r0, r2
+      n_estr r0, r0, r1
       r_ret r0
 
       done.set!

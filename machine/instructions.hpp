@@ -345,6 +345,8 @@ namespace rubinius {
     inline void n_dgt(CF, R0, R1, R2);
     inline void n_dge(CF, R0, R1, R2);
     inline void n_dstr(STATE, CF, R0, R1, R2);
+    inline void n_dinf(CF, R0, R1);
+    inline void n_dnan(CF, R0, R1);
 
     // Code execution instructions
     inline void e_cache_method_p(STATE, CF, R0, R1);

@@ -263,6 +263,9 @@ namespace rubinius {
     intptr_t n_dgt(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dge(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dstr(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_dinf(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_dnan(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_dclass(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Code execution instructions
     intptr_t e_cache_method_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
