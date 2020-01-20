@@ -282,6 +282,8 @@ namespace rubinius {
     type_info_lock_.init();
     code_resource_lock_.init();
 
+    start_time_ = get_current_time();
+
     signals_->after_fork_child(state);
     console_->after_fork_child(state);
   }
