@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#ifndef __APPLE__
 #include <sys/sysmacros.h>
+#endif
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #else
