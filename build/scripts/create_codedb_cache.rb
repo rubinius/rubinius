@@ -13,7 +13,7 @@ end
 require File.expand_path("../config/config.rb", __dir__)
 
 class CodeDBCompiler
-  def self.compile(file, line=1, transforms=[:default, :kernel])
+  def self.compile(file, line=1, transforms=[:default, :kernel, :experimental])
     compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_code
 
     parser = compiler.parser
