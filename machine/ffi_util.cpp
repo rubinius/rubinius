@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/sysmacros.h>
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #else
