@@ -318,7 +318,8 @@ class Configure
 
     o.on "--sanitize", "Enable the Clang memory sanitizer" do
       @debug_build = true
-      (@system_cxxflags ||= "") << " -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer -fno-optimize-sibling-calls "
+      (@system_cxxflags ||= "") << " -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-optimize-sibling-calls "
+      (@system_ldflags ||= "") << " -g -fsanitize=address "
     end
 
     o.on "--release-build", "Build from local files instead of accessing the network" do
