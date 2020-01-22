@@ -273,5 +273,17 @@ namespace rubinius {
     instructions::data_n_dinf,
     instructions::data_n_dnan,
     instructions::data_n_dclass,
+    instructions::data_n_dsign,
+    instructions::data_r_load_ref_addr,
+    instructions::data_r_load_byte_addr,
+    instructions::data_r_load_ref,
+    instructions::data_r_store_ref,
+    instructions::data_r_load_byte,
+    instructions::data_r_store_byte,
+    instructions::data_r_load_handle,
+    instructions::data_r_store_handle,
+    instructions::data_r_load_ivar,
+    instructions::data_r_store_ivar,
+    instructions::data_r_load_index,
   };
 }

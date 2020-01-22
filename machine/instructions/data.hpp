@@ -1124,6 +1124,54 @@ namespace rubinius {
       "n_dclass", 270, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::n_dclass
     };
+    const InstructionData constexpr data_n_dsign = {
+      "n_dsign", 271, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::n_dsign
+    };
+    const InstructionData constexpr data_r_load_ref_addr = {
+      "r_load_ref_addr", 272, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_ref_addr
+    };
+    const InstructionData constexpr data_r_load_byte_addr = {
+      "r_load_byte_addr", 273, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_byte_addr
+    };
+    const InstructionData constexpr data_r_load_ref = {
+      "r_load_ref", 274, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_ref
+    };
+    const InstructionData constexpr data_r_store_ref = {
+      "r_store_ref", 275, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_ref
+    };
+    const InstructionData constexpr data_r_load_byte = {
+      "r_load_byte", 276, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_byte
+    };
+    const InstructionData constexpr data_r_store_byte = {
+      "r_store_byte", 277, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_byte
+    };
+    const InstructionData constexpr data_r_load_handle = {
+      "r_load_handle", 278, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_handle
+    };
+    const InstructionData constexpr data_r_store_handle = {
+      "r_store_handle", 279, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_handle
+    };
+    const InstructionData constexpr data_r_load_ivar = {
+      "r_load_ivar", 280, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_ivar
+    };
+    const InstructionData constexpr data_r_store_ivar = {
+      "r_store_ivar", 281, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_store_ivar
+    };
+    const InstructionData constexpr data_r_load_index = {
+      "r_load_index", 282, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_load_index
+    };
   }
 
   struct Instructions {

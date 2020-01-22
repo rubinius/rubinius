@@ -163,6 +163,17 @@ namespace rubinius {
     intptr_t r_store_int(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_store_float(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_ref_addr(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_byte_addr(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_ref(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_ref(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_byte(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_byte(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_handle(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_handle(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_ivar(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_store_ivar(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t r_load_index(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_self(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_neg1(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t r_load_0(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
@@ -266,6 +277,7 @@ namespace rubinius {
     intptr_t n_dinf(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dnan(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
     intptr_t n_dclass(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
+    intptr_t n_dsign(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
 
     // Code execution instructions
     intptr_t e_cache_method_p(STATE, CallFrame* call_frame, intptr_t const opcodes[]);
