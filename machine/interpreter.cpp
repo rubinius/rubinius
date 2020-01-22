@@ -134,6 +134,13 @@ namespace rubinius {
         opcodes[ip + 1] = reinterpret_cast<opcode>(sym);
         break;
       }
+      case instructions::data_r_load_index.id:
+      case instructions::data_r_store_ivar.id:
+      case instructions::data_r_load_ivar.id: {
+        Symbol* sym = as<Symbol>(lits->at(opcodes[ip + 3]));
+        opcodes[ip + 3] = reinterpret_cast<opcode>(sym);
+        break;
+      }
       case instructions::data_invoke_primitive.id: {
         Symbol* name = as<Symbol>(lits->at(opcodes[ip + 1]));
 

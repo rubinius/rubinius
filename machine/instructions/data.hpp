@@ -1129,11 +1129,11 @@ namespace rubinius {
       rubinius::interpreter::n_dsign
     };
     const InstructionData constexpr data_r_load_ref_addr = {
-      "r_load_ref_addr", 272, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      "r_load_ref_addr", 272, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_ref_addr
     };
     const InstructionData constexpr data_r_load_byte_addr = {
-      "r_load_byte_addr", 273, 3, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      "r_load_byte_addr", 273, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_byte_addr
     };
     const InstructionData constexpr data_r_load_ref = {

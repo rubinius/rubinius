@@ -247,8 +247,8 @@ namespace rubinius {
     inline void r_store_int(STATE, CF, R0, R1);
     inline void r_load_float(CF, R0, R1);
     inline void r_store_float(STATE, CF, R0, R1);
-    inline void r_load_ref_addr(STATE, CF, R0, R1);
-    inline void r_load_byte_addr(STATE, CF, R0, R1);
+    inline void r_load_ref_addr(STATE, CF, R0, R1, R2);
+    inline void r_load_byte_addr(STATE, CF, R0, R1, R2);
     inline void r_load_ref(CF, R0, R1, R2);
     inline void r_store_ref(CF, R0, R1, R2);
     inline void r_load_byte(CF, R0, R1, R2);
