@@ -316,6 +316,11 @@ class Configure
       @debug_build = true
     end
 
+    o.on "--sanitize", "Enable the Clang memory sanitizer" do
+      @debug_build = true
+      (@system_cxxflags ||= "") << " -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer -fno-optimize-sibling-calls "
+    end
+
     o.on "--release-build", "Build from local files instead of accessing the network" do
       @release_build = true
     end
@@ -761,11 +766,11 @@ not support #{name} compiler, please email contact@rubinius.com
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
     end
 
-    @system_cflags =   ""
-    @system_cxxflags = "-std=c++11 "
-    @system_cppflags = ""
-    @system_incflags =  ""
-    @system_ldflags =  ""
+    @system_cflags    ||= ""
+    (@system_cxxflags ||= "") << "-std=c++11 "
+    @system_cppflags  ||= ""
+    @system_incflags  ||= ""
+    @system_ldflags   ||= ""
 
     @user_cflags =   ENV['CFLAGS']
     @user_cxxflags = ENV['CXXFLAGS']
