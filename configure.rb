@@ -316,10 +316,15 @@ class Configure
       @debug_build = true
     end
 
-    o.on "--sanitize", "Enable the Clang memory sanitizer" do
-      @debug_build = true
-      (@system_cxxflags ||= "") << " -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-optimize-sibling-calls "
-      (@system_ldflags ||= "") << " -g -fsanitize=address "
+    o.on "--sanitize", "SANITIZER", "Enable the Clang sanitizer: 'memory', 'address'" do |sanitizer|
+      if ["address", "memory"].include?(sanitizer)
+        @debug_build = true
+        (@system_cxxflags ||= "") << " -fsanitize=#{sanitizer}  -fno-omit-frame-pointer -fno-optimize-sibling-calls "
+        @system_cxxflags << " -fsanitize-address-use-after-scope " if sanitizer == "address"
+        @system.cxxflags << " -fsanitize-memory-track-origins " if sanitizer == "memory"
+
+        (@system_ldflags ||= "") << " -g -fsanitize=#{sanitizer} "
+      end
     end
 
     o.on "--release-build", "Build from local files instead of accessing the network" do
