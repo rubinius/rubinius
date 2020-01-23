@@ -335,6 +335,23 @@ namespace rubinius {
         FinalizerObject* fo = *i;
         fo->dispose(state);
       }
+
+      for(auto i = state->collector()->memory_handles().begin();
+          i != state->collector()->memory_handles().end();)
+      {
+        MemoryHeader* h = *i;
+
+        delete h->extended_header()->get_handle();
+
+        i = state->collector()->memory_handles().erase(i);
+      }
+
+      for(auto i = state->collector()->weakrefs().begin();
+          i != state->collector()->weakrefs().end();)
+      {
+        i = state->collector()->weakrefs().erase(i);
+      }
+
     }
 
     void Collector::finish(STATE) {

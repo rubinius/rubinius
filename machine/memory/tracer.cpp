@@ -73,6 +73,10 @@ namespace rubinius {
         MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
 
         if(!header->marked_p(state->memory()->mark())) {
+          MemoryHeader* h = *i;
+
+          delete h->extended_header()->get_handle();
+
           i = state->collector()->memory_handles().erase(i);
         } else {
           ++i;
@@ -145,7 +149,7 @@ namespace rubinius {
         mark_object_region(state, obj);
 
         object->set_marked(state->memory()->mark());
-        object->unset_scanned();
+        object->unsynchronized_unset_scanned();
       }
 
       if(state->vm()->stack_limit_p(&object)) {
@@ -158,7 +162,7 @@ namespace rubinius {
         return;
       }
 
-      object->set_scanned();
+      object->unsynchronized_set_scanned();
 
       recursion_count++;
 

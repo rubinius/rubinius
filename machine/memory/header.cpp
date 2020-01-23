@@ -19,6 +19,8 @@
 
 #include "diagnostics/memory.hpp"
 
+#include "capi/ruby.h"
+
 #include <assert.h>
 #include <chrono>
 #include <string>
@@ -422,6 +424,22 @@ namespace rubinius {
       }
     }
 #endif
+  }
+
+  MemoryHandle::~MemoryHandle() {
+    if(rarray_p()) {
+      delete reinterpret_cast<RArray*>(data());
+    } else if(rstring_p()) {
+      delete reinterpret_cast<RString*>(data());
+    } else if(rdata_p()) {
+      // RData objects have a finalizer defined
+    } else if (rfloat_p()) {
+      delete reinterpret_cast<RFloat*>(data());
+    } else if (rio_p()) {
+      // RIO objects have a finalizer defined
+    } else if (rfile_p()) {
+      delete reinterpret_cast<RFile*>(data());
+    }
   }
 
   /* TODO: write_barrier

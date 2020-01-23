@@ -336,6 +336,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     {
     }
 
+    ~MemoryHandle();
+
     static MemoryHandle* from(VALUE value);
     static VALUE value(Object* object);
     static Object* object(VALUE value);
@@ -687,6 +689,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       delete[] reinterpret_cast<uintptr_t*>(this);
     }
 
+    // We must not run the destructor because the pointers are still valid.
+    void delete_old_header() {
+      delete[] reinterpret_cast<uintptr_t*>(this);
+    }
+
     int size() const {
       return size_field.get(header);
     }
@@ -886,6 +893,16 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
+    void unsynchronized_set(const HeaderField field, unsigned int value) {
+      if(extended_header_p()) {
+        ExtendedHeader* hh = extended_header();
+        hh->header = field.set(hh->header, value);
+      } else {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+        header.store(field.set(h, value), std::memory_order_release);
+      }
+    }
+
     void set(const HeaderField field, unsigned int value) {
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
@@ -896,6 +913,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            hh->delete_old_header();
             return;
           }
 
@@ -910,6 +928,16 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
+    void unsynchronized_set(const HeaderField field) {
+      if(extended_header_p()) {
+        ExtendedHeader* hh = extended_header();
+        hh->header = field.set(hh->header);
+      } else {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+        header.store(field.set(h), std::memory_order_release);
+      }
+    }
+
     void set(const HeaderField field) {
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
@@ -920,6 +948,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            hh->delete_old_header();
             return;
           }
 
@@ -934,6 +963,17 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
+    void unsynchronized_unset(const HeaderField field) {
+      if(extended_header_p()) {
+        ExtendedHeader* hh = extended_header();
+        hh->header = field.unset(hh->header);
+      } else {
+        MemoryFlags h = header.load(std::memory_order_acquire);
+
+        header.store(field.unset(h), std::memory_order_release);
+      }
+    }
+
     void unset(const HeaderField field) {
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
@@ -944,6 +984,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            hh->delete_old_header();
             return;
           }
 
@@ -1091,6 +1132,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return marked() == mark;
     }
 
+    void unsynchronized_set_marked(unsigned int mark) {
+      unsynchronized_set(marked_field, mark);
+    }
+
     void set_marked(unsigned int mark) {
       set(marked_field, mark);
     }
@@ -1099,8 +1144,16 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return get(scanned_field);
     }
 
+    void unsynchronized_set_scanned() {
+      unsynchronized_set(scanned_field);
+    };
+
     void set_scanned() {
       set(scanned_field);
+    }
+
+    void unsynchronized_unset_scanned() {
+      unsynchronized_unset(scanned_field);
     }
 
     void unset_scanned() {
@@ -1214,6 +1267,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            hh->delete_old_header();
             return id;
           }
 
@@ -1247,10 +1301,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     MemoryHandle* memory_handle(STATE, Object* object) {
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
+        ExtendedHeader* hh = nullptr;
         ExtendedHeader* eh;
 
         if(extended_header_p()) {
-          ExtendedHeader* hh = extended_header();
+          hh = extended_header();
 
           if(MemoryHandle* handle = hh->get_handle()) {
             return handle;
@@ -1264,6 +1319,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
         MemoryFlags nh = extended_flags(eh);
 
         if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+          if(hh) hh->delete_old_header();
+
           track_memory_handle(state);
           return eh->get_handle();
         }
@@ -1300,6 +1357,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            hh->delete_old_header();
+
             if(refcount == 0) track_reference(state);
             return refcount + 1;
           }
@@ -1363,6 +1422,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+            hh->delete_old_header();
             return refcount - 1;
           }
 
