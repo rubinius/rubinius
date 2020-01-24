@@ -569,6 +569,8 @@ namespace rubinius {
     CallFrame* frame = call_frame_;
 
     while(frame) {
+      f(state, reinterpret_cast<Object**>(&frame->return_value));
+
       f(state, reinterpret_cast<Object**>(&frame->lexical_scope_));
 
       f(state, reinterpret_cast<Object**>(&frame->compiled_code));

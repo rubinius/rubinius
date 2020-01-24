@@ -7,7 +7,7 @@ namespace rubinius {
         call_frame->scope->flush_to_heap(state);
       }
 
-      Object* obj = RVAL(r0);
+      Object* obj = call_frame->return_value = RVAL(r0);
 
       if(obj->nil_p()) {
         if(NIL_TAG_ID(obj) == 0) {

@@ -68,6 +68,8 @@ namespace rubinius {
 
     UnwindSite* unwind;
 
+    Object* return_value;
+
     // Stack
     Object* stk[0];
 
@@ -194,6 +196,7 @@ namespace rubinius {
      */
     void prepare(int stack) {
       ip_ = 0;
+      return_value = nullptr;
 
       for(int i = 0; i < stack; i++) {
         stk[i] = cNil;
