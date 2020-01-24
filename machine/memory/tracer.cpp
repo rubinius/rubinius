@@ -148,7 +148,7 @@ namespace rubinius {
       } else {
         mark_object_region(state, obj);
 
-        object->set_marked(state->memory()->mark());
+        object->unsynchronized_set_marked(state->memory()->mark());
         object->unsynchronized_unset_scanned();
       }
 
