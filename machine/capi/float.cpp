@@ -13,7 +13,7 @@ namespace rubinius {
       RFloat* rfloat = reinterpret_cast<RFloat*>(data());
       rfloat->value = c_as<Float>(object())->value();
       return rfloat;
-    } else if(unknown_type_p()) {
+    } else if(object_type_p()) {
       RFloat* rfloat = new RFloat();
       rfloat->value = c_as<Float>(object())->value();
       set_rfloat(rfloat);

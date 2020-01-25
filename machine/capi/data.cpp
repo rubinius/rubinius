@@ -13,7 +13,7 @@ namespace rubinius {
   RData* MemoryHandle::get_rdata(STATE) {
     if(rdata_p()) {
       return reinterpret_cast<RData*>(data());
-    } else if(unknown_type_p()) {
+    } else if(object_type_p()) {
       RData* rdata = new RData;
       rdata->data = 0;
       rdata->dmark = 0;
@@ -29,7 +29,7 @@ namespace rubinius {
   RTypedData* MemoryHandle::get_rtypeddata(STATE) {
     if(rtypeddata_p()) {
       return reinterpret_cast<RTypedData*>(data());
-    } else if(unknown_type_p()) {
+    } else if(object_type_p()) {
       RTypedData* rtypeddata = new RTypedData;
       rtypeddata->data = 0;
       rtypeddata->type = 0;

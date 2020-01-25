@@ -46,7 +46,7 @@ namespace rubinius {
       state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), bytes);
     memset(ba->bytes, 0, ba->full_size() - bytes_offset);
 
-    ba->set_pinned();
+    ba->set_pinned(state);
 
     return ba;
   }
@@ -59,7 +59,7 @@ namespace rubinius {
 
     memcpy(ba->bytes, byte_array->bytes, bytes);
 
-    ba->set_pinned();
+    ba->set_pinned(state);
 
     return ba;
   }

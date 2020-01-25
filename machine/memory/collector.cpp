@@ -26,6 +26,18 @@
 
 namespace rubinius {
   namespace memory {
+    void FinalizerObject::finalize(STATE) {
+      Object* obj = object();
+
+      obj->set_marked(state, 0);
+
+      if(obj->extended_header_p()) {
+        if(MemoryHandle* handle = obj->extended_header()->get_handle()) {
+          handle->unset_accesses();
+        }
+      }
+    }
+
     void NativeFinalizer::dispose(STATE) {
       // TODO: consider building this on the TypeInfo structure.
       if(Fiber* fiber = try_as<Fiber>(object())) {
@@ -35,6 +47,8 @@ namespace rubinius {
 
     void NativeFinalizer::finalize(STATE) {
       (*finalizer_)(state, object());
+
+      FinalizerObject::finalize(state);
     }
 
     void NativeFinalizer::mark(STATE, MemoryTracer* tracer) {
@@ -76,6 +90,8 @@ namespace rubinius {
               "collector: an exception occurred running a NativeMethod finalizer");
         } else {
           (*finalizer_)(state, object());
+
+          FinalizerObject::finalize(state);
         }
 
         state->vm()->pop_call_frame(state, call_frame->previous);
@@ -102,6 +118,8 @@ namespace rubinius {
            */
           if(finalizer_->true_p()) {
             object()->send(state, state->symbol("__finalize__"));
+
+            FinalizerObject::finalize(state);
           } else {
             Array* ary = Array::create(state, 1);
             ary->set(state, 0, object()->object_id(state));
@@ -112,6 +130,8 @@ namespace rubinius {
                     state->vm()->thread_state()->current_exception()->message_c_str(state));
               }
             }
+
+            FinalizerObject::finalize(state);
           }
         });
     }
@@ -335,34 +355,23 @@ namespace rubinius {
         FinalizerObject* fo = *i;
         fo->dispose(state);
       }
-
-      for(auto i = state->collector()->memory_handles().begin();
-          i != state->collector()->memory_handles().end();)
-      {
-        MemoryHeader* h = *i;
-
-        delete h->extended_header()->get_handle();
-
-        i = state->collector()->memory_handles().erase(i);
-      }
-
-      for(auto i = state->collector()->weakrefs().begin();
-          i != state->collector()->weakrefs().end();)
-      {
-        i = state->collector()->weakrefs().erase(i);
-      }
-
     }
 
     void Collector::finish(STATE) {
       finishing_ = true;
+
+      std::lock_guard<std::mutex> guard(list_mutex());
 
       while(!process_list_.empty()) {
         FinalizerObject* fo = process_list_.back();
         process_list_.pop_back();
 
         fo->finalize(state);
-        delete fo;
+        if(fo->object()->finalizer_p()) {
+          delete fo;
+        } else {
+          logger::write("halt: invalid finalizer object in finalizer list");
+        }
 
         state->shared().collector_metrics()->objects_finalized++;
       }
@@ -372,9 +381,33 @@ namespace rubinius {
         finalizer_list_.pop_back();
 
         fo->finalize(state);
-        delete fo;
+        if(fo->object()->finalizer_p()) {
+          delete fo;
+        } else {
+          logger::write("halt: invalid finalizer object in finalizer list");
+        }
 
         state->shared().collector_metrics()->objects_finalized++;
+      }
+
+      for(auto i = state->collector()->weakrefs().begin();
+          i != state->collector()->weakrefs().end();)
+      {
+        i = state->collector()->weakrefs().erase(i);
+      }
+
+      for(auto i = state->collector()->memory_headers().begin();
+          i != state->collector()->memory_headers().end();)
+      {
+        ExtendedHeader* header = *i;
+
+        if(header->zombie_p()) {
+          header->delete_zombie_header();
+        } else {
+          header->delete_header();
+        }
+
+        i = state->collector()->memory_headers().erase(i);
       }
     }
 
@@ -443,8 +476,11 @@ namespace rubinius {
     }
 
     void Collector::add_finalizer(STATE, FinalizerObject* obj) {
+      // TODO: why is unmanaged needed?
       UnmanagedPhase unmanaged(state);
       std::lock_guard<std::mutex> guard(list_mutex());
+
+      obj->object()->set_finalizer(state);
 
       finalizer_list_.push_back(obj);
       state->shared().collector_metrics()->objects_queued++;

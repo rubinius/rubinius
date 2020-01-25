@@ -109,7 +109,7 @@ namespace rubinius {
 
     ByteArray* ba =
       state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), bytes + 1);
-    ba->set_pinned();
+    ba->set_pinned(state);
 
     if(str) {
       memcpy(ba->raw_bytes(), str, bytes);

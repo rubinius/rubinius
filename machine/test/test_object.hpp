@@ -448,11 +448,11 @@ public:
   void test_get_handle() {
     Object* obj = state->memory()->new_object<Object>(state, G(object));
 
-    auto s = state->collector()->memory_handles().size();
+    auto s = state->collector()->memory_headers().size();
 
     obj->get_handle(state);
 
-    auto ss = state->collector()->memory_handles().size();
+    auto ss = state->collector()->memory_headers().size();
     TS_ASSERT(ss == s + 1);
   }
 

@@ -111,8 +111,8 @@ namespace rubinius {
       if(object->visited_p(state->memory()->visit_mark())) {
         if(object->scanned_p()) return;
       } else {
-        object->set_visited(state->memory()->visit_mark());
-        object->unset_scanned();
+        object->set_visited(state, state->memory()->visit_mark());
+        object->unset_scanned(state);
 
         f(state, obj);
       }
@@ -122,7 +122,7 @@ namespace rubinius {
         return;
       }
 
-      object->set_scanned();
+      object->set_scanned(state);
 
       visit_object(state, object->p_klass(), f);
       visit_object(state, object->p_ivars(), f);

@@ -45,7 +45,7 @@ namespace rubinius {
       }
 
       virtual void dispose(STATE) = 0;
-      virtual void finalize(STATE) = 0;
+      virtual void finalize(STATE);
       virtual void mark(STATE, MemoryTracer* tracer) = 0;
       virtual bool match_p(STATE, Object* object, Object* finalizer) = 0;
     };
@@ -98,7 +98,7 @@ namespace rubinius {
     typedef std::unordered_set<MemoryHeader*> References;
     typedef std::unordered_set<MemoryHeader*> Weakrefs;
 
-    typedef std::list<MemoryHeader*> MemoryHandles;
+    typedef std::list<ExtendedHeader*> MemoryHeaders;
     typedef std::list<FinalizerObject*> Finalizers;
 
     class Collector {
@@ -152,8 +152,8 @@ namespace rubinius {
       Finalizers finalizer_list_;
       Finalizers process_list_;
 
-      MemoryHandles memory_handles_list_;
-      locks::spinlock_mutex memory_handles_lock_;
+      MemoryHeaders memory_headers_list_;
+      locks::spinlock_mutex memory_headers_lock_;
 
       References references_set_;
       locks::spinlock_mutex references_lock_;
@@ -182,8 +182,8 @@ namespace rubinius {
         return list_condition_;
       }
 
-      MemoryHandles& memory_handles() {
-        return memory_handles_list_;
+      MemoryHeaders& memory_headers() {
+        return memory_headers_list_;
       }
 
       References& references() {
@@ -194,12 +194,14 @@ namespace rubinius {
         return weakrefs_set_;
       }
 
-      void add_memory_handle(MemoryHeader* header) {
-        if(header->reference_p()) {
-          std::lock_guard<locks::spinlock_mutex> guard(memory_handles_lock_);
+      void add_memory_header(ExtendedHeader* header) {
+        std::lock_guard<locks::spinlock_mutex> guard(memory_headers_lock_);
 
-          memory_handles_list_.push_back(header);
+        if(MemoryHandle* handle = header->get_handle()) {
+          if(!handle->valid_p()) ::abort();
         }
+
+        memory_headers_list_.push_back(header);
       }
 
       void add_reference(MemoryHeader* header) {

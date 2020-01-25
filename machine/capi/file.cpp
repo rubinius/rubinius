@@ -9,7 +9,7 @@ namespace rubinius {
   RFile* MemoryHandle::get_rfile(STATE) {
     if(rfile_p()) {
       return reinterpret_cast<RFile*>(data());
-    } else if(unknown_type_p()) {
+    } else if(object_type_p()) {
       RFile* rfile = new RFile();
       set_rfile(rfile);
       return rfile;

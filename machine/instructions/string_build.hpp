@@ -115,7 +115,7 @@ namespace rubinius {
       }
       if(!enc->nil_p()) str->encoding(state, enc);
 
-      if(tainted) str->set_tainted();
+      if(tainted) str->set_tainted(state);
 
       stack_clear(count);
       stack_push(str);

@@ -45,18 +45,12 @@ namespace rubinius {
     }
   }
 
-  void MemoryHeader::track_memory_handle(STATE) {
-    if(reference_p()) {
-      state->collector()->add_memory_handle(this);
-    }
-  }
-
   MemoryHeaderBits::MemoryHeaderBits(const MemoryHeader* header) {
     extended = header->extended_header_p();
     forwarded = header->forwarded_p();
     thread_id = header->thread_id();
     region = header->region();
-    referenced = header->referenced();
+    referenced = header->referenced_count();
     weakref = header->weakref_p();
     finalizer = header->finalizer_p();
     remembered = header->remembered_p();
@@ -114,6 +108,14 @@ namespace rubinius {
       Exception::raise_runtime_error(state,
           "unlocking non-owned, extended-header object");
     }
+  }
+
+  void ExtendedHeader::track_memory_header(STATE) {
+    if(MemoryHandle* handle = get_handle()) {
+      if(!handle->object()->reference_p()) ::abort();
+    }
+
+    state->collector()->add_memory_header(this);
   }
 
   ExtendedHeader* ExtendedHeader::create_lock(STATE, const MemoryFlags h, unsigned int count) {
@@ -176,11 +178,12 @@ namespace rubinius {
     while(true) {
       MemoryFlags h = header.load(std::memory_order_acquire);
       MemoryFlags nh;
+      ExtendedHeader* hh = nullptr;
       ExtendedHeader* eh = nullptr;
 
       if(thread_id() == state->vm()->thread_id()) {
         if(extended_header_p()) {
-          ExtendedHeader* hh = extended_header();
+          hh = extended_header();
           int locked_count = locked_count_field.get(hh->header);
 
           if(locked_count < max_locked_count()) {
@@ -225,13 +228,19 @@ namespace rubinius {
         }
 
         if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+          if(eh) eh->track_memory_header(state);
+
+          if(hh) hh->unsynchronized_set_zombie();
+
           return true;
         }
 
-        if(eh) eh->delete_header();
+        if(eh) eh->delete_zombie_header();
       } else {
+        ExtendedHeader* hh = nullptr;
+
         if(extended_header_p()) {
-          ExtendedHeader* hh = extended_header();
+          hh = extended_header();
 
           if(hh->lock_extended_p()) {
             MemoryLock* lock = hh->get_lock();
@@ -285,10 +294,14 @@ namespace rubinius {
         }
 
         if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+          if(eh) eh->track_memory_header(state);
+
+          if(hh) hh->unsynchronized_set_zombie();
+
           return true;
         }
 
-        if(eh) eh->delete_header();
+        if(eh) eh->delete_zombie_header();
       }
     }
   }
@@ -314,10 +327,14 @@ namespace rubinius {
               MemoryFlags nh = extended_flags(eh);
 
               if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+                eh->track_memory_header(state);
+
+                hh->unsynchronized_set_zombie();
+
                 return;
               }
 
-              eh->delete_header();
+              eh->delete_zombie_header();
             } else {
               Exception::raise_runtime_error(state,
                   "unlocking owned, extended-header, non-locked object");
@@ -355,7 +372,7 @@ namespace rubinius {
   }
 
   void MemoryHeader::unset_lock(STATE) {
-    unset(locked_count_field);
+    unset(state, locked_count_field);
   }
 
   bool MemoryHeader::locked_p(STATE) {
@@ -439,7 +456,13 @@ namespace rubinius {
       // RIO objects have a finalizer defined
     } else if (rfile_p()) {
       delete reinterpret_cast<RFile*>(data());
+    } else if (object_type_p()) {
+      // Nothing
+    } else {
+      ::abort();
     }
+
+    _type_ = eReleased;
   }
 
   /* TODO: write_barrier

@@ -60,10 +60,10 @@ public:
     h.header = type_id_field.set(h.header, ByteArrayType);
     TS_ASSERT_EQUALS(h.pinned_p(), true);
 
-    h.unset_pinned();
+    h.unset_pinned(state);
     TS_ASSERT_EQUALS(h.pinned_p(), false);
 
-    h.set_pinned();
+    h.set_pinned(state);
     TS_ASSERT_EQUALS(h.pinned_p(), true);
   }
 
@@ -73,13 +73,13 @@ public:
     TS_ASSERT_EQUALS(h.visited_p(2), false);
     TS_ASSERT_EQUALS(h.visited_p(3), false);
 
-    h.set_visited(2);
+    h.set_visited(state, 2);
     TS_ASSERT_EQUALS(h.visited_p(0), false);
     TS_ASSERT_EQUALS(h.visited_p(1), false);
     TS_ASSERT_EQUALS(h.visited_p(2), true);
     TS_ASSERT_EQUALS(h.visited_p(3), false);
 
-    h.set_visited(3);
+    h.set_visited(state, 3);
     TS_ASSERT_EQUALS(h.header.load(), 0xc00000L);
   }
 
@@ -89,13 +89,13 @@ public:
     TS_ASSERT_EQUALS(h.marked_p(2), false);
     TS_ASSERT_EQUALS(h.marked_p(3), false);
 
-    h.set_marked(2);
+    h.set_marked(state, 2);
     TS_ASSERT_EQUALS(h.marked_p(0), false);
     TS_ASSERT_EQUALS(h.marked_p(1), false);
     TS_ASSERT_EQUALS(h.marked_p(2), true);
     TS_ASSERT_EQUALS(h.marked_p(3), false);
 
-    h.set_marked(3);
+    h.set_marked(state, 3);
     TS_ASSERT_EQUALS(h.header.load(), 0x3000000L);
   }
 
@@ -105,19 +105,19 @@ public:
     h.header = 0x4000000L;
     TS_ASSERT_EQUALS(h.scanned_p(), true);
 
-    h.unset_scanned();
+    h.unset_scanned(state);
     TS_ASSERT_EQUALS(h.scanned_p(), false);
 
-    h.set_scanned();
+    h.set_scanned(state);
     TS_ASSERT_EQUALS(h.scanned_p(), true);
   }
 
   void test_memory_header_referenced() {
-    TS_ASSERT_EQUALS(h.referenced(), 0);
+    TS_ASSERT_EQUALS(h.referenced_count(), 0);
 
     h.header = 0x78000L;
 
-    TS_ASSERT_EQUALS(h.referenced(), 15);
+    TS_ASSERT_EQUALS(h.referenced_count(), 15);
   }
 
   void test_memory_header_add_reference_adds_to_list() {
@@ -134,11 +134,11 @@ public:
     Object* obj = state->memory()->new_object<Object>(state, G(object));
 
     for(int i = 0; i < 20; i++) {
-      TS_ASSERT_EQUALS(obj->referenced(), i);
+      TS_ASSERT_EQUALS(obj->referenced_count(), i);
 
       obj->add_reference(state);
 
-      TS_ASSERT_EQUALS(obj->referenced(), i+1);
+      TS_ASSERT_EQUALS(obj->referenced_count(), i+1);
 
       if(i > 15) {
         TS_ASSERT(obj->extended_header_p());
@@ -168,10 +168,10 @@ public:
     h.header = 0x2000000000L;
     TS_ASSERT_EQUALS(h.frozen_p(), true);
 
-    h.unset_frozen();
+    h.unset_frozen(state);
     TS_ASSERT_EQUALS(h.frozen_p(), false);
 
-    h.set_frozen();
+    h.set_frozen(state);
     TS_ASSERT_EQUALS(h.frozen_p(), true);
   }
 
@@ -181,10 +181,10 @@ public:
     h.header = 0x4000000000L;
     TS_ASSERT_EQUALS(h.tainted_p(), true);
 
-    h.unset_tainted();
+    h.unset_tainted(state);
     TS_ASSERT_EQUALS(h.tainted_p(), false);
 
-    h.set_tainted();
+    h.set_tainted(state);
     TS_ASSERT_EQUALS(h.tainted_p(), true);
   }
 
@@ -200,14 +200,14 @@ public:
   void test_memory_header_set_object_id() {
     MemoryHeader::object_id_counter = 21;
 
-    h.assign_object_id();
+    h.assign_object_id(state);
 
     TS_ASSERT_EQUALS(h.object_id(), 0x15);
 
     MemoryHeader::object_id_counter = MemoryHeader::max_object_id() + 10;
 
     h.header = 0;
-    h.assign_object_id();
+    h.assign_object_id(state);
 
     TS_ASSERT(h.extended_header_p());
     TS_ASSERT_EQUALS(h.object_id(), MemoryHeader::max_object_id() + 10);
@@ -230,7 +230,7 @@ public:
   }
 
   void test_memory_header_lock() {
-    h.set_thread_id(state->vm()->thread_id());
+    h.set_thread_id(state, state->vm()->thread_id());
 
     TS_ASSERT_THROWS_ASSERT(h.unlock(state),
 			    const RubyException &e,

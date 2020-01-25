@@ -143,7 +143,7 @@ namespace rubinius {
 
   Object* Object::freeze(STATE) {
     if(reference_p()) {
-      set_frozen();
+      set_frozen(state);
     } else {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
 
@@ -151,7 +151,7 @@ namespace rubinius {
         tbl = LookupTable::create(state);
         G(external_ivars)->store(state, this, tbl);
       }
-      tbl->set_frozen();
+      tbl->set_frozen(state);
     }
 
     return this;
@@ -424,7 +424,7 @@ namespace rubinius {
   Integer* Object::object_id(STATE) {
     if(reference_p()) {
       uintptr_t id = ObjectHeader::object_id();
-      if(id == 0) id = ObjectHeader::assign_object_id();
+      if(id == 0) id = ObjectHeader::assign_object_id(state);
 
       // Shift it so it doesn't collide with object_id for immediates.
       return Integer::from(state, id << TAG_REF_WIDTH);
@@ -504,7 +504,7 @@ namespace rubinius {
 
       infect(state, sc);
       if(frozen_p()) {
-        sc->set_frozen();
+        sc->set_frozen(state);
       }
 
       return sc;
@@ -828,7 +828,7 @@ namespace rubinius {
       if(!try_as<Bignum>(this) && !try_as<Float>(this)) {
         if(!tainted_p()) {
           check_frozen(state);
-          set_tainted();
+          set_tainted(state);
         }
       }
     }
@@ -846,7 +846,7 @@ namespace rubinius {
   Object* Object::untaint(STATE) {
     if(reference_p() && tainted_p()) {
       check_frozen(state);
-      if(reference_p()) unset_tainted();
+      if(reference_p()) unset_tainted(state);
     }
     return this;
   }

@@ -25,9 +25,9 @@ namespace rubinius {
   RString* MemoryHandle::get_rstring(STATE) {
     if(rstring_p()) {
       return reinterpret_cast<RString*>(data());
-    } else if(unknown_type_p()) {
+    } else if(object_type_p()) {
       String* string = c_as<String>(object());
-      string->set_type_specific(String::eRString);
+      string->set_type_specific(state, String::eRString);
       string->unshare(state);
 
       ByteArray* byte_array = string->data();
@@ -72,7 +72,7 @@ namespace rubinius {
       RString* rstring = reinterpret_cast<RString*>(data());
 
       ByteArray* byte_array = string->data();
-      if(!byte_array->pinned_p()) byte_array->set_pinned();
+      if(!byte_array->pinned_p()) byte_array->set_pinned(state);
 
       char* ptr = reinterpret_cast<char*>(byte_array->raw_bytes());
 

@@ -37,9 +37,9 @@ namespace rubinius {
   RArray* MemoryHandle::get_rarray(STATE) {
     if(rarray_p()) {
       return reinterpret_cast<RArray*>(data());
-    } else if(unknown_type_p()) {
+    } else if(object_type_p()) {
       Array* array = c_as<Array>(object());;
-      array->set_type_specific(Array::eRArray);
+      array->set_type_specific(state, Array::eRArray);
 
       RTuple* rtuple = RTuple::from(state, array->tuple());
       array->tuple(state, rtuple);

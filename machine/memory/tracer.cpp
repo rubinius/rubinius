@@ -20,33 +20,59 @@ namespace rubinius {
           trace_object(state, obj);
         });
 
-      for(auto i = state->collector()->memory_handles().begin();
-          i != state->collector()->memory_handles().end();
+      for(auto i = state->collector()->memory_headers().begin();
+          i != state->collector()->memory_headers().end();
+          ++i)
+      {
+        ExtendedHeader* header = *i;
+
+        if(MemoryHandle* handle = header->get_handle()) {
+          if(!handle->valid_p()) ::abort();
+
+          if(handle->accesses() > 0 || handle->cycles() < 3) {
+            if(handle->object()->object_p()) {
+              Object* obj = handle->object();
+
+              trace_object(state, &obj);
+
+              // TODO: update handle
+              // handle->object(obj);
+            } else if(handle->object()->data_p()) {
+              // DataHeader* data = reinterpret_cast<DataHeader*>(header);
+              // TODO: process data (not C-API Data) instances
+            }
+          } else if(handle->rdata_p()) {
+            // TODO: GC investigate why we are retaining these
+            Object* obj = handle->object();
+
+            trace_object(state, &obj);
+
+            // TODO: update handle
+            // handle->object(obj);
+          }
+
+          handle->cycle();
+          handle->unset_accesses();
+        }
+      }
+
+      for(auto i = state->collector()->references().begin();
+          i != state->collector()->references().end();
           ++i)
       {
         MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
-        MemoryHandle* handle = header->extended_header()->get_handle();
 
-        if(handle->accesses() > 0 || handle->cycles() < 3) {
+        if(header->referenced_count() > 0) {
           if(header->object_p()) {
             Object* obj = reinterpret_cast<Object*>(header);
 
+            // TODO: GC update the data structure
             trace_object(state, &obj);
-            // TODO: MemoryHeader set new address
           } else if(header->data_p()) {
             // DataHeader* data = reinterpret_cast<DataHeader*>(header);
             // TODO: process data (not C-API Data) instances
           }
-        } else if(handle->rdata_p()) {
-          // TODO: GC investigate why we are retaining these
-          Object* obj = reinterpret_cast<Object*>(header);
-
-          trace_object(state, &obj);
-          // TODO: MemoryHeader set new address
         }
-
-        handle->cycle();
-        handle->unset_accesses();
       }
 
       trace_mark_stack(state);
@@ -60,24 +86,32 @@ namespace rubinius {
       {
         MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
 
-        if(header->referenced() == 0) {
+        if(header->referenced_count() == 0) {
           i = state->collector()->references().erase(i);
         } else {
           ++i;
         }
       }
 
-      for(auto i = state->collector()->memory_handles().begin();
-          i != state->collector()->memory_handles().end();)
+      for(auto i = state->collector()->memory_headers().begin();
+          i != state->collector()->memory_headers().end();)
       {
-        MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
+        ExtendedHeader* header = *i;
 
-        if(!header->marked_p(state->memory()->mark())) {
-          MemoryHeader* h = *i;
+        if(header->zombie_p()) {
+          header->delete_zombie_header();
 
-          delete h->extended_header()->get_handle();
+          // TODO: remove when headers are stable
+          // logger::write("memory tracer: deleting zombie extended header: %p", header);
 
-          i = state->collector()->memory_handles().erase(i);
+          i = state->collector()->memory_headers().erase(i);
+        } else if(!header->marked_p(state->memory()->mark()) && !header->finalizer_p()) {
+          header->delete_header();
+
+          // TODO: remove when headers are stable
+          // logger::write("memory tracer: deleting unmarked extended header: %p", header);
+
+          i = state->collector()->memory_headers().erase(i);
         } else {
           ++i;
         }

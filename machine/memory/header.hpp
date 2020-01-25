@@ -286,6 +286,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   // Pinned is a type-specific bit and should only be used by ByteArray
   const HeaderField constexpr pinned_field        = { 62, 1 };
 
+  // TODO: reclaim from tainted or frozen field when those are removed
+  const HeaderField constexpr zombie_field        = { 63, 1 };
+
   /* Managed objects have a header. The header (a MemoryHeader) is a single, 64bit,
    * machine word that may be a MemoryFlags or pointer to an ExtendedHeader.
    *
@@ -312,7 +315,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
   struct MemoryHandle {
     enum HandleType {
-      eUnknown,
+      eReleased,
+      eObject,
       eRArray,
       eRString,
       eRData,
@@ -328,15 +332,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     attr_field(data, void*);
 
     MemoryHandle(Object* object)
-      : _type_(eUnknown)
-      , _accesses_(0)
+      : _type_(eObject)
+      , _accesses_(1)
       , _cycles_(0)
       , _object_(object)
       , _data_(nullptr)
     {
     }
 
-    ~MemoryHandle();
+    virtual ~MemoryHandle();
 
     static MemoryHandle* from(VALUE value);
     static VALUE value(Object* object);
@@ -350,6 +354,21 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     VALUE as_value() const {
       return reinterpret_cast<VALUE>(APPLY_HANDLE_TAG(this));
+    }
+
+    bool valid_p() const {
+      switch(_type_) {
+        case eObject:
+        case eRArray:
+        case eRString:
+        case eRData:
+        case eRFloat:
+        case eRIO:
+        case eRFile:
+          return true;
+        default:
+          return false;
+      }
     }
 
     void set_data(void* data, HandleType type) {
@@ -369,8 +388,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       _cycles_++;
     }
 
-    bool unknown_type_p() const {
-      return type() == eUnknown;
+    bool object_type_p() const {
+      return type() == eObject;
     }
 
     bool rarray_p() const {
@@ -600,7 +619,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     ~ExtendedHeader() {
       for(int i = 0; i < size(); i++) {
         if(MemoryHandle* handle = words[i].get_handle()) {
-          delete handle;
+          if(handle->valid_p()) {
+            delete handle;
+          } else {
+            ::abort();
+          }
         } else if(MemoryLock* lock = words[i].get_lock()) {
           delete lock;
         }
@@ -641,21 +664,21 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return nh;
     }
 
-    static ExtendedHeader* create_handle(const MemoryFlags h, Object* object) {
+    static ExtendedHeader* create_handle(
+        const MemoryFlags h, MemoryHandle* handle, Object* object)
+    {
       ExtendedHeader* nh = create(h);
 
-      MemoryHandle* handle = new MemoryHandle(object);
       nh->words[0].set_handle(handle);
 
       return nh;
     }
 
     static ExtendedHeader* create_handle(
-        const MemoryFlags h, ExtendedHeader* eh, Object* object)
+        const MemoryFlags h, ExtendedHeader* eh, MemoryHandle* handle, Object* object)
     {
       ExtendedHeader* nh = create(h, eh);
 
-      MemoryHandle* handle = new MemoryHandle(object);
       nh->words[eh->size()].set_handle(handle);
 
       return nh;
@@ -684,14 +707,16 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     static ExtendedHeader* replace_lock(STATE, const MemoryFlags h,
         const ExtendedHeader* eh, unsigned int count);
 
-    void delete_header() {
-      this->~ExtendedHeader();
+    void track_memory_header(STATE);
+
+    // We must not run the destructor because the pointers are still valid.
+    void delete_zombie_header() {
       delete[] reinterpret_cast<uintptr_t*>(this);
     }
 
-    // We must not run the destructor because the pointers are still valid.
-    void delete_old_header() {
-      delete[] reinterpret_cast<uintptr_t*>(this);
+    void delete_header() {
+      this->~ExtendedHeader();
+      delete_zombie_header();
     }
 
     int size() const {
@@ -756,6 +781,28 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
 
       return nullptr;
+    }
+
+    bool finalizer_p() const {
+      return finalizer_field.get(header);
+    }
+
+    bool marked_p(unsigned int mark) const {
+      return marked_field.get(header) == mark;
+    }
+
+    void unsynchronized_set_zombie() {
+      ExtendedHeaderWord unset;
+
+      for(int i = 0; i < size(); i++) {
+        words[i] = unset;
+      }
+
+      header = zombie_field.set(header);
+    }
+
+    bool zombie_p() const {
+      return zombie_field.get(header);
     }
   };
 
@@ -903,7 +950,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    void set(const HeaderField field, unsigned int value) {
+    void set(STATE, const HeaderField field, unsigned int value) {
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
 
@@ -913,11 +960,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            hh->delete_old_header();
+            hh->unsynchronized_set_zombie();
+
+            eh->track_memory_header(state);
+
             return;
           }
 
-          eh->delete_header();
+          eh->delete_zombie_header();
         } else {
           MemoryFlags nh = field.set(h, value);
 
@@ -938,7 +988,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    void set(const HeaderField field) {
+    void set(STATE, const HeaderField field) {
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
 
@@ -948,11 +998,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            hh->delete_old_header();
+            hh->unsynchronized_set_zombie();
+
+            eh->track_memory_header(state);
+
             return;
           }
 
-          eh->delete_header();
+          eh->delete_zombie_header();
         } else {
           MemoryFlags nh = field.set(h);
 
@@ -974,7 +1027,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    void unset(const HeaderField field) {
+    void unset(STATE, const HeaderField field) {
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
 
@@ -984,11 +1037,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            hh->delete_old_header();
+            hh->unsynchronized_set_zombie();
+
+            eh->track_memory_header(state);
+
             return;
           }
 
-          eh->delete_header();
+          eh->delete_zombie_header();
         } else {
           MemoryFlags nh = field.unset(h);
 
@@ -1015,16 +1071,16 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return get(thread_id_field);
     }
 
-    void set_thread_id(uintptr_t id) {
-      set(thread_id_field, id);
+    void set_thread_id(STATE, uintptr_t id) {
+      set(state, thread_id_field, id);
     }
 
     MemoryRegion region() const {
       return static_cast<MemoryRegion>(get(region_field));
     }
 
-    void region(MemoryRegion region) {
-      set(region_field, region);
+    void region(STATE, MemoryRegion region) {
+      set(state, region_field, region);
     }
 
     bool thread_region_p() const {
@@ -1043,7 +1099,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return static_cast<MemoryRegion>(get(region_field)) == eThirdRegion;
     }
 
-    unsigned int referenced() const {
+    unsigned int referenced_count() const {
       if(extended_header_p()) {
         ExtendedHeader* eh = extended_header();
         uintptr_t refcount = referenced_field.get(eh->header);
@@ -1068,12 +1124,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return (type_id() == ByteArrayType) && get(pinned_field);
     }
 
-    void set_pinned() {
-      set(pinned_field);
+    void set_pinned(STATE) {
+      set(state, pinned_field);
     }
 
-    void unset_pinned() {
-      unset(pinned_field);
+    void unset_pinned(STATE) {
+      unset(state, pinned_field);
     }
 
     bool weakref_p() const {
@@ -1082,7 +1138,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_weakref(STATE) {
       if(!weakref_p()) {
-        set(weakref_field);
+        set(state, weakref_field);
         track_weakref(state);
       }
     }
@@ -1091,25 +1147,25 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return get(finalizer_field);
     }
 
-    void set_finalizer() {
-      set(finalizer_field);
+    void set_finalizer(STATE) {
+      set(state, finalizer_field);
     }
 
-    void unset_finalizer() {
-      unset(finalizer_field);
+    void unset_finalizer(STATE) {
+      unset(state, finalizer_field);
     }
 
     bool remembered_p() const {
       return get(remembered_field);
     }
 
-    void set_remembered() {
+    void set_remembered(STATE) {
       // TODO: MemoryHeader append to references if unset
-      set(remembered_field);
+      set(state, remembered_field);
     }
 
-    void unset_remembered() {
-      unset(remembered_field);
+    void unset_remembered(STATE) {
+      unset(state, remembered_field);
     }
 
     unsigned int visited() const {
@@ -1120,8 +1176,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return visited() == flag;
     }
 
-    void set_visited(unsigned int flag) {
-      set(visited_field, flag);
+    void set_visited(STATE, unsigned int flag) {
+      set(state, visited_field, flag);
     }
 
     unsigned int marked() const {
@@ -1136,8 +1192,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       unsynchronized_set(marked_field, mark);
     }
 
-    void set_marked(unsigned int mark) {
-      set(marked_field, mark);
+    void set_marked(STATE, unsigned int mark) {
+      set(state, marked_field, mark);
     }
 
     bool scanned_p() const {
@@ -1148,16 +1204,16 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       unsynchronized_set(scanned_field);
     };
 
-    void set_scanned() {
-      set(scanned_field);
+    void set_scanned(STATE) {
+      set(state, scanned_field);
     }
 
     void unsynchronized_unset_scanned() {
       unsynchronized_unset(scanned_field);
     }
 
-    void unset_scanned() {
-      unset(scanned_field);
+    void unset_scanned(STATE) {
+      unset(state, scanned_field);
     }
 
     object_type type_id() const {
@@ -1184,24 +1240,24 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return get(frozen_field);
     }
 
-    void set_frozen() {
-      set(frozen_field);
+    void set_frozen(STATE) {
+      set(state, frozen_field);
     }
 
-    void unset_frozen() {
-      unset(frozen_field);
+    void unset_frozen(STATE) {
+      unset(state, frozen_field);
     }
 
     bool tainted_p() const {
       return get(tainted_field);
     }
 
-    void set_tainted() {
-      set(tainted_field);
+    void set_tainted(STATE) {
+      set(state, tainted_field);
     }
 
-    void unset_tainted() {
-      unset(tainted_field);
+    void unset_tainted(STATE) {
+      unset(state, tainted_field);
     }
 
     uintptr_t object_id() const {
@@ -1224,8 +1280,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return get(type_specific_field);
     }
 
-    void set_type_specific(unsigned int value) {
-      set(type_specific_field, value);
+    void set_type_specific(STATE, unsigned int value) {
+      set(state, type_specific_field, value);
     }
 
     bool memory_handle_p() const {
@@ -1245,7 +1301,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void unlock(STATE);
     void unset_lock(STATE);
 
-    uintptr_t assign_object_id() {
+    uintptr_t assign_object_id(STATE) {
       uintptr_t id = object_id_counter.fetch_add(1);
 
       while(true) {
@@ -1267,11 +1323,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            hh->delete_old_header();
+            hh->unsynchronized_set_zombie();
+
+            eh->track_memory_header(state);
+
             return id;
           }
 
-          eh->delete_header();
+          eh->delete_zombie_header();
         } else {
           if(id < max_object_id()) {
             MemoryFlags nh = object_id_field.set(h, id);
@@ -1285,10 +1344,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
             MemoryFlags nh = extended_flags(eh);
 
             if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
+              eh->track_memory_header(state);
+
               return id;
             }
 
-            eh->delete_header();
+            eh->delete_zombie_header();
           }
         }
       }
@@ -1296,9 +1357,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void track_reference(STATE);
     void track_weakref(STATE);
-    void track_memory_handle(STATE);
 
     MemoryHandle* memory_handle(STATE, Object* object) {
+      MemoryHandle* handle = nullptr;
+
       while(true) {
         MemoryFlags h = header.load(std::memory_order_acquire);
         ExtendedHeader* hh = nullptr;
@@ -1310,22 +1372,29 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           if(MemoryHandle* handle = hh->get_handle()) {
             return handle;
           }
+        }
 
-          eh = ExtendedHeader::create_handle(hh->header, hh, object);
+        if(!handle) {
+          handle = new MemoryHandle(object);
+        }
+
+        if(hh) {
+          eh = ExtendedHeader::create_handle(hh->header, hh, handle, object);
         } else {
-          eh = ExtendedHeader::create_handle(h, object);
+          eh = ExtendedHeader::create_handle(h, handle, object);
         }
 
         MemoryFlags nh = extended_flags(eh);
 
         if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-          if(hh) hh->delete_old_header();
+          if(hh) hh->unsynchronized_set_zombie();
 
-          track_memory_handle(state);
-          return eh->get_handle();
+          eh->track_memory_header(state);
+
+          return handle;
         }
 
-        eh->delete_header();
+        eh->delete_zombie_header();
       }
     }
 
@@ -1357,13 +1426,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            hh->delete_old_header();
+            hh->unsynchronized_set_zombie();
+
+            eh->track_memory_header(state);
 
             if(refcount == 0) track_reference(state);
             return refcount + 1;
           }
 
-          eh->delete_header();
+          eh->delete_zombie_header();
         } else {
           unsigned int refcount = referenced_field.get(h);
 
@@ -1384,7 +1455,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
               return refcount + 1;
             }
 
-            eh->delete_header();
+            eh->delete_zombie_header();
           }
         }
       }
@@ -1422,11 +1493,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
           MemoryFlags nh = extended_flags(eh);
 
           if(header.compare_exchange_strong(h, nh, std::memory_order_release)) {
-            hh->delete_old_header();
+            hh->unsynchronized_set_zombie();
+
+            eh->track_memory_header(state);
+
             return refcount - 1;
           }
 
-          eh->delete_header();
+          eh->delete_zombie_header();
         } else {
           unsigned int refcount = referenced_field.get(h);
 
@@ -1446,7 +1520,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
                 return refcount - 1;
               }
 
-              eh->delete_header();
+              eh->delete_zombie_header();
             }
           } else {
             return refcount;

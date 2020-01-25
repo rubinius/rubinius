@@ -144,26 +144,6 @@ namespace rubinius {
           }
         }
       }
-
-      // TODO: GC: maybe move this into tracer
-      for(auto i = state->collector()->references().begin();
-          i != state->collector()->references().end();
-          ++i)
-      {
-        MemoryHeader* header = reinterpret_cast<MemoryHeader*>(*i);
-
-        if(header->referenced() > 0) {
-          if(header->object_p()) {
-            Object* obj = reinterpret_cast<Object*>(header);
-
-            // TODO: GC update the data structure
-            f(state, &obj);
-          } else if(header->data_p()) {
-            // DataHeader* data = reinterpret_cast<DataHeader*>(header);
-            // TODO: process data (not C-API Data) instances
-          }
-        }
-      }
     }
 
     void MainHeap::collect_finish(STATE) {

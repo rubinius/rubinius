@@ -169,7 +169,7 @@ namespace rubinius {
 
   void Bignum::initialize(STATE, Bignum* obj) {
     mp_init_managed(state, obj->mp_val());
-    obj->set_frozen();
+    obj->set_frozen(state);
   }
 
   Bignum* Bignum::create(STATE) {
