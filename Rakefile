@@ -113,30 +113,11 @@ class SpecRunner
   end
 end
 
-task :default => [:spec, :check_status, :install]
-
-def check_status
-  exit 1 unless SpecRunner.at_exit_status == 0
-end
+task :default => [:spec, :install]
 
 def clean_environment
   ENV['GEM_PATH'] = ENV['GEM_HOME'] = nil
   ENV['RUBYOPT'] = "--disable-gems"
-end
-
-task :check_status do
-  check_status
-end
-
-task :github do
-  cur = `git config remote.origin.url`.strip
-  if cur == "git://github.com/evanphx/rubinius.git"
-    sh "git config remote.origin.url git://github.com/rubinius/rubinius.git"
-    puts "\nSwitch to git://github.com/rubinius/rubinius.git"
-  else
-    sh "git config remote.origin.url git@github.com:rubinius/rubinius.git"
-    puts "\nSwitch to github.com:rubinius/rubinius.git"
-  end
 end
 
 # See vm.rake for more information
@@ -150,7 +131,6 @@ desc 'Remove rubinius build files'
 task :clean => %w[
   vm:clean
   core:clean
-  clean:crap
 ]
 
 desc 'Remove rubinius build files and external library build files'
@@ -160,41 +140,18 @@ task :distclean => %w[
   vm:distclean
 ]
 
-namespace :clean do
-  desc "Cleans up editor files and other misc crap"
-  task :crap do
-    files = (Dir["*~"] + Dir["**/*~"]).uniq
-
-    rm_f files, :verbose => $verbose unless files.empty?
-  end
-end
-
 desc "Run specs in default (configured) mode but do not rebuild on failure"
 task :spec => %w[build vm:test] do
   clean_environment
 
   spec_runner = SpecRunner.new
   spec_runner.run
+
+  exit 1 unless SpecRunner.at_exit_status == 0
 end
 
 desc "Run specs as in the spec task, but with CI formatting"
 task :ci do
   SpecRunner.flags = "-V" # show spec file names
   Rake::Task["spec"].invoke
-end
-
-desc "Print list of items marked to-do in core/ (@todo|TODO)"
-task :todos do
-
-  # create array with files to be checked
-  filesA = Dir['core/*.*']
-
-  # search for @todo or TODO
-  filesA.sort!.each do |filename|
-    File.open(filename) do |file|
-      file.each do |line|
-        puts "#{filename} #{file.lineno.to_s}:\t#{line.strip}" if line.include?("@todo") or line.include?("TODO")
-      end
-    end
-  end
 end
