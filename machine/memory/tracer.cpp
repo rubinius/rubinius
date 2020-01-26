@@ -27,8 +27,6 @@ namespace rubinius {
         ExtendedHeader* header = *i;
 
         if(MemoryHandle* handle = header->get_handle()) {
-          if(!handle->valid_p()) ::abort();
-
           if(handle->accesses() > 0 || handle->cycles() < 3) {
             if(handle->object()->object_p()) {
               Object* obj = handle->object();
@@ -101,15 +99,9 @@ namespace rubinius {
         if(header->zombie_p()) {
           header->delete_zombie_header();
 
-          // TODO: remove when headers are stable
-          // logger::write("memory tracer: deleting zombie extended header: %p", header);
-
           i = state->collector()->memory_headers().erase(i);
         } else if(!header->marked_p(state->memory()->mark()) && !header->finalizer_p()) {
           header->delete_header();
-
-          // TODO: remove when headers are stable
-          // logger::write("memory tracer: deleting unmarked extended header: %p", header);
 
           i = state->collector()->memory_headers().erase(i);
         } else {

@@ -111,10 +111,6 @@ namespace rubinius {
   }
 
   void ExtendedHeader::track_memory_header(STATE) {
-    if(MemoryHandle* handle = get_handle()) {
-      if(!handle->object()->reference_p()) ::abort();
-    }
-
     state->collector()->add_memory_header(this);
   }
 
@@ -456,10 +452,6 @@ namespace rubinius {
       // RIO objects have a finalizer defined
     } else if (rfile_p()) {
       delete reinterpret_cast<RFile*>(data());
-    } else if (object_type_p()) {
-      // Nothing
-    } else {
-      ::abort();
     }
 
     _type_ = eReleased;

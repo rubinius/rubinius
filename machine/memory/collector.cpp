@@ -367,11 +367,7 @@ namespace rubinius {
         process_list_.pop_back();
 
         fo->finalize(state);
-        if(fo->object()->finalizer_p()) {
-          delete fo;
-        } else {
-          logger::write("halt: invalid finalizer object in finalizer list");
-        }
+        delete fo;
 
         state->shared().collector_metrics()->objects_finalized++;
       }
@@ -381,11 +377,7 @@ namespace rubinius {
         finalizer_list_.pop_back();
 
         fo->finalize(state);
-        if(fo->object()->finalizer_p()) {
-          delete fo;
-        } else {
-          logger::write("halt: invalid finalizer object in finalizer list");
-        }
+        delete fo;
 
         state->shared().collector_metrics()->objects_finalized++;
       }

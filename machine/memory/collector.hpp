@@ -197,10 +197,6 @@ namespace rubinius {
       void add_memory_header(ExtendedHeader* header) {
         std::lock_guard<locks::spinlock_mutex> guard(memory_headers_lock_);
 
-        if(MemoryHandle* handle = header->get_handle()) {
-          if(!handle->valid_p()) ::abort();
-        }
-
         memory_headers_list_.push_back(header);
       }
 

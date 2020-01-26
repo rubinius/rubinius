@@ -619,11 +619,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     ~ExtendedHeader() {
       for(int i = 0; i < size(); i++) {
         if(MemoryHandle* handle = words[i].get_handle()) {
-          if(handle->valid_p()) {
-            delete handle;
-          } else {
-            ::abort();
-          }
+          delete handle;
         } else if(MemoryLock* lock = words[i].get_lock()) {
           delete lock;
         }
