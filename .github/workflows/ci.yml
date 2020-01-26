@@ -13,11 +13,11 @@ jobs:
     - name: Install dependencies
     - run: sudo apt-get update
     - run: sudo apt-get install ruby
-		- run: ./scripts/dependencies.sh
- 		- name: Configure
-		- run: ./configure --llvm-config=llvm-config --cc=clang --cxx=clang++
- 		- name: Build
-		- run: make
-		- name: Test
-		- run: rake -q vm:test
-		- run: bin/mspec ci
+    - run: ./scripts/dependencies.sh
+    - name: Configure
+    - run: ./configure --llvm-config=llvm-config --cc=clang --cxx=clang++
+    - name: Build
+    - run: make
+    - name: Test
+    - run: rake -q vm:test
+    - run: bin/mspec ci
