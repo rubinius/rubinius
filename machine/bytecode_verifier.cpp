@@ -346,6 +346,8 @@ namespace rubinius {
         case instructions::data_r_load_false.id:
         case instructions::data_r_load_true.id:
         case instructions::data_r_ret.id:
+        case instructions::data_r_refcnt_inc.id:
+        case instructions::data_r_refcnt_dec.id:
         case instructions::data_r_load_local_depth.id:
         case instructions::data_r_store_local_depth.id:
         case instructions::data_r_load_stack.id:

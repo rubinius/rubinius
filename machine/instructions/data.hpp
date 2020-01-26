@@ -1172,6 +1172,14 @@ namespace rubinius {
       "r_load_index", 282, 4, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
       rubinius::interpreter::r_load_index
     };
+    const InstructionData constexpr data_r_refcnt_inc = {
+      "r_refcnt_inc", 283, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_refcnt_inc
+    };
+    const InstructionData constexpr data_r_refcnt_dec = {
+      "r_refcnt_dec", 284, 2, 0, 0, 0, 0, 0, (0 * 0), (0 * 0), (0 * 0),
+      rubinius::interpreter::r_refcnt_dec
+    };
   }
 
   struct Instructions {

@@ -285,5 +285,7 @@ namespace rubinius {
     instructions::data_r_load_ivar,
     instructions::data_r_store_ivar,
     instructions::data_r_load_index,
+    instructions::data_r_refcnt_inc,
+    instructions::data_r_refcnt_dec,
   };
 }

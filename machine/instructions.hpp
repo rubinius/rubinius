@@ -271,6 +271,8 @@ namespace rubinius {
     inline void r_load_f_binops(CF, R0, R1);
     inline void r_copy(CF, R0, R1);
     inline intptr_t r_ret(STATE, CF, R0);
+    inline void r_refcnt_inc(STATE, CF, R0);
+    inline void r_refcnt_dec(STATE, CF, R0);
 
     // Native signed integer instructions
     inline void n_iadd(CF, R0, R1, R2);
