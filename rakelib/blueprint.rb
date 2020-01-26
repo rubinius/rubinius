@@ -76,6 +76,7 @@ Daedalus.blueprint do |i|
   end
 
   files = i.source_files "machine/*.{cpp,c}", *subdirs
+  files.delete_if { |f| %r[.*machine/main.cpp] =~ f.path }
 
   Dir["machine/interpreter/*.cpp"].each do |name|
     files << InstructionSourceFile.new(name)
@@ -273,11 +274,11 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-D_LARGEFILE_SOURCE"
   gcc.cflags << "-D_FILE_OFFSET_BITS=64"
 
-  cli = files.dup
-  cli << i.source_file("machine/drivers/cli.cpp")
+  program = files.dup
+  program << i.source_file("machine/main.cpp")
 
   exe = RUBY_PLATFORM =~ /mingw|mswin/ ? 'machine/vm.exe' : 'machine/vm'
-  i.program exe, *cli
+  i.program exe, *program
 
   test_files = files.dup
   test_files << i.source_file("machine/test/runner.cpp") { |f|
