@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: sudo apt-get update
-    - run: sudo apt-get install ruby
+    - run: sudo apt-get install clang llvm ruby
     - name: Install dependencies
       run: ./scripts/dependencies.sh
     - name: Configure
