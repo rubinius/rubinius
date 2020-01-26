@@ -91,24 +91,6 @@ namespace rubinius {
         }
       }
 
-      for(auto i = state->collector()->memory_headers().begin();
-          i != state->collector()->memory_headers().end();)
-      {
-        ExtendedHeader* header = *i;
-
-        if(header->zombie_p()) {
-          header->delete_zombie_header();
-
-          i = state->collector()->memory_headers().erase(i);
-        } else if(!header->marked_p(state->memory()->mark()) && !header->finalizer_p()) {
-          header->delete_header();
-
-          i = state->collector()->memory_headers().erase(i);
-        } else {
-          ++i;
-        }
-      }
-
       for(auto i = state->collector()->weakrefs().begin();
           i != state->collector()->weakrefs().end();)
       {
@@ -127,6 +109,29 @@ namespace rubinius {
       }
 
       heap_->collect_finish(state);
+
+      /* We must do this last after everyone who needs to check an object in
+       * this garbage collection cycle object has a chance to do so.
+       */
+      for(auto i = state->collector()->memory_headers().begin();
+          i != state->collector()->memory_headers().end();)
+      {
+        ExtendedHeader* header = *i;
+
+        if(header->zombie_p()) {
+          header->delete_zombie_header();
+
+          i = state->collector()->memory_headers().erase(i);
+        } else if(!header->marked_p(state->memory()->mark()) && !header->finalizer_p()) {
+          header->delete_header();
+
+          i = state->collector()->memory_headers().erase(i);
+        } else {
+          ++i;
+        }
+      }
+
+      state->memory()->rotate_mark();
 
       logger::info("memory tracer: max recursion: %ld, max mark stack size: %ld",
           max_recursion_, max_mark_stack_size_);

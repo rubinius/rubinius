@@ -154,8 +154,6 @@ namespace rubinius {
 
       state->shared().symbols.sweep(state);
 
-      state->memory()->rotate_mark();
-
       diagnostics::CollectorMetrics* metrics = state->shared().collector_metrics();
       metrics->first_region_count++;
       metrics->large_count++;
