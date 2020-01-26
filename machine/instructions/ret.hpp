@@ -7,7 +7,7 @@ namespace rubinius {
         call_frame->scope->flush_to_heap(state);
       }
 
-      Object* obj = call_frame->return_value = stack_top();
+      Object* obj = stack_top();
 
       if(obj->nil_p()) {
         if(NIL_TAG_ID(obj) == 0) {
@@ -15,6 +15,8 @@ namespace rubinius {
               APPLY_NIL_TAG(call_frame->machine_code->nil_id(), call_frame->ip()));
         }
       }
+
+      call_frame->return_value = obj;
 
       return reinterpret_cast<intptr_t>(obj);
     }
