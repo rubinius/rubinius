@@ -38,10 +38,7 @@ namespace rubinius {
         document_.AddMember("metadata", o.Move(), alloc);
       }
 
-      virtual ~Diagnostic() {
-        document_.SetNull();
-        document_.GetAllocator().Clear();
-      }
+      virtual ~Diagnostic() {}
 
       virtual void start_reporting(STATE) {
         state->shared().diagnostics()->add_report(state, this);
