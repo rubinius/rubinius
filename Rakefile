@@ -104,12 +104,20 @@ class SpecRunner
     @handler = lambda do |ok, status|
       self.class.set_at_exit_status(status.exitstatus) unless ok
     end
+    @start_time = Time.now
+  end
+
+  def elapsed_time
+    puts "Running for #{Time.now - @start_time} seconds"
   end
 
   def run(suite=:ci_files)
     self.class.set_at_exit_handler
 
-    sh("bin/mspec ci :#{suite} #{self.class.flags} -t bin/#{BUILD_CONFIG[:program_name]} -d --background", &@handler)
+    cmd = "bin/mspec ci #{suite} #{self.class.flags} -t bin/#{BUILD_CONFIG[:program_name]} -d --background"
+    puts cmd
+
+    sh(cmd, &@handler)
   end
 end
 
@@ -145,7 +153,75 @@ task :spec => %w[build vm:test] do
   clean_environment
 
   spec_runner = SpecRunner.new
-  spec_runner.run
+
+  %w[spec/language
+     spec/core
+     spec/command_line
+     spec/instructions
+     spec/jit
+     spec/ruby/command_line
+     spec/ruby/language
+     spec/ruby/core/argf
+     spec/ruby/core/array
+     spec/ruby/core/basicobject
+     spec/ruby/core/bignum
+     spec/ruby/core/binding
+     spec/ruby/core/builtin_constants
+     spec/ruby/core/class
+     spec/ruby/core/comparable
+     spec/ruby/core/complex
+     spec/ruby/core/continuation
+     spec/ruby/core/dir
+     spec/ruby/core/encoding
+     spec/ruby/core/enumerable
+     spec/ruby/core/enumerator
+     spec/ruby/core/env
+     spec/ruby/core/exception
+     spec/ruby/core/false
+     spec/ruby/core/fiber
+     spec/ruby/core/file
+     spec/ruby/core/filetest
+     spec/ruby/core/fixnum
+     spec/ruby/core/float
+     spec/ruby/core/gc
+     spec/ruby/core/hash
+     spec/ruby/core/integer
+     spec/ruby/core/io
+     spec/ruby/core/kernel
+     spec/ruby/core/main
+     spec/ruby/core/marshal
+     spec/ruby/core/matchdata
+     spec/ruby/core/math
+     spec/ruby/core/method
+     spec/ruby/core/module
+     spec/ruby/core/mutex
+     spec/ruby/core/nil
+     spec/ruby/core/numeric
+     spec/ruby/core/object
+     spec/ruby/core/objectspace
+     spec/ruby/core/proc
+     spec/ruby/core/process
+     spec/ruby/core/random
+     spec/ruby/core/range
+     spec/ruby/core/rational
+     spec/ruby/core/regexp
+     spec/ruby/core/signal
+     spec/ruby/core/string
+     spec/ruby/core/struct
+     spec/ruby/core/symbol
+     spec/ruby/core/systemexit
+     spec/ruby/core/thread
+     spec/ruby/core/threadgroup
+     spec/ruby/core/time
+     spec/ruby/core/true
+     spec/ruby/core/unboundmethod
+     spec/ruby/optional/capi
+     spec/library
+  ].each do |path|
+    spec_runner.run path
+  end
+
+  spec_runner.elapsed_time
 
   exit 1 unless SpecRunner.at_exit_status == 0
 end
