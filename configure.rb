@@ -316,12 +316,12 @@ class Configure
       @debug_build = true
     end
 
-    o.on "--sanitize", "SANITIZER", "Enable the Clang sanitizer: 'memory', 'address'" do |sanitizer|
-      if ["address", "memory"].include?(sanitizer)
+    o.on "--sanitize", "SANITIZER", "Enable the Clang sanitizer: 'memory', 'address', 'undefined'" do |sanitizer|
+      if ["address", "memory", "undefined"].include?(sanitizer)
         @debug_build = true
         (@system_cxxflags ||= "") << " -fsanitize=#{sanitizer}  -fno-omit-frame-pointer -fno-optimize-sibling-calls "
         @system_cxxflags << " -fsanitize-address-use-after-scope " if sanitizer == "address"
-        @system.cxxflags << " -fsanitize-memory-track-origins " if sanitizer == "memory"
+        @system_cxxflags << " -fsanitize-memory-track-origins " if sanitizer == "memory"
 
         (@system_ldflags ||= "") << " -g -fsanitize=#{sanitizer} "
       end
