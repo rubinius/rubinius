@@ -24,8 +24,8 @@ namespace rubinius {
     GO(call_site).set(state->memory()->new_class<Class, CallSite>(
           state, G(rubinius), "CallSite"));
 
-    max_caches = state->shared().config.machine_call_site_cache_limit.value;
-    max_evictions = state->shared().config.machine_call_site_eviction_limit.value;
+    max_caches = state->configuration()->machine_call_site_cache_limit.value;
+    max_evictions = state->configuration()->machine_call_site_eviction_limit.value;
   }
 
   Tuple* CallSite::cache_entries(STATE) {
@@ -106,6 +106,7 @@ namespace rubinius {
         f(state, entry->p_module());
         f(state, entry->p_executable());
 
+        /* TODO: SymbolTable and Module name
         if(state->vm()->shared.profiler()->collecting_p()) {
           if(CompiledCode* code = try_as<CompiledCode>(entry->executable())) {
             if(code->machine_code()->sample_count > state->vm()->shared.profiler()->sample_min()) {
@@ -115,6 +116,7 @@ namespace rubinius {
             }
           }
         }
+        */
       }
     }
 

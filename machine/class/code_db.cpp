@@ -135,7 +135,7 @@ namespace rubinius {
     stream >> version;
     stream >> signature;
 
-    if(state->shared().config.codedb_cache_validate) {
+    if(state->configuration()->codedb_cache_validate) {
       if(!magic.compare(CodeDB::magic)) return nullptr;
       if(version != CodeDB::version) return nullptr;
       if(!signature.compare(CodeDB::signature)) return nullptr;
@@ -161,7 +161,7 @@ namespace rubinius {
 
     if(codedb->data_fd() < 0) return nullptr;
 
-    codedb->mptr(mmap(NULL, state->shared().config.codedb_cache_size,
+    codedb->mptr(mmap(NULL, state->configuration()->codedb_cache_size,
           PROT_READ|PROT_WRITE, MAP_PRIVATE, codedb->data_fd(), 0));
 
     codedb->data(static_cast<char*>(codedb->mptr()) + codedb->regions()->data.begin);
@@ -228,18 +228,18 @@ namespace rubinius {
 
     core_path.append("/cache");
 
-    if(state->shared().config.codedb_cache_purge) {
+    if(state->configuration()->codedb_cache_purge) {
       CodeDB::purge(state, cache_path);
     }
 
-    if(state->shared().config.codedb_cache_enabled) {
+    if(state->configuration()->codedb_cache_enabled) {
       if(!CodeDB::copy_database(state, core_path, cache_path)) {
         logger::write("codedb: copy failed: %s, %s",
             core_path.c_str(), cache_path.c_str());
       }
     }
 
-    if(state->shared().config.codedb_cache_enabled
+    if(state->configuration()->codedb_cache_enabled
         && (codedb = CodeDB::open(state, cache_path))) {
       base_path = cache_path;
       codedb->writable(state, cFalse);
@@ -296,7 +296,7 @@ namespace rubinius {
                             | std::ofstream::binary
 
   Object* CodeDB::close(STATE) {
-    ::munmap(data(), state->shared().config.codedb_cache_size);
+    ::munmap(data(), state->configuration()->codedb_cache_size);
     ::close(data_fd());
 
     delete index();
@@ -338,7 +338,7 @@ namespace rubinius {
       index_offset = regions()->data.end;
     }
 
-    ::munmap(data(), state->shared().config.codedb_cache_size);
+    ::munmap(data(), state->configuration()->codedb_cache_size);
     ::close(data_fd());
 
     std::ofstream stream;
@@ -487,7 +487,7 @@ namespace rubinius {
         if(path.empty()) {
           std::ostringstream path;
 
-          path << state->shared().config.codedb_core_path.value
+          path << state->configuration()->codedb_core_path.value
                << "/source/"
                << code->file()->cpp_str(state);
 

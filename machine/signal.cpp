@@ -73,7 +73,7 @@ namespace rubinius {
   }
 
   VM* SignalThread::new_vm(STATE) {
-    VM* vm = state->shared().thread_nexus()->new_vm(&state->shared(), "rbx.system");
+    VM* vm = state->thread_nexus()->new_vm(&state->shared(), "rbx.system");
     vm->set_kind(memory::ManagedThread::eSystem);
     return vm;
   }
@@ -126,19 +126,17 @@ namespace rubinius {
   void SignalThread::start(STATE) {
     initialize(state);
 
-    if(state->shared().config.log_lifetime.value) {
+    if(state->configuration()->log_lifetime.value) {
       state->shared().signals()->print_machine_info(logger::write);
       state->shared().signals()->print_process_info(logger::write);
 
       logger::write("process: boot stats: " \
           "fields %lldus " \
           "main thread: %lldus " \
-          "memory: %lldus " \
           "ontology: %lldus " \
           "platform: %lldus",
           state->shared().boot_metrics()->fields_us,
           state->shared().boot_metrics()->main_thread_us,
-          state->shared().boot_metrics()->memory_us,
           state->shared().boot_metrics()->ontology_us,
           state->shared().boot_metrics()->platform_us);
     }
@@ -153,7 +151,7 @@ namespace rubinius {
 
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, state->shared().config.machine_thread_stack_size);
+    pthread_attr_setstacksize(&attrs, state->configuration()->machine_thread_stack_size);
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
     if(int error = pthread_create(&vm_->os_thread(), &attrs,
@@ -184,7 +182,7 @@ namespace rubinius {
 
     State state_obj(vm), *state = &state_obj;
 
-    vm->set_stack_bounds(state->shared().config.machine_thread_stack_size.value);
+    vm->set_stack_bounds(state->configuration()->machine_thread_stack_size.value);
     vm->set_current_thread();
 
     RUBINIUS_THREAD_START(
@@ -281,8 +279,8 @@ namespace rubinius {
     char process_info[RBX_PROCESS_INFO_LEN];
 
     snprintf(process_info, RBX_PROCESS_INFO_LEN, "%s %s %s %s %s %s %.8s %s %s",
-        signal_thread_->shared().username.c_str(),
-        RBX_PROGRAM_NAME, signal_thread_->shared().pid.c_str(),
+        signal_thread_->shared().env()->username().c_str(),
+        RBX_PROGRAM_NAME, signal_thread_->shared().env()->pid().c_str(),
         RBX_VERSION, RBX_RUBY_VERSION, RBX_RELEASE_DATE, RBX_BUILD_REV,
         llvm_version, jit_status);
 
@@ -489,8 +487,6 @@ namespace rubinius {
 #ifndef RBX_WINDOWS
     // Get the machine info.
     uname(&machine_info);
-
-    state->shared().nodename.assign(machine_info.nodename);
 
     struct sigaction action;
 

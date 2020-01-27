@@ -90,7 +90,7 @@ namespace rubinius {
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
     return Thread::create(state, self,
-        state->shared().thread_nexus()->new_vm(&state->shared()),
+        state->thread_nexus()->new_vm(&state->shared()),
         function);
   }
 
@@ -108,7 +108,7 @@ namespace rubinius {
   }
 
   void Thread::finalize(STATE, Thread* thread) {
-    if(state->shared().config.log_thread_finalizer.value) {
+    if(state->configuration()->log_thread_finalizer.value) {
       logger::write("thread: finalizer: %s", thread->vm()->name().c_str());
     }
 
@@ -162,8 +162,8 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    if(state->shared().config.log_thread_lifetime.value) {
-      const std::regex& filter = state->shared().config.log_thread_filter();
+    if(state->configuration()->log_thread_lifetime.value) {
+      const std::regex& filter = state->configuration()->log_thread_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;
@@ -199,8 +199,8 @@ namespace rubinius {
       thread->stack_size(state, size);
     }
 
-    if(state->shared().config.log_thread_lifetime.value) {
-      const std::regex& filter = state->shared().config.log_thread_filter();
+    if(state->configuration()->log_thread_lifetime.value) {
+      const std::regex& filter = state->configuration()->log_thread_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         std::ostringstream source;
@@ -337,7 +337,7 @@ namespace rubinius {
 
     vm->thread()->pid(state, Fixnum::from(gettid()));
 
-    if(state->shared().config.log_thread_lifetime.value) {
+    if(state->configuration()->log_thread_lifetime.value) {
       logger::write("thread: run: %s, %d, %#x",
           vm->name().c_str(), vm->thread()->pid()->to_native(),
           (unsigned int)thread_debug_self());
@@ -360,12 +360,12 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    if(vm->thread_nexus()->lock_owned_p(vm)) {
+    if(state->thread_nexus()->lock_owned_p(vm)) {
       logger::write("thread: exiting while owning ThreadNexus lock: %s", vm->name().c_str());
-      vm->thread_nexus()->unlock(state, vm);
+      state->thread_nexus()->unlock(state, vm);
     }
 
-    if(state->shared().config.log_thread_lifetime.value) {
+    if(state->configuration()->log_thread_lifetime.value) {
       logger::write("thread: exit: %s %fs", vm->name().c_str(), vm->run_time());
     }
 

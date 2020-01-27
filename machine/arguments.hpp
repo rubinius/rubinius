@@ -6,10 +6,6 @@
 #include "class/tuple.hpp"
 
 namespace rubinius {
-  namespace memory {
-    class GarbageCollector;
-  }
-
   class Array;
 
   class Arguments {

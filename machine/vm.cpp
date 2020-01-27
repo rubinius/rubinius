@@ -62,14 +62,13 @@ namespace rubinius {
   VM::VM(uint32_t id, SharedState& shared, const char* name)
     : memory::ManagedThread(id, shared, memory::ManagedThread::eThread, name)
     , call_frame_(NULL)
-    , thread_nexus_(shared.thread_nexus())
     , park_(new Park)
     , thca_(new memory::OpenTHCA)
     , stack_start_(0)
     , stack_barrier_start_(0)
     , stack_barrier_end_(0)
     , stack_size_(0)
-    , stack_cushion_(shared.config.machine_stack_cushion.value)
+    , stack_cushion_(shared.machine()->configuration()->machine_stack_cushion.value)
     , stack_probe_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
@@ -122,6 +121,10 @@ namespace rubinius {
     state->vm()->metrics()->threads_destroyed++;
 
     delete vm;
+  }
+
+  Globals& VM::globals() {
+    return shared.machine()->memory()->globals;
   }
 
   void VM::set_thread(Thread* thread) {
@@ -358,13 +361,9 @@ namespace rubinius {
     }
   }
 
-  TypeInfo* VM::find_type(int type) {
-    return memory()->type_info[type];
-  }
-
   void VM::after_fork_child(STATE) {
     logger::reset();
-    thread_nexus_->after_fork_child(state);
+    thread_nexus()->after_fork_child(state);
 
     interrupt_lock_.unlock();
     set_main_thread();
@@ -377,9 +376,8 @@ namespace rubinius {
     state->shared().env()->after_fork_child(state);
   }
 
-  Object* VM::path2class(const char* path) {
-    State state(this);
-    Module* mod = shared.globals.object.get();
+  Object* VM::path2class(STATE, const char* path) {
+    Module* mod = state->memory()->globals.object.get();
 
     char* copy = strdup(path);
     char* cur = copy;
@@ -388,7 +386,7 @@ namespace rubinius {
       char* pos = strstr(cur, "::");
       if(pos) *pos = 0;
 
-      Object* obj = mod->get_const(&state, state.symbol(cur));
+      Object* obj = mod->get_const(state, state->symbol(cur));
 
       if(pos) {
         if(Module* m = try_as<Module>(obj)) {
@@ -635,11 +633,5 @@ namespace rubinius {
 
       frame = frame->previous;
     }
-  }
-
-  void VM::gc_verify(memory::GarbageCollector* gc) {
-    /* TODO: GC
-    gc->verify_call_frame(call_frame_);
-    */
   }
 };

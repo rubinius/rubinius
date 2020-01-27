@@ -17,10 +17,10 @@ namespace rubinius {
       }
 
       {
-        std::lock_guard<std::mutex> guard(state->vm()->thread_nexus()->threads_mutex());
+        std::lock_guard<std::mutex> guard(state->thread_nexus()->threads_mutex());
 
-        for(ThreadList::iterator i = state->vm()->thread_nexus()->threads()->begin();
-            i != state->vm()->thread_nexus()->threads()->end();
+        for(ThreadList::iterator i = state->thread_nexus()->threads()->begin();
+            i != state->thread_nexus()->threads()->end();
             ++i)
         {
           ManagedThread* thr = (*i);

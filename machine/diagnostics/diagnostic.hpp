@@ -2,6 +2,7 @@
 #define RBX_DIAGNOSTICS_DIAGNOSTIC_HPP
 
 #include "configuration.hpp"
+#include "environment.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
@@ -42,7 +43,7 @@ namespace rubinius {
 
       virtual void start_reporting(STATE) {
         state->shared().diagnostics()->add_report(state, this);
-        set_nodename(state->shared().nodename);
+        set_nodename(state->shared().env()->nodename());
       }
 
       virtual void stop_reporting(STATE) {

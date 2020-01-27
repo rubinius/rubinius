@@ -63,13 +63,13 @@ namespace rubinius {
       }
 
       virtual void start_reporting(STATE) {
-        if(state->shared().config.diagnostics_jit_enabled) {
+        if(state->configuration()->diagnostics_jit_enabled) {
           Diagnostic::start_reporting(state);
         }
       }
 
       virtual void stop_reporting(STATE) {
-        if(state->shared().config.diagnostics_jit_enabled) {
+        if(state->configuration()->diagnostics_jit_enabled) {
           Diagnostic::stop_reporting(state);
         }
       }

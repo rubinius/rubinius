@@ -197,7 +197,7 @@ namespace rubinius {
 
             if(lock->try_lock(state)) return true;
 
-            if(state->vm()->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
+            if(state->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
               return false;
             }
 
@@ -248,7 +248,7 @@ namespace rubinius {
 
             if(lock->try_lock(state)) return true;
 
-            if(state->vm()->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
+            if(state->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
               return false;
             }
 
@@ -260,7 +260,7 @@ namespace rubinius {
                 state, locked_count_field.set(hh->header, lock_extended()), hh, 1);
             nh = extended_flags(eh);
           } else {
-            if(state->vm()->thread_nexus()->valid_thread_p(
+            if(state->thread_nexus()->valid_thread_p(
                   state, thread_id_field.get(hh->header)))
             {
               return false;
@@ -277,7 +277,7 @@ namespace rubinius {
 
             nh = extended_flags(eh);
           } else {
-            if(state->vm()->thread_nexus()->valid_thread_p(
+            if(state->thread_nexus()->valid_thread_p(
                   state, thread_id_field.get(h)))
             {
               return false;
@@ -382,14 +382,14 @@ namespace rubinius {
 
         if(state->vm()->thread_id() == lock->thread_id) return true;
 
-        if(state->vm()->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
+        if(state->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
           return true;
         }
       } else {
         if(locked_count_field.get(hh->header) > 0) {
           if(state->vm()->thread_id() == thread_id()) return true;
 
-          if(state->vm()->thread_nexus()->valid_thread_p(state, thread_id())) {
+          if(state->thread_nexus()->valid_thread_p(state, thread_id())) {
             return true;
           }
         }
@@ -398,7 +398,7 @@ namespace rubinius {
       if(locked_count_field.get(header.load(std::memory_order_acquire)) > 0) {
         if(state->vm()->thread_id() == thread_id()) return true;
 
-        if(state->vm()->thread_nexus()->valid_thread_p(state, thread_id())) {
+        if(state->thread_nexus()->valid_thread_p(state, thread_id())) {
           return true;
         }
       }
@@ -413,7 +413,7 @@ namespace rubinius {
 
   void MemoryHeader::write_barrier(STATE, MemoryHeader* value) {
 #ifdef RBX_LOG_CONCURRENT_UPDATE
-    if(state->shared().config.machine_concurrent_update_log) {
+    if(state->configuration()->machine_concurrent_update_log) {
       if(thread_id() != state->vm()->thread_id()) {
         TypeInfo* ti = state->memory()->type_info[type_id()];
 
@@ -424,7 +424,7 @@ namespace rubinius {
 #endif
 
 #ifdef RBX_RAISE_CONCURRENT_UPDATE
-    if(state->shared().config.machine_concurrent_update_raise) {
+    if(state->configuration()->machine_concurrent_update_raise) {
       if(thread_id() != state->vm()->thread_id()) {
         TypeInfo* ti = state->memory()->type_info[type_id()];
 
@@ -475,12 +475,12 @@ namespace rubinius {
     }
   */
 
-  size_t ObjectHeader::compute_size_in_bytes(VM* vm) const {
-    return vm->memory()->type_info[type_id()]->object_size(this);
+  size_t ObjectHeader::compute_size_in_bytes(STATE) const {
+    return state->memory()->type_info[type_id()]->object_size(this);
   }
 
-  size_t DataHeader::compute_size_in_bytes(VM* vm) const {
-    return vm->memory()->type_info[type_id()]->object_size(this);
+  size_t DataHeader::compute_size_in_bytes(STATE) const {
+    return state->memory()->type_info[type_id()]->object_size(this);
   }
 
   void ObjectHeader::initialize_copy(STATE, Object* other) {
@@ -488,7 +488,7 @@ namespace rubinius {
     ivars(state, other->ivars());
   }
 
-  void ObjectHeader::copy_body(VM* state, Object* other) {
+  void ObjectHeader::copy_body(STATE, Object* other) {
     void* src = other->__body__;
     void* dst = this->__body__;
 

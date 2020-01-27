@@ -59,7 +59,8 @@ public:
     TS_ASSERT_EQUALS(obj->region(), eThirdRegion);
   }
 
-  void test_collect_full() {
+  /* TODO: Machine
+  void xtest_collect_full() {
     Memory& om = *state->memory();
     Object* mature;
 
@@ -76,8 +77,10 @@ public:
 
     TS_ASSERT(mature->marked_p(mark));
   }
+  */
 
-  void test_collect_full_marks_young_objects() {
+  /* TODO: Machine
+  void xtest_collect_full_marks_young_objects() {
     Memory& om = *state->memory();
     Tuple* young;
     Object* mature;
@@ -95,9 +98,11 @@ public:
 
     TS_ASSERT(young->marked_p(mark));
   }
+  */
 
   /* Could segfault on failure due to infinite loop. */
-  void test_collect_full_stops_at_already_marked_objects() {
+  /* TODO: Machine
+  void xtest_collect_full_stops_at_already_marked_objects() {
     Memory& om = *state->memory();
     Tuple *young, *mature;
 
@@ -120,6 +125,7 @@ public:
 
     TS_ASSERT_EQUALS(mature->field[0], young);
   }
+  */
 
   void test_valid_object_p() {
     /* TODO: GC

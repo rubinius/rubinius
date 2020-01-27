@@ -10,9 +10,9 @@
 
 namespace rubinius {
 
-  void TypeInfo::init(Memory* om) {
+  void TypeInfo::init(Memory* memory) {
     // Call the automatically generated function
-    auto_init(om);
+    auto_init(memory);
   }
 
   TypeInfo::TypeInfo(object_type type)

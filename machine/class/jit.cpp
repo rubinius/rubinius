@@ -32,18 +32,18 @@ namespace rubinius {
   }
 
   Object* JIT::enabled_p(STATE) {
-    return RBOOL(state->shared().config.jit_enabled.value);
+    return RBOOL(state->configuration()->jit_enabled.value);
   }
 
   Object* JIT::compile_threshold(STATE) {
     // TODO: JIT
-    return Integer::from(state, 0 /*state->shared().config.jit_threshold_compile*/);
+    return Integer::from(state, 0 /*state->configuration()->jit_threshold_compile*/);
   }
 
   Object* JIT::sync_set(STATE, Object* flag) {
     return cFalse;
     /* TODO: JIT
-    state->shared().config.jit_sync.set(CBOOL(flag));
+    state->configuration()->jit_sync.set(CBOOL(flag));
     return sync_get(state);
     */
   }
@@ -51,7 +51,7 @@ namespace rubinius {
   Object* JIT::sync_get(STATE) {
     return cFalse;
     /* TODO: JIT
-    return RBOOL(state->shared().config.jit_sync);
+    return RBOOL(state->configuration()->jit_sync);
     */
   }
 

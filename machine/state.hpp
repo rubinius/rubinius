@@ -34,6 +34,12 @@ namespace rubinius {
       , shared_(vm->shared)
     {}
 
+    Configuration* const configuration();
+    ThreadNexus* const thread_nexus();
+    MachineThreads* const machine_threads();
+    memory::Collector* const collector();
+    Memory* const memory();
+
     VM* vm() {
       return vm_;
     }
@@ -51,25 +57,12 @@ namespace rubinius {
       vm_ = vm;
     }
 
-    Globals& globals() {
-      return shared_.globals;
-    }
+    Globals& globals();
 
-    Symbol* symbol(const char* str) {
-      return shared_.symbols.lookup(this, str, strlen(str));
-    }
-
-    Symbol* symbol(const char* str, size_t len) {
-      return shared_.symbols.lookup(this, str, len);
-    }
-
-    Symbol* symbol(std::string str) {
-      return shared_.symbols.lookup(this, str);
-    }
-
-    Symbol* symbol(String* str) {
-      return shared_.symbols.lookup(this, str);
-    }
+    Symbol* const symbol(const char* str);
+    Symbol* const symbol(const char* str, size_t len);
+    Symbol* const symbol(std::string str);
+    Symbol* const symbol(String* str);
 
     uint32_t hash_seed() const {
       return shared_.hash_seed;
@@ -78,12 +71,6 @@ namespace rubinius {
     VMThreadState* thread_state() {
       return vm_->thread_state();
     }
-
-    Memory* memory() {
-      return shared_.memory();
-    }
-
-    memory::Collector* collector();
 
     SharedState& shared() {
       return shared_;

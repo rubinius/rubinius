@@ -11,7 +11,7 @@ public:
 
   void setUp() {
     VMTest::setUp();
-    immix = new memory::Immix(state);
+    immix = new memory::Immix();
   }
 
   void tearDown() {

@@ -59,7 +59,7 @@ namespace rubinius {
     if(!reference_p()) return this;
 
     Object* other = state->memory()->new_object(
-        state, class_object(state), this->size_in_bytes(state->vm()), type_id());
+        state, class_object(state), this->size_in_bytes(state), type_id());
 
     return other->copy_object(state, this);
   }
@@ -107,7 +107,7 @@ namespace rubinius {
      * data caried in the new instance.
      */
     if(type_id() != DataType) {
-      copy_body(state->vm(), other);
+      copy_body(state, other);
     }
 
     // Ensure that the singleton class is not shared

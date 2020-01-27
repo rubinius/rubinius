@@ -55,9 +55,11 @@ namespace rubinius {
 
   public: /* Class initializers */
 
-    static void init(Memory* om);
-    static void auto_init(Memory* om);
+    // TODO: Can these be reworked to be self-contained?
+    static void init(Memory* memory);
+    static void auto_init(Memory* memory);
     static void auto_learn_fields(STATE);
+
     virtual void auto_mark(STATE, Object* obj, std::function<void (STATE, Object**)> f) = 0;
     virtual void update_weakref(STATE, Object* obj) {}
     virtual void before_visit(STATE, Object* o, std::function<void (STATE, Object**)> f) {}

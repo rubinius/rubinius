@@ -207,12 +207,12 @@ namespace rubinius {
        * an array was expected.
        */
       std::cout << "Type Error detected:" << std::endl;
-      TypeInfo* wanted = state->vm()->find_type(e.type);
+      TypeInfo* wanted = state->memory()->find_type(e.type);
 
       if(!e.object->reference_p()) {
         std::cout << "  Tried to use non-reference value " << e.object;
       } else {
-        TypeInfo* was = state->vm()->find_type(e.object->type_id());
+        TypeInfo* was = state->memory()->find_type(e.object->type_id());
         std::cout << "  Tried to use object of type " <<
           was->type_name << " (" << was->type << ")";
       }

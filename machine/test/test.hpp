@@ -5,6 +5,8 @@
 #include "state.hpp"
 #include "call_frame.hpp"
 #include "config_parser.hpp"
+#include "machine.hpp"
+#include "environment.hpp"
 #include "machine/object_utils.hpp"
 #include "memory.hpp"
 #include "configuration.hpp"
@@ -159,6 +161,7 @@ public:
 
 class VMTest {
 public:
+  Machine* machine;
   SharedState* shared;
   State* state;
   ConfigParser* config_parser;
@@ -185,9 +188,6 @@ public:
   void initialize_as_root(STATE) {
     state->vm()->set_current_thread();
 
-    Memory* om = new Memory(state);
-    state->vm()->shared.om = om;
-
     state->vm()->shared.set_initialized();
     state->vm()->shared.set_root_vm(state->vm());
 
@@ -205,9 +205,9 @@ public:
   }
 
   void create() {
-    config_parser = new ConfigParser;
-    shared = new SharedState(0, config, *config_parser);
-    VM* vm = shared->thread_nexus()->new_vm(shared);
+    machine = new Machine(0, nullptr);
+
+    VM* vm = machine->thread_nexus()->new_vm(machine->environment()->shared);
     state = new State(vm);
     initialize_as_root(state);
   }
@@ -216,6 +216,9 @@ public:
     VM::discard(state, state->vm());
     delete shared;
     delete state;
+
+    machine->halt();
+    delete machine;
   }
 
   void setUp() {

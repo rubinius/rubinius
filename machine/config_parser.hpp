@@ -37,7 +37,7 @@ namespace rubinius {
     Entry* find(std::string variable);
     EntryList* get_section(std::string prefix);
 
-    void   update_configuration(Configuration&);
+    void   update_configuration(Configuration*);
     void parsed_options(std::string& str);
 
   private:

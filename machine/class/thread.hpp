@@ -84,7 +84,7 @@ namespace rubinius {
       obj->priority(Fixnum::from(0));
       obj->pid(Fixnum::from(0));
       obj->initialized(cFalse);
-      obj->stack_size(Fixnum::from(state->shared().config.machine_thread_stack_size.value));
+      obj->stack_size(Fixnum::from(state->configuration()->machine_thread_stack_size.value));
       obj->source(nil<String>());
       obj->fiber(nil<Fiber>());
       obj->current_fiber(nil<Fiber>());

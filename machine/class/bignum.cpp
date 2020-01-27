@@ -1187,7 +1187,7 @@ namespace rubinius {
     mp_int* n = this->mp_val();
     assert(MANAGED(n));
     Object* m = static_cast<Object*>(n->managed);
-    return m->size_in_bytes(state->vm());
+    return m->size_in_bytes(state);
   }
 
   extern "C" void* MANAGED_REALLOC_MPINT(void* s, mp_int* a, size_t bytes) {

@@ -482,8 +482,8 @@ namespace rubinius {
 
       close(errors[1]);
 
-      if(state->shared().config.log_lifetime.value) {
-        const std::regex& filter = state->shared().config.log_filter();
+      if(state->configuration()->log_lifetime.value) {
+        const std::regex& filter = state->configuration()->log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: spawn: %d: %s, %s, %s:%d",
@@ -612,8 +612,8 @@ namespace rubinius {
       close(errors[1]);
       close(output[1]);
 
-      if(state->shared().config.log_lifetime.value) {
-        const std::regex& filter = state->shared().config.log_filter();
+      if(state->configuration()->log_lifetime.value) {
+        const std::regex& filter = state->configuration()->log_filter();
 
         if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
           logger::write("process: backtick: %d: %s, %s, %s:%d",
@@ -710,8 +710,8 @@ namespace rubinius {
      */
     ExecCommand exe(state, path, args);
 
-    if(state->shared().config.log_lifetime.value) {
-      const std::regex& filter = state->shared().config.log_filter();
+    if(state->configuration()->log_lifetime.value) {
+      const std::regex& filter = state->configuration()->log_filter();
 
       if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
         logger::write("process: exec: %s, %s, %s:%d", exe.command(),
@@ -848,7 +848,7 @@ namespace rubinius {
     {
       StopPhase locked(state);
 
-      state->shared().machine_threads()->before_fork(state);
+      state->machine_threads()->before_fork(state);
 
       // Hold the logger lock to avoid racing the logger
       logger::lock();
@@ -859,10 +859,10 @@ namespace rubinius {
 
       if(pid > 0) {
         // We're in the parent...
-        state->shared().machine_threads()->after_fork_parent(state);
+        state->machine_threads()->after_fork_parent(state);
 
-        if(state->shared().config.log_lifetime.value) {
-          const std::regex& filter = state->shared().config.log_filter();
+        if(state->configuration()->log_lifetime.value) {
+          const std::regex& filter = state->configuration()->log_filter();
 
           if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
             logger::write("process: fork: child: %d, %s, %s:%d", pid,
@@ -882,7 +882,7 @@ namespace rubinius {
       state->vm()->after_fork_child(state);
 
       state->shared().after_fork_child(state);
-      state->shared().machine_threads()->after_fork_child(state);
+      state->machine_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();
@@ -902,8 +902,8 @@ namespace rubinius {
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
-    if(CBOOL(force) || state->shared().config.collector_honor_start) {
-      state->memory()->collector()->collect_requested(state,
+    if(CBOOL(force) || state->configuration()->collector_honor_start) {
+      state->collector()->collect_requested(state,
           "collector: request to collect from managed code");
     }
     return cNil;
@@ -1282,7 +1282,7 @@ namespace rubinius {
   }
 
   Object* System::vm_inc_global_serial(STATE) {
-    if(state->shared().config.serial_debug) {
+    if(state->configuration()->serial_debug) {
       std::cerr << std::endl
                 << "global serial increased from "
                 << state->shared().global_serial()
@@ -1326,7 +1326,7 @@ namespace rubinius {
   Object* System::vm_raise_exception(STATE, Exception* exc) {
     state->raise_exception(exc);
 
-    if(state->shared().config.log_exceptions.value) {
+    if(state->configuration()->log_exceptions.value) {
       logger::write("exception: %s: %s",
           exc->class_object(state)->module_name()->cpp_str(state).c_str(), exc->message_c_str(state));
     }
@@ -1336,17 +1336,17 @@ namespace rubinius {
 
   Fixnum* System::vm_memory_size(STATE, Object* obj) {
     if(obj->reference_p()) {
-      size_t bytes = obj->size_in_bytes(state->vm());
+      size_t bytes = obj->size_in_bytes(state);
       if(Bignum* b = try_as<Bignum>(obj)) {
         bytes += b->managed_memory_size(state);
       }
       Object* iv = obj->ivars();
       if(LookupTable* lt = try_as<LookupTable>(iv)) {
-        bytes += iv->size_in_bytes(state->vm());
-        bytes += lt->values()->size_in_bytes(state->vm());
+        bytes += iv->size_in_bytes(state);
+        bytes += lt->values()->size_in_bytes(state);
         bytes += (lt->entries()->to_native() * sizeof(LookupTableBucket));
       } else if(iv->reference_p()) {
-        bytes += iv->size_in_bytes(state->vm());
+        bytes += iv->size_in_bytes(state);
       }
       return Fixnum::from(bytes);
     }

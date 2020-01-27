@@ -7,6 +7,8 @@
 #include "memory/heap.hpp"
 
 namespace rubinius {
+  class Configuration;
+
   namespace memory {
     class Immix;
     class LargeRegion;
@@ -17,7 +19,7 @@ namespace rubinius {
       CodeManager& code_manager_;
 
     public:
-      MainHeap(STATE, CodeManager& cm);
+      MainHeap(Configuration* configuration, CodeManager& cm);
       virtual ~MainHeap();
 
       Immix* first_region() {

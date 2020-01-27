@@ -73,12 +73,12 @@ namespace memory {
     }
 
   public:
-    CodeManager(SharedState* shared, int chunk_size=cDefaultChunkSize);
+    CodeManager(int chunk_size=cDefaultChunkSize);
     ~CodeManager();
 
     void add_resource(CodeResource* cr, bool* collect_now);
     void clear_marks();
-    void sweep();
+    void sweep(STATE);
 
   private:
     void add_chunk();

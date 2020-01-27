@@ -9,6 +9,7 @@
 #include <list>
 
 namespace rubinius {
+  class Configuration;
   class Object;
   class Memory;
   struct CallFrame;
@@ -27,7 +28,7 @@ namespace rubinius {
 
       /* Prototypes */
 
-      LargeRegion(STATE);
+      LargeRegion(Configuration* configuration);
       virtual ~LargeRegion();
       void   free_objects();
       Object* allocate(STATE, size_t bytes);

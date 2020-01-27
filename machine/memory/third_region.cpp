@@ -25,9 +25,9 @@
 namespace rubinius {
   namespace memory {
 
-    LargeRegion::LargeRegion(STATE)
+    LargeRegion::LargeRegion(Configuration* configuration)
       : diagnostic_(new diagnostics::LargeRegion())
-      , collection_threshold(state->shared().config.collector_third_region_threshold)
+      , collection_threshold(configuration->collector_third_region_threshold)
       , next_collection_bytes(collection_threshold)
     {}
 
@@ -55,8 +55,8 @@ namespace rubinius {
       diagnostic()->objects++;
       diagnostic()->bytes += bytes;
 
-      state->memory()->shared().memory_metrics()->large_objects++;
-      state->memory()->shared().memory_metrics()->large_bytes += bytes;
+      state->shared().memory_metrics()->large_objects++;
+      state->shared().memory_metrics()->large_bytes += bytes;
 
       entries.push_back(obj);
 
@@ -64,7 +64,7 @@ namespace rubinius {
       if(next_collection_bytes < 0) {
         next_collection_bytes = collection_threshold;
 
-        state->memory()->shared().collector_metrics()->large_set++;
+        state->shared().collector_metrics()->large_set++;
         state->collector()->collect_requested(state,
             "collector: large object space triggered collection request");
       }

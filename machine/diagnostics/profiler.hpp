@@ -122,16 +122,16 @@ namespace rubinius {
       }
 
       virtual void start_reporting(STATE) {
-        if(state->shared().config.diagnostics_profiler_enabled) {
+        if(state->configuration()->diagnostics_profiler_enabled) {
           Diagnostic::start_reporting(state);
 
-          sample_min_ = state->shared().config.diagnostics_profiler_min_sample.value;
+          sample_min_ = state->configuration()->diagnostics_profiler_min_sample.value;
           collecting_ = true;
         }
       }
 
       virtual void stop_reporting(STATE) {
-        if(state->shared().config.diagnostics_profiler_enabled) {
+        if(state->configuration()->diagnostics_profiler_enabled) {
           Diagnostic::stop_reporting(state);
           collecting_ = false;
         }

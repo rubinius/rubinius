@@ -39,10 +39,6 @@ namespace rubinius {
     class Loop;
   }
 
-  namespace memory {
-    class GarbageCollector;
-  }
-
   class Assertion;
   class CallSiteInformation;
   class Channel;
@@ -92,7 +88,6 @@ namespace rubinius {
     UnwindInfoSet unwinds_;
 
     CallFrame* call_frame_;
-    ThreadNexus* thread_nexus_;
     Park* park_;
     memory::THCA* thca_;
 
@@ -172,8 +167,8 @@ namespace rubinius {
       return id_;
     }
 
-    ThreadNexus* thread_nexus() {
-      return thread_nexus_;
+    ThreadNexus* const thread_nexus() {
+      return shared.thread_nexus();
     }
 
     ThreadNexus::Phase thread_phase() {
@@ -276,10 +271,6 @@ namespace rubinius {
 
     VMThreadState* thread_state() {
       return &thread_state_;
-    }
-
-    Memory* memory() {
-      return shared.memory();
     }
 
     Object* allocate_object(STATE, intptr_t bytes, object_type type) {
@@ -395,9 +386,7 @@ namespace rubinius {
 
     bool scope_valid_p(VariableScope* scope);
 
-    Globals& globals() {
-      return shared.globals;
-    }
+    Globals& globals();
 
     MethodMissingReason method_missing_reason() const {
       return method_missing_reason_;
@@ -501,7 +490,7 @@ namespace rubinius {
 
       ++checkpoints_;
 
-      if(thread_nexus_->check_stop(state, this)) {
+      if(thread_nexus()->check_stop(state, this)) {
         ++stops_;
         checkpoint_ = false;
       }
@@ -514,11 +503,11 @@ namespace rubinius {
     }
 
     void managed_phase(STATE) {
-      thread_nexus_->managed_phase(state, this);
+      thread_nexus()->managed_phase(state, this);
     }
 
     void unmanaged_phase(STATE) {
-      thread_nexus_->unmanaged_phase(state, this);
+      thread_nexus()->unmanaged_phase(state, this);
     }
 
     void set_current_thread();
@@ -530,8 +519,6 @@ namespace rubinius {
     void initialize_platform_data(STATE);
     Object* ruby_lib_version();
 
-    TypeInfo* find_type(int type);
-
     static void init_ffi(STATE);
 
     void raise_from_errno(const char* reason);
@@ -539,7 +526,7 @@ namespace rubinius {
     Exception* new_exception(Class* cls, const char* msg);
     Object* current_block();
 
-    Object* path2class(const char* name);
+    Object* path2class(STATE, const char* name);
 
     void wait_on_channel(STATE, Channel* channel);
     void wait_on_custom_function(STATE, void (*func)(void*), void* data);
@@ -560,7 +547,6 @@ namespace rubinius {
 
     void visit_objects(STATE, std::function<void (STATE, Object**)> f);
     void gc_scan(STATE, std::function<void (STATE, Object**)> f);
-    void gc_verify(memory::GarbageCollector* gc);
   };
 }
 

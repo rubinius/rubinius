@@ -75,7 +75,7 @@ namespace rubinius {
 
       trace_mark_stack(state);
 
-      state->memory()->collector()->trace_finalizers(state, this);
+      state->collector()->trace_finalizers(state, this);
 
       trace_mark_stack(state);
 

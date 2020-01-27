@@ -14,9 +14,9 @@ namespace rubinius {
   namespace diagnostics {
     Emitter* Emitter::create(STATE) {
       // TODO: socket target
-      if(false /*state->shared().config.diagnostics_target.value.compare("none")*/) {
+      if(false /*state->configuration()->diagnostics_target.value.compare("none")*/) {
       } else {
-        return new FileEmitter(state, state->shared().config.diagnostics_target.value);
+        return new FileEmitter(state, state->configuration()->diagnostics_target.value);
       }
     }
 
@@ -27,7 +27,7 @@ namespace rubinius {
     {
       // TODO: Make this a proper feature of the config facility.
       state->shared().env()->expand_config_value(
-          path_, "$PID", state->shared().pid.c_str());
+          path_, "$PID", state->shared().env()->pid().c_str());
 
       if((fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660)) < 0) {
         logger::error("%s: unable to open diagnostics file: %s",

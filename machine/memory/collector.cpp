@@ -168,7 +168,7 @@ namespace rubinius {
       return match;
     }
 
-    Collector::Collector(STATE)
+    Collector::Collector()
       : worker_(nullptr)
       , finalizer_list_()
       , process_list_()
@@ -211,20 +211,20 @@ namespace rubinius {
     void Collector::stop_for_collection(STATE, std::function<void ()> process) {
       logger::info("collector: collection cycle started");
 
-      if(state->shared().config.log_collector_terminal.value) {
+      if(state->configuration()->log_collector_terminal.value) {
         std::cerr << std::endl << "------------------------- Rubinius garbage collection -------------------------" << std::endl;
       }
 
-      if(state->vm()->thread_nexus()->try_lock_wait(state, state->vm())) {
+      if(state->thread_nexus()->try_lock_wait(state, state->vm())) {
         state->vm()->metrics()->stops++;
-        state->vm()->thread_nexus()->set_stop();
+        state->thread_nexus()->set_stop();
 
         logger::info("collector: stop initiated, waiting for all threads to checkpoint");
 
-        state->vm()->thread_nexus()->wait_for_all(state, state->vm());
+        state->thread_nexus()->wait_for_all(state, state->vm());
 
 #ifdef RBX_GC_STACK_CHECK
-        state->vm()->thread_nexus()->check_stack(state, state->vm());
+        state->thread_nexus()->check_stack(state, state->vm());
 #endif
 
         logger::info("collector: collection started");
@@ -233,8 +233,8 @@ namespace rubinius {
 
         logger::info("collector: collection finished");
 
-        state->vm()->thread_nexus()->unset_stop();
-        state->vm()->thread_nexus()->unlock(state, state->vm());
+        state->thread_nexus()->unset_stop();
+        state->thread_nexus()->unlock(state, state->vm());
       }
     }
 
@@ -275,7 +275,7 @@ namespace rubinius {
     }
 
     void Collector::Worker::stop(STATE) {
-      state->shared().machine_threads()->unregister_thread(this);
+      state->machine_threads()->unregister_thread(this);
 
       MachineThread::stop_thread(state);
     }
@@ -324,7 +324,7 @@ namespace rubinius {
             state->shared().collector_metrics()->objects_finalized++;
           }
 
-          state->vm()->thread_nexus()->yield(state, state->vm());
+          state->thread_nexus()->yield(state, state->vm());
         }
       }
 
@@ -482,7 +482,7 @@ namespace rubinius {
     void Collector::trace_finalizers(STATE, MemoryTracer* tracer) {
       // TODO: GC: investigate if this lock is necessary since this runs in a
       // stopped world.
-      std::lock_guard<std::mutex> guard(state->memory()->collector()->list_mutex());
+      std::lock_guard<std::mutex> guard(state->collector()->list_mutex());
 
       for(Finalizers::iterator i = finalizer_list_.begin();
           i != finalizer_list_.end();

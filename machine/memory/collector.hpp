@@ -116,7 +116,7 @@ namespace rubinius {
 
       public:
         Inhibit(STATE)
-          : collector_(state->shared().collector())
+          : collector_(state->collector())
         {
           collector_->inhibit_collection();
         }
@@ -171,7 +171,7 @@ namespace rubinius {
       std::atomic<bool> collect_requested_;
 
     public:
-      Collector(STATE);
+      Collector();
       virtual ~Collector();
 
       std::mutex& list_mutex() {

@@ -5,6 +5,8 @@
 
 #include "memory/mark_stack.hpp"
 
+#include <iostream>
+
 using namespace rubinius;
 
 namespace rubinius {

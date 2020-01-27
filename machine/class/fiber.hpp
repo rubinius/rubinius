@@ -61,7 +61,7 @@ namespace rubinius {
       obj->exception(nil<Exception>());
       obj->locals(LookupTable::create(state));
       obj->pid(Fixnum::from(0));
-      obj->stack_size(Fixnum::from(state->shared().config.machine_fiber_stack_size.value));
+      obj->stack_size(Fixnum::from(state->configuration()->machine_fiber_stack_size.value));
       obj->thread_name(nil<String>());
       obj->fiber_id(Fixnum::from(++Fiber::fiber_ids_));
       obj->source(nil<String>());

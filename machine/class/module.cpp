@@ -500,6 +500,7 @@ namespace rubinius {
     }
   }
 
+  /*
   std::string Module::name() {
     // TODO: temporary method to facilitate Profiler until passing State into
     // GC is fixed.
@@ -532,6 +533,7 @@ namespace rubinius {
 
     return name;
   }
+  */
 
   void Module::Info::show(STATE, Object* self, int level) {
     Module* mod = as<Module>(self);

@@ -14,13 +14,13 @@ namespace rubinius {
   using namespace utilities;
 
   MachineThread::MachineThread(STATE, std::string name, StackSize stack_size)
-    : vm_(state->shared().thread_nexus()->new_vm(&state->shared(), name.c_str()))
+    : vm_(state->thread_nexus()->new_vm(&state->shared(), name.c_str()))
     , stack_size_(stack_size)
     , thread_running_(false)
     , thread_exit_(false)
   {
     vm_->set_kind(memory::ManagedThread::eSystem);
-    state->shared().machine_threads()->register_thread(this);
+    state->machine_threads()->register_thread(this);
   }
 
   void* MachineThread::run(void* ptr) {
@@ -97,14 +97,14 @@ namespace rubinius {
   }
 
   void MachineThread::stop(STATE) {
-    state->shared().machine_threads()->unregister_thread(this);
+    state->machine_threads()->unregister_thread(this);
 
     stop_thread(state);
     VM::discard(state, vm_);
   }
 
   void MachineThread::after_fork_child(STATE) {
-    vm_ = state->shared().thread_nexus()->new_vm(&state->shared());
+    vm_ = state->thread_nexus()->new_vm(&state->shared());
     start(state);
   }
 

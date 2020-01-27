@@ -32,7 +32,7 @@ namespace rubinius {
   }
 
   String* Symbol::to_str(STATE) {
-    String* str = state->shared().symbols.lookup_string(state, this);
+    String* str = state->memory()->symbols.lookup_string(state, this);
     if(!str) {
       std::ostringstream msg;
       msg << "Invalid symbol 0x" << std::hex << reinterpret_cast<uintptr_t>(this);
@@ -42,35 +42,31 @@ namespace rubinius {
   }
 
   std::string& Symbol::cpp_str(STATE) {
-    return state->shared().symbols.lookup_cppstring(this);
-  }
-
-  std::string Symbol::debug_str(SharedState& shared) {
-    return shared.symbols.lookup_debug_string(this);
+    return state->memory()->symbols.lookup_cppstring(this);
   }
 
   std::string Symbol::debug_str(STATE) {
-    return debug_str(state->shared());
+    return state->memory()->symbols.lookup_debug_string(this);
   }
 
   Array* Symbol::all_symbols(STATE) {
-    return state->shared().symbols.all_as_array(state);
+    return state->memory()->symbols.all_as_array(state);
   }
 
   Object* Symbol::is_ivar_p(STATE) {
-    return RBOOL(state->shared().symbols.kind(state, this) == SymbolTable::eIVar);
+    return RBOOL(state->memory()->symbols.kind(state, this) == SymbolTable::eIVar);
   }
 
   Object* Symbol::is_cvar_p(STATE) {
-    return RBOOL(state->shared().symbols.kind(state, this) == SymbolTable::eCVar);
+    return RBOOL(state->memory()->symbols.kind(state, this) == SymbolTable::eCVar);
   }
 
   Object* Symbol::is_constant_p(STATE) {
-    return RBOOL(state->shared().symbols.kind(state, this) == SymbolTable::eConstant);
+    return RBOOL(state->memory()->symbols.kind(state, this) == SymbolTable::eConstant);
   }
 
   Encoding* Symbol::encoding(STATE) {
-    return Encoding::from_index(state, state->shared().symbols.lookup_encoding(this));
+    return Encoding::from_index(state, state->memory()->symbols.lookup_encoding(this));
   }
 
   void Symbol::Info::show(STATE, Object* self, int level) {

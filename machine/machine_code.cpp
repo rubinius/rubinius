@@ -106,7 +106,7 @@ namespace rubinius {
       splat_position = pos->to_native();
     }
 
-    state->shared().om->add_code_resource(state, this);
+    state->memory()->add_code_resource(state, this);
   }
 
   MachineCode::~MachineCode() {

@@ -1,4 +1,5 @@
 #include "call_frame.hpp"
+#include "machine.hpp"
 #include "helpers.hpp"
 #include "memory.hpp"
 #include "park.hpp"
@@ -27,7 +28,43 @@ namespace rubinius {
     return vm_->park_->park_timed(this, ts);
   }
 
-  memory::Collector* State::collector() {
-    return memory()->collector();
+  Configuration* const State::configuration() {
+    return shared_.machine()->configuration();
+  }
+
+  ThreadNexus* const State::thread_nexus() {
+    return shared_.machine()->thread_nexus();
+  }
+
+  MachineThreads* const State::machine_threads() {
+    return shared_.machine()->machine_threads();
+  }
+
+  memory::Collector* const State::collector() {
+    return shared_.machine()->collector();
+  }
+
+  Memory* const State::memory() {
+    return shared_.machine()->memory();
+  }
+
+  Globals& State::globals() {
+    return memory()->globals;
+  }
+
+  Symbol* const State::symbol(const char* str) {
+    return memory()->symbols.lookup(this, str, strlen(str));
+  }
+
+  Symbol* const State::symbol(const char* str, size_t len) {
+    return memory()->symbols.lookup(this, str, len);
+  }
+
+  Symbol* const State::symbol(std::string str) {
+    return memory()->symbols.lookup(this, str);
+  }
+
+  Symbol* const State::symbol(String* str) {
+    return memory()->symbols.lookup(this, str);
   }
 }

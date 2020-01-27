@@ -45,6 +45,7 @@ namespace rubinius {
     class ManagedThread;
   }
 
+  class Machine;
   class ConfigParser;
   class Configuration;
   class Environment;
@@ -84,8 +85,6 @@ namespace rubinius {
     };
 
   private:
-    ThreadNexus* thread_nexus_;
-    MachineThreads* machine_threads_;
     SignalThread* signals_;
     console::Console* console_;
     jit::MachineCompiler* compiler_;
@@ -129,19 +128,14 @@ namespace rubinius {
 
     std::atomic<Phase> phase_;
 
+    Machine* machine_;
+
   public:
-    Globals globals;
-    Memory* om;
-    Configuration& config;
     ConfigParser& user_variables;
-    SymbolTable symbols;
-    std::string nodename;
-    std::string username;
-    std::string pid;
     uint32_t hash_seed;
 
   public:
-    SharedState(Environment* env, Configuration& config, ConfigParser& cp);
+    SharedState(Environment* env, Machine* m, ConfigParser& cp);
     ~SharedState();
 
     bool booting_p() {
@@ -177,15 +171,12 @@ namespace rubinius {
 
     double run_time();
 
-    ThreadNexus* thread_nexus() {
-      return thread_nexus_;
+    Machine* const machine() {
+      return machine_;
     }
 
-    MachineThreads* machine_threads() const {
-      return machine_threads_;
-    }
-
-    memory::Collector* collector();
+    ThreadNexus* const thread_nexus();
+    MachineThreads* const machine_threads();
 
     Array* vm_threads(STATE);
     Fixnum* vm_threads_count(STATE);
@@ -267,7 +258,7 @@ namespace rubinius {
       return compiler_;
     }
 
-    Environment* env() const {
+    Environment* const env() {
       return env_;
     }
 
@@ -277,10 +268,6 @@ namespace rubinius {
 
     VM* root_vm() const {
       return root_vm_;
-    }
-
-    Memory* memory() const {
-      return om;
     }
 
     bool check_gc_p() {
@@ -294,7 +281,7 @@ namespace rubinius {
     void gc_soon() {
       check_global_interrupts_ = true;
       check_gc_ = true;
-      thread_nexus_->set_stop();
+      thread_nexus()->set_stop();
     }
 
     bool check_global_interrupts() const {

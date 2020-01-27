@@ -1042,7 +1042,7 @@ namespace rubinius {
       diagnostics::Immix* diagnostic_;
 
     public:
-      Immix(STATE)
+      Immix()
         : block_allocator_()
         , allocator_(block_allocator_)
         , evacuate_()
@@ -1104,7 +1104,7 @@ namespace rubinius {
 
           diagnostic()->collections++;
 
-          if(state->shared().config.diagnostics_memory_enabled) {
+          if(state->configuration()->diagnostics_memory_enabled) {
             diagnostic()->update();
             state->shared().report_diagnostics(diagnostic());
           }
@@ -1181,7 +1181,7 @@ namespace rubinius {
 
         // Mark the line(s) in the Block that this object occupies as in use
         block->mark_address_line_in_block(
-            reinterpret_cast<uintptr_t>(child), child->size_in_bytes(state->vm()));
+            reinterpret_cast<uintptr_t>(child), child->size_in_bytes(state));
 
         return child;
       }

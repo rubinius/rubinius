@@ -188,11 +188,11 @@ namespace rubinius {
     return list;
   }
 
-  void ConfigParser::update_configuration(Configuration& config) {
+  void ConfigParser::update_configuration(Configuration* config) {
     for(ConfigParser::ConfigVector::iterator i = variables.begin();
         i != variables.end();
         ++i) {
-      if(!config.import(i->first.c_str(), i->second->value.c_str())) {
+      if(!config->import(i->first.c_str(), i->second->value.c_str())) {
         if(i->second->in_section("vm.") ||
            i->second->in_section("jit.") ||
            i->second->in_section("gc.")) {
@@ -201,7 +201,7 @@ namespace rubinius {
       }
     }
 
-    config.finalize();
+    config->finalize();
   }
 
   void ConfigParser::parsed_options(std::string& str) {

@@ -30,7 +30,7 @@ extern "C" {
 
   VALUE rb_time_new(time_t sec, long usec) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* cls = env->state()->vm()->shared.globals.time_class.get();
+    Class* cls = env->state()->memory()->globals.time_class.get();
 
     // Prevent overflow before multiplying.
     if(usec >= 1000000) {
@@ -47,7 +47,7 @@ extern "C" {
 
   VALUE rb_time_nano_new(time_t sec, long nsec) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* cls = env->state()->vm()->shared.globals.time_class.get();
+    Class* cls = env->state()->memory()->globals.time_class.get();
 
     // Prevent overflow before multiplying.
     if(nsec >= 1000000000) {
@@ -64,7 +64,7 @@ extern "C" {
 
   VALUE rb_time_num_new(VALUE num, VALUE offset) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* cls = env->state()->vm()->shared.globals.time_class.get();
+    Class* cls = env->state()->memory()->globals.time_class.get();
 
     struct timespec ts = capi_time_num_timespec(env, num);
 

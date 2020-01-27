@@ -34,7 +34,7 @@ namespace rubinius {
   }
 
   void SymbolTable::sweep(STATE) {
-    if(state->shared().config.diagnostics_memory_enabled) {
+    if(state->configuration()->diagnostics_memory_enabled) {
       diagnostic_->update();
       state->shared().report_diagnostics(diagnostic_);
     }

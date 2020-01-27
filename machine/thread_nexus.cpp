@@ -305,7 +305,7 @@ namespace rubinius {
     uint64_t limit = 0;
 
     while(!try_lock(vm)) {
-      if(state->shared().memory()->collector()->collect_requested_p()) {
+      if(state->collector()->collect_requested_p()) {
         yield(state, vm);
       }
 

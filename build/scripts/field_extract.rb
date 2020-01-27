@@ -898,7 +898,7 @@ end
 
 write_if_new "machine/typechecks.hpp" do |f|
   f.puts "size_t TypeInfo::instance_sizes[(int)LastObjectType] = {ObjectHeader::align(sizeof(Object))};"
-  f.puts "void TypeInfo::auto_init(Memory* om) {"
+  f.puts "void TypeInfo::auto_init(Memory* memory) {"
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
@@ -909,7 +909,7 @@ write_if_new "machine/typechecks.hpp" do |f|
       f.puts "    TypeInfo::instance_sizes[#{n}::type] = ObjectHeader::align(sizeof(#{n}));"
     end
     f.puts "    ti->instance_size = ObjectHeader::align(sizeof(#{n}));"
-    f.puts "    om->add_type_info(ti);"
+    f.puts "    memory->add_type_info(memory, ti);"
     f.puts "  }"
     f.puts
   end
@@ -919,7 +919,7 @@ write_if_new "machine/typechecks.hpp" do |f|
   f.puts "void TypeInfo::auto_learn_fields(STATE) {"
   parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts "  {"
-    f.puts "    TypeInfo* ti = state->vm()->find_type(#{n}::type);"
+    f.puts "    TypeInfo* ti = state->memory()->find_type(#{n}::type);"
 
     fields = cpp.all_fields
     f.puts "    ti->slot_accessors.resize(#{fields.size});\n"

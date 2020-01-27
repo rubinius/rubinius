@@ -20,7 +20,7 @@ namespace rubinius {
       , intermittent_reports_()
       , reporter_(nullptr)
       , lock_()
-      , interval_(state->shared().config.diagnostics_interval)
+      , interval_(state->configuration()->diagnostics_interval)
     {
     }
 

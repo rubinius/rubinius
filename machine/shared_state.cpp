@@ -34,10 +34,8 @@
 
 namespace rubinius {
 
-  SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
-    : thread_nexus_(new ThreadNexus())
-    , machine_threads_(nullptr)
-    , signals_(nullptr)
+  SharedState::SharedState(Environment* env, Machine* m, ConfigParser& cp)
+    : signals_(nullptr)
     , console_(nullptr)
     , compiler_(nullptr)
     , diagnostics_(nullptr)
@@ -65,15 +63,9 @@ namespace rubinius {
     , code_resource_lock_()
     , use_capi_lock_(false)
     , phase_(eBooting)
-    , om(nullptr)
-    , config(config)
+    , machine_(m)
     , user_variables(cp)
-    , nodename()
-    , username()
-    , pid()
   {
-    machine_threads_ = new MachineThreads();
-
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
       primitive_hits_[i] = 0;
     }
@@ -99,22 +91,23 @@ namespace rubinius {
       delete diagnostics_;
       diagnostics_ = nullptr;
     }
-
-    delete om;
-    delete machine_threads_;
   }
 
-  memory::Collector* SharedState::collector() {
-    return om->collector();
+  ThreadNexus* const SharedState::thread_nexus() {
+    return machine_->thread_nexus();
+  }
+
+  MachineThreads* const SharedState::machine_threads() {
+    return machine_->machine_threads();
   }
 
   Array* SharedState::vm_threads(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
 
     Array* threads = Array::create(state, 0);
 
-    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
-        i != thread_nexus_->threads()->end();
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
@@ -130,12 +123,12 @@ namespace rubinius {
   }
 
   Fixnum* SharedState::vm_threads_count(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
 
     intptr_t count = 0;
 
-    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
-        i != thread_nexus_->threads()->end();
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
@@ -151,12 +144,12 @@ namespace rubinius {
   }
 
   Array* SharedState::vm_fibers(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
 
     Array* fibers = Array::create(state, 0);
 
-    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
-        i != thread_nexus_->threads()->end();
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
@@ -172,12 +165,12 @@ namespace rubinius {
   }
 
   Fixnum* SharedState::vm_fibers_count(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
 
     intptr_t count = 0;
 
-    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
-        i != thread_nexus_->threads()->end();
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
@@ -195,10 +188,10 @@ namespace rubinius {
   void SharedState::vm_thread_fibers(STATE, Thread* thread,
       std::function<void (STATE, Fiber*)> f)
   {
-    std::lock_guard<std::mutex> guard(thread_nexus_->threads_mutex());
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
 
-    for(ThreadList::iterator i = thread_nexus_->threads()->begin();
-        i != thread_nexus_->threads()->end();
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
@@ -244,7 +237,7 @@ namespace rubinius {
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
     diagnostics_ = new diagnostics::Diagnostics(state);
 
-    if(state->shared().config.diagnostics_target.value.compare("none")) {
+    if(state->configuration()->diagnostics_target.value.compare("none")) {
       diagnostics_->start_reporter(state);
 
       boot_metrics_->start_reporting(state);
@@ -265,7 +258,7 @@ namespace rubinius {
 
   jit::MachineCompiler* SharedState::start_compiler(STATE) {
     if(!compiler_) {
-      if(config.jit_enabled.value) {
+      if(state->configuration()->jit_enabled.value) {
         compiler_ = new jit::MachineCompiler(state);
       }
     }

@@ -366,7 +366,7 @@ namespace rubinius {
     /** Make sure the name has the given prefix. */
     Symbol* prefixed_by(STATE, const char* prefix, size_t len, ID name) {
       Symbol* sym_obj = reinterpret_cast<Symbol*>(name);
-      std::string& sym = state->shared().symbols.lookup_cppstring(sym_obj);
+      std::string& sym = state->memory()->symbols.lookup_cppstring(sym_obj);
 
       if(sym.compare(0UL, len, prefix) == 0) return sym_obj;
 
@@ -378,7 +378,7 @@ namespace rubinius {
 
     Symbol* prefixed_by(STATE, const char prefix, ID name) {
       Symbol* sym_obj = reinterpret_cast<Symbol*>(name);
-      std::string& sym = state->shared().symbols.lookup_cppstring(sym_obj);
+      std::string& sym = state->memory()->symbols.lookup_cppstring(sym_obj);
 
       if(sym.c_str()[0] == prefix) return sym_obj;
 
@@ -395,8 +395,8 @@ namespace rubinius {
     void capi_raise_type_error(object_type type, Object* object) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-      TypeInfo* expected = env->state()->vm()->find_type(type);
-      TypeInfo* actual = env->state()->vm()->find_type(object->get_type());
+      TypeInfo* expected = env->state()->memory()->find_type(type);
+      TypeInfo* actual = env->state()->memory()->find_type(object->get_type());
 
       rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
           actual->type_name.c_str(), expected->type_name.c_str());
@@ -432,7 +432,7 @@ namespace rubinius {
     Proc* wrap_c_function(void* cb, VALUE cb_data, int arity) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
       NativeMethod* nm = NativeMethod::create(env->state(),
-                          nil<String>(), env->state()->vm()->shared.globals.rubinius.get(),
+                          nil<String>(), env->state()->memory()->globals.rubinius.get(),
                           env->state()->symbol("call"), cb,
                           Fixnum::from(arity), 0);
 
@@ -445,7 +445,7 @@ namespace rubinius {
                      current_block);
       }
 
-      Proc* prc = Proc::create(env->state(), env->state()->vm()->shared.globals.proc.get());
+      Proc* prc = Proc::create(env->state(), env->state()->memory()->globals.proc.get());
       prc->bound_method(env->state(), nm);
 
       return prc;

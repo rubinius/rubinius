@@ -240,7 +240,7 @@ namespace rubinius {
       rubinius::bug("ffi_prep_cif failed");
     }
 
-    state->shared().om->add_code_resource(state, data);
+    state->memory()->add_code_resource(state, data);
     this->ffi_data(data);
   }
 
@@ -383,7 +383,7 @@ namespace rubinius {
           func->prep(state, orig->ffi_data()->arg_count,
               orig->ffi_data()->args_info, &orig->ffi_data()->ret_info);
           func->ffi_data()->ep = ptr;
-          Proc* prc = Proc::create(state, state->vm()->shared.globals.proc.get());
+          Proc* prc = Proc::create(state, state->memory()->globals.proc.get());
           prc->bound_method(state, func);
           args->set(state, i, prc);
         } else {
@@ -1116,7 +1116,7 @@ namespace rubinius {
         func->prep(state, orig->ffi_data()->arg_count,
             orig->ffi_data()->args_info, &orig->ffi_data()->ret_info);
         func->ffi_data()->ep = result;
-        Proc* prc = Proc::create(state, state->vm()->shared.globals.proc.get());
+        Proc* prc = Proc::create(state, state->memory()->globals.proc.get());
         prc->bound_method(state, func);
         ret = (Object*)prc;
       }

@@ -1550,14 +1550,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     // Called when the memory size is not static.
-    size_t compute_size_in_bytes(VM* vm) const;
+    size_t compute_size_in_bytes(STATE) const;
 
-    size_t size_in_bytes(VM* vm) const {
+    size_t size_in_bytes(STATE) const {
       size_t size = TypeInfo::instance_sizes[type_id()];
       if(size != 0) {
         return size;
       } else {
-        return compute_size_in_bytes(vm);
+        return compute_size_in_bytes(state);
       }
     }
 
@@ -1570,7 +1570,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    size_t body_in_bytes(VM* state) const {
+    size_t body_in_bytes(STATE) const {
       return size_in_bytes(state) - sizeof(DataHeader);
     }
 
@@ -1611,10 +1611,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void initialize_copy(STATE, Object* other);
 
     /* Copies the body of +other+ into +this+ */
-    void copy_body(VM* state, Object* other);
+    void copy_body(STATE, Object* other);
 
     /* Used to make an exact state copy of +this+ into +other* */
-    void initialize_full_state(VM* vm, Object* other, unsigned int age);
+    void initialize_full_state(STATE, Object* other, unsigned int age);
 
     /* Clear the body of the object, by setting each field to cNil */
     void initialize_fields(intptr_t bytes) {
@@ -1632,19 +1632,19 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     /* It's the slow case, should be called only if there's no cached
      * instance size. */
-    size_t compute_size_in_bytes(VM* vm) const;
+    size_t compute_size_in_bytes(STATE) const;
 
     /* The whole point of this is inlining */
-    size_t size_in_bytes(VM* vm) const {
+    size_t size_in_bytes(STATE) const {
       size_t size = TypeInfo::instance_sizes[type_id()];
       if(size != 0) {
         return size;
       } else {
-        return compute_size_in_bytes(vm);
+        return compute_size_in_bytes(state);
       }
     }
 
-    size_t body_in_bytes(VM* state) const {
+    size_t body_in_bytes(STATE) const {
       return size_in_bytes(state) - sizeof(ObjectHeader);
     }
 

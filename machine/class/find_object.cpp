@@ -278,7 +278,7 @@ namespace rubinius {
       if(Symbol* sym = try_as<Symbol>(obj)) {
         // Check whether this is actually a valid symbol, not
         // some random non existing symbol.
-        if(!state->shared().symbols.lookup_string(state, sym)) {
+        if(!state->memory()->symbols.lookup_string(state, sym)) {
           delete condition;
           std::ostringstream msg;
           msg << "Invalid symbol 0x" << std::hex << reinterpret_cast<uintptr_t>(sym);

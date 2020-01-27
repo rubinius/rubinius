@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 
+#include "machine.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "config_parser.hpp"
@@ -13,6 +14,8 @@
 #include "memory/root.hpp"
 
 #include <mutex>
+
+#include <sys/utsname.h>
 
 namespace rubinius {
 
@@ -45,17 +48,31 @@ namespace rubinius {
 
     memory::TypedRoot<Object*>* loader_;
 
+    Machine* _machine_;
+
+    struct utsname _machine_info_;
+
+    std::string _nodename_;
+    std::string _username_;
+    std::string _pid_;
+
   public:
     SharedState* shared;
     VM* root_vm;
     State* state;
 
     ConfigParser  config_parser;
-    Configuration config;
+
+  private:
+    void set_nodename();
+    void set_username();
+    void set_pid();
 
   public:
-    Environment(int argc, char** argv);
+    Environment(int argc, char** argv, Machine* m);
     ~Environment();
+
+    void initialize();
 
     int argc() const {
       return argc_;
@@ -63,6 +80,18 @@ namespace rubinius {
 
     char** argv() const {
       return argv_;
+    }
+
+    const std::string& nodename() const {
+      return _nodename_;
+    }
+
+    const std::string& username() const {
+      return _username_;
+    }
+
+    const std::string& pid() const {
+      return _pid_;
     }
 
     locks::spinlock_mutex& fork_exec_lock() {
@@ -98,9 +127,7 @@ namespace rubinius {
     void load_string(std::string str);
     void expand_config_value(std::string& cvar, const char* var, const char* value);
     void set_tmp_path();
-    void set_username();
     void set_codedb_paths();
-    void set_pid();
     void set_console_path();
     void boot();
 

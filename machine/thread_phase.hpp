@@ -23,18 +23,18 @@ namespace rubinius {
       : state_(state)
     {
       while(true) {
-        if(state->shared().memory()->collector()->collect_requested_p()) {
-          state->vm()->thread_nexus()->yield(state, state->vm());
+        if(state->collector()->collect_requested_p()) {
+          state->thread_nexus()->yield(state, state->vm());
         } else {
-          state->vm()->thread_nexus()->stop(state, state->vm());
+          state->thread_nexus()->stop(state, state->vm());
           break;
         }
       }
     }
 
     ~StopPhase() {
-      state_->vm()->thread_nexus()->unset_stop();
-      state_->vm()->thread_nexus()->unlock(state_, state_->vm());
+      state_->thread_nexus()->unset_stop();
+      state_->thread_nexus()->unlock(state_, state_->vm());
     }
   };
 
@@ -77,12 +77,12 @@ namespace rubinius {
     LockWaiting(STATE, T& in_lock)
       : lock_(in_lock)
     {
-      state->vm()->thread_nexus()->waiting_phase(state, state->vm());
+      state->thread_nexus()->waiting_phase(state, state->vm());
 
       while(true) {
         lock_.lock();
 
-        if(state->vm()->thread_nexus()->try_managed_phase(state, state->vm())) {
+        if(state->thread_nexus()->try_managed_phase(state, state->vm())) {
           return;
         } else {
           lock_.unlock();

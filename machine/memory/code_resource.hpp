@@ -1,6 +1,8 @@
 #ifndef RBX_CODE_RESOURCE
 #define RBX_CODE_RESOURCE
 
+#include "defines.hpp"
+
 namespace rubinius {
   class VM;
   class State;
@@ -17,7 +19,7 @@ namespace memory {
     {}
 
     virtual ~CodeResource() { };
-    virtual void cleanup(State* state, CodeManager* cm) = 0;
+    virtual void cleanup(STATE, CodeManager* cm) = 0;
     virtual int  size() { return 0; }
     virtual const char* kind() { return "resource"; }
 

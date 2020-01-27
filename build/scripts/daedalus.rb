@@ -907,7 +907,7 @@ module Daedalus
         else
           @max = 4
         end
-      when Fixnum
+      when Integer
         @max = max
       when "cpu"
         @max = cpus

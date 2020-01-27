@@ -22,9 +22,8 @@ namespace memory {
     delete[] resources;
   }
 
-  CodeManager::CodeManager(SharedState* shared, int chunk_size)
-    : shared_(shared)
-    , chunk_size_(chunk_size)
+  CodeManager::CodeManager(int chunk_size)
+    : chunk_size_(chunk_size)
     , first_chunk_(0)
     , last_chunk_(0)
     , current_chunk_(0)
@@ -90,18 +89,16 @@ namespace memory {
     }
   }
 
-  void CodeManager::sweep() {
+  void CodeManager::sweep(STATE) {
     Chunk* chunk = first_chunk_;
     Chunk* prev  = NULL;
-
-    State state(shared_->root_vm());
 
     while(chunk) {
       bool chunk_used = false;
       for(int i = 0; i < chunk_size_; i++) {
         if(CodeResource* cr = chunk->resources[i]) {
           if(!cr->marked()) {
-            cr->cleanup(&state, this);
+            cr->cleanup(state, this);
             delete cr;
             chunk->resources[i] = 0;
           } else {

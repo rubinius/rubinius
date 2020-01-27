@@ -80,8 +80,8 @@ namespace rubinius {
   // Reset macros since we're inside state
 #undef G
 #undef GO
-#define G(whatever) globals().whatever.get()
-#define GO(whatever) globals().whatever
+#define G(whatever) state->globals().whatever.get()
+#define GO(whatever) state->globals().whatever
 
   void VM::bootstrap_class(STATE) {
     /* BasicObject, Object, Module, Class all have .class == Class.
@@ -204,17 +204,17 @@ namespace rubinius {
     // the classes for Fixnum's, nil, true and false.
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i++) {
       if(SYMBOL_P(i)) {
-        globals().special_classes[i] = GO(symbol);
+        state->globals().special_classes[i] = GO(symbol);
       } else if(FIXNUM_P(i)) {
-        globals().special_classes[i] = GO(fixnum_class);
+        state->globals().special_classes[i] = GO(fixnum_class);
       } else {
-        globals().special_classes[i] = GO(object); /* unused slot */
+        state->globals().special_classes[i] = GO(object); /* unused slot */
       }
     }
 
-    globals().special_classes[(uintptr_t)cFalse] = GO(false_class);
-    globals().special_classes[(uintptr_t)cNil  ] = GO(nil_class);
-    globals().special_classes[(uintptr_t)cTrue ] = GO(true_class);
+    state->globals().special_classes[(uintptr_t)cFalse] = GO(false_class);
+    state->globals().special_classes[(uintptr_t)cNil  ] = GO(nil_class);
+    state->globals().special_classes[(uintptr_t)cTrue ] = GO(true_class);
 
     /* Create IncludedModule */
     GO(included_module).set(state->memory()->new_class<Class, IncludedModule>(
@@ -404,7 +404,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "RELEASE_DATE", String::create(state, RBX_RELEASE_DATE));
     G(rubinius)->set_const(state, "DEBUG_BUILD", RBOOL(RBX_DEBUG_BUILD));
     G(rubinius)->set_const(state, "PROFILER",
-        RBOOL(state->shared().config.diagnostics_profiler_enabled));
+        RBOOL(state->configuration()->diagnostics_profiler_enabled));
     G(rubinius)->set_const(state, "LDSHARED", String::create(state, RBX_LDSHARED));
     G(rubinius)->set_const(state, "LDSHAREDXX", String::create(state, RBX_LDSHAREDXX));
 

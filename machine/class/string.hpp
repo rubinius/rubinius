@@ -225,7 +225,7 @@ namespace rubinius {
         // TODO: fix for generational heap
         // if(likely(so->young_object_p())) {
         if(true) {
-          so->copy_body(state->vm(), this);
+          so->copy_body(state, this);
           so->shared(state, cTrue);
           shared(state, cTrue);
           infect(state, so);

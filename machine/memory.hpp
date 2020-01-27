@@ -6,7 +6,9 @@
 
 #include "type_info.hpp"
 #include "configuration.hpp"
+#include "globals.hpp"
 #include "spinlock.hpp"
+#include "symbol_table.hpp"
 
 #include "class/class.hpp"
 #include "class/module.hpp"
@@ -85,8 +87,6 @@ namespace rubinius {
   private:
     utilities::thread::SpinLock allocation_lock_;
 
-    memory::Collector* collector_;
-
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
 
@@ -100,10 +100,7 @@ namespace rubinius {
 
     unsigned int visit_mark_;
 
-    SharedState& shared_;
-
   public:
-    VM* vm_;
     /// Counter used for issuing object ids when #object_id is called on a
     /// Ruby object.
     size_t last_object_id;
@@ -113,24 +110,11 @@ namespace rubinius {
     /* Config variables */
     size_t large_object_threshold;
 
+    Globals globals;
+    SymbolTable symbols;
+
   public:
     static void memory_error(STATE);
-
-    void set_vm(VM* vm) {
-      vm_ = vm;
-    }
-
-    VM* vm() {
-      return vm_;
-    }
-
-    SharedState& shared() {
-      return shared_;
-    }
-
-    Memory* memory() {
-      return this;
-    }
 
     void collect_cycle() {
       cycle_++;
@@ -146,10 +130,6 @@ namespace rubinius {
 
     memory::MainHeap* main_heap() {
       return main_heap_;
-    }
-
-    memory::Collector* collector() {
-      return collector_;
     }
 
     unsigned int cycle() {
@@ -177,8 +157,8 @@ namespace rubinius {
     }
 
   public:
-    Memory(STATE);
-    ~Memory();
+    Memory(STATE, Configuration* configuration);
+    virtual ~Memory();
 
     // Object must be created in Immix or large object space.
     Object* new_object(STATE, intptr_t bytes, object_type type);
@@ -399,10 +379,11 @@ namespace rubinius {
         return new_module<T>(state, G(module), G(object), name);
       }
 
+    TypeInfo* find_type(int type);
     TypeInfo* find_type_info(Object* obj);
 
     bool valid_object_p(Object* obj);
-    void add_type_info(TypeInfo* ti);
+    void add_type_info(Memory* memory, TypeInfo* ti);
 
     void add_code_resource(STATE, memory::CodeResource* cr);
 

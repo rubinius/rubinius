@@ -240,7 +240,7 @@ namespace rubinius {
     LookupTable* lt = LookupTable::create(state);
 
     // If autopacking is enabled, figure out how many slots to use.
-    if(state->shared().config.memory_autopack) {
+    if(state->configuration()->memory_autopack) {
       Module* mod = self;
 
       int slot = 0;
