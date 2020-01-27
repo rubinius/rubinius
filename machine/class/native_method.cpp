@@ -530,7 +530,10 @@ namespace rubinius {
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
 
     NativeMethodFrame nmf(env, env->current_native_frame(), nm);
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
+
+    uintptr_t* mem = ALLOCA_CALL_FRAME(0);
+    CallFrame* call_frame = new(mem) CallFrame();
+
     call_frame->lexical_scope_ = nullptr;
     call_frame->dispatch_data = (void*)&nmf;
     call_frame->compiled_code = nullptr;

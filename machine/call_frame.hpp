@@ -73,6 +73,25 @@ namespace rubinius {
     // Stack
     Object* stk[0];
 
+    CallFrame()
+      : previous(nullptr)
+      , lexical_scope_(nullptr)
+      , dispatch_data(nullptr)
+      , compiled_code(nullptr)
+      , flags(0)
+      , ip_(0)
+      , top_scope_(nullptr)
+      , scope(nullptr)
+      , arguments(nullptr)
+      , stack_ptr_(nullptr)
+      , registers(nullptr)
+      , machine_code(nullptr)
+      , is(nullptr)
+      , unwind(nullptr)
+      , return_value(nullptr)
+    {
+    }
+
     int ip() const {
       return ip_;
     }
@@ -226,7 +245,7 @@ namespace rubinius {
   };
 
 #define ALLOCA_CALL_FRAME(stack_size) \
-  reinterpret_cast<CallFrame*>(alloca(sizeof(CallFrame) + (sizeof(Object*) * (stack_size))))
+  static_cast<uintptr_t*>(alloca(sizeof(CallFrame) + (sizeof(Object*) * (stack_size))))
 };
 
 #endif

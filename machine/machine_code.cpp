@@ -625,7 +625,8 @@ namespace rubinius {
         return NULL;
       }
 
-      CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
+      uintptr_t* mem = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
+      CallFrame* call_frame = new(mem) CallFrame();
 
       call_frame->prepare(mcode->stack_size);
 
@@ -676,7 +677,8 @@ namespace rubinius {
     // Thus, we have to cache the value in the StackVariables.
     scope->initialize(G(main), name, cNil, G(object), mcode->number_of_locals);
 
-    CallFrame* call_frame = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
+    uintptr_t* mem = ALLOCA_CALL_FRAME(mcode->stack_size + mcode->registers);
+    CallFrame* call_frame = new(mem) CallFrame();
 
     call_frame->prepare(mcode->stack_size);
 

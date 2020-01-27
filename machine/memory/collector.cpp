@@ -65,7 +65,8 @@ namespace rubinius {
       NativeMethodFrame nmf(env, 0, 0);
       ExceptionPoint ep(env);
 
-      CallFrame* call_frame = ALLOCA_CALL_FRAME(0);
+      uintptr_t* mem = ALLOCA_CALL_FRAME(0);
+      CallFrame* call_frame = new(mem) CallFrame();
 
       call_frame->lexical_scope_ = nullptr;
       call_frame->dispatch_data = (void*)&nmf;
