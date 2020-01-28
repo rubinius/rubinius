@@ -148,12 +148,8 @@ task :distclean => %w[
   vm:distclean
 ]
 
-task :show_codedb do
-  sh "ls -l #{BUILD_CONFIG[:codedbdir]}"
-end
-
 desc "Run specs in default (configured) mode but do not rebuild on failure"
-task :spec => %w[build show_codedb vm:test] do
+task :spec => %w[build vm:test] do
   clean_environment
 
   spec_runner = SpecRunner.new
