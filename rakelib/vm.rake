@@ -234,6 +234,7 @@ namespace :vm do
   task :test, :filter do |task, args|
     ENV['SUITE'] = args[:filter] if args[:filter]
     ENV['VERBOSE'] = '1' if $verbose
+    ENV['RBX_PREFIX_PATH'] = BUILD_CONFIG[:builddir]
     sh 'machine/test/runner', :verbose => $verbose
   end
 
