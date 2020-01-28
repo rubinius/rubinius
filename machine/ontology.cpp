@@ -21,7 +21,6 @@
 #include "class/compiled_code.hpp"
 #include "class/channel.hpp"
 #include "class/data.hpp"
-#include "class/diagnostics.hpp"
 #include "class/dir.hpp"
 #include "class/encoding.hpp"
 #include "class/executable.hpp"
@@ -62,7 +61,7 @@
 #include "class/module.hpp"
 #include "class/class.hpp"
 #include "class/atomic.hpp"
-#include "class/thread_state.hpp"
+#include "class/unwind_state.hpp"
 #include "class/unwind_site.hpp"
 
 #include "environment.hpp"
@@ -242,7 +241,7 @@ namespace rubinius {
     List::bootstrap(state);
     init_ffi(state);
     Thread::bootstrap(state);
-    ThreadState::bootstrap(state);
+    UnwindState::bootstrap(state);
     AccessVariable::bootstrap(state);
     Pointer::bootstrap(state);
     NativeFunction::bootstrap(state);
@@ -270,7 +269,6 @@ namespace rubinius {
     Logger::bootstrap(state);
     JIT::bootstrap(state);
     CodeDB::bootstrap(state);
-    Diagnostics::bootstrap(state);
     Trie::bootstrap(state);
     UnwindSite::bootstrap(state);
   }
@@ -359,7 +357,7 @@ namespace rubinius {
      * because some are passed to e.g. File.expand_path and having them
      * be uniform is simpler.
      */
-    Environment* env = state->shared().env();
+    Environment* env = state->environment();
 
     if(env) {
       std::string prefix = env->system_prefix();

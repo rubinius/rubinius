@@ -1,6 +1,7 @@
 #include "ffi_util.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
+#include "primitives.hpp"
 #include "windows_compat.h"
 
 #include "class/array.hpp"

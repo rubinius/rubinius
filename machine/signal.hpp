@@ -17,7 +17,6 @@ namespace rubinius {
   struct CallFrame;
 
   class SignalThread {
-    SharedState& shared_;
     VM* vm_;
 
     bool system_exit_;
@@ -45,10 +44,6 @@ namespace rubinius {
     };
 
     SignalThread(STATE, VM* vm);
-
-    SharedState& shared() {
-      return shared_;
-    }
 
     VM* vm() {
       return vm_;

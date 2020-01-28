@@ -16,6 +16,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 #include "state.hpp"
 #include "vm.hpp"
 

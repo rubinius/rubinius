@@ -1,6 +1,5 @@
 #include "configuration.hpp"
 #include "environment.hpp"
-#include "shared_state.hpp"
 #include "state.hpp"
 #include "vm.hpp"
 #include "call_frame.hpp"

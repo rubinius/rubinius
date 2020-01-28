@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "state.hpp"
+#include "machine.hpp"
 #include "memory.hpp"
 #include "machine_code.hpp"
 #include "environment.hpp"
@@ -25,6 +26,7 @@
 #include "class/system.hpp"
 #include "class/thread.hpp"
 #include "class/tuple.hpp"
+#include "class/unwind_state.hpp"
 #include "class/variable_scope.hpp"
 
 #include "config_parser.hpp"
@@ -59,16 +61,17 @@
 #define GO(whatever) globals().whatever
 
 namespace rubinius {
-  VM::VM(uint32_t id, SharedState& shared, const char* name)
-    : memory::ManagedThread(id, shared, memory::ManagedThread::eThread, name)
-    , call_frame_(NULL)
+  VM::VM(uint32_t id, Machine* m, const char* name)
+    : memory::ManagedThread(id, m, memory::ManagedThread::eThread, name)
+    , _machine_(m)
+    , call_frame_(nullptr)
     , park_(new Park)
     , thca_(new memory::OpenTHCA)
     , stack_start_(0)
     , stack_barrier_start_(0)
     , stack_barrier_end_(0)
     , stack_size_(0)
-    , stack_cushion_(shared.machine()->configuration()->machine_stack_cushion.value)
+    , stack_cushion_(m->configuration()->machine_stack_cushion.value)
     , stack_probe_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
@@ -87,17 +90,16 @@ namespace rubinius {
     , sample_counter_(0)
     , checkpoints_(0)
     , stops_(0)
-    , shared(shared)
-    , waiting_channel_(this, nil<Channel>())
-    , interrupted_exception_(this, nil<Exception>())
-    , thread_(this, nil<Thread>())
-    , fiber_(this, nil<Fiber>())
-    , waiting_object_(this, cNil)
+    , waiting_channel_(nil<Channel>())
+    , interrupted_exception_(nil<Exception>())
+    , thread_(nil<Thread>())
+    , fiber_(nil<Fiber>())
+    , waiting_object_(cNil)
     , start_time_(0)
-    , native_method_environment(NULL)
-    , custom_wakeup_(NULL)
-    , custom_wakeup_data_(NULL)
-    , thread_state_(this)
+    , native_method_environment(nullptr)
+    , custom_wakeup_(nullptr)
+    , custom_wakeup_data_(nullptr)
+    , unwind_state_(nullptr)
   {
     set_sample_interval();
   }
@@ -117,22 +119,34 @@ namespace rubinius {
     }
   }
 
+  Machine* const VM::machine() {
+    return _machine_;
+  }
+
   void VM::discard(STATE, VM* vm) {
     state->vm()->metrics()->threads_destroyed++;
 
     delete vm;
   }
 
+  ThreadNexus* const VM::thread_nexus() {
+    return _machine_->thread_nexus();
+  }
+
   Globals& VM::globals() {
-    return shared.machine()->memory()->globals;
+    return _machine_->memory()->globals;
+  }
+
+  void VM::clear_interrupted_exception() {
+    interrupted_exception_ = nil<Exception>();
   }
 
   void VM::set_thread(Thread* thread) {
-    thread_.set(thread);
+    thread_ = thread;
   }
 
   void VM::set_fiber(Fiber* fiber) {
-    fiber_.set(fiber);
+    fiber_ = fiber;
   }
 
   void VM::set_start_time() {
@@ -157,6 +171,14 @@ namespace rubinius {
     }
   }
 
+  UnwindState* VM::unwind_state(STATE) {
+    if(!unwind_state_) {
+      unwind_state_ = UnwindState::create(state);
+    }
+
+    return unwind_state_;
+  }
+
   bool VM::check_thread_raise_or_kill(STATE) {
     Exception* exc = interrupted_exception();
 
@@ -168,7 +190,7 @@ namespace rubinius {
         exc->locations(state, Location::from_call_stack(state));
       }
 
-      thread_state_.raise_exception(exc);
+      unwind_state(state)->raise_exception(exc);
 
       return true;
     }
@@ -180,7 +202,7 @@ namespace rubinius {
         set_check_local_interrupts();
       }
 
-      thread_state_.raise_thread_kill();
+      unwind_state(state)->raise_thread_kill();
 
       return true;
     }
@@ -328,7 +350,7 @@ namespace rubinius {
   }
 
   void VM::set_zombie(STATE) {
-    state->shared().thread_nexus()->delete_vm(this);
+    state->machine()->thread_nexus()->delete_vm(this);
     set_zombie();
   }
 
@@ -371,9 +393,9 @@ namespace rubinius {
     state->vm()->set_start_time();
 
     // TODO: Remove need for root_vm.
-    state->shared().env()->set_root_vm(state->vm());
+    state->environment()->set_root_vm(state->vm());
 
-    state->shared().env()->after_fork_child(state);
+    state->machine()->environment()->after_fork_child(state);
   }
 
   Object* VM::path2class(STATE, const char* path) {
@@ -408,7 +430,7 @@ namespace rubinius {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     set_check_local_interrupts();
-    Object* wait = waiting_object_.get();
+    Object* wait = waiting_object_;
 
     if(park_->parked_p()) {
       park_->unpark();
@@ -425,7 +447,7 @@ namespace rubinius {
       interrupt_lock_.unlock();
       return true;
     } else {
-      Channel* chan = waiting_channel_.get();
+      Channel* chan = waiting_channel_;
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
@@ -442,11 +464,12 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
-    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+    // TODO: Machine
+    utilities::thread::SpinLock::LockGuard guard(_machine_->memory()->wait_lock());
 
     interrupt_with_signal_ = false;
-    waiting_channel_.set(nil<Channel>());
-    waiting_object_.set(cNil);
+    waiting_channel_ = nil<Channel>();
+    waiting_object_ = cNil;
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
   }
@@ -455,11 +478,12 @@ namespace rubinius {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     thread()->sleep(state, cTrue);
-    waiting_channel_.set(chan);
+    waiting_channel_ = chan;
   }
 
   void VM::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
-    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+    // TODO: Machine
+    utilities::thread::SpinLock::LockGuard guard(_machine_->memory()->wait_lock());
 
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
@@ -479,7 +503,7 @@ namespace rubinius {
 
   void VM::register_raise(STATE, Exception* exc) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
-    interrupted_exception_.set(exc);
+    interrupted_exception_ = exc;
     set_check_local_interrupts();
   }
 
@@ -561,6 +585,13 @@ namespace rubinius {
   void VM::gc_scan(STATE, std::function<void (STATE, Object**)> f) {
     metrics()->checkpoints = checkpoints_;
     metrics()->stops = stops_;
+
+    f(state, reinterpret_cast<Object**>(&waiting_channel_));
+    f(state, reinterpret_cast<Object**>(&interrupted_exception_));
+    f(state, reinterpret_cast<Object**>(&thread_));
+    f(state, reinterpret_cast<Object**>(&fiber_));
+    f(state, reinterpret_cast<Object**>(&waiting_object_));
+    f(state, reinterpret_cast<Object**>(&unwind_state_));
 
     thca_->collect(state);
 

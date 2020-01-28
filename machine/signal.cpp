@@ -19,6 +19,7 @@
 #include "class/object.hpp"
 #include "class/string.hpp"
 #include "class/thread.hpp"
+#include "class/unwind_state.hpp"
 
 #include "capi/capi.hpp"
 
@@ -30,6 +31,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include <iostream>
@@ -57,8 +59,7 @@ namespace rubinius {
   static struct utsname machine_info;
 
   SignalThread::SignalThread(STATE, VM* vm)
-    : shared_(state->shared())
-    , vm_(vm)
+    : vm_(vm)
     , system_exit_(false)
     , exit_code_(0)
     , queue_index_(0)
@@ -73,7 +74,7 @@ namespace rubinius {
   }
 
   VM* SignalThread::new_vm(STATE) {
-    VM* vm = state->thread_nexus()->new_vm(&state->shared(), "rbx.system");
+    VM* vm = state->thread_nexus()->new_vm(state->machine(), "rbx.system");
     vm->set_kind(memory::ManagedThread::eSystem);
     return vm;
   }
@@ -127,18 +128,18 @@ namespace rubinius {
     initialize(state);
 
     if(state->configuration()->log_lifetime.value) {
-      state->shared().signals()->print_machine_info(logger::write);
-      state->shared().signals()->print_process_info(logger::write);
+      state->signals()->print_machine_info(logger::write);
+      state->signals()->print_process_info(logger::write);
 
       logger::write("process: boot stats: " \
           "fields %lldus " \
           "main thread: %lldus " \
           "ontology: %lldus " \
           "platform: %lldus",
-          state->shared().boot_metrics()->fields_us,
-          state->shared().boot_metrics()->main_thread_us,
-          state->shared().boot_metrics()->ontology_us,
-          state->shared().boot_metrics()->platform_us);
+          state->diagnostics()->boot_metrics()->fields_us,
+          state->diagnostics()->boot_metrics()->main_thread_us,
+          state->diagnostics()->boot_metrics()->ontology_us,
+          state->diagnostics()->boot_metrics()->platform_us);
     }
 
     run(state);
@@ -228,16 +229,16 @@ namespace rubinius {
         args->set(state, 0, Fixnum::from(signal));
 
         if(!G(rubinius)->send(state, state->symbol("received_signal"), args, cNil)) {
-          if(state->thread_state()->raise_reason() == cException ||
-              state->thread_state()->raise_reason() == cExit)
+          if(state->unwind_state()->raise_reason() == cException ||
+              state->unwind_state()->raise_reason() == cExit)
           {
-            Exception* exc = state->thread_state()->current_exception();
-            state->thread_state()->clear_raise();
+            Exception* exc = state->unwind_state()->current_exception();
+            state->unwind_state()->clear_raise();
 
             Array* args = Array::create(state, 1);
             args->set(state, 0, exc);
 
-            state->shared().env()->loader()->send(state,
+            state->environment()->loader()->send(state,
                 state->symbol("handle_exception"), args, cNil);
 
             system_exit_ = true;
@@ -253,7 +254,7 @@ namespace rubinius {
       }
     }
 
-    state->shared().env()->halt(state, exit_code_);
+    state->environment()->halt(state, exit_code_);
   }
 
   void SignalThread::print_machine_info(logger::PrintFunction function) {
@@ -268,8 +269,8 @@ namespace rubinius {
 
     llvm_version = RBX_LLVM_VERSION;
 
-    if(CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled_p(
-            signal_thread_->shared().env()->state)))
+    if(CBOOL(signal_thread_->vm()->machine()->environment()->state->globals().jit.get()->enabled_p(
+            signal_thread_->vm()->machine()->environment()->state)))
     {
       jit_status = "JIT";
     } else {
@@ -279,8 +280,8 @@ namespace rubinius {
     char process_info[RBX_PROCESS_INFO_LEN];
 
     snprintf(process_info, RBX_PROCESS_INFO_LEN, "%s %s %s %s %s %s %.8s %s %s",
-        signal_thread_->shared().env()->username().c_str(),
-        RBX_PROGRAM_NAME, signal_thread_->shared().env()->pid().c_str(),
+        signal_thread_->vm()->machine()->environment()->username().c_str(),
+        RBX_PROGRAM_NAME, signal_thread_->vm()->machine()->environment()->pid().c_str(),
         RBX_VERSION, RBX_RUBY_VERSION, RBX_RELEASE_DATE, RBX_BUILD_REV,
         llvm_version, jit_status);
 
@@ -312,8 +313,8 @@ namespace rubinius {
   }
 
   void SignalThread::print_backtraces() {
-    STATE = shared_.env()->state;
-    ThreadList* threads = shared_.thread_nexus()->threads();
+    STATE = vm_->machine()->environment()->state;
+    ThreadList* threads = vm_->machine()->thread_nexus()->threads();
 
     for(ThreadList::iterator i = threads->begin(); i != threads->end(); ++i) {
       VM* vm = (*i)->as_vm();

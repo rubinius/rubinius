@@ -1,47 +1,112 @@
+#include <stdlib.h>
+
 #include "config.h"
 #include "paths.h"
 #include "debug.h"
 
-#include "machine.hpp"
-#include "machine_threads.hpp"
-#include "environment.hpp"
-#include "configuration.hpp"
+#include "c_api.hpp"
 #include "config_parser.hpp"
-#include "type_info.hpp"
+#include "configuration.hpp"
+#include "console.hpp"
+#include "diagnostics.hpp"
+#include "environment.hpp"
 #include "exception.hpp"
-#include "thread_nexus.hpp"
+#include "machine.hpp"
+#include "machine_compiler.hpp"
+#include "machine_threads.hpp"
 #include "memory.hpp"
+#include "signal.hpp"
+#include "thread_nexus.hpp"
+#include "type_info.hpp"
+
+#include "class/array.hpp"
+#include "class/fiber.hpp"
+#include "class/fixnum.hpp"
+#include "class/thread.hpp"
+
+#include "diagnostics/codedb.hpp"
+#include "diagnostics/collector.hpp"
+#include "diagnostics/memory.hpp"
+#include "diagnostics/machine.hpp"
+#include "diagnostics/profiler.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "memory/header.hpp"
 #include "memory/collector.hpp"
 
+#include "sodium/randombytes.h"
+
 #include <sys/stat.h>
 
 namespace rubinius {
+  MachineState::MachineState()
+    : _start_time_(get_current_time())
+    , _hash_seed_(randombytes_random())
+    , _phase_(eBooting)
+  {
+  }
+
+  void MachineState::set_start_time() {
+    _start_time_ = get_current_time();
+  }
+
+  double MachineState::run_time() {
+    return timer::time_elapsed_seconds(_start_time_);
+  }
+
   Machine::Machine(int argc, char** argv)
-    : _machine_state_(nullptr)
+    : _machine_state_(new MachineState())
     , _logger_(nullptr)
     , _thread_nexus_(new ThreadNexus)
     , _configuration_(new Configuration())
     , _environment_(new Environment(argc, argv, this))
-    , _diagnostics_(nullptr)
+    , _diagnostics_(new Diagnostics(_configuration_))
     , _machine_threads_(new MachineThreads())
     , _memory_(new Memory(_environment_->state, _configuration_))
     , _collector_(new memory::Collector())
     , _signals_(nullptr)
     , _codedb_(nullptr)
-    , _c_api_(nullptr)
+    , _c_api_(new C_API())
     , _compiler_(nullptr)
     , _debugger_(nullptr)
-    , _profiler_(nullptr)
-    , _console_(nullptr)
+    , _profiler_(new Profiler())
+    , _console_(new Console(_environment_->state))
   {
     _environment_->initialize();
+
   }
 
   Machine::~Machine() {
     if(_machine_state_) halt();
   }
+
+  SignalThread* Machine::start_signals(STATE) {
+    _signals_ = new SignalThread(state, state->vm());
+    _signals_->start(state);
+
+    return _signals_;
+  }
+
+  Diagnostics* Machine::start_diagnostics(STATE) {
+    if(state->configuration()->diagnostics_target.value.compare("none")) {
+      _diagnostics_->start_reporter(state);
+
+      _diagnostics_->boot_metrics()->start_reporting(state);
+      _diagnostics_->codedb_metrics()->start_reporting(state);
+      _diagnostics_->collector_metrics()->start_reporting(state);
+      _diagnostics_->memory_metrics()->start_reporting(state);
+      // _diagnostics_->profiler()->start_reporting(state);
+    }
+
+    return _diagnostics_;
+  }
+
+  void Machine::report_diagnostics(diagnostics::Diagnostic* diagnostic) {
+    if(_diagnostics_) {
+      _diagnostics_->report(diagnostic);
+    }
+  }
+
 
   /* TODO:
    *
@@ -64,7 +129,7 @@ namespace rubinius {
    * [ ] 1. Move Debugger to Machine;
    * [ ] 1. Move Compiler to Machine;
    * [ ] 1. Move Profiler to Machine;
-   * [ ] 1. Move Console to Machine;
+   * [x] 1. Move Console to Machine;
    * [x] 1. Move SymbolTable into Memory;
    * [x] 1. Move Globals into Memory;
    * [ ] 1. Create ThreadState to replace State;
@@ -75,6 +140,10 @@ namespace rubinius {
    */
   void Machine::boot() {
     environment()->setup_cpp_terminate();
+
+    // TODO: after removing Environment::boot
+    // _console_->start(_environment_->state);
+    // state->shared().start_compiler(state);
 
     MachineException::guard(environment()->state, true, [&]{
         if(const char* var = getenv("RBX_OPTIONS")) {
@@ -87,6 +156,142 @@ namespace rubinius {
 
         environment()->boot();
       });
+  }
+
+  void Machine::after_fork_child(STATE) {
+    _machine_state_->set_start_time();
+
+    _memory_->after_fork_child(state);
+    _signals_->after_fork_child(state);
+  }
+
+  /* TODO
+    console_->after_fork_child(state);
+   */
+
+  /* TODO
+  jit::MachineCompiler* Machine::start_compiler(STATE) {
+    if(!compiler_) {
+      if(state->configuration()->jit_enabled.value) {
+        compiler_ = new jit::MachineCompiler(state);
+      }
+    }
+
+    return compiler_;
+  }
+   */
+
+  Array* Machine::vm_threads(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    Array* threads = Array::create(state, 0);
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        Thread *thread = vm->thread();
+        if(vm->kind() == memory::ManagedThread::eThread
+            &&!thread->nil_p() && CBOOL(thread->alive())) {
+          threads->append(state, thread);
+        }
+      }
+    }
+
+    return threads;
+  }
+
+  Fixnum* Machine::vm_threads_count(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    intptr_t count = 0;
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        Thread *thread = vm->thread();
+        if(vm->kind() == memory::ManagedThread::eThread
+            &&!thread->nil_p() && CBOOL(thread->alive())) {
+          count++;
+        }
+      }
+    }
+
+    return Fixnum::from(count);
+  }
+
+  Array* Machine::vm_fibers(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    Array* fibers = Array::create(state, 0);
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead) {
+          fibers->append(state, vm->fiber());
+        }
+      }
+    }
+
+    return fibers;
+  }
+
+  Fixnum* Machine::vm_fibers_count(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    intptr_t count = 0;
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead) {
+          count++;
+        }
+      }
+    }
+
+    return Fixnum::from(count);
+  }
+
+  void Machine::vm_thread_fibers(STATE, Thread* thread,
+      std::function<void (STATE, Fiber*)> f)
+  {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead
+            && vm->fiber()->thread() == thread) {
+          f(state, vm->fiber());
+        }
+      }
+    }
+  }
+
+  Array* Machine::vm_thread_fibers(STATE, Thread* thread) {
+    Array* fibers = Array::create(state, 0);
+
+    vm_thread_fibers(state, thread,
+          [fibers](STATE, Fiber* fiber){ fibers->append(state, fiber); });
+
+    return fibers;
   }
 
   void Machine::halt_console() {

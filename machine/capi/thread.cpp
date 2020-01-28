@@ -7,6 +7,7 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
+#include "c_api.hpp"
 #include "on_stack.hpp"
 #include "call_frame.hpp"
 #include "exception_point.hpp"
@@ -19,6 +20,7 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 #include "class/thread.hpp"
+#include "class/unwind_state.hpp"
 
 #include "windows_compat.h"
 
@@ -75,10 +77,10 @@ extern "C" {
         // Only handle true exceptions being raised, eat all other requests
         // for now.
 
-        if(env->state()->thread_state()->raise_reason() == cException) {
-          capi::capi_raise_backend(env->state()->thread_state()->current_exception());
+        if(env->state()->unwind_state()->raise_reason() == cException) {
+          capi::capi_raise_backend(env->state()->unwind_state()->current_exception());
         } else {
-          env->state()->thread_state()->clear();
+          env->state()->unwind_state()->clear();
         }
       }
 
@@ -284,7 +286,7 @@ extern "C" {
 
       // Set exception in thread so it's raised when joining.
       state->vm()->thread()->exception(state,
-          capi::c_as<Exception>(state->vm()->thread_state()->current_exception()));
+          capi::c_as<Exception>(state->unwind_state()->current_exception()));
     } else {
       value = MemoryHandle::object(nm->func()(ptr->pointer));
     }

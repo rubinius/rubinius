@@ -5,6 +5,7 @@
 #include "configuration.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
+#include "primitives.hpp"
 
 #include "class/array.hpp"
 #include "class/byte_array.hpp"

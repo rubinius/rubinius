@@ -1,6 +1,5 @@
 #include "configuration.hpp"
 #include "environment.hpp"
-#include "shared_state.hpp"
 #include "state.hpp"
 #include "vm.hpp"
 
@@ -9,6 +8,7 @@
 #include "diagnostics/emitter.hpp"
 
 #include <fcntl.h>
+#include <unistd.h>
 
 namespace rubinius {
   namespace diagnostics {
@@ -26,8 +26,8 @@ namespace rubinius {
       , fd_(-1)
     {
       // TODO: Make this a proper feature of the config facility.
-      state->shared().env()->expand_config_value(
-          path_, "$PID", state->shared().env()->pid().c_str());
+      state->machine()->environment()->expand_config_value(
+          path_, "$PID", state->machine()->environment()->pid().c_str());
 
       if((fd_ = ::open(path_.c_str(), O_CREAT | O_WRONLY | O_CLOEXEC, 0660)) < 0) {
         logger::error("%s: unable to open diagnostics file: %s",

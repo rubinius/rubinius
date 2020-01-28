@@ -1,11 +1,27 @@
 #ifndef RBX_MACHINE_H
 #define RBX_MACHINE_H
 
+#include "defines.hpp"
+
+#include <atomic>
+#include <functional>
+
 namespace rubinius {
+  class Array;
+  class Fiber;
+  class Fixnum;
+  class Thread;
+
   class ngLogger { };
   class Environment;
   class Configuration;
-  class ngDiagnostics { };
+
+  class Diagnostics;
+
+  namespace diagnostics {
+    class Diagnostic;
+  }
+
   class ThreadNexus;
   class MachineThreads;
   class Memory;
@@ -14,18 +30,64 @@ namespace rubinius {
     class Collector;
   }
 
-  class ngSignals { };
+  class SignalThread;
   class ngCodeDB { };
 
-  class C_API {
+  class C_API;
+
+  namespace jit {
+    class MachineCompiler;
+  }
+
+  class ngDebugger { };
+
+  class Profiler {
+  public:
+    Profiler() { }
+    virtual ~Profiler() { }
   };
 
-  class ngCompiler { };
-  class ngDebugger { };
-  class ngProfiler { };
-  class ngConsole { };
+  class Console;
 
   class MachineState {
+  public:
+    enum Phase {
+      eBooting,
+      eRunning,
+      eHalting,
+    };
+
+  private:
+    uint64_t _start_time_;
+    uint32_t _hash_seed_;
+    std::atomic<Phase> _phase_;
+
+  public:
+    MachineState();
+    virtual ~MachineState() { }
+
+    const uint32_t hash_seed() {
+      return _hash_seed_;
+    }
+
+    bool booting_p() {
+      return _phase_ == eBooting;
+    }
+
+    bool running_p() {
+      return _phase_ == eRunning;
+    }
+
+    bool halting_p() {
+      return _phase_ == eHalting;
+    }
+
+    void set_halting() {
+      _phase_ = eHalting;
+    }
+
+    void set_start_time();
+    double run_time();
   };
 
   class Machine {
@@ -34,22 +96,26 @@ namespace rubinius {
     ThreadNexus* _thread_nexus_;
     Configuration* _configuration_;
     Environment* _environment_;
-    ngDiagnostics* _diagnostics_;
+    Diagnostics* _diagnostics_;
     MachineThreads* _machine_threads_;
     Memory* _memory_;
     memory::Collector* _collector_;
-    ngSignals* _signals_;
+    SignalThread* _signals_;
     ngCodeDB* _codedb_;
     C_API* _c_api_;
-    ngCompiler* _compiler_;
+    jit::MachineCompiler* _compiler_;
     ngDebugger* _debugger_;
-    ngProfiler* _profiler_;
-    ngConsole* _console_;
+    Profiler* _profiler_;
+    Console* _console_;
 
   public:
 
     Machine(int argc, char** argv);
     virtual ~Machine();
+
+    MachineState* const machine_state() {
+      return _machine_state_;
+    }
 
     ThreadNexus* const thread_nexus() {
       return _thread_nexus_;
@@ -61,6 +127,10 @@ namespace rubinius {
 
     Environment* const environment() const {
       return _environment_;
+    }
+
+    Diagnostics* const diagnostics() {
+      return _diagnostics_;
     }
 
     MachineThreads* const machine_threads() {
@@ -75,8 +145,45 @@ namespace rubinius {
       return _collector_;
     }
 
+    SignalThread* const signals() {
+      return _signals_;
+    }
+
+    C_API* const c_api() {
+      return _c_api_;
+    }
+
+    jit::MachineCompiler* const compiler() {
+      return _compiler_;
+    }
+
+    Profiler* const profiler() {
+      return _profiler_;
+    }
+
+    Console* const console() {
+      return _console_;
+    }
+
     void boot();
     int halt();
+
+    void after_fork_child(STATE);
+
+    SignalThread* start_signals(STATE);
+    Diagnostics* start_diagnostics(STATE);
+    void report_diagnostics(diagnostics::Diagnostic* diagnostic);
+
+    // TODO: Machine
+    Array* vm_threads(STATE);
+    Fixnum* vm_threads_count(STATE);
+    Array* vm_fibers(STATE);
+    Fixnum* vm_fibers_count(STATE);
+    Array* vm_thread_fibers(STATE, Thread* thread);
+    void vm_thread_fibers(STATE, Thread* thread, std::function<void (STATE, Fiber*)> f);
+
+    uint32_t new_thread_id();
+    // ---
 
     void halt_console();
     void halt_profiler();

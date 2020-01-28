@@ -6,6 +6,7 @@
 #include "configuration.hpp"
 #include "memory.hpp"
 #include "object_utils.hpp"
+#include "primitives.hpp"
 
 #include "class/block_environment.hpp"
 #include "class/byte_array.hpp"

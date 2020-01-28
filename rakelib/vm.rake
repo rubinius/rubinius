@@ -101,10 +101,9 @@ field_extract_headers = %w[
   machine/class/thunk.hpp
   machine/class/atomic.hpp
   machine/class/character.hpp
-  machine/class/thread_state.hpp
+  machine/class/unwind_state.hpp
   machine/class/jit.hpp
   machine/class/code_db.hpp
-  machine/class/diagnostics.hpp
   machine/class/trie.hpp
   machine/class/unwind_site.hpp
   machine/class/prediction.hpp

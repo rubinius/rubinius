@@ -2,6 +2,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 
 #include "class/array.hpp"
 #include "class/autoload.hpp"
@@ -137,12 +138,12 @@ namespace rubinius {
 
   void Module::set_const(STATE, Symbol* sym, Object* val) {
     constant_table()->store(state, sym, val, G(sym_public));
-    state->shared().inc_global_serial(state);
+    state->memory()->inc_global_serial();
   }
 
   void Module::del_const(STATE, Symbol* sym) {
     constant_table()->remove(state, sym);
-    state->shared().inc_global_serial(state);
+    state->memory()->inc_global_serial();
   }
 
   void Module::set_const(STATE, std::string name, Object* val) {

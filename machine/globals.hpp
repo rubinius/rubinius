@@ -55,7 +55,7 @@ namespace rubinius {
     memory::TypedRoot<Class*> string, character, symbol, io;
     memory::TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     memory::TypedRoot<Class*> floatpoint, list, list_node;
-    memory::TypedRoot<Class*> channel, thread, thread_state, constantscope;
+    memory::TypedRoot<Class*> channel, thread, unwind_state, constantscope;
     memory::TypedRoot<Class*> constant_table, lookup_table;
     memory::TypedRoot<Class*> iseq, executable, native_function;
     memory::TypedRoot<Class*> select, fdset, rio_stream;
@@ -173,7 +173,7 @@ namespace rubinius {
       list_node(&roots),
       channel(&roots),
       thread(&roots),
-      thread_state(&roots),
+      unwind_state(&roots),
       constantscope(&roots),
       constant_table(&roots),
       lookup_table(&roots),

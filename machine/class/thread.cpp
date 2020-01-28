@@ -3,6 +3,7 @@
 #include "environment.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 #include "signal.hpp"
 #include "thread_phase.hpp"
 
@@ -20,6 +21,7 @@
 #include "class/symbol.hpp"
 #include "class/thread.hpp"
 #include "class/tuple.hpp"
+#include "class/unwind_state.hpp"
 
 #include "memory/collector.hpp"
 
@@ -90,7 +92,7 @@ namespace rubinius {
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
     return Thread::create(state, self,
-        state->thread_nexus()->new_vm(&state->shared()),
+        state->thread_nexus()->new_vm(state->machine()),
         function);
   }
 
@@ -138,9 +140,9 @@ namespace rubinius {
      */
     state->vm()->set_call_frame(NULL);
 
-    thread->exception(state, state->vm()->thread_state()->current_exception());
+    thread->exception(state, state->unwind_state()->current_exception());
 
-    if(state->vm()->thread_state()->raise_reason() == cThreadKill) {
+    if(state->unwind_state()->raise_reason() == cThreadKill) {
       thread->value(state, cNil);
     } else if(value) {
       thread->value(state, value);
@@ -248,7 +250,7 @@ namespace rubinius {
   }
 
   Array* Thread::fiber_list(STATE) {
-    return state->shared().vm_thread_fibers(state, this);
+    return state->machine()->vm_thread_fibers(state, this);
   }
 
   Object* Thread::fiber_variable_get(STATE, Symbol* key) {
@@ -290,16 +292,13 @@ namespace rubinius {
 
     state->vm()->thread()->pid(state, Fixnum::from(gettid()));
 
-    state->shared().env()->load_core(state);
+    state->environment()->load_core(state);
 
-    state->vm()->thread_state()->clear();
-
-    state->shared().start_console(state);
-    state->shared().start_compiler(state);
+    state->unwind_state()->clear();
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
-      state->shared().env()->missing_core("unable to find class Rubinius::Loader");
+      state->environment()->missing_core("unable to find class Rubinius::Loader");
       return 0;
     }
 
@@ -308,9 +307,9 @@ namespace rubinius {
 
     instance = klass->send(state, state->symbol("new"));
     if(instance) {
-      state->shared().env()->set_loader(instance);
+      state->environment()->set_loader(instance);
     } else {
-      state->shared().env()->missing_core("unable to instantiate Rubinius::Loader");
+      state->environment()->missing_core("unable to instantiate Rubinius::Loader");
       return 0;
     }
 
@@ -319,7 +318,7 @@ namespace rubinius {
 
     Object* value = instance->send(state, state->symbol("main"));
 
-    state->shared().signals()->system_exit(state->vm()->thread_state()->raise_value());
+    state->machine()->signals()->system_exit(state->unwind_state()->raise_value());
 
     return value;
   }
@@ -371,8 +370,8 @@ namespace rubinius {
 
     vm->unmanaged_phase(state);
 
-    if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {
-      state->shared().signals()->system_exit(vm->thread_state()->raise_value());
+    if(vm->main_thread_p() || (!value && vm->unwind_state(state)->raise_reason() == cExit)) {
+      state->machine()->signals()->system_exit(vm->unwind_state(state)->raise_value());
     }
 
     vm->set_zombie(state);
@@ -407,11 +406,11 @@ namespace rubinius {
   }
 
   Array* Thread::list(STATE) {
-    return state->shared().vm_threads(state);
+    return state->machine()->vm_threads(state);
   }
 
   Fixnum* Thread::count(STATE) {
-    return state->shared().vm_threads_count(state);
+    return state->machine()->vm_threads_count(state);
   }
 
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {
@@ -440,7 +439,7 @@ namespace rubinius {
     if(!vm()) return cNil;
 
     if(state->vm()->thread() == this) {
-      current_fiber()->vm()->thread_state()->raise_thread_kill();
+      current_fiber()->vm()->unwind_state(state)->raise_thread_kill();
       return NULL;
     } else {
       current_fiber()->vm()->register_kill(state);

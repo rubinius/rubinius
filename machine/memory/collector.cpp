@@ -14,6 +14,7 @@
 #include "class/thread.hpp"
 #include "class/native_method.hpp"
 #include "class/call_site.hpp"
+#include "class/unwind_state.hpp"
 
 #include "diagnostics/collector.hpp"
 #include "diagnostics/timing.hpp"
@@ -125,10 +126,10 @@ namespace rubinius {
             Array* ary = Array::create(state, 1);
             ary->set(state, 0, object()->object_id(state));
             if(!finalizer_->send(state, G(sym_call), ary)) {
-              if(state->vm()->thread_state()->raise_reason() == cException) {
+              if(state->unwind_state()->raise_reason() == cException) {
                 logger::warn(
                     "collector: an exception occurred running a Ruby finalizer: %s",
-                    state->vm()->thread_state()->current_exception()->message_c_str(state));
+                    state->unwind_state()->current_exception()->message_c_str(state));
               }
             }
 
@@ -240,7 +241,7 @@ namespace rubinius {
 
     void Collector::collect(STATE) {
       timer::StopWatch<timer::milliseconds> timerx(
-          state->shared().collector_metrics()->first_region_stop_ms);
+          state->diagnostics()->collector_metrics()->first_region_stop_ms);
 
       stop_for_collection(state, [&]{
           MemoryTracer tracer(state, state->memory()->main_heap());
@@ -321,7 +322,7 @@ namespace rubinius {
             object->finalize(state);
             delete object;
 
-            state->shared().collector_metrics()->objects_finalized++;
+            state->diagnostics()->collector_metrics()->objects_finalized++;
           }
 
           state->thread_nexus()->yield(state, state->vm());
@@ -370,7 +371,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        state->shared().collector_metrics()->objects_finalized++;
+        state->diagnostics()->collector_metrics()->objects_finalized++;
       }
 
       while(!finalizer_list_.empty()) {
@@ -380,7 +381,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        state->shared().collector_metrics()->objects_finalized++;
+        state->diagnostics()->collector_metrics()->objects_finalized++;
       }
 
       for(auto i = state->collector()->weakrefs().begin();
@@ -476,7 +477,7 @@ namespace rubinius {
       obj->object()->set_finalizer(state);
 
       finalizer_list_.push_back(obj);
-      state->shared().collector_metrics()->objects_queued++;
+      state->diagnostics()->collector_metrics()->objects_queued++;
     }
 
     void Collector::trace_finalizers(STATE, MemoryTracer* tracer) {

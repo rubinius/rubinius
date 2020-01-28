@@ -1,4 +1,5 @@
 #include "arguments.hpp"
+#include "raise_reason.hpp"
 
 #include "class/array.hpp"
 #include "class/autoload.hpp"
@@ -21,6 +22,7 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 #include "class/system.hpp"
+#include "class/unwind_state.hpp"
 #include "class/variable_scope.hpp"
 
 #include "call_frame.hpp"
@@ -828,7 +830,7 @@ namespace rubinius {
   }
 
   Object* System::vm_exit(STATE, Fixnum* code) {
-    state->vm()->thread_state()->raise_exit(code);
+    state->unwind_state()->raise_exit(code);
     return NULL;
   }
 
@@ -881,7 +883,7 @@ namespace rubinius {
       // We're in the child...
       state->vm()->after_fork_child(state);
 
-      state->shared().after_fork_child(state);
+      state->machine()->after_fork_child(state);
       state->machine_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
@@ -910,7 +912,7 @@ namespace rubinius {
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->shared().user_variables.find(var->c_str(state));
+    ConfigParser::Entry* ent = state->environment()->user_variables()->find(var->c_str(state));
     if(!ent) return cNil;
 
     if(ent->is_number()) {
@@ -925,7 +927,7 @@ namespace rubinius {
   Object* System::vm_get_config_section(STATE, String* section) {
     ConfigParser::EntryList* list;
 
-    list = state->shared().user_variables.get_section(
+    list = state->environment()->user_variables()->get_section(
         reinterpret_cast<char*>(section->byte_address()));
 
     Array* ary = Array::create(state, list->size());
@@ -974,7 +976,7 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
-    SignalThread* st = state->shared().signals();
+    SignalThread* st = state->machine()->signals();
 
     if(st) {
       intptr_t i = sig->to_native();
@@ -992,7 +994,7 @@ namespace rubinius {
   }
 
   Object* System::vm_signal_thread(STATE) {
-    return state->shared().signals()->vm()->thread();
+    return state->machine()->signals()->vm()->thread();
   }
 
   Object* System::vm_time(STATE) {
@@ -1278,20 +1280,20 @@ namespace rubinius {
   }
 
   Object* System::vm_global_serial(STATE) {
-    return Fixnum::from(state->shared().global_serial());
+    return Fixnum::from(state->memory()->global_serial());
   }
 
   Object* System::vm_inc_global_serial(STATE) {
     if(state->configuration()->serial_debug) {
       std::cerr << std::endl
                 << "global serial increased from "
-                << state->shared().global_serial()
+                << state->memory()->global_serial()
                 << std::endl;
 
       state->vm()->call_frame()->print_backtrace(state, std::cerr, 6, true);
     }
 
-    return Fixnum::from(state->shared().inc_global_serial(state));
+    return Fixnum::from(state->memory()->inc_global_serial());
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
@@ -1355,7 +1357,7 @@ namespace rubinius {
   }
 
   Object* System::vm_throw(STATE, Object* dest, Object* value) {
-    state->vm()->thread_state()->raise_throw(dest, value);
+    state->unwind_state()->raise_throw(dest, value);
     return NULL;
   }
 
@@ -1368,10 +1370,10 @@ namespace rubinius {
     OnStack<1> os(state, dest);
     Object* ret = dispatch.send(state, lookup, args);
 
-    if(!ret && state->vm()->thread_state()->raise_reason() == cCatchThrow) {
-      if(state->vm()->thread_state()->throw_dest()->equal_p(dest)) {
-        Object* val = state->vm()->thread_state()->raise_value();
-        state->vm()->thread_state()->clear_return();
+    if(!ret && state->unwind_state()->raise_reason() == cCatchThrow) {
+      if(state->unwind_state()->throw_dest()->equal_p(dest)) {
+        Object* val = state->unwind_state()->raise_value();
+        state->unwind_state()->clear_return();
         return val;
       }
     }
@@ -1609,7 +1611,7 @@ retry:
   }
 
   Tuple* System::vm_thread_state(STATE) {
-    VMThreadState* ts = state->vm()->thread_state();
+    UnwindState* ts = state->unwind_state();
     Tuple* tuple = Tuple::create(state, 5);
 
     Symbol* reason = 0;

@@ -4,6 +4,7 @@
 #include "class/symbol.hpp"
 #include "class/autoload.hpp"
 
+#include "c_api.hpp"
 #include "configuration.hpp"
 
 #include "helpers.hpp"

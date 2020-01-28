@@ -1,9 +1,9 @@
 #include "vm.hpp"
 #include "state.hpp"
+#include "machine.hpp"
 
 #include "util/thread.hpp"
 #include "memory/managed.hpp"
-#include "shared_state.hpp"
 
 #include "diagnostics/machine.hpp"
 #include "diagnostics/memory.hpp"
@@ -15,7 +15,7 @@ namespace rubinius {
 namespace memory {
   utilities::thread::ThreadData<ManagedThread*> _current_thread;
 
-  ManagedThread::ManagedThread(uint32_t id, SharedState& ss,
+  ManagedThread::ManagedThread(uint32_t id, Machine* m,
       ManagedThread::Kind kind, const char* name)
     : kind_(kind)
     , metrics_(new diagnostics::MachineMetrics())

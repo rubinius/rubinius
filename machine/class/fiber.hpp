@@ -100,7 +100,7 @@ namespace rubinius {
 
     bool root_p();
 
-    bool canceled_p();
+    bool canceled_p(STATE);
 
     Status status() {
       return status_;

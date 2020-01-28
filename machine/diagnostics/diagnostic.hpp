@@ -42,12 +42,12 @@ namespace rubinius {
       virtual ~Diagnostic() {}
 
       virtual void start_reporting(STATE) {
-        state->shared().diagnostics()->add_report(state, this);
-        set_nodename(state->shared().env()->nodename());
+        state->machine()->diagnostics()->add_report(state, this);
+        set_nodename(state->environment()->nodename());
       }
 
       virtual void stop_reporting(STATE) {
-        state->shared().diagnostics()->remove_report(this);
+        state->machine()->diagnostics()->remove_report(this);
       }
 
       virtual void update() {

@@ -7,6 +7,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 
 #include "class/array.hpp"
 #include "class/byte_array.hpp"
@@ -552,7 +553,7 @@ namespace rubinius {
 
     if(len > STACK_BUF_SZ) {
       malloc_buf = (uint8_t*)malloc(len);
-      if(!malloc_buf) rubinius::abort();
+      if(!malloc_buf) rubinius::bug();
       buf = malloc_buf;
     }
 

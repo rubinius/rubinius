@@ -406,66 +406,68 @@ namespace rubinius {
         }
       }
     }
+  }
 
-    Console::Console(STATE)
-      : listener_(0)
-      , response_(0)
-      , request_(0)
-      , ruby_console_(state)
-    {
-      console_path_ = state->configuration()->console_path.value;
+  using namespace console;
 
-      std::ostringstream basename;
-      basename << state->configuration()->console_path.value << "-"
-               << state->shared().env()->pid();
+  Console::Console(STATE)
+    : listener_(0)
+    , response_(0)
+    , request_(0)
+    , ruby_console_(state)
+  {
+    console_path_ = state->configuration()->console_path.value;
 
-      request_path_ = basename.str() + "-request";
-      response_path_ = basename.str() + "-response";
+    std::ostringstream basename;
+    basename << state->configuration()->console_path.value << "-"
+             << state->environment()->pid();
 
-      listener_ = new Listener(state, this);
+    request_path_ = basename.str() + "-request";
+    response_path_ = basename.str() + "-response";
+
+    listener_ = new Listener(state, this);
+  }
+
+  Console::~Console() {
+    if(listener_) delete listener_;
+    reset();
+  }
+
+  bool Console::connected_p() {
+    return request_ && request_->enabled_p();
+  }
+
+  void Console::start(STATE) {
+    listener_->start(state);
+  }
+
+  void Console::accept(STATE) {
+    ruby_console_.set(server_class(state)->send(state, 0, state->symbol("new")));
+
+    response_ = new Response(state, this);
+    request_ = new Request(state, this, response_);
+  }
+
+  void Console::reset() {
+    if(request_) {
+      delete request_;
+      request_ = 0;
     }
 
-    Console::~Console() {
-      if(listener_) delete listener_;
-      reset();
+    if(response_) {
+      delete response_;
+      response_ = 0;
     }
 
-    bool Console::connected_p() {
-      return request_ && request_->enabled_p();
-    }
+    ruby_console_.set(cNil);
+  }
 
-    void Console::start(STATE) {
-      listener_->start(state);
-    }
+  void Console::after_fork_child(STATE) {
+    reset();
+  }
 
-    void Console::accept(STATE) {
-      ruby_console_.set(server_class(state)->send(state, 0, state->symbol("new")));
-
-      response_ = new Response(state, this);
-      request_ = new Request(state, this, response_);
-    }
-
-    void Console::reset() {
-      if(request_) {
-        delete request_;
-        request_ = 0;
-      }
-
-      if(response_) {
-        delete response_;
-        response_ = 0;
-      }
-
-      ruby_console_.set(cNil);
-    }
-
-    void Console::after_fork_child(STATE) {
-      reset();
-    }
-
-    Class* Console::server_class(STATE) {
-      Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
-      return as<Class>(mod->get_const(state, "Server"));
-    }
+  Class* Console::server_class(STATE) {
+    Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
+    return as<Class>(mod->get_const(state, "Server"));
   }
 }

@@ -1,11 +1,11 @@
 #include "instructions.hpp"
 
-#include "class/thread_state.hpp"
+#include "class/unwind_state.hpp"
 
 namespace rubinius {
   namespace instructions {
     inline void push_exception_state(STATE, CallFrame* call_frame) {
-      stack_push(state->vm()->thread_state()->state_as_object(state));
+      stack_push(state->unwind_state()->copy(state));
     }
   }
 }

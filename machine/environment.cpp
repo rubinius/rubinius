@@ -1,5 +1,6 @@
 #include "config.h"
 #include "paths.h"
+#include "c_api.hpp"
 #include "defines.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
@@ -85,18 +86,8 @@ namespace rubinius {
     copy_argv(argc, argv);
     ruby_init_setproctitle(argc, argv);
 
-    shared = new SharedState(this, m, config_parser);
-
-  }
-
-  void Environment::initialize() {
-    load_vm_options(argc_, argv_);
-
-    check_io_descriptors();
-
-    root_vm = _machine_->thread_nexus()->new_vm(shared, "ruby.main");
+    root_vm = _machine_->thread_nexus()->new_vm(_machine_, "ruby.main");
     root_vm->set_main_thread();
-    shared->set_root_vm(root_vm);
 
     size_t stack_size = 0;
     struct rlimit rlim;
@@ -109,6 +100,12 @@ namespace rubinius {
     root_vm->set_current_thread();
 
     state = new State(root_vm);
+  }
+
+  void Environment::initialize() {
+    load_vm_options(argc_, argv_);
+
+    check_io_descriptors();
 
     loader_ = new memory::TypedRoot<Object*>(state);
 
@@ -131,7 +128,6 @@ namespace rubinius {
     delete collector_;
 
     VM::discard(state, root_vm);
-    delete shared;
     delete state;
 
     for(int i = 0; i < argc_; i++) {
@@ -147,7 +143,7 @@ namespace rubinius {
     logger::fatal("Please report this with the following backtrace to " \
         "https://github.com/rubinius/rubinius/issues");
 
-    rubinius::abort();
+    rubinius::bug();
   }
 
   void Environment::setup_cpp_terminate() {
@@ -458,7 +454,7 @@ namespace rubinius {
       _machine_->configuration()->print();
     }
 
-    state->shared().set_use_capi_lock(_machine_->configuration()->capi_lock);
+    _machine_->c_api()->set_use_capi_lock(_machine_->configuration()->capi_lock);
   }
 
   void Environment::load_platform_conf(std::string dir) {
@@ -521,14 +517,14 @@ namespace rubinius {
   void Environment::halt(STATE, int exit_code) {
     std::lock_guard<std::mutex> guard(halt_lock_);
 
-    state->shared().set_halting();
+    state->machine()->machine_state()->set_halting();
 
     if(state->configuration()->log_lifetime.value) {
       logger::write("process: exit: %s %d %lld %fs %fs",
           _pid_.c_str(), exit_code,
-          shared->codedb_metrics()->load_count,
-          timer::elapsed_seconds(shared->codedb_metrics()->load_ns),
-          shared->run_time());
+          _machine_->diagnostics()->codedb_metrics()->load_count,
+          timer::elapsed_seconds(_machine_->diagnostics()->codedb_metrics()->load_ns),
+          state->machine()->machine_state()->run_time());
     }
 
     state->machine_threads()->shutdown(state);
@@ -542,7 +538,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    state->shared().signals()->stop(state);
+    state->signals()->stop(state);
 
     exit(exit_code);
   }
@@ -677,31 +673,30 @@ namespace rubinius {
   }
 
   void Environment::boot() {
-    state->shared().start_diagnostics(state);
+    // TODO: Machine
+    // state->diagnostics().start_diagnostics(state);
 
     std::string codedb_path = system_prefix() + RBX_CODEDB_PATH;
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->platform_us);
+          state->diagnostics()->boot_metrics()->platform_us);
 
       load_platform_conf(codedb_path);
     }
-
-    shared->set_initialized();
 
     state->vm()->managed_phase(state);
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->fields_us);
+          state->diagnostics()->boot_metrics()->fields_us);
 
       TypeInfo::auto_learn_fields(state);
     }
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->ontology_us);
+          state->diagnostics()->boot_metrics()->ontology_us);
 
       state->vm()->bootstrap_ontology(state);
     }
@@ -714,7 +709,7 @@ namespace rubinius {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->main_thread_us);
+          state->diagnostics()->boot_metrics()->main_thread_us);
 
       main = Thread::create(state, state->vm(), Thread::main_thread);
       main->start_thread(state, Thread::run);
@@ -727,8 +722,6 @@ namespace rubinius {
     vm->set_stack_bounds(state->vm()->stack_size());
 
     State main_state(vm);
-    state->shared().start_signals(&main_state);
-
-    state->shared().set_running();
+    state->machine()->start_signals(&main_state);
   }
 }

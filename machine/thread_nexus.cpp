@@ -1,5 +1,6 @@
+#include "environment.hpp"
 #include "logger.hpp"
-#include "shared_state.hpp"
+#include "machine.hpp"
 #include "thread_nexus.hpp"
 #include "thread_phase.hpp"
 #include "vm.hpp"
@@ -105,7 +106,7 @@ namespace rubinius {
     return (phase & cYieldingPhase) == cYieldingPhase;
   }
 
-  VM* ThreadNexus::new_vm(SharedState* shared, const char* name) {
+  VM* ThreadNexus::new_vm(Machine* m, const char* name) {
     std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint32_t max_id = thread_ids_;
@@ -115,7 +116,7 @@ namespace rubinius {
       rubinius::bug("exceeded maximum number of threads");
     }
 
-    VM* vm = new VM(id, *shared, name);
+    VM* vm = new VM(id, m, name);
 
     threads_.push_back(vm);
 
@@ -173,7 +174,7 @@ namespace rubinius {
     }
 
     threads_.push_back(current);
-    state->shared().set_root_vm(current);
+    state->environment()->set_root_vm(current);
   }
 
   static const char* phase_name(VM* vm) {

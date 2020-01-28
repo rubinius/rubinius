@@ -10,6 +10,8 @@
 
 #include "logger.hpp"
 
+#include <unistd.h>
+
 namespace rubinius {
   using namespace utilities;
 

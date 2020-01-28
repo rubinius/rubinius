@@ -23,6 +23,7 @@
 #include "class/constant_cache.hpp"
 #include "class/call_site.hpp"
 #include "class/unwind_site.hpp"
+#include "class/unwind_state.hpp"
 
 #include "diagnostics/measurement.hpp"
 #include "diagnostics/timing.hpp"
@@ -614,7 +615,7 @@ namespace rubinius {
 
       // If argument handling fails..
       if(ArgumentHandler::call(state, mcode, scope, args) == false) {
-        if(state->vm()->thread_state()->raise_reason() == cNone) {
+        if(state->unwind_state()->raise_reason() == cNone) {
           Exception* exc =
             Exception::make_argument_error(state, mcode->total_args,
                 args.total(), args.name()->cpp_str(state).c_str());

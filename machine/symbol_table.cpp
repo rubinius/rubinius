@@ -36,7 +36,7 @@ namespace rubinius {
   void SymbolTable::sweep(STATE) {
     if(state->configuration()->diagnostics_memory_enabled) {
       diagnostic_->update();
-      state->shared().report_diagnostics(diagnostic_);
+      state->machine()->report_diagnostics(diagnostic_);
     }
   }
 
@@ -115,18 +115,14 @@ namespace rubinius {
     encodings.push_back(enc);
     kinds.push_back(eUnknown);
 
-    state->shared().memory_metrics()->symbols++;
-    state->shared().memory_metrics()->symbols_bytes += bytes;
+    state->diagnostics()->memory_metrics()->symbols++;
+    state->diagnostics()->memory_metrics()->symbols_bytes += bytes;
 
     return strings.size() - 1;
   }
 
   Symbol* SymbolTable::lookup(STATE, const char* str, size_t length) {
     return lookup(state, str, length, Encoding::eAscii, state->hash_seed());
-  }
-
-  Symbol* SymbolTable::lookup(STATE, SharedState* shared, const std::string& str) {
-    return lookup(state, str.data(), str.size(), Encoding::eAscii, shared->hash_seed);
   }
 
   Symbol* SymbolTable::lookup(STATE, const std::string& str) {

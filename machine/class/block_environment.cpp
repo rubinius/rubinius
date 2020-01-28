@@ -20,6 +20,7 @@
 #include "class/system.hpp"
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
+#include "class/unwind_state.hpp"
 
 #include "diagnostics/machine.hpp"
 
@@ -408,7 +409,7 @@ namespace rubinius {
     scope->set_parent(env->scope());
 
     if(!GenericArguments::call(state, mcode, scope, args, invocation.flags)) {
-      if(state->vm()->thread_state()->raise_reason() == cNone) {
+      if(state->unwind_state()->raise_reason() == cNone) {
         Exception* exc =
           Exception::make_argument_error(state,
               mcode->required_args, args.total(), mcode->name().c_str());

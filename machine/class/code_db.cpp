@@ -110,7 +110,7 @@ namespace rubinius {
 
   CodeDB* CodeDB::open(STATE, std::string db_path, bool writable) {
     memory::Collector::Inhibit inhibitor(state);
-    std::lock_guard<std::recursive_mutex> lock(state->shared().codedb_lock());
+    std::lock_guard<std::recursive_mutex> lock(state->memory()->codedb_lock());
 
     CodeDB* codedb = state->memory()->new_object<CodeDB>(state, G(codedb));
 
@@ -400,12 +400,12 @@ namespace rubinius {
 
   CompiledCode* CodeDB::load(STATE, const char* c_id) {
     memory::Collector::Inhibit inhibitor(state);
-    std::lock_guard<std::recursive_mutex> lock(state->shared().codedb_lock());
+    std::lock_guard<std::recursive_mutex> lock(state->memory()->codedb_lock());
 
     timer::StopWatch<timer::nanoseconds> timer(
-        state->shared().codedb_metrics()->load_ns);
+        state->machine()->diagnostics()->codedb_metrics()->load_ns);
 
-    state->shared().codedb_metrics()->load_count++;
+    state->machine()->diagnostics()->codedb_metrics()->load_count++;
 
     CodeDBMap::const_iterator m = index()->find(std::string(c_id));
 
@@ -448,7 +448,7 @@ namespace rubinius {
       String* stem, String* ext, Object* reload, Object* record)
   {
     memory::Collector::Inhibit inhibitor(state);
-    std::lock_guard<std::recursive_mutex> lock(state->shared().codedb_lock());
+    std::lock_guard<std::recursive_mutex> lock(state->memory()->codedb_lock());
 
     std::string search(stem->c_str(state));
     std::string extstr(ext->c_str(state));
@@ -522,7 +522,7 @@ namespace rubinius {
       String* stem, String* path, String* feature, Object* record)
   {
     memory::Collector::Inhibit inhibitor(state);
-    std::lock_guard<std::recursive_mutex> lock(state->shared().codedb_lock());
+    std::lock_guard<std::recursive_mutex> lock(state->memory()->codedb_lock());
 
     const char* c_id;
 

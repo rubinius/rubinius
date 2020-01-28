@@ -1084,7 +1084,7 @@ namespace rubinius {
 
         {
           timer::StopWatch<timer::microseconds> timer(
-              state->shared().collector_metrics()->first_region_diagnostics_us);
+              state->diagnostics()->collector_metrics()->first_region_diagnostics_us);
 
           // Now, calculate how much space we're still using.
           Chunks& chunks = block_allocator_.chunks();
@@ -1106,7 +1106,7 @@ namespace rubinius {
 
           if(state->configuration()->diagnostics_memory_enabled) {
             diagnostic()->update();
-            state->shared().report_diagnostics(diagnostic());
+            state->machine()->report_diagnostics(diagnostic());
           }
         }
 

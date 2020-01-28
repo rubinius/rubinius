@@ -1,6 +1,7 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
+#include "primitives.hpp"
 #include "on_stack.hpp"
 
 #include "class/array.hpp"
@@ -44,7 +45,7 @@ namespace rubinius {
   }
 
   void Class::initialize_data(STATE, Class* klass) {
-    klass->class_data(state->shared().inc_class_count(state));
+    klass->class_data(state->memory()->inc_class_count());
     klass->packed_size(0);
 
     klass->packed_ivar_info(nil<LookupTable>());

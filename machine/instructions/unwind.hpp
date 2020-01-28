@@ -1,13 +1,15 @@
+#include "raise_reason.hpp"
 #include "instructions.hpp"
 
 #include "class/unwind_site.hpp"
+#include "class/unwind_state.hpp"
 
 namespace rubinius {
   namespace instructions {
     inline ExceptionContinuation unwind(STATE, CallFrame* call_frame) {
-      VMThreadState* th = state->vm()->thread_state();
+      UnwindState* unwind = state->unwind_state();
 
-      switch(th->raise_reason()) {
+      switch(unwind->raise_reason()) {
       case cException:
         if(UnwindSite* unwind_site = call_frame->unwind) {
           if(unwind_site->unwind_type() == UnwindSite::eRescue) {
@@ -21,9 +23,9 @@ namespace rubinius {
 
       case cBreak:
         // If we're trying to break to here, we're done!
-        if(th->destination_scope() == call_frame->scope->on_heap()) {
-          stack_push(th->raise_value());
-          th->clear_break();
+        if(unwind->destination_scope() == call_frame->scope->on_heap()) {
+          stack_push(unwind->raise_value());
+          unwind->clear_break();
 
           // Don't return here, because we want to continue running this method.
           return cExceptionBreak;
@@ -44,13 +46,13 @@ namespace rubinius {
         }
 
         // Ok, no ensures to run.
-        if(th->raise_reason() == cReturn) {
+        if(unwind->raise_reason() == cReturn) {
           call_frame->scope->flush_to_heap(state);
 
           // If we're trying to return to here, we're done!
-          if(th->destination_scope() == call_frame->scope->on_heap()) {
-            stack_push(th->raise_value());
-            th->clear_return();
+          if(unwind->destination_scope() == call_frame->scope->on_heap()) {
+            stack_push(unwind->raise_value());
+            unwind->clear_return();
             return cExceptionReturn;
           }
         } else { // Not for us!

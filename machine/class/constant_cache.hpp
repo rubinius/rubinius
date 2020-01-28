@@ -51,7 +51,7 @@ namespace rubinius {
     static ConstantCache* empty(STATE, Symbol* name, Executable* executable, int ip);
 
     Object* retrieve(STATE, LexicalScope* scope) {
-      if(serial() == state->shared().global_serial() &&
+      if(serial() == state->memory()->global_serial() &&
          lexical_scope()->equal_p(scope)) {
         return value();
       }
@@ -59,7 +59,7 @@ namespace rubinius {
     }
 
     Object* retrieve(STATE, Module* mod, LexicalScope* scope) {
-      if(serial() == state->shared().global_serial() &&
+      if(serial() == state->memory()->global_serial() &&
          lexical_scope()->equal_p(scope) &&
          module()->equal_p(mod)) {
         return value();

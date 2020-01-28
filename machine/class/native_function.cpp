@@ -5,6 +5,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 
 #include "class/array.hpp"
 #include "class/class.hpp"
@@ -20,6 +21,7 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 #include "class/system.hpp"
+#include "class/unwind_state.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -46,7 +48,6 @@ namespace rubinius {
 
   FFIData::FFIData(STATE, NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret)
     : closure(0)
-    , shared(&state->shared())
     , callable(0)
     , function(func)
     , args_info(args)
@@ -367,7 +368,7 @@ namespace rubinius {
 
         if(!result) {
           logger::error("Exception raised by callback, ignoring");
-          state->vm()->thread_state()->clear();
+          state->unwind_state()->clear();
           result = cNil;
         }
 
@@ -444,7 +445,7 @@ namespace rubinius {
     if(!obj) {
       // For now, log the error and return nil.
       logger::error("Exception raised by callback, ignoring");
-      state->vm()->thread_state()->clear();
+      state->unwind_state()->clear();
       obj = cNil;
     }
 
@@ -520,7 +521,7 @@ namespace rubinius {
       if(!value) {
         // For now, log the error and return nil.
         logger::error("Exception raised by callback, ignoring");
-        state->vm()->thread_state()->clear();
+        state->unwind_state()->clear();
         value = cNil;
       }
 

@@ -15,8 +15,10 @@
 #include "class/block_environment.hpp"
 #include "class/proc.hpp"
 #include "class/exception.hpp"
+#include "class/unwind_state.hpp"
 
 #include "bug.hpp"
+#include "c_api.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "lookup_data.hpp"
@@ -111,7 +113,7 @@ namespace rubinius {
               "C-API: invalid constant index");
       }
 
-      CApiConstantNameMap map = env->state()->shared().capi_constant_name_map();
+      C_API::CApiConstantNameMap map = env->state()->c_api()->capi_constant_name_map();
       return map[type];
     }
 
@@ -424,7 +426,7 @@ namespace rubinius {
 
     void capi_raise_break(VALUE obj) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      env->state()->vm()->thread_state()->raise_break(
+      env->state()->unwind_state()->raise_break(
           MemoryHandle::object(obj), env->scope()->parent());
       env->current_ep()->return_to(env);
     }
@@ -461,12 +463,12 @@ extern "C" {
   VALUE capi_get_constant(CApiConstant type) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    env->shared().capi_constant_lock().lock();
-    CApiConstantHandleMap& map = env->state()->shared().capi_constant_map();
+    env->state()->c_api()->capi_constant_lock().lock();
+    C_API::CApiConstantHandleMap& map = env->state()->c_api()->capi_constant_map();
 
     VALUE value;
 
-    CApiConstantHandleMap::iterator entry = map.find(type);
+    C_API::CApiConstantHandleMap::iterator entry = map.find(type);
     if(entry == map.end()) {
       std::string constant_name = capi_get_constant_name(type);
 
@@ -483,7 +485,7 @@ extern "C" {
       value = entry->second->as_value();
     }
 
-    env->shared().capi_constant_lock().unlock();
+    env->state()->c_api()->capi_constant_lock().unlock();
     return value;
   }
 

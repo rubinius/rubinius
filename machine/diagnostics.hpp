@@ -10,8 +10,10 @@
 #include <unordered_set>
 
 namespace rubinius {
+  class Configuration;
+  class Diagnostics;
+
   namespace diagnostics {
-    class Diagnostics;
     class Diagnostic;
     class Emitter;
     class BootMetrics;
@@ -57,75 +59,96 @@ namespace rubinius {
 
       void report();
     };
-
-    class Diagnostics {
-      RecurringReports recurring_reports_;
-      IntermittentReports intermittent_reports_;
-
-      Reporter* reporter_;
-
-      std::mutex lock_;
-
-      int interval_;
-
-    public:
-      Diagnostics(STATE);
-
-      ~Diagnostics() {
-        if(reporter_) {
-          delete reporter_;
-          reporter_ = nullptr;
-        }
-      }
-
-      std::mutex& lock() {
-        return lock_;
-      }
-
-      int interval() const {
-        return interval_;
-      }
-
-      RecurringReports& recurring_reports() {
-        return recurring_reports_;
-      }
-
-      IntermittentReports& intermittent_reports() {
-        return intermittent_reports_;
-      }
-
-      void start_reporter(STATE) {
-        if(!reporter_) {
-          reporter_ = new Reporter(state, this);
-          reporter_->start(state);
-        }
-      }
-
-      void report(Diagnostic* diagnostic) {
-        std::lock_guard<std::mutex> guard(lock_);
-
-        intermittent_reports_.push_back(diagnostic);
-
-        if(reporter_) {
-          reporter_->report();
-        }
-      }
-
-      void add_report(STATE, Diagnostic* diagnostic) {
-        std::lock_guard<std::mutex> guard(lock_);
-
-        recurring_reports_.insert(diagnostic);
-
-        start_reporter(state);
-      }
-
-      void remove_report(Diagnostic* diagnostic) {
-        std::lock_guard<std::mutex> guard(lock_);
-
-        recurring_reports_.erase(diagnostic);
-      }
-    };
   }
+
+  class Diagnostics {
+    diagnostics::BootMetrics* boot_metrics_;
+    diagnostics::CodeDBMetrics* codedb_metrics_;
+    diagnostics::CollectorMetrics* collector_metrics_;
+    diagnostics::MemoryMetrics* memory_metrics_;
+
+    diagnostics::RecurringReports recurring_reports_;
+    diagnostics::IntermittentReports intermittent_reports_;
+
+    diagnostics::Reporter* reporter_;
+
+    std::mutex lock_;
+
+    int interval_;
+
+  public:
+    Diagnostics(Configuration* configuration);
+
+    ~Diagnostics() {
+      if(reporter_) {
+        delete reporter_;
+        reporter_ = nullptr;
+      }
+    }
+
+    std::mutex& lock() {
+      return lock_;
+    }
+
+    int interval() const {
+      return interval_;
+    }
+
+    diagnostics::BootMetrics* boot_metrics() {
+      return boot_metrics_;
+    }
+
+    diagnostics::CodeDBMetrics* codedb_metrics() {
+      return codedb_metrics_;
+    }
+
+    diagnostics::CollectorMetrics* collector_metrics() {
+      return collector_metrics_;
+    }
+
+    diagnostics::MemoryMetrics* memory_metrics() {
+      return memory_metrics_;
+    }
+
+    diagnostics::RecurringReports& recurring_reports() {
+      return recurring_reports_;
+    }
+
+    diagnostics::IntermittentReports& intermittent_reports() {
+      return intermittent_reports_;
+    }
+
+    void start_reporter(STATE) {
+      if(!reporter_) {
+        reporter_ = new diagnostics::Reporter(state, this);
+        reporter_->start(state);
+      }
+    }
+
+    void report(diagnostics::Diagnostic* diagnostic) {
+      std::lock_guard<std::mutex> guard(lock_);
+
+      intermittent_reports_.push_back(diagnostic);
+
+      if(reporter_) {
+        reporter_->report();
+      }
+    }
+
+    void add_report(STATE, diagnostics::Diagnostic* diagnostic) {
+      std::lock_guard<std::mutex> guard(lock_);
+
+      recurring_reports_.insert(diagnostic);
+
+      start_reporter(state);
+    }
+
+    void remove_report(diagnostics::Diagnostic* diagnostic) {
+      std::lock_guard<std::mutex> guard(lock_);
+
+      recurring_reports_.erase(diagnostic);
+    }
+  };
 }
 
 #endif

@@ -23,9 +23,10 @@
 #include "util/thread.hpp"
 
 #include "state.hpp"
-#include "shared_state.hpp"
 
+#include <atomic>
 #include <functional>
+#include <mutex>
 
 class TestMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
@@ -100,6 +101,15 @@ namespace rubinius {
 
     unsigned int visit_mark_;
 
+    std::atomic<uint64_t> class_count_;
+    std::atomic<int> global_serial_;
+
+    std::recursive_mutex codedb_lock_;
+
+    utilities::thread::SpinLock wait_lock_;
+    utilities::thread::SpinLock type_info_lock_;
+    utilities::thread::SpinLock code_resource_lock_;
+
   public:
     /// Counter used for issuing object ids when #object_id is called on a
     /// Ruby object.
@@ -114,6 +124,9 @@ namespace rubinius {
     SymbolTable symbols;
 
   public:
+    Memory(STATE, Configuration* configuration);
+    virtual ~Memory();
+
     static void memory_error(STATE);
 
     void collect_cycle() {
@@ -122,6 +135,34 @@ namespace rubinius {
 
     utilities::thread::SpinLock& allocation_lock() {
       return allocation_lock_;
+    }
+
+    int inc_class_count() {
+      return ++class_count_;
+    }
+
+    int global_serial() const {
+      return global_serial_;
+    }
+
+    int inc_global_serial() {
+      return ++global_serial_;
+    }
+
+    std::recursive_mutex& codedb_lock() {
+      return codedb_lock_;
+    }
+
+    utilities::thread::SpinLock& wait_lock() {
+      return wait_lock_;
+    }
+
+    utilities::thread::SpinLock& type_info_lock() {
+      return type_info_lock_;
+    }
+
+    utilities::thread::SpinLock& code_resource_lock() {
+      return code_resource_lock_;
     }
 
     memory::CodeManager& code_manager() {
@@ -156,9 +197,7 @@ namespace rubinius {
       visit_mark_ ^= 0x3;
     }
 
-  public:
-    Memory(STATE, Configuration* configuration);
-    virtual ~Memory();
+    void after_fork_child(STATE);
 
     // Object must be created in Immix or large object space.
     Object* new_object(STATE, intptr_t bytes, object_type type);

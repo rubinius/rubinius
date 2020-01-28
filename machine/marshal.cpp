@@ -203,7 +203,7 @@ namespace rubinius {
 
     if(count >= STACK_BUF_SZ) {
       malloc_data = (char*)malloc(count + 1);
-      if(!malloc_data) rubinius::abort();
+      if(!malloc_data) rubinius::bug();
       data = malloc_data;
     }
 
@@ -229,7 +229,7 @@ namespace rubinius {
 
     if(count >= STACK_BUF_SZ) {
       malloc_data = (char*)malloc(count + 1);
-      if(!malloc_data) rubinius::abort();
+      if(!malloc_data) rubinius::bug();
       data = malloc_data;
     }
 
@@ -329,7 +329,7 @@ namespace rubinius {
 
     if(count >= STACK_BUF_SZ) {
       malloc_data = (char*)malloc(count + 1);
-      if(!malloc_data) rubinius::abort();
+      if(!malloc_data) rubinius::bug();
       data = malloc_data;
     }
 

@@ -162,7 +162,6 @@ public:
 class VMTest {
 public:
   Machine* machine;
-  SharedState* shared;
   State* state;
   ConfigParser* config_parser;
   Configuration config;
@@ -188,9 +187,6 @@ public:
   void initialize_as_root(STATE) {
     state->vm()->set_current_thread();
 
-    state->vm()->shared.set_initialized();
-    state->vm()->shared.set_root_vm(state->vm());
-
     state->vm()->managed_phase(state);
 
     TypeInfo::auto_learn_fields(state);
@@ -207,14 +203,13 @@ public:
   void create() {
     machine = new Machine(0, nullptr);
 
-    VM* vm = machine->thread_nexus()->new_vm(machine->environment()->shared);
+    VM* vm = machine->thread_nexus()->new_vm(machine);
     state = new State(vm);
     initialize_as_root(state);
   }
 
   void destroy() {
     VM::discard(state, state->vm());
-    delete shared;
     delete state;
 
     machine->halt();

@@ -8,7 +8,7 @@
 #endif
 
 namespace rubinius {
-  NORETURN(void abort());
+  NORETURN(void bug(void));
   NORETURN(void bug(const char* message));
   NORETURN(void bug(const char* message, const char* arg));
   void warn(const char* message);

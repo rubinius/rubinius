@@ -1,6 +1,7 @@
 #include "memory.hpp"
 
 #include "class/exception.hpp"
+#include "class/unwind_state.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
@@ -30,7 +31,7 @@ extern "C" {
 
   VALUE rb_errinfo() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return MemoryHandle::value(env->state()->thread_state()->current_exception());
+    return MemoryHandle::value(env->state()->unwind_state()->current_exception());
   }
 
   void rb_set_errinfo(VALUE err) {
@@ -45,6 +46,6 @@ extern "C" {
       exc = capi::c_as<Exception>(object);
     }
 
-    env->state()->thread_state()->set_current_exception(exc);
+    env->state()->unwind_state()->current_exception(exc);
   }
 }

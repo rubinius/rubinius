@@ -9,15 +9,21 @@
 namespace rubinius {
   struct CallFrame;
 
+  class C_API;
   class Class;
+  class Console;
+  class Environment;
   class Exception;
   class Object;
+  class Machine;
+  class MachineState;
   class Memory;
-  class SharedState;
+  class Profiler;
+  class SignalThread;
   class String;
   class Symbol;
   class VM;
-  class VMThreadState;
+  class UnwindState;
 
   namespace memory {
     class Collector;
@@ -26,19 +32,25 @@ namespace rubinius {
 
   class State {
     VM* vm_;
-    SharedState& shared_;
 
   public:
     State(VM* vm)
       : vm_(vm)
-      , shared_(vm->shared)
     {}
 
+    MachineState* const machine_state();
+    Machine* const machine();
     Configuration* const configuration();
+    Environment* const environment();
     ThreadNexus* const thread_nexus();
+    Diagnostics* const diagnostics();
     MachineThreads* const machine_threads();
     memory::Collector* const collector();
+    SignalThread* const signals();
     Memory* const memory();
+    C_API* const c_api();
+    Profiler* const profiler();
+    Console* const console();
 
     VM* vm() {
       return vm_;
@@ -48,10 +60,7 @@ namespace rubinius {
       return static_cast<memory::ManagedThread*>(vm_);
     }
 
-    Object* raise_exception(Exception* exc) {
-      vm_->thread_state()->raise_exception(exc);
-      return 0;
-    }
+    Object* raise_exception(Exception* exc);
 
     void set_vm(VM* vm) {
       vm_ = vm;
@@ -64,16 +73,10 @@ namespace rubinius {
     Symbol* const symbol(std::string str);
     Symbol* const symbol(String* str);
 
-    uint32_t hash_seed() const {
-      return shared_.hash_seed;
-    }
+    const uint32_t hash_seed();
 
-    VMThreadState* thread_state() {
-      return vm_->thread_state();
-    }
-
-    SharedState& shared() {
-      return shared_;
+    UnwindState* unwind_state() {
+      return vm_->unwind_state(this);
     }
 
     bool check_local_interrupts() const {

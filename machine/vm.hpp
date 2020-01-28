@@ -9,11 +9,8 @@
 #include "memory/variable_buffer.hpp"
 
 #include "globals.hpp"
-#include "vm_thread_state.hpp"
 #include "thread_nexus.hpp"
 #include "spinlock.hpp"
-
-#include "shared_state.hpp"
 
 #include "unwind_info.hpp"
 
@@ -34,6 +31,7 @@
 namespace rubinius {
   class Fiber;
   class Exception;
+  class Machine;
 
   namespace event {
     class Loop;
@@ -51,7 +49,6 @@ namespace rubinius {
   class Object;
   class Park;
   class Primitives;
-  class SharedState;
   class String;
   class Symbol;
   class SymbolTable;
@@ -59,15 +56,23 @@ namespace rubinius {
   class TypeError;
   class TypeInfo;
   class VariableScope;
+  class UnwindState;
 
   struct CallFrame;
 
   enum MethodMissingReason {
-    eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
+    eNone,
+    ePrivate,
+    eProtected,
+    eSuper,
+    eVCall,
+    eNormal
   };
 
   enum ConstantMissingReason {
-    vFound, vPrivate, vNonExistent
+    vFound,
+    vPrivate,
+    vNonExistent
   };
 
   /**
@@ -84,6 +89,8 @@ namespace rubinius {
 
   private:
     static const int cWaitLimit = 100;
+
+    Machine* _machine_;
 
     UnwindInfoSet unwinds_;
 
@@ -138,15 +145,14 @@ namespace rubinius {
 
   public:
     /* Data members */
-    SharedState& shared;
-    memory::TypedRoot<Channel*> waiting_channel_;
-    memory::TypedRoot<Exception*> interrupted_exception_;
+    Channel* waiting_channel_;
+    Exception* interrupted_exception_;
     /// The Thread object for this VM state
-    memory::TypedRoot<Thread*> thread_;
-    memory::TypedRoot<Fiber*> fiber_;
+    Thread* thread_;
+    Fiber* fiber_;
 
     /// Object that waits for inflation
-    memory::TypedRoot<Object*> waiting_object_;
+    Object* waiting_object_;
 
     uint64_t start_time_;
 
@@ -155,7 +161,7 @@ namespace rubinius {
     void (*custom_wakeup_)(void*);
     void* custom_wakeup_data_;
 
-    VMThreadState thread_state_;
+    UnwindState* unwind_state_;
 
   public: /* Inline methods */
 
@@ -167,9 +173,7 @@ namespace rubinius {
       return id_;
     }
 
-    ThreadNexus* const thread_nexus() {
-      return shared.thread_nexus();
-    }
+    ThreadNexus* const thread_nexus();
 
     ThreadNexus::Phase thread_phase() {
       return thread_phase_.load(std::memory_order_acquire);
@@ -247,11 +251,11 @@ namespace rubinius {
     void set_fiber(Fiber* fiber);
 
     Thread* thread() {
-      return thread_.get();
+      return thread_;
     }
 
     Fiber* fiber() {
-      return fiber_.get();
+      return fiber_;
     }
 
     void set_zombie(STATE);
@@ -269,9 +273,7 @@ namespace rubinius {
       return main_thread_;
     }
 
-    VMThreadState* thread_state() {
-      return &thread_state_;
-    }
+    UnwindState* unwind_state(STATE);
 
     Object* allocate_object(STATE, intptr_t bytes, object_type type) {
       return thca_->allocate(state, bytes, type);
@@ -445,12 +447,10 @@ namespace rubinius {
     }
 
     Exception* interrupted_exception() const {
-      return interrupted_exception_.get();
+      return interrupted_exception_;
     }
 
-    void clear_interrupted_exception() {
-      interrupted_exception_.set(cNil);
-    }
+    void clear_interrupted_exception();
 
     memory::VariableRootBuffers& current_root_buffers();
 
@@ -462,8 +462,10 @@ namespace rubinius {
   public:
 
     /* Prototypes */
-    VM(uint32_t id, SharedState& shared, const char* name = NULL);
+    VM(uint32_t id, Machine* machine, const char* name = NULL);
     ~VM();
+
+    Machine* const machine();
 
     void bootstrap_class(STATE);
     void bootstrap_ontology(STATE);

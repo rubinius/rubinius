@@ -7,6 +7,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 #include "thread_phase.hpp"
 
 #include "class/array.hpp"

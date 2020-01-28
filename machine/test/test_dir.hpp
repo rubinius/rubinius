@@ -4,6 +4,7 @@
 #include "class/string.hpp"
 
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 class TestDir : public CxxTest::TestSuite, public VMTest {

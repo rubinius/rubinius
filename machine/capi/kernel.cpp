@@ -4,6 +4,7 @@
 #include "class/exception.hpp"
 #include "class/proc.hpp"
 #include "class/string.hpp"
+#include "class/unwind_state.hpp"
 
 #include "exception_point.hpp"
 
@@ -61,11 +62,11 @@ extern "C" {
     if(unlikely(ep.jumped_to())) {
       ep.pop(env);
 
-      if(env->state()->thread_state()->raise_reason() != cException) {
+      if(env->state()->unwind_state()->raise_reason() != cException) {
         env->current_ep()->return_to(env);
       }
 
-      VALUE exc_handle = MemoryHandle::value(env->state()->thread_state()->current_exception());
+      VALUE exc_handle = MemoryHandle::value(env->state()->unwind_state()->current_exception());
       bool handle_exc = false;
 
       va_start(exc_classes, arg2);
@@ -79,7 +80,7 @@ extern "C" {
 
       if(handle_exc) {
         ret = (*raise_func)(arg2, exc_handle);
-        env->state()->thread_state()->clear_raise();
+        env->state()->unwind_state()->clear_raise();
       } else {
         env->current_ep()->return_to(env);
       }
@@ -168,7 +169,7 @@ extern "C" {
     vfprintf(stderr, fmt, args);
     va_end(args);
 
-    rubinius::abort();
+    rubinius::bug();
     exit(1);  // compiler snack.
   }
 
