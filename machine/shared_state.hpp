@@ -30,10 +30,6 @@
 #endif
 
 namespace rubinius {
-  namespace jit {
-    class MachineCompiler;
-  }
-
   namespace memory {
     class Collector;
     class ManagedThread;
@@ -73,7 +69,6 @@ namespace rubinius {
 
   private:
     SignalThread* signals_;
-    jit::MachineCompiler* compiler_;
 
     diagnostics::Diagnostics* diagnostics_;
     diagnostics::BootMetrics* boot_metrics_;
@@ -218,12 +213,6 @@ namespace rubinius {
 
     diagnostics::Profiler* profiler() {
       return profiler_;
-    }
-
-    jit::MachineCompiler* start_compiler(STATE);
-
-    jit::MachineCompiler* compiler() const {
-      return compiler_;
     }
 
     Environment* const env() {

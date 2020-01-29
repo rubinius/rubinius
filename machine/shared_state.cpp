@@ -4,7 +4,6 @@
 #include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "config.h"
-#include "machine_compiler.hpp"
 #include "memory.hpp"
 #include "environment.hpp"
 
@@ -231,16 +230,6 @@ namespace rubinius {
     if(diagnostics_) {
       diagnostics_->report(diagnostic);
     }
-  }
-
-  jit::MachineCompiler* SharedState::start_compiler(STATE) {
-    if(!compiler_) {
-      if(state->configuration()->jit_enabled.value) {
-        compiler_ = new jit::MachineCompiler(state);
-      }
-    }
-
-    return compiler_;
   }
 
   void SharedState::after_fork_child(STATE) {

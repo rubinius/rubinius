@@ -294,8 +294,6 @@ namespace rubinius {
 
     state->vm()->thread_state()->clear();
 
-    state->shared().start_compiler(state);
-
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
       state->shared().env()->missing_core("unable to find class Rubinius::Loader");

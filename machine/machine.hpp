@@ -19,7 +19,10 @@ namespace rubinius {
 
   class C_API;
 
-  class ngCompiler { };
+  namespace jit {
+    class MachineCompiler;
+  }
+
   class ngDebugger { };
   class ngProfiler { };
 
@@ -43,7 +46,7 @@ namespace rubinius {
     ngSignals* _signals_;
     ngCodeDB* _codedb_;
     C_API* _c_api_;
-    ngCompiler* _compiler_;
+    jit::MachineCompiler* _compiler_;
     ngDebugger* _debugger_;
     ngProfiler* _profiler_;
     console::Console* _console_;
@@ -79,6 +82,10 @@ namespace rubinius {
 
     C_API* const c_api() {
       return _c_api_;
+    }
+
+    jit::MachineCompiler* const compiler() {
+      return _compiler_;
     }
 
     console::Console* const console() {

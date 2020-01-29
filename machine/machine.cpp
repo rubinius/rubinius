@@ -3,16 +3,17 @@
 #include "debug.h"
 
 #include "c_api.hpp"
-#include "console.hpp"
-#include "machine.hpp"
-#include "machine_threads.hpp"
-#include "environment.hpp"
-#include "configuration.hpp"
 #include "config_parser.hpp"
-#include "type_info.hpp"
+#include "configuration.hpp"
+#include "console.hpp"
+#include "environment.hpp"
 #include "exception.hpp"
-#include "thread_nexus.hpp"
+#include "machine.hpp"
+#include "machine_compiler.hpp"
+#include "machine_threads.hpp"
 #include "memory.hpp"
+#include "thread_nexus.hpp"
+#include "type_info.hpp"
 
 #include "memory/header.hpp"
 #include "memory/collector.hpp"
@@ -80,6 +81,7 @@ namespace rubinius {
 
     // TODO: after removing Environment::boot
     // _console_->start(_environment_->state);
+    // state->shared().start_compiler(state);
 
     MachineException::guard(environment()->state, true, [&]{
         if(const char* var = getenv("RBX_OPTIONS")) {
@@ -96,6 +98,18 @@ namespace rubinius {
 
   /* TODO
     console_->after_fork_child(state);
+   */
+
+  /* TODO
+  jit::MachineCompiler* SharedState::start_compiler(STATE) {
+    if(!compiler_) {
+      if(state->configuration()->jit_enabled.value) {
+        compiler_ = new jit::MachineCompiler(state);
+      }
+    }
+
+    return compiler_;
+  }
    */
 
   void Machine::halt_console() {
