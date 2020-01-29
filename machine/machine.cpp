@@ -2,6 +2,7 @@
 #include "paths.h"
 #include "debug.h"
 
+#include "c_api.hpp"
 #include "console.hpp"
 #include "machine.hpp"
 #include "machine_threads.hpp"
@@ -31,7 +32,7 @@ namespace rubinius {
     , _collector_(new memory::Collector())
     , _signals_(nullptr)
     , _codedb_(nullptr)
-    , _c_api_(nullptr)
+    , _c_api_(new C_API())
     , _compiler_(nullptr)
     , _debugger_(nullptr)
     , _profiler_(nullptr)

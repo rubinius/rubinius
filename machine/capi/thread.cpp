@@ -7,6 +7,7 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
+#include "c_api.hpp"
 #include "on_stack.hpp"
 #include "call_frame.hpp"
 #include "exception_point.hpp"

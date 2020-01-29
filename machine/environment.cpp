@@ -1,5 +1,6 @@
 #include "config.h"
 #include "paths.h"
+#include "c_api.hpp"
 #include "defines.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
@@ -457,7 +458,7 @@ namespace rubinius {
       _machine_->configuration()->print();
     }
 
-    state->shared().set_use_capi_lock(_machine_->configuration()->capi_lock);
+    _machine_->c_api()->set_use_capi_lock(_machine_->configuration()->capi_lock);
   }
 
   void Environment::load_platform_conf(std::string dir) {

@@ -17,8 +17,7 @@ namespace rubinius {
   class ngSignals { };
   class ngCodeDB { };
 
-  class C_API {
-  };
+  class C_API;
 
   class ngCompiler { };
   class ngDebugger { };
@@ -76,6 +75,10 @@ namespace rubinius {
 
     memory::Collector* const collector() {
       return _collector_;
+    }
+
+    C_API* const c_api() {
+      return _c_api_;
     }
 
     console::Console* const console() {

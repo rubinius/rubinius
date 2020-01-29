@@ -1,3 +1,4 @@
+#include "c_api.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
@@ -606,7 +607,7 @@ namespace rubinius {
       String* library, Symbol* name, Pointer* ptr) {
     void* func = ptr->pointer;
 
-    int lock_index = state->shared().capi_lock_index(name->debug_str(state));
+    int lock_index = state->c_api()->capi_lock_index(name->debug_str(state));
 
     return NativeMethod::create(state, library, G(rubinius),
                                 name, func,

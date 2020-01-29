@@ -52,6 +52,10 @@ namespace rubinius {
     return machine()->memory();
   }
 
+  C_API* const State::c_api() {
+    return machine()->c_api();
+  }
+
   Globals& State::globals() {
     return memory()->globals;
   }

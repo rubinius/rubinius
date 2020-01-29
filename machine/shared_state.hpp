@@ -17,8 +17,6 @@
 
 #include "util/thread.hpp"
 
-#include "capi/capi_constants.h"
-
 #include <unistd.h>
 #include <atomic>
 #include <functional>
@@ -55,13 +53,6 @@ namespace rubinius {
 
   struct CallFrame;
 
-  typedef std::unordered_set<std::string> CApiBlackList;
-  typedef std::vector<utilities::thread::Mutex*> CApiLocks;
-  typedef std::unordered_map<std::string, int> CApiLockMap;
-
-  typedef std::vector<std::string> CApiConstantNameMap;
-  typedef std::unordered_map<int, MemoryHandle*> CApiConstantHandleMap;
-
   /**
    * SharedState represents the global shared state that needs to be shared
    * across all VM instances.
@@ -91,9 +82,6 @@ namespace rubinius {
     diagnostics::MemoryMetrics* memory_metrics_;
     diagnostics::Profiler* profiler_;
 
-    CApiConstantNameMap capi_constant_name_map_;
-    CApiConstantHandleMap capi_constant_map_;
-
     uint64_t start_time_;
     uint64_t  class_count_;
     int global_serial_;
@@ -107,18 +95,10 @@ namespace rubinius {
 
     std::recursive_mutex codedb_lock_;
 
-    utilities::thread::SpinLock capi_ds_lock_;
-    utilities::thread::SpinLock capi_locks_lock_;
-    utilities::thread::SpinLock capi_constant_lock_;
     utilities::thread::SpinLock wait_lock_;
     utilities::thread::SpinLock type_info_lock_;
     utilities::thread::SpinLock code_resource_lock_;
 
-    CApiBlackList capi_black_list_;
-    CApiLocks capi_locks_;
-    CApiLockMap capi_lock_map_;
-
-    bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
 
     std::atomic<Phase> phase_;
@@ -160,7 +140,6 @@ namespace rubinius {
     int size();
 
     void set_initialized() {
-      setup_capi_constant_names();
       initialized_ = true;
     }
 
@@ -293,20 +272,6 @@ namespace rubinius {
       return codedb_lock_;
     }
 
-    void set_use_capi_lock(bool s) {
-      use_capi_lock_ = s;
-    }
-
-    utilities::thread::SpinLock& capi_ds_lock() {
-      return capi_ds_lock_;
-    }
-
-    utilities::thread::SpinLock& capi_constant_lock() {
-      return capi_constant_lock_;
-    }
-
-    int capi_lock_index(std::string name);
-
     utilities::thread::SpinLock& wait_lock() {
       return wait_lock_;
     }
@@ -323,19 +288,6 @@ namespace rubinius {
 
     void after_fork_child(STATE);
 
-    void enter_capi(STATE, const char* file, int line);
-    void leave_capi(STATE);
-
-    void setup_capi_constant_names();
-    CApiConstantNameMap& capi_constant_name_map() {
-      return capi_constant_name_map_;
-    }
-
-    CApiConstantHandleMap& capi_constant_map() {
-      return capi_constant_map_;
-    }
-
-    void initialize_capi_black_list();
   };
 }
 

@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "c_api.hpp"
 #include "state.hpp"
 #include "object_utils.hpp"
 

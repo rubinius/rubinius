@@ -4,6 +4,7 @@
 #include "class/string.hpp"
 #include "class/symbol.hpp"
 
+#include "c_api.hpp"
 #include "helpers.hpp"
 #include "exception_point.hpp"
 #include "on_stack.hpp"

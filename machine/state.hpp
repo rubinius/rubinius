@@ -9,6 +9,7 @@
 namespace rubinius {
   struct CallFrame;
 
+  class C_API;
   class Class;
   class Exception;
   class Object;
@@ -40,6 +41,7 @@ namespace rubinius {
     MachineThreads* const machine_threads();
     memory::Collector* const collector();
     Memory* const memory();
+    C_API* const c_api();
 
     VM* vm() {
       return vm_;
