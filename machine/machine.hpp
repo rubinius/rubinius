@@ -1,11 +1,18 @@
 #ifndef RBX_MACHINE_H
 #define RBX_MACHINE_H
 
+#include "defines.hpp"
+
 namespace rubinius {
   class ngLogger { };
   class Environment;
   class Configuration;
-  class ngDiagnostics { };
+
+  namespace diagnostics {
+    class Diagnostics;
+    class Diagnostic;
+  }
+
   class ThreadNexus;
   class MachineThreads;
   class Memory;
@@ -24,7 +31,10 @@ namespace rubinius {
   }
 
   class ngDebugger { };
-  class ngProfiler { };
+
+  namespace diagnostics {
+    class Profiler;
+  }
 
   namespace console {
     class Console;
@@ -39,7 +49,7 @@ namespace rubinius {
     ThreadNexus* _thread_nexus_;
     Configuration* _configuration_;
     Environment* _environment_;
-    ngDiagnostics* _diagnostics_;
+    diagnostics::Diagnostics* _diagnostics_;
     MachineThreads* _machine_threads_;
     Memory* _memory_;
     memory::Collector* _collector_;
@@ -48,7 +58,7 @@ namespace rubinius {
     C_API* _c_api_;
     jit::MachineCompiler* _compiler_;
     ngDebugger* _debugger_;
-    ngProfiler* _profiler_;
+    diagnostics::Profiler* _profiler_;
     console::Console* _console_;
 
   public:
@@ -66,6 +76,10 @@ namespace rubinius {
 
     Environment* const environment() const {
       return _environment_;
+    }
+
+    diagnostics::Diagnostics* const diagnostics() {
+      return _diagnostics_;
     }
 
     MachineThreads* const machine_threads() {
@@ -92,6 +106,10 @@ namespace rubinius {
       return _compiler_;
     }
 
+    diagnostics::Profiler* const profiler() {
+      return _profiler_;
+    }
+
     console::Console* const console() {
       return _console_;
     }
@@ -100,6 +118,8 @@ namespace rubinius {
     int halt();
 
     SignalThread* start_signals(STATE);
+    diagnostics::Diagnostics* start_diagnostics(STATE);
+    void report_diagnostics(diagnostics::Diagnostic* diagnostic);
 
     void halt_console();
     void halt_profiler();

@@ -168,7 +168,7 @@ extern "C" {
     vfprintf(stderr, fmt, args);
     va_end(args);
 
-    rubinius::abort();
+    rubinius::bug();
     exit(1);  // compiler snack.
   }
 

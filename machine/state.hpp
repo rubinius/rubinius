@@ -11,10 +11,12 @@ namespace rubinius {
 
   class C_API;
   class Class;
+  class Console;
   class Exception;
   class Object;
   class Memory;
   class SharedState;
+  class SignalThread;
   class String;
   class Symbol;
   class VM;
@@ -38,10 +40,14 @@ namespace rubinius {
     Machine* const machine();
     Configuration* const configuration();
     ThreadNexus* const thread_nexus();
+    diagnostics::Diagnostics* const diagnostics();
     MachineThreads* const machine_threads();
     memory::Collector* const collector();
+    SignalThread* const signals();
     Memory* const memory();
     C_API* const c_api();
+    diagnostics::Profiler* const profiler();
+    Console* const console();
 
     VM* vm() {
       return vm_;

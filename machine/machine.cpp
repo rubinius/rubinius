@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "config.h"
 #include "paths.h"
 #include "debug.h"
@@ -6,15 +8,22 @@
 #include "config_parser.hpp"
 #include "configuration.hpp"
 #include "console.hpp"
+#include "diagnostics.hpp"
 #include "environment.hpp"
 #include "exception.hpp"
 #include "machine.hpp"
 #include "machine_compiler.hpp"
 #include "machine_threads.hpp"
 #include "memory.hpp"
-#include "signals.hpp"
+#include "signal.hpp"
 #include "thread_nexus.hpp"
 #include "type_info.hpp"
+
+#include "diagnostics/codedb.hpp"
+#include "diagnostics/collector.hpp"
+#include "diagnostics/memory.hpp"
+#include "diagnostics/machine.hpp"
+#include "diagnostics/profiler.hpp"
 
 #include "memory/header.hpp"
 #include "memory/collector.hpp"
@@ -28,7 +37,7 @@ namespace rubinius {
     , _thread_nexus_(new ThreadNexus)
     , _configuration_(new Configuration())
     , _environment_(new Environment(argc, argv, this))
-    , _diagnostics_(nullptr)
+    , _diagnostics_(new diagnostics::Diagnostics(_configuration_))
     , _machine_threads_(new MachineThreads())
     , _memory_(new Memory(_environment_->state, _configuration_))
     , _collector_(new memory::Collector())
@@ -37,7 +46,7 @@ namespace rubinius {
     , _c_api_(new C_API())
     , _compiler_(nullptr)
     , _debugger_(nullptr)
-    , _profiler_(nullptr)
+    , _profiler_(new diagnostics::Profiler())
     , _console_(new console::Console(_environment_->state))
   {
     _environment_->initialize();
@@ -54,6 +63,27 @@ namespace rubinius {
 
     return _signals_;
   }
+
+  diagnostics::Diagnostics* Machine::start_diagnostics(STATE) {
+    if(state->configuration()->diagnostics_target.value.compare("none")) {
+      _diagnostics_->start_reporter(state);
+
+      _diagnostics_->boot_metrics()->start_reporting(state);
+      _diagnostics_->codedb_metrics()->start_reporting(state);
+      _diagnostics_->collector_metrics()->start_reporting(state);
+      _diagnostics_->memory_metrics()->start_reporting(state);
+      _profiler_->start_reporting(state);
+    }
+
+    return _diagnostics_;
+  }
+
+  void Machine::report_diagnostics(diagnostics::Diagnostic* diagnostic) {
+    if(_diagnostics_) {
+      _diagnostics_->report(diagnostic);
+    }
+  }
+
 
   /* TODO:
    *
@@ -110,7 +140,7 @@ namespace rubinius {
    */
 
   /* TODO
-  jit::MachineCompiler* SharedState::start_compiler(STATE) {
+  jit::MachineCompiler* Machine::start_compiler(STATE) {
     if(!compiler_) {
       if(state->configuration()->jit_enabled.value) {
         compiler_ = new jit::MachineCompiler(state);

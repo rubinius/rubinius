@@ -147,7 +147,7 @@ namespace rubinius {
     logger::fatal("Please report this with the following backtrace to " \
         "https://github.com/rubinius/rubinius/issues");
 
-    rubinius::abort();
+    rubinius::bug();
   }
 
   void Environment::setup_cpp_terminate() {
@@ -526,8 +526,8 @@ namespace rubinius {
     if(state->configuration()->log_lifetime.value) {
       logger::write("process: exit: %s %d %lld %fs %fs",
           _pid_.c_str(), exit_code,
-          shared->codedb_metrics()->load_count,
-          timer::elapsed_seconds(shared->codedb_metrics()->load_ns),
+          _machine_->diagnostics()->codedb_metrics()->load_count,
+          timer::elapsed_seconds(_machine_->diagnostics()->codedb_metrics()->load_ns),
           shared->run_time());
     }
 
@@ -542,7 +542,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    state->shared().signals()->stop(state);
+    state->signals()->stop(state);
 
     exit(exit_code);
   }
@@ -677,13 +677,14 @@ namespace rubinius {
   }
 
   void Environment::boot() {
-    state->shared().start_diagnostics(state);
+    // TODO: Machine
+    // state->diagnostics().start_diagnostics(state);
 
     std::string codedb_path = system_prefix() + RBX_CODEDB_PATH;
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->platform_us);
+          state->diagnostics()->boot_metrics()->platform_us);
 
       load_platform_conf(codedb_path);
     }
@@ -694,14 +695,14 @@ namespace rubinius {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->fields_us);
+          state->diagnostics()->boot_metrics()->fields_us);
 
       TypeInfo::auto_learn_fields(state);
     }
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->ontology_us);
+          state->diagnostics()->boot_metrics()->ontology_us);
 
       state->vm()->bootstrap_ontology(state);
     }
@@ -714,7 +715,7 @@ namespace rubinius {
 
     {
       timer::StopWatch<timer::microseconds> timer(
-          state->shared().boot_metrics()->main_thread_us);
+          state->diagnostics()->boot_metrics()->main_thread_us);
 
       main = Thread::create(state, state->vm(), Thread::main_thread);
       main->start_thread(state, Thread::run);

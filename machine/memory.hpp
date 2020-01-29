@@ -25,6 +25,7 @@
 #include "state.hpp"
 #include "shared_state.hpp"
 
+#include <atomic>
 #include <functional>
 
 class TestMemory; // So we can friend it properly

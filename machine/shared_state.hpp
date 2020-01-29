@@ -13,8 +13,6 @@
 #include "symbol_table.hpp"
 #include "thread_nexus.hpp"
 
-#include "diagnostics.hpp"
-
 #include "util/thread.hpp"
 
 #include <unistd.h>
@@ -67,12 +65,6 @@ namespace rubinius {
     };
 
   private:
-    diagnostics::Diagnostics* diagnostics_;
-    diagnostics::BootMetrics* boot_metrics_;
-    diagnostics::CodeDBMetrics* codedb_metrics_;
-    diagnostics::CollectorMetrics* collector_metrics_;
-    diagnostics::MemoryMetrics* memory_metrics_;
-    diagnostics::Profiler* profiler_;
 
     uint64_t start_time_;
     uint64_t  class_count_;
@@ -175,35 +167,6 @@ namespace rubinius {
 
     int& primitive_hits(int primitive) {
       return primitive_hits_[primitive];
-    }
-
-    diagnostics::Diagnostics* diagnostics() const {
-      return diagnostics_;
-    }
-
-    diagnostics::Diagnostics* start_diagnostics(STATE);
-
-    void report_diagnostics(diagnostics::Diagnostic* diagnostic);
-
-    diagnostics::BootMetrics* boot_metrics() {
-      return boot_metrics_;
-    }
-
-    diagnostics::CodeDBMetrics* codedb_metrics() {
-      return codedb_metrics_;
-    }
-
-    diagnostics::CollectorMetrics* collector_metrics() {
-      return collector_metrics_;
-    }
-
-    diagnostics::MemoryMetrics* memory_metrics() {
-      return memory_metrics_;
-    }
-
-
-    diagnostics::Profiler* profiler() {
-      return profiler_;
     }
 
     Environment* const env() {

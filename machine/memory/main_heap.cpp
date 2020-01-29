@@ -34,8 +34,8 @@ namespace rubinius {
       utilities::thread::SpinLock::LockGuard guard(state->memory()->allocation_lock());
 
       if(Object* obj = first_region()->allocate(state, bytes)) {
-        state->shared().memory_metrics()->first_region_objects++;
-        state->shared().memory_metrics()->first_region_bytes += bytes;
+        state->diagnostics()->memory_metrics()->first_region_objects++;
+        state->diagnostics()->memory_metrics()->first_region_bytes += bytes;
 
         MemoryHeader::initialize(
             obj, state->vm()->thread_id(), eFirstRegion, type, false);
@@ -44,8 +44,8 @@ namespace rubinius {
       }
 
       if(Object* obj = third_region()->allocate(state, bytes)) {
-        state->shared().memory_metrics()->large_objects++;
-        state->shared().memory_metrics()->large_bytes += bytes;
+        state->diagnostics()->memory_metrics()->large_objects++;
+        state->diagnostics()->memory_metrics()->large_bytes += bytes;
 
         MemoryHeader::initialize(
             obj, state->vm()->thread_id(), eThirdRegion, type, false);
@@ -155,7 +155,7 @@ namespace rubinius {
 
       state->memory()->symbols.sweep(state);
 
-      diagnostics::CollectorMetrics* metrics = state->shared().collector_metrics();
+      diagnostics::CollectorMetrics* metrics = state->diagnostics()->collector_metrics();
       metrics->first_region_count++;
       metrics->large_count++;
     }

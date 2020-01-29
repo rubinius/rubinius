@@ -240,7 +240,7 @@ namespace rubinius {
 
     void Collector::collect(STATE) {
       timer::StopWatch<timer::milliseconds> timerx(
-          state->shared().collector_metrics()->first_region_stop_ms);
+          state->diagnostics()->collector_metrics()->first_region_stop_ms);
 
       stop_for_collection(state, [&]{
           MemoryTracer tracer(state, state->memory()->main_heap());
@@ -321,7 +321,7 @@ namespace rubinius {
             object->finalize(state);
             delete object;
 
-            state->shared().collector_metrics()->objects_finalized++;
+            state->diagnostics()->collector_metrics()->objects_finalized++;
           }
 
           state->thread_nexus()->yield(state, state->vm());
@@ -370,7 +370,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        state->shared().collector_metrics()->objects_finalized++;
+        state->diagnostics()->collector_metrics()->objects_finalized++;
       }
 
       while(!finalizer_list_.empty()) {
@@ -380,7 +380,7 @@ namespace rubinius {
         fo->finalize(state);
         delete fo;
 
-        state->shared().collector_metrics()->objects_finalized++;
+        state->diagnostics()->collector_metrics()->objects_finalized++;
       }
 
       for(auto i = state->collector()->weakrefs().begin();
@@ -476,7 +476,7 @@ namespace rubinius {
       obj->object()->set_finalizer(state);
 
       finalizer_list_.push_back(obj);
-      state->shared().collector_metrics()->objects_queued++;
+      state->diagnostics()->collector_metrics()->objects_queued++;
     }
 
     void Collector::trace_finalizers(STATE, MemoryTracer* tracer) {

@@ -19,11 +19,6 @@
 #include "class/native_method.hpp"
 #include "class/system.hpp"
 
-#include "diagnostics/codedb.hpp"
-#include "diagnostics/collector.hpp"
-#include "diagnostics/machine.hpp"
-#include "diagnostics/memory.hpp"
-#include "diagnostics/profiler.hpp"
 #include "diagnostics/timing.hpp"
 
 #include <iostream>
@@ -35,12 +30,6 @@ namespace rubinius {
   SharedState::SharedState(Environment* env, Machine* m, ConfigParser& cp)
     : signals_(nullptr)
     , compiler_(nullptr)
-    , diagnostics_(nullptr)
-    , boot_metrics_(new diagnostics::BootMetrics())
-    , codedb_metrics_(new diagnostics::CodeDBMetrics())
-    , collector_metrics_(new diagnostics::CollectorMetrics())
-    , memory_metrics_(new diagnostics::MemoryMetrics())
-    , profiler_(new diagnostics::Profiler())
     , start_time_(get_current_time())
     , class_count_(1)
     , global_serial_(1)
@@ -70,11 +59,6 @@ namespace rubinius {
     if(compiler_) {
       delete compiler_;
       compiler_ = nullptr;
-    }
-
-    if(diagnostics_) {
-      delete diagnostics_;
-      diagnostics_ = nullptr;
     }
   }
 
@@ -201,28 +185,6 @@ namespace rubinius {
 
   double SharedState::run_time() {
     return timer::time_elapsed_seconds(start_time_);
-  }
-
-  diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
-    diagnostics_ = new diagnostics::Diagnostics(state);
-
-    if(state->configuration()->diagnostics_target.value.compare("none")) {
-      diagnostics_->start_reporter(state);
-
-      boot_metrics_->start_reporting(state);
-      codedb_metrics_->start_reporting(state);
-      collector_metrics_->start_reporting(state);
-      memory_metrics_->start_reporting(state);
-      profiler_->start_reporting(state);
-    }
-
-    return diagnostics_;
-  }
-
-  void SharedState::report_diagnostics(diagnostics::Diagnostic* diagnostic) {
-    if(diagnostics_) {
-      diagnostics_->report(diagnostic);
-    }
   }
 
   void SharedState::after_fork_child(STATE) {

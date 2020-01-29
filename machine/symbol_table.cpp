@@ -115,8 +115,8 @@ namespace rubinius {
     encodings.push_back(enc);
     kinds.push_back(eUnknown);
 
-    state->shared().memory_metrics()->symbols++;
-    state->shared().memory_metrics()->symbols_bytes += bytes;
+    state->diagnostics().memory_metrics()->symbols++;
+    state->diagnostics().memory_metrics()->symbols_bytes += bytes;
 
     return strings.size() - 1;
   }

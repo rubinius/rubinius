@@ -129,8 +129,8 @@ namespace rubinius {
     Object* obj = nullptr;
 
     if(likely(obj = main_heap_->third_region()->allocate(state, bytes))) {
-      state->shared().memory_metrics()->large_objects++;
-      state->shared().memory_metrics()->large_bytes += bytes;
+      state->diagnostics()->memory_metrics()->large_objects++;
+      state->diagnostics()->memory_metrics()->large_bytes += bytes;
 
       MemoryHeader::initialize(
           obj, state->vm()->thread_id(), eThirdRegion, type, false);
@@ -167,7 +167,7 @@ namespace rubinius {
   void Memory::add_code_resource(STATE, memory::CodeResource* cr) {
     utilities::thread::SpinLock::LockGuard guard(state->shared().code_resource_lock());
 
-    state->shared().memory_metrics()->code_bytes += cr->size();
+    state->diagnostics()->memory_metrics()->code_bytes += cr->size();
 
     bool collect_flag = false;
     code_manager_.add_resource(cr, &collect_flag);
@@ -182,8 +182,8 @@ namespace rubinius {
 void* XMALLOC(size_t bytes) {
   if(rubinius::VM* vm = rubinius::VM::current()) {
     /* TODO: VM, State => ThreadState
-    vm->shared.memory_metrics()->malloc++;
-    vm->shared.memory_metrics()->allocated_bytes += bytes;
+    state->diagnostics()->memory_metrics()->malloc++;
+    state->diagnostics()->memory_metrics()->allocated_bytes += bytes;
     */
   }
 
@@ -193,7 +193,7 @@ void* XMALLOC(size_t bytes) {
 void XFREE(void* ptr) {
   if(rubinius::VM* vm = rubinius::VM::current()) {
     /* TODO: VM, State => ThreadState
-    vm->shared.memory_metrics()->freed++;
+    state->diagnostics()->memory_metrics()->freed++;
     */
   }
 
@@ -203,9 +203,9 @@ void XFREE(void* ptr) {
 void* XREALLOC(void* ptr, size_t bytes) {
   if(rubinius::VM* vm = rubinius::VM::current()) {
     /* TODO: VM, State => ThreadState
-    vm->shared.memory_metrics()->realloc++;
-    vm->shared.memory_metrics()->freed++;
-    vm->shared.memory_metrics()->allocated_bytes += bytes;
+    state->diagnostics()->memory_metrics()->realloc++;
+    state->diagnostics()->memory_metrics()->freed++;
+    state->diagnostics()->memory_metrics()->allocated_bytes += bytes;
     */
   }
 
@@ -217,8 +217,8 @@ void* XCALLOC(size_t items, size_t bytes_per) {
 
   if(rubinius::VM* vm = rubinius::VM::current()) {
     /* TODO: VM, State => ThreadState
-    vm->shared.memory_metrics()->calloc++;
-    vm->shared.memory_metrics()->allocated_bytes += bytes;
+    state->diagnostics()->memory_metrics()->calloc++;
+    state->diagnostics()->memory_metrics()->allocated_bytes += bytes;
     */
   }
 

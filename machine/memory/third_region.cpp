@@ -55,8 +55,8 @@ namespace rubinius {
       diagnostic()->objects++;
       diagnostic()->bytes += bytes;
 
-      state->shared().memory_metrics()->large_objects++;
-      state->shared().memory_metrics()->large_bytes += bytes;
+      state->diagnostics()->memory_metrics()->large_objects++;
+      state->diagnostics()->memory_metrics()->large_bytes += bytes;
 
       entries.push_back(obj);
 
@@ -64,7 +64,7 @@ namespace rubinius {
       if(next_collection_bytes < 0) {
         next_collection_bytes = collection_threshold;
 
-        state->shared().collector_metrics()->large_set++;
+        state->diagnostics()->collector_metrics()->large_set++;
         state->collector()->collect_requested(state,
             "collector: large object space triggered collection request");
       }

@@ -1,3 +1,4 @@
+#include "configuration.hpp"
 #include "vm.hpp"
 #include "state.hpp"
 #include "environment.hpp"
@@ -5,8 +6,12 @@
 #include "thread_phase.hpp"
 
 #include "diagnostics.hpp"
+#include "diagnostics/codedb.hpp"
+#include "diagnostics/collector.hpp"
 #include "diagnostics/diagnostic.hpp"
 #include "diagnostics/emitter.hpp"
+#include "diagnostics/machine.hpp"
+#include "diagnostics/memory.hpp"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -15,12 +20,16 @@ namespace rubinius {
   using namespace utilities;
 
   namespace diagnostics {
-    Diagnostics::Diagnostics(STATE)
-      : recurring_reports_()
+    Diagnostics::Diagnostics(Configuration* configuration)
+      : boot_metrics_(new BootMetrics())
+      , codedb_metrics_(new CodeDBMetrics())
+      , collector_metrics_(new CollectorMetrics())
+      , memory_metrics_(new MemoryMetrics())
+      , recurring_reports_()
       , intermittent_reports_()
       , reporter_(nullptr)
       , lock_()
-      , interval_(state->configuration()->diagnostics_interval)
+      , interval_(configuration->diagnostics_interval)
     {
     }
 

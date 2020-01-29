@@ -974,7 +974,7 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
-    SignalThread* st = state->shared().signals();
+    SignalThread* st = state->machine()->signals();
 
     if(st) {
       intptr_t i = sig->to_native();
@@ -992,7 +992,7 @@ namespace rubinius {
   }
 
   Object* System::vm_signal_thread(STATE) {
-    return state->shared().signals()->vm()->thread();
+    return state->machine()->signals()->vm()->thread();
   }
 
   Object* System::vm_time(STATE) {

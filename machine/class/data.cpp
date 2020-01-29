@@ -39,7 +39,7 @@ namespace rubinius {
           (memory::FinalizerFunction)&Data::finalize);
     }
 
-    state->shared().memory_metrics()->data_objects++;
+    state->machine()->diagnostics()->memory_metrics()->data_objects++;
 
     return data;
   }
@@ -65,7 +65,7 @@ namespace rubinius {
           (memory::FinalizerFunction)&Data::finalize);
     }
 
-    state->shared().memory_metrics()->data_objects++;
+    state->machine()->diagnostics()->memory_metrics()->data_objects++;
 
     return data;
   }

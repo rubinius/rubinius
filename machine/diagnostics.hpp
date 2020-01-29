@@ -10,6 +10,8 @@
 #include <unordered_set>
 
 namespace rubinius {
+  class Configuration;
+
   namespace diagnostics {
     class Diagnostics;
     class Diagnostic;
@@ -59,6 +61,11 @@ namespace rubinius {
     };
 
     class Diagnostics {
+      BootMetrics* boot_metrics_;
+      CodeDBMetrics* codedb_metrics_;
+      CollectorMetrics* collector_metrics_;
+      MemoryMetrics* memory_metrics_;
+
       RecurringReports recurring_reports_;
       IntermittentReports intermittent_reports_;
 
@@ -69,7 +76,7 @@ namespace rubinius {
       int interval_;
 
     public:
-      Diagnostics(STATE);
+      Diagnostics(Configuration* configuration);
 
       ~Diagnostics() {
         if(reporter_) {
@@ -84,6 +91,22 @@ namespace rubinius {
 
       int interval() const {
         return interval_;
+      }
+
+      BootMetrics* boot_metrics() {
+        return boot_metrics_;
+      }
+
+      CodeDBMetrics* codedb_metrics() {
+        return codedb_metrics_;
+      }
+
+      CollectorMetrics* collector_metrics() {
+        return collector_metrics_;
+      }
+
+      MemoryMetrics* memory_metrics() {
+        return memory_metrics_;
       }
 
       RecurringReports& recurring_reports() {

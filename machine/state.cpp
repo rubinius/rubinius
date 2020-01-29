@@ -40,6 +40,10 @@ namespace rubinius {
     return machine()->thread_nexus();
   }
 
+  diagnostics::Diagnostics* const diagnostics() {
+    return machine()->diagnostics();
+  }
+
   MachineThreads* const State::machine_threads() {
     return machine()->machine_threads();
   }
@@ -48,12 +52,24 @@ namespace rubinius {
     return machine()->collector();
   }
 
+  SignalThread* const State::signals() {
+    return machine()->signals();
+  }
+
   Memory* const State::memory() {
     return machine()->memory();
   }
 
   C_API* const State::c_api() {
     return machine()->c_api();
+  }
+
+  diagnostics::Profiler* const profiler() {
+    return machine()->profiler();
+  }
+
+  Console* const console() {
+    return machine()->console();
   }
 
   Globals& State::globals() {

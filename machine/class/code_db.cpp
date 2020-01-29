@@ -403,9 +403,9 @@ namespace rubinius {
     std::lock_guard<std::recursive_mutex> lock(state->shared().codedb_lock());
 
     timer::StopWatch<timer::nanoseconds> timer(
-        state->shared().codedb_metrics()->load_ns);
+        state->machine()->diagnostics()->codedb_metrics()->load_ns);
 
-    state->shared().codedb_metrics()->load_count++;
+    state->machine()->diagnostics()->codedb_metrics()->load_count++;
 
     CodeDBMap::const_iterator m = index()->find(std::string(c_id));
 

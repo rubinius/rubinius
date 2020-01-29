@@ -112,7 +112,7 @@ namespace rubinius {
     }
   }
 
-  void abort() {
+  void bug() {
     logger::fatal("The Rubinius process is aborting");
     print_backtrace();
     ::abort();

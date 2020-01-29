@@ -316,7 +316,7 @@ namespace rubinius {
 
     Object* value = instance->send(state, state->symbol("main"));
 
-    state->shared().signals()->system_exit(state->vm()->thread_state()->raise_value());
+    state->machine()->signals()->system_exit(state->vm()->thread_state()->raise_value());
 
     return value;
   }
@@ -369,7 +369,7 @@ namespace rubinius {
     vm->unmanaged_phase(state);
 
     if(vm->main_thread_p() || (!value && vm->thread_state()->raise_reason() == cExit)) {
-      state->shared().signals()->system_exit(vm->thread_state()->raise_value());
+      state->machine()->signals()->system_exit(vm->thread_state()->raise_value());
     }
 
     vm->set_zombie(state);

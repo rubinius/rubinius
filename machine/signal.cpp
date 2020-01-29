@@ -135,10 +135,10 @@ namespace rubinius {
           "main thread: %lldus " \
           "ontology: %lldus " \
           "platform: %lldus",
-          state->shared().boot_metrics()->fields_us,
-          state->shared().boot_metrics()->main_thread_us,
-          state->shared().boot_metrics()->ontology_us,
-          state->shared().boot_metrics()->platform_us);
+          state->diagnostics().boot_metrics()->fields_us,
+          state->diagnostics().boot_metrics()->main_thread_us,
+          state->diagnostics().boot_metrics()->ontology_us,
+          state->diagnostics().boot_metrics()->platform_us);
     }
 
     run(state);
