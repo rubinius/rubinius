@@ -43,7 +43,6 @@ namespace rubinius {
   class Fixnum;
   class Memory;
   class QueryAgent;
-  class SignalThread;
   class State;
   class VM;
 
@@ -68,8 +67,6 @@ namespace rubinius {
     };
 
   private:
-    SignalThread* signals_;
-
     diagnostics::Diagnostics* diagnostics_;
     diagnostics::BootMetrics* boot_metrics_;
     diagnostics::CodeDBMetrics* codedb_metrics_;
@@ -179,12 +176,6 @@ namespace rubinius {
     int& primitive_hits(int primitive) {
       return primitive_hits_[primitive];
     }
-
-    SignalThread* signals() const {
-      return signals_;
-    }
-
-    SignalThread* start_signals(STATE);
 
     diagnostics::Diagnostics* diagnostics() const {
       return diagnostics_;

@@ -203,13 +203,6 @@ namespace rubinius {
     return timer::time_elapsed_seconds(start_time_);
   }
 
-  SignalThread* SharedState::start_signals(STATE) {
-    signals_ = new SignalThread(state, state->vm());
-    signals_->start(state);
-
-    return signals_;
-  }
-
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
     diagnostics_ = new diagnostics::Diagnostics(state);
 

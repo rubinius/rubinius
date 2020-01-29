@@ -14,7 +14,7 @@ namespace rubinius {
     class Collector;
   }
 
-  class ngSignals { };
+  class SignalThread;
   class ngCodeDB { };
 
   class C_API;
@@ -43,7 +43,7 @@ namespace rubinius {
     MachineThreads* _machine_threads_;
     Memory* _memory_;
     memory::Collector* _collector_;
-    ngSignals* _signals_;
+    SignalThread* _signals_;
     ngCodeDB* _codedb_;
     C_API* _c_api_;
     jit::MachineCompiler* _compiler_;
@@ -80,6 +80,10 @@ namespace rubinius {
       return _collector_;
     }
 
+    SignalThread* const signals() {
+      return _signals_;
+    }
+
     C_API* const c_api() {
       return _c_api_;
     }
@@ -94,6 +98,8 @@ namespace rubinius {
 
     void boot();
     int halt();
+
+    SignalThread* start_signals(STATE);
 
     void halt_console();
     void halt_profiler();

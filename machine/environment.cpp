@@ -727,7 +727,7 @@ namespace rubinius {
     vm->set_stack_bounds(state->vm()->stack_size());
 
     State main_state(vm);
-    state->shared().start_signals(&main_state);
+    state->machine()->start_signals(&main_state);
 
     state->shared().set_running();
   }

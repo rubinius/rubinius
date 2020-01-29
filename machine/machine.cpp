@@ -12,6 +12,7 @@
 #include "machine_compiler.hpp"
 #include "machine_threads.hpp"
 #include "memory.hpp"
+#include "signals.hpp"
 #include "thread_nexus.hpp"
 #include "type_info.hpp"
 
@@ -40,10 +41,18 @@ namespace rubinius {
     , _console_(new console::Console(_environment_->state))
   {
     _environment_->initialize();
+
   }
 
   Machine::~Machine() {
     if(_machine_state_) halt();
+  }
+
+  SignalThread* Machine::start_signals(STATE) {
+    _signals_ = new SignalThread(state, state->vm());
+    _signals_->start(state);
+
+    return _signals_;
   }
 
   /* TODO:
