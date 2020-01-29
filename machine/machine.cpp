@@ -2,6 +2,7 @@
 #include "paths.h"
 #include "debug.h"
 
+#include "console.hpp"
 #include "machine.hpp"
 #include "machine_threads.hpp"
 #include "environment.hpp"
@@ -34,7 +35,7 @@ namespace rubinius {
     , _compiler_(nullptr)
     , _debugger_(nullptr)
     , _profiler_(nullptr)
-    , _console_(nullptr)
+    , _console_(new console::Console(_environment_->state))
   {
     _environment_->initialize();
   }
@@ -64,7 +65,7 @@ namespace rubinius {
    * [ ] 1. Move Debugger to Machine;
    * [ ] 1. Move Compiler to Machine;
    * [ ] 1. Move Profiler to Machine;
-   * [ ] 1. Move Console to Machine;
+   * [x] 1. Move Console to Machine;
    * [x] 1. Move SymbolTable into Memory;
    * [x] 1. Move Globals into Memory;
    * [ ] 1. Create ThreadState to replace State;
@@ -75,6 +76,9 @@ namespace rubinius {
    */
   void Machine::boot() {
     environment()->setup_cpp_terminate();
+
+    // TODO: after removing Environment::boot
+    // _console_->start(_environment_->state);
 
     MachineException::guard(environment()->state, true, [&]{
         if(const char* var = getenv("RBX_OPTIONS")) {
@@ -88,6 +92,10 @@ namespace rubinius {
         environment()->boot();
       });
   }
+
+  /* TODO
+    console_->after_fork_child(state);
+   */
 
   void Machine::halt_console() {
     if(_console_) {

@@ -11,7 +11,6 @@
 #include "util/thread.hpp"
 #include "configuration.hpp"
 
-#include "console.hpp"
 #include "signal.hpp"
 
 #include "class/randomizer.hpp"
@@ -36,7 +35,6 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Machine* m, ConfigParser& cp)
     : signals_(nullptr)
-    , console_(nullptr)
     , compiler_(nullptr)
     , diagnostics_(nullptr)
     , boot_metrics_(new diagnostics::BootMetrics())
@@ -76,11 +74,6 @@ namespace rubinius {
 
   SharedState::~SharedState() {
     if(!initialized_) return;
-
-    if(console_) {
-      delete console_;
-      console_ = nullptr;
-    }
 
     if(compiler_) {
       delete compiler_;
@@ -225,15 +218,6 @@ namespace rubinius {
     return signals_;
   }
 
-  console::Console* SharedState::start_console(STATE) {
-    if(!console_) {
-      console_ = new console::Console(state);
-      console_->start(state);
-    }
-
-    return console_;
-  }
-
   diagnostics::Diagnostics* SharedState::start_diagnostics(STATE) {
     diagnostics_ = new diagnostics::Diagnostics(state);
 
@@ -278,7 +262,6 @@ namespace rubinius {
     start_time_ = get_current_time();
 
     signals_->after_fork_child(state);
-    console_->after_fork_child(state);
   }
 
   void SharedState::enter_capi(STATE, const char* file, int line) {

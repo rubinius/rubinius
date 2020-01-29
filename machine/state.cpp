@@ -28,24 +28,28 @@ namespace rubinius {
     return vm_->park_->park_timed(this, ts);
   }
 
+  Machine* const State::machine() {
+    return shared_.machine();
+  }
+
   Configuration* const State::configuration() {
-    return shared_.machine()->configuration();
+    return machine()->configuration();
   }
 
   ThreadNexus* const State::thread_nexus() {
-    return shared_.machine()->thread_nexus();
+    return machine()->thread_nexus();
   }
 
   MachineThreads* const State::machine_threads() {
-    return shared_.machine()->machine_threads();
+    return machine()->machine_threads();
   }
 
   memory::Collector* const State::collector() {
-    return shared_.machine()->collector();
+    return machine()->collector();
   }
 
   Memory* const State::memory() {
-    return shared_.machine()->memory();
+    return machine()->memory();
   }
 
   Globals& State::globals() {

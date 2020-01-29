@@ -139,14 +139,14 @@ namespace rubinius {
   public:
     /* Data members */
     SharedState& shared;
-    memory::TypedRoot<Channel*> waiting_channel_;
-    memory::TypedRoot<Exception*> interrupted_exception_;
+    Channel* waiting_channel_;
+    Exception* interrupted_exception_;
     /// The Thread object for this VM state
-    memory::TypedRoot<Thread*> thread_;
-    memory::TypedRoot<Fiber*> fiber_;
+    Thread* thread_;
+    Fiber* fiber_;
 
     /// Object that waits for inflation
-    memory::TypedRoot<Object*> waiting_object_;
+    Object* waiting_object_;
 
     uint64_t start_time_;
 
@@ -247,11 +247,11 @@ namespace rubinius {
     void set_fiber(Fiber* fiber);
 
     Thread* thread() {
-      return thread_.get();
+      return thread_;
     }
 
     Fiber* fiber() {
-      return fiber_.get();
+      return fiber_;
     }
 
     void set_zombie(STATE);
@@ -445,12 +445,10 @@ namespace rubinius {
     }
 
     Exception* interrupted_exception() const {
-      return interrupted_exception_.get();
+      return interrupted_exception_;
     }
 
-    void clear_interrupted_exception() {
-      interrupted_exception_.set(cNil);
-    }
+    void clear_interrupted_exception();
 
     memory::VariableRootBuffers& current_root_buffers();
 

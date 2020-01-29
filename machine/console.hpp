@@ -11,6 +11,7 @@
 #include <string>
 
 namespace rubinius {
+  class Channel;
   class VM;
   class State;
   class FSEvent;

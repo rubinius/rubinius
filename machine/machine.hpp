@@ -23,7 +23,10 @@ namespace rubinius {
   class ngCompiler { };
   class ngDebugger { };
   class ngProfiler { };
-  class ngConsole { };
+
+  namespace console {
+    class Console;
+  }
 
   class MachineState {
   };
@@ -44,7 +47,7 @@ namespace rubinius {
     ngCompiler* _compiler_;
     ngDebugger* _debugger_;
     ngProfiler* _profiler_;
-    ngConsole* _console_;
+    console::Console* _console_;
 
   public:
 
@@ -73,6 +76,10 @@ namespace rubinius {
 
     memory::Collector* const collector() {
       return _collector_;
+    }
+
+    console::Console* const console() {
+      return _console_;
     }
 
     void boot();

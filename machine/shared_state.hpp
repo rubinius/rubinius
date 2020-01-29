@@ -32,10 +32,6 @@
 #endif
 
 namespace rubinius {
-  namespace console {
-    class Console;
-  }
-
   namespace jit {
     class MachineCompiler;
   }
@@ -86,7 +82,6 @@ namespace rubinius {
 
   private:
     SignalThread* signals_;
-    console::Console* console_;
     jit::MachineCompiler* compiler_;
 
     diagnostics::Diagnostics* diagnostics_;
@@ -216,12 +211,6 @@ namespace rubinius {
     }
 
     SignalThread* start_signals(STATE);
-
-    console::Console* console() const {
-      return console_;
-    }
-
-    console::Console* start_console(STATE);
 
     diagnostics::Diagnostics* diagnostics() const {
       return diagnostics_;

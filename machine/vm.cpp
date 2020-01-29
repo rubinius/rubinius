@@ -88,11 +88,11 @@ namespace rubinius {
     , checkpoints_(0)
     , stops_(0)
     , shared(shared)
-    , waiting_channel_(this, nil<Channel>())
-    , interrupted_exception_(this, nil<Exception>())
-    , thread_(this, nil<Thread>())
-    , fiber_(this, nil<Fiber>())
-    , waiting_object_(this, cNil)
+    , waiting_channel_(nil<Channel>())
+    , interrupted_exception_(nil<Exception>())
+    , thread_(nil<Thread>())
+    , fiber_(nil<Fiber>())
+    , waiting_object_(cNil)
     , start_time_(0)
     , native_method_environment(NULL)
     , custom_wakeup_(NULL)
@@ -127,12 +127,16 @@ namespace rubinius {
     return shared.machine()->memory()->globals;
   }
 
+  void VM::clear_interrupted_exception() {
+    interrupted_exception_ = nil<Exception>();
+  }
+
   void VM::set_thread(Thread* thread) {
-    thread_.set(thread);
+    thread_ = thread;
   }
 
   void VM::set_fiber(Fiber* fiber) {
-    fiber_.set(fiber);
+    fiber_ = fiber;
   }
 
   void VM::set_start_time() {
@@ -408,7 +412,7 @@ namespace rubinius {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     set_check_local_interrupts();
-    Object* wait = waiting_object_.get();
+    Object* wait = waiting_object_;
 
     if(park_->parked_p()) {
       park_->unpark();
@@ -425,7 +429,7 @@ namespace rubinius {
       interrupt_lock_.unlock();
       return true;
     } else {
-      Channel* chan = waiting_channel_.get();
+      Channel* chan = waiting_channel_;
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
@@ -445,8 +449,8 @@ namespace rubinius {
     utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
 
     interrupt_with_signal_ = false;
-    waiting_channel_.set(nil<Channel>());
-    waiting_object_.set(cNil);
+    waiting_channel_ = nil<Channel>();
+    waiting_object_ = cNil;
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
   }
@@ -455,7 +459,7 @@ namespace rubinius {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     thread()->sleep(state, cTrue);
-    waiting_channel_.set(chan);
+    waiting_channel_ = chan;
   }
 
   void VM::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
@@ -479,7 +483,7 @@ namespace rubinius {
 
   void VM::register_raise(STATE, Exception* exc) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
-    interrupted_exception_.set(exc);
+    interrupted_exception_ = exc;
     set_check_local_interrupts();
   }
 
@@ -561,6 +565,12 @@ namespace rubinius {
   void VM::gc_scan(STATE, std::function<void (STATE, Object**)> f) {
     metrics()->checkpoints = checkpoints_;
     metrics()->stops = stops_;
+
+    f(state, reinterpret_cast<Object**>(&waiting_channel_));
+    f(state, reinterpret_cast<Object**>(&interrupted_exception_));
+    f(state, reinterpret_cast<Object**>(&thread_));
+    f(state, reinterpret_cast<Object**>(&fiber_));
+    f(state, reinterpret_cast<Object**>(&waiting_object_));
 
     thca_->collect(state);
 

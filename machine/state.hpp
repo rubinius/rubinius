@@ -34,6 +34,7 @@ namespace rubinius {
       , shared_(vm->shared)
     {}
 
+    Machine* const machine();
     Configuration* const configuration();
     ThreadNexus* const thread_nexus();
     MachineThreads* const machine_threads();

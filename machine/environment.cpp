@@ -87,13 +87,6 @@ namespace rubinius {
 
     shared = new SharedState(this, m, config_parser);
 
-  }
-
-  void Environment::initialize() {
-    load_vm_options(argc_, argv_);
-
-    check_io_descriptors();
-
     root_vm = _machine_->thread_nexus()->new_vm(shared, "ruby.main");
     root_vm->set_main_thread();
     shared->set_root_vm(root_vm);
@@ -109,6 +102,12 @@ namespace rubinius {
     root_vm->set_current_thread();
 
     state = new State(root_vm);
+  }
+
+  void Environment::initialize() {
+    load_vm_options(argc_, argv_);
+
+    check_io_descriptors();
 
     loader_ = new memory::TypedRoot<Object*>(state);
 
