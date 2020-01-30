@@ -14,7 +14,10 @@ namespace rubinius {
   class Console;
   class Exception;
   class Object;
+  class Machine;
+  class MachineState;
   class Memory;
+  class Profiler;
   class SharedState;
   class SignalThread;
   class String;
@@ -37,16 +40,17 @@ namespace rubinius {
       , shared_(vm->shared)
     {}
 
+    MachineState* const machine_state();
     Machine* const machine();
     Configuration* const configuration();
     ThreadNexus* const thread_nexus();
-    diagnostics::Diagnostics* const diagnostics();
+    Diagnostics* const diagnostics();
     MachineThreads* const machine_threads();
     memory::Collector* const collector();
     SignalThread* const signals();
     Memory* const memory();
     C_API* const c_api();
-    diagnostics::Profiler* const profiler();
+    Profiler* const profiler();
     Console* const console();
 
     VM* vm() {

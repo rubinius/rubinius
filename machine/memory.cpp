@@ -62,6 +62,12 @@ namespace rubinius {
     , cycle_(0)
     , mark_(0x1)
     , visit_mark_(0x1)
+    , class_count_(0)
+    , global_serial_(0)
+    , codedb_lock_()
+    , wait_lock_()
+    , type_info_lock_()
+    , code_resource_lock_()
     , last_object_id(1)
     , last_snapshot_id(0)
     , large_object_threshold(configuration->memory_large_object)
@@ -80,6 +86,13 @@ namespace rubinius {
 
     delete main_heap_;
     main_heap_ = nullptr;
+  }
+
+  void Memory::after_fork_child(STATE) {
+    // Reinit the locks for this object
+    wait_lock_.init();
+    type_info_lock_.init();
+    code_resource_lock_.init();
   }
 
   /* TODO: GC
@@ -165,7 +178,7 @@ namespace rubinius {
   */
 
   void Memory::add_code_resource(STATE, memory::CodeResource* cr) {
-    utilities::thread::SpinLock::LockGuard guard(state->shared().code_resource_lock());
+    utilities::thread::SpinLock::LockGuard guard(code_resource_lock());
 
     state->diagnostics()->memory_metrics()->code_bytes += cr->size();
 

@@ -24,6 +24,7 @@
 #include "diagnostics/memory.hpp"
 #include "diagnostics/machine.hpp"
 #include "diagnostics/profiler.hpp"
+#include "diagnostics/timing.hpp"
 
 #include "memory/header.hpp"
 #include "memory/collector.hpp"
@@ -31,13 +32,27 @@
 #include <sys/stat.h>
 
 namespace rubinius {
+  MachineState::MachineState()
+    : _start_time_(get_current_time())
+    , _phase_(eBooting)
+  {
+  }
+
+  void MachineState::set_start_time() {
+    _start_time_ = get_current_time();
+  }
+
+  double MachineState::run_time() {
+    return timer::time_elapsed_seconds(_start_time_);
+  }
+
   Machine::Machine(int argc, char** argv)
-    : _machine_state_(nullptr)
+    : _machine_state_(new MachineState())
     , _logger_(nullptr)
     , _thread_nexus_(new ThreadNexus)
     , _configuration_(new Configuration())
     , _environment_(new Environment(argc, argv, this))
-    , _diagnostics_(new diagnostics::Diagnostics(_configuration_))
+    , _diagnostics_(new Diagnostics(_configuration_))
     , _machine_threads_(new MachineThreads())
     , _memory_(new Memory(_environment_->state, _configuration_))
     , _collector_(new memory::Collector())
@@ -46,8 +61,8 @@ namespace rubinius {
     , _c_api_(new C_API())
     , _compiler_(nullptr)
     , _debugger_(nullptr)
-    , _profiler_(new diagnostics::Profiler())
-    , _console_(new console::Console(_environment_->state))
+    , _profiler_(new Profiler())
+    , _console_(new Console(_environment_->state))
   {
     _environment_->initialize();
 
@@ -64,7 +79,7 @@ namespace rubinius {
     return _signals_;
   }
 
-  diagnostics::Diagnostics* Machine::start_diagnostics(STATE) {
+  Diagnostics* Machine::start_diagnostics(STATE) {
     if(state->configuration()->diagnostics_target.value.compare("none")) {
       _diagnostics_->start_reporter(state);
 
@@ -72,7 +87,7 @@ namespace rubinius {
       _diagnostics_->codedb_metrics()->start_reporting(state);
       _diagnostics_->collector_metrics()->start_reporting(state);
       _diagnostics_->memory_metrics()->start_reporting(state);
-      _profiler_->start_reporting(state);
+      // _diagnostics_->profiler()->start_reporting(state);
     }
 
     return _diagnostics_;
@@ -133,6 +148,13 @@ namespace rubinius {
 
         environment()->boot();
       });
+  }
+
+  void Machine::after_fork_child(STATE) {
+    _machine_state_->set_start_time();
+
+    _memory_->after_fork_child(state);
+    _signals_->after_fork_child(state);
   }
 
   /* TODO

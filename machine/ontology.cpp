@@ -21,7 +21,6 @@
 #include "class/compiled_code.hpp"
 #include "class/channel.hpp"
 #include "class/data.hpp"
-#include "class/diagnostics.hpp"
 #include "class/dir.hpp"
 #include "class/encoding.hpp"
 #include "class/executable.hpp"
@@ -270,7 +269,6 @@ namespace rubinius {
     Logger::bootstrap(state);
     JIT::bootstrap(state);
     CodeDB::bootstrap(state);
-    Diagnostics::bootstrap(state);
     Trie::bootstrap(state);
     UnwindSite::bootstrap(state);
   }

@@ -1278,20 +1278,20 @@ namespace rubinius {
   }
 
   Object* System::vm_global_serial(STATE) {
-    return Fixnum::from(state->shared().global_serial());
+    return Fixnum::from(state->memory()->global_serial());
   }
 
   Object* System::vm_inc_global_serial(STATE) {
     if(state->configuration()->serial_debug) {
       std::cerr << std::endl
                 << "global serial increased from "
-                << state->shared().global_serial()
+                << state->memory()->global_serial()
                 << std::endl;
 
       state->vm()->call_frame()->print_backtrace(state, std::cerr, 6, true);
     }
 
-    return Fixnum::from(state->shared().inc_global_serial(state));
+    return Fixnum::from(state->memory()->inc_global_serial());
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {

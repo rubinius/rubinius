@@ -127,18 +127,18 @@ namespace rubinius {
     initialize(state);
 
     if(state->configuration()->log_lifetime.value) {
-      state->shared().signals()->print_machine_info(logger::write);
-      state->shared().signals()->print_process_info(logger::write);
+      state->signals()->print_machine_info(logger::write);
+      state->signals()->print_process_info(logger::write);
 
       logger::write("process: boot stats: " \
           "fields %lldus " \
           "main thread: %lldus " \
           "ontology: %lldus " \
           "platform: %lldus",
-          state->diagnostics().boot_metrics()->fields_us,
-          state->diagnostics().boot_metrics()->main_thread_us,
-          state->diagnostics().boot_metrics()->ontology_us,
-          state->diagnostics().boot_metrics()->platform_us);
+          state->diagnostics()->boot_metrics()->fields_us,
+          state->diagnostics()->boot_metrics()->main_thread_us,
+          state->diagnostics()->boot_metrics()->ontology_us,
+          state->diagnostics()->boot_metrics()->platform_us);
     }
 
     run(state);

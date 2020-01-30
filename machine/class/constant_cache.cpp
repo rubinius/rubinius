@@ -23,7 +23,7 @@ namespace rubinius {
     cache->value(state, value);
     cache->module(state, mod);
     cache->lexical_scope(state, scope);
-    cache->serial(state->shared().global_serial());
+    cache->serial(state->memory()->global_serial());
 
     return cache;
   }

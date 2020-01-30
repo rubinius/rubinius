@@ -3,13 +3,16 @@
 
 #include "defines.hpp"
 
+#include <atomic>
+
 namespace rubinius {
   class ngLogger { };
   class Environment;
   class Configuration;
 
+  class Diagnostics;
+
   namespace diagnostics {
-    class Diagnostics;
     class Diagnostic;
   }
 
@@ -32,15 +35,44 @@ namespace rubinius {
 
   class ngDebugger { };
 
-  namespace diagnostics {
-    class Profiler;
-  }
+  class Profiler {
+  public:
+    Profiler() { }
+    virtual ~Profiler() { }
+  };
 
-  namespace console {
-    class Console;
-  }
+  class Console;
 
   class MachineState {
+  public:
+    enum Phase {
+      eBooting,
+      eRunning,
+      eHalting,
+    };
+
+  private:
+    uint64_t _start_time_;
+    std::atomic<Phase> _phase_;
+
+  public:
+    MachineState();
+    virtual ~MachineState() { }
+
+    bool booting_p() {
+      return _phase_ == eBooting;
+    }
+
+    bool running_p() {
+      return _phase_ == eRunning;
+    }
+
+    bool halting_p() {
+      return _phase_ == eHalting;
+    }
+
+    void set_start_time();
+    double run_time();
   };
 
   class Machine {
@@ -49,7 +81,7 @@ namespace rubinius {
     ThreadNexus* _thread_nexus_;
     Configuration* _configuration_;
     Environment* _environment_;
-    diagnostics::Diagnostics* _diagnostics_;
+    Diagnostics* _diagnostics_;
     MachineThreads* _machine_threads_;
     Memory* _memory_;
     memory::Collector* _collector_;
@@ -58,13 +90,17 @@ namespace rubinius {
     C_API* _c_api_;
     jit::MachineCompiler* _compiler_;
     ngDebugger* _debugger_;
-    diagnostics::Profiler* _profiler_;
-    console::Console* _console_;
+    Profiler* _profiler_;
+    Console* _console_;
 
   public:
 
     Machine(int argc, char** argv);
     virtual ~Machine();
+
+    MachineState* const machine_state() {
+      return _machine_state_;
+    }
 
     ThreadNexus* const thread_nexus() {
       return _thread_nexus_;
@@ -78,7 +114,7 @@ namespace rubinius {
       return _environment_;
     }
 
-    diagnostics::Diagnostics* const diagnostics() {
+    Diagnostics* const diagnostics() {
       return _diagnostics_;
     }
 
@@ -106,19 +142,21 @@ namespace rubinius {
       return _compiler_;
     }
 
-    diagnostics::Profiler* const profiler() {
+    Profiler* const profiler() {
       return _profiler_;
     }
 
-    console::Console* const console() {
+    Console* const console() {
       return _console_;
     }
 
     void boot();
     int halt();
 
+    void after_fork_child(STATE);
+
     SignalThread* start_signals(STATE);
-    diagnostics::Diagnostics* start_diagnostics(STATE);
+    Diagnostics* start_diagnostics(STATE);
     void report_diagnostics(diagnostics::Diagnostic* diagnostic);
 
     void halt_console();

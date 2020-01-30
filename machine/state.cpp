@@ -28,6 +28,10 @@ namespace rubinius {
     return vm_->park_->park_timed(this, ts);
   }
 
+  MachineState* const State::machine_state() {
+    return shared_.machine()->machine_state();
+  }
+
   Machine* const State::machine() {
     return shared_.machine();
   }
@@ -40,7 +44,7 @@ namespace rubinius {
     return machine()->thread_nexus();
   }
 
-  diagnostics::Diagnostics* const diagnostics() {
+  Diagnostics* const State::diagnostics() {
     return machine()->diagnostics();
   }
 
@@ -64,11 +68,11 @@ namespace rubinius {
     return machine()->c_api();
   }
 
-  diagnostics::Profiler* const profiler() {
+  Profiler* const State::profiler() {
     return machine()->profiler();
   }
 
-  Console* const console() {
+  Console* const State::console() {
     return machine()->console();
   }
 

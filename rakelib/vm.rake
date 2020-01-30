@@ -104,7 +104,6 @@ field_extract_headers = %w[
   machine/class/thread_state.hpp
   machine/class/jit.hpp
   machine/class/code_db.hpp
-  machine/class/diagnostics.hpp
   machine/class/trie.hpp
   machine/class/unwind_site.hpp
   machine/class/prediction.hpp

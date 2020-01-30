@@ -67,8 +67,6 @@ namespace rubinius {
   private:
 
     uint64_t start_time_;
-    uint64_t  class_count_;
-    int global_serial_;
 
     bool initialized_;
     bool check_global_interrupts_;
@@ -76,12 +74,6 @@ namespace rubinius {
 
     VM* root_vm_;
     Environment* env_;
-
-    std::recursive_mutex codedb_lock_;
-
-    utilities::thread::SpinLock wait_lock_;
-    utilities::thread::SpinLock type_info_lock_;
-    utilities::thread::SpinLock code_resource_lock_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
 
@@ -143,23 +135,7 @@ namespace rubinius {
     Array* vm_thread_fibers(STATE, Thread* thread);
     void vm_thread_fibers(STATE, Thread* thread, std::function<void (STATE, Fiber*)> f);
 
-    int global_serial() const {
-      return global_serial_;
-    }
-
-    int inc_global_serial(STATE) {
-      return atomic::fetch_and_add(&global_serial_, (int)1);
-    }
-
     uint32_t new_thread_id();
-
-    int* global_serial_address() {
-      return &global_serial_;
-    }
-
-    uint64_t inc_class_count(STATE) {
-      return atomic::fetch_and_add(&class_count_, (uint64_t)1);
-    }
 
     int inc_primitive_hit(int primitive) {
       return ++primitive_hits_[primitive];
@@ -209,22 +185,6 @@ namespace rubinius {
 
     bool* check_global_interrupts_address() {
       return &check_global_interrupts_;
-    }
-
-    std::recursive_mutex& codedb_lock() {
-      return codedb_lock_;
-    }
-
-    utilities::thread::SpinLock& wait_lock() {
-      return wait_lock_;
-    }
-
-    utilities::thread::SpinLock& type_info_lock() {
-      return type_info_lock_;
-    }
-
-    utilities::thread::SpinLock& code_resource_lock() {
-      return code_resource_lock_;
     }
 
     void scheduler_loop();

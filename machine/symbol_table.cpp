@@ -36,7 +36,7 @@ namespace rubinius {
   void SymbolTable::sweep(STATE) {
     if(state->configuration()->diagnostics_memory_enabled) {
       diagnostic_->update();
-      state->shared().report_diagnostics(diagnostic_);
+      state->machine()->report_diagnostics(diagnostic_);
     }
   }
 
@@ -115,8 +115,8 @@ namespace rubinius {
     encodings.push_back(enc);
     kinds.push_back(eUnknown);
 
-    state->diagnostics().memory_metrics()->symbols++;
-    state->diagnostics().memory_metrics()->symbols_bytes += bytes;
+    state->diagnostics()->memory_metrics()->symbols++;
+    state->diagnostics()->memory_metrics()->symbols_bytes += bytes;
 
     return strings.size() - 1;
   }

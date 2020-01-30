@@ -28,20 +28,12 @@
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Machine* m, ConfigParser& cp)
-    : signals_(nullptr)
-    , compiler_(nullptr)
-    , start_time_(get_current_time())
-    , class_count_(1)
-    , global_serial_(1)
+    : start_time_(get_current_time())
     , initialized_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
     , root_vm_(nullptr)
     , env_(env)
-    , codedb_lock_()
-    , wait_lock_()
-    , type_info_lock_()
-    , code_resource_lock_()
     , phase_(eBooting)
     , machine_(m)
     , user_variables(cp)
@@ -55,11 +47,6 @@ namespace rubinius {
 
   SharedState::~SharedState() {
     if(!initialized_) return;
-
-    if(compiler_) {
-      delete compiler_;
-      compiler_ = nullptr;
-    }
   }
 
   ThreadNexus* const SharedState::thread_nexus() {
@@ -188,13 +175,6 @@ namespace rubinius {
   }
 
   void SharedState::after_fork_child(STATE) {
-    // Reinit the locks for this object
-    wait_lock_.init();
-    type_info_lock_.init();
-    code_resource_lock_.init();
-
     start_time_ = get_current_time();
-
-    signals_->after_fork_child(state);
   }
 }

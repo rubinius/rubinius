@@ -20,19 +20,6 @@ namespace rubinius {
   using namespace utilities;
 
   namespace diagnostics {
-    Diagnostics::Diagnostics(Configuration* configuration)
-      : boot_metrics_(new BootMetrics())
-      , codedb_metrics_(new CodeDBMetrics())
-      , collector_metrics_(new CollectorMetrics())
-      , memory_metrics_(new MemoryMetrics())
-      , recurring_reports_()
-      , intermittent_reports_()
-      , reporter_(nullptr)
-      , lock_()
-      , interval_(configuration->diagnostics_interval)
-    {
-    }
-
     Reporter::Reporter(STATE, Diagnostics* d)
       : MachineThread(state, "rbx.diagnostics", MachineThread::eSmall)
       , diagnostics_(d)
@@ -108,5 +95,18 @@ namespace rubinius {
         }
       }
     }
+  }
+
+  Diagnostics::Diagnostics(Configuration* configuration)
+    : boot_metrics_(new diagnostics::BootMetrics())
+    , codedb_metrics_(new diagnostics::CodeDBMetrics())
+    , collector_metrics_(new diagnostics::CollectorMetrics())
+    , memory_metrics_(new diagnostics::MemoryMetrics())
+    , recurring_reports_()
+    , intermittent_reports_()
+    , reporter_(nullptr)
+    , lock_()
+    , interval_(configuration->diagnostics_interval)
+  {
   }
 }

@@ -446,7 +446,8 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
-    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+    // TODO: Machine
+    utilities::thread::SpinLock::LockGuard guard(shared.machine()->memory()->wait_lock());
 
     interrupt_with_signal_ = false;
     waiting_channel_ = nil<Channel>();
@@ -463,7 +464,8 @@ namespace rubinius {
   }
 
   void VM::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
-    utilities::thread::SpinLock::LockGuard guard(shared.wait_lock());
+    // TODO: Machine
+    utilities::thread::SpinLock::LockGuard guard(shared.machine()->memory()->wait_lock());
 
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;

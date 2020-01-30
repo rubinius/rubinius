@@ -11,6 +11,7 @@
 #include <string>
 
 namespace rubinius {
+  class Console;
   class Channel;
   class VM;
   class State;
@@ -22,49 +23,6 @@ namespace rubinius {
     class Listener;
     class Request;
     class Response;
-
-    class Console {
-      std::string console_path_;
-      std::string request_path_;
-      std::string response_path_;
-
-      Listener* listener_;
-      Response* response_;
-      Request* request_;
-
-      memory::TypedRoot<Object*> ruby_console_;
-
-    public:
-      Console(STATE);
-      virtual ~Console();
-
-      Object* ruby_console() {
-        return ruby_console_.get();
-      }
-
-      std::string& console_path() {
-        return console_path_;
-      }
-
-      std::string& request_path() {
-        return request_path_;
-      }
-
-      std::string& response_path() {
-        return response_path_;
-      }
-
-      bool connected_p();
-
-      void reset();
-
-      void start(STATE);
-      void stop(STATE);
-      void after_fork_child(STATE);
-
-      void accept(STATE);
-      Class* server_class(STATE);
-    };
 
     class Listener : public MachineThread {
       Console* console_;
@@ -152,6 +110,51 @@ namespace rubinius {
       char* read_request(STATE);
     };
   }
+
+  using namespace console;
+
+  class Console {
+    std::string console_path_;
+    std::string request_path_;
+    std::string response_path_;
+
+    Listener* listener_;
+    Response* response_;
+    Request* request_;
+
+    memory::TypedRoot<Object*> ruby_console_;
+
+  public:
+    Console(STATE);
+    virtual ~Console();
+
+    Object* ruby_console() {
+      return ruby_console_.get();
+    }
+
+    std::string& console_path() {
+      return console_path_;
+    }
+
+    std::string& request_path() {
+      return request_path_;
+    }
+
+    std::string& response_path() {
+      return response_path_;
+    }
+
+    bool connected_p();
+
+    void reset();
+
+    void start(STATE);
+    void stop(STATE);
+    void after_fork_child(STATE);
+
+    void accept(STATE);
+    Class* server_class(STATE);
+  };
 }
 
 #endif

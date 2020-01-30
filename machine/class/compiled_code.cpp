@@ -371,12 +371,14 @@ namespace rubinius {
     MachineCode* mcode = code->machine_code();
     mcode->set_mark();
 
+    /* TODO: Machine
     if(state->profiler()->collecting_p()) {
       if(mcode->sample_count > state->profiler()->sample_min()) {
         state->profiler()->add_index(mcode->serial(), mcode->name(),
             mcode->location(), mcode->sample_count, mcode->call_count);
       }
     }
+    */
 
     for(size_t i = 0; i < mcode->references_count(); i++) {
       if(size_t ip = mcode->references()[i]) {
