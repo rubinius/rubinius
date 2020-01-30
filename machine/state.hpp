@@ -12,13 +12,13 @@ namespace rubinius {
   class C_API;
   class Class;
   class Console;
+  class Environment;
   class Exception;
   class Object;
   class Machine;
   class MachineState;
   class Memory;
   class Profiler;
-  class SharedState;
   class SignalThread;
   class String;
   class Symbol;
@@ -32,17 +32,16 @@ namespace rubinius {
 
   class State {
     VM* vm_;
-    SharedState& shared_;
 
   public:
     State(VM* vm)
       : vm_(vm)
-      , shared_(vm->shared)
     {}
 
     MachineState* const machine_state();
     Machine* const machine();
     Configuration* const configuration();
+    Environment* const environment();
     ThreadNexus* const thread_nexus();
     Diagnostics* const diagnostics();
     MachineThreads* const machine_threads();
@@ -77,16 +76,10 @@ namespace rubinius {
     Symbol* const symbol(std::string str);
     Symbol* const symbol(String* str);
 
-    uint32_t hash_seed() const {
-      return shared_.hash_seed;
-    }
+    const uint32_t hash_seed();
 
     VMThreadState* thread_state() {
       return vm_->thread_state();
-    }
-
-    SharedState& shared() {
-      return shared_;
     }
 
     bool check_local_interrupts() const {

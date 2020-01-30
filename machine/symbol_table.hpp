@@ -34,7 +34,6 @@ namespace rubinius {
   class Array;
   class String;
   class Symbol;
-  class SharedState;
 
   typedef std::vector<std::string> SymbolStrings;
   typedef std::vector<int> SymbolEncodings;
@@ -82,7 +81,6 @@ namespace rubinius {
 
     void sweep(STATE);
 
-    Symbol* lookup(STATE, SharedState* shared, const std::string& str);
     Symbol* lookup(STATE, const std::string& str);
     Symbol* lookup(STATE, const char* str, size_t length);
     Symbol* lookup(STATE, const char* str, size_t length, int enc, uint32_t seed);

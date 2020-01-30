@@ -23,7 +23,6 @@
 #include "util/thread.hpp"
 
 #include "state.hpp"
-#include "shared_state.hpp"
 
 #include <atomic>
 #include <functional>

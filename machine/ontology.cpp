@@ -357,7 +357,7 @@ namespace rubinius {
      * because some are passed to e.g. File.expand_path and having them
      * be uniform is simpler.
      */
-    Environment* env = state->shared().env();
+    Environment* env = state->environment();
 
     if(env) {
       std::string prefix = env->system_prefix();

@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "state.hpp"
+#include "machine.hpp"
 #include "memory.hpp"
 #include "machine_code.hpp"
 #include "environment.hpp"
@@ -59,8 +60,9 @@
 #define GO(whatever) globals().whatever
 
 namespace rubinius {
-  VM::VM(uint32_t id, SharedState& shared, const char* name)
-    : memory::ManagedThread(id, shared, memory::ManagedThread::eThread, name)
+  VM::VM(uint32_t id, Machine* m, const char* name)
+    : memory::ManagedThread(id, m, memory::ManagedThread::eThread, name)
+    , _machine_(m)
     , call_frame_(NULL)
     , park_(new Park)
     , thca_(new memory::OpenTHCA)
@@ -68,7 +70,7 @@ namespace rubinius {
     , stack_barrier_start_(0)
     , stack_barrier_end_(0)
     , stack_size_(0)
-    , stack_cushion_(shared.machine()->configuration()->machine_stack_cushion.value)
+    , stack_cushion_(m->configuration()->machine_stack_cushion.value)
     , stack_probe_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
@@ -87,7 +89,6 @@ namespace rubinius {
     , sample_counter_(0)
     , checkpoints_(0)
     , stops_(0)
-    , shared(shared)
     , waiting_channel_(nil<Channel>())
     , interrupted_exception_(nil<Exception>())
     , thread_(nil<Thread>())
@@ -117,14 +118,22 @@ namespace rubinius {
     }
   }
 
+  Machine* const VM::machine() {
+    return _machine_;
+  }
+
   void VM::discard(STATE, VM* vm) {
     state->vm()->metrics()->threads_destroyed++;
 
     delete vm;
   }
 
+  ThreadNexus* const VM::thread_nexus() {
+    return _machine_->thread_nexus();
+  }
+
   Globals& VM::globals() {
-    return shared.machine()->memory()->globals;
+    return _machine_->memory()->globals;
   }
 
   void VM::clear_interrupted_exception() {
@@ -332,7 +341,7 @@ namespace rubinius {
   }
 
   void VM::set_zombie(STATE) {
-    state->shared().thread_nexus()->delete_vm(this);
+    state->machine()->thread_nexus()->delete_vm(this);
     set_zombie();
   }
 
@@ -375,9 +384,9 @@ namespace rubinius {
     state->vm()->set_start_time();
 
     // TODO: Remove need for root_vm.
-    state->shared().env()->set_root_vm(state->vm());
+    state->environment()->set_root_vm(state->vm());
 
-    state->shared().env()->after_fork_child(state);
+    state->machine()->environment()->after_fork_child(state);
   }
 
   Object* VM::path2class(STATE, const char* path) {
@@ -447,7 +456,7 @@ namespace rubinius {
 
   void VM::clear_waiter() {
     // TODO: Machine
-    utilities::thread::SpinLock::LockGuard guard(shared.machine()->memory()->wait_lock());
+    utilities::thread::SpinLock::LockGuard guard(_machine_->memory()->wait_lock());
 
     interrupt_with_signal_ = false;
     waiting_channel_ = nil<Channel>();
@@ -465,7 +474,7 @@ namespace rubinius {
 
   void VM::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
     // TODO: Machine
-    utilities::thread::SpinLock::LockGuard guard(shared.machine()->memory()->wait_lock());
+    utilities::thread::SpinLock::LockGuard guard(_machine_->memory()->wait_lock());
 
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;

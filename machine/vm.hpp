@@ -13,8 +13,6 @@
 #include "thread_nexus.hpp"
 #include "spinlock.hpp"
 
-#include "shared_state.hpp"
-
 #include "unwind_info.hpp"
 
 #include "sodium/randombytes.h"
@@ -34,6 +32,7 @@
 namespace rubinius {
   class Fiber;
   class Exception;
+  class Machine;
 
   namespace event {
     class Loop;
@@ -51,7 +50,6 @@ namespace rubinius {
   class Object;
   class Park;
   class Primitives;
-  class SharedState;
   class String;
   class Symbol;
   class SymbolTable;
@@ -84,6 +82,8 @@ namespace rubinius {
 
   private:
     static const int cWaitLimit = 100;
+
+    Machine* _machine_;
 
     UnwindInfoSet unwinds_;
 
@@ -138,7 +138,6 @@ namespace rubinius {
 
   public:
     /* Data members */
-    SharedState& shared;
     Channel* waiting_channel_;
     Exception* interrupted_exception_;
     /// The Thread object for this VM state
@@ -167,9 +166,7 @@ namespace rubinius {
       return id_;
     }
 
-    ThreadNexus* const thread_nexus() {
-      return shared.thread_nexus();
-    }
+    ThreadNexus* const thread_nexus();
 
     ThreadNexus::Phase thread_phase() {
       return thread_phase_.load(std::memory_order_acquire);
@@ -460,8 +457,10 @@ namespace rubinius {
   public:
 
     /* Prototypes */
-    VM(uint32_t id, SharedState& shared, const char* name = NULL);
+    VM(uint32_t id, Machine* machine, const char* name = NULL);
     ~VM();
+
+    Machine* const machine();
 
     void bootstrap_class(STATE);
     void bootstrap_ontology(STATE);

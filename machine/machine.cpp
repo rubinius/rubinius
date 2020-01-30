@@ -19,6 +19,11 @@
 #include "thread_nexus.hpp"
 #include "type_info.hpp"
 
+#include "class/array.hpp"
+#include "class/fiber.hpp"
+#include "class/fixnum.hpp"
+#include "class/thread.hpp"
+
 #include "diagnostics/codedb.hpp"
 #include "diagnostics/collector.hpp"
 #include "diagnostics/memory.hpp"
@@ -29,11 +34,14 @@
 #include "memory/header.hpp"
 #include "memory/collector.hpp"
 
+#include "sodium/randombytes.h"
+
 #include <sys/stat.h>
 
 namespace rubinius {
   MachineState::MachineState()
     : _start_time_(get_current_time())
+    , _hash_seed_(randombytes_random())
     , _phase_(eBooting)
   {
   }
@@ -172,6 +180,119 @@ namespace rubinius {
     return compiler_;
   }
    */
+
+  Array* Machine::vm_threads(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    Array* threads = Array::create(state, 0);
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        Thread *thread = vm->thread();
+        if(vm->kind() == memory::ManagedThread::eThread
+            &&!thread->nil_p() && CBOOL(thread->alive())) {
+          threads->append(state, thread);
+        }
+      }
+    }
+
+    return threads;
+  }
+
+  Fixnum* Machine::vm_threads_count(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    intptr_t count = 0;
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        Thread *thread = vm->thread();
+        if(vm->kind() == memory::ManagedThread::eThread
+            &&!thread->nil_p() && CBOOL(thread->alive())) {
+          count++;
+        }
+      }
+    }
+
+    return Fixnum::from(count);
+  }
+
+  Array* Machine::vm_fibers(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    Array* fibers = Array::create(state, 0);
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead) {
+          fibers->append(state, vm->fiber());
+        }
+      }
+    }
+
+    return fibers;
+  }
+
+  Fixnum* Machine::vm_fibers_count(STATE) {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    intptr_t count = 0;
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead) {
+          count++;
+        }
+      }
+    }
+
+    return Fixnum::from(count);
+  }
+
+  void Machine::vm_thread_fibers(STATE, Thread* thread,
+      std::function<void (STATE, Fiber*)> f)
+  {
+    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
+
+    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
+        i != thread_nexus()->threads()->end();
+        ++i)
+    {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm->kind() == memory::ManagedThread::eFiber
+            && !vm->fiber()->nil_p()
+            && vm->fiber()->status() != Fiber::eDead
+            && vm->fiber()->thread() == thread) {
+          f(state, vm->fiber());
+        }
+      }
+    }
+  }
+
+  Array* Machine::vm_thread_fibers(STATE, Thread* thread) {
+    Array* fibers = Array::create(state, 0);
+
+    vm_thread_fibers(state, thread,
+          [fibers](STATE, Fiber* fiber){ fibers->append(state, fiber); });
+
+    return fibers;
+  }
 
   void Machine::halt_console() {
     if(_console_) {

@@ -7,6 +7,7 @@
 #include "class/string.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
+#include "primitives.hpp"
 
 namespace rubinius {
 

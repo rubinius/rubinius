@@ -4,6 +4,7 @@
 #include "object_utils.hpp"
 #include "memory.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 
 #include "class/array.hpp"
 #include "class/class.hpp"

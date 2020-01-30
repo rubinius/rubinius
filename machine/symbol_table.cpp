@@ -125,10 +125,6 @@ namespace rubinius {
     return lookup(state, str, length, Encoding::eAscii, state->hash_seed());
   }
 
-  Symbol* SymbolTable::lookup(STATE, SharedState* shared, const std::string& str) {
-    return lookup(state, str.data(), str.size(), Encoding::eAscii, shared->hash_seed);
-  }
-
   Symbol* SymbolTable::lookup(STATE, const std::string& str) {
     return lookup(state, str.data(), str.size(), Encoding::eAscii, state->hash_seed());
   }

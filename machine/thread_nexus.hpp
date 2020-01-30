@@ -13,11 +13,12 @@
 #include <stdint.h>
 
 namespace rubinius {
+  class Machine;
+
   namespace memory {
     class ManagedThread;
   }
 
-  class SharedState;
   class State;
   class VM;
 
@@ -193,7 +194,7 @@ namespace rubinius {
     void list_threads();
     void list_threads(logger::PrintFunction function);
 
-    VM* new_vm(SharedState* shared, const char* name = NULL);
+    VM* new_vm(Machine* m, const char* name = NULL);
     void delete_vm(VM* vm);
 
     void after_fork_child(STATE);

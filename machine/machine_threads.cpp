@@ -14,7 +14,7 @@ namespace rubinius {
   using namespace utilities;
 
   MachineThread::MachineThread(STATE, std::string name, StackSize stack_size)
-    : vm_(state->thread_nexus()->new_vm(&state->shared(), name.c_str()))
+    : vm_(state->thread_nexus()->new_vm(state->machine(), name.c_str()))
     , stack_size_(stack_size)
     , thread_running_(false)
     , thread_exit_(false)
@@ -104,7 +104,7 @@ namespace rubinius {
   }
 
   void MachineThread::after_fork_child(STATE) {
-    vm_ = state->thread_nexus()->new_vm(&state->shared());
+    vm_ = state->thread_nexus()->new_vm(state->machine());
     start(state);
   }
 

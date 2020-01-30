@@ -1,4 +1,5 @@
 #include "memory.hpp"
+#include "primitives.hpp"
 #include "call_frame.hpp"
 
 #include "class/class.hpp"

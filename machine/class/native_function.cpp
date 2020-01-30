@@ -5,6 +5,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 
 #include "class/array.hpp"
 #include "class/class.hpp"
@@ -46,7 +47,6 @@ namespace rubinius {
 
   FFIData::FFIData(STATE, NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret)
     : closure(0)
-    , shared(&state->shared())
     , callable(0)
     , function(func)
     , args_info(args)

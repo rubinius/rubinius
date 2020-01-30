@@ -1,6 +1,5 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
-#include "shared_state.hpp"
 #include "state.hpp"
 
 #include "memory/collector.hpp"

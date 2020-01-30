@@ -4,8 +4,14 @@
 #include "defines.hpp"
 
 #include <atomic>
+#include <functional>
 
 namespace rubinius {
+  class Array;
+  class Fiber;
+  class Fixnum;
+  class Thread;
+
   class ngLogger { };
   class Environment;
   class Configuration;
@@ -53,11 +59,16 @@ namespace rubinius {
 
   private:
     uint64_t _start_time_;
+    uint32_t _hash_seed_;
     std::atomic<Phase> _phase_;
 
   public:
     MachineState();
     virtual ~MachineState() { }
+
+    const uint32_t hash_seed() {
+      return _hash_seed_;
+    }
 
     bool booting_p() {
       return _phase_ == eBooting;
@@ -69,6 +80,10 @@ namespace rubinius {
 
     bool halting_p() {
       return _phase_ == eHalting;
+    }
+
+    void set_halting() {
+      _phase_ = eHalting;
     }
 
     void set_start_time();
@@ -158,6 +173,17 @@ namespace rubinius {
     SignalThread* start_signals(STATE);
     Diagnostics* start_diagnostics(STATE);
     void report_diagnostics(diagnostics::Diagnostic* diagnostic);
+
+    // TODO: Machine
+    Array* vm_threads(STATE);
+    Fixnum* vm_threads_count(STATE);
+    Array* vm_fibers(STATE);
+    Fixnum* vm_fibers_count(STATE);
+    Array* vm_thread_fibers(STATE, Thread* thread);
+    void vm_thread_fibers(STATE, Thread* thread, std::function<void (STATE, Fiber*)> f);
+
+    uint32_t new_thread_id();
+    // ---
 
     void halt_console();
     void halt_profiler();

@@ -28,16 +28,24 @@ namespace rubinius {
     return vm_->park_->park_timed(this, ts);
   }
 
+  const uint32_t State::hash_seed() {
+    return machine()->machine_state()->hash_seed();
+  }
+
   MachineState* const State::machine_state() {
-    return shared_.machine()->machine_state();
+    return vm_->machine()->machine_state();
   }
 
   Machine* const State::machine() {
-    return shared_.machine();
+    return vm_->machine();
   }
 
   Configuration* const State::configuration() {
     return machine()->configuration();
+  }
+
+  Environment* const State::environment() {
+    return machine()->environment();
   }
 
   ThreadNexus* const State::thread_nexus() {

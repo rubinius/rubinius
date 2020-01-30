@@ -77,7 +77,6 @@ namespace rubinius {
   public:
     ffi_cif cif;
     ffi_closure* closure;
-    SharedState* shared;
     Object* callable;
     NativeFunction* function;
     FFIArgInfo* args_info;

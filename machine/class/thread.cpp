@@ -3,6 +3,7 @@
 #include "environment.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 #include "signal.hpp"
 #include "thread_phase.hpp"
 
@@ -90,7 +91,7 @@ namespace rubinius {
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
     return Thread::create(state, self,
-        state->thread_nexus()->new_vm(&state->shared()),
+        state->thread_nexus()->new_vm(state->machine()),
         function);
   }
 
@@ -248,7 +249,7 @@ namespace rubinius {
   }
 
   Array* Thread::fiber_list(STATE) {
-    return state->shared().vm_thread_fibers(state, this);
+    return state->machine()->vm_thread_fibers(state, this);
   }
 
   Object* Thread::fiber_variable_get(STATE, Symbol* key) {
@@ -290,13 +291,13 @@ namespace rubinius {
 
     state->vm()->thread()->pid(state, Fixnum::from(gettid()));
 
-    state->shared().env()->load_core(state);
+    state->environment()->load_core(state);
 
     state->vm()->thread_state()->clear();
 
     Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(klass->nil_p()) {
-      state->shared().env()->missing_core("unable to find class Rubinius::Loader");
+      state->environment()->missing_core("unable to find class Rubinius::Loader");
       return 0;
     }
 
@@ -305,9 +306,9 @@ namespace rubinius {
 
     instance = klass->send(state, state->symbol("new"));
     if(instance) {
-      state->shared().env()->set_loader(instance);
+      state->environment()->set_loader(instance);
     } else {
-      state->shared().env()->missing_core("unable to instantiate Rubinius::Loader");
+      state->environment()->missing_core("unable to instantiate Rubinius::Loader");
       return 0;
     }
 
@@ -404,11 +405,11 @@ namespace rubinius {
   }
 
   Array* Thread::list(STATE) {
-    return state->shared().vm_threads(state);
+    return state->machine()->vm_threads(state);
   }
 
   Fixnum* Thread::count(STATE) {
-    return state->shared().vm_threads_count(state);
+    return state->machine()->vm_threads_count(state);
   }
 
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {

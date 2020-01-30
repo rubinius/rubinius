@@ -8,8 +8,6 @@
 #include <stdint.h>
 
 namespace rubinius {
-  class SharedState;
-
 namespace memory {
   class CodeResource;
 
@@ -52,8 +50,6 @@ namespace memory {
 
     utilities::thread::Mutex mutex_;
 
-    SharedState* shared_;
-
     int chunk_size_;
     Chunk* first_chunk_;
     Chunk* last_chunk_;
@@ -64,10 +60,6 @@ namespace memory {
     diagnostics::CodeManager* diagnostic_;
 
   public:
-    SharedState* shared() const {
-      return shared_;
-    }
-
     diagnostics::CodeManager* diagnostic() {
       return diagnostic_;
     }

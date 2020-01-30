@@ -881,7 +881,7 @@ namespace rubinius {
       // We're in the child...
       state->vm()->after_fork_child(state);
 
-      state->shared().after_fork_child(state);
+      state->machine()->after_fork_child(state);
       state->machine_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
@@ -910,7 +910,7 @@ namespace rubinius {
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->shared().user_variables.find(var->c_str(state));
+    ConfigParser::Entry* ent = state->environment()->user_variables()->find(var->c_str(state));
     if(!ent) return cNil;
 
     if(ent->is_number()) {
@@ -925,7 +925,7 @@ namespace rubinius {
   Object* System::vm_get_config_section(STATE, String* section) {
     ConfigParser::EntryList* list;
 
-    list = state->shared().user_variables.get_section(
+    list = state->environment()->user_variables()->get_section(
         reinterpret_cast<char*>(section->byte_address()));
 
     Array* ary = Array::create(state, list->size());

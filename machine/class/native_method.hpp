@@ -90,10 +90,6 @@ namespace rubinius {
       current_ep_ = ep;
     }
 
-    SharedState& shared() {
-      return state_.shared();
-    }
-
     StackVariables* scope();
   };
 

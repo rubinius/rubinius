@@ -86,11 +86,8 @@ namespace rubinius {
     copy_argv(argc, argv);
     ruby_init_setproctitle(argc, argv);
 
-    shared = new SharedState(this, m, config_parser);
-
-    root_vm = _machine_->thread_nexus()->new_vm(shared, "ruby.main");
+    root_vm = _machine_->thread_nexus()->new_vm(_machine_, "ruby.main");
     root_vm->set_main_thread();
-    shared->set_root_vm(root_vm);
 
     size_t stack_size = 0;
     struct rlimit rlim;
@@ -131,7 +128,6 @@ namespace rubinius {
     delete collector_;
 
     VM::discard(state, root_vm);
-    delete shared;
     delete state;
 
     for(int i = 0; i < argc_; i++) {
@@ -521,14 +517,14 @@ namespace rubinius {
   void Environment::halt(STATE, int exit_code) {
     std::lock_guard<std::mutex> guard(halt_lock_);
 
-    state->shared().set_halting();
+    state->machine()->machine_state()->set_halting();
 
     if(state->configuration()->log_lifetime.value) {
       logger::write("process: exit: %s %d %lld %fs %fs",
           _pid_.c_str(), exit_code,
           _machine_->diagnostics()->codedb_metrics()->load_count,
           timer::elapsed_seconds(_machine_->diagnostics()->codedb_metrics()->load_ns),
-          shared->run_time());
+          state->machine()->machine_state()->run_time());
     }
 
     state->machine_threads()->shutdown(state);
@@ -689,8 +685,6 @@ namespace rubinius {
       load_platform_conf(codedb_path);
     }
 
-    shared->set_initialized();
-
     state->vm()->managed_phase(state);
 
     {
@@ -729,7 +723,5 @@ namespace rubinius {
 
     State main_state(vm);
     state->machine()->start_signals(&main_state);
-
-    state->shared().set_running();
   }
 }

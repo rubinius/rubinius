@@ -270,7 +270,7 @@ namespace rubinius {
     std::ostringstream name;
     name << "fiber." << fiber->fiber_id()->to_native();
 
-    fiber->vm(state->thread_nexus()->new_vm(&state->shared(), name.str().c_str()));
+    fiber->vm(state->thread_nexus()->new_vm(state->machine(), name.str().c_str()));
 
     fiber->vm()->set_kind(memory::ManagedThread::eFiber);
     fiber->vm()->set_suspending();
@@ -459,7 +459,7 @@ namespace rubinius {
   }
 
   Array* Fiber::s_list(STATE) {
-    return state->shared().vm_fibers(state);
+    return state->machine()->vm_fibers(state);
   }
 
   Fiber* Fiber::s_main(STATE) {
@@ -467,7 +467,7 @@ namespace rubinius {
   }
 
   Fixnum* Fiber::s_count(STATE) {
-    return state->shared().vm_fibers_count(state);
+    return state->machine()->vm_fibers_count(state);
   }
 
   void Fiber::finalize(STATE, Fiber* fiber) {
@@ -477,7 +477,7 @@ namespace rubinius {
     }
 
     if(fiber->vm()) {
-      if(!state->shared().halting_p()) {
+      if(!state->machine()->machine_state()->halting_p()) {
         if(!fiber->vm()->zombie_p()) {
           fiber->cancel(state);
         }

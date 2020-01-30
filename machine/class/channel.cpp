@@ -1,6 +1,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "memory.hpp"
+#include "primitives.hpp"
 #include "thread_phase.hpp"
 
 #include "class/class.hpp"

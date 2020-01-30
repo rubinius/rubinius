@@ -5,6 +5,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "primitives.hpp"
 
 #include "class/block_environment.hpp"
 #include "class/class.hpp"

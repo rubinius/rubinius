@@ -420,7 +420,7 @@ namespace rubinius {
 
     std::ostringstream basename;
     basename << state->configuration()->console_path.value << "-"
-             << state->shared().env()->pid();
+             << state->environment()->pid();
 
     request_path_ = basename.str() + "-request";
     response_path_ = basename.str() + "-response";

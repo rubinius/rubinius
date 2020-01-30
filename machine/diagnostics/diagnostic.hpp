@@ -43,7 +43,7 @@ namespace rubinius {
 
       virtual void start_reporting(STATE) {
         state->machine()->diagnostics()->add_report(state, this);
-        set_nodename(state->shared().env()->nodename());
+        set_nodename(state->environment()->nodename());
       }
 
       virtual void stop_reporting(STATE) {

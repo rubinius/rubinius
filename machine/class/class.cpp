@@ -1,6 +1,7 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "memory.hpp"
+#include "primitives.hpp"
 #include "on_stack.hpp"
 
 #include "class/array.hpp"

@@ -13,7 +13,7 @@
 #include <string>
 
 namespace rubinius {
-  class SharedState;
+  class Machine;
   class VM;
 
 namespace memory {
@@ -38,7 +38,7 @@ namespace memory {
     uint32_t id_;
 
   public:
-    ManagedThread(uint32_t id, SharedState& ss, Kind kind, const char* name);
+    ManagedThread(uint32_t id, Machine* m, Kind kind, const char* name);
     ~ManagedThread();
 
     static void set_current_thread(ManagedThread* vm);

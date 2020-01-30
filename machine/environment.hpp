@@ -57,7 +57,6 @@ namespace rubinius {
     std::string _pid_;
 
   public:
-    SharedState* shared;
     VM* root_vm;
     State* state;
 
@@ -80,6 +79,11 @@ namespace rubinius {
 
     char** argv() const {
       return argv_;
+    }
+
+    ConfigParser* user_variables() {
+      // TODO: Machine
+      return &config_parser;
     }
 
     const std::string& nodename() const {
