@@ -27,7 +27,6 @@ namespace rubinius {
 
   namespace memory {
     class Collector;
-    class ManagedThread;
   }
 
   class ThreadState {
@@ -54,10 +53,6 @@ namespace rubinius {
 
     VM* vm() {
       return vm_;
-    }
-
-    memory::ManagedThread* thread() {
-      return static_cast<memory::ManagedThread*>(vm_);
     }
 
     Object* raise_exception(Exception* exc);

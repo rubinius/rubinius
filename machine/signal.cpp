@@ -75,7 +75,7 @@ namespace rubinius {
 
   VM* SignalThread::new_vm(STATE) {
     VM* vm = state->thread_nexus()->new_vm(state->machine(), "rbx.system");
-    vm->set_kind(memory::ManagedThread::eSystem);
+    vm->set_kind(VM::eSystem);
     return vm;
   }
 

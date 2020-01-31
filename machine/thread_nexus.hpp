@@ -15,14 +15,10 @@
 namespace rubinius {
   class Machine;
 
-  namespace memory {
-    class ManagedThread;
-  }
-
   class ThreadState;
   class VM;
 
-  typedef std::list<memory::ManagedThread*> ThreadList;
+  typedef std::list<VM*> ThreadList;
 
   class ThreadNexus {
     std::atomic<bool> stop_;

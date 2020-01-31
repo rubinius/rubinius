@@ -192,7 +192,7 @@ namespace rubinius {
     {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread();
-        if(vm->kind() == memory::ManagedThread::eThread
+        if(vm->kind() == VM::eThread
             &&!thread->nil_p() && CBOOL(thread->alive())) {
           threads->append(state, thread);
         }
@@ -213,7 +213,7 @@ namespace rubinius {
     {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread();
-        if(vm->kind() == memory::ManagedThread::eThread
+        if(vm->kind() == VM::eThread
             &&!thread->nil_p() && CBOOL(thread->alive())) {
           count++;
         }
@@ -233,7 +233,7 @@ namespace rubinius {
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
-        if(vm->kind() == memory::ManagedThread::eFiber
+        if(vm->kind() == VM::eFiber
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead) {
           fibers->append(state, vm->fiber());
@@ -254,7 +254,7 @@ namespace rubinius {
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
-        if(vm->kind() == memory::ManagedThread::eFiber
+        if(vm->kind() == VM::eFiber
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead) {
           count++;
@@ -275,7 +275,7 @@ namespace rubinius {
         ++i)
     {
       if(VM* vm = (*i)->as_vm()) {
-        if(vm->kind() == memory::ManagedThread::eFiber
+        if(vm->kind() == VM::eFiber
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead
             && vm->fiber()->thread() == thread) {

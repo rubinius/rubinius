@@ -3,7 +3,7 @@
 
 #include "missing/time.h"
 
-#include "memory/managed.hpp"
+#include "memory/root.hpp"
 #include "memory/root_buffer.hpp"
 #include "memory/thca.hpp"
 #include "memory/variable_buffer.hpp"
@@ -13,6 +13,8 @@
 #include "spinlock.hpp"
 
 #include "unwind_info.hpp"
+
+#include "diagnostics.hpp"
 
 #include "sodium/randombytes.h"
 
@@ -84,7 +86,26 @@ namespace rubinius {
    * running Ruby code.
    */
 
-  class VM : public memory::ManagedThread {
+  class VM {
+  public:
+    enum Kind {
+      eThread,
+      eFiber,
+      eSystem
+    };
+
+  private:
+    memory::Roots roots_;
+    std::string name_;
+    memory::VariableRootBuffers variable_root_buffers_;
+    memory::RootBuffers root_buffers_;
+    Kind kind_;
+    diagnostics::MachineMetrics* metrics_;
+
+  protected:
+    pthread_t os_thread_;
+    uint32_t id_;
+
     friend class ThreadState;
 
   private:
@@ -164,6 +185,62 @@ namespace rubinius {
     UnwindState* unwind_state_;
 
   public: /* Inline methods */
+
+    static VM* current();
+
+    memory::Roots& roots() {
+      return roots_;
+    }
+
+    memory::VariableRootBuffers& variable_root_buffers() {
+      return variable_root_buffers_;
+    }
+
+    memory::RootBuffers& root_buffers() {
+      return root_buffers_;
+    }
+
+    const char* kind_name() const {
+      switch(kind_) {
+        case eThread:
+          return "Thread";
+        case eFiber:
+          return "Fiber";
+        case eSystem:
+          return "MachineThread";
+      }
+
+      /* GCC cannot determine that the above switch covers the enum and hence
+       * every exit from this function is covered.
+       */
+      return "unknown kind";
+    }
+
+    Kind kind() const {
+      return kind_;
+    }
+
+    void set_kind(Kind kind) {
+      kind_ = kind;
+    }
+
+    VM* as_vm() {
+      return reinterpret_cast<VM*>(this);
+    }
+
+    std::string name() const {
+      return name_;
+    }
+
+    void set_name(STATE, const char* name);
+
+    pthread_t& os_thread() {
+      return os_thread_;
+    }
+
+    diagnostics::MachineMetrics* metrics() {
+      return metrics_;
+    }
 
     UnwindInfoSet& unwinds() {
       return unwinds_;
@@ -455,8 +532,6 @@ namespace rubinius {
     memory::VariableRootBuffers& current_root_buffers();
 
   public:
-    static VM* current();
-
     static void discard(STATE, VM*);
 
   public:

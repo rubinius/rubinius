@@ -272,7 +272,7 @@ namespace rubinius {
 
     fiber->vm(state->thread_nexus()->new_vm(state->machine(), name.str().c_str()));
 
-    fiber->vm()->set_kind(memory::ManagedThread::eFiber);
+    fiber->vm()->set_kind(VM::eFiber);
     fiber->vm()->set_suspending();
 
     if(Fixnum* size = try_as<Fixnum>(stack_size)) {

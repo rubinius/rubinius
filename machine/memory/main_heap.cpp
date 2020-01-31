@@ -79,7 +79,7 @@ namespace rubinius {
             i != state->thread_nexus()->threads()->end();
             ++i)
         {
-          ManagedThread* thr = (*i);
+          VM* thr = (*i);
 
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
             Object* fwd = ri->get();

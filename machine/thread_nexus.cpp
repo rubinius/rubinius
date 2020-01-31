@@ -8,7 +8,6 @@
 #include "class/thread.hpp"
 
 #include "memory/collector.hpp"
-#include "memory/managed.hpp"
 
 #include "util/atomic.hpp"
 
@@ -141,7 +140,7 @@ namespace rubinius {
       if(!vm) continue;
 
       switch(vm->kind()) {
-        case memory::ManagedThread::eThread: {
+        case VM::eThread: {
           if(Thread* thread = vm->thread()) {
             if(!thread->nil_p()) {
               if(vm == current) {
@@ -158,7 +157,7 @@ namespace rubinius {
 
           break;
         }
-        case memory::ManagedThread::eFiber: {
+        case VM::eFiber: {
           if(Fiber* fiber = vm->fiber()) {
             fiber->status(Fiber::eDead);
             vm->set_canceled();
@@ -167,7 +166,7 @@ namespace rubinius {
 
           break;
         }
-        case memory::ManagedThread::eSystem:
+        case VM::eSystem:
           VM::discard(state, vm);
           break;
       }

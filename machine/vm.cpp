@@ -61,8 +61,13 @@
 #define GO(whatever) globals().whatever
 
 namespace rubinius {
+  utilities::thread::ThreadData<VM*> _current_thread;
+
   VM::VM(uint32_t id, Machine* m, const char* name)
-    : memory::ManagedThread(id, m, memory::ManagedThread::eThread, name)
+    : kind_(eThread)
+    , metrics_(new diagnostics::MachineMetrics())
+    , os_thread_(0)
+    , id_(id)
     , _machine_(m)
     , call_frame_(nullptr)
     , park_(new Park)
@@ -101,6 +106,14 @@ namespace rubinius {
     , custom_wakeup_data_(nullptr)
     , unwind_state_(nullptr)
   {
+    if(name) {
+      name_ = std::string(name);
+    } else {
+      std::ostringstream thread_name;
+      thread_name << "ruby." << id_;
+      name_ = thread_name.str();
+    }
+
     set_sample_interval();
   }
 
@@ -117,6 +130,23 @@ namespace rubinius {
       delete thca_;
       thca_ = nullptr;
     }
+  }
+
+  void VM::set_name(STATE, const char* name) {
+    if(pthread_self() == os_thread_) {
+      utilities::thread::Thread::set_os_name(name);
+    }
+    name_.assign(name);
+  }
+
+  VM* VM::current() {
+    return _current_thread.get();
+  }
+
+  void VM::set_current_thread() {
+    utilities::thread::Thread::set_os_name(name().c_str());
+    os_thread_ = pthread_self();
+    _current_thread.set(this);
   }
 
   Machine* const VM::machine() {
@@ -358,20 +388,6 @@ namespace rubinius {
     set_thread(nil<Thread>());
     set_fiber(nil<Fiber>());
     zombie_ = true;
-  }
-
-  /**
-   * Returns the current VM executing on this pthread.
-   */
-  VM* VM::current() {
-    return memory::ManagedThread::current()->as_vm();
-  }
-
-  /**
-   * Sets this VM instance as the current VM on this pthread.
-   */
-  void VM::set_current_thread() {
-    memory::ManagedThread::set_current_thread(this);
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
