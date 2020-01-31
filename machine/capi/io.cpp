@@ -1,6 +1,6 @@
 #include "vm.hpp"
 #include "c_api.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "object_utils.hpp"
 
 #include "class/array.hpp"
@@ -176,7 +176,7 @@ extern "C" {
     long ret;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
@@ -222,7 +222,7 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
@@ -273,7 +273,7 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
@@ -304,7 +304,7 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
@@ -333,7 +333,7 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
@@ -396,7 +396,7 @@ extern "C" {
 
   void rb_update_max_fd(int fd) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State *state = env->state();
+    ThreadState *state = env->state();
     Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
     VALUE fd_class = MemoryHandle::value(fd_object);
     VALUE descriptor = MemoryHandle::value(Fixnum::from(fd));
@@ -406,7 +406,7 @@ extern "C" {
 
   void rb_fd_fix_cloexec(int fd) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State *state = env->state();
+    ThreadState *state = env->state();
     Object* fd_object = G(io)->get_const(env->state(), "FileDescriptor");
     VALUE fd_class = MemoryHandle::value(fd_object);
     VALUE descriptor = MemoryHandle::value(Fixnum::from(fd));

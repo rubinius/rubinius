@@ -1,5 +1,5 @@
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 int main() {
   rubinius::VM vm;

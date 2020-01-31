@@ -1,6 +1,6 @@
 #include "memory/root.hpp"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 namespace rubinius {
 namespace memory {

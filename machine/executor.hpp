@@ -2,7 +2,7 @@
 #define RBX_EXECUTOR_HPP
 
 namespace rubinius {
-  class State;
+  class ThreadState;
   class Executable;
   class Module;
   class Arguments;
@@ -14,8 +14,8 @@ namespace rubinius {
     cExecuteRestart
   };
 
-  typedef Object* (*executor)(State*, Executable* exec, Module* mod, Arguments& args);
-  typedef Object* (*InvokePrimitive)(State*, Object**, int);
+  typedef Object* (*executor)(ThreadState*, Executable* exec, Module* mod, Arguments& args);
+  typedef Object* (*InvokePrimitive)(ThreadState*, Object**, int);
 }
 
 #endif

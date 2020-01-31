@@ -176,14 +176,14 @@ namespace rubinius {
   }
 
   void String::read_rstring() {
-    State state(VM::current());
+    ThreadState state(VM::current());
     if(memory_handle_p()) {
       get_handle(&state)->read_rstring(&state);
     }
   }
 
   void String::write_rstring(VM* vm) {
-    State state(vm);
+    ThreadState state(vm);
     write_rstring(&state);
   }
 

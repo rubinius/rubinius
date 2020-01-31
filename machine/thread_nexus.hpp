@@ -19,7 +19,7 @@ namespace rubinius {
     class ManagedThread;
   }
 
-  class State;
+  class ThreadState;
   class VM;
 
   typedef std::list<memory::ManagedThread*> ThreadList;

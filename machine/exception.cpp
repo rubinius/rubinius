@@ -1,5 +1,5 @@
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "exception.hpp"
 #include "detection.hpp"
 #include "memory.hpp"

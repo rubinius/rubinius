@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 #include "memory/code_manager.hpp"
 #include "memory/code_resource.hpp"

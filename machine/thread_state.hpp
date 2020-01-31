@@ -30,11 +30,11 @@ namespace rubinius {
     class ManagedThread;
   }
 
-  class State {
+  class ThreadState {
     VM* vm_;
 
   public:
-    State(VM* vm)
+    ThreadState(VM* vm)
       : vm_(vm)
     {}
 

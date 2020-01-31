@@ -1193,7 +1193,7 @@ namespace rubinius {
 
   extern "C" void* MANAGED_REALLOC_MPINT(void* s, mp_int* a, size_t bytes) {
     assert(s);
-    State* state = reinterpret_cast<State*>(s);
+    ThreadState* state = reinterpret_cast<ThreadState*>(s);
 
     ByteArray* storage =
       state->memory()->new_bytes_pinned<ByteArray>(state, G(bytearray), bytes);

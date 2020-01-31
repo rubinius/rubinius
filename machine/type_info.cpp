@@ -88,7 +88,7 @@ namespace rubinius {
     /* A wrapper because gdb can't do virtual dispatch. */
     void __show__(Object* obj) {
       /* TODO: GC
-      rubinius::State state(rubinius::VM::current());
+      rubinius::ThreadState state(rubinius::VM::current());
 
       if(obj->reference_p()) {
         ObjectPosition pos = rubinius::VM::current()->memory()->validate_object(obj);
@@ -108,7 +108,7 @@ namespace rubinius {
     /* Similar to __show__ but only outputs #<SomeClass:0x2428999> */
     void __show_simple__(Object* obj) {
       /* TODO: GC
-      rubinius::State state(rubinius::VM::current());
+      rubinius::ThreadState state(rubinius::VM::current());
 
       if(obj->reference_p()) {
         ObjectPosition pos = rubinius::VM::current()->memory()->validate_object(obj);

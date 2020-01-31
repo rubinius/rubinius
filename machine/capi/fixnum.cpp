@@ -34,7 +34,7 @@ extern "C" {
 
   VALUE rb_int_positive_pow(long x, unsigned long y) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     Integer* base = Integer::from(state, x);
     Integer* exp  = Integer::from(state, y);
     if(Fixnum* base_fix = try_as<Fixnum>(base)) {

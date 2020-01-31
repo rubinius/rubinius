@@ -53,7 +53,7 @@ extern "C" {
 
   VALUE rb_class_name(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     Class* class_object = MemoryHandle::object<Class>(class_handle);
     String* str = class_object->get_name(state);
     if(str->nil_p()) {
@@ -88,7 +88,7 @@ extern "C" {
   VALUE rb_path2class(const char* path) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    State* state = env->state();
+    ThreadState* state = env->state();
     Module* mod = G(object);
 
     char* pathd = strdup(path);

@@ -615,7 +615,7 @@ namespace rubinius {
                                 lock_index);
   }
 
-  NativeMethod* NativeMethod::create(State* state, String* file_name, Module* module,
+  NativeMethod* NativeMethod::create(STATE, String* file_name, Module* module,
       Symbol* method_name, void* func, Fixnum* arity, int lock_index)
   {
     NativeMethod* nmethod =

@@ -2,7 +2,7 @@
 #define RBX_TEST_TEST_HPP
 
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "machine.hpp"
@@ -162,7 +162,7 @@ public:
 class VMTest {
 public:
   Machine* machine;
-  State* state;
+  ThreadState* state;
   ConfigParser* config_parser;
   Configuration config;
 
@@ -204,7 +204,7 @@ public:
     machine = new Machine(0, nullptr);
 
     VM* vm = machine->thread_nexus()->new_vm(machine);
-    state = new State(vm);
+    state = new ThreadState(vm);
     initialize_as_root(state);
   }
 

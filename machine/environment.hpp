@@ -6,7 +6,7 @@
 
 #include "machine.hpp"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "config_parser.hpp"
 #include "configuration.hpp"
 #include "spinlock.hpp"
@@ -58,7 +58,7 @@ namespace rubinius {
 
   public:
     VM* root_vm;
-    State* state;
+    ThreadState* state;
 
     ConfigParser  config_parser;
 

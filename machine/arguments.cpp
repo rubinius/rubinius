@@ -1,6 +1,6 @@
 #include "arguments.hpp"
 #include "memory.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "vm.hpp"
 
 #include "class/tuple.hpp"

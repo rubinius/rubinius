@@ -1,6 +1,6 @@
 #include "configuration.hpp"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "environment.hpp"
 #include "logger.hpp"
 #include "thread_phase.hpp"

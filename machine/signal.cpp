@@ -1,7 +1,7 @@
 #include "config.h"
 #include "release.h"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
 #include "logger.hpp"
@@ -181,7 +181,7 @@ namespace rubinius {
     SignalThread* thread = reinterpret_cast<SignalThread*>(ptr);
     VM* vm = thread->vm();
 
-    State state_obj(vm), *state = &state_obj;
+    ThreadState state_obj(vm), *state = &state_obj;
 
     vm->set_stack_bounds(state->configuration()->machine_thread_stack_size.value);
     vm->set_current_thread();

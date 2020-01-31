@@ -23,12 +23,12 @@ namespace rubinius {
   class Class;
   class Fixnum;
   class ObjectHeader;
-  class State;
+  class ThreadState;
   class Symbol;
 
   typedef intptr_t hashval;
 
-  #define STATE rubinius::State* state
+  #define STATE rubinius::ThreadState* state
   #define G(whatever) state->globals().whatever.get()
   #define GO(whatever) state->globals().whatever
 

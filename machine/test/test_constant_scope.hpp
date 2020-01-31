@@ -1,6 +1,6 @@
 #include "class/lexical_scope.hpp"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "memory.hpp"
 
 #include <cxxtest/TestSuite.h>

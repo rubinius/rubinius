@@ -1,6 +1,6 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 #include "memory/collector.hpp"
 #include "memory/third_region.hpp"

@@ -14,7 +14,7 @@ namespace rubinius {
   class Console;
   class Channel;
   class VM;
-  class State;
+  class ThreadState;
   class FSEvent;
   class Object;
   class String;

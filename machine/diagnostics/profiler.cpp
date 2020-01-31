@@ -1,6 +1,6 @@
 #include "configuration.hpp"
 #include "environment.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 #include "diagnostics/profiler.hpp"
 

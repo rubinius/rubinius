@@ -185,7 +185,7 @@ namespace rubinius {
 
   void CallFrame::dump() {
     VM* vm = VM::current();
-    State state_obj(vm), *state = &state_obj;
+    ThreadState state_obj(vm), *state = &state_obj;
 
     std::cout << "<CallFrame:" << (void*)this << " ";
 
@@ -230,7 +230,7 @@ namespace rubinius {
   /* For debugging. */
   extern "C" {
     void __printbt__() {
-      State state(VM::current());
+      ThreadState state(VM::current());
       state.vm()->call_frame()->print_backtrace(&state);
     }
   }

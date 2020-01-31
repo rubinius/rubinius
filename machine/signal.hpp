@@ -12,7 +12,7 @@
 namespace rubinius {
   class Object;
   class VM;
-  class State;
+  class ThreadState;
   class Configuration;
   struct CallFrame;
 
@@ -75,7 +75,7 @@ namespace rubinius {
     void after_fork_child(STATE);
 
     void queue_signal(int signal);
-    void add_signal_handler(State*, int signal, HandlerType type = eCustom);
+    void add_signal_handler(ThreadState*, int signal, HandlerType type = eCustom);
 
     void print_backtraces();
 

@@ -3,7 +3,7 @@
 
 #include "machine_threads.hpp"
 #include "logger.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 #include "memory/header.hpp"
 #include "memory/root.hpp"
@@ -17,7 +17,7 @@
 
 namespace rubinius {
   class VM;
-  class State;
+  class ThreadState;
   class Memory;
   class Object;
   struct CallFrame;

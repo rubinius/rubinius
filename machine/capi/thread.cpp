@@ -142,7 +142,7 @@ extern "C" {
   VALUE rb_thread_blocking_region(rb_blocking_function_t func, void* data,
                                   rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     VALUE ret = Qnil;
 
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
@@ -171,7 +171,7 @@ extern "C" {
   void* rb_thread_call_without_gvl(void *(*func)(void *data), void* data1,
                                   rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     void* ret = NULL;
 
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
@@ -200,7 +200,7 @@ extern "C" {
   void* rb_thread_call_without_gvl2(void *(*func)(void *data), void* data1,
                                    rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     void* ret = NULL;
 
     if(state->vm()->thread_interrupted_p(state)) {
@@ -228,7 +228,7 @@ extern "C" {
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    State* state = env->state();
+    ThreadState* state = env->state();
     ENTER_CAPI(state);
     state->vm()->managed_phase(state);
 
@@ -302,7 +302,7 @@ extern "C" {
 
   VALUE capi_thread_create(VALUE (*func)(ANYARGS), void* arg, const char* name, const char* file) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
 
     NativeMethod* nm = NativeMethod::create(state,
                         String::create_pinned(state, file), G(thread),

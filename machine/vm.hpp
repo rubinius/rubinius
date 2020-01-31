@@ -85,7 +85,7 @@ namespace rubinius {
    */
 
   class VM : public memory::ManagedThread {
-    friend class State;
+    friend class ThreadState;
 
   private:
     static const int cWaitLimit = 100;

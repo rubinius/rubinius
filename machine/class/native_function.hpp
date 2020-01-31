@@ -88,7 +88,7 @@ namespace rubinius {
     FFIData(STATE, NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret);
 
     virtual ~FFIData();
-    void cleanup(State* state, memory::CodeManager* cm) { }
+    void cleanup(ThreadState* state, memory::CodeManager* cm) { }
 
     static FFIData* create(STATE, NativeFunction* func, int count, FFIArgInfo* args, FFIArgInfo* ret);
   };

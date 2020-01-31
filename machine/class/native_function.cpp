@@ -311,7 +311,7 @@ namespace rubinius {
       rubinius::bug("attempted to run native code from an incorrectly initialized Thread");
     }
 
-    State* state = env->state();
+    ThreadState* state = env->state();
 
     state->vm()->managed_phase(state);
 

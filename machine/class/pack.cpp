@@ -17,7 +17,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "primitives.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "vm.hpp"
 
 #include "class/array.hpp"

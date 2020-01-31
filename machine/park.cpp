@@ -1,7 +1,7 @@
 #include "defines.hpp"
 #include "memory.hpp"
 #include "park.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "thread_phase.hpp"
 #include "vm.hpp"
 

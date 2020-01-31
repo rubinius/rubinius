@@ -3,7 +3,7 @@
 #include "class/native_function.hpp"
 #include "class/ffi_pointer.hpp"
 
-State *global_state;
+ThreadState *global_state;
 
 extern "C" {
 

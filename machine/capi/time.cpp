@@ -68,7 +68,7 @@ extern "C" {
 
     struct timespec ts = capi_time_num_timespec(env, num);
 
-    State* state = env->state();
+    ThreadState* state = env->state();
     Time* obj = Time::specific(state, cls,
         Integer::from(state, ts.tv_sec),
         Integer::from(state, ts.tv_nsec),

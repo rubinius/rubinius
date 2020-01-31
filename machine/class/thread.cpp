@@ -325,7 +325,7 @@ namespace rubinius {
 
   void* Thread::run(void* ptr) {
     VM* vm = reinterpret_cast<VM*>(ptr);
-    State state_obj(vm), *state = &state_obj;
+    ThreadState state_obj(vm), *state = &state_obj;
 
     vm->set_stack_bounds(vm->thread()->stack_size()->to_native());
     vm->set_current_thread();

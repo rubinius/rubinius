@@ -2,7 +2,7 @@
 #define RBX_DISPATCH_HPP
 
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 namespace rubinius {
   class Arguments;

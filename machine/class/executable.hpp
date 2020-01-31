@@ -29,7 +29,7 @@ namespace rubinius {
       return inliners_;
     }
 
-    void cleanup(State* state, memory::CodeManager* cm);
+    void cleanup(ThreadState* state, memory::CodeManager* cm);
   };
 
   class Executable : public Object {

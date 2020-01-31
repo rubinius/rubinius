@@ -746,7 +746,7 @@ extern "C" {
   {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    State* state = env->state();
+    ThreadState* state = env->state();
     Symbol* method_name = state->symbol(name);
 
     Module* module = NULL;

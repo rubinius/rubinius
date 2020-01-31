@@ -66,7 +66,7 @@ extern "C" {
   VALUE rb_const_get_at(VALUE module_handle, ID id_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    State* state = env->state();
+    ThreadState* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
     Module* module = MemoryHandle::object<Module>(module_handle);
 
@@ -86,7 +86,7 @@ extern "C" {
   VALUE rb_const_get_from(VALUE module_handle, ID id_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    State* state = env->state();
+    ThreadState* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
     Module* module = MemoryHandle::object<Module>(module_handle);
 
@@ -111,7 +111,7 @@ extern "C" {
   VALUE rb_const_get(VALUE module_handle, ID id_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    State* state = env->state();
+    ThreadState* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
     Module* module = MemoryHandle::object<Module>(module_handle);
 
@@ -286,7 +286,7 @@ extern "C" {
 
   const char* rb_class2name(VALUE module_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    State* state = env->state();
+    ThreadState* state = env->state();
     Module* module_object = c_as<Module>(MemoryHandle::object<Module>(module_handle));
 
     String* str = module_object->get_name(state);

@@ -6,7 +6,7 @@
 
 #include "memory.hpp"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 #include "class/access_variable.hpp"
 #include "class/array.hpp"

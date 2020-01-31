@@ -1,6 +1,6 @@
 #include "config.h"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 
 #include "configuration.hpp"
 #include "memory.hpp"

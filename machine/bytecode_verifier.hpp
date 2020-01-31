@@ -9,7 +9,7 @@ namespace rubinius {
   class Fixnum;
   class Object;
   class Tuple;
-  class State;
+  class ThreadState;
   class VM;
 
   class BytecodeVerifier {

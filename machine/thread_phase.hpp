@@ -3,7 +3,7 @@
 
 #include "defines.hpp"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "thread_nexus.hpp"
 #include "memory.hpp"
 
@@ -16,7 +16,7 @@ namespace rubinius {
    * is resumed.
    */
   class StopPhase {
-    State* state_;
+    ThreadState* state_;
 
   public:
     StopPhase(STATE)
@@ -39,7 +39,7 @@ namespace rubinius {
   };
 
   class ManagedPhase {
-    State* state_;
+    ThreadState* state_;
 
   public:
     ManagedPhase(STATE)
@@ -55,7 +55,7 @@ namespace rubinius {
   };
 
   class UnmanagedPhase {
-    State* state_;
+    ThreadState* state_;
 
   public:
     UnmanagedPhase(STATE)

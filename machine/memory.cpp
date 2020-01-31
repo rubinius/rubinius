@@ -5,7 +5,7 @@
 
 #include "config.h"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "memory.hpp"
 #include "thread_phase.hpp"
 

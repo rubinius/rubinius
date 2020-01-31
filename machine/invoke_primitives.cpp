@@ -1,6 +1,6 @@
 #include "defines.hpp"
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "primitives.hpp"
 #include "includes.hpp"
 #include "arguments.hpp"

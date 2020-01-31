@@ -1,4 +1,5 @@
 #include "memory.hpp"
+#include "primitives.hpp"
 #include "thread_phase.hpp"
 
 #include "class/class.hpp"

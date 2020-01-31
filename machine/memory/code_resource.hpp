@@ -5,7 +5,7 @@
 
 namespace rubinius {
   class VM;
-  class State;
+  class ThreadState;
 
 namespace memory {
   class CodeManager;

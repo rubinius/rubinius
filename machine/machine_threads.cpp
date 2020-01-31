@@ -1,5 +1,5 @@
 #include "vm.hpp"
-#include "state.hpp"
+#include "thread_state.hpp"
 #include "defines.hpp"
 #include "environment.hpp"
 #include "machine_threads.hpp"
@@ -27,7 +27,7 @@ namespace rubinius {
     MachineThread* thread = reinterpret_cast<MachineThread*>(ptr);
 
     VM* vm = thread->vm();
-    State state_obj(vm), *state = &state_obj;
+    ThreadState state_obj(vm), *state = &state_obj;
 
     vm->set_current_thread();
 

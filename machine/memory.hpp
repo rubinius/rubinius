@@ -22,7 +22,7 @@
 #include "util/atomic.hpp"
 #include "util/thread.hpp"
 
-#include "state.hpp"
+#include "thread_state.hpp"
 
 #include <atomic>
 #include <functional>
@@ -44,7 +44,7 @@ namespace rubinius {
     class MainHeap;
 
     class CAPITracer {
-      State* state_;
+      ThreadState* state_;
       std::function<void (STATE, Object**)> tracer_;
 
     public:

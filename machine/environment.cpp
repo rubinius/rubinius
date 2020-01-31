@@ -99,7 +99,7 @@ namespace rubinius {
     root_vm->set_stack_bounds(stack_size);
     root_vm->set_current_thread();
 
-    state = new State(root_vm);
+    state = new ThreadState(root_vm);
   }
 
   void Environment::initialize() {
@@ -721,7 +721,7 @@ namespace rubinius {
     VM* vm = SignalThread::new_vm(state);
     vm->set_stack_bounds(state->vm()->stack_size());
 
-    State main_state(vm);
+    ThreadState main_state(vm);
     state->machine()->start_signals(&main_state);
   }
 }
