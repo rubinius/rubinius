@@ -14,7 +14,7 @@ namespace rubinius {
     bool OpenTHCA::allocate_region(STATE) {
       Object* region = nullptr;
 
-      state->vm()->set_checkpoint();
+      state->set_checkpoint();
 
       {
         utilities::thread::SpinLock::LockGuard guard(state->memory()->allocation_lock());
@@ -37,7 +37,7 @@ namespace rubinius {
       if(available_ >= bytes) {
         Object* obj = reinterpret_cast<Object*>(address_);
 
-        MemoryHeader::initialize(obj, state->vm()->thread_id(), eFirstRegion, type, false);
+        MemoryHeader::initialize(obj, state->thread_id(), eFirstRegion, type, false);
 
         available_ -= bytes;
         address_ += bytes;

@@ -1,5 +1,4 @@
 #include "config.h"
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "on_stack.hpp"
 #include "memory.hpp"
@@ -62,7 +61,7 @@ namespace rubinius {
     }
 
     void ExtensionFinalizer::finalize(STATE) {
-      NativeMethodEnvironment* env = state->vm()->native_method_environment;
+      NativeMethodEnvironment* env = state->native_method_environment;
       NativeMethodFrame nmf(env, 0, 0);
       ExceptionPoint ep(env);
 
@@ -82,7 +81,7 @@ namespace rubinius {
       env->set_current_native_frame(&nmf);
 
       // Register the CallFrame, because we might GC below this.
-      if(state->vm()->push_call_frame(state, call_frame)) {
+      if(state->push_call_frame(state, call_frame)) {
         nmf.setup(Qnil, Qnil, Qnil, Qnil);
 
         PLACE_EXCEPTION_POINT(ep);
@@ -96,7 +95,7 @@ namespace rubinius {
           FinalizerObject::finalize(state);
         }
 
-        state->vm()->pop_call_frame(state, call_frame->previous);
+        state->pop_call_frame(state, call_frame->previous);
         env->set_current_call_frame(0);
         env->set_current_native_frame(0);
       } else {
@@ -216,16 +215,16 @@ namespace rubinius {
         std::cerr << std::endl << "------------------------- Rubinius garbage collection -------------------------" << std::endl;
       }
 
-      if(state->thread_nexus()->try_lock_wait(state, state->vm())) {
-        state->vm()->metrics()->stops++;
+      if(state->thread_nexus()->try_lock_wait(state, state)) {
+        state->metrics()->stops++;
         state->thread_nexus()->set_stop();
 
         logger::info("collector: stop initiated, waiting for all threads to checkpoint");
 
-        state->thread_nexus()->wait_for_all(state, state->vm());
+        state->thread_nexus()->wait_for_all(state, state);
 
 #ifdef RBX_GC_STACK_CHECK
-        state->thread_nexus()->check_stack(state, state->vm());
+        state->thread_nexus()->check_stack(state, state);
 #endif
 
         logger::info("collector: collection started");
@@ -235,7 +234,7 @@ namespace rubinius {
         logger::info("collector: collection finished");
 
         state->thread_nexus()->unset_stop();
-        state->thread_nexus()->unlock(state, state->vm());
+        state->thread_nexus()->unlock(state, state);
       }
     }
 
@@ -289,7 +288,7 @@ namespace rubinius {
     }
 
     void Collector::Worker::run(STATE) {
-      state->vm()->managed_phase(state);
+      state->managed_phase(state);
 
       logger::info("collector: worker thread starting");
 
@@ -325,7 +324,7 @@ namespace rubinius {
             state->diagnostics()->collector_metrics()->objects_finalized++;
           }
 
-          state->thread_nexus()->yield(state, state->vm());
+          state->thread_nexus()->yield(state, state);
         }
       }
 
@@ -333,8 +332,8 @@ namespace rubinius {
 
       logger::info("collector: worker thread exited");
 
-      state->vm()->unmanaged_phase(state);
-      state->vm()->thread()->vm()->set_zombie(state);
+      state->unmanaged_phase(state);
+      state->thread()->vm()->set_zombie(state);
     }
 
     void Collector::dispose(STATE) {

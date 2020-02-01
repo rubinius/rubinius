@@ -2,7 +2,6 @@
 #include "capi/ruby.h"
 #include "capi/ruby/encoding.h"
 
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "memory.hpp"
 

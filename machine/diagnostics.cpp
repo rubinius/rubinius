@@ -1,5 +1,4 @@
 #include "configuration.hpp"
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "environment.hpp"
 #include "logger.hpp"
@@ -55,7 +54,7 @@ namespace rubinius {
     }
 
     void Reporter::run(STATE) {
-      state->vm()->unmanaged_phase(state);
+      state->unmanaged_phase(state);
 
       while(!thread_exit_) {
         timer_->set(diagnostics_->interval());

@@ -24,7 +24,7 @@ namespace rubinius {
     cache->ip(ip);
     cache->unwind_type(unwind_type);
 
-    state->vm()->metrics()->unwind_site_count++;
+    state->metrics()->unwind_site_count++;
 
     return cache;
   }

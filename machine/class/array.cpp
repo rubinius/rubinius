@@ -31,15 +31,11 @@ namespace rubinius {
   }
 
   void Array::read_rarray() {
-    ThreadState state(VM::current());
-    if(memory_handle_p()) {
-      get_handle(&state)->read_rarray(&state);
-    }
-  }
+    ThreadState* state = ThreadState::current();
 
-  void Array::write_rarray(VM* vm) {
-    ThreadState state(vm);
-    write_rarray(&state);
+    if(memory_handle_p()) {
+      get_handle(state)->read_rarray(state);
+    }
   }
 
   void Array::write_rarray(STATE) {

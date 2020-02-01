@@ -210,7 +210,7 @@ namespace rubinius {
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    Object* cls = state->vm()->path2class(state, data);
+    Object* cls = state->path2class(state, data);
 
     if(malloc_data) {
       free(malloc_data);

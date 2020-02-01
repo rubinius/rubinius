@@ -166,7 +166,7 @@ namespace rubinius {
     }
 
 #ifdef RBX_ALLOC_TRACKING
-    if(unlikely(state->vm()->allocation_tracking())) {
+    if(unlikely(state->allocation_tracking())) {
       new_obj->setup_allocation_site(state);
     }
 #endif

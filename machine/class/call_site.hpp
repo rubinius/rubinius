@@ -7,7 +7,6 @@
 #include "lookup_data.hpp"
 #include "object_utils.hpp"
 #include "spinlock.hpp"
-#include "vm.hpp"
 
 #include "class/integer.hpp"
 #include "class/object.hpp"
@@ -88,7 +87,7 @@ namespace rubinius {
         Cache* new_cache = new(mem) Cache(1);
         new(new_cache->_entries_) Entry(receiver, dispatch);
 
-        state->vm()->metrics()->inline_cache_count++;
+        state->metrics()->inline_cache_count++;
 
         return new_cache;
       }
@@ -109,7 +108,7 @@ namespace rubinius {
 
         new_cache->copy_valid(cache, 1);
 
-        state->vm()->metrics()->inline_cache_count++;
+        state->metrics()->inline_cache_count++;
 
         return new_cache;
       }
@@ -293,7 +292,7 @@ namespace rubinius {
       cache->serial(serial);
       cache->ip(ip);
 
-      state->vm()->metrics()->call_site_count++;
+      state->metrics()->call_site_count++;
 
       return cache;
     }
@@ -323,7 +322,7 @@ namespace rubinius {
     }
 
     void lookup(STATE, Arguments& args, Dispatch& dispatch, LookupData& lookup_data) {
-      lookup_data.recv = state->vm()->call_frame()->self();
+      lookup_data.recv = state->call_frame()->self();
 
       switch(kind()) {
         case eNone:
@@ -339,9 +338,9 @@ namespace rubinius {
           break;
         case eSuper: {
           lookup_data.min_visibility = G(sym_private);
-          lookup_data.from = state->vm()->call_frame()->module()->superclass();
+          lookup_data.from = state->call_frame()->module()->superclass();
 
-          Symbol* original_name = state->vm()->call_frame()->original_name();
+          Symbol* original_name = state->call_frame()->original_name();
           if(name() != original_name) {
             name(original_name);
             args.set_name(name());
@@ -365,7 +364,7 @@ namespace rubinius {
         dispatch.method = missing_dispatch.method;
         dispatch.module = missing_dispatch.module;
         dispatch.method_missing = kind();
-        state->vm()->set_method_missing_reason(dispatch.method_missing);
+        state->set_method_missing_reason(dispatch.method_missing);
       }
     }
 
@@ -428,7 +427,7 @@ namespace rubinius {
       }
 
       Dispatch dispatch(name());
-      LookupData lookup_data(state->vm()->call_frame()->self(),
+      LookupData lookup_data(state->call_frame()->self(),
           recv->lookup_begin(state), vis);
 
       if(dispatch.resolve(state, name(), lookup_data)) {

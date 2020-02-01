@@ -230,7 +230,7 @@ public:
   }
 
   void test_memory_header_lock() {
-    h.set_thread_id(state, state->vm()->thread_id());
+    h.set_thread_id(state, state->thread_id());
 
     TS_ASSERT_THROWS_ASSERT(h.unlock(state),
 			    const RubyException &e,

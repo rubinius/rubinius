@@ -59,7 +59,6 @@ namespace rubinius {
 
     void read_rstring();
     void write_rstring(STATE);
-    void write_rstring(VM* vm);
 
     Fixnum* num_bytes() {
       if(type_specific() == eRString) {

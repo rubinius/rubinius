@@ -177,8 +177,8 @@ namespace rubinius {
     intptr_t t = type->to_native();
 
   retry:
-    state->vm()->interrupt_with_signal();
-    state->vm()->thread()->sleep(state, cTrue);
+    state->interrupt_with_signal();
+    state->thread()->sleep(state, cTrue);
 
     {
       UnmanagedPhase unmanaged(state);
@@ -189,12 +189,12 @@ namespace rubinius {
                             (struct sockaddr*)buf, &alen);
     }
 
-    state->vm()->thread()->sleep(state, cFalse);
-    state->vm()->clear_waiter();
+    state->thread()->sleep(state, cFalse);
+    state->clear_waiter();
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
-        if(state->vm()->thread_interrupted_p(state)) return NULL;
+        if(state->thread_interrupted_p(state)) return NULL;
         ensure_open(state);
         goto retry;
       } else {
@@ -508,20 +508,20 @@ failed: /* try next '*' position */
     int code = -1;
 
   retry:
-    state->vm()->interrupt_with_signal();
-    state->vm()->thread()->sleep(state, cTrue);
+    state->interrupt_with_signal();
+    state->thread()->sleep(state, cTrue);
 
     {
       UnmanagedPhase unmanaged(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 
-    state->vm()->thread()->sleep(state, cFalse);
-    state->vm()->clear_waiter();
+    state->thread()->sleep(state, cFalse);
+    state->clear_waiter();
 
     if(code == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(state->vm()->thread_interrupted_p(state)) return NULL;
+        if(state->thread_interrupted_p(state)) return NULL;
         ensure_open(state);
         goto retry;
       }

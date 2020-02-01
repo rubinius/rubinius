@@ -1,5 +1,4 @@
 #include "config.h"
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 #include "configuration.hpp"
@@ -38,7 +37,7 @@ namespace rubinius {
         state->diagnostics()->memory_metrics()->first_region_bytes += bytes;
 
         MemoryHeader::initialize(
-            obj, state->vm()->thread_id(), eFirstRegion, type, false);
+            obj, state->thread_id(), eFirstRegion, type, false);
 
         return obj;
       }
@@ -48,7 +47,7 @@ namespace rubinius {
         state->diagnostics()->memory_metrics()->large_bytes += bytes;
 
         MemoryHeader::initialize(
-            obj, state->vm()->thread_id(), eThirdRegion, type, false);
+            obj, state->thread_id(), eThirdRegion, type, false);
 
         return obj;
       }
@@ -79,7 +78,7 @@ namespace rubinius {
             i != state->thread_nexus()->threads()->end();
             ++i)
         {
-          VM* thr = (*i);
+          ThreadState* thr = (*i);
 
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
             Object* fwd = ri->get();
@@ -140,9 +139,7 @@ namespace rubinius {
             }
           }
 
-          if(VM* vm = thr->as_vm()) {
-            vm->gc_scan(state, f);
-          }
+          thr->gc_scan(state, f);
         }
       }
     }

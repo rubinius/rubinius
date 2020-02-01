@@ -86,7 +86,7 @@ namespace rubinius {
     copy_argv(argc, argv);
     ruby_init_setproctitle(argc, argv);
 
-    root_vm = _machine_->thread_nexus()->new_vm(_machine_, "ruby.main");
+    state = root_vm = _machine_->thread_nexus()->thread_state(_machine_, "ruby.main");
     root_vm->set_main_thread();
 
     size_t stack_size = 0;
@@ -98,8 +98,6 @@ namespace rubinius {
 
     root_vm->set_stack_bounds(stack_size);
     root_vm->set_current_thread();
-
-    state = new ThreadState(root_vm);
   }
 
   void Environment::initialize() {
@@ -127,8 +125,7 @@ namespace rubinius {
   Environment::~Environment() {
     delete collector_;
 
-    VM::discard(state, root_vm);
-    delete state;
+    ThreadState::discard(state, root_vm);
 
     for(int i = 0; i < argc_; i++) {
       delete[] argv_[i];
@@ -529,7 +526,7 @@ namespace rubinius {
 
     state->machine_threads()->shutdown(state);
 
-    _machine_->thread_nexus()->halt(state, state->vm());
+    _machine_->thread_nexus()->halt(state, state);
 
     _machine_->collector()->dispose(state);
     _machine_->collector()->finish(state);
@@ -685,7 +682,7 @@ namespace rubinius {
       load_platform_conf(codedb_path);
     }
 
-    state->vm()->managed_phase(state);
+    state->managed_phase(state);
 
     {
       timer::StopWatch<timer::microseconds> timer(
@@ -698,7 +695,7 @@ namespace rubinius {
       timer::StopWatch<timer::microseconds> timer(
           state->diagnostics()->boot_metrics()->ontology_us);
 
-      state->vm()->bootstrap_ontology(state);
+      state->bootstrap_ontology(state);
     }
 
     load_argv(argc_, argv_);
@@ -711,17 +708,16 @@ namespace rubinius {
       timer::StopWatch<timer::microseconds> timer(
           state->diagnostics()->boot_metrics()->main_thread_us);
 
-      main = Thread::create(state, state->vm(), Thread::main_thread);
+      main = Thread::create(state, state, Thread::main_thread);
       main->start_thread(state, Thread::run);
     }
 
     // TODO: GC improve this
     _machine_->collector()->start(state);
 
-    VM* vm = SignalThread::new_vm(state);
-    vm->set_stack_bounds(state->vm()->stack_size());
+    ThreadState* signal_state = SignalThread::new_vm(state);
+    signal_state->set_stack_bounds(state->stack_size());
 
-    ThreadState main_state(vm);
-    state->machine()->start_signals(&main_state);
+    state->machine()->start_signals(signal_state);
   }
 }

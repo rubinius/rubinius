@@ -1,7 +1,6 @@
 #include "configuration.hpp"
 #include "environment.hpp"
 #include "thread_state.hpp"
-#include "vm.hpp"
 
 #include "diagnostics.hpp"
 #include "diagnostics/diagnostic.hpp"

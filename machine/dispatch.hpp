@@ -1,7 +1,6 @@
 #ifndef RBX_DISPATCH_HPP
 #define RBX_DISPATCH_HPP
 
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 namespace rubinius {

@@ -3,7 +3,6 @@
 #include "defines.hpp"
 #include "primitives.hpp"
 #include "thread_state.hpp"
-#include "vm.hpp"
 
 #include "class/class.hpp"
 

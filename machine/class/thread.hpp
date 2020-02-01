@@ -58,7 +58,7 @@ namespace rubinius {
     std::mutex fiber_mutex_;
 
     /// The VM state for this thread and this thread alone
-    attr_field(vm, VM*);
+    attr_field(vm, ThreadState*);
 
     typedef Object* (*ThreadFunction)(STATE);
 
@@ -234,11 +234,11 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* vm);
-    static Thread* create(STATE, VM* vm, ThreadFunction function);
+    static Thread* create(STATE, ThreadState* vm);
+    static Thread* create(STATE, ThreadState* vm, ThreadFunction function);
     static Thread* create(STATE, Object* self, ThreadFunction function);
-    static Thread* create(STATE, Object* self, VM* vm, ThreadFunction function);
-    static Thread* create(STATE, Class* klass, VM* vm);
+    static Thread* create(STATE, Object* self, ThreadState* vm, ThreadFunction function);
+    static Thread* create(STATE, Class* klass, ThreadState* vm);
 
     static void finalize(STATE, Thread* thread);
 

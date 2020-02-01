@@ -1,5 +1,4 @@
 #include "config.h"
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 #include "memory.hpp"
@@ -23,7 +22,7 @@ namespace rubinius {
             i != state->thread_nexus()->threads()->end();
             ++i)
         {
-          VM* thr = (*i);
+          ThreadState* thr = (*i);
 
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
             Object* obj = ri->get();
@@ -66,9 +65,7 @@ namespace rubinius {
             }
           }
 
-          if(VM* vm = thr->as_vm()) {
-            vm->visit_objects(state, f);
-          }
+          thr->visit_objects(state, f);
         }
       }
 
@@ -117,7 +114,7 @@ namespace rubinius {
         f(state, obj);
       }
 
-      if(state->vm()->stack_limit_p(&object)) {
+      if(state->stack_limit_p(&object)) {
         mark_stack_.add(0, object);
         return;
       }

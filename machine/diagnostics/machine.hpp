@@ -180,7 +180,7 @@ namespace rubinius {
         document_["fibers_destroyed"] = fibers_destroyed;
       }
 
-      void set_thread_info(VM* vm) {
+      void set_thread_info(ThreadState* vm) {
         rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
         document_["metadata"].AddMember("thread_name",
@@ -193,7 +193,7 @@ namespace rubinius {
         if(state->configuration()->diagnostics_machine_enabled) {
           Diagnostic::start_reporting(state);
 
-          set_thread_info(state->vm());
+          set_thread_info(state);
         }
       }
 

@@ -1,4 +1,3 @@
-#include "vm.hpp"
 #include "c_api.hpp"
 #include "thread_state.hpp"
 #include "object_utils.hpp"
@@ -180,13 +179,13 @@ extern "C" {
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
-      state->vm()->interrupt_with_signal();
-      state->vm()->thread()->sleep(state, cTrue);
+      state->interrupt_with_signal();
+      state->thread()->sleep(state, cTrue);
 
       ret = fread(ptr, 1, len, f);
 
-      state->vm()->thread()->sleep(state, cFalse);
-      state->vm()->clear_waiter();
+      state->thread()->sleep(state, cFalse);
+      state->clear_waiter();
     }
 
     ENTER_CAPI(env->state());
@@ -226,8 +225,8 @@ extern "C" {
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
-      state->vm()->interrupt_with_signal();
-      state->vm()->thread()->sleep(state, cTrue);
+      state->interrupt_with_signal();
+      state->thread()->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
@@ -235,8 +234,8 @@ extern "C" {
         if(!retry) break;
       }
 
-      state->vm()->thread()->sleep(state, cFalse);
-      state->vm()->clear_waiter();
+      state->thread()->sleep(state, cFalse);
+      state->clear_waiter();
     }
 
     ENTER_CAPI(env->state());
@@ -277,8 +276,8 @@ extern "C" {
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
-      state->vm()->interrupt_with_signal();
-      state->vm()->thread()->sleep(state, cTrue);
+      state->interrupt_with_signal();
+      state->thread()->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
@@ -286,8 +285,8 @@ extern "C" {
         if(!retry) break;
       }
 
-      state->vm()->thread()->sleep(state, cFalse);
-      state->vm()->clear_waiter();
+      state->thread()->sleep(state, cFalse);
+      state->clear_waiter();
     }
     ENTER_CAPI(env->state());
     return Qtrue;
@@ -308,16 +307,16 @@ extern "C" {
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
-      state->vm()->interrupt_with_signal();
-      state->vm()->thread()->sleep(state, cTrue);
+      state->interrupt_with_signal();
+      state->thread()->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, &fds, 0, 0, 0);
       }
 
-      state->vm()->thread()->sleep(state, cFalse);
-      state->vm()->clear_waiter();
+      state->thread()->sleep(state, cFalse);
+      state->clear_waiter();
     }
     ENTER_CAPI(env->state());
   }
@@ -337,16 +336,16 @@ extern "C" {
     LEAVE_CAPI(state);
     {
       UnmanagedPhase unmanaged(state);
-      state->vm()->interrupt_with_signal();
-      state->vm()->thread()->sleep(state, cTrue);
+      state->interrupt_with_signal();
+      state->thread()->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, 0, &fds, 0, 0);
       }
 
-      state->vm()->thread()->sleep(state, cFalse);
-      state->vm()->clear_waiter();
+      state->thread()->sleep(state, cFalse);
+      state->clear_waiter();
     }
 
     ENTER_CAPI(env->state());

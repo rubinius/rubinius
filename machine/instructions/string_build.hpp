@@ -65,7 +65,7 @@ namespace rubinius {
 
       String* str = String::create(state, 0, size);
 #ifdef RBX_ALLOC_TRACKING
-      if(unlikely(state->vm()->allocation_tracking())) {
+      if(unlikely(state->allocation_tracking())) {
         str->setup_allocation_site(state);
       }
 #endif

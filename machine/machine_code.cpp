@@ -640,7 +640,7 @@ namespace rubinius {
       call_frame->arguments = &args;
       call_frame->unwind = nullptr;
 
-      if(!state->vm()->push_call_frame(state, call_frame)) {
+      if(!state->push_call_frame(state, call_frame)) {
         return NULL;
       }
 
@@ -652,7 +652,7 @@ namespace rubinius {
       value = (*mcode->run)(state, mcode);
       RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name());
 
-      if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
+      if(!state->pop_call_frame(state, call_frame->previous)) {
         return NULL;
       }
 
@@ -694,18 +694,18 @@ namespace rubinius {
     call_frame->arguments = &args;
     call_frame->unwind = nullptr;
 
-    if(!state->vm()->push_call_frame(state, call_frame)) {
+    if(!state->push_call_frame(state, call_frame)) {
       return NULL;
     }
 
-    state->vm()->checkpoint(state);
+    state->checkpoint(state);
 
     // Don't generate profiling info here, it's expected
     // to be done by the caller.
 
     Object* value = (*mcode->run)(state, mcode);
 
-    if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
+    if(!state->pop_call_frame(state, call_frame->previous)) {
       return NULL;
     }
 

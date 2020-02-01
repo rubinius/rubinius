@@ -25,7 +25,6 @@ namespace rubinius {
 
     void read_rarray();
     void write_rarray(STATE);
-    void write_rarray(VM* vm);
 
     Fixnum* total() {
       if(type_specific() == eRArray) {

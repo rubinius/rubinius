@@ -213,7 +213,7 @@ namespace rubinius {
      * initializing all reference fields other than _klass_ and _ivars_.
      */
     Object* new_object(STATE, Class* klass, intptr_t bytes, object_type type) {
-      Object* obj = state->vm()->allocate_object(state, bytes, type);
+      Object* obj = state->allocate_object(state, bytes, type);
 
       obj->klass(state, klass);
       obj->ivars(cNil);
@@ -320,7 +320,7 @@ namespace rubinius {
       T* new_object_unmanaged(STATE, Class* klass, intptr_t* mem) {
         T* obj = reinterpret_cast<T*>(mem);
 
-        MemoryHeader::initialize(obj, state->vm()->thread_id(), eThreadRegion, T::type, false);
+        MemoryHeader::initialize(obj, state->thread_id(), eThreadRegion, T::type, false);
 
         obj->klass(state, klass);
         obj->ivars(cNil);

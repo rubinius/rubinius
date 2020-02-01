@@ -16,7 +16,7 @@
     RBX_DTRACE_CHAR_P file_name = \
         const_cast<RBX_DTRACE_CHAR_P>("<unknown>"); \
     int line = 0; \
-    if(CallFrame* frame = state->vm()->get_ruby_frame()) { \
+    if(CallFrame* frame = state->get_ruby_frame()) { \
       Symbol* file = frame->file(state); \
       if(!file->nil_p()) { \
         file_name = const_cast<RBX_DTRACE_CHAR_P>(file->debug_str(state).c_str()); \

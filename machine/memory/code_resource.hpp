@@ -4,7 +4,6 @@
 #include "defines.hpp"
 
 namespace rubinius {
-  class VM;
   class ThreadState;
 
 namespace memory {

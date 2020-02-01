@@ -1,5 +1,4 @@
 #include "config.h"
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 #include "memory.hpp"
@@ -183,7 +182,7 @@ namespace rubinius {
         object->unsynchronized_unset_scanned();
       }
 
-      if(state->vm()->stack_limit_p(&object)) {
+      if(state->stack_limit_p(&object)) {
         mark_stack_.add(0, object);
 
         if(mark_stack_.size() > max_mark_stack_size_) {

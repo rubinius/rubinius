@@ -16,12 +16,12 @@ public:
   }
 
   void test_current() {
-    TS_ASSERT_EQUALS(Thread::current(state), state->vm()->thread());
+    TS_ASSERT_EQUALS(Thread::current(state), state->thread());
   }
 
   /* TODO: Machine
   void xtest_create() {
-    Thread* thr = Thread::create(state, shared->thread_nexus()->new_vm(shared));
+    Thread* thr = Thread::create(state, shared->thread_nexus()->thread_state(shared));
 
     TS_ASSERT_DIFFERS(thr, Thread::current(state));
   }

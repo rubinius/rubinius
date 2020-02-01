@@ -130,7 +130,7 @@ namespace rubinius {
 
   MachineCode* CompiledCode::internalize(STATE) {
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics()->bytecode_internalizer_us);
+        state->metrics()->bytecode_internalizer_us);
 
     std::lock_guard<locks::spinlock_mutex> guard(lock());
 
@@ -263,7 +263,7 @@ namespace rubinius {
   }
 
   CompiledCode* CompiledCode::of_sender(STATE) {
-    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+    if(CallFrame* frame = state->get_ruby_frame(1)) {
       if(frame->compiled_code) {
         return frame->compiled_code;
       }
@@ -273,7 +273,7 @@ namespace rubinius {
   }
 
   CompiledCode* CompiledCode::current(STATE) {
-    return state->vm()->call_frame()->compiled_code;
+    return state->call_frame()->compiled_code;
   }
 
   Object* CompiledCode::jitted_p(STATE) {

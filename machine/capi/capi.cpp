@@ -120,12 +120,12 @@ namespace rubinius {
     bool capi_check_interrupts(STATE) {
       void* stack_address;
 
-      if(!state->vm()->check_stack(state, &stack_address)) {
+      if(!state->check_stack(state, &stack_address)) {
         return false;
       }
 
-      if(unlikely(state->vm()->check_local_interrupts())) {
-        return state->vm()->check_thread_raise_or_kill(state);
+      if(unlikely(state->check_local_interrupts())) {
+        return state->check_thread_raise_or_kill(state);
       }
 
       return true;

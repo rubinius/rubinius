@@ -1,6 +1,5 @@
 #include "machine/test/test.hpp"
 
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "memory.hpp"
 

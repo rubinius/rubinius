@@ -1,6 +1,5 @@
 #include "config.h"
 #include "release.h"
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
@@ -58,24 +57,22 @@ namespace rubinius {
   // crashing inside the crash handler.
   static struct utsname machine_info;
 
-  SignalThread::SignalThread(STATE, VM* vm)
+  SignalThread::SignalThread(STATE, ThreadState* vm)
     : vm_(vm)
     , system_exit_(false)
     , exit_code_(0)
     , queue_index_(0)
     , process_index_(0)
   {
-    state->set_vm(vm_);
-
     signal_thread_ = this;
     install_default_handlers(state);
 
     NativeMethod::init_thread(state);
   }
 
-  VM* SignalThread::new_vm(STATE) {
-    VM* vm = state->thread_nexus()->new_vm(state->machine(), "rbx.system");
-    vm->set_kind(VM::eSystem);
+  ThreadState* SignalThread::new_vm(STATE) {
+    ThreadState* vm = state->thread_nexus()->thread_state(state->machine(), "rbx.system");
+    vm->set_kind(ThreadState::eSystem);
     return vm;
   }
 
@@ -179,17 +176,15 @@ namespace rubinius {
 
   void* SignalThread::run(void* ptr) {
     SignalThread* thread = reinterpret_cast<SignalThread*>(ptr);
-    VM* vm = thread->vm();
+    ThreadState* state = thread->vm();
 
-    ThreadState state_obj(vm), *state = &state_obj;
-
-    vm->set_stack_bounds(state->configuration()->machine_thread_stack_size.value);
-    vm->set_current_thread();
+    state->set_stack_bounds(state->configuration()->machine_thread_stack_size.value);
+    state->set_current_thread();
 
     RUBINIUS_THREAD_START(
-        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
+        const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
 
-    vm->metrics()->start_reporting(state);
+    state->metrics()->start_reporting(state);
 
     NativeMethod::init_thread(state);
 
@@ -201,7 +196,7 @@ namespace rubinius {
   }
 
   void SignalThread::run(STATE) {
-    state->vm()->unmanaged_phase(state);
+    state->unmanaged_phase(state);
 
 #ifndef RBX_WINDOWS
     sigset_t set;
@@ -317,7 +312,7 @@ namespace rubinius {
     ThreadList* threads = vm_->machine()->thread_nexus()->threads();
 
     for(ThreadList::iterator i = threads->begin(); i != threads->end(); ++i) {
-      VM* vm = (*i)->as_vm();
+      ThreadState* vm = (*i);
       if(!vm) continue;
 
       bool first = true;

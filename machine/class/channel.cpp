@@ -129,11 +129,11 @@ namespace rubinius {
       ts.tv_nsec  = nano % NANOSECONDS;
     }
 
-    if(state->vm()->thread_interrupted_p(state)) {
+    if(state->thread_interrupted_p(state)) {
       return NULL;
     }
 
-    state->vm()->wait_on_channel(state, self);
+    state->wait_on_channel(state, self);
 
     self->inc_waiters();
 
@@ -156,14 +156,14 @@ namespace rubinius {
 
       // or there are values available.
       if(self->semaphore_count() > 0 || !self->value()->empty_p()) break;
-      if(state->vm()->thread_interrupted_p(state)) {
+      if(state->thread_interrupted_p(state)) {
         exception = true;
         break;
       }
     }
 
-    state->vm()->clear_waiter();
-    state->vm()->thread()->sleep(state, cFalse);
+    state->clear_waiter();
+    state->thread()->sleep(state, cFalse);
 
     self->_waiters_--;
 

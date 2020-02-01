@@ -5,7 +5,6 @@
 #include <errno.h>
 
 #include "memory.hpp"
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 #include "class/access_variable.hpp"
@@ -82,7 +81,7 @@ namespace rubinius {
 #define G(whatever) state->globals().whatever.get()
 #define GO(whatever) state->globals().whatever
 
-  void VM::bootstrap_class(STATE) {
+  void ThreadState::bootstrap_class(STATE) {
     /* BasicObject, Object, Module, Class all have .class == Class.
      * The superclass chain is Class < Module < Object < BasicObject < nil.
      *
@@ -187,7 +186,7 @@ namespace rubinius {
     SingletonClass::attach(state, G(method_table_bucket), sc);
   }
 
-  void VM::initialize_builtin_classes(STATE) {
+  void ThreadState::initialize_builtin_classes(STATE) {
     // Create the immediate classes.
     GO(nil_class).set(state->memory()->new_class<Class, NilClass>(state, "NilClass"));
     GO(true_class).set(state->memory()->new_class<Class, TrueClass>(state, "TrueClass"));
@@ -275,7 +274,7 @@ namespace rubinius {
 
   // @todo document all the sections of bootstrap_ontology
   /* Creates the rubinius object universe from scratch. */
-  void VM::bootstrap_ontology(STATE) {
+  void ThreadState::bootstrap_ontology(STATE) {
 
     /*
      * Bootstrap everything so we can create fully initialized
@@ -331,7 +330,7 @@ namespace rubinius {
     MachineCode::bootstrap(state);
   }
 
-  void VM::initialize_fundamental_constants(STATE) {
+  void ThreadState::initialize_fundamental_constants(STATE) {
     if(sizeof(int) == sizeof(long)) {
       G(rubinius)->set_const(state, "L64", cFalse);
     } else {
@@ -341,7 +340,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "WORDSIZE", Fixnum::from(sizeof(void*) * 8));
   }
 
-  void VM::initialize_platform_data(STATE) {
+  void ThreadState::initialize_platform_data(STATE) {
     /* Hook up stub IO class so we can begin bootstrapping. STDIN/OUT/ERR will be
      * replaced in core/zed.rb with the pure Ruby IO objects.
      */
@@ -441,7 +440,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "TERMINAL_WIDTH", Fixnum::from(w.ws_col));
   }
 
-  void VM::bootstrap_symbol(STATE) {
+  void ThreadState::bootstrap_symbol(STATE) {
 #define add_sym(name) GO(sym_ ## name).set(state->symbol(#name))
     add_sym(object_id);
     add_sym(method_missing);
@@ -474,7 +473,7 @@ namespace rubinius {
     GO(sym_keyword_object).set(state->symbol("keyword_object?"));
   }
 
-  void VM::setup_errno(STATE, int num, const char* name, Class* sce, Module* ern) {
+  void ThreadState::setup_errno(STATE, int num, const char* name, Class* sce, Module* ern) {
     bool found = false;
 
     Object* key = Fixnum::from(num);
@@ -498,7 +497,7 @@ namespace rubinius {
     }
   }
 
-  void VM::bootstrap_exceptions(STATE) {
+  void ThreadState::bootstrap_exceptions(STATE) {
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sce, *type, *lje, *vme, *me, *cue;
     Class *rng, *rte;
 

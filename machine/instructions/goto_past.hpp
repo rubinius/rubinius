@@ -3,7 +3,7 @@
 namespace rubinius {
   namespace instructions {
     inline void goto_past(STATE, CallFrame* call_frame) {
-      state->vm()->checkpoint(state);
+      state->checkpoint(state);
     }
   }
 }

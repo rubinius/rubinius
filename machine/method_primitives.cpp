@@ -1,5 +1,4 @@
 #include "defines.hpp"
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "primitives.hpp"
 #include "includes.hpp"

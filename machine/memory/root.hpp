@@ -80,9 +80,6 @@ namespace memory {
     Root(STATE);
     Root(STATE, Object* obj);
 
-    Root(VM*);
-    Root(VM*, Object* obj);
-
     /** Copy construction uses set() semantics. */
     Root(const Root& other)
       : LinkedList::Node()
@@ -149,15 +146,8 @@ namespace memory {
         : Root(state)
       {}
 
-      TypedRoot(VM* state)
-        : Root(state)
-      {}
       /** As Root::Root(STATE, Object*), but retains object's type. */
       TypedRoot(STATE, ObjType obj)
-        : Root(state, reinterpret_cast<Object*>(obj))
-      {}
-
-      TypedRoot(VM* state, ObjType obj)
         : Root(state, reinterpret_cast<Object*>(obj))
       {}
 

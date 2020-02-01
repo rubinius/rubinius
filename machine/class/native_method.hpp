@@ -26,7 +26,7 @@ namespace rubinius {
    * Thread-local info about native method calls. @see NativeMethodFrame.
    */
   class NativeMethodEnvironment {
-    ThreadState state_;
+    ThreadState* state_;
 
     /** Current callframe in Ruby-land. */
     CallFrame*          current_call_frame_;
@@ -63,7 +63,7 @@ namespace rubinius {
     Object* block();
 
     ThreadState* state() {
-      return &state_;
+      return state_;
     }
 
     CallFrame* current_call_frame() const {

@@ -384,7 +384,7 @@ namespace rubinius {
 
     if(pid == 0) {
       // We're in the child...
-      state->vm()->after_fork_child(state);
+      state->after_fork_child(state);
     }
 
     return pid;
@@ -487,16 +487,16 @@ namespace rubinius {
       if(state->configuration()->log_lifetime.value) {
         const std::regex& filter = state->configuration()->log_filter();
 
-        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+        if(CallFrame* call_frame = state->get_filtered_frame(state, filter)) {
           logger::write("process: spawn: %d: %s, %s, %s:%d",
               pid, exe.command(),
-              state->vm()->name().c_str(),
+              state->name().c_str(),
               call_frame->file(state)->cpp_str(state).c_str(),
               call_frame->line(state));
         } else {
           logger::write("process: spawn: %d: %s, %s",
               pid, exe.command(),
-              state->vm()->name().c_str());
+              state->name().c_str());
         }
       }
 
@@ -617,16 +617,16 @@ namespace rubinius {
       if(state->configuration()->log_lifetime.value) {
         const std::regex& filter = state->configuration()->log_filter();
 
-        if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+        if(CallFrame* call_frame = state->get_filtered_frame(state, filter)) {
           logger::write("process: backtick: %d: %s, %s, %s:%d",
               pid, exe.command(),
-              state->vm()->name().c_str(),
+              state->name().c_str(),
               call_frame->file(state)->cpp_str(state).c_str(),
               call_frame->line(state));
         } else {
           logger::write("process: backtick: %d: %s, %s",
               pid, exe.command(),
-              state->vm()->name().c_str());
+              state->name().c_str());
         }
       }
 
@@ -675,7 +675,7 @@ namespace rubinius {
             case EINTR:
               {
                 ManagedPhase managed(state);
-                if(state->vm()->thread_interrupted_p(state)) {
+                if(state->thread_interrupted_p(state)) {
                   close(output[0]);
                   return NULL;
                 }
@@ -715,14 +715,14 @@ namespace rubinius {
     if(state->configuration()->log_lifetime.value) {
       const std::regex& filter = state->configuration()->log_filter();
 
-      if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+      if(CallFrame* call_frame = state->get_filtered_frame(state, filter)) {
         logger::write("process: exec: %s, %s, %s:%d", exe.command(),
-            state->vm()->name().c_str(),
+            state->name().c_str(),
             call_frame->file(state)->cpp_str(state).c_str(),
             call_frame->line(state));
       } else {
         logger::write("process: exec: %s, %s", exe.command(),
-            state->vm()->name().c_str());
+            state->name().c_str());
       }
     }
 
@@ -805,7 +805,7 @@ namespace rubinius {
       if(errno == ECHILD) return cFalse;
 
       if(errno == EINTR) {
-        if(state->vm()->thread_interrupted_p(state)) return NULL;
+        if(state->thread_interrupted_p(state)) return NULL;
         goto retry;
       }
 
@@ -839,7 +839,7 @@ namespace rubinius {
     // TODO: Windows
     return force_as<Fixnum>(Primitives::failure());
 #else
-    if(Fiber* fiber = state->vm()->fiber()) {
+    if(Fiber* fiber = state->fiber()) {
       if(!fiber->nil_p() && !fiber->root_p()) {
         Exception::raise_runtime_error(state, "fork() not allowed from Fiber");
       }
@@ -866,14 +866,14 @@ namespace rubinius {
         if(state->configuration()->log_lifetime.value) {
           const std::regex& filter = state->configuration()->log_filter();
 
-          if(CallFrame* call_frame = state->vm()->get_filtered_frame(state, filter)) {
+          if(CallFrame* call_frame = state->get_filtered_frame(state, filter)) {
             logger::write("process: fork: child: %d, %s, %s:%d", pid,
-                state->vm()->name().c_str(),
+                state->name().c_str(),
                 call_frame->file(state)->cpp_str(state).c_str(),
                 call_frame->line(state));
           } else {
             logger::write("process: fork: child: %d, %s", pid,
-                state->vm()->name().c_str());
+                state->name().c_str());
           }
         }
       }
@@ -881,7 +881,7 @@ namespace rubinius {
 
     if(pid == 0) {
       // We're in the child...
-      state->vm()->after_fork_child(state);
+      state->after_fork_child(state);
 
       state->machine()->after_fork_child(state);
       state->machine_threads()->after_fork_child(state);
@@ -948,7 +948,7 @@ namespace rubinius {
   Object* System::vm_reset_method_cache(STATE, Module* mod, Symbol* name) {
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics()->cache_resets++;
+    state->metrics()->cache_resets++;
 
     return cTrue;
   }
@@ -966,7 +966,7 @@ namespace rubinius {
 
 
   Object* System::vm_show_backtrace(STATE) {
-    state->vm()->call_frame()->print_backtrace(state);
+    state->call_frame()->print_backtrace(state);
     return cNil;
   }
 
@@ -1039,7 +1039,7 @@ namespace rubinius {
       if(!state->park(state)) return NULL;
     }
 
-    if(state->vm()->thread_interrupted_p(state)) return NULL;
+    if(state->thread_interrupted_p(state)) return NULL;
 
     return Fixnum::from(time(0) - start);
   }
@@ -1290,7 +1290,7 @@ namespace rubinius {
                 << state->memory()->global_serial()
                 << std::endl;
 
-      state->vm()->call_frame()->print_backtrace(state, std::cerr, 6, true);
+      state->call_frame()->print_backtrace(state, std::cerr, 6, true);
     }
 
     return Fixnum::from(state->memory()->inc_global_serial());
@@ -1301,7 +1301,7 @@ namespace rubinius {
 
     /* TODO: GC: use MemoryVisitor
     memory::ObjectWalker walker(state->memory());
-    memory::GCData gc_data(state->vm());
+    memory::GCData gc_data(state);
 
     // Seed it with the root objects.
     walker.seed(gc_data);
@@ -1398,7 +1398,7 @@ namespace rubinius {
   }
 
   Object* System::vm_method_missing_reason(STATE) {
-    switch(state->vm()->method_missing_reason()) {
+    switch(state->method_missing_reason()) {
     case ePrivate:
       return G(sym_private);
     case eProtected:
@@ -1415,7 +1415,7 @@ namespace rubinius {
   }
 
   Object* System::vm_constant_missing_reason(STATE) {
-    switch(state->vm()->constant_missing_reason()) {
+    switch(state->constant_missing_reason()) {
     case vPrivate:
       return G(sym_private);
     case vNonExistent:
@@ -1462,7 +1462,7 @@ namespace rubinius {
   }
 
   Object* System::vm_check_super_callable(STATE) {
-    CallFrame* call_frame = state->vm()->call_frame();
+    CallFrame* call_frame = state->call_frame();
 
     Module* start = call_frame->module()->superclass();
     Symbol* sym = call_frame->original_name();

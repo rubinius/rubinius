@@ -1,4 +1,3 @@
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "machine_compiler.hpp"
 #include "environment.hpp"
@@ -31,7 +30,7 @@ namespace rubinius {
     }
 
     void MachineCompiler::run(STATE) {
-      state->vm()->unmanaged_phase(state);
+      state->unmanaged_phase(state);
 
       while(!thread_exit_) {
         CompileRequest* request = 0;

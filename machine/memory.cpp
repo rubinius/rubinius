@@ -4,7 +4,6 @@
 #include <sys/time.h>
 
 #include "config.h"
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "memory.hpp"
 #include "thread_phase.hpp"
@@ -133,7 +132,7 @@ namespace rubinius {
   }
 
   Object* Memory::new_object(STATE, intptr_t bytes, object_type type) {
-    return state->vm()->allocate_object(state, bytes, type);
+    return state->allocate_object(state, bytes, type);
   }
 
   Object* Memory::new_object_pinned(STATE, intptr_t bytes, object_type type) {
@@ -146,7 +145,7 @@ namespace rubinius {
       state->diagnostics()->memory_metrics()->large_bytes += bytes;
 
       MemoryHeader::initialize(
-          obj, state->vm()->thread_id(), eThirdRegion, type, false);
+          obj, state->thread_id(), eThirdRegion, type, false);
 
       return obj;
     }
@@ -193,7 +192,7 @@ namespace rubinius {
 }
 
 void* XMALLOC(size_t bytes) {
-  if(rubinius::VM* vm = rubinius::VM::current()) {
+  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
     /* TODO: VM, State => ThreadState
     state->diagnostics()->memory_metrics()->malloc++;
     state->diagnostics()->memory_metrics()->allocated_bytes += bytes;
@@ -204,7 +203,7 @@ void* XMALLOC(size_t bytes) {
 }
 
 void XFREE(void* ptr) {
-  if(rubinius::VM* vm = rubinius::VM::current()) {
+  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
     /* TODO: VM, State => ThreadState
     state->diagnostics()->memory_metrics()->freed++;
     */
@@ -214,7 +213,7 @@ void XFREE(void* ptr) {
 }
 
 void* XREALLOC(void* ptr, size_t bytes) {
-  if(rubinius::VM* vm = rubinius::VM::current()) {
+  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
     /* TODO: VM, State => ThreadState
     state->diagnostics()->memory_metrics()->realloc++;
     state->diagnostics()->memory_metrics()->freed++;
@@ -228,7 +227,7 @@ void* XREALLOC(void* ptr, size_t bytes) {
 void* XCALLOC(size_t items, size_t bytes_per) {
   // size_t bytes = bytes_per * items;
 
-  if(rubinius::VM* vm = rubinius::VM::current()) {
+  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
     /* TODO: VM, State => ThreadState
     state->diagnostics()->memory_metrics()->calloc++;
     state->diagnostics()->memory_metrics()->allocated_bytes += bytes;

@@ -65,7 +65,7 @@ extern "C" {
         ret = select(max, read, write, except, tvp);
       }
 
-      bool ok = !env->state()->vm()->thread_interrupted_p(env->state());
+      bool ok = !env->state()->thread_interrupted_p(env->state());
 
       ENTER_CAPI(env->state());
 
@@ -100,7 +100,7 @@ extern "C" {
 
   VALUE rb_thread_current(void) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Thread* thread = env->state()->vm()->thread();
+    Thread* thread = env->state()->thread();
 
     return MemoryHandle::value(thread);
   }
@@ -146,9 +146,9 @@ extern "C" {
     VALUE ret = Qnil;
 
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
-      state->vm()->interrupt_with_signal();
+      state->interrupt_with_signal();
     } else {
-      state->vm()->wait_on_custom_function(env->state(), ubf, ubf_data);
+      state->wait_on_custom_function(env->state(), ubf, ubf_data);
     }
     LEAVE_CAPI(env->state());
     {
@@ -156,7 +156,7 @@ extern "C" {
       ret = (*func)(data);
     }
     ENTER_CAPI(env->state());
-    state->vm()->clear_waiter();
+    state->clear_waiter();
 
     return ret;
   }
@@ -175,9 +175,9 @@ extern "C" {
     void* ret = NULL;
 
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
-      state->vm()->interrupt_with_signal();
+      state->interrupt_with_signal();
     } else {
-      state->vm()->wait_on_custom_function(env->state(), ubf, ubf_data);
+      state->wait_on_custom_function(env->state(), ubf, ubf_data);
     }
     LEAVE_CAPI(env->state());
     {
@@ -185,7 +185,7 @@ extern "C" {
       ret = (*func)(data1);
     }
     ENTER_CAPI(env->state());
-    state->vm()->clear_waiter();
+    state->clear_waiter();
 
     return ret;
   }
@@ -203,13 +203,13 @@ extern "C" {
     ThreadState* state = env->state();
     void* ret = NULL;
 
-    if(state->vm()->thread_interrupted_p(state)) {
+    if(state->thread_interrupted_p(state)) {
       return ret;
     }
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
-      state->vm()->interrupt_with_signal();
+      state->interrupt_with_signal();
     } else {
-      state->vm()->wait_on_custom_function(env->state(), ubf, ubf_data);
+      state->wait_on_custom_function(env->state(), ubf, ubf_data);
     }
     LEAVE_CAPI(env->state());
     {
@@ -217,7 +217,7 @@ extern "C" {
       ret = (*func)(data1);
     }
     ENTER_CAPI(env->state());
-    state->vm()->clear_waiter();
+    state->clear_waiter();
 
     return ret;
   }
@@ -230,11 +230,11 @@ extern "C" {
 
     ThreadState* state = env->state();
     ENTER_CAPI(state);
-    state->vm()->managed_phase(state);
+    state->managed_phase(state);
 
     void* ret = (*func)(data);
 
-    env->state()->vm()->unmanaged_phase(state);
+    env->state()->unmanaged_phase(state);
     LEAVE_CAPI(env->state());
 
     return ret;
@@ -243,7 +243,7 @@ extern "C" {
   Object* run_function(STATE) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Thread* thread = state->vm()->thread();
+    Thread* thread = state->thread();
 
     NativeMethod* nm = capi::c_as<NativeMethod>(
         thread->variable_get(state, state->symbol("function")));
@@ -265,7 +265,7 @@ extern "C" {
     env->set_current_call_frame(&call_frame);
     env->set_current_native_frame(&nmf);
 
-    state->vm()->set_call_frame(&call_frame);
+    state->set_call_frame(&call_frame);
 
     nmf.setup(
         MemoryHandle::value(thread),
@@ -285,7 +285,7 @@ extern "C" {
       LEAVE_CAPI(state);
 
       // Set exception in thread so it's raised when joining.
-      state->vm()->thread()->exception(state,
+      state->thread()->exception(state,
           capi::c_as<Exception>(state->unwind_state()->current_exception()));
     } else {
       value = MemoryHandle::object(nm->func()(ptr->pointer));
@@ -316,7 +316,7 @@ extern "C" {
     thr->variable_set(state, state->symbol("function"), nm);
     thr->variable_set(state, state->symbol("argument"), ptr);
 
-    thr->group(state, state->vm()->thread()->group());
+    thr->group(state, state->thread()->group());
 
     VALUE thr_handle = MemoryHandle::value(thr);
     thr->fork(state);

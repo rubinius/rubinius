@@ -1,6 +1,5 @@
 #include <string.h>
 
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 #include "memory/code_manager.hpp"

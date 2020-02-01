@@ -40,7 +40,7 @@ extern "C" {
   ID rb_frame_last_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    if(CallFrame* frame = env->state()->vm()->get_ruby_frame(1)) {
+    if(CallFrame* frame = env->state()->get_ruby_frame(1)) {
       Symbol* name = frame->name();
       if(!name->nil_p()) return MemoryHandle::value(name);
     }

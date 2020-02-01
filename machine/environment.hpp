@@ -5,7 +5,6 @@
 #include <stdexcept>
 
 #include "machine.hpp"
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "config_parser.hpp"
 #include "configuration.hpp"
@@ -57,7 +56,7 @@ namespace rubinius {
     std::string _pid_;
 
   public:
-    VM* root_vm;
+    ThreadState* root_vm;
     ThreadState* state;
 
     ConfigParser  config_parser;
@@ -110,9 +109,10 @@ namespace rubinius {
       return loader_->get();
     }
 
-    void set_root_vm(VM* vm) {
+    void set_root_vm(ThreadState* vm) {
       root_vm = vm;
-      state->set_vm(vm);
+      // TODO: VM
+      // state->set_vm(vm);
     }
 
     void setup_cpp_terminate();

@@ -16,7 +16,6 @@
 #include <unordered_set>
 
 namespace rubinius {
-  class VM;
   class ThreadState;
   class Memory;
   class Object;

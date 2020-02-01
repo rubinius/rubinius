@@ -81,7 +81,7 @@ namespace rubinius {
   }
 
   SignalThread* Machine::start_signals(STATE) {
-    _signals_ = new SignalThread(state, state->vm());
+    _signals_ = new SignalThread(state, state);
     _signals_->start(state);
 
     return _signals_;
@@ -190,9 +190,9 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(VM* vm = (*i)->as_vm()) {
+      if(ThreadState* vm = (*i)) {
         Thread *thread = vm->thread();
-        if(vm->kind() == VM::eThread
+        if(vm->kind() == ThreadState::eThread
             &&!thread->nil_p() && CBOOL(thread->alive())) {
           threads->append(state, thread);
         }
@@ -211,9 +211,9 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(VM* vm = (*i)->as_vm()) {
+      if(ThreadState* vm = (*i)) {
         Thread *thread = vm->thread();
-        if(vm->kind() == VM::eThread
+        if(vm->kind() == ThreadState::eThread
             &&!thread->nil_p() && CBOOL(thread->alive())) {
           count++;
         }
@@ -232,8 +232,8 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(VM* vm = (*i)->as_vm()) {
-        if(vm->kind() == VM::eFiber
+      if(ThreadState* vm = (*i)) {
+        if(vm->kind() == ThreadState::eFiber
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead) {
           fibers->append(state, vm->fiber());
@@ -253,8 +253,8 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(VM* vm = (*i)->as_vm()) {
-        if(vm->kind() == VM::eFiber
+      if(ThreadState* vm = (*i)) {
+        if(vm->kind() == ThreadState::eFiber
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead) {
           count++;
@@ -274,8 +274,8 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(VM* vm = (*i)->as_vm()) {
-        if(vm->kind() == VM::eFiber
+      if(ThreadState* vm = (*i)) {
+        if(vm->kind() == ThreadState::eFiber
             && !vm->fiber()->nil_p()
             && vm->fiber()->status() != Fiber::eDead
             && vm->fiber()->thread() == thread) {

@@ -11,13 +11,12 @@
 
 namespace rubinius {
   class Object;
-  class VM;
   class ThreadState;
   class Configuration;
   struct CallFrame;
 
   class SignalThread {
-    VM* vm_;
+    ThreadState* vm_;
 
     bool system_exit_;
     int exit_code_;
@@ -43,9 +42,9 @@ namespace rubinius {
       eCustom
     };
 
-    SignalThread(STATE, VM* vm);
+    SignalThread(STATE, ThreadState* vm);
 
-    VM* vm() {
+    ThreadState* vm() {
       return vm_;
     }
 
@@ -61,7 +60,7 @@ namespace rubinius {
 
     void set_exit_code(Object* exit_code);
 
-    static VM* new_vm(STATE);
+    static ThreadState* new_vm(STATE);
     static void* run(void* ptr);
     static void signal_handler(int signal);
 

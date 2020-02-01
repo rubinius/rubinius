@@ -1,4 +1,3 @@
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "defines.hpp"
 #include "environment.hpp"
@@ -14,27 +13,26 @@ namespace rubinius {
   using namespace utilities;
 
   MachineThread::MachineThread(STATE, std::string name, StackSize stack_size)
-    : vm_(state->thread_nexus()->new_vm(state->machine(), name.c_str()))
+    : vm_(state->thread_nexus()->thread_state(state->machine(), name.c_str()))
     , stack_size_(stack_size)
     , thread_running_(false)
     , thread_exit_(false)
   {
-    vm_->set_kind(VM::eSystem);
+    vm_->set_kind(ThreadState::eSystem);
     state->machine_threads()->register_thread(this);
   }
 
   void* MachineThread::run(void* ptr) {
     MachineThread* thread = reinterpret_cast<MachineThread*>(ptr);
 
-    VM* vm = thread->vm();
-    ThreadState state_obj(vm), *state = &state_obj;
+    ThreadState* state = thread->vm();
 
-    vm->set_current_thread();
+    state->set_current_thread();
 
     RUBINIUS_THREAD_START(
-        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
+        const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
 
-    vm->set_stack_bounds(thread->stack_size_);
+    state->set_stack_bounds(thread->stack_size_);
 
     NativeMethod::init_thread(state);
 
@@ -47,12 +45,12 @@ namespace rubinius {
     NativeMethod::cleanup_thread(state);
 
     RUBINIUS_THREAD_STOP(
-        const_cast<RBX_DTRACE_CHAR_P>(vm->name().c_str()), vm->thread_id(), 1);
+        const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
 
-    vm->set_call_frame(NULL);
-    vm->unmanaged_phase(state);
+    state->set_call_frame(NULL);
+    state->unmanaged_phase(state);
 
-    vm->set_zombie(state);
+    state->set_zombie(state);
 
     return 0;
   }
@@ -100,11 +98,11 @@ namespace rubinius {
     state->machine_threads()->unregister_thread(this);
 
     stop_thread(state);
-    VM::discard(state, vm_);
+    ThreadState::discard(state, vm_);
   }
 
   void MachineThread::after_fork_child(STATE) {
-    vm_ = state->thread_nexus()->new_vm(state->machine());
+    vm_ = state->thread_nexus()->thread_state(state->machine());
     start(state);
   }
 

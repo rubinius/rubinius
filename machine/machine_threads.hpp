@@ -11,12 +11,12 @@
 
 namespace rubinius {
   class MachineThread;
-  class VM;
+  class ThreadState;
 
   typedef std::list<MachineThread*> MachineThreadList;
 
   class MachineThread {
-    VM* vm_;
+    ThreadState* vm_;
     uint32_t stack_size_;
 
   protected:
@@ -45,7 +45,7 @@ namespace rubinius {
     virtual void run(STATE) { };
 
     // Object interface
-    VM* vm() {
+    ThreadState* vm() {
       return vm_;
     }
 

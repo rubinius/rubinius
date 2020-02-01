@@ -1,7 +1,6 @@
 #include "machine/test/test.hpp"
 
 #include "class/native_method.hpp"
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "memory.hpp"
 

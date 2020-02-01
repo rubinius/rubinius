@@ -3,7 +3,6 @@
 #include "machine.hpp"
 #include "thread_nexus.hpp"
 #include "thread_phase.hpp"
-#include "vm.hpp"
 
 #include "class/thread.hpp"
 
@@ -25,7 +24,7 @@
 #endif
 
 namespace rubinius {
-  void ThreadNexus::set_halt(STATE, VM* vm) {
+  void ThreadNexus::set_halt(STATE, ThreadState* vm) {
     if(!halting_mutex_.try_lock()) {
       std::ostringstream msg;
 
@@ -37,7 +36,7 @@ namespace rubinius {
     halt_.store(vm->thread_id(), std::memory_order_release);
   }
 
-  void ThreadNexus::managed_phase(STATE, VM* vm) {
+  void ThreadNexus::managed_phase(STATE, ThreadState* vm) {
     if(halt_ && halt_ != vm->thread_id()) {
       halting_mutex_.lock();
     }
@@ -51,7 +50,7 @@ namespace rubinius {
   }
 
 
-  bool ThreadNexus::try_managed_phase(STATE, VM* vm) {
+  bool ThreadNexus::try_managed_phase(STATE, ThreadState* vm) {
     if(halt_ && halt_ != vm->thread_id()) {
       halting_mutex_.lock();
     }
@@ -59,11 +58,11 @@ namespace rubinius {
     return try_lock(state, vm, [vm]{ vm->set_thread_phase(eManaged); });
   }
 
-  void ThreadNexus::unmanaged_phase(STATE, VM* vm) {
+  void ThreadNexus::unmanaged_phase(STATE, ThreadState* vm) {
     vm->set_thread_phase(eUnmanaged);
   }
 
-  void ThreadNexus::waiting_phase(STATE, VM* vm) {
+  void ThreadNexus::waiting_phase(STATE, ThreadState* vm) {
     if(!can_stop_p(state, vm)) {
       std::ostringstream msg;
 
@@ -77,15 +76,15 @@ namespace rubinius {
   }
 
   // Only to be used when holding the ThreadNexus lock.
-  void ThreadNexus::set_managed(STATE, VM* vm) {
+  void ThreadNexus::set_managed(STATE, ThreadState* vm) {
     vm->set_thread_phase(eManaged);
   }
 
-  bool ThreadNexus::can_stop_p(STATE, VM* vm) {
+  bool ThreadNexus::can_stop_p(STATE, ThreadState* vm) {
     return lock_ != vm->thread_id();
   }
 
-  void ThreadNexus::unlock(STATE, VM* vm) {
+  void ThreadNexus::unlock(STATE, ThreadState* vm) {
     if(can_stop_p(state, vm)) {
       std::ostringstream msg;
 
@@ -99,13 +98,13 @@ namespace rubinius {
     lock_ = 0;
   }
 
-  bool ThreadNexus::yielding_p(VM* vm) {
+  bool ThreadNexus::yielding_p(ThreadState* vm) {
     int phase = static_cast<int>(vm->thread_phase());
 
     return (phase & cYieldingPhase) == cYieldingPhase;
   }
 
-  VM* ThreadNexus::new_vm(Machine* m, const char* name) {
+  ThreadState* ThreadNexus::thread_state(Machine* m, const char* name) {
     std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint32_t max_id = thread_ids_;
@@ -115,14 +114,14 @@ namespace rubinius {
       rubinius::bug("exceeded maximum number of threads");
     }
 
-    VM* vm = new VM(id, m, name);
+    ThreadState* vm = new ThreadState(id, m, name);
 
     threads_.push_back(vm);
 
     return vm;
   }
 
-  void ThreadNexus::delete_vm(VM* vm) {
+  void ThreadNexus::delete_vm(ThreadState* vm) {
     std::lock_guard<std::mutex> guard(threads_mutex_);
 
     threads_.remove(vm);
@@ -131,19 +130,17 @@ namespace rubinius {
   void ThreadNexus::after_fork_child(STATE) {
     new(&threads_mutex_) std::mutex;
 
-    VM* current = state->vm();
-
     while(!threads_.empty()) {
-      VM* vm = threads_.back()->as_vm();
+      ThreadState* ts = threads_.back();
       threads_.pop_back();
 
-      if(!vm) continue;
+      if(!ts) continue;
 
-      switch(vm->kind()) {
-        case VM::eThread: {
-          if(Thread* thread = vm->thread()) {
+      switch(ts->kind()) {
+        case ThreadState::eThread: {
+          if(Thread* thread = ts->thread()) {
             if(!thread->nil_p()) {
-              if(vm == current) {
+              if(ts == state) {
                 thread->current_fiber(state, thread->fiber());
                 continue;
               }
@@ -152,31 +149,31 @@ namespace rubinius {
             }
           }
 
-          vm->reset_parked();
-          vm->set_zombie();
+          ts->reset_parked();
+          ts->set_zombie();
 
           break;
         }
-        case VM::eFiber: {
-          if(Fiber* fiber = vm->fiber()) {
+        case ThreadState::eFiber: {
+          if(Fiber* fiber = ts->fiber()) {
             fiber->status(Fiber::eDead);
-            vm->set_canceled();
-            vm->set_zombie();
+            ts->set_canceled();
+            ts->set_zombie();
           }
 
           break;
         }
-        case VM::eSystem:
-          VM::discard(state, vm);
+        case ThreadState::eSystem:
+          ThreadState::discard(state, ts);
           break;
       }
     }
 
-    threads_.push_back(current);
-    state->environment()->set_root_vm(current);
+    threads_.push_back(state);
+    state->environment()->set_root_vm(state);
   }
 
-  static const char* phase_name(VM* vm) {
+  static const char* phase_name(ThreadState* vm) {
     switch(vm->thread_phase()) {
       case ThreadNexus::eManaged:
         return "eManaged";
@@ -198,14 +195,14 @@ namespace rubinius {
            i != threads_.end();
            ++i)
     {
-      if(VM* other_vm = (*i)->as_vm()) {
+      if(ThreadState* other_vm = (*i)) {
         function("thread %d: %s, %s",
             other_vm->thread_id(), other_vm->name().c_str(), phase_name(other_vm));
       }
     }
   }
 
-  void ThreadNexus::detect_deadlock(STATE, uint64_t nanoseconds, VM* vm) {
+  void ThreadNexus::detect_deadlock(STATE, uint64_t nanoseconds, ThreadState* vm) {
     if(nanoseconds > ThreadNexus::cLockLimit) {
       logger::error("thread nexus: thread will not yield: %s, %s",
           vm->name().c_str(), phase_name(vm));
@@ -230,19 +227,19 @@ namespace rubinius {
     }
   }
 
-  void ThreadNexus::each_thread(std::function<void (VM* vm)> process) {
+  void ThreadNexus::each_thread(std::function<void (ThreadState* vm)> process) {
     std::lock_guard<std::mutex> guard(threads_mutex_);
     // LockWaiting<std::mutex> guard(state, threads_mutex_);
 
     for(auto vm : threads_) {
-      process(reinterpret_cast<VM*>(vm));
+      process(reinterpret_cast<ThreadState*>(vm));
     }
   }
 
   bool ThreadNexus::valid_thread_p(STATE, unsigned int thread_id) {
     bool valid = false;
 
-    each_thread([&](VM* vm) {
+    each_thread([&](ThreadState* vm) {
         if(thread_id == vm->thread_id()) valid = true;
       });
 
@@ -264,7 +261,7 @@ namespace rubinius {
     return ns;
   }
 
-  void ThreadNexus::wait_for_all(STATE, VM* vm) {
+  void ThreadNexus::wait_for_all(STATE, ThreadState* vm) {
     std::lock_guard<std::mutex> guard(threads_mutex_);
 
     uint64_t limit = 0;
@@ -275,7 +272,7 @@ namespace rubinius {
            i != threads_.end();
            ++i)
     {
-      if(VM* other_vm = (*i)->as_vm()) {
+      if(ThreadState* other_vm = (*i)) {
         if(vm == other_vm || yielding_p(other_vm)) continue;
 
         while(true) {
@@ -291,17 +288,17 @@ namespace rubinius {
     }
   }
 
-  bool ThreadNexus::lock_owned_p(VM* vm) {
+  bool ThreadNexus::lock_owned_p(ThreadState* vm) {
     return lock_ == vm->thread_id();
   }
 
-  bool ThreadNexus::try_lock(VM* vm) {
+  bool ThreadNexus::try_lock(ThreadState* vm) {
     uint32_t id = 0;
 
     return lock_.compare_exchange_strong(id, vm->thread_id());
   }
 
-  bool ThreadNexus::try_lock_wait(STATE, VM* vm) {
+  bool ThreadNexus::try_lock_wait(STATE, ThreadState* vm) {
     uint64_t limit = 0;
 
     while(!try_lock(vm)) {
@@ -347,7 +344,7 @@ namespace rubinius {
 #define RBX_ABORT_CALLSTACK_SIZE    128
 #define RBX_ABORT_SYMBOL_SIZE       512
 
-  void ThreadNexus::check_stack(STATE, VM* vm) {
+  void ThreadNexus::check_stack(STATE, ThreadState* vm) {
     void* callstack[RBX_ABORT_CALLSTACK_SIZE];
     char symbol[RBX_ABORT_SYMBOL_SIZE];
 

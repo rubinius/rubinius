@@ -23,7 +23,7 @@ namespace rubinius {
   }
 
   VariableScope* VariableScope::of_sender(STATE) {
-    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+    if(CallFrame* frame = state->get_ruby_frame(1)) {
       return frame->promote_scope(state);
     }
 
@@ -31,7 +31,7 @@ namespace rubinius {
   }
 
   VariableScope* VariableScope::current(STATE) {
-    if(CallFrame* call_frame = state->vm()->call_frame()) {
+    if(CallFrame* call_frame = state->call_frame()) {
       if(!call_frame->native_method_p()) return call_frame->promote_scope(state);
     }
 

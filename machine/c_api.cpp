@@ -24,14 +24,14 @@ namespace rubinius {
   }
 
   void C_API::enter_capi(STATE, const char* file, int line) {
-    NativeMethodEnvironment* env = state->vm()->native_method_environment;
+    NativeMethodEnvironment* env = state->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {
       capi_locks_[lock_index - 1]->lock();
     }
   }
 
   void C_API::leave_capi(STATE) {
-    NativeMethodEnvironment* env = state->vm()->native_method_environment;
+    NativeMethodEnvironment* env = state->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {
       capi_locks_[lock_index - 1]->unlock();
     }

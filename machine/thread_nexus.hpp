@@ -16,9 +16,8 @@ namespace rubinius {
   class Machine;
 
   class ThreadState;
-  class VM;
 
-  typedef std::list<VM*> ThreadList;
+  typedef std::list<ThreadState*> ThreadList;
 
   class ThreadNexus {
     std::atomic<bool> stop_;
@@ -85,26 +84,26 @@ namespace rubinius {
       return halt_.load(std::memory_order_acquire) != 0;
     }
 
-    void set_halt(STATE, VM* vm);
+    void set_halt(STATE, ThreadState* vm);
 
-    void managed_phase(STATE, VM* vm);
-    bool try_managed_phase(STATE, VM* vm);
-    void unmanaged_phase(STATE, VM* vm);
-    void waiting_phase(STATE, VM* vm);
+    void managed_phase(STATE, ThreadState* vm);
+    bool try_managed_phase(STATE, ThreadState* vm);
+    void unmanaged_phase(STATE, ThreadState* vm);
+    void waiting_phase(STATE, ThreadState* vm);
 
-    void set_managed(STATE, VM* vm);
+    void set_managed(STATE, ThreadState* vm);
 
-    void each_thread(std::function<void (VM*)> process);
+    void each_thread(std::function<void (ThreadState*)> process);
 
     bool valid_thread_p(STATE, unsigned int thread_id);
 
 #ifdef RBX_GC_STACK_CHECK
-    void check_stack(STATE, VM* vm);
+    void check_stack(STATE, ThreadState* vm);
 #endif
 
-    bool yielding_p(VM* vm);
+    bool yielding_p(ThreadState* vm);
 
-    void yield(STATE, VM* vm) {
+    void yield(STATE, ThreadState* vm) {
       while(stop_p()) {
         waiting_phase(state, vm);
 
@@ -124,16 +123,16 @@ namespace rubinius {
     }
 
     uint64_t wait();
-    void wait_for_all(STATE, VM* vm);
+    void wait_for_all(STATE, ThreadState* vm);
 
-    bool lock_owned_p(VM* vm);
+    bool lock_owned_p(ThreadState* vm);
 
-    bool try_lock(VM* vm);
-    bool try_lock_wait(STATE, VM* vm);
+    bool try_lock(ThreadState* vm);
+    bool try_lock_wait(STATE, ThreadState* vm);
 
-    bool can_stop_p(STATE, VM* vm);
+    bool can_stop_p(STATE, ThreadState* vm);
 
-    bool check_stop(STATE, VM* vm) {
+    bool check_stop(STATE, ThreadState* vm) {
       if(!can_stop_p(state, vm)) return false;
 
       while(stop_p()) {
@@ -145,7 +144,7 @@ namespace rubinius {
       return false;
     }
 
-    void stop(STATE, VM* vm) {
+    void stop(STATE, ThreadState* vm) {
       while(set_stop()) {
         if(try_lock_wait(state, vm)) {
           wait_for_all(state, vm);
@@ -155,24 +154,24 @@ namespace rubinius {
       }
     }
 
-    void halt(STATE, VM* vm) {
+    void halt(STATE, ThreadState* vm) {
       set_halt(state, vm);
       stop(state, vm);
       unset_stop();
       unlock(state, vm);
     }
 
-    void lock(STATE, VM* vm, std::function<void ()> process) {
+    void lock(STATE, ThreadState* vm, std::function<void ()> process) {
       lock(state, vm);
       process();
       unlock(state, vm);
     }
 
-    void lock(STATE, VM* vm) {
+    void lock(STATE, ThreadState* vm) {
       try_lock_wait(state, vm);
     }
 
-    bool try_lock(STATE, VM* vm, std::function<void ()> process) {
+    bool try_lock(STATE, ThreadState* vm, std::function<void ()> process) {
       if(try_lock(vm)) {
         process();
         unlock(state, vm);
@@ -182,16 +181,16 @@ namespace rubinius {
       }
     }
 
-    void unlock(STATE, VM* vm);
+    void unlock(STATE, ThreadState* vm);
 
     void detect_deadlock(STATE, uint64_t nanoseconds);
-    void detect_deadlock(STATE, uint64_t nanoseconds, VM* vm);
+    void detect_deadlock(STATE, uint64_t nanoseconds, ThreadState* vm);
 
     void list_threads();
     void list_threads(logger::PrintFunction function);
 
-    VM* new_vm(Machine* m, const char* name = NULL);
-    void delete_vm(VM* vm);
+    ThreadState* thread_state(Machine* m, const char* name = NULL);
+    void delete_vm(ThreadState* vm);
 
     void after_fork_child(STATE);
   };

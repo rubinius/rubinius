@@ -44,7 +44,6 @@ namespace rubinius {
   class IO;
   class Object;
   class String;
-  class VM;
 
   struct MemoryHeader;
   struct MemoryHandle;

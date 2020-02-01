@@ -1,7 +1,6 @@
 #include "util/file.hpp"
 
 #include "logger.hpp"
-#include "vm.hpp"
 #include "thread_phase.hpp"
 
 #include <stdarg.h>

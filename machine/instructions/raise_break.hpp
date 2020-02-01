@@ -8,7 +8,7 @@ namespace rubinius {
     inline intptr_t raise_break(STATE, CallFrame* call_frame) {
       if(call_frame->flags & CallFrame::cIsLambda) {
         return (intptr_t)stack_top();
-      } else if(state->vm()->scope_valid_p(call_frame->scope->parent())) {
+      } else if(state->scope_valid_p(call_frame->scope->parent())) {
         state->unwind_state()->raise_break(stack_top(), call_frame->scope->parent());
         return 0;
       } else {

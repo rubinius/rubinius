@@ -764,7 +764,7 @@ namespace rubinius {
   }
 
   Object* Regexp::last_match(STATE) {
-    if(CallFrame* frame = state->vm()->get_variables_frame()) {
+    if(CallFrame* frame = state->get_variables_frame()) {
       return frame->scope->last_match(state);
     }
 
@@ -793,7 +793,7 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    if(CallFrame* frame = state->vm()->get_variables_frame(1)) {
+    if(CallFrame* frame = state->get_variables_frame(1)) {
       frame->scope->set_last_match(state, obj);
     }
 
@@ -807,7 +807,7 @@ namespace rubinius {
   }
 
   Object* Regexp::set_block_last_match(STATE) {
-    Object* blk = state->vm()->get_variables_frame()->scope->block();
+    Object* blk = state->get_variables_frame()->scope->block();
 
     if(MatchData* match = try_as<MatchData>(last_match(state))) {
       if(BlockEnvironment* env = try_as<BlockEnvironment>(blk)) {

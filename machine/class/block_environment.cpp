@@ -73,7 +73,7 @@ namespace rubinius {
       }
     }
 
-    state->vm()->metrics()->blocks_invoked++;
+    state->metrics()->blocks_invoked++;
 
     if(executor ptr = mcode->unspecialized) {
       return (*((BlockExecutor)ptr))(state, env, args, invocation);
@@ -436,7 +436,7 @@ namespace rubinius {
     call_frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
-    if(!state->vm()->push_call_frame(state, call_frame)) {
+    if(!state->push_call_frame(state, call_frame)) {
       return NULL;
     }
 
@@ -444,7 +444,7 @@ namespace rubinius {
 
     value = (*mcode->run)(state, mcode);
 
-    if(!state->vm()->pop_call_frame(state, call_frame->previous)) {
+    if(!state->pop_call_frame(state, call_frame->previous)) {
       return NULL;
     }
 
@@ -521,7 +521,7 @@ namespace rubinius {
     BlockEnvironment* be =
       state->memory()->new_object<BlockEnvironment>(state, G(blokenv));
 
-    CallFrame* call_frame = state->vm()->call_frame();
+    CallFrame* call_frame = state->call_frame();
 
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
@@ -546,11 +546,11 @@ namespace rubinius {
   }
 
   Object* BlockEnvironment::of_sender(STATE) {
-    if(NativeMethodFrame* nmf = state->vm()->get_call_frame(1)->native_method_frame()) {
+    if(NativeMethodFrame* nmf = state->get_call_frame(1)->native_method_frame()) {
       return MemoryHandle::object(nmf->block());
     }
 
-    CallFrame* frame = state->vm()->get_ruby_frame(1);
+    CallFrame* frame = state->get_ruby_frame(1);
 
     // We assume that code using this is going to use it over and
     // over again (ie Proc.new) so we mark the method as not

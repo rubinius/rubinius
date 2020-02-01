@@ -8,7 +8,7 @@ namespace rubinius {
       Tuple* tup = ary->tuple();
 
 #ifdef RBX_ALLOC_TRACKING
-      if(unlikely(state->vm()->allocation_tracking())) {
+      if(unlikely(state->allocation_tracking())) {
         ary->setup_allocation_site(state);
       }
 #endif

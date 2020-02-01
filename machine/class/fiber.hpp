@@ -17,7 +17,7 @@
 
 namespace rubinius {
   class LookupTable;
-  class VM;
+  class ThreadState;
 
   class Fiber : public Object {
   public:
@@ -47,9 +47,9 @@ namespace rubinius {
   private:
     attr_field(start_time, uint64_t);
 
-    attr_field(vm, VM*);
-    attr_field(invoke_context, VM*);
-    attr_field(restart_context, VM*);
+    attr_field(vm, ThreadState*);
+    attr_field(invoke_context, ThreadState*);
+    attr_field(restart_context, ThreadState*);
 
     std::atomic<Status> status_;
     std::atomic<bool> wakeup_;
@@ -69,8 +69,8 @@ namespace rubinius {
       obj->value(cNil);
       obj->start_time(get_current_time());
       obj->vm(nullptr);
-      obj->invoke_context(state->vm());
-      obj->restart_context(state->vm());
+      obj->invoke_context(state);
+      obj->restart_context(state);
       obj->status(eCreated);
       obj->clear_wakeup();
     }
@@ -78,7 +78,7 @@ namespace rubinius {
     static void finalize(STATE, Fiber* fib);
     static void* run(void*);
 
-    static Fiber* create(STATE, VM* vm);
+    static Fiber* create(STATE, ThreadState* vm);
 
     // Rubinius.primitive :fiber_new
     static Fiber* create(STATE, Object* self, Object* stack_size, Object* block);

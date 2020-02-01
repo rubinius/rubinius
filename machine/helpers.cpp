@@ -6,7 +6,6 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "thread_state.hpp"
-#include "vm.hpp"
 
 #include "class/object.hpp"
 #include "class/autoload.hpp"
@@ -42,7 +41,7 @@ namespace rubinius {
         mod = mod->superclass();
       }
 
-      state->vm()->set_constant_missing_reason(*reason);
+      state->set_constant_missing_reason(*reason);
       return cNil;
     }
 
@@ -52,7 +51,7 @@ namespace rubinius {
 
       *reason = vNonExistent;
 
-      CallFrame* frame = state->vm()->get_ruby_frame();
+      CallFrame* frame = state->get_ruby_frame();
 
       // Ok, this has to be explained or it will be considered black magic.
       // The scope chain always ends with an entry at the top that contains
@@ -152,7 +151,7 @@ namespace rubinius {
     Object* const_missing(STATE, Symbol* sym) {
       Module* under;
 
-      CallFrame* call_frame = state->vm()->get_ruby_frame();
+      CallFrame* call_frame = state->get_ruby_frame();
 
       LexicalScope* scope = call_frame->lexical_scope();
       if(scope->nil_p()) {
@@ -169,7 +168,7 @@ namespace rubinius {
     Class* open_class(STATE, Object* super, Symbol* name, bool* created) {
       Module* under;
 
-      CallFrame* call_frame = state->vm()->get_ruby_frame();
+      CallFrame* call_frame = state->get_ruby_frame();
 
       if(call_frame->lexical_scope()->nil_p()) {
         under = G(object);
@@ -239,7 +238,7 @@ namespace rubinius {
     Module* open_module(STATE, Symbol* name) {
       Module* under = G(object);
 
-      CallFrame* call_frame = state->vm()->get_ruby_frame();
+      CallFrame* call_frame = state->get_ruby_frame();
 
       if(!call_frame->lexical_scope()->nil_p()) {
         under = call_frame->lexical_scope()->module();
@@ -298,7 +297,7 @@ namespace rubinius {
 
       // If we're hitting here, clear any chance that step would be used
       // without being explicitly requested.
-      state->vm()->clear_thread_step();
+      state->clear_thread_step();
 
       Channel* my_control = cur->control_channel();
 
@@ -326,7 +325,7 @@ namespace rubinius {
 
       // Process a few commands...
       if(ret == state->symbol("step")) {
-        state->vm()->set_thread_step();
+        state->set_thread_step();
       }
 
       // All done!

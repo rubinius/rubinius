@@ -1,5 +1,4 @@
 #include "memory/root.hpp"
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 namespace rubinius {
@@ -35,20 +34,6 @@ namespace memory {
     , object_(cUndef)
   {
     set(obj, &state->globals().roots);
-  }
-
-  Root::Root(VM* vm)
-    : LinkedList::Node()
-    , roots_(&vm->globals().roots)
-    , object_(cUndef)
-  {}
-
-  Root::Root(VM* vm, Object* obj)
-    : LinkedList::Node()
-    , roots_(NULL)
-    , object_(cUndef)
-  {
-    set(obj, &vm->globals().roots);
   }
 
   void Root::set(Object* obj, Roots* r) {

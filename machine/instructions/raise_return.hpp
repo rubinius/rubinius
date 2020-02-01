@@ -7,7 +7,7 @@ namespace rubinius {
   namespace instructions {
     inline intptr_t raise_return(STATE, CallFrame* call_frame) {
       if(!(call_frame->flags & CallFrame::cIsLambda) &&
-         !state->vm()->scope_valid_p(call_frame->top_scope(state))) {
+         !state->scope_valid_p(call_frame->top_scope(state))) {
         Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
         exc->locations(state, Location::from_call_stack(state));
         state->raise_exception(exc);

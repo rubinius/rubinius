@@ -3,7 +3,6 @@
 
 #include "memory.hpp"
 #include "spinlock.hpp"
-#include "vm.hpp"
 
 #include "class/native_method.hpp"
 

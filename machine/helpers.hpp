@@ -1,7 +1,6 @@
 #ifndef RBX_HELPERS_HPP
 #define RBX_HELPERS_HPP
 
-#include "vm.hpp"
 #include "thread_state.hpp"
 
 namespace rubinius {

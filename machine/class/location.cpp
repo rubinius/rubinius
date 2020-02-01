@@ -71,7 +71,7 @@ namespace rubinius {
   }
 
   Location* Location::of_closest_ruby_method(STATE) {
-    if(CallFrame* frame = state->vm()->get_ruby_frame(1)) {
+    if(CallFrame* frame = state->get_ruby_frame(1)) {
       return Location::create(state, frame, false);
     }
 
@@ -98,7 +98,7 @@ namespace rubinius {
   }
 
   Array* Location::debugging_call_stack(STATE) {
-    CallFrame* base = state->vm()->call_frame();
+    CallFrame* base = state->call_frame();
     size_t count = 0;
 
     while(base) {
@@ -111,7 +111,7 @@ namespace rubinius {
     Array* array = Array::create(state, count);
     bool first = true;
 
-    for(CallFrame* frame = state->vm()->call_frame();
+    for(CallFrame* frame = state->call_frame();
         frame;
         frame = frame->previous)
     {
@@ -137,10 +137,10 @@ namespace rubinius {
     if(up < 0) rubinius::bug("negative skip frame value provided");
 
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics()->backtrace_us);
-    state->vm()->metrics()->backtraces++;
+        state->metrics()->backtrace_us);
+    state->metrics()->backtraces++;
 
-    CallFrame* base = state->vm()->call_frame();
+    CallFrame* base = state->call_frame();
     CallFrame* start = base;
     size_t count = 0;
 
@@ -172,10 +172,10 @@ namespace rubinius {
     if(up < 0) rubinius::bug("negative skip frame value provided");
 
     timer::StopWatch<timer::microseconds> timer(
-        state->vm()->metrics()->backtrace_us);
-    state->vm()->metrics()->backtraces++;
+        state->metrics()->backtrace_us);
+    state->metrics()->backtraces++;
 
-    CallFrame* base = state->vm()->call_frame();
+    CallFrame* base = state->call_frame();
     CallFrame* start = base;
     size_t count = 0;
 

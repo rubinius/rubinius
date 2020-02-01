@@ -570,7 +570,7 @@ namespace rubinius {
      */
     Dispatch dispatch(sym);
     Object* scope = this;
-    CallFrame* call_frame = state->vm()->call_frame();
+    CallFrame* call_frame = state->call_frame();
     if(call_frame && !call_frame->native_method_p()) {
       scope = call_frame->self();
     }
@@ -922,6 +922,6 @@ namespace rubinius {
 
   void Object::setup_allocation_site(STATE) {
     this->set_ivar(state, G(sym_allocation_site),
-                   Location::create(state, state->vm()->call_frame()));
+                   Location::create(state, state->call_frame()));
   }
 }

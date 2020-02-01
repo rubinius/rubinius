@@ -1,7 +1,6 @@
 #ifndef RBX_TEST_TEST_HPP
 #define RBX_TEST_TEST_HPP
 
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "call_frame.hpp"
 #include "config_parser.hpp"
@@ -185,33 +184,29 @@ public:
 
   // TODO: Fix this
   void initialize_as_root(STATE) {
-    state->vm()->set_current_thread();
+    state->set_current_thread();
 
-    state->vm()->managed_phase(state);
+    state->managed_phase(state);
 
     TypeInfo::auto_learn_fields(state);
 
-    state->vm()->bootstrap_ontology(state);
+    state->bootstrap_ontology(state);
 
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
-    Thread::create(state, state->vm());
-    state->vm()->thread()->alive(state, cTrue);
-    state->vm()->thread()->sleep(state, cFalse);
+    Thread::create(state, state);
+    state->thread()->alive(state, cTrue);
+    state->thread()->sleep(state, cFalse);
   }
 
   void create() {
     machine = new Machine(0, nullptr);
 
-    VM* vm = machine->thread_nexus()->new_vm(machine);
-    state = new ThreadState(vm);
+    state = machine->environment()->state;
     initialize_as_root(state);
   }
 
   void destroy() {
-    VM::discard(state, state->vm());
-    delete state;
-
     machine->halt();
     delete machine;
   }

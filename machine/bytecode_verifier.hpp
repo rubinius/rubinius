@@ -10,7 +10,6 @@ namespace rubinius {
   class Object;
   class Tuple;
   class ThreadState;
-  class VM;
 
   class BytecodeVerifier {
     CompiledCode* method_;

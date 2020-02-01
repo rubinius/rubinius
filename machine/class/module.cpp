@@ -505,7 +505,7 @@ namespace rubinius {
   std::string Module::name() {
     // TODO: temporary method to facilitate Profiler until passing State into
     // GC is fixed.
-    VM* vm = VM::current();
+    ThreadState* vm = ThreadState::current();
     std::string name;
 
     Symbol* sym = module_name();

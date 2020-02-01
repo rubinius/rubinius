@@ -3,19 +3,18 @@
 #include "park.hpp"
 #include "thread_state.hpp"
 #include "thread_phase.hpp"
-#include "vm.hpp"
 
 #include "class/thread.hpp"
 
 namespace rubinius {
   Object* Park::park(STATE) {
-    if(state->vm()->thread_interrupted_p(state)) return NULL;
+    if(state->thread_interrupted_p(state)) return NULL;
 
     utilities::thread::Mutex::LockGuard lg(mutex_);
 
     wake_ = false;
     sleeping_ = true;
-    state->vm()->thread()->sleep(state, cTrue);
+    state->thread()->sleep(state, cTrue);
 
     Object* result = cNil;
     while(!wake_) {
@@ -25,7 +24,7 @@ namespace rubinius {
         cond_.wait(mutex_);
       }
       mutex_.unlock();
-      if(state->vm()->thread_interrupted_p(state)) {
+      if(state->thread_interrupted_p(state)) {
         mutex_.lock();
         result = NULL;
         break;
@@ -34,17 +33,17 @@ namespace rubinius {
     }
 
     sleeping_ = false;
-    state->vm()->thread()->sleep(state, cFalse);
+    state->thread()->sleep(state, cFalse);
     return result;
   }
 
   Object* Park::park_timed(STATE, struct timespec* ts) {
     utilities::thread::Mutex::LockGuard lg(mutex_);
-    if(state->vm()->thread_interrupted_p(state)) return NULL;
+    if(state->thread_interrupted_p(state)) return NULL;
 
     wake_ = false;
     sleeping_ = true;
-    state->vm()->thread()->sleep(state, cTrue);
+    state->thread()->sleep(state, cTrue);
 
     Object* timeout = cFalse;
 
@@ -59,7 +58,7 @@ namespace rubinius {
         }
       }
       mutex_.unlock();
-      if(state->vm()->thread_interrupted_p(state)) {
+      if(state->thread_interrupted_p(state)) {
         mutex_.lock();
         timeout = NULL;
         break;
@@ -68,7 +67,7 @@ namespace rubinius {
     }
 
     sleeping_ = false;
-    state->vm()->thread()->sleep(state, cFalse);
+    state->thread()->sleep(state, cFalse);
 
     return timeout;
   }

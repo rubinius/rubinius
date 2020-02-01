@@ -247,7 +247,7 @@ namespace rubinius {
     Exception* exception = 0;
     intptr_t* opcodes = (intptr_t*)machine_code->opcodes;
 
-    CallFrame* call_frame = state->vm()->call_frame();
+    CallFrame* call_frame = state->call_frame();
     call_frame->stack_ptr_ = call_frame->stk - 1;
     call_frame->machine_code = machine_code;
     call_frame->is = &is;

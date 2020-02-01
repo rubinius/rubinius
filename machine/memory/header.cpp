@@ -78,12 +78,12 @@ namespace rubinius {
   }
 
   bool MemoryLock::lock_owned_p(STATE) {
-    return thread_id == state->vm()->thread_id() && locked_count > 0;
+    return thread_id == state->thread_id() && locked_count > 0;
   }
 
   bool MemoryLock::try_lock(STATE) {
     if(lock.try_lock()) {
-      thread_id = state->vm()->thread_id();
+      thread_id = state->thread_id();
       locked_count = 1;
       return true;
     } else {
@@ -92,7 +92,7 @@ namespace rubinius {
   }
 
   void MemoryLock::unlock(STATE) {
-    if(thread_id == state->vm()->thread_id()) {
+    if(thread_id == state->thread_id()) {
       if(locked_count > 0) {
         locked_count--;
 
@@ -117,7 +117,7 @@ namespace rubinius {
   ExtendedHeader* ExtendedHeader::create_lock(STATE, const MemoryFlags h, unsigned int count) {
     ExtendedHeader* nh = create(h);
 
-    MemoryLock* lock = new MemoryLock(state->vm()->thread_id(), count);
+    MemoryLock* lock = new MemoryLock(state->thread_id(), count);
     nh->words[0].set_lock(lock);
 
     return nh;
@@ -128,7 +128,7 @@ namespace rubinius {
   {
     ExtendedHeader* nh = create(h, eh);
 
-    MemoryLock* lock = new MemoryLock(state->vm()->thread_id(), count);
+    MemoryLock* lock = new MemoryLock(state->thread_id(), count);
     nh->words[eh->size()].set_lock(lock);
 
     return nh;
@@ -139,7 +139,7 @@ namespace rubinius {
   {
     ExtendedHeader* nh = create_copy(h, eh);
 
-    MemoryLock* lock = new MemoryLock(state->vm()->thread_id(), count);
+    MemoryLock* lock = new MemoryLock(state->thread_id(), count);
 
     for(int i = 0; i < nh->size(); i++) {
       if(nh->words[i].lock_p()) {
@@ -159,7 +159,7 @@ namespace rubinius {
     static int modulo = sizeof(delay) / sizeof(int);
 
     while(!try_lock(state)) {
-      state->vm()->thread()->sleep(cTrue);
+      state->thread()->sleep(cTrue);
 
       uint64_t ns = delay[i++ % modulo];
 
@@ -167,7 +167,7 @@ namespace rubinius {
       std::this_thread::sleep_for(std::chrono::nanoseconds(ns));
     }
 
-    state->vm()->thread()->sleep(cFalse);
+    state->thread()->sleep(cFalse);
   }
 
   bool MemoryHeader::try_lock(STATE) {
@@ -177,7 +177,7 @@ namespace rubinius {
       ExtendedHeader* hh = nullptr;
       ExtendedHeader* eh = nullptr;
 
-      if(thread_id() == state->vm()->thread_id()) {
+      if(thread_id() == state->thread_id()) {
         if(extended_header_p()) {
           hh = extended_header();
           int locked_count = locked_count_field.get(hh->header);
@@ -306,7 +306,7 @@ namespace rubinius {
     while(true) {
       MemoryFlags h = header.load(std::memory_order_acquire);
 
-      if(thread_id() == state->vm()->thread_id()) {
+      if(thread_id() == state->thread_id()) {
         if(extended_header_p()) {
           ExtendedHeader* hh = extended_header();
 
@@ -380,14 +380,14 @@ namespace rubinius {
 
         if(!lock->locked_p(state)) return false;
 
-        if(state->vm()->thread_id() == lock->thread_id) return true;
+        if(state->thread_id() == lock->thread_id) return true;
 
         if(state->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
           return true;
         }
       } else {
         if(locked_count_field.get(hh->header) > 0) {
-          if(state->vm()->thread_id() == thread_id()) return true;
+          if(state->thread_id() == thread_id()) return true;
 
           if(state->thread_nexus()->valid_thread_p(state, thread_id())) {
             return true;
@@ -396,7 +396,7 @@ namespace rubinius {
       }
     } else {
       if(locked_count_field.get(header.load(std::memory_order_acquire)) > 0) {
-        if(state->vm()->thread_id() == thread_id()) return true;
+        if(state->thread_id() == thread_id()) return true;
 
         if(state->thread_nexus()->valid_thread_p(state, thread_id())) {
           return true;
@@ -414,22 +414,22 @@ namespace rubinius {
   void MemoryHeader::write_barrier(STATE, MemoryHeader* value) {
 #ifdef RBX_LOG_CONCURRENT_UPDATE
     if(state->configuration()->machine_concurrent_update_log) {
-      if(thread_id() != state->vm()->thread_id()) {
+      if(thread_id() != state->thread_id()) {
         TypeInfo* ti = state->memory()->type_info[type_id()];
 
         logger::warn("Therad id: %d updating an instance of %s created by Thread id: %d",
-            state->vm()->thread_id(), ti->type_name.c_str(), thread_id());
+            state->thread_id(), ti->type_name.c_str(), thread_id());
       }
     }
 #endif
 
 #ifdef RBX_RAISE_CONCURRENT_UPDATE
     if(state->configuration()->machine_concurrent_update_raise) {
-      if(thread_id() != state->vm()->thread_id()) {
+      if(thread_id() != state->thread_id()) {
         TypeInfo* ti = state->memory()->type_info[type_id()];
 
         std::ostringstream msg;
-        msg << "Thread id: " << state->vm()->thread_id() <<
+        msg << "Thread id: " << state->thread_id() <<
           " updating an instance of " << ti->type_name <<
           " created by Thread id: " << thread_id();
 

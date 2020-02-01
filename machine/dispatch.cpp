@@ -25,7 +25,7 @@ namespace rubinius {
     Symbol* original_name = name;
 
     if(!resolve(state, name, lookup)) {
-      state->vm()->set_method_missing_reason(reason);
+      state->set_method_missing_reason(reason);
 
       method_missing = reason;
       lookup.min_visibility = G(sym_private);

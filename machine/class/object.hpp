@@ -6,7 +6,6 @@
 #include "defines.hpp"
 #include "memory/header.hpp"
 
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"

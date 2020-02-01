@@ -1,4 +1,3 @@
-#include "vm.hpp"
 #include "thread_state.hpp"
 #include "exception.hpp"
 #include "detection.hpp"
