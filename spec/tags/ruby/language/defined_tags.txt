@@ -1,1 +1,0 @@
-fails:The defined? keyword for exception expressions returns 'expression'
