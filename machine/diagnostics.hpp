@@ -1,7 +1,7 @@
 #ifndef RBX_DIAGNOSTICS_HPP
 #define RBX_DIAGNOSTICS_HPP
 
-#include "machine_threads.hpp"
+#include "machine_thread.hpp"
 
 #include "util/timer.hpp"
 

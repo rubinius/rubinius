@@ -13,8 +13,6 @@ namespace rubinius {
   class MachineThread;
   class ThreadState;
 
-  typedef std::list<MachineThread*> MachineThreadList;
-
   class MachineThread {
     ThreadState* vm_;
     uint32_t stack_size_;
@@ -59,31 +57,6 @@ namespace rubinius {
     virtual void wakeup(STATE);
     virtual void stop_thread(STATE);
     virtual void stop(STATE);
-  };
-
-  class MachineThreads {
-  private:
-    bool fork_in_progress_;
-    bool shutdown_in_progress_;
-    utilities::thread::Mutex mutex_;
-    MachineThreadList threads_;
-
-  public:
-    MachineThreads()
-      : fork_in_progress_(false)
-      , shutdown_in_progress_(false)
-      , mutex_()
-      , threads_()
-    {
-    }
-
-    void register_thread(MachineThread* thread);
-    void unregister_thread(MachineThread* thread);
-
-    void shutdown(STATE);
-    void before_fork(STATE);
-    void after_fork_parent(STATE);
-    void after_fork_child(STATE);
   };
 }
 

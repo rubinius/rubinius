@@ -10,6 +10,7 @@ namespace rubinius {
   class Array;
   class Fiber;
   class Fixnum;
+  class Object;
   class Thread;
 
   class ngLogger { };
@@ -23,7 +24,6 @@ namespace rubinius {
   }
 
   class ThreadNexus;
-  class MachineThreads;
   class Memory;
 
   namespace memory {
@@ -97,7 +97,6 @@ namespace rubinius {
     Configuration* _configuration_;
     Environment* _environment_;
     Diagnostics* _diagnostics_;
-    MachineThreads* _machine_threads_;
     Memory* _memory_;
     memory::Collector* _collector_;
     SignalThread* _signals_;
@@ -133,10 +132,6 @@ namespace rubinius {
       return _diagnostics_;
     }
 
-    MachineThreads* const machine_threads() {
-      return _machine_threads_;
-    }
-
     Memory* const memory() {
       return _memory_;
     }
@@ -168,7 +163,11 @@ namespace rubinius {
     void boot();
     int halt();
 
+    void before_fork(STATE);
+    void after_fork_parent(STATE);
     void after_fork_child(STATE);
+
+    void trace_objects(STATE, std::function<void (STATE, Object**)> f);
 
     SignalThread* start_signals(STATE);
     Diagnostics* start_diagnostics(STATE);
@@ -194,7 +193,6 @@ namespace rubinius {
     void halt_signals();
     void halt_collector();
     void halt_memory();
-    void halt_machine_threads();
     void halt_thread_nexus();
     void halt_diagnostics();
     void halt_configuration();

@@ -384,7 +384,7 @@ namespace rubinius {
 
     if(pid == 0) {
       // We're in the child...
-      state->after_fork_child(state);
+      state->machine()->after_fork_child(state);
     }
 
     return pid;
@@ -850,7 +850,7 @@ namespace rubinius {
     {
       StopPhase locked(state);
 
-      state->machine_threads()->before_fork(state);
+      state->machine()->before_fork(state);
 
       // Hold the logger lock to avoid racing the logger
       logger::lock();
@@ -861,7 +861,7 @@ namespace rubinius {
 
       if(pid > 0) {
         // We're in the parent...
-        state->machine_threads()->after_fork_parent(state);
+        state->machine()->after_fork_parent(state);
 
         if(state->configuration()->log_lifetime.value) {
           const std::regex& filter = state->configuration()->log_filter();
@@ -881,10 +881,7 @@ namespace rubinius {
 
     if(pid == 0) {
       // We're in the child...
-      state->after_fork_child(state);
-
       state->machine()->after_fork_child(state);
-      state->machine_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();

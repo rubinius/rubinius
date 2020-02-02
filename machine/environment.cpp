@@ -524,7 +524,8 @@ namespace rubinius {
           state->machine()->machine_state()->run_time());
     }
 
-    state->machine_threads()->shutdown(state);
+    // TODO: Halt all the MachineThread instances
+    // state->machine_threads()->shutdown(state);
 
     _machine_->thread_nexus()->halt(state, state);
 

@@ -1,9 +1,7 @@
 #ifndef RBX_CONSOLE_HPP
 #define RBX_CONSOLE_HPP
 
-#include "machine_threads.hpp"
-
-#include "memory/root.hpp"
+#include "machine_thread.hpp"
 
 #include "util/thread.hpp"
 
@@ -26,7 +24,7 @@ namespace rubinius {
     class Listener : public MachineThread {
       Console* console_;
 
-      memory::TypedRoot<FSEvent*> fsevent_;
+      FSEvent* fsevent_;
 
       int fd_;
 
@@ -41,6 +39,8 @@ namespace rubinius {
       void initialize(STATE);
       void run(STATE);
       void wakeup(STATE);
+
+      void trace_objects(STATE, std::function<void (STATE, Object**)> f);
     };
 
     typedef std::list<char*> RequestList;
@@ -48,8 +48,8 @@ namespace rubinius {
     class Response : public MachineThread {
       Console* console_;
 
-      memory::TypedRoot<Channel*> inbox_;
-      memory::TypedRoot<Channel*> outbox_;
+      Channel* inbox_;
+      Channel* outbox_;
 
       int fd_;
 
@@ -77,6 +77,8 @@ namespace rubinius {
 
       void send_request(STATE, const char* request);
       void write_response(STATE, const char* response, intptr_t size);
+
+      void trace_objects(STATE, std::function<void (STATE, Object**)> f);
     };
 
     class Request : public MachineThread {
@@ -87,7 +89,7 @@ namespace rubinius {
 
       int fd_;
 
-      memory::TypedRoot<FSEvent*> fsevent_;
+      FSEvent* fsevent_;
 
     public:
 
@@ -107,6 +109,8 @@ namespace rubinius {
       void close_request();
 
       char* read_request(STATE);
+
+      void trace_objects(STATE, std::function<void (STATE, Object**)> f);
     };
   }
 
@@ -121,14 +125,14 @@ namespace rubinius {
     Response* response_;
     Request* request_;
 
-    memory::TypedRoot<Object*> ruby_console_;
+    Object* ruby_console_;
 
   public:
     Console(STATE);
     virtual ~Console();
 
     Object* ruby_console() {
-      return ruby_console_.get();
+      return ruby_console_;
     }
 
     std::string& console_path() {
@@ -153,6 +157,8 @@ namespace rubinius {
 
     void accept(STATE);
     Class* server_class(STATE);
+
+    void trace_objects(STATE, std::function<void (STATE, Object**)> f);
   };
 }
 

@@ -71,6 +71,8 @@ namespace rubinius {
         i->set(fwd);
       }
 
+      state->machine()->trace_objects(state, f);
+
       {
         std::lock_guard<std::mutex> guard(state->thread_nexus()->threads_mutex());
 
@@ -139,7 +141,7 @@ namespace rubinius {
             }
           }
 
-          thr->gc_scan(state, f);
+          thr->trace_objects(state, f);
         }
       }
     }

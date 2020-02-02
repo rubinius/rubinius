@@ -1,7 +1,7 @@
 #include "thread_state.hpp"
 #include "defines.hpp"
 #include "environment.hpp"
-#include "machine_threads.hpp"
+#include "machine_thread.hpp"
 #include "thread_phase.hpp"
 
 #include "class/native_method.hpp"
@@ -19,7 +19,6 @@ namespace rubinius {
     , thread_exit_(false)
   {
     vm_->set_kind(ThreadState::eSystem);
-    state->machine_threads()->register_thread(this);
   }
 
   void* MachineThread::run(void* ptr) {
@@ -95,8 +94,6 @@ namespace rubinius {
   }
 
   void MachineThread::stop(STATE) {
-    state->machine_threads()->unregister_thread(this);
-
     stop_thread(state);
     ThreadState::discard(state, vm_);
   }
@@ -104,65 +101,5 @@ namespace rubinius {
   void MachineThread::after_fork_child(STATE) {
     vm_ = state->thread_nexus()->thread_state(state->machine());
     start(state);
-  }
-
-  void MachineThreads::register_thread(MachineThread* thread) {
-    threads_.push_back(thread);
-  }
-
-  void MachineThreads::unregister_thread(MachineThread* thread) {
-    threads_.remove(thread);
-  }
-
-  void MachineThreads::shutdown(STATE) {
-    utilities::thread::Mutex::LockGuard guard(mutex_);
-
-    if(shutdown_in_progress_) return;
-    shutdown_in_progress_ = true;
-
-    while(!threads_.empty()) {
-      threads_.front()->stop(state);
-    }
-
-    shutdown_in_progress_ = false;
-  }
-
-  void MachineThreads::before_fork(STATE) {
-    utilities::thread::Mutex::LockGuard guard(mutex_);
-
-    if(fork_in_progress_) return;
-    fork_in_progress_ = true;
-
-    for(MachineThreadList::reverse_iterator i = threads_.rbegin();
-        i != threads_.rend();
-        ++i) {
-      (*i)->before_fork(state);
-    }
-  }
-
-  void MachineThreads::after_fork_parent(STATE) {
-    // We don't guard here on the assumption that only one thread is running
-    // after fork() call.
-    for(MachineThreadList::iterator i = threads_.begin();
-        i != threads_.end();
-        ++i) {
-      (*i)->after_fork_parent(state);
-    }
-
-    fork_in_progress_ = false;
-  }
-
-  void MachineThreads::after_fork_child(STATE) {
-    mutex_.init();
-
-    // We don't guard here on the assumption that only one thread is running
-    // after fork() call.
-    for(MachineThreadList::iterator i = threads_.begin();
-        i != threads_.end();
-        ++i) {
-      (*i)->after_fork_child(state);
-    }
-
-    fork_in_progress_ = false;
   }
 }

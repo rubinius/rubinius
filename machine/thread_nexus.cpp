@@ -170,7 +170,6 @@ namespace rubinius {
     }
 
     threads_.push_back(state);
-    state->environment()->set_root_vm(state);
   }
 
   static const char* phase_name(ThreadState* vm) {

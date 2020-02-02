@@ -138,10 +138,6 @@ namespace rubinius {
     return machine()->diagnostics();
   }
 
-  MachineThreads* const ThreadState::machine_threads() {
-    return machine()->machine_threads();
-  }
-
   memory::Collector* const ThreadState::collector() {
     return machine()->collector();
   }
@@ -442,19 +438,14 @@ namespace rubinius {
     }
   }
 
-  void ThreadState::after_fork_child(STATE) {
-    logger::reset();
-    thread_nexus()->after_fork_child(state);
-
+  void ThreadState::after_fork_child() {
     interrupt_lock_.unlock();
     set_main_thread();
 
-    state->set_start_time();
+    set_start_time();
 
     // TODO: Remove need for root_vm.
-    state->environment()->set_root_vm(state);
-
-    state->machine()->environment()->after_fork_child(state);
+    environment()->set_root_vm(this);
   }
 
   Object* ThreadState::path2class(STATE, const char* path) {
@@ -641,7 +632,7 @@ namespace rubinius {
     }
   }
 
-  void ThreadState::gc_scan(STATE, std::function<void (STATE, Object**)> f) {
+  void ThreadState::trace_objects(STATE, std::function<void (STATE, Object**)> f) {
     metrics()->checkpoints = checkpoints_;
     metrics()->stops = stops_;
 

@@ -47,12 +47,12 @@ namespace rubinius {
           O_CREAT | O_TRUNC | O_RDWR | O_SYNC, perms);
 
       if(fd < 0) {
-        logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());
+        logger::error("console: unable to open: %s, %s", path.c_str(), strerror(errno));
       }
 
       // The umask setting will override our permissions for open().
       if(chmod(path.c_str(), perms) < 0) {
-        logger::error("%s: console: unable to set mode: %s", strerror(errno), path.c_str());
+        logger::error("console: unable to set mode: %s, %s", path.c_str(), strerror(errno));
       }
 
       return fd;
@@ -64,19 +64,18 @@ namespace rubinius {
       , response_(response)
       , enabled_(false)
       , fd_(-1)
-      , fsevent_(state)
+      , fsevent_(nullptr)
     {
     }
 
     void Request::initialize(STATE) {
       if((fd_ = open_file(state, console_->request_path())) < 0) {
-        logger::error("%s: console request: unable to open file", strerror(errno));
+        logger::error("console request: unable to open file, %s", strerror(errno));
         return;
       }
 
-      FSEvent* fsevent = FSEvent::create(state);
-      fsevent->watch_file(state, fd_, console_->request_path().c_str());
-      fsevent_.set(fsevent);
+      FSEvent* fsevent_ = FSEvent::create(state);
+      fsevent_->watch_file(state, fd_, console_->request_path().c_str());
 
       enabled_ = true;
     }
@@ -91,7 +90,7 @@ namespace rubinius {
       MachineThread::wakeup(state);
 
       if(write(fd_, "\0", 1) < 0) {
-        logger::error("%s: console: unable to wake request thread", strerror(errno));
+        logger::error("console: unable to wake request thread, %s", strerror(errno));
       }
     }
 
@@ -116,7 +115,7 @@ namespace rubinius {
       file::LockGuard guard(fd_, LOCK_EX);
 
       if(guard.status() != file::eLockSucceeded) {
-        logger::error("%s: console: unable to lock request file", strerror(errno));
+        logger::error("console: unable to lock request file, %s", strerror(errno));
         return NULL;
       }
 
@@ -133,14 +132,14 @@ namespace rubinius {
         // TODO diagnostics, metrics
         // vm()->metrics().console.requests_received++;
       } else if(bytes < 0) {
-        logger::error("%s: console: unable to read request", strerror(errno));
+        logger::error("console: unable to read request, %s", strerror(errno));
       }
 
       if(lseek(fd_, 0, SEEK_SET) < 0) {
-        logger::error("%s: console: unable to rewind request file", strerror(errno));
+        logger::error("console: unable to rewind request file, %s", strerror(errno));
       }
       if(ftruncate(fd_, 0) < 0) {
-        logger::error("%s: console: unable to truncate request file", strerror(errno));
+        logger::error("console: unable to truncate request file, %s", strerror(errno));
       }
 
       return req;
@@ -150,13 +149,12 @@ namespace rubinius {
       if(!enabled_) return;
 
       while(!thread_exit_) {
-        Object* status = fsevent_.get()->wait_for_event(state);
+        Object* status = fsevent_->wait_for_event(state);
 
         if(thread_exit_) break;
 
         if(status->nil_p()) {
-          logger::error("%s: console: request: wait for event failed",
-              strerror(errno));
+          logger::error("console: request: wait for event failed, %s", strerror(errno));
           continue;
         }
 
@@ -168,18 +166,22 @@ namespace rubinius {
       }
     }
 
+    void Request::trace_objects(STATE, std::function<void (STATE, Object**)> f) {
+      f(state, reinterpret_cast<Object**>(&fsevent_));
+    }
+
     Response::Response(STATE, Console* console)
       : MachineThread(state, "rbx.console.response", MachineThread::eSmall)
       , console_(console)
-      , inbox_(state)
-      , outbox_(state)
+      , inbox_(nullptr)
+      , outbox_(nullptr)
       , fd_(-1)
-      , request_list_(NULL)
+      , request_list_(nullptr)
     {
-      inbox_.set(as<Channel>(
-          console_->ruby_console()->get_ivar(state, state->symbol("@inbox"))));
-      outbox_.set(as<Channel>(
-          console_->ruby_console()->get_ivar(state, state->symbol("@outbox"))));
+      inbox_ = as<Channel>(
+          console_->ruby_console()->get_ivar(state, state->symbol("@inbox")));
+      outbox_ = as<Channel>(
+          console_->ruby_console()->get_ivar(state, state->symbol("@outbox")));
     }
 
     Response::~Response() {
@@ -193,7 +195,7 @@ namespace rubinius {
 
     void Response::start_thread(STATE) {
       if((fd_ = open_file(state, console_->response_path())) < 0) {
-        logger::error("%s: console response: unable to open file", strerror(errno));
+        logger::error("console response: unable to open file, %s", strerror(errno));
         return;
       }
 
@@ -209,7 +211,7 @@ namespace rubinius {
     void Response::wakeup(STATE) {
       MachineThread::wakeup(state);
 
-      inbox_.get()->send(state, String::create(state, ""));
+      inbox_->send(state, String::create(state, ""));
 
       response_cond_.signal();
     }
@@ -255,21 +257,21 @@ namespace rubinius {
       file::LockGuard guard(fd_, LOCK_EX);
 
       if(guard.status() != file::eLockSucceeded) {
-        logger::error("%s: unable to lock response file", strerror(errno));
+        logger::error("console: unable to lock response file, %s", strerror(errno));
         return;
       }
 
       if(lseek(fd_, 0, SEEK_SET) < 0) {
-        logger::error("%s: console: unable to rewind response file", strerror(errno));
+        logger::error("console: unable to rewind response file, %s", strerror(errno));
         return;
       }
       if(ftruncate(fd_, 0) < 0) {
-        logger::error("%s: console: unable to truncate response file", strerror(errno));
+        logger::error("console: unable to truncate response file, %s", strerror(errno));
         return;
       }
 
       if(::write(fd_, response, size) < 0) {
-        logger::error("%s: console: unable to write response", strerror(errno));
+        logger::error("console: unable to write response, %s", strerror(errno));
       }
 
       // TODO diagnostics, metrics
@@ -280,11 +282,8 @@ namespace rubinius {
       size_t pending_requests = 0;
       char* request = NULL;
 
-      Channel* inbox = inbox_.get();
-      Channel* outbox = outbox_.get();
-
       String* response = 0;
-      OnStack<3> os(state, inbox, outbox, response);
+      OnStack<3> os(state, inbox_, outbox_, response);
 
       while(!thread_exit_) {
         {
@@ -303,13 +302,13 @@ namespace rubinius {
 
           pending_requests++;
 
-          inbox->send(state, String::create(state, request));
+          inbox_->send(state, String::create(state, request));
 
           request = NULL;
         }
 
         if(pending_requests > 0) {
-          if((response = try_as<String>(outbox->try_receive(state)))) {
+          if((response = try_as<String>(outbox_->try_receive(state)))) {
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
                 response->byte_size());
@@ -329,10 +328,15 @@ namespace rubinius {
       }
     }
 
+    void Response::trace_objects(STATE, std::function<void (STATE, Object**)> f) {
+      f(state, reinterpret_cast<Object**>(&inbox_));
+      f(state, reinterpret_cast<Object**>(&outbox_));
+    }
+
     Listener::Listener(STATE, Console* console)
       : MachineThread(state, "rbx.console.listener", MachineThread::eSmall)
       , console_(console)
-      , fsevent_(state)
+      , fsevent_(nullptr)
       , fd_(-1)
     {
     }
@@ -347,20 +351,19 @@ namespace rubinius {
           state->configuration()->console_access.value);
 
       if(fd_ < 0) {
-        logger::error("%s: unable to open Console connection file",
-            strerror(errno));
+        logger::error("console: unable to open Console connection file, %s", strerror(errno));
       }
 
       // The umask setting will override our permissions for open().
       if(chmod(console_->console_path().c_str(),
-            state->configuration()->console_access.value) < 0) {
-        logger::error("%s: unable to set mode for Console connection file",
+            state->configuration()->console_access.value) < 0)
+      {
+        logger::error("console: unable to set mode for Console connection file, %s",
             strerror(errno));
-      }
+     }
 
-      FSEvent* fsevent = FSEvent::create(state);
-      fsevent->watch_file(state, fd_, console_->console_path().c_str());
-      fsevent_.set(fsevent);
+      FSEvent* fsevent_ = FSEvent::create(state);
+      fsevent_->watch_file(state, fd_, console_->console_path().c_str());
     }
 
     void Listener::start_thread(STATE) {
@@ -370,10 +373,8 @@ namespace rubinius {
     void Listener::wakeup(STATE) {
       MachineThread::wakeup(state);
 
-      while(thread_running_p()) {
-        if(write(fd_, "\0", 1) < 0) {
-          logger::error("%s: console: unable to wake listener thread", strerror(errno));
-        }
+      if(write(fd_, "\0", 1) < 0) {
+        logger::error("console: unable to wake listener thread, %s", strerror(errno));
       }
     }
 
@@ -388,13 +389,12 @@ namespace rubinius {
 
     void Listener::run(STATE) {
       while(!thread_exit_) {
-        Object* status = fsevent_.get()->wait_for_event(state);
+        Object* status = fsevent_->wait_for_event(state);
 
         if(thread_exit_) break;
 
         if(status->nil_p()) {
-          logger::error("%s: console: listener: wait for event failed",
-              strerror(errno));
+          logger::error("console: listener: wait for event failed, %s", strerror(errno));
           continue;
         }
 
@@ -405,6 +405,10 @@ namespace rubinius {
         }
       }
     }
+
+    void Listener::trace_objects(STATE, std::function<void (STATE, Object**)> f) {
+      f(state, reinterpret_cast<Object**>(&fsevent_));
+    }
   }
 
   using namespace console;
@@ -413,7 +417,7 @@ namespace rubinius {
     : listener_(0)
     , response_(0)
     , request_(0)
-    , ruby_console_(state)
+    , ruby_console_(nullptr)
   {
     console_path_ = state->configuration()->console_path.value;
 
@@ -441,7 +445,7 @@ namespace rubinius {
   }
 
   void Console::accept(STATE) {
-    ruby_console_.set(server_class(state)->send(state, 0, state->symbol("new")));
+    ruby_console_ = server_class(state)->send(state, 0, state->symbol("new"));
 
     response_ = new Response(state, this);
     request_ = new Request(state, this, response_);
@@ -458,7 +462,7 @@ namespace rubinius {
       response_ = 0;
     }
 
-    ruby_console_.set(cNil);
+    ruby_console_ = cNil;
   }
 
   void Console::after_fork_child(STATE) {
@@ -468,5 +472,21 @@ namespace rubinius {
   Class* Console::server_class(STATE) {
     Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
     return as<Class>(mod->get_const(state, "Server"));
+  }
+
+  void Console::trace_objects(STATE, std::function<void (STATE, Object**)> f) {
+    f(state, reinterpret_cast<Object**>(&ruby_console_));
+
+    if(listener_) {
+      listener_->trace_objects(state, f);
+    }
+
+    if(request_) {
+      request_->trace_objects(state, f);
+    }
+
+    if(response_) {
+      response_->trace_objects(state, f);
+    }
   }
 }

@@ -251,6 +251,12 @@ namespace rubinius {
         });
     }
 
+    void Collector::after_fork_child(STATE) {
+      if(worker_) {
+        worker_->after_fork_child(state);
+      }
+    }
+
     Collector::Worker::Worker(STATE, Collector* collector,
         Finalizers& list, std::mutex& lk, std::condition_variable& cond)
       : MachineThread(state, "rbx.collector", MachineThread::eXLarge)
@@ -275,8 +281,6 @@ namespace rubinius {
     }
 
     void Collector::Worker::stop(STATE) {
-      state->machine_threads()->unregister_thread(this);
-
       MachineThread::stop_thread(state);
     }
 

@@ -1,7 +1,7 @@
 #ifndef RBX_MEMORY_COLLECTOR_HPP
 #define RBX_MEMORY_COLLECTOR_HPP
 
-#include "machine_threads.hpp"
+#include "machine_thread.hpp"
 #include "logger.hpp"
 #include "thread_state.hpp"
 
@@ -276,6 +276,8 @@ namespace rubinius {
 
       void collect(STATE);
       void stop_for_collection(STATE, std::function<void ()> process);
+
+      void after_fork_child(STATE);
     };
   }
 }

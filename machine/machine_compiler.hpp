@@ -23,7 +23,7 @@
 #include <llvm/Transforms/Scalar/GVN.h>
 #endif
 
-#include "machine_threads.hpp"
+#include "machine_thread.hpp"
 
 #include <list>
 #include <memory>

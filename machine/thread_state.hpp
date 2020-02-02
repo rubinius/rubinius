@@ -184,7 +184,6 @@ namespace rubinius {
     Environment* const environment();
     ThreadNexus* const thread_nexus();
     Diagnostics* const diagnostics();
-    MachineThreads* const machine_threads();
     memory::Collector* const collector();
     SignalThread* const signals();
     Memory* const memory();
@@ -482,7 +481,7 @@ namespace rubinius {
       constant_missing_reason_ = reason;
     }
 
-    void after_fork_child(STATE);
+    void after_fork_child();
 
     bool thread_step() const {
       return thread_step_;
@@ -616,7 +615,7 @@ namespace rubinius {
     void register_kill(STATE);
 
     void visit_objects(STATE, std::function<void (STATE, Object**)> f);
-    void gc_scan(STATE, std::function<void (STATE, Object**)> f);
+    void trace_objects(STATE, std::function<void (STATE, Object**)> f);
 
     // -*-*-*
 

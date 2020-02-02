@@ -13,7 +13,6 @@
 #include "exception.hpp"
 #include "machine.hpp"
 #include "machine_compiler.hpp"
-#include "machine_threads.hpp"
 #include "memory.hpp"
 #include "signal.hpp"
 #include "thread_nexus.hpp"
@@ -61,7 +60,6 @@ namespace rubinius {
     , _configuration_(new Configuration())
     , _environment_(new Environment(argc, argv, this))
     , _diagnostics_(new Diagnostics(_configuration_))
-    , _machine_threads_(new MachineThreads())
     , _memory_(new Memory(_environment_->state, _configuration_))
     , _collector_(new memory::Collector())
     , _signals_(nullptr)
@@ -158,16 +156,29 @@ namespace rubinius {
       });
   }
 
-  void Machine::after_fork_child(STATE) {
-    _machine_state_->set_start_time();
-
-    _memory_->after_fork_child(state);
-    _signals_->after_fork_child(state);
+  void Machine::before_fork(STATE) {
   }
 
-  /* TODO
-    console_->after_fork_child(state);
-   */
+  void Machine::after_fork_parent(STATE) {
+  }
+
+  void Machine::after_fork_child(STATE) {
+    logger::reset();
+
+    _machine_state_->set_start_time();
+
+    state->after_fork_child();
+
+    _thread_nexus_->after_fork_child(state);
+
+    _environment_->after_fork_child(state);
+
+    _memory_->after_fork_child(state);
+    _collector_->after_fork_child(state);
+    _signals_->after_fork_child(state);
+    _c_api_->after_fork_child(state);
+    _console_->after_fork_child(state);
+  }
 
   /* TODO
   jit::MachineCompiler* Machine::start_compiler(STATE) {
@@ -357,13 +368,6 @@ namespace rubinius {
     }
   }
 
-  void Machine::halt_machine_threads() {
-    if(_machine_threads_) {
-      delete _machine_threads_;
-      _machine_threads_ = nullptr;
-    }
-  }
-
   void Machine::halt_thread_nexus() {
     if(_thread_nexus_) {
       // TODO: remove restriction on deleting ThreadNexus
@@ -417,7 +421,6 @@ namespace rubinius {
     halt_signals();
     halt_collector();
     halt_memory();
-    halt_machine_threads();
     halt_thread_nexus();
     halt_diagnostics();
     halt_configuration();
@@ -426,5 +429,9 @@ namespace rubinius {
     halt_machine_state();
 
     return 0;
+  }
+
+  void Machine::trace_objects(STATE, std::function<void (STATE, Object**)> f) {
+    _console_->trace_objects(state, f);
   }
 }
