@@ -112,11 +112,7 @@ class Rubinius::Backtrace
         pos << " (jit)"
       end
 
-      if start_size + pos.size > @width
-        str << " #{start}\n        #{pos}"
-      else
-        str << " #{start}#{pos}"
-      end
+      str << " #{start}#{pos}"
 
       str << sep
     end
