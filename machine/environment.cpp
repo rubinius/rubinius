@@ -123,16 +123,10 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    delete collector_;
-
-    ThreadState::discard(state, root_vm);
-
     for(int i = 0; i < argc_; i++) {
       delete[] argv_[i];
     }
     delete[] argv_;
-
-    stop_logging(state);
   }
 
   void cpp_exception_bug() {
@@ -171,10 +165,6 @@ namespace rubinius {
     if(fcntl(STDERR_FILENO, F_GETFD) < 0 && errno == EBADF) {
       assign_io_descriptor(dir, STDERR_FILENO, "stderr");
     }
-  }
-
-  void Environment::stop_logging(STATE) {
-    logger::close();
   }
 
   void Environment::start_logging(STATE) {
@@ -397,13 +387,13 @@ namespace rubinius {
     _machine_->configuration()->codedb_cache_path.value.assign(cache_path);
   }
 
-  void Environment::load_argv(int argc, char** argv) {
+  void Environment::load_command_line(STATE) {
     String* str = 0;
     Encoding* enc = Encoding::default_external(state);
 
-    Array* os_ary = Array::create(state, argc);
-    for(int i = 0; i < argc; i++) {
-      str = String::create(state, argv[i]);
+    Array* os_ary = Array::create(state, argc_);
+    for(int i = 0; i < argc_; i++) {
+      str = String::create(state, argv_[i]);
       str->encoding(state, enc);
       os_ary->set(state, i, str);
     }
@@ -415,16 +405,16 @@ namespace rubinius {
     str->encoding(state, enc);
     G(rubinius)->set_const(state, "OS_STARTUP_DIR", str);
 
-    str = String::create(state, argv[0]);
+    str = String::create(state, argv_[0]);
     str->encoding(state, enc);
     G(object)->set_const(state, "ARG0", str);
 
-    Array* ary = Array::create(state, argc - 1);
+    Array* ary = Array::create(state, argc_ - 1);
     int which_arg = 0;
     bool skip_xflags = true;
 
-    for(int i=1; i < argc; i++) {
-      char* arg = argv[i];
+    for(int i=1; i < argc_; i++) {
+      char* arg = argv_[i];
 
       if(strcmp(arg, "--") == 0) {
         skip_xflags = false;
@@ -509,36 +499,6 @@ namespace rubinius {
     std::cerr << std::endl;
 
     exit(1);
-  }
-
-  void Environment::halt(STATE, int exit_code) {
-    std::lock_guard<std::mutex> guard(halt_lock_);
-
-    state->machine()->machine_state()->set_halting();
-
-    if(state->configuration()->log_lifetime.value) {
-      logger::write("process: exit: %s %d %lld %fs %fs",
-          _pid_.c_str(), exit_code,
-          _machine_->diagnostics()->codedb_metrics()->load_count,
-          timer::elapsed_seconds(_machine_->diagnostics()->codedb_metrics()->load_ns),
-          state->machine()->machine_state()->run_time());
-    }
-
-    // TODO: Halt all the MachineThread instances
-    // state->machine_threads()->shutdown(state);
-
-    _machine_->thread_nexus()->halt(state, state);
-
-    _machine_->collector()->dispose(state);
-    _machine_->collector()->finish(state);
-
-    if(!G(coredb)->nil_p()) G(coredb)->close(state);
-
-    NativeMethod::cleanup_thread(state);
-
-    state->signals()->stop(state);
-
-    exit(exit_code);
   }
 
   /**
@@ -668,57 +628,5 @@ namespace rubinius {
     error.append(failure_reason);
 
     missing_core(error.c_str());
-  }
-
-  void Environment::boot() {
-    // TODO: Machine
-    // state->diagnostics().start_diagnostics(state);
-
-    std::string codedb_path = system_prefix() + RBX_CODEDB_PATH;
-
-    {
-      timer::StopWatch<timer::microseconds> timer(
-          state->diagnostics()->boot_metrics()->platform_us);
-
-      load_platform_conf(codedb_path);
-    }
-
-    state->managed_phase(state);
-
-    {
-      timer::StopWatch<timer::microseconds> timer(
-          state->diagnostics()->boot_metrics()->fields_us);
-
-      TypeInfo::auto_learn_fields(state);
-    }
-
-    {
-      timer::StopWatch<timer::microseconds> timer(
-          state->diagnostics()->boot_metrics()->ontology_us);
-
-      state->bootstrap_ontology(state);
-    }
-
-    load_argv(argc_, argv_);
-
-    // Start the main Ruby thread.
-    Thread* main = 0;
-    OnStack<1> os(state, main);
-
-    {
-      timer::StopWatch<timer::microseconds> timer(
-          state->diagnostics()->boot_metrics()->main_thread_us);
-
-      main = Thread::create(state, state, Thread::main_thread);
-      main->start_thread(state, Thread::run);
-    }
-
-    // TODO: GC improve this
-    _machine_->collector()->start(state);
-
-    ThreadState* signal_state = SignalThread::new_vm(state);
-    signal_state->set_stack_bounds(state->stack_size());
-
-    state->machine()->start_signals(signal_state);
   }
 }

@@ -124,7 +124,7 @@ namespace rubinius {
     void copy_argv(int argc, char** argv);
     void log_argv();
     void load_vm_options(int argc, char** argv);
-    void load_argv(int argc, char** argv);
+    void load_command_line(STATE);
     void load_core(STATE);
     void load_platform_conf(std::string dir);
     void load_conf(std::string path);
@@ -133,20 +133,15 @@ namespace rubinius {
     void set_tmp_path();
     void set_codedb_paths();
     void set_console_path();
-    void boot();
 
     void after_fork_child(STATE);
 
     NORETURN(void missing_core(const char* message));
 
-    void halt(STATE, int exit_code);
     void atexit();
-
-    void start_collector(STATE);
 
     void start_logging(STATE);
     void restart_logging(STATE);
-    void stop_logging(STATE);
   };
 }
 

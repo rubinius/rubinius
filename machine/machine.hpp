@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <functional>
+#include <mutex>
 
 namespace rubinius {
   class Array;
@@ -60,6 +61,7 @@ namespace rubinius {
   private:
     uint64_t _start_time_;
     uint32_t _hash_seed_;
+    int _exit_code_;
     std::atomic<Phase> _phase_;
 
   public:
@@ -68,6 +70,14 @@ namespace rubinius {
 
     const uint32_t hash_seed() {
       return _hash_seed_;
+    }
+
+    const int exit_code() {
+      return _exit_code_;
+    }
+
+    void exit_code(int code) {
+      _exit_code_ = code;
     }
 
     bool booting_p() {
@@ -106,6 +116,7 @@ namespace rubinius {
     ngDebugger* _debugger_;
     Profiler* _profiler_;
     Console* _console_;
+    std::mutex _halt_lock_;
 
   public:
 
@@ -161,7 +172,8 @@ namespace rubinius {
     }
 
     void boot();
-    int halt();
+    int halt(int exit_code=0);
+    int halt(STATE, int exit_code=0);
 
     void before_fork(STATE);
     void after_fork_parent(STATE);
@@ -184,21 +196,21 @@ namespace rubinius {
     uint32_t new_thread_id();
     // ---
 
-    void halt_console();
-    void halt_profiler();
-    void halt_debugger();
-    void halt_compiler();
-    void halt_c_api();
-    void halt_codedb();
-    void halt_signals();
-    void halt_collector();
-    void halt_memory();
-    void halt_thread_nexus();
-    void halt_diagnostics();
-    void halt_configuration();
-    void halt_environment();
-    void halt_logger();
-    void halt_machine_state();
+    void halt_console(STATE);
+    void halt_profiler(STATE);
+    void halt_debugger(STATE);
+    void halt_compiler(STATE);
+    void halt_c_api(STATE);
+    void halt_codedb(STATE);
+    void halt_signals(STATE);
+    void halt_collector(STATE);
+    void halt_memory(STATE);
+    void halt_thread_nexus(STATE);
+    void halt_diagnostics(STATE);
+    void halt_configuration(STATE);
+    void halt_environment(STATE);
+    void halt_logger(STATE);
+    void halt_machine_state(STATE);
   };
 }
 #endif

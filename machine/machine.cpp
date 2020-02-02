@@ -14,11 +14,13 @@
 #include "machine.hpp"
 #include "machine_compiler.hpp"
 #include "memory.hpp"
+#include "on_stack.hpp"
 #include "signal.hpp"
 #include "thread_nexus.hpp"
 #include "type_info.hpp"
 
 #include "class/array.hpp"
+#include "class/code_db.hpp"
 #include "class/fiber.hpp"
 #include "class/fixnum.hpp"
 #include "class/thread.hpp"
@@ -137,13 +139,17 @@ namespace rubinius {
    * [ ] 1. Switch back to booting on main thread;
    */
   void Machine::boot() {
+    // TODO: Machine
+    ThreadState* state = environment()->state;
+
     environment()->setup_cpp_terminate();
 
-    // TODO: after removing Environment::boot
+    // TODO: Machine
     // _console_->start(_environment_->state);
     // state->shared().start_compiler(state);
+    // state->diagnostics().start_diagnostics(state);
 
-    MachineException::guard(environment()->state, true, [&]{
+    MachineException::guard(state, true, [&]{
         if(const char* var = getenv("RBX_OPTIONS")) {
           environment()->load_string(var);
         }
@@ -152,7 +158,54 @@ namespace rubinius {
           environment()->load_conf(path);
         }
 
-        environment()->boot();
+        // -*-*-*-
+        std::string codedb_path = environment()->system_prefix() + RBX_CODEDB_PATH;
+
+        {
+          timer::StopWatch<timer::microseconds> timer(
+              diagnostics()->boot_metrics()->platform_us);
+
+          environment()->load_platform_conf(codedb_path);
+        }
+
+        state->managed_phase(state);
+
+        {
+          timer::StopWatch<timer::microseconds> timer(
+              diagnostics()->boot_metrics()->fields_us);
+
+          TypeInfo::auto_learn_fields(state);
+        }
+
+        {
+          timer::StopWatch<timer::microseconds> timer(
+              diagnostics()->boot_metrics()->ontology_us);
+
+          state->bootstrap_ontology(state);
+        }
+
+        environment()->load_command_line(state);
+
+        // Start the main Ruby thread.
+        Thread* main = 0;
+        OnStack<1> os(state, main);
+
+        {
+          timer::StopWatch<timer::microseconds> timer(
+              diagnostics()->boot_metrics()->main_thread_us);
+
+          main = Thread::create(state, state, Thread::main_thread);
+          main->start_thread(state, Thread::run);
+        }
+
+        // TODO: GC improve this
+        collector()->start(state);
+
+        ThreadState* signal_state = SignalThread::new_vm(state);
+        signal_state->set_stack_bounds(state->stack_size());
+
+        start_signals(signal_state);
+        // -*-*-*-
       });
   }
 
@@ -305,70 +358,79 @@ namespace rubinius {
     return fibers;
   }
 
-  void Machine::halt_console() {
+  void Machine::halt_console(STATE) {
     if(_console_) {
       delete _console_;
       _console_ = nullptr;
     }
   }
 
-  void Machine::halt_profiler() {
+  void Machine::halt_profiler(STATE) {
     if(_profiler_) {
       delete _profiler_;
       _profiler_ = nullptr;
     }
   }
 
-  void Machine::halt_debugger() {
+  void Machine::halt_debugger(STATE) {
     if(_debugger_) {
       delete _debugger_;
       _debugger_ = nullptr;
     }
   }
 
-  void Machine::halt_compiler() {
+  void Machine::halt_compiler(STATE) {
     if(_compiler_) {
       delete _compiler_;
       _compiler_ = nullptr;
     }
   }
 
-  void Machine::halt_c_api() {
+  void Machine::halt_c_api(STATE) {
     if(_c_api_) {
       delete _c_api_;
       _c_api_ = nullptr;
     }
   }
 
-  void Machine::halt_codedb() {
+  void Machine::halt_codedb(STATE) {
+    if(!G(coredb)->nil_p()) G(coredb)->close(state);
+
     if(_codedb_) {
       delete _codedb_;
       _codedb_ = nullptr;
     }
   }
 
-  void Machine::halt_signals() {
+  void Machine::halt_signals(STATE) {
+    signals()->stop(state);
+
     if(_signals_) {
       delete _signals_;
       _signals_ = nullptr;
     }
   }
 
-  void Machine::halt_collector() {
+  void Machine::halt_collector(STATE) {
+    collector()->dispose(state);
+    collector()->finish(state);
+
     if(_collector_) {
       delete _collector_;
       _collector_ = nullptr;
     }
   }
 
-  void Machine::halt_memory() {
+  void Machine::halt_memory(STATE) {
     if(_memory_) {
       delete _memory_;
       _memory_ = nullptr;
     }
   }
 
-  void Machine::halt_thread_nexus() {
+  void Machine::halt_thread_nexus(STATE) {
+    thread_nexus()->halt(state, state);
+
     if(_thread_nexus_) {
       // TODO: remove restriction on deleting ThreadNexus
       // delete _thread_nexus_;
@@ -376,57 +438,82 @@ namespace rubinius {
     }
   }
 
-  void Machine::halt_diagnostics() {
+  void Machine::halt_diagnostics(STATE) {
     if(_diagnostics_) {
       delete _diagnostics_;
       _diagnostics_ = nullptr;
     }
   }
 
-  void Machine::halt_configuration() {
+  void Machine::halt_configuration(STATE) {
     if(_configuration_) {
       delete _configuration_;
       _configuration_ = nullptr;
     }
   }
 
-  void Machine::halt_environment() {
+  void Machine::halt_environment(STATE) {
     if(_environment_) {
       delete _environment_;
       _environment_ = nullptr;
     }
   }
 
-  void Machine::halt_logger() {
+  void Machine::halt_logger(STATE) {
+    logger::close();
+
     if(_logger_) {
       delete _logger_;
       _logger_ = nullptr;
     }
   }
 
-  void Machine::halt_machine_state() {
+  void Machine::halt_machine_state(STATE) {
     if(_machine_state_) {
       delete _machine_state_;
       _machine_state_ = nullptr;
     }
   }
 
-  int Machine::halt() {
-    halt_console();
-    halt_profiler();
-    halt_debugger();
-    halt_compiler();
-    halt_c_api();
-    halt_codedb();
-    halt_signals();
-    halt_collector();
-    halt_memory();
-    halt_thread_nexus();
-    halt_diagnostics();
-    halt_configuration();
-    halt_environment();
-    halt_logger();
-    halt_machine_state();
+  int Machine::halt(int exit_code) {
+    return halt(ThreadState::current(), exit_code);
+  }
+
+  int Machine::halt(STATE, int exit_code) {
+    std::lock_guard<std::mutex> guard(_halt_lock_);
+
+    machine_state()->exit_code(exit_code);
+
+    machine_state()->set_halting();
+
+    if(configuration()->log_lifetime.value) {
+      logger::write("process: exit: %s %d %lld %fs %fs",
+          environment()->pid().c_str(), machine_state()->exit_code(),
+          diagnostics()->codedb_metrics()->load_count,
+          timer::elapsed_seconds(diagnostics()->codedb_metrics()->load_ns),
+          machine_state()->run_time());
+    }
+
+    halt_console(state);
+    halt_profiler(state);
+    halt_debugger(state);
+    halt_compiler(state);
+    halt_c_api(state);
+    halt_collector(state);
+    halt_codedb(state);
+    halt_memory(state);
+    // TODO: Machine, figure out right order
+    halt_signals(state);
+    halt_thread_nexus(state);
+    halt_diagnostics(state);
+    halt_configuration(state);
+    halt_environment(state);
+    halt_logger(state);
+    halt_machine_state(state);
+
+    NativeMethod::cleanup_thread(state);
+
+    exit(exit_code);
 
     return 0;
   }

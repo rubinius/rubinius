@@ -249,7 +249,7 @@ namespace rubinius {
       }
     }
 
-    state->environment()->halt(state, exit_code_);
+    state->machine()->halt(state, exit_code_);
   }
 
   void SignalThread::print_machine_info(logger::PrintFunction function) {
