@@ -128,7 +128,8 @@ namespace rubinius {
   }
 
   void ThreadNexus::after_fork_child(STATE) {
-    new(&threads_mutex_) std::mutex;
+    threads_mutex_.try_lock();
+    threads_mutex_.unlock();
 
     while(!threads_.empty()) {
       ThreadState* ts = threads_.back();

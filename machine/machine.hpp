@@ -4,6 +4,7 @@
 #include "defines.hpp"
 
 #include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 
@@ -116,7 +117,10 @@ namespace rubinius {
     ngDebugger* _debugger_;
     Profiler* _profiler_;
     Console* _console_;
-    std::mutex _halt_lock_;
+
+    static std::mutex _waiting_mutex_;
+    static std::mutex _halting_mutex_;
+    static std::condition_variable _waiting_condition_;
 
   public:
 

@@ -38,11 +38,6 @@ namespace rubinius {
     int argc_;
     char** argv_;
 
-    locks::spinlock_mutex fork_exec_lock_;
-    std::mutex halt_lock_;
-
-    memory::Collector* collector_;
-
     std::string system_prefix_;
 
     memory::TypedRoot<Object*>* loader_;
@@ -95,10 +90,6 @@ namespace rubinius {
 
     const std::string& pid() const {
       return _pid_;
-    }
-
-    locks::spinlock_mutex& fork_exec_lock() {
-      return fork_exec_lock_;
     }
 
     void set_loader(Object* loader) {

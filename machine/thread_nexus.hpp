@@ -25,9 +25,9 @@ namespace rubinius {
     std::atomic<uint32_t> lock_;
 
     std::mutex threads_mutex_;
-    std::mutex halting_mutex_;
-    std::mutex waiting_mutex_;
-    std::condition_variable waiting_condition_;
+    std::mutex& halting_mutex_;
+    std::mutex& waiting_mutex_;
+    std::condition_variable& waiting_condition_;
 
     ThreadList threads_;
     uint32_t thread_ids_;
@@ -43,14 +43,14 @@ namespace rubinius {
 
     const static int cYieldingPhase = 0x80;
 
-    ThreadNexus()
+    ThreadNexus(std::mutex& halting, std::mutex& waiting, std::condition_variable& waiting_cond)
       : stop_(false)
       , halt_(0)
       , lock_(0)
       , threads_mutex_()
-      , halting_mutex_()
-      , waiting_mutex_()
-      , waiting_condition_()
+      , halting_mutex_(halting)
+      , waiting_mutex_(waiting)
+      , waiting_condition_(waiting_cond)
       , threads_()
       , thread_ids_(0)
     { }

@@ -68,9 +68,6 @@ namespace rubinius {
   Environment::Environment(int argc, char** argv, Machine* m)
     : argc_(argc)
     , argv_(0)
-    , fork_exec_lock_()
-    , halt_lock_()
-    , collector_(NULL)
     , loader_(NULL)
     , _machine_(m)
     , _nodename_()
@@ -470,10 +467,6 @@ namespace rubinius {
   }
 
   void Environment::after_fork_child(STATE) {
-    fork_exec_lock_.unlock();
-    halt_lock_.try_lock();
-    halt_lock_.unlock();
-
     set_pid();
 
     restart_logging(state);

@@ -40,6 +40,10 @@
 #include <sys/stat.h>
 
 namespace rubinius {
+  std::mutex Machine::_waiting_mutex_;
+  std::mutex Machine::_halting_mutex_;
+  std::condition_variable Machine::_waiting_condition_;
+
   MachineState::MachineState()
     : _start_time_(get_current_time())
     , _hash_seed_(randombytes_random())
@@ -58,7 +62,7 @@ namespace rubinius {
   Machine::Machine(int argc, char** argv)
     : _machine_state_(new MachineState())
     , _logger_(nullptr)
-    , _thread_nexus_(new ThreadNexus)
+    , _thread_nexus_(new ThreadNexus(_halting_mutex_, _waiting_mutex_, _waiting_condition_))
     , _configuration_(new Configuration())
     , _environment_(new Environment(argc, argv, this))
     , _diagnostics_(new Diagnostics(_configuration_))
@@ -429,8 +433,6 @@ namespace rubinius {
   }
 
   void Machine::halt_thread_nexus(STATE) {
-    thread_nexus()->halt(state, state);
-
     if(_thread_nexus_) {
       // TODO: remove restriction on deleting ThreadNexus
       // delete _thread_nexus_;
@@ -480,7 +482,7 @@ namespace rubinius {
   }
 
   int Machine::halt(STATE, int exit_code) {
-    std::lock_guard<std::mutex> guard(_halt_lock_);
+    thread_nexus()->halt(state, state);
 
     machine_state()->exit_code(exit_code);
 
@@ -503,8 +505,8 @@ namespace rubinius {
     halt_codedb(state);
     halt_memory(state);
     // TODO: Machine, figure out right order
-    halt_signals(state);
     halt_thread_nexus(state);
+    halt_signals(state);
     halt_diagnostics(state);
     halt_configuration(state);
     halt_environment(state);
