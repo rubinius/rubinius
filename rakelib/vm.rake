@@ -215,11 +215,6 @@ task VM_EXE => GENERATED do
   blueprint.build VM_EXE, @parallel_jobs
 end
 
-task 'machine/test/runner' => GENERATED do
-  blueprint = Daedalus.load "rakelib/blueprint.rb"
-  blueprint.build "machine/test/runner", @parallel_jobs
-end
-
 # Generate files for instructions and interpreters
 
 file "method_primitives.hpp" => field_extract_headers
@@ -229,16 +224,6 @@ file "method_resolver.hpp" => field_extract_headers
 file "invoke_resolver.hpp" => field_extract_headers
 
 namespace :vm do
-  desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
-  task :test, :filter do |task, args|
-    ENV['SUITE'] = args[:filter] if args[:filter]
-    ENV['VERBOSE'] = '1' if $verbose
-    ENV['RBX_PREFIX_PATH'] = BUILD_CONFIG[:builddir]
-    sh 'machine/test/runner', :verbose => $verbose
-  end
-
-  task :test => %w[ machine/test/runner ]
-
   desc "Clean up vm build files"
   task :clean do
     begin
@@ -251,9 +236,6 @@ namespace :vm do
     files = FileList[
       GENERATED,
       'machine/dtrace/probes.o',
-      'machine/test/runner',
-      'machine/test/runner.cpp',
-      'machine/test/runner.o',
       VM_EXE,
       BUILD_CONFIG[:program_name],
       'bin/rbx',

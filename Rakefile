@@ -149,7 +149,7 @@ task :distclean => %w[
 ]
 
 desc "Run specs in default (configured) mode but do not rebuild on failure"
-task :spec => %w[build vm:test] do
+task :spec => %w[build] do
   clean_environment
 
   spec_runner = SpecRunner.new
