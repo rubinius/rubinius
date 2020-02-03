@@ -1910,11 +1910,6 @@ int main(int argc, char* argv[]) {
         f.puts "#define RBX_WINDOWS 1"
       end
     end
-
-    # Create C-API header for machine/test
-    File.open "machine/test/ruby.h", "w" do |f|
-      f.puts %[#include "#{@capi_includedir}/ruby.h"]
-    end
   end
 
   def print_debug
