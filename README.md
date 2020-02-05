@@ -4,7 +4,7 @@
 
 Rubinius is a modern language platform that supports a number of programming languages.
 
-The philosophy and architecture of Rubinius are described below.
+The philosophy and high-level architecture of Rubinius are described below.
 
 Rubinius runs on macOS and many Unix/Linux operating systems. Microsoft Windows is not supported.
 
@@ -68,43 +68,144 @@ The rest of the components of the machine are described below.
 
 ### Instructions
 
-\<todo>
+The Rubinius instruction set includes different categories of instructions. One key aspect of the Rubinius philosophy is that the instruction set should represent any machine semantic. This contrasts with the way Rubinius has been implemented historically, which relied heavily on C++ "primitives" modeled on the Smalltalk 80 virtual machine. All the primitives are being replaced as the instruction set evolves richer capabilities.
+
+The categories of instructions are:
+
+1. *Stack* instructions that push, pop, and get operands from a stack;
+2. *Register* instructions that read from and write to a set of registers;
+3. *Assertion* instructions that can halt execution but cannot change the semantics of the program;
+4. *Instrumentation* instructions that cannot change the semantics of the program but can emit data from the program;
+5. *Parsing Expression Grammar* (PEG) instructions. PEGs are an elegant formalism for describing recognizers;
+6. *Foreign Function Interface* (FFI) instructions for binding and calling external functions;
+7. *Concurrency* instructions for execution threads and concurrent data;
+8. *System* instructions for accessing files, directories, and other systam capabilities.
+
+**TODO: There's plenty of places to help out here if parsers, compilers, and instruction sets interest you.**
 
 ### Heaps & Garbage Collector
 
-\<todo>
+Rubinius has two kinds of managed objects: object-oriented ones that can support inheriting from a superclass, and data objects that have no concept of object-orientation.
+
+Rubinius has three concepts for heaps, the space where managed objects live:
+
+1. The *open* heap is one where any object in the heap can contain a reference to any other object. Think normal Ruby land;
+2. The *closed* heap is one where an object in the heap can contain a reference to an object outside the closed heap, but no object outside can contain a reference to an object in the closed heap;
+3. The *isolated* heap is one where no object in the isolated heap can contain a reference to an object outside the heap, and no object outside can contain a reference to an object in the isolated heap.
+
+Threads that use isolated heaps can execute fully independent of any other thread and only must synchronize with the process during boot, fork, and halt. The garbage collector for isolated heaps is run in that thread.
+
+Rubinius uses a single mechanism for garbage collection, the [Immix mark-region collector](http://www.cs.williams.edu/~dbarowy/cs334s18/assets/immix-pldi-2008.pdf).
+
+The Rubinius garbage collector currently runs on a single separate thread and must fully synchronize all threads that mutate managed memory (ie it stops the world). In the future, the single open heap will introduce a second generational area, and the isolated heaps will provide for parallel collection.
+
+**TODO: There's plenty of places to help out here if garbage collectors interest you.**
+
+### CodeDB
+
+The Rubinius CodeDB is where all compiled code for the core and standard libraries is stored. Every executable context (in Ruby, these are scripts, class & module bodies, methods, and blocks) has a unique ID and is cached in the CodeDB. In the future, all user code will also be cached in the CodeDB.
+
+The unique ID of every executable context allows for associating arbitrary dimensions of data with that instance of executable code. For example, type information seen at run time, profile and coverage information, call graphs, and memory allocations data can all be associated with the executable code.
+
+**TODO: There's plenty of places to help out here if databases and code analytics interest you.**
 
 ### Console
 
-\<todo>
+The Console is an interprocess communication (IPC) mechanism. In contrast to Ruby's IRB, which executes in the same process, the Rubinius Console is intended to be a general purpose mechanism to interact with the virtual machine. The capabilities of the Console include the ability to execute code and return the result, start/step/stop the Debugger, start/stop the Profiler, access data from the Profiler and Diagnostics, and fetch the call graph and object graph data.
+
+**TODO: There's plenty of places to help out here if developer tools interest you.**
 
 ### Debugger
 
-\<todo>
+The Debugger uses instruction replacement (ie substituting the debug instruction for the existing instruction at that point in the instruction sequence) to cause an executing instance of code to stop and allow you to inspect values and step to the next instruction, or step into or out of another instance of code (eg a method, function, or block).
+
+**TODO: There's plenty of places to help out here if developer tools interest you.**
 
 ### Profiler
 
-\<todo>
+The Profiler is a randomized-interval sampling profiler that is always running. At a randomized interval, the code instances that are currently executing in a thread have their sample count incremented. In addition, all code instances have a call count that is incremented each time they are invoked. At every call site, the number of times the call site executes is tracked for each type of object seen. The call sites enable deriving the call graph for the program from the object graph because the call sites have a normal (Ruby) object interface.
 
-### Diagnostics
+**TODO: There's plenty of places to help out here if developer tools interest you.**
 
-\<todo>
+### Diagnostics & Logging
+
+The Diagnostics facility provides metrics on all components of the virtual machine. The logging facility includes different log levels (ie debug, info, warn, error) and provides a descriptive account of virtual machine lifecycle events.
+
+**TODO: There's plenty of places to help out here if developer tools interest you.**
 
 ### Machine-code Compiler
 
-\<todo>
+The machine-code compiler is based on LLVM and compiles a managed code instance to machine code. The first generation Rubinius JIT (just-in-time compiler) included type inference, custom code passes, and inlining facilities all implemented in C++. The next generation compiler uses a [nanopass](http://nanopass.org) architecture and builds a single managed code instance that can be compiled to native machine code.
+
+**TODO: There's plenty of places to help out here if native machine code compilers interest you.**
 
 ### Data Types & Functions
 
-\<todo>
+Rubinius has functions. No, really.
+
+  ```
+  $ bin/rbx compile -N plus -B -e 'fun plus(a, b) a + b end'
+
+  ================ :plus =================
+  Arguments:   2 required, 0 post, 2 total
+  Arity:       2
+  Locals:      2: a, b
+  Stack size:  4
+  Registers:   0
+  Literals:    1: :+
+  Line:        1
+  Lines to IP:
+
+  0000:  push_local                 0    # a
+  0002:  push_local                 1    # b
+  0004:  send_stack                 :+, 1
+  0007:  unwind                     0
+  0009:  ret                        0
+  ----------------------------------------
+  ```
+
+There are several ways that types can be added. First, it's important to distinguish the "behavior" of object-oriented code from the "types" of data. See [Objects are for interactions, functions are for data](https://medium.com/metalanguage/objects-are-for-interactions-functions-are-for-data-936e044cc729).
+
+For objects, instead of types, we want to be able to easily convey that objects should represent themselves differently:
+
+  ```ruby
+  class A
+    def m(a: Integer(2), b: Integer(3))
+      # If the values passed for a and b are not Integers,
+      # the Integer() constructor will be called on them.
+      # If a value isn't passed for a, the default value is 2.
+      # Similarly for b, the default value is 3.
+    end
+  end
+  ```
+
+For functions, the situation is similar, but different:
+
+  ```ruby
+  type :int, fun +(a: int, b: int)
+    # The type of a and b must be machine integers.
+    # The return type is specified by an annotation
+  end
+  
+  fun +(a: int, b: int, return: int)
+    # The type of the return value is int.
+    # The 'return' argument is elided.
+  end
+  
+  fun +(a: int, b: int): int
+    # This form would require modifying the parser.
+  end
+  ```
+  
+**TODO: There's plenty of places to help out here if functions and data types interest you.**
 
 ### C-API
 
-\<todo>
+The C-API provides an element of compatibility with Ruby C-extensions. However, the C-API is deprecated and will likely eventually be removed.
 
 ## FAQ
 
-**Q. There's this other <programming language, project, concept, application> that seems <better, faster, cheaper>, shouldn't I use that instead?**
+**Q. There's this other \<programming language, project, concept, application> that seems \<better, faster, cheaper>, shouldn't I use that instead?**
 
 A. Yes, absolutely. The sooner the better, really.
 
@@ -114,13 +215,33 @@ A. We have a lot of respect for your abilities, whether you've ever written a li
 
   Find something that interests you and dive in. If you get stuck, ask a question.
 
+**Q. Why isn't \<my pet feature> done already? When will it be done?**
+
+**A.** Do you have 1,000,000 USD? No, really.
+
 **Q. Is there more documentation?**
 
-A. Yes, there is a [book](https://rubinius.com/book/) that needs a lot of love and attention.
+**A.** Yes, there is a [book](https://rubinius.com/book/) that needs a lot of love and attention.
 
+**Q. Can I embed Rubinius into my favorite C/C++ application?**
+
+**A.** Yes, you can! More of the facilities to support interacting with the Machine will be added over time.
+
+  ```c++
+  #include "machine.hpp"
+  
+  int main(int argc, char** argv) {
+    rubinius::Machine machine(argc, argv);
+    
+    machine.boot();
+    
+    return machine.halt();
+  }
+  ```
+   
 **Q. What about the Ruby Programming language?**
 
-A. Many popular Ruby applications, like Rails, may run on Rubinius, which aims to be compatible with the most recent stable Ruby version.
+**A.** Many popular Ruby applications, like Rails, may run on Rubinius, which aims to be compatible with the most recent stable Ruby version.
 
    Rubinius provides the standard Ruby libraries, with the following exceptions:
 
@@ -136,10 +257,10 @@ A. Many popular Ruby applications, like Rails, may run on Rubinius, which aims t
 
 **Q. How do I use RubyGems?**
 
-A. Rubinius comes with RubyGems built-in. To install a gem, run the following:
+**A.** Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
     $ rbx -S gem install <gem_name>
 
 **Q. Why doesn't Rubinius install gem binaries in the same place as Ruby?**
 
-A. Rubinius is intended to be installed alongside Ruby without causing conflicts. Only the main executable, `rbx`, should be installed into a system directory. Edit your shell PATH to include the directories listed when Rubinius is installed to access other executables like gem binaries.
+**A.** Rubinius is intended to be installed alongside Ruby without causing conflicts. Only the main executable, `rbx`, should be installed into a system directory. Edit your shell PATH to include the directories listed when Rubinius is installed to access other executables like gem binaries.
