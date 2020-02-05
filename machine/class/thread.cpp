@@ -4,7 +4,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "primitives.hpp"
-#include "signal.hpp"
+#include "signals.hpp"
 #include "thread_phase.hpp"
 
 #include "class/channel.hpp"
@@ -64,26 +64,26 @@ namespace rubinius {
     GO(thread).set(state->memory()->new_class<Class, Thread>(state, "Thread"));
   }
 
-  Thread* Thread::create(STATE, ThreadState* vm) {
-    return Thread::create(state, G(thread), vm);
+  Thread* Thread::create(STATE, ThreadState* thread_state) {
+    return Thread::create(state, G(thread), thread_state);
   }
 
-  Thread* Thread::create(STATE, Class* klass, ThreadState* vm) {
-    Thread* thr = state->memory()->new_object_pinned<Thread>(state, klass);
+  Thread* Thread::create(STATE, Class* klass, ThreadState* thread_state) {
+    Thread* thread = state->memory()->new_object_pinned<Thread>(state, klass);
 
-    if(!vm) {
+    if(!thread_state) {
       Exception::raise_thread_error(state, "attempt to create Thread with NULL ThreadState*");
     }
 
-    thr->vm(vm);
-    thr->thread_id(state, Fixnum::from(vm->thread_id()));
+    thread->vm(thread_state);
+    thread->thread_id(state, Fixnum::from(thread_state->thread_id()));
 
-    vm->set_thread(thr);
+    thread_state->set_thread(thread);
 
-    thr->fiber(state, Fiber::create(state, vm));
-    thr->current_fiber(state, thr->fiber());
+    thread->fiber(state, Fiber::create(state, thread_state));
+    thread->current_fiber(state, thread->fiber());
 
-    return thr;
+    return thread;
   }
 
   Thread* Thread::create(STATE, ThreadState* vm, ThreadFunction function) {
@@ -287,42 +287,6 @@ namespace rubinius {
     return status;
   }
 
-  Object* Thread::main_thread(STATE) {
-    state->managed_phase(state);
-
-    state->thread()->pid(state, Fixnum::from(gettid()));
-
-    state->environment()->load_core(state);
-
-    state->unwind_state()->clear();
-
-    Object* klass = G(rubinius)->get_const(state, state->symbol("Loader"));
-    if(klass->nil_p()) {
-      state->environment()->missing_core("unable to find class Rubinius::Loader");
-      return 0;
-    }
-
-    Object* instance = 0;
-    OnStack<1> os(state, instance);
-
-    instance = klass->send(state, state->symbol("new"));
-    if(instance) {
-      state->environment()->set_loader(instance);
-    } else {
-      state->environment()->missing_core("unable to instantiate Rubinius::Loader");
-      return 0;
-    }
-
-    // Enable the JIT after the core library has loaded
-    G(jit)->enable(state);
-
-    Object* value = instance->send(state, state->symbol("main"));
-
-    state->machine()->signals()->system_exit(state->unwind_state()->raise_value());
-
-    return value;
-  }
-
   void* Thread::run(void* ptr) {
     ThreadState* state = reinterpret_cast<ThreadState*>(ptr);
 
@@ -370,7 +334,7 @@ namespace rubinius {
     state->unmanaged_phase(state);
 
     if(state->main_thread_p() || (!value && state->unwind_state()->raise_reason() == cExit)) {
-      state->machine()->signals()->system_exit(state->unwind_state()->raise_value());
+      state->machine()->halt(state, state->unwind_state()->raise_value());
     }
 
     state->set_zombie(state);

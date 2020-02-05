@@ -10,8 +10,6 @@
 #include "configuration.hpp"
 #include "spinlock.hpp"
 
-#include "memory/root.hpp"
-
 #include <mutex>
 
 #include <sys/utsname.h>
@@ -23,8 +21,6 @@ namespace rubinius {
   }
 
   class ConfigParser;
-  class QueryAgent;
-  class SignalThread;
 
   /**
    * The environment context under which Rubinius virtual machines are executed.
@@ -39,8 +35,6 @@ namespace rubinius {
     char** argv_;
 
     std::string system_prefix_;
-
-    memory::TypedRoot<Object*>* loader_;
 
     Machine* _machine_;
 
@@ -92,12 +86,8 @@ namespace rubinius {
       return _pid_;
     }
 
-    void set_loader(Object* loader) {
-      loader_->set(loader);
-    }
-
-    Object* loader() {
-      return loader_->get();
+    struct utsname* const machine_info() {
+      return &_machine_info_;
     }
 
     void set_root_vm(ThreadState* vm) {

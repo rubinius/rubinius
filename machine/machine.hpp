@@ -32,7 +32,7 @@ namespace rubinius {
     class Collector;
   }
 
-  class SignalThread;
+  class Signals;
   class ngCodeDB { };
 
   class C_API;
@@ -60,6 +60,8 @@ namespace rubinius {
     };
 
   private:
+    ThreadState* _main_thread_;
+    Object* _loader_;
     uint64_t _start_time_;
     uint32_t _hash_seed_;
     int _exit_code_;
@@ -68,6 +70,18 @@ namespace rubinius {
   public:
     MachineState();
     virtual ~MachineState() { }
+
+    const ThreadState* main_thread() {
+      return _main_thread_;
+    }
+
+    Object* loader() {
+      return _loader_;
+    }
+
+    void set_loader(Object* loader) {
+      _loader_ = loader;
+    }
 
     const uint32_t hash_seed() {
       return _hash_seed_;
@@ -110,7 +124,7 @@ namespace rubinius {
     Diagnostics* _diagnostics_;
     Memory* _memory_;
     memory::Collector* _collector_;
-    SignalThread* _signals_;
+    Signals* _signals_;
     ngCodeDB* _codedb_;
     C_API* _c_api_;
     jit::MachineCompiler* _compiler_;
@@ -155,7 +169,7 @@ namespace rubinius {
       return _collector_;
     }
 
-    SignalThread* const signals() {
+    Signals* const signals() {
       return _signals_;
     }
 
@@ -176,6 +190,8 @@ namespace rubinius {
     }
 
     void boot();
+
+    int halt(STATE, Object* exit_code);
     int halt(int exit_code=0);
     int halt(STATE, int exit_code=0);
 
@@ -185,7 +201,6 @@ namespace rubinius {
 
     void trace_objects(STATE, std::function<void (STATE, Object**)> f);
 
-    SignalThread* start_signals(STATE);
     Diagnostics* start_diagnostics(STATE);
     void report_diagnostics(diagnostics::Diagnostic* diagnostic);
 

@@ -5,7 +5,7 @@
 #include "environment.hpp"
 #include "logger.hpp"
 #include "on_stack.hpp"
-#include "signal.hpp"
+#include "signals.hpp"
 #include "thread_phase.hpp"
 
 #include "class/array.hpp"
@@ -40,74 +40,24 @@
 #include <execinfo.h>
 #endif
 
-#ifdef RBX_WINDOWS
-#include "windows_compat.h"
-#else
 #include <dlfcn.h>
 #include <sys/utsname.h>
 #include <sys/select.h>
-#endif
 
 namespace rubinius {
-  using namespace utilities;
+  Signals* Signals::signal_handler_ = nullptr;
 
-  static SignalThread* signal_thread_ = 0;
-
-  // Used by the segfault reporter. Calculated up front to avoid
-  // crashing inside the crash handler.
-  static struct utsname machine_info;
-
-  SignalThread::SignalThread(STATE, ThreadState* vm)
-    : vm_(vm)
-    , system_exit_(false)
-    , exit_code_(0)
+  Signals::SignalThread::SignalThread(
+      STATE, std::mutex& lock, std::condition_variable& condition)
+    : MachineThread(state, "rbx.signals", MachineThread::eLarge)
     , queue_index_(0)
     , process_index_(0)
+    , lock_(lock)
+    , condition_(condition)
   {
-    signal_thread_ = this;
-    install_default_handlers(state);
-
-    NativeMethod::init_thread(state);
   }
 
-  ThreadState* SignalThread::new_vm(STATE) {
-    ThreadState* vm = state->thread_nexus()->thread_state(state->machine(), "rbx.system");
-    vm->set_kind(ThreadState::eSystem);
-    return vm;
-  }
-
-  void SignalThread::set_exit_code(Object* exit_code) {
-    if(Fixnum* fix = try_as<Fixnum>(exit_code)) {
-      exit_code_ = fix->to_native();
-    } else {
-      exit_code_ = -1;
-    }
-  }
-
-  void SignalThread::signal_handler(int signal) {
-    signal_thread_->queue_signal(signal);
-  }
-
-  void SignalThread::queue_signal(int signal) {
-    if(system_exit_) return;
-
-    vm()->metrics()->signals_received++;
-
-    {
-      thread::Mutex::LockGuard guard(lock_);
-
-      pending_signals_[queue_index_] = signal;
-      /* GCC 4.8.2 can't tell that this code is equivalent.
-       *   queue_index_ = ++queue_index_ % pending_signal_size_;
-       */
-      ++queue_index_;
-      queue_index_ %= pending_signal_size_;
-
-      condition_.signal();
-    }
-  }
-
-  void SignalThread::initialize(STATE) {
+  void Signals::SignalThread::initialize(STATE) {
     Thread::create(state, vm());
 
     for(int i = 0; i < pending_signal_size_; i++) {
@@ -115,157 +65,155 @@ namespace rubinius {
     }
 
     queue_index_ = process_index_ = 0;
-
-    watch_lock_.init();
-    lock_.init();
-    condition_.init();
   }
 
-  void SignalThread::start(STATE) {
-    initialize(state);
+  void Signals::SignalThread::wakeup(STATE) {
+    MachineThread::wakeup(state);
 
-    if(state->configuration()->log_lifetime.value) {
-      state->signals()->print_machine_info(logger::write);
-      state->signals()->print_process_info(logger::write);
+    while(thread_running_p()) {
+      condition_.notify_one();
+    }
+  }
 
-      logger::write("process: boot stats: " \
-          "fields %lldus " \
-          "main thread: %lldus " \
-          "ontology: %lldus " \
-          "platform: %lldus",
-          state->diagnostics()->boot_metrics()->fields_us,
-          state->diagnostics()->boot_metrics()->main_thread_us,
-          state->diagnostics()->boot_metrics()->ontology_us,
-          state->diagnostics()->boot_metrics()->platform_us);
+  void Signals::SignalThread::stop(STATE) {
+    MachineThread::stop_thread(state);
+  }
+
+  void Signals::SignalThread::run(STATE) {
+    logger::info("signals: worker thread starting");
+
+    state->unmanaged_phase(state);
+
+    sigset_t set;
+    sigfillset(&set);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
+
+    while(!thread_exit_) {
+      {
+        std::unique_lock<std::mutex> lock(lock_);
+        condition_.wait(lock);
+      }
+
+      if(thread_exit_) break;
+
+      int signal = pending_signals_[process_index_];
+      pending_signals_[process_index_] = 0;
+
+      process_index_ = ++process_index_ % pending_signal_size_;
+
+      MachineException::guard(state, false, [&]{
+          // TODO: block fork(), exec() on signal handler thread
+          if(signal > 0) {
+            ManagedPhase managed(state);
+
+            vm()->metrics()->signals_processed++;
+
+            Array* args = Array::create(state, 1);
+            args->set(state, 0, Fixnum::from(signal));
+
+            if(!G(rubinius)->send(state, state->symbol("received_signal"), args, cNil)) {
+              if(state->unwind_state()->raise_reason() == cException ||
+                  state->unwind_state()->raise_reason() == cExit)
+              {
+                Exception* exc = state->unwind_state()->current_exception();
+                state->unwind_state()->clear_raise();
+
+                Array* args = Array::create(state, 1);
+                args->set(state, 0, exc);
+
+                state->machine_state()->loader()->send(state,
+                    state->symbol("handle_exception"), args, cNil);
+
+                thread_exit_ = true;
+              }
+            }
+          }
+        });
     }
 
-    run(state);
+    logger::info("signals: worker thread exited");
   }
 
-  void SignalThread::restart(STATE) {
-    vm_ = SignalThread::new_vm(state);
+  void Signals::SignalThread::queue_signal(int signal) {
+    ThreadState::current()->metrics()->signals_received++;
 
-    initialize(state);
-
-    pthread_attr_t attrs;
-    pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, state->configuration()->machine_thread_stack_size);
-    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
-
-    if(int error = pthread_create(&vm_->os_thread(), &attrs,
-          SignalThread::run, (void*)this))
     {
-      logger::fatal("%s: %s: create thread failed", strerror(error), vm_->name().c_str());
-      ::abort();
+      std::lock_guard<std::mutex> guard(lock_);
+
+      pending_signals_[queue_index_] = signal;
+      queue_index_ = ++queue_index_ % pending_signal_size_;
+
+      condition_.notify_one();
     }
-
-    pthread_attr_destroy(&attrs);
   }
 
-  void SignalThread::after_fork_child(STATE) {
-    restart(state);
+  Signals::Signals()
+    : signal_thread_(nullptr)
+    , watch_lock_()
+    , watched_signals_()
+  {
+    Signals::signal_handler_ = this;
+    install_default_handlers();
   }
 
-  void SignalThread::stop(STATE) {
+  void Signals::start(STATE) {
+    if(!signal_thread_) {
+      signal_thread_ = new Signals::SignalThread(state, lock_, condition_);
+      signal_thread_->start(state);
+    }
+  }
+
+  void Signals::stop(STATE) {
     for(std::list<int>::iterator i = watched_signals_.begin();
         i != watched_signals_.end();
         ++i) {
       signal(*i, SIG_DFL);
     }
+
+    if(signal_thread_) {
+      signal_thread_->stop(state);
+      signal_thread_ = nullptr;
+    }
   }
 
-  void* SignalThread::run(void* ptr) {
-    SignalThread* thread = reinterpret_cast<SignalThread*>(ptr);
-    ThreadState* state = thread->vm();
-
-    state->set_stack_bounds(state->configuration()->machine_thread_stack_size.value);
-    state->set_current_thread();
-
-    RUBINIUS_THREAD_START(
-        const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
-
-    state->metrics()->start_reporting(state);
-
-    NativeMethod::init_thread(state);
-
-    MachineException::guard(state, true, [&]{
-        thread->run(state);
-      });
-
-    return nullptr;
+  void Signals::signal_handler(int signal) {
+    if(SignalThread* handler = Signals::signal_handler_->signal_thread()) {
+      handler->queue_signal(signal);
+    }
   }
 
-  void SignalThread::run(STATE) {
-    state->unmanaged_phase(state);
+  void Signals::after_fork_child(STATE) {
+    new(&lock_) std::mutex;
+    new(&condition_) std::condition_variable;
 
-#ifndef RBX_WINDOWS
-    sigset_t set;
-    sigfillset(&set);
-    pthread_sigmask(SIG_BLOCK, &set, nullptr);
-#endif
-
-    while(!system_exit_) {
-      int signal = pending_signals_[process_index_];
-      pending_signals_[process_index_] = 0;
-
-      /* GCC 4.8.2 can't tell that this code is equivalent.
-       *   process_index_ = ++process_index_ % pending_signal_size_;
-       */
-      ++process_index_;
-      process_index_ %= pending_signal_size_;
-
-      // TODO: block fork(), exec() on signal handler thread
-      if(signal > 0) {
-        ManagedPhase managed(state);
-
-        vm()->metrics()->signals_processed++;
-
-        Array* args = Array::create(state, 1);
-        args->set(state, 0, Fixnum::from(signal));
-
-        if(!G(rubinius)->send(state, state->symbol("received_signal"), args, cNil)) {
-          if(state->unwind_state()->raise_reason() == cException ||
-              state->unwind_state()->raise_reason() == cExit)
-          {
-            Exception* exc = state->unwind_state()->current_exception();
-            state->unwind_state()->clear_raise();
-
-            Array* args = Array::create(state, 1);
-            args->set(state, 0, exc);
-
-            state->environment()->loader()->send(state,
-                state->symbol("handle_exception"), args, cNil);
-
-            system_exit_ = true;
-
-            break;
-          }
-        }
-      } else {
-        thread::Mutex::LockGuard guard(lock_);
-
-        if(queue_index_ != process_index_) continue;
-        condition_.wait(lock_);
-      }
+    if(signal_thread_) {
+      delete signal_thread_;
+      signal_thread_ = nullptr;
     }
 
-    state->machine()->halt(state, exit_code_);
+    start(state);
   }
 
-  void SignalThread::print_machine_info(logger::PrintFunction function) {
-    function("node: info: %s %s", machine_info.nodename, machine_info.version);
+  void Signals::print_machine_info(logger::PrintFunction function) {
+    ThreadState* state = ThreadState::current();
+
+    function("node: info: %s %s",
+        state->environment()->machine_info()->nodename,
+        state->environment()->machine_info()->version);
   }
 
 #define RBX_PROCESS_INFO_LEN    256
 
-  void SignalThread::print_process_info(logger::PrintFunction function) {
+  void Signals::print_process_info(logger::PrintFunction function) {
     const char* llvm_version;
     const char* jit_status;
 
+    ThreadState* state = ThreadState::current();
+
     llvm_version = RBX_LLVM_VERSION;
 
-    if(CBOOL(signal_thread_->vm()->machine()->environment()->state->globals().jit.get()->enabled_p(
-            signal_thread_->vm()->machine()->environment()->state)))
+    if(CBOOL(state->machine()->environment()->state->globals().jit.get()->enabled_p(
+            state->machine()->environment()->state)))
     {
       jit_status = "JIT";
     } else {
@@ -275,18 +223,17 @@ namespace rubinius {
     char process_info[RBX_PROCESS_INFO_LEN];
 
     snprintf(process_info, RBX_PROCESS_INFO_LEN, "%s %s %s %s %s %s %.8s %s %s",
-        signal_thread_->vm()->machine()->environment()->username().c_str(),
-        RBX_PROGRAM_NAME, signal_thread_->vm()->machine()->environment()->pid().c_str(),
+        state->machine()->environment()->username().c_str(),
+        RBX_PROGRAM_NAME, state->machine()->environment()->pid().c_str(),
         RBX_VERSION, RBX_RUBY_VERSION, RBX_RELEASE_DATE, RBX_BUILD_REV,
         llvm_version, jit_status);
 
     function("process: info: %s", process_info);
   }
 
-  void SignalThread::add_signal_handler(STATE, int signal, HandlerType type) {
-    thread::SpinLock::LockGuard guard(watch_lock_);
+  void Signals::add_signal_handler(STATE, int signal, HandlerType type) {
+    std::lock_guard<std::mutex> lock(watch_lock_);
 
-#ifndef RBX_WINDOWS
     struct sigaction action;
 
     if(type == eDefault) {
@@ -296,7 +243,7 @@ namespace rubinius {
       action.sa_handler = SIG_IGN;
       watched_signals_.push_back(signal);
     } else {
-      action.sa_handler = signal_handler;
+      action.sa_handler = Signals::signal_handler;
       watched_signals_.push_back(signal);
     }
 
@@ -304,12 +251,11 @@ namespace rubinius {
     sigfillset(&action.sa_mask);
 
     sigaction(signal, &action, nullptr);
-#endif
   }
 
-  void SignalThread::print_backtraces() {
-    STATE = vm_->machine()->environment()->state;
-    ThreadList* threads = vm_->machine()->thread_nexus()->threads();
+  void Signals::print_backtraces() {
+    ThreadState* state = ThreadState::current();
+    ThreadList* threads = state->machine()->thread_nexus()->threads();
 
     for(ThreadList::iterator i = threads->begin(); i != threads->end(); ++i) {
       ThreadState* vm = (*i);
@@ -457,11 +403,11 @@ namespace rubinius {
     logger::fatal("The Rubinius process is aborting with signal: %s",
                   rbx_signal_string(sig));
     logger::fatal("--- begin system info ---");
-    signal_thread_->print_machine_info(logger::fatal);
+    Signals::signal_handler_->print_machine_info(logger::fatal);
     logger::fatal("--- end system info ---");
 
     logger::fatal("--- begin rubinius info ---");
-    signal_thread_->print_process_info(logger::fatal);
+    Signals::signal_handler_->print_process_info(logger::fatal);
     logger::fatal("--- end rubinius info ---");
 
     logger::fatal("--- begin system backtrace ---");
@@ -471,7 +417,7 @@ namespace rubinius {
     logger::fatal("--- end system backtrace ---");
 
     logger::fatal("--- begin Ruby backtraces ---");
-    signal_thread_->print_backtraces();
+    Signals::signal_handler_->print_backtraces();
     logger::fatal("--- end Ruby backtraces ---");
 
     free(symbols);
@@ -479,11 +425,7 @@ namespace rubinius {
   }
 #endif
 
-  void SignalThread::install_default_handlers(STATE) {
-#ifndef RBX_WINDOWS
-    // Get the machine info.
-    uname(&machine_info);
-
+  void Signals::install_default_handlers() {
     struct sigaction action;
 
     memset(&action, 0, sizeof(action));
@@ -518,8 +460,5 @@ namespace rubinius {
       sigaction(SIGABRT, &action, nullptr);
     }
 #endif  // USE_EXEC_INFO
-#else
-    signal(SIGTERM, quit_handler);
-#endif  // ifndef RBX_WINDOWS
   }
 }

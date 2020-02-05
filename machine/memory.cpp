@@ -92,6 +92,8 @@ namespace rubinius {
     wait_lock_.init();
     type_info_lock_.init();
     code_resource_lock_.init();
+
+    new(&codedb_lock_) std::recursive_mutex;
   }
 
   /* TODO: GC

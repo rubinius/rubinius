@@ -36,7 +36,7 @@
 #include "machine_code.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
-#include "signal.hpp"
+#include "signals.hpp"
 #include "thread_phase.hpp"
 #include "windows_compat.h"
 
@@ -973,15 +973,14 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
-    SignalThread* st = state->machine()->signals();
-
-    if(st) {
+    if(Signals* signals = state->machine()->signals()) {
       intptr_t i = sig->to_native();
+
       if(i < 0) {
-        st->add_signal_handler(state, -i, SignalThread::eDefault);
+        signals->add_signal_handler(state, -i, Signals::eDefault);
       } else if(i > 0) {
-        st->add_signal_handler(state, i,
-            CBOOL(ignored) ? SignalThread::eIgnore : SignalThread::eCustom);
+        signals->add_signal_handler(state, i,
+            CBOOL(ignored) ? Signals::eIgnore : Signals::eCustom);
       }
 
       return cTrue;
@@ -991,7 +990,7 @@ namespace rubinius {
   }
 
   Object* System::vm_signal_thread(STATE) {
-    return state->machine()->signals()->vm()->thread();
+    return state->machine()->signals()->signal_thread()->vm()->thread();
   }
 
   Object* System::vm_time(STATE) {

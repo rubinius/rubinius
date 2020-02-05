@@ -5,7 +5,7 @@
 #include "machine_code.hpp"
 #include "memory.hpp"
 #include "park.hpp"
-#include "signal.hpp"
+#include "signals.hpp"
 #include "thread_state.hpp"
 
 #include "class/compiled_code.hpp"
@@ -142,7 +142,7 @@ namespace rubinius {
     return machine()->collector();
   }
 
-  SignalThread* const ThreadState::signals() {
+  Signals* const ThreadState::signals() {
     return machine()->signals();
   }
 

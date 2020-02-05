@@ -141,7 +141,6 @@ namespace rubinius {
         void initialize(STATE);
         void stop(STATE);
         void wakeup(STATE);
-        void after_fork_child(STATE);
         void run(STATE);
       };
 

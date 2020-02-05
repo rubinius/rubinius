@@ -1,12 +1,14 @@
 #include "thread_state.hpp"
 #include "exception.hpp"
 #include "detection.hpp"
+#include "machine.hpp"
 #include "memory.hpp"
 
 #include "class/exception.hpp"
 #include "class/string.hpp"
 #include "class/class.hpp"
 #include "class/symbol.hpp"
+#include "class/unwind_state.hpp"
 
 #include <ctype.h>
 #include <vector>
@@ -229,6 +231,8 @@ namespace rubinius {
       std::cout << "Unknown C++ exception detected at top level" << std::endl;
     }
 
-    if(exit) ::exit(1);
+    if(exit) {
+      state->machine()->halt(state, state->unwind_state()->raise_value());
+    }
   }
 }

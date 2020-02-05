@@ -27,7 +27,7 @@
 
 #include "memory/collector.hpp"
 
-#include "signal.hpp"
+#include "signals.hpp"
 #include "object_utils.hpp"
 
 #include "on_stack.hpp"
@@ -68,7 +68,6 @@ namespace rubinius {
   Environment::Environment(int argc, char** argv, Machine* m)
     : argc_(argc)
     , argv_(0)
-    , loader_(NULL)
     , _machine_(m)
     , _nodename_()
     , _username_()
@@ -101,8 +100,6 @@ namespace rubinius {
     load_vm_options(argc_, argv_);
 
     check_io_descriptors();
-
-    loader_ = new memory::TypedRoot<Object*>(state);
 
     NativeMethod::init_thread(state);
 

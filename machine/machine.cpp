@@ -15,7 +15,7 @@
 #include "machine_compiler.hpp"
 #include "memory.hpp"
 #include "on_stack.hpp"
-#include "signal.hpp"
+#include "signals.hpp"
 #include "thread_nexus.hpp"
 #include "type_info.hpp"
 
@@ -24,6 +24,7 @@
 #include "class/fiber.hpp"
 #include "class/fixnum.hpp"
 #include "class/thread.hpp"
+#include "class/unwind_state.hpp"
 
 #include "diagnostics/codedb.hpp"
 #include "diagnostics/collector.hpp"
@@ -36,6 +37,8 @@
 #include "memory/collector.hpp"
 
 #include "sodium/randombytes.h"
+
+#include "missing/gettid.h"
 
 #include <sys/stat.h>
 
@@ -68,7 +71,7 @@ namespace rubinius {
     , _diagnostics_(new Diagnostics(_configuration_))
     , _memory_(new Memory(_environment_->state, _configuration_))
     , _collector_(new memory::Collector())
-    , _signals_(nullptr)
+    , _signals_(new Signals())
     , _codedb_(nullptr)
     , _c_api_(new C_API())
     , _compiler_(nullptr)
@@ -78,17 +81,24 @@ namespace rubinius {
   {
     _environment_->initialize();
 
+    if(configuration()->log_lifetime.value) {
+      signals()->print_machine_info(logger::write);
+      signals()->print_process_info(logger::write);
+
+      logger::write("process: boot stats: " \
+          "fields %lldus " \
+          "main thread: %lldus " \
+          "ontology: %lldus " \
+          "platform: %lldus",
+          diagnostics()->boot_metrics()->fields_us,
+          diagnostics()->boot_metrics()->main_thread_us,
+          diagnostics()->boot_metrics()->ontology_us,
+          diagnostics()->boot_metrics()->platform_us);
+    }
   }
 
   Machine::~Machine() {
     if(_machine_state_) halt();
-  }
-
-  SignalThread* Machine::start_signals(STATE) {
-    _signals_ = new SignalThread(state, state);
-    _signals_->start(state);
-
-    return _signals_;
   }
 
   Diagnostics* Machine::start_diagnostics(STATE) {
@@ -116,31 +126,31 @@ namespace rubinius {
    *
    * [x] 1. Add Machine to SharedState;
    * [x] 1. Pass Machine through Environment to SharedState
-   * [ ] 1. Create MachineState;
+   * [x] 1. Create MachineState;
    * [x] 1. Move SharedState items for env into Environment;
    * [ ] 1. Create stateful Logger;
    * [ ] 1. Create Random;
    * [x] 1. Move Configuration to Machine;
    * [ ] 1. Consolidate ConfigParse with Configuration;
-   * [ ] 1. Move Diagnostics to Machine;
+   * [x] 1. Move Diagnostics to Machine;
    * [x] 1. Move ThreadNexus to Machine;
    * [x] 1. Move MachineThreads to Machine;
    * [x] 1. Move Memory to Machine;
    * [x] 1. Move Collector to Machine;
-   * [ ] 1. Move Signals to Machine;
+   * [x] 1. Move Signals to Machine;
    * [ ] 1. Move CodeDB to Machine;
-   * [ ] 1. Move C-API to Machine;
+   * [x] 1. Move C-API to Machine;
    * [ ] 1. Move Debugger to Machine;
-   * [ ] 1. Move Compiler to Machine;
-   * [ ] 1. Move Profiler to Machine;
+   * [x] 1. Move Compiler to Machine;
+   * [x] 1. Move Profiler to Machine;
    * [x] 1. Move Console to Machine;
    * [x] 1. Move SymbolTable into Memory;
    * [x] 1. Move Globals into Memory;
-   * [ ] 1. Create ThreadState to replace State;
-   * [ ] 1. Create ThreadState instances for new threads;
-   * [ ] 1. Consolidate and remove all extra State objects;
-   * [ ] 1. Merge VM into ThreadState;
-   * [ ] 1. Switch back to booting on main thread;
+   * [x] 1. Create ThreadState to replace State;
+   * [x] 1. Create ThreadState instances for new threads;
+   * [x] 1. Consolidate and remove all extra State objects;
+   * [x] 1. Merge VM into ThreadState;
+   * [x] 1. Switch back to booting on main thread;
    */
   void Machine::boot() {
     // TODO: Machine
@@ -153,7 +163,7 @@ namespace rubinius {
     // state->shared().start_compiler(state);
     // state->diagnostics().start_diagnostics(state);
 
-    MachineException::guard(state, true, [&]{
+    MachineException::guard(state, false, [&]{
         if(const char* var = getenv("RBX_OPTIONS")) {
           environment()->load_string(var);
         }
@@ -190,6 +200,7 @@ namespace rubinius {
 
         environment()->load_command_line(state);
 
+        /* TODO: Machine
         // Start the main Ruby thread.
         Thread* main = 0;
         OnStack<1> os(state, main);
@@ -201,15 +212,45 @@ namespace rubinius {
           main = Thread::create(state, state, Thread::main_thread);
           main->start_thread(state, Thread::run);
         }
+        */
 
         // TODO: GC improve this
         collector()->start(state);
 
-        ThreadState* signal_state = SignalThread::new_vm(state);
-        signal_state->set_stack_bounds(state->stack_size());
+        signals()->start(state);
 
-        start_signals(signal_state);
-        // -*-*-*-
+        state->metrics()->start_reporting(state);
+
+        state->managed_phase(state);
+
+        Thread::create(state, state);
+
+        state->thread()->pid(state, Fixnum::from(gettid()));
+
+        environment()->load_core(state);
+
+        Object* loader_class = G(rubinius)->get_const(state, state->symbol("Loader"));
+        if(loader_class->nil_p()) {
+          state->environment()->missing_core("unable to find class Rubinius::Loader");
+          return;
+        }
+
+        if(Object* loader = loader_class->send(state, state->symbol("new"))) {
+          machine_state()->set_loader(loader);
+        } else {
+          state->environment()->missing_core("unable to instantiate Rubinius::Loader");
+          return;
+        }
+
+        // TODO: Machine
+        // Enable the JIT after the core library has loaded
+        // G(jit)->enable(state);
+
+        machine_state()->loader()->send(state, state->symbol("main"));
+
+        if(state->unwind_state()->raise_reason() == cExit) {
+          halt(state, state->unwind_state()->raise_value());
+        }
       });
   }
 
@@ -407,15 +448,16 @@ namespace rubinius {
   }
 
   void Machine::halt_signals(STATE) {
-    signals()->stop(state);
-
     if(_signals_) {
+      signals()->stop(state);
       delete _signals_;
       _signals_ = nullptr;
     }
   }
 
   void Machine::halt_collector(STATE) {
+    collector()->stop(state);
+
     collector()->dispose(state);
     collector()->finish(state);
 
@@ -477,13 +519,21 @@ namespace rubinius {
     }
   }
 
+  int Machine::halt(STATE, Object* exit_code) {
+    int code = -1;
+
+    if(Fixnum* fix = try_as<Fixnum>(exit_code)) {
+      code = fix->to_native();
+    }
+
+    return halt(state, code);
+  }
+
   int Machine::halt(int exit_code) {
     return halt(ThreadState::current(), exit_code);
   }
 
   int Machine::halt(STATE, int exit_code) {
-    thread_nexus()->halt(state, state);
-
     machine_state()->exit_code(exit_code);
 
     machine_state()->set_halting();
@@ -502,12 +552,14 @@ namespace rubinius {
     halt_compiler(state);
     halt_c_api(state);
     halt_collector(state);
-    halt_codedb(state);
-    halt_memory(state);
-    // TODO: Machine, figure out right order
-    halt_thread_nexus(state);
     halt_signals(state);
+    halt_codedb(state);
+
+    thread_nexus()->halt(state, state);
+
+    halt_memory(state);
     halt_diagnostics(state);
+    halt_thread_nexus(state);
     halt_configuration(state);
     halt_environment(state);
     halt_logger(state);

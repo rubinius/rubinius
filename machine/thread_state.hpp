@@ -48,7 +48,7 @@ namespace rubinius {
   class Memory;
   class Park;
   class Profiler;
-  class SignalThread;
+  class Signals;
   class String;
   class Symbol;
   class UnwindState;
@@ -185,7 +185,7 @@ namespace rubinius {
     ThreadNexus* const thread_nexus();
     Diagnostics* const diagnostics();
     memory::Collector* const collector();
-    SignalThread* const signals();
+    Signals* const signals();
     Memory* const memory();
     C_API* const c_api();
     Profiler* const profiler();

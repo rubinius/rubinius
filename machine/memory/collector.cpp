@@ -252,6 +252,9 @@ namespace rubinius {
     }
 
     void Collector::after_fork_child(STATE) {
+      new(&list_mutex_) std::mutex;
+      new(&list_condition_) std::condition_variable;
+
       if(worker_) {
         worker_->after_fork_child(state);
       }
@@ -284,51 +287,46 @@ namespace rubinius {
       MachineThread::stop_thread(state);
     }
 
-    void Collector::Worker::after_fork_child(STATE) {
-      new(&list_mutex_) std::mutex;
-      new(&list_condition_) std::condition_variable;
-
-      MachineThread::after_fork_child(state);
-    }
-
     void Collector::Worker::run(STATE) {
-      state->managed_phase(state);
-
       logger::info("collector: worker thread starting");
 
       while(!thread_exit_) {
         if(process_list_.empty()) {
-          UnmanagedPhase unmanaged(state);
-
           std::unique_lock<std::mutex> lk(list_mutex_);
           list_condition_.wait(lk,
               [this]{ return thread_exit_ || collector_->collect_requested_p() || !process_list_.empty(); });
         }
 
-        if(collector_->collect_requested_p()) {
-          collector_->collect(state);
-        }
+        if(thread_exit_) break;
 
-        while(!process_list_.empty()) {
-          if(thread_exit_) break;
+        {
+          ManagedPhase managed(state);
 
-          FinalizerObject* object = 0;
-
-          {
-            std::lock_guard<std::mutex> guard(list_mutex_);
-
-            object = process_list_.back();
-            process_list_.pop_back();
+          if(collector_->collect_requested_p()) {
+            collector_->collect(state);
           }
 
-          if(object) {
-            object->finalize(state);
-            delete object;
+          while(!process_list_.empty()) {
+            if(thread_exit_) break;
 
-            state->diagnostics()->collector_metrics()->objects_finalized++;
+            FinalizerObject* object = 0;
+
+            {
+              std::lock_guard<std::mutex> guard(list_mutex_);
+
+              object = process_list_.back();
+              process_list_.pop_back();
+            }
+
+            if(object) {
+              object->finalize(state);
+              delete object;
+
+              state->diagnostics()->collector_metrics()->objects_finalized++;
+            }
+
+            state->thread_nexus()->yield(state, state);
           }
-
-          state->thread_nexus()->yield(state, state);
         }
       }
 
@@ -336,7 +334,6 @@ namespace rubinius {
 
       logger::info("collector: worker thread exited");
 
-      state->unmanaged_phase(state);
       state->thread()->vm()->set_zombie(state);
     }
 

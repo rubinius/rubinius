@@ -245,8 +245,6 @@ namespace rubinius {
     int start_thread(STATE, void* (*function)(void*));
     static void* run(void*);
 
-    static Object* main_thread(STATE);
-
   public:   /* TypeInfo */
 
     class Info : public TypeInfo {
