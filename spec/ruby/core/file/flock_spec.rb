@@ -51,10 +51,11 @@ describe "File#flock" do
     end
 
     Thread.pass until running
-    sleep 0.5
 
     t.kill
     t.join
+
+    Thread.pass until t.stop?
 
     ScratchPad.recorded.should == [:before]
   end

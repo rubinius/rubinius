@@ -6,6 +6,7 @@
 #include "memory.hpp"
 #include "object_utils.hpp"
 #include "primitives.hpp"
+#include "spinlock.hpp"
 
 #include "class/array.hpp"
 #include "class/byte_array.hpp"
@@ -24,7 +25,6 @@
 
 #include "util/murmur_hash3.hpp"
 #include "util/siphash.h"
-#include "util/spinlock.hpp"
 #include "util/random.h"
 
 #include "missing/string.h"
@@ -1301,17 +1301,20 @@ namespace rubinius {
   }
 
 
-  static int crypt_lock = RBX_SPINLOCK_UNLOCKED;
+  static locks::spinlock_mutex crypt_lock;
+
   String* String::crypt(STATE, String* salt) {
-    rbx_spinlock_lock(&crypt_lock);
+    std::lock_guard<locks::spinlock_mutex> guard(crypt_lock);
+
     char* result = ::crypt(this->c_str(state), salt->c_str(state));
+
     if(!result) {
-      rbx_spinlock_unlock(&crypt_lock);
       Exception::raise_errno_error(state, "crypt(3) failed");
       return NULL;
     }
+
     String* res = String::create(state, result);
-    rbx_spinlock_unlock(&crypt_lock);
+
     return res;
   }
 

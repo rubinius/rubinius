@@ -15,6 +15,9 @@
 #include "class/packed_object.hpp"
 #include "class/symbol.hpp"
 
+#include <atomic>
+#include <sstream>
+
 namespace rubinius {
   void Class::bootstrap(STATE) {
     GO(klass).set(Class::bootstrap_class(state, nil<Class>(), ClassType));
@@ -279,7 +282,7 @@ namespace rubinius {
     self->packed_size(sizeof(Object) + (slots * sizeof(Object*)));
     self->packed_ivar_info(state, lt);
 
-    atomic::memory_barrier();
+    std::atomic_thread_fence(std::memory_order_acq_rel);
     self->set_object_type(state, PackedObject::type);
 
     self->unlock(state);

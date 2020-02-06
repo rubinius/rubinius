@@ -2,10 +2,10 @@
 #define RBX_CONSOLE_HPP
 
 #include "machine_thread.hpp"
-
-#include "util/thread.hpp"
+#include "spinlock.hpp"
 
 #include <list>
+#include <mutex>
 #include <string>
 
 namespace rubinius {
@@ -55,10 +55,10 @@ namespace rubinius {
 
       RequestList* request_list_;
 
-      utilities::thread::SpinLock list_lock_;
+      locks::spinlock_mutex list_lock_;
 
-      utilities::thread::Mutex response_lock_;
-      utilities::thread::Condition response_cond_;
+      std::mutex response_lock_;
+      std::condition_variable response_cond_;
 
     public:
 

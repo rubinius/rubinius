@@ -19,7 +19,7 @@
 
 #include <zlib.h>
 
-#include <ostream>
+#include <sstream>
 
 namespace rubinius {
   namespace logger {

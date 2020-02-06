@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_METHODTABLE_HPP
 
 #include "object_utils.hpp"
+#include "spinlock.hpp"
 
 #include "class/executable.hpp"
 #include "class/object.hpp"
@@ -67,7 +68,7 @@ namespace rubinius {
     attr_accessor(entries, Fixnum);
 
   private:
-    utilities::thread::SpinLock lock_;
+    locks::spinlock_mutex lock_;
 
     void   redistribute(STATE, size_t size);
 
@@ -77,7 +78,7 @@ namespace rubinius {
       obj->values(nil<Tuple>());
       obj->bins(Fixnum::from(0));
       obj->entries(Fixnum::from(0));
-      obj->lock_.init();
+      new(&obj->lock_) locks::spinlock_mutex;
     }
 
     static MethodTable* create(STATE, size_t sz = METHODTABLE_MIN_SIZE);

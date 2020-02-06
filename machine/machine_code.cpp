@@ -36,7 +36,7 @@
 #include "configuration.hpp"
 #include "dtrace/dtrace.h"
 
-#include <ostream>
+#include <sstream>
 
 #ifdef RBX_WINDOWS
 #include <malloc.h>

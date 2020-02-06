@@ -9,8 +9,6 @@
 #include "linkedlist.hpp"
 #include "defines.hpp"
 
-#include "util/thread.hpp"
-
 namespace rubinius {
 namespace memory {
   class Root;
@@ -22,11 +20,12 @@ namespace memory {
    *  @todo Document methods. --rue
    */
   class Roots : public LinkedList {
-    utilities::thread::SpinLock lock_;
+    std::mutex lock_;
 
   public:   /* Ctors */
     Roots()
       : LinkedList()
+      , lock_()
     {}
 
   public:   /* Interface */

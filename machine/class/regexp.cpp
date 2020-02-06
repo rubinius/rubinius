@@ -22,6 +22,8 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 
+#include <sstream>
+
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED           ONIG_OPTION_EXTEND
 #define OPTION_MULTILINE          ONIG_OPTION_MULTILINE

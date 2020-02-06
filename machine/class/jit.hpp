@@ -11,8 +11,6 @@
 #include "class/module.hpp"
 #include "class/object.hpp"
 
-#include "util/thread.hpp"
-
 namespace rubinius {
   class JITCompileRequest : public Object {
   public:
@@ -23,7 +21,7 @@ namespace rubinius {
     attr_accessor(block_env, BlockEnvironment);
 
   private:
-    attr_field(waiter, utilities::thread::Condition*);
+    attr_field(waiter, std::condition_variable*);
     attr_field(hits, int);
     attr_field(is_block, bool);
 

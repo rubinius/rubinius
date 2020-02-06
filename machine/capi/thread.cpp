@@ -132,42 +132,6 @@ extern "C" {
     return rb_funcall(thread, rb_intern("wakeup"), 0);
   }
 
-  // THAR BE DRAGONS.
-  //
-  // When venturing through the valleys of the unmanaged, our hero must
-  // remain vigilant and disciplined! If she should ever find a VALUE for
-  // a reference in her travels: Look away! For these VALUEs are pure
-  // death! Our hero must steel herself and continue on her quest, returning
-  // as soon as possible to the castle of the managed.
-  VALUE rb_thread_blocking_region(rb_blocking_function_t func, void* data,
-                                  rb_unblock_function_t ubf, void* ubf_data) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    ThreadState* state = env->state();
-    VALUE ret = Qnil;
-
-    if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
-      state->interrupt_with_signal();
-    } else {
-      state->wait_on_custom_function(env->state(), ubf, ubf_data);
-    }
-    LEAVE_CAPI(env->state());
-    {
-      UnmanagedPhase unmanaged(env->state());
-      ret = (*func)(data);
-    }
-    ENTER_CAPI(env->state());
-    state->clear_waiter();
-
-    return ret;
-  }
-
-  // THAR BE MORE DRAGONS.
-  //
-  // When venturing through the valleys of the unmanaged, our hero must
-  // remain vigilant and disciplined! If she should ever find a VALUE for
-  // a reference in her travels: Look away! For these VALUEs are pure
-  // death! Our hero must steel herself and continue on her quest, returning
-  // as soon as possible to the castle of the managed.
   void* rb_thread_call_without_gvl(void *(*func)(void *data), void* data1,
                                   rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -190,13 +154,6 @@ extern "C" {
     return ret;
   }
 
-  // THAR BE EVEN MORE DRAGONS.
-  //
-  // When venturing through the valleys of the unmanaged, our hero must
-  // remain vigilant and disciplined! If she should ever find a VALUE for
-  // a reference in her travels: Look away! For these VALUEs are pure
-  // death! Our hero must steel herself and continue on her quest, returning
-  // as soon as possible to the castle of the managed.
   void* rb_thread_call_without_gvl2(void *(*func)(void *data), void* data1,
                                    rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

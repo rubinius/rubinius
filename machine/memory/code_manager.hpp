@@ -3,9 +3,8 @@
 
 #include "diagnostics.hpp"
 
-#include "util/thread.hpp"
-
 #include <stdint.h>
+#include <mutex>
 
 namespace rubinius {
 namespace memory {
@@ -48,7 +47,7 @@ namespace memory {
       ~Chunk();
     };
 
-    utilities::thread::Mutex mutex_;
+    std::mutex mutex_;
 
     int chunk_size_;
     Chunk* first_chunk_;

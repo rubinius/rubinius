@@ -1,6 +1,6 @@
 #include "instructions.hpp"
 
-#include <ostream>
+#include <sstream>
 
 namespace rubinius {
   namespace instructions {

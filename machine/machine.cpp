@@ -248,7 +248,7 @@ namespace rubinius {
 
         machine_state()->loader()->send(state, state->symbol("main"));
 
-        if(state->unwind_state()->raise_reason() == cExit) {
+        if(state->unwind_state()->raise_reason() == cSystemExit) {
           halt(state, state->unwind_state()->raise_value());
         }
       });
@@ -299,10 +299,10 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(ThreadState* vm = (*i)) {
-        Thread *thread = vm->thread();
-        if(vm->kind() == ThreadState::eThread
-            &&!thread->nil_p() && CBOOL(thread->alive())) {
+      if(ThreadState* thread_state = *i) {
+        Thread *thread = thread_state->thread();
+        if(thread_state->kind() == ThreadState::eThread
+            &&!thread->nil_p() && !thread->thread_state()->zombie_p()) {
           threads->append(state, thread);
         }
       }
@@ -320,10 +320,10 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(ThreadState* vm = (*i)) {
-        Thread *thread = vm->thread();
-        if(vm->kind() == ThreadState::eThread
-            &&!thread->nil_p() && CBOOL(thread->alive())) {
+      if(ThreadState* thread_state = *i) {
+        Thread *thread = thread_state->thread();
+        if(thread_state->kind() == ThreadState::eThread
+            &&!thread->nil_p() && !thread->thread_state()->zombie_p()) {
           count++;
         }
       }
@@ -341,11 +341,11 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(ThreadState* vm = (*i)) {
-        if(vm->kind() == ThreadState::eFiber
-            && !vm->fiber()->nil_p()
-            && vm->fiber()->status() != Fiber::eDead) {
-          fibers->append(state, vm->fiber());
+      if(ThreadState* thread_state = *i) {
+        if(thread_state->kind() == ThreadState::eFiber
+            && !thread_state->fiber()->nil_p()
+            && thread_state->fiber()->status() != Fiber::eDead) {
+          fibers->append(state, thread_state->fiber());
         }
       }
     }
@@ -362,10 +362,10 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(ThreadState* vm = (*i)) {
-        if(vm->kind() == ThreadState::eFiber
-            && !vm->fiber()->nil_p()
-            && vm->fiber()->status() != Fiber::eDead) {
+      if(ThreadState* thread_state = *i) {
+        if(thread_state->kind() == ThreadState::eFiber
+            && !thread_state->fiber()->nil_p()
+            && thread_state->fiber()->status() != Fiber::eDead) {
           count++;
         }
       }
@@ -383,12 +383,12 @@ namespace rubinius {
         i != thread_nexus()->threads()->end();
         ++i)
     {
-      if(ThreadState* vm = (*i)) {
-        if(vm->kind() == ThreadState::eFiber
-            && !vm->fiber()->nil_p()
-            && vm->fiber()->status() != Fiber::eDead
-            && vm->fiber()->thread() == thread) {
-          f(state, vm->fiber());
+      if(ThreadState* thread_state = *i) {
+        if(thread_state->kind() == ThreadState::eFiber
+            && !thread_state->fiber()->nil_p()
+            && thread_state->fiber()->status() != Fiber::eDead
+            && thread_state->fiber()->thread() == thread) {
+          f(state, thread_state->fiber());
         }
       }
     }
@@ -536,6 +536,9 @@ namespace rubinius {
   int Machine::halt(STATE, int exit_code) {
     machine_state()->exit_code(exit_code);
 
+    // TODO: Machine, ensure everything checkpoints or defers on halting
+    state->managed_phase(state);
+
     machine_state()->set_halting();
 
     if(configuration()->log_lifetime.value) {
@@ -551,12 +554,12 @@ namespace rubinius {
     halt_debugger(state);
     halt_compiler(state);
     halt_c_api(state);
-    halt_collector(state);
     halt_signals(state);
-    halt_codedb(state);
 
     thread_nexus()->halt(state, state);
 
+    halt_collector(state);
+    halt_codedb(state);
     halt_memory(state);
     halt_diagnostics(state);
     halt_thread_nexus(state);

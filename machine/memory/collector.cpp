@@ -41,7 +41,7 @@ namespace rubinius {
     void NativeFinalizer::dispose(STATE) {
       // TODO: consider building this on the TypeInfo structure.
       if(Fiber* fiber = try_as<Fiber>(object())) {
-        if(!fiber->vm()->zombie_p()) fiber->cancel(state);
+        if(!fiber->thread_state()->zombie_p()) fiber->cancel(state);
       }
     }
 
@@ -221,7 +221,7 @@ namespace rubinius {
 
         logger::info("collector: stop initiated, waiting for all threads to checkpoint");
 
-        state->thread_nexus()->wait_for_all(state, state);
+        state->thread_nexus()->wait_for_all(state);
 
 #ifdef RBX_GC_STACK_CHECK
         state->thread_nexus()->check_stack(state, state);
@@ -272,7 +272,7 @@ namespace rubinius {
     }
 
     void Collector::Worker::initialize(STATE) {
-      Thread::create(state, vm());
+      Thread::create(state, thread_state());
     }
 
     void Collector::Worker::wakeup(STATE) {
@@ -333,8 +333,6 @@ namespace rubinius {
       collector_->worker_exited(state);
 
       logger::info("collector: worker thread exited");
-
-      state->thread()->vm()->set_zombie(state);
     }
 
     void Collector::dispose(STATE) {

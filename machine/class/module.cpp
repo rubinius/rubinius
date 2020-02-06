@@ -21,7 +21,7 @@
 #include "class/weakref.hpp"
 
 #include <string>
-#include <ostream>
+#include <sstream>
 
 namespace rubinius {
   void Module::bootstrap(STATE) {

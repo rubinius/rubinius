@@ -38,7 +38,7 @@ namespace rubinius {
     scope->number_of_locals(mcode->number_of_locals);
     scope->isolated(0);
     scope->flags(call_frame->flags);
-    scope->_lock_.init();
+    new(&scope->_lock_) locks::spinlock_mutex;
 
     if(!full) {
       scope->isolated(1);

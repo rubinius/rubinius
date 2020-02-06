@@ -5,8 +5,11 @@
 #include "thread_state.hpp"
 #include "thread_nexus.hpp"
 #include "memory.hpp"
+#include "spinlock.hpp"
 
 #include "memory/collector.hpp"
+
+#include <mutex>
 
 namespace rubinius {
   /**
@@ -94,8 +97,8 @@ namespace rubinius {
     }
   };
 
-  typedef LockWaiting<utilities::thread::Mutex> MutexLockWaiting;
-  typedef LockWaiting<utilities::thread::SpinLock> SpinLockWaiting;
+  typedef LockWaiting<std::mutex> MutexLockWaiting;
+  typedef LockWaiting<locks::spinlock_mutex> SpinLockWaiting;
 }
 
 #endif

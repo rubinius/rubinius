@@ -60,7 +60,7 @@ namespace rubinius {
         }
         break;
 
-      case cExit:
+      case cSystemExit:
         call_frame->scope->flush_to_heap(state);
         break;
       case cFiberCancel:

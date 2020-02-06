@@ -10,6 +10,8 @@
 #include "class/tuple.hpp"
 #include "class/thread.hpp"
 
+#include <mutex>
+
 #define CONSTANT_TABLE_MAX_DENSITY 0.75
 #define CONSTANT_TABLE_MIN_DENSITY 0.3
 
@@ -47,12 +49,12 @@ namespace rubinius {
   ConstantTable* ConstantTable::allocate(STATE, Object* self) {
     ConstantTable* tbl = create(state);
     tbl->klass(state, as<Class>(self));
-    tbl->lock_.init();
+    new(&tbl->lock_) locks::spinlock_mutex;
     return tbl;
   }
 
   ConstantTable* ConstantTable::duplicate(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     intptr_t size = bins()->to_native();
     ConstantTable* dup = ConstantTable::create(state, size);
@@ -116,7 +118,7 @@ namespace rubinius {
   Object* ConstantTable::store(STATE, Symbol* name, Object* constant, Symbol* vis) {
     check_frozen(state);
 
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     Tuple* values = table_values(state);
 
@@ -155,7 +157,7 @@ namespace rubinius {
   }
 
   ConstantTableBucket* ConstantTable::find_entry(STATE, Symbol* name) {
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     if(bins()->to_native() == 0) return 0;
 
@@ -184,7 +186,7 @@ namespace rubinius {
   Object* ConstantTable::remove(STATE, Symbol* name) {
     check_frozen(state);
 
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     intptr_t num_entries = entries()->to_native();
     intptr_t num_bins = bins()->to_native();
@@ -227,7 +229,7 @@ namespace rubinius {
   }
 
   Array* ConstantTable::all_keys(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     Array* ary = Array::create(state, entries()->to_native());
 

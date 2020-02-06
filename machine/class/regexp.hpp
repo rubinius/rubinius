@@ -2,6 +2,7 @@
 #define RBX_REGEXP_HPP
 
 #include "object_utils.hpp"
+#include "spinlock.hpp"
 
 #include "class/lookup_table.hpp"
 #include "class/object.hpp"
@@ -66,7 +67,7 @@ namespace rubinius {
 
   private:
     regex_t* onig_data[cCachedOnigDatas];
-    utilities::thread::SpinLock lock_;
+    locks::spinlock_mutex lock_;
 
     attr_field(fixed_encoding, bool);
     attr_field(no_encoding, bool);
@@ -81,7 +82,7 @@ namespace rubinius {
         obj->onig_data[i] = NULL;
       }
 
-      obj->lock_.init();
+      new(&obj->lock_) locks::spinlock_mutex;
       obj->fixed_encoding(false);
       obj->no_encoding(false);
     }

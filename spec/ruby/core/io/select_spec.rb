@@ -101,12 +101,4 @@ describe "IO.select when passed nil for timeout" do
 
     t.status.should == :killed
   end
-
-  it "sets the thread's status to 'sleep'" do
-    t = ThreadRunner.new do
-      IO.select(nil, nil, nil, nil)
-    end
-
-    t.thread_status.should == "sleep"
-  end
 end

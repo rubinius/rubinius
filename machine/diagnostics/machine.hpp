@@ -180,13 +180,14 @@ namespace rubinius {
         document_["fibers_destroyed"] = fibers_destroyed;
       }
 
-      void set_thread_info(ThreadState* vm) {
+      void set_thread_info(ThreadState* thread_state) {
         rapidjson::Document::AllocatorType& alloc = document_.GetAllocator();
 
         document_["metadata"].AddMember("thread_name",
-            rapidjson::Value(vm->name().c_str(), vm->name().size(), alloc).Move(), alloc);
+            rapidjson::Value(thread_state->name().c_str(),
+              thread_state->name().size(), alloc).Move(), alloc);
         document_["metadata"].AddMember("thread_id",
-            rapidjson::Value().SetInt(vm->thread_id()).Move(), alloc);
+            rapidjson::Value().SetInt(thread_state->thread_id()).Move(), alloc);
       }
 
       virtual void start_reporting(STATE) {

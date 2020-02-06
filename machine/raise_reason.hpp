@@ -7,7 +7,7 @@ namespace rubinius {
     cException,
     cReturn,
     cBreak,
-    cExit,
+    cSystemExit,
     cCatchThrow,
     cThreadKill,
     cFiberCancel,

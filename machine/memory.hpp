@@ -19,9 +19,6 @@
 
 #include "diagnostics.hpp"
 
-#include "util/atomic.hpp"
-#include "util/thread.hpp"
-
 #include "thread_state.hpp"
 
 #include <atomic>
@@ -86,7 +83,7 @@ namespace rubinius {
 
   class Memory {
   private:
-    utilities::thread::SpinLock allocation_lock_;
+    locks::spinlock_mutex allocation_lock_;
 
     /// Garbage collector for CodeResource objects.
     memory::CodeManager code_manager_;
@@ -106,9 +103,9 @@ namespace rubinius {
 
     std::recursive_mutex codedb_lock_;
 
-    utilities::thread::SpinLock wait_lock_;
-    utilities::thread::SpinLock type_info_lock_;
-    utilities::thread::SpinLock code_resource_lock_;
+    locks::spinlock_mutex wait_lock_;
+    locks::spinlock_mutex type_info_lock_;
+    locks::spinlock_mutex code_resource_lock_;
 
   public:
     /// Counter used for issuing object ids when #object_id is called on a
@@ -133,7 +130,7 @@ namespace rubinius {
       cycle_++;
     }
 
-    utilities::thread::SpinLock& allocation_lock() {
+    locks::spinlock_mutex& allocation_lock() {
       return allocation_lock_;
     }
 
@@ -153,15 +150,15 @@ namespace rubinius {
       return codedb_lock_;
     }
 
-    utilities::thread::SpinLock& wait_lock() {
+    locks::spinlock_mutex& wait_lock() {
       return wait_lock_;
     }
 
-    utilities::thread::SpinLock& type_info_lock() {
+    locks::spinlock_mutex& type_info_lock() {
       return type_info_lock_;
     }
 
-    utilities::thread::SpinLock& code_resource_lock() {
+    locks::spinlock_mutex& code_resource_lock() {
       return code_resource_lock_;
     }
 

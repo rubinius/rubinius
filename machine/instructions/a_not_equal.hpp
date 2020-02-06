@@ -1,5 +1,7 @@
 #include "instructions.hpp"
 
+#include <sstream>
+
 namespace rubinius {
   namespace instructions {
     inline void a_not_equal(STATE, CF, R0, R1) {

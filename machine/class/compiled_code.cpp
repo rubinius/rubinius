@@ -33,7 +33,7 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <ostream>
+#include <sstream>
 
 
 namespace rubinius {

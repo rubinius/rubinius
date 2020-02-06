@@ -26,8 +26,6 @@
 #include "on_stack.hpp"
 #include "ontology.hpp"
 
-#include "util/spinlock.hpp"
-
 #include <sstream>
 #include <unistd.h>
 #include <fcntl.h>

@@ -18,9 +18,9 @@ namespace rubinius {
 
   void C_API::after_fork_child(STATE) {
     // Reinit the locks for this object
-    capi_ds_lock_.init();
-    capi_locks_lock_.init();
-    capi_constant_lock_.init();
+    new(&capi_ds_lock_) locks::spinlock_mutex;
+    new(&capi_locks_lock_) locks::spinlock_mutex;
+    new(&capi_constant_lock_) locks::spinlock_mutex;
   }
 
   void C_API::enter_capi(STATE, const char* file, int line) {
@@ -38,7 +38,8 @@ namespace rubinius {
   }
 
   int C_API::capi_lock_index(std::string name) {
-    utilities::thread::SpinLock::LockGuard guard(capi_locks_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(capi_locks_lock_);
+
     int existing = capi_lock_map_[name];
     if(existing) return existing;
 
@@ -51,7 +52,7 @@ namespace rubinius {
       return 0;
     }
 
-    utilities::thread::Mutex* lock = new utilities::thread::Mutex(true);
+    std::mutex* lock = new std::mutex;
     capi_locks_.push_back(lock);
 
     // We use a 1 offset index, so 0 can indicate no lock used

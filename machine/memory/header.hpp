@@ -18,8 +18,6 @@
 #include "detection.hpp"
 #include "bug.hpp"
 
-#include "util/thread.hpp"
-
 #ifdef VALUE
 #undef VALUE
 #endif

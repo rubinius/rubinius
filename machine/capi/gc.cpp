@@ -1,5 +1,4 @@
 #include "class/object.hpp"
-#include "util/thread.hpp"
 #include "memory.hpp"
 
 #include "capi/capi.hpp"
@@ -8,17 +7,16 @@
 using namespace rubinius;
 using namespace rubinius::capi;
 
-
-static utilities::thread::ThreadData<memory::CAPITracer*> _capi_tracer;
-
 namespace rubinius {
+  static thread_local memory::CAPITracer* _capi_tracer = nullptr;
+
   namespace capi {
     void set_tracer(memory::CAPITracer* tracer) {
-      _capi_tracer.set(tracer);
+      _capi_tracer = tracer;
     }
 
     memory::CAPITracer* get_tracer() {
-      return _capi_tracer.get();
+      return _capi_tracer;
     }
   }
 }

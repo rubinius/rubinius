@@ -3,6 +3,8 @@
 #include "memory/immix.hpp"
 #include "memory/thca.hpp"
 
+#include <mutex>
+
 namespace rubinius {
   namespace memory {
     size_t OpenTHCA::region_size = 16384;
@@ -17,7 +19,7 @@ namespace rubinius {
       state->set_checkpoint();
 
       {
-        utilities::thread::SpinLock::LockGuard guard(state->memory()->allocation_lock());
+        std::lock_guard<locks::spinlock_mutex> guard(state->memory()->allocation_lock());
 
         region = state->memory()->main_heap()->first_region()->allocate_region(
             state, region_size, &available_);

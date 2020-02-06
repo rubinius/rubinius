@@ -9,6 +9,8 @@
 #include "class/tuple.hpp"
 #include "class/variable_scope.hpp"
 
+#include <mutex>
+
 namespace rubinius {
   void VariableScope::bootstrap(STATE) {
     GO(variable_scope).set(state->memory()->new_class<Class, VariableScope>(
@@ -118,7 +120,7 @@ namespace rubinius {
 
   void VariableScope::set_local(STATE, int pos, Object* val) {
     if(unlikely(locked_p())) {
-      utilities::thread::SpinLock::LockGuard guard(_lock_);
+      std::lock_guard<locks::spinlock_mutex> guard(_lock_);
       set_local_internal(state, pos, val);
     } else {
       set_local_internal(state, pos, val);
@@ -141,7 +143,7 @@ namespace rubinius {
 
   Object* VariableScope::get_local(STATE, int pos) {
     if(unlikely(locked_p())) {
-      utilities::thread::SpinLock::LockGuard guard(_lock_);
+      std::lock_guard<locks::spinlock_mutex> guard(_lock_);
       return get_local_internal(state, pos);
     } else {
       return get_local_internal(state, pos);
@@ -177,7 +179,7 @@ namespace rubinius {
 
   void VariableScope::flush_to_heap(STATE) {
     if(unlikely(locked_p())) {
-      utilities::thread::SpinLock::LockGuard guard(_lock_);
+      std::lock_guard<locks::spinlock_mutex> guard(_lock_);
       flush_to_heap_internal(state);
       _flags_ &= ~CallFrame::cScopeLocked;
     } else {

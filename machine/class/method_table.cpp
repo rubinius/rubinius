@@ -13,6 +13,8 @@
 #include "class/symbol.hpp"
 #include "class/tuple.hpp"
 
+#include <mutex>
+
 #define METHODTABLE_MAX_DENSITY 0.75
 #define METHODTABLE_MIN_DENSITY 0.3
 
@@ -50,7 +52,7 @@ namespace rubinius {
   MethodTable* MethodTable::allocate(STATE, Object* self) {
     MethodTable* tbl = create(state, METHODTABLE_MIN_SIZE);
     tbl->klass(state, as<Class>(self));
-    tbl->lock_.init();
+    new(&tbl->lock_) locks::spinlock_mutex;
     return tbl;
   }
 
@@ -58,7 +60,7 @@ namespace rubinius {
     size_t size, i;
     MethodTable* dup = 0;
 
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     size = bins()->to_native();
     dup = MethodTable::create(state, size);
@@ -113,7 +115,7 @@ namespace rubinius {
   {
     check_frozen(state);
 
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     if(!method->nil_p()) {
       if(Alias* stored_alias = try_as<Alias>(method)) {
@@ -176,7 +178,7 @@ namespace rubinius {
   {
     check_frozen(state);
 
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     Executable* orig_exec;
 
@@ -236,7 +238,7 @@ namespace rubinius {
 
   MethodTableBucket* MethodTable::find_entry(STATE, Symbol* name) {
     unsigned int bin;
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     bin = find_bin(key_hash(name), bins()->to_native());
     MethodTableBucket *entry = try_as<MethodTableBucket>(values()->at(state, bin));
@@ -253,7 +255,7 @@ namespace rubinius {
 
   MethodTableBucket* MethodTable::find_entry(Symbol* name) {
     unsigned int bin;
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     bin = find_bin(key_hash(name), bins()->to_native());
     MethodTableBucket *entry = try_as<MethodTableBucket>(values()->at(bin));
@@ -279,7 +281,7 @@ namespace rubinius {
   Object* MethodTable::remove(STATE, Symbol* name) {
     check_frozen(state);
 
-    utilities::thread::SpinLock::LockGuard lg(lock_);
+    std::lock_guard<locks::spinlock_mutex> lg(lock_);
 
     intptr_t num_entries = entries()->to_native();
     intptr_t num_bins = bins()->to_native();

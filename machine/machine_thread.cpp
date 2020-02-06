@@ -10,21 +10,19 @@
 #include "logger.hpp"
 
 namespace rubinius {
-  using namespace utilities;
-
   MachineThread::MachineThread(STATE, std::string name, StackSize stack_size)
-    : vm_(state->thread_nexus()->thread_state(state->machine(), name.c_str()))
+    : thread_state_(state->thread_nexus()->create_thread_state(state->machine(), name.c_str()))
     , stack_size_(stack_size)
     , thread_running_(false)
     , thread_exit_(false)
   {
-    vm_->set_kind(ThreadState::eSystem);
+    thread_state_->set_kind(ThreadState::eSystem);
   }
 
   void* MachineThread::run(void* ptr) {
     MachineThread* thread = reinterpret_cast<MachineThread*>(ptr);
 
-    ThreadState* state = thread->vm();
+    ThreadState* state = thread->thread_state();
 
     state->set_current_thread();
 
@@ -46,10 +44,13 @@ namespace rubinius {
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
 
-    state->set_call_frame(NULL);
+    state->set_call_frame(nullptr);
     state->unmanaged_phase(state);
 
-    state->set_zombie(state);
+    // There's no way to retain a reference to this, so discard immediately.
+    state->machine()->thread_nexus()->remove_thread_state(state);
+    state->set_thread_dead();
+    state->discard();
 
     return 0;
   }
@@ -69,9 +70,10 @@ namespace rubinius {
     pthread_attr_init(&attrs);
     pthread_attr_setstacksize(&attrs, stack_size_);
 
-    if(int error = pthread_create(&vm_->os_thread(), &attrs,
+    if(int error = pthread_create(&thread_state_->os_thread(), &attrs,
           MachineThread::run, (void*)this)) {
-      logger::fatal("%s: %s: create thread failed", strerror(error), vm_->name().c_str());
+      logger::fatal("%s: %s: create thread failed",
+          strerror(error), thread_state_->name().c_str());
       ::abort();
     }
 
@@ -80,7 +82,6 @@ namespace rubinius {
 
   void MachineThread::wakeup(STATE) {
     thread_exit_ = true;
-    atomic::memory_barrier();
   }
 
   void MachineThread::stop_thread(STATE) {
@@ -89,17 +90,17 @@ namespace rubinius {
     wakeup(state);
 
     void* return_value;
-    pthread_t os = vm_->os_thread();
+    pthread_t os = thread_state_->os_thread();
     pthread_join(os, &return_value);
   }
 
   void MachineThread::stop(STATE) {
     stop_thread(state);
-    ThreadState::discard(state, vm_);
+    thread_state_->discard();
   }
 
   void MachineThread::after_fork_child(STATE) {
-    vm_ = state->thread_nexus()->thread_state(state->machine());
+    thread_state_ = state->thread_nexus()->create_thread_state(state->machine());
     start(state);
   }
 }

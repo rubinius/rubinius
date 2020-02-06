@@ -6,10 +6,9 @@
 
 #include "class/native_method.hpp"
 
-#include "util/thread.hpp"
-
 #include "capi/capi_constants.h"
 
+#include <mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -18,7 +17,7 @@ namespace rubinius {
   class C_API {
   public:
     typedef std::unordered_set<std::string> CApiBlackList;
-    typedef std::vector<utilities::thread::Mutex*> CApiLocks;
+    typedef std::vector<std::mutex*> CApiLocks;
     typedef std::unordered_map<std::string, int> CApiLockMap;
 
     typedef std::vector<std::string> CApiConstantNameMap;
@@ -33,9 +32,9 @@ namespace rubinius {
 
     bool use_capi_lock_;
 
-    utilities::thread::SpinLock capi_ds_lock_;
-    utilities::thread::SpinLock capi_locks_lock_;
-    utilities::thread::SpinLock capi_constant_lock_;
+    locks::spinlock_mutex capi_ds_lock_;
+    locks::spinlock_mutex capi_locks_lock_;
+    locks::spinlock_mutex capi_constant_lock_;
 
   public:
     C_API();
@@ -47,11 +46,11 @@ namespace rubinius {
       use_capi_lock_ = s;
     }
 
-    utilities::thread::SpinLock& capi_ds_lock() {
+    locks::spinlock_mutex& capi_ds_lock() {
       return capi_ds_lock_;
     }
 
-    utilities::thread::SpinLock& capi_constant_lock() {
+    locks::spinlock_mutex& capi_constant_lock() {
       return capi_constant_lock_;
     }
 

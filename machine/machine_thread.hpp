@@ -3,8 +3,6 @@
 
 #include "defines.hpp"
 
-#include "util/thread.hpp"
-
 #include <atomic>
 #include <string>
 #include <list>
@@ -14,7 +12,7 @@ namespace rubinius {
   class ThreadState;
 
   class MachineThread {
-    ThreadState* vm_;
+    ThreadState* thread_state_;
     uint32_t stack_size_;
 
   protected:
@@ -43,8 +41,8 @@ namespace rubinius {
     virtual void run(STATE) { };
 
     // Object interface
-    ThreadState* vm() {
-      return vm_;
+    ThreadState* thread_state() {
+      return thread_state_;
     }
 
     bool thread_running_p() {

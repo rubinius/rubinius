@@ -1,6 +1,10 @@
 #ifndef RBX_ALLOCATOR_H
 #define RBX_ALLOCATOR_H
 
+include "spinlock.hpp"
+
+#include <mutex>
+
 namespace rubinius {
 namespace memory {
 
@@ -12,7 +16,7 @@ namespace memory {
     uintptr_t free_list_;
     size_t allocations_;
     size_t in_use_;
-    utilities::thread::SpinLock lock_;
+    locks::spinlock_mutex lock_;
 
     static const size_t cChunkSize = 1024;
     static const size_t cChunkLimit = 128;
@@ -21,8 +25,8 @@ namespace memory {
       : free_list_((uintptr_t)-1)
       , allocations_(0)
       , in_use_(0)
+      , lock_()
     {
-      lock_.init();
     }
 
     ~Allocator() {
@@ -52,7 +56,7 @@ namespace memory {
     }
 
     T* allocate(bool* needs_gc) {
-      utilities::thread::SpinLock::LockGuard lg(lock_);
+      std::lock_guard<locks::spinlock_mutex> lg(lock_);
       if(free_list_ == (uintptr_t)-1) allocate_chunk(needs_gc);
       T* t = from_index(free_list_);
       free_list_ = t->next();
@@ -64,7 +68,7 @@ namespace memory {
     }
 
     uintptr_t allocate_index(bool* needs_gc) {
-      utilities::thread::SpinLock::LockGuard lg(lock_);
+      std::lock_guard<locks::spinlock_mutex> lg(lock_);
       if(free_list_ == (uintptr_t)-1) allocate_chunk(needs_gc);
 
       uintptr_t current_index = free_list_;

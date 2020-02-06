@@ -25,7 +25,7 @@
 
 #include "missing/gettid.h"
 
-#include <ostream>
+#include <sstream>
 #include <regex>
 #include <string>
 
@@ -39,11 +39,11 @@ namespace rubinius {
   }
 
   bool Fiber::root_p() {
-    return vm()->fiber()->vm() == vm()->thread()->vm();
+    return thread_state()->fiber()->thread_state() == thread_state()->thread()->thread_state();
   }
 
   bool Fiber::canceled_p(STATE) {
-    return !root_p() && vm()->unwind_state()->raise_reason() == cFiberCancel;
+    return !root_p() && thread_state()->unwind_state()->raise_reason() == cFiberCancel;
   }
 
   void Fiber::unpack_arguments(STATE, Arguments& args) {
@@ -68,8 +68,8 @@ namespace rubinius {
     pthread_attr_setstacksize(&attrs, stack_size()->to_native());
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
-    int status = pthread_create(&vm()->os_thread(), &attrs,
-        Fiber::run, (void*)vm());
+    int status = pthread_create(&thread_state()->os_thread(), &attrs,
+        Fiber::run, (void*)thread_state());
 
     pthread_attr_destroy(&attrs);
 
@@ -80,7 +80,7 @@ namespace rubinius {
     }
 
     // Wait for Fiber thread to start up and pause.
-    while(!vm()->suspended_p()) {
+    while(!thread_state()->suspended_p()) {
       ; // spin wait
     }
   }
@@ -89,12 +89,12 @@ namespace rubinius {
     UnmanagedPhase unmanaged(state);
 
     {
-      std::lock_guard<std::mutex> guard(state->thread()->fiber_mutex());
+      std::lock_guard<std::mutex> guard(state->thread()->thread_state()->fiber_mutex());
 
-      if(!vm()->suspended_p()) {
+      if(!thread_state()->suspended_p()) {
         std::ostringstream msg;
         msg << "attempt to restart non-suspended ("
-          << vm()->fiber_transition_flag() << ") fiber";
+          << thread_state()->fiber_transition_flag() << ") fiber";
         Exception::raise_fiber_error(state, msg.str().c_str());
       }
 
@@ -103,26 +103,26 @@ namespace rubinius {
       restart_context(state);
       wakeup();
 
-      while(vm()->suspended_p()) {
-        std::lock_guard<std::mutex> guard(vm()->fiber_wait_mutex());
-        vm()->fiber_wait_condition().notify_one();
+      while(thread_state()->suspended_p()) {
+        std::lock_guard<std::mutex> guard(thread_state()->fiber_wait_mutex());
+        thread_state()->fiber_wait_condition().notify_one();
       }
     }
 
-    while(!vm()->running_p()) {
+    while(!thread_state()->running_p()) {
       ; // spin wait
     }
   }
 
   void Fiber::cancel(STATE) {
-    if(!vm()->zombie_p()) {
-      vm()->unwind_state()->raise_fiber_cancel();
+    if(!thread_state()->zombie_p()) {
+      thread_state()->unwind_state()->raise_fiber_cancel();
 
       wakeup();
 
-      while(vm()->suspended_p()) {
-        std::lock_guard<std::mutex> guard(vm()->fiber_wait_mutex());
-        vm()->fiber_wait_condition().notify_one();
+      while(thread_state()->suspended_p()) {
+        std::lock_guard<std::mutex> guard(thread_state()->fiber_wait_mutex());
+        thread_state()->fiber_wait_condition().notify_one();
       }
     }
   }
@@ -131,20 +131,20 @@ namespace rubinius {
     UnmanagedPhase unmanaged(state);
 
     {
-      std::unique_lock<std::mutex> lk(vm()->fiber_wait_mutex());
+      std::unique_lock<std::mutex> lk(thread_state()->fiber_wait_mutex());
 
-      vm()->set_suspended();
+      thread_state()->set_suspended();
       while(!wakeup_p()) {
-        vm()->fiber_wait_condition().wait(lk);
+        thread_state()->fiber_wait_condition().wait(lk);
       }
       clear_wakeup();
-      vm()->set_resuming();
+      thread_state()->set_resuming();
     }
 
-    if(!vm()->canceled_p()) {
-      std::lock_guard<std::mutex> guard(state->thread()->fiber_mutex());
+    if(!thread_state()->canceled_p()) {
+      std::lock_guard<std::mutex> guard(state->thread()->thread_state()->fiber_mutex());
 
-      vm()->set_running();
+      thread_state()->set_running();
 
       while(!restart_context()->suspended_p()) {
         ; // spin wait
@@ -155,14 +155,14 @@ namespace rubinius {
   }
 
   Object* Fiber::return_value(STATE) {
-    if(vm()->thread()->nil_p()) {
+    if(thread_state()->thread()->nil_p()) {
       return value();
-    } else if(vm()->unwind_state()->raise_reason() == cNone) {
+    } else if(thread_state()->unwind_state()->raise_reason() == cNone) {
       return state->thread()->fiber_value();
     } else if(canceled_p(state)) {
       return nullptr;
     } else {
-      invoke_context()->unwind_state()->set_state(vm()->unwind_state());
+      invoke_context()->unwind_state()->set_state(thread_state()->unwind_state());
       return nullptr;
     }
   }
@@ -227,7 +227,8 @@ namespace rubinius {
       logger::write("fiber: exit: %s %fs", state->name().c_str(), state->run_time());
     }
 
-    state->set_zombie(state);
+    state->machine()->thread_nexus()->remove_thread_state(state);
+    state->set_thread_dead();
 
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(
@@ -243,21 +244,21 @@ namespace rubinius {
   /* This creates the pseudo-Fiber for the Thread. This provides a uniform
    * means of expressing things like Fiber.current.
    */
-  Fiber* Fiber::create(STATE, ThreadState* vm) {
+  Fiber* Fiber::create(STATE, ThreadState* thread_state) {
     Fiber* fiber = state->memory()->new_object_pinned<Fiber>(state, G(fiber));
 
-    vm->set_fiber(fiber);
-    vm->set_running();
+    thread_state->set_fiber(fiber);
+    thread_state->set_running();
 
-    fiber->vm(vm);
-    fiber->pid(vm->thread()->pid());
-    fiber->stack_size(vm->thread()->stack_size());
-    fiber->thread(vm->thread());
-    fiber->thread_name(state, String::create(state, vm->name().c_str()));
+    fiber->thread_state(thread_state);
+    fiber->pid(thread_state->thread()->pid());
+    fiber->stack_size(thread_state->thread()->stack_size());
+    fiber->thread(thread_state->thread());
+    fiber->thread_name(state, String::create(state, thread_state->name().c_str()));
     fiber->fiber_id(Fixnum::from(0));
-    fiber->source(state, vm->thread()->source());
+    fiber->source(state, thread_state->thread()->source());
     fiber->status(eRunning);
-    fiber->invoke_context(vm);
+    fiber->invoke_context(thread_state);
 
     return fiber;
   }
@@ -269,18 +270,18 @@ namespace rubinius {
     std::ostringstream name;
     name << "fiber." << fiber->fiber_id()->to_native();
 
-    fiber->vm(state->thread_nexus()->thread_state(state->machine(), name.str().c_str()));
+    fiber->thread_state(state->thread_nexus()->create_thread_state(state->machine(), name.str().c_str()));
 
-    fiber->vm()->set_kind(ThreadState::eFiber);
-    fiber->vm()->set_suspending();
+    fiber->thread_state()->set_kind(ThreadState::eFiber);
+    fiber->thread_state()->set_suspending();
 
     if(Fixnum* size = try_as<Fixnum>(stack_size)) {
-      fiber->vm()->validate_stack_size(state, size->to_native());
+      fiber->thread_state()->validate_stack_size(state, size->to_native());
       fiber->stack_size(state, size);
     }
 
-    fiber->vm()->set_thread(state->thread());
-    fiber->vm()->set_fiber(fiber);
+    fiber->thread_state()->set_thread(state->thread());
+    fiber->thread_state()->set_fiber(fiber);
 
     fiber->thread(state->thread());
     fiber->thread_name(state, String::create(state, state->name().c_str()));
@@ -337,7 +338,7 @@ namespace rubinius {
 
   Object* Fiber::resume(STATE, Arguments& args) {
     {
-      std::lock_guard<std::mutex> guard(state->thread()->fiber_mutex());
+      std::lock_guard<std::mutex> guard(state->thread()->thread_state()->fiber_mutex());
 
       if(state->thread() != thread()) {
         Exception::raise_fiber_error(state, "attempt to resume fiber across threads");
@@ -373,7 +374,7 @@ namespace rubinius {
 
   Object* Fiber::transfer(STATE, Arguments& args) {
     {
-      std::lock_guard<std::mutex> guard(state->thread()->fiber_mutex());
+      std::lock_guard<std::mutex> guard(state->thread()->thread_state()->fiber_mutex());
 
       if(state->thread() != thread()) {
         std::ostringstream msg;
@@ -428,7 +429,7 @@ namespace rubinius {
     OnStack<2> os(state, fiber, unwind_state);
 
     {
-      std::lock_guard<std::mutex> guard(state->thread()->fiber_mutex());
+      std::lock_guard<std::mutex> guard(state->thread()->thread_state()->fiber_mutex());
 
       if(fiber->root_p()) {
         Exception::raise_fiber_error(state, "can't yield from root fiber");
@@ -475,16 +476,16 @@ namespace rubinius {
           fiber->thread_name()->c_str(state), fiber->fiber_id()->to_native());
     }
 
-    if(fiber->vm()) {
+    if(fiber->thread_state()) {
       if(!state->machine()->machine_state()->halting_p()) {
-        if(!fiber->vm()->zombie_p()) {
+        if(!fiber->thread_state()->zombie_p()) {
           fiber->cancel(state);
         }
       }
 
-      if(fiber->vm()->zombie_p()) {
-        ThreadState::discard(state, fiber->vm());
-        fiber->vm(nullptr);
+      if(fiber->thread_state()->zombie_p()) {
+        fiber->thread_state()->discard();
+        fiber->thread_state(nullptr);
       } else {
         logger::write("fiber: finalizer: fiber not completed: %s, %d",
             fiber->thread_name()->c_str(state), fiber->fiber_id()->to_native());

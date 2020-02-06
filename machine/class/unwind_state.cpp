@@ -79,7 +79,7 @@ namespace rubinius {
   }
 
   void UnwindState::raise_exit(Object* code) {
-    raise_reason(cExit);
+    raise_reason(cSystemExit);
     raise_value(code);
     destination_scope(nil<VariableScope>());
   }

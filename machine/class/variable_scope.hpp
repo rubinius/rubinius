@@ -3,6 +3,7 @@
 
 #include "call_frame.hpp"
 #include "object_utils.hpp"
+#include "spinlock.hpp"
 
 #include "class/compiled_code.hpp"
 #include "class/fiber.hpp"
@@ -10,8 +11,6 @@
 #include "class/module.hpp"
 #include "class/object.hpp"
 #include "class/variable_scope.hpp"
-
-#include "util/thread.hpp"
 
 namespace rubinius {
 
@@ -46,7 +45,7 @@ namespace rubinius {
     attr_field(isolated, int);
     attr_field(flags, int);
 
-    utilities::thread::SpinLock _lock_;
+    locks::spinlock_mutex _lock_;
 
     static void bootstrap(STATE);
     static void bootstrap_methods(STATE);
@@ -66,7 +65,8 @@ namespace rubinius {
       obj->number_of_locals(0);
       obj->isolated(1);
       obj->flags(0);
-      obj->_lock_.init();;
+
+      new(&obj->_lock_) locks::spinlock_mutex;
     }
 
     bool isolated_p() const {

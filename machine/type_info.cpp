@@ -5,7 +5,7 @@
 #include "class/symbol.hpp"
 #include "field_offset.hpp"
 
-#include <iostream>
+#include <sstream>
 #include <iomanip>
 
 namespace rubinius {

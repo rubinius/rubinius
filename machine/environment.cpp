@@ -82,7 +82,7 @@ namespace rubinius {
     copy_argv(argc, argv);
     ruby_init_setproctitle(argc, argv);
 
-    state = root_vm = _machine_->thread_nexus()->thread_state(_machine_, "ruby.main");
+    state = root_vm = _machine_->thread_nexus()->create_thread_state(_machine_, "ruby.main");
     root_vm->set_main_thread();
 
     size_t stack_size = 0;

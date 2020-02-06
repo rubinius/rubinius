@@ -3,6 +3,7 @@
 
 #include "bug.hpp"
 #include "defines.hpp"
+#include "logger.hpp"
 
 #include <atomic>
 #include <condition_variable>
@@ -14,7 +15,6 @@
 
 namespace rubinius {
   class Machine;
-
   class ThreadState;
 
   typedef std::list<ThreadState*> ThreadList;
@@ -55,7 +55,7 @@ namespace rubinius {
       , thread_ids_(0)
     { }
 
-    ~ThreadNexus() = delete;
+    virtual ~ThreadNexus() { }
 
   public:
     ThreadList* threads() {
@@ -84,31 +84,31 @@ namespace rubinius {
       return halt_.load(std::memory_order_acquire) != 0;
     }
 
-    void set_halt(STATE, ThreadState* vm);
+    void set_halt(STATE, ThreadState* thread_state);
 
-    void managed_phase(STATE, ThreadState* vm);
-    bool try_managed_phase(STATE, ThreadState* vm);
-    void unmanaged_phase(STATE, ThreadState* vm);
-    void waiting_phase(STATE, ThreadState* vm);
+    void managed_phase(STATE, ThreadState* thread_state);
+    bool try_managed_phase(STATE, ThreadState* thread_state);
+    void unmanaged_phase(STATE, ThreadState* thread_state);
+    void waiting_phase(STATE, ThreadState* thread_state);
 
-    void set_managed(STATE, ThreadState* vm);
+    void set_managed(STATE, ThreadState* thread_state);
 
     void each_thread(std::function<void (ThreadState*)> process);
 
     bool valid_thread_p(STATE, unsigned int thread_id);
 
 #ifdef RBX_GC_STACK_CHECK
-    void check_stack(STATE, ThreadState* vm);
+    void check_stack(STATE, ThreadState* thread_state);
 #endif
 
-    bool yielding_p(ThreadState* vm);
+    bool yielding_p(ThreadState* thread_state);
 
-    void yield(STATE, ThreadState* vm) {
+    void yield(STATE, ThreadState* thread_state) {
       while(stop_p()) {
-        waiting_phase(state, vm);
+        waiting_phase(state, thread_state);
 
 #ifdef RBX_GC_STACK_CHECK
-        check_stack(state, vm);
+        check_stack(state, thread_state);
 #endif
 
         if(halt_p()) {
@@ -118,25 +118,25 @@ namespace rubinius {
           waiting_condition_.wait(lock, [this]{ return !stop_p(); });
         }
 
-        managed_phase(state, vm);
+        managed_phase(state, thread_state);
       }
     }
 
     uint64_t wait();
-    void wait_for_all(STATE, ThreadState* vm);
+    void wait_for_all(STATE);
 
-    bool lock_owned_p(ThreadState* vm);
+    bool lock_owned_p(ThreadState* thread_state);
 
-    bool try_lock(ThreadState* vm);
-    bool try_lock_wait(STATE, ThreadState* vm);
+    bool try_lock(ThreadState* thread_state);
+    bool try_lock_wait(STATE, ThreadState* thread_state);
 
-    bool can_stop_p(STATE, ThreadState* vm);
+    bool can_stop_p(STATE, ThreadState* thread_state);
 
-    bool check_stop(STATE, ThreadState* vm) {
-      if(!can_stop_p(state, vm)) return false;
+    bool check_stop(STATE, ThreadState* thread_state) {
+      if(!can_stop_p(state, thread_state)) return false;
 
       while(stop_p()) {
-        yield(state, vm);
+        yield(state, thread_state);
 
         return true;
       }
@@ -144,53 +144,53 @@ namespace rubinius {
       return false;
     }
 
-    void stop(STATE, ThreadState* vm) {
+    void stop(STATE, ThreadState* thread_state) {
       while(set_stop()) {
-        if(try_lock_wait(state, vm)) {
-          wait_for_all(state, vm);
+        if(try_lock_wait(state, thread_state)) {
+          wait_for_all(state);
 
           return;
         }
       }
     }
 
-    void halt(STATE, ThreadState* vm) {
-      set_halt(state, vm);
-      stop(state, vm);
+    void halt(STATE, ThreadState* thread_state) {
+      set_halt(state, thread_state);
+      stop(state, thread_state);
       unset_stop();
-      unlock(state, vm);
+      unlock(state, thread_state);
     }
 
-    void lock(STATE, ThreadState* vm, std::function<void ()> process) {
-      lock(state, vm);
+    void lock(STATE, ThreadState* thread_state, std::function<void ()> process) {
+      lock(state, thread_state);
       process();
-      unlock(state, vm);
+      unlock(state, thread_state);
     }
 
-    void lock(STATE, ThreadState* vm) {
-      try_lock_wait(state, vm);
+    void lock(STATE, ThreadState* thread_state) {
+      try_lock_wait(state, thread_state);
     }
 
-    bool try_lock(STATE, ThreadState* vm, std::function<void ()> process) {
-      if(try_lock(vm)) {
+    bool try_lock(STATE, ThreadState* thread_state, std::function<void ()> process) {
+      if(try_lock(thread_state)) {
         process();
-        unlock(state, vm);
+        unlock(state, thread_state);
         return true;
       } else {
         return false;
       }
     }
 
-    void unlock(STATE, ThreadState* vm);
+    void unlock(STATE, ThreadState* thread_state);
 
     void detect_deadlock(STATE, uint64_t nanoseconds);
-    void detect_deadlock(STATE, uint64_t nanoseconds, ThreadState* vm);
+    void detect_deadlock(STATE, uint64_t nanoseconds, ThreadState* thread_state);
 
     void list_threads();
     void list_threads(logger::PrintFunction function);
 
-    ThreadState* thread_state(Machine* m, const char* name = NULL);
-    void delete_vm(ThreadState* vm);
+    ThreadState* create_thread_state(Machine* m, const char* name = NULL);
+    void remove_thread_state(ThreadState* thread_state);
 
     void after_fork_child(STATE);
   };

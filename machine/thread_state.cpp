@@ -4,8 +4,8 @@
 #include "helpers.hpp"
 #include "machine_code.hpp"
 #include "memory.hpp"
-#include "park.hpp"
 #include "signals.hpp"
+#include "thread_phase.hpp"
 #include "thread_state.hpp"
 
 #include "class/compiled_code.hpp"
@@ -17,6 +17,11 @@
 
 #include "diagnostics/machine.hpp"
 
+#include <chrono>
+#include <thread>
+#include <sstream>
+#include <signal.h>
+
 // Reset macros since we're inside state
 #undef G
 #undef GO
@@ -24,7 +29,7 @@
 #define GO(whatever) globals().whatever
 
 namespace rubinius {
-  utilities::thread::ThreadData<ThreadState*> _current_thread;
+  static thread_local ThreadState* _current_thread = nullptr;
 
   ThreadState::ThreadState(uint32_t id, Machine* m, const char* name)
     : kind_(eThread)
@@ -33,7 +38,6 @@ namespace rubinius {
     , id_(id)
     , _machine_(m)
     , call_frame_(nullptr)
-    , park_(new Park)
     , thca_(new memory::OpenTHCA)
     , stack_start_(0)
     , stack_barrier_start_(0)
@@ -45,13 +49,20 @@ namespace rubinius {
     , interrupt_by_kill_(false)
     , check_local_interrupts_(false)
     , thread_step_(false)
+    , should_wakeup_(true)
+    , thread_status_(eRun)
+    , lock_()
+    , sleep_lock_()
+    , sleep_cond_()
+    , join_lock_()
+    , join_cond_()
+    , fiber_mutex_()
     , fiber_wait_mutex_()
     , fiber_wait_condition_()
     , fiber_transition_flag_(eSuspending)
     , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
-    , zombie_(false)
     , main_thread_(false)
     , thread_phase_(ThreadNexus::eUnmanaged)
     , sample_interval_(0)
@@ -84,11 +95,6 @@ namespace rubinius {
     logger::info("%s: checkpoints: %ld, stops: %ld",
         name().c_str(), checkpoints_, stops_);
 
-    if(park_) {
-      delete park_;
-      park_ = nullptr;
-    }
-
     if(thca_) {
       delete thca_;
       thca_ = nullptr;
@@ -104,14 +110,6 @@ namespace rubinius {
     Exception* exc = memory()->new_object<Exception>(this, stack_error);
     exc->locations(this, Location::from_call_stack(this));
     unwind_state()->raise_exception(exc);
-  }
-
-  Object* ThreadState::park(STATE) {
-    return park_->park(this);
-  }
-
-  Object* ThreadState::park_timed(STATE, struct timespec* ts) {
-    return park_->park_timed(this, ts);
   }
 
   const uint32_t ThreadState::hash_seed() {
@@ -184,26 +182,23 @@ namespace rubinius {
 
   // -*-*-*-
   void ThreadState::set_name(STATE, const char* name) {
-    if(pthread_self() == os_thread_) {
-      utilities::thread::Thread::set_os_name(name);
-    }
+#ifdef HAVE_PTHREAD_SETNAME
+      pthread_setname_np(name);
+#endif
+
     name_.assign(name);
   }
 
   ThreadState* ThreadState::current() {
-    return _current_thread.get();
+    return _current_thread;
   }
 
   void ThreadState::set_current_thread() {
-    utilities::thread::Thread::set_os_name(name().c_str());
-    os_thread_ = pthread_self();
-    _current_thread.set(this);
-  }
+#ifdef HAVE_PTHREAD_SETNAME
+      pthread_setname_np(name().c_str());
+#endif
 
-  void ThreadState::discard(STATE, ThreadState* vm) {
-    state->metrics()->threads_destroyed++;
-
-    delete vm;
+    _current_thread = this;
   }
 
   void ThreadState::clear_interrupted_exception() {
@@ -405,28 +400,11 @@ namespace rubinius {
     }
   }
 
-  static void suspend_thread() {
-    static int i = 0;
-    static int delay[] = {
-      45, 17, 38, 31, 10, 40, 13, 37, 16, 37, 1, 20, 23, 43, 38, 4, 2, 26, 25, 5
-    };
-    static int modulo = sizeof(delay) / sizeof(int);
-    static struct timespec ts = {0, 0};
+  void ThreadState::discard() {
+    // TODO: Diagnostics
+    metrics()->threads_destroyed++;
 
-    ts.tv_nsec = delay[i++ % modulo];
-
-    nanosleep(&ts, NULL);
-  }
-
-  void ThreadState::set_zombie(STATE) {
-    state->machine()->thread_nexus()->delete_vm(this);
-    set_zombie();
-  }
-
-  void ThreadState::set_zombie() {
-    set_thread(nil<Thread>());
-    set_fiber(nil<Fiber>());
-    zombie_ = true;
+    delete this;
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
@@ -476,32 +454,63 @@ namespace rubinius {
     }
   }
 
-  bool ThreadState::wakeup(STATE) {
+  static void suspend_thread() {
+    static int i = 0;
+    static int delay[] = {
+      45, 17, 38, 31, 10, 40, 13, 37, 16, 37, 1, 20, 23, 43, 38, 4, 2, 26, 25, 5
+    };
+    static int modulo = sizeof(delay) / sizeof(int);
+
+    std::chrono::microseconds n(delay[i++ % modulo]);
+    std::this_thread::sleep_for(n);
+  }
+
+  void ThreadState::sleep(double seconds) {
+    UnmanagedPhase guard(this);
+
+    set_thread_sleep();
+
+    if(seconds >= 0.0) {
+      std::unique_lock<std::mutex> lk(sleep_lock_);
+
+      std::chrono::duration<double> pause(seconds);
+
+      while(!should_wakeup_) {
+        if(sleep_cond_.wait_for(lk, pause) == std::cv_status::timeout) break;
+      }
+    } else {
+      while(!should_wakeup_) {
+        suspend_thread();
+      }
+    }
+
+    set_thread_run();
+  }
+
+  bool ThreadState::wakeup() {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
     set_check_local_interrupts();
     Object* wait = waiting_object_;
 
-    if(park_->parked_p()) {
-      park_->unpark();
+    if(sleeping_p()) {
+      set_wakeup();
+
+      std::unique_lock<std::mutex> lock(sleep_lock_);
+      sleep_cond_.notify_one();
+
       return true;
     } else if(interrupt_with_signal_) {
-#ifdef RBX_WINDOWS
-      // TODO: wake up the thread
-#else
       pthread_kill(os_thread_, SIGVTALRM);
-#endif
-      interrupt_lock_.unlock();
       return true;
     } else if(!wait->nil_p()) {
-      interrupt_lock_.unlock();
       return true;
     } else {
       Channel* chan = waiting_channel_;
 
       if(!chan->nil_p()) {
         interrupt_lock_.unlock();
-        chan->send(state, cNil);
+        chan->send(this, cNil);
         return true;
       } else if(custom_wakeup_) {
         interrupt_lock_.unlock();
@@ -515,7 +524,7 @@ namespace rubinius {
 
   void ThreadState::clear_waiter() {
     // TODO: Machine
-    utilities::thread::SpinLock::LockGuard guard(_machine_->memory()->wait_lock());
+    std::lock_guard<locks::spinlock_mutex> guard(_machine_->memory()->wait_lock());
 
     interrupt_with_signal_ = false;
     waiting_channel_ = nil<Channel>();
@@ -524,31 +533,19 @@ namespace rubinius {
     custom_wakeup_data_ = 0;
   }
 
-  void ThreadState::wait_on_channel(STATE, Channel* chan) {
+  void ThreadState::wait_on_channel(Channel* chan) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
-    thread()->sleep(state, cTrue);
+    thread()->sleep(this, cTrue);
     waiting_channel_ = chan;
   }
 
   void ThreadState::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
     // TODO: Machine
-    utilities::thread::SpinLock::LockGuard guard(_machine_->memory()->wait_lock());
+    std::lock_guard<locks::spinlock_mutex> guard(_machine_->memory()->wait_lock());
 
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
-  }
-
-  void ThreadState::set_sleeping(STATE) {
-    thread()->sleep(state, cTrue);
-  }
-
-  void ThreadState::clear_sleeping(STATE) {
-    thread()->sleep(state, cFalse);
-  }
-
-  void ThreadState::reset_parked() {
-    park_->reset_parked();
   }
 
   void ThreadState::register_raise(STATE, Exception* exc) {

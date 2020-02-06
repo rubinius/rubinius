@@ -18,7 +18,6 @@
 
 #include "dtrace/dtrace.h"
 
-#include "util/atomic.hpp"
 #include "util/file.hpp"
 #include "logger.hpp"
 
@@ -35,7 +34,7 @@
 #include <sys/uio.h>
 #include <sys/types.h>
 
-#include <ostream>
+#include <sstream>
 
 namespace rubinius {
   using namespace utilities;
@@ -177,6 +176,9 @@ namespace rubinius {
       , outbox_(nullptr)
       , fd_(-1)
       , request_list_(nullptr)
+      , list_lock_()
+      , response_lock_()
+      , response_cond_()
     {
       inbox_ = as<Channel>(
           console_->ruby_console()->get_ivar(state, state->symbol("@inbox")));
@@ -190,7 +192,7 @@ namespace rubinius {
     }
 
     void Response::initialize(STATE) {
-      Thread::create(state, vm());
+      Thread::create(state, thread_state());
     }
 
     void Response::start_thread(STATE) {
@@ -199,9 +201,9 @@ namespace rubinius {
         return;
       }
 
-      list_lock_.init();
-      response_lock_.init();
-      response_cond_.init();
+      new(&list_lock_) locks::spinlock_mutex;
+      new(&response_lock_) std::mutex;
+      new(&response_cond_) std::condition_variable;
 
       request_list_ = new RequestList;
 
@@ -213,7 +215,7 @@ namespace rubinius {
 
       inbox_->send(state, String::create(state, ""));
 
-      response_cond_.signal();
+      response_cond_.notify_one();
     }
 
     void Response::close_response() {
@@ -247,10 +249,10 @@ namespace rubinius {
     }
 
     void Response::send_request(STATE, const char* request) {
-      utilities::thread::SpinLock::LockGuard guard(list_lock_);
+      std::lock_guard<locks::spinlock_mutex> guard(list_lock_);
 
       request_list_->push_back(const_cast<char*>(request));
-      response_cond_.signal();
+      response_cond_.notify_one();
     }
 
     void Response::write_response(STATE, const char* response, intptr_t size) {
@@ -287,7 +289,7 @@ namespace rubinius {
 
       while(!thread_exit_) {
         {
-          utilities::thread::SpinLock::LockGuard guard(list_lock_);
+          std::lock_guard<locks::spinlock_mutex> guard(list_lock_);
 
           if(request_list_->size() > 0) {
             request = request_list_->back();
@@ -319,11 +321,11 @@ namespace rubinius {
 
         {
           UnmanagedPhase unmanaged(state);
-          utilities::thread::Mutex::LockGuard guard(response_lock_);
+          std::unique_lock<std::mutex> lock(response_lock_);
 
           if(thread_exit_) break;
 
-          response_cond_.wait(response_lock_);
+          response_cond_.wait(lock);
         }
       }
     }

@@ -16,14 +16,15 @@
 
 #include "logger.hpp"
 
-#include <iostream>
+#include <sstream>
 #include <iomanip>
+#include <mutex>
 
 namespace rubinius {
   SymbolTable::SymbolTable()
     : diagnostic_(new diagnostics::SymbolTable())
+    , lock_()
   {
-    lock_.init();
   }
 
   SymbolTable::~SymbolTable() {
@@ -95,7 +96,7 @@ namespace rubinius {
   }
 
   SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
 
     Kind k = kinds[sym->index()];
 
@@ -139,7 +140,8 @@ namespace rubinius {
     // Symbols can be looked up by multiple threads at the same time.
     // This is fast operation, so we protect this with a spinlock.
     {
-      utilities::thread::SpinLock::LockGuard guard(lock_);
+      std::lock_guard<locks::spinlock_mutex> guard(lock_);
+
       SymbolMap::iterator entry = symbols.find(hash);
       if(entry == symbols.end()) {
         sym = add(state, std::string(str, length), enc);
@@ -181,7 +183,8 @@ namespace rubinius {
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
+
     if(sym->nil_p()) {
       Exception::raise_argument_error(state, "Cannot look up Symbol from nil");
       return NULL;
@@ -199,17 +202,20 @@ namespace rubinius {
   }
 
   std::string& SymbolTable::lookup_cppstring(const Symbol* sym) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
+
     return strings[sym->index()];
   }
 
   int SymbolTable::lookup_encoding(const Symbol* sym) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
+
     return encodings[sym->index()];
   }
 
   std::string SymbolTable::lookup_debug_string(const Symbol* sym) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
+
     std::string str = strings[sym->index()];
     std::ostringstream os;
     unsigned char* cstr = (unsigned char*) str.data();
@@ -225,7 +231,8 @@ namespace rubinius {
   }
 
   Array* SymbolTable::all_as_array(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(lock_);
+
     size_t idx = 0;
     Array* ary = Array::create(state, strings.size());
 

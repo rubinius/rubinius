@@ -58,7 +58,7 @@ namespace rubinius {
   }
 
   void Signals::SignalThread::initialize(STATE) {
-    Thread::create(state, vm());
+    Thread::create(state, thread_state());
 
     for(int i = 0; i < pending_signal_size_; i++) {
       pending_signals_[i] = 0;
@@ -106,14 +106,14 @@ namespace rubinius {
           if(signal > 0) {
             ManagedPhase managed(state);
 
-            vm()->metrics()->signals_processed++;
+            thread_state()->metrics()->signals_processed++;
 
             Array* args = Array::create(state, 1);
             args->set(state, 0, Fixnum::from(signal));
 
             if(!G(rubinius)->send(state, state->symbol("received_signal"), args, cNil)) {
               if(state->unwind_state()->raise_reason() == cException ||
-                  state->unwind_state()->raise_reason() == cExit)
+                  state->unwind_state()->raise_reason() == cSystemExit)
               {
                 Exception* exc = state->unwind_state()->current_exception();
                 state->unwind_state()->clear_raise();

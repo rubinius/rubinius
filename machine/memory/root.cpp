@@ -11,12 +11,12 @@ namespace memory {
   }
 
   void Roots::add(Root* node) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     this->LinkedList::add(node);
   }
 
   void Roots::remove(Root* node) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     this->LinkedList::remove(node);
   }
 

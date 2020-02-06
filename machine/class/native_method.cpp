@@ -24,8 +24,7 @@
 #include "dtrace/dtrace.h"
 
 namespace rubinius {
-  /** Thread-local NativeMethodEnvironment instance. */
-  utilities::thread::ThreadData<NativeMethodEnvironment*> native_method_environment;
+  static thread_local NativeMethodEnvironment* native_method_environment = nullptr;
 
 /* Class methods */
 
@@ -39,7 +38,7 @@ namespace rubinius {
   {}
 
   NativeMethodEnvironment* NativeMethodEnvironment::get() {
-    return native_method_environment.get();
+    return native_method_environment;
   }
 
   NativeMethodFrame::NativeMethodFrame(NativeMethodEnvironment* env, NativeMethodFrame* prev, NativeMethod* method)
@@ -85,14 +84,14 @@ namespace rubinius {
 
   void NativeMethod::init_thread(STATE) {
     NativeMethodEnvironment* env = new NativeMethodEnvironment(state);
-    native_method_environment.set(env);
+    native_method_environment = env;
     state->native_method_environment = env;
   }
 
   void NativeMethod::cleanup_thread(STATE) {
     delete state->native_method_environment;
-    state->native_method_environment = NULL;
-    native_method_environment.set(NULL);
+    state->native_method_environment = nullptr;
+    native_method_environment = nullptr;
   }
 
   /**

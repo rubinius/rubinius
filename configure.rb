@@ -773,7 +773,7 @@ not support #{name} compiler, please email contact@rubinius.com
     end
 
     @system_cflags    ||= ""
-    (@system_cxxflags ||= "") << "-std=c++11 "
+    (@system_cxxflags ||= "") << "-std=c++14 "
     @system_cppflags  ||= ""
     @system_incflags  ||= ""
     @system_ldflags   ||= ""

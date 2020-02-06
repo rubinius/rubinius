@@ -279,9 +279,7 @@ class IO
 
     def read_into_storage(count, storage)
       while true
-        Thread.current.instance_variable_set(:@sleep, true)
         bytes_read = FFI::Platform::POSIX.read(descriptor, storage, count)
-        Thread.current.instance_variable_set(:@sleep, false)
 
         if FFI.call_failed?(bytes_read)
           errno = Errno.errno
@@ -951,15 +949,11 @@ class IO
 
       events = 0
       loop do
-        Thread.current.instance_variable_set(:@sleep, true)
-
         events = FFI::Platform::POSIX.select(max_fd + 1,
         (read_set ? read_set.to_set : nil),
         (write_set ? write_set.to_set : nil),
         (error_set ? error_set.to_set : nil),
         time_limit)
-
-        Thread.current.instance_variable_set(:@sleep, false)
 
         if FFI.call_failed?(events)
 

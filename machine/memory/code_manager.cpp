@@ -22,7 +22,8 @@ namespace memory {
   }
 
   CodeManager::CodeManager(int chunk_size)
-    : chunk_size_(chunk_size)
+    : mutex_()
+    , chunk_size_(chunk_size)
     , first_chunk_(0)
     , last_chunk_(0)
     , current_chunk_(0)
@@ -65,7 +66,7 @@ namespace memory {
   }
 
   void CodeManager::add_resource(CodeResource* cr, bool* collect_now) {
-    utilities::thread::Mutex::LockGuard guard(mutex_);
+    std::lock_guard<std::mutex> guard(mutex_);
 
     for(;;) {
       while(current_index_ < chunk_size_) {

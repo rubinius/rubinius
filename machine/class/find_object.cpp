@@ -19,6 +19,8 @@
 #include "memory/collector.hpp"
 #include "memory/visitor.hpp"
 
+#include <sstream>
+
 namespace rubinius {
   class QueryCondition {
   public:

@@ -80,6 +80,24 @@ namespace rubinius {
       eSystem
     };
 
+    enum ThreadStatus {
+      eNoStatus = 0,
+      eRun,
+      eSleep,
+      eDead,
+      eException
+    };
+
+    // TODO: Thread
+    enum FiberTransition {
+      eSuspending,
+      eSuspended,
+      eResuming,
+      eRunning,
+      eCanceled,
+      eFinished
+    };
+
   private:
     memory::Roots roots_;
     std::string name_;
@@ -102,7 +120,6 @@ namespace rubinius {
     UnwindInfoSet unwinds_;
 
     CallFrame* call_frame_;
-    Park* park_;
     memory::THCA* thca_;
 
     int8_t* stack_start_;
@@ -118,17 +135,18 @@ namespace rubinius {
     bool check_local_interrupts_;
     bool thread_step_;
 
+    std::atomic<bool> should_wakeup_;
+    std::atomic<ThreadStatus> thread_status_;
+
+    std::mutex lock_;
+    std::mutex sleep_lock_;
+    std::condition_variable sleep_cond_;
+    std::mutex join_lock_;
+    std::condition_variable join_cond_;
+    std::mutex fiber_mutex_;
+
     std::mutex fiber_wait_mutex_;
     std::condition_variable fiber_wait_condition_;
-
-    enum FiberTransition {
-      eSuspending,
-      eSuspended,
-      eResuming,
-      eRunning,
-      eCanceled,
-      eFinished
-    };
 
     std::atomic<FiberTransition> fiber_transition_flag_;
 
@@ -137,7 +155,6 @@ namespace rubinius {
     MethodMissingReason method_missing_reason_;
     ConstantMissingReason constant_missing_reason_;
 
-    bool zombie_;
     bool main_thread_;
 
     std::atomic<ThreadNexus::Phase> thread_phase_;
@@ -264,6 +281,34 @@ namespace rubinius {
       return interrupt_lock_;
     }
 
+    void set_wakeup() {
+      should_wakeup_ = true;
+    }
+
+    std::mutex& lock() {
+      return lock_;
+    }
+
+    std::mutex& sleep_lock() {
+      return sleep_lock_;
+    }
+
+    std::condition_variable& sleep_cond() {
+      return sleep_cond_;
+    }
+
+    std::mutex& join_lock() {
+      return join_lock_;
+    }
+
+    std::condition_variable& join_cond() {
+      return join_cond_;
+    }
+
+    std::mutex& fiber_mutex() {
+      return fiber_mutex_;
+    }
+
     std::mutex& fiber_wait_mutex() {
       return fiber_wait_mutex_;
     }
@@ -335,11 +380,34 @@ namespace rubinius {
       return fiber_;
     }
 
-    void set_zombie(STATE);
-    void set_zombie();
+    ThreadStatus thread_status() {
+      return thread_status_;
+    }
+
+    void set_thread_run() {
+      should_wakeup_ = true;
+      thread_status_ = eRun;
+    }
+
+    void set_thread_sleep() {
+      should_wakeup_ = false;
+      thread_status_ = eSleep;
+    }
+
+    void set_thread_dead() {
+      thread_status_ = eDead;
+    }
+
+    void set_thread_exception() {
+      thread_status_ = eException;
+    }
+
+    bool sleeping_p() {
+      return thread_status_ == eSleep;
+    }
 
     bool zombie_p() {
-      return zombie_;
+      return thread_status_ == eDead || thread_status_ == eException;
     }
 
     void set_main_thread() {
@@ -530,9 +598,7 @@ namespace rubinius {
     memory::VariableRootBuffers& current_root_buffers();
 
   public:
-    static void discard(STATE, ThreadState*);
-
-  public:
+    void discard();
 
     void bootstrap_class(STATE);
     void bootstrap_ontology(STATE);
@@ -597,15 +663,12 @@ namespace rubinius {
 
     Object* path2class(STATE, const char* name);
 
-    void wait_on_channel(STATE, Channel* channel);
+    void wait_on_channel(Channel* channel);
     void wait_on_custom_function(STATE, void (*func)(void*), void* data);
     void clear_waiter();
-    bool wakeup(STATE);
 
-    void reset_parked();
-
-    void set_sleeping(STATE);
-    void clear_sleeping(STATE);
+    void sleep(double duration);
+    bool wakeup();
 
     void interrupt_with_signal() {
       interrupt_with_signal_ = true;
@@ -629,9 +692,6 @@ namespace rubinius {
     UnwindState* unwind_state();
 
     void raise_stack_error();
-
-    Object* park(STATE);
-    Object* park_timed(STATE, struct timespec* ts);
   };
 }
 

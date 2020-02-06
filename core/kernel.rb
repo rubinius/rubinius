@@ -893,22 +893,15 @@ module Kernel
   module_function :format
 
   def sleep(duration=undefined)
-    Rubinius.primitive :vm_sleep
-
-    # The primitive will fail on arg count if sleep is called
-    # without an argument, so we call it again passing undefined
-    # to mean "sleep forever"
-    #
-    if undefined.equal? duration
-      return sleep(undefined)
+    unless undefined.equal? duration
+      if duration.kind_of? Numeric
+        duration = Rubinius::Type.coerce_to duration, Float, :to_f
+      else
+        raise TypeError, 'time interval must be a numeric value'
+      end
     end
 
-    if duration.kind_of? Numeric
-      float = Rubinius::Type.coerce_to duration, Float, :to_f
-      return sleep(float)
-    else
-      raise TypeError, 'time interval must be a numeric value'
-    end
+    Rubinius.invoke_primitive :thread_sleep, Thread.current, duration
   end
   module_function :sleep
 

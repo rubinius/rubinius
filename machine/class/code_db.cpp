@@ -14,8 +14,6 @@
 #include "diagnostics/codedb.hpp"
 #include "diagnostics/timing.hpp"
 
-#include "util/thread.hpp"
-
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>

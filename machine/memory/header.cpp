@@ -1,5 +1,3 @@
-#include "util/atomic.hpp"
-
 #include "memory/header.hpp"
 
 #include "bug.hpp"
@@ -159,7 +157,7 @@ namespace rubinius {
     static int modulo = sizeof(delay) / sizeof(int);
 
     while(!try_lock(state)) {
-      state->thread()->sleep(cTrue);
+      state->set_thread_sleep();
 
       uint64_t ns = delay[i++ % modulo];
 
@@ -167,7 +165,7 @@ namespace rubinius {
       std::this_thread::sleep_for(std::chrono::nanoseconds(ns));
     }
 
-    state->thread()->sleep(cFalse);
+    state->set_thread_run();
   }
 
   bool MemoryHeader::try_lock(STATE) {

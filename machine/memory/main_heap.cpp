@@ -11,6 +11,8 @@
 
 #include "diagnostics/collector.hpp"
 
+#include <mutex>
+
 namespace rubinius {
   namespace memory {
     MainHeap::MainHeap(Configuration* configuration, CodeManager& cm)
@@ -30,7 +32,7 @@ namespace rubinius {
     }
 
     Object* MainHeap::allocate(STATE, intptr_t bytes, object_type type) {
-      utilities::thread::SpinLock::LockGuard guard(state->memory()->allocation_lock());
+      std::lock_guard<locks::spinlock_mutex> guard(state->memory()->allocation_lock());
 
       if(Object* obj = first_region()->allocate(state, bytes)) {
         state->diagnostics()->memory_metrics()->first_region_objects++;

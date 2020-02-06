@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <atomic>
+
 #include "detection.hpp"
-#include "util/atomic.hpp"
 
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time
@@ -90,19 +91,19 @@ namespace timer {
 
   template <int factor=1>
   class Running {
-    atomic::integer& result_;
-    atomic::integer* last_;
+    std::atomic<uint64_t>& result_;
+    std::atomic<uint64_t>* last_;
     uint64_t start_;
 
   public:
-    Running(atomic::integer& result)
+    Running(std::atomic<uint64_t>& result)
       : result_(result)
       , last_(0)
     {
       start_ = get_current_time();
     }
 
-    Running(atomic::integer& result, atomic::integer& last)
+    Running(std::atomic<uint64_t>& result, std::atomic<uint64_t>& last)
       : result_(result)
       , last_(&last)
     {
@@ -112,9 +113,9 @@ namespace timer {
     ~Running() {
       uint64_t now = get_current_time();
       uint64_t run = (now - start_) / ((uint64_t)factor);
-      if(last_) last_->set(run);
+      if(last_) last_ = run;
 
-      result_.add(run);
+      result_ += run;
     }
   };
 }

@@ -8,7 +8,7 @@
 
 #include "diagnostics/measurement.hpp"
 
-#include <ostream>
+#include <sstream>
 
 namespace rubinius {
   namespace diagnostics {

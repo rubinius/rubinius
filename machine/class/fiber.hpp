@@ -47,7 +47,7 @@ namespace rubinius {
   private:
     attr_field(start_time, uint64_t);
 
-    attr_field(vm, ThreadState*);
+    attr_field(thread_state, ThreadState*);
     attr_field(invoke_context, ThreadState*);
     attr_field(restart_context, ThreadState*);
 
@@ -68,7 +68,7 @@ namespace rubinius {
       obj->thread(nil<Thread>());
       obj->value(cNil);
       obj->start_time(get_current_time());
-      obj->vm(nullptr);
+      obj->thread_state(nullptr);
       obj->invoke_context(state);
       obj->restart_context(state);
       obj->status(eCreated);
@@ -78,7 +78,7 @@ namespace rubinius {
     static void finalize(STATE, Fiber* fib);
     static void* run(void*);
 
-    static Fiber* create(STATE, ThreadState* vm);
+    static Fiber* create(STATE, ThreadState* thread_state);
 
     // Rubinius.primitive :fiber_new
     static Fiber* create(STATE, Object* self, Object* stack_size, Object* block);

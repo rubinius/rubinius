@@ -23,6 +23,8 @@
 #include "class/location.hpp"
 #include "class/exception.hpp"
 
+#include <sstream>
+
 namespace rubinius {
   namespace Helpers {
     Object* const_get_under(STATE, Module* mod, Symbol* name, ConstantMissingReason* reason, Object* filter, bool replace_autoload) {

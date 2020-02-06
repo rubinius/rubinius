@@ -25,6 +25,8 @@
 
 #include "dtrace/dtrace.h"
 
+#include <sstream>
+
 namespace rubinius {
 
   void NativeFunction::bootstrap(STATE) {

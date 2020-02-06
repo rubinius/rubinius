@@ -88,10 +88,9 @@ namespace rubinius {
   }
 
   void Memory::after_fork_child(STATE) {
-    // Reinit the locks for this object
-    wait_lock_.init();
-    type_info_lock_.init();
-    code_resource_lock_.init();
+    new(&wait_lock_) locks::spinlock_mutex;
+    new(&type_info_lock_) locks::spinlock_mutex;
+    new(&code_resource_lock_) locks::spinlock_mutex;
 
     new(&codedb_lock_) std::recursive_mutex;
   }
@@ -138,7 +137,7 @@ namespace rubinius {
   }
 
   Object* Memory::new_object_pinned(STATE, intptr_t bytes, object_type type) {
-    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
+    std::lock_guard<locks::spinlock_mutex> guard(allocation_lock_);
 
     Object* obj = nullptr;
 
@@ -179,7 +178,7 @@ namespace rubinius {
   */
 
   void Memory::add_code_resource(STATE, memory::CodeResource* cr) {
-    utilities::thread::SpinLock::LockGuard guard(code_resource_lock());
+    std::lock_guard<locks::spinlock_mutex> guard(code_resource_lock());
 
     state->diagnostics()->memory_metrics()->code_bytes += cr->size();
 
@@ -194,46 +193,38 @@ namespace rubinius {
 }
 
 void* XMALLOC(size_t bytes) {
-  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
-    /* TODO: VM, State => ThreadState
+  if(rubinius::ThreadState* state = rubinius::ThreadState::current()) {
     state->diagnostics()->memory_metrics()->malloc++;
     state->diagnostics()->memory_metrics()->allocated_bytes += bytes;
-    */
   }
 
   return malloc(bytes);
 }
 
 void XFREE(void* ptr) {
-  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
-    /* TODO: VM, State => ThreadState
+  if(rubinius::ThreadState* state = rubinius::ThreadState::current()) {
     state->diagnostics()->memory_metrics()->freed++;
-    */
   }
 
   free(ptr);
 }
 
 void* XREALLOC(void* ptr, size_t bytes) {
-  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
-    /* TODO: VM, State => ThreadState
+  if(rubinius::ThreadState* state = rubinius::ThreadState::current()) {
     state->diagnostics()->memory_metrics()->realloc++;
     state->diagnostics()->memory_metrics()->freed++;
     state->diagnostics()->memory_metrics()->allocated_bytes += bytes;
-    */
   }
 
   return realloc(ptr, bytes);
 }
 
 void* XCALLOC(size_t items, size_t bytes_per) {
-  // size_t bytes = bytes_per * items;
+  size_t bytes = bytes_per * items;
 
-  if(rubinius::ThreadState* vm = rubinius::ThreadState::current()) {
-    /* TODO: VM, State => ThreadState
+  if(rubinius::ThreadState* state = rubinius::ThreadState::current()) {
     state->diagnostics()->memory_metrics()->calloc++;
     state->diagnostics()->memory_metrics()->allocated_bytes += bytes;
-    */
   }
 
   return calloc(items, bytes_per);

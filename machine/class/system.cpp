@@ -51,17 +51,18 @@
 
 #include "paths.h"
 
-#include <vector>
+#include <atomic>
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <regex>
+#include <signal.h>
+#include <sstream>
 #include <stdarg.h>
 #include <string.h>
-#include <sstream>
-#include <signal.h>
 #include <unistd.h>
+#include <vector>
 
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
@@ -990,54 +991,20 @@ namespace rubinius {
   }
 
   Object* System::vm_signal_thread(STATE) {
-    return state->machine()->signals()->signal_thread()->vm()->thread();
+    return state->machine()->signals()->signal_thread()->thread_state()->thread();
   }
 
   Object* System::vm_time(STATE) {
     return Integer::from(state, time(0));
   }
 
-#define NANOSECONDS 1000000000
+  // TODO: remove
   Object* System::vm_sleep(STATE, Object* duration) {
-    struct timespec ts = {0,0};
-    bool use_timed_wait = true;
-
-    if(Fixnum* fix = try_as<Fixnum>(duration)) {
-      if(!fix->positive_p()) {
-        Exception::raise_argument_error(state, "time interval must be positive");
-      }
-      ts.tv_sec = fix->to_native();
-    } else if(Float* flt = try_as<Float>(duration)) {
-      if(flt->value() < 0.0) {
-        Exception::raise_argument_error(state, "time interval must be positive");
-      }
-      uint64_t nano = (uint64_t)(flt->value() * NANOSECONDS);
-      ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
-      ts.tv_nsec =    (long)(nano % NANOSECONDS);
-    } else if(duration == G(undefined)) {
-      use_timed_wait = false;
+    if(!state->thread()->nil_p()) {
+      return state->thread()->sleep(state, duration);
     } else {
       return Primitives::failure();
     }
-
-    time_t start = time(0);
-
-    if(use_timed_wait) {
-      struct timeval tv = {0,0};
-      gettimeofday(&tv, 0);
-
-      uint64_t nano = ts.tv_nsec + tv.tv_usec * 1000;
-      ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
-      ts.tv_nsec  = nano % NANOSECONDS;
-
-      if(!state->park_timed(state, &ts)) return NULL;
-    } else {
-      if(!state->park(state)) return NULL;
-    }
-
-    if(state->thread_interrupted_p(state)) return NULL;
-
-    return Fixnum::from(time(0) - start);
   }
 
   static inline double tv_to_dbl(struct timeval* tv) {
@@ -1546,7 +1513,7 @@ retry:
   }
 
   Object* System::vm_memory_barrier(STATE) {
-    atomic::memory_barrier();
+    std::atomic_thread_fence(std::memory_order_acq_rel);
     return cNil;
   }
 
@@ -1624,7 +1591,7 @@ retry:
     case cBreak:
       reason = state->symbol("break");
       break;
-    case cExit:
+    case cSystemExit:
       reason = state->symbol("exit");
       break;
     case cCatchThrow:
