@@ -196,7 +196,51 @@ For functions, the situation is similar, but different:
     # This form would require modifying the parser.
   end
   ```
+
+Each of these three represent a possibility for implementing types, including the return type for a function. The form that will be implemented hasn't been chosen yet.
+
+Both namespacing and explicit data definition (using either `type` or `data`) are not implemented yet, but are definitely being considered. Examples of these would be:
+
+  ```ruby
+  namespace my_funcs
+    data size_cat
+      value = 'big' | 'small'
+      
+      fun big_p
+        value == 'big'
+      end
+      
+      fun small_p
+        value == 'small'
+      end
+    end
+  end
   
+  a = my_funcs::size_cat('big')
+  my_funcs::size_cat::small_p(a)  # => false
+  ```
+  
+Functions became particularly interesting when they can be co-mingled with object-oriented code. In Rubinius, the lexical scope is represented by a Ruby object much like any other Ruby object. Since Ruby does not contain language features for manipulating the lexical scope, it's a natural place to stash functions so that lookup seems unsurprising.
+
+  ```ruby
+  class A
+    import "my_funcs"
+    
+    def m(a, b)
+      if small_p(a) and big_p(b)
+        puts "We have a mixed mode"
+      end
+    end
+  end
+  
+  A.new.m('small', 'big')
+  "We have a mixed mode"
+  ```
+
+In Ruby, any method call that does not explicitly use a receiver could resolve to a function that has been imported to that lexical scope or an exclosing lexical scope.
+
+While the functions and types described in this part are experimental and may or may not actually exist when you read this, the ideas are legitimate. If you are really excited by these features, let us know.
+
 **TODO: There's plenty of places to help out here if functions and data types interest you.**
 
 ### C-API
@@ -218,6 +262,10 @@ A. We have a lot of respect for your abilities, whether you've ever written a li
 **Q. Why isn't \<my pet feature> done already? When will it be done?**
 
 **A.** Do you have 1,000,000 USD? No, really.
+
+**Q. Why won't you accept my PR to rewrite the virtual machine in \<Rust, Go, Node, TypeScript> or add static typing to the Ruby core library or my other terrific idea?**
+
+**A.** There are a lot of fascinating ideas out there. Fork Rubinius, whip up your idea, show that other people find it useful, and let's talk. You might find you've got a far better project than Rubinius. After all, that's what we're doing, trying to figure out what might be useful.
 
 **Q. Is there more documentation?**
 
@@ -254,6 +302,34 @@ A. We have a lot of respect for your abilities, whether you've ever written a li
 
   * Refinements
   * $SAFE levels
+
+**Q. Isn't Rubinius just a Ruby implementation?**
+
+**A.** No, it's not. Rubinius is an experiment that started as a Ruby implementation, but is attempting to look beyond the limitations of Ruby. Consider Rubinius a mostly compatible superset of Ruby for now.
+
+**Q. Why does Rubinius report the Ruby version as 10.0?**
+
+**A.** Rubinius is a time machine. When you use it, you travel into the future. Even this README is in the future.
+
+**Q. What is up with the weird version scheme in Rubinius?**
+
+**A.** Rubinius uses a simple `epoch.sequence` version scheme. For any sequence number `N`, `N+1` will only add new capabilities, or remove something that has been listed as deprecated in `<= N`. Super simple.
+
+**Q. Why does Rubinius not support frozen and tainted?**
+
+**A.** Rubinius has better features; frozen and tainted are considered harmful. To elaborate...
+
+Both frozen and tainted depend on strewing checks throughout the source code. As a classic _weak-link_ system, only one of those checks needs to be misplaced for the guarantees offered by either to fail. Since the number of checks is high, and as new code is written new checks need to be considered, the features inherently constitute unbounded complexity and unbounded risk.
+
+In place of frozen, Rubinius is implementing attributes on classes. One attribute is immutability. The way this works is that every machine instruction has an attribute for whether the instruction would mutate an object. When a method is added to a class, the attributes are checked and any method containing mutating instructions is disallowed. Additionally, dispatch that searches the superclasses of a class marked immutable would also perform this check. Immutability is an indelible attribute that is inherited by all subclasses.
+
+In place of tainted, Rubinius is implementing sanitization functions at the IO boundary, similar to the transcoding facility.
+
+In both cases, the places that the checks must be made are orders of magnitude fewer than in the case of frozen and tainted. The checks are more orderly as well.
+
+**Q. Why doesn't Rubinius allow me to set arbitrary encodings for Strings?**
+
+**A.** Rubinius only uses UTF-8 internally. Any transcoding must be performed at the IO boundary.
 
 **Q. How do I use RubyGems?**
 
