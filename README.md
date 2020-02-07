@@ -287,7 +287,7 @@ A. We have a lot of respect for your abilities, whether you've ever written a li
   }
   ```
    
-**Q. What about the Ruby Programming language?**
+**Q. What about the Ruby programming language?**
 
 **A.** Many popular Ruby applications, like Rails, may run on Rubinius, which aims to be compatible with the most recent stable Ruby version.
 
