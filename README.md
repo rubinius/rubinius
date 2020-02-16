@@ -35,9 +35,9 @@ In the event a directory contains a "LICENSE", "LICENSE.txt" or "COPYING" file t
 To install Rubinius from source, use the following steps:
 
 1. Ensure that MRI 2.0+, rubygems, rake, and git are installed
-2. git clone git://github.com/rubinius/rubinius.git
-3. cd rubinius
-4. ./configure --prefix=/path/to/install/dir && make install
+2. `git clone git://github.com/rubinius/rubinius.git`
+3. `cd rubinius`
+4. `./configure --prefix=/path/to/install/dir && make install`
 
 When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH.
 
