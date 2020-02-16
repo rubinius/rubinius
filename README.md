@@ -56,7 +56,7 @@ for a more complete guide to installing Rubinius from source.*
 
 ## Philosophy & Architecture
 
-Rubinius is a virtual computing machine. As a computing machine, it possesses several mechanism that physical computers possess to support computation.
+Rubinius is a virtual computing machine. As a computing machine, it possesses several mechanisms that physical computers possess to support computation.
 
 It runs in an environment that provides various capabilities. These are presented to the machine through the Environment object.
 
@@ -206,18 +206,18 @@ Both namespacing and explicit data definition (using either `type` or `data`) ar
     data size_cat
       value = 'big' | 'small'
       
-      fun big_p
+      fun big?
         value == 'big'
       end
       
-      fun small_p
+      fun small?
         value == 'small'
       end
     end
   end
   
   a = my_funcs::size_cat('big')
-  my_funcs::size_cat::small_p(a)  # => false
+  my_funcs::size_cat::small?(a)  # => false
   ```
   
 Functions became particularly interesting when they can be co-mingled with object-oriented code. In Rubinius, the lexical scope is represented by a Ruby object much like any other Ruby object. Since Ruby does not contain language features for manipulating the lexical scope, it's a natural place to stash functions so that lookup seems unsurprising.
@@ -227,7 +227,7 @@ Functions became particularly interesting when they can be co-mingled with objec
     import "my_funcs"
     
     def m(a, b)
-      if small_p(a) and big_p(b)
+      if small?(a) and big?(b)
         puts "We have a mixed mode"
       end
     end
