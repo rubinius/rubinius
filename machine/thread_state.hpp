@@ -139,6 +139,7 @@ namespace rubinius {
     std::atomic<ThreadStatus> thread_status_;
 
     std::mutex lock_;
+    std::mutex thread_lock_;
     std::mutex sleep_lock_;
     std::condition_variable sleep_cond_;
     std::mutex join_lock_;
@@ -281,12 +282,20 @@ namespace rubinius {
       return interrupt_lock_;
     }
 
+    bool wakeup_p() {
+      return should_wakeup_;
+    }
+
+    void unset_wakeup() {
+      should_wakeup_ = false;
+    }
+
     void set_wakeup() {
       should_wakeup_ = true;
     }
 
-    std::mutex& lock() {
-      return lock_;
+    std::mutex& thread_lock() {
+      return thread_lock_;
     }
 
     std::mutex& sleep_lock() {
@@ -385,12 +394,10 @@ namespace rubinius {
     }
 
     void set_thread_run() {
-      should_wakeup_ = true;
       thread_status_ = eRun;
     }
 
     void set_thread_sleep() {
-      should_wakeup_ = false;
       thread_status_ = eSleep;
     }
 
@@ -667,7 +674,7 @@ namespace rubinius {
     void wait_on_custom_function(STATE, void (*func)(void*), void* data);
     void clear_waiter();
 
-    void sleep(double duration);
+    void sleep(Object* duration);
     bool wakeup();
 
     void interrupt_with_signal() {

@@ -998,15 +998,6 @@ namespace rubinius {
     return Integer::from(state, time(0));
   }
 
-  // TODO: remove
-  Object* System::vm_sleep(STATE, Object* duration) {
-    if(!state->thread()->nil_p()) {
-      return state->thread()->sleep(state, duration);
-    } else {
-      return Primitives::failure();
-    }
-  }
-
   static inline double tv_to_dbl(struct timeval* tv) {
     return (double)tv->tv_sec + ((double)tv->tv_usec / 1000000.0);
   }

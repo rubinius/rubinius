@@ -901,7 +901,7 @@ module Kernel
       end
     end
 
-    Rubinius.invoke_primitive :thread_sleep, Thread.current, duration
+    Rubinius.invoke_primitive :thread_suspend, Thread.current, duration
   end
   module_function :sleep
 

@@ -176,7 +176,7 @@ namespace rubinius {
 
   retry:
     state->interrupt_with_signal();
-    state->thread()->sleep(state, cTrue);
+    state->set_thread_sleep();
 
     {
       UnmanagedPhase unmanaged(state);
@@ -187,7 +187,7 @@ namespace rubinius {
                             (struct sockaddr*)buf, &alen);
     }
 
-    state->thread()->sleep(state, cFalse);
+    state->set_thread_run();
     state->clear_waiter();
 
     if(bytes_read == -1) {
@@ -507,14 +507,14 @@ failed: /* try next '*' position */
 
   retry:
     state->interrupt_with_signal();
-    state->thread()->sleep(state, cTrue);
+    state->set_thread_sleep();
 
     {
       UnmanagedPhase unmanaged(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 
-    state->thread()->sleep(state, cFalse);
+    state->set_thread_run();
     state->clear_waiter();
 
     if(code == -1) {

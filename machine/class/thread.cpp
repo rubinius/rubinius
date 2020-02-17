@@ -112,6 +112,11 @@ namespace rubinius {
   }
 
   void Thread::finalize(STATE, Thread* thread) {
+    if(state->thread() == thread) {
+      // Do not finalize ourselves.
+      return;
+    }
+
     if(state->configuration()->log_thread_finalizer.value) {
       logger::write("thread: finalizer: %s", thread->thread_state()->name().c_str());
     }
@@ -405,7 +410,7 @@ namespace rubinius {
   }
 
   Object* Thread::raise(STATE, Exception* exc) {
-    std::lock_guard<std::mutex> guard(thread_state()->lock());
+    std::lock_guard<std::mutex> guard(thread_state()->thread_lock());
 
     if(thread_state()->zombie_p()) return cNil;
 
@@ -416,7 +421,7 @@ namespace rubinius {
   }
 
   Object* Thread::kill(STATE) {
-    std::lock_guard<std::mutex> guard(thread_state()->lock());
+    std::lock_guard<std::mutex> guard(thread_state()->thread_lock());
 
     if(thread_state()->zombie_p()) return cNil;
 
@@ -430,30 +435,24 @@ namespace rubinius {
     }
   }
 
-  Object* Thread::sleep(STATE, Object* duration) {
-    double seconds = 0.0;
-
+  Object* Thread::suspend(STATE, Object* duration) {
     if(Fixnum* fix = try_as<Fixnum>(duration)) {
       if(!fix->positive_p()) {
         Exception::raise_argument_error(state, "time interval must be positive");
       }
-
-      seconds = fix->to_native();
     } else if(Float* flt = try_as<Float>(duration)) {
       if(flt->value() < 0.0) {
         Exception::raise_argument_error(state, "time interval must be positive");
       }
-
-      seconds = flt->value();
     } else if(duration == G(undefined)) {
-      seconds = -1.0;
-    } else {
+      duration = cNil;
+    } else if(!duration->nil_p()) {
       return Primitives::failure();
     }
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    state->thread()->thread_state()->sleep(seconds);
+    state->thread()->thread_state()->sleep(duration);
 
     if(state->thread()->thread_state()->thread_interrupted_p(state)) {
       return nullptr;
@@ -466,7 +465,7 @@ namespace rubinius {
   }
 
   Thread* Thread::wakeup(STATE) {
-    std::lock_guard<std::mutex> guard(thread_state()->lock());
+    std::lock_guard<std::mutex> guard(thread_state()->thread_lock());
 
     if(thread_state()->zombie_p()) {
       Exception::raise_thread_error(state, "attempting to wake a dead Thread");
@@ -479,7 +478,7 @@ namespace rubinius {
   }
 
   Tuple* Thread::context(STATE) {
-    std::lock_guard<std::mutex> guard(thread_state()->lock());
+    std::lock_guard<std::mutex> guard(thread_state()->thread_lock());
 
     if(thread_state()->zombie_p()) return nil<Tuple>();
 
@@ -491,7 +490,7 @@ namespace rubinius {
   }
 
   Array* Thread::mri_backtrace(STATE) {
-    std::lock_guard<std::mutex> guard(thread_state()->lock());
+    std::lock_guard<std::mutex> guard(thread_state()->thread_lock());
 
     if(thread_state()->zombie_p()) return nil<Array>();
 

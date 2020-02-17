@@ -180,11 +180,11 @@ extern "C" {
     {
       UnmanagedPhase unmanaged(state);
       state->interrupt_with_signal();
-      state->thread()->sleep(state, cTrue);
+      state->set_thread_sleep();
 
       ret = fread(ptr, 1, len, f);
 
-      state->thread()->sleep(state, cFalse);
+      state->set_thread_run();
       state->clear_waiter();
     }
 
@@ -226,7 +226,7 @@ extern "C" {
     {
       UnmanagedPhase unmanaged(state);
       state->interrupt_with_signal();
-      state->thread()->sleep(state, cTrue);
+      state->set_thread_sleep();
 
       int ready = 0;
       while(!ready) {
@@ -234,7 +234,7 @@ extern "C" {
         if(!retry) break;
       }
 
-      state->thread()->sleep(state, cFalse);
+      state->set_thread_run();
       state->clear_waiter();
     }
 
@@ -277,7 +277,7 @@ extern "C" {
     {
       UnmanagedPhase unmanaged(state);
       state->interrupt_with_signal();
-      state->thread()->sleep(state, cTrue);
+      state->set_thread_sleep();
 
       int ready = 0;
       while(!ready) {
@@ -285,7 +285,7 @@ extern "C" {
         if(!retry) break;
       }
 
-      state->thread()->sleep(state, cFalse);
+      state->set_thread_run();
       state->clear_waiter();
     }
     ENTER_CAPI(env->state());
@@ -308,14 +308,14 @@ extern "C" {
     {
       UnmanagedPhase unmanaged(state);
       state->interrupt_with_signal();
-      state->thread()->sleep(state, cTrue);
+      state->set_thread_sleep();
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, &fds, 0, 0, 0);
       }
 
-      state->thread()->sleep(state, cFalse);
+      state->set_thread_run();
       state->clear_waiter();
     }
     ENTER_CAPI(env->state());
@@ -337,14 +337,14 @@ extern "C" {
     {
       UnmanagedPhase unmanaged(state);
       state->interrupt_with_signal();
-      state->thread()->sleep(state, cTrue);
+      state->set_thread_sleep();
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, 0, &fds, 0, 0);
       }
 
-      state->thread()->sleep(state, cFalse);
+      state->set_thread_run();
       state->clear_waiter();
     }
 

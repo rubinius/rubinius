@@ -13,6 +13,8 @@
 #include "class/location.hpp"
 #include "class/array.hpp"
 #include "class/fiber.hpp"
+#include "class/fixnum.hpp"
+#include "class/float.hpp"
 #include "class/unwind_state.hpp"
 
 #include "diagnostics/machine.hpp"
@@ -52,6 +54,7 @@ namespace rubinius {
     , should_wakeup_(true)
     , thread_status_(eRun)
     , lock_()
+    , thread_lock_()
     , sleep_lock_()
     , sleep_cond_()
     , join_lock_()
@@ -73,7 +76,6 @@ namespace rubinius {
     , interrupted_exception_(nil<Exception>())
     , thread_(nil<Thread>())
     , fiber_(nil<Fiber>())
-    , waiting_object_(cNil)
     , start_time_(0)
     , native_method_environment(nullptr)
     , custom_wakeup_(nullptr)
@@ -465,22 +467,34 @@ namespace rubinius {
     std::this_thread::sleep_for(n);
   }
 
-  void ThreadState::sleep(double seconds) {
-    UnmanagedPhase guard(this);
+  void ThreadState::sleep(Object* duration) {
+    std::unique_lock<std::mutex> lock(sleep_lock_);
 
+    unset_wakeup();
     set_thread_sleep();
 
-    if(seconds >= 0.0) {
-      std::unique_lock<std::mutex> lk(sleep_lock_);
+    double seconds = 0;
 
-      std::chrono::duration<double> pause(seconds);
+    if(Fixnum* fix = try_as<Fixnum>(duration)) {
+      seconds = fix->to_native();
+    } else if(Float* flt = try_as<Float>(duration)) {
+      seconds = flt->value();
+    } else if(duration->nil_p()) {
+      seconds = 0.01;
+    }
 
-      while(!should_wakeup_) {
-        if(sleep_cond_.wait_for(lk, pause) == std::cv_status::timeout) break;
-      }
-    } else {
-      while(!should_wakeup_) {
-        suspend_thread();
+    std::chrono::duration<double> pause(seconds);
+
+    {
+      UnmanagedPhase guard(this);
+
+      while(!wakeup_p() && !thread_interrupted_p(this)) {
+        auto status = sleep_cond_.wait_for(lock, pause);
+
+        if(status == std::cv_status::timeout && !duration->nil_p()) {
+          // We were woken because duration elapsed.
+          break;
+        }
       }
     }
 
@@ -488,38 +502,25 @@ namespace rubinius {
   }
 
   bool ThreadState::wakeup() {
-    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
+    std::lock_guard<std::mutex> guard(lock_);
 
     set_check_local_interrupts();
-    Object* wait = waiting_object_;
+
+    if(interrupt_with_signal_ && os_thread_) {
+      pthread_kill(os_thread_, SIGVTALRM);
+    }
 
     if(sleeping_p()) {
       set_wakeup();
 
       std::unique_lock<std::mutex> lock(sleep_lock_);
       sleep_cond_.notify_one();
-
-      return true;
-    } else if(interrupt_with_signal_) {
-      pthread_kill(os_thread_, SIGVTALRM);
-      return true;
-    } else if(!wait->nil_p()) {
-      return true;
-    } else {
-      Channel* chan = waiting_channel_;
-
-      if(!chan->nil_p()) {
-        interrupt_lock_.unlock();
-        chan->send(this, cNil);
-        return true;
-      } else if(custom_wakeup_) {
-        interrupt_lock_.unlock();
-        (*custom_wakeup_)(custom_wakeup_data_);
-        return true;
-      }
-
-      return false;
+    } else if(custom_wakeup_) {
+      interrupt_lock_.unlock();
+      (*custom_wakeup_)(custom_wakeup_data_);
     }
+
+    return true;
   }
 
   void ThreadState::clear_waiter() {
@@ -528,7 +529,6 @@ namespace rubinius {
 
     interrupt_with_signal_ = false;
     waiting_channel_ = nil<Channel>();
-    waiting_object_ = cNil;
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
   }
@@ -536,7 +536,7 @@ namespace rubinius {
   void ThreadState::wait_on_channel(Channel* chan) {
     std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
 
-    thread()->sleep(this, cTrue);
+    set_thread_sleep();
     waiting_channel_ = chan;
   }
 
@@ -637,7 +637,6 @@ namespace rubinius {
     f(state, reinterpret_cast<Object**>(&interrupted_exception_));
     f(state, reinterpret_cast<Object**>(&thread_));
     f(state, reinterpret_cast<Object**>(&fiber_));
-    f(state, reinterpret_cast<Object**>(&waiting_object_));
     f(state, reinterpret_cast<Object**>(&unwind_state_));
 
     thca_->collect(state);

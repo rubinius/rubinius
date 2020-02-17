@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_THREAD_HPP
 
 #include "object_utils.hpp"
-#include "spinlock.hpp"
 
 #include "class/channel.hpp"
 #include "class/exception.hpp"
@@ -155,8 +154,8 @@ namespace rubinius {
     // Rubinius.primitive :thread_set_priority
     Object* set_priority(STATE, Fixnum* priority);
 
-    // Rubinius.primitive :thread_sleep
-    Object* sleep(STATE, Object* duration);
+    // Rubinius.primitive :thread_suspend
+    Object* suspend(STATE, Object* duration);
 
     /**
      *  Schedule Thread to be run.
