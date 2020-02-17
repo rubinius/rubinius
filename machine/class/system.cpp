@@ -219,7 +219,7 @@ namespace rubinius {
   public:
     ExecCommand(STATE, String* command)
       : argc_(0)
-      , argv_(NULL)
+      , argv_(nullptr)
     {
       command_ = make_string(state, command);
       command_size_ = command->byte_size();
@@ -230,13 +230,13 @@ namespace rubinius {
       command_size_ = command->byte_size();
 
       argc_ = args->size();
-      argv_ = NULL;
+      argv_ = nullptr;
 
       if(argc_ > 0) {
         argv_ = new char*[argc_ + 1];
 
         /* execvp() requires a NULL as last element */
-        argv_[argc_] = NULL;
+        argv_[argc_] = nullptr;
 
         for(size_t i = 0; i < argc_; i++) {
           /* POSIX guarantees that execvp does not modify the characters to
@@ -405,7 +405,7 @@ namespace rubinius {
 
     if(pipe(errors) != 0) {
       Exception::raise_errno_error(state, "error setting up pipes", errno, "pipe(2)");
-      return NULL;
+      return nullptr;
     }
 
     int pid = fork_exec(state, errors[1]);
@@ -416,7 +416,7 @@ namespace rubinius {
       close(errors[1]);
 
       Exception::raise_errno_error(state, "error forking", errno, "fork(2)");
-      return NULL;
+      return nullptr;
     }
 
     if(pid == 0) {
@@ -438,7 +438,7 @@ namespace rubinius {
         action.sa_flags = 0;
         sigfillset(&action.sa_mask);
 
-        sigaction(i, &action, NULL);
+        sigaction(i, &action, nullptr);
       }
 
       int exec_errno = 0;
@@ -526,7 +526,7 @@ namespace rubinius {
 
     if(size != 0) {
       Exception::raise_errno_error(state, "execvp(2) failed", exec_errno);
-      return NULL;
+      return nullptr;
     }
 
     return Fixnum::from(pid);
@@ -546,12 +546,12 @@ namespace rubinius {
 
     if(pipe(errors) != 0) {
       Exception::raise_errno_error(state, "error setting up pipes", errno, "pipe(2)");
-      return NULL;
+      return nullptr;
     }
 
     if(pipe(output) != 0) {
       Exception::raise_errno_error(state, "error setting up pipes", errno, "pipe(2)");
-      return NULL;
+      return nullptr;
     }
 
     int pid = fork_exec(state, errors[1]);
@@ -564,7 +564,7 @@ namespace rubinius {
       close(output[1]);
 
       Exception::raise_errno_error(state, "error forking", errno, "fork(2)");
-      return NULL;
+      return nullptr;
     }
 
     if(pid == 0) {
@@ -586,7 +586,7 @@ namespace rubinius {
         action.sa_flags = 0;
         sigfillset(&action.sa_mask);
 
-        sigaction(i, &action, NULL);
+        sigaction(i, &action, nullptr);
       }
 
       exec_sh_fallback(state, exe.command(), exe.command_size());
@@ -658,7 +658,7 @@ namespace rubinius {
 
     if(size != 0) {
       Exception::raise_errno_error(state, "execvp(2) failed", exec_errno);
-      return NULL;
+      return nullptr;
     }
 
     std::string buf;
@@ -676,9 +676,9 @@ namespace rubinius {
             case EINTR:
               {
                 ManagedPhase managed(state);
-                if(state->thread_interrupted_p(state)) {
+                if(state->thread_interrupted_p()) {
                   close(output[0]);
-                  return NULL;
+                  return nullptr;
                 }
               }
               continue;
@@ -767,13 +767,13 @@ namespace rubinius {
       action.sa_flags = 0;
       sigfillset(&action.sa_mask);
 
-      sigaction(i, &action, NULL);
+      sigaction(i, &action, nullptr);
     }
 
     /* execvp() returning means it failed. */
     Exception::raise_errno_error(state, "execvp(2) failed", erno);
 
-    return NULL;
+    return nullptr;
   }
 
   Object* System::vm_waitpid(STATE, Fixnum* pid_obj, Object* no_hang) {
@@ -806,7 +806,7 @@ namespace rubinius {
       if(errno == ECHILD) return cFalse;
 
       if(errno == EINTR) {
-        if(state->thread_interrupted_p(state)) return NULL;
+        if(state->thread_interrupted_p()) return nullptr;
         goto retry;
       }
 
@@ -832,7 +832,7 @@ namespace rubinius {
 
   Object* System::vm_exit(STATE, Fixnum* code) {
     state->unwind_state()->raise_exit(code);
-    return NULL;
+    return nullptr;
   }
 
   Fixnum* System::vm_fork(STATE) {
@@ -889,7 +889,7 @@ namespace rubinius {
     } else if(pid < 0) {
       // We errored...
       Exception::raise_errno_error(state, "fork(2) failed");
-      return NULL;
+      return nullptr;
     }
 
     // The compiler can't understand the covering above, so...
@@ -1067,7 +1067,7 @@ namespace rubinius {
         // exc->locations(state, System::vm_backtrace(state,
         //                Fixnum::from(0));
         state->raise_exception(exc);
-        return NULL;
+        return nullptr;
       }
 
       return cls;
@@ -1287,7 +1287,7 @@ namespace rubinius {
           exc->class_object(state)->module_name()->cpp_str(state).c_str(), exc->message_c_str(state));
     }
 
-    return NULL;
+    return nullptr;
   }
 
   Fixnum* System::vm_memory_size(STATE, Object* obj) {
@@ -1312,7 +1312,7 @@ namespace rubinius {
 
   Object* System::vm_throw(STATE, Object* dest, Object* value) {
     state->unwind_state()->raise_throw(dest, value);
-    return NULL;
+    return nullptr;
   }
 
   Object* System::vm_catch(STATE, Object* dest, Object* obj) {

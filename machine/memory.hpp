@@ -103,7 +103,6 @@ namespace rubinius {
 
     std::recursive_mutex codedb_lock_;
 
-    locks::spinlock_mutex wait_lock_;
     locks::spinlock_mutex type_info_lock_;
     locks::spinlock_mutex code_resource_lock_;
 
@@ -148,10 +147,6 @@ namespace rubinius {
 
     std::recursive_mutex& codedb_lock() {
       return codedb_lock_;
-    }
-
-    locks::spinlock_mutex& wait_lock() {
-      return wait_lock_;
     }
 
     locks::spinlock_mutex& type_info_lock() {

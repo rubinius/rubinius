@@ -84,7 +84,7 @@ namespace rubinius {
 
       std::chrono::duration<double> pause(seconds);
 
-      while(self->value()->empty_p() && !state->thread_interrupted_p(state)) {
+      while(self->value()->empty_p() && !state->thread_interrupted_p()) {
         auto status = self->_condition_.wait_for(lock, pause);
 
         if(!self->value()->empty_p()) {

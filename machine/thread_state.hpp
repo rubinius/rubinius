@@ -5,7 +5,6 @@
 
 #include "diagnostics.hpp"
 #include "globals.hpp"
-#include "spinlock.hpp"
 #include "thread_nexus.hpp"
 #include "type_info.hpp"
 #include "unwind_info.hpp"
@@ -132,8 +131,6 @@ namespace rubinius {
 
     bool interrupt_with_signal_;
     bool interrupt_by_kill_;
-    bool check_local_interrupts_;
-    bool thread_step_;
 
     std::atomic<bool> should_wakeup_;
     std::atomic<ThreadStatus> thread_status_;
@@ -150,8 +147,6 @@ namespace rubinius {
     std::condition_variable fiber_wait_condition_;
 
     std::atomic<FiberTransition> fiber_transition_flag_;
-
-    locks::spinlock_mutex interrupt_lock_;
 
     MethodMissingReason method_missing_reason_;
     ConstantMissingReason constant_missing_reason_;
@@ -276,10 +271,6 @@ namespace rubinius {
 
     void set_thread_phase(ThreadNexus::Phase thread_phase) {
       thread_phase_.store(thread_phase, std::memory_order_release);
-    }
-
-    locks::spinlock_mutex& interrupt_lock() {
-      return interrupt_lock_;
     }
 
     bool wakeup_p() {
@@ -507,15 +498,11 @@ namespace rubinius {
     bool pop_call_frame(STATE, CallFrame* frame) {
       call_frame_ = frame;
 
-      return !thread_interrupted_p(state);
+      return !thread_interrupted_p();
     }
 
-    bool thread_interrupted_p(STATE) {
-      if(check_local_interrupts()) {
-        return check_thread_raise_or_kill(state);
-      }
-
-      return false;
+    bool thread_interrupted_p() {
+      return check_thread_raise_or_kill(this);
     }
 
     bool check_thread_raise_or_kill(STATE);
@@ -557,32 +544,6 @@ namespace rubinius {
     }
 
     void after_fork_child();
-
-    bool thread_step() const {
-      return thread_step_;
-    }
-
-    void clear_thread_step() {
-      clear_check_local_interrupts();
-      thread_step_ = false;
-    }
-
-    void set_thread_step() {
-      set_check_local_interrupts();
-      thread_step_ = true;
-    }
-
-    bool check_local_interrupts() const {
-      return check_local_interrupts_;
-    }
-
-    void clear_check_local_interrupts() {
-      check_local_interrupts_ = false;
-    }
-
-    void set_check_local_interrupts() {
-      check_local_interrupts_ = true;
-    }
 
     bool interrupt_by_kill() const {
       return interrupt_by_kill_;

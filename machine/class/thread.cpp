@@ -41,26 +41,6 @@
 #include <string>
 #include <thread>
 
-/* HACK: returns a value that should identify a native thread
- * for debugging threading issues. The winpthreads library
- * defines pthread_t to be a structure not a pointer.
- */
-intptr_t thread_debug_self() {
-#ifdef RBX_WINDOWS
-  return (intptr_t)(pthread_self()).p;
-#else
-  return (intptr_t)pthread_self();
-#endif
-}
-
-static intptr_t thread_debug_id(pthread_t thr) {
-#ifdef RBX_WINDOWS
-    return (intptr_t)thr.p;
-#else
-    return (intptr_t)thr;
-#endif
-}
-
 namespace rubinius {
   void Thread::bootstrap(STATE) {
     GO(thread).set(state->memory()->new_class<Class, Thread>(state, "Thread"));
@@ -122,7 +102,6 @@ namespace rubinius {
     }
 
     if(thread->thread_state() && thread->thread_state()->zombie_p()) {
-      thread->thread_state()->fiber_mutex().std::mutex::~mutex();
       thread->thread_state()->discard();
       thread->thread_state(nullptr);
     }
@@ -317,9 +296,8 @@ namespace rubinius {
     state->thread()->pid(state, Fixnum::from(gettid()));
 
     if(state->configuration()->log_thread_lifetime.value) {
-      logger::write("thread: run: %s, %d, %#x",
-          state->name().c_str(), state->thread()->pid()->to_native(),
-          (unsigned int)thread_debug_self());
+      logger::write("thread: run: %s, %d",
+          state->name().c_str(), state->thread()->pid()->to_native());
     }
 
     state->metrics()->start_reporting(state);
@@ -454,7 +432,7 @@ namespace rubinius {
 
     state->thread()->thread_state()->sleep(duration);
 
-    if(state->thread()->thread_state()->thread_interrupted_p(state)) {
+    if(state->thread()->thread_state()->thread_interrupted_p()) {
       return nullptr;
     }
 

@@ -192,14 +192,14 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
-        if(state->thread_interrupted_p(state)) return NULL;
+        if(state->thread_interrupted_p()) return nullptr;
         ensure_open(state);
         goto retry;
       } else {
         Exception::raise_errno_error(state, "read(2) failed");
       }
 
-      return NULL;
+      return nullptr;
     }
 
     buffer->num_bytes(state, Fixnum::from(bytes_read));
@@ -278,13 +278,13 @@ namespace rubinius {
       while(*p != ']') {
         const char *t1 = p;
         if(escape && *t1 == '\\') t1++;
-        if(!*t1) return NULL;
+        if(!*t1) return nullptr;
 
         p = Next(t1);
         if(p[0] == '-' && p[1] != ']') {
           const char *t2 = p + 1;
           if(escape && *t2 == '\\') t2++;
-          if(!*t2) return NULL;
+          if(!*t2) return nullptr;
 
           p = Next(t2);
           if(!ok && Compare(t1, s) <= 0 && Compare(s, t2) <= 0) ok = 1;
@@ -293,7 +293,7 @@ namespace rubinius {
         }
       }
 
-      return ok == nope ? NULL : (char *)p + 1;
+      return ok == nope ? nullptr : (char *)p + 1;
     }
     /* If FNM_PATHNAME is set, only path element will be matched. (upto '/' or '\0')
        Otherwise, entire string will be matched.
@@ -436,7 +436,7 @@ failed: /* try next '*' position */
 
     fd = io->descriptor(state);
 
-    msg.msg_name = NULL;
+    msg.msg_name = nullptr;
     msg.msg_namelen = 0;
 
     /* Linux and Solaris doesn't work if msg_iov is NULL. */
@@ -478,7 +478,7 @@ failed: /* try next '*' position */
     struct cmsghdr *cmsg;
     char cmsg_buf[cmsg_space];
 
-    msg.msg_name = NULL;
+    msg.msg_name = nullptr;
     msg.msg_namelen = 0;
 
     /* Linux and Solaris doesn't work if msg_iov is NULL. */
@@ -519,7 +519,7 @@ failed: /* try next '*' position */
 
     if(code == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(state->thread_interrupted_p(state)) return NULL;
+        if(state->thread_interrupted_p()) return nullptr;
         ensure_open(state);
         goto retry;
       }

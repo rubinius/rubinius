@@ -64,7 +64,6 @@ namespace rubinius {
     , class_count_(0)
     , global_serial_(0)
     , codedb_lock_()
-    , wait_lock_()
     , type_info_lock_()
     , code_resource_lock_()
     , last_object_id(1)
@@ -88,7 +87,6 @@ namespace rubinius {
   }
 
   void Memory::after_fork_child(STATE) {
-    new(&wait_lock_) locks::spinlock_mutex;
     new(&type_info_lock_) locks::spinlock_mutex;
     new(&code_resource_lock_) locks::spinlock_mutex;
 

@@ -279,59 +279,5 @@ namespace rubinius {
 
       return module;
     }
-
-    bool yield_debugger(STATE, Object* bp) {
-      Thread* cur = Thread::current(state);
-      Thread* debugger = cur->debugger_thread();
-
-      // Not for us, bail.
-      if(debugger->nil_p()) {
-        return true;
-      }
-
-      Channel* debugger_chan = debugger->control_channel();
-
-      // Debugger not initialized? bail.
-      if(debugger_chan->nil_p()) {
-        std::cout << "no debugger channel\n";
-        return true;
-      }
-
-      // If we're hitting here, clear any chance that step would be used
-      // without being explicitly requested.
-      state->clear_thread_step();
-
-      Channel* my_control = cur->control_channel();
-
-      // Lazily create our own control channel.
-      if(my_control->nil_p()) {
-        my_control = Channel::create(state);
-        cur->control_channel(state, my_control);
-      }
-
-      Array* locs = Location::debugging_call_stack(state);
-
-      OnStack<1> os(state, my_control);
-
-      debugger_chan->send(state, Tuple::from(state, 4, bp, cur, my_control, locs));
-
-      // Block until the debugger wakes us back up.
-      Object* ret = my_control->receive(state);
-
-      // Do not access any locals other than ret beyond here unless you add OnStack<>
-      // to them! The GC has probably run and moved things.
-
-      // if ret is null, then receive was interrupted and there is an exception
-      // to propagate.
-      if(!ret) return false;
-
-      // Process a few commands...
-      if(ret == state->symbol("step")) {
-        state->set_thread_step();
-      }
-
-      // All done!
-      return true;
-    }
   }
 }

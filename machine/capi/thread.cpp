@@ -65,7 +65,7 @@ extern "C" {
         ret = select(max, read, write, except, tvp);
       }
 
-      bool ok = !env->state()->thread_interrupted_p(env->state());
+      bool ok = !env->state()->thread_interrupted_p();
 
       ENTER_CAPI(env->state());
 
@@ -160,7 +160,7 @@ extern "C" {
     ThreadState* state = env->state();
     void* ret = NULL;
 
-    if(state->thread_interrupted_p(state)) {
+    if(state->thread_interrupted_p()) {
       return ret;
     }
     if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {

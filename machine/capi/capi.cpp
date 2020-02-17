@@ -124,11 +124,7 @@ namespace rubinius {
         return false;
       }
 
-      if(unlikely(state->check_local_interrupts())) {
-        return state->check_thread_raise_or_kill(state);
-      }
-
-      return true;
+      return !state->thread_interrupted_p();
     }
 
     /**

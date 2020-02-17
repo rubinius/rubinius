@@ -29,9 +29,7 @@ namespace rubinius {
 
     attr_accessor(args, Array);
     attr_accessor(block, Object);
-    attr_accessor(control_channel, Channel);
     attr_accessor(recursive_objects, LookupTable);
-    attr_accessor(debugger_thread, Thread);
     attr_accessor(thread_id, Fixnum);
     attr_accessor(randomizer, Randomizer);
     attr_accessor(locals, LookupTable);
@@ -60,9 +58,7 @@ namespace rubinius {
     static void initialize(STATE, Thread* obj) {
       obj->args(nil<Array>());
       obj->block(cNil);
-      obj->control_channel(nil<Channel>());
       obj->recursive_objects(state, LookupTable::create(state));
-      obj->debugger_thread(nil<Thread>());
       obj->thread_id(nil<Fixnum>());
       obj->randomizer(nil<Randomizer>());
       obj->locals(state, LookupTable::create(state));

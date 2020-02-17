@@ -25,8 +25,6 @@ namespace rubinius {
     Class*    open_class(ThreadState*, Module* under, Object* super, Symbol* name, bool* created);
     Module*   open_module(ThreadState*, Symbol* name);
     Module*   open_module(ThreadState*, Module* under, Symbol* name);
-
-    bool yield_debugger(ThreadState*, Object* bp);
   };
 }
 

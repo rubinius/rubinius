@@ -49,8 +49,6 @@ namespace rubinius {
     , stack_probe_(0)
     , interrupt_with_signal_(false)
     , interrupt_by_kill_(false)
-    , check_local_interrupts_(false)
-    , thread_step_(false)
     , should_wakeup_(true)
     , thread_status_(eRun)
     , lock_()
@@ -63,7 +61,6 @@ namespace rubinius {
     , fiber_wait_mutex_()
     , fiber_wait_condition_()
     , fiber_transition_flag_(eSuspending)
-    , interrupt_lock_()
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
     , main_thread_(false)
@@ -83,11 +80,11 @@ namespace rubinius {
     , unwind_state_(nullptr)
   {
     if(name) {
-      name_ = std::string(name);
+      name_.assign(name);
     } else {
       std::ostringstream thread_name;
       thread_name << "ruby." << id_;
-      name_ = thread_name.str();
+      name_.assign(thread_name.str());
     }
 
     set_sample_interval();
@@ -264,19 +261,11 @@ namespace rubinius {
     if(interrupt_by_kill()) {
       if(state->thread()->current_fiber()->root_p()) {
         clear_interrupt_by_kill();
-      } else {
-        set_check_local_interrupts();
       }
 
       unwind_state()->raise_thread_kill();
 
       return true;
-    }
-
-    // If the current thread is trying to step, debugger wise, then assist!
-    if(thread_step()) {
-      clear_thread_step();
-      if(!Helpers::yield_debugger(state, cNil)) return true;
     }
 
     return false;
@@ -406,6 +395,20 @@ namespace rubinius {
     // TODO: Diagnostics
     metrics()->threads_destroyed++;
 
+    /* It is undefined behavior to destroy a condition variable or mutex that
+     * is being waited on / locked by a thread. By using placement new, we
+     * overwrite that data in the mutexes and condition variables.
+     */
+    new(&lock_) std::mutex;
+    new(&thread_lock_) std::mutex;
+    new(&sleep_lock_) std::mutex;
+    new(&sleep_cond_) std::condition_variable;
+    new(&join_lock_) std::mutex;
+    new(&join_cond_) std::condition_variable;
+    new(&fiber_mutex_) std::mutex;
+    new(&fiber_wait_mutex_) std::mutex;
+    new(&fiber_wait_condition_) std::condition_variable;
+
     delete this;
   }
 
@@ -419,7 +422,6 @@ namespace rubinius {
   }
 
   void ThreadState::after_fork_child() {
-    interrupt_lock_.unlock();
     set_main_thread();
 
     set_start_time();
@@ -488,7 +490,7 @@ namespace rubinius {
     {
       UnmanagedPhase guard(this);
 
-      while(!wakeup_p() && !thread_interrupted_p(this)) {
+      while(!wakeup_p() && !thread_interrupted_p()) {
         auto status = sleep_cond_.wait_for(lock, pause);
 
         if(status == std::cv_status::timeout && !duration->nil_p()) {
@@ -504,19 +506,14 @@ namespace rubinius {
   bool ThreadState::wakeup() {
     std::lock_guard<std::mutex> guard(lock_);
 
-    set_check_local_interrupts();
-
-    if(interrupt_with_signal_ && os_thread_) {
-      pthread_kill(os_thread_, SIGVTALRM);
-    }
-
     if(sleeping_p()) {
       set_wakeup();
 
       std::unique_lock<std::mutex> lock(sleep_lock_);
       sleep_cond_.notify_one();
+    } else if(interrupt_with_signal_ && os_thread_) {
+      pthread_kill(os_thread_, SIGVTALRM);
     } else if(custom_wakeup_) {
-      interrupt_lock_.unlock();
       (*custom_wakeup_)(custom_wakeup_data_);
     }
 
@@ -524,40 +521,28 @@ namespace rubinius {
   }
 
   void ThreadState::clear_waiter() {
-    // TODO: Machine
-    std::lock_guard<locks::spinlock_mutex> guard(_machine_->memory()->wait_lock());
+    std::lock_guard<std::mutex> guard(lock_);
 
     interrupt_with_signal_ = false;
-    waiting_channel_ = nil<Channel>();
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
   }
 
-  void ThreadState::wait_on_channel(Channel* chan) {
-    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
-
-    set_thread_sleep();
-    waiting_channel_ = chan;
-  }
-
   void ThreadState::wait_on_custom_function(STATE, void (*func)(void*), void* data) {
-    // TODO: Machine
-    std::lock_guard<locks::spinlock_mutex> guard(_machine_->memory()->wait_lock());
+    std::lock_guard<std::mutex> guard(lock_);
 
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
   }
 
   void ThreadState::register_raise(STATE, Exception* exc) {
-    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     interrupted_exception_ = exc;
-    set_check_local_interrupts();
   }
 
   void ThreadState::register_kill(STATE) {
-    std::lock_guard<locks::spinlock_mutex> guard(interrupt_lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     set_interrupt_by_kill();
-    set_check_local_interrupts();
   }
 
   memory::VariableRootBuffers& ThreadState::current_root_buffers() {
