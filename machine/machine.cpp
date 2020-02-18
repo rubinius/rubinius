@@ -570,6 +570,8 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
+    state->discard();
+
     exit(exit_code);
 
     return 0;

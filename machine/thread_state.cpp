@@ -98,6 +98,11 @@ namespace rubinius {
       delete thca_;
       thca_ = nullptr;
     }
+
+    if(metrics_) {
+      delete metrics_;
+      metrics_ = nullptr;
+    }
   }
 
   void ThreadState::raise_exception(Exception* exc) {
