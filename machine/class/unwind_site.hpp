@@ -54,6 +54,11 @@ namespace rubinius {
 
     static UnwindSite* create(STATE, int ip, UnwindType unwind_type);
 
+    void finalize(STATE) {
+      delete[] _caches_;
+      _caches_ = nullptr;
+    }
+
     class Info : public TypeInfo {
       public:
         Info(object_type type)

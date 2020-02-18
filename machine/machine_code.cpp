@@ -131,6 +131,10 @@ namespace rubinius {
               reinterpret_cast<Object*>(opcodes[ip])))
         {
           call_site->finalize(state);
+        } else if(UnwindSite* unwind_site = try_as<UnwindSite>(
+              reinterpret_cast<Object*>(opcodes[ip])))
+        {
+          unwind_site->finalize(state);
         }
       }
     }

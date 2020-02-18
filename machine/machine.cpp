@@ -555,10 +555,10 @@ namespace rubinius {
     halt_compiler(state);
     halt_c_api(state);
     halt_signals(state);
+    halt_collector(state);
 
     thread_nexus()->halt(state, state);
 
-    halt_collector(state);
     halt_codedb(state);
     halt_memory(state);
     halt_diagnostics(state);
