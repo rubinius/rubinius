@@ -230,6 +230,7 @@ namespace rubinius {
     void halt_environment(STATE);
     void halt_logger(STATE);
     void halt_machine_state(STATE);
+    void halt_machine(STATE);
   };
 }
 #endif

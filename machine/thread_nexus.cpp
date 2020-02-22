@@ -131,9 +131,8 @@ namespace rubinius {
     threads_mutex_.try_lock();
     threads_mutex_.unlock();
 
-    while(!threads_.empty()) {
-      ThreadState* thread_state = threads_.back();
-      threads_.pop_back();
+    for(auto i = threads_.begin(); i != threads_.end();) {
+      ThreadState* thread_state = *i;
 
       switch(thread_state->kind()) {
         case ThreadState::eThread: {
@@ -141,9 +140,11 @@ namespace rubinius {
             if(!thread->nil_p()) {
               if(thread_state == state) {
                 thread->current_fiber(state, thread->fiber());
+                ++i;
                 continue;
               } else {
                 thread_state->set_thread_dead();
+                i = threads_.erase(i);
               }
             }
           }
@@ -157,17 +158,15 @@ namespace rubinius {
           }
 
           thread_state->set_thread_dead();
+          i = threads_.erase(i);
 
           break;
         }
         case ThreadState::eSystem:
-          thread_state->set_thread_dead();
-          thread_state->discard();
+          ++i;
           break;
       }
     }
-
-    threads_.push_back(state);
   }
 
   static const char* phase_name(ThreadState* thread_state) {

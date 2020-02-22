@@ -28,7 +28,7 @@ namespace rubinius {
     public:
 
       SignalThread(STATE, std::mutex& lock, std::condition_variable& condition);
-      ~SignalThread() { }
+      virtual ~SignalThread() { }
 
       void initialize(STATE);
       void stop(STATE);

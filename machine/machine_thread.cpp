@@ -69,6 +69,7 @@ namespace rubinius {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
     pthread_attr_setstacksize(&attrs, stack_size_);
+    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
     if(int error = pthread_create(&thread_state_->os_thread(), &attrs,
           MachineThread::run, (void*)this)) {
@@ -88,10 +89,6 @@ namespace rubinius {
     UnmanagedPhase unmanaged(state);
 
     wakeup(state);
-
-    void* return_value;
-    pthread_t os = thread_state_->os_thread();
-    pthread_join(os, &return_value);
   }
 
   void MachineThread::stop(STATE) {
@@ -100,7 +97,6 @@ namespace rubinius {
   }
 
   void MachineThread::after_fork_child(STATE) {
-    thread_state_ = state->thread_nexus()->create_thread_state(state->machine());
     start(state);
   }
 }

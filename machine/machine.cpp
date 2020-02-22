@@ -476,8 +476,7 @@ namespace rubinius {
 
   void Machine::halt_thread_nexus(STATE) {
     if(_thread_nexus_) {
-      // TODO: remove restriction on deleting ThreadNexus
-      // delete _thread_nexus_;
+      delete _thread_nexus_;
       _thread_nexus_ = nullptr;
     }
   }
@@ -517,6 +516,15 @@ namespace rubinius {
       delete _machine_state_;
       _machine_state_ = nullptr;
     }
+  }
+
+  void Machine::halt_machine(STATE) {
+    NativeMethod::cleanup_thread(state);
+
+    new(&_waiting_mutex_) std::mutex;
+    new(&_waiting_condition_) std::condition_variable;
+
+    state->discard();
   }
 
   int Machine::halt(STATE, Object* exit_code) {
@@ -567,10 +575,7 @@ namespace rubinius {
     halt_environment(state);
     halt_logger(state);
     halt_machine_state(state);
-
-    NativeMethod::cleanup_thread(state);
-
-    state->discard();
+    halt_machine(state);
 
     exit(exit_code);
 
