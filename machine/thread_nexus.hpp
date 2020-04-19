@@ -4,6 +4,7 @@
 #include "bug.hpp"
 #include "defines.hpp"
 #include "logger.hpp"
+#include "machine.hpp"
 
 #include <atomic>
 #include <condition_variable>
@@ -21,11 +22,9 @@ namespace rubinius {
 
   class ThreadNexus {
     std::atomic<bool> stop_;
-    std::atomic<uint32_t> halt_;
     std::atomic<uint32_t> lock_;
 
     std::mutex threads_mutex_;
-    std::mutex& halting_mutex_;
     std::mutex& waiting_mutex_;
     std::condition_variable& waiting_condition_;
 
@@ -43,12 +42,10 @@ namespace rubinius {
 
     const static int cYieldingPhase = 0x80;
 
-    ThreadNexus(std::mutex& halting, std::mutex& waiting, std::condition_variable& waiting_cond)
+    ThreadNexus(std::mutex& waiting, std::condition_variable& waiting_cond)
       : stop_(false)
-      , halt_(0)
       , lock_(0)
       , threads_mutex_()
-      , halting_mutex_(halting)
       , waiting_mutex_(waiting)
       , waiting_condition_(waiting_cond)
       , threads_()
@@ -81,7 +78,7 @@ namespace rubinius {
     }
 
     bool halt_p() {
-      return halt_.load(std::memory_order_acquire) != 0;
+      return Machine::_halting_.load(std::memory_order_acquire) != 0;
     }
 
     void set_halt(STATE, ThreadState* thread_state);
@@ -103,24 +100,7 @@ namespace rubinius {
 
     bool yielding_p(ThreadState* thread_state);
 
-    void yield(STATE, ThreadState* thread_state) {
-      while(stop_p()) {
-        waiting_phase(state, thread_state);
-
-#ifdef RBX_GC_STACK_CHECK
-        check_stack(state, thread_state);
-#endif
-
-        if(halt_p()) {
-          std::lock_guard<std::mutex> lock(halting_mutex_);
-        } else {
-          std::unique_lock<std::mutex> lock(waiting_mutex_);
-          waiting_condition_.wait(lock, [this]{ return !stop_p(); });
-        }
-
-        managed_phase(state, thread_state);
-      }
-    }
+    void yield(STATE, ThreadState* thread_state);
 
     uint64_t wait();
     void wait_for_all(STATE);

@@ -98,6 +98,8 @@ namespace rubinius {
     };
 
   private:
+    jmp_buf thread_unwind_;
+    bool thread_unwinding_;
     memory::Roots roots_;
     std::string name_;
     memory::VariableRootBuffers variable_root_buffers_;
@@ -191,6 +193,14 @@ namespace rubinius {
 
     Machine* const machine() {
       return _machine_;
+    }
+
+    jmp_buf& get_thread_unwind() {
+      return thread_unwind_;
+    }
+
+    bool thread_unwinding_p() {
+      return thread_unwinding_;
     }
 
     Configuration* const configuration();
@@ -604,6 +614,10 @@ namespace rubinius {
         set_sample_interval();
       }
     }
+
+#define SET_THREAD_UNWIND(ts) /*ep.file = __FILE__; ep.line = __LINE__; */ _setjmp(ts->get_thread_unwind())
+
+    void halt_thread();
 
     void managed_phase(STATE) {
       thread_nexus()->managed_phase(state, this);

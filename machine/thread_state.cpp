@@ -34,7 +34,8 @@ namespace rubinius {
   static thread_local ThreadState* _current_thread = nullptr;
 
   ThreadState::ThreadState(uint32_t id, Machine* m, const char* name)
-    : kind_(eThread)
+    : thread_unwinding_(false)
+    , kind_(eThread)
     , metrics_(new diagnostics::MachineMetrics())
     , os_thread_(0)
     , id_(id)
@@ -415,6 +416,11 @@ namespace rubinius {
     new(&fiber_wait_condition_) std::condition_variable;
 
     delete this;
+  }
+
+  void ThreadState::halt_thread() {
+    thread_unwinding_ = true;
+    _longjmp(thread_unwind_, 1);
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {

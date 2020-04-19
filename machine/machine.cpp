@@ -43,8 +43,8 @@
 #include <sys/stat.h>
 
 namespace rubinius {
+  std::atomic<uint64_t> Machine::_halting_;
   std::mutex Machine::_waiting_mutex_;
-  std::mutex Machine::_halting_mutex_;
   std::condition_variable Machine::_waiting_condition_;
 
   MachineState::MachineState()
@@ -65,7 +65,7 @@ namespace rubinius {
   Machine::Machine(int argc, char** argv)
     : _machine_state_(new MachineState())
     , _logger_(nullptr)
-    , _thread_nexus_(new ThreadNexus(_halting_mutex_, _waiting_mutex_, _waiting_condition_))
+    , _thread_nexus_(new ThreadNexus(_waiting_mutex_, _waiting_condition_))
     , _configuration_(new Configuration())
     , _environment_(new Environment(argc, argv, this))
     , _diagnostics_(new Diagnostics(_configuration_))
@@ -456,7 +456,8 @@ namespace rubinius {
   }
 
   void Machine::halt_collector(STATE) {
-    collector()->stop(state);
+    // TODO halt
+    // collector()->stop(state);
 
     collector()->dispose(state);
     collector()->finish(state);
@@ -563,10 +564,12 @@ namespace rubinius {
     halt_compiler(state);
     halt_c_api(state);
     halt_signals(state);
-    halt_collector(state);
+
+    collector()->stop(state);
 
     thread_nexus()->halt(state, state);
 
+    halt_collector(state);
     halt_codedb(state);
     halt_memory(state);
     halt_diagnostics(state);

@@ -23,7 +23,7 @@
 
 namespace rubinius {
   void ThreadNexus::set_halt(STATE, ThreadState* thread_state) {
-    if(!halting_mutex_.try_lock()) {
+    if(Machine::_halting_ && Machine::_halting_ == thread_state->thread_id()) {
       std::ostringstream msg;
 
       msg << "halting mutex is already locked: id: " << thread_state->thread_id();
@@ -31,12 +31,12 @@ namespace rubinius {
       Exception::raise_assertion_error(state, msg.str().c_str());
     }
 
-    halt_.store(thread_state->thread_id(), std::memory_order_release);
+    Machine::_halting_.store(thread_state->thread_id(), std::memory_order_release);
   }
 
   void ThreadNexus::managed_phase(STATE, ThreadState* thread_state) {
-    if(halt_ && halt_ != thread_state->thread_id()) {
-      halting_mutex_.lock();
+    if(Machine::_halting_ && Machine::_halting_ != thread_state->thread_id()) {
+      thread_state->halt_thread();
     }
 
     if(can_stop_p(state, thread_state)) {
@@ -50,8 +50,8 @@ namespace rubinius {
 
 
   bool ThreadNexus::try_managed_phase(STATE, ThreadState* thread_state) {
-    if(halt_ && halt_ != thread_state->thread_id()) {
-      halting_mutex_.lock();
+    if(Machine::_halting_ && Machine::_halting_ != thread_state->thread_id()) {
+      thread_state->halt_thread();
     }
 
     return try_lock(state, thread_state,
@@ -82,6 +82,26 @@ namespace rubinius {
 
   bool ThreadNexus::can_stop_p(STATE, ThreadState* thread_state) {
     return lock_ != thread_state->thread_id();
+  }
+
+  void ThreadNexus::yield(STATE, ThreadState* thread_state) {
+    while(stop_p()) {
+      waiting_phase(state, thread_state);
+
+#ifdef RBX_GC_STACK_CHECK
+      check_stack(state, thread_state);
+#endif
+
+      if(halt_p()) {
+        thread_state->halt_thread();
+        // std::lock_guard<std::mutex> lock(halting_mutex_);
+      } else {
+        std::unique_lock<std::mutex> lock(waiting_mutex_);
+        waiting_condition_.wait(lock, [this]{ return !stop_p(); });
+      }
+
+      managed_phase(state, thread_state);
+    }
   }
 
   void ThreadNexus::unlock(STATE, ThreadState* thread_state) {

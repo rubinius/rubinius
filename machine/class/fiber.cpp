@@ -174,6 +174,13 @@ namespace rubinius {
     state->set_current_thread();
     state->set_start_time();
 
+    SET_THREAD_UNWIND(state);
+
+    if(state->thread_unwinding_p()) {
+      // TODO halt
+      return 0;
+    }
+
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(
           state->name().c_str()), state->fiber()->fiber_id()->to_native(), 0);

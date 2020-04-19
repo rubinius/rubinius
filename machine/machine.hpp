@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <functional>
 #include <mutex>
 
@@ -133,10 +134,10 @@ namespace rubinius {
     Console* _console_;
 
     static std::mutex _waiting_mutex_;
-    static std::mutex _halting_mutex_;
     static std::condition_variable _waiting_condition_;
 
   public:
+    static std::atomic<uint64_t> _halting_;
 
     Machine(int argc, char** argv);
     virtual ~Machine();

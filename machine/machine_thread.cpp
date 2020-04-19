@@ -26,6 +26,13 @@ namespace rubinius {
 
     state->set_current_thread();
 
+    SET_THREAD_UNWIND(state);
+
+    if(state->thread_unwinding_p()) {
+      // TODO halt
+      return 0;
+    }
+
     RUBINIUS_THREAD_START(
         const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
 
