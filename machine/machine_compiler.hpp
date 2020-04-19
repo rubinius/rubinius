@@ -3,7 +3,7 @@
 
 #include <llvm/Config/llvm-config.h>
 
-#if LLVM_VERSION_MAJOR >= 9
+#if LLVM_VERSION_MAJOR == 9
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/JITSymbol.h>
 #include <llvm/ExecutionEngine/Orc/CompileUtils.h>
@@ -37,7 +37,7 @@ namespace rubinius {
 
     typedef std::list<CompileRequest*> CompileList;
 
-#if LLVM_VERSION_MAJOR >= 9
+#if LLVM_VERSION_MAJOR == 9
 
     using namespace llvm;
     using namespace llvm::orc;
