@@ -73,9 +73,7 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
-    return Thread::create(state, self,
-        state->thread_nexus()->create_thread_state(state->machine()),
-        function);
+    return Thread::create(state, self, state->threads()->create_thread_state(), function);
   }
 
   Thread* Thread::create(STATE, Object* self, ThreadState* thread_state, ThreadFunction function) {
@@ -169,7 +167,7 @@ namespace rubinius {
     }
 
     if(!thread->send(state, state->symbol("initialize"), args, block, true)) {
-      state->machine()->thread_nexus()->remove_thread_state(thread->thread_state());
+      state->threads()->remove_thread_state(thread->thread_state());
       thread->thread_state()->set_thread_exception();
       return nullptr;
     }
@@ -207,7 +205,7 @@ namespace rubinius {
     }
 
     if(!thread->send(state, state->symbol("__thread_initialize__"), args, block, true)) {
-      state->machine()->thread_nexus()->remove_thread_state(thread->thread_state());
+      state->threads()->remove_thread_state(thread->thread_state());
       thread->thread_state()->set_thread_exception();
       return nullptr;
     }
@@ -238,7 +236,18 @@ namespace rubinius {
   }
 
   Array* Thread::fiber_list(STATE) {
-    return state->machine()->vm_thread_fibers(state, this);
+    Array* fibers = Array::create(state, 0);
+
+    state->threads()->each(state, [this, fibers](STATE, ThreadState* thread_state) {
+        if(thread_state->kind() == ThreadState::eFiber
+            && !thread_state->fiber()->nil_p()
+            && thread_state->fiber()->status() != Fiber::eDead
+            && thread_state->fiber()->thread() == this) {
+          fibers->append(state, thread_state->fiber());
+        }
+      });
+
+    return fibers;
   }
 
   Object* Thread::fiber_variable_get(STATE, Symbol* key) {
@@ -285,6 +294,7 @@ namespace rubinius {
 
   void* Thread::run(void* ptr) {
     ThreadState* state = reinterpret_cast<ThreadState*>(ptr);
+    Object* value = nullptr;
 
     state->set_stack_bounds(state->thread()->stack_size()->to_native());
     state->set_current_thread();
@@ -292,45 +302,43 @@ namespace rubinius {
 
     SET_THREAD_UNWIND(state);
 
-    if(state->thread_unwinding_p()) {
-      // TODO halt
-      return 0;
-    }
+    if(!state->thread_unwinding_p()) {
+      RUBINIUS_THREAD_START(
+          const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 0);
 
-    RUBINIUS_THREAD_START(
-        const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 0);
+      state->thread()->pid(state, Fixnum::from(gettid()));
 
-    state->thread()->pid(state, Fixnum::from(gettid()));
-
-    if(state->configuration()->log_thread_lifetime.value) {
-      logger::write("thread: run: %s, %d",
-          state->name().c_str(), state->thread()->pid()->to_native());
-    }
-
-    state->metrics()->start_reporting(state);
-
-    NativeMethod::init_thread(state);
-
-    state->managed_phase(state);
-
-    Object* value = state->thread()->function()(state);
-    state->set_call_frame(nullptr);
-
-    {
-      std::unique_lock<std::mutex> lk(state->join_lock());
-
-      if(state->thread()->thread_state()->unwind_state()->raise_reason() == cException) {
-        state->set_thread_exception();
-      } else {
-        state->set_thread_dead();
+      if(state->configuration()->log_thread_lifetime.value) {
+        logger::write("thread: run: %s, %d",
+            state->name().c_str(), state->thread()->pid()->to_native());
       }
 
-      state->join_cond().notify_all();
-    }
+      state->metrics()->start_reporting(state);
 
-    if(state->thread_nexus()->lock_owned_p(state)) {
-      logger::write("thread: exiting while owning ThreadNexus lock: %s", state->name().c_str());
-      state->thread_nexus()->unlock(state, state);
+      NativeMethod::init_thread(state);
+
+      state->managed_phase();
+
+      value = state->thread()->function()(state);
+      state->set_call_frame(nullptr);
+
+      {
+        std::unique_lock<std::mutex> lk(state->join_lock());
+
+        if(state->thread()->thread_state()->unwind_state()->raise_reason() == cException) {
+          state->set_thread_exception();
+        } else {
+          state->set_thread_dead();
+        }
+
+        state->join_cond().notify_all();
+      }
+
+      if(state->lock_owned_p()) {
+        logger::write("thread: exiting while owning ThreadNexus lock: %s",
+            state->name().c_str());
+        state->unlock();
+      }
     }
 
     if(state->configuration()->log_thread_lifetime.value) {
@@ -342,11 +350,11 @@ namespace rubinius {
       state->machine()->halt(state, state->unwind_state()->raise_value());
     }
 
-    state->unmanaged_phase(state);
+    state->unmanaged_phase();
 
     NativeMethod::cleanup_thread(state);
 
-    state->machine()->thread_nexus()->remove_thread_state(state);
+    state->threads()->remove_thread_state(state);
 
     RUBINIUS_THREAD_STOP(
         const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 0);
@@ -378,11 +386,33 @@ namespace rubinius {
   }
 
   Array* Thread::list(STATE) {
-    return state->machine()->vm_threads(state);
+    Array* threads = Array::create(state, 0);
+
+    state->threads()->each(state, [threads](STATE, ThreadState* thread_state) {
+        Thread *thread = thread_state->thread();
+
+        if(thread_state->kind() == ThreadState::eThread
+            &&!thread->nil_p() && !thread->thread_state()->zombie_p()) {
+          threads->append(state, thread);
+        }
+      });
+
+    return threads;
   }
 
   Fixnum* Thread::count(STATE) {
-    return state->machine()->vm_threads_count(state);
+    intptr_t count = 0;
+
+    state->threads()->each(state, [&](STATE, ThreadState* thread_state) {
+        Thread *thread = thread_state->thread();
+
+        if(thread_state->kind() == ThreadState::eThread
+            &&!thread->nil_p() && !thread->thread_state()->zombie_p()) {
+          count++;
+        }
+      });
+
+    return Fixnum::from(count);
   }
 
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {

@@ -54,7 +54,7 @@ namespace rubinius {
     }
 
     void Reporter::run(STATE) {
-      state->unmanaged_phase(state);
+      state->unmanaged_phase();
 
       while(!thread_exit_) {
         timer_->set(diagnostics_->interval());

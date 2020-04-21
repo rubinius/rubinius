@@ -30,7 +30,7 @@ namespace rubinius {
     }
 
     void MachineCompiler::run(STATE) {
-      state->unmanaged_phase(state);
+      state->unmanaged_phase();
 
       while(!thread_exit_) {
         CompileRequest* request = 0;

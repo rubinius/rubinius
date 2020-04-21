@@ -16,12 +16,9 @@
 #include "memory.hpp"
 #include "on_stack.hpp"
 #include "signals.hpp"
-#include "thread_nexus.hpp"
 #include "type_info.hpp"
 
-#include "class/array.hpp"
 #include "class/code_db.hpp"
-#include "class/fiber.hpp"
 #include "class/fixnum.hpp"
 #include "class/thread.hpp"
 #include "class/unwind_state.hpp"
@@ -43,7 +40,9 @@
 #include <sys/stat.h>
 
 namespace rubinius {
+  std::atomic<uint32_t> Machine::_threads_lock_;
   std::atomic<uint64_t> Machine::_halting_;
+  std::atomic<bool> Machine::_stop_;
   std::mutex Machine::_waiting_mutex_;
   std::condition_variable Machine::_waiting_condition_;
 
@@ -62,10 +61,84 @@ namespace rubinius {
     return timer::time_elapsed_seconds(_start_time_);
   }
 
+  ThreadState* Threads::create_thread_state(const char* name) {
+    std::lock_guard<std::mutex> guard(threads_mutex_);
+
+    uint32_t max_id = thread_ids_;
+    uint32_t id = ++thread_ids_;
+
+    if(id < max_id) {
+      rubinius::bug("exceeded maximum number of threads");
+    }
+
+    ThreadState* thread_state = new ThreadState(id, machine_, name);
+
+    threads_.push_back(thread_state);
+
+    return thread_state;
+  }
+
+  void Threads::remove_thread_state(ThreadState* thread_state) {
+    std::lock_guard<std::mutex> guard(threads_mutex_);
+
+    threads_.remove(thread_state);
+  }
+
+  void Threads::each(STATE, std::function<void (STATE, ThreadState* thread_state)> process) {
+    std::lock_guard<std::mutex> guard(threads_mutex_);
+    // LockWaiting<std::mutex> guard(state, threads_mutex_);
+
+    for(auto thread_state : threads_) {
+      process(state, reinterpret_cast<ThreadState*>(thread_state));
+    }
+  }
+
+  void Threads::after_fork_child(STATE) {
+    threads_mutex_.try_lock();
+    threads_mutex_.unlock();
+
+    for(auto i = threads_.begin(); i != threads_.end();) {
+      ThreadState* thread_state = *i;
+
+      switch(thread_state->kind()) {
+        case ThreadState::eThread: {
+          if(Thread* thread = thread_state->thread()) {
+            if(!thread->nil_p()) {
+              if(thread_state == state) {
+                thread->current_fiber(state, thread->fiber());
+                ++i;
+                continue;
+              } else {
+                thread_state->set_thread_dead();
+                i = threads_.erase(i);
+              }
+            }
+          }
+
+          break;
+        }
+        case ThreadState::eFiber: {
+          if(Fiber* fiber = thread_state->fiber()) {
+            fiber->status(Fiber::eDead);
+            thread_state->set_canceled();
+          }
+
+          thread_state->set_thread_dead();
+          i = threads_.erase(i);
+
+          break;
+        }
+        case ThreadState::eSystem:
+          ++i;
+          break;
+      }
+    }
+  }
+
   Machine::Machine(int argc, char** argv)
     : _machine_state_(new MachineState())
     , _logger_(nullptr)
-    , _thread_nexus_(new ThreadNexus(_waiting_mutex_, _waiting_condition_))
+    , _threads_(new Threads(this))
     , _configuration_(new Configuration())
     , _environment_(new Environment(argc, argv, this))
     , _diagnostics_(new Diagnostics(_configuration_))
@@ -182,7 +255,7 @@ namespace rubinius {
           environment()->load_platform_conf(codedb_path);
         }
 
-        state->managed_phase(state);
+        state->managed_phase();
 
         {
           timer::StopWatch<timer::microseconds> timer(
@@ -221,7 +294,7 @@ namespace rubinius {
 
         state->metrics()->start_reporting(state);
 
-        state->managed_phase(state);
+        state->managed_phase();
 
         Thread::create(state, state);
 
@@ -267,7 +340,7 @@ namespace rubinius {
 
     state->after_fork_child();
 
-    _thread_nexus_->after_fork_child(state);
+    _threads_->after_fork_child(state);
 
     _environment_->after_fork_child(state);
 
@@ -289,119 +362,6 @@ namespace rubinius {
     return compiler_;
   }
    */
-
-  Array* Machine::vm_threads(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
-
-    Array* threads = Array::create(state, 0);
-
-    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
-        i != thread_nexus()->threads()->end();
-        ++i)
-    {
-      if(ThreadState* thread_state = *i) {
-        Thread *thread = thread_state->thread();
-        if(thread_state->kind() == ThreadState::eThread
-            &&!thread->nil_p() && !thread->thread_state()->zombie_p()) {
-          threads->append(state, thread);
-        }
-      }
-    }
-
-    return threads;
-  }
-
-  Fixnum* Machine::vm_threads_count(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
-
-    intptr_t count = 0;
-
-    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
-        i != thread_nexus()->threads()->end();
-        ++i)
-    {
-      if(ThreadState* thread_state = *i) {
-        Thread *thread = thread_state->thread();
-        if(thread_state->kind() == ThreadState::eThread
-            &&!thread->nil_p() && !thread->thread_state()->zombie_p()) {
-          count++;
-        }
-      }
-    }
-
-    return Fixnum::from(count);
-  }
-
-  Array* Machine::vm_fibers(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
-
-    Array* fibers = Array::create(state, 0);
-
-    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
-        i != thread_nexus()->threads()->end();
-        ++i)
-    {
-      if(ThreadState* thread_state = *i) {
-        if(thread_state->kind() == ThreadState::eFiber
-            && !thread_state->fiber()->nil_p()
-            && thread_state->fiber()->status() != Fiber::eDead) {
-          fibers->append(state, thread_state->fiber());
-        }
-      }
-    }
-
-    return fibers;
-  }
-
-  Fixnum* Machine::vm_fibers_count(STATE) {
-    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
-
-    intptr_t count = 0;
-
-    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
-        i != thread_nexus()->threads()->end();
-        ++i)
-    {
-      if(ThreadState* thread_state = *i) {
-        if(thread_state->kind() == ThreadState::eFiber
-            && !thread_state->fiber()->nil_p()
-            && thread_state->fiber()->status() != Fiber::eDead) {
-          count++;
-        }
-      }
-    }
-
-    return Fixnum::from(count);
-  }
-
-  void Machine::vm_thread_fibers(STATE, Thread* thread,
-      std::function<void (STATE, Fiber*)> f)
-  {
-    std::lock_guard<std::mutex> guard(thread_nexus()->threads_mutex());
-
-    for(ThreadList::iterator i = thread_nexus()->threads()->begin();
-        i != thread_nexus()->threads()->end();
-        ++i)
-    {
-      if(ThreadState* thread_state = *i) {
-        if(thread_state->kind() == ThreadState::eFiber
-            && !thread_state->fiber()->nil_p()
-            && thread_state->fiber()->status() != Fiber::eDead
-            && thread_state->fiber()->thread() == thread) {
-          f(state, thread_state->fiber());
-        }
-      }
-    }
-  }
-
-  Array* Machine::vm_thread_fibers(STATE, Thread* thread) {
-    Array* fibers = Array::create(state, 0);
-
-    vm_thread_fibers(state, thread,
-          [fibers](STATE, Fiber* fiber){ fibers->append(state, fiber); });
-
-    return fibers;
-  }
 
   void Machine::halt_console(STATE) {
     if(_console_) {
@@ -475,10 +435,10 @@ namespace rubinius {
     }
   }
 
-  void Machine::halt_thread_nexus(STATE) {
-    if(_thread_nexus_) {
-      delete _thread_nexus_;
-      _thread_nexus_ = nullptr;
+  void Machine::halt_threads(STATE) {
+    if(_threads_) {
+      delete _threads_;
+      _threads_ = nullptr;
     }
   }
 
@@ -546,7 +506,7 @@ namespace rubinius {
     machine_state()->exit_code(exit_code);
 
     // TODO: Machine, ensure everything checkpoints or defers on halting
-    state->managed_phase(state);
+    state->managed_phase();
 
     machine_state()->set_halting();
 
@@ -567,13 +527,13 @@ namespace rubinius {
 
     collector()->stop(state);
 
-    thread_nexus()->halt(state, state);
+    state->halt();
 
     halt_collector(state);
     halt_codedb(state);
     halt_memory(state);
     halt_diagnostics(state);
-    halt_thread_nexus(state);
+    halt_threads(state);
     halt_configuration(state);
     halt_environment(state);
     halt_logger(state);

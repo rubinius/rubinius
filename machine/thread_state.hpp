@@ -5,7 +5,6 @@
 
 #include "diagnostics.hpp"
 #include "globals.hpp"
-#include "thread_nexus.hpp"
 #include "type_info.hpp"
 #include "unwind_info.hpp"
 
@@ -50,6 +49,7 @@ namespace rubinius {
   class Signals;
   class String;
   class Symbol;
+  class Threads;
   class UnwindState;
 
   namespace memory {
@@ -73,11 +73,21 @@ namespace rubinius {
 
   class ThreadState {
   public:
+    const static uint64_t cLockLimit = 5000000000;
+
     enum Kind {
       eThread,
       eFiber,
       eSystem
     };
+
+    enum Phase {
+      eManaged    = 0x01,
+      eUnmanaged  = 0x81,
+      eWaiting    = 0x82,
+    };
+
+    const static int cYieldingPhase = 0x80;
 
     enum ThreadStatus {
       eNoStatus = 0,
@@ -155,7 +165,7 @@ namespace rubinius {
 
     bool main_thread_;
 
-    std::atomic<ThreadNexus::Phase> thread_phase_;
+    std::atomic<Phase> thread_phase_;
 
     uint64_t sample_interval_;
     uint64_t sample_counter_;
@@ -205,7 +215,7 @@ namespace rubinius {
 
     Configuration* const configuration();
     Environment* const environment();
-    ThreadNexus* const thread_nexus();
+    Threads* const threads();
     Diagnostics* const diagnostics();
     memory::Collector* const collector();
     Signals* const signals();
@@ -275,11 +285,13 @@ namespace rubinius {
       return id_;
     }
 
-    ThreadNexus::Phase thread_phase() {
+    const char* phase_name();
+
+    Phase thread_phase() {
       return thread_phase_.load(std::memory_order_acquire);
     }
 
-    void set_thread_phase(ThreadNexus::Phase thread_phase) {
+    void set_thread_phase(Phase thread_phase) {
       thread_phase_.store(thread_phase, std::memory_order_release);
     }
 
@@ -603,7 +615,7 @@ namespace rubinius {
 
       ++checkpoints_;
 
-      if(thread_nexus()->check_stop(state, this)) {
+      if(check_stop()) {
         ++stops_;
         checkpoint_ = false;
       }
@@ -619,13 +631,8 @@ namespace rubinius {
 
     void halt_thread();
 
-    void managed_phase(STATE) {
-      thread_nexus()->managed_phase(state, this);
-    }
-
-    void unmanaged_phase(STATE) {
-      thread_nexus()->unmanaged_phase(state, this);
-    }
+    void managed_phase();
+    void unmanaged_phase();
 
     void set_current_thread();
 
@@ -674,6 +681,94 @@ namespace rubinius {
     UnwindState* unwind_state();
 
     void raise_stack_error();
+
+    // TODO ThreadNexus
+    bool stop_p();
+    bool set_stop();
+    void unset_stop();
+    bool halt_p();
+    void set_halt();
+
+    bool try_managed_phase();
+    void waiting_phase();
+
+    void set_managed();
+
+    bool valid_thread_p(unsigned int thread_id);
+
+#ifdef RBX_GC_STACK_CHECK
+    void check_stack(STATE);
+#endif
+
+    bool yielding_p();
+
+    void yield();
+
+    uint64_t wait();
+    void wait_for_all();
+
+    bool lock_owned_p();
+
+    bool try_lock();
+    bool try_lock_wait();
+
+    bool check_stop() {
+      if(!can_stop_p()) return false;
+
+      while(stop_p()) {
+        yield();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool can_stop_p();
+
+    void stop() {
+      while(set_stop()) {
+        if(try_lock_wait()) {
+          wait_for_all();
+
+          return;
+        }
+      }
+    }
+
+    void halt() {
+      set_halt();
+      stop();
+      unset_stop();
+      unlock();
+    }
+
+    void lock(std::function<void ()> process) {
+      lock();
+      process();
+      unlock();
+    }
+
+    void lock() {
+      try_lock_wait();
+    }
+
+    bool try_lock(std::function<void ()> process) {
+      if(try_lock()) {
+        process();
+        unlock();
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    void unlock();
+
+    void detect_deadlock(uint64_t nanoseconds);
+    void detect_deadlock(uint64_t nanoseconds, ThreadState* thread_state);
+
+    // TODO ThreadNexus end
   };
 }
 

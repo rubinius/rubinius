@@ -82,7 +82,7 @@ namespace rubinius {
   void Signals::SignalThread::run(STATE) {
     logger::info("signals: worker thread starting");
 
-    state->unmanaged_phase(state);
+    state->unmanaged_phase();
 
     sigset_t set;
     sigfillset(&set);
@@ -255,99 +255,95 @@ namespace rubinius {
 
   void Signals::print_backtraces() {
     ThreadState* state = ThreadState::current();
-    ThreadList* threads = state->machine()->thread_nexus()->threads();
 
-    for(ThreadList::iterator i = threads->begin(); i != threads->end(); ++i) {
-      ThreadState* vm = (*i);
-      if(!vm) continue;
+    state->threads()->each(state, [&](STATE, ThreadState* thr) {
+        bool first = true;
+        CallFrame* frame = thr->call_frame();
 
-      bool first = true;
-      CallFrame* frame = vm->call_frame();
-
-      while(frame) {
-        if(first) {
-          logger::fatal("--- %s %d backtrace ---", vm->kind_name(), vm->thread_id());
-          first = false;
-        }
-
-        std::ostringstream stream;
-
-        if(NativeMethodFrame* nmf = frame->native_method_frame()) {
-          stream << static_cast<void*>(frame) << ": ";
-          NativeMethod* nm = MemoryHandle::try_as<NativeMethod>(nmf->method());
-          if(nm && nm->name()->symbol_p()) {
-            stream << "capi:" << nm->name()->debug_str(state) << " at ";
-            stream << nm->file()->c_str(state);
-          } else {
-            stream << "unknown capi";
+        while(frame) {
+          if(first) {
+            logger::fatal("--- %s %d backtrace ---", thr->kind_name(), thr->thread_id());
+            first = false;
           }
-        } else if(frame->compiled_code) {
-          if(frame->is_block_p(state)) {
-            stream << "__block__";
-          } else {
-            if(SingletonClass* sc = try_as<SingletonClass>(frame->module())) {
-              Object* obj = sc->singleton();
 
-              if(Module* mod = try_as<Module>(obj)) {
-                stream << mod->debug_str(state) << ".";
-              } else {
-                if(obj == G(main)) {
-                  stream << "MAIN.";
-                } else {
-                  stream << "#<" << obj->class_object(state)->debug_str(state) <<
-                            ":" << (void*)obj->object_id(state)->to_native() << ">.";
-                }
-              }
-            } else if(IncludedModule* im = try_as<IncludedModule>(frame->module())) {
-              stream <<  im->module()->debug_str(state) << "#";
+          std::ostringstream stream;
+
+          if(NativeMethodFrame* nmf = frame->native_method_frame()) {
+            stream << static_cast<void*>(frame) << ": ";
+            NativeMethod* nm = MemoryHandle::try_as<NativeMethod>(nmf->method());
+            if(nm && nm->name()->symbol_p()) {
+              stream << "capi:" << nm->name()->debug_str(state) << " at ";
+              stream << nm->file()->c_str(state);
             } else {
-              Symbol* name;
-              std::string mod_name;
+              stream << "unknown capi";
+            }
+          } else if(frame->compiled_code) {
+            if(frame->is_block_p(state)) {
+              stream << "__block__";
+            } else {
+              if(SingletonClass* sc = try_as<SingletonClass>(frame->module())) {
+                Object* obj = sc->singleton();
 
-              if(frame->module()->nil_p()) {
-                mod_name = frame->lexical_scope()->module()->debug_str(state);
-              } else {
-                if((name = try_as<Symbol>(frame->module()->module_name()))) {
-                  mod_name = name->debug_str(state);
-                } else if((name = try_as<Symbol>(
-                          frame->lexical_scope()->module()->module_name()))) {
-                  mod_name = name->debug_str(state);
+                if(Module* mod = try_as<Module>(obj)) {
+                  stream << mod->debug_str(state) << ".";
                 } else {
-                  mod_name = "<anonymous module>";
+                  if(obj == G(main)) {
+                    stream << "MAIN.";
+                  } else {
+                    stream << "#<" << obj->class_object(state)->debug_str(state) <<
+                              ":" << (void*)obj->object_id(state)->to_native() << ">.";
+                  }
                 }
+              } else if(IncludedModule* im = try_as<IncludedModule>(frame->module())) {
+                stream <<  im->module()->debug_str(state) << "#";
+              } else {
+                Symbol* name;
+                std::string mod_name;
+
+                if(frame->module()->nil_p()) {
+                  mod_name = frame->lexical_scope()->module()->debug_str(state);
+                } else {
+                  if((name = try_as<Symbol>(frame->module()->module_name()))) {
+                    mod_name = name->debug_str(state);
+                  } else if((name = try_as<Symbol>(
+                            frame->lexical_scope()->module()->module_name()))) {
+                    mod_name = name->debug_str(state);
+                  } else {
+                    mod_name = "<anonymous module>";
+                  }
+                }
+                stream << mod_name << "#";
               }
-              stream << mod_name << "#";
+
+              Symbol* name = try_as<Symbol>(frame->name());
+              if(name) {
+                stream << name->debug_str(state);
+              } else {
+                stream << frame->compiled_code->name()->debug_str(state);
+              }
             }
 
-            Symbol* name = try_as<Symbol>(frame->name());
-            if(name) {
-              stream << name->debug_str(state);
+            stream << " in ";
+            if(Symbol* file_sym = try_as<Symbol>(frame->compiled_code->file())) {
+              stream << file_sym->debug_str(state) << ":" << frame->line(state);
             } else {
-              stream << frame->compiled_code->name()->debug_str(state);
+              stream << "<unknown>";
             }
+
+            stream << " (+" << frame->ip();
+            if(frame->is_inline_frame()) {
+              stream << " inline";
+            } else if(frame->jitted_p()) {
+              stream << " jit";
+            }
+            stream << ")";
           }
 
-          stream << " in ";
-          if(Symbol* file_sym = try_as<Symbol>(frame->compiled_code->file())) {
-            stream << file_sym->debug_str(state) << ":" << frame->line(state);
-          } else {
-            stream << "<unknown>";
-          }
+          logger::fatal(stream.str().c_str());
 
-          stream << " (+" << frame->ip();
-          if(frame->is_inline_frame()) {
-            stream << " inline";
-          } else if(frame->jitted_p()) {
-            stream << " jit";
-          }
-          stream << ")";
+          frame = frame->previous;
         }
-
-        logger::fatal(stream.str().c_str());
-
-        frame = frame->previous;
-      }
-    }
+      });
   }
 
   static void null_func(int sig) {}

@@ -7,13 +7,13 @@
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <list>
 #include <mutex>
 
 namespace rubinius {
-  class Array;
-  class Fiber;
   class Fixnum;
   class Object;
+  class Machine;
   class Thread;
 
   class ngLogger { };
@@ -116,9 +116,38 @@ namespace rubinius {
     double run_time();
   };
 
+  class Threads {
+  public:
+    typedef std::list<ThreadState*> ThreadList;
+
+  private:
+    Machine* machine_;
+    ThreadList threads_;
+    std::mutex threads_mutex_;
+    uint32_t thread_ids_;
+
+  public:
+    Threads(Machine* machine)
+      : machine_(machine)
+      , threads_()
+      , threads_mutex_()
+      , thread_ids_(0)
+    { }
+
+    virtual ~Threads() { }
+
+    ThreadState* create_thread_state(const char* name = NULL);
+    void remove_thread_state(ThreadState* thread_state);
+
+    void after_fork_child(STATE);
+
+    void each(STATE, std::function<void (STATE, ThreadState*)> f);
+  };
+
   class Machine {
     MachineState* _machine_state_;
     ngLogger* _logger_;
+    Threads* _threads_;
     ThreadNexus* _thread_nexus_;
     Configuration* _configuration_;
     Environment* _environment_;
@@ -135,19 +164,40 @@ namespace rubinius {
 
     static std::mutex _waiting_mutex_;
     static std::condition_variable _waiting_condition_;
+    static std::atomic<uint32_t> _threads_lock_;
+    static std::atomic<uint64_t> _halting_;
+    static std::atomic<bool> _stop_;
 
   public:
-    static std::atomic<uint64_t> _halting_;
-
     Machine(int argc, char** argv);
     virtual ~Machine();
+
+    std::mutex& waiting_mutex() {
+      return _waiting_mutex_;
+    }
+
+    std::condition_variable& waiting_condition() {
+      return _waiting_condition_;
+    }
+
+    std::atomic<uint32_t>& threads_lock() {
+      return _threads_lock_;
+    }
+
+    std::atomic<uint64_t>& halting() {
+      return _halting_;
+    }
+
+    std::atomic<bool>& stop() {
+      return _stop_;
+    }
 
     MachineState* const machine_state() {
       return _machine_state_;
     }
 
-    ThreadNexus* const thread_nexus() {
-      return _thread_nexus_;
+    Threads* const threads() {
+      return _threads_;
     }
 
     Configuration* const configuration() {
@@ -205,14 +255,6 @@ namespace rubinius {
     Diagnostics* start_diagnostics(STATE);
     void report_diagnostics(diagnostics::Diagnostic* diagnostic);
 
-    // TODO: Machine
-    Array* vm_threads(STATE);
-    Fixnum* vm_threads_count(STATE);
-    Array* vm_fibers(STATE);
-    Fixnum* vm_fibers_count(STATE);
-    Array* vm_thread_fibers(STATE, Thread* thread);
-    void vm_thread_fibers(STATE, Thread* thread, std::function<void (STATE, Fiber*)> f);
-
     uint32_t new_thread_id();
     // ---
 
@@ -225,7 +267,7 @@ namespace rubinius {
     void halt_signals(STATE);
     void halt_collector(STATE);
     void halt_memory(STATE);
-    void halt_thread_nexus(STATE);
+    void halt_threads(STATE);
     void halt_diagnostics(STATE);
     void halt_configuration(STATE);
     void halt_environment(STATE);

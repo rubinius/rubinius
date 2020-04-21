@@ -187,11 +187,11 @@ extern "C" {
 
     ThreadState* state = env->state();
     ENTER_CAPI(state);
-    state->managed_phase(state);
+    state->managed_phase();
 
     void* ret = (*func)(data);
 
-    env->state()->unmanaged_phase(state);
+    env->state()->unmanaged_phase();
     LEAVE_CAPI(env->state());
 
     return ret;

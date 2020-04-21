@@ -1,7 +1,8 @@
 #include "config.h"
+#include "configuration.hpp"
+#include "machine.hpp"
 #include "thread_state.hpp"
 
-#include "configuration.hpp"
 #include "memory.hpp"
 
 #include "memory/collector.hpp"
@@ -75,15 +76,7 @@ namespace rubinius {
 
       state->machine()->trace_objects(state, f);
 
-      {
-        std::lock_guard<std::mutex> guard(state->thread_nexus()->threads_mutex());
-
-        for(ThreadList::iterator i = state->thread_nexus()->threads()->begin();
-            i != state->thread_nexus()->threads()->end();
-            ++i)
-        {
-          ThreadState* thr = (*i);
-
+      state->threads()->each(state, [&](STATE, ThreadState* thr) {
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
             Object* fwd = ri->get();
             f(state, &fwd);
@@ -144,8 +137,7 @@ namespace rubinius {
           }
 
           thr->trace_objects(state, f);
-        }
-      }
+        });
     }
 
     void MainHeap::collect_finish(STATE) {

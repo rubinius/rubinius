@@ -11,7 +11,7 @@
 
 namespace rubinius {
   MachineThread::MachineThread(STATE, std::string name, StackSize stack_size)
-    : thread_state_(state->thread_nexus()->create_thread_state(state->machine(), name.c_str()))
+    : thread_state_(state->threads()->create_thread_state(name.c_str()))
     , stack_size_(stack_size)
     , thread_running_(false)
     , thread_exit_(false)
@@ -28,21 +28,18 @@ namespace rubinius {
 
     SET_THREAD_UNWIND(state);
 
-    if(state->thread_unwinding_p()) {
-      // TODO halt
-      return 0;
+    if(!state->thread_unwinding_p()) {
+      RUBINIUS_THREAD_START(
+          const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
+
+      state->set_stack_bounds(thread->stack_size_);
+
+      NativeMethod::init_thread(state);
+
+      thread->thread_running_ = true;
+
+      thread->run(state);
     }
-
-    RUBINIUS_THREAD_START(
-        const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
-
-    state->set_stack_bounds(thread->stack_size_);
-
-    NativeMethod::init_thread(state);
-
-    thread->thread_running_ = true;
-
-    thread->run(state);
 
     thread->thread_running_ = false;
 
@@ -52,10 +49,10 @@ namespace rubinius {
         const_cast<RBX_DTRACE_CHAR_P>(state->name().c_str()), state->thread_id(), 1);
 
     state->set_call_frame(nullptr);
-    state->unmanaged_phase(state);
+    state->unmanaged_phase();
 
     // There's no way to retain a reference to this, so discard immediately.
-    state->machine()->thread_nexus()->remove_thread_state(state);
+    state->threads()->remove_thread_state(state);
     state->set_thread_dead();
     state->discard();
 

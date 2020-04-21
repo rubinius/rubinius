@@ -176,57 +176,54 @@ namespace rubinius {
 
     SET_THREAD_UNWIND(state);
 
-    if(state->thread_unwinding_p()) {
-      // TODO halt
-      return 0;
-    }
+    if(!state->thread_unwinding_p()) {
+      RUBINIUS_THREAD_START(
+          const_cast<RBX_DTRACE_CHAR_P>(
+            state->name().c_str()), state->fiber()->fiber_id()->to_native(), 0);
 
-    RUBINIUS_THREAD_START(
-        const_cast<RBX_DTRACE_CHAR_P>(
-          state->name().c_str()), state->fiber()->fiber_id()->to_native(), 0);
+      state->fiber()->pid(state, Fixnum::from(gettid()));
 
-    state->fiber()->pid(state, Fixnum::from(gettid()));
+      if(state->configuration()->log_fiber_lifetime.value) {
+        logger::write("fiber: run: %s, %d, %#x",
+            state->name().c_str(), state->fiber()->pid()->to_native(),
+            (intptr_t)pthread_self());
+      }
 
-    if(state->configuration()->log_fiber_lifetime.value) {
-      logger::write("fiber: run: %s, %d, %#x",
-          state->name().c_str(), state->fiber()->pid()->to_native(),
-          (intptr_t)pthread_self());
-    }
+      NativeMethod::init_thread(state);
 
-    NativeMethod::init_thread(state);
+      state->fiber()->suspend_and_continue(state);
 
-    state->fiber()->suspend_and_continue(state);
+      Object* value = state->fiber()->block()->send(state, G(sym_call),
+          as<Array>(state->thread()->fiber_value()), state->fiber()->block());
+      state->set_call_frame(nullptr);
 
-    Object* value = state->fiber()->block()->send(state, G(sym_call),
-        as<Array>(state->thread()->fiber_value()), state->fiber()->block());
-    state->set_call_frame(nullptr);
-
-    if(value) {
-      state->fiber()->value(state, value);
-      state->thread()->fiber_value(state, value);
-    } else {
-      state->fiber()->value(state, cNil);
-      state->thread()->fiber_value(state, cNil);
-    }
-
-    if(state->unwind_state()->raise_reason() != cFiberCancel) {
-      if(state->fiber()->status() == eTransfer) {
-        // restart the root Fiber
-        state->thread()->fiber()->invoke_context(state);
-        state->thread()->fiber()->restart(state);
+      if(value) {
+        state->fiber()->value(state, value);
+        state->thread()->fiber_value(state, value);
       } else {
-        state->fiber()->invoke_context()->fiber()->restart(state);
+        state->fiber()->value(state, cNil);
+        state->thread()->fiber_value(state, cNil);
+      }
+
+      if(state->unwind_state()->raise_reason() != cFiberCancel) {
+        if(state->fiber()->status() == eTransfer) {
+          // restart the root Fiber
+          state->thread()->fiber()->invoke_context(state);
+          state->thread()->fiber()->restart(state);
+        } else {
+          state->fiber()->invoke_context()->fiber()->restart(state);
+        }
+      }
+
+      {
+        std::lock_guard<std::mutex> guard(state->fiber_wait_mutex());
+
+        state->fiber()->status(eDead);
+        state->set_suspended();
       }
     }
 
-    {
-      std::lock_guard<std::mutex> guard(state->fiber_wait_mutex());
-
-      state->fiber()->status(eDead);
-      state->set_suspended();
-    }
-
-    state->unmanaged_phase(state);
+    state->unmanaged_phase();
 
     NativeMethod::cleanup_thread(state);
 
@@ -234,7 +231,7 @@ namespace rubinius {
       logger::write("fiber: exit: %s %fs", state->name().c_str(), state->run_time());
     }
 
-    state->machine()->thread_nexus()->remove_thread_state(state);
+    state->threads()->remove_thread_state(state);
     state->set_thread_dead();
 
     RUBINIUS_THREAD_STOP(
@@ -277,7 +274,7 @@ namespace rubinius {
     std::ostringstream name;
     name << "fiber." << fiber->fiber_id()->to_native();
 
-    fiber->thread_state(state->thread_nexus()->create_thread_state(state->machine(), name.str().c_str()));
+    fiber->thread_state(state->threads()->create_thread_state(name.str().c_str()));
 
     fiber->thread_state()->set_kind(ThreadState::eFiber);
     fiber->thread_state()->set_suspending();
@@ -466,7 +463,17 @@ namespace rubinius {
   }
 
   Array* Fiber::s_list(STATE) {
-    return state->machine()->vm_fibers(state);
+    Array* fibers = Array::create(state, 0);
+
+    state->threads()->each(state, [fibers](STATE, ThreadState* thread_state) {
+        if(thread_state->kind() == ThreadState::eFiber
+            && !thread_state->fiber()->nil_p()
+            && thread_state->fiber()->status() != Fiber::eDead) {
+          fibers->append(state, thread_state->fiber());
+        }
+      });
+
+    return fibers;
   }
 
   Fiber* Fiber::s_main(STATE) {
@@ -474,7 +481,17 @@ namespace rubinius {
   }
 
   Fixnum* Fiber::s_count(STATE) {
-    return state->machine()->vm_fibers_count(state);
+    intptr_t count = 0;
+
+    state->threads()->each(state, [&](STATE, ThreadState* thread_state) {
+        if(thread_state->kind() == ThreadState::eFiber
+            && !thread_state->fiber()->nil_p()
+            && thread_state->fiber()->status() != Fiber::eDead) {
+          count++;
+        }
+      });
+
+    return Fixnum::from(count);
   }
 
   void Fiber::finalize(STATE, Fiber* fiber) {

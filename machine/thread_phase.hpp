@@ -3,7 +3,6 @@
 
 #include "defines.hpp"
 #include "thread_state.hpp"
-#include "thread_nexus.hpp"
 #include "memory.hpp"
 #include "spinlock.hpp"
 
@@ -26,17 +25,17 @@ namespace rubinius {
     {
       while(true) {
         if(state->collector()->collect_requested_p()) {
-          state->thread_nexus()->yield(state, state);
+          state->yield();
         } else {
-          state->thread_nexus()->stop(state, state);
+          state->stop();
           break;
         }
       }
     }
 
     ~StopPhase() {
-      state_->thread_nexus()->unset_stop();
-      state_->thread_nexus()->unlock(state_, state_);
+      state_->unset_stop();
+      state_->unlock();
     }
   };
 
@@ -47,11 +46,11 @@ namespace rubinius {
     ManagedPhase(STATE)
       : state_(state)
     {
-      state_->managed_phase(state_);
+      state_->managed_phase();
     }
 
     ~ManagedPhase() {
-      state_->unmanaged_phase(state_);
+      state_->unmanaged_phase();
     }
 
   };
@@ -63,11 +62,11 @@ namespace rubinius {
     UnmanagedPhase(STATE)
       : state_(state)
     {
-      state_->unmanaged_phase(state_);
+      state_->unmanaged_phase();
     }
 
     ~UnmanagedPhase() {
-      state_->managed_phase(state_);
+      state_->managed_phase();
     }
   };
 
@@ -79,12 +78,12 @@ namespace rubinius {
     LockWaiting(STATE, T& in_lock)
       : lock_(in_lock)
     {
-      state->thread_nexus()->waiting_phase(state, state);
+      state->waiting_phase();
 
       while(true) {
         lock_.lock();
 
-        if(state->thread_nexus()->try_managed_phase(state, state)) {
+        if(state->try_managed_phase()) {
           return;
         } else {
           lock_.unlock();

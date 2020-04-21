@@ -195,7 +195,7 @@ namespace rubinius {
 
             if(lock->try_lock(state)) return true;
 
-            if(state->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
+            if(state->valid_thread_p(lock->thread_id)) {
               return false;
             }
 
@@ -246,7 +246,7 @@ namespace rubinius {
 
             if(lock->try_lock(state)) return true;
 
-            if(state->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
+            if(state->valid_thread_p(lock->thread_id)) {
               return false;
             }
 
@@ -258,9 +258,7 @@ namespace rubinius {
                 state, locked_count_field.set(hh->header, lock_extended()), hh, 1);
             nh = extended_flags(eh);
           } else {
-            if(state->thread_nexus()->valid_thread_p(
-                  state, thread_id_field.get(hh->header)))
-            {
+            if(state->valid_thread_p(thread_id_field.get(hh->header))) {
               return false;
             }
 
@@ -275,9 +273,7 @@ namespace rubinius {
 
             nh = extended_flags(eh);
           } else {
-            if(state->thread_nexus()->valid_thread_p(
-                  state, thread_id_field.get(h)))
-            {
+            if(state->valid_thread_p(thread_id_field.get(h))) {
               return false;
             }
 
@@ -380,14 +376,14 @@ namespace rubinius {
 
         if(state->thread_id() == lock->thread_id) return true;
 
-        if(state->thread_nexus()->valid_thread_p(state, lock->thread_id)) {
+        if(state->valid_thread_p(lock->thread_id)) {
           return true;
         }
       } else {
         if(locked_count_field.get(hh->header) > 0) {
           if(state->thread_id() == thread_id()) return true;
 
-          if(state->thread_nexus()->valid_thread_p(state, thread_id())) {
+          if(state->valid_thread_p(thread_id())) {
             return true;
           }
         }
@@ -396,7 +392,7 @@ namespace rubinius {
       if(locked_count_field.get(header.load(std::memory_order_acquire)) > 0) {
         if(state->thread_id() == thread_id()) return true;
 
-        if(state->thread_nexus()->valid_thread_p(state, thread_id())) {
+        if(state->valid_thread_p(thread_id())) {
           return true;
         }
       }

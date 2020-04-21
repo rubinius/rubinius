@@ -1,4 +1,5 @@
 #include "config.h"
+#include "machine.hpp"
 #include "thread_state.hpp"
 
 #include "memory.hpp"
@@ -15,15 +16,7 @@ namespace rubinius {
         i->set(obj);
       }
 
-      {
-        std::lock_guard<std::mutex> guard(state->thread_nexus()->threads_mutex());
-
-        for(ThreadList::iterator i = state->thread_nexus()->threads()->begin();
-            i != state->thread_nexus()->threads()->end();
-            ++i)
-        {
-          ThreadState* thr = (*i);
-
+      state->threads()->each(state, [&](STATE, ThreadState* thr) {
           for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
             Object* obj = ri->get();
             visit_object(state, &obj, f);
@@ -66,8 +59,7 @@ namespace rubinius {
           }
 
           thr->visit_objects(state, f);
-        }
-      }
+        });
 
       for(auto i = state->collector()->references().begin();
           i != state->collector()->references().end();

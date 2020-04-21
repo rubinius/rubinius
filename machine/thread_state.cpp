@@ -19,6 +19,8 @@
 
 #include "diagnostics/machine.hpp"
 
+#include <cxxabi.h>
+
 #include <chrono>
 #include <thread>
 #include <sstream>
@@ -65,7 +67,7 @@ namespace rubinius {
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
     , main_thread_(false)
-    , thread_phase_(ThreadNexus::eUnmanaged)
+    , thread_phase_(eUnmanaged)
     , sample_interval_(0)
     , sample_counter_(0)
     , checkpoints_(0)
@@ -125,16 +127,16 @@ namespace rubinius {
     return machine()->machine_state();
   }
 
+  Threads* const ThreadState::threads() {
+    return machine()->threads();
+  }
+
   Configuration* const ThreadState::configuration() {
     return machine()->configuration();
   }
 
   Environment* const ThreadState::environment() {
     return machine()->environment();
-  }
-
-  ThreadNexus* const ThreadState::thread_nexus() {
-    return machine()->thread_nexus();
   }
 
   Diagnostics* const ThreadState::diagnostics() {
@@ -184,6 +186,289 @@ namespace rubinius {
   Symbol* const ThreadState::symbol(String* str) {
     return memory()->symbols.lookup(this, str);
   }
+
+  // TODO ThreadNexus
+  bool ThreadState::stop_p() {
+    return machine()->stop().load(std::memory_order_acquire);
+  }
+
+  bool ThreadState::set_stop() {
+    machine()->stop().store(true, std::memory_order_release);
+
+    return stop_p();
+  }
+
+  void ThreadState::unset_stop() {
+    machine()->stop().store(false, std::memory_order_release);
+  }
+
+  bool ThreadState::halt_p() {
+    return machine()->halting().load(std::memory_order_acquire) != 0;
+  }
+
+  void ThreadState::set_halt() {
+    if(machine()->halting() && machine()->halting() == thread_id()) {
+      std::ostringstream msg;
+
+      msg << "halting mutex is already locked: id: " << thread_id();
+
+      Exception::raise_assertion_error(this, msg.str().c_str());
+    }
+
+    machine()->halting().store(thread_id(), std::memory_order_release);
+  }
+
+  void ThreadState::managed_phase() {
+    if(machine()->halting() && machine()->halting() != thread_id()) {
+      halt_thread();
+    }
+
+    if(can_stop_p()) {
+      lock([&]{ set_thread_phase(eManaged); });
+    } else {
+      // We already own the lock
+      set_thread_phase(eManaged);
+    }
+  }
+
+
+  bool ThreadState::try_managed_phase() {
+    if(machine()->halting() && machine()->halting() != thread_id()) {
+      halt_thread();
+    }
+
+    return try_lock([&]{ set_thread_phase(eManaged); });
+  }
+
+  void ThreadState::unmanaged_phase() {
+    set_thread_phase(eUnmanaged);
+  }
+
+  void ThreadState::waiting_phase() {
+    if(!can_stop_p()) {
+      std::ostringstream msg;
+
+      msg << "waiting while holding process-critical lock: id: " << thread_id();
+
+      Exception::raise_assertion_error(this, msg.str().c_str());
+    }
+
+    set_thread_phase(eWaiting);
+  }
+
+  // Only to be used when holding the ThreadNexus lock.
+  void ThreadState::set_managed() {
+    set_thread_phase(eManaged);
+  }
+
+  bool ThreadState::can_stop_p() {
+    return machine()->threads_lock() != thread_id();
+  }
+
+  void ThreadState::yield() {
+    while(stop_p()) {
+      waiting_phase();
+
+#ifdef RBX_GC_STACK_CHECK
+      check_stack();
+#endif
+
+      if(halt_p()) {
+        halt_thread();
+      } else {
+        std::unique_lock<std::mutex> lock(machine()->waiting_mutex());
+        machine()->waiting_condition().wait(lock, [this]{ return !stop_p(); });
+      }
+
+      managed_phase();
+    }
+  }
+
+  void ThreadState::unlock() {
+    if(can_stop_p()) {
+      std::ostringstream msg;
+
+      msg << "process-critical lock being unlocked by the wrong Thread: id: "
+          << thread_id();
+
+      Exception::raise_assertion_error(this, msg.str().c_str());
+    }
+
+    machine()->waiting_condition().notify_all();
+    machine()->threads_lock().store(0);
+  }
+
+  bool ThreadState::yielding_p() {
+    int phase = static_cast<int>(thread_phase());
+
+    return (phase & cYieldingPhase) == cYieldingPhase;
+  }
+
+  const char* ThreadState::phase_name() {
+    switch(thread_phase()) {
+      case eManaged:
+        return "eManaged";
+      case eUnmanaged:
+        return "eUnmanaged";
+      case eWaiting:
+        return "eWaiting";
+    }
+
+    return "cUnknown";
+  }
+
+  static void list_threads(STATE, logger::PrintFunction function) {
+    state->threads()->each(state, [function](STATE, ThreadState* thread_state) {
+          function("thread %d: %s, %s",
+              thread_state->thread_id(),
+              thread_state->name().c_str(),
+              thread_state->phase_name());
+        });
+  }
+
+  void ThreadState::detect_deadlock(uint64_t nanoseconds, ThreadState* thread_state) {
+    if(nanoseconds > cLockLimit) {
+      logger::error("thread nexus: thread will not yield: %s, %s",
+          thread_state->name().c_str(), thread_state->phase_name());
+
+      list_threads(this, logger::error);
+
+      std::ostringstream msg;
+      msg << "thread will not yield: " << thread_state->name().c_str() << phase_name();
+
+      Exception::raise_deadlock_error(this, msg.str().c_str());
+    }
+  }
+
+  void ThreadState::detect_deadlock(uint64_t nanoseconds) {
+    if(nanoseconds > cLockLimit) {
+      logger::error("thread nexus: unable to lock, possible deadlock");
+
+      list_threads(this, logger::error);
+
+      Exception::raise_deadlock_error(this,
+          "thread nexus: unable to lock, possible deadlock");
+    }
+  }
+
+  bool ThreadState::valid_thread_p(unsigned int thread_id) {
+    bool valid = false;
+
+    threads()->each(this, [&](STATE, ThreadState* thr) {
+        if(thread_id == thr->thread_id()) valid = true;
+      });
+
+    return valid;
+  }
+
+  uint64_t ThreadState::wait() {
+    static int i = 0;
+    static int delay[] = {
+      133, 464, 254, 306, 549, 287, 358, 638, 496, 81,
+      472, 288, 131, 31, 435, 258, 221, 73, 537, 854
+    };
+    static int modulo = sizeof(delay) / sizeof(int);
+
+    uint64_t ns = delay[i++ % modulo];
+
+    std::this_thread::sleep_for(std::chrono::nanoseconds(ns));
+
+    return ns;
+  }
+
+  void ThreadState::wait_for_all() {
+    uint64_t limit = 0;
+
+    set_managed();
+
+    threads()->each(this, [&](STATE, ThreadState* thread_state) {
+        if(!(state == thread_state || thread_state->yielding_p())) {
+          while(true) {
+            if(thread_state->yielding_p()) {
+              break;
+            }
+
+            limit += wait();
+
+            detect_deadlock(limit, thread_state);
+          }
+        }
+      });
+  }
+
+  bool ThreadState::lock_owned_p() {
+    return machine()->threads_lock() == thread_id();
+  }
+
+  bool ThreadState::try_lock() {
+    uint32_t id = 0;
+
+    return machine()->threads_lock().compare_exchange_strong(id, thread_id());
+  }
+
+  bool ThreadState::try_lock_wait() {
+    uint64_t limit = 0;
+
+    while(!try_lock()) {
+      if(collector()->collect_requested_p()) {
+        yield();
+      }
+
+      limit += wait();
+
+      detect_deadlock(limit);
+    }
+
+    return true;
+  }
+
+  static char* demangle(char* symbol, char* result, size_t size) {
+    const char* pos = strstr(symbol, " _Z");
+
+    if(pos) {
+      size_t sz = 0;
+      char *cpp_name = 0;
+      char* name = strdup(pos + 1);
+      char* end = strstr(name, " + ");
+      *end = 0;
+
+      int status;
+      if((cpp_name = abi::__cxa_demangle(name, cpp_name, &sz, &status))) {
+        if(!status) {
+          snprintf(result, size, "%.*s %s %s", int(pos - symbol), symbol, cpp_name, ++end);
+        }
+        free(cpp_name);
+      }
+
+      free(name);
+    } else {
+      strcpy(result, symbol);
+    }
+
+    return result;
+  }
+
+#ifdef RBX_GC_STACK_CHECK
+#define RBX_ABORT_CALLSTACK_SIZE    128
+#define RBX_ABORT_SYMBOL_SIZE       512
+
+  void ThreadState::check_stack(STATE, ThreadState* thread_state) {
+    void* callstack[RBX_ABORT_CALLSTACK_SIZE];
+    char symbol[RBX_ABORT_SYMBOL_SIZE];
+
+    int i, frames = backtrace(callstack, RBX_ABORT_CALLSTACK_SIZE);
+    char** symbols = backtrace_symbols(callstack, frames);
+
+    logger::debug("Backtrace for %s: %s",
+        thread_state->kind_name(), thread_state->name().c_str());
+    for(i = 0; i < frames; i++) {
+      logger::debug("%s", demangle(symbols[i], symbol, RBX_ABORT_SYMBOL_SIZE));
+    }
+
+    free(symbols);
+  }
+#endif
+  // TODO ThreadNexus end
 
   // -*-*-*-
   void ThreadState::set_name(STATE, const char* name) {

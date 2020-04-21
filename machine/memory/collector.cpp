@@ -4,7 +4,6 @@
 #include "memory.hpp"
 #include "call_frame.hpp"
 #include "exception_point.hpp"
-#include "thread_nexus.hpp"
 #include "thread_phase.hpp"
 
 #include "class/array.hpp"
@@ -215,16 +214,16 @@ namespace rubinius {
         std::cerr << std::endl << "------------------------- Rubinius garbage collection -------------------------" << std::endl;
       }
 
-      if(state->thread_nexus()->try_lock_wait(state, state)) {
+      if(state->try_lock_wait()) {
         state->metrics()->stops++;
-        state->thread_nexus()->set_stop();
+        state->set_stop();
 
         logger::info("collector: stop initiated, waiting for all threads to checkpoint");
 
-        state->thread_nexus()->wait_for_all(state);
+        state->wait_for_all();
 
 #ifdef RBX_GC_STACK_CHECK
-        state->thread_nexus()->check_stack(state, state);
+        state->check_stack();
 #endif
 
         logger::info("collector: collection started");
@@ -233,8 +232,8 @@ namespace rubinius {
 
         logger::info("collector: collection finished");
 
-        state->thread_nexus()->unset_stop();
-        state->thread_nexus()->unlock(state, state);
+        state->unset_stop();
+        state->unlock();
       }
     }
 
@@ -325,7 +324,7 @@ namespace rubinius {
               state->diagnostics()->collector_metrics()->objects_finalized++;
             }
 
-            state->thread_nexus()->yield(state, state);
+            state->yield();
           }
         }
       }
