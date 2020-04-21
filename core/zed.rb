@@ -1912,7 +1912,5 @@ module Rubinius
       end
     end
   end
-
-  ConstantScope = LexicalScope
 end
 
