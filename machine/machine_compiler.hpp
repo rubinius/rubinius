@@ -32,17 +32,18 @@
 
 namespace rubinius {
 	namespace jit {
-
-    class CompileRequest;
-
-    typedef std::list<CompileRequest*> CompileList;
-
 #if LLVM_VERSION_MAJOR == 9
-
     using namespace llvm;
     using namespace llvm::orc;
+#endif
 
-    class Compiler {
+    class MachineCompiler {
+    public:
+			MachineCompiler(STATE);
+
+      virtual ~MachineCompiler() { }
+
+#if LLVM_VERSION_MAJOR == 9
 			ExecutionSession ES;
 			RTDyldObjectLinkingLayer ObjectLayer;
 			IRCompileLayer CompileLayer;
@@ -113,25 +114,8 @@ namespace rubinius {
 
 				return TSM;
 			}
-    };
 #endif
-
-		class MachineCompiler : public MachineThread {
-      CompileList list_;
-
-      std::mutex list_mutex_;
-      std::condition_variable list_condition_;
-
-		public:
-			MachineCompiler(STATE);
-
-      virtual ~MachineCompiler() { }
-
-      void initialize(STATE);
-      void after_fork_child(STATE);
-      void wakeup(STATE);
-      void run(STATE);
-		};
+    };
 	}
 }
 

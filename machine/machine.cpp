@@ -233,8 +233,9 @@ namespace rubinius {
 
     // TODO: Machine
     // _console_->start(_environment_->state);
-    // state->shared().start_compiler(state);
     // state->diagnostics().start_diagnostics(state);
+
+    start_compiler(state);
 
     MachineException::guard(state, false, [&]{
         if(const char* var = getenv("RBX_OPTIONS")) {
@@ -351,17 +352,15 @@ namespace rubinius {
     _console_->after_fork_child(state);
   }
 
-  /* TODO
   jit::MachineCompiler* Machine::start_compiler(STATE) {
-    if(!compiler_) {
+    if(!_compiler_) {
       if(state->configuration()->jit_enabled.value) {
-        compiler_ = new jit::MachineCompiler(state);
+        _compiler_ = new jit::MachineCompiler(state);
       }
     }
 
-    return compiler_;
+    return _compiler_;
   }
-   */
 
   void Machine::halt_console(STATE) {
     if(_console_) {

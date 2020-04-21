@@ -255,6 +255,8 @@ namespace rubinius {
     Diagnostics* start_diagnostics(STATE);
     void report_diagnostics(diagnostics::Diagnostic* diagnostic);
 
+    jit::MachineCompiler* start_compiler(STATE);
+
     uint32_t new_thread_id();
     // ---
 
