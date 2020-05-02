@@ -26,7 +26,6 @@ namespace rubinius {
     class Diagnostic;
   }
 
-  class ThreadNexus;
   class Memory;
 
   namespace memory {
@@ -148,7 +147,6 @@ namespace rubinius {
     MachineState* _machine_state_;
     ngLogger* _logger_;
     Threads* _threads_;
-    ThreadNexus* _thread_nexus_;
     Configuration* _configuration_;
     Environment* _environment_;
     Diagnostics* _diagnostics_;
@@ -256,9 +254,6 @@ namespace rubinius {
     void report_diagnostics(diagnostics::Diagnostic* diagnostic);
 
     jit::MachineCompiler* start_compiler(STATE);
-
-    uint32_t new_thread_id();
-    // ---
 
     void halt_console(STATE);
     void halt_profiler(STATE);

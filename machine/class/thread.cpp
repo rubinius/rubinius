@@ -335,7 +335,7 @@ namespace rubinius {
       }
 
       if(state->lock_owned_p()) {
-        logger::write("thread: exiting while owning ThreadNexus lock: %s",
+        logger::write("thread: exiting while owning Threads lock: %s",
             state->name().c_str());
         state->unlock();
       }
