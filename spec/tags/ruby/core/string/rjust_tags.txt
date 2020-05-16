@@ -1,0 +1,1 @@
+fails:String#rjust with length, padding with width, pattern raises an Encoding::CompatibilityError if the encodings are incompatible

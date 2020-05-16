@@ -1,0 +1,12 @@
+fails:IO#internal_encoding with 'r' mode when Encoding.default_internal != Encoding.default_external returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set
+fails:IO#internal_encoding with 'r' mode when Encoding.default_internal != Encoding.default_external does not change when Encoding.default_internal is changed
+fails:IO#internal_encoding with 'r+' mode when Encoding.default_internal != Encoding.default_external returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set
+fails:IO#internal_encoding with 'r+' mode when Encoding.default_internal != Encoding.default_external does not change when Encoding.default_internal is changed
+fails:IO#internal_encoding with 'w' mode when Encoding.default_internal != Encoding.default_external returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set
+fails:IO#internal_encoding with 'w' mode when Encoding.default_internal != Encoding.default_external does not change when Encoding.default_internal is changed
+fails:IO#internal_encoding with 'w+' mode when Encoding.default_internal != Encoding.default_external returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set
+fails:IO#internal_encoding with 'w+' mode when Encoding.default_internal != Encoding.default_external does not change when Encoding.default_internal is changed
+fails:IO#internal_encoding with 'a' mode when Encoding.default_internal != Encoding.default_external returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set
+fails:IO#internal_encoding with 'a' mode when Encoding.default_internal != Encoding.default_external does not change when Encoding.default_internal is changed
+fails:IO#internal_encoding with 'a+' mode when Encoding.default_internal != Encoding.default_external returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set
+fails:IO#internal_encoding with 'a+' mode when Encoding.default_internal != Encoding.default_external does not change when Encoding.default_internal is changed

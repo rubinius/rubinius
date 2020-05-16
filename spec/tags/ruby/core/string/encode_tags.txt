@@ -4,3 +4,35 @@ fails:String#encode! given the :xml => :text option replaces undefined character
 fails:String#encode! given the :xml => :attr option replaces undefined characters with their upper-case hexadecimal numeric character references
 fails:String#encode when passed options replaces invalid characters when replacing Emacs-Mule encoded strings
 fails:String#encode! when passed options replaces invalid characters when replacing Emacs-Mule encoded strings
+fails:String#encode when passed no options transcodes to Encoding.default_internal when set
+fails:String#encode when passed no options raises an Encoding::ConverterNotFoundError when no conversion is possible
+fails:String#encode when passed to encoding transcodes Japanese multibyte characters
+fails:String#encode when passed to encoding raises an Encoding::ConverterNotFoundError when no conversion is possible
+fails:String#encode when passed options raises an Encoding::ConverterNotFoundError when no conversion is possible despite ':invalid => :replace, :undef => :replace'
+fails:String#encode when passed to, from transcodes between the encodings ignoring the String encoding
+fails:String#encode when passed to, from calls #to_str to convert the from object to an Encoding
+fails:String#encode when passed to, options replaces undefined characters in the destination encoding
+fails:String#encode when passed to, options replaces invalid characters in the destination encoding
+fails:String#encode when passed to, options calls #to_hash to convert the options object
+fails:String#encode when passed to, from, options replaces undefined characters in the destination encoding
+fails:String#encode when passed to, from, options replaces invalid characters in the destination encoding
+fails:String#encode when passed to, from, options calls #to_str to convert the to object to an encoding
+fails:String#encode when passed to, from, options calls #to_str to convert the from object to an encoding
+fails:String#encode when passed to, from, options calls #to_hash to convert the options object
+fails:String#encode! when passed no options transcodes to Encoding.default_internal when set
+fails:String#encode! when passed no options raises an Encoding::ConverterNotFoundError when no conversion is possible
+fails:String#encode! when passed to encoding transcodes Japanese multibyte characters
+fails:String#encode! when passed to encoding raises an Encoding::ConverterNotFoundError when no conversion is possible
+fails:String#encode! when passed options raises an Encoding::ConverterNotFoundError when no conversion is possible despite ':invalid => :replace, :undef => :replace'
+fails:String#encode! when passed to, from transcodes between the encodings ignoring the String encoding
+fails:String#encode! when passed to, from calls #to_str to convert the from object to an Encoding
+fails:String#encode! when passed to, options replaces undefined characters in the destination encoding
+fails:String#encode! when passed to, options replaces invalid characters in the destination encoding
+fails:String#encode! when passed to, options calls #to_hash to convert the options object
+fails:String#encode! when passed to, from, options replaces undefined characters in the destination encoding
+fails:String#encode! when passed to, from, options replaces invalid characters in the destination encoding
+fails:String#encode! when passed to, from, options calls #to_str to convert the to object to an encoding
+fails:String#encode! when passed to, from, options calls #to_str to convert the from object to an encoding
+fails:String#encode! when passed to, from, options calls #to_hash to convert the options object
+fails:String#encode! when passed to encoding returns self
+fails:String#encode! when passed to, from returns self

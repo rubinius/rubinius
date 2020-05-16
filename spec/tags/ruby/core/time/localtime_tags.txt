@@ -1,0 +1,1 @@
+fails:Time#localtime raises ArgumentError if the String argument is not in an ASCII-compatible encoding

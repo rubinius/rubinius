@@ -1,0 +1,1 @@
+fails:Encoding::Converter#finish returns the last part of the converted String if it hasn't already

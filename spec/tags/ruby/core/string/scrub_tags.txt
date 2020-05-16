@@ -1,0 +1,1 @@
+fails:String#scrub with a default replacement replaces invalid byte sequences when using ASCII as the input encoding

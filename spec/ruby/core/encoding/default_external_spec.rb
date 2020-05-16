@@ -30,8 +30,7 @@ with_feature :encoding do
       end
 
       it "is not changed by the -U option" do
-        result = ruby_exe("print Encoding.default_external", :options => '-U')
-        result.should == "US-ASCII"
+        ruby_exe("print Encoding.default_external", :options => '-U', :args => '2>&1').should == "The -U option is deprecated. Rubinius internal encoding is always UTF-8\nUS-ASCII"
       end
 
       it "returns the encoding specified by '-E external'" do

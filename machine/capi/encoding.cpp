@@ -99,13 +99,8 @@ extern "C" {
   }
 
   rb_encoding *rb_default_internal_encoding(void) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Encoding* enc = Encoding::find(env->state(), "internal");
-    if(enc->nil_p()) {
-      return 0;
-    } else {
-      return enc->encoding();
-    }
+    // Rubinius internal encoding is always UTF-8
+    return 0;
   }
 
   rb_encoding *rb_default_external_encoding(void) {

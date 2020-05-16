@@ -48,12 +48,6 @@ describe "Dir.entries" do
     entries.first.encoding.should equal(Encoding::EUC_JP)
   end
 
-  it "returns entries transcoded to the default internal encoding" do
-    Encoding.default_internal = Encoding::EUC_KR
-    entries = Dir.entries File.join(DirSpecs.mock_dir, 'special')
-    entries.first.encoding.should equal(Encoding::EUC_KR)
-  end
-
   it "raises a SystemCallError if called with a nonexistent diretory" do
     lambda { Dir.entries DirSpecs.nonexistent }.should raise_error(SystemCallError)
   end

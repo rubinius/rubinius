@@ -58,7 +58,6 @@ namespace rubinius {
     G(encoding)->set_const(state, "EncodingList", G(encoding_list));
 
     G(encoding)->set_ivar(state, state->symbol("@default_external"), G(undefined));
-    G(encoding)->set_ivar(state, state->symbol("@default_internal"), G(undefined));
     G(encoding)->set_ivar(state, state->symbol("@filesystem_encoding"), G(undefined));
 
     Encoding* binary = create_bootstrap(state, "ASCII-8BIT", eBinary, ONIG_ENCODING_ASCII);
@@ -229,16 +228,8 @@ namespace rubinius {
   }
 
   Encoding* Encoding::default_internal(STATE) {
-    Encoding* enc;
-    Symbol* default_internal = state->symbol("default_internal");
-    Object* obj = G(encoding)->get_ivar(state, default_internal);
-
-    if(!(enc = try_as<Encoding>(obj))) {
-      enc = Encoding::find(state, "internal");
-      G(encoding)->set_ivar(state, default_internal, enc);
-    }
-
-    return enc;
+    // Rubinius internal encoding is always UTF-8
+    return nil<Encoding>();
   }
 
   Encoding* Encoding::filesystem_encoding(STATE) {

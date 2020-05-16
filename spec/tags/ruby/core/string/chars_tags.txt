@@ -1,0 +1,2 @@
+fails:String#chars returns characters in the same encoding as self
+fails:String#chars returns a different character if the String is transcoded

@@ -296,15 +296,27 @@ module Rubinius
         @load_paths << dir
       end
 
-      options.on "-K", "Ignored $KCODE option for compatibility"
+      options.on "-K", "Ignored $KCODE option for compatibility" do
+        msg = "The -K option is deprecated. Rubinius internal encoding is always UTF-8"
+        STDERR.puts msg
+        Rubinius::Logger.system.warn msg
+      end
+
       options.on "-U", "Set Encoding.default_internal to UTF-8" do
-        set_default_internal_encoding('UTF-8')
+        msg = "The -U option is deprecated. Rubinius internal encoding is always UTF-8"
+        STDERR.puts msg
+        Rubinius::Logger.system.warn msg
       end
 
       options.on "-E", "ENC", "Set external:internal character encoding to ENC" do |enc|
-        ext, int = enc.split(":")
-        Encoding.default_external = ext if ext and !ext.empty?
-        set_default_internal_encoding(int) if int and !int.empty?
+        external, internal = enc.split(":")
+        Encoding.default_external = external if external and !external.empty?
+
+        if internal and !internal.empty?
+          msg = "The -E option setting internal encoding is deprecated. Rubinius internal encoding is always UTF-8"
+          STDERR.puts msg
+          Rubinius::Logger.system.warn msg
+        end
       end
 
       options.on "--main", "PATH", "Load PATH directly from CodeDB" do |path|
@@ -494,16 +506,6 @@ VM Options
       Rubinius::Globals.set! :$0, name
     end
     private :set_program_name
-
-    def set_default_internal_encoding(encoding)
-      if @default_internal_encoding_set && Encoding.default_internal.name != encoding
-        raise RuntimeError, "Default internal encoding already set to '#{Encoding.default_internal.name}'."
-      else
-        @default_internal_encoding_set = true
-        Encoding.default_internal = encoding
-      end
-    end
-    private :set_default_internal_encoding
 
     def handle_rubyopt(options)
       if env_opts = ENV['RUBYOPT']

@@ -1,0 +1,2 @@
+fails:String#each_char returns characters in the same encoding as self
+fails:String#each_char returns a different character if the String is transcoded

@@ -137,18 +137,18 @@ with_feature :encoding do
     end
 
     it "returns the String's Encoding if it is not US-ASCII but both are ASCII only" do
-      [ [Encoding, "abc",                     Encoding::ASCII_8BIT],
+      [ [Encoding, "abc",                     Encoding::UTF_8],
         [Encoding, "abc".encode("utf-8"),     Encoding::UTF_8],
-        [Encoding, "abc".encode("euc-jp"),    Encoding::EUC_JP],
-        [Encoding, "abc".encode("shift_jis"), Encoding::Shift_JIS],
+        [Encoding, "abc".encode("euc-jp"),    Encoding::UTF_8],
+        [Encoding, "abc".encode("shift_jis"), Encoding::UTF_8],
       ].should be_computed_by(:compatible?, /abc/)
     end
 
     it "returns the String's Encoding if the String is not ASCII only" do
-      [ [Encoding, "\xff",                                  Encoding::ASCII_8BIT],
+      [ [Encoding, "\xff",                                  Encoding::UTF_8],
         [Encoding, "\u3042".encode("utf-8"),                Encoding::UTF_8],
-        [Encoding, "\xa4\xa2".force_encoding("euc-jp"),     Encoding::EUC_JP],
-        [Encoding, "\x82\xa0".force_encoding("shift_jis"),  Encoding::Shift_JIS],
+        [Encoding, "\xa4\xa2".force_encoding("euc-jp"),     Encoding::UTF_8],
+        [Encoding, "\x82\xa0".force_encoding("shift_jis"),  Encoding::UTF_8],
       ].should be_computed_by(:compatible?, /abc/)
     end
   end
@@ -161,18 +161,18 @@ with_feature :encoding do
       end
 
       it "returns the String's Encoding if it is not US-ASCII but both are ASCII only" do
-        [ [Encoding, "abc",                     Encoding::ASCII_8BIT],
+        [ [Encoding, "abc",                     Encoding::UTF_8],
           [Encoding, "abc".encode("utf-8"),     Encoding::UTF_8],
-          [Encoding, "abc".encode("euc-jp"),    Encoding::EUC_JP],
-          [Encoding, "abc".encode("shift_jis"), Encoding::Shift_JIS],
+          [Encoding, "abc".encode("euc-jp"),    Encoding::UTF_8],
+          [Encoding, "abc".encode("shift_jis"), Encoding::UTF_8],
         ].should be_computed_by(:compatible?, :abc)
       end
 
       it "returns the String's Encoding if the String is not ASCII only" do
-        [ [Encoding, "\xff",                                  Encoding::ASCII_8BIT],
+        [ [Encoding, "\xff",                                  Encoding::UTF_8],
           [Encoding, "\u3042".encode("utf-8"),                Encoding::UTF_8],
-          [Encoding, "\xa4\xa2".force_encoding("euc-jp"),     Encoding::EUC_JP],
-          [Encoding, "\x82\xa0".force_encoding("shift_jis"),  Encoding::Shift_JIS],
+          [Encoding, "\xa4\xa2".force_encoding("euc-jp"),     Encoding::UTF_8],
+          [Encoding, "\x82\xa0".force_encoding("shift_jis"),  Encoding::UTF_8],
         ].should be_computed_by(:compatible?, :abc)
       end
     end

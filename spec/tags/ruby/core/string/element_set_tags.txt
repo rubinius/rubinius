@@ -1,0 +1,5 @@
+fails:String#[]= with Fixnum index raises an Encoding::CompatibilityError if the replacement encoding is incompatible
+fails:String#[]= with String index raises an Encoding::CompatibilityError if the replacement encoding is incompatible
+fails:String#[]= with a Regexp index raises an Encoding::CompatibilityError if the replacement encoding is incompatible
+fails:String#[]= with a Range index raises an Encoding::CompatibilityError if the replacement encoding is incompatible
+fails:String#[]= with Fixnum index, count raises an Encoding::CompatibilityError if the replacement encoding is incompatible

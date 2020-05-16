@@ -1,0 +1,1 @@
+fails:Encoding#replicate returns a replica of UTF-16BE

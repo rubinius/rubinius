@@ -1,0 +1,1 @@
+fails:Encoding::Converter.new when passed nil for the replacement object when the destination encoding is not UTF-8 sets the replacement String encoding to US-ASCII

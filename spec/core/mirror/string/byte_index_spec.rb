@@ -55,12 +55,5 @@ describe "String#byte_index with String" do
     it "returns nil if the search String is not a complete character" do
       string_mirror("あそこ").byte_index("\xe3\x82").should be_nil
     end
-
-    it "raises an ArgumentError if the encoding of String and pattern are incompatible" do
-      pattern = "こ".encode Encoding::EUC_JP
-      lambda do
-        string_mirror("あそこ").byte_index pattern
-      end.should raise_error(ArgumentError)
-    end
   end
 end

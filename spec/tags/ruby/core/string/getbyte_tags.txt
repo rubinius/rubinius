@@ -1,0 +1,1 @@
+fails:String#getbyte interprets bytes relative to the String's encoding

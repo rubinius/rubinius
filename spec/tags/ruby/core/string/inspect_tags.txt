@@ -1,0 +1,2 @@
+fails:String#inspect when Encoding.default_internal is not nil returns a String with Encoding.default_internal encoding if it is ASCII compatible
+fails:String#inspect when Encoding.default_internal is not nil returns a String in US-ASCII encoding if Encoding.default_internal is not ASCII compatible

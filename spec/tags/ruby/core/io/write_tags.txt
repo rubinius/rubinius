@@ -1,0 +1,7 @@
+fails:IO#write on a file uses the encoding from the given option for non-ascii encoding
+fails:IO#write on a file uses an :open_args option
+fails:IO#write on a file raises a invalid byte sequence error if invalid bytes are being written
+fails:IO#write on a file writes binary data if no encoding is given
+fails:IO.write uses an :open_args option
+fails:IO.write uses the given encoding and returns the number of bytes written
+fails:IO.write writes binary data if no encoding is given

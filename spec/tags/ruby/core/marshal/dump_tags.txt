@@ -1,0 +1,2 @@
+fails:Marshal.dump with a Symbol dumps an encoded Symbol
+fails:Marshal.dump with a String dumps multiple strings using symlinks for the :E (encoding) symbol

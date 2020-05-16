@@ -517,15 +517,11 @@ class Encoding
   end
 
   def self.default_internal
-    if undefined.equal? @default_internal
-      @default_internal = find "internal"
-    end
-    @default_internal
+    # Rubinius internal encoding is always UTF-8
   end
 
   def self.default_internal=(enc)
-    set_alias_index "internal", enc
-    @default_internal = undefined
+    Rubinius::Logger.system.warn "Encoding.default_internal= is deprecated. Rubinius internal encoding is always UTF-8"
   end
 
   def self.find(name)

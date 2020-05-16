@@ -1102,6 +1102,10 @@ class String
       options = Rubinius::Type.coerce_to options, Hash, :to_hash
     end
 
+    # TODO: Only UTF-8 is allowed for internal encoding. This is a preliminary
+    # step to fixing all encoding-related interfaces.
+    to_enc = Encoding::UTF_8 unless to_enc == Encoding::UTF_8
+
     if ascii_only? and from_enc.ascii_compatible? and to_enc and to_enc.ascii_compatible?
       force_encoding to_enc
     elsif to_enc and from_enc != to_enc
@@ -1152,6 +1156,10 @@ class String
 
   def force_encoding(enc)
     @encoding = Rubinius::Type.coerce_to_encoding enc
+
+    # TODO: Only UTF-8 encodings are supported internally.
+    return self unless @encoding.equal?(Encoding::UTF_8) or @encoding.equal?(Encoding::BINARY)
+
     unless @ascii_only && @encoding.ascii_compatible?
       @ascii_only = @valid_encoding = @num_chars = nil
     end
@@ -1160,6 +1168,7 @@ class String
       @valid_encoding = true
       @num_chars = 0
     end
+
     self
   end
 

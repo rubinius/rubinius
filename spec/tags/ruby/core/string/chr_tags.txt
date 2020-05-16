@@ -1,0 +1,1 @@
+fails:String#chr returns a String in the same encoding as self

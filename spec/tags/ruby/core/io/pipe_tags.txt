@@ -1,0 +1,1 @@
+fails:IO.pipe sets the internal encoding of the read end to the default when passed no arguments

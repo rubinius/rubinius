@@ -1,0 +1,6 @@
+fails:IO#set_encoding when passed nil, nil with 'r' mode sets the encodings to the current Encoding defaults
+fails:IO#set_encoding when passed nil, nil with 'r+' mode sets the encodings to the current Encoding defaults
+fails:IO#set_encoding when passed nil, nil with 'w' mode sets the encodings to the current Encoding defaults
+fails:IO#set_encoding when passed nil, nil with 'w+' mode sets the encodings to the current Encoding defaults
+fails:IO#set_encoding when passed nil, nil with 'a' mode sets the encodings to the current Encoding defaults
+fails:IO#set_encoding when passed nil, nil with 'a+' mode sets the encodings to the current Encoding defaults

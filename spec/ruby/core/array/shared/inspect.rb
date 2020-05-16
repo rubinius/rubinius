@@ -120,12 +120,5 @@ describe :array_inspect, :shared => true do
 
       array.send(@method).encoding.name.should == "US-ASCII"
     end
-
-    it "raises if inspected result is not default external encoding" do
-      utf_16be = mock("utf_16be")
-      utf_16be.should_receive(:inspect).and_return("utf_16be".encode!(Encoding::UTF_16BE))
-
-      lambda { [utf_16be].send(@method) }.should raise_error(Encoding::CompatibilityError)
-    end
   end
 end

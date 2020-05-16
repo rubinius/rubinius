@@ -1,0 +1,2 @@
+fails:Regexp#encoding upgrades the encoding to that of an embedded String
+fails:Regexp#encoding ignores the encoding and uses US-ASCII if the string has only ASCII characters
