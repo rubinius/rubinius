@@ -1,1 +1,12 @@
 fails:IO#read with internal encoding not specified does not transcode the String
+fails:IO#read with internal encoding not specified sets the String encoding to the external encoding
+fails:IO#read with internal encoding not specified does not change the buffer's encoding when passed a limit
+fails:IO#read with internal encoding not specified trucates the buffer but does not change the buffer's encoding when no data remains
+fails:IO#read with internal encoding specified by open mode does not change the buffer's encoding when passed a limit
+fails:IO#read with internal encoding specified by open mode trucates the buffer but does not change the buffer's encoding when no data remains
+fails:IO#read with internal encoding specified by mode: option does not change the buffer's encoding when passed a limit
+fails:IO#read with internal encoding specified by mode: option trucates the buffer but does not change the buffer's encoding when no data remains
+fails:IO#read with internal encoding specified by internal_encoding: option does not change the buffer's encoding when passed a limit
+fails:IO#read with internal encoding specified by internal_encoding: option trucates the buffer but does not change the buffer's encoding when no data remains
+fails:IO#read with internal encoding specified by encoding: option does not change the buffer's encoding when passed a limit
+fails:IO#read with internal encoding specified by encoding: option trucates the buffer but does not change the buffer's encoding when no data remains

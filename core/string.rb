@@ -1155,10 +1155,12 @@ class String
   end
 
   def force_encoding(enc)
-    @encoding = Rubinius::Type.coerce_to_encoding enc
+    enc = Rubinius::Type.coerce_to_encoding enc
 
     # TODO: Only UTF-8 encodings are supported internally.
-    return self unless @encoding.equal?(Encoding::UTF_8) or @encoding.equal?(Encoding::BINARY)
+    return self unless enc.equal?(Encoding::UTF_8) or enc.equal?(Encoding::BINARY)
+
+    @encoding = enc
 
     unless @ascii_only && @encoding.ascii_compatible?
       @ascii_only = @valid_encoding = @num_chars = nil

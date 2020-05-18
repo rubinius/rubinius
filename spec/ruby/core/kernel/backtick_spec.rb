@@ -19,11 +19,6 @@ describe "Kernel#`" do
     `echo disc #{ip}`.should == "disc world\n"
   end
 
-  it "produces a String in the default external encoding" do
-    Encoding.default_external = Encoding::SHIFT_JIS
-    `echo disc`.encoding.should equal(Encoding::SHIFT_JIS)
-  end
-
   it "raises an Errno::ENOENT if the command is not executable" do
     lambda { `nonexistent_command` }.should raise_error(Errno::ENOENT)
   end

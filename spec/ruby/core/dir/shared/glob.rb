@@ -9,13 +9,6 @@ describe :dir_glob, :shared => true do
     Dir.chdir @cwd
   end
 
-  with_feature :encoding do
-    it "raises an Encoding::CompatibilityError if the argument encoding is not compatible with US-ASCII" do
-      pattern = "file*".force_encoding Encoding::UTF_16BE
-      lambda { Dir.send(@method, pattern) }.should raise_error(Encoding::CompatibilityError)
-    end
-  end
-
   it "calls #to_path to convert a pattern" do
     obj = mock('file_one.ext')
     obj.should_receive(:to_path).and_return('file_one.ext')

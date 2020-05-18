@@ -90,18 +90,6 @@ describe "IO.read" do
     lambda { IO.read @fname, 0, -1  }.should raise_error(Errno::EINVAL)
     lambda { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
   end
-
-  with_feature :encoding do
-    it "uses the external encoding specified via the :external_encoding option" do
-      str = IO.read(@fname, :external_encoding => Encoding::ISO_8859_1)
-      str.encoding.should == Encoding::ISO_8859_1
-    end
-
-    it "uses the external encoding specified via the :encoding option" do
-      str = IO.read(@fname, :encoding => Encoding::ISO_8859_1)
-      str.encoding.should == Encoding::ISO_8859_1
-    end
-  end
 end
 
 describe "IO.read from a pipe" do
@@ -321,22 +309,6 @@ platform_is :windows do
   end
 end
 
-describe "IO#read with $KCODE set to UTF-8" do
-  before :each do
-    @kcode, $KCODE = $KCODE, "utf-8"
-    @io = IOSpecs.io_fixture "lines.txt"
-  end
-
-  after :each do
-    $KCODE = @kcode
-  end
-
-  it "ignores unicode encoding" do
-    @io.readline.should == "Voici la ligne une.\n"
-    @io.read(5).should == encode("Qui \303", "binary")
-  end
-end
-
 describe "IO#read in binary mode" do
   before :each do
     @internal = Encoding.default_internal
@@ -362,29 +334,6 @@ describe "IO#read in binary mode" do
       result.encoding.should == Encoding::ASCII_8BIT
       result.should == "abc\xE2def".force_encoding(Encoding::ASCII_8BIT)
     end
-  end
-end
-
-describe "IO#read in text mode" do
-  before :each do
-    @external = Encoding.default_external
-    @internal = Encoding.default_internal
-    @name = fixture __FILE__, "read_text.txt"
-  end
-
-  after :each do
-    Encoding.default_external = @external
-    Encoding.default_internal = @internal
-  end
-
-  it "reads data according to the internal encoding" do
-    Encoding.default_internal = "utf-8"
-    Encoding.default_external = "utf-8"
-
-    result = File.open(@name, "rt") { |f| f.read }.chomp
-
-    result.encoding.should == Encoding::UTF_8
-    result.should == "abcâdef"
   end
 end
 

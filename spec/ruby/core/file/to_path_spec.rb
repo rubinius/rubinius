@@ -38,9 +38,4 @@ describe "File#to_path" do
       @file.to_path.should == @name
     end
   end
-
-  it "preserves the encoding of the path" do
-    @file = File.new @path
-    @file.to_path.encoding.should == Encoding.find("euc-jp")
-  end
 end

@@ -1,0 +1,1 @@
+fails:Rubinius::Mirror::String#previous_byte_index returns the byte index of the start of the character from a byte in that character

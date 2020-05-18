@@ -87,38 +87,4 @@ describe :array_inspect, :shared => true do
   it "untrusts the result if an element is untrusted" do
     ["str".untrust].send(@method).untrusted?.should be_true
   end
-
-  describe "with encoding" do
-    before :each do
-       @default_external_encoding = Encoding.default_external
-    end
-
-    after :each do
-      Encoding.default_external = @default_external_encoding
-    end
-
-    it "returns a US-ASCII string for an empty Array" do
-      [].send(@method).encoding.should == Encoding::US_ASCII
-    end
-
-    it "use the default external encoding if it is ascii compatible" do
-      Encoding.default_external = Encoding.find('UTF-8')
-
-      utf8 = "utf8".encode("UTF-8")
-      jp   = "jp".encode("EUC-JP")
-      array = [jp, utf8]
-
-      array.send(@method).encoding.name.should == "UTF-8"
-    end
-
-    it "use US-ASCII encoding if the default external encoding is not ascii compatible" do
-      Encoding.default_external = Encoding.find('UTF-32')
-
-      utf8 = "utf8".encode("UTF-8")
-      jp   = "jp".encode("EUC-JP")
-      array = [jp, utf8]
-
-      array.send(@method).encoding.name.should == "US-ASCII"
-    end
-  end
 end

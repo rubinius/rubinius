@@ -7,12 +7,6 @@ describe "String.new" do
     str.should be_an_instance_of(String)
   end
 
-  it "accepts an encoding argument" do
-    str = String.new("\xA4\xA2", encoding: 'euc-jp')
-
-    str.encoding.should == Encoding::EUC_JP
-  end
-
   it "returns a fully-formed String" do
     str = String.new
     str.size.should == 0
@@ -48,9 +42,5 @@ describe "String.new" do
   it "raises TypeError on inconvertible object" do
     lambda { String.new 5 }.should raise_error(TypeError)
     lambda { String.new nil }.should raise_error(TypeError)
-  end
-
-  it "returns a binary String" do
-    String.new.encoding.should == Encoding::BINARY
   end
 end

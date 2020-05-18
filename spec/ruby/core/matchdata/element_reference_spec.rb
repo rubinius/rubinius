@@ -73,10 +73,4 @@ describe "MatchData#[Symbol]" do
     md = 'haystack'.match(/(?<t>t(?<a>ack))/)
     lambda { md['baz'] }.should raise_error(IndexError, /baz/)
   end
-
-  it "returns matches in the String's encoding" do
-    rex = /(?<t>t(?<a>ack))/u
-    md = 'haystack'.force_encoding('euc-jp').match(rex)
-    md[:t].encoding.should == Encoding::EUC_JP
-  end
 end

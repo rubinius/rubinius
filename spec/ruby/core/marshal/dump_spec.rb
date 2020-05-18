@@ -212,26 +212,9 @@ describe "Marshal.dump" do
       Marshal.dump(encode(str, "binary")).should == "\x04\bI\"\x00\x06:\t@fooI\"\bbar\x06:\x06EF"
     end
 
-    with_feature :encoding do
-      it "dumps a US-ASCII String" do
-        str = "abc".force_encoding("us-ascii")
-        Marshal.dump(str).should == "\x04\bI\"\babc\x06:\x06EF"
-      end
-
-      it "dumps a UTF-8 String" do
-        str = "\x6d\xc3\xb6\x68\x72\x65".force_encoding("utf-8")
-        Marshal.dump(str).should == "\x04\bI\"\vm\xC3\xB6hre\x06:\x06ET"
-      end
-
-      it "dumps a String in another encoding" do
-        str = "\x6d\x00\xf6\x00\x68\x00\x72\x00\x65\x00".force_encoding("utf-16le")
-        result = "\x04\bI\"\x0Fm\x00\xF6\x00h\x00r\x00e\x00\x06:\rencoding\"\rUTF-16LE"
-        Marshal.dump(str).should == result
-      end
-
-      it "dumps multiple strings using symlinks for the :E (encoding) symbol" do
-        Marshal.dump(["".encode("us-ascii"), "".encode("utf-8")]).should == "\x04\b[\aI\"\x00\x06:\x06EFI\"\x00\x06;\x00T"
-      end
+    it "dumps a UTF-8 String" do
+      str = "\x6d\xc3\xb6\x68\x72\x65".force_encoding(Encoding::UTF_8)
+      Marshal.dump(str).should == "\x04\bI\"\vm\xC3\xB6hre\x06:\x06ET"
     end
   end
 
@@ -266,11 +249,6 @@ describe "Marshal.dump" do
     it "dumps a UTF-8 Regexp" do
       o = Regexp.new(encode("", "utf-8"), Regexp::FIXEDENCODING)
       Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\x06ET"
-    end
-
-    it "dumps a Regexp in another encoding" do
-      o = Regexp.new(encode("", "utf-16le"), Regexp::FIXEDENCODING)
-      Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\rencoding\"\rUTF-16LE"
     end
   end
 
@@ -495,16 +473,13 @@ describe "Marshal.dump" do
     end
 
     with_feature :encoding do
-
       it "calls binmode when it's defined" do
         obj = mock('test')
         obj.should_receive(:write).at_least(1)
         obj.should_receive(:binmode).at_least(1)
         Marshal.dump("test", obj)
       end
-
     end
-
   end
 
   it "raises a TypeError if marshalling a Method instance" do

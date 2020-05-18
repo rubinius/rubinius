@@ -368,16 +368,6 @@ describe :regexp_new_string_ascii, :shared => true do
     it "returns a Regexp with source String having UTF-8 encoding if any UTF-8 escape sequences outside 7-bit ASCII are present" do
       Regexp.send(@method, "\u{ff}").source.encoding.should == Encoding::UTF_8
     end
-
-    it "returns a Regexp with the input String's encoding" do
-      str = "\x82\xa0".force_encoding(Encoding::Shift_JIS)
-      Regexp.send(@method, str).encoding.should == Encoding::Shift_JIS
-    end
-
-    it "returns a Regexp with source String having the input String's encoding" do
-      str = "\x82\xa0".force_encoding(Encoding::Shift_JIS)
-      Regexp.send(@method, str).source.encoding.should == Encoding::Shift_JIS
-    end
   end
 end
 

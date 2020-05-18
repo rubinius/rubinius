@@ -17,16 +17,6 @@ describe "File.expand_path" do
     end
   end
 
-  with_feature :encoding do
-    before :each do
-      @external = Encoding.default_external
-    end
-
-    after :each do
-      Encoding.default_external = @external
-    end
-  end
-
   it "converts a pathname to an absolute pathname" do
     File.expand_path('').should == @base
     File.expand_path('a').should == File.join(@base, 'a')
@@ -167,32 +157,6 @@ describe "File.expand_path" do
   platform_is :windows do
     it "expands C:/./dir to C:/dir" do
       File.expand_path("C:/./dir").should == "C:/dir"
-    end
-  end
-
-  with_feature :encoding do
-    it "returns a String in the same encoding as the argument" do
-      Encoding.default_external = Encoding::SHIFT_JIS
-
-      path = "./a".force_encoding Encoding::CP1251
-      File.expand_path(path).encoding.should equal(Encoding::CP1251)
-
-      weird_path = "\xde\xad\xbe\xaf".force_encoding Encoding::ASCII_8BIT
-      File.expand_path(weird_path).encoding.should equal(Encoding::ASCII_8BIT)
-    end
-
-    it "expands a path when the default external encoding is ASCII-8BIT" do
-      Encoding.default_external = Encoding::ASCII_8BIT
-      File.expand_path("\xde\xad\xbe\xaf", "/").should == "/\xde\xad\xbe\xaf"
-    end
-
-    it "expands a path with multi-byte characters" do
-      File.expand_path("Ångström").should == "#{@base}/Ångström"
-    end
-
-    it "raises an Encoding::CompatibilityError if the external encoding is not compatible" do
-      Encoding.default_external = Encoding::UTF_16BE
-      lambda { File.expand_path("./a") }.should raise_error(Encoding::CompatibilityError)
     end
   end
 

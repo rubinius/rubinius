@@ -275,22 +275,6 @@ describe "Kernel#sprintf" do
     sprintf("%+03d", 123).should == "+123"
     sprintf("%+03d", -123).should == "-123"
   end
-
-  with_feature :encoding do
-    it "returns a String in the same encoding as the format String if compatible" do
-      format = "%.2f %4s".force_encoding(Encoding::KOI8_U)
-      result = sprintf(format, 1.2, "dogs")
-      result.encoding.should equal(Encoding::KOI8_U)
-    end
-
-    it "returns a String in the argument encoding if format encoding is more restrictive" do
-      format = "foo %s".force_encoding(Encoding::US_ASCII)
-      arg = "b\303\274r".force_encoding(Encoding::UTF_8)
-
-      result = sprintf(format, arg)
-      result.encoding.should equal(Encoding::UTF_8)
-    end
-  end
 end
 
 describe "Kernel.sprintf" do

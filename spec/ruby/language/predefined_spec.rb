@@ -128,13 +128,6 @@ describe "Predefined global $&" do
     $&.should == $~[0]
     $&.should == 'foo'
   end
-
-  with_feature :encoding do
-    it "sets the encoding to the encoding of the source String" do
-      "abc".force_encoding(Encoding::EUC_JP) =~ /b/
-      $&.encoding.should equal(Encoding::EUC_JP)
-    end
-  end
 end
 
 describe "Predefined global $`" do
@@ -143,18 +136,6 @@ describe "Predefined global $`" do
     $`.should == $~.pre_match
     $`.should == 'bar'
   end
-
-  with_feature :encoding do
-    it "sets the encoding to the encoding of the source String" do
-      "abc".force_encoding(Encoding::EUC_JP) =~ /b/
-      $`.encoding.should equal(Encoding::EUC_JP)
-    end
-
-    it "sets an empty result to the encoding of the source String" do
-      "abc".force_encoding(Encoding::ISO_8859_1) =~ /a/
-      $`.encoding.should equal(Encoding::ISO_8859_1)
-    end
-  end
 end
 
 describe "Predefined global $'" do
@@ -162,18 +143,6 @@ describe "Predefined global $'" do
     /foo/ =~ 'barfoobaz'
     $'.should == $~.post_match
     $'.should == 'baz'
-  end
-
-  with_feature :encoding do
-    it "sets the encoding to the encoding of the source String" do
-      "abc".force_encoding(Encoding::EUC_JP) =~ /b/
-      $'.encoding.should equal(Encoding::EUC_JP)
-    end
-
-    it "sets an empty result to the encoding of the source String" do
-      "abc".force_encoding(Encoding::ISO_8859_1) =~ /c/
-      $'.encoding.should equal(Encoding::ISO_8859_1)
-    end
   end
 end
 
@@ -187,13 +156,6 @@ describe "Predefined global $+" do
   it "captures the last non nil capture" do
     /(a)|(b)/ =~ 'a'
     $+.should == 'a'
-  end
-
-  with_feature :encoding do
-    it "sets the encoding to the encoding of the source String" do
-      "abc".force_encoding(Encoding::EUC_JP) =~ /(b)/
-      $+.encoding.should equal(Encoding::EUC_JP)
-    end
   end
 end
 
@@ -216,13 +178,6 @@ describe "Predefined globals $1..N" do
       end
     end
     test("-").should == nil
-  end
-
-  with_feature :encoding do
-    it "sets the encoding to the encoding of the source String" do
-      "abc".force_encoding(Encoding::EUC_JP) =~ /(b)/
-      $1.encoding.should equal(Encoding::EUC_JP)
-    end
   end
 end
 

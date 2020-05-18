@@ -38,18 +38,6 @@ describe :string_replace, :shared => true do
     a.untrusted?.should == true
   end
 
-  it "replaces the encoding of self with that of other" do
-    a = "".encode("UTF-16LE")
-    b = "".encode("UTF-8")
-    a.send(@method, b)
-    a.encoding.should == Encoding::UTF_8
-  end
-
-  it "carries over the encoding invalidity" do
-    a = "\u{8765}".force_encoding('ascii')
-    "".send(@method, a).valid_encoding?.should be_false
-  end
-
   it "tries to convert other to string using to_str" do
     other = mock('x')
     other.should_receive(:to_str).and_return("converted to a string")

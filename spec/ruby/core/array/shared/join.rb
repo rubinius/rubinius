@@ -14,10 +14,6 @@ describe :array_join_with_default_separator, :shared => true do
     [].send(@method).should == ''
   end
 
-  it "returns a US-ASCII string for an empty Array" do
-    [].send(@method).encoding.should == Encoding::US_ASCII
-  end
-
   it "returns a string formed by concatenating each String element separated by $," do
     $, = " | "
     ["1", "2", "3"].send(@method).should == "1 | 2 | 3"
@@ -82,32 +78,6 @@ describe :array_join_with_default_separator, :shared => true do
     s = mock("untrust")
     s.should_receive(:to_s).and_return("str".untrust)
     [s].send(@method).untrusted?.should be_true
-  end
-
-  it "uses the first encoding when other strings are compatible" do
-    ary1 = ArraySpecs.array_with_7bit_utf8_and_usascii_strings
-    ary2 = ArraySpecs.array_with_usascii_and_7bit_utf8_strings
-    ary3 = ArraySpecs.array_with_utf8_and_7bit_ascii8bit_strings
-    ary4 = ArraySpecs.array_with_usascii_and_7bit_ascii8bit_strings
-
-    ary1.send(@method).encoding.should == Encoding::UTF_8
-    ary2.send(@method).encoding.should == Encoding::US_ASCII
-    ary3.send(@method).encoding.should == Encoding::UTF_8
-    ary4.send(@method).encoding.should == Encoding::US_ASCII
-  end
-
-  it "uses the widest common encoding when other strings are incompatible" do
-    ary1 = ArraySpecs.array_with_utf8_and_usascii_strings
-    ary2 = ArraySpecs.array_with_usascii_and_utf8_strings
-
-    ary1.send(@method).encoding.should == Encoding::UTF_8
-    ary2.send(@method).encoding.should == Encoding::UTF_8
-  end
-
-  it "fails for arrays with incompatibly-encoded strings" do
-    ary_utf8_bad_ascii8bit = ArraySpecs.array_with_utf8_and_ascii8bit_strings
-
-    lambda { ary_utf8_bad_ascii8bit.send(@method) }.should raise_error(EncodingError)
   end
 end
 

@@ -1,8 +1,17 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
+# TODO: clean up specs for UTF-8 only internal encoding.
 describe "Magic comment" do
   it "is optional" do
     lambda { eval("__ENCODING__") }.should_not raise_error(SyntaxError)
+  end
+
+  it "is ignored because only UTF-8 encoding is allowed" do
+    eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::UTF_8
+
+# encoding: ASCII-8BIT
+__ENCODING__
+EOS
   end
 
   it "determines __ENCODING__" do
@@ -20,7 +29,7 @@ EOS
   end
 
   it "must be at the first line" do
-    eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::US_ASCII
+    eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::UTF_8
 
 # encoding: ASCII-8BIT
 __ENCODING__
@@ -28,7 +37,7 @@ EOS
   end
 
   it "must be the first token of the line" do
-    eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::US_ASCII
+    eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::UTF_8
 1+1 # encoding: ASCII-8BIT
 __ENCODING__
 EOS

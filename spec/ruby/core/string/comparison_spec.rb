@@ -59,20 +59,6 @@ describe "String#<=> with String" do
   it "returns 1 if self is bytewise greater than other" do
     ("ÄÖÜ" <=> "ÄÖÛ").should == 1
   end
-
-  it "ignores encoding difference" do
-    ("ÄÖÛ".force_encoding("utf-8") <=> "ÄÖÜ".force_encoding("iso-8859-1")).should == -1
-    ("ÄÖÜ".force_encoding("utf-8") <=> "ÄÖÛ".force_encoding("iso-8859-1")).should == 1
-  end
-
-  it "returns 0 with identical ASCII-compatible bytes of different encodings" do
-    ("abc".force_encoding("utf-8") <=> "abc".force_encoding("iso-8859-1")).should == 0
-  end
-
-  it "compares the indices of the encodings when the strings have identical non-ASCII-compatible bytes" do
-    ("\xff".force_encoding("utf-8") <=> "\xff".force_encoding("iso-8859-1")).should == -1
-    ("\xff".force_encoding("iso-8859-1") <=> "\xff".force_encoding("utf-8")).should == 1
-  end
 end
 
 # Note: This is inconsistent with Array#<=> which calls #to_ary instead of
