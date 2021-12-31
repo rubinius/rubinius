@@ -112,8 +112,8 @@ namespace timer {
 
     ~Running() {
       uint64_t now = get_current_time();
-      uint64_t run = (now - start_) / ((uint64_t)factor);
-      if(last_) last_ = run;
+      uint64_t run = (now - start_) / factor;
+      if(last_) last_ = (std::atomic<uint64_t>*) run;
 
       result_ += run;
     }
