@@ -43,7 +43,7 @@ def install_file(source, prefix, dest, name=nil, options={})
   options[:mode] ||= 0644
   options[:verbose] ||= $verbose
 
-  install source, dest_name, options
+  install source, dest_name, **options
 end
 
 def install_bin(source, target)
