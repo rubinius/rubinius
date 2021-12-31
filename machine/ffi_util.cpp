@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#ifndef __APPLE__
+#if !defined(__APPLE__) && ( defined(__GLIBC__) || defined(__UCLIBC__) )
 #include <sys/sysmacros.h>
 #endif
 #ifdef RBX_WINDOWS
