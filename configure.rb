@@ -1295,7 +1295,9 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_INOTIFY"
     end
 
-    if has_function("gettid", ["unistd.d", "sys/types.h"])
+    # On Linux systems providing gettid() (Glibc 2.30+), the header is `unistd.h`.
+    #
+    if has_function("gettid", ["unistd.d", "sys/types.h"]) || has_function("gettid", ["unistd.h"])
       @defines << "HAVE_GETTID"
     end
 
