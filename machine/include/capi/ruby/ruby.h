@@ -713,7 +713,8 @@ VALUE rb_uint2big(unsigned long number);
 #define RARRAY_LENINT(str) rb_ary_size(str)
 
 /** The pointer to the array's data. */
-#define RARRAY_PTR(ary)   (RARRAY(ary)->ptr)
+#define RARRAY_PTR(ary)       (RARRAY(ary)->ptr)
+#define RARRAY_CONST_PTR(ary) (const VALUE*)RARRAY_PTR(ary)
 
 /** The source pattern for a regex. */
 #define RREGEXP_SRC(reg)  rb_reg_source(reg)
@@ -2059,6 +2060,9 @@ struct RTypedData {
 
   /** Raises an exception from the value of errno. */
   NORETURN(void rb_sys_fail(const char* mesg));
+
+  /** Raises an exception from the value of errno. */
+  NORETURN(void rb_sys_fail_str(VALUE mesg));
 
   /** Raises an exception from the value of the given errno. */
   NORETURN(void rb_syserr_fail(int err, const char* mesg));

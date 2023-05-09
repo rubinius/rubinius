@@ -140,6 +140,19 @@ struct __sbuf {
 	size_t	_size;
 };
 
+/*
+ * I/O descriptors for __sfvwrite().
+ */
+typedef struct __siov {
+	const void *iov_base;
+	size_t	iov_len;
+} __siov;
+typedef struct __suio {
+	struct	__siov *uio_iov;
+	int	uio_iovcnt;
+	size_t	uio_resid;
+} __suio;
+
 
 /*
  * stdio state variables.
@@ -177,7 +190,7 @@ typedef	struct __sFILE {
 	short	_file;		/* fileno, if Unix descriptor, else -1 */
 	struct	__sbuf _bf;	/* the buffer (at least 1 byte, if !NULL) */
 	size_t	_lbfsize;	/* 0 or -_bf._size, for inline putc */
-	int	(*vwrite)(/* struct __sFILE*, struct __suio * */);
+	int	(*vwrite)(struct __sFILE*, struct __suio *);
 } FILE;
 
 
@@ -219,28 +232,12 @@ typedef	struct __sFILE {
 
 
 /*
- * I/O descriptors for __sfvwrite().
- */
-struct __siov {
-	const void *iov_base;
-	size_t	iov_len;
-};
-struct __suio {
-	struct	__siov *uio_iov;
-	int	uio_iovcnt;
-	size_t	uio_resid;
-};
-
-/*
  * Write some memory regions.  Return zero on success, EOF on error.
  *
  * This routine is large and unsightly, but most of the ugliness due
  * to the three different kinds of output buffering is handled here.
  */
-static int BSD__sfvwrite(fp, uio)
-	register FILE *fp;
-	register struct __suio *uio;
-{
+static int BSD__sfvwrite(register FILE *fp, register struct __suio *uio) {
 	register size_t len;
 	register const char *p;
 	register struct __siov *iov;

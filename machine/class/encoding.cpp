@@ -820,7 +820,7 @@ namespace rubinius {
 
       size_t num_converters = self->replacement_converters()->size();
 
-      for(size_t i = 0, k = 0; i < num_converters; k++, i += 2) {
+      for(size_t i = 0; i < num_converters; i += 2) {
         as<String>(self->replacement_converters()->get(state, i));
         as<Array>(self->replacement_converters()->get(state, i + 1));
       }

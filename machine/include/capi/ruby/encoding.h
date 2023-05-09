@@ -104,6 +104,8 @@ VALUE rb_enc_associate(VALUE, rb_encoding*);
 VALUE rb_enc_associate_index(VALUE, int);
 void rb_enc_copy(VALUE dest, VALUE src);
 
+VALUE rb_enc_vsprintf(rb_encoding *enc, const char *fmt, va_list ap);
+
 VALUE rb_enc_str_new(const char*, long, rb_encoding*);
 VALUE rb_usascii_str_new(const char* ptr, long len);
 VALUE rb_usascii_str_new2(const char* ptr);
