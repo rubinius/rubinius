@@ -1109,7 +1109,7 @@ namespace rubinius {
       Exception::raise_float_domain_error(state, "NaN");
     }
 
-    while(!(value <= (LONG_MAX >> 1)) || 0 != (long)value) {
+    while(!((long)value <= (LONG_MAX >> 1)) || 0 != (long)value) {
       value = value / (double)(DIGIT_RADIX);
       i++;
     }
