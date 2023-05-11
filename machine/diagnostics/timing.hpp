@@ -113,7 +113,7 @@ namespace timer {
     ~Running() {
       uint64_t now = get_current_time();
       uint64_t run = (now - start_) / ((uint64_t)factor);
-      if(last_) last_ = run;
+      if(last_) *last_ = run;
 
       result_ += run;
     }
