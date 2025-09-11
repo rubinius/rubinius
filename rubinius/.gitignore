@@ -1,0 +1,5 @@
+rubinius
+
+# Testscript output directory (can be symlink).
+#
+test-rubinius
