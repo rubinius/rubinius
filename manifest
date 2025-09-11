@@ -1,0 +1,13 @@
+: 1
+name: rubinius
+version: 0.1.0-a.0.z
+language: c++
+summary: rubinius C++ executable
+license: MIT ; MIT License.
+description-file: README.md
+url: https://example.org/rubinius
+email: brixen@gmail.com
+#build-error-email: brixen@gmail.com
+depends: * build2 >= 0.16.0
+depends: * bpkg >= 0.16.0
+#depends: libhello ^1.0.0
